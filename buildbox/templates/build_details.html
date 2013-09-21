@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block content %}
+	<div class="page-header build-header status-{{ build.status }}">
+		<span class="indicator">{{ build.status.title() }}</span>
+		<h2>{{ build.name }} <small><a href="{{ build.link }}">Build Details</a></small></h2>
+	</div>
+
+	<dl class="flat">
+		<dt>Revision:</dt>
+		<dd><a href="https://tails.corp.dropbox.com/rS{{ build.sha }}">{{ build.sha }}</a></dd>
+		<dt>Author:</dt>
+		<dd>{{ build.author.name }} (<a href="mailto:{{ build.author.email }}">{{ build.author.email }}</a>)</dd>
+		<dt>Duration:</dt>
+		<dd>
+			{% if build.duration %}
+				{{ '%.2f' % (build.duration / 1000) }}s ({{ len(build.nodes) }} nodes)
+			{% else %}
+				n/a
+			{% end %}
+		</dd>
+	</dl>
+
+	<pre>{{ build.message }}</pre>
+
+	<hr>
+
+	<ul class="phase-list">
+		{% for step in steps %}
+			<li class="status-{{ step.status }}">
+				<div class="phase-header">
+					<span class="indicator">{{ step.status.title() }}</span>
+					<h4>{{ step.name }}</h4>
+				</div>
+				<div class="phase-body">
+					<dl class="flat">
+						<dt>Nodes:</dt>
+						<dd>{{ len(step.nodes) }}</dd>
+						<dt>Duration:</dt>
+						<dd>
+							{% if step.duration %}
+								{{ '%.2f' % (step.duration / 1000) }}s
+							{% else %}
+								n/a
+							{% end %}
+						</dd>
+					</dl>
+					<ul class="stage-list">
+						{% for stage in step.stages %}
+							<li class="status-{{ stage.status }}">
+								<div class="stage-header">
+									<span class="indicator">{{ stage.status.title() }}</span>
+									<h5><a href="{{ stage.link }}">{{ stage.name }}</a></h5>
+								</div>
+							</li>
+						{% end %}
+					</ul>
+				</div>
+			</li>
+		{% end %}
+	</ul>
+{% end %}

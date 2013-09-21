@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Buildbox</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
+    <link href="{{ static_url('css/styles.css') }}" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/">Buildbox</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      {% block content %}{% end %}
+    </div>
+
+    <script src="{{ static_url('js/jquery-2.0.3.min.js') }}"></script>
+    <script src="{{ static_url('js/bootstrap.min.js') }}"></script>
+  </body>
+</html>

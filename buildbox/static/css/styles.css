@@ -1,0 +1,125 @@
+/*
+
+// navbar
+background: #58488a;
+color: #c7c0de;
+
+*/
+
+.container {
+  width: 800px;
+}
+
+.navbar {
+  background: #58488a;
+  color: #c7c0de;
+}
+.navbar a,
+.navbar a:hover,
+.navbar a:focus {
+  color: #fff;
+}
+
+h1, h2, h3, h4, h5, h6,
+a, a:hover, a:active, a:focus {
+  color: #6e5baa;
+}
+
+dl.flat {
+  position: relative;
+  padding-left: 110px;
+}
+dl.flat dt {
+  position: absolute;
+  left: 0;
+  width: 100px;
+}
+
+.page-header {
+  margin-top: 0;
+}
+
+.build-header,
+.page-header,
+.phase-header,
+.stage-header {
+  position: relative;
+}
+
+.indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  width: 100px;
+  border-radius: 40px;
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+}
+.status-failed .indicator {
+  color: #fff;
+  background: red;
+}
+.status-passed .indicator {
+  color: #fff;
+  background: #58488a;
+}
+
+.build-header .indicator {
+  height: 34px;
+  line-height: 34px;
+  bottom: 10px;
+}
+
+pre {
+  border: 0;
+  color: #333;
+  background: #f7f5fa;
+}
+
+.phase-list {
+  list-style: none;
+  padding-left: 0;
+}
+.phase-list > li {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+.phase-list .phase-header {
+  margin-bottom: 20px;
+}
+.phase-list .status-passed .phase-body {
+  display: none;
+}
+
+.stage-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.stage-list > li {
+  padding: 5px;
+}
+
+.stage-list > li:nth-child(odd) {
+  background: #f9f9f9;
+}
+
+.phase-header .indicator {
+  width: 100px;
+  font-size: 13px;
+  height: 25px;
+  line-height: 25px;
+  border-radius: 25px;
+}
+
+.stage-header .indicator {
+  width: 80px;
+  font-size: 12px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 20px;
+}

@@ -1,0 +1,8 @@
+.DS_Store
+*.egg-info
+*.pyc
+*.xml
+.coverage
+.idea
+*.db
+uploads
