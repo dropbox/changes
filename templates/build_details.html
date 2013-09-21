@@ -1,16 +1,14 @@
 {% extends "layout.html" %}
 
 {% block content %}
-	<div class="page-header build-header status-{{ build.status }}">
-		<span class="indicator">{{ build.status.title() }}</span>
-		<h2>{{ build.name }} <small><a href="{{ build.link }}">Build Details</a></small></h2>
+	<div class="page-header build-header status-{{ build.result }}">
+		<span class="indicator">{{ build.result }}</span>
+		<h2>{{ build.label }} <small>({{ revision.sha[:12] }})</small></h2>
 	</div>
 
 	<dl class="flat">
-		<dt>Revision:</dt>
-		<dd><a href="https://tails.corp.dropbox.com/rS{{ build.sha }}">{{ build.sha }}</a></dd>
 		<dt>Author:</dt>
-		<dd>{{ build.author.name }} (<a href="mailto:{{ build.author.email }}">{{ build.author.email }}</a>)</dd>
+		<dd>{{ author.name }} (<a href="mailto:{{ author.email }}">{{ author.email }}</a>)</dd>
 		<dt>Duration:</dt>
 		<dd>
 			{% if build.duration %}
@@ -21,36 +19,34 @@
 		</dd>
 	</dl>
 
-	<pre>{{ build.message }}</pre>
+	<pre>{% raw linkify(escape(revision.message)) %}</pre>
 
 	<hr>
 
 	<ul class="phase-list">
-		{% for step in steps %}
-			<li class="status-{{ step.status }}">
+		{% for phase in phases %}
+			<li class="status-{{ phase.result }}">
 				<div class="phase-header">
-					<span class="indicator">{{ step.status.title() }}</span>
-					<h4>{{ step.name }}</h4>
+					<span class="indicator">{{ phase.result }}</span>
+					<h4>{{ phase.label }}</h4>
 				</div>
 				<div class="phase-body">
 					<dl class="flat">
-						<dt>Nodes:</dt>
-						<dd>{{ len(step.nodes) }}</dd>
 						<dt>Duration:</dt>
 						<dd>
-							{% if step.duration %}
-								{{ '%.2f' % (step.duration / 1000) }}s
+							{% if phase.duration %}
+								{{ '%.2f' % (phase.duration / 1000) }}s
 							{% else %}
 								n/a
 							{% end %}
 						</dd>
 					</dl>
 					<ul class="stage-list">
-						{% for stage in step.stages %}
-							<li class="status-{{ stage.status }}">
+						{% for step in phase.steps %}
+							<li class="status-{{ step.result }}">
 								<div class="stage-header">
-									<span class="indicator">{{ stage.status.title() }}</span>
-									<h5><a href="{{ stage.link }}">{{ stage.name }}</a></h5>
+									<span class="indicator">{{ step.result }}</span>
+									<h5><a href="{{ step.link }}">{{ step.label }}</a></h5>
 								</div>
 							</li>
 						{% end %}

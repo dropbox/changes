@@ -1,13 +1,13 @@
 """Initial schemas
 
-Revision ID: 36d36fb1fdc1
+Revision ID: 296665c60a0a
 Revises: None
-Create Date: 2013-09-20 20:46:27.913591
+Create Date: 2013-09-20 21:50:17.857825
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '36d36fb1fdc1'
+revision = '296665c60a0a'
 down_revision = None
 
 from alembic import op
@@ -30,17 +30,6 @@ def upgrade():
     sa.Column('date_created', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('revision',
-    sa.Column('id', sa.GUID(), nullable=False),
-    sa.Column('repository_id', sa.GUID(), nullable=True),
-    sa.Column('author_id', sa.GUID(), nullable=True),
-    sa.Column('sha', sa.String(length=40), nullable=False),
-    sa.Column('date_created', sa.DateTime(), nullable=True),
-    sa.Column('message', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['author_id'], ['author.id'], ),
-    sa.ForeignKeyConstraint(['repository_id'], ['repository.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('project',
     sa.Column('id', sa.GUID(), nullable=False),
     sa.Column('repository_id', sa.GUID(), nullable=False),
@@ -49,16 +38,27 @@ def upgrade():
     sa.ForeignKeyConstraint(['repository_id'], ['repository.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('revision',
+    sa.Column('repository_id', sa.GUID(), nullable=False),
+    sa.Column('sha', sa.String(length=40), nullable=False),
+    sa.Column('author_id', sa.GUID(), nullable=True),
+    sa.Column('date_created', sa.DateTime(), nullable=True),
+    sa.Column('message', sa.Text(), nullable=True),
+    sa.ForeignKeyConstraint(['author_id'], ['author.id'], ),
+    sa.ForeignKeyConstraint(['repository_id'], ['repository.id'], ),
+    sa.PrimaryKeyConstraint('repository_id', 'sha')
+    )
     op.create_table('build',
     sa.Column('id', sa.GUID(), nullable=False),
     sa.Column('repository_id', sa.GUID(), nullable=False),
     sa.Column('project_id', sa.GUID(), nullable=False),
-    sa.Column('parent_revision_id', sa.GUID(), nullable=False),
-    sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('parent_revision_sha', sa.String(length=40), nullable=False),
+    sa.Column('label', sa.String(length=64), nullable=False),
+    sa.Column('status', sa.Enum(), nullable=False),
+    sa.Column('result', sa.Enum(), nullable=False),
     sa.Column('date_started', sa.DateTime(), nullable=True),
     sa.Column('date_finished', sa.DateTime(), nullable=True),
     sa.Column('date_created', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['parent_revision_id'], ['revision.id'], ),
     sa.ForeignKeyConstraint(['project_id'], ['project.id'], ),
     sa.ForeignKeyConstraint(['repository_id'], ['repository.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -69,7 +69,8 @@ def upgrade():
     sa.Column('repository_id', sa.GUID(), nullable=False),
     sa.Column('project_id', sa.GUID(), nullable=False),
     sa.Column('label', sa.String(length=128), nullable=False),
-    sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('status', sa.Enum(), nullable=False),
+    sa.Column('result', sa.Enum(), nullable=False),
     sa.Column('date_started', sa.DateTime(), nullable=True),
     sa.Column('date_finished', sa.DateTime(), nullable=True),
     sa.Column('date_created', sa.DateTime(), nullable=True),
@@ -85,7 +86,8 @@ def upgrade():
     sa.Column('repository_id', sa.GUID(), nullable=False),
     sa.Column('project_id', sa.GUID(), nullable=False),
     sa.Column('label', sa.String(length=128), nullable=False),
-    sa.Column('status', sa.Integer(), nullable=False),
+    sa.Column('status', sa.Enum(), nullable=False),
+    sa.Column('result', sa.Enum(), nullable=False),
     sa.Column('date_started', sa.DateTime(), nullable=True),
     sa.Column('date_finished', sa.DateTime(), nullable=True),
     sa.Column('date_created', sa.DateTime(), nullable=True),
@@ -103,8 +105,8 @@ def downgrade():
     op.drop_table('step')
     op.drop_table('phase')
     op.drop_table('build')
-    op.drop_table('project')
     op.drop_table('revision')
+    op.drop_table('project')
     op.drop_table('author')
     op.drop_table('repository')
     ### end Alembic commands ###

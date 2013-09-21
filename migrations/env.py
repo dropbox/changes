@@ -7,8 +7,11 @@ from sqlalchemy import pool, create_engine
 from buildbox.conf import settings
 from buildbox.models import metadata
 
+# compatibility for imports
 from buildbox.db.types.guid import GUID
+from buildbox.db.types.enum import Enum
 sa.GUID = GUID
+sa.Enum = Enum
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+	<ul class="build-list">
+		{% for build in build_list %}
+			<li class="status-{{ build.result.name }}">
+				<span class="indicator">{{ build.result }}</span>
+				<h4>
+					<a href="{{ reverse_url('build-details', build.project_id, build.id) }}">{{ build.label }}</a>
+					<small>{{ build.parent_revision_sha[:12] }}</small>
+				</h4>
+			</li>
+		{% end %}
+	</ul>
+{% end %}

@@ -25,6 +25,12 @@ a, a:hover, a:active, a:focus {
   color: #6e5baa;
 }
 
+pre {
+  border: 0;
+  color: #333;
+  background: #f7f5fa;
+}
+
 dl.flat {
   position: relative;
   padding-left: 110px;
@@ -73,11 +79,21 @@ dl.flat dt {
   bottom: 10px;
 }
 
-pre {
-  border: 0;
-  color: #333;
-  background: #f7f5fa;
+
+.build-list {
+  list-style: none;
+  padding-left: 0;
 }
+
+.build-list > li {
+  position: relative;
+  margin-bottom: 5px;
+}
+
+.stage-list > li:nth-child(odd) {
+  background: #f9f9f9;
+}
+
 
 .phase-list {
   list-style: none;
@@ -94,6 +110,7 @@ pre {
 .phase-list .status-passed .phase-body {
   display: none;
 }
+
 
 .stage-list {
   list-style: none;
