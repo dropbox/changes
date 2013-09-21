@@ -90,25 +90,25 @@ session.commit()
 step = Step(
     repository_id=repo.id, project_id=project.id, build_id=build.id,
     phase_id=phase1_test.id, status=Status.finished, result=Result.passed,
-    label='blockserver',
+    label='tests/buildbox/web/frontend/test_build_details.py',
 )
 session.add(step)
 step = Step(
     repository_id=repo.id, project_id=project.id, build_id=build.id,
     phase_id=phase1_test.id, status=Status.finished, result=Result.passed,
-    label='metaserver',
+    label='tests/buildbox/web/frontend/test_build_list.py',
 )
 session.add(step)
 step = Step(
     repository_id=repo.id, project_id=project.id, build_id=build2.id,
     phase_id=phase2_test.id, status=Status.finished, result=Result.failed,
-    label='blockserver',
+    label='tests/buildbox/web/frontend/test_build_details.py',
 )
 session.add(step)
 step = Step(
     repository_id=repo.id, project_id=project.id, build_id=build2.id,
     phase_id=phase2_test.id, status=Status.inprogress, result=Result.unknown,
-    label='metaserver',
+    label='tests/buildbox/web/frontend/test_build_list.py',
 )
 session.add(step)
 session.commit()
