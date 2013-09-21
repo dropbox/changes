@@ -23,3 +23,11 @@ class Step(Base):
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
+
+    @property
+    def duration(self):
+        if self.date_started and self.date_finished:
+            duration = self.date_finished - self.date_started
+        else:
+            duration = None
+        return duration

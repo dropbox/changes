@@ -8,7 +8,7 @@ import uuid
 from buildbox.db.backend import Backend
 from buildbox.constants import Status, Result
 from buildbox.models import (
-    Project, Repository, Author, Revision, Build
+    Project, Repository, Author, Revision, Build, Phase, Step
 )
 
 
@@ -40,11 +40,75 @@ build = Build(
     status=Status.finished, result=Result.passed, label='D1345',
 )
 session.add(build)
-session.commit()
 
-build = Build(
+build2 = Build(
     repository_id=repo.id, project_id=project.id, parent_revision_sha=revision.sha,
     status=Status.inprogress, result=Result.failed, label='D1459',
 )
-session.add(build)
+session.add(build2)
+session.commit()
+
+
+phase1_setup = Phase(
+    repository_id=repo.id, project_id=project.id, build_id=build.id,
+    status=Status.finished, result=Result.passed, label='Setup',
+)
+session.add(phase1_setup)
+
+phase1_compile = Phase(
+    repository_id=repo.id, project_id=project.id, build_id=build.id,
+    status=Status.finished, result=Result.passed, label='Compile',
+)
+session.add(phase1_compile)
+
+phase1_test = Phase(
+    repository_id=repo.id, project_id=project.id, build_id=build.id,
+    status=Status.finished, result=Result.passed, label='Test',
+)
+session.add(phase1_test)
+
+phase2_setup = Phase(
+    repository_id=repo.id, project_id=project.id, build_id=build2.id,
+    status=Status.finished, result=Result.passed, label='Setup',
+)
+session.add(phase2_setup)
+
+phase2_compile = Phase(
+    repository_id=repo.id, project_id=project.id, build_id=build2.id,
+    status=Status.finished, result=Result.passed, label='Compile',
+)
+session.add(phase2_compile)
+
+phase2_test = Phase(
+    repository_id=repo.id, project_id=project.id, build_id=build2.id,
+    status=Status.inprogress, result=Result.failed, label='Test',
+)
+session.add(phase2_test)
+session.commit()
+
+
+step = Step(
+    repository_id=repo.id, project_id=project.id, build_id=build.id,
+    phase_id=phase1_test.id, status=Status.finished, result=Result.passed,
+    label='blockserver',
+)
+session.add(step)
+step = Step(
+    repository_id=repo.id, project_id=project.id, build_id=build.id,
+    phase_id=phase1_test.id, status=Status.finished, result=Result.passed,
+    label='metaserver',
+)
+session.add(step)
+step = Step(
+    repository_id=repo.id, project_id=project.id, build_id=build2.id,
+    phase_id=phase2_test.id, status=Status.finished, result=Result.failed,
+    label='blockserver',
+)
+session.add(step)
+step = Step(
+    repository_id=repo.id, project_id=project.id, build_id=build2.id,
+    phase_id=phase2_test.id, status=Status.inprogress, result=Result.unknown,
+    label='metaserver',
+)
+session.add(step)
 session.commit()

@@ -10,8 +10,8 @@ class BuildDetailsHandler(BaseRequestHandler):
         session = self.db.get_session()
 
         build = session.query(Build).get(build_id)
-        phases = session.query(Phase).filter_by(build_id=build.id)
-        steps = session.query(Step).filter_by(build_id=build.id)
+        phases = list(session.query(Phase).filter_by(build_id=build.id))
+        steps = list(session.query(Step).filter_by(build_id=build.id))
 
         # TODO: probably a better way to do relations
         revision = session.query(Revision).filter_by(

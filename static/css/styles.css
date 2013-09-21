@@ -70,7 +70,11 @@ dl.flat dt {
 }
 .status-passed .indicator {
   color: #fff;
-  background: #58488a;
+  background: #61c464;
+}
+.status-unknown .indicator {
+  color: #fff;
+  background: #999;
 }
 
 .build-header .indicator {
@@ -91,7 +95,7 @@ dl.flat dt {
 }
 
 .stage-list > li:nth-child(odd) {
-  background: #f9f9f9;
+  background: #f7f5fa;
 }
 
 
