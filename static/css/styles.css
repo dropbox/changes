@@ -66,11 +66,11 @@ dl.flat dt {
 }
 .status-failed .indicator {
   color: #fff;
-  background: red;
+  background: #d9322d;
 }
 .status-passed .indicator {
   color: #fff;
-  background: #61c464;
+  background: #2fd034;
 }
 .status-unknown .indicator {
   color: #fff;
