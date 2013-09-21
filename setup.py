@@ -24,8 +24,10 @@ tests_require = [
 ]
 
 install_requires = [
+    'alembic',
     'tornado',
     'requests',
+    'psycopg2',
     'simplejson',
 ]
 

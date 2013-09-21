@@ -1,7 +1,8 @@
 import requests
-import tornado.web
 
 from collections import defaultdict
+
+from .base_handler import BaseRequestHandler
 
 KOALITY_URL = 'https://build.itc.dropbox.com'
 KOALITY_API_KEY = 'he8i7mxdzrocn6rg9qv852occkvpih9b'
@@ -17,7 +18,7 @@ class AttrDict(dict):
         return self[name]
 
 
-class BuildDetailsHandler(tornado.web.RequestHandler):
+class BuildDetailsHandler(BaseRequestHandler):
     def get(self, project_id, build_id):
         def get_duration(start_time, end_time):
             if start_time and end_time:
