@@ -1,3 +1,5 @@
+import uuid
+
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 
@@ -16,10 +18,10 @@ class PhaseStatus(object):
 class Phase(Base):
     __tablename__ = 'phase'
 
-    phase_id = Column(GUID, primary_key=True)
-    build_id = Column(GUID, ForeignKey('build.build_id'), nullable=False)
-    repository_id = Column(GUID, ForeignKey('repository.repository_id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.project_id'), nullable=False)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
+    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     label = Column(String(128), nullable=False)
     status = Column(Integer, nullable=False, default=0)
     date_started = Column(DateTime)

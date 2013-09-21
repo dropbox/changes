@@ -1,10 +1,10 @@
-from . import author
-from . import build
-from . import phase
-from . import project
-from . import repository
-from . import revision
-from . import step
+from .author import *
+from .build import *
+from .phase import *
+from .project import *
+from .repository import *
+from .revision import *
+from .step import *
 
 # TOOD(dcramer): is there a better pattern for this?
 from buildbox.db.base import Base

@@ -1,10 +1,14 @@
-from __future__ import with_statement
+import sqlalchemy as sa
+
 from alembic import context
 from logging.config import fileConfig
 from sqlalchemy import pool, create_engine
 
 from buildbox.conf import settings
 from buildbox.models import metadata
+
+from buildbox.db.types.guid import GUID
+sa.GUID = GUID
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

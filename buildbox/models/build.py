@@ -1,5 +1,7 @@
+import uuid
+
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, ForeignKey
 
 from buildbox.db.base import Base
 from buildbox.db.types.guid import GUID
@@ -16,10 +18,10 @@ class BuildStatus(object):
 class Build(Base):
     __tablename__ = 'build'
 
-    build_id = Column(GUID, primary_key=True)
-    repository_id = Column(GUID, ForeignKey('repository.repository_id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.project_id'), nullable=False)
-    parent_sha = Column(String(40), nullable=False)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    parent_revision_id = Column(GUID, ForeignKey('revision.id'), nullable=False)
     status = Column(Integer, nullable=False, default=0)
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
