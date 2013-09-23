@@ -16,6 +16,7 @@ class Build(Base):
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     parent_revision_sha = Column(String(40), nullable=False)
+    patch_id = Column(GUID, ForeignKey('patch.id'))
     label = Column(String(64), nullable=False)
     status = Column(Enum(Status), nullable=False, default=0)
     result = Column(Enum(Result), nullable=False, default=0)

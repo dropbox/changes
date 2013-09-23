@@ -1,5 +1,6 @@
 from .author import *
 from .build import *
+from .patch import *
 from .phase import *
 from .project import *
 from .repository import *
