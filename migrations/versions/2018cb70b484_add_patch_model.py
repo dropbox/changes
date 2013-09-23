@@ -23,7 +23,7 @@ def upgrade():
     sa.Column('parent_revision_sha', sa.String(length=40), nullable=False),
     sa.Column('label', sa.String(length=64), nullable=False),
     sa.Column('url', sa.String(length=200), nullable=False),
-    sa.Column('diff', sa.BLOB(), nullable=True),
+    sa.Column('diff', sa.LargeBinary(), nullable=True),
     sa.Column('date_created', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['project_id'], ['project.id'], ),
     sa.ForeignKeyConstraint(['repository_id'], ['repository.id'], ),
