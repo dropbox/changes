@@ -63,6 +63,11 @@ setup(
     tests_require=tests_require,
     cmdclass={'test': PyTest},
     include_package_data=True,
+    entry_points={
+        'console_scripts': [
+            'buildbox-web = buildbox.runner:main',
+        ],
+    },
     classifiers=[
         '__DO NOT UPLOAD__',
         'Intended Audience :: Developers',
