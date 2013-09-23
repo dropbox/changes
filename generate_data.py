@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 assert not os.system('dropdb buildbox')
 assert not os.system('createdb -E utf-8 buildbox')
