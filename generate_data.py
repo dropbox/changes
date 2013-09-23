@@ -1,7 +1,7 @@
 import os
-os.system('dropdb buildbox')
-os.system('createdb -E utf-8 buildbox')
-os.system('alembic upgrade head')
+assert not os.system('dropdb buildbox')
+assert not os.system('createdb -E utf-8 buildbox')
+assert not os.system('alembic upgrade head')
 
 import uuid
 
