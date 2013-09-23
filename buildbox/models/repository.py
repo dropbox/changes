@@ -13,3 +13,8 @@ class Repository(Base):
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     url = Column(String(200), nullable=False, unique=True)
     date_created = Column(DateTime, default=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super(Repository, self).__init__(**kwargs)
+        if not self.id:
+            self.id = uuid.uuid4()

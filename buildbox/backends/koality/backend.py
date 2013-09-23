@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 import requests
 
@@ -21,7 +21,7 @@ PROJECT_MAP = {
 
 def find_entity(session, type, remote_id, provider='koality'):
     try:
-        entity = session.Query(RemoteEntity).filter_by(
+        entity = session.query(RemoteEntity).filter_by(
             type=type,
             remote_id=remote_id,
             provider=provider,
@@ -29,8 +29,19 @@ def find_entity(session, type, remote_id, provider='koality'):
     except IndexError:
         return None, None
 
-    instance = session.Query(entity.type.model).get(entity.remote_id)
+    instance = session.query(entity.type.model).get(entity.remote_id)
     return entity, instance
+
+
+def get_entity(session, instance, provider='koality'):
+    try:
+        return session.query(RemoteEntity).filter_by(
+            type=getattr(EntityType, instance.__tablename__),
+            internal_id=instance.id,
+            provider=provider,
+        )[0]
+    except IndexError:
+        return None
 
 
 class KoalityBackend(BaseBackend):
@@ -40,7 +51,7 @@ class KoalityBackend(BaseBackend):
         self._node_cache = {}
         super(KoalityBackend, self).__init__()
 
-    def _get_end_time(stage_list):
+    def _get_end_time(self, stage_list):
         end_time = 0
         for stage in stage_list:
             if not stage.get('endTime'):
@@ -48,21 +59,21 @@ class KoalityBackend(BaseBackend):
             end_time = max((stage['endTime'], end_time))
 
         if end_time != 0:
-            return datetime.utcfromtimestamp(end_time)
+            return datetime.utcfromtimestamp(end_time / 1000)
         return
 
     def _get_node(self, node_id):
         node = self._node_cache.get(node_id)
         if node is not None:
-            return None
+            return node
 
         with self.get_session() as session:
             _, node = find_entity(
-                session, EntityType.node, node_id)
+                session, EntityType.node, str(node_id))
             if node is None:
                 node = Node()
                 entity = RemoteEntity(
-                    provider='koality', remote_id=node_id,
+                    provider='koality', remote_id=str(node_id),
                     internal_id=node.id, type=EntityType.node,
                 )
                 session.add(node)
@@ -93,7 +104,9 @@ class KoalityBackend(BaseBackend):
         else:
             values['status'] = Status.queued
 
-        values['date_started'] = min(s['startTime'] for s in stage_list)
+        values['date_started'] = datetime.utcfromtimestamp(
+            min(s['startTime'] for s in stage_list) / 1000,
+        )
         values['date_finished'] = self._get_end_time(stage_list)
 
         with self.get_session() as session:
@@ -110,7 +123,9 @@ class KoalityBackend(BaseBackend):
             else:
                 update(session, phase, values)
 
-    def _sync_stage(self, build, phase, stage):
+        return phase
+
+    def _sync_step(self, build, phase, stage):
         node = self._get_node(stage['buildNode'])
         values = {
             'build_id': build.id,
@@ -119,8 +134,8 @@ class KoalityBackend(BaseBackend):
             'phase_id': phase.id,
             'node_id': node.id,
             'label': stage['name'],
-            'date_started': datetime.utcfromtimestamp(stage['startTime']),
-            'date_finished': self._get_end_time([stage['endTime']])
+            'date_started': datetime.utcfromtimestamp(stage['startTime'] / 1000),
+            'date_finished': self._get_end_time([stage])
         }
 
         if stage['startTime'] and stage['endTime']:
@@ -136,27 +151,54 @@ class KoalityBackend(BaseBackend):
         else:
             values['status'] = Status.queued
 
-        phase = create_or_update(Step, values=values, where={
-            'key': phase['type'],
-        })
+        with self.get_session() as session:
+            _, step = find_entity(
+                session, EntityType.step, str(stage['id']))
+            if step is None:
+                step = Step(**values)
+                session.add(step)
+                entity = RemoteEntity(
+                    provider='koality', remote_id=str(stage['id']),
+                    internal_id=step.id, type=EntityType.step,
+                )
+                session.add(entity)
+            else:
+                update(session, step, values)
+
+        return step
 
     def _get_response(self, method, url, **kwargs):
         kwargs.setdefault('params', {})
         kwargs['params'].setdefault('key', self.api_key)
         return getattr(requests, method.lower(), url, **kwargs).json()
 
-    def list_builds(self, project, scraped_entity):
-        project_id = scraped_entity.remote_id
+    def list_builds(self, project):
+        with self.get_session() as session:
+            remote_entity = get_entity(session, project)
 
-        change_list = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes/'.format(
+        assert remote_entity
+
+        project_id = remote_entity.remote_id
+
+        change_list = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
             base_uri=self.base_url, project_id=project_id
         ))
 
-        return change_list
+        return [{
+            'id': c['id'],
+            'data': c,
+        } for c in change_list]
 
-    def sync_build_details(self, build, scraped_entity):
-        project_id = scraped_entity.data['project_id']
-        remote_id = scraped_entity.remote_id
+    def sync_build_details(self, build):
+        with self.get_session() as session:
+            build_entity = get_entity(session, build)
+            project_entity = get_entity(session, build.project)
+
+        assert build_entity
+        assert project_entity
+
+        remote_id = build_entity.remote_id
+        project_id = project_entity.remote_id
 
         # {u'branch': u'verify only (api)', u'number': 760, u'createTime': 1379712159000, u'headCommit': {u'sha': u'257e20ba86c5fe1ff1e1f44613a2590bb56d7285', u'message': u'Change format of mobile gandalf info\n\nSummary: Made it more prettier\n\nTest Plan: tried it with my emulator, it works\n\nReviewers: fta\n\nReviewed By: fta\n\nCC: Reviews-Aloha, Server-Reviews\n\nDifferential Revision: https://tails.corp.dropbox.com/D23207'}, u'user': {u'lastName': u'Verifier', u'id': 3, u'firstName': u'Koality', u'email': u'verify-koala@koalitycode.com'}, u'startTime': 1379712161000, u'mergeStatus': None, u'endTime': 1379712870000, u'id': 814}
         change = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes/{build_id}'.format(
@@ -172,7 +214,7 @@ class KoalityBackend(BaseBackend):
             'date_finished': self._get_end_time(stage_list),
             'parent_revision_sha': change['headCommit']['sha'],
             'label': change['headCommit']['sha'][:12],
-            'date_started': datetime.utcfromtimestamp(change['startTime']),
+            'date_started': datetime.utcfromtimestamp(change['startTime'] / 1000),
         }
 
         # for stage in (s for s in stages if s['status'] == 'failed'):
@@ -192,19 +234,19 @@ class KoalityBackend(BaseBackend):
         with self.get_session() as session:
             update(session, build, values)
 
-        author = create_or_update(Author, values={
-            'email': change['headCommit']['user']['email'],
-        }, where={
-            'name': change['headCommit']['user']['name']
-        })
+            author = create_or_update(session, Author, values={
+                'email': change['headCommit']['user']['email'],
+            }, where={
+                'name': change['headCommit']['user']['name'],
+            })
 
-        create_or_update(Revision, values={
-            'message': change['headCommit']['message'],
-            'author_id': author.id,
-        }, where={
-            'repository_id': build.repository_id,
-            'sha': change['headCommit']['sha'],
-        })
+            create_or_update(session, Revision, values={
+                'message': change['headCommit']['message'],
+                'author_id': author.id,
+            }, where={
+                'repository_id': build.repository_id,
+                'sha': change['headCommit']['sha'],
+            })
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -216,7 +258,7 @@ class KoalityBackend(BaseBackend):
             phase = self._sync_phase(build, stage_type, stage_list)
 
             for stage in stage_list:
-                self._sync_stage(build, phase, stage)
+                self._sync_step(build, phase, stage)
 
     def create_build(self):
         pass

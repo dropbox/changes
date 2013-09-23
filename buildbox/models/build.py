@@ -21,12 +21,12 @@ class Build(Base):
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    project_id = Column(String(64), ForeignKey('project.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     parent_revision_sha = Column(String(40), nullable=False)
     patch_id = Column(GUID, ForeignKey('patch.id'))
     label = Column(String(64), nullable=False)
-    status = Column(Enum(Status), nullable=False, default=0)
-    result = Column(Enum(Result), nullable=False, default=0)
+    status = Column(Enum(Status), nullable=False, default=Status.unknown)
+    result = Column(Enum(Result), nullable=False, default=Result.unknown)
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
@@ -36,6 +36,11 @@ class Build(Base):
     parent_revision = relationship('Revision', backref='builds',
                                    remote_side=[repository_id, parent_revision_sha])
     patch = relationship('Patch', backref='builds')
+
+    def __init__(self, **kwargs):
+        super(Build, self).__init__(**kwargs)
+        if not self.id:
+            self.id = uuid.uuid4()
 
     @property
     def duration(self):

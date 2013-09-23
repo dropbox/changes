@@ -17,10 +17,10 @@ class Step(Base):
     build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
     phase_id = Column(GUID, ForeignKey('phase.id'), nullable=False)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    project_id = Column(String(64), ForeignKey('project.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     label = Column(String(128), nullable=False)
-    status = Column(Enum(Status), nullable=False, default=0)
-    result = Column(Enum(Result), nullable=False, default=0)
+    status = Column(Enum(Status), nullable=False, default=Status.unknown)
+    result = Column(Enum(Result), nullable=False, default=Result.unknown)
     node_id = Column(GUID, ForeignKey('node.id'))
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
@@ -30,6 +30,11 @@ class Step(Base):
     project = relationship('Project')
     repository = relationship('Repository')
     phase = relationship('Phase', backref='steps')
+
+    def __init__(self, **kwargs):
+        super(Step, self).__init__(**kwargs)
+        if not self.id:
+            self.id = uuid.uuid4()
 
     @property
     def duration(self):

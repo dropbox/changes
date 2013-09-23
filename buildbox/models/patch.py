@@ -12,7 +12,7 @@ class Patch(Base):
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    project_id = Column(String(64), ForeignKey('project.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     parent_revision_sha = Column(String(40), nullable=False)
     label = Column(String(64), nullable=False)
     url = Column(String(200), nullable=False)

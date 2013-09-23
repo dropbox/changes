@@ -9,13 +9,19 @@ class Backend(object):
             engine = application.settings['sqla_engine']
 
         self.engine = engine
-        self.create_session = sessionmaker(bind=engine)
+        self.create_session = sessionmaker(bind=self.connection)
 
     @classmethod
     def instance(cls):
-        if not hasattr(cls, "_instance"):
+        if not hasattr(cls, '_instance'):
             cls._instance = cls()
         return cls._instance
+
+    @property
+    def connection(self):
+        if not hasattr(self, '_connection'):
+            self._connection = self.engine.connect()
+        return self._connection
 
     def get_session(self):
         return SessionContextManager(self)

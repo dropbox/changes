@@ -1,0 +1,56 @@
+[
+  {
+    "status": "passed",
+    "name": "hg",
+    "buildNode": 3350,
+    "startTime": 1379628922000,
+    "endTime": 1379628933000,
+    "type": "setup",
+    "id": 50
+  },
+  {
+    "status": "passed",
+    "name": "hg",
+    "buildNode": 3351,
+    "startTime": 1379628922000,
+    "endTime": 1379628933000,
+    "type": "setup",
+    "id": 51
+  },
+  {
+    "status": "passed",
+    "name": "hg",
+    "buildNode": 3351,
+    "startTime": 1379628922500,
+    "endTime": 1379628933500,
+    "type": "compile",
+    "id": 52
+  },
+  {
+    "status": "passed",
+    "name": "hg",
+    "buildNode": 3352,
+    "startTime": 1379628923000,
+    "endTime": 1379628934000,
+    "type": "compile",
+    "id": 53
+  },
+  {
+    "status": "passed",
+    "name": "hg",
+    "buildNode": 3352,
+    "startTime": 1379628925000,
+    "endTime": 1379628935000,
+    "type": "test",
+    "id": 54
+  },
+  {
+    "status": "failed",
+    "name": "hg",
+    "buildNode": 3352,
+    "startTime": 1379628925000,
+    "endTime": 1379628936000,
+    "type": "test",
+    "id": 55
+  }
+]

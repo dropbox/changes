@@ -14,11 +14,11 @@ alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 from buildbox.conf import settings
 from buildbox.db.backend import Backend
 
-engine, connection, transaction = None, None, None
+backend, transaction = None, None
 
 
 def pytest_configure(config):
-    global transaction, connection, engine
+    global transaction, backend
 
     settings['database'] = 'postgresql:///test_buildbox'
 
@@ -27,23 +27,21 @@ def pytest_configure(config):
 
     command.upgrade(alembic_cfg, 'head')
 
-    engine = Backend.instance().engine
-    connection = engine.connect()
-    transaction = connection.begin()
+    backend = Backend.instance()
+    transaction = backend.connection.begin()
 
 
 def pytest_unconfigure():
-    global transaction, connection, engine
+    global transaction, backend
 
     transaction.rollback()
-    connection.close()
-    engine.dispose()
+    backend.connection.close()
 
 
 def pytest_runtest_setup(item):
-    global connection
+    global backend
 
-    item.__sqla_transaction = connection.begin_nested()
+    item.__sqla_transaction = backend.connection.begin_nested()
 
 
 def pytest_runtest_teardown(item):

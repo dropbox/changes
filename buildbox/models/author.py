@@ -14,3 +14,8 @@ class Author(Base):
     name = Column(String(128), nullable=False, unique=True)
     email = Column(String(128), unique=True)
     date_created = Column(DateTime, default=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super(Author, self).__init__(**kwargs)
+        if not self.id:
+            self.id = uuid.uuid4()

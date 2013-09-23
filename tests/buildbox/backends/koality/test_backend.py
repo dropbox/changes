@@ -8,7 +8,7 @@ from unittest2 import TestCase
 
 from buildbox.backends.koality.backend import KoalityBackend
 from buildbox.models import (
-    Repository, Project, RemoteEntity, EntityType
+    Repository, Revision, Project, Build, RemoteEntity, EntityType
 )
 
 
@@ -36,7 +36,7 @@ class MockedResponse(object):
 
     def url_to_filename(self, url):
         assert url.startswith(self.base_url)
-        return url[len(self.base_url) + 1:].replace('/', '__') + '.json'
+        return url[len(self.base_url) + 1:].strip('/').replace('/', '__') + '.json'
 
 
 class BackendTestCase(TestCase):
@@ -47,7 +47,7 @@ class BackendTestCase(TestCase):
     def get_backend(self):
         return self.backend_cls(**self.backend_options)
 
-    def make_entity(self, type, remote_id, internal_id):
+    def make_entity(self, type, internal_id, remote_id):
         entity = RemoteEntity(
             type=type,
             remote_id=remote_id,
@@ -59,12 +59,13 @@ class BackendTestCase(TestCase):
         return entity
 
 
-class ListBuildsTest(BackendTestCase):
+class KoalityBackendTestCase(BackendTestCase):
     backend_cls = KoalityBackend
     backend_options = {
         'base_url': 'https://koality.example.com',
         'api_key': 'a' * 12,
     }
+    provider = 'koality'
 
     def setUp(self):
         self.patcher = mock.patch.object(
@@ -75,14 +76,39 @@ class ListBuildsTest(BackendTestCase):
         self.patcher.start()
         self.addCleanup(self.patcher.stop)
 
+        backend = self.get_backend()
+
+        with backend.get_session() as session:
+            self.repo = Repository(url='https://github.com/dropbox/buildbox.git')
+            self.project = Project(repository=self.repo, name='test', slug='test')
+            session.add(self.repo)
+            session.add(self.project)
+
+
+class ListBuildsTest(KoalityBackendTestCase):
     def test_simple(self):
         backend = self.get_backend()
-        with backend.get_session() as session:
-            repo = Repository(url='https://github.com/dropbox/buildbox.git')
-            project = Project(repository=repo, name='test')
-            session.add(repo)
-            session.add(project)
-        entity = self.make_entity(EntityType.project, 1, project.id)
 
-        results = backend.list_builds(project, entity)
+        self.make_entity(EntityType.project, self.project.id, 1)
+
+        results = backend.list_builds(self.project)
         assert len(results) == 2
+
+
+class SyncBuildDetailsTest(KoalityBackendTestCase):
+    def test_simple(self):
+        backend = self.get_backend()
+
+        with backend.get_session() as session:
+            revision = Revision(sha='a' * 40, repository=self.repo)
+            build = Build(
+                repository=self.repo, project=self.project, label='test',
+                parent_revision=revision,
+            )
+            session.add(revision)
+            session.add(build)
+
+        self.make_entity(EntityType.project, self.project.id, 1)
+        self.make_entity(EntityType.build, build.id, 1)
+
+        backend.sync_build_details(build)

@@ -43,9 +43,14 @@ class RemoteEntity(Base):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    type = Column(Enum(EntityType))
-    provider = Column(String(128))
+    type = Column(Enum(EntityType), nullable=False)
+    provider = Column(String(128), nullable=False)
     remote_id = Column(String(128), nullable=False)
     internal_id = Column(GUID, nullable=False, unique=True)
     data = Column(JSONEncodedDict)
     date_created = Column(DateTime, default=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super(RemoteEntity, self).__init__(**kwargs)
+        if not self.id:
+            self.id = uuid.uuid4()
