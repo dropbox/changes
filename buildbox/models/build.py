@@ -31,11 +31,10 @@ class Build(Base):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    repository = relationship('Repository', backref='builds')
-    project = relationship('Project', backref='builds')
-    parent_revision = relationship('Revision', backref='builds',
-                                   remote_side=[repository_id, parent_revision_sha])
-    patch = relationship('Patch', backref='builds')
+    repository = relationship('Repository')
+    project = relationship('Project')
+    parent_revision = relationship('Revision', remote_side=[repository_id, parent_revision_sha])
+    patch = relationship('Patch')
 
     def __init__(self, **kwargs):
         super(Build, self).__init__(**kwargs)

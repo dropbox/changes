@@ -29,7 +29,7 @@ class Step(Base):
     build = relationship('Build')
     project = relationship('Project')
     repository = relationship('Repository')
-    phase = relationship('Phase', backref='steps')
+    phase = relationship('Phase')
 
     def __init__(self, **kwargs):
         super(Step, self).__init__(**kwargs)

@@ -15,5 +15,5 @@ class Revision(Base):
     message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    repository = relationship('Repository', backref='revisions')
-    author = relationship('Author', backref='revisions')
+    repository = relationship('Repository')
+    author = relationship('Author')

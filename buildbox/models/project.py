@@ -17,7 +17,7 @@ class Project(Base):
     name = Column(String(64))
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    repository = relationship('Repository', backref='projects')
+    repository = relationship('Repository')
 
     def __init__(self, **kwargs):
         super(Project, self).__init__(**kwargs)
