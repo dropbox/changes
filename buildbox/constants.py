@@ -19,6 +19,12 @@ class Result(Enum):
     def __str__(self):
         return RESULT_LABELS[self]
 
+
+class Provider(Enum):
+    unknown = 0
+    koality = 'koality'
+
+
 STATUS_LABELS = {
     Status.unknown: 'unknown',
     Status.queued: 'queued',

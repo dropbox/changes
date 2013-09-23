@@ -7,6 +7,8 @@ class Backend(object):
 
         if engine is None:
             engine = application.settings['sqla_engine']
+
+        self.engine = engine
         self.create_session = sessionmaker(bind=engine)
 
     @classmethod
@@ -25,8 +27,10 @@ class SessionContextManager(object):
         self.backend = backend
 
     def __enter__(self):
-        self.session = self.backend.create_session()
+        self.session = self.backend.create_session(expire_on_commit=False)
         return self.session
 
     def __exit__(self, *exc_info):
+        self.session.commit()
+        self.session.expunge_all()
         self.session.close()

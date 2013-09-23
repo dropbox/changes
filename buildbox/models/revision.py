@@ -11,5 +11,5 @@ class Revision(Base):
     repository_id = Column(GUID, ForeignKey('repository.id'), primary_key=True)
     sha = Column(String(40), primary_key=True)
     author_id = Column(GUID, ForeignKey('author.id'))
-    date_created = Column(DateTime, default=datetime.utcnow)
     message = Column(Text)
+    date_created = Column(DateTime, default=datetime.utcnow)

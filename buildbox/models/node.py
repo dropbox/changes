@@ -1,16 +1,15 @@
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, DateTime, String
 
 from buildbox.db.base import Base
 from buildbox.db.types.guid import GUID
 
 
-class Author(Base):
-    __tablename__ = 'author'
+class Node(Base):
+    __tablename__ = 'node'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    name = Column(String(128), nullable=False, unique=True)
-    email = Column(String(128), unique=True)
+    label = Column(String(128))
     date_created = Column(DateTime, default=datetime.utcnow)

@@ -21,6 +21,7 @@ tests_require = [
     'flake8',
     'mock',
     'pytest',
+    'unittest2',
 ]
 
 install_requires = [

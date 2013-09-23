@@ -4,14 +4,18 @@ from alembic import context
 from logging.config import fileConfig
 from sqlalchemy import pool, create_engine
 
+# force model registration
+import buildbox.models
 from buildbox.conf import settings
 from buildbox.models import metadata
 
 # compatibility for imports
-from buildbox.db.types.guid import GUID
 from buildbox.db.types.enum import Enum
+from buildbox.db.types.guid import GUID
+from buildbox.db.types.json import JSONEncodedDict
 sa.GUID = GUID
 sa.Enum = Enum
+sa.JSONEncodedDict = JSONEncodedDict
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

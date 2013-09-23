@@ -21,7 +21,7 @@ repo = Repository(
 session.add(repo)
 session.commit()
 
-project = Project(name='buildbox', repository_id=repo.id)
+project = Project(id='buildbox', name='buildbox', repository_id=repo.id)
 session.add(project)
 session.commit()
 
