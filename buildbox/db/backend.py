@@ -1,19 +1,18 @@
-from ..conf import settings
-
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from .async import AsyncConnectionManager
 
 
 class Backend(object):
-    def __init__(self):
-        engine = create_engine(
-            settings['database'],
-            # pool_size=options.mysql_poolsize,
-            # pool_recycle=3600,
-            echo=settings['debug'],
-            echo_pool=settings['debug'],
-        )
-        self._session = sessionmaker(bind=engine)
+    def __init__(self, engine=None):
+        from buildbox.app import application
+
+        if engine is None:
+            engine = application.settings['sqla_engine']
+        self.create_session = sessionmaker(bind=engine)
+        # TODO: should we bind concurrency to the number of connections
+        # available in the pool?
+        self.conn_manager = AsyncConnectionManager()
 
     @classmethod
     def instance(cls):
@@ -23,4 +22,16 @@ class Backend(object):
         return cls._instance
 
     def get_session(self):
-        return self._session()
+        return SessionContextManager(self)
+
+
+class SessionContextManager(object):
+    def __init__(self, backend):
+        self.backend = backend
+
+    def __enter__(self):
+        self.session = self.backend.create_session()
+        return self.session
+
+    def __exit__(self, *exc_info):
+        yield self.backend.conn_manager.commit(self.session)

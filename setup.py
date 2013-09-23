@@ -26,6 +26,7 @@ tests_require = [
 install_requires = [
     'alembic',
     'enum34',
+    'futures',
     'tornado',
     'requests',
     'psycopg2',
