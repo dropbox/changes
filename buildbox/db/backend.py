@@ -1,7 +1,5 @@
 from sqlalchemy.orm import sessionmaker
 
-from .async import AsyncConnectionManager
-
 
 class Backend(object):
     def __init__(self, engine=None):
@@ -10,13 +8,9 @@ class Backend(object):
         if engine is None:
             engine = application.settings['sqla_engine']
         self.create_session = sessionmaker(bind=engine)
-        # TODO: should we bind concurrency to the number of connections
-        # available in the pool?
-        self.conn_manager = AsyncConnectionManager()
 
     @classmethod
     def instance(cls):
-        """Singleton like accessor to instantiate backend object"""
         if not hasattr(cls, "_instance"):
             cls._instance = cls()
         return cls._instance
@@ -25,6 +19,7 @@ class Backend(object):
         return SessionContextManager(self)
 
 
+# TODO(cramer): this is likely blocking the Tornado ioloop
 class SessionContextManager(object):
     def __init__(self, backend):
         self.backend = backend
@@ -34,4 +29,4 @@ class SessionContextManager(object):
         return self.session
 
     def __exit__(self, *exc_info):
-        yield self.backend.conn_manager.commit(self.session)
+        self.session.close()
