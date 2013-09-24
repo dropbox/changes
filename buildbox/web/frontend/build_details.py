@@ -1,16 +1,16 @@
 from collections import defaultdict
 
 from buildbox.models import (
-    Build, Phase, Step, Test, Revision, Author
+    Project, Build, Phase, Step, Test, Revision, Author
 )
 
 from buildbox.web.base_handler import BaseRequestHandler
 
 
 class BuildDetailsHandler(BaseRequestHandler):
-    def get(self, project_id, build_id):
+    def get(self, project_slug, build_id):
         with self.db.get_session() as session:
-            build = session.query(Build).get(build_id)
+            build = session.query(Build).join(Project).filter(Project.slug == project_slug)[0]
             phase_list = list(session.query(Phase).filter_by(build_id=build.id))
             steps = list(session.query(Step).filter_by(build_id=build.id))
             test_list = list(session.query(Test).filter_by(
