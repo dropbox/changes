@@ -43,7 +43,7 @@
 
 	<div id="test-results">
 		<div class="page-header">
-			<h3>Test Results</h3>
+			<h3>Test Results <small>{{ sum(1 for t in test_list if t.result.name == 'failed') }} failure(s)</small></h3>
 		</div>
 
 		<table class="test-results table">

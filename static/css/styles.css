@@ -100,11 +100,15 @@ dl.flat dt {
   display: block;
   text-align: center;
   text-transform: uppercase;
-  background: #58488a;
+  background: #f7f5fa;
 }
 .status-failed .indicator {
   color: #fff;
   background: #d9322d;
+}
+.status-passed .indicator {
+  color: #fff;
+  background: #58488a;
 }
 
 .build-header h2 {
@@ -180,12 +184,18 @@ dl.flat dt {
   border-radius: 0 4px 4px 0;
 }
 .phase-list > li > a {
+  height: 43px;
   border-radius: 0;
   border: 0;
   padding-right: 30px;
   padding-left: 0;
 }
 .phase-list > li > a {
+  background: #f7f5fa;
+  color: #c7c0de;
+  border-color: #f7f5fa;
+}
+.phase-list > li.status-passed > a {
   background: #58488a;
   color: #c7c0de;
   border-color: #58488a;
@@ -212,13 +222,13 @@ dl.flat dt {
 .phase-list > li > a:after {
   z-index: 3;
   position: absolute;
-  top: 0;
-  right: -20px;
+  top: 1px;
+  right: -18px;
   width: 0;
   height: 0;
   display: block;
   content: " ";
-  border: 21px solid transparent;
+  border: 20px solid transparent;
   border-left-color: inherit;
 }
 .phase-list > li:first-child > a:before,
