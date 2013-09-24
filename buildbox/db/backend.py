@@ -37,7 +37,8 @@ class SessionContextManager(object):
         self.backend = backend
 
     def __enter__(self):
-        self.session = self.backend.create_session(expire_on_commit=False)
+        self.session = self.backend.create_session(
+            expire_on_commit=False)
         return self.session
 
     def __exit__(self, *exc_info):

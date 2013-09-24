@@ -5,13 +5,14 @@ import sys
 
 from collections import defaultdict
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 
 from buildbox.constants import Result, Status
 from buildbox.backends.base import BaseBackend
 from buildbox.db.utils import create_or_update, update
 from buildbox.models import (
     Revision, Author, Phase, Step, RemoteEntity, EntityType, Node,
-    Build
+    Build, Project
 )
 
 # TODO: this should be stored in the db
@@ -150,16 +151,18 @@ class KoalityBackend(BaseBackend):
         values['date_started'] = self._get_start_time(stage_list)
         values['date_finished'] = self._get_end_time(stage_list)
 
+        remote_id = '%s:%s' % (build.id.hex, stage_type)
+
         with self.get_session() as session:
             _, phase = find_entity(
-                session, EntityType.phase, stage_type)
+                session, EntityType.phase, remote_id)
             if phase is None:
                 phase = Phase(**values)
-                session.add(phase)
                 entity = RemoteEntity(
-                    provider='koality', remote_id=stage_type,
+                    provider='koality', remote_id=remote_id,
                     internal_id=phase.id, type=EntityType.phase,
                 )
+                session.add(phase)
                 session.add(entity)
             else:
                 update(session, phase, values)
@@ -284,8 +287,11 @@ class KoalityBackend(BaseBackend):
 
     def sync_build_details(self, build):
         with self.get_session() as session:
+            project = session.query(Project).options(
+                joinedload(Project.repository),
+            ).get(build.project_id)
             build_entity = get_entity(session, build)
-            project_entity = get_entity(session, build.project)
+            project_entity = get_entity(session, project)
 
         assert build_entity
         assert project_entity
@@ -303,7 +309,7 @@ class KoalityBackend(BaseBackend):
             base_uri=self.base_url, project_id=project_id, build_id=remote_id
         ))
 
-        build = self._sync_build(build.project, change, stage_list, build=build)
+        build = self._sync_build(project, change, stage_list, build=build)
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -313,6 +319,7 @@ class KoalityBackend(BaseBackend):
             stage_list.sort(key=lambda x: x['status'] == 'passed')
 
             phase = self._sync_phase(build, stage_type, stage_list)
+            print phase.__dict__
 
             for stage in stage_list:
                 self._sync_step(build, phase, stage)

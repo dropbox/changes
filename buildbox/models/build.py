@@ -46,7 +46,7 @@ class Build(Base):
     @property
     def duration(self):
         if self.date_started and self.date_finished:
-            duration = self.date_finished - self.date_started
+            duration = (self.date_finished - self.date_started).total_seconds() * 1000
         else:
             duration = None
         return duration

@@ -2,7 +2,7 @@ import uuid
 
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 from buildbox.constants import Status, Result
 from buildbox.db.base import Base
@@ -24,7 +24,7 @@ class Phase(Base):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Build', backref='phases')
+    build = relationship('Build', backref=backref('phases', order_by='Phase.date_started'))
     project = relationship('Project')
     repository = relationship('Repository')
 

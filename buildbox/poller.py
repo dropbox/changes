@@ -1,5 +1,7 @@
 import logging
 
+from sqlalchemy.orm import joinedload
+
 from buildbox.app import db
 from buildbox.backends.koality.backend import KoalityBackend
 from buildbox.config import settings
@@ -34,9 +36,11 @@ class Poller(object):
                 type=EntityType.project, provider='koality'))
             if not koality_projects:
                 return []
-            project_list = session.query(Project).filter(Project.id.in_([
+            project_list = list(session.query(Project).filter(Project.id.in_([
                 re.internal_id for re in koality_projects
-            ]))
+            ])).options(
+                joinedload(Project.repository),
+            ))
 
         return project_list
 
@@ -47,4 +51,4 @@ class Poller(object):
             build_list = self.backend.sync_build_list(project)
             for build in build_list:
                 self.logger.info('Fetching details for build {%s}', build.id)
-                self.sync_build_details(build)
+                self.backend.sync_build_details(build)

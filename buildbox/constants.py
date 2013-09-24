@@ -4,7 +4,7 @@ from enum import Enum
 class Status(Enum):
     unknown = 0
     queued = 1
-    inprogress = 2
+    in_progress = 2
     finished = 3
 
     def __str__(self):
@@ -30,7 +30,7 @@ class Provider(Enum):
 STATUS_LABELS = {
     Status.unknown: 'unknown',
     Status.queued: 'queued',
-    Status.inprogress: 'in progress',
+    Status.in_progress: 'in progress',
     Status.finished: 'finished'
 }
 
