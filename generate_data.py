@@ -13,6 +13,7 @@ assert not os.system('createdb -E utf-8 buildbox')
 assert not os.system('alembic upgrade head')
 
 
+import random
 import uuid
 
 from buildbox.db.backend import Backend
@@ -22,93 +23,73 @@ from buildbox.models import (
 )
 
 
+def generate_build(session, revision, status=Status.finished, result=Result.passed):
+    build = Build(
+        repository=revision.repository,
+        project=project,
+        parent_revision=revision,
+        status=status,
+        result=result,
+        label='D%s' % (random.randint(1000, 100000)),
+    )
+    session.add(build)
+
+    phase1_setup = Phase(
+        repository=build.repository, project=build.project, build=build,
+        status=status, result=result, label='Setup',
+    )
+    session.add(phase1_setup)
+
+    phase1_compile = Phase(
+        repository=build.repository, project=build.project, build=build,
+        status=status, result=result, label='Compile',
+    )
+    session.add(phase1_compile)
+
+    phase1_test = Phase(
+        repository=build.repository, project=build.project, build=build,
+        status=status, result=result, label='Test',
+    )
+    session.add(phase1_test)
+
+    step = Step(
+        repository=build.repository, project=build.project, build=build,
+        phase=phase1_test, status=status, result=result,
+        label='tests/buildbox/web/frontend/test_build_details.py',
+    )
+    session.add(step)
+    step = Step(
+        repository=build.repository, project=build.project, build=build,
+        phase=phase1_test, status=status, result=result,
+        label='tests/buildbox/web/frontend/test_build_list.py',
+    )
+    session.add(step)
+
+    return build
+
+
 with Backend.instance().get_session() as session:
     repo = Repository(
         url='https://github.com/dropbox/buildbox.git')
     session.add(repo)
 
-    project = Project(slug='buildbox', name='buildbox', repository_id=repo.id)
+    project = Project(slug='buildbox', name='buildbox', repository=repo)
     session.add(project)
 
     author = Author(name='David Cramer', email='dcramer@gmail.com')
     session.add(author)
 
     revision = Revision(
-        repository_id=repo.id, sha=uuid.uuid4().hex, author_id=author.id,
+        repository=repo, sha=uuid.uuid4().hex, author=author,
         message='Correct some initial schemas and first draft at some mock datageneration\n\n'
                 'https://github.com/dcramer/buildbox/commit/68d1c899e3c821c920ea3baf244943b10ed273b5'
     )
     session.add(revision)
 
-    build = Build(
-        repository_id=repo.id, project_id=project.id, parent_revision_sha=revision.sha,
-        status=Status.finished, result=Result.passed, label='D1345',
-    )
-    session.add(build)
-
-    build2 = Build(
-        repository_id=repo.id, project_id=project.id, parent_revision_sha=revision.sha,
-        status=Status.inprogress, result=Result.failed, label='D1459',
-    )
-    session.add(build2)
-
-    phase1_setup = Phase(
-        repository_id=repo.id, project_id=project.id, build_id=build.id,
-        status=Status.finished, result=Result.passed, label='Setup',
-    )
-    session.add(phase1_setup)
-
-    phase1_compile = Phase(
-        repository_id=repo.id, project_id=project.id, build_id=build.id,
-        status=Status.finished, result=Result.passed, label='Compile',
-    )
-    session.add(phase1_compile)
-
-    phase1_test = Phase(
-        repository_id=repo.id, project_id=project.id, build_id=build.id,
-        status=Status.finished, result=Result.passed, label='Test',
-    )
-    session.add(phase1_test)
-
-    phase2_setup = Phase(
-        repository_id=repo.id, project_id=project.id, build_id=build2.id,
-        status=Status.finished, result=Result.passed, label='Setup',
-    )
-    session.add(phase2_setup)
-
-    phase2_compile = Phase(
-        repository_id=repo.id, project_id=project.id, build_id=build2.id,
-        status=Status.finished, result=Result.passed, label='Compile',
-    )
-    session.add(phase2_compile)
-
-    phase2_test = Phase(
-        repository_id=repo.id, project_id=project.id, build_id=build2.id,
-        status=Status.inprogress, result=Result.failed, label='Test',
-    )
-    session.add(phase2_test)
-
-    step = Step(
-        repository_id=repo.id, project_id=project.id, build_id=build.id,
-        phase_id=phase1_test.id, status=Status.finished, result=Result.passed,
-        label='tests/buildbox/web/frontend/test_build_details.py',
-    )
-    session.add(step)
-    step = Step(
-        repository_id=repo.id, project_id=project.id, build_id=build.id,
-        phase_id=phase1_test.id, status=Status.finished, result=Result.passed,
-        label='tests/buildbox/web/frontend/test_build_list.py',
-    )
-    session.add(step)
-    step = Step(
-        repository_id=repo.id, project_id=project.id, build_id=build2.id,
-        phase_id=phase2_test.id, status=Status.finished, result=Result.failed,
-        label='tests/buildbox/web/frontend/test_build_details.py',
-    )
-    session.add(step)
-    step = Step(
-        repository_id=repo.id, project_id=project.id, build_id=build2.id,
-        phase_id=phase2_test.id, status=Status.inprogress, result=Result.unknown,
-        label='tests/buildbox/web/frontend/test_build_list.py',
-    )
-    session.add(step)
+    # generate a bunch of builds
+    for _ in xrange(50):
+        generate_build(
+            session,
+            revision=revision,
+            result=Result.failed if random.randint(0, 10) > 7 else Result.passed,
+        )
