@@ -166,6 +166,7 @@ dl.flat dt {
 .phase-list {
   list-style: none;
   padding-left: 0;
+  overflow: hidden;
 }
 .phase-list > li {
   border: 0;
@@ -186,22 +187,37 @@ dl.flat dt {
 .phase-list > li.status-passed > a {
   background: #2fd034;
   color: #fff;
+  border-color: #2fd034;
 }
 .phase-list > li.status-failed > a {
   background: #d9322d;
   color: #fff;
+  border-color: #d9322d;
 }
 
 .phase-list > li > a:before {
+  z-index: 2;
   position: absolute;
   top: 10px;
-  right: 0;
+  right: -15px;
   width: 0;
   height: 0;
   display: block;
   content: " ";
   border: 10px solid transparent;
   border-left-color: white;
+}
+.phase-list > li > a:after {
+  z-index: 3;
+  position: absolute;
+  top: 12px;
+  right: -11px;
+  width: 0;
+  height: 0;
+  display: block;
+  content: " ";
+  border: 8px solid transparent;
+  border-left-color: inherit;
 }
 .phase-list > li:last-child > a:before {
   border: none;
