@@ -50,14 +50,14 @@ if args.command == 'add':
             name=name,
             repository=repo,
         )
-        RemoteEntity(
+        entity = RemoteEntity(
             type=EntityType.project,
             provider=provider,
             internal_id=project.id,
             remote_id=provider_project_id,
         )
-
         session.add(project)
+        session.add(entity)
 
     print "Created new project with ID {%s}" % (
         project.id,
