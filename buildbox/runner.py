@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-def main():
+def web():
     import tornado.ioloop
 
     from buildbox.app import application
@@ -12,5 +12,20 @@ def main():
     tornado.ioloop.IOLoop.instance().start()
 
 
-if __name__ == "__main__":
-    main()
+def poller():
+    import logging
+    import time
+    import traceback
+
+    from buildbox.poller import Poller
+
+    instance = Poller()
+    instance.logger.setLevel(logging.INFO)
+    instance.logger.addHandler(logging.StreamHandler())
+    while True:
+        try:
+            instance.run()
+        except Exception:
+            traceback.print_exc()
+            time.sleep(10)
+        time.sleep(1)

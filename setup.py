@@ -25,6 +25,7 @@ tests_require = [
 ]
 
 install_requires = [
+    'argparse',
     'alembic',
     'enum34',
     'futures',
@@ -66,7 +67,8 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'buildbox-web = buildbox.runner:main',
+            'buildbox-web = buildbox.runner:web',
+            'buildbox-poller = buildbox.runner:poller',
         ],
     },
     classifiers=[

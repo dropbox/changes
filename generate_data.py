@@ -106,11 +106,11 @@ def generate_test_results(session, build, result=Result.passed):
 
 with Backend.instance().get_session() as session:
     repository = Repository(
-        url='https://github.com/dropbox/buildbox.git')
+        url='https://github.com/example/example.git')
     session.add(repository)
 
     project = Project(
-        slug='buildbox', name='buildbox', repository=repository)
+        slug='example', name='example', repository=repository)
     session.add(project)
 
     author = Author(name='David Cramer', email='dcramer@gmail.com')
