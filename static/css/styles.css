@@ -9,6 +9,7 @@ color: #c7c0de;
 body {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
   padding-top: 70px;
+  font-size: 15px;
 }
 
 .container {
@@ -50,6 +51,10 @@ h1, h2, h3, h4, h5, h6 {
 
 h2 {
   font-family: 1.6em;
+}
+
+th {
+  font-weight: normal;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -143,13 +148,14 @@ dl.flat dt {
   position: relative;
 }
 .build-list a {
-  font-weight: bold;
+  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .build-list td small {
   color: #999;
+  font-weight: 300;
 }
 .build-list > tbody > tr:nth-child(odd) > td {
   background: #f7f5fa;

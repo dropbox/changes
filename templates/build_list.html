@@ -2,12 +2,6 @@
 
 {% block content %}
 	<table class="build-list table table-striped">
-		<thead>
-			<tr>
-				<th></th>
-				<th>Changeset</th>
-			</tr>
-		</thead>
 		{% for build in build_list %}
 			<tr class="status-{{ build.result.name }}">
 				<td><span class="indicator">{{ build.result }}</span></td>
