@@ -220,7 +220,7 @@ class KoalityBackend(BaseBackend):
     def _sync_build(self, project, change, stage_list=None, build=None):
         values = {
             'parent_revision_sha': change['headCommit']['sha'],
-            'label': change['headCommit']['sha'],
+            'label': change['headCommit']['message'].splitlines()[0][:128],
         }
 
         if stage_list:
