@@ -28,6 +28,7 @@ install_requires = [
     'alembic',
     'enum34',
     'futures',
+    'lxml',
     'tornado',
     'requests',
     'psycopg2',
