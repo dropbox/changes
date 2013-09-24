@@ -1,10 +1,5 @@
 {% extends "layout.html" %}
 
-{% block navbar_links %}
-	<li><a href="#top">Overview</a></li>
-	<li><a href="#test-results">Test Results <span class="badge">{{ len(test_list) }}</span></a></li>
-{% end %}
-
 {% block content %}
 	<div id="overvei">
 		<div class="page-header build-header status-{{ build.result }}">
