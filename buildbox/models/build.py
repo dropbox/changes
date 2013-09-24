@@ -24,7 +24,7 @@ class Build(Base):
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     parent_revision_sha = Column(String(40), nullable=False)
     patch_id = Column(GUID, ForeignKey('patch.id'))
-    label = Column(String(64), nullable=False)
+    label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
     date_started = Column(DateTime)

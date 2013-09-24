@@ -77,6 +77,12 @@ dl.flat dt {
   background: #999;
 }
 
+.build-header h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 110px;
+}
 .build-header .indicator {
   height: 34px;
   line-height: 34px;
@@ -89,12 +95,34 @@ dl.flat dt {
   padding-left: 0;
 }
 
-.build-list > li {
-  position: relative;
-  margin-bottom: 5px;
+.build-list td:first-child {
+  width: 30px;
+  vertical-align: middle;
+  padding-left: 15px;
 }
-
-.stage-list > li:nth-child(odd) {
+.build-list > tbody > tr > td {
+  border-top: 0;
+  position: relative;
+}
+.build-list td .indicator {
+  border-radius: 0;
+  overflow: hidden;
+  text-indent: -10000em;
+  width: 30px;
+  height: 30px;
+  border-radius: 30px;
+  position: relative;
+}
+.build-list a {
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.build-list td small {
+  color: #999;
+}
+.build-list > tbody > tr:nth-child(odd) > td {
   background: #f7f5fa;
 }
 

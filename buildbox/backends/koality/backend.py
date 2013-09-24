@@ -213,7 +213,7 @@ class KoalityBackend(BaseBackend):
         values = {
             'date_finished': self._get_end_time(stage_list),
             'parent_revision_sha': change['headCommit']['sha'],
-            'label': change['headCommit']['sha'][:12],
+            'label': change['headCommit']['sha'],
             'date_started': datetime.utcfromtimestamp(change['startTime'] / 1000),
         }
 
