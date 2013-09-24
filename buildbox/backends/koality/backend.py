@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division
 
 import requests
+import sys
 
 from collections import defaultdict
 from datetime import datetime
@@ -62,6 +63,21 @@ class KoalityBackend(BaseBackend):
             return datetime.utcfromtimestamp(end_time / 1000)
         return
 
+    def _get_start_time(self, stage_list):
+        start_time = sys.maxint
+        for stage in stage_list:
+            if not stage.get('startTime'):
+                continue
+            start_time = min((stage['startTime'], start_time))
+
+        if start_time != 0:
+            return datetime.utcfromtimestamp(start_time / 1000)
+        return
+
+        datetime.utcfromtimestamp(
+            min(s['startTime'] for s in stage_list if s['startTime']) / 1000,
+        )
+
     def _get_node(self, node_id):
         node = self._node_cache.get(node_id)
         if node is not None:
@@ -104,9 +120,7 @@ class KoalityBackend(BaseBackend):
         else:
             values['status'] = Status.queued
 
-        values['date_started'] = datetime.utcfromtimestamp(
-            min(s['startTime'] for s in stage_list) / 1000,
-        )
+        values['date_started'] = self._get_start_time(stage_list)
         values['date_finished'] = self._get_end_time(stage_list)
 
         with self.get_session() as session:
@@ -127,6 +141,7 @@ class KoalityBackend(BaseBackend):
 
     def _sync_step(self, build, phase, stage):
         node = self._get_node(stage['buildNode'])
+
         values = {
             'build_id': build.id,
             'repository_id': build.repository_id,
@@ -134,17 +149,17 @@ class KoalityBackend(BaseBackend):
             'phase_id': phase.id,
             'node_id': node.id,
             'label': stage['name'],
-            'date_started': datetime.utcfromtimestamp(stage['startTime'] / 1000),
-            'date_finished': self._get_end_time([stage])
+            'date_started': self._get_start_time([stage]),
+            'date_finished': self._get_end_time([stage]),
         }
 
-        if stage['startTime'] and stage['endTime']:
+        if values['date_started'] and values['date_finished']:
             if stage['status'] == 'passed':
                 values['result'] = Result.passed
             else:
                 values['result'] = Result.failed
             values['status'] = Status.finished
-        elif stage['startTime']:
+        elif values['date_started']:
             if stage['status'] == 'failed':
                 values['result'] = Result.failed
             values['status'] = Status.in_progress
@@ -211,20 +226,20 @@ class KoalityBackend(BaseBackend):
         ))
 
         values = {
-            'date_finished': self._get_end_time(stage_list),
             'parent_revision_sha': change['headCommit']['sha'],
             'label': change['headCommit']['sha'],
-            'date_started': datetime.utcfromtimestamp(change['startTime'] / 1000),
+            'date_started': self._get_start_time(stage_list),
+            'date_finished': self._get_end_time(stage_list),
         }
 
         # for stage in (s for s in stages if s['status'] == 'failed'):
-        if change['startTime'] and change['endTime']:
+        if values['date_started'] and values['date_finished']:
             if all(s['status'] == 'passed' for s in stage_list):
                 values['result'] = Result.passed
             else:
                 values['result'] = Result.failed
             values['status'] = Status.finished
-        elif change['startTime']:
+        elif values['date_started']:
             if any(s['status'] == 'failed' for s in stage_list):
                 values['result'] = Result.failed
             values['status'] = Status.in_progress

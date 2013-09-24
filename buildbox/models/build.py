@@ -22,7 +22,7 @@ class Build(Base):
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    parent_revision_sha = Column(String(40), nullable=False)
+    parent_revision_sha = Column(String(40))
     patch_id = Column(GUID, ForeignKey('patch.id'))
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)

@@ -4,10 +4,11 @@ import json
 import mock
 import os
 
+from datetime import datetime
+
 from buildbox.backends.koality.backend import KoalityBackend
-from buildbox.models import (
-    Repository, Revision, Project, Build, EntityType
-)
+from buildbox.constants import Result, Status
+from buildbox.models import Repository, Project, Build, EntityType
 from buildbox.testutils import BackendTestCase
 
 
@@ -79,15 +80,22 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
         backend = self.get_backend()
 
         with backend.get_session() as session:
-            revision = Revision(sha='a' * 40, repository=self.repo)
             build = Build(
-                repository=self.repo, project=self.project, label='test',
-                parent_revision=revision,
+                repository=self.repo, project=self.project, label='pending',
             )
-            session.add(revision)
             session.add(build)
 
         self.make_entity(EntityType.project, self.project.id, 1)
         self.make_entity(EntityType.build, build.id, 1)
 
         backend.sync_build_details(build)
+
+        with backend.get_session() as session:
+            build = session.query(Build).get(build.id)
+
+        assert build.label == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
+        assert build.parent_revision_sha == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
+        assert build.status == Status.finished
+        assert build.result == Result.failed
+        assert build.date_started == datetime(2013, 9, 19, 22, 15, 22)
+        assert build.date_finished == datetime(2013, 9, 19, 22, 15, 36)
