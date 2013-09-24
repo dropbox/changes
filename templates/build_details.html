@@ -4,12 +4,14 @@
 	<div id="overvei">
 		<div class="page-header build-header status-{{ build.result }}">
 			<span class="indicator">{{ build.result }}</span>
-			<h2>{{ build.label }} <small>({{ revision.sha[:12] }})</small></h2>
+			<h2>{{ build.label }} <small>({{ build.parent_revision.sha[:12] }})</small></h2>
 		</div>
 
 		<dl class="flat">
-			<dt>Author:</dt>
-			<dd>{{ author.name }} (<a href="mailto:{{ author.email }}">{{ author.email }}</a>)</dd>
+			{% if build.author %}
+				<dt>Author:</dt>
+				<dd>{{ build.author.name }} (<a href="mailto:{{ build.author.email }}">{{ build.author.email }}</a>)</dd>
+			{% end %}
 			<dt>Project:</dt>
 			<dd><a href="#">{{ project.name }}</a></dd>
 			<dt>Duration:</dt>
@@ -22,12 +24,12 @@
 			</dd>
 		</dl>
 
-		<pre>{% raw linkify(escape(revision.message)) %}</pre>
+		<pre>{% raw linkify(escape(build.parent_revision.message)) %}</pre>
 
 		<br>
 
 		<ul class="phase-list nav nav-justified nav-tabs">
-			{% for phase in phase_list %}
+			{% for phase in build.phases %}
 				<li class="status-{{ phase.result }}">
 					<a href="#">{{ phase.label }}</a>
 				</li>
