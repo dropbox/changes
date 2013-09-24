@@ -95,18 +95,11 @@ dl.flat dt {
   display: block;
   text-align: center;
   text-transform: uppercase;
+  background: #58488a;
 }
 .status-failed .indicator {
   color: #fff;
   background: #d9322d;
-}
-.status-passed .indicator {
-  color: #fff;
-  background: #2fd034;
-}
-.status-unknown .indicator {
-  color: #fff;
-  background: #999;
 }
 
 .build-header h2 {
@@ -186,10 +179,10 @@ dl.flat dt {
   padding-right: 30px;
   padding-left: 0;
 }
-.phase-list > li.status-passed > a {
-  background: #2fd034;
-  color: #fff;
-  border-color: #2fd034;
+.phase-list > li > a {
+  background: #58488a;
+  color: #c7c0de;
+  border-color: #58488a;
 }
 .phase-list > li.status-failed > a {
   background: #d9322d;
@@ -239,9 +232,6 @@ dl.flat dt {
 
 .test-results > tbody > tr > td {
   border: 0;
-}
-.test-results > tbody > tr.status-passed > td {
-  color: #2fd034;
 }
 .test-results > tbody > tr.status-failed > td {
   color: #d9322d;
