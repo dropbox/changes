@@ -6,12 +6,10 @@
 			<tr class="status-{{ build.result.name }}">
 				<td><span class="indicator">{{ build.result }}</span></td>
 				<td>
-					{% if build.label != build.parent_revision_sha %}
-						<a href="{{ reverse_url('build-details', build.project.slug, build.id.hex) }}">{{ build.label }}</a><br>
-						<small>{{ build.parent_revision_sha[:12] }}</small>
-					{% else %}
-						<a href="{{ reverse_url('build-details', build.project.slug, build.id.hex) }}">{{ build.label }}</a>
-					{% end %}
+					<a href="{{ reverse_url('build-details', build.project.slug, build.id.hex) }}">{{ build.label }}</a><br>
+
+					<small><a href="#">{{ build.project.name }}</a>{% if build.author %} &mdash; {{ build.author.name }}{% end %}</small>
+
 				</td>
 			</tr>
 		{% end %}
