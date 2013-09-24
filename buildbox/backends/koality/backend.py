@@ -83,7 +83,7 @@ class KoalityBackend(BaseBackend):
     def _get_response(self, method, url, **kwargs):
         kwargs.setdefault('params', {})
         kwargs['params'].setdefault('key', self.api_key)
-        return getattr(requests, method.lower(), url, **kwargs).json()
+        return getattr(requests, method.lower())(url, **kwargs).json()
 
     def _get_node(self, node_id):
         node = self._node_cache.get(node_id)
