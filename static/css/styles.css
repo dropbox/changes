@@ -6,6 +6,11 @@ color: #c7c0de;
 
 */
 
+body {
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+  padding-top: 70px;
+}
+
 .container {
   width: 800px;
 }
@@ -18,6 +23,33 @@ color: #c7c0de;
 .navbar a:hover,
 .navbar a:focus {
   color: #fff;
+}
+.navbar .navbar-nav > li > a {
+  color: #c7c0de;
+}
+.navbar .navbar-nav > li > a > .badge {
+  background: #63519e;
+  color: #c7c0de;
+  font-weight: normal;
+}
+.navbar .navbar-nav > li.active > a {
+  background: #63519e;
+  color: #fff;
+}
+.navbar .navbar-nav > li.active > a > .badge {
+  background: #58488a;
+  color: #fff;
+}
+
+.navbar-brand {
+}
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 300;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+}
+
+h2 {
+  font-family: 1.6em;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -81,12 +113,16 @@ dl.flat dt {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-right: 110px;
+  padding-right: 44px;
 }
 .build-header .indicator {
+  border-radius: 34px;
+  width: 34px;
   height: 34px;
   line-height: 34px;
   bottom: 10px;
+  text-indent: -10000em;
+  overflow: hidden;
 }
 
 
@@ -132,17 +168,28 @@ dl.flat dt {
   padding-left: 0;
 }
 .phase-list > li {
-  border-bottom: 1px solid #eee;
+  border: 0;
   margin-bottom: 20px;
   margin-top: 20px;
 }
-.phase-list .phase-header {
-  margin-bottom: 20px;
+.phase-list > li:first-child > a {
+  border-radius: 4px 0 0 4px;
 }
-.phase-list .status-passed .phase-body {
-  display: none;
+.phase-list > li:last-child > a {
+  border-radius: 0 4px 4px 0;
 }
-
+.phase-list > li > a {
+  border-radius: 0;
+  border: 0;
+}
+.phase-list > li.status-passed > a {
+  background: #2fd034;
+  color: #fff;
+}
+.phase-list > li.status-failed > a {
+  background: #d9322d;
+  color: #fff;
+}
 
 .stage-list {
   list-style: none;
@@ -171,4 +218,29 @@ dl.flat dt {
   height: 20px;
   line-height: 20px;
   border-radius: 20px;
+}
+
+
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:hover,
+.nav-pills > li.active > a:focus {
+  background: #58488a;
+  color: #fff;
+}
+.nav-pills > li.active > a > .badge {
+  color: #6e5baa;
+}
+
+.test-results > tbody > tr > td {
+  border: 0;
+}
+.test-results > tbody > tr.status-passed > td {
+  color: #2fd034;
+}
+.test-results > tbody > tr.status-failed > td {
+  color: #d9322d;
+}
+
+footer {
+  min-height: 300px;
 }

@@ -1,58 +1,67 @@
 {% extends "layout.html" %}
 
+{% block navbar_links %}
+	<li><a href="#top">Overview</a></li>
+	<li><a href="#test-results">Test Results <span class="badge">42</span></a></li>
+{% end %}
+
 {% block content %}
-	<div class="page-header build-header status-{{ build.result }}">
-		<span class="indicator">{{ build.result }}</span>
-		<h2>{{ build.label }} <small>({{ revision.sha[:12] }})</small></h2>
+	<div id="overvei">
+		<div class="page-header build-header status-{{ build.result }}">
+			<span class="indicator">{{ build.result }}</span>
+			<h2>{{ build.label }} <small>({{ revision.sha[:12] }})</small></h2>
+		</div>
+
+		<dl class="flat">
+			<dt>Author:</dt>
+			<dd>{{ author.name }} (<a href="mailto:{{ author.email }}">{{ author.email }}</a>)</dd>
+			<dt>Duration:</dt>
+			<dd>
+				{% if build.duration %}
+					{{ '%.2f' % (build.duration / 1000) }}s
+				{% else %}
+					n/a
+				{% end %}
+			</dd>
+		</dl>
+
+		<pre>{% raw linkify(escape(revision.message)) %}</pre>
+
+		<br>
+
+		<ul class="phase-list nav nav-justified nav-tabs">
+			{% for phase in phase_list %}
+				<li class="status-{{ phase.result }}">
+					<a href="#">{{ phase.label }}</a>
+				</li>
+			{% end %}
+		</ul>
+
 	</div>
 
-	<dl class="flat">
-		<dt>Author:</dt>
-		<dd>{{ author.name }} (<a href="mailto:{{ author.email }}">{{ author.email }}</a>)</dd>
-		<dt>Duration:</dt>
-		<dd>
-			{% if build.duration %}
-				{{ '%.2f' % (build.duration / 1000) }}s ({{ len(build.nodes) }} nodes)
-			{% else %}
-				n/a
-			{% end %}
-		</dd>
-	</dl>
+	<br>
 
-	<pre>{% raw linkify(escape(revision.message)) %}</pre>
+	<div id="test-results">
+		<div class="page-header">
+			<h3>Test Results</h3>
+		</div>
 
-	<hr>
-
-	<ul class="phase-list">
-		{% for phase in phases %}
-			<li class="status-{{ phase.result }}">
-				<div class="phase-header">
-					<span class="indicator">{{ phase.result }}</span>
-					<h4>{{ phase.label }}</h4>
-				</div>
-				<div class="phase-body">
-					<dl class="flat">
-						<dt>Duration:</dt>
-						<dd>
-							{% if phase.duration %}
-								{{ '%.2f' % (phase.duration / 1000) }}s
+		<table class="test-results table">
+			<tbody>
+				{% for test in test_list %}
+					<tr class="status-{{ test.result }}">
+						<td>{{ test.label }}</td>
+						<td>
+							{% if test.duration %}
+								{{ '%.2f' % (test.duration / 1000) }}s
 							{% else %}
 								n/a
 							{% end %}
-						</dd>
-					</dl>
-					<ul class="stage-list">
-						{% for step in phase.steps %}
-							<li class="status-{{ step.result }}">
-								<div class="stage-header">
-									<span class="indicator">{{ step.result }}</span>
-									<h5>{{ step.label }}</h5>
-								</div>
-							</li>
-						{% end %}
-					</ul>
-				</div>
-			</li>
-		{% end %}
-	</ul>
+						</td>
+					</tr>
+				{% end %}
+			</tbody>
+		</table>
+
+	</div>
 {% end %}
