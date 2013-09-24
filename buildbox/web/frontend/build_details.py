@@ -10,7 +10,9 @@ from buildbox.web.base_handler import BaseRequestHandler
 class BuildDetailsHandler(BaseRequestHandler):
     def get(self, project_slug, build_id):
         with self.db.get_session() as session:
-            build = session.query(Build).join(Project).filter(Project.slug == project_slug)[0]
+            project = session.query(Project).filter_by(slug=project_slug)[0]
+            build = session.query(Build).get(build_id)
+            assert build.project == project
             phase_list = list(session.query(Phase).filter_by(build_id=build.id))
             steps = list(session.query(Step).filter_by(build_id=build.id))
             test_list = list(session.query(Test).filter_by(
@@ -29,6 +31,7 @@ class BuildDetailsHandler(BaseRequestHandler):
             phase.steps = steps_by_phase[phase.id]
 
         context = {
+            'project': project,
             'build': build,
             'revision': revision,
             'author': author,
