@@ -87,7 +87,7 @@ def upgrade():
     sa.Column('id', sa.GUID(), nullable=False),
     sa.Column('repository_id', sa.GUID(), nullable=False),
     sa.Column('project_id', sa.GUID(), nullable=False),
-    sa.Column('parent_revision_sha', sa.String(length=40), nullable=False),
+    sa.Column('parent_revision_sha', sa.String(length=40), nullable=True),
     sa.Column('patch_id', sa.GUID(), nullable=True),
     sa.Column('label', sa.String(length=64), nullable=False),
     sa.Column('status', sa.Enum(), nullable=False),
