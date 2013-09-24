@@ -10,10 +10,12 @@ from buildbox.constants import Result, Status
 from buildbox.backends.base import BaseBackend
 from buildbox.db.utils import create_or_update, update
 from buildbox.models import (
-    Revision, Author, Phase, Step, RemoteEntity, EntityType, Node
+    Revision, Author, Phase, Step, RemoteEntity, EntityType, Node,
+    Build
 )
 
 # TODO: this should be stored in the db
+# TODO: we could use entities to take out ID claims
 
 PROJECT_MAP = {
     26: 'server',
@@ -30,7 +32,7 @@ def find_entity(session, type, remote_id, provider='koality'):
     except IndexError:
         return None, None
 
-    instance = session.query(entity.type.model).get(entity.remote_id)
+    instance = session.query(entity.type.model).get(entity.internal_id)
     return entity, instance
 
 
@@ -77,6 +79,11 @@ class KoalityBackend(BaseBackend):
         datetime.utcfromtimestamp(
             min(s['startTime'] for s in stage_list if s['startTime']) / 1000,
         )
+
+    def _get_response(self, method, url, **kwargs):
+        kwargs.setdefault('params', {})
+        kwargs['params'].setdefault('key', self.api_key)
+        return getattr(requests, method.lower(), url, **kwargs).json()
 
     def _get_node(self, node_id):
         node = self._node_cache.get(node_id)
@@ -202,12 +209,61 @@ class KoalityBackend(BaseBackend):
 
         return step
 
-    def _get_response(self, method, url, **kwargs):
-        kwargs.setdefault('params', {})
-        kwargs['params'].setdefault('key', self.api_key)
-        return getattr(requests, method.lower(), url, **kwargs).json()
+    def _sync_build(self, project, change, stage_list=None, build=None):
+        values = {
+            'parent_revision_sha': change['headCommit']['sha'],
+            'label': change['headCommit']['sha'],
+        }
 
-    def list_builds(self, project):
+        if stage_list:
+            values.update({
+                'date_started': self._get_start_time(stage_list),
+                'date_finished': self._get_end_time(stage_list),
+            })
+
+            # for stage in (s for s in stages if s['status'] == 'failed'):
+            if values['date_started'] and values['date_finished']:
+                if all(s['status'] == 'passed' for s in stage_list):
+                    values['result'] = Result.passed
+                else:
+                    values['result'] = Result.failed
+                values['status'] = Status.finished
+            elif values['date_started']:
+                if any(s['status'] == 'failed' for s in stage_list):
+                    values['result'] = Result.failed
+                values['status'] = Status.in_progress
+            else:
+                values['status'] = Status.queued
+
+        author = self._sync_author(change['headCommit']['user'])
+        self._sync_revision(
+            project.repository, author, change['headCommit'])
+
+        with self.get_session() as session:
+            if build is None:
+                _, build = find_entity(
+                    session, EntityType.build, str(change['id']))
+            if build is None:
+                build = Build(
+                    project=project,
+                    repository=project.repository,
+                    author=author,
+                    **values
+                )
+                entity = RemoteEntity(
+                    provider='koality',
+                    type=EntityType.build,
+                    remote_id=str(change['id']),
+                    internal_id=build.id,
+                )
+                session.add(entity)
+                session.add(build)
+            else:
+                update(session, build, values)
+
+        return build
+
+    def sync_build_list(self, project):
         with self.get_session() as session:
             remote_entity = get_entity(session, project)
 
@@ -219,10 +275,12 @@ class KoalityBackend(BaseBackend):
             base_uri=self.base_url, project_id=project_id
         ))
 
-        return [{
-            'id': c['id'],
-            'data': c,
-        } for c in change_list]
+        build_list = []
+        for change in change_list:
+            build = self._sync_build(project, change)
+            build_list.append(build)
+
+        return build_list
 
     def sync_build_details(self, build):
         with self.get_session() as session:
@@ -245,33 +303,7 @@ class KoalityBackend(BaseBackend):
             base_uri=self.base_url, project_id=project_id, build_id=remote_id
         ))
 
-        values = {
-            'parent_revision_sha': change['headCommit']['sha'],
-            'label': change['headCommit']['sha'],
-            'date_started': self._get_start_time(stage_list),
-            'date_finished': self._get_end_time(stage_list),
-        }
-
-        # for stage in (s for s in stages if s['status'] == 'failed'):
-        if values['date_started'] and values['date_finished']:
-            if all(s['status'] == 'passed' for s in stage_list):
-                values['result'] = Result.passed
-            else:
-                values['result'] = Result.failed
-            values['status'] = Status.finished
-        elif values['date_started']:
-            if any(s['status'] == 'failed' for s in stage_list):
-                values['result'] = Result.failed
-            values['status'] = Status.in_progress
-        else:
-            values['status'] = Status.queued
-
-        author = self._sync_author(change['headCommit']['user'])
-        self._sync_revision(
-            build.repository, author, change['headCommit'])
-
-        with self.get_session() as session:
-            update(session, build, values)
+        build = self._sync_build(build.project, change, stage_list, build=build)
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -284,6 +316,8 @@ class KoalityBackend(BaseBackend):
 
             for stage in stage_list:
                 self._sync_step(build, phase, stage)
+
+        return build
 
     def create_build(self):
         pass

@@ -68,13 +68,13 @@ class KoalityBackendTestCase(BackendTestCase):
             session.add(self.project)
 
 
-class ListBuildsTest(KoalityBackendTestCase):
+class SyncBuildListTest(KoalityBackendTestCase):
     def test_simple(self):
         backend = self.get_backend()
 
         self.make_entity(EntityType.project, self.project.id, 1)
 
-        results = backend.list_builds(self.project)
+        results = backend.sync_build_list(self.project)
         assert len(results) == 2
 
 
@@ -95,6 +95,13 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
 
         backend.sync_build_details(build)
 
+        assert build.label == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
+        assert build.parent_revision_sha == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
+        assert build.status == Status.finished
+        assert build.result == Result.failed
+        assert build.date_started == datetime(2013, 9, 19, 22, 15, 22)
+        assert build.date_finished == datetime(2013, 9, 19, 22, 15, 36)
+
         with backend.get_session() as session:
             revision = session.query(Revision).filter_by(
                 sha=build.parent_revision_sha,
@@ -107,13 +114,6 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
 
         assert author.email == 'john@example.com'
         assert author.name == 'John Developer'
-
-        assert build.label == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
-        assert build.parent_revision_sha == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
-        assert build.status == Status.finished
-        assert build.result == Result.failed
-        assert build.date_started == datetime(2013, 9, 19, 22, 15, 22)
-        assert build.date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
         with backend.get_session() as session:
             phase_list = list(session.query(Phase).filter_by(
