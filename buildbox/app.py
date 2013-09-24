@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
 from tornado.web import Application, url
 
-from buildbox.conf import settings
+from buildbox.config import settings
+from buildbox.db.backend import Backend
 from buildbox.web.frontend.build_list import BuildListHandler
 from buildbox.web.frontend.build_details import BuildDetailsHandler
 
@@ -24,3 +25,5 @@ application = Application(
         echo_pool=settings['debug'],
     ),
 )
+
+db = Backend.instance()

@@ -4,9 +4,7 @@ from alembic import context
 from logging.config import fileConfig
 from sqlalchemy import pool, create_engine
 
-# force model registration
-import buildbox.models
-from buildbox.conf import settings
+from buildbox.config import settings
 from buildbox.models import metadata
 
 # compatibility for imports

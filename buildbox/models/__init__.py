@@ -1,5 +1,6 @@
 from .author import *
 from .build import *
+from .filecoverage import *
 from .node import *
 from .patch import *
 from .phase import *
@@ -8,6 +9,7 @@ from .remoteentity import *
 from .repository import *
 from .revision import *
 from .step import *
+from .test import *
 
 # TOOD(dcramer): is there a better pattern for this?
 from buildbox.db.base import Base

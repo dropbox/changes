@@ -15,6 +15,8 @@ class Result(Enum):
     unknown = 0
     passed = 1
     failed = 2
+    skipped = 3
+    errored = 4
 
     def __str__(self):
         return RESULT_LABELS[self]

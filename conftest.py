@@ -11,7 +11,7 @@ from alembic import command
 alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 
 # force model registration
-from buildbox.conf import settings
+from buildbox.config import settings
 from buildbox.db.backend import Backend
 
 backend, transaction = None, None

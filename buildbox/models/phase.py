@@ -24,7 +24,7 @@ class Phase(Base):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Build', backref='phases')
+    build = relationship('Build')
     project = relationship('Project')
     repository = relationship('Repository')
 
