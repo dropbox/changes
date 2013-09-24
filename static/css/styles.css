@@ -181,14 +181,15 @@ dl.flat dt {
 .phase-list > li:last-child > a {
   border-radius: 0 4px 4px 0;
 }
+.phase-list.nav-tabs.nav-justified > li > a {
+  border-bottom: 0;
+}
 .phase-list > li > a {
   height: 43px;
   border-radius: 0;
   border: 0;
   padding-right: 30px;
   padding-left: 0;
-}
-.phase-list > li > a {
   background: #f7f5fa;
   color: #c7c0de;
   border-color: #f7f5fa;
