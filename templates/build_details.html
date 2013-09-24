@@ -2,7 +2,7 @@
 
 {% block navbar_links %}
 	<li><a href="#top">Overview</a></li>
-	<li><a href="#test-results">Test Results <span class="badge">42</span></a></li>
+	<li><a href="#test-results">Test Results <span class="badge">{{ len(test_list) }}</span></a></li>
 {% end %}
 
 {% block content %}
@@ -18,7 +18,7 @@
 			<dt>Duration:</dt>
 			<dd>
 				{% if build.duration %}
-					{{ '%.2f' % (build.duration / 1000) }}s
+					{{ '%.2f' % (build.duration / 1000.0) }}s
 				{% else %}
 					n/a
 				{% end %}
@@ -53,7 +53,7 @@
 						<td>{{ test.label }}</td>
 						<td>
 							{% if test.duration %}
-								{{ '%.2f' % (test.duration / 1000) }}s
+								{{ '%.2f' % (test.duration / 1000.0) }}s
 							{% else %}
 								n/a
 							{% end %}
