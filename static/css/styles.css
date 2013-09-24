@@ -216,6 +216,7 @@ dl.flat dt {
   display: block;
   content: " ";
   border: 21px solid transparent;
+  border-bottom-width: 22px;
   border-left-color: white;
   background: inherit;
 }
@@ -229,6 +230,7 @@ dl.flat dt {
   display: block;
   content: " ";
   border: 20px solid transparent;
+  border-bottom-width: 21px;
   border-left-color: inherit;
 }
 .phase-list > li:first-child > a:before,
