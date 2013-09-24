@@ -319,7 +319,6 @@ class KoalityBackend(BaseBackend):
             stage_list.sort(key=lambda x: x['status'] == 'passed')
 
             phase = self._sync_phase(build, stage_type, stage_list)
-            print phase.__dict__
 
             for stage in stage_list:
                 self._sync_step(build, phase, stage)
