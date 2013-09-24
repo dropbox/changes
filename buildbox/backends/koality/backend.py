@@ -59,7 +59,7 @@ class KoalityBackend(BaseBackend):
         end_time = 0
         for stage in stage_list:
             if not stage.get('endTime'):
-                continue
+                return
             end_time = max((stage['endTime'], end_time))
 
         if end_time != 0:
@@ -144,9 +144,12 @@ class KoalityBackend(BaseBackend):
         elif any(s['startTime'] for s in stage_list):
             if any(s['status'] == 'failed' for s in stage_list):
                 values['result'] = Result.failed
+            else:
+                values['result'] = Result.unknown
             values['status'] = Status.in_progress
         else:
             values['status'] = Status.queued
+            values['result'] = Result.unknown
 
         values['date_started'] = self._get_start_time(stage_list)
         values['date_finished'] = self._get_end_time(stage_list)
@@ -193,8 +196,10 @@ class KoalityBackend(BaseBackend):
             if stage['status'] == 'failed':
                 values['result'] = Result.failed
             values['status'] = Status.in_progress
+            values['result'] = Result.unknown
         else:
             values['status'] = Status.queued
+            values['result'] = Result.unknown
 
         with self.get_session() as session:
             _, step = find_entity(
@@ -220,7 +225,8 @@ class KoalityBackend(BaseBackend):
 
         if stage_list:
             values.update({
-                'date_started': self._get_start_time(stage_list),
+                'date_created': datetime.utcfromtimestamp(change['createTime'] / 1000),
+                'date_started': min(self._get_start_time(stage_list), datetime.utcfromtimestamp(change['startTime'] / 1000)),
                 'date_finished': self._get_end_time(stage_list),
             })
 
@@ -234,9 +240,12 @@ class KoalityBackend(BaseBackend):
             elif values['date_started']:
                 if any(s['status'] == 'failed' for s in stage_list):
                     values['result'] = Result.failed
+                else:
+                    values['result'] = Result.unknown
                 values['status'] = Status.in_progress
             else:
                 values['status'] = Status.queued
+                values['result'] = Result.unknown
 
         author = self._sync_author(change['headCommit']['user'])
         self._sync_revision(
@@ -285,16 +294,20 @@ class KoalityBackend(BaseBackend):
 
         return build_list
 
-    def sync_build_details(self, build):
+    def sync_build_details(self, build, project=None):
         with self.get_session() as session:
-            project = session.query(Project).options(
-                joinedload(Project.repository),
-            ).get(build.project_id)
-            build_entity = get_entity(session, build)
-            project_entity = get_entity(session, project)
+            if project is None:
+                project = session.query(Project).options(
+                    joinedload(Project.repository),
+                ).get(build.project_id)
 
-        assert build_entity
-        assert project_entity
+            project_entity = get_entity(session, project)
+            if not project_entity:
+                raise ValueError('Project does not have a remote entity')
+
+            build_entity = get_entity(session, build)
+            if not build_entity:
+                raise ValueError('Build does not have a remote entity')
 
         remote_id = build_entity.remote_id
         project_id = project_entity.remote_id
