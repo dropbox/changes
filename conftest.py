@@ -20,7 +20,7 @@ backend, transaction = None, None
 def pytest_configure(config):
     global transaction, backend
 
-    settings['database'] = 'postgresql:///test_buildbox'
+    settings['database'] = 'postgresql://localhost/test_buildbox'
 
     assert not os.system('dropdb --if-exists test_buildbox')
     assert not os.system('createdb -E utf-8 test_buildbox')
