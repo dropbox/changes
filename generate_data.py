@@ -97,6 +97,7 @@ def generate_test_results(session, build, result=Result.passed):
     test = Test(
         build=build, project=build.project,
         result=result, label=TEST_LABELS.next(),
+        duration=random.randint(1000, 1000000),
     )
     session.add(test)
 
