@@ -42,6 +42,7 @@ def generate_build(session, revision, status=Status.finished, result=Result.pass
         repository=revision.repository,
         project=project,
         parent_revision=revision,
+        author=revision.author,
         status=status,
         result=result,
         label=label,
