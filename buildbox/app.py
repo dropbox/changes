@@ -21,8 +21,8 @@ application = Application(
         settings['database'],
         # pool_size=options.mysql_poolsize,
         # pool_recycle=3600,
-        echo=settings['debug'],
-        echo_pool=settings['debug'],
+        # echo=settings['debug'],
+        # echo_pool=settings['debug'],
     ),
 )
 
