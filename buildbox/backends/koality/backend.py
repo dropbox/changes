@@ -99,6 +99,26 @@ class KoalityBackend(BaseBackend):
 
         return node
 
+    def _sync_author(self, user):
+        with self.get_session() as session:
+            author = create_or_update(session, Author, values={
+                'email': user['email'],
+            }, where={
+                'name': user['name'],
+            })
+        return author
+
+    def _sync_revision(self, repository, author, commit):
+        with self.get_session() as session:
+            revision = create_or_update(session, Revision, values={
+                'message': commit['message'],
+                'author_id': author.id,
+            }, where={
+                'repository_id': repository.id,
+                'sha': commit['sha'],
+            })
+        return revision
+
     def _sync_phase(self, build, stage_type, stage_list):
         values = {
             'build_id': build.id,
@@ -246,21 +266,11 @@ class KoalityBackend(BaseBackend):
         else:
             values['status'] = Status.queued
 
+        author = self._sync_author(change['headCommit']['user'])
+        self._sync_revision(
+            build.repository, author, change['headCommit'])
+
         with self.get_session() as session:
-            author = create_or_update(session, Author, values={
-                'email': change['headCommit']['user']['email'],
-            }, where={
-                'name': change['headCommit']['user']['name'],
-            })
-
-            create_or_update(session, Revision, values={
-                'message': change['headCommit']['message'],
-                'author_id': author.id,
-            }, where={
-                'repository_id': build.repository_id,
-                'sha': change['headCommit']['sha'],
-            })
-
             update(session, build, values)
 
         grouped_stages = defaultdict(list)

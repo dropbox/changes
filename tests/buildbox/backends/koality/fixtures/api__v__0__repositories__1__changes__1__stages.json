@@ -1,7 +1,7 @@
 [
   {
     "status": "passed",
-    "name": "hg",
+    "name": "ci/setup",
     "buildNode": 3350,
     "startTime": 1379628922000,
     "endTime": 1379628933000,
@@ -10,7 +10,7 @@
   },
   {
     "status": "passed",
-    "name": "hg",
+    "name": "ci/setup",
     "buildNode": 3351,
     "startTime": 1379628922000,
     "endTime": 1379628933000,
@@ -19,7 +19,7 @@
   },
   {
     "status": "passed",
-    "name": "hg",
+    "name": "ci/compile",
     "buildNode": 3351,
     "startTime": 1379628922500,
     "endTime": 1379628933500,
@@ -28,7 +28,7 @@
   },
   {
     "status": "passed",
-    "name": "hg",
+    "name": "ci/compile",
     "buildNode": 3352,
     "startTime": 1379628923000,
     "endTime": 1379628934000,
@@ -37,7 +37,7 @@
   },
   {
     "status": "passed",
-    "name": "hg",
+    "name": "ci/test",
     "buildNode": 3352,
     "startTime": 1379628925000,
     "endTime": 1379628935000,
@@ -46,9 +46,9 @@
   },
   {
     "status": "failed",
-    "name": "hg",
+    "name": "ci/test",
     "buildNode": 3352,
-    "startTime": 1379628925000,
+    "startTime": 1379628926000,
     "endTime": 1379628936000,
     "type": "test",
     "id": 55
