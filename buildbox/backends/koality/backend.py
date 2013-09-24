@@ -232,8 +232,6 @@ class KoalityBackend(BaseBackend):
             values['status'] = Status.queued
 
         with self.get_session() as session:
-            update(session, build, values)
-
             author = create_or_update(session, Author, values={
                 'email': change['headCommit']['user']['email'],
             }, where={
@@ -247,6 +245,8 @@ class KoalityBackend(BaseBackend):
                 'repository_id': build.repository_id,
                 'sha': change['headCommit']['sha'],
             })
+
+            update(session, build, values)
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
