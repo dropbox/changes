@@ -13,7 +13,8 @@ class BuildDetailsHandler(BaseRequestHandler):
             build = session.query(Build).get(build_id)
             phase_list = list(session.query(Phase).filter_by(build_id=build.id))
             steps = list(session.query(Step).filter_by(build_id=build.id))
-            test_list = list(session.query(Test).filter_by(build_id=build.id))
+            test_list = list(session.query(Test).filter_by(
+                build_id=build.id).order_by('-result', '-duration'))
 
             # TODO: probably a better way to do relations
             revision = session.query(Revision).filter_by(
