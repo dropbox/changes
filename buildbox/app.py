@@ -1,8 +1,5 @@
-import os.path
-
 from sqlalchemy import create_engine
 from tornado.web import url, StaticFileHandler
-from tornadoredis import Client
 
 from buildbox.config import settings
 from buildbox.db.backend import Backend
@@ -14,8 +11,6 @@ db = Backend(create_engine(
     # echo=settings['debug'],
     # echo_pool=settings['debug'],
 ))
-
-redis = Client()
 
 from buildbox.server import BuildboxServer
 from buildbox.web.api.build_details import BuildDetailsApiHandler
