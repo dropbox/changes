@@ -58,7 +58,7 @@ class Build(Base):
             'result': self.result.to_dict(),
             'status': self.status.to_dict(),
             'project': self.project.to_dict(),
-            'author': self.author.to_dict(),
+            'author': self.author.to_dict() if self.author else None,
             'parent_revision': self.parent_revision.to_dict(),
             'duration': self.duration,
             'link': '/projects/%s/builds/%s/' % (self.project.slug, self.id.hex),

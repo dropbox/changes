@@ -23,6 +23,6 @@ class Revision(Base):
             'sha': self.sha,
             'shaShort': self.sha[:12],
             'message': self.message,
-            'author': self.author.to_dict(),
+            'author': self.author.to_dict() if self.author else None,
             'dateCreated': self.date_created.isoformat(),
         }
