@@ -19,3 +19,10 @@ class Author(Base):
         super(Author, self).__init__(**kwargs)
         if not self.id:
             self.id = uuid.uuid4()
+
+    def to_dict(self):
+        return {
+            'id': self.id.hex,
+            'name': self.name,
+            'email': self.email,
+        }

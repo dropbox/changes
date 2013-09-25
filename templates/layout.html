@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html ng-app="Buildbox">
   <head>
     <meta charset="utf-8">
     <title>Buildbox</title>
@@ -8,6 +8,7 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
     <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
     <link href="{{ static_url('css/styles.css') }}" rel="stylesheet" media="screen">
+    <script src="{{ static_url('js/angular-1.1.5.min.js') }}"></script>
   </head>
   <body>
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -33,5 +34,6 @@
 
     <script src="{{ static_url('js/jquery-2.0.3.min.js') }}"></script>
     <script src="{{ static_url('js/bootstrap.min.js') }}"></script>
+    <script src="{{ static_url('js/app.js') }}"></script>
   </body>
 </html>

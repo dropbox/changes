@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-	<div id="overvei">
+	<div id="overview">
 		<div class="page-header build-header status-{{ build.result }}">
 			<span class="indicator">{{ build.result }}</span>
 			<h2>{{ build.label }} <small>({{ build.parent_revision.sha[:12] }})</small></h2>

@@ -1,21 +1,22 @@
 {% extends "layout.html" %}
 
 {% block content %}
-	<table class="build-list table table-striped">
-		{% for build in build_list %}
-			<tr class="status-{{ build.result.name }}">
-				<td><span class="indicator">{{ build.result }}</span></td>
-				<td>
-					<a href="{{ reverse_url('build-details', build.project.slug, build.id.hex) }}">{{ build.label }}</a><br>
+	<section ng-controller="BuildListCtrl">
+		<table class="build-list table table-striped">
+			<tbody>
+				<tr ng-repeat="build in builds | orderBy:'created_date':true" class="status-{{!build.result.name}}">
+					<td><span class="indicator">{{!build.result.label}}</span></td>
+					<td>
+						<a href="{{!build.link}}">{{!build.name}}</a><br>
 
-					<small>
-						<a href="#">{{ build.project.name }}</a>{% if build.author %} &mdash; {{ build.author.name }}{% end %}
-						{% if build.date_finished %}
-							<span class="date">{{ build.date_finished }} &mdash; {{ '%.2f' % (build.duration / 1000.0) }}s</span>
-						{% end %}
-					</small>
-				</td>
-			</tr>
-		{% end %}
-	</table>
+						<small>
+							<a href="#">{{!build.project.name}}</a>
+							<span ng-if="build.author">&mdash; {{!build.author.name}}</span>
+							<span class="date" ng-if="build.dateFinished">{{!build.dateFinished}} &mdash; {{!build.duration}}s</span>
+						</small>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</section>
 {% end %}

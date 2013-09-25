@@ -46,7 +46,19 @@ class Build(Base):
     @property
     def duration(self):
         if self.date_started and self.date_finished:
-            duration = (self.date_finished - self.date_started).total_seconds() * 1000
+            duration = (self.date_finished - self.date_started).total_seconds()
         else:
             duration = None
         return duration
+
+    def to_dict(self):
+        return {
+            'id': self.id.hex,
+            'name': self.label,
+            'result': self.result.to_dict(),
+            'status': self.status.to_dict(),
+            'project': self.project.to_dict(),
+            'author': self.author.to_dict(),
+            'dateStarted': self.date_started.isoformat() if self.date_started else None,
+            'duration': self.duration,
+        }

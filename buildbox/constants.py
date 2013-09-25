@@ -10,6 +10,12 @@ class Status(Enum):
     def __str__(self):
         return STATUS_LABELS[self]
 
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'label': unicode(self),
+        }
+
 
 class Result(Enum):
     unknown = 0
@@ -17,9 +23,16 @@ class Result(Enum):
     failed = 2
     skipped = 3
     errored = 4
+    aborted = 5
 
     def __str__(self):
         return RESULT_LABELS[self]
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'label': unicode(self),
+        }
 
 
 class Provider(Enum):
