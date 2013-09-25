@@ -1,6 +1,6 @@
 from sqlalchemy.orm import joinedload
 
-from buildbox.models import Build
+from buildbox.models import Build, Revision
 from buildbox.web.base_handler import BaseAPIRequestHandler
 
 
@@ -11,6 +11,8 @@ class BuildListApiHandler(BaseAPIRequestHandler):
                 session.query(Build).options(
                     joinedload(Build.project),
                     joinedload(Build.author),
+                    joinedload(Build.parent_revision),
+                    joinedload(Build.parent_revision, Revision.author),
                 ).order_by(Build.date_created.desc())
             )[:100]
 

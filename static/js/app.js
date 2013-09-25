@@ -1,4 +1,3 @@
-var Buildbox = angular.module('Buildbox', []);
 
 function BuildListCtrl($scope, $http) {
   $scope.builds = [];
@@ -6,18 +5,6 @@ function BuildListCtrl($scope, $http) {
   $http.get('/api/0/builds/').success(function(data) {
     $scope.builds = data.builds;
   });
-
-  $scope.failedFilter = function(test) {
-    return test ? (test.status == 2 || test.status == 3) : false;
-  };
-
-  $scope.timeSinceBuild = function(build) {
-    return moment.utc(build.created_date).fromNow();
-  };
-
-  $scope.displayDate = function(build) {
-    return build ? moment(build.created_date).format("dddd, MMMM Do YYYY, h:mm:ss a") : '';
-  };
 
   function addBuild(data) {
     $scope.$apply(function() {
@@ -55,3 +42,32 @@ function BuildListCtrl($scope, $http) {
 
   subscribe();
 }
+
+
+function BuildDetailsCtrl($scope, $http, $routeParams) {
+  $scope.build = null;
+  $scope.phases = [];
+  $scope.tests = [];
+
+  $http.get('/api/0/builds/' + $routeParams.build_id + '/').success(function(data) {
+    $scope.build = data.build;
+    $scope.tests = data.tests;
+    $scope.phases = data.phases;
+  });
+
+}
+
+
+var Buildbox = angular.module('Buildbox', []).
+  config(['$routeProvider', function($routeProvider) {
+  $routeProvider.
+      when('/', {
+        templateUrl: 'partials/build-list.html',
+        controller: BuildListCtrl
+      }).
+      when('/projects/:project_id/builds/:build_id/', {
+        templateUrl: 'partials/build-details.html',
+        controller: BuildDetailsCtrl
+      }).
+      otherwise({redirectTo: '/'});
+}]);

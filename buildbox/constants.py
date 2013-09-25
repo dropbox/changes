@@ -12,8 +12,8 @@ class Status(Enum):
 
     def to_dict(self):
         return {
-            'name': self.name,
-            'label': unicode(self),
+            'id': self.name,
+            'name': unicode(self),
         }
 
 
@@ -30,8 +30,8 @@ class Result(Enum):
 
     def to_dict(self):
         return {
-            'name': self.name,
-            'label': unicode(self),
+            'id': self.name,
+            'name': unicode(self),
         }
 
 

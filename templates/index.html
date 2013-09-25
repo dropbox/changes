@@ -16,17 +16,12 @@
         <div class="navbar-header">
           <a class="navbar-brand" href="/">Buildbox</a>
         </div>
-        <nav class="navbar-collapse" id="header-nav">
-          <ul class="nav navbar-nav">
-            {% block navbar_links %}{% end %}
-          </ul>
-        </nav>
       </div>
     </nav>
 
     <section class="body">
       <div class="container" data-spy="scroll" data-target="#header-nav">
-        {% block content %}{% end %}
+        <div ng-view></div>
       </div>
     </section>
 

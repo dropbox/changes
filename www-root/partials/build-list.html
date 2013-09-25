@@ -1,0 +1,18 @@
+<section ng-controller="BuildListCtrl">
+	<table class="build-list table table-striped">
+		<tbody>
+			<tr ng-repeat="build in builds | orderBy:'dateCreated':true" class="status-{{build.result.id}}">
+				<td><span class="indicator">{{build.result.name}}</span></td>
+				<td>
+					<a href="#{{build.link}}">{{build.name}}</a><br>
+
+					<small>
+						<a href="#">{{build.project.name}}</a>
+						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
+						<span class="date" ng-if="build.dateFinished">{{build.dateFinished}} &mdash; {{build.duration}}s</span>
+					</small>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</section>

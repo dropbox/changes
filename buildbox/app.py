@@ -1,5 +1,7 @@
+import os.path
+
 from sqlalchemy import create_engine
-from tornado.web import url
+from tornado.web import url, StaticFileHandler
 from tornadoredis import Client
 
 from buildbox.config import settings
@@ -16,17 +18,15 @@ db = Backend(create_engine(
 redis = Client()
 
 from buildbox.server import BuildboxServer
+from buildbox.web.api.build_details import BuildDetailsApiHandler
 from buildbox.web.api.build_list import BuildListApiHandler
 from buildbox.web.api.stream import StreamHandler, TestStreamHandler
-from buildbox.web.frontend.build_list import BuildListHandler
-from buildbox.web.frontend.build_details import BuildDetailsHandler
+from buildbox.web.frontend.index import IndexHandler
 
 application = BuildboxServer(
     [
-        url(r"/", BuildListHandler,
-            name='build-list'),
-        url(r"/projects/([^/]+)/build/([^/]+)/", BuildDetailsHandler,
-            name='build-details'),
+        url(r"/", IndexHandler,
+            name='index'),
 
         url(r"/api/0/stream/", StreamHandler,
             name='api-stream'),
@@ -34,6 +34,13 @@ application = BuildboxServer(
             name='api-stream-team'),
         url(r"/api/0/builds/", BuildListApiHandler,
             name='api-build-list'),
+        url(r"/api/0/builds/([^/]+)/", BuildDetailsApiHandler,
+            name='api-build-details'),
+
+        url(r'/(.*)', StaticFileHandler, {
+            'path': settings['www_root'],
+        }),
+
     ],
     static_path=settings['static_path'],
     template_path=settings['template_path'],

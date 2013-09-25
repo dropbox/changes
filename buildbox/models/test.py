@@ -31,3 +31,13 @@ class Test(Base):
         super(Test, self).__init__(**kwargs)
         if not self.id:
             self.id = uuid.uuid4()
+
+    def to_dict(self):
+        return {
+            'id': self.id.hex,
+            'name': self.label,
+            'result': self.result.to_dict(),
+            'duration': self.duration,
+            'dateCreated': self.date_created.isoformat(),
+            'message': self.message,
+        }

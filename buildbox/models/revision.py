@@ -17,3 +17,12 @@ class Revision(Base):
 
     repository = relationship('Repository')
     author = relationship('Author')
+
+    def to_dict(self):
+        return {
+            'sha': self.sha,
+            'shaShort': self.sha[:12],
+            'message': self.message,
+            'author': self.author.to_dict(),
+            'dateCreated': self.date_created.isoformat(),
+        }
