@@ -52,6 +52,8 @@ class Build(Base):
         return duration
 
     def to_dict(self):
+        from buildbox.app import application
+
         return {
             'id': self.id.hex,
             'name': self.label,
@@ -61,4 +63,5 @@ class Build(Base):
             'author': self.author.to_dict(),
             'dateStarted': self.date_started.isoformat() if self.date_started else None,
             'duration': self.duration,
+            'link': application.reverse_url('build-details', self.project.slug, self.id.hex),
         }
