@@ -65,20 +65,15 @@ class BuildboxServer(tornado.web.Application):
         channel = msg['channel']
         data = msg['data']
         if msg.get('type', None) == 'subscribe' or msg.get('type') == 'unsubscribe':
-            pass
+            return
         elif channel == self._pubsub_cmd_channel:
             command = data.split(':')
             if command[0] == 'subscribe':
-                result = self._pubsub.subscribe(command[1])
+                self._pubsub.subscribe(command[1])
             elif command[0] == 'unsubscribe':
-                result = self._pubsub.unsubscribe(command[1])
-            if type(result) == list and result[0] == 'message':
-                self._process_msg({
-                    'type': result[0],
-                    'pattern': None,
-                    'channel': result[1],
-                    'data': result[2]
-                })
+                self._pubsub.unsubscribe(command[1])
+            else:
+                logger.warn('Unknown command: %s', command[0])
         else:
             listeners = self._pubsub_callbacks.get(channel, [])
             for listener in listeners:
@@ -89,4 +84,4 @@ class BuildboxServer(tornado.web.Application):
             try:
                 self._process_msg(msg)
             except Exception as exc:
-                logger.warn("Could not process message: %r" % exc, exc_info=True)
+                logger.warn('Could not process message: %s', exc, exc_info=True)
