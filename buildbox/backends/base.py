@@ -1,9 +1,9 @@
-from buildbox.db.backend import Backend
+from buildbox.app import db
 
 
 class BaseBackend(object):
     def __init__(self):
-        self.backend = Backend.instance()
+        self.db = db
 
     def get_session(self):
-        return self.backend.get_session()
+        return self.db.get_session()

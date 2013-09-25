@@ -61,7 +61,9 @@ class Build(Base):
             'status': self.status.to_dict(),
             'project': self.project.to_dict(),
             'author': self.author.to_dict(),
-            'dateStarted': self.date_started.isoformat() if self.date_started else None,
             'duration': self.duration,
             'link': application.reverse_url('build-details', self.project.slug, self.id.hex),
+            'dateCreated': self.date_created.isoformat(),
+            'dateStarted': self.date_started.isoformat() if self.date_started else None,
+            'dateFinished': self.date_finished.isoformat() if self.date_finished else None,
         }

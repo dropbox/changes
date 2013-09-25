@@ -19,39 +19,39 @@ function BuildListCtrl($scope, $http) {
     return build ? moment(build.created_date).format("dddd, MMMM Do YYYY, h:mm:ss a") : '';
   };
 
-  // function add_or_update_build(data) {
-  //   $scope.$apply(function() {
-  //     var updated = false, build_id = data.build_id;
-  //     if ($scope.builds.length > 0) {
-  //       var result = $.grep($scope.builds, function(e){ return e.build_id == build_id; });
-  //       if (result.length > 0) {
-  //         var item = result[0];
-  //         for (attr in data) {
-  //           item[attr] = data[attr];
-  //         }
-  //         updated = true;
-  //       }
-  //     }
-  //     if (!updated) {
-  //       $scope.builds.unshift(data);
-  //     }
-  //   });
-  // }
+  function addBuild(data) {
+    $scope.$apply(function() {
+      var updated = false, build_id = data.build_id;
+      if ($scope.builds.length > 0) {
+        var result = $.grep($scope.builds, function(e){ return e.build_id == build_id; });
+        if (result.length > 0) {
+          var item = result[0];
+          for (attr in data) {
+            item[attr] = data[attr];
+          }
+          updated = true;
+        }
+      }
+      if (!updated) {
+        $scope.builds.unshift(data);
+      }
+    });
+  }
 
-  // function server_sent_events() {
-  //   var source = new EventSource('/stream');
-  //   // source.onopen = function(e) {
-  //   //   console.log('[Stream] Connection opened');
-  //   // }
-  //   // source.onerror = function(e) {
-  //   //   console.log('[Stream] Error!');
-  //   // }
-  //   source.onmessage = function(e) {
-  //     // console.log('[Stream] Received event: ' + e.data);
-  //     data = $.parseJSON(e.data);
-  //     add_or_update_build(data);
-  //   };
-  // }
+  function subscribe() {
+    var source = new EventSource('/api/0/stream/');
+    // source.onopen = function(e) {
+    //   console.log('[Stream] Connection opened');
+    // }
+    // source.onerror = function(e) {
+    //   console.log('[Stream] Error!');
+    // }
+    source.onmessage = function(e) {
+      // console.log('[Stream] Received event: ' + e.data);
+      data = $.parseJSON(e.data);
+      addBuild(data);
+    };
+  }
 
-  // server_sent_events();
+  subscribe();
 }

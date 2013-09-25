@@ -6,7 +6,7 @@ import random
 import sys
 import uuid
 
-from buildbox.db.backend import Backend
+from buildbox.app import db
 from buildbox.constants import Status, Result
 from buildbox.models import (
     Project, Repository, Author, Revision, Build, Phase, Step, Test
@@ -105,7 +105,7 @@ def generate_test_results(session, build, result=Result.passed):
     return test
 
 
-with Backend.instance().get_session() as session:
+with db.get_session() as session:
     repository = Repository(
         url='https://github.com/example/example.git')
     session.add(repository)

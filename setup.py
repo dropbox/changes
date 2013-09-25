@@ -30,10 +30,11 @@ install_requires = [
     'enum34',
     'futures',
     'lxml',
-    'tornado',
+    'redis',
     'requests',
     'psycopg2',
     'simplejson',
+    'tornado',
 ]
 
 

@@ -1,10 +1,10 @@
 from sqlalchemy.orm import joinedload
 
 from buildbox.models import Build
-from buildbox.web.base_handler import APIRequestHandler
+from buildbox.web.base_handler import BaseAPIRequestHandler
 
 
-class BuildListApiHandler(APIRequestHandler):
+class BuildListApiHandler(BaseAPIRequestHandler):
     def get(self):
         with self.db.get_session() as session:
             build_list = list(

@@ -4,7 +4,7 @@
 	<section ng-controller="BuildListCtrl">
 		<table class="build-list table table-striped">
 			<tbody>
-				<tr ng-repeat="build in builds | orderBy:'created_date':true" class="status-{{!build.result.name}}">
+				<tr ng-repeat="build in builds | orderBy:'dateCreated':true" class="status-{{!build.result.name}}">
 					<td><span class="indicator">{{!build.result.label}}</span></td>
 					<td>
 						<a href="{{!build.link}}">{{!build.name}}</a><br>

@@ -2,19 +2,8 @@ from sqlalchemy.orm import sessionmaker
 
 
 class Backend(object):
-    def __init__(self, engine=None):
-        from buildbox.app import application
-
-        if engine is None:
-            engine = application.settings['sqla_engine']
-
+    def __init__(self, engine):
         self.engine = engine
-
-    @classmethod
-    def instance(cls):
-        if not hasattr(cls, '_instance'):
-            cls._instance = cls()
-        return cls._instance
 
     @property
     def connection(self):

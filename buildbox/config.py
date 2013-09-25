@@ -8,6 +8,7 @@ settings = {
     'template_path': os.path.join(root, 'templates'),
     'debug': True,
     'database': 'postgresql://localhost/buildbox',
+    'redis': {},
     'koality.url': 'https://build.itc.dropbox.com',
     'koality.api_key': 'he8i7mxdzrocn6rg9qv852occkvpih9b',
 }
