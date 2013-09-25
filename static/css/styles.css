@@ -166,6 +166,10 @@ dl.flat dt {
   color: #999;
   font-weight: 300;
 }
+.build-list td small .date {
+  position: absolute;
+  right: 15px;
+}
 .build-list > tbody > tr:nth-child(odd) > td {
   background: #f7f5fa;
 }

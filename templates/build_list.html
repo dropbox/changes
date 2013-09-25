@@ -8,8 +8,12 @@
 				<td>
 					<a href="{{ reverse_url('build-details', build.project.slug, build.id.hex) }}">{{ build.label }}</a><br>
 
-					<small><a href="#">{{ build.project.name }}</a>{% if build.author %} &mdash; {{ build.author.name }}{% end %}</small>
-
+					<small>
+						<a href="#">{{ build.project.name }}</a>{% if build.author %} &mdash; {{ build.author.name }}{% end %}
+						{% if build.date_finished %}
+							<span class="date">{{ build.date_finished }} &mdash; {{ '%.2f' % (build.duration / 1000.0) }}s</span>
+						{% end %}
+					</small>
 				</td>
 			</tr>
 		{% end %}
