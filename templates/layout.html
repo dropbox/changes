@@ -23,9 +23,11 @@
       </div>
     </nav>
 
-    <div class="container" id="content" data-spy="scroll" data-target="#header-nav">
-      {% block content %}{% end %}
-    </div>
+    <section class="body">
+      <div class="container" data-spy="scroll" data-target="#header-nav">
+        {% block content %}{% end %}
+      </div>
+    </section>
 
     <footer></footer>
 

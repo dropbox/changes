@@ -40,27 +40,28 @@
 
 	<br>
 
-	<div id="test-results">
-		<div class="page-header">
-			<h3>Test Results <small>{{ sum(1 for t in test_list if t.result.name == 'failed') }} failure(s)</small></h3>
+	{% if test_list %}
+		<div id="test-results">
+			<div class="page-header">
+				<h3>Test Results <small>{{ sum(1 for t in test_list if t.result.name == 'failed') }} failure(s)</small></h3>
+			</div>
+
+			<table class="test-results table">
+				<tbody>
+					{% for test in test_list %}
+						<tr class="status-{{ test.result }}">
+							<td>{{ test.label }}</td>
+							<td>
+								{% if test.duration %}
+									{{ '%.2f' % (test.duration / 1000.0) }}s
+								{% else %}
+									n/a
+								{% end %}
+							</td>
+						</tr>
+					{% end %}
+				</tbody>
+			</table>
 		</div>
-
-		<table class="test-results table">
-			<tbody>
-				{% for test in test_list %}
-					<tr class="status-{{ test.result }}">
-						<td>{{ test.label }}</td>
-						<td>
-							{% if test.duration %}
-								{{ '%.2f' % (test.duration / 1000.0) }}s
-							{% else %}
-								n/a
-							{% end %}
-						</td>
-					</tr>
-				{% end %}
-			</tbody>
-		</table>
-
-	</div>
+	{% end %}
 {% end %}

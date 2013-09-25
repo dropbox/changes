@@ -8,38 +8,9 @@ color: #c7c0de;
 
 body {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
-  padding-top: 70px;
+  padding-top: 50px;
   font-size: 15px;
-}
-
-.container {
-  width: 800px;
-}
-
-.navbar {
-  background: #58488a;
-  color: #c7c0de;
-}
-.navbar a,
-.navbar a:hover,
-.navbar a:focus {
-  color: #fff;
-}
-.navbar .navbar-nav > li > a {
-  color: #c7c0de;
-}
-.navbar .navbar-nav > li > a > .badge {
-  background: #63519e;
-  color: #c7c0de;
-  font-weight: normal;
-}
-.navbar .navbar-nav > li.active > a {
-  background: #63519e;
-  color: #fff;
-}
-.navbar .navbar-nav > li.active > a > .badge {
-  background: #58488a;
-  color: #fff;
+  background: #f7f5fa;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -74,6 +45,41 @@ dl.flat dt {
   position: absolute;
   left: 0;
   width: 100px;
+}
+
+.container {
+  width: 800px;
+}
+
+.navbar {
+  background: #58488a;
+  color: #c7c0de;
+}
+.navbar a,
+.navbar a:hover,
+.navbar a:focus {
+  color: #fff;
+}
+.navbar .navbar-nav > li > a {
+  color: #c7c0de;
+}
+.navbar .navbar-nav > li > a > .badge {
+  background: #63519e;
+  color: #c7c0de;
+  font-weight: normal;
+}
+.navbar .navbar-nav > li.active > a {
+  background: #63519e;
+  color: #fff;
+}
+.navbar .navbar-nav > li.active > a > .badge {
+  background: #58488a;
+  color: #fff;
+}
+
+.body {
+  background: #fff;
+  padding: 20px 0;
 }
 
 .page-header {
@@ -114,13 +120,14 @@ dl.flat dt {
   text-overflow: ellipsis;
   white-space: nowrap;
   padding-right: 44px;
+  height: 42px;
 }
 .build-header .indicator {
   border-radius: 34px;
   width: 34px;
   height: 34px;
   line-height: 34px;
-  bottom: 10px;
+  top: 5px;
   text-indent: -10000em;
   overflow: hidden;
 }
