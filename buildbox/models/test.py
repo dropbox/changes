@@ -37,7 +37,7 @@ class Test(Base):
             'id': self.id.hex,
             'name': self.label,
             'result': self.result.to_dict(),
-            'duration': self.duration,
+            'duration': self.duration / 1000,
             'dateCreated': self.date_created.isoformat(),
             'message': self.message,
         }
