@@ -6,13 +6,13 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
 
+from buildbox.config import db
 from buildbox.constants import Result
-from buildbox.db.base import Base
 from buildbox.db.types.enum import Enum
 from buildbox.db.types.guid import GUID
 
 
-class Test(Base):
+class Test(db.Model):
     __tablename__ = 'test'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

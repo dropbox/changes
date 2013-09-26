@@ -1,19 +1,7 @@
-import sqlalchemy as sa
-
+from __future__ import with_statement
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
-from sqlalchemy import pool, create_engine
-
-from buildbox.config import settings
-from buildbox.models import metadata
-
-# compatibility for imports
-from buildbox.db.types.enum import Enum
-from buildbox.db.types.guid import GUID
-from buildbox.db.types.json import JSONEncodedDict
-sa.GUID = GUID
-sa.Enum = Enum
-sa.JSONEncodedDict = JSONEncodedDict
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,11 +11,29 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
+import sqlalchemy as sa
+from buildbox.db.types.enum import Enum
+from buildbox.db.types.guid import GUID
+from buildbox.db.types.json import JSONEncodedDict
+sa.Enum = Enum
+sa.GUID = GUID
+sa.JSONEncodedDict = JSONEncodedDict
+
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = metadata
+from flask import current_app
+with current_app.app_context():
+    # set the database url
+    config.set_main_option('sqlalchemy.url', current_app.config.get('SQLALCHEMY_DATABASE_URI'))
+    flask_app = __import__('%s' % (current_app.name), fromlist=[current_app.name])
+
+db_obj_name = config.get_main_option("flask_sqlalchemy")
+db_obj = getattr(flask_app, db_obj_name)
+target_metadata = db_obj.metadata
+
+# force registration of models
+import buildbox.models  # NOQA
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -47,23 +53,23 @@ def run_migrations_offline():
     script output.
 
     """
-    context.configure(
-        url=settings['database'],
-    )
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(url=url)
 
     with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online():
-    """
-    Run migrations in 'online' mode.
+    """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
+
     """
-    engine = create_engine(
-        settings['database'],
+    engine = engine_from_config(
+        config.get_section(config.config_ini_section),
+        prefix='sqlalchemy.',
         poolclass=pool.NullPool,
     )
 

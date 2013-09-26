@@ -7,6 +7,7 @@ import os
 from datetime import datetime
 
 from buildbox.backends.koality.backend import KoalityBackend
+from buildbox.config import db
 from buildbox.constants import Result, Status
 from buildbox.models import (
     Repository, Project, Build, EntityType, Revision, Author,
@@ -59,22 +60,23 @@ class KoalityBackendTestCase(BackendTestCase):
         self.patcher.start()
         self.addCleanup(self.patcher.stop)
 
-        backend = self.get_backend()
+        self.repo = Repository(url='https://github.com/dropbox/buildbox.git')
+        self.project = Project(repository=self.repo, name='test', slug='test')
 
-        with backend.get_session() as session:
-            self.repo = Repository(url='https://github.com/dropbox/buildbox.git')
-            self.project = Project(repository=self.repo, name='test', slug='test')
-            session.add(self.repo)
-            session.add(self.project)
+        db.session.add(self.repo)
+        db.session.add(self.project)
 
 
 class SyncBuildListTest(KoalityBackendTestCase):
     def test_simple(self):
         backend = self.get_backend()
 
-        self.make_entity(EntityType.project, self.project.id, 1)
+        project_entity = self.make_entity(EntityType.project, self.project.id, 1)
 
-        results = backend.sync_build_list(self.project)
+        results = backend.sync_build_list(
+            project=self.project,
+            project_entity=project_entity,
+        )
         assert len(results) == 2
 
 
@@ -83,42 +85,43 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
     # so edge cases can be more isolated
     def test_simple(self):
         backend = self.get_backend()
+        build = Build(
+            repository=self.repo, project=self.project, label='pending',
+        )
+        db.session.add(build)
 
-        with backend.get_session() as session:
-            build = Build(
-                repository=self.repo, project=self.project, label='pending',
-            )
-            session.add(build)
+        project_entity = self.make_entity(EntityType.project, self.project.id, 1)
+        build_entity = self.make_entity(EntityType.build, build.id, 1)
 
-        self.make_entity(EntityType.project, self.project.id, 1)
-        self.make_entity(EntityType.build, build.id, 1)
+        backend.sync_build_details(
+            build=build,
+            project=self.project,
+            build_entity=build_entity,
+            project_entity=project_entity,
+        )
 
-        backend.sync_build_details(build)
-
-        assert build.label == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
+        assert build.label == 'Fixing visual regression with visuals.'
         assert build.parent_revision_sha == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
         assert build.status == Status.finished
         assert build.result == Result.failed
         assert build.date_started == datetime(2013, 9, 19, 22, 15, 22)
         assert build.date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
-        with backend.get_session() as session:
-            revision = session.query(Revision).filter_by(
-                sha=build.parent_revision_sha,
-                repository=build.repository,
-            )[0]
-            author = session.query(Author).get(revision.author_id)
-            build = session.query(Build).get(build.id)
+        revision = Revision.query.filter_by(
+            sha=build.parent_revision_sha,
+            repository=build.repository,
+        )[0]
+        author = Author.query.get(revision.author_id)
+        build = Build.query.get(build.id)
 
         assert revision.message == 'Fixing visual regression with visuals.'
 
         assert author.email == 'john@example.com'
         assert author.name == 'John Developer'
 
-        with backend.get_session() as session:
-            phase_list = list(session.query(Phase).filter_by(
-                build=build,
-            ))
+        phase_list = list(Phase.query.filter_by(
+            build=build,
+        ))
 
         phase_list.sort(key=lambda x: x.date_started)
 
@@ -148,10 +151,9 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
         assert phase_list[2].date_started == datetime(2013, 9, 19, 22, 15, 25)
         assert phase_list[2].date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
-        with backend.get_session() as session:
-            step_list = list(session.query(Step).filter_by(
-                build=build,
-            ))
+        step_list = list(Step.query.filter_by(
+            build=build,
+        ))
 
         step_list.sort(key=lambda x: (x.date_started, x.date_created))
 

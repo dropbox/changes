@@ -1,5 +1,6 @@
-develop: update-submodules install-test-requirements
+develop: update-submodules
 	pip install -q -e . --use-mirrors
+	make install-test-requirements
 
 install-test-requirements:
 	pip install -q "file://`pwd`#egg=buildbox[tests]" --use-mirrors

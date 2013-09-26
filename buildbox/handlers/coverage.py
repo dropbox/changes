@@ -2,7 +2,7 @@ from __future__ import absolute_import, division
 
 from lxml import etree
 
-from buildbox.app import db
+from buildbox.config import db
 from buildbox.models.filecoverage import FileCoverage
 
 from .base import ArtifactHandler

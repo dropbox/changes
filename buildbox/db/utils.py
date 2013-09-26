@@ -17,14 +17,7 @@ def create_or_update(session, model, where, values=None):
     return instance
 
 
-def update(session, instance, values):
-    changed = False
+def update(instance, values):
     for key, value in values.iteritems():
         if getattr(instance, key) != value:
             setattr(instance, key, value)
-            changed = True
-
-    if changed:
-        session.add(instance)
-
-    return instance

@@ -4,13 +4,13 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, ForeignKeyConstraint
 from sqlalchemy.orm import relationship
 
+from buildbox.config import db
 from buildbox.constants import Status, Result
-from buildbox.db.base import Base
 from buildbox.db.types.enum import Enum
 from buildbox.db.types.guid import GUID
 
 
-class Build(Base):
+class Build(db.Model):
     __tablename__ = 'build'
     __table_args__ = (
         ForeignKeyConstraint(
@@ -34,7 +34,7 @@ class Build(Base):
 
     repository = relationship('Repository')
     project = relationship('Project')
-    parent_revision = relationship('Revision', remote_side=[repository_id, parent_revision_sha])
+    parent_revision = relationship('Revision')
     patch = relationship('Patch')
     author = relationship('Author')
 

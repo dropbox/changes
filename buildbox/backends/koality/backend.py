@@ -7,9 +7,10 @@ from collections import defaultdict
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 
-from buildbox.constants import Result, Status
 from buildbox.backends.base import BaseBackend
-from buildbox.db.utils import create_or_update, update
+from buildbox.config import db
+from buildbox.constants import Result, Status
+from buildbox.db.utils import create_or_update
 from buildbox.models import (
     Revision, Author, Phase, Step, RemoteEntity, EntityType, Node,
     Build, Project
@@ -23,9 +24,9 @@ PROJECT_MAP = {
 }
 
 
-def find_entity(session, type, remote_id, provider='koality'):
+def find_entity(type, remote_id, provider='koality'):
     try:
-        entity = session.query(RemoteEntity).filter_by(
+        entity = RemoteEntity.query.filter_by(
             type=type,
             remote_id=remote_id,
             provider=provider,
@@ -33,13 +34,13 @@ def find_entity(session, type, remote_id, provider='koality'):
     except IndexError:
         return None, None
 
-    instance = session.query(entity.type.model).get(entity.internal_id)
+    instance = db.session.query(entity.type.model).get(entity.internal_id)
     return entity, instance
 
 
-def get_entity(session, instance, provider='koality'):
+def get_entity(instance, provider='koality'):
     try:
-        return session.query(RemoteEntity).filter_by(
+        return db.session.query(RemoteEntity).filter_by(
             type=getattr(EntityType, instance.__tablename__),
             internal_id=instance.id,
             provider=provider,
@@ -49,11 +50,11 @@ def get_entity(session, instance, provider='koality'):
 
 
 class KoalityBackend(BaseBackend):
-    def __init__(self, base_url, api_key):
+    def __init__(self, base_url, api_key, *args, **kwargs):
         self.base_url = base_url
         self.api_key = api_key
         self._node_cache = {}
-        super(KoalityBackend, self).__init__()
+        super(KoalityBackend, self).__init__(*args, **kwargs)
 
     def _get_end_time(self, stage_list):
         end_time = 0
@@ -91,197 +92,209 @@ class KoalityBackend(BaseBackend):
         if node is not None:
             return node
 
-        with self.get_session() as session:
-            _, node = find_entity(
-                session, EntityType.node, str(node_id))
-            if node is None:
-                node = Node()
-                entity = RemoteEntity(
-                    provider='koality', remote_id=str(node_id),
-                    internal_id=node.id, type=EntityType.node,
-                )
-                session.add(node)
-                session.add(entity)
+        _, node = find_entity(
+            EntityType.node, str(node_id))
+        if node is None:
+            node = Node()
+            entity = RemoteEntity(
+                provider='koality', remote_id=str(node_id),
+                internal_id=node.id, type=EntityType.node,
+            )
+            db.session.add(node)
+            db.session.add(entity)
 
         self._node_cache[node_id] = node
 
         return node
 
     def _sync_author(self, user):
-        with self.get_session() as session:
-            author = create_or_update(session, Author, values={
-                'email': user['email'],
-            }, where={
-                'name': user['name'],
-            })
+        author = create_or_update(db.session, Author, values={
+            'email': user['email'],
+        }, where={
+            'name': user['name'],
+        })
         return author
 
     def _sync_revision(self, repository, author, commit):
-        with self.get_session() as session:
-            revision = create_or_update(session, Revision, values={
-                'message': commit['message'],
-                'author_id': author.id,
-            }, where={
-                'repository_id': repository.id,
-                'sha': commit['sha'],
-            })
+        revision = create_or_update(db.session, Revision, values={
+            'message': commit['message'],
+            'author': author,
+        }, where={
+            'repository': repository,
+            'sha': commit['sha'],
+        })
+
         return revision
 
-    def _sync_phase(self, build, stage_type, stage_list):
-        values = {
-            'build_id': build.id,
-            'repository_id': build.repository_id,
-            'project_id': build.project_id,
-            'label': stage_type.title(),
-        }
-
-        if all((s['startTime'] and s['endTime']) for s in stage_list):
-            if all(s['status'] == 'passed' for s in stage_list):
-                values['result'] = Result.passed
-            else:
-                values['result'] = Result.failed
-            values['status'] = Status.finished
-        elif any(s['startTime'] for s in stage_list):
-            if any(s['status'] == 'failed' for s in stage_list):
-                values['result'] = Result.failed
-            else:
-                values['result'] = Result.unknown
-            values['status'] = Status.in_progress
-        else:
-            values['status'] = Status.queued
-            values['result'] = Result.unknown
-
-        values['date_started'] = self._get_start_time(stage_list)
-        values['date_finished'] = self._get_end_time(stage_list)
-
+    def _sync_phase(self, build, stage_type, stage_list, phase=None):
         remote_id = '%s:%s' % (build.id.hex, stage_type)
 
-        with self.get_session() as session:
-            _, phase = find_entity(
-                session, EntityType.phase, remote_id)
-            if phase is None:
-                phase = Phase(**values)
-                entity = RemoteEntity(
-                    provider='koality', remote_id=remote_id,
-                    internal_id=phase.id, type=EntityType.phase,
-                )
-                session.add(phase)
-                session.add(entity)
+        if phase is None:
+            entity, phase = find_entity(
+                EntityType.phase, remote_id)
+            create_entity = entity is None
+        else:
+            create_entity = False
+
+        if phase is None:
+            phase = Phase()
+
+        phase.build = build
+        phase.repository = build.repository
+        phase.project = build.project
+        phase.label = stage_type.title()
+
+        phase.date_started = self._get_start_time(stage_list)
+        phase.date_finished = self._get_end_time(stage_list)
+
+        # for stage in (s for s in stages if s['status'] == 'failed'):
+        if phase.date_started and phase.date_finished:
+            if all(s['status'] == 'passed' for s in stage_list):
+                phase.result = Result.passed
             else:
-                update(session, phase, values)
+                phase.result = Result.failed
+            phase.status = Status.finished
+        elif phase.date_started:
+            if any(s['status'] == 'failed' for s in stage_list):
+                phase.result = Result.failed
+            else:
+                phase.result = Result.unknown
+            phase.status = Status.in_progress
+        else:
+            phase.status = Status.queued
+            phase.result = Result.unknown
+
+        if create_entity:
+            entity = RemoteEntity(
+                provider='koality', remote_id=remote_id,
+                internal_id=phase.id, type=EntityType.phase,
+            )
+            db.session.add(entity)
+
+        db.session.add(phase)
 
         return phase
 
-    def _sync_step(self, build, phase, stage):
+    def _sync_step(self, build, phase, stage, step=None):
+        if step is None:
+            entity, step = find_entity(
+                EntityType.step, str(stage['id']))
+            create_entity = entity is None
+        else:
+            create_entity = False
+
+        if step is None:
+            step = Step()
+
         node = self._get_node(stage['buildNode'])
 
-        values = {
-            'build_id': build.id,
-            'repository_id': build.repository_id,
-            'project_id': build.project_id,
-            'phase_id': phase.id,
-            'node_id': node.id,
-            'label': stage['name'],
-            'date_started': self._get_start_time([stage]),
-            'date_finished': self._get_end_time([stage]),
-        }
+        step.build = build
+        step.repository = build.repository
+        step.project = build.project
+        step.phase = phase
+        step.node = node
+        step.label = stage['name']
+        step.date_started = self._get_start_time([stage])
+        step.date_finished = self._get_end_time([stage])
 
-        if values['date_started'] and values['date_finished']:
+        if step.date_started and step.date_finished:
             if stage['status'] == 'passed':
-                values['result'] = Result.passed
+                step.result = Result.passed
             else:
-                values['result'] = Result.failed
-            values['status'] = Status.finished
-        elif values['date_started']:
+                step.result = Result.failed
+            step.status = Status.finished
+        elif step.date_started:
             if stage['status'] == 'failed':
-                values['result'] = Result.failed
-            values['status'] = Status.in_progress
-            values['result'] = Result.unknown
-        else:
-            values['status'] = Status.queued
-            values['result'] = Result.unknown
-
-        with self.get_session() as session:
-            _, step = find_entity(
-                session, EntityType.step, str(stage['id']))
-            if step is None:
-                step = Step(**values)
-                session.add(step)
-                entity = RemoteEntity(
-                    provider='koality', remote_id=str(stage['id']),
-                    internal_id=step.id, type=EntityType.step,
-                )
-                session.add(entity)
+                step.result = Result.failed
             else:
-                update(session, step, values)
+                step.result = Result.unknown
+            step.status = Status.in_progress
+        else:
+            step.status = Status.queued
+            step.result = Result.unknown
+
+        if create_entity:
+            entity = RemoteEntity(
+                provider='koality', remote_id=str(stage['id']),
+                internal_id=step.id, type=EntityType.step,
+            )
+            db.session.add(entity)
+
+        db.session.add(step)
 
         return step
 
     def _sync_build(self, project, change, stage_list=None, build=None):
-        values = {
-            'parent_revision_sha': change['headCommit']['sha'],
-            'label': change['headCommit']['message'].splitlines()[0][:128],
-        }
+        if build is None:
+            entity, build = find_entity(
+                EntityType.build, str(change['id']))
+            create_entity = entity is None
+        else:
+            create_entity = False
 
-        if stage_list:
-            values.update({
-                'date_created': datetime.utcfromtimestamp(change['createTime'] / 1000),
-                'date_started': min(self._get_start_time(stage_list), datetime.utcfromtimestamp(change['startTime'] / 1000)),
-                'date_finished': self._get_end_time(stage_list),
-            })
-
-            # for stage in (s for s in stages if s['status'] == 'failed'):
-            if values['date_started'] and values['date_finished']:
-                if all(s['status'] == 'passed' for s in stage_list):
-                    values['result'] = Result.passed
-                else:
-                    values['result'] = Result.failed
-                values['status'] = Status.finished
-            elif values['date_started']:
-                if any(s['status'] == 'failed' for s in stage_list):
-                    values['result'] = Result.failed
-                else:
-                    values['result'] = Result.unknown
-                values['status'] = Status.in_progress
-            else:
-                values['status'] = Status.queued
-                values['result'] = Result.unknown
+        if build is None:
+            build = Build()
 
         author = self._sync_author(change['headCommit']['user'])
-        self._sync_revision(
+        parent_revision = self._sync_revision(
             project.repository, author, change['headCommit'])
 
-        with self.get_session() as session:
-            if build is None:
-                _, build = find_entity(
-                    session, EntityType.build, str(change['id']))
-            if build is None:
-                build = Build(
-                    project=project,
-                    repository=project.repository,
-                    author=author,
-                    **values
-                )
-                entity = RemoteEntity(
-                    provider='koality',
-                    type=EntityType.build,
-                    remote_id=str(change['id']),
-                    internal_id=build.id,
-                )
-                session.add(entity)
-                session.add(build)
+        build.label = change['headCommit']['message'].splitlines()[0][:128]
+        build.author = author
+        build.parent_revision_sha = parent_revision.sha
+        build.parent_revision = parent_revision
+        build.repository = project.repository
+        build.project = project
+
+        if stage_list:
+            build.date_created = datetime.utcfromtimestamp(change['createTime'] / 1000)
+            build.date_started = self._get_start_time(stage_list)
+            build.date_finished = self._get_end_time(stage_list)
+
+            if change['startTime']:
+                build.date_started = min(
+                    build.date_started,
+                    datetime.utcfromtimestamp(change['startTime'] / 1000))
+
+            # for stage in (s for s in stages if s['status'] == 'failed'):
+            if build.date_started and build.date_finished:
+                if all(s['status'] == 'passed' for s in stage_list):
+                    build.result = Result.passed
+                else:
+                    build.result = Result.failed
+                build.status = Status.finished
+            elif build.date_started:
+                if any(s['status'] == 'failed' for s in stage_list):
+                    build.result = Result.failed
+                else:
+                    build.result = Result.unknown
+                build.status = Status.in_progress
             else:
-                update(session, build, values)
+                build.status = Status.queued
+                build.result = Result.unknown
+        elif change['startTime']:
+            build.date_started = datetime.utcfromtimestamp(change['startTime'] / 1000)
+
+        if create_entity:
+            entity = RemoteEntity(
+                provider='koality',
+                type=EntityType.build,
+                remote_id=str(change['id']),
+                internal_id=build.id,
+            )
+            db.session.add(entity)
+
+        db.session.add(build)
 
         return build
 
-    def sync_build_list(self, project):
-        with self.get_session() as session:
-            remote_entity = get_entity(session, project)
+    def sync_build_list(self, project, project_entity=None):
+        if project_entity is None:
+            project_entity = get_entity(project)
+            if not project_entity:
+                raise ValueError('Project does not have a remote entity')
 
-        assert remote_entity
-
-        project_id = remote_entity.remote_id
+        project_id = project_entity.remote_id
 
         change_list = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
             base_uri=self.base_url, project_id=project_id
@@ -290,22 +303,25 @@ class KoalityBackend(BaseBackend):
         build_list = []
         for change in change_list:
             build = self._sync_build(project, change)
+            # self.application.publish('builds', as_json(build))
             build_list.append(build)
 
         return build_list
 
-    def sync_build_details(self, build, project=None):
-        with self.get_session() as session:
-            if project is None:
-                project = session.query(Project).options(
-                    joinedload(Project.repository),
-                ).get(build.project_id)
+    def sync_build_details(self, build, project=None, build_entity=None,
+                           project_entity=None):
+        if project is None:
+            project = db.session.query(Project).options(
+                joinedload(Project.repository),
+            ).get(build.project_id)
 
-            project_entity = get_entity(session, project)
+        if project_entity is None:
+            project_entity = get_entity(project)
             if not project_entity:
                 raise ValueError('Project does not have a remote entity')
 
-            build_entity = get_entity(session, build)
+        if build_entity is None:
+            build_entity = get_entity(build)
             if not build_entity:
                 raise ValueError('Build does not have a remote entity')
 
@@ -323,6 +339,7 @@ class KoalityBackend(BaseBackend):
         ))
 
         build = self._sync_build(project, change, stage_list, build=build)
+        # self.application.publish('builds', as_json(build))
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -332,6 +349,7 @@ class KoalityBackend(BaseBackend):
             stage_list.sort(key=lambda x: x['status'] == 'passed')
 
             phase = self._sync_phase(build, stage_type, stage_list)
+            # self.application.publish('phases:%s' % (build.id.hex,), as_json(phase))
 
             for stage in stage_list:
                 self._sync_step(build, phase, stage)

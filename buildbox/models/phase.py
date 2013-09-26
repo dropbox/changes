@@ -4,13 +4,13 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
 
+from buildbox.config import db
 from buildbox.constants import Status, Result
-from buildbox.db.base import Base
 from buildbox.db.types.enum import Enum
 from buildbox.db.types.guid import GUID
 
 
-class Phase(Base):
+class Phase(db.Model):
     __tablename__ = 'phase'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

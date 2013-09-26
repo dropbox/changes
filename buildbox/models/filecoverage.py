@@ -6,11 +6,11 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 # from sqlalchemy.orm import relationship
 
-from buildbox.db.base import Base
+from buildbox.config import db
 from buildbox.db.types.guid import GUID
 
 
-class FileCoverage(Base):
+class FileCoverage(db.Model):
     __tablename__ = 'filecoverage'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

@@ -3,11 +3,11 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, String
 
-from buildbox.db.base import Base
+from buildbox.config import db
 from buildbox.db.types.guid import GUID
 
 
-class Node(Base):
+class Node(db.Model):
     __tablename__ = 'node'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

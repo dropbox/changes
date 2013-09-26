@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, String, UniqueConstraint
 
-from buildbox.db.base import Base
+from buildbox.config import db
 from buildbox.db.types.enum import Enum
 from buildbox.db.types.guid import GUID
 from buildbox.db.types.json import JSONEncodedDict
@@ -36,7 +36,7 @@ class EntityType(enum.Enum):
             return Node
 
 
-class RemoteEntity(Base):
+class RemoteEntity(db.Model):
     __tablename__ = 'remoteentity'
     __table_args__ = (
         UniqueConstraint('provider', 'remote_id', 'type', name='remote_identifier'),

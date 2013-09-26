@@ -3,11 +3,11 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
 
-from buildbox.db.base import Base
+from buildbox.config import db
 from buildbox.db.types.guid import GUID
 
 
-class Author(Base):
+class Author(db.Model):
     __tablename__ = 'author'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

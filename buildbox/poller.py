@@ -5,7 +5,7 @@ from Queue import Queue, Empty
 from sqlalchemy.orm import joinedload
 from threading import Thread
 
-from buildbox.app import db
+from buildbox.config import db
 from buildbox.backends.koality.backend import KoalityBackend
 from buildbox.config import settings
 from buildbox.constants import Status
@@ -39,6 +39,8 @@ class Worker(Thread):
                 result = func(*args, **kwargs)
                 self.results[ident].append(result)
             except Exception, e:
+                import traceback
+                traceback.print_exc()
                 self.results[ident].append(e)
             finally:
                 self.queue.task_done()
@@ -82,8 +84,8 @@ class Poller(object):
 
     def get_backend(self):
         return KoalityBackend(
-            settings['koality.url'],
-            settings['koality.api_key'],
+            base_url=settings['koality.url'],
+            api_key=settings['koality.api_key'],
         )
 
     def get_project_list(self):
@@ -118,6 +120,8 @@ class Poller(object):
         pending_build_syncs = set()
         for project, build_list in pool.join().iteritems():
             for build in build_list[0]:
+                if isinstance(build, Exception):
+                    continue
                 pending_build_syncs.add((project, build))
 
         self.logger.info('Finding in-progress builds to sync {%s}', project.slug)

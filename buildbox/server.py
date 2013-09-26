@@ -36,15 +36,9 @@ class BuildboxServer(tornado.web.Application):
         self._redis.publish(channel, data)
 
     def subscribe(self, channel, callback):
-        """
-        Only channel subscriptions are supported, not pattern subs.
-        Callback should take one argument, which is the received message data.
-        Creating the subscription is a blocking call to the redis client.  That is, this call will block until
-        the subscription is registered; it will _not_ block waiting for messages on the subscribed channel.
-        """
-        logger.info('Subscribing to channel {%s} with {%s}', channel, callback)
         local_subs = self._pubsub_callbacks.get(channel, None)
         if local_subs is None:
+            logger.info('Subscribing to channel {%s}', channel)
             local_subs = {callback}
             self._pubsub_callbacks[channel] = local_subs
             self._redis.publish(self._pubsub_cmd_channel, 'subscribe:' + channel)
@@ -58,6 +52,7 @@ class BuildboxServer(tornado.web.Application):
         local_subs.remove(callback)
         if local_subs:
             return
+        logger.info('Unsubscribing from channel {%s}', channel)
         self._redis.publish(self._pubsub_cmd_channel, 'unsubscribe:' + channel)
         del self._pubsub_callbacks[channel]
 

@@ -4,11 +4,11 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
-from buildbox.db.base import Base
+from buildbox.config import db
 from buildbox.db.types.guid import GUID
 
 
-class Project(Base):
+class Project(db.Model):
     __tablename__ = 'project'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

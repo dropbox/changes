@@ -28,13 +28,15 @@ install_requires = [
     'argparse',
     'alembic',
     'enum34',
-    'futures',
+    'flask',
+    'flask-actions',
+    'flask-sqlalchemy',
+    'gevent',
     'lxml',
     'redis',
     'requests',
     'psycopg2',
     'simplejson',
-    'tornado',
 ]
 
 

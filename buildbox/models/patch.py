@@ -3,11 +3,11 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, LargeBinary
 
-from buildbox.db.base import Base
+from buildbox.config import db
 from buildbox.db.types.guid import GUID
 
 
-class Patch(Base):
+class Patch(db.Model):
     __tablename__ = 'patch'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

@@ -1,5 +1,6 @@
 from unittest2 import TestCase
 
+from buildbox.config import db
 from buildbox.models import RemoteEntity
 
 
@@ -18,6 +19,5 @@ class BackendTestCase(TestCase):
             internal_id=internal_id,
             provider=self.provider,
         )
-        with self.get_backend().get_session() as session:
-            session.add(entity)
+        db.session.add(entity)
         return entity
