@@ -21,15 +21,10 @@ sa.JSONEncodedDict = JSONEncodedDict
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from flask import current_app
-with current_app.app_context():
-    # set the database url
-    config.set_main_option('sqlalchemy.url', current_app.config.get('SQLALCHEMY_DATABASE_URI'))
-    flask_app = __import__('%s' % (current_app.name), fromlist=[current_app.name])
-
-db_obj_name = config.get_main_option("flask_sqlalchemy")
-db_obj = getattr(flask_app, db_obj_name)
-target_metadata = db_obj.metadata
+from buildbox.config import create_app, db
+app = create_app()
+app.app_context().push()
+target_metadata = db.metadata
 
 # force registration of models
 import buildbox.models  # NOQA
@@ -53,8 +48,7 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url)
+    context.configure(engine=db.engine)
 
     with context.begin_transaction():
         context.run_migrations()
@@ -67,13 +61,7 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    engine = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix='sqlalchemy.',
-        poolclass=pool.NullPool,
-    )
-
-    connection = engine.connect()
+    connection = db.engine.connect()
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
