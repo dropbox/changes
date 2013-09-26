@@ -26,21 +26,25 @@ function BuildListCtrl($scope, $http) {
   }
 
   function subscribe() {
-    var source = new EventSource('/api/0/stream/');
-    // source.onopen = function(e) {
-    //   console.log('[Stream] Connection opened');
-    // }
-    // source.onerror = function(e) {
-    //   console.log('[Stream] Error!');
-    // }
-    source.onmessage = function(e) {
-      // console.log('[Stream] Received event: ' + e.data);
+    if (window.stream) {
+      window.stream.close()
+    }
+    window.stream = new EventSource('/api/0/stream/');
+
+    window.stream.onopen = function(e) {
+      console.log('[Stream] Connection opened');
+    }
+    window.stream.onerror = function(e) {
+      console.log('[Stream] Error!');
+    }
+    window.stream.onmessage = function(e) {
+      console.log('[Stream] Received event: ' + e.data);
       data = $.parseJSON(e.data);
       addBuild(data);
     };
   }
 
-  subscribe();
+  // subscribe();
 }
 
 

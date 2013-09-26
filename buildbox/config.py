@@ -5,12 +5,12 @@ import os.path
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.helpers import send_from_directory
 
-from buildbox.pubsub import PubSub
+# from buildbox.pubsub import PubSub
 
 BUILDBOX_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
 db = SQLAlchemy()
-pubsub = PubSub()
+# pubsub = PubSub()
 
 
 class BuildboxApp(flask.Flask):
@@ -28,8 +28,6 @@ class BuildboxApp(flask.Flask):
     def send_partial_file(self, filename):
         if self.partials_folder is None:
             raise RuntimeError('No partials folder for this object')
-
-        print filename, self.partials_folder
 
         cache_timeout = self.get_send_file_max_age(filename)
         return send_from_directory(self.partials_folder, filename,
@@ -57,7 +55,7 @@ def create_app(**config):
     app.config.update(config)
 
     db.init_app(app)
-    pubsub.init_app(app)
+    # pubsub.init_app(app)
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
