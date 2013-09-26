@@ -1,18 +1,17 @@
-def create_or_update(session, model, where, values=None):
+def create_or_update(model, where, values=None):
     if values is None:
         values = {}
 
     try:
-        instance = session.query(model).filter_by(**where)[0]
+        instance = model.query.filter_by(**where)[0]
     except IndexError:
         instance = model()
         for key, value in values.iteritems():
             setattr(instance, key, value)
         for key, value in where.iteritems():
             setattr(instance, key, value)
-        session.add(instance)
     else:
-        update(session, instance, values)
+        update(instance, values)
 
     return instance
 

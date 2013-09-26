@@ -10,6 +10,10 @@
 			<dd ng-if="build.author">{{build.author.name}}<span ng-if="build.author.email"> (<a href="mailto:{{build.author.email}}">{{build.author.email}}</a>)</span></dd>
 			<dt>Project:</dt>
 			<dd><a href="#">{{build.project.name}}</a></dd>
+			<dt ng-if="build.dateStarted">Started:</dt>
+			<dd ng-if="build.dateStarted">{{build.dateStarted}}</dd>
+			<dt ng-if="build.dateFinished">Completed:</dt>
+			<dd ng-if="build.dateFinished">{{build.dateFinished}}</dd>
 			<dt ng-if="build.duration">Duration:</dt>
 			<dd ng-if="build.duration">{{build.duration}}s</dd>
 		</dl>

@@ -16,8 +16,6 @@ from buildbox.config import create_app, db
 app, app_context, connection, transaction = None, None, None, None
 
 from flask_sqlalchemy import _SignallingSession
-from functools import partial
-from sqlalchemy import orm
 
 
 class SignallingSession(_SignallingSession):

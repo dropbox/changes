@@ -24,6 +24,7 @@ class Result(Enum):
     skipped = 3
     errored = 4
     aborted = 5
+    timedout = 6
 
     def __str__(self):
         return RESULT_LABELS[self]
@@ -51,4 +52,8 @@ RESULT_LABELS = {
     Result.unknown: 'unknown',
     Result.passed: 'passed',
     Result.failed: 'failed',
+    Result.skipped: 'skipped',
+    Result.errored: 'errored',
+    Result.aborted: 'aborted',
+    Result.timedout: 'timed out'
 }

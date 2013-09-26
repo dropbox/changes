@@ -4,7 +4,7 @@ import requests
 import sys
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import joinedload
 
 from buildbox.backends.base import BaseBackend
@@ -74,7 +74,7 @@ class KoalityBackend(BaseBackend):
                 continue
             start_time = min((stage['startTime'], start_time))
 
-        if start_time != 0:
+        if start_time not in (0, sys.maxint):
             return datetime.utcfromtimestamp(start_time / 1000)
         return
 
@@ -108,22 +108,23 @@ class KoalityBackend(BaseBackend):
         return node
 
     def _sync_author(self, user):
-        author = create_or_update(db.session, Author, values={
+        author = create_or_update(Author, values={
             'email': user['email'],
         }, where={
             'name': user['name'],
         })
+        db.session.add(author)
         return author
 
     def _sync_revision(self, repository, author, commit):
-        revision = create_or_update(db.session, Revision, values={
+        revision = create_or_update(Revision, values={
             'message': commit['message'],
             'author': author,
         }, where={
             'repository': repository,
             'sha': commit['sha'],
         })
-
+        db.session.add(revision)
         return revision
 
     def _sync_phase(self, build, stage_type, stage_list, phase=None):
@@ -233,7 +234,10 @@ class KoalityBackend(BaseBackend):
             create_entity = False
 
         if build is None:
+            created = True
             build = Build()
+        else:
+            created = False
 
         author = self._sync_author(change['headCommit']['user'])
         parent_revision = self._sync_revision(
@@ -246,7 +250,7 @@ class KoalityBackend(BaseBackend):
         build.repository = project.repository
         build.project = project
 
-        if stage_list:
+        if stage_list is not None:
             build.date_created = datetime.utcfromtimestamp(change['createTime'] / 1000)
             build.date_started = self._get_start_time(stage_list)
             build.date_finished = self._get_end_time(stage_list)
@@ -274,6 +278,16 @@ class KoalityBackend(BaseBackend):
                 build.result = Result.unknown
         elif change['startTime']:
             build.date_started = datetime.utcfromtimestamp(change['startTime'] / 1000)
+            if build.status == Status.queued:
+                build.status = Status.in_progress
+
+        # 'timeout' jobs that dont seem to be doing anything
+        now = datetime.utcnow()
+        check_time = datetime.utcfromtimestamp(max(change['startTime'], change['createTime']) / 1000.0)
+        cutoff = timedelta(minutes=90)
+        if build.status in (Status.queued, Status.in_progress) and check_time < now - cutoff:
+            build.status = Status.finished
+            build.result = Result.timedout
 
         if create_entity:
             entity = RemoteEntity(
@@ -286,7 +300,7 @@ class KoalityBackend(BaseBackend):
 
         db.session.add(build)
 
-        return build
+        return build, created
 
     def sync_build_list(self, project, project_entity=None):
         if project_entity is None:
@@ -338,7 +352,7 @@ class KoalityBackend(BaseBackend):
             base_uri=self.base_url, project_id=project_id, build_id=remote_id
         ))
 
-        build = self._sync_build(project, change, stage_list, build=build)
+        build, created = self._sync_build(project, change, stage_list, build=build)
         # self.application.publish('builds', as_json(build))
 
         grouped_stages = defaultdict(list)
@@ -354,7 +368,7 @@ class KoalityBackend(BaseBackend):
             for stage in stage_list:
                 self._sync_step(build, phase, stage)
 
-        return build
+        return build, created
 
     def create_build(self):
         pass

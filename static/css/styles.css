@@ -106,10 +106,13 @@ dl.flat dt {
   text-transform: uppercase;
   background: #f7f5fa;
 }
-.status-failed .indicator {
+.status-failed .indicator,
+.status-timedout .indicator,
+.status-errored .indicator {
   color: #fff;
   background: #d9322d;
 }
+
 .status-passed .indicator {
   color: #fff;
   background: #58488a;
@@ -210,7 +213,9 @@ dl.flat dt {
   color: #c7c0de;
   border-color: #58488a;
 }
-.phase-list > li.status-failed > a {
+.phase-list > li.status-failed > a,
+.phase-list > li.status-errored > a,
+.phase-list > li.status-timedout > a {
   background: #d9322d;
   color: #fff;
   border-color: #d9322d;

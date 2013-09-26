@@ -35,6 +35,7 @@ install_requires = [
     'lxml',
     'redis',
     'requests',
+    'rq',
     'psycopg2',
     'simplejson',
 ]

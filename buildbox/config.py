@@ -5,12 +5,15 @@ import os.path
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.helpers import send_from_directory
 
-# from buildbox.pubsub import PubSub
+from buildbox.ext.queue import Queue
 
 BUILDBOX_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
-db = SQLAlchemy()
-# pubsub = PubSub()
+db = SQLAlchemy(session_options={
+    'autoflush': True,
+})
+
+queue = Queue()
 
 
 class BuildboxApp(flask.Flask):
@@ -55,11 +58,13 @@ def create_app(**config):
     app.config.update(config)
 
     db.init_app(app)
-    # pubsub.init_app(app)
+    queue.init_app(app)
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
     configure_web_routes(app)
+
+    configure_jobs(app)
 
     return app
 
@@ -84,3 +89,7 @@ def configure_web_routes(app):
 
     app.add_url_rule(
         r'/', view_func=IndexView.as_view('index'))
+
+
+def configure_jobs(app):
+    import buildbox.jobs.sync_build

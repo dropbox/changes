@@ -2,14 +2,13 @@
 
 
 def web():
-    import tornado.ioloop
+    from gevent import wsgi
+    from buildbox.config import create_app
 
-    from buildbox.app import application
+    print "Listening on http://0.0.0.0:5000"
 
-    print "Listening on http://0.0.0.0:7777"
-
-    application.listen(7777)
-    tornado.ioloop.IOLoop.instance().start()
+    app = create_app()
+    wsgi.WSGIServer(('0.0.0.0', 5000), app).serve_forever()
 
 
 def poller():
@@ -17,9 +16,12 @@ def poller():
     import time
     import traceback
 
+    from buildbox.config import create_app
     from buildbox.poller import Poller
 
-    instance = Poller()
+    app = create_app()
+
+    instance = Poller(app=app)
     instance.logger.setLevel(logging.INFO)
     instance.logger.addHandler(logging.StreamHandler())
     while True:
