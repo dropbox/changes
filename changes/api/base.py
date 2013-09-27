@@ -20,7 +20,7 @@ def as_json(context):
     return json.dumps(serialize(context))
 
 
-def param(key, validator=lambda x: x, required=True):
+def param(key, validator=lambda x: x, required=True, dest=None):
     def wrapped(func):
         @wraps(func)
         def _wrapped(*args, **kwargs):
@@ -29,17 +29,16 @@ def param(key, validator=lambda x: x, required=True):
             elif request.method == 'POST':
                 value = request.form.get(key) or ''
             else:
-                value = None
+                value = ''
 
+            dest_key = str(dest or key)
+
+            value = value.strip()
             if not value:
                 if required:
                     raise ParamError(key, 'value is required')
-                kwargs[key] = value
+                kwargs[dest_key] = value
                 return func(*args, **kwargs)
-
-            value = value.strip()
-            if not value and required:
-                raise ParamError(key, 'value is required')
 
             try:
                 value = validator(value)
@@ -48,7 +47,7 @@ def param(key, validator=lambda x: x, required=True):
             except Exception:
                 raise ParamError(key, 'invalid value')
 
-            kwargs[key] = value
+            kwargs[dest_key] = value
 
             return func(*args, **kwargs)
 

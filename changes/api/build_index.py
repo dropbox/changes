@@ -6,7 +6,6 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
 from changes.config import db
-from changes.db.utils import create_or_update
 from changes.models import (
     Build, Author, Project, Repository, Patch
 )
@@ -54,6 +53,8 @@ class BuildIndexAPIView(APIView):
     @param('project', lambda x: Project.query.filter_by(slug=x)[0])
     @param('sha')
     @param('author', AuthorValidator, required=False)
+    @param('patch[label]', required=False, dest='patch_label')
+    @param('patch[url]', required=False, dest='patch_url')
     def post(self, project, sha, author=None, patch_label=None,
              patch_url=None, patch=None):
 
