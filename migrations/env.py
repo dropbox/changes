@@ -1,6 +1,5 @@
 from __future__ import with_statement
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 
 # this is the Alembic Config object, which provides
@@ -21,8 +20,12 @@ sa.JSONEncodedDict = JSONEncodedDict
 
 # add your model's MetaData object here
 # for 'autogenerate' support
+from flask import current_app
 from changes.config import create_app, db
-app = create_app()
+if not current_app:
+    app = create_app()
+else:
+    app = current_app
 app.app_context().push()
 target_metadata = db.metadata
 
