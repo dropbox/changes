@@ -8,7 +8,6 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
     <link href="{{ url_for('static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
-    <script src="{{ url_for('static', filename='js/angular-1.1.5.min.js') }}"></script>
   </head>
   <body>
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -27,10 +26,12 @@
 
     <footer></footer>
 
-    <script src="{{ url_for('static', filename='js/jquery-2.0.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/angular-1.1.5.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/jquery-2.0.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/moment.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dial.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/controllers.js') }}"></script>
   </body>
 </html>
