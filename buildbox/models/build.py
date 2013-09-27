@@ -59,9 +59,6 @@ class Build(db.Model):
 
     @property
     def progress(self):
-        import random
-
-        return random.randint(0, 100)
         if self.status == Status.finished:
             return 100
         elif self.status != Status.in_progress:
