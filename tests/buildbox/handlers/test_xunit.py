@@ -2,10 +2,10 @@ import uuid
 
 from cStringIO import StringIO
 
-from buildbox.constants import Result
-from buildbox.models.build import Build
-from buildbox.models.test import Test
-from buildbox.handlers.xunit import XunitHandler
+from changes.constants import Result
+from changes.models.build import Build
+from changes.models.test import Test
+from changes.handlers.xunit import XunitHandler
 
 
 UNITTEST_RESULT_XML = """

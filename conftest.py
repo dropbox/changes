@@ -11,7 +11,7 @@ from alembic import command
 alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 
 # force model registration
-from buildbox.config import create_app, db
+from changes.config import create_app, db
 
 app, app_context, connection, transaction = None, None, None, None
 
@@ -35,13 +35,13 @@ def pytest_configure(config):
 
     app = create_app(
         TESTING=True,
-        SQLALCHEMY_DATABASE_URI='postgresql://localhost/test_buildbox',
+        SQLALCHEMY_DATABASE_URI='postgresql://localhost/test_changes',
     )
     app_context = app.test_request_context()
     app_context.push()
 
-    assert not os.system('dropdb --if-exists test_buildbox')
-    assert not os.system('createdb -E utf-8 test_buildbox')
+    assert not os.system('dropdb --if-exists test_changes')
+    assert not os.system('createdb -E utf-8 test_changes')
 
     command.upgrade(alembic_cfg, 'head')
 

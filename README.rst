@@ -1,3 +1,6 @@
+Changes
+-------
+
 Setup
 =====
 
@@ -45,7 +48,7 @@ Run the webserver:
 
 ::
 
-	buildbox-web
+	changes-web
 
 
 API

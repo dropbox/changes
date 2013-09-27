@@ -6,14 +6,14 @@ import os
 
 from datetime import datetime
 
-from buildbox.backends.koality.backend import KoalityBackend
-from buildbox.config import db
-from buildbox.constants import Result, Status
-from buildbox.models import (
+from changes.backends.koality.backend import KoalityBackend
+from changes.config import db
+from changes.constants import Result, Status
+from changes.models import (
     Repository, Project, Build, EntityType, Revision, Author,
     Phase, Step, Patch
 )
-from buildbox.testutils import BackendTestCase
+from changes.testutils import BackendTestCase
 
 
 SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
@@ -73,7 +73,7 @@ class KoalityBackendTestCase(BackendTestCase):
         self.patcher.start()
         self.addCleanup(self.patcher.stop)
 
-        self.repo = Repository(url='https://github.com/dropbox/buildbox.git')
+        self.repo = Repository(url='https://github.com/dropbox/changes.git')
         self.project = Project(repository=self.repo, name='test', slug='test')
 
         db.session.add(self.repo)

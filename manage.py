@@ -2,7 +2,7 @@
 from gevent import monkey
 monkey.patch_all()
 
-from buildbox.db import psyco_gevent
+from changes.db import psyco_gevent
 psyco_gevent.make_psycopg_green()
 
 
@@ -19,7 +19,7 @@ def run_worker(app):
     def action(queues=('queues', 'default')):
         import gevent
 
-        from buildbox.config import queue
+        from changes.config import queue
 
         print 'New worker consuming from queues: %s' % (queues,)
 
@@ -41,7 +41,7 @@ def run_worker(app):
 
 from flask.ext.actions import Manager
 
-from buildbox.config import create_app
+from changes.config import create_app
 
 
 app = create_app()

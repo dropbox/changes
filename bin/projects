@@ -3,8 +3,8 @@
 import argparse
 import sys
 
-from buildbox.app import db
-from buildbox.models import (
+from changes.app import db
+from changes.models import (
     Project, Repository, RemoteEntity, EntityType
 )
 

@@ -12,22 +12,22 @@ config = context.config
 fileConfig(config.config_file_name)
 
 import sqlalchemy as sa
-from buildbox.db.types.enum import Enum
-from buildbox.db.types.guid import GUID
-from buildbox.db.types.json import JSONEncodedDict
+from changes.db.types.enum import Enum
+from changes.db.types.guid import GUID
+from changes.db.types.json import JSONEncodedDict
 sa.Enum = Enum
 sa.GUID = GUID
 sa.JSONEncodedDict = JSONEncodedDict
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from buildbox.config import create_app, db
+from changes.config import create_app, db
 app = create_app()
 app.app_context().push()
 target_metadata = db.metadata
 
 # force registration of models
-import buildbox.models  # NOQA
+import changes.models  # NOQA
 
 
 # other values from the config, defined by the needs of env.py,

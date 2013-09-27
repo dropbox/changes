@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-buildbox
+changes
 ========
 
 Magic.
@@ -56,7 +56,7 @@ class PyTest(TestCommand):
 
 
 setup(
-    name='buildbox',
+    name='changes',
     version='0.1.0',
     author='Dropbox, Inc',
     description='',
@@ -72,8 +72,8 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'buildbox-web = buildbox.runner:web',
-            'buildbox-poller = buildbox.runner:poller',
+            'changes-web = changes.runner:web',
+            'changes-poller = changes.runner:poller',
         ],
     },
     classifiers=[

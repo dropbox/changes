@@ -71,7 +71,7 @@ function BuildDetailsCtrl($scope, $http, $routeParams) {
 }
 
 
-var Buildbox = angular.module('Buildbox', []).
+var Changes = angular.module('Changes', []).
   config(['$routeProvider', function($routeProvider) {
     $routeProvider.
         when('/', {

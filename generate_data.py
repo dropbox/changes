@@ -6,33 +6,33 @@ import random
 import sys
 import uuid
 
-from buildbox.app import db
-from buildbox.constants import Status, Result
-from buildbox.models import (
+from changes.app import db
+from changes.constants import Status, Result
+from changes.models import (
     Project, Repository, Author, Revision, Build, Phase, Step, Test
 )
 
-answer = raw_input('This will wipe all data in the `buildbox` database!\nDo you wish to continue? [yN] ').lower()
+answer = raw_input('This will wipe all data in the `changes` database!\nDo you wish to continue? [yN] ').lower()
 if answer != 'y':
     sys.exit(1)
 
-assert not os.system('dropdb --if-exists buildbox')
-assert not os.system('createdb -E utf-8 buildbox')
+assert not os.system('dropdb --if-exists changes')
+assert not os.system('createdb -E utf-8 changes')
 assert not os.system('alembic upgrade head')
 
 TEST_LABELS = itertools.cycle([
-    'tests/buildbox/handlers/test_xunit.py:test_result_generation',
-    'tests/buildbox/handlers/test_coverage.py:test_result_generation',
-    'tests/buildbox/backends/koality/test_backend.py:ListBuildsTest.test_simple',
-    'tests/buildbox/backends/koality/test_backend.py:SyncBuildDetailsTest.test_simple',
+    'tests/changes/handlers/test_xunit.py:test_result_generation',
+    'tests/changes/handlers/test_coverage.py:test_result_generation',
+    'tests/changes/backends/koality/test_backend.py:ListBuildsTest.test_simple',
+    'tests/changes/backends/koality/test_backend.py:SyncBuildDetailsTest.test_simple',
 ])
 
 TEST_STEP_LABELS = itertools.cycle([
-    'tests/buildbox/web/frontend/test_build_list.py',
-    'tests/buildbox/web/frontend/test_build_details.py',
-    'tests/buildbox/backends/koality/test_backend.py',
-    'tests/buildbox/handlers/test_coverage.py',
-    'tests/buildbox/handlers/test_xunit.py',
+    'tests/changes/web/frontend/test_build_list.py',
+    'tests/changes/web/frontend/test_build_details.py',
+    'tests/changes/backends/koality/test_backend.py',
+    'tests/changes/handlers/test_coverage.py',
+    'tests/changes/handlers/test_xunit.py',
 ])
 
 
@@ -87,7 +87,7 @@ def generate_revision(session, repository, author):
     revision = Revision(
         repository=repository, sha=uuid.uuid4().hex, author=author,
         message='Correct some initial schemas and first draft at some mock datageneration\n\n'
-                'https://github.com/dcramer/buildbox/commit/68d1c899e3c821c920ea3baf244943b10ed273b5'
+                'https://github.com/dcramer/changes/commit/68d1c899e3c821c920ea3baf244943b10ed273b5'
     )
     session.add(revision)
 

@@ -3,7 +3,7 @@ develop: update-submodules
 	make install-test-requirements
 
 install-test-requirements:
-	pip install -q "file://`pwd`#egg=buildbox[tests]" --use-mirrors
+	pip install -q "file://`pwd`#egg=changes[tests]" --use-mirrors
 
 update-submodules:
 	git submodule init
@@ -16,7 +16,7 @@ test: develop lint
 
 lint:
 	@echo "Linting Python files"
-	PYFLAKES_NODOCTEST=1 flake8 buildbox tests
+	PYFLAKES_NODOCTEST=1 flake8 changes tests
 	@echo ""
 
 test-full: develop lint

@@ -2,9 +2,9 @@ import uuid
 
 from cStringIO import StringIO
 
-from buildbox.models.build import Build
-from buildbox.models.filecoverage import FileCoverage
-from buildbox.handlers.coverage import CoverageHandler
+from changes.models.build import Build
+from changes.models.filecoverage import FileCoverage
+from changes.handlers.coverage import CoverageHandler
 
 COVERAGE_RESULT_XML = """<?xml version="1.0" ?>
 <!DOCTYPE coverage
