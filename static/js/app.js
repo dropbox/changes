@@ -82,7 +82,7 @@ var Buildbox = angular.module('Buildbox', []).
         }).
         otherwise({redirectTo: '/'});
   }]).
-  directive('ngRadialProgressBar', ['$timeout', function($timeout) {
+  directive('ngRadialProgressBar', function() {
     return {
       restrict: 'A',
       replace: false,
@@ -105,12 +105,18 @@ var Buildbox = angular.module('Buildbox', []).
         }
 
         function update(value) {
+          value = parseInt(value, 10);
+
+          if (!value) {
+            return;
+          }
+
           $element.val(value);
 
-          if (parseInt(value, 10) === 100) {
+          if (value === 100) {
             $parent.removeClass('active');
             if ($knob) {
-              $element.empty();
+              $parent.empty();
               delete $knob;
             }
           } else {
@@ -142,4 +148,4 @@ var Buildbox = angular.module('Buildbox', []).
         });
       }
     }
-  }]);
+  });

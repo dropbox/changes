@@ -94,17 +94,9 @@ dl.flat dt {
 }
 
 .indicator {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
   width: 100px;
   border-radius: 40px;
   display: block;
-  text-align: center;
-  text-transform: uppercase;
   background: #f7f5fa;
 }
 
@@ -139,14 +131,16 @@ dl.flat dt {
   padding-right: 44px;
   height: 42px;
 }
-.build-header .indicator {
-  border-radius: 34px;
+.build-header .indicator,
+.build-header .indicator > div {
   width: 34px;
   height: 34px;
-  line-height: 34px;
+}
+.build-header .indicator {
+  position: absolute;
   top: 5px;
-  text-indent: -10000em;
-  overflow: hidden;
+  right: 0;
+  border-radius: 34px;
 }
 
 
@@ -167,7 +161,6 @@ dl.flat dt {
 }
 .build-list td .indicator,
 .build-list td .indicator > div {
-  display: block;
   width: 32px;
   height: 32px;
   border-radius: 32px;

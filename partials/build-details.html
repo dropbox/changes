@@ -1,9 +1,9 @@
 <section ng-controller="BuildDetailsCtrl">
 	<div id="overview">
 		<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
-			<span class="indicator">
-				<span style="height:{{build.progress}}%">{{build.result.label}}</span>
-			</span>
+			<div class="indicator" title="{{build.result.name}}">
+				<div data-result="{{build.result.id}}" ng-radial-progress-bar="{{build.progress}}">&nbsp;</div>
+			</div>
 			<h2>{{build.name}} <small>({{build.parent_revision.sha}})</small></h2>
 		</div>
 
