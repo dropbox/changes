@@ -7,7 +7,7 @@ from buildbox.config import db
 from buildbox.constants import Status
 from buildbox.jobs.sync_build import sync_build
 from buildbox.models import (
-    Project, Build, RemoteEntity, EntityType
+    Project, RemoteEntity, EntityType
 )
 
 
