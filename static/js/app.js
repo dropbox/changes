@@ -91,7 +91,7 @@ var Buildbox = angular.module('Buildbox', []).
       link: function radialProgressBarLink(scope, element, attrs) {
         var $element = $(element),
             $parent = $element.parent(),
-            $knob;
+            dial;
 
         function getResultColor(result) {
           switch (result) {
@@ -119,16 +119,14 @@ var Buildbox = angular.module('Buildbox', []).
 
           if (value === 100) {
             $parent.removeClass('active');
-            if ($knob) {
+            if (dial) {
               $parent.empty();
-              delete $knob;
+              delete dial;
             }
           } else {
             $parent.addClass('active');
-            if (!$knob) {
-              $knob = $element.knob({
-                readOnly: true,
-                displayInput: false,
+            if (!dial) {
+              dial = new Dial($element, {
                 width: $element.width(),
                 height: $element.height(),
                 fgColor: getResultColor(attrs.result),
@@ -136,12 +134,10 @@ var Buildbox = angular.module('Buildbox', []).
               });
 
               attrs.$observe('result', function(value) {
-                $knob.trigger('configure', {
-                  'fgColor': getResultColor(value)
-                });
+                dial.set('fgColor', getResultColor(value));
               });
             }
-            $knob.val(value).trigger('change');
+            dial.val(value);
           }
         }
 

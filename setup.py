@@ -30,6 +30,7 @@ install_requires = [
     'enum34',
     'flask',
     'flask-actions',
+    'flask-redis',
     'flask-sqlalchemy',
     'gevent',
     'lxml',
