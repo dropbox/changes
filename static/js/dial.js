@@ -8,7 +8,6 @@
     this.xy = null;
     this.radius = null;
     this.lineWidth = null;
-    this.cursorExt = null;
     this.scale = 1;
     this.ctx = null;
     this.v = null;
@@ -61,7 +60,6 @@
         this.$element.html(this.$canvas);
 
         this.xy = (this.width / 2) * this.scale;
-        this.cursorExt = this.options.cursor / 100;
         this.lineWidth = this.xy * this.options.thickness;
         this.lineCap = this.options.lineCap;
         this.radius = this.xy - this.lineWidth / 2;
