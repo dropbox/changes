@@ -75,7 +75,7 @@ def create_app(**config):
 
 
 def configure_api_routes(app):
-    from buildbox.api.build_list import BuildListAPIView
+    from buildbox.api.build_index import BuildIndexAPIView
     from buildbox.api.build_details import BuildDetailsAPIView
     from buildbox.api.stream import StreamAPIView, TestStreamAPIView
 
@@ -84,7 +84,7 @@ def configure_api_routes(app):
     app.add_url_rule(
         '/api/0/stream/test/', view_func=TestStreamAPIView.as_view('api-stream-test'))
     app.add_url_rule(
-        '/api/0/builds/', view_func=BuildListAPIView.as_view('api-build-list'))
+        '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-builds'))
     app.add_url_rule(
         '/api/0/builds/<build_id>/', view_func=BuildDetailsAPIView.as_view('api-build-details'))
 
