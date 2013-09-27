@@ -1,3 +1,4 @@
+from flask import current_app as app
 from unittest2 import TestCase
 
 from buildbox.config import db
@@ -10,7 +11,9 @@ class BackendTestCase(TestCase):
     provider = None
 
     def get_backend(self):
-        return self.backend_cls(**self.backend_options)
+        return self.backend_cls(
+            app=app, **self.backend_options
+        )
 
     def make_entity(self, type, internal_id, remote_id):
         entity = RemoteEntity(
