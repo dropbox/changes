@@ -1,5 +1,6 @@
 from .author import *
 from .build import *
+from .change import *
 from .filecoverage import *
 from .node import *
 from .patch import *

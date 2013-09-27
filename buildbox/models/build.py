@@ -20,6 +20,7 @@ class Build(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    change_id = Column(GUID, ForeignKey('change.id'))
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     parent_revision_sha = Column(String(40))
@@ -32,6 +33,7 @@ class Build(db.Model):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
 
+    change = relationship('Change')
     repository = relationship('Repository')
     project = relationship('Project')
     parent_revision = relationship('Revision')
