@@ -247,7 +247,6 @@ class KoalityBackend(BaseBackend):
         build.label = change['headCommit']['message'].splitlines()[0][:128]
         build.author = author
         build.parent_revision_sha = parent_revision.sha
-        build.parent_revision = parent_revision
         build.repository = project.repository
         build.project = project
 

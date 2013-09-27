@@ -1,7 +1,7 @@
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, String, ForeignKeyConstraint
+from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 from changes.config import db
@@ -12,12 +12,6 @@ from changes.db.types.guid import GUID
 
 class Build(db.Model):
     __tablename__ = 'build'
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ['repository_id', 'parent_revision_sha'],
-            ['revision.repository_id', 'revision.sha']
-        ),
-    )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     change_id = Column(GUID, ForeignKey('change.id'))
@@ -36,7 +30,6 @@ class Build(db.Model):
     change = relationship('Change')
     repository = relationship('Repository')
     project = relationship('Project')
-    parent_revision = relationship('Revision')
     patch = relationship('Patch')
     author = relationship('Author')
 
@@ -86,7 +79,9 @@ class Build(db.Model):
             'status': self.status.to_dict(),
             'project': self.project.to_dict(),
             'author': self.author.to_dict() if self.author else None,
-            'parent_revision': self.parent_revision.to_dict(),
+            'parent_revision': {
+                'sha': self.parent_revision_sha,
+            },
             'duration': self.duration,
             'link': '/projects/%s/builds/%s/' % (self.project.slug, self.id.hex),
             'dateCreated': self.date_created.isoformat(),

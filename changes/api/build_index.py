@@ -6,7 +6,7 @@ from changes.api.base import APIView
 from changes.config import db
 from changes.db.utils import create_or_update
 from changes.models import (
-    Build, Revision, Author, Project, Repository, Patch
+    Build, Author, Project, Repository, Patch
 )
 
 
@@ -24,8 +24,6 @@ class BuildIndexAPIView(APIView):
             Build.query.options(
                 joinedload(Build.project),
                 joinedload(Build.author),
-                joinedload(Build.parent_revision),
-                joinedload(Build.parent_revision, Revision.author),
             ).order_by(Build.date_created.desc())
         )[:100]
 
@@ -53,11 +51,6 @@ class BuildIndexAPIView(APIView):
 
         project = Project.query.join(Repository).get(project)
 
-        revision = create_or_update(Revision, where={
-            'sha': revision,
-            'repository': project.reopsitory
-        })
-
         author = create_or_update(Author, where={
             'email': author[1],
         }, values={
@@ -72,7 +65,7 @@ class BuildIndexAPIView(APIView):
             patch = Patch(
                 repository=project.repository,
                 project=project,
-                parent_revision=revision,
+                parent_revision_sha=revision,
                 label=patch_label,
                 url=patch_url,
                 diff=fp.getvalue(),

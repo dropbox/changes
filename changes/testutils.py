@@ -56,7 +56,6 @@ class APITestCase(TestCase):
         build = Build(
             repository=project.repository,
             project=project,
-            parent_revision=revision,
             parent_revision_sha=revision.sha,
             **kwargs
         )

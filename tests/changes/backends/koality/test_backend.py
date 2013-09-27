@@ -236,17 +236,12 @@ class CreateBuildTest(KoalityBackendTestCase):
 
         project_entity = self.make_project_entity()
 
-        revision = Revision(
-            sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
-            repository=self.repo,
-        )
-        db.session.add(revision)
+        revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
         build = Build(
             repository=self.repo,
             project=self.project,
-            parent_revision=revision,
-            parent_revision_sha=revision.sha,
+            parent_revision_sha=revision,
             label='D1345',
         )
         db.session.add(build)
@@ -263,7 +258,7 @@ class CreateBuildTest(KoalityBackendTestCase):
 
         self.mock_request.assert_called_once_with(
             'POST', 'https://koality.example.com/api/v/0/repositories/1/changes',
-            data={'sha': revision.sha},
+            data={'sha': revision},
         )
 
     def test_patch(self):
@@ -271,17 +266,12 @@ class CreateBuildTest(KoalityBackendTestCase):
 
         project_entity = self.make_project_entity()
 
-        revision = Revision(
-            sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
-            repository=self.repo,
-        )
-        db.session.add(revision)
+        revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
         patch = Patch(
             repository=self.repo,
             project=self.project,
-            parent_revision=revision,
-            parent_revision_sha=revision.sha,
+            parent_revision_sha=revision,
             label='D1345',
             diff=SAMPLE_DIFF,
         )
@@ -290,8 +280,7 @@ class CreateBuildTest(KoalityBackendTestCase):
         build = Build(
             repository=self.repo,
             project=self.project,
-            parent_revision=revision,
-            parent_revision_sha=revision.sha,
+            parent_revision_sha=revision,
             patch=patch,
             label='D1345',
         )
@@ -309,6 +298,6 @@ class CreateBuildTest(KoalityBackendTestCase):
 
         self.mock_request.assert_called_once_with(
             'POST', 'https://koality.example.com/api/v/0/repositories/1/changes',
-            data={'sha': revision.sha},
+            data={'sha': revision},
             files={'patch': SAMPLE_DIFF},
         )
