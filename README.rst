@@ -55,14 +55,14 @@ API
 ===
 
 List Builds
------------
+~~~~~~~~~~~
 
 ::
 
 	GET /api/0/builds/
 
 Build Details
--------------
+~~~~~~~~~~~~~
 
 ::
 
@@ -70,7 +70,7 @@ Build Details
 
 
 Create Build
-------------
+~~~~~~~~~~~~
 
 ::
 
