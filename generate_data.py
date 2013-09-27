@@ -6,11 +6,17 @@ import random
 import sys
 import uuid
 
-from changes.app import db
+from changes.config import db, create_app
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Build, Phase, Step, Test
 )
+
+
+app = create_app()
+app_context = app.app_context()
+app_context.push()
+
 
 answer = raw_input('This will wipe all data in the `changes` database!\nDo you wish to continue? [yN] ').lower()
 if answer != 'y':
@@ -36,98 +42,98 @@ TEST_STEP_LABELS = itertools.cycle([
 ])
 
 
-def generate_build(session, revision, status=Status.finished, result=Result.passed):
+def generate_build(revision, status=Status.finished, result=Result.passed):
     label = 'D%s: %s' % (random.randint(1000, 100000), revision.message.splitlines()[0])[:128]
     build = Build(
         repository=revision.repository,
         project=project,
-        parent_revision=revision,
+        parent_revision_sha=revision.sha,
         author=revision.author,
         status=status,
         result=result,
         label=label,
     )
-    session.add(build)
+    db.session.add(build)
 
     phase1_setup = Phase(
         repository=build.repository, project=build.project, build=build,
         status=status, result=result, label='Setup',
     )
-    session.add(phase1_setup)
+    db.session.add(phase1_setup)
 
     phase1_compile = Phase(
         repository=build.repository, project=build.project, build=build,
         status=status, result=result, label='Compile',
     )
-    session.add(phase1_compile)
+    db.session.add(phase1_compile)
 
     phase1_test = Phase(
         repository=build.repository, project=build.project, build=build,
         status=status, result=result, label='Test',
     )
-    session.add(phase1_test)
+    db.session.add(phase1_test)
 
     step = Step(
         repository=build.repository, project=build.project, build=build,
         phase=phase1_test, status=status, result=result,
         label=TEST_STEP_LABELS.next(),
     )
-    session.add(step)
+    db.session.add(step)
     step = Step(
         repository=build.repository, project=build.project, build=build,
         phase=phase1_test, status=status, result=result,
         label=TEST_STEP_LABELS.next(),
     )
-    session.add(step)
+    db.session.add(step)
 
     return build
 
 
-def generate_revision(session, repository, author):
+def generate_revision(repository, author):
     revision = Revision(
         repository=repository, sha=uuid.uuid4().hex, author=author,
         message='Correct some initial schemas and first draft at some mock datageneration\n\n'
                 'https://github.com/dcramer/changes/commit/68d1c899e3c821c920ea3baf244943b10ed273b5'
     )
-    session.add(revision)
+    db.session.add(revision)
 
     return revision
 
 
-def generate_test_results(session, build, result=Result.passed):
+def generate_test_results(build, result=Result.passed):
     test = Test(
         build=build, project=build.project,
         result=result, label=TEST_LABELS.next(),
         duration=random.randint(0, 3000),
     )
-    session.add(test)
+    db.session.add(test)
 
     return test
 
 
-with db.get_session() as session:
-    repository = Repository(
-        url='https://github.com/example/example.git')
-    session.add(repository)
+repository = Repository(
+    url='https://github.com/example/example.git')
+db.session.add(repository)
 
-    project = Project(
-        slug='example', name='example', repository=repository)
-    session.add(project)
+project = Project(
+    slug='example', name='example', repository=repository)
+db.session.add(project)
 
-    author = Author(name='David Cramer', email='dcramer@gmail.com')
-    session.add(author)
+author = Author(name='David Cramer', email='dcramer@gmail.com')
+db.session.add(author)
 
-    # generate a bunch of builds
+# generate a bunch of builds
+for _ in xrange(50):
+    result = Result.failed if random.randint(0, 10) > 7 else Result.passed
+
+    revision = generate_revision(repository, author)
+    db.session.add(revision)
+
+    build = generate_build(
+        revision=revision,
+        result=result,
+    )
     for _ in xrange(50):
-        result = Result.failed if random.randint(0, 10) > 7 else Result.passed
+        generate_test_results(build, result)
 
-        revision = generate_revision(session, repository, author)
-        session.add(revision)
-
-        build = generate_build(
-            session,
-            revision=revision,
-            result=result,
-        )
-        for _ in xrange(50):
-            generate_test_results(session, build, result)
+db.session.commit()
