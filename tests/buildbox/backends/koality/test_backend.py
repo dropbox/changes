@@ -11,9 +11,19 @@ from buildbox.config import db
 from buildbox.constants import Result, Status
 from buildbox.models import (
     Repository, Project, Build, EntityType, Revision, Author,
-    Phase, Step
+    Phase, Step, Patch
 )
 from buildbox.testutils import BackendTestCase
+
+
+SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
+index 2ef2938..ed80350 100644
+--- a/README.rst
++++ b/README.rst
+@@ -1,5 +1,5 @@
+ Setup
+------
++====="""
 
 
 class MockedResponse(object):
@@ -35,8 +45,7 @@ class MockedResponse(object):
             return json.load(fp)
 
     def load_fixture(self, method, url, **kwargs):
-        if method == 'GET':
-            return self.url_to_filename(url)
+        return os.path.join(method.upper(), self.url_to_filename(url))
 
     def url_to_filename(self, url):
         assert url.startswith(self.base_url)
@@ -52,10 +61,14 @@ class KoalityBackendTestCase(BackendTestCase):
     provider = 'koality'
 
     def setUp(self):
+        self.mock_request = mock.Mock(
+            side_effect=MockedResponse(self.backend_options['base_url']),
+        )
+
         self.patcher = mock.patch.object(
             KoalityBackend,
             '_get_response',
-            MockedResponse(self.backend_options['base_url']),
+            side_effect=self.mock_request,
         )
         self.patcher.start()
         self.addCleanup(self.patcher.stop)
@@ -66,12 +79,15 @@ class KoalityBackendTestCase(BackendTestCase):
         db.session.add(self.repo)
         db.session.add(self.project)
 
+    def make_project_entity(self, project=None):
+        return self.make_entity(EntityType.project, (project or self.project).id, 1)
+
 
 class SyncBuildListTest(KoalityBackendTestCase):
     def test_simple(self):
         backend = self.get_backend()
 
-        project_entity = self.make_entity(EntityType.project, self.project.id, 1)
+        project_entity = self.make_project_entity()
 
         results = backend.sync_build_list(
             project=self.project,
@@ -90,7 +106,7 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
         )
         db.session.add(build)
 
-        project_entity = self.make_entity(EntityType.project, self.project.id, 1)
+        project_entity = self.make_project_entity()
         build_entity = self.make_entity(EntityType.build, build.id, 1)
 
         backend.sync_build_details(
@@ -212,3 +228,87 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
         assert step_list[5].result == Result.failed
         assert step_list[5].date_started == datetime(2013, 9, 19, 22, 15, 26)
         assert step_list[5].date_finished == datetime(2013, 9, 19, 22, 15, 36)
+
+
+class CreateBuildTest(KoalityBackendTestCase):
+    def test_simple(self):
+        backend = self.get_backend()
+
+        project_entity = self.make_project_entity()
+
+        revision = Revision(
+            sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
+            repository=self.repo,
+        )
+        db.session.add(revision)
+
+        build = Build(
+            repository=self.repo,
+            project=self.project,
+            parent_revision=revision,
+            parent_revision_sha=revision.sha,
+            label='D1345',
+        )
+        db.session.add(build)
+
+        entity = backend.create_build(
+            build=build,
+            project=self.project,
+            project_entity=project_entity,
+        )
+        assert entity.type == EntityType.build
+        assert entity.internal_id == build.id
+        assert entity.remote_id == '1501'
+        assert entity.provider == 'koality'
+
+        self.mock_request.assert_called_once_with(
+            'POST', 'https://koality.example.com/api/v/0/repositories/1/changes',
+            data={'sha': revision.sha},
+        )
+
+    def test_patch(self):
+        backend = self.get_backend()
+
+        project_entity = self.make_project_entity()
+
+        revision = Revision(
+            sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
+            repository=self.repo,
+        )
+        db.session.add(revision)
+
+        patch = Patch(
+            repository=self.repo,
+            project=self.project,
+            parent_revision=revision,
+            parent_revision_sha=revision.sha,
+            label='D1345',
+            diff=SAMPLE_DIFF,
+        )
+        db.session.add(patch)
+
+        build = Build(
+            repository=self.repo,
+            project=self.project,
+            parent_revision=revision,
+            parent_revision_sha=revision.sha,
+            patch=patch,
+            label='D1345',
+        )
+        db.session.add(build)
+
+        entity = backend.create_build(
+            build=build,
+            project=self.project,
+            project_entity=project_entity,
+        )
+        assert entity.type == EntityType.build
+        assert entity.internal_id == build.id
+        assert entity.remote_id == '1501'
+        assert entity.provider == 'koality'
+
+        self.mock_request.assert_called_once_with(
+            'POST', 'https://koality.example.com/api/v/0/repositories/1/changes',
+            data={'sha': revision.sha},
+            files={'patch': SAMPLE_DIFF},
+        )

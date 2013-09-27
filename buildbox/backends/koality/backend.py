@@ -330,7 +330,7 @@ class KoalityBackend(BaseBackend):
     def sync_build_details(self, build, project=None, build_entity=None,
                            project_entity=None):
         if project is None:
-            project = db.session.query(Project).options(
+            project = Project.query.options(
                 joinedload(Project.repository),
             ).get(build.project_id)
 
@@ -375,5 +375,32 @@ class KoalityBackend(BaseBackend):
 
         return build, created
 
-    def create_build(self):
-        pass
+    def create_build(self, build, project=None, project_entity=None):
+        if project is None:
+            project = Project.query.options(
+                joinedload(Project.repository),
+            ).get(build.project_id)
+
+        if project_entity is None:
+            project_entity = get_entity(project)
+            if not project_entity:
+                raise ValueError('Project does not have a remote entity')
+
+        req_kwargs = {}
+        if build.patch:
+            req_kwargs['files'] = {'patch': build.patch.diff}
+
+        # TODO: patches are sent via files=...
+        response = self._get_response('POST', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
+            base_uri=self.base_url, project_id=project_entity.remote_id,
+        ), data={
+            'sha': build.parent_revision_sha,
+        }, **req_kwargs)
+
+        entity = RemoteEntity(
+            provider='koality', remote_id=str(response['changeId']),
+            internal_id=build.id, type=EntityType.build,
+        )
+        db.session.add(entity)
+
+        return entity
