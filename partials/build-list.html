@@ -4,7 +4,7 @@
 			<tr ng-repeat="build in builds | orderBy:'dateCreated':true" class="status-{{build.status.id}} result-{{build.result.id}}">
 				<td>
 					<div class="indicator" title="{{build.result.name}}">
-						<div data-result="{{build.result.id}}" ng-radial-progress-bar="{{build.progress}}">&nbsp;</div>
+						<div data-result="{{build.result.id}}" data-value="{{build.progress}}" ng-radial-progress-bar>&nbsp;</div>
 					</div>
 				</td>
 				<td>

@@ -113,7 +113,9 @@ var Buildbox = angular.module('Buildbox', []).
             return;
           }
 
-          $element.val(value);
+          if (value == $element.val(value)) {
+            return;
+          }
 
           if (value === 100) {
             $parent.removeClass('active');
@@ -143,9 +145,9 @@ var Buildbox = angular.module('Buildbox', []).
           }
         }
 
-        update(attrs.ngRadialProgressBar);
+        update(attrs.value);
 
-        attrs.$observe('ngRadialProgressBar', function(value) {
+        attrs.$observe('value', function(value) {
           update(value)
         });
       }

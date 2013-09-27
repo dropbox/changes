@@ -26,7 +26,7 @@ class EventStream(object):
                     continue
                 yield "data: {}\n\n".format(message['data'])
                 gevent.sleep(0.01)
-            gevent.sleep(0.3)
+            gevent.sleep(0.5)
 
     def push(self, message):
         self.pending.append(message)
