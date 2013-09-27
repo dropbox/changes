@@ -276,16 +276,20 @@ class KoalityBackend(BaseBackend):
             else:
                 build.status = Status.queued
                 build.result = Result.unknown
-        elif change['startTime']:
-            build.date_started = datetime.utcfromtimestamp(change['startTime'] / 1000)
-            if build.status == Status.queued:
+        elif change['startTime'] and not build.date_started:
+            build.date_started = datetime.utcfromtimestamp(
+                change['startTime'] / 1000)
+
+            if build.status in (Status.queued, Status.unknown):
                 build.status = Status.in_progress
+        elif build.status == Status.unknown:
+                build.status = Status.queued
 
         # 'timeout' jobs that dont seem to be doing anything
         now = datetime.utcnow()
         check_time = datetime.utcfromtimestamp(max(change['startTime'], change['createTime']) / 1000.0)
         cutoff = timedelta(minutes=90)
-        if build.status in (Status.queued, Status.in_progress) and check_time < now - cutoff:
+        if build.status in (Status.queued, Status.in_progress, Status.unknown) and check_time < now - cutoff:
             build.status = Status.finished
             build.result = Result.timedout
 

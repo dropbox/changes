@@ -1,10 +1,13 @@
-
 function BuildListCtrl($scope, $http) {
   $scope.builds = [];
 
   $http.get('/api/0/builds/').success(function(data) {
     $scope.builds = data.builds;
   });
+
+  $scope.timeSince = function timeSince(date) {
+    return moment.utc(date).fromNow();
+  };
 
   function addBuild(data) {
     $scope.$apply(function() {
@@ -59,19 +62,84 @@ function BuildDetailsCtrl($scope, $http, $routeParams) {
     $scope.phases = data.phases;
   });
 
+  $scope.timeSince = function timeSince(date) {
+    return moment.utc(date).fromNow();
+  };
+
 }
 
 
 var Buildbox = angular.module('Buildbox', []).
   config(['$routeProvider', function($routeProvider) {
-  $routeProvider.
-      when('/', {
-        templateUrl: 'partials/build-list.html',
-        controller: BuildListCtrl
-      }).
-      when('/projects/:project_id/builds/:build_id/', {
-        templateUrl: 'partials/build-details.html',
-        controller: BuildDetailsCtrl
-      }).
-      otherwise({redirectTo: '/'});
-}]);
+    $routeProvider.
+        when('/', {
+          templateUrl: 'partials/build-list.html',
+          controller: BuildListCtrl
+        }).
+        when('/projects/:project_id/builds/:build_id/', {
+          templateUrl: 'partials/build-details.html',
+          controller: BuildDetailsCtrl
+        }).
+        otherwise({redirectTo: '/'});
+  }]).
+  directive('ngRadialProgressBar', ['$timeout', function($timeout) {
+    return {
+      restrict: 'A',
+      replace: false,
+      link: function radialProgressBarLink(scope, element, attrs) {
+        var $element = $(element),
+            $parent = $element.parent(),
+            $knob;
+
+        function getResultColor(result) {
+          switch (result) {
+            case 'failed':
+            case 'errored':
+            case 'timedout':
+              return '#d9322d';
+            case 'passed':
+              return '#58488a';
+            default:
+              return '#58488a';
+          }
+        }
+
+        function update(value) {
+          $element.val(value);
+
+          if (parseInt(value, 10) === 100) {
+            $parent.removeClass('active');
+            if ($knob) {
+              $element.empty();
+              delete $knob;
+            }
+          } else {
+            $parent.addClass('active');
+            if (!$knob) {
+              $knob = $element.knob({
+                readOnly: true,
+                displayInput: false,
+                width: $element.width(),
+                height: $element.height(),
+                fgColor: getResultColor(attrs.result),
+                thickness: 0.2
+              });
+
+              attrs.$observe('result', function(value) {
+                $knob.trigger('configure', {
+                  'fgColor': getResultColor(value)
+                });
+              });
+            }
+            $knob.val(value).trigger('change');
+          }
+        }
+
+        update(attrs.ngRadialProgressBar);
+
+        attrs.$observe('ngRadialProgressBar', function(value) {
+          update(value)
+        });
+      }
+    }
+  }]);

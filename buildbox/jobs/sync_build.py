@@ -9,6 +9,8 @@ from buildbox.models.build import Build
 @queue.job
 def sync_build(build_id):
     build = Build.query.get(build_id)
+    if build.status == Status.finished:
+        return
 
     backend = KoalityBackend(
         app=app,
@@ -21,7 +23,6 @@ def sync_build(build_id):
     db.session.commit()
 
     if build.status != Status.finished:
-        print build.id, build.status
         sync_build.delay(
             build_id=build.id,
         )

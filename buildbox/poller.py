@@ -58,7 +58,7 @@ class Poller(object):
         for project in project_list:
             self.logger.info('Fetching builds for project {%s}', project.slug)
             for build, created in self.get_backend().sync_build_list(project):
-                if created:
+                if build.status != Status.finished:
                     self.logger.info('Spawning sync job for {%s}', build.id)
                     pending_build_syncs.add((project, build))
 

@@ -98,6 +98,7 @@ dl.flat dt {
   right: 0;
   top: 0;
   bottom: 0;
+  left: 0;
   overflow: hidden;
   width: 100px;
   border-radius: 40px;
@@ -106,14 +107,27 @@ dl.flat dt {
   text-transform: uppercase;
   background: #f7f5fa;
 }
-.status-failed .indicator,
-.status-timedout .indicator,
-.status-errored .indicator {
+
+.indicator.active {
+  background: none !important;
+}
+
+.result-aborted .indicator {
+  color: #fff;
+  background: #aaa;
+}
+.result-skipped .indicator {
+  color: #fff;
+  background: gold;
+}
+.result-failed .indicator,
+.result-timedout .indicator,
+.result-errored .indicator {
   color: #fff;
   background: #d9322d;
 }
 
-.status-passed .indicator {
+.result-passed .indicator {
   color: #fff;
   background: #58488a;
 }
@@ -142,21 +156,21 @@ dl.flat dt {
 }
 
 .build-list td:first-child {
-  width: 30px;
+  width: 32px;
   vertical-align: middle;
+  padding-top: 10px;
   padding-left: 15px;
 }
 .build-list > tbody > tr > td {
   border-top: 0;
   position: relative;
 }
-.build-list td .indicator {
-  border-radius: 0;
-  overflow: hidden;
-  text-indent: -10000em;
-  width: 30px;
-  height: 30px;
-  border-radius: 30px;
+.build-list td .indicator,
+.build-list td .indicator > div {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 32px;
   position: relative;
 }
 .build-list a {
@@ -208,14 +222,24 @@ dl.flat dt {
   color: #c7c0de;
   border-color: #f7f5fa;
 }
-.phase-list > li.status-passed > a {
+.phase-list > li.result-passed > a {
   background: #58488a;
   color: #c7c0de;
   border-color: #58488a;
 }
-.phase-list > li.status-failed > a,
-.phase-list > li.status-errored > a,
-.phase-list > li.status-timedout > a {
+.phase-list > li.result-aborted > a {
+  color: #fff;
+  background: #aaa;
+  border-color: #aaa;
+}
+.phase-list > li.result-skipped > a {
+  color: #fff;
+  background: gold;
+  border-color: gold;
+}
+.phase-list > li.result-failed > a,
+.phase-list > li.result-errored > a,
+.phase-list > li.result-timedout > a {
   background: #d9322d;
   color: #fff;
   border-color: #d9322d;

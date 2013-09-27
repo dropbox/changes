@@ -1,7 +1,7 @@
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from buildbox.config import db
@@ -16,6 +16,7 @@ class Project(db.Model):
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     name = Column(String(64))
     date_created = Column(DateTime, default=datetime.utcnow)
+    avg_build_time = Column(Integer)
 
     repository = relationship('Repository')
 

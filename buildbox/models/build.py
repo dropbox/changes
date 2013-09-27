@@ -51,6 +51,23 @@ class Build(db.Model):
             duration = None
         return duration
 
+    @property
+    def progress(self):
+        if self.status == Status.finished:
+            return 100
+        elif self.status != Status.in_progress:
+            return 0
+
+        avg_build_time = self.project.avg_build_time
+
+        # TODO: we need a state for this
+        if not avg_build_time:
+            avg_build_time = 600
+
+        seconds_elapsed = (datetime.utcnow() - self.date_started).total_seconds()
+
+        return int(seconds_elapsed / max(avg_build_time, seconds_elapsed + 60) * 100)
+
     def to_dict(self):
         return {
             'id': self.id.hex,
@@ -65,4 +82,5 @@ class Build(db.Model):
             'dateCreated': self.date_created.isoformat(),
             'dateStarted': self.date_started.isoformat() if self.date_started else None,
             'dateFinished': self.date_finished.isoformat() if self.date_finished else None,
+            'progress': self.progress,
         }

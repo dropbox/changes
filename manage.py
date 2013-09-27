@@ -30,7 +30,7 @@ dictConfig({
 
     "root": {
         "handlers": ["console"],
-        "level": "INFO",
+        "level": "WARN",
     },
 })
 
@@ -76,7 +76,7 @@ from buildbox.config import create_app
 app = create_app()
 
 manager = Manager(app)
-manager.add_action('webserver', run_gevent_server)
+manager.add_action('runserver', run_gevent_server)
 manager.add_action('worker', run_worker)
 
 if __name__ == "__main__":

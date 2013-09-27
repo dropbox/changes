@@ -29,5 +29,4 @@ def poller():
             instance.run()
         except Exception:
             traceback.print_exc()
-            time.sleep(10)
-        time.sleep(1)
+        time.sleep(30)

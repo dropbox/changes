@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
-    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" media="screen">
+    <link href="{{ url_for('static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
     <script src="{{ url_for('static', filename='js/angular-1.1.5.min.js') }}"></script>
   </head>
   <body>
@@ -28,7 +28,9 @@
     <footer></footer>
 
     <script src="{{ url_for('static', filename='js/jquery-2.0.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.knob.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   </body>
 </html>
