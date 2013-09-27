@@ -5,38 +5,9 @@ monkey.patch_all()
 from buildbox.db import psyco_gevent
 psyco_gevent.make_psycopg_green()
 
-from logging.config import dictConfig
-
-
-dictConfig({
-    "version": 1,
-    "disable_existing_loggers": False,
-
-    "formatters": {
-        "console": {
-            "format": "%(asctime)s %(message)s",
-            "datefmt": "%H:%M:%S",
-        },
-    },
-
-    "handlers": {
-        "console": {
-            "level": "DEBUG",
-            "class": "rq.utils.ColorizingStreamHandler",
-            "formatter": "console",
-            "exclude": ["%(asctime)s"],
-        },
-    },
-
-    "root": {
-        "handlers": ["console"],
-        "level": "WARN",
-    },
-})
-
 
 def run_gevent_server(app):
-    def action(host=('h', '127.0.0.1'), port=('p', 5000)):
+    def action(host=('h', '127.0.0.1'), port=('p', 7777)):
         """run application use gevent http server
         """
         from gevent import pywsgi
@@ -76,7 +47,7 @@ from buildbox.config import create_app
 app = create_app()
 
 manager = Manager(app)
-manager.add_action('runserver', run_gevent_server)
+manager.add_action('run_gevent', run_gevent_server)
 manager.add_action('worker', run_worker)
 
 if __name__ == "__main__":
