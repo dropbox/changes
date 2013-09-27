@@ -1,3 +1,4 @@
+import mock
 import uuid
 import json
 
@@ -33,7 +34,19 @@ class BackendTestCase(TestCase):
 
 class APITestCase(TestCase):
     def setUp(self):
+        from changes.backends.base import BaseBackend
+
         self.client = app.test_client()
+
+        self.mock_backend = mock.Mock(
+            spec=BaseBackend(app=app),
+        )
+
+        self.patcher = mock.patch(
+            'changes.api.build_index.BuildIndexAPIView.get_backend',
+        )
+        self.patcher.start()
+        self.addCleanup(self.patcher.stop)
 
         self.repo = Repository(url='https://github.com/dropbox/changes.git')
         db.session.add(self.repo)

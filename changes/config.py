@@ -46,6 +46,7 @@ def create_app(**config):
                      template_folder=os.path.join(PROJECT_ROOT, 'templates'),
                      partials_folder=os.path.join(PROJECT_ROOT, 'partials'))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/changes'
+    app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
     app.config['REDIS_URL'] = 'redis://localhost'
     app.config['RQ_DEFAULT_RESULT_TTL'] = 0
     # app.config['SQLALCHEMY_ECHO'] = True

@@ -81,12 +81,8 @@ Create Build
 project:
 	the project ID
 
-author:
-	the commit author, git formatted
-	e.g. David Cramer <cramer@dropbox.com>
-
-revision:
-	the base revision to build on
+sha:
+	the base revision sha to build on
 
 (optional) patch:
 	git unified diff format
