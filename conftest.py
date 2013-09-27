@@ -57,8 +57,6 @@ def pytest_unconfigure():
     transaction.rollback()
     connection.close()
 
-    app_context.pop()
-
 
 # TODO: mock session commands
 def pytest_runtest_setup(item):
