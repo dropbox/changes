@@ -46,15 +46,3 @@ class Phase(db.Model):
         else:
             duration = None
         return duration
-
-    def to_dict(self):
-        return {
-            'id': self.id.hex,
-            'name': self.label,
-            'result': self.result.to_dict(),
-            'status': self.status.to_dict(),
-            'duration': self.duration,
-            'dateCreated': self.date_created.isoformat(),
-            'dateStarted': self.date_started.isoformat() if self.date_started else None,
-            'dateFinished': self.date_finished.isoformat() if self.date_finished else None,
-        }

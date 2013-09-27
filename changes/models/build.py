@@ -70,22 +70,3 @@ class Build(db.Model):
         percent = int(seconds_elapsed / max(avg_build_time, seconds_elapsed + 60) * 100)
 
         return min(max(percent, 1), 99)
-
-    def to_dict(self):
-        return {
-            'id': self.id.hex,
-            'name': self.label,
-            'result': self.result.to_dict(),
-            'status': self.status.to_dict(),
-            'project': self.project.to_dict(),
-            'author': self.author.to_dict() if self.author else None,
-            'parent_revision': {
-                'sha': self.parent_revision_sha,
-            },
-            'duration': self.duration,
-            'link': '/projects/%s/builds/%s/' % (self.project.slug, self.id.hex),
-            'dateCreated': self.date_created.isoformat(),
-            'dateStarted': self.date_started.isoformat() if self.date_started else None,
-            'dateFinished': self.date_finished.isoformat() if self.date_finished else None,
-            'progress': self.progress,
-        }

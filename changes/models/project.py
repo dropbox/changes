@@ -24,10 +24,3 @@ class Project(db.Model):
         super(Project, self).__init__(**kwargs)
         if not self.id:
             self.id = uuid.uuid4()
-
-    def to_dict(self):
-        return {
-            'id': self.id.hex,
-            'slug': self.slug,
-            'name': self.name,
-        }
