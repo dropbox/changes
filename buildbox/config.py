@@ -97,4 +97,4 @@ def configure_web_routes(app):
 
 
 def configure_jobs(app):
-    import buildbox.jobs.sync_build
+    import buildbox.jobs.sync_build  # NOQA
