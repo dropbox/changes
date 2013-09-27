@@ -9,31 +9,33 @@ function BuildListCtrl($scope, $http) {
     return moment.utc(date).fromNow();
   };
 
-  function addBuild(data) {
+  function addBuild(build) {
     $scope.$apply(function() {
-      var updated = false, build_id = data.build_id;
+      var updated = false, build_id = build.id;
       if ($scope.builds.length > 0) {
-        var result = $.grep($scope.builds, function(e){ return e.build_id == build_id; });
+        var result = $.grep($scope.builds, function(e){ return e.id == build_id; });
         if (result.length > 0) {
           var item = result[0];
-          for (attr in data) {
-            item[attr] = data[attr];
+          for (attr in build) {
+            item[attr] = build[attr];
           }
           updated = true;
         }
       }
       if (!updated) {
-        $scope.builds.unshift(data);
+        $scope.builds.unshift(build);
       }
     });
   }
 
   function subscribe() {
     if (window.stream) {
+      console.log('[Stream] closing connection');
       window.stream.close()
     }
-    window.stream = new EventSource('/api/0/stream/');
+    console.log('[Stream] Initiating connection');
 
+    window.stream = new EventSource('/api/0/stream/');
     window.stream.onopen = function(e) {
       console.log('[Stream] Connection opened');
     }
@@ -41,13 +43,13 @@ function BuildListCtrl($scope, $http) {
       console.log('[Stream] Error!');
     }
     window.stream.onmessage = function(e) {
-      console.log('[Stream] Received event: ' + e.data);
+      // console.log('[Stream] Received event: ' + e.data);
       data = $.parseJSON(e.data);
       addBuild(data);
     };
   }
 
-  // subscribe();
+  subscribe();
 }
 
 

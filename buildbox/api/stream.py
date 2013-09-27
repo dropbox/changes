@@ -1,32 +1,52 @@
 import gevent
 
-from flask import Response
-from redis import StrictRedis
+from threading import Thread
 
+from collections import deque
+from flask import Response
+
+from buildbox.config import redis
 from buildbox.api.base import APIView, as_json
 
 
-class StreamAPIView(APIView):
-    def get(self):
-        def event_stream():
-            redis = StrictRedis()
-            pubsub = redis.pubsub()
-            pubsub.subscribe('builds')
+class EventStream(object):
+    def __init__(self, redis):
+        self.redis = redis
+        self.pending = deque()
 
-            for message in pubsub.listen():
+        self.listener = Thread(target=self.stream)
+        self.listener.setDaemon(True)
+        self.listener.start()
+
+    def __iter__(self):
+        while True:
+            while self.pending:
+                message = self.pending.pop()
                 if not isinstance(message['data'], basestring):
                     continue
                 yield "data: {}\n\n".format(message['data'])
                 gevent.sleep(0.01)
+            gevent.sleep(0.3)
 
+    def push(self, message):
+        self.pending.append(message)
+
+    def stream(self):
+        pubsub = self.redis.pubsub()
+        pubsub.subscribe('builds')
+        for message in pubsub.listen():
+            self.push(message)
+            gevent.sleep(0.01)
+
+
+class StreamAPIView(APIView):
+    def get(self):
         # self.stream = EventStream()
-        return Response(event_stream(), mimetype='text/event-stream')
+        return Response(EventStream(redis), mimetype='text/event-stream')
 
 
 class TestStreamAPIView(APIView):
     def get(self):
-        redis = StrictRedis()
-
         from datetime import datetime
         from buildbox.constants import Result, Status
         from buildbox.models import Build, Project, Author, Revision

@@ -4,6 +4,7 @@ import os.path
 
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.helpers import send_from_directory
+from flask_redis import Redis
 
 from buildbox.ext.queue import Queue
 
@@ -14,6 +15,8 @@ db = SQLAlchemy(session_options={
 })
 
 queue = Queue()
+
+redis = Redis()
 
 
 class BuildboxApp(flask.Flask):
@@ -42,8 +45,9 @@ def create_app(**config):
                       static_folder=os.path.join(BUILDBOX_ROOT, 'static'),
                       template_folder=os.path.join(BUILDBOX_ROOT, 'templates'),
                       partials_folder=os.path.join(BUILDBOX_ROOT, 'partials'))
-    app.config['RQ_DEFAULT_RESULT_TTL'] = 0
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/buildbox'
+    app.config['REDIS_URL'] = 'redis://localhost'
+    app.config['RQ_DEFAULT_RESULT_TTL'] = 0
     # app.config['SQLALCHEMY_ECHO'] = True
     app.config['DEBUG'] = True
     app.config['JENKINS_URL'] = 'http://54.213.59.142'
@@ -59,6 +63,7 @@ def create_app(**config):
 
     db.init_app(app)
     queue.init_app(app)
+    redis.init_app(app)
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)

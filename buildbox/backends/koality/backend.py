@@ -7,8 +7,9 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from sqlalchemy.orm import joinedload
 
+from buildbox.api.base import as_json
 from buildbox.backends.base import BaseBackend
-from buildbox.config import db
+from buildbox.config import db, redis
 from buildbox.constants import Result, Status
 from buildbox.db.utils import create_or_update
 from buildbox.models import (
@@ -320,9 +321,9 @@ class KoalityBackend(BaseBackend):
 
         build_list = []
         for change in change_list:
-            build = self._sync_build(project, change)
-            # self.application.publish('builds', as_json(build))
-            build_list.append(build)
+            build, created = self._sync_build(project, change)
+            redis.publish('builds', as_json(build))
+            build_list.append((build, created))
 
         return build_list
 
@@ -357,7 +358,7 @@ class KoalityBackend(BaseBackend):
         ))
 
         build, created = self._sync_build(project, change, stage_list, build=build)
-        # self.application.publish('builds', as_json(build))
+        redis.publish('builds', as_json(build))
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -367,7 +368,7 @@ class KoalityBackend(BaseBackend):
             stage_list.sort(key=lambda x: x['status'] == 'passed')
 
             phase = self._sync_phase(build, stage_type, stage_list)
-            # self.application.publish('phases:%s' % (build.id.hex,), as_json(phase))
+            redis.publish('phases:%s' % (build.id.hex,), as_json(phase))
 
             for stage in stage_list:
                 self._sync_step(build, phase, stage)

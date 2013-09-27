@@ -29,8 +29,12 @@ class Test(db.Model):
 
     def __init__(self, **kwargs):
         super(Test, self).__init__(**kwargs)
-        if not self.id:
+        if self.id is None:
             self.id = uuid.uuid4()
+        if self.result is None:
+            self.result = Result.unknown
+        if self.date_created is None:
+            self.date_created = datetime.utcnow()
 
     def to_dict(self):
         return {

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from gevent import monkey
-from buildbox.db import psyco_gevent
-
 monkey.patch_all()
+
+from buildbox.db import psyco_gevent
 psyco_gevent.make_psycopg_green()
 
 from logging.config import dictConfig
@@ -39,8 +39,8 @@ def run_gevent_server(app):
     def action(host=('h', '127.0.0.1'), port=('p', 5000)):
         """run application use gevent http server
         """
-        from gevent import wsgi
-        wsgi.WSGIServer((host, port), app).serve_forever()
+        from gevent import pywsgi
+        pywsgi.WSGIServer((host, port), app).serve_forever()
     return action
 
 

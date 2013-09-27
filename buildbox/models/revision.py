@@ -18,6 +18,11 @@ class Revision(db.Model):
     repository = relationship('Repository')
     author = relationship('Author')
 
+    def __init__(self, **kwargs):
+        super(Revision, self).__init__(**kwargs)
+        if self.date_created is None:
+            self.date_created = datetime.utcnow()
+
     def to_dict(self):
         return {
             'sha': self.sha,
