@@ -16,12 +16,16 @@ class EventStream(object):
         self.pubsub.subscribe('builds', self.push)
 
     def __iter__(self):
+        # TODO(dcramer): this connection seems to stay open if we dont
+        # stream enough data
         while self.active:
             while self.pending:
                 message = self.pending.pop()
                 yield "data: {}\n\n".format(message)
                 gevent.sleep(0)
-            gevent.sleep(0.5)
+            gevent.sleep(0.1)
+
+    def __del__(self):
         self.close()
 
     def push(self, message):
