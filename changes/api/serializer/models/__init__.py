@@ -5,3 +5,4 @@ from . import project  # NOQA
 from . import result  # NOQA
 from . import status  # NOQA
 from . import step  # NOQA
+from . import test  # NOQA

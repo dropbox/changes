@@ -35,13 +35,3 @@ class Test(db.Model):
             self.result = Result.unknown
         if self.date_created is None:
             self.date_created = datetime.utcnow()
-
-    def to_dict(self):
-        return {
-            'id': self.id.hex,
-            'name': self.label,
-            'result': self.result.to_dict(),
-            'duration': self.duration / 1000,
-            'dateCreated': self.date_created.isoformat(),
-            'message': self.message,
-        }
