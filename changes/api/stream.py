@@ -30,12 +30,12 @@ class EventStream(object):
             gevent.sleep(0.5)
             if time.time() - s > self.lifecycle:
                 break
-        self.terminate()
+        self.close()
 
     def push(self, message):
         self.pending.append(message)
 
-    def terminate(self):
+    def close(self):
         self.pubsub.unsubscribe('builds', self.push)
 
 
@@ -57,7 +57,6 @@ class TestStreamAPIView(APIView):
         revision = Revision.query.all()[0]
 
         pubsub.publish('builds', as_json(Build(
-            id='a' * 40,
             label='Test Build',
             project=project,
             author=author,
