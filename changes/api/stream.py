@@ -13,10 +13,6 @@ class EventStream(object):
         self.pending = deque()
         self.active = True
 
-        # TODO(dcramer): need to find a way to terminate these when the socket
-        # is closed, but for now we time them out every 60s
-        self.lifecycle = 60
-
         self.pubsub.subscribe('builds', self.push)
 
     def __iter__(self):
