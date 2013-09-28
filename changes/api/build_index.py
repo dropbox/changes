@@ -41,7 +41,7 @@ class BuildIndexAPIView(APIView):
             Build.query.options(
                 joinedload(Build.project),
                 joinedload(Build.author),
-            ).order_by(Build.date_created.desc())
+            ).order_by(Build.date_created.desc(), Build.date_started.desc())
         )[:100]
 
         context = {

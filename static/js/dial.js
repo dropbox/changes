@@ -42,20 +42,30 @@
         }
         this.ctx = this.$canvas[0].getContext ? this.$canvas[0].getContext('2d') : null;
 
-        this.scale = (window.devicePixelRatio || 1) / (
-            this.ctx.webkitBackingStorePixelRatio ||
-            this.ctx.mozBackingStorePixelRatio ||
-            this.ctx.msBackingStorePixelRatio ||
-            this.ctx.oBackingStorePixelRatio ||
-            this.ctx.backingStorePixelRatio || 1
-        );
+        // this.scale = (window.devicePixelRatio || 1) / (
+        //     this.ctx.webkitBackingStorePixelRatio ||
+        //     this.ctx.mozBackingStorePixelRatio ||
+        //     this.ctx.msBackingStorePixelRatio ||
+        //     this.ctx.oBackingStorePixelRatio ||
+        //     this.ctx.backingStorePixelRatio || 1
+        // );
 
-        this.width = this.options.width * this.scale;
-        this.height = this.options.height * this.scale;
+        //this.ctx.scale(this.scale, this.scale);
+
+        // TODO(dcramer): figure out this scale
+        this.width = this.options.width * 4;
+        this.height = this.options.height * 4;
+
+        this.$canvas.width = this.width;
+        this.$canvas.height = this.height;
         this.$canvas.attr({
             width: this.width,
             height: this.height
         });
+        this.$canvas.css({
+            width: this.options.width + 'px',
+            height: this.options.height + 'px'
+        })
 
         this.$element.html(this.$canvas);
 
