@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import as_json
 from changes.backends.base import BaseBackend
-from changes.config import db, redis
+from changes.config import db, pubsub
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update
 from changes.models import (
@@ -321,7 +321,7 @@ class KoalityBackend(BaseBackend):
         build_list = []
         for change in change_list:
             build, created = self._sync_build(project, change)
-            redis.publish('builds', as_json(build))
+            pubsub.publish('builds', as_json(build))
             build_list.append((build, created))
 
         return build_list
@@ -357,7 +357,7 @@ class KoalityBackend(BaseBackend):
         ))
 
         build, created = self._sync_build(project, change, stage_list, build=build)
-        redis.publish('builds', as_json(build))
+        pubsub.publish('builds', as_json(build))
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -367,7 +367,7 @@ class KoalityBackend(BaseBackend):
             stage_list.sort(key=lambda x: x['status'] == 'passed')
 
             phase = self._sync_phase(build, stage_type, stage_list)
-            redis.publish('phases:%s' % (build.id.hex,), as_json(phase))
+            pubsub.publish('phases:%s' % (build.id.hex,), as_json(phase))
 
             for stage in stage_list:
                 self._sync_step(build, phase, stage)

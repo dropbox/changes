@@ -2,10 +2,11 @@ import flask
 import os
 import os.path
 
+from flask import request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.helpers import send_from_directory
-from flask_redis import Redis
 
+from changes.ext.pubsub import PubSub
 from changes.ext.queue import Queue
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -13,10 +14,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir
 db = SQLAlchemy(session_options={
     'autoflush': True,
 })
-
+pubsub = PubSub()
 queue = Queue()
-
-redis = Redis()
 
 
 class ChangesApp(flask.Flask):
@@ -63,8 +62,8 @@ def create_app(**config):
     app.config.update(config)
 
     db.init_app(app)
+    pubsub.init_app(app)
     queue.init_app(app)
-    redis.init_app(app)
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)

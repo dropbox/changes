@@ -1,48 +1,49 @@
 import gevent
-
-from threading import Thread
+import time
 
 from collections import deque
-from flask import Response
+from flask import Response, request, stream_with_context
 
-from changes.config import redis
+from changes.config import pubsub
 from changes.api.base import APIView, as_json
 
 
 class EventStream(object):
-    def __init__(self, redis):
-        self.redis = redis
+    def __init__(self, pubsub):
+        self.pubsub = pubsub
         self.pending = deque()
+        self.active = True
 
-        self.listener = Thread(target=self.stream)
-        self.listener.setDaemon(True)
-        self.listener.start()
+        # TODO(dcramer): need to find a way to terminate these when the socket
+        # is closed, but for now we time them out every 60s
+        self.lifecycle = 60
+
+        self.pubsub.subscribe('builds', self.push)
 
     def __iter__(self):
-        while True:
+        s = time.time()
+        while self.active:
             while self.pending:
                 message = self.pending.pop()
-                if not isinstance(message['data'], basestring):
-                    continue
-                yield "data: {}\n\n".format(message['data'])
-                gevent.sleep(0.01)
+                yield "data: {}\n\n".format(message)
+                gevent.sleep(0)
             gevent.sleep(0.5)
+            if time.time() - s > self.lifecycle:
+                break
+        self.terminate()
 
     def push(self, message):
         self.pending.append(message)
 
-    def stream(self):
-        pubsub = self.redis.pubsub()
-        pubsub.subscribe('builds')
-        for message in pubsub.listen():
-            self.push(message)
-            gevent.sleep(0.01)
+    def terminate(self):
+        self.pubsub.unsubscribe('builds', self.push)
 
 
 class StreamAPIView(APIView):
     def get(self):
-        # self.stream = EventStream()
-        return Response(EventStream(redis), mimetype='text/event-stream')
+        stream = EventStream(pubsub)
+        request.eventstream = stream
+        return Response(stream_with_context(stream), mimetype='text/event-stream')
 
 
 class TestStreamAPIView(APIView):
@@ -55,13 +56,14 @@ class TestStreamAPIView(APIView):
         author = Author.query.all()[0]
         revision = Revision.query.all()[0]
 
-        redis.publish('builds', as_json(Build(
+        pubsub.publish('builds', as_json(Build(
+            id='a' * 40,
             label='Test Build',
             project=project,
             author=author,
             status=Status.in_progress,
             result=Result.unknown,
-            parent_revision=revision,
+            parent_revision_sha=revision.sha,
             date_created=datetime.utcnow(),
             date_started=datetime.utcnow(),
         )))
