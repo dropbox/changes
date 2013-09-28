@@ -1,9 +1,10 @@
 import gevent
 import redis
 
+from collections import defaultdict
+from flask import _app_ctx_stack
 from uuid import uuid4
 
-from flask import _app_ctx_stack
 
 default_config = {
     'REDIS_URL': 'redis://localhost:6379',
@@ -23,7 +24,7 @@ class _PubSubState(object):
         self.ext = ext
         self.app = app
 
-        self._callbacks = {}
+        self._callbacks = defaultdict(set)
         self._channel = 't_' + uuid4().hex
 
         self._redis = self.get_connection()
@@ -31,9 +32,6 @@ class _PubSubState(object):
         self._pubsub.subscribe(self._channel)
 
         gevent.spawn(self._redis_listen)
-        # listener = Thread(target=self._redis_listen)
-        # listener.setDaemon(True)
-        # listener.start()
 
     def get_connection(self):
         return redis.from_url(self.app.config['REDIS_URL'])
@@ -42,20 +40,18 @@ class _PubSubState(object):
         self._redis.publish(channel, data)
 
     def subscribe(self, channel, callback):
-        local_subs = self._callbacks.get(channel, None)
-        if local_subs is None:
-            local_subs = {callback}
-            self._callbacks[channel] = local_subs
+        local_subs = self._callbacks[channel]
+        if not local_subs:
             self._redis.publish(self._channel, 'subscribe:' + channel)
-        else:
-            local_subs.add(callback)
+        local_subs.add(callback)
         self.app.logger.info('Channel {%s} has %d subscriber(s)', channel, len(local_subs))
 
     def unsubscribe(self, channel, callback):
-        local_subs = self._callbacks.get(channel, None)
-        if local_subs is None:
+        local_subs = self._callbacks[channel]
+        try:
+            local_subs.remove(callback)
+        except KeyError:
             return
-        local_subs.remove(callback)
         self.app.logger.info('Channel {%s} has %d subscriber(s)', channel, len(local_subs))
         if local_subs:
             return
