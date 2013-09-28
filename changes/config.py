@@ -2,7 +2,6 @@ import flask
 import os
 import os.path
 
-from flask import request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.helpers import send_from_directory
 
