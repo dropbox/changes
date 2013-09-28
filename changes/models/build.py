@@ -46,8 +46,11 @@ class Build(db.Model):
 
     @property
     def duration(self):
+        """
+        Return the duration (in milliseconds) that this item was in-progress.
+        """
         if self.date_started and self.date_finished:
-            duration = (self.date_finished - self.date_started).total_seconds()
+            duration = (self.date_finished - self.date_started).total_seconds() * 1000
         else:
             duration = None
         return duration

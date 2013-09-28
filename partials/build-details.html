@@ -15,7 +15,7 @@
 			<dt ng-if="build.dateStarted">Started:</dt>
 			<dd ng-if="build.dateStarted">{{timeSince(build.dateStarted)}}</dd>
 			<dt ng-if="build.duration">Duration:</dt>
-			<dd ng-if="build.duration">{{build.duration}}s</dd>
+			<dd ng-if="build.duration">{{build.duration}}ms</dd>
 		</dl>
 
 		<pre ng-if="build.parent_revision.message">{{build.parent_revision.message}}</pre>
