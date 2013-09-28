@@ -3,10 +3,14 @@
 import argparse
 import sys
 
-from changes.app import db
+from changes.config import create_app, db
 from changes.models import (
     Project, Repository, RemoteEntity, EntityType
 )
+
+app = create_app()
+app_context = app.app_context()
+app_context.push()
 
 parser = argparse.ArgumentParser(description='Manage projects')
 
@@ -39,25 +43,25 @@ if args.command == 'add':
     else:
         abort()
 
-    with db.get_session() as session:
-        try:
-            repo = session.query(Repository).filter_by(url=repo_url)[0]
-        except IndexError:
-            repo = Repository(url=repo_url)
+    try:
+        repo = Repository.query.filter_by(url=repo_url)[0]
+    except IndexError:
+        repo = Repository(url=repo_url)
 
-        project = Project(
-            slug=slug,
-            name=name,
-            repository=repo,
-        )
-        entity = RemoteEntity(
-            type=EntityType.project,
-            provider=provider,
-            internal_id=project.id,
-            remote_id=provider_project_id,
-        )
-        session.add(project)
-        session.add(entity)
+    project = Project(
+        slug=slug,
+        name=name,
+        repository=repo,
+    )
+    entity = RemoteEntity(
+        type=EntityType.project,
+        provider=provider,
+        internal_id=project.id,
+        remote_id=provider_project_id,
+    )
+    db.session.add(project)
+    db.session.add(entity)
+    db.session.commit()
 
     print "Created new project with ID {%s}" % (
         project.id,
