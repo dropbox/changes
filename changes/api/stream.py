@@ -1,5 +1,4 @@
 import gevent
-import time
 
 from collections import deque
 from flask import Response, request, stream_with_context
@@ -21,15 +20,12 @@ class EventStream(object):
         self.pubsub.subscribe('builds', self.push)
 
     def __iter__(self):
-        s = time.time()
         while self.active:
             while self.pending:
                 message = self.pending.pop()
                 yield "data: {}\n\n".format(message)
                 gevent.sleep(0)
             gevent.sleep(0.5)
-            if time.time() - s > self.lifecycle:
-                break
         self.close()
 
     def push(self, message):
