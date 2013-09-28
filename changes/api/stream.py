@@ -1,7 +1,7 @@
 import gevent
 
 from collections import deque
-from flask import Response, request, stream_with_context
+from flask import Response
 
 from changes.config import pubsub
 from changes.api.base import APIView, as_json
@@ -34,8 +34,7 @@ class EventStream(object):
 class StreamAPIView(APIView):
     def get(self):
         stream = EventStream(pubsub)
-        request.eventstream = stream
-        return Response(stream_with_context(stream), mimetype='text/event-stream')
+        return Response(stream, mimetype='text/event-stream')
 
 
 class TestStreamAPIView(APIView):
