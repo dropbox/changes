@@ -19,6 +19,7 @@ if 'test' in sys.argv:
 
 tests_require = [
     'flake8',
+    'loremipsum',
     'mock',
     'pytest',
     'pytest-cov',
@@ -40,6 +41,7 @@ install_requires = [
     'rq',
     'psycopg2',
     'simplejson',
+    'unicode-slugify',
 ]
 
 
