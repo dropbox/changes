@@ -18,14 +18,14 @@ class ChangeIndexAPIView(APIView):
         # TODO(dcramer): denormalize this
         for change in change_list:
             try:
-                change.latest_build = Build.query.filter_by(
+                change.last_build = Build.query.filter_by(
                     change=change,
                 ).order_by(
                     Build.date_created.desc(),
                     Build.date_started.desc()
                 )[0]
             except IndexError:
-                change.latestBuild = None
+                change.last_build = None
 
         context = {
             'changes': change_list,

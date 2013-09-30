@@ -8,12 +8,13 @@ from changes.api.base import APIView, as_json
 
 
 class EventStream(object):
-    def __init__(self, pubsub):
+    def __init__(self, pubsub, channel):
         self.pubsub = pubsub
         self.pending = deque()
+        self.channel = channel
         self.active = True
 
-        self.pubsub.subscribe('builds', self.push)
+        self.pubsub.subscribe(channel, self.push)
 
     def __iter__(self):
         # TODO(dcramer): this connection seems to stay open if we dont
@@ -32,12 +33,12 @@ class EventStream(object):
         self.pending.append(message)
 
     def close(self):
-        self.pubsub.unsubscribe('builds', self.push)
+        self.pubsub.unsubscribe(self.channel, self.push)
 
 
 class StreamAPIView(APIView):
-    def get(self):
-        stream = EventStream(pubsub)
+    def get(self, channel):
+        stream = EventStream(pubsub, channel=channel)
         return Response(stream, mimetype='text/event-stream')
 
 

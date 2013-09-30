@@ -13,6 +13,6 @@ class ChangeSerializer(Serializer):
             'link': '/projects/%s/changes/%s/' % (instance.project.slug, instance.id.hex),
             'dateCreated': instance.date_created.isoformat(),
         }
-        if hasattr(instance, 'latest_build'):
-            result['latestBuild'] = instance.latest_build
+        if hasattr(instance, 'last_build'):
+            result['lastBuild'] = instance.last_build
         return result

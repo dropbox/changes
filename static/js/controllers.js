@@ -14,7 +14,7 @@ Stream.subscribe = function subscribe(channel, callback) {
   }
   console.log('[Stream] Initiating connection to ' + channel);
 
-  stream = new EventSource('/api/0/stream/?channel=changes');
+  stream = new EventSource('/api/0/stream/changes/');
   stream.onopen = function(e) {
     console.log('[Stream] Connection opened to ' + channel);
   }
@@ -76,13 +76,12 @@ function ChangeDetailsCtrl($scope, $http, $routeParams) {
     $scope.change = data.change;
   });
 
-  $http.get('/api/0/changes/' + $routeParams.change_id + '/builds/').success(function(data) {
-    $scope.builds = data.builds;
-  });
-
   $scope.timeSince = function timeSince(date) {
     return moment.utc(date).fromNow();
   };
+
+  // TODO(dcramer): this probably isnt the right way to do this in Angular
+  new BuildListCtrl($scope, $http, $routeParams);
 }
 
 function BuildListCtrl($scope, $http, $routeParams) {

@@ -82,9 +82,9 @@ def configure_api_routes(app):
     from changes.api.stream import StreamAPIView, TestStreamAPIView
 
     app.add_url_rule(
-        '/api/0/stream/', view_func=StreamAPIView.as_view('api-stream'))
-    app.add_url_rule(
         '/api/0/stream/test/', view_func=TestStreamAPIView.as_view('api-stream-test'))
+    app.add_url_rule(
+        '/api/0/stream/<channel>/', view_func=StreamAPIView.as_view('api-stream'))
     app.add_url_rule(
         '/api/0/changes/', view_func=ChangeIndexAPIView.as_view('api-changes'))
     app.add_url_rule(

@@ -1,8 +1,8 @@
 <section ng-controller="ChangeDetailsCtrl">
 	<div id="overview">
-		<div class="page-header change-header status-{{change.latestBuild.status.id}} result-{{change.latestBuild.result.id}}">
-			<div class="indicator" title="{{change.latestBuild.result.name}}">
-				<div data-result="{{change.latestBuild.result.id}}" data-value="{{change.latestBuild.progress}}" ng-radial-progress-bar>&nbsp;</div>
+		<div class="page-header change-header status-{{change.lastBuild.status.id}} result-{{change.lastBuild.result.id}}">
+			<div class="indicator" title="{{change.lastBuild.result.name}}">
+				<div data-result="{{change.lastBuild.result.id}}" data-value="{{change.lastBuild.progress}}" ng-radial-progress-bar>&nbsp;</div>
 			</div>
 			<h2>{{change.name}} <small ng-if="change.revision">({{change.revision.sha}})</small></h2>
 		</div>
