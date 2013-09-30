@@ -57,6 +57,26 @@ Run the webserver:
 API
 ===
 
+The general API workflow (utilizing something like Jenkins + Koality looks like this):
+
+- A diff (code review request) is created in Phabricator
+  - Send request to create change
+  - Store change ID with diff ID
+  - Send request to create build with initial patch
+- A diff is updated in Phabricator
+  - Use change ID that's bound with diff ID
+  - Send request to create a new build on the existing change
+
+The build process ideally works like this:
+
+- A backend (Koality in our example) run's tests asynchronously
+- Changes aggregates the results continuously (we dont wait for the final result)
+- When an initial failure is detected, hooks are fired
+  - Email notifications may be sent at this time
+- When the build is complete, hooks are fired
+  - Results are reported back to Phabricator
+
+
 List Changes
 ~~~~~~~~~~~
 
