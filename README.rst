@@ -54,19 +54,28 @@ Run the webserver:
 API
 ===
 
+List Changes
+~~~~~~~~~~~
+
+::
+
+	GET /api/0/changes/
+
+
+Change Details
+~~~~~~~~~~~~~
+
+::
+
+	GET /api/0/changes/:change_id/
+
+
 List Builds
 ~~~~~~~~~~~
 
 ::
 
-	GET /api/0/builds/
-
-Build Details
-~~~~~~~~~~~~~
-
-::
-
-	GET /api/0/builds/:build_id/
+	GET /api/0/changes/:change_id/builds/
 
 
 Create Build
@@ -74,7 +83,7 @@ Create Build
 
 ::
 
-	POST /api/0/builds/
+	POST /api/0/changes/:change_id/builds/
 
 **Params**
 
@@ -87,7 +96,7 @@ sha:
 (optional) patch:
 	git unified diff format
 
-(optional*) patch[label]:
+(optional) patch[label]:
 	a human readable label for this patch
 	**must be specified if patch is present**
 
