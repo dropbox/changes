@@ -67,7 +67,7 @@ def author(**kwargs):
 
 def change(project, **kwargs):
     if 'message' not in kwargs:
-        kwargs['message'] = ' '.join(get_paragraphs(2))
+        kwargs['message'] = '\n\n'.join(get_paragraphs(2))
 
     if 'label' not in kwargs:
         diff_id = 'D{0}'.format(random.randint(1000, 100000))
@@ -135,7 +135,7 @@ def build(change, **kwargs):
 def revision(repository, author):
     result = Revision(
         repository=repository, sha=uuid4().hex, author=author,
-        message=get_paragraphs(1),
+        message='\n\n'.join(get_paragraphs(2)),
     )
     db.session.add(result)
 

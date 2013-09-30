@@ -15,30 +15,33 @@ app_context = app.app_context()
 app_context.push()
 
 
-def create_new_change(project):
-    return mock.change(project=project)
-
-
-def update_existing_change(project):
-    try:
-        return Change.query.all()[0]
-    except IndexError:
-        return create_new_change(project)
+def create_new_change(project, **kwargs):
+    return mock.change(project=project, **kwargs)
 
 
 def create_new_entry(project):
-    author = mock.author()
-    revision = mock.revision(project.repository, author)
+    new_change = (random.randint(0, 2) == 1)
+    if not new_change:
+        try:
+            change = Change.query.all()[0]
+        except IndexError:
+            new_change = True
 
-    if random.randint(0, 2) == 1:
-        change = create_new_change(project)
-    else:
-        change = update_existing_change(project)
+    if new_change:
+        author = mock.author()
+        revision = mock.revision(project.repository, author)
+        change = create_new_change(
+            project=project,
+            author=author,
+            message=revision.message,
+            revision_sha=revision.sha,
+        )
 
     build = mock.build(
         change=change,
-        parent_revision_sha=revision.sha,
-        message=revision.message,
+        author=change.author,
+        parent_revision_sha=change.revision_sha,
+        message=change.message,
         result=Result.unknown,
         status=Status.in_progress,
         date_started=datetime.utcnow(),
