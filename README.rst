@@ -17,17 +17,20 @@ Install dependencies:
 
 	make
 
-Setup Postgers:
+Setup Postgres:
 
 ::
 
-	createdb -E utf-8
+	createdb -E utf-8 changes
 
 Apply migrations:
 
 ::
 
 	alembic upgrade head
+
+.. note:: You can simply run ``make resetdb`` to drop and re-create a clean database.
+
 
 Fixture Data
 ============
