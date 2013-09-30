@@ -2,7 +2,7 @@ import uuid
 
 from datetime import datetime
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, String
+    Column, DateTime, ForeignKey, String, Text
 )
 from sqlalchemy.orm import relationship, backref
 
@@ -33,6 +33,7 @@ class Change(db.Model):
     parent_revision_sha = Column(String(40))
     author_id = Column(GUID, ForeignKey('author.id'))
     label = Column(String(128), nullable=False)
+    message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_finished = Column(DateTime)
 

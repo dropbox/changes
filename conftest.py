@@ -30,7 +30,7 @@ class SignallingSession(_SignallingSession):
             binds=db.get_binds(self.app), **options)
 
 
-def pytest_configure(config):
+def pytest_sessionstart(session):
     global app, app_context, connection, transaction
 
     app = create_app(
@@ -53,7 +53,7 @@ def pytest_configure(config):
     transaction = connection.begin()
 
 
-def pytest_unconfigure():
+def pytest_sessionfinish():
     transaction.rollback()
     connection.close()
 

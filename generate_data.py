@@ -9,7 +9,7 @@ import uuid
 from changes.config import db, create_app
 from changes.constants import Status, Result
 from changes.models import (
-    Project, Repository, Author, Revision, Build, Phase, Step, Test
+    Project, Repository, Author, Revision, Build, Phase, Step, Test, Change
 )
 
 
@@ -44,7 +44,17 @@ TEST_STEP_LABELS = itertools.cycle([
 
 def generate_build(revision, status=Status.finished, result=Result.passed):
     label = 'D%s: %s' % (random.randint(1000, 100000), revision.message.splitlines()[0])[:128]
+
+    change = Change(
+        hash=uuid.uuid4().hex,
+        label=label,
+        project=project,
+        repository=repository,
+        author=revision.author,
+    )
+
     build = Build(
+        change=change,
         repository=revision.repository,
         project=project,
         parent_revision_sha=revision.sha,

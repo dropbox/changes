@@ -1,0 +1,54 @@
+<section ng-controller="ChangeDetailsCtrl">
+	<div id="overview">
+		<div class="page-header change-header status-{{change.latestBuild.status.id}} result-{{change.latestBuild.result.id}}">
+			<div class="indicator" title="{{change.latestBuild.result.name}}">
+				<div data-result="{{change.latestBuild.result.id}}" data-value="{{change.latestBuild.progress}}" ng-radial-progress-bar>&nbsp;</div>
+			</div>
+			<h2>{{change.name}} <small ng-if="change.revision">({{change.revision.sha}})</small></h2>
+		</div>
+
+		<dl class="flat">
+			<dt ng-if="change.author">Author:</dt>
+			<dd ng-if="change.author">{{change.author.name}}<span ng-if="change.author.email"> (<a href="mailto:{{change.author.email}}">{{change.author.email}}</a>)</span></dd>
+			<dt>Project:</dt>
+			<dd><a href="#">{{change.project.name}}</a></dd>
+			<dt ng-if="change.dateCreated">Created:</dt>
+			<dd ng-if="change.dateCreated">{{timeSince(build.dateCreated)}}</dd>
+		</dl>
+
+		<pre ng-if="change.message">{{change.message}}</pre>
+
+		<br>
+
+	</div>
+
+	<br>
+
+	<div id="build-results">
+		<div class="page-header">
+			<h3>Build Results</h3>
+		</div>
+
+		<table class="build-list table table-striped">
+			<tbody>
+				<tr ng-repeat="build in builds | orderByBuild" class="status-{{build.status.id}} result-{{build.result.id}}">
+					<td>
+						<div class="indicator" title="{{build.result.name}}">
+							<div data-result="{{build.result.id}}" data-value="{{build.progress}}" ng-radial-progress-bar>&nbsp;</div>
+						</div>
+					</td>
+					<td>
+						<a href="#{{build.link}}">{{build.name}}</a><br>
+
+						<small>
+							<a href="#">{{build.project.name}}</a>
+							<span ng-if="build.author">&mdash; {{build.author.name}}</span>
+							<span class="date" ng-if="build.dateStarted">{{timeSince(build.dateStarted)}}</span>
+						</small>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+</section>

@@ -1,0 +1,22 @@
+<section ng-controller="ChangeListCtrl">
+	<table class="change-list table table-striped">
+		<tbody>
+			<tr ng-repeat="change in changes | orderBy:dateCreated:true" class="status-{{change.lastBuild.status.id}} result-{{change.lastBuild.result.id}}">
+				<td>
+					<div class="indicator" title="{{change.lastBuild.result.name}}">
+						<div data-result="{{change.lastBuild.result.id}}" data-value="{{change.lastBuild.progress}}" ng-radial-progress-bar>&nbsp;</div>
+					</div>
+				</td>
+				<td>
+					<a href="#{{change.link}}">{{change.name}}</a><br>
+
+					<small>
+						<a href="#">{{change.project.name}}</a>
+						<span ng-if="change.author">&mdash; {{change.author.name}}</span>
+						<span class="date" ng-if="change.dateStarted">{{timeSince(change.dateStarted)}}</span>
+					</small>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</section>

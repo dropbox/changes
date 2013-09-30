@@ -83,28 +83,13 @@ class KoalityBackendTestCase(BackendTestCase):
         return self.make_entity(EntityType.project, (project or self.project).id, 1)
 
 
-class SyncBuildListTest(KoalityBackendTestCase):
-    def test_simple(self):
-        backend = self.get_backend()
-
-        project_entity = self.make_project_entity()
-
-        results = backend.sync_build_list(
-            project=self.project,
-            project_entity=project_entity,
-        )
-        assert len(results) == 2
-
-
 class SyncBuildDetailsTest(KoalityBackendTestCase):
     # TODO(dcramer): we should break this up into testing individual methods
     # so edge cases can be more isolated
     def test_simple(self):
         backend = self.get_backend()
-        build = Build(
-            repository=self.repo, project=self.project, label='pending',
-        )
-        db.session.add(build)
+        change = self.create_change(self.project)
+        build = self.create_build(project=self.project, change=change)
 
         project_entity = self.make_project_entity()
         build_entity = self.make_entity(EntityType.build, build.id, 1)

@@ -17,7 +17,7 @@ def param(key, validator=lambda x: x, required=True, dest=None):
         @wraps(func)
         def _wrapped(*args, **kwargs):
             if key in kwargs:
-                value = kwargs[key] or ''
+                value = kwargs.pop(key, '')
             elif request.method == 'POST':
                 value = request.form.get(key) or ''
             else:

@@ -126,6 +126,7 @@ dl.flat dt {
   background: #58488a;
 }
 
+.change-header h2,
 .build-header h2 {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -133,11 +134,14 @@ dl.flat dt {
   padding-right: 44px;
   height: 42px;
 }
+.change-header .indicator,
+.change-header .indicator > div,
 .build-header .indicator,
 .build-header .indicator > div {
   width: 34px;
   height: 34px;
 }
+.change-header .indicator,
 .build-header .indicator {
   position: absolute;
   top: 5px;
@@ -146,21 +150,28 @@ dl.flat dt {
 }
 
 
-.build-list {
+.build-list,
+.change-list {
   list-style: none;
   padding-left: 0;
 }
 
+
+.change-list td:first-child,
 .build-list td:first-child {
   width: 32px;
   vertical-align: middle;
   padding-top: 10px;
   padding-left: 15px;
 }
+.change-list > tbody > tr > td,
 .build-list > tbody > tr > td {
   border-top: 0;
   position: relative;
 }
+
+.change-list td .indicator,
+.change-list td .indicator > div,
 .build-list td .indicator,
 .build-list td .indicator > div {
   width: 32px;
@@ -168,20 +179,25 @@ dl.flat dt {
   border-radius: 32px;
   position: relative;
 }
+.change-list a,
 .build-list a {
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.change-list td small,
 .build-list td small {
   color: #999;
   font-weight: 300;
 }
+.change-list td small .date
 .build-list td small .date {
   position: absolute;
   right: 15px;
 }
+
+.change-list > tbody > tr:nth-child(odd) > td,
 .build-list > tbody > tr:nth-child(odd) > td {
   background: #f7f5fa;
 }

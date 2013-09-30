@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView, param
 from changes.config import db
 from changes.models import (
-    Build, Author, Project, Repository, Patch
+    Build, Author, Project, Repository, Patch, Change
 )
 
 
@@ -16,9 +16,16 @@ class AuthorValidator(object):
         parsed = self.parse(value)
         if not parsed:
             raise ValueError(value)
-        return Author.query.filter_by(email=parsed.email)[0]
 
-    def parse(label):
+        name, email = parsed
+        try:
+            return Author.query.filter_by(email=email)[0]
+        except IndexError:
+            author = Author(email=email, name=name)
+            db.session.add(author)
+            return author
+
+    def parse(self, label):
         import re
         match = re.match(r'^(.+) <([^>]+)>$', label)
         if not match:
@@ -36,11 +43,14 @@ class BuildIndexAPIView(APIView):
             api_key=app.config['KOALITY_API_KEY'],
         )
 
-    def get(self):
+    @param('change_id', lambda x: Change.query.get(x), dest='change')
+    def get(self, change):
         build_list = list(
             Build.query.options(
                 joinedload(Build.project),
                 joinedload(Build.author),
+            ).filter_by(
+                change=change,
             ).order_by(Build.date_created.desc(), Build.date_started.desc())
         )[:100]
 
@@ -50,13 +60,17 @@ class BuildIndexAPIView(APIView):
 
         return self.respond(context)
 
+    @param('change_id', lambda x: Change.query.get(x), dest='change')
     @param('project', lambda x: Project.query.filter_by(slug=x)[0])
     @param('sha')
-    @param('author', AuthorValidator, required=False)
+    @param('author', AuthorValidator(), required=False)
     @param('patch[label]', required=False, dest='patch_label')
     @param('patch[url]', required=False, dest='patch_url')
-    def post(self, project, sha, author=None, patch_label=None,
+    def post(self, change, project, sha, author=None, patch_label=None,
              patch_url=None, patch=None):
+
+        if request.form.get('patch'):
+            raise ValueError('patch')
 
         patch_file = request.files.get('patch')
         patch_label = request.form.get('patch_label')

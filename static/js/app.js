@@ -2,10 +2,14 @@ var Changes = angular.module('Changes', []).
   config(['$routeProvider', function($routeProvider) {
     $routeProvider.
         when('/', {
-          templateUrl: 'partials/build-list.html',
-          controller: BuildListCtrl
+          templateUrl: 'partials/change-list.html',
+          controller: ChangeListCtrl
         }).
-        when('/projects/:project_id/builds/:build_id/', {
+        when('/projects/:project_id/changes/:change_id/', {
+          templateUrl: 'partials/change-details.html',
+          controller: ChangeDetailsCtrl
+        }).
+        when('/projects/:project_id/changes/:change_id/builds/:build_id/', {
           templateUrl: 'partials/build-details.html',
           controller: BuildDetailsCtrl
         }).
