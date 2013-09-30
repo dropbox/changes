@@ -18,6 +18,7 @@ class BuildSerializer(Serializer):
             'parent_revision': {
                 'sha': instance.parent_revision_sha,
             },
+            'message': instance.message,
             'duration': instance.duration,
             'link': '/projects/%s/changes/%s/builds/%s/' % (instance.project.slug, change_id.hex, instance.id.hex),
             'dateCreated': instance.date_created.isoformat(),

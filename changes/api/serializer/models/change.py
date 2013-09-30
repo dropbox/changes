@@ -10,6 +10,7 @@ class ChangeSerializer(Serializer):
             'name': instance.label,
             'project': instance.project,
             'author': instance.author,
+            'message': instance.message,
             'link': '/projects/%s/changes/%s/' % (instance.project.slug, instance.id.hex),
             'dateCreated': instance.date_created.isoformat(),
         }
