@@ -40,12 +40,11 @@ class BuildIndexAPIView(APIView):
         return self.respond(context)
 
     @param('change_id', lambda x: Change.query.get(x), dest='change')
-    @param('project', lambda x: Project.query.filter_by(slug=x)[0])
     @param('sha')
     @param('author', AuthorValidator(), required=False)
     @param('patch[label]', required=False, dest='patch_label')
     @param('patch[url]', required=False, dest='patch_url')
-    def post(self, change, project, sha, author=None, patch_label=None,
+    def post(self, change, sha, author=None, patch_label=None,
              patch_url=None, patch=None):
 
         if request.form.get('patch'):
@@ -58,7 +57,7 @@ class BuildIndexAPIView(APIView):
         if patch_file and not patch_label:
             raise ValueError('patch_label')
 
-        repository = Repository.query.get(project.repository_id)
+        repository = Repository.query.get(change.repository_id)
 
         if patch_file:
             fp = StringIO()
@@ -67,7 +66,7 @@ class BuildIndexAPIView(APIView):
 
             patch = Patch(
                 repository=repository,
-                project=project,
+                project=change.project,
                 parent_revision_sha=sha,
                 label=patch_label,
                 url=patch_url,
@@ -83,7 +82,7 @@ class BuildIndexAPIView(APIView):
             label = sha[:12]
 
         build = Build(
-            project=project,
+            project=change.project,
             repository=repository,
             author=author,
             label=label,

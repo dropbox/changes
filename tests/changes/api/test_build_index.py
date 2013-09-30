@@ -34,7 +34,6 @@ class BuildCreateTest(APITestCase):
         change = self.create_change(self.project)
         path = '/api/0/changes/{0}/builds/'.format(change.id.hex)
         resp = self.client.post(path, data={
-            'project': self.project.slug,
             'sha': 'a' * 40,
             'author': 'David Cramer <dcramer@example.com>',
         })
@@ -53,7 +52,6 @@ class BuildCreateTest(APITestCase):
         change = self.create_change(self.project)
         path = '/api/0/changes/{0}/builds/'.format(change.id.hex)
         resp = self.client.post(path, data={
-            'project': self.project.slug,
             'sha': 'a' * 40,
             'author': 'David Cramer <dcramer@example.com>',
             'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),

@@ -83,7 +83,7 @@ Create Change
 **Params**
 
 project:
-	the project ID
+	the project slug
 
 label:
 	a label for this change
@@ -125,9 +125,6 @@ Create Build
 	POST /api/0/changes/:change_id/builds/
 
 **Params**
-
-project:
-	the project ID
 
 sha:
 	the base revision sha to build on
