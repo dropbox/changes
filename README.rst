@@ -73,6 +73,42 @@ Change Details
 	GET /api/0/changes/:change_id/
 
 
+Create Change
+~~~~~~~~~~~~~
+
+::
+
+	POST /api/0/changes/
+
+**Params**
+
+project:
+	the project ID
+
+label:
+	a label for this change
+
+(optional) key:
+	a unique identifier for this change (e.g. D1234)
+
+(optional) sha:
+	the committed revision's sha
+
+(optional) author:
+	the author of this change (e.g. "David Cramer <dcramer@example.com>")
+
+
+**Response**
+
+::
+
+	{
+		"build": {
+			"id": "a857d7dc0d9843cfa568cfbd0b0de91c"
+		}
+	}
+
+
 List Builds
 ~~~~~~~~~~~
 
@@ -95,6 +131,9 @@ project:
 
 sha:
 	the base revision sha to build on
+
+(optional) author:
+	the author of this build (e.g. "David Cramer <dcramer@example.com>")
 
 (optional) patch:
 	git unified diff format

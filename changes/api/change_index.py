@@ -2,8 +2,10 @@ from __future__ import absolute_import, division, unicode_literals
 
 from sqlalchemy.orm import joinedload
 
-from changes.api.base import APIView
-from changes.models import Change, Build
+from changes.api.base import APIView, param
+from changes.api.validators.author import AuthorValidator
+from changes.config import db
+from changes.models import Change, Build, Project, Repository
 
 
 class ChangeIndexAPIView(APIView):
@@ -29,6 +31,32 @@ class ChangeIndexAPIView(APIView):
 
         context = {
             'changes': change_list,
+        }
+
+        return self.respond(context)
+
+    @param('project', lambda x: Project.query.filter_by(slug=x)[0])
+    @param('label')
+    @param('key', required=False)
+    @param('sha', required=False)
+    @param('author', AuthorValidator(), required=False)
+    @param('message', required=False)
+    def post(self, project, label, key=None, sha=None, parent_sha=None, author=None, message=None):
+        repository = Repository.query.get(project.repository_id)
+
+        change = Change(
+            project=project,
+            repository=repository,
+            author=author,
+            label=label,
+            revision_sha=sha,
+        )
+        db.session.add(change)
+
+        context = {
+            'change': {
+                'id': change.id.hex,
+            },
         }
 
         return self.respond(context)

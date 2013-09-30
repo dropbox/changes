@@ -5,32 +5,11 @@ from flask import current_app as app, request
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
+from changes.api.validators.author import AuthorValidator
 from changes.config import db
 from changes.models import (
-    Build, Author, Project, Repository, Patch, Change
+    Build, Project, Repository, Patch, Change
 )
-
-
-class AuthorValidator(object):
-    def __call__(self, value):
-        parsed = self.parse(value)
-        if not parsed:
-            raise ValueError(value)
-
-        name, email = parsed
-        try:
-            return Author.query.filter_by(email=email)[0]
-        except IndexError:
-            author = Author(email=email, name=name)
-            db.session.add(author)
-            return author
-
-    def parse(self, label):
-        import re
-        match = re.match(r'^(.+) <([^>]+)>$', label)
-        if not match:
-            return
-        return match.group(1), match.group(2)
 
 
 class BuildIndexAPIView(APIView):
@@ -81,13 +60,6 @@ class BuildIndexAPIView(APIView):
 
         repository = Repository.query.get(project.repository_id)
 
-        # if author:
-        #     author = create_or_update(Author, where={
-        #         'email': author[1],
-        #     }, values={
-        #         'name': author[0],
-        #     })
-
         if patch_file:
             fp = StringIO()
             for line in patch_file:
@@ -113,7 +85,7 @@ class BuildIndexAPIView(APIView):
         build = Build(
             project=project,
             repository=repository,
-            # author=author,
+            author=author,
             label=label,
             parent_revision_sha=sha,
             patch=patch,

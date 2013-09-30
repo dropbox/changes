@@ -42,6 +42,10 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert data['build']['id']
         build = Build.query.get(data['build']['id'])
+        assert build.project == self.project
+        assert build.parent_revision_sha == 'a' * 40
+        assert build.author.name == 'David Cramer'
+        assert build.author.email == 'dcramer@example.com'
         self.mock_backend.create_build.assert_called_once_with(
             build)
 

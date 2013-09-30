@@ -1,10 +1,11 @@
-import uuid
 
 from datetime import datetime
+from hashlib import sha1
 from sqlalchemy import (
     Column, DateTime, ForeignKey, String, Text
 )
 from sqlalchemy.orm import relationship, backref
+from uuid import uuid4
 
 from changes.config import db
 from changes.db.types.guid import GUID
@@ -25,7 +26,7 @@ class Change(db.Model):
     """
     __tablename__ = 'change'
 
-    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid4)
     hash = Column(String(40), unique=True, nullable=False)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
@@ -46,7 +47,9 @@ class Change(db.Model):
     def __init__(self, **kwargs):
         super(Change, self).__init__(**kwargs)
         if self.id is None:
-            self.id = uuid.uuid4()
+            self.id = uuid4()
+        if self.hash is None:
+            self.hash = sha1(uuid4().hex).hexdigest()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
 
