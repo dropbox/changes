@@ -1,6 +1,18 @@
 Changes
 -------
 
+Changes is a dashboard to view information about your code. Specifically, it focuses on aggregating quality metrics and history, such as results from a build server.
+
+Supported build platforms include:
+
+- `Koality <http://koalitycode.com>`_
+- `Jenkins <http://jenkins-ci.org>`_ (not actually implemented yet)
+
+Supported code review platforms include:
+
+- `Phabricator <http://phabricator.com>`_
+
+
 Setup
 =====
 
