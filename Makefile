@@ -21,3 +21,8 @@ lint:
 
 test-full: develop lint
 	py.test --junitxml=results.xml --cov-report=xml --cov=.
+
+resetdb:
+	dropdb --if-exists changes
+	createdb -E utf-8 changes
+	alembic upgrade head
