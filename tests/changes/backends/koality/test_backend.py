@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import json
 import mock
 import os
 
@@ -14,6 +13,7 @@ from changes.models import (
     Phase, Step, Patch
 )
 from changes.testutils import BackendTestCase
+from changes.testutils.http import MockedResponse
 
 
 SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
@@ -26,32 +26,6 @@ index 2ef2938..ed80350 100644
 +====="""
 
 
-class MockedResponse(object):
-    fixture_root = os.path.join(os.path.dirname(__file__), 'fixtures')
-
-    # used to mock out KoalityBackend._get_response
-    def __init__(self, base_url):
-        self.base_url = base_url
-
-    def __call__(self, method, url, **kwargs):
-        fixture = self.load_fixture(method, url, **kwargs)
-        if fixture is None:
-            # TODO:
-            raise Exception
-
-        fixture = os.path.join(self.fixture_root, fixture)
-
-        with open(fixture) as fp:
-            return json.load(fp)
-
-    def load_fixture(self, method, url, **kwargs):
-        return os.path.join(method.upper(), self.url_to_filename(url))
-
-    def url_to_filename(self, url):
-        assert url.startswith(self.base_url)
-        return url[len(self.base_url) + 1:].strip('/').replace('/', '__') + '.json'
-
-
 class KoalityBackendTestCase(BackendTestCase):
     backend_cls = KoalityBackend
     backend_options = {
@@ -62,7 +36,9 @@ class KoalityBackendTestCase(BackendTestCase):
 
     def setUp(self):
         self.mock_request = mock.Mock(
-            side_effect=MockedResponse(self.backend_options['base_url']),
+            side_effect=MockedResponse(
+                self.backend_options['base_url'],
+                os.path.join(os.path.dirname(__file__), 'fixtures')),
         )
 
         self.patcher = mock.patch.object(
