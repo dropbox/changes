@@ -6,8 +6,7 @@ import time
 from datetime import datetime
 
 from changes import mock
-from changes.api.base import as_json
-from changes.config import db, pubsub, create_app
+from changes.config import db, create_app
 from changes.constants import Result, Status
 from changes.models import Change, Build
 
@@ -40,12 +39,6 @@ def create_new_entry(project):
         change.date_modified = datetime.utcnow()
         db.session.add(change)
         revision = mock.revision(project.repository, change.author)
-
-    channel = 'changes:{0}'.format(change.id.hex)
-    pubsub.publish(channel, {
-        'data': as_json(change),
-        'event': 'change.update',
-    })
 
     build = mock.build(
         change=change,
@@ -88,12 +81,6 @@ def gen(project):
         build = create_new_entry(project)
     else:
         build = update_existing_entry(project)
-
-    channel = 'builds:{0}:{1}'.format(build.change.id.hex, build.id.hex)
-    pubsub.publish(channel, {
-        'data': as_json(build),
-        'event': 'build.update',
-    })
 
     db.session.commit()
 

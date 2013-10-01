@@ -51,12 +51,6 @@ class ChangeIndexAPIView(APIView):
         )
         db.session.add(change)
 
-        channel = 'changes:{0}'.format(change.id.hex)
-        pubsub.publish(channel, {
-            'data': self.as_json(change),
-            'event': 'change.update',
-        })
-
         context = {
             'change': {
                 'id': change.id.hex,

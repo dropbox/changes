@@ -68,6 +68,7 @@ def create_app(**config):
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
     configure_web_routes(app)
+    configure_event_listeners(app)
 
     configure_jobs(app)
 
@@ -99,3 +100,13 @@ def configure_web_routes(app):
 
 def configure_jobs(app):
     import changes.jobs.sync_build  # NOQA
+
+
+def configure_event_listeners(app):
+    from sqlalchemy import event
+    from changes import events
+    from changes.models import Build, Change, Phase
+
+    event.listen(Build, 'after_insert', events.publish_build_update)
+    event.listen(Change, 'after_insert', events.publish_change_update)
+    event.listen(Phase, 'after_insert', events.publish_phase_update)

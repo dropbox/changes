@@ -97,12 +97,6 @@ class BuildIndexAPIView(APIView):
         backend = self.get_backend()
         backend.create_build(build)
 
-        channel = 'builds:{0}:{1}'.format(change.id.hex, build.id.hex)
-        pubsub.publish(channel, {
-            'data': self.as_json(build),
-            'event': 'build.update',
-        })
-
         context = {
             'build': {
                 'id': build.id.hex,
