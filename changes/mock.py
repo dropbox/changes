@@ -88,7 +88,7 @@ def change(project, **kwargs):
 
 
 def build(change, **kwargs):
-    kwargs.setdefault('label', change.label)
+    kwargs.setdefault('label', get_sentences(1)[0])
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('repository', change.repository)
