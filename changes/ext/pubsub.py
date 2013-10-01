@@ -1,3 +1,4 @@
+import json
 import gevent
 import redis
 
@@ -37,7 +38,7 @@ class _PubSubState(object):
         return redis.from_url(self.app.config['REDIS_URL'])
 
     def publish(self, channel, data):
-        self._redis.publish(channel, data)
+        self._redis.publish(channel, json.dumps(data))
 
     def subscribe(self, channel, callback):
         local_subs = self._callbacks[channel]
@@ -72,6 +73,7 @@ class _PubSubState(object):
             else:
                 self.app.logger.warn('Unknown command: %s', command[0])
         else:
+            data = json.loads(data)
             for cb in self._callbacks.get(channel, []):
                 cb(data)
                 gevent.sleep(0)

@@ -3,29 +3,31 @@ if (window.stream === undefined) {
 }
 
 Stream = {};
-Stream.subscribe = function subscribe(channel, callback) {
+Stream.subscribe = function subscribe($scope, url, callback) {
   "use strict";
 
   // TODO(dcramer): currently only supports one subscriber per channel
-  var stream = window.streams[channel] || null;
-  if (stream) {
-    console.log('[Stream] closing connection to ' + channel);
-    stream.close()
+  if (window.stream) {
+    console.log('[Stream] Closing connection to ' + url);
+    window.stream.close()
   }
-  console.log('[Stream] Initiating connection to ' + channel);
+  console.log('[Stream] Initiating connection to ' + url);
 
-  stream = new EventSource('/api/0/stream/changes/');
-  stream.onopen = function(e) {
-    console.log('[Stream] Connection opened to ' + channel);
+  $scope.$on('routeChangeStart', function(e){
+    if (window.stream) {
+      window.stream.close();
+    }
+  });
+
+  window.stream = new EventSource(url + '?_=' + new Date().getTime());
+  window.stream.onopen = function(e) {
+    console.log('[Stream] Connection opened to ' + url);
   }
-  stream.onerror = function(e) {
-    console.log('[Stream] Error on ' + channel);
-  }
-  stream.onmessage = function(e) {
+  window.stream.onmessage = function(e) {
     var data = $.parseJSON(e.data);
     callback(data);
   };
-  window.streams[channel] = stream
+  window.stream = stream
 };
 
 function ChangeListCtrl($scope, $http) {
@@ -63,7 +65,7 @@ function ChangeListCtrl($scope, $http) {
     });
   }
 
-  Stream.subscribe('changes', addChange);
+  Stream.subscribe($scope, '/api/0/changes/', addChange);
 }
 
 function ChangeDetailsCtrl($scope, $http, $routeParams) {
@@ -119,7 +121,7 @@ function BuildListCtrl($scope, $http, $routeParams) {
     });
   }
 
-  Stream.subscribe('builds', addBuild);
+  Stream.subscribe($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/', addBuild);
 }
 
 
@@ -139,4 +141,6 @@ function BuildDetailsCtrl($scope, $http, $routeParams) {
   $scope.timeSince = function timeSince(date) {
     return moment.utc(date).fromNow();
   };
+
+  Stream.subscribe($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/' + $routeParams.build_id + '/', addBuild);
 }

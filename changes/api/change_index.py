@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
-from changes.config import db
+from changes.config import db, pubsub
 from changes.models import Change, Build, Project, Repository
 
 
@@ -51,6 +51,11 @@ class ChangeIndexAPIView(APIView):
         )
         db.session.add(change)
 
+        pubsub.publish('changes', {
+            'data': self.as_json(change),
+            'event': 'change.update',
+        })
+
         context = {
             'change': {
                 'id': change.id.hex,
@@ -58,3 +63,6 @@ class ChangeIndexAPIView(APIView):
         }
 
         return self.respond(context)
+
+    def get_stream_channels(self):
+        return ['changes']

@@ -6,10 +6,8 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
-from changes.config import db
-from changes.models import (
-    Build, Project, Repository, Patch, Change
-)
+from changes.config import db, pubsub
+from changes.models import Build, Repository, Patch, Change
 
 
 class BuildIndexAPIView(APIView):
@@ -93,6 +91,11 @@ class BuildIndexAPIView(APIView):
 
         backend = self.get_backend()
         backend.create_build(build)
+
+        pubsub.publish('builds', {
+            'data': self.as_json(build),
+            'event': 'build.update',
+        })
 
         context = {
             'build': {

@@ -6,7 +6,8 @@ import time
 from datetime import datetime
 
 from changes import mock
-from changes.config import db, create_app
+from changes.api.base import as_json
+from changes.config import db, pubsub, create_app
 from changes.constants import Result, Status
 from changes.models import Change, Build
 
@@ -35,6 +36,12 @@ def create_new_entry(project):
             author=author,
             message=revision.message,
         )
+
+        pubsub.publish('changes', {
+            'data': as_json(change),
+            'event': 'change.update',
+        })
+
     else:
         revision = mock.revision(project.repository, change.author)
 
@@ -47,6 +54,12 @@ def create_new_entry(project):
         status=Status.in_progress,
         date_started=datetime.utcnow(),
     )
+
+    pubsub.publish('builds', {
+        'data': as_json(build),
+        'event': 'build.update',
+    })
+
     return build
 
 
@@ -69,6 +82,11 @@ def update_existing_entry(project):
         else:
             result = Result.passed
         mock.test_result(build, result=result)
+
+    pubsub.publish('builds', {
+        'data': as_json(build),
+        'event': 'build.update',
+    })
 
     return build
 
