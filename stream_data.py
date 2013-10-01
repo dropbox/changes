@@ -34,7 +34,6 @@ def create_new_entry(project):
             project=project,
             author=author,
             message=revision.message,
-            revision_sha=revision.sha,
         )
     else:
         revision = mock.revision(project.repository, change.author)
