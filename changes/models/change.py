@@ -50,16 +50,3 @@ class Change(db.Model):
             self.date_created = datetime.utcnow()
         if self.date_modified is None:
             self.date_modified = datetime.utcnow()
-
-    def to_dict(self):
-        return {
-            'id': self.id.hex,
-            'hash': self.group_key,
-            'name': self.label,
-            'project': self.project.to_dict(),
-            'author': self.author.to_dict() if self.author else None,
-            'duration': self.duration,
-            'link': '/projects/%s/builds/%s/' % (self.project.slug, self.id.hex),
-            'dateCreated': self.date_created.isoformat(),
-            'dateFinished': self.date_finished.isoformat() if self.date_finished else None,
-        }

@@ -22,12 +22,3 @@ class Revision(db.Model):
         super(Revision, self).__init__(**kwargs)
         if self.date_created is None:
             self.date_created = datetime.utcnow()
-
-    def to_dict(self):
-        return {
-            'sha': self.sha,
-            'shaShort': self.sha[:12],
-            'message': self.message,
-            'author': self.author.to_dict() if self.author else None,
-            'dateCreated': self.date_created.isoformat(),
-        }
