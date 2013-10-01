@@ -30,8 +30,6 @@ class Change(db.Model):
     hash = Column(String(40), unique=True, nullable=False)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    revision_sha = Column(String(40))
-    parent_revision_sha = Column(String(40))
     author_id = Column(GUID, ForeignKey('author.id'))
     label = Column(String(128), nullable=False)
     message = Column(Text)
@@ -41,8 +39,6 @@ class Change(db.Model):
 
     repository = relationship('Repository')
     project = relationship('Project', backref=backref('changes', order_by='Change.date_created'))
-    # parent_revision = relationship('Revision', foreign_keys=[repository_id, parent_revision_sha])
-    # revision = relationship('Revision', foreign_keys=[repository_id, revision_sha])
     author = relationship('Author')
 
     def __init__(self, **kwargs):
@@ -61,9 +57,6 @@ class Change(db.Model):
             'name': self.label,
             'project': self.project.to_dict(),
             'author': self.author.to_dict() if self.author else None,
-            'parent_revision': {
-                'sha': self.parent_revision_sha,
-            },
             'duration': self.duration,
             'link': '/projects/%s/builds/%s/' % (self.project.slug, self.id.hex),
             'dateCreated': self.date_created.isoformat(),

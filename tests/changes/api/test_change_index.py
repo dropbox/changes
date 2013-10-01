@@ -22,7 +22,6 @@ class ChangeCreateTest(APITestCase):
         resp = self.client.post(path, data={
             'project': self.project.slug,
             'label': 'D1234',
-            'sha': 'a' * 40,
             'author': 'David Cramer <dcramer@example.com>',
         })
         assert resp.status_code == 200
@@ -31,6 +30,5 @@ class ChangeCreateTest(APITestCase):
         change = Change.query.get(data['change']['id'])
         assert change.project == self.project
         assert change.label == 'D1234'
-        assert change.revision_sha == 'a' * 40
         assert change.author.name == 'David Cramer'
         assert change.author.email == 'dcramer@example.com'

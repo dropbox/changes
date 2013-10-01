@@ -39,6 +39,7 @@ install_requires = [
     'redis',
     'requests',
     'rq',
+    'phabricator',
     'psycopg2',
     'simplejson',
     'unicode-slugify',

@@ -38,10 +38,9 @@ class ChangeIndexAPIView(APIView):
     @param('project', lambda x: Project.query.filter_by(slug=x)[0])
     @param('label')
     @param('key', required=False)
-    @param('sha', required=False)
     @param('author', AuthorValidator(), required=False)
     @param('message', required=False)
-    def post(self, project, label, key=None, sha=None, parent_sha=None, author=None, message=None):
+    def post(self, project, label, key=None, author=None, message=None):
         repository = Repository.query.get(project.repository_id)
 
         change = Change(
@@ -49,7 +48,6 @@ class ChangeIndexAPIView(APIView):
             repository=repository,
             author=author,
             label=label,
-            revision_sha=sha,
         )
         db.session.add(change)
 
