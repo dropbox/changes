@@ -321,8 +321,9 @@ class KoalityBackend(BaseBackend):
         build_list = []
         for change in change_list:
             build, created = self._sync_build(project, change)
-            pubsub.publish('builds', {
-                'data': self.as_json(build),
+            channel = 'builds:{0}:{1}'.format(change.id.hex, build.id.hex)
+            pubsub.publish(channel, {
+                'data': as_json(build),
                 'event': 'build.update',
             })
             build_list.append((build, created))
@@ -373,13 +374,18 @@ class KoalityBackend(BaseBackend):
             for stage in stage_list:
                 self._sync_step(build, phase, stage)
 
-            pubsub.publish('phases:{0}'.format(build.id.hex), {
-                'data': self.as_json(phase),
+            channel = 'phases:{0}:{1}:{2}'.format(
+                build.change_id.hex, build.id.hex, phase.id.hex)
+            pubsub.publish(channel, {
+                'data': as_json(phase),
                 'event': 'phase.update',
             })
 
+        channel = 'builds:{0}:{1}'.format(
+            build.change_id.hex, build.id.hex)
+
         pubsub.publish('builds', {
-            'data': self.as_json(build),
+            'data': as_json(build),
             'event': 'build.update',
         })
 

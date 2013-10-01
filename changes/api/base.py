@@ -100,7 +100,7 @@ class EventStream(object):
 
 class APIView(MethodView):
     def dispatch_request(self, *args, **kwargs):
-        if 'text/event-stream' in request.headers['Accept']:
+        if 'text/event-stream' in request.headers.get('Accept', ''):
             channels = self.get_stream_channels(**kwargs)
             if not channels:
                 return Response(status=404)

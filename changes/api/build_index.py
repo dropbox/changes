@@ -80,6 +80,7 @@ class BuildIndexAPIView(APIView):
             label = sha[:12]
 
         build = Build(
+            change=change,
             project=change.project,
             repository=repository,
             author=author,
@@ -92,7 +93,8 @@ class BuildIndexAPIView(APIView):
         backend = self.get_backend()
         backend.create_build(build)
 
-        pubsub.publish('builds', {
+        channel = 'builds:{0}:{1}'.format(change.id.hex, build.id.hex)
+        pubsub.publish(channel, {
             'data': self.as_json(build),
             'event': 'build.update',
         })
@@ -104,3 +106,6 @@ class BuildIndexAPIView(APIView):
         }
 
         return self.respond(context)
+
+    def get_stream_channels(self, change_id):
+        return ['builds:{0}:*'.format(change_id)]
