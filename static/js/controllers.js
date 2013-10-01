@@ -88,7 +88,7 @@ function ChangeDetailsCtrl($scope, $http, $routeParams) {
 
   function updateChange(data){
     $scope.$apply(function() {
-      $scope.change = change;
+      $scope.change = data;
     });
   }
 
