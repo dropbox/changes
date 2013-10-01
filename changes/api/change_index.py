@@ -66,4 +66,4 @@ class ChangeIndexAPIView(APIView):
         return self.respond(context)
 
     def get_stream_channels(self):
-        return ['changes']
+        return ['changes:*']

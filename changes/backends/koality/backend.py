@@ -383,8 +383,7 @@ class KoalityBackend(BaseBackend):
 
         channel = 'builds:{0}:{1}'.format(
             build.change_id.hex, build.id.hex)
-
-        pubsub.publish('builds', {
+        pubsub.publish(channel, {
             'data': as_json(build),
             'event': 'build.update',
         })

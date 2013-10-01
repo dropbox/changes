@@ -7,27 +7,32 @@ Stream.subscribe = function subscribe($scope, url, callback) {
   "use strict";
 
   // TODO(dcramer): currently only supports one subscriber per channel
-  if (window.stream) {
+  if (!window.streams) {
+    window.streams = {};
+  }
+
+  if (window.streams[url]) {
     console.log('[Stream] Closing connection to ' + url);
-    window.stream.close()
+    window.streams[url].close()
   }
   console.log('[Stream] Initiating connection to ' + url);
 
   $scope.$on('routeChangeStart', function(e){
-    if (window.stream) {
-      window.stream.close();
+    if (window.streams) {
+      $.each(window.streams, function(_, stream){
+        stream.close();
+      });
     }
   });
 
-  window.stream = new EventSource(url + '?_=' + new Date().getTime());
-  window.stream.onopen = function(e) {
+  window.streams[url] = new EventSource(url + '?_=' + new Date().getTime());
+  window.streams[url].onopen = function(e) {
     console.log('[Stream] Connection opened to ' + url);
   }
-  window.stream.onmessage = function(e) {
+  window.streams[url].onmessage = function(e) {
     var data = $.parseJSON(e.data);
     callback(data);
   };
-  window.stream = stream
 };
 
 function ChangeListCtrl($scope, $http) {
@@ -72,7 +77,6 @@ function ChangeDetailsCtrl($scope, $http, $routeParams) {
   "use strict";
 
   $scope.change = null;
-  $scope.builds = [];
 
   $http.get('/api/0/changes/' + $routeParams.change_id + '/').success(function(data) {
     $scope.change = data.change;
@@ -81,6 +85,14 @@ function ChangeDetailsCtrl($scope, $http, $routeParams) {
   $scope.timeSince = function timeSince(date) {
     return moment.utc(date).fromNow();
   };
+
+  function updateChange(data){
+    $scope.$apply(function() {
+      $scope.change = change;
+    });
+  }
+
+  Stream.subscribe($scope, '/api/0/changes/' + $routeParams.change_id + '/', updateChange);
 
   // TODO(dcramer): this probably isnt the right way to do this in Angular
   new BuildListCtrl($scope, $http, $routeParams);
@@ -142,5 +154,11 @@ function BuildDetailsCtrl($scope, $http, $routeParams) {
     return moment.utc(date).fromNow();
   };
 
-  Stream.subscribe($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/' + $routeParams.build_id + '/', addBuild);
+  function updateBuild(data){
+    $scope.$apply(function() {
+      $scope.build = data;
+    });
+  }
+
+  Stream.subscribe($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/' + $routeParams.build_id + '/', updateBuild);
 }

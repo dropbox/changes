@@ -37,7 +37,8 @@ def create_new_entry(project):
             message=revision.message,
         )
 
-        pubsub.publish('changes', {
+        channel = 'changes:{0}'.format(change.id.hex)
+        pubsub.publish(channel, {
             'data': as_json(change),
             'event': 'change.update',
         })
@@ -54,11 +55,6 @@ def create_new_entry(project):
         status=Status.in_progress,
         date_started=datetime.utcnow(),
     )
-
-    pubsub.publish('builds', {
-        'data': as_json(build),
-        'event': 'build.update',
-    })
 
     return build
 
@@ -83,11 +79,6 @@ def update_existing_entry(project):
             result = Result.passed
         mock.test_result(build, result=result)
 
-    pubsub.publish('builds', {
-        'data': as_json(build),
-        'event': 'build.update',
-    })
-
     return build
 
 
@@ -96,6 +87,12 @@ def gen(project):
         build = create_new_entry(project)
     else:
         build = update_existing_entry(project)
+
+    channel = 'builds:{0}:{1}'.format(build.id.hex, build.change.id.hex)
+    pubsub.publish(channel, {
+        'data': as_json(build),
+        'event': 'build.update',
+    })
 
     db.session.commit()
 
