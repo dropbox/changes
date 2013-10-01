@@ -44,6 +44,8 @@ def create_new_entry(project):
         })
 
     else:
+        change.date_modified = datetime.utcnow()
+        db.session.add(change)
         revision = mock.revision(project.repository, change.author)
 
     build = mock.build(

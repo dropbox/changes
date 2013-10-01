@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from cStringIO import StringIO
+from datetime import datetime
 from flask import current_app as app, request
 from sqlalchemy.orm import joinedload
 
@@ -89,6 +90,9 @@ class BuildIndexAPIView(APIView):
             patch=patch,
         )
         db.session.add(build)
+
+        change.date_modified = datetime.utcnow()
+        db.session.add(change)
 
         backend = self.get_backend()
         backend.create_build(build)

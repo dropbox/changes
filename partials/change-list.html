@@ -1,7 +1,7 @@
 <section ng-controller="ChangeListCtrl">
 	<table class="change-list table table-striped">
 		<tbody>
-			<tr ng-repeat="change in changes | orderBy:dateCreated:true" class="status-{{change.lastBuild.status.id}} result-{{change.lastBuild.result.id}}">
+			<tr ng-repeat="change in changes | orderBy:dateModified:true" class="status-{{change.lastBuild.status.id}} result-{{change.lastBuild.result.id}}">
 				<td>
 					<div class="indicator" title="{{change.lastBuild.result.name}}">
 						<div data-result="{{change.lastBuild.result.id}}" data-value="{{change.lastBuild.progress}}" ng-radial-progress-bar>&nbsp;</div>

@@ -14,7 +14,7 @@ class ChangeIndexAPIView(APIView):
             Change.query.options(
                 joinedload(Change.project),
                 joinedload(Change.author),
-            ).order_by(Change.date_created.desc())
+            ).order_by(Change.date_modified.desc())
         )[:100]
 
         # TODO(dcramer): denormalize this

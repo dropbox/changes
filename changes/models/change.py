@@ -49,6 +49,8 @@ class Change(db.Model):
             self.hash = sha1(uuid4().hex).hexdigest()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+        if self.date_modified is None:
+            self.date_modified = datetime.utcnow()
 
     def to_dict(self):
         return {
