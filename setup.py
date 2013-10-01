@@ -18,6 +18,7 @@ if 'test' in sys.argv:
     setup_requires.append('pytest')
 
 tests_require = [
+    'exam',
     'flake8',
     'loremipsum',
     'mock',
