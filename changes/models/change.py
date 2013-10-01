@@ -35,7 +35,6 @@ class Change(db.Model):
     message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
-    date_finished = Column(DateTime)
 
     repository = relationship('Repository')
     project = relationship('Project', backref=backref('changes', order_by='Change.date_created'))
