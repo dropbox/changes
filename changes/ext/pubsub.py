@@ -4,6 +4,7 @@ import redis
 
 from collections import defaultdict
 from flask import _app_ctx_stack
+from fnmatch import fnmatch
 from uuid import uuid4
 
 
@@ -21,6 +22,8 @@ def get_state(app):
 
 
 class _PubSubState(object):
+    # TODO(dcramer): currently we listen to all messages based on the idea
+    # that at least one connected client needs to know
     def __init__(self, ext, app):
         self.ext = ext
         self.app = app
@@ -30,7 +33,7 @@ class _PubSubState(object):
 
         self._redis = self.get_connection()
         self._pubsub = self._redis.pubsub()
-        self._pubsub.subscribe(self._channel)
+        self._pubsub.psubscribe('*')
 
         gevent.spawn(self._redis_listen)
 
@@ -41,40 +44,31 @@ class _PubSubState(object):
         self._redis.publish(channel, json.dumps(data))
 
     def subscribe(self, channel, callback):
-        local_subs = self._callbacks[channel]
-        if not local_subs:
-            self._redis.publish(self._channel, 'subscribe:' + channel)
-        local_subs.add(callback)
-        self.app.logger.info('Channel {%s} has %d subscriber(s)', channel, len(local_subs))
+        self._callbacks[channel].add(callback)
+        self.app.logger.info(
+            'Channel {%s} has %d subscriber(s)', channel,
+            len(self._callbacks[channel]))
 
     def unsubscribe(self, channel, callback):
-        local_subs = self._callbacks[channel]
         try:
-            local_subs.remove(callback)
+            self._callbacks[channel].remove(callback)
         except KeyError:
             return
-        self.app.logger.info('Channel {%s} has %d subscriber(s)', channel, len(local_subs))
-        if local_subs:
-            return
-        self._redis.publish(self._channel, 'unsubscribe:' + channel)
-        del self._callbacks[channel]
+
+        self.app.logger.info(
+            'Channel {%s} has %d subscriber(s)',
+            channel, len(self._callbacks[channel]))
 
     def _process_msg(self, msg):
-        channel = msg['channel']
-        data = msg['data']
-        if msg.get('type', None) == 'subscribe' or msg.get('type') == 'unsubscribe':
+        if msg.get('type') in ('psubscribe', 'psubscribe'):
             return
-        elif channel == self._channel:
-            command = data.split(':')
-            if command[0] == 'subscribe':
-                self._pubsub.subscribe(command[1])
-            elif command[0] == 'unsubscribe':
-                self._pubsub.unsubscribe(command[1])
-            else:
-                self.app.logger.warn('Unknown command: %s', command[0])
-        else:
-            data = json.loads(data)
-            for cb in self._callbacks.get(channel, []):
+
+        channel = msg['channel']
+        data = json.loads(msg['data'])
+        for pattern, callbacks in self._callbacks.iteritems():
+            if not fnmatch(channel, pattern):
+                continue
+            for cb in callbacks:
                 cb(data)
                 gevent.sleep(0)
 
@@ -83,7 +77,8 @@ class _PubSubState(object):
             try:
                 self._process_msg(msg)
             except Exception as exc:
-                self.app.logger.warn('Could not process message: %s', exc, exc_info=True)
+                self.app.logger.warn(
+                    'Could not process message: %s', exc, exc_info=True)
 
 
 class PubSub(object):
