@@ -1,10 +1,12 @@
 <section ng-controller="BuildListCtrl">
 	<table class="build-list table table-striped">
 		<tbody>
-			<tr ng-repeat="build in builds | orderByBuild" class="status-{{build.status.id}} result-{{build.result.id}}">
+			<tr class="status-{{build.status.id}} result-{{build.result.id}}"
+				ng-repeat="build in builds | orderByBuild" ng-animate="'animate-fade'">
 				<td>
 					<div class="indicator" title="{{build.result.name}}">
-						<div data-result="{{build.result.id}}" data-value="{{build.progress}}" ng-radial-progress-bar>&nbsp;</div>
+						<div data-result="{{build.result.id}}"
+							 data-value="{{build.progress}}" ng-radial-progress-bar>&nbsp;</div>
 					</div>
 				</td>
 				<td>

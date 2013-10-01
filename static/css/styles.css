@@ -312,3 +312,27 @@ footer {
   background: #f7f5fa;
   min-height: 150px;
 }
+
+
+/**
+ * Animations
+ */
+
+.animate-fade-leave,
+.animate-fade-enter {
+   transition: opacity 1s ease-in;
+   -moz-transition: opacity 1s ease-in;
+   -o-transition: opacity 1s ease-in;
+   -webkit-transition: opacity 1s ease-in;
+}
+
+.animate-fade-enter.animate-fade-active,
+.animate-fade-leave {
+  opacity: 1;
+}
+
+.animate-fade-leave.animate-fade-leave-active,
+.animate-fade-enter {
+  opacity: .2;
+}
+
