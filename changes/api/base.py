@@ -1,14 +1,12 @@
-import gevent
 import json
 
-from collections import deque
 from functools import wraps
 
 from flask import Response, current_app as app, request
 from flask.views import MethodView
 
-from changes.config import pubsub
 from changes.api.serializer import serialize
+from changes.api.stream import EventStream
 
 
 def as_json(context):
@@ -63,41 +61,6 @@ class ParamError(APIError):
         return '{0} is not valid: {1}'.format(self.key, self.msg)
 
 
-class EventStream(object):
-    def __init__(self, channels, pubsub=pubsub):
-        self.pubsub = pubsub
-        self.pending = deque()
-        self.channels = channels
-        self.active = True
-
-        for channel in channels:
-            self.pubsub.subscribe(channel, self.push)
-
-    def __iter__(self):
-        while self.active:
-            # TODO(dcramer): figure out why we have to send this to ensure
-            # the connection is opened
-            yield "\n"
-            while self.pending:
-                event = self.pending.pop()
-                yield "event: {}\n\n".format(event['event'])
-                for line in event['data'].splitlines():
-                    yield "data: {}\n".format(line)
-                yield "\n"
-                gevent.sleep(0)
-            gevent.sleep(0.3)
-
-    def __del__(self):
-        self.close()
-
-    def push(self, message):
-        self.pending.append(message)
-
-    def close(self):
-        for channel in self.channels:
-            self.pubsub.unsubscribe(channel, self.push)
-
-
 class APIView(MethodView):
     def dispatch_request(self, *args, **kwargs):
         if 'text/event-stream' in request.headers.get('Accept', ''):
@@ -132,7 +95,5 @@ class APIView(MethodView):
         return []
 
     def stream_response(self, channels):
-        from flask import Response
-
         stream = EventStream(channels=channels)
         return Response(stream, mimetype='text/event-stream')

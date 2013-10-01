@@ -1,32 +1,42 @@
-from datetime import datetime
+from __future__ import absolute_import
 
-from changes.api.base import APIView, as_json
+import gevent
+
+from collections import deque
+
 from changes.config import pubsub
-from changes.constants import Result, Status
-from changes.models import Change, Build, Project, Author, Revision
 
 
-class TestStreamAPIView(APIView):
-    def get(self):
-        project = Project.query.all()[0]
-        author = Author.query.all()[0]
-        revision = Revision.query.all()[0]
-        build = Build(
-            change=Change(label='Test Change'),
-            label='Test Build',
-            project=project,
-            author=author,
-            status=Status.in_progress,
-            result=Result.unknown,
-            parent_revision_sha=revision.sha,
-            date_created=datetime.utcnow(),
-            date_started=datetime.utcnow(),
-        )
+class EventStream(object):
+    def __init__(self, channels, pubsub=pubsub):
+        self.pubsub = pubsub
+        self.pending = deque()
+        self.channels = channels
+        self.active = True
 
-        channel = 'builds:{0}:{1}'.format(build.change_id.hex, build.id.hex)
-        pubsub.publish(channel, {
-            'data': as_json(build),
-            'event': 'build',
-        })
+        for channel in channels:
+            self.pubsub.subscribe(channel, self.push)
 
-        return "ok!'"
+    def __iter__(self):
+        while self.active:
+            # TODO(dcramer): figure out why we have to send this to ensure
+            # the connection is opened
+            yield "\n"
+            while self.pending:
+                event = self.pending.pop()
+                yield "event: {}\n\n".format(event['event'])
+                for line in event['data'].splitlines():
+                    yield "data: {}\n".format(line)
+                yield "\n"
+                gevent.sleep(0)
+            gevent.sleep(0.3)
+
+    def __del__(self):
+        self.close()
+
+    def push(self, message):
+        self.pending.append(message)
+
+    def close(self):
+        for channel in self.channels:
+            self.pubsub.unsubscribe(channel, self.push)
