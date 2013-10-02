@@ -1,6 +1,8 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app) {
-  app.controller('buildDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, stream) {
+  app.controller('buildDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
     'use strict';
+
+    var stream;
 
     $scope.build = null;
     $scope.phases = [];
@@ -22,7 +24,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app
       });
     }
 
-    stream($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/' + $routeParams.build_id + '/', updateBuild);
-
+    stream = Stream($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/' + $routeParams.build_id + '/');
+    stream.subscribe('build.update', updateBuild);
   }]);
 });

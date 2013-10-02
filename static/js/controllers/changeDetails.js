@@ -1,6 +1,8 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app) {
-  app.controller('changeDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, stream) {
+  app.controller('changeDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
     'use strict';
+
+    var stream;
 
     $scope.change = null;
 
@@ -18,7 +20,9 @@ define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app
       });
     }
 
-    stream($scope, '/api/0/changes/' + $routeParams.change_id + '/', updateChange);
+
+    stream = Stream($scope, '/api/0/changes/' + $routeParams.change_id + '/');
+    stream.subscribe('change.update', updateChange);
 
   }]);
 });

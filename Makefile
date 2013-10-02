@@ -1,6 +1,8 @@
 .PHONY: static
 
 develop: update-submodules
+	npm install
+	bower install
 	pip install -q -e . --use-mirrors
 	make install-test-requirements
 

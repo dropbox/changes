@@ -24,7 +24,7 @@ class EventStream(object):
             yield "\n"
             while self.pending:
                 event = self.pending.pop()
-                yield "event: {}\n\n".format(event['event'])
+                yield "event: {}\n".format(event['event'])
                 for line in event['data'].splitlines():
                     yield "data: {}\n".format(line)
                 yield "\n"

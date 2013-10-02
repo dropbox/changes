@@ -40,7 +40,10 @@ class ChangeIndexAPIView(APIView):
     @param('key', required=False)
     @param('author', AuthorValidator(), required=False)
     @param('message', required=False)
-    def post(self, project, label, key=None, author=None, message=None):
+    @param('date_created', required=False)
+    @param('date_modified', required=False)
+    def post(self, project, label, key=None, author=None, message=None,
+             date_created=None, date_modified=None):
         repository = Repository.query.get(project.repository_id)
 
         change = Change(

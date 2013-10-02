@@ -1,0 +1,81 @@
+{
+  "result": [
+    {
+      "id"           : "23788",
+      "phid"         : "PHID-DREV-35ugwwyy63app3nyqymz",
+      "title"        : "Adding new settings tabs",
+      "uri"          : "https:\/\/phabricator.example.com\/D23788",
+      "dateCreated"  : "1380343382",
+      "dateModified" : "1380584810",
+      "authorPHID"   : "PHID-USER-55q6ia6onuplhq5ioklt",
+      "status"       : "0",
+      "statusName"   : "Needs Review",
+      "branch"       : "2account_settings_merged",
+      "summary"      : "The settings diff.  Still need to finish ajax endpoints for most of the stuff.  Also the gating is around merged account rather than a seperate settings gandalf.  Hopefully I will work on this more this weekend.",
+      "testPlan"     : "Try all the controls in paired and unpaired view",
+      "lineCount"    : "2646",
+      "diffs"        : [
+        "78044",
+        "78043",
+        "77787"
+      ],
+      "commits"      : [],
+      "reviewers"    : [
+        "PHID-USER-pqsko37cjldrmpe4b27k"
+      ],
+      "ccs"          : [
+        "PHID-MLST-kmlvtkgc4qzzhldqprk4",
+        "PHID-MLST-abaf3dac5c78fbfcaec4"
+      ],
+      "hashes"       : [
+        [
+          "hgcm",
+          "d0140e2204fdb80c4c28d1fa4aca53d380bd7160"
+        ],
+        [
+          "hgcm",
+          "24e587dffe888c0e719312023616803d9b93f328"
+        ]
+      ]
+    },
+    {
+      "id"           : "23766",
+      "phid"         : "PHID-DREV-skfki3if2ltfc4rfklqp",
+      "title"        : "Make a taskrunner task for get started backfill and make corresponding changes to the backfill script.",
+      "uri"          : "https:\/\/phabricator.example.com\/D23766",
+      "dateCreated"  : "1380320177",
+      "dateModified" : "1380584431",
+      "authorPHID"   : "PHID-USER-ev2ecay4iywhvdwhhx2g",
+      "status"       : "3",
+      "statusName"   : "Closed",
+      "branch"       : null,
+      "summary"      : "",
+      "testPlan"     : "",
+      "lineCount"    : "298",
+      "diffs"        : [
+        "78041",
+        "77709"
+      ],
+      "commits"      : [
+        "PHID-CMIT-qqf27nr3gw32geuy2i5j"
+      ],
+      "reviewers"    : [
+        "PHID-USER-cbb6375d0d6df249978d"
+      ],
+      "ccs"          : [
+        "PHID-USER-e32fvrmbx4stfr2epnbq",
+        "PHID-MLST-s2nmmqjvzrcguyrzxso2",
+        "PHID-MLST-3tntq6nrcymndxowp4ly",
+        "PHID-MLST-abaf3dac5c78fbfcaec4"
+      ],
+      "hashes"       : [
+        [
+          "hgcm",
+          "c0bb118ab1a13efd4d2064d161034f4315aaf24a"
+        ]
+      ]
+    }
+  ],
+  "error_code": null,
+  "error_info": null
+}

@@ -23,10 +23,15 @@ define(['app'], function (app) {
       window.streams[url].onopen = function(e) {
         console.log('[Stream] Connection opened to ' + url);
       }
-      window.streams[url].onmessage = function(e) {
-        var data = $.parseJSON(e.data);
-        callback(data);
-      };
+
+      return {
+        subscribe: function(event, callback){
+          window.streams[url].addEventListener(event, function(e) {
+            var data = $.parseJSON(e.data);
+            callback(data);
+          }, false);
+        }
+      }
     };
   }]);
 });

@@ -21,6 +21,7 @@ tests_require = [
     'exam',
     'flake8',
     'loremipsum',
+    'httpretty',
     'mock',
     'pytest',
     'pytest-cov',

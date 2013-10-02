@@ -1,6 +1,8 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app) {
-  app.controller('changeListCtrl', ['$scope', '$http', 'stream', function($scope, $http, stream) {
+  app.controller('changeListCtrl', ['$scope', '$http', 'stream', function($scope, $http, Stream) {
     'use strict';
+
+    var stream;
 
     $scope.changes = [];
 
@@ -35,7 +37,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app
       });
     }
 
-    stream($scope, '/api/0/changes/', addChange);
-
+    stream = Stream($scope, '/api/0/changes/');
+    stream.subscribe('change.update', addChange);
   }]);
 });

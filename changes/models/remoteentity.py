@@ -16,6 +16,7 @@ class EntityType(enum.Enum):
     phase = 3
     step = 4
     node = 5
+    change = 6
 
     @property
     def model(self):
@@ -34,6 +35,9 @@ class EntityType(enum.Enum):
         elif self == EntityType.node:
             from changes.models import Node
             return Node
+        elif self == EntityType.change:
+            from changes.models import Change
+            return Change
 
 
 class RemoteEntity(db.Model):

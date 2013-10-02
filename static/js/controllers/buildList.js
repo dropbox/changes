@@ -1,6 +1,8 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'filters/orderByBuild'], function(app) {
-  app.controller('buildListCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, stream) {
+  app.controller('buildListCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
     'use strict';
+
+    var stream;
 
     $scope.builds = [];
 
@@ -34,7 +36,8 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'filters/orde
       });
     }
 
-    stream($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/', addBuild);
+    stream = Stream($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/');
+    stream.subscribe('build.update', addBuild);
 
   }]);
 });
