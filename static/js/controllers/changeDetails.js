@@ -10,16 +10,11 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       $scope.change = data.change;
     });
 
-    $scope.timeSince = function timeSince(date) {
-      return moment.utc(date).fromNow();
-    };
-
     function updateChange(data){
       $scope.$apply(function() {
         $scope.change = data;
       });
     }
-
 
     stream = Stream($scope, '/api/0/changes/' + $routeParams.change_id + '/');
     stream.subscribe('change.update', updateChange);
