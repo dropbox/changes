@@ -183,3 +183,26 @@ sha:
 			"id": "a857d7dc0d9843cfa568cfbd0b0de91c"
 		}
 	}
+
+
+Architecture
+============
+
+An attempt to explain how some things map from their counterparts to the data models within Changes.
+
+Phabricator
+-----------
+
+Revision (e.g. DXXXX):
+	Change
+Diff (a change within a revision):
+	Patch
+
+Koality
+-------
+
+Change
+	Build
+Stage
+	Each stage is grouped by stage[type] as single Phase, and created as many Steps.
+
