@@ -7,7 +7,7 @@ from phabricator import Phabricator
 
 from changes.config import db
 from changes.models import (
-    RemoteEntity, Project, EntityType, Change, Build
+    RemoteEntity, Project, EntityType, Change, Patch
 )
 
 
@@ -75,7 +75,7 @@ class PhabricatorPoller(object):
         except IndexError:
             return
 
-        return Change.query.get(entity.internal_id)
+        return entity.type.query.get(entity.internal_id)
 
     def _create_change_from_revision(self, project, revision):
         change = Change(
@@ -134,20 +134,20 @@ class PhabricatorPoller(object):
         for key in sorted(results.keys()):
             yield results[key]
 
-    def _get_build_from_diff(self, change, diff):
+    def _get_patch_from_diff(self, change, diff):
         try:
             entity = RemoteEntity.query.filter_by(
                 provider=self.provider,
-                type=EntityType.build,
+                type=EntityType.patch,
                 remote_id=diff['id'],
             )[0]
         except IndexError:
             return
 
-        return Build.query.get(entity.internal_id)
+        return entity.type.query.get(entity.internal_id)
 
-    def _create_build_from_diff(self, change, diff):
-        build = Build(
+    def _create_patch_from_diff(self, change, diff):
+        patch = Patch(
             change=change,
             repository=change.repository,
             project=change.project,
@@ -155,26 +155,26 @@ class PhabricatorPoller(object):
             label='Diff ID {0}: {1}'.format(
                 diff['id'], diff['description'] or 'Initial')[:128],
         )
-        db.session.add(build)
+        db.session.add(patch)
 
         entity = RemoteEntity(
-            type=EntityType.build,
-            internal_id=build.id,
+            type=EntityType.patch,
+            internal_id=patch.id,
             remote_id=diff['id'],
             provider=self.provider,
         )
         db.session.add(entity)
 
-        return build
+        return patch
 
     def sync_diff_list(self, change, revision_id):
         for diff in self._yield_diffs(revision_id):
             self.sync_diff(change, diff)
 
     def sync_diff(self, change, diff):
-        build = self._get_build_from_diff(change, diff)
-        if not build:
-            build = self._create_build_from_diff(change, diff)
-        db.session.add(build)
+        patch = self._get_patch_from_diff(change, diff)
+        if not patch:
+            patch = self._create_patch_from_diff(change, diff)
+        db.session.add(patch)
 
-        return build
+        return patch

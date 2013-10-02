@@ -17,6 +17,7 @@ class EntityType(enum.Enum):
     step = 4
     node = 5
     change = 6
+    patch = 7
 
     @property
     def model(self):
@@ -38,6 +39,9 @@ class EntityType(enum.Enum):
         elif self == EntityType.change:
             from changes.models import Change
             return Change
+        elif self == EntityType.patch:
+            from changes.models import Patch
+            return Patch
 
 
 class RemoteEntity(db.Model):
