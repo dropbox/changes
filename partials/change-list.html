@@ -15,7 +15,7 @@
 					<small>
 						<a href="#">{{change.project.name}}</a>
 						<span ng-if="change.author">&mdash; {{change.author.name}}</span>
-						<span class="date" ng-if="change.dateStarted">{{timeSince(change.dateStarted)}}</span>
+						<span class="date" ng-if="change.dateModified" time-since="change.dateModified"></span>
 					</small>
 				</td>
 			</tr>

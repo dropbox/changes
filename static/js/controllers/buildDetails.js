@@ -1,4 +1,4 @@
-define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app) {
+define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
   app.controller('buildDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
     'use strict';
 
@@ -13,10 +13,6 @@ define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app
       $scope.tests = data.tests;
       $scope.phases = data.phases;
     });
-
-    $scope.timeSince = function timeSince(date) {
-      return moment.utc(date).fromNow();
-    };
 
     function updateBuild(data){
       $scope.$apply(function() {

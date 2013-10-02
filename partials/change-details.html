@@ -13,7 +13,7 @@
 			<dt>Project:</dt>
 			<dd><a href="#">{{change.project.name}}</a></dd>
 			<dt ng-if="change.dateCreated">Created:</dt>
-			<dd ng-if="change.dateCreated">{{timeSince(build.dateCreated)}}</dd>
+			<dd ng-if="change.dateCreated" time-since="change.dateCreated"></dd>
 		</dl>
 
 		<pre ng-if="change.message">{{change.message}}</pre>

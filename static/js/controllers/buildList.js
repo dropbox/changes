@@ -1,4 +1,4 @@
-define(['app', 'factories/stream', 'directives/radialProgressBar', 'filters/orderByBuild'], function(app) {
+define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
   app.controller('buildListCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
     'use strict';
 
@@ -9,10 +9,6 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'filters/orde
     $http.get('/api/0/changes/' + $routeParams.change_id + '/builds/').success(function(data) {
       $scope.builds = data.builds;
     });
-
-    $scope.timeSince = function timeSince(date) {
-      return moment.utc(date).fromNow();
-    };
 
     function addBuild(build) {
       $scope.$apply(function() {

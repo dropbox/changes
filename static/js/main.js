@@ -27,9 +27,8 @@ require([
   'jquery',
   'bootstrap',
   'angular',
-  'moment',
   'routes'
-], function(jquery, bootstrap, angular, moment, app, routes) {
+], function(jquery, bootstrap, angular, app, routes) {
   'use strict';
   $(function(){
     angular.bootstrap(document, ['app']);

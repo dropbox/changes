@@ -1,4 +1,4 @@
-define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app) {
+define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
   app.controller('changeListCtrl', ['$scope', '$http', 'stream', function($scope, $http, Stream) {
     'use strict';
 
@@ -9,11 +9,6 @@ define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app
     $http.get('/api/0/changes/').success(function(data) {
       $scope.changes = data.changes;
     });
-
-    // TODO: move to directive
-    $scope.timeSince = function timeSince(date) {
-      return moment.utc(date).fromNow();
-    };
 
     function addChange(change) {
       $scope.$apply(function() {

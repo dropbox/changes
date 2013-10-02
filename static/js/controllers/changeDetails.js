@@ -1,4 +1,4 @@
-define(['app', 'factories/stream', 'directives/radialProgressBar'], function(app) {
+define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
   app.controller('changeDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
     'use strict';
 
