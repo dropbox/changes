@@ -2,8 +2,7 @@ from uuid import uuid4
 
 from datetime import datetime
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, String, LargeBinary, ForeignKeyConstraint,
-    Text
+    Column, DateTime, ForeignKey, String, LargeBinary, Text
 )
 from sqlalchemy.orm import relationship
 
@@ -13,12 +12,6 @@ from changes.db.types.guid import GUID
 
 class Patch(db.Model):
     __tablename__ = 'patch'
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ['repository_id', 'parent_revision_sha'],
-            ['revision.repository_id', 'revision.sha']
-        ),
-    )
 
     id = Column(GUID, primary_key=True, default=uuid4)
     change_id = Column(GUID, ForeignKey('change.id'))
@@ -34,7 +27,6 @@ class Patch(db.Model):
     change = relationship('Change')
     repository = relationship('Repository')
     project = relationship('Project')
-    parent_revision = relationship('Revision')
 
     def __init__(self, **kwargs):
         super(Patch, self).__init__(**kwargs)
