@@ -1,4 +1,4 @@
-import uuid
+from uuid import uuid4
 
 from datetime import datetime
 from sqlalchemy import (
@@ -20,13 +20,13 @@ class Patch(db.Model):
         ),
     )
 
-    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid4)
     change_id = Column(GUID, ForeignKey('change.id'))
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     parent_revision_sha = Column(String(40), nullable=False)
     label = Column(String(64), nullable=False)
-    url = Column(String(200), nullable=False)
+    url = Column(String(200))
     diff = Column(LargeBinary)
     message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
@@ -35,3 +35,10 @@ class Patch(db.Model):
     repository = relationship('Repository')
     project = relationship('Project')
     parent_revision = relationship('Revision')
+
+    def __init__(self, **kwargs):
+        super(Patch, self).__init__(**kwargs)
+        if self.id is None:
+            self.id = uuid4()
+        if self.date_created is None:
+            self.date_created = datetime.utcnow()

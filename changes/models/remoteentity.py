@@ -54,7 +54,7 @@ class RemoteEntity(db.Model):
     type = Column(Enum(EntityType), nullable=False)
     provider = Column(String(128), nullable=False)
     remote_id = Column(String(128), nullable=False)
-    internal_id = Column(GUID, nullable=False, unique=True)
+    internal_id = Column(GUID, nullable=False)
     data = Column(JSONEncodedDict)
     date_created = Column(DateTime, default=datetime.utcnow)
 
@@ -62,3 +62,6 @@ class RemoteEntity(db.Model):
         super(RemoteEntity, self).__init__(**kwargs)
         if not self.id:
             self.id = uuid.uuid4()
+
+    def fetch_instance(self):
+        return self.type.model.query.get(self.internal_id)
