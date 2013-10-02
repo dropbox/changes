@@ -2,7 +2,8 @@ import uuid
 
 from datetime import datetime
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, String, LargeBinary, ForeignKeyConstraint
+    Column, DateTime, ForeignKey, String, LargeBinary, ForeignKeyConstraint,
+    Text
 )
 from sqlalchemy.orm import relationship
 
@@ -27,6 +28,7 @@ class Patch(db.Model):
     label = Column(String(64), nullable=False)
     url = Column(String(200), nullable=False)
     diff = Column(LargeBinary)
+    message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
     change = relationship('Change')
