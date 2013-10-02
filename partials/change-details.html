@@ -1,8 +1,8 @@
-<section ng-controller="ChangeDetailsCtrl">
+<section ng-controller="changeDetailsCtrl">
 	<div id="overview">
 		<div class="page-header change-header status-{{change.lastBuild.status.id}} result-{{change.lastBuild.result.id}}">
 			<div class="indicator" title="{{change.lastBuild.result.name}}">
-				<div data-result="{{change.lastBuild.result.id}}" data-value="{{change.lastBuild.progress}}" ng-radial-progress-bar>&nbsp;</div>
+				<div data-result="{{change.lastBuild.result.id}}" data-value="{{change.lastBuild.progress}}" radial-progress-bar>&nbsp;</div>
 			</div>
 			<h2>{{change.name}} <small ng-if="change.revision">({{change.revision.sha}})</small></h2>
 		</div>
@@ -25,7 +25,7 @@
 			<h3>Build Results</h3>
 		</div>
 
-		<table class="build-list table table-striped">
+		<table class="build-list table table-striped" ng-controller="buildListCtrl">
 			<tbody>
 				<tr ng-repeat="build in builds | orderByBuild" class="status-{{build.status.id}} result-{{build.result.id}}">
 					<td>

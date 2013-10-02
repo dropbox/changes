@@ -1,0 +1,18 @@
+{
+  "name": "angular-animate",
+  "version": "1.2.0-rc.2",
+  "main": "./angular-animate.js",
+  "dependencies": {
+    "angular": "1.2.0-rc.2"
+  },
+  "homepage": "https://github.com/angular/bower-angular-animate",
+  "_release": "1.2.0-rc.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.2.0-rc.2",
+    "commit": "6ccd2d5b5b96506c98fe6158b7542dcf23a912a3"
+  },
+  "_source": "git://github.com/angular/bower-angular-animate.git",
+  "_target": "~1.2.0-rc.1",
+  "_originalSource": "angular-animate"
+}

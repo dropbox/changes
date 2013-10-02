@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app="Changes">
+<html>
   <head>
     <meta charset="utf-8">
     <title>Changes</title>
@@ -26,12 +26,6 @@
 
     <footer></footer>
 
-    <script src="{{ url_for('static', filename='js/vendor/angular-1.1.5.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vendor/jquery-2.0.3.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vendor/moment.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dial.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/controllers.js') }}"></script>
+    <script data-main="{{ url_for('static', filename='js/main') }}" src="{{ url_for('static', filename='js/vendor/requirejs/require.js') }}"></script>
   </body>
 </html>

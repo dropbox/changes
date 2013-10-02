@@ -7,7 +7,7 @@ psyco_gevent.make_psycopg_green()
 
 
 def run_gevent_server(app):
-    def action(host=('h', '127.0.0.1'), port=('p', 7777)):
+    def action(host=('h', '0.0.0.0'), port=('p', 7777)):
         """run application use gevent http server
         """
         from gevent import pywsgi

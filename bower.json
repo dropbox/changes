@@ -1,0 +1,19 @@
+{
+  "name": "changes",
+  "version": "0.1.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "angular": "~1.2.0-rc.1",
+    "angular-route": "~1.2.0-rc.1",
+    "angular-animate": "~1.2.0-rc.1",
+    "jquery": "~2.0.3",
+    "moment": "~2.1.0",
+    "requirejs": "~2.1.8"
+  }
+}

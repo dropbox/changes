@@ -1,12 +1,12 @@
-<section ng-controller="ChangeListCtrl">
+<section ng-controller="changeListCtrl">
 	<table class="change-list table table-striped">
 		<tbody>
 			<tr class="status-{{change.lastBuild.status.id}} result-{{change.lastBuild.result.id}}"
-				ng-repeat="change in changes | orderBy:dateModified:true" ng-animate="'animate-fade'">
+				ng-repeat="change in changes | orderBy:dateModified:true">
 				<td>
 					<div class="indicator" title="{{change.lastBuild.result.name}}">
 						<div data-result="{{change.lastBuild.result.id}}"
-							 data-value="{{change.lastBuild.progress}}" ng-radial-progress-bar>&nbsp;</div>
+							 data-value="{{change.lastBuild.progress}}" radial-progress-bar>&nbsp;</div>
 					</div>
 				</td>
 				<td>

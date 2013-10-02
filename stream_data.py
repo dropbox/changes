@@ -77,7 +77,7 @@ def update_existing_entry(project):
 
 
 def gen(project):
-    if random.randint(0, 5) == 1:
+    if random.randint(0, 3) == 1:
         build = create_new_entry(project)
     else:
         build = update_existing_entry(project)

@@ -1,3 +1,5 @@
+.PHONY: static
+
 develop: update-submodules
 	pip install -q -e . --use-mirrors
 	make install-test-requirements
@@ -26,3 +28,6 @@ resetdb:
 	dropdb --if-exists changes
 	createdb -E utf-8 changes
 	alembic upgrade head
+
+static:
+	r.js -o build.js

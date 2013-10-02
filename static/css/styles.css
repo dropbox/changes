@@ -318,21 +318,13 @@ footer {
  * Animations
  */
 
-.animate-fade-leave,
-.animate-fade-enter {
-   transition: opacity 1s ease-in;
-   -moz-transition: opacity 1s ease-in;
-   -o-transition: opacity 1s ease-in;
-   -webkit-transition: opacity 1s ease-in;
+.change-list tr.ng-enter {
+  opacity: 0.2;
+  transition: opacity .5s ease-in;
+  -moz-transition: opacity .5s ease-in;
+  -o-transition: opacity .5s ease-in;
+  -webkit-transition: opacity .5s ease-in;
 }
-
-.animate-fade-enter.animate-fade-active,
-.animate-fade-leave {
+.change-list tr.ng-enter-active {
   opacity: 1;
 }
-
-.animate-fade-leave.animate-fade-leave-active,
-.animate-fade-enter {
-  opacity: .2;
-}
-
