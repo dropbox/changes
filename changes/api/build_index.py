@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
-from changes.config import db, pubsub
+from changes.config import db
 from changes.models import Build, Repository, Patch, Change
 
 
@@ -64,6 +64,7 @@ class BuildIndexAPIView(APIView):
                 fp.write(line)
 
             patch = Patch(
+                change=change,
                 repository=repository,
                 project=change.project,
                 parent_revision_sha=sha,
