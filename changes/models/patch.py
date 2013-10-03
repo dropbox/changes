@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from datetime import datetime
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, String, LargeBinary, Text
+    Column, DateTime, ForeignKey, String, Text
 )
 from sqlalchemy.orm import relationship
 
@@ -20,7 +20,7 @@ class Patch(db.Model):
     parent_revision_sha = Column(String(40), nullable=False)
     label = Column(String(64), nullable=False)
     url = Column(String(200))
-    diff = Column(LargeBinary)
+    diff = Column(Text)
     message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
