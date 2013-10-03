@@ -1,15 +1,16 @@
 from __future__ import absolute_import, division
 
+import json
 import requests
 import sys
 
+from cStringIO import StringIO
 from collections import defaultdict
 from datetime import datetime, timedelta
 from sqlalchemy.orm import joinedload
 
-from changes.api.base import as_json
 from changes.backends.base import BaseBackend
-from changes.config import db, pubsub
+from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update
 from changes.models import (
@@ -51,11 +52,11 @@ def get_entity(instance, provider='koality'):
 
 
 class KoalityBackend(BaseBackend):
-    def __init__(self, base_url, api_key, *args, **kwargs):
-        self.base_url = base_url
-        self.api_key = api_key
-        self._node_cache = {}
+    def __init__(self, base_url=None, api_key=None, *args, **kwargs):
         super(KoalityBackend, self).__init__(*args, **kwargs)
+        self.base_url = base_url or self.app.config['KOALITY_URL']
+        self.api_key = api_key or self.app.config['KOALITY_API_KEY']
+        self._node_cache = {}
 
     def _get_end_time(self, stage_list):
         end_time = 0
@@ -86,7 +87,12 @@ class KoalityBackend(BaseBackend):
     def _get_response(self, method, url, **kwargs):
         kwargs.setdefault('params', {})
         kwargs['params'].setdefault('key', self.api_key)
-        return getattr(requests, method.lower())(url, **kwargs).json()
+        response = getattr(requests, method.lower())(url, **kwargs)
+        data = response.text
+        try:
+            return json.loads(data)
+        except ValueError:
+            raise Exception(data)
 
     def _get_node(self, node_id):
         node = self._node_cache.get(node_id)
@@ -384,9 +390,13 @@ class KoalityBackend(BaseBackend):
 
         req_kwargs = {}
         if build.patch:
-            req_kwargs['files'] = {'patch': build.patch.diff}
+            req_kwargs['files'] = {
+                'patch': (
+                    '{0}.diff'.format(build.patch.id),
+                    StringIO(build.patch.diff)
+                )
+            }
 
-        # TODO: patches are sent via files=...
         response = self._get_response('POST', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
             base_uri=self.base_url, project_id=project_entity.remote_id,
         ), data={
