@@ -15,7 +15,7 @@
 			<dt ng-if="build.dateStarted">Started:</dt>
 			<dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
 			<dt ng-if="build.duration">Duration:</dt>
-			<dd ng-if="build.duration">{{build.duration}}ms</dd>
+			<dd ng-if="build.duration" duration="build.duration"></dd>
 		</dl>
 
 		<pre ng-if="build.message">{{build.message}}</pre>
@@ -41,7 +41,7 @@
 			<tbody>
 				<tr ng-repeat="test in tests" class="status-{{test.result.id}}">
 					<td>{{test.name}}</td>
-					<td>{{test.duration}}ms</td>
+					<td duration="test.duration"></td>
 				</tr>
 			</tbody>
 		</table>
