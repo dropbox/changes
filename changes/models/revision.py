@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 
 from changes.config import db
@@ -13,6 +14,7 @@ class Revision(db.Model):
     sha = Column(String(40), primary_key=True)
     author_id = Column(GUID, ForeignKey('author.id'))
     message = Column(Text)
+    parents = Column(ARRAY(String(40)))
     date_created = Column(DateTime, default=datetime.utcnow)
 
     repository = relationship('Repository')
