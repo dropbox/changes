@@ -55,22 +55,3 @@ class Build(db.Model):
         else:
             duration = None
         return duration
-
-    @property
-    def progress(self):
-        if self.status == Status.finished:
-            return 100
-        elif self.status != Status.in_progress:
-            return 0
-
-        # avg_build_time = self.project.avg_build_time
-
-        # # TODO: we need a state for this
-        # if not avg_build_time:
-        avg_build_time = 600
-
-        seconds_elapsed = (datetime.utcnow() - self.date_started).total_seconds()
-
-        percent = int(seconds_elapsed / max(avg_build_time, seconds_elapsed + 60) * 100)
-
-        return min(max(percent, 1), 99)

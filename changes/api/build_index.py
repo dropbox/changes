@@ -21,16 +21,16 @@ class BuildIndexAPIView(APIView):
             api_key=app.config['KOALITY_API_KEY'],
         )
 
-    @param('change_id', lambda x: Change.query.get(x), dest='change')
-    def get(self, change):
-        build_list = list(
-            Build.query.options(
-                joinedload(Build.project),
-                joinedload(Build.author),
-            ).filter_by(
-                change=change,
-            ).order_by(Build.date_created.desc(), Build.date_started.desc())
-        )[:100]
+    @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
+    def get(self, change=None):
+        queryset = Build.query.options(
+            joinedload(Build.project),
+            joinedload(Build.author),
+        ).order_by(Build.date_created.desc(), Build.date_started.desc())
+        if change:
+            queryset = queryset.filter_by(change=change)
+
+        build_list = list(queryset)[:100]
 
         context = {
             'builds': build_list,
@@ -106,5 +106,7 @@ class BuildIndexAPIView(APIView):
 
         return self.respond(context)
 
-    def get_stream_channels(self, change_id):
+    def get_stream_channels(self, change_id=None):
+        if not change_id:
+            return ['builds:*']
         return ['builds:{0}:*'.format(change_id)]

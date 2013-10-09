@@ -20,9 +20,9 @@ class BuildSerializer(Serializer):
             },
             'message': instance.message,
             'duration': instance.duration,
+            'estimatedDuration': 600,
             'link': '/projects/%s/changes/%s/builds/%s/' % (instance.project.slug, change_id.hex, instance.id.hex),
             'dateCreated': instance.date_created.isoformat(),
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
             'dateFinished': instance.date_finished.isoformat() if instance.date_finished else None,
-            'progress': instance.progress,
         }

@@ -6,11 +6,6 @@ define(['app', 'controllers/changeList', 'controllers/changeDetails', 'controlle
     $routeProvider
         .when('/', {
           templateUrl: 'partials/change-list.html',
-          // resolve: {
-          //   apiResponse: function($http) {
-          //     return $http.get('/api/0/changes/');
-          //   }
-          // },
           controller: 'changeListCtrl'
         })
         .when('/projects/:project_id/changes/:change_id/', {
@@ -20,6 +15,10 @@ define(['app', 'controllers/changeList', 'controllers/changeDetails', 'controlle
         .when('/projects/:project_id/changes/:change_id/builds/:build_id/', {
           templateUrl: 'partials/build-details.html',
           controller: 'buildDetailsCtrl'
+        })
+        .when('/builds/', {
+          templateUrl: 'partials/build-list.html',
+          controller: 'buildListCtrl'
         })
         .otherwise({redirectTo: '/'});
   }]);

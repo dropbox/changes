@@ -189,14 +189,29 @@ dl.flat dt {
   max-width: 730px;
 }
 .change-list td small,
-.build-list td small {
+.build-list td small,
+.change-list td .date,
+.build-list td .date,
+.change-list td .status,
+.build-list td .status {
   color: #999;
   font-weight: 300;
 }
-.change-list td small .date,
-.build-list td small .date {
+.change-list td .date,
+.build-list td .date,
+.change-list td .status,
+.build-list td .status {
   position: absolute;
+  font-size: 0.7em;
   right: 15px;
+}
+.change-list td .date,
+.build-list td .date {
+  bottom: 10px;
+}
+.change-list td .status,
+.build-list td .status {
+  top: 10px;
 }
 
 .change-list > tbody > tr:nth-child(odd) > td,

@@ -1,10 +1,10 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
-  app.controller('changeListCtrl', ['$scope', '$http', 'stream', function($scope, $http, Stream) {
+  app.controller('changeListCtrl', ['$scope', '$http', 'stream', 'apiResponse', function($scope, $http, Stream, apiResponse) {
     'use strict';
 
     var stream;
 
-    $scope.changes = [];
+    $scope.changes = apiResponse.changes;
 
     $http.get('/api/0/changes/').success(function(data) {
       $scope.changes = data.changes;

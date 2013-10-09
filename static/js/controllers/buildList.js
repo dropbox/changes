@@ -3,10 +3,17 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
     'use strict';
 
     var stream;
+    var entrypoint
 
     $scope.builds = [];
 
-    $http.get('/api/0/changes/' + $routeParams.change_id + '/builds/').success(function(data) {
+    if ($routeParams.change_id) {
+      entrypoint = '/api/0/changes/' + $routeParams.change_id + '/builds/';
+    } else {
+      entrypoint = '/api/0/builds/';
+    }
+
+    $http.get(entrypoint).success(function(data) {
       $scope.builds = data.builds;
     });
 
@@ -32,7 +39,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       });
     }
 
-    stream = Stream($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/');
+    stream = Stream($scope, entrypoint);
     stream.subscribe('build.update', addBuild);
 
   }]);

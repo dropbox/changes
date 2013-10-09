@@ -6,7 +6,7 @@
 				<td>
 					<div class="indicator" title="{{build.result.name}}">
 						<div data-result="{{build.result.id}}"
-							 data-value="{{build.progress}}" radial-progress-bar>&nbsp;</div>
+							 radial-progress-bar="50%">&nbsp;</div>
 					</div>
 				</td>
 				<td>
@@ -15,8 +15,9 @@
 					<small>
 						<a href="#">{{build.project.name}}</a>
 						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
-						<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
 					</small>
+					<span class="status">{{build.status.name}}</span>
+					<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
 				</td>
 			</tr>
 		</tbody>
