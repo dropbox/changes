@@ -18,13 +18,6 @@ from changes.models import (
     Build, Project
 )
 
-# TODO: this should be stored in the db
-# TODO: we could use entities to take out ID claims
-
-PROJECT_MAP = {
-    26: 'server',
-}
-
 
 def find_entity(type, remote_id, provider='koality'):
     try:

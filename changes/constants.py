@@ -6,6 +6,7 @@ class Status(Enum):
     queued = 1
     in_progress = 2
     finished = 3
+    collecting_results = 4
 
     def __str__(self):
         return STATUS_LABELS[self]
