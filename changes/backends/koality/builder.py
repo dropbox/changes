@@ -51,7 +51,7 @@ def get_entity(instance, provider='koality'):
         return None
 
 
-class KoalityBackend(BaseBackend):
+class KoalityBuilder(BaseBackend):
     def __init__(self, base_url=None, api_key=None, *args, **kwargs):
         super(KoalityBackend, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['KOALITY_URL']
