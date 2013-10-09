@@ -9,7 +9,7 @@
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
     <link href="{{ url_for('static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
   </head>
-  <body>
+  <body ng-controller="layoutCtrl">
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
       <div class="container">
         <!-- Brand and toggle get grouped for better mobile display -->
@@ -24,7 +24,7 @@
         </div>
         <div class="navbar-collapse navbar-header-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="/#/builds/">Builds</a></li>
+            <li ng-class="navClass('/builds/')"><a href="/#/builds/">Builds</a></li>
           </ul>
         </div>
       </div>

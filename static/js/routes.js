@@ -1,4 +1,4 @@
-define(['app', 'controllers/changeList', 'controllers/changeDetails', 'controllers/buildList', 'controllers/buildDetails'], function(app) {
+define(['app', 'controllers/layout', 'controllers/changeList', 'controllers/changeDetails', 'controllers/buildList', 'controllers/buildDetails'], function(app) {
   'use strict';
 
   // TODO(dcramer): We need to load initial data as part of routes

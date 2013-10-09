@@ -27,7 +27,7 @@ require([
   'jquery',
   'bootstrap',
   'angular',
-  'routes'
+  'routes',
 ], function(jquery, bootstrap, angular, app, routes) {
   'use strict';
   $(function(){
