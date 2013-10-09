@@ -14,8 +14,8 @@ from changes.models import Build, Repository, Patch, Change
 class BuildIndexAPIView(APIView):
     def get_backend(self, app=app):
         # TODO this should be automatic via a project
-        from changes.backends.koality.backend import KoalityBackend
-        return KoalityBackend(
+        from changes.backends.koality.builder import KoalityBuilder
+        return KoalityBuilder(
             app=app,
             base_url=app.config['KOALITY_URL'],
             api_key=app.config['KOALITY_API_KEY'],

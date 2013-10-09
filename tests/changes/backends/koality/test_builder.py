@@ -5,7 +5,7 @@ import os
 
 from datetime import datetime
 
-from changes.backends.koality.backend import KoalityBackend
+from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
@@ -26,8 +26,8 @@ index 2ef2938..ed80350 100644
 +====="""
 
 
-class KoalityBackendTestCase(BackendTestCase):
-    backend_cls = KoalityBackend
+class KoalityBuilderTestCase(BackendTestCase):
+    backend_cls = KoalityBuilder
     backend_options = {
         'base_url': 'https://koality.example.com',
         'api_key': 'a' * 12,
@@ -42,7 +42,7 @@ class KoalityBackendTestCase(BackendTestCase):
         )
 
         self.patcher = mock.patch.object(
-            KoalityBackend,
+            KoalityBuilder,
             '_get_response',
             side_effect=self.mock_request,
         )
@@ -59,7 +59,7 @@ class KoalityBackendTestCase(BackendTestCase):
         return self.make_entity(EntityType.project, (project or self.project).id, 1)
 
 
-class SyncBuildDetailsTest(KoalityBackendTestCase):
+class SyncBuildDetailsTest(KoalityBuilderTestCase):
     # TODO(dcramer): we should break this up into testing individual methods
     # so edge cases can be more isolated
     def test_simple(self):
@@ -191,7 +191,7 @@ class SyncBuildDetailsTest(KoalityBackendTestCase):
         assert step_list[5].date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
 
-class CreateBuildTest(KoalityBackendTestCase):
+class CreateBuildTest(KoalityBuilderTestCase):
     def test_simple(self):
         backend = self.get_backend()
 
