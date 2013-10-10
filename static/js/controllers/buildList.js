@@ -1,5 +1,5 @@
-define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
-  app.controller('buildListCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
+define(['app', 'factories/stream', 'factories/flash', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
+  app.controller('buildListCtrl', ['$scope', '$http', '$routeParams', 'stream', 'flash', function($scope, $http, $routeParams, Stream, flash) {
     'use strict';
 
     var stream;
@@ -13,9 +13,13 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       entrypoint = '/api/0/builds/';
     }
 
-    $http.get(entrypoint).success(function(data) {
-      $scope.builds = data.builds;
-    });
+    $http.get(entrypoint).
+      success(function(data) {
+        $scope.builds = data.builds;
+      }).
+      error(function(){
+        flash('error', 'Unable to load build list');
+      });
 
     function addBuild(build) {
       $scope.$apply(function() {

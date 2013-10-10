@@ -1,4 +1,4 @@
-define(['app', 'dial'], function(app, Dial) {
+define(['app', 'utils/dial'], function(app, Dial) {
   app.directive('radialProgressBar', function() {
     return function radialProgressBarLink(scope, element, attrs) {
       var $element = $(element),
