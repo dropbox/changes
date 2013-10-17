@@ -3,7 +3,6 @@ import os
 import os.path
 
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.helpers import send_from_directory
 
 from changes.ext.pubsub import PubSub
 from changes.ext.queue import Queue
@@ -17,32 +16,10 @@ pubsub = PubSub()
 queue = Queue()
 
 
-class ChangesApp(flask.Flask):
-    def __init__(self, *args, **kwargs):
-        self.partials_url_path = kwargs.pop('partials_url_path', '/partials')
-        self.partials_folder = kwargs.pop('partials_folder', None)
-
-        super(ChangesApp, self).__init__(*args, **kwargs)
-
-        if self.partials_folder is not None:
-            self.add_url_rule(self.partials_url_path + '/<path:filename>',
-                              endpoint='partials',
-                              view_func=self.send_partial_file)
-
-    def send_partial_file(self, filename):
-        if self.partials_folder is None:
-            raise RuntimeError('No partials folder for this object')
-
-        cache_timeout = self.get_send_file_max_age(filename)
-        return send_from_directory(self.partials_folder, filename,
-                                   cache_timeout=cache_timeout)
-
-
 def create_app(**config):
-    app = ChangesApp(__name__,
-                     static_folder=os.path.join(PROJECT_ROOT, 'static'),
-                     template_folder=os.path.join(PROJECT_ROOT, 'templates'),
-                     partials_folder=os.path.join(PROJECT_ROOT, 'partials'))
+    app = flask.Flask(__name__,
+                      static_folder=None,
+                      template_folder=os.path.join(PROJECT_ROOT, 'templates'))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/changes'
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
     app.config['REDIS_URL'] = 'redis://localhost'
@@ -95,9 +72,18 @@ def configure_api_routes(app):
 
 def configure_web_routes(app):
     from changes.web.index import IndexView
+    from changes.web.static import StaticView
 
     app.add_url_rule(
-        r'/', view_func=IndexView.as_view('index'))
+        '/static/<path:filename>',
+        view_func=StaticView.as_view('static', root=os.path.join(PROJECT_ROOT, 'static')))
+    app.add_url_rule(
+        '/partials/<path:filename>',
+        view_func=StaticView.as_view('partials', root=os.path.join(PROJECT_ROOT, 'partials')))
+    app.add_url_rule(
+        '/<path:path>', view_func=IndexView.as_view('index-path'))
+    app.add_url_rule(
+        '/', view_func=IndexView.as_view('index'))
 
 
 def configure_jobs(app):

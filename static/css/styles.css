@@ -343,3 +343,19 @@ footer {
 .change-list tr.ng-enter-active {
   opacity: 1;
 }
+
+.alert-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+.alert-list .alert {
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  border-width: 1px 0;
+}
+
+.alert-list .alert .container {
+  padding: 15px 25px 15px 0;
+}

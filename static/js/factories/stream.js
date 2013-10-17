@@ -1,5 +1,7 @@
 define(['app'], function (app) {
   app.factory('stream', ['$window', function(window){
+    'use strict';
+
     if (window.streams === undefined) {
       window.streams = {};
     }

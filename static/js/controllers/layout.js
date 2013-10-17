@@ -1,4 +1,4 @@
-define(['app'], function(app) {
+define(['app', 'directives/flashMessages'], function(app) {
   app.controller('layoutCtrl', ['$scope', '$location', function($scope, $location) {
     'use strict';
 

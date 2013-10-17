@@ -2,7 +2,10 @@ define(['app', 'controllers/layout', 'controllers/changeList', 'controllers/chan
   'use strict';
 
   // TODO(dcramer): We need to load initial data as part of routes
-  return app.config(['$routeProvider', function($routeProvider) {
+  return app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
+
+    $locationProvider.html5Mode(true);
+
     $routeProvider
         .when('/', {
           templateUrl: 'partials/change-list.html',

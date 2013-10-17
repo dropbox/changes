@@ -1,9 +1,9 @@
 <!doctype html>
 <html>
   <head>
+    <base href="/">
     <meta charset="utf-8">
     <title>Changes</title>
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
@@ -24,11 +24,13 @@
         </div>
         <div class="navbar-collapse navbar-header-collapse">
           <ul class="nav navbar-nav">
-            <li ng-class="navClass('/builds/')"><a href="/#/builds/">Builds</a></li>
+            <li ng-class="navClass('/builds/')"><a href="/builds/">Builds</a></li>
           </ul>
         </div>
       </div>
     </nav>
+
+    <flash-messages></flash-messages>
 
     <section class="body">
       <div class="container" data-spy="scroll" data-target="#header-nav">
