@@ -70,10 +70,12 @@ class JenkinsBuilder(BaseBackend):
         item = self._get_response('/job/{}/{}'.format(
             build_item['job_name'], build_item['build_no']))
 
+        if item['timestamp'] and not build.date_started:
+            build.date_started = datetime.utcfromtimestamp(
+                item['timestamp'] / 1000)
+
         if item['building']:
             build.status = Status.in_progress
-            if not build.date_started:
-                build.date_started = datetime.utcnow()
         else:
             build.date_finished = datetime.utcnow()
 
