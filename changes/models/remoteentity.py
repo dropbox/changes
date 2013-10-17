@@ -55,13 +55,15 @@ class RemoteEntity(db.Model):
     provider = Column(String(128), nullable=False)
     remote_id = Column(String(128), nullable=False)
     internal_id = Column(GUID, nullable=False)
-    data = Column(JSONEncodedDict)
+    data = Column(JSONEncodedDict, default=dict)
     date_created = Column(DateTime, default=datetime.utcnow)
 
     def __init__(self, **kwargs):
         super(RemoteEntity, self).__init__(**kwargs)
         if not self.id:
             self.id = uuid.uuid4()
+        if not self.data:
+            self.data = {}
 
     def fetch_instance(self):
         return self.type.model.query.get(self.internal_id)
