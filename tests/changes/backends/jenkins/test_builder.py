@@ -215,3 +215,73 @@ class SyncBuildTest(BaseTestCase):
         assert entity.data['build_no'] == 2
         assert build.status == Status.in_progress
         assert build.date_started is not None
+
+    @httpretty.activate
+    def test_success_result(self):
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_success.json'))
+
+        build = self.create_build(
+            self.project,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+
+        entity = RemoteEntity(
+            provider=self.provider,
+            internal_id=build.id,
+            remote_id='server#2',
+            type='build',
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        db.session.add(entity)
+
+        builder = self.get_builder()
+        builder.sync_build(build)
+
+        entity = RemoteEntity.query.get(entity.id)
+
+        assert entity.data['build_no'] == 2
+        assert build.status == Status.finished
+        assert build.result == Result.passed
+        assert build.duration == 8875000
+        assert build.date_finished is not None
+
+    @httpretty.activate
+    def test_failed_result(self):
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_failed.json'))
+
+        build = self.create_build(
+            self.project,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+
+        entity = RemoteEntity(
+            provider=self.provider,
+            internal_id=build.id,
+            remote_id='server#2',
+            type='build',
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        db.session.add(entity)
+
+        builder = self.get_builder()
+        builder.sync_build(build)
+
+        entity = RemoteEntity.query.get(entity.id)
+
+        assert entity.data['build_no'] == 2
+        assert build.status == Status.finished
+        assert build.result == Result.failed
+        assert build.duration == 8875000
+        assert build.date_finished is not None

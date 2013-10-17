@@ -70,19 +70,25 @@ class JenkinsBuilder(BaseBackend):
         item = self._get_response('/job/{}/{}'.format(
             build_item['job_name'], build_item['build_no']))
 
-        if item['building'] or item['result'] is None:
+        if item['building']:
             build.status = Status.in_progress
             if not build.date_started:
                 build.date_started = datetime.utcnow()
         else:
+            build.date_finished = datetime.utcnow()
+
+        if item['result']:
             build.status = Status.finished
             if item['result'] == 'SUCCESS':
                 build.result = Result.passed
             elif item['result'] == 'ABORTED':
                 build.result = Result.aborted
-            elif item['result'] == 'FAILURE':
+            elif item['result'] == 'FAILED':
                 build.result = Result.failed
-            build.date_finished = datetime.utcnow()
+
+        if item['duration']:
+            build.duration = item['duration'] * 1000
+
         db.session.add(build)
 
     def _find_job(self, job_name, build_id):

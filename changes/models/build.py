@@ -1,7 +1,7 @@
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
 
 from changes.config import db
@@ -24,6 +24,7 @@ class Build(db.Model):
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
     message = Column(Text)
+    duration = Column(Integer)
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
@@ -44,14 +45,5 @@ class Build(db.Model):
             self.status = Result.unknown
         if self.date_created is None:
             self.date_created = datetime.utcnow()
-
-    @property
-    def duration(self):
-        """
-        Return the duration (in milliseconds) that this item was in-progress.
-        """
-        if self.date_started and self.date_finished:
-            duration = (self.date_finished - self.date_started).total_seconds() * 1000
-        else:
-            duration = None
-        return duration
+        if self.date_started and self.date_finished and not self.duration:
+            self.duration = (self.date_finished - self.date_started).total_seconds() * 1000
