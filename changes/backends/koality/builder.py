@@ -4,47 +4,21 @@ import json
 import requests
 import sys
 
-from cStringIO import StringIO
 from collections import defaultdict
 from datetime import datetime, timedelta
-from sqlalchemy.orm import joinedload
 
 from changes.backends.base import BaseBackend
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update
 from changes.models import (
-    Revision, Author, Phase, Step, RemoteEntity, EntityType, Node,
-    Build, Project
+    Revision, Author, Phase, Step, RemoteEntity, Node
 )
 
 
-def find_entity(type, remote_id, provider='koality'):
-    try:
-        entity = RemoteEntity.query.filter_by(
-            type=type,
-            remote_id=remote_id,
-            provider=provider,
-        )[0]
-    except IndexError:
-        return None, None
-
-    instance = db.session.query(entity.type.model).get(entity.internal_id)
-    return entity, instance
-
-
-def get_entity(instance, provider='koality'):
-    try:
-        return db.session.query(RemoteEntity).filter_by(
-            type=getattr(EntityType, instance.__tablename__),
-            internal_id=instance.id,
-            provider=provider,
-        )[0]
-    except IndexError:
-        return None
-
-
 class KoalityBuilder(BaseBackend):
+    provider = 'koality'
+
     def __init__(self, base_url=None, api_key=None, *args, **kwargs):
         super(KoalityBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['KOALITY_URL']
@@ -92,13 +66,17 @@ class KoalityBuilder(BaseBackend):
         if node is not None:
             return node
 
-        _, node = find_entity(
-            EntityType.node, str(node_id))
-        if node is None:
+        try:
+            node = RemoteEntity.query.filter_by(
+                type='node',
+                remote_id=str(node_id),
+                provider=self.provider,
+            )[0]
+        except IndexError:
             node = Node()
             entity = RemoteEntity(
-                provider='koality', remote_id=str(node_id),
-                internal_id=node.id, type=EntityType.node,
+                provider=self.provider, remote_id=str(node_id),
+                internal_id=node.id, type='node',
             )
             db.session.add(node)
             db.session.add(entity)
@@ -131,8 +109,16 @@ class KoalityBuilder(BaseBackend):
         remote_id = '%s:%s' % (build.id.hex, stage_type)
 
         if phase is None:
-            entity, phase = find_entity(
-                EntityType.phase, remote_id)
+            try:
+                entity = RemoteEntity.query.filter_by(
+                    type='phase',
+                    provider=self.provider,
+                    remote_id=remote_id,
+                )[0]
+            except IndexError:
+                phase, entity = None, None
+            else:
+                phase = Phase.query.get(entity.internal_id)
             create_entity = entity is None
         else:
             create_entity = False
@@ -167,8 +153,8 @@ class KoalityBuilder(BaseBackend):
 
         if create_entity:
             entity = RemoteEntity(
-                provider='koality', remote_id=remote_id,
-                internal_id=phase.id, type=EntityType.phase,
+                provider=self.provider, remote_id=remote_id,
+                internal_id=phase.id, type='phase',
             )
             db.session.add(entity)
 
@@ -178,8 +164,16 @@ class KoalityBuilder(BaseBackend):
 
     def _sync_step(self, build, phase, stage, step=None):
         if step is None:
-            entity, step = find_entity(
-                EntityType.step, str(stage['id']))
+            try:
+                entity = RemoteEntity.query.filter_by(
+                    type='step',
+                    provider=self.provider,
+                    remote_id=str(stage['id']),
+                )[0]
+            except IndexError:
+                step, entity = None, None
+            else:
+                step = Step.query.get(entity.internal_id)
             create_entity = entity is None
         else:
             create_entity = False
@@ -216,8 +210,8 @@ class KoalityBuilder(BaseBackend):
 
         if create_entity:
             entity = RemoteEntity(
-                provider='koality', remote_id=str(stage['id']),
-                internal_id=step.id, type=EntityType.step,
+                provider=self.provider, remote_id=str(stage['id']),
+                internal_id=step.id, type='step',
             )
             db.session.add(entity)
 
@@ -225,19 +219,8 @@ class KoalityBuilder(BaseBackend):
 
         return step
 
-    def _sync_build(self, project, change, stage_list=None, build=None):
-        if build is None:
-            entity, build = find_entity(
-                EntityType.build, str(change['id']))
-            create_entity = entity is None
-        else:
-            create_entity = False
-
-        if build is None:
-            created = True
-            build = Build()
-        else:
-            created = False
+    def _sync_build_details(self, build, change, stage_list=None):
+        project = build.project
 
         author = self._sync_author(change['headCommit']['user'])
         parent_revision = self._sync_revision(
@@ -292,54 +275,20 @@ class KoalityBuilder(BaseBackend):
             build.status = Status.finished
             build.result = Result.timedout
 
-        if create_entity:
-            entity = RemoteEntity(
-                provider='koality',
-                type=EntityType.build,
-                remote_id=str(change['id']),
-                internal_id=build.id,
-            )
-            db.session.add(entity)
-
         db.session.add(build)
 
-        return build, created
-
-    def sync_build_list(self, project, project_entity=None):
-        if project_entity is None:
-            project_entity = get_entity(project)
-            if not project_entity:
-                raise ValueError('Project does not have a remote entity')
-
-        project_id = project_entity.remote_id
-
-        change_list = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
-            base_uri=self.base_url, project_id=project_id
-        ))
-
-        build_list = []
-        for change in change_list:
-            build, created = self._sync_build(project, change)
-            build_list.append((build, created))
-
-        return build_list
-
-    def sync_build_details(self, build, project=None, build_entity=None,
-                           project_entity=None):
-        if project is None:
-            project = Project.query.options(
-                joinedload(Project.repository),
-            ).get(build.project_id)
-
-        if project_entity is None:
-            project_entity = get_entity(project)
-            if not project_entity:
-                raise ValueError('Project does not have a remote entity')
-
-        if build_entity is None:
-            build_entity = get_entity(build)
-            if not build_entity:
-                raise ValueError('Build does not have a remote entity')
+    def sync_build_details(self, build):
+        project = build.project
+        project_entity = RemoteEntity.query.filter_by(
+            provider=self.provider,
+            internal_id=project.id,
+            type='project',
+        )[0]
+        build_entity = RemoteEntity.query.filter_by(
+            provider=self.provider,
+            internal_id=build.id,
+            type='build',
+        )[0]
 
         remote_id = build_entity.remote_id
         project_id = project_entity.remote_id
@@ -354,7 +303,7 @@ class KoalityBuilder(BaseBackend):
             base_uri=self.base_url, project_id=project_id, build_id=remote_id
         ))
 
-        build, created = self._sync_build(project, change, stage_list, build=build)
+        self._sync_build_details(build, change, stage_list)
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -368,26 +317,20 @@ class KoalityBuilder(BaseBackend):
             for stage in stage_list:
                 self._sync_step(build, phase, stage)
 
-        return build, created
+        return build
 
-    def create_build(self, build, project=None, project_entity=None):
-        if project is None:
-            project = Project.query.options(
-                joinedload(Project.repository),
-            ).get(build.project_id)
-
-        if project_entity is None:
-            project_entity = get_entity(project)
-            if not project_entity:
-                raise ValueError('Project does not have a remote entity')
+    def create_build(self, build):
+        project = build.project
+        project_entity = RemoteEntity.query.filter_by(
+            provider=self.provider,
+            internal_id=project.id,
+            type='project',
+        )[0]
 
         req_kwargs = {}
         if build.patch:
             req_kwargs['files'] = {
-                'patch': (
-                    '{0}.diff'.format(build.patch.id),
-                    StringIO(build.patch.diff)
-                )
+                'patch': build.patch.diff,
             }
 
         response = self._get_response('POST', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
@@ -397,8 +340,8 @@ class KoalityBuilder(BaseBackend):
         }, **req_kwargs)
 
         entity = RemoteEntity(
-            provider='koality', remote_id=str(response['changeId']),
-            internal_id=build.id, type=EntityType.build,
+            provider=self.provider, remote_id=str(response['changeId']),
+            internal_id=build.id, type='build',
         )
         db.session.add(entity)
 

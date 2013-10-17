@@ -1,47 +1,11 @@
-import enum
 import uuid
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, String, UniqueConstraint
 
 from changes.config import db
-from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
-
-
-class EntityType(enum.Enum):
-    project = 1
-    build = 2
-    phase = 3
-    step = 4
-    node = 5
-    change = 6
-    patch = 7
-
-    @property
-    def model(self):
-        if self == EntityType.project:
-            from changes.models import Project
-            return Project
-        elif self == EntityType.build:
-            from changes.models import Build
-            return Build
-        elif self == EntityType.phase:
-            from changes.models import Phase
-            return Phase
-        elif self == EntityType.step:
-            from changes.models import Step
-            return Step
-        elif self == EntityType.node:
-            from changes.models import Node
-            return Node
-        elif self == EntityType.change:
-            from changes.models import Change
-            return Change
-        elif self == EntityType.patch:
-            from changes.models import Patch
-            return Patch
 
 
 class RemoteEntity(db.Model):
@@ -51,7 +15,7 @@ class RemoteEntity(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    type = Column(Enum(EntityType), nullable=False)
+    type = Column(String, nullable=False)
     provider = Column(String(128), nullable=False)
     remote_id = Column(String(128), nullable=False)
     internal_id = Column(GUID, nullable=False)

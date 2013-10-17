@@ -1,0 +1,39 @@
+{
+    "actions": [
+        {
+            "parameters": [
+                {
+                    "name": "REVISION",
+                    "value": "default"
+                },
+                {
+                    "name": "CHANGES_BID",
+                    "value": "81d1596fd4d642f4a6bdf86c45e014e8"
+                }
+            ]
+        },
+        {
+            "causes": [
+                {
+                    "shortDescription": "Started by user David Cramer",
+                    "userId": "cramer",
+                    "userName": "David Cramer"
+                }
+            ]
+        }
+    ],
+    "blocked": true,
+    "buildable": false,
+    "id": 13,
+    "inQueueSince": 1382034128555,
+    "params": "\nREVISION=default\nCHANGES_BID=81d1596fd4d642f4a6bdf86c45e014e8",
+    "stuck": false,
+    "task": {
+        "name": "server",
+        "url": "https://jenkins.build.itc.dropbox.com/job/server/",
+        "color": "aborted_anime"
+    },
+    "url": "queue/item/13/",
+    "why": null,
+    "cancelled": false
+}

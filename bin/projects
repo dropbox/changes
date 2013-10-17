@@ -5,7 +5,7 @@ import sys
 
 from changes.config import create_app, db
 from changes.models import (
-    Project, Repository, RemoteEntity, EntityType
+    Project, Repository, RemoteEntity
 )
 
 app = create_app()
@@ -54,7 +54,7 @@ if args.command == 'add':
         repository=repo,
     )
     entity = RemoteEntity(
-        type=EntityType.project,
+        type='project',
         provider=provider,
         internal_id=project.id,
         remote_id=provider_project_id,

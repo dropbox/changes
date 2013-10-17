@@ -10,7 +10,7 @@ from phabricator import Phabricator
 from urlparse import parse_qs
 
 from changes.config import db
-from changes.models import Repository, Project, EntityType
+from changes.models import Repository, Project
 from changes.backends.phabricator.poller import PhabricatorPoller
 from changes.testutils import BackendTestCase
 
@@ -42,7 +42,7 @@ class BaseTestCase(BackendTestCase):
             return fp.read()
 
     def make_project_entity(self, project, remote_id):
-        return self.make_entity(EntityType.project, project.id, remote_id)
+        return self.make_entity('project', project.id, remote_id)
 
     def get_poller(self):
         return self.poller_cls(self.phabricator)

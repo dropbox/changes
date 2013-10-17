@@ -3,7 +3,10 @@ from changes.config import pubsub
 
 
 def publish_build_update(mapper, connection, target):
-    channel = 'builds:{0}:{1}'.format(target.change.id.hex, target.id.hex)
+    channel = 'builds:{change_id}:{build_id}'.format(
+        change_id=target.change_id.hex if target.change_id else '',
+        build_id=target.id.hex,
+    )
     pubsub.publish(channel, {
         'data': as_json(target),
         'event': 'build.update',
@@ -19,8 +22,11 @@ def publish_change_update(mapper, connection, target):
 
 
 def publish_phase_update(mapper, connection, target):
-    channel = 'phases:{0}:{1}:{2}'.format(
-        target.build.change_id.hex, target.build.id.hex, target.id.hex)
+    channel = 'phases:{change_id}:{build_id}:{phase_id}'.format(
+        change_id=target.build.change_id.hex if target.build.change_id else '',
+        build_id=target.build_id,
+        phase_id=target.id.hex,
+    )
     pubsub.publish(channel, {
         'data': as_json(target),
         'event': 'phase.update',

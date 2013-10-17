@@ -7,7 +7,7 @@ from phabricator import Phabricator
 
 from changes.config import db
 from changes.models import (
-    RemoteEntity, Project, EntityType, Change, Patch
+    RemoteEntity, Project, Change, Patch
 )
 
 
@@ -23,8 +23,8 @@ class PhabricatorPoller(object):
         entity_map = dict(
             (e.internal_id, e.remote_id)
             for e in RemoteEntity.query.filter_by(
-                provider='phabricator',
-                type=EntityType.project,
+                provider=self.provider,
+                type='project',
             )
         )
         project_list = Project.query.filter(
@@ -41,7 +41,7 @@ class PhabricatorPoller(object):
         if name not in self._arcproject_to_project:
             entity = RemoteEntity.query.filter_by(
                 provider=self.provider,
-                type=EntityType.project,
+                type='project',
                 remote_id=name,
             )[0]
 
@@ -69,7 +69,7 @@ class PhabricatorPoller(object):
         try:
             entity = RemoteEntity.query.filter_by(
                 provider=self.provider,
-                type=EntityType.change,
+                type='revision',
                 remote_id=revision['id'],
             )[0]
         except IndexError:
@@ -87,7 +87,7 @@ class PhabricatorPoller(object):
         db.session.add(change)
 
         entity = RemoteEntity(
-            type=EntityType.change,
+            type='revision',
             internal_id=change.id,
             remote_id=revision['id'],
             provider=self.provider,
@@ -138,7 +138,7 @@ class PhabricatorPoller(object):
         try:
             entity = RemoteEntity.query.filter_by(
                 provider=self.provider,
-                type=EntityType.patch,
+                type='patch',
                 remote_id=diff['id'],
             )[0]
         except IndexError:
@@ -158,7 +158,7 @@ class PhabricatorPoller(object):
         db.session.add(patch)
 
         entity = RemoteEntity(
-            type=EntityType.patch,
+            type='patch',
             internal_id=patch.id,
             remote_id=diff['id'],
             provider=self.provider,

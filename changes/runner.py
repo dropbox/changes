@@ -53,7 +53,7 @@ def jenkins_poller():
     app_context = app.app_context()
     app_context.push()
 
-    from changes.models import RemoteEntity, EntityType
+    from changes.models import RemoteEntity
 
     project = _get_or_create_server_project()
 
@@ -61,14 +61,14 @@ def jenkins_poller():
         entity = RemoteEntity.query.filter_by(
             provider='jenkins',
             remote_id='server',
-            type=EntityType.project,
+            type='job',
         )[0]
     except IndexError:
         entity = RemoteEntity(
             provider='jenkins',
             remote_id='server',
             internal_id=project.id,
-            type=EntityType.project,
+            type='job',
         )
         db.session.add(entity)
 
@@ -85,7 +85,7 @@ def phabricator_poller():
     import time
     from changes.config import create_app, db
     from changes.backends.phabricator.poller import PhabricatorPoller
-    from changes.models import RemoteEntity, EntityType
+    from changes.models import RemoteEntity
     from phabricator import Phabricator
 
     app = create_app()
@@ -98,14 +98,14 @@ def phabricator_poller():
         RemoteEntity.query.filter_by(
             provider='phabricator',
             remote_id='Server',
-            type=EntityType.project,
+            type='project',
         )[0]
     except IndexError:
         entity = RemoteEntity(
             provider='phabricator',
             remote_id='Server',
             internal_id=project.id,
-            type=EntityType.project,
+            type='project',
         )
         db.session.add(entity)
 

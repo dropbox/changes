@@ -4,37 +4,38 @@ import json
 import logging
 import requests
 
-from sqlalchemy import and_
+from datetime import datetime
 
 from changes.backends.base import BaseBackend
 from changes.config import db
 from changes.constants import Result, Status
-from changes.jobs.sync_build import sync_build
-from changes.models import (
-    Revision, Author, Phase, Step, RemoteEntity, EntityType, Node,
-    Build, Project
-)
+from changes.models import RemoteEntity
 
 
 class JenkinsBuilder(BaseBackend):
+    provider = 'jenkins'
+
     def __init__(self, base_url=None, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['JENKINS_URL']
         self.logger = logging.getLogger('jenkins')
 
-    def _get_response(self, path):
-        url = '{}/{}/api/json'.format(self.base_url, path.strip('/'))
+    def _get_response(self, path, method='GET', **kwargs):
+        url = '{}/{}/api/json/'.format(self.base_url, path.strip('/'))
 
         self.logger.info('Fetching %r', url)
-        resp = requests.get(url, verify=False)
+        resp = getattr(requests, method.lower())(url, **kwargs)
 
-        if resp.status_code != 200:
-            return None
+        if not (200 <= resp.status_code < 300):
+            raise Exception('Invalid response. Status code was %s' % resp.status_code)
 
-        try:
-            return resp.json()
-        except json.JSONDecodeError:
-            return None
+        data = resp.text
+        if data:
+            try:
+                return json.loads(data)
+            except ValueError:
+                raise Exception('Invalid JSON data')
+        return
 
     def _parse_parameters(self, json):
         params = {}
@@ -45,96 +46,158 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def sync_build_list(self, project):
-        """
-        We synchronize builds by first traversing jobs in the queue, and then
-        (serially, this is important!) traversing builds.
+    def _sync_build_from_queue(self, build, entity):
+        build_item = entity.data
 
-        If a job is not in the queue, and then not listed in the builds, we
-        assume it was aborted or some other system failure happened.
+        item = self._get_response('/queue/item/{}'.format(
+            build_item['item_id']))
 
-        If a job is not finalized (that is, Build.status is not finished) then
-        we assume that a synchronization is required for said job.
-        """
-        entity = project.get_entity('jenkins')
-        job_name = entity.remote_id
-        last_build_no = entity.data.get('last_build_no')
-        # XXX: it's possible to actually have truncated build results here so
-        # that build ID of 0 doesnt exist, so we need to find the minimum ID
-        if last_build_no is None:
-            response = self._get_response('/job/{}'.format(job_name))
-            last_build_no = min(
-                b['number']
-                for b in response['builds']
-            )
-            max_build_no = response['nextBuildNumber'] - 1
+        if item['blocked']:
+            build.status = Status.queued
+            db.session.add(build)
+        elif item['cancelled']:
+            build.status = Status.finished
+            build.result = Result.aborted
+            db.session.add(build)
         else:
-            max_build_no = None
+            build_no = item['executable']['number']
+            build_item['build_no'] = build_no
+            db.session.add(entity)
+            self._sync_build_from_active(build, entity)
 
-        queued_build_ids = set()
+    def _sync_build_from_active(self, build, entity):
+        build_item = entity.data
+        item = self._get_response('/job/{}/{}'.format(
+            build_item['job_name'], build_item['build_no']))
+
+        if item['building'] or item['result'] is None:
+            build.status = Status.in_progress
+            if not build.date_started:
+                build.date_started = datetime.utcnow()
+        else:
+            build.status = Status.finished
+            if item['result'] == 'SUCCESS':
+                build.result = Result.passed
+            elif item['result'] == 'ABORTED':
+                build.result = Result.aborted
+            elif item['result'] == 'FAILURE':
+                build.result = Result.failed
+            build.date_finished = datetime.utcnow()
+        db.session.add(build)
+
+    def _find_job(self, job_name, build_id):
+        """
+        Given a build identifier, we attempt to poll the various endpoints
+        for a limited amount of time, trying to match up either a queued item
+        or a running job that has the CHANGES_BID parameter.
+
+        This is nescesary because Jenkins does not give us any identifying
+        information when we create a job initially.
+
+        The build_id parameter should be the corresponding value to look for in
+        the CHANGES_BID parameter.
+
+        The result is a mapping with the following keys:
+
+        - queued: is it currently present in the queue
+        - item_id: the queued item ID, if available
+        - build_no: the build number, if available
+        """
+        # Check the queue first to ensure that we don't miss a transition
+        # from queue -> active builds
         for item in self._get_response('/queue')['items']:
+            if item['task']['name'] != job_name:
+                continue
+
             params = self._parse_parameters(item)
             try:
-                queued_build_ids.add(params['CHANGES_BID'])
+                job_build_id = params['CHANGES_BID']
             except KeyError:
                 continue
 
-        # TODO(dcramer): ideally this happens via the queue so it can scale
-        # on the workers automatically. At the very least, we can use a
-        # threadpool to do all of these async and join on the results
-        build_id_map = {}
-        build_no = last_build_no
-        while True:
-            # TODO: handle that 404 that we're bound to hit if max_build_no
-            # is not defined
-            item = self._get_response('/job/{}/{}'.format(job_name, build_no))
+            if job_build_id == build_id:
+                return {
+                    'job_name': job_name,
+                    'queued': True,
+                    'item_id': item['id'],
+                    'build_no': None,
+                }
 
+        # It wasn't found in the queue, so lets look for an active build
+        # the depth=2 is important here, otherwise parameters are not included
+        for item in self._get_response('/job/{}'.format(job_name), params={'depth': 2})['builds']:
             params = self._parse_parameters(item)
             try:
-                build_id_map[params['CHANGES_BID']] = item
+                job_build_id = params['CHANGES_BID']
             except KeyError:
-                pass
+                continue
 
-            if build_no == max_build_no:
-                break
+            if job_build_id == build_id:
+                return {
+                    'job_name': job_name,
+                    'queued': False,
+                    'item_id': None,
+                    'build_no': item['number'],
+                }
 
-            build_no += 1
+    def sync_build(self, build):
+        entity = RemoteEntity.query.filter_by(
+            provider=self.provider,
+            internal_id=build.id,
+            type='build',
+        )[0]
 
-        # pull out the builds that we queried against
-        matched_builds = Build.query.filter(
-            and_(Build.id.in_(build_id_map.keys()), Build.status != Status.finished)
-        )
-
-        # update last_build_no to be the minimum build_no that is unfinished
-        # XXX(dcramer): this also has to happen as part of updating individual
-        # builds, but this gives us a safetey net
-        if not matched_builds:
-            return
-
-        last_build_no = max(last_build_no, min(
-            build_id_map[b.id.hex]['number']
-            for b in matched_builds
-        ))
-
-        # Fire off an update to ensure it exists in the queue
-        # (the update may not actually happen due to timing/locking measures)
-        for build in matched_builds:
-            sync_build.delay(build_id=build.id)
-
-        entity.data['last_build_no'] = last_build_no
-        db.session.add(entity)
+        if entity.data['queued']:
+            self._sync_build_from_queue(build, entity)
+        else:
+            self._sync_build_from_active(build, entity)
 
     def create_build(self, build):
-        entity = build.project.get_entity('jenkins')
+        """
+        Creates a build within Jenkins.
+
+        Due to the way the API works, this consists of two steps:
+
+        - Submitting the build
+        - Polling for the newly created build to associate either a queue ID
+          or a finalized build number.
+        """
+
+        # TODO: patch support
+        entity = RemoteEntity.query.filter_by(
+            provider=self.provider,
+            internal_id=build.project.id,
+            type='job',
+        )[0]
         job_name = entity.remote_id
 
-        url = '%s/job/%s/build' % (self.base_url, job_name)
         json_data = {
             'parameter': [
+                {'name': 'REVISION', 'value': build.parent_revision_sha},
                 {'name': 'CHANGES_BID', 'value': build.id.hex},
             ]
         }
-        resp = requests.post(url, data={
+        # TODO: Jenkins will return a 302 if it cannot queue the job which I
+        # believe implies that there is already a job with the same parameters
+        # queued.
+        self._get_response('/job/{}/build'.format(job_name), method='POST', data={
             'json': json.dumps(json_data),
         })
-        assert resp.status_code == 201
+
+        build_item = self._find_job(job_name, build.id.hex)
+        if build_item is None:
+            raise Exception('Unable to find matching job after creation. GLHF')
+
+        if build_item['queued']:
+            remote_id = 'queue:{}'.format(build_item['item_id'])
+        else:
+            remote_id = '{}#{}'.format(build_item['job_name'], build_item['build_no'])
+
+        entity = RemoteEntity(
+            provider=self.provider,
+            internal_id=build.id,
+            type='build',
+            remote_id=remote_id,
+            data=build_item,
+        )
+        db.session.add(entity)

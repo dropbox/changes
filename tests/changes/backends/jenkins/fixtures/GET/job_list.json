@@ -1,0 +1,174 @@
+{
+    "actions": [
+        {
+            "parameterDefinitions": [
+                {
+                    "defaultParameterValue": {
+                        "name": "REVISION",
+                        "value": "default"
+                    },
+                    "description": "A commit, branch name, or something else recognizable as a tree.\n",
+                    "name": "REVISION",
+                    "type": "StringParameterDefinition"
+                },
+                {
+                    "defaultParameterValue": {
+                        "name": "CHANGES_BID",
+                        "value": ""
+                    },
+                    "description": "The build identifier in Changes.",
+                    "name": "CHANGES_BID",
+                    "type": "StringParameterDefinition"
+                }
+            ]
+        },
+        {},
+        {},
+        {}
+    ],
+    "description": "",
+    "displayName": "server",
+    "displayNameOrNull": null,
+    "name": "server",
+    "url": "https://jenkins.build.itc.dropbox.com/job/server/",
+    "buildable": true,
+    "builds": [
+        {
+            "actions": [
+                {
+                    "parameters": [
+                        {
+                            "name": "REVISION",
+                            "value": "default"
+                        },
+                        {
+                            "name": "CHANGES_BID",
+                            "value": "4d5b4e077c6a4fd9844b49adec480b5b"
+                        }
+                    ]
+                },
+                {
+                    "causes": [
+                        {
+                            "shortDescription": "Started by user David Cramer",
+                            "userId": "cramer",
+                            "userName": "David Cramer"
+                        }
+                    ]
+                },
+                {},
+                {},
+                {
+                    "causes": [
+                        {}
+                    ]
+                },
+                {},
+                {}
+            ],
+            "artifacts": [],
+            "building": false,
+            "description": null,
+            "duration": 129872,
+            "estimatedDuration": 1617809,
+            "executor": null,
+            "fullDisplayName": "server #2",
+            "id": "2013-10-17_18-21-57",
+            "keepLog": false,
+            "number": 2,
+            "result": "ABORTED",
+            "timestamp": 1382034117892,
+            "url": "https://jenkins.build.itc.dropbox.com/job/server/2/",
+            "builtOn": "server-ubuntu-10.04 (ami-746cf244) (i-836023b7)",
+            "changeSet": {
+                "items": [],
+                "kind": null
+            },
+            "culprits": []
+        },
+        {
+            "actions": [
+                {
+                    "parameters": [
+                        {
+                            "name": "REVISION",
+                            "value": "default"
+                        },
+                        {
+                            "name": "CHANGES_BID",
+                            "value": "f9481a17aac446718d7893b6e1c6288b"
+                        }
+                    ]
+                },
+                {
+                    "causes": [
+                        {
+                            "shortDescription": "Started by user David Cramer",
+                            "userId": "cramer",
+                            "userName": "David Cramer"
+                        }
+                    ]
+                },
+                {},
+                {},
+                {}
+            ],
+            "artifacts": [],
+            "building": false,
+            "description": null,
+            "duration": 8878,
+            "estimatedDuration": 1617809,
+            "executor": null,
+            "fullDisplayName": "server #1",
+            "id": "2013-10-17_18-21-24",
+            "keepLog": false,
+            "number": 1,
+            "result": "FAILURE",
+            "timestamp": 1382034084275,
+            "url": "https://jenkins.build.itc.dropbox.com/job/server/1/",
+            "builtOn": "server-ubuntu-10.04 (ami-746cf244) (i-836023b7)",
+            "changeSet": {
+                "items": [],
+                "kind": null
+            },
+            "culprits": []
+        }
+    ],
+    "color": "red_anime",
+    "inQueue": true,
+    "keepDependencies": false,
+    "nextBuildNumber": 7,
+    "property": [
+        {
+            "parameterDefinitions": [
+                {
+                    "defaultParameterValue": {
+                        "name": "REVISION",
+                        "value": "default"
+                    },
+                    "description": "A commit, branch name, or something else recognizable as a tree.\n",
+                    "name": "REVISION",
+                    "type": "StringParameterDefinition"
+                },
+                {
+                    "defaultParameterValue": {
+                        "name": "CHANGES_BID",
+                        "value": ""
+                    },
+                    "description": "The build identifier in Changes.",
+                    "name": "CHANGES_BID",
+                    "type": "StringParameterDefinition"
+                }
+            ]
+        },
+        {},
+        {}
+    ],
+    "concurrentBuild": false,
+    "downstreamProjects": [],
+    "scm": {
+        "browser": null,
+        "type": "hudson.scm.NullSCM"
+    },
+    "upstreamProjects": []
+}

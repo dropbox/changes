@@ -9,8 +9,7 @@ from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Repository, Project, Build, EntityType, Revision, Author,
-    Phase, Step, Patch
+    Repository, Project, Build, Revision, Author, Phase, Step, Patch
 )
 from changes.testutils import BackendTestCase
 from changes.testutils.http import MockedResponse
@@ -51,12 +50,13 @@ class KoalityBuilderTestCase(BackendTestCase):
 
         self.repo = Repository(url='https://github.com/dropbox/changes.git')
         self.project = Project(repository=self.repo, name='test', slug='test')
+        self.project_entity = self.make_project_entity()
 
         db.session.add(self.repo)
         db.session.add(self.project)
 
     def make_project_entity(self, project=None):
-        return self.make_entity(EntityType.project, (project or self.project).id, 1)
+        return self.make_entity('project', (project or self.project).id, 1)
 
 
 class SyncBuildDetailsTest(KoalityBuilderTestCase):
@@ -67,14 +67,10 @@ class SyncBuildDetailsTest(KoalityBuilderTestCase):
         change = self.create_change(self.project)
         build = self.create_build(project=self.project, change=change)
 
-        project_entity = self.make_project_entity()
-        build_entity = self.make_entity(EntityType.build, build.id, 1)
+        self.make_entity('build', build.id, 1)
 
         backend.sync_build_details(
             build=build,
-            project=self.project,
-            build_entity=build_entity,
-            project_entity=project_entity,
         )
 
         assert build.label == 'Fixing visual regression with visuals.'
@@ -195,8 +191,6 @@ class CreateBuildTest(KoalityBuilderTestCase):
     def test_simple(self):
         backend = self.get_backend()
 
-        project_entity = self.make_project_entity()
-
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
         build = Build(
@@ -209,10 +203,8 @@ class CreateBuildTest(KoalityBuilderTestCase):
 
         entity = backend.create_build(
             build=build,
-            project=self.project,
-            project_entity=project_entity,
         )
-        assert entity.type == EntityType.build
+        assert entity.type == 'build'
         assert entity.internal_id == build.id
         assert entity.remote_id == '1501'
         assert entity.provider == 'koality'
@@ -224,8 +216,6 @@ class CreateBuildTest(KoalityBuilderTestCase):
 
     def test_patch(self):
         backend = self.get_backend()
-
-        project_entity = self.make_project_entity()
 
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
@@ -249,10 +239,8 @@ class CreateBuildTest(KoalityBuilderTestCase):
 
         entity = backend.create_build(
             build=build,
-            project=self.project,
-            project_entity=project_entity,
         )
-        assert entity.type == EntityType.build
+        assert entity.type == 'build'
         assert entity.internal_id == build.id
         assert entity.remote_id == '1501'
         assert entity.provider == 'koality'
