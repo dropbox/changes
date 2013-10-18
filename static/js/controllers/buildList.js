@@ -22,7 +22,6 @@ define(['app', 'factories/stream', 'factories/flash', 'directives/radialProgress
       });
 
     function addBuild(build) {
-      console.log(build.status);
       $scope.$apply(function() {
         var updated = false,
             build_id = build.id,

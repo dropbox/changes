@@ -99,6 +99,8 @@ class BuildIndexAPIView(APIView):
         backend = self.get_backend()
         backend.create_build(build)
 
+        db.session.commit()
+
         sync_build.delay(build_id=build.id)
 
         context = {

@@ -78,8 +78,8 @@ class JenkinsBuilder(BaseBackend):
             build_item['job_name'], build_item['build_no']))
 
         if item['timestamp'] and not build.date_started:
-            build.date_started = datetime.utcfromtimestamp(
-                item['timestamp'] / 1000)
+            build.date_started = min(datetime.utcfromtimestamp(
+                item['timestamp'] / 1000), datetime.utcnow())
             changed = True
 
         if item['building']:
@@ -108,7 +108,6 @@ class JenkinsBuilder(BaseBackend):
 
         if changed:
             db.session.add(build)
-
 
     def _find_job(self, job_name, build_id):
         """
