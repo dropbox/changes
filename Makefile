@@ -7,7 +7,7 @@ develop: update-submodules
 	make install-test-requirements
 
 install-test-requirements:
-	pip install -q "file://`pwd`#egg=changes[tests]" --use-mirrors
+	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
 
 update-submodules:
 	git submodule init
