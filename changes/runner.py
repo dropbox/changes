@@ -71,6 +71,8 @@ def worker(queues=('queues', 'default')):
             # Creates a worker that handle jobs in ``default`` queue.
             worker = queue.get_worker(*queues)
             worker.work()
+        except (KeyboardInterrupt, SystemExit):
+            break
         except Exception:
             import traceback
             traceback.print_exc()
