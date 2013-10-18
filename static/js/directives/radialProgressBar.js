@@ -61,7 +61,7 @@ define(['app', 'utils/dial'], function(app, Dial) {
             progress = 0;
           } else {
             ts_now = Math.max(new Date().getTime(), ts_start);
-            progress = Math.min((ts_now - ts_start) * 1000.0 / attrs.estimatedDuration * 100, 95);
+            progress = Math.min((ts_now - ts_start) / attrs.estimatedDuration * 100, 95);
           }
         }
 

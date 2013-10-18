@@ -103,7 +103,7 @@ class JenkinsBuilder(BaseBackend):
             changed = True
 
         if item['duration']:
-            build.duration = item['duration'] * 1000
+            build.duration = item['duration']
             changed = True
 
         if changed:
