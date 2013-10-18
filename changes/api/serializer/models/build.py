@@ -16,6 +16,7 @@ class BuildSerializer(Serializer):
         if last_5_builds:
             avg_build_time = sum(
                 b.duration for b in last_5_builds
+                if b.duration
             ) / len(last_5_builds)
         else:
             avg_build_time = None

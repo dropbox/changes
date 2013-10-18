@@ -15,7 +15,7 @@ def test_simple():
     )
     result = serialize(change)
     assert result['name'] == 'Hello world'
-    assert result['link'] == '/projects/test/changes/33846695b2774b29a71795a009e8168a/'
+    assert result['link'] == '/changes/33846695b2774b29a71795a009e8168a/'
     assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['dateCreated'] == '2013-09-19T22:15:22'
     assert result['dateModified'] == '2013-09-19T22:15:23'

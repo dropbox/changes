@@ -11,7 +11,7 @@ class ChangeSerializer(Serializer):
             'project': instance.project,
             'author': instance.author,
             'message': instance.message,
-            'link': '/projects/%s/changes/%s/' % (instance.project.slug, instance.id.hex),
+            'link': '/changes/%s/' % (instance.id.hex,),
             'dateCreated': instance.date_created.isoformat(),
             'dateModified': instance.date_modified.isoformat(),
         }

@@ -40,8 +40,8 @@ def create_app(**config):
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
     configure_web_routes(app)
-    configure_event_listeners(app)
 
+    configure_event_listeners(app)
     configure_jobs(app)
 
     return app
