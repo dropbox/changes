@@ -8,6 +8,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
+from changes.db.types.json import JSONEncodedDict
 
 
 class Build(db.Model):
@@ -29,6 +30,7 @@ class Build(db.Model):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
+    data = Column(JSONEncodedDict)
 
     change = relationship('Change')
     repository = relationship('Repository')
