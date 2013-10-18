@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import current_app
 
 from changes.config import queue, db
@@ -22,7 +23,8 @@ def sync_build(build_id):
         )
         builder.sync_build(build)
 
-        db.session.commit()
+        build.date_modified = datetime.utcnow()
+        db.session.add(build)
 
         if build.status != Status.finished:
             sync_build.delay(

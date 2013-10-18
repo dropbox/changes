@@ -65,7 +65,7 @@ class JenkinsBuilder(BaseBackend):
             build.status = Status.finished
             build.result = Result.aborted
             db.session.add(build)
-        else:
+        elif item.get('executable'):
             build_no = item['executable']['number']
             build_item['build_no'] = build_no
             db.session.add(entity)

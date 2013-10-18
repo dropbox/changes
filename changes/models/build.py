@@ -28,6 +28,7 @@ class Build(db.Model):
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
+    date_modified = Column(DateTime, default=datetime.utcnow)
 
     change = relationship('Change')
     repository = relationship('Repository')

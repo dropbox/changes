@@ -19,7 +19,7 @@
 						<a href="#">{{build.project.name}}</a>
 						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 					</small>
-					<span class="status">{{build.status.name}}</span>
+					<span class="status">{{getBuildStatus(build)}}</span>
 					<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
 				</td>
 			</tr>

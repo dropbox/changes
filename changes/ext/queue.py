@@ -1,6 +1,7 @@
 import redis
 import rq
 
+from functools import wraps
 from flask import _app_ctx_stack
 
 
@@ -81,6 +82,8 @@ class Queue(object):
         return self.get_app().extensions['queue'].get_worker(*args, **config)
 
     def job(self, func_or_queue=None):
+        # TODO(dcramer): its kind of gross that we've coupled this, we should
+        # instead allow some kind of callbacks to be registered for all jobs
         if callable(func_or_queue):
             func = func_or_queue
             queue = 'default'
@@ -89,14 +92,26 @@ class Queue(object):
             queue = func_or_queue
 
         def wrapper(fn):
+            from changes.config import db
             from flask import current_app
+
+            @wraps(fn)
+            def inner(*args, **kwargs):
+                try:
+                    result = fn(*args, **kwargs)
+                except Exception:
+                    db.session.rollback()
+                    raise
+                else:
+                    db.session.commit()
+                return result
 
             def delay(*args, **kwargs):
                 q = current_app.extensions['queue'].get_queue(queue)
-                return q.enqueue(fn, *args, **kwargs)
+                return q.enqueue(inner, *args, **kwargs)
 
-            fn.delay = delay
-            return fn
+            inner.delay = delay
+            return inner
 
         if func is not None:
             return wrapper(func)

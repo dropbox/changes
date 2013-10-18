@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
+from changes.constants import Status
 from changes.jobs.sync_build import sync_build
 from changes.models import Build, Repository, Patch, Change
 
@@ -86,6 +87,7 @@ class BuildIndexAPIView(APIView):
             change=change,
             project=change.project,
             repository=repository,
+            status=Status.queued,
             author=author,
             label=label,
             parent_revision_sha=sha,

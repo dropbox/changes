@@ -21,6 +21,14 @@ define(['app', 'factories/stream', 'factories/flash', 'directives/radialProgress
         flash('error', 'Unable to load build list');
       });
 
+    $scope.getBuildStatus = function(build) {
+      if (build.status.id == 'finished') {
+        return build.result.name;
+      } else {
+        return build.status.name;
+      }
+    }
+
     function addBuild(build) {
       $scope.$apply(function() {
         var updated = false,

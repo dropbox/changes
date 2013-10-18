@@ -4,6 +4,7 @@ import argparse
 import sys
 
 from changes.config import create_app, db
+from changes.constants import Status
 from changes.models import (
     Project, Build
 )
@@ -44,6 +45,7 @@ if args.command == 'add':
         label=label,
         message=message,
         parent_revision_sha=parent_revision_sha,
+        status=Status.queued,
     )
 
     # TODO: this should use a backend defined by the project
