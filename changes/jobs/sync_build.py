@@ -1,7 +1,7 @@
 from flask import current_app
 
 from changes.config import queue
-from changes.backends.jenkinds.builder import JenkinsBuilder
+from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.constants import Status
 from changes.models.build import Build
 
