@@ -37,9 +37,17 @@ if args.command == 'add':
     slug = raw_input('Project slug? [%s] ' % (default_slug, )) or default_slug
     repo_url = raw_input('Repository URL? ') or abort()
 
-    provider = raw_input('Provider? [koality] ') or abort()
+    provider = raw_input('Provider? (koality|jenkins) ') or abort()
     if provider == 'koality':
-        provider_project_id = raw_input('Koality project ID? ') or abort()
+        provider_options = {
+            'type': 'project',
+            'remote_id': raw_input('Koality project ID? ') or abort(),
+        }
+    elif provider == 'jenkins':
+        provider_options = {
+            'type': 'job',
+            'remote_id': raw_input('Jenkins job name? ') or abort(),
+        }
     else:
         abort()
 
@@ -54,10 +62,9 @@ if args.command == 'add':
         repository=repo,
     )
     entity = RemoteEntity(
-        type='project',
         provider=provider,
         internal_id=project.id,
-        remote_id=provider_project_id,
+        **provider_options
     )
     db.session.add(project)
     db.session.add(entity)
