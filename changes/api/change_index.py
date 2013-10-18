@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
-from changes.config import db, pubsub
+from changes.config import db
 from changes.models import Change, Build, Project, Repository
 
 
