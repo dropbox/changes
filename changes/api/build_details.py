@@ -28,4 +28,7 @@ class BuildDetailsAPIView(APIView):
         return self.respond(context)
 
     def get_stream_channels(self, build_id):
-        return ['builds:*:{0}'.format(build_id)]
+        return [
+            'builds:*:{0}'.format(build_id),
+            'tests:*:{0}:*'.format(build_id),
+        ]
