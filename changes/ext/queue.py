@@ -3,16 +3,6 @@ import rq
 
 from flask import _app_ctx_stack
 
-from redis._compat import urlparse
-
-default_config = {
-    'RQ_DEFAULT_HOST': 'localhost',
-    'RQ_DEFAULT_PORT': 6379,
-    'RQ_DEFAULT_PASSWORD': None,
-    'RQ_DEFAULT_DB': 0,
-    'RQ_DEFAULT_RESULT_TTL': 500,
-}
-
 
 def get_state(app):
     """Gets the state for the application"""
@@ -27,38 +17,15 @@ class _QueueState(object):
         self.ext = ext
         self.app = app
 
-    def _get_option(self, name, key):
-        name = name.upper()
-        config_key = 'RQ_%s_%s' % (name, key)
-        if not config_key in self.app.config \
-                and not 'RQ_%s_URL' % name in self.app.config:
-            config_key = 'RQ_DEFAULT_%s' % key
-        return self.app.config.get(config_key, None)
-
     def get_connection(self, queue='default'):
-        url = self._get_option(queue, 'URL')
-        if url:
-            return redis.from_url(url, db=self._get_option(queue, 'DB'))
-        return redis.Redis(
-            host=self._get_option(queue, 'HOST'),
-            port=self._get_option(queue, 'PORT'),
-            password=self._get_option(queue, 'PASSWORD'),
-            db=self._get_option(queue, 'DB'))
+        return redis.from_url(self.app.config['REDIS_URL'])
 
     def get_queue(self, name='default', **kwargs):
         kwargs['connection'] = self.get_connection(name)
         return rq.Queue(name, **kwargs)
 
     def get_server_url(self, name):
-        url = self._get_option(name, 'URL')
-        if url:
-            url_kwargs = urlparse(url)
-            return '%s://%s' % (url_kwargs.scheme, url_kwargs.netloc)
-        else:
-            host = self._get_option(name, 'HOST')
-            password = self._get_option(name, 'HOST')
-            netloc = host if not password else ':%s@%s' % (password, host)
-            return 'redis://%s' % netloc
+        return self.app.config['REDIS_URL']
 
     def get_worker(self, *queues, **config):
         if len(queues) == 0:
@@ -90,9 +57,6 @@ class Queue(object):
 
     def init_app(self, app):
         self.app = app
-
-        for key, value in default_config.items():
-            app.config.setdefault(key, value)
 
         if not hasattr(app, 'extensions'):
             app.extensions = {}

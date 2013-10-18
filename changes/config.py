@@ -22,8 +22,7 @@ def create_app(**config):
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///changes'
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-    app.config['REDIS_URL'] = 'redis://localhost'
-    app.config['RQ_DEFAULT_RESULT_TTL'] = 0
+    app.config['REDIS_URL'] = 'redis://localhost/0'
     app.config['DEBUG'] = True
     app.config['HTTP_PORT'] = 5000
     app.config['JENKINS_URL'] = 'https://jenkins.build.itc.dropbox.com'
