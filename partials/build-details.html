@@ -18,19 +18,15 @@
 			<dd ng-if="build.duration" duration="build.duration"></dd>
 		</dl>
 
-		<pre ng-if="build.message">{{build.message}}</pre>
+		<pre ng-if="build.message" class="build-message">{{build.message}}</pre>
 
-		<br>
-
-		<ul class="nav nav-justified nav-tabs phase-list">
+		<ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
 			<li ng-repeat="phase in phases | orderBy:'dateStarted'" class="result-{{phase.result.id}}">
 				<a href="#">{{phase.name}}</a>
 			</li>
 		</ul>
 
 	</div>
-
-	<br>
 
 	<div id="test-results" ng-if="tests">
 		<div class="page-header">

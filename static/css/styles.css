@@ -220,6 +220,10 @@ dl.flat dt {
 }
 
 
+.build-message {
+  margin-bottom: 20px;
+}
+
 .phase-list {
   list-style: none;
   padding-left: 0;
