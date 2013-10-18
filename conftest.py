@@ -35,7 +35,7 @@ def pytest_sessionstart(session):
 
     app = create_app(
         TESTING=True,
-        SQLALCHEMY_DATABASE_URI='postgresql://localhost/test_changes',
+        SQLALCHEMY_DATABASE_URI='postgresql:///test_changes',
     )
     app_context = app.test_request_context()
     app_context.push()

@@ -20,18 +20,11 @@ def create_app(**config):
     app = flask.Flask(__name__,
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/changes'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///changes'
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
     app.config['REDIS_URL'] = 'redis://localhost'
     app.config['RQ_DEFAULT_RESULT_TTL'] = 0
-    # app.config['SQLALCHEMY_ECHO'] = True
     app.config['DEBUG'] = True
-    app.config['JENKINS_URL'] = 'http://54.213.59.142'
-    # app.config['UPLOAD_FOLDER'] = PROJECT_ROOT + '/uploads'
-    # if not path.isdir(app.config['UPLOAD_FOLDER']):
-    #     mkdir(app.config['UPLOAD_FOLDER'])
-    # app.config['AWS_ACCESS_KEY'] = os.environ['AWS_ACCESS_KEY']
-    # app.config['AWS_SECRET_KEY'] = os.environ['AWS_SECRET_KEY']
     app.config['HTTP_PORT'] = 5000
     app.config['KOALITY_URL'] = 'https://build.itc.dropbox.com'
     app.config['KOALITY_API_KEY'] = 'he8i7mxdzrocn6rg9qv852occkvpih9b'
