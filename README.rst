@@ -20,7 +20,7 @@ Create an environment:
 
 ::
 
-	mkvirtualenv buidlbox
+	mkvirtualenv changes
 
 
 Install dependencies:
