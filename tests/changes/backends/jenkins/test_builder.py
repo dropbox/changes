@@ -248,7 +248,7 @@ class SyncBuildTest(BaseTestCase):
         assert entity.data['build_no'] == 2
         assert build.status == Status.finished
         assert build.result == Result.passed
-        assert build.duration == 8875000
+        assert build.duration == 8875
         assert build.date_finished is not None
 
     @httpretty.activate
@@ -283,5 +283,5 @@ class SyncBuildTest(BaseTestCase):
         assert entity.data['build_no'] == 2
         assert build.status == Status.finished
         assert build.result == Result.failed
-        assert build.duration == 8875000
+        assert build.duration == 8875
         assert build.date_finished is not None
