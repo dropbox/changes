@@ -10,6 +10,9 @@ from changes.models.build import Build
 def sync_build(build_id):
     try:
         build = Build.query.get(build_id)
+        if not build:
+            return
+
         if build.status == Status.finished:
             return
 
