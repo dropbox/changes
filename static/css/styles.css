@@ -326,6 +326,9 @@ dl.flat dt {
 .test-results > tbody > tr.status-failed > td {
   color: #d9322d;
 }
+.test-results > tbody > tr.status-skipped > td {
+  color: orange;
+}
 
 footer {
   color: #333;
