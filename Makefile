@@ -3,7 +3,7 @@
 develop: update-submodules
 	npm install
 	bower install
-	pip install -q -e . --use-mirrors
+	pip install -e . --use-mirrors
 	make install-test-requirements
 
 install-test-requirements:
