@@ -72,7 +72,6 @@ class JenkinsBuilder(BaseBackend):
             self._sync_build_from_active(build, entity)
 
     def _sync_build_from_active(self, build, entity):
-        changed = False
         build_item = entity.data
         item = self._get_response('/job/{}/{}'.format(
             build_item['job_name'], build_item['build_no']))
@@ -80,15 +79,11 @@ class JenkinsBuilder(BaseBackend):
         if item['timestamp'] and not build.date_started:
             build.date_started = min(datetime.utcfromtimestamp(
                 item['timestamp'] / 1000), datetime.utcnow())
-            changed = True
 
         if item['building']:
-            if build.status != Status.in_progress:
-                build.status = Status.in_progress
-                changed = True
+            build.status = Status.in_progress
         else:
             build.date_finished = datetime.utcnow()
-            changed = True
 
         if item['result']:
             build.status = Status.finished
@@ -100,14 +95,18 @@ class JenkinsBuilder(BaseBackend):
                 build.result = Result.failed
             else:
                 raise ValueError('Invalid build result: %s' % (item['result'],))
-            changed = True
 
         if item['duration']:
             build.duration = item['duration']
-            changed = True
 
-        if changed:
-            db.session.add(build)
+        build.data = {
+            'backend': {
+                'uri': item['url'],
+                'label': item['fullDisplayName'],
+            }
+        }
+
+        db.session.add(build)
 
         for action in item['actions']:
             # is this the best way to find this?

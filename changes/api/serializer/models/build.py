@@ -21,6 +21,16 @@ class BuildSerializer(Serializer):
         else:
             avg_build_time = None
 
+        data = instance.data or {}
+        backend_details = data.get('backend')
+        if backend_details:
+            external = {
+                'link': backend_details['uri'],
+                'label': backend_details['label'],
+            }
+        else:
+            external = None
+
         return {
             'id': instance.id.hex,
             'name': instance.label,
@@ -35,6 +45,7 @@ class BuildSerializer(Serializer):
             'duration': instance.duration,
             'estimatedDuration': avg_build_time,
             'link': '/builds/%s/' % (instance.id.hex,),
+            'external': external,
             'dateCreated': instance.date_created.isoformat(),
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
             'dateFinished': instance.date_finished.isoformat() if instance.date_finished else None,
