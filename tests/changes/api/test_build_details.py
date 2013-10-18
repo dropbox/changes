@@ -6,7 +6,7 @@ class BuildDetailsTest(APITestCase):
         change = self.create_change(self.project)
         build = self.create_build(self.project, change=change)
 
-        path = '/api/0/changes/{0}/builds/{1}/'.format(
+        path = '/api/0/builds/{1}/'.format(
             change.id.hex, build.id.hex)
 
         resp = self.client.get(path)

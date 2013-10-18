@@ -21,7 +21,7 @@ def test_simple():
     )
     result = serialize(build)
     assert result['name'] == 'Hello world'
-    assert result['link'] == '/projects/test/changes/2e18a7cbc0c24316b2ef9d41fea191d6/builds/33846695b2774b29a71795a009e8168a/'
+    assert result['link'] == '/builds/33846695b2774b29a71795a009e8168a/'
     assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['parent_revision'] == {
         'sha': '1e7958a368f44b0eb5a57372a9910d50',
