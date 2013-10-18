@@ -1,6 +1,6 @@
 from flask import current_app
 
-from changes.config import queue
+from changes.config import queue, db
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.constants import Status
 from changes.models.build import Build
@@ -15,9 +15,11 @@ def sync_build(build_id):
 
         builder = JenkinsBuilder(
             app=current_app,
-            base_uri=current_app.config['JENKINS_URL'],
+            base_url=current_app.config['JENKINS_URL'],
         )
         builder.sync_build(build)
+
+        db.session.commit()
 
         if build.status != Status.finished:
             sync_build.delay(
