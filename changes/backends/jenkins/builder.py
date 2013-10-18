@@ -9,7 +9,7 @@ from datetime import datetime
 from changes.backends.base import BaseBackend
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import RemoteEntity
+from changes.models import RemoteEntity, Test
 
 
 class JenkinsBuilder(BaseBackend):
@@ -108,6 +108,40 @@ class JenkinsBuilder(BaseBackend):
 
         if changed:
             db.session.add(build)
+
+        for action in item['actions']:
+            # is this the best way to find this?
+            if action.get('urlName') == 'testReport':
+                self._sync_test_results(build, entity)
+                break
+
+    def _sync_test_results(self, build, entity):
+        build_item = entity.data
+        test_report = self._get_response('/job/{}/{}/testReport/'.format(
+            build_item['job_name'], build_item['build_no']))
+
+        for suite in test_report['suites']:
+            for case in suite['cases']:
+                label = '{}.{}'.format(case['className'], case['name'])
+                if Test.query.filter_by(build=build, label=label).first():
+                    continue
+
+                # TODO: expand Test to handle more message types
+                test = Test(
+                    build=build,
+                    project=build.project,
+                    label=label,
+                    duration=int(case['duration'] * 1000),
+                )
+                if case['status'] == 'PASSED':
+                    test.result = Result.passed
+                elif case['status'] == 'FAILURE':
+                    test.result = Result.failed
+                elif case['status'] == 'SKIPPED':
+                    test.result = Result.skipped
+                else:
+                    raise ValueError('Invalid test result: %s' % (case['status'],))
+                db.session.add(test)
 
     def _find_job(self, job_name, build_id):
         """

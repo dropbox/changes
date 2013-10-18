@@ -8,7 +8,7 @@ from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Repository, Project, RemoteEntity
+from changes.models import Repository, Project, RemoteEntity, Test
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.testutils import BackendTestCase
 
@@ -285,3 +285,38 @@ class SyncBuildTest(BaseTestCase):
         assert build.result == Result.failed
         assert build.duration == 8875
         assert build.date_finished is not None
+
+    @httpretty.activate
+    def test_does_sync_test_report(self):
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_with_test_report.json'))
+
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
+            body=self.load_fixture('fixtures/GET/job_test_report.json'))
+
+        build = self.create_build(
+            self.project,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+
+        entity = RemoteEntity(
+            provider=self.provider,
+            internal_id=build.id,
+            remote_id='server#2',
+            type='build',
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        db.session.add(entity)
+
+        builder = self.get_builder()
+        builder.sync_build(build)
+
+        test_list = list(Test.query.filter_by(build=build))
+
+        assert len(test_list) == 2

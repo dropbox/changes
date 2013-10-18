@@ -1,0 +1,47 @@
+{
+    "duration": 0.8767402,
+    "empty": false,
+    "failCount": 0,
+    "passCount": 25,
+    "skipCount": 1,
+    "suites": [
+        {
+            "cases": [
+                {
+                    "age": 40,
+                    "className": "tests.changes.handlers.test_xunit",
+                    "duration": 0,
+                    "errorDetails": null,
+                    "errorStackTrace": null,
+                    "failedSince": 41,
+                    "name": "Test",
+                    "skipped": true,
+                    "skippedMessage": "collection skipped",
+                    "status": "SKIPPED",
+                    "stderr": null,
+                    "stdout": null
+                },
+                {
+                    "age": 0,
+                    "className": "tests.changes.api.test_build_details.BuildDetailsTest",
+                    "duration": 0.15577102,
+                    "errorDetails": null,
+                    "errorStackTrace": null,
+                    "failedSince": 0,
+                    "name": "test_simple",
+                    "skipped": false,
+                    "skippedMessage": null,
+                    "status": "PASSED",
+                    "stderr": null,
+                    "stdout": null
+                }
+            ],
+            "duration": 0.8767402,
+            "id": null,
+            "name": "pytest",
+            "stderr": null,
+            "stdout": null,
+            "timestamp": null
+        }
+    ]
+}
