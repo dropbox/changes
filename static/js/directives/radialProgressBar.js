@@ -1,5 +1,5 @@
 define(['app', 'utils/dial'], function(app, Dial) {
-  app.directive('radialProgressBar', function() {
+  app.directive('radialProgressBar', ['$timeout', function($timeout) {
     return function radialProgressBarLink(scope, element, attrs) {
       var $element = $(element),
           $parent = $element.parent(),
@@ -21,11 +21,7 @@ define(['app', 'utils/dial'], function(app, Dial) {
       function update(value) {
         value = parseInt(value, 10);
 
-        if (!value) {
-          return;
-        }
-
-        if (value == $element.val(value)) {
+        if (value === null) {
           return;
         }
 
@@ -53,9 +49,34 @@ define(['app', 'utils/dial'], function(app, Dial) {
         }
       }
 
-      attrs.$observe('radialProgressBar', function(value) {
-        update(value)
-      });
+      function tick() {
+        var ts_start, ts_now, progress, is_finished;
+        var is_finished = attrs.status == 'finished';
+
+        if (is_finished) {
+          progress = 100;
+        } else {
+          ts_start = new Date(attrs.dateStarted).getTime();
+          if (!ts_start) {
+            progress = 0;
+          } else {
+            ts_now = Math.max(new Date().getTime(), ts_start);
+            progress = Math.min((ts_now - ts_start) * 1000.0 / attrs.estimatedDuration * 100, 95);
+          }
+        }
+
+        update(progress);
+
+        if (!is_finished) {
+          $timeout(tick, 500);
+        }
+      }
+
+      tick();
+
+      // attrs.$observe('radialProgressBar', function(value) {
+      //   update(value)
+      // });
     }
-  });
+  }]);
 });

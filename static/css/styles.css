@@ -106,6 +106,7 @@ dl.flat dt {
   background: none !important;
 }
 
+.result-unknown .indicator,
 .result-aborted .indicator {
   color: #fff;
   background: #aaa;

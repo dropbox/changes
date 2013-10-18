@@ -34,7 +34,7 @@
     "id": "2013-10-17_18-21-57",
     "keepLog": false,
     "number": 2,
-    "result": "FAILED",
+    "result": "FAILURE",
     "timestamp": 1382034117892,
     "url": "https://jenkins.build.itc.dropbox.com/job/server/2/",
     "builtOn": "server-ubuntu-10.04 (ami-746cf244) (i-836023b7)",

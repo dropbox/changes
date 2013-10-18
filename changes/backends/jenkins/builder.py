@@ -61,7 +61,7 @@ class JenkinsBuilder(BaseBackend):
         if item['blocked']:
             build.status = Status.queued
             db.session.add(build)
-        elif item['cancelled']:
+        elif item.get('cancelled'):
             build.status = Status.finished
             build.result = Result.aborted
             db.session.add(build)
@@ -72,6 +72,7 @@ class JenkinsBuilder(BaseBackend):
             self._sync_build_from_active(build, entity)
 
     def _sync_build_from_active(self, build, entity):
+        changed = False
         build_item = entity.data
         item = self._get_response('/job/{}/{}'.format(
             build_item['job_name'], build_item['build_no']))
@@ -79,11 +80,15 @@ class JenkinsBuilder(BaseBackend):
         if item['timestamp'] and not build.date_started:
             build.date_started = datetime.utcfromtimestamp(
                 item['timestamp'] / 1000)
+            changed = True
 
         if item['building']:
-            build.status = Status.in_progress
+            if build.status != Status.in_progress:
+                build.status = Status.in_progress
+                changed = True
         else:
             build.date_finished = datetime.utcnow()
+            changed = True
 
         if item['result']:
             build.status = Status.finished
@@ -91,13 +96,19 @@ class JenkinsBuilder(BaseBackend):
                 build.result = Result.passed
             elif item['result'] == 'ABORTED':
                 build.result = Result.aborted
-            elif item['result'] == 'FAILED':
+            elif item['result'] == 'FAILURE':
                 build.result = Result.failed
+            else:
+                raise ValueError('Invalid build result: %s' % (item['result'],))
+            changed = True
 
         if item['duration']:
             build.duration = item['duration'] * 1000
+            changed = True
 
-        db.session.add(build)
+        if changed:
+            db.session.add(build)
+
 
     def _find_job(self, job_name, build_id):
         """

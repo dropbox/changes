@@ -93,3 +93,7 @@ def configure_event_listeners(app):
     event.listen(Build, 'after_insert', events.publish_build_update)
     event.listen(Change, 'after_insert', events.publish_change_update)
     event.listen(Phase, 'after_insert', events.publish_phase_update)
+
+    event.listen(Build, 'after_update', events.publish_build_update)
+    event.listen(Change, 'after_update', events.publish_change_update)
+    event.listen(Phase, 'after_update', events.publish_phase_update)

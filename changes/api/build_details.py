@@ -16,7 +16,8 @@ class BuildDetailsAPIView(APIView):
             return Response(status=404)
 
         test_list = list(Test.query.filter_by(
-            build_id=build.id).order_by('-result', '-duration'))
+            build_id=build.id).order_by(
+                Test.result.desc(), Test.duration.desc()))
 
         context = {
             'build': build,

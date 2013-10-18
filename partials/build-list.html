@@ -6,7 +6,10 @@
 				<td>
 					<div class="indicator" title="{{build.result.name}}">
 						<div data-result="{{build.result.id}}"
-							 radial-progress-bar="50%">&nbsp;</div>
+							 data-status="{{build.status.id}}"
+							 data-date-started="{{build.dateStarted}}"
+							 data-estimated-duration="{{build.estimatedDuration}}"
+							 radial-progress-bar>&nbsp;</div>
 					</div>
 				</td>
 				<td>
