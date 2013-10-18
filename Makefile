@@ -15,7 +15,7 @@ update-submodules:
 
 test: develop lint
 	@echo "Running Python tests"
-	python setup.py -q test || exit 1
+	py.test tests
 	@echo ""
 
 lint:
@@ -24,7 +24,7 @@ lint:
 	@echo ""
 
 test-full: develop lint
-	py.test --junitxml=results.xml --cov-report=xml --cov=.
+	py.test --junitxml=results.xml --cov-report=xml --cov=. tests
 
 resetdb:
 	dropdb --if-exists changes
