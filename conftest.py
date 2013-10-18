@@ -40,7 +40,7 @@ def pytest_sessionstart(session):
     app_context = app.test_request_context()
     app_context.push()
     # 9.1 does not support --if-exists
-    if os.system("psql -l | grep 'test_changes'"):
+    if os.system("psql -l | grep 'test_changes'") == 0:
         assert not os.system('dropdb test_changes')
     assert not os.system('createdb -E utf-8 test_changes')
 
