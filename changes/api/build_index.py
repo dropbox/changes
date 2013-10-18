@@ -44,7 +44,7 @@ class BuildIndexAPIView(APIView):
     @param('author', AuthorValidator(), required=False)
     @param('patch[label]', required=False, dest='patch_label')
     @param('patch[url]', required=False, dest='patch_url')
-    def post(self, change, sha, author=None, patch_label=None,
+    def post(self, sha, change=None, author=None, patch_label=None,
              patch_url=None, patch=None):
 
         if request.form.get('patch'):

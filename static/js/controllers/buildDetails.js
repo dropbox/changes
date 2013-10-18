@@ -8,7 +8,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
     $scope.phases = [];
     $scope.tests = [];
 
-    $http.get('/api/0/changes/' + $routeParams.change_id + '/builds/' + $routeParams.build_id + '/').success(function(data) {
+    $http.get('/api/0/builds/' + $routeParams.build_id + '/').success(function(data) {
       $scope.build = data.build;
       $scope.tests = data.tests;
       $scope.phases = data.phases;
@@ -20,7 +20,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       });
     }
 
-    stream = Stream($scope, '/api/0/changes/' + $routeParams.change_id + '/builds/' + $routeParams.build_id + '/');
+    stream = Stream($scope, '/api/0/builds/' + $routeParams.build_id + '/');
     stream.subscribe('build.update', updateBuild);
   }]);
 });

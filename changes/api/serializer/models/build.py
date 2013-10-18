@@ -7,14 +7,6 @@ class BuildSerializer(Serializer):
     def serialize(self, instance):
         # XXX(dcramer): SQLAlchemy doesn't populate change_id when you bind
         # change, so for efficiency lets support both
-        change_id = instance.change_id or (instance.change and instance.change.id)
-
-        if change_id:
-            link = '/projects/%s/changes/%s/builds/%s/' % (
-                instance.project.slug, change_id.hex, instance.id.hex)
-        else:
-            link = None
-
         return {
             'id': instance.id.hex,
             'name': instance.label,
@@ -28,7 +20,7 @@ class BuildSerializer(Serializer):
             'message': instance.message,
             'duration': instance.duration,
             'estimatedDuration': 600,
-            'link': link,
+            'link': '/builds/%s/' % (instance.id.hex,),
             'dateCreated': instance.date_created.isoformat(),
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
             'dateFinished': instance.date_finished.isoformat() if instance.date_finished else None,

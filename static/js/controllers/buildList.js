@@ -16,6 +16,7 @@ define(['app', 'factories/stream', 'factories/flash', 'directives/radialProgress
     $http.get(entrypoint).
       success(function(data) {
         $scope.builds = data.builds;
+        checkEmpty();
       }).
       error(function(){
         flash('error', 'Unable to load build list');

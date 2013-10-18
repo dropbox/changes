@@ -11,17 +11,17 @@ define(['app', 'controllers/layout', 'controllers/changeList', 'controllers/chan
           templateUrl: 'partials/change-list.html',
           controller: 'changeListCtrl'
         })
-        .when('/projects/:project_id/changes/:change_id/', {
+        .when('/changes/:change_id/', {
           templateUrl: 'partials/change-details.html',
           controller: 'changeDetailsCtrl'
-        })
-        .when('/projects/:project_id/changes/:change_id/builds/:build_id/', {
-          templateUrl: 'partials/build-details.html',
-          controller: 'buildDetailsCtrl'
         })
         .when('/builds/', {
           templateUrl: 'partials/build-list.html',
           controller: 'buildListCtrl'
+        })
+        .when('/builds/:build_id/', {
+          templateUrl: 'partials/build-details.html',
+          controller: 'buildDetailsCtrl'
         })
         .otherwise({redirectTo: '/'});
   }]);
