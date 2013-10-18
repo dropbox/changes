@@ -28,6 +28,8 @@ def sync_build(build_id):
                 build_id=build.id,
             )
     except Exception:
+        # Ensure we continue to synchronize this build as this could be a
+        # temporary failure
         sync_build.delay(
             build_id=build.id,
         )
