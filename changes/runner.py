@@ -54,6 +54,30 @@ def poller():
     jenkins_poller()
 
 
+def worker(queues=('queues', 'default')):
+    import time
+    from changes.config import queue, create_app
+
+    app = create_app()
+    app_context = app.app_context()
+    app_context.push()
+
+    print 'New worker consuming from queues: %s' % (queues,)
+
+    queues = [q.strip() for q in queues if q.strip()]
+
+    while True:
+        try:
+            # Creates a worker that handle jobs in ``default`` queue.
+            worker = queue.get_worker(*queues)
+            worker.work()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+        time.sleep(5)
+
+
 def jenkins_poller():
     import time
     from changes.config import create_app, db
