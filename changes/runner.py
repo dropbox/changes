@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 
 
+def patch_gevent():
+    from gevent import monkey
+    monkey.patch_all()
+
+    from changes.db import psyco_gevent
+    psyco_gevent.make_psycopg_green()
+
+
 def _get_or_create_server_project():
     from changes.models import Repository, Project
     from changes.config import db
@@ -30,14 +38,16 @@ def _get_or_create_server_project():
     return project
 
 
-def web():
-    from gevent import wsgi
+def web(host='0.0.0.0', port=5000):
+    patch_gevent()
+
+    from gevent import pywsgi
     from changes.config import create_app
 
     print "Listening on http://0.0.0.0:5000"
 
     app = create_app()
-    wsgi.WSGIServer(('0.0.0.0', 5000), app).serve_forever()
+    pywsgi.WSGIServer((host, port), app).serve_forever()
 
 
 def poller():
