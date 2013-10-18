@@ -1,7 +1,7 @@
-from flask import current_app as app
+from flask import current_app
 
-from changes.backends.koality.builder import KoalityBuilder
-from changes.config import queue, db
+from changes.config import queue
+from changes.backends.jenkinds.builder import JenkinsBuilder
 from changes.constants import Status
 from changes.models.build import Build
 
@@ -13,15 +13,11 @@ def sync_build(build_id):
         if build.status == Status.finished:
             return
 
-        backend = KoalityBuilder(
-            app=app,
-            base_url=app.config['KOALITY_URL'],
-            api_key=app.config['KOALITY_API_KEY'],
+        builder = JenkinsBuilder(
+            app=current_app,
+            base_uri=current_app.config['JENKINS_URL'],
         )
-        build, _ = backend.sync_build_details(
-            build=build,
-        )
-        db.session.commit()
+        builder.sync_build(build)
 
         if build.status != Status.finished:
             sync_build.delay(
