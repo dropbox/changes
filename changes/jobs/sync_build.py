@@ -8,21 +8,27 @@ from changes.models.build import Build
 
 @queue.job
 def sync_build(build_id):
-    build = Build.query.get(build_id)
-    if build.status == Status.finished:
-        return
+    try:
+        build = Build.query.get(build_id)
+        if build.status == Status.finished:
+            return
 
-    backend = KoalityBuilder(
-        app=app,
-        base_url=app.config['KOALITY_URL'],
-        api_key=app.config['KOALITY_API_KEY'],
-    )
-    build, _ = backend.sync_build_details(
-        build=build,
-    )
-    db.session.commit()
+        backend = KoalityBuilder(
+            app=app,
+            base_url=app.config['KOALITY_URL'],
+            api_key=app.config['KOALITY_API_KEY'],
+        )
+        build, _ = backend.sync_build_details(
+            build=build,
+        )
+        db.session.commit()
 
-    if build.status != Status.finished:
+        if build.status != Status.finished:
+            sync_build.delay(
+                build_id=build.id,
+            )
+    except Exception:
         sync_build.delay(
             build_id=build.id,
         )
+        raise
