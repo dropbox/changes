@@ -15,16 +15,22 @@ from changes.models import RemoteEntity
 class JenkinsBuilder(BaseBackend):
     provider = 'jenkins'
 
-    def __init__(self, base_url=None, *args, **kwargs):
+    def __init__(self, base_url=None, token=None, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['JENKINS_URL']
+        self.token = token or self.app.config['JENKINS_TOKEN']
         self.logger = logging.getLogger('jenkins')
 
-    def _get_response(self, path, method='GET', **kwargs):
+    def _get_response(self, path, method='GET', params=None, **kwargs):
         url = '{}/{}/api/json/'.format(self.base_url, path.strip('/'))
 
+        if params is None:
+            params = {}
+
+        params.setdefault('token', self.token)
+
         self.logger.info('Fetching %r', url)
-        resp = getattr(requests, method.lower())(url, **kwargs)
+        resp = getattr(requests, method.lower())(url, params=params, **kwargs)
 
         if not (200 <= resp.status_code < 300):
             raise Exception('Invalid response. Status code was %s' % resp.status_code)
