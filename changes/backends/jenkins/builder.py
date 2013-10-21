@@ -125,12 +125,23 @@ class JenkinsBuilder(BaseBackend):
                 if Test.query.filter_by(build=build, label=label).first():
                     continue
 
+                message = []
+                if case['errorDetails']:
+                    message.append('Error\n-----')
+                    message.append(case['errorDetails'] + '\n')
+                if case['errorStackTrace']:
+                    message.append('Stacktrace\n----------')
+                    message.append(case['errorStackTrace'] + '\n')
+                if case['skippedMessage']:
+                    message.append(case['skippedMessage'] + '\n')
+
                 # TODO: expand Test to handle more message types
                 test = Test(
                     build=build,
                     project=build.project,
                     label=label,
                     duration=int(case['duration'] * 1000),
+                    message='\n'.join(message).strip(),
                 )
                 if case['status'] == 'PASSED':
                     test.result = Result.passed
@@ -140,6 +151,7 @@ class JenkinsBuilder(BaseBackend):
                     test.result = Result.skipped
                 else:
                     raise ValueError('Invalid test result: %s' % (case['status'],))
+
                 db.session.add(test)
 
     def _find_job(self, job_name, build_id):

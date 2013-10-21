@@ -320,3 +320,12 @@ class SyncBuildTest(BaseTestCase):
         test_list = list(Test.query.filter_by(build=build))
 
         assert len(test_list) == 2
+        assert test_list[0].label == 'tests.changes.handlers.test_xunit.Test'
+        assert test_list[0].result == Result.skipped
+        assert test_list[0].message == 'collection skipped'
+        assert test_list[0].duration == 0
+
+        assert test_list[1].label == 'tests.changes.api.test_build_details.BuildDetailsTest.test_simple'
+        assert test_list[1].result == Result.passed
+        assert test_list[1].message == ''
+        assert test_list[1].duration == 155
