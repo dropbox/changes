@@ -1,8 +1,10 @@
 require.config({
   paths: {
     'angular': '../vendor/angular/angular',
-    'angularRoute': '../vendor/angular-route/angular-route',
     'angularAnimate': '../vendor/angular-animate/angular-animate',
+    'angularLinkify': '../vendor/angular-linkify/angular-linkify',
+    'angularRoute': '../vendor/angular-route/angular-route',
+    'angularSanitize': '../vendor/angular-sanitize/angular-sanitize',
     'bootstrap': '../vendor/bootstrap/dist/js/bootstrap',
     'jquery': '../vendor/jquery/jquery',
     'moment': '../vendor/moment/moment'
@@ -10,8 +12,10 @@ require.config({
   baseUrl: 'static/js',
   shim: {
     'angular': {exports: 'angular'},
-    'angularRoute': ['angular'],
     'angularAnimate': ['angular'],
+    'angularLinkify': ['angular'],
+    'angularRoute': ['angular'],
+    'angularSanitize': ['angular'],
     'jquery': {exports: 'jquery'},
     'bootstrap': {deps: ['jquery']},
   },

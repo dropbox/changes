@@ -26,7 +26,7 @@
 			<dd ng-if="build.external"><a href="{{ build.external.link }}">{{ build.external.label }}</a></dd>
 		</dl>
 
-		<pre ng-if="build.message" class="build-message">{{build.message}}</pre>
+		<pre ng-if="build.message" class="build-message" ng-bind-html="build.message | escape | linkify"></pre>
 
 		<ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
 			<li ng-repeat="phase in phases | orderBy:'dateStarted'" class="result-{{phase.result.id}}">
@@ -41,8 +41,19 @@
 			<h3>Test Results</h3>
 		</div>
 
-		<div ng-switch="getTestStatus()">
-			<div ng-switch-when="has-results">
+		<div ng-if="build.status.id != 'finished'">
+			<div class="progress progress-striped active">
+				<div class="progress-bar" role="progressbar" style="width:100%">
+					<span class="sr-only">Waiting on test results...</span>
+			 	</div>
+			</div>
+		</div>
+
+		<div ng-switch="tests">
+			<div ng-switch-when="no-results">
+				<p>No results available.</p>
+			</div>
+			<div ng-switch-default>
 				<table class="test-results table table-striped">
 					<tbody>
 						<tr ng-repeat="test in tests" class="status-{{test.result.id}}">
@@ -52,12 +63,6 @@
 						</tr>
 					</tbody>
 				</table>
-			</div>
-			<div ng-switch-when="pending">
-				<p>Waiting for test results...</p>
-			</div>
-			<div ng-switch-default>
-				<p>No results available.</p>
 			</div>
 		</div>
 	</div>
