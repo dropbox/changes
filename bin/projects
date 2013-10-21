@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import json
 import sys
 
 from changes.config import create_app, db
@@ -17,12 +18,11 @@ parser = argparse.ArgumentParser(description='Manage projects')
 subparsers = parser.add_subparsers(dest='command')
 
 parser_add = subparsers.add_parser('add', help='add project')
-
-# parser_modify = subparsers.add_parser('modify', help='modify project')
-# parser_modify.add_argument('id', metavar='project_id', help='project ID or slug')
-
-# parser_remove = subparsers.add_parser('remove', help='remove project')
-# parser_remove.add_argument('id', metavar='project_id', help='project ID or slug')
+parser_add.add_argument('--label', dest='label', help='project label')
+parser_add.add_argument('--repo-url', metavar='url', dest='repo_url', help='repository url')
+parser_add.add_argument('--slug', metavar='slug', dest='slug', help='project slug')
+parser_add.add_argument('--provider', dest='provider', help='provider slug')
+parser_add.add_argument('--provider-options', dest='provider_options', help='provider options (json)')
 
 args = parser.parse_args()
 
@@ -32,22 +32,22 @@ if args.command == 'add':
         print('Aborted!')
         sys.exit(1)
 
-    name = raw_input('Project name? ') or abort()
+    name = args.label or raw_input('Project label? ') or abort()
     default_slug = name.replace(' ', '-').lower()
-    slug = raw_input('Project slug? [%s] ' % (default_slug, )) or default_slug
-    repo_url = raw_input('Repository URL? ') or abort()
+    slug = args.slug or raw_input('Project slug? [%s] ' % (default_slug, )) or default_slug
+    repo_url = args.repo_url or raw_input('Repository URL? ') or abort()
 
-    provider = raw_input('Provider? (koality|jenkins) ') or abort()
+    provider = args.provider or raw_input('Provider? (koality|jenkins) ') or abort()
+    provider_options = json.loads(args.provider_options or "{}")
+
     if provider == 'koality':
-        provider_options = {
-            'type': 'project',
-            'remote_id': raw_input('Koality project ID? ') or abort(),
-        }
+        provider_options.setdefault('type', 'project')
+        if not provider_options.get('remote_id'):
+            provider_options['remote_id'] = raw_input('Koality project ID? ') or abort()
     elif provider == 'jenkins':
-        provider_options = {
-            'type': 'job',
-            'remote_id': raw_input('Jenkins job name? ') or abort(),
-        }
+        provider_options.setdefault('type', 'job')
+        if not provider_options.get('remote_id'):
+            provider_options['remote_id'] = raw_input('Jenkins job name? ') or abort()
     else:
         abort()
 

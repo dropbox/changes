@@ -18,7 +18,7 @@ class Test(db.Model):
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    label = Column(String(256), nullable=False, primary_key=True)
+    label = Column(String(256), nullable=False)
     result = Column(Enum(Result))
     duration = Column(Integer)
     message = Column(Text)
