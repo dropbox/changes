@@ -91,9 +91,10 @@ class JenkinsBuilder(BaseBackend):
         item = self._get_response('/job/{}/{}'.format(
             build_item['job_name'], build_item['build_no']))
 
-        if item['timestamp'] and not build.date_started:
-            build.date_started = min(datetime.utcfromtimestamp(
-                item['timestamp'] / 1000), datetime.utcnow())
+        # XXX(dcramer): timestamp implies creation date, so lets just assume
+        # we were able to track it immediately
+        if not build.date_started:
+            build.date_started = datetime.utcnow()
 
         if item['building']:
             build.status = Status.in_progress
@@ -106,7 +107,7 @@ class JenkinsBuilder(BaseBackend):
                 build.result = Result.passed
             elif item['result'] == 'ABORTED':
                 build.result = Result.aborted
-            elif item['result'] == 'FAILURE':
+            elif item['result'] in ('FAILURE', 'REGRESSION'):
                 build.result = Result.failed
             else:
                 raise ValueError('Invalid build result: %s' % (item['result'],))
