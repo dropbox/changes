@@ -70,7 +70,7 @@
 				<table class="test-results table table-striped">
 					<tbody>
 						<tr ng-repeat="test in tests | startFrom: testsPagination.offset | limitTo: testsPagination.perPage" class="status-{{test.result.id}}">
-							<td><a href="{{test.link}}">{{test.name}}</a></td>
+							<td><a href="{{test.link}}" ng-bind-html="test.name | escape | wordwrap:10 "></a></td>
 							<td duration="test.duration"></td>
 							<td><a href="{{test.link}}"><span class="glyphicon glyphicon-zoom-in"></span></a></td>
 						</tr>

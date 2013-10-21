@@ -374,3 +374,8 @@ footer {
 .alert-list .alert .container {
   padding: 15px 25px 15px 0;
 }
+
+span {
+  /* Making this inline-block lets us use it as soft-wrap */
+  display: inline-block;
+}
