@@ -1,17 +1,12 @@
 define(['app', 'factories/stream', 'directives/timeSince', 'directives/duration'], function(app) {
-  app.controller('testDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
+  app.controller('testDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
     'use strict';
 
     var stream,
         entrypoint = '/api/0/tests/' + $routeParams.test_id + '/';
 
-    $scope.test = null;
-    $scope.build = null;
-
-    $http.get(entrypoint).success(function(data) {
-      $scope.test = data.test;
-      $scope.build = data.build;
-    });
+    $scope.test = initialData.data.test;
+    $scope.build = initialData.data.build;
 
     function updateTest(data){
       $scope.$apply(function() {

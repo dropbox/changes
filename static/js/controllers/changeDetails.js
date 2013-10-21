@@ -1,14 +1,11 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
-  app.controller('changeDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
+  app.controller('changeDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
     'use strict';
 
-    var stream;
+    var stream,
+        entrypoint = '/api/0/changes/' + $routeParams.change_id + '/';
 
-    $scope.change = null;
-
-    $http.get('/api/0/changes/' + $routeParams.change_id + '/').success(function(data) {
-      $scope.change = data.change;
-    });
+    $scope.change = initialData.data.change;
 
     function updateChange(data){
       $scope.$apply(function() {
@@ -16,7 +13,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       });
     }
 
-    stream = Stream($scope, '/api/0/changes/' + $routeParams.change_id + '/');
+    stream = Stream($scope, entrypoint);
     stream.subscribe('change.update', updateChange);
 
   }]);

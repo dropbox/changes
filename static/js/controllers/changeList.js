@@ -1,14 +1,11 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
-  app.controller('changeListCtrl', ['$scope', '$http', 'stream', function($scope, $http, Stream) {
+  app.controller('changeListCtrl', ['$scope', 'initialData', '$http', 'stream', function($scope, initialData, $http, Stream) {
     'use strict';
 
-    var stream;
+    var stream,
+        entrypoint = '/api/0/changes/';
 
-    $scope.changes = [];
-
-    $http.get('/api/0/changes/').success(function(data) {
-      $scope.changes = data.changes;
-    });
+    $scope.changes = initialData.data.changes;
 
     function addChange(change) {
       $scope.$apply(function() {
@@ -32,7 +29,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       });
     }
 
-    stream = Stream($scope, '/api/0/changes/');
+    stream = Stream($scope, entrypoint);
     stream.subscribe('change.update', addChange);
   }]);
 });

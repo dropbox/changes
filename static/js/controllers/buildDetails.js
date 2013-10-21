@@ -1,20 +1,14 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince', 'directives/duration',
         'filters/escape', 'angularLinkify'], function(app) {
-  app.controller('buildDetailsCtrl', ['$scope', '$http', '$routeParams', 'stream', function($scope, $http, $routeParams, Stream) {
+  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
     'use strict';
 
     var stream,
         entrypoint = '/api/0/builds/' + $routeParams.build_id + '/';
 
-    $scope.build = null;
-    $scope.phases = [];
-    $scope.tests = [];
-
-    $http.get(entrypoint).success(function(data) {
-      $scope.build = data.build;
-      $scope.tests = data.tests;
-      $scope.phases = data.phases;
-    });
+    $scope.build = initialData.data.build;
+    $scope.phases = initialData.data.phase;
+    $scope.tests = initialData.data.tests;
 
     function updateBuild(data){
       $scope.$apply(function() {

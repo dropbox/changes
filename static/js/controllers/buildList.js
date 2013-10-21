@@ -1,25 +1,16 @@
 define(['app', 'factories/stream', 'factories/flash', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
-  app.controller('buildListCtrl', ['$scope', '$http', '$routeParams', 'stream', 'flash', function($scope, $http, $routeParams, Stream, flash) {
+  app.controller('buildListCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', 'flash', function($scope, initialData, $http, $routeParams, Stream, flash) {
     'use strict';
 
-    var stream;
-    var entrypoint
+    var stream, entrypoint;
 
-    $scope.builds = [];
+    $scope.builds = initialData.data.builds;
 
     if ($routeParams.change_id) {
       entrypoint = '/api/0/changes/' + $routeParams.change_id + '/builds/';
     } else {
       entrypoint = '/api/0/builds/';
     }
-
-    $http.get(entrypoint).
-      success(function(data) {
-        $scope.builds = data.builds;
-      }).
-      error(function(){
-        flash('error', 'Unable to load build list');
-      });
 
     $scope.getBuildStatus = function(build) {
       if (build.status.id == 'finished') {
