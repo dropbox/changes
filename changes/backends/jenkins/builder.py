@@ -98,10 +98,10 @@ class JenkinsBuilder(BaseBackend):
         if item['building']:
             build.status = Status.in_progress
         else:
+            build.status = Status.finished
             build.date_finished = datetime.utcnow()
 
         if item['result']:
-            build.status = Status.finished
             if item['result'] == 'SUCCESS':
                 build.result = Result.passed
             elif item['result'] == 'ABORTED':
