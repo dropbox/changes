@@ -12,6 +12,10 @@ from changes.constants import Result, Status
 from changes.models import RemoteEntity, Test
 
 
+class NotFound(Exception):
+    pass
+
+
 class JenkinsBuilder(BaseBackend):
     provider = 'jenkins'
 
@@ -32,7 +36,9 @@ class JenkinsBuilder(BaseBackend):
         self.logger.info('Fetching %r', url)
         resp = getattr(requests, method.lower())(url, params=params, **kwargs)
 
-        if not (200 <= resp.status_code < 300):
+        if resp.status_code == 404:
+            raise NotFound
+        elif not (200 <= resp.status_code < 300):
             raise Exception('Invalid response. Status code was %s' % resp.status_code)
 
         data = resp.text
@@ -55,8 +61,14 @@ class JenkinsBuilder(BaseBackend):
     def _sync_build_from_queue(self, build, entity):
         build_item = entity.data
 
-        item = self._get_response('/queue/item/{}'.format(
-            build_item['item_id']))
+        try:
+            item = self._get_response('/queue/item/{}'.format(
+                build_item['item_id']))
+        except NotFound:
+            build.status = Status.finished
+            build.result = Result.unknown
+            db.session.add(build)
+            return
 
         if item['blocked']:
             build.status = Status.queued
