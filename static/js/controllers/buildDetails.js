@@ -43,6 +43,17 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       });
     }
 
+    $scope.getTestStatus = function() {
+      if ($scope.build.status.id == "finished") {
+        if (!$scope.tests.length) {
+          return "no-results";
+        } else {
+          return "has-results";
+        }
+      }
+      return "pending";
+    };
+
     stream = Stream($scope, entrypoint);
     stream.subscribe('build.update', updateBuild);
     stream.subscribe('test.update', addTest);

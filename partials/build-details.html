@@ -41,14 +41,24 @@
 			<h3>Test Results</h3>
 		</div>
 
-		<table class="test-results table table-striped">
-			<tbody>
-				<tr ng-repeat="test in tests" class="status-{{test.result.id}}">
-					<td><a href="{{test.link}}">{{test.name}}</a></td>
-					<td duration="test.duration"></td>
-					<td><a href="{{test.link}}"><span class="glyphicon glyphicon-zoom-in"></span></a></td>
-				</tr>
-			</tbody>
-		</table>
+		<div ng-switch="getTestStatus()">
+			<div ng-switch-when="has-results">
+				<table class="test-results table table-striped">
+					<tbody>
+						<tr ng-repeat="test in tests" class="status-{{test.result.id}}">
+							<td><a href="{{test.link}}">{{test.name}}</a></td>
+							<td duration="test.duration"></td>
+							<td><a href="{{test.link}}"><span class="glyphicon glyphicon-zoom-in"></span></a></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div ng-switch-when="pending">
+				<p>Waiting for test results...</p>
+			</div>
+			<div ng-switch-default>
+				<p>No results available.</p>
+			</div>
+		</div>
 	</div>
 </section>
