@@ -70,7 +70,7 @@ def worker(queues=('queues', 'default')):
         worker = queue.get_worker(*queues)
         worker.work()
     except (KeyboardInterrupt, SystemExit):
-        break
+        pass
     except Exception:
         import traceback
         traceback.print_exc()
