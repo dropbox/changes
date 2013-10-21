@@ -31,18 +31,18 @@ class Provider(Enum):
 
 
 STATUS_LABELS = {
-    Status.unknown: 'unknown',
-    Status.queued: 'queued',
-    Status.in_progress: 'in progress',
-    Status.finished: 'finished'
+    Status.unknown: 'Unknown',
+    Status.queued: 'Queued',
+    Status.in_progress: 'In progress',
+    Status.finished: 'Finished'
 }
 
 RESULT_LABELS = {
-    Result.unknown: 'unknown',
-    Result.passed: 'passed',
-    Result.failed: 'failed',
-    Result.skipped: 'skipped',
-    Result.errored: 'errored',
-    Result.aborted: 'aborted',
-    Result.timedout: 'timed out'
+    Result.unknown: 'Unknown',
+    Result.passed: 'Passed',
+    Result.failed: 'Failed',
+    Result.skipped: 'Skipped',
+    Result.errored: 'Errored',
+    Result.aborted: 'Aborted',
+    Result.timedout: 'Timed out'
 }

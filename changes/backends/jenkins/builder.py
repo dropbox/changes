@@ -61,6 +61,9 @@ class JenkinsBuilder(BaseBackend):
     def _sync_build_from_queue(self, build, entity):
         build_item = entity.data
 
+        # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
+        # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
+        # doesnt explicitly mean that the job doesnt exist
         try:
             item = self._get_response('/queue/item/{}'.format(
                 build_item['item_id']))
