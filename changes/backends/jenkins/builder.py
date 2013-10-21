@@ -59,7 +59,8 @@ class JenkinsBuilder(BaseBackend):
         return params
 
     def _sync_build_from_queue(self, build, entity):
-        build_item = entity.data
+        # TODO(dcramer); determine whats going on w/ the JSON field
+        build_item = entity.data.copy()
 
         # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
         # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
@@ -73,6 +74,13 @@ class JenkinsBuilder(BaseBackend):
             db.session.add(build)
             return
 
+        if item.get('executable'):
+            build_no = item['executable']['number']
+            build_item['queued'] = False
+            build_item['build_no'] = build_no
+            entity.data = build_item
+            db.session.add(entity)
+
         if item['blocked']:
             build.status = Status.queued
             db.session.add(build)
@@ -81,15 +89,14 @@ class JenkinsBuilder(BaseBackend):
             build.result = Result.aborted
             db.session.add(build)
         elif item.get('executable'):
-            build_no = item['executable']['number']
-            build_item['build_no'] = build_no
-            db.session.add(entity)
             self._sync_build_from_active(build, entity)
 
     def _sync_build_from_active(self, build, entity):
-        build_item = entity.data
+        build_item = entity.data.copy()
         item = self._get_response('/job/{}/{}'.format(
             build_item['job_name'], build_item['build_no']))
+
+        should_finish = False
 
         # XXX(dcramer): timestamp implies creation date, so lets just assume
         # we were able to track it immediately
@@ -99,7 +106,7 @@ class JenkinsBuilder(BaseBackend):
         if item['building']:
             build.status = Status.in_progress
         else:
-            build.status = Status.finished
+            should_finish = True
             build.date_finished = datetime.utcnow()
 
         if item['result']:
@@ -130,6 +137,9 @@ class JenkinsBuilder(BaseBackend):
                 self._sync_test_results(build, entity)
                 break
 
+        if should_finish:
+            build.status = Status.finished
+
     def _sync_test_results(self, build, entity):
         build_item = entity.data
         test_report = self._get_response('/job/{}/{}/testReport/'.format(
@@ -137,7 +147,7 @@ class JenkinsBuilder(BaseBackend):
 
         for suite in test_report['suites']:
             for case in suite['cases']:
-                label = '{}.{}'.format(case['className'], case['name'])
+                label = '{}.{}'.format(case['className'], case['name'])[:256]
                 if Test.query.filter_by(build=build, label=label).first():
                     continue
 
@@ -161,7 +171,7 @@ class JenkinsBuilder(BaseBackend):
                 )
                 if case['status'] == 'PASSED':
                     test.result = Result.passed
-                elif case['status'] in ('FAILURE', 'REGRESSION'):
+                elif case['status'] in ('FAILED', 'REGRESSION'):
                     test.result = Result.failed
                 elif case['status'] == 'SKIPPED':
                     test.result = Result.skipped
