@@ -55,7 +55,6 @@ def poller():
 
 
 def worker(queues=('queues', 'default')):
-    import time
     from changes.config import queue, create_app
 
     app = create_app()
@@ -66,18 +65,15 @@ def worker(queues=('queues', 'default')):
 
     queues = [q.strip() for q in queues if q.strip()]
 
-    while True:
-        try:
-            # Creates a worker that handle jobs in ``default`` queue.
-            worker = queue.get_worker(*queues)
-            worker.work()
-        except (KeyboardInterrupt, SystemExit):
-            break
-        except Exception:
-            import traceback
-            traceback.print_exc()
-
-        time.sleep(5)
+    try:
+        # Creates a worker that handle jobs in ``default`` queue.
+        worker = queue.get_worker(*queues)
+        worker.work()
+    except (KeyboardInterrupt, SystemExit):
+        break
+    except Exception:
+        import traceback
+        traceback.print_exc()
 
 
 def jenkins_poller():

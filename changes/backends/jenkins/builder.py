@@ -161,7 +161,7 @@ class JenkinsBuilder(BaseBackend):
                 )
                 if case['status'] == 'PASSED':
                     test.result = Result.passed
-                elif case['status'] == 'FAILURE':
+                elif case['status'] in ('FAILURE', 'REGRESSION'):
                     test.result = Result.failed
                 elif case['status'] == 'SKIPPED':
                     test.result = Result.skipped
