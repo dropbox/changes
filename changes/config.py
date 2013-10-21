@@ -52,6 +52,7 @@ def configure_api_routes(app):
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
+    from changes.api.test_details import TestDetailsAPIView
 
     app.add_url_rule(
         '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-builds'))
@@ -63,6 +64,8 @@ def configure_api_routes(app):
         '/api/0/changes/<change_id>/', view_func=ChangeDetailsAPIView.as_view('api-change-details'))
     app.add_url_rule(
         '/api/0/changes/<change_id>/builds/', view_func=BuildIndexAPIView.as_view('api-change-build-list'))
+    app.add_url_rule(
+        '/api/0/tests/<test_id>/', view_func=TestDetailsAPIView.as_view('api-change-test-details'))
 
 
 def configure_web_routes(app):

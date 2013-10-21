@@ -1,0 +1,19 @@
+<section ng-controller="testDetailsCtrl">
+	<div id="overview">
+		<div class="page-header">
+			<h2 style="font-size: 1.4em;">{{test.name}}</h2>
+		</div>
+
+		<dl class="flat">
+			<dt>Project:</dt>
+			<dd><a href="#">{{build.project.name}}</a></dd>
+			<dt>Build:</dt>
+			<dd><a href="{{build.link}}">{{build.name}}</a></dd>
+			<dt>Duration:</dt>
+			<dd duration="test.duration"></dd>
+		</dl>
+
+		<pre ng-if="test.message" class="build-message">{{test.message}}</pre>
+
+	</div>
+</section>

@@ -41,11 +41,12 @@
 			<h3>Test Results</h3>
 		</div>
 
-		<table class="test-results table">
+		<table class="test-results table table-striped">
 			<tbody>
 				<tr ng-repeat="test in tests" class="status-{{test.result.id}}">
-					<td>{{test.name}}</td>
+					<td><a href="{{test.link}}">{{test.name}}</a></td>
 					<td duration="test.duration"></td>
+					<td><a href="{{test.link}}"><span class="glyphicon glyphicon-zoom-in"></span></a></td>
 				</tr>
 			</tbody>
 		</table>
