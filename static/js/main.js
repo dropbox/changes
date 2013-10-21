@@ -16,6 +16,7 @@ require.config({
     'angularLinkify': ['angular'],
     'angularRoute': ['angular'],
     'angularSanitize': ['angular'],
+    'modules/pagination': ['angular'],
     'jquery': {exports: 'jquery'},
     'bootstrap': {deps: ['jquery']},
   },

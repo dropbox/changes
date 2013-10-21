@@ -51,14 +51,25 @@
 			</div>
 		</div>
 
-		<div ng-switch="tests">
+		<div ng-switch="getTestStatus()">
 			<div ng-switch-when="no-results">
-				<p>No results available.</p>
+				<p>No test results were recorded.</p>
 			</div>
 			<div ng-switch-default>
+				<ul class="pagination pagination-sm" ng-if="tests">
+					<li ng-class="{'disabled': testsPagination.page == 0}">
+						<a href="javascript:void(0)" ng-click="testsPagination.prevPage()">&laquo;</a>
+					</li>
+					<li ng-repeat="n in [] | range: testsPagination.numPages" ng-class="{'active': n == testsPagination.page}">
+						<a href="javascript:void(0)" ng-click="testsPagination.jumpToPage(n)">{{n + 1}}</a>
+					</li>
+					<li ng-class="{'disabled': testsPagination.page == testsPagination.numPages - 1}">
+						<a href="javascript:void(0)" ng-click="testsPagination.nextPage()">&raquo;</a>
+					</li>
+				</ul>
 				<table class="test-results table table-striped">
 					<tbody>
-						<tr ng-repeat="test in tests" class="status-{{test.result.id}}">
+						<tr ng-repeat="test in tests | startFrom: testsPagination.offset | limitTo: testsPagination.perPage" class="status-{{test.result.id}}">
 							<td><a href="{{test.link}}">{{test.name}}</a></td>
 							<td duration="test.duration"></td>
 							<td><a href="{{test.link}}"><span class="glyphicon glyphicon-zoom-in"></span></a></td>

@@ -1,6 +1,6 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince', 'directives/duration',
-        'filters/escape', 'angularLinkify'], function(app) {
-  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
+        'filters/escape', 'modules/pagination'], function(app) {
+  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', 'pagination', function($scope, initialData, $http, $routeParams, Stream, Pagination) {
     'use strict';
 
     var stream,
@@ -9,6 +9,8 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
     $scope.build = initialData.data.build;
     $scope.phases = initialData.data.phase;
     $scope.tests = initialData.data.tests;
+
+    $scope.testsPagination = Pagination.create($scope.tests);
 
     function updateBuild(data){
       $scope.$apply(function() {
@@ -40,7 +42,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
 
     $scope.getTestStatus = function() {
       if ($scope.build.status.id == "finished") {
-        if (!$scope.tests.length) {
+        if ($scope.tests.length === 0) {
           return "no-results";
         } else {
           return "has-results";
