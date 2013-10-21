@@ -1,11 +1,11 @@
 require.config({
   paths: {
-    'angular': 'vendor/angular/angular',
-    'angularRoute': 'vendor/angular-route/angular-route',
-    'angularAnimate': 'vendor/angular-animate/angular-animate',
-    'bootstrap': 'vendor/bootstrap',
-    'jquery': 'vendor/jquery/jquery',
-    'moment': 'vendor/moment/moment'
+    'angular': '../vendor/angular/angular',
+    'angularRoute': '../vendor/angular-route/angular-route',
+    'angularAnimate': '../vendor/angular-animate/angular-animate',
+    'bootstrap': '../vendor/bootstrap/dist/js/bootstrap',
+    'jquery': '../vendor/jquery/jquery',
+    'moment': '../vendor/moment/moment'
   },
   baseUrl: 'static/js',
   shim: {

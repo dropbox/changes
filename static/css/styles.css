@@ -55,13 +55,17 @@ dl.flat dt {
   background: #58488a;
   color: #c7c0de;
 }
-.navbar a,
-.navbar a:hover,
-.navbar a:focus {
+.navbar .navbar-brand,
+.navbar .navbar-brand:hover,
+.navbar .navbar-brand:focus {
   color: #fff;
 }
 .navbar .navbar-nav > li > a {
   color: #c7c0de;
+}
+.navbar .navbar-nav > li > a:hover,
+.navbar .navbar-nav > li > a:focus {
+  color: #fff;
 }
 .navbar .navbar-nav > li > a > .badge {
   background: #63519e;
@@ -328,6 +332,9 @@ dl.flat dt {
 }
 .test-results > tbody > tr.status-skipped > td {
   color: orange;
+}
+.test-results > tbody > tr > td > a {
+  color: inherit;
 }
 
 footer {
