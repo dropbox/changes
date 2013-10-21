@@ -3,7 +3,7 @@ define(['app', 'utils/dial'], function(app, Dial) {
     return function radialProgressBarLink(scope, element, attrs) {
       var $element = $(element),
           $parent = $element.parent(),
-          dial;
+          dial, timeout_id;
 
       function getResultColor(result) {
         switch (result) {
@@ -68,15 +68,15 @@ define(['app', 'utils/dial'], function(app, Dial) {
         update(progress);
 
         if (!is_finished) {
-          $timeout(tick, 500);
+          timeout_id = $timeout(tick, 500);
         }
       }
 
-      tick();
+      element.bind('$destroy', function() {
+        $timeout.cancel(timeout_id);
+      });
 
-      // attrs.$observe('radialProgressBar', function(value) {
-      //   update(value)
-      // });
+      tick();
     }
   }]);
 });
