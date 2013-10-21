@@ -41,6 +41,32 @@ define(['app'], function(app, Dial) {
           paginator.offset = paginator.page * paginator.perPage;
         };
 
+        paginator.getPageRange = function(limit) {
+          if (limit === undefined) {
+            var limit = 10;
+          }
+          var half = limit / 2;
+          var start = Math.floor(paginator.page - half);
+          var end = Math.ceil(paginator.page + half);
+
+          if (start < 0) {
+            end += (0 - start);
+            start = 0;
+          }
+          if (end > paginator.numPages - 1) {
+            if (start > 0) {
+              start = Math.max(start - (end - paginator.numPages + 1), 0);
+            }
+            end = paginator.numPages - 1;
+          }
+
+          var output = [];
+          for (var i = start; i <= end; i++) {
+            output.push(i);
+          }
+          return output;
+        }
+
         return paginator;
       }
     }
@@ -49,14 +75,5 @@ define(['app'], function(app, Dial) {
      return function(input, start) {
        return input.slice(+start);
      }
-  })
-  .filter('range', function() {
-    return function(input, total) {
-      total = parseInt(total);
-      for (var i = 0; i < total; i++) {
-        input.push(i);
-      }
-      return input;
-    }
   });
 });

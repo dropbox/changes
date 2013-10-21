@@ -7,7 +7,8 @@ require.config({
     'angularSanitize': '../vendor/angular-sanitize/angular-sanitize',
     'bootstrap': '../vendor/bootstrap/dist/js/bootstrap',
     'jquery': '../vendor/jquery/jquery',
-    'moment': '../vendor/moment/moment'
+    'moment': '../vendor/moment/moment',
+    'ngInfiniteScroll': '../vendor/ngInfiniteScroll/ng-infinite-scroll'
   },
   baseUrl: 'static/js',
   shim: {
@@ -17,6 +18,7 @@ require.config({
     'angularRoute': ['angular'],
     'angularSanitize': ['angular'],
     'modules/pagination': ['angular'],
+    'ngInfiniteScroll': ['angular'],
     'jquery': {exports: 'jquery'},
     'bootstrap': {deps: ['jquery']},
   },
@@ -36,6 +38,6 @@ require([
 ], function(jquery, bootstrap, angular, app, routes) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app']);
+    angular.bootstrap(document, ['app', 'infinite-scroll']);
   });
 });

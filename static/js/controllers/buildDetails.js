@@ -1,5 +1,5 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince', 'directives/duration',
-        'filters/escape', 'filters/wordwrap', 'modules/pagination'], function(app) {
+        'filters/escape', 'filters/wordwrap', 'modules/pagination', 'ngInfiniteScroll'], function(app) {
   app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', 'pagination', function($scope, initialData, $http, $routeParams, Stream, Pagination) {
     'use strict';
 
@@ -9,8 +9,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
     $scope.build = initialData.data.build;
     $scope.phases = initialData.data.phase;
     $scope.tests = initialData.data.tests;
-
-    $scope.testsPagination = Pagination.create($scope.tests);
+    $scope.testsPaginator = Pagination.create($scope.tests);
 
     function updateBuild(data){
       $scope.$apply(function() {
