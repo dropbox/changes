@@ -5,12 +5,12 @@ from functools import wraps
 from flask import Response, current_app as app, request
 from flask.views import MethodView
 
-from changes.api.serializer import serialize
+from changes.api.serializer import serialize as serialize_func
 from changes.api.stream import EventStream
 
 
 def as_json(context):
-    return json.dumps(serialize(context))
+    return json.dumps(serialize_func(context))
 
 
 def param(key, validator=lambda x: x, required=True, dest=None):
@@ -88,8 +88,11 @@ class APIView(MethodView):
             mimetype='application/json',
             status=status_code)
 
+    def serialize(self, *args, **kwargs):
+        return serialize_func(*args, **kwargs)
+
     def as_json(self, context):
-        return json.dumps(serialize(context))
+        return json.dumps(serialize_func(context))
 
     def get_stream_channels(self, **kwargs):
         return []

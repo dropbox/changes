@@ -10,23 +10,28 @@ def register(type):
     return wrapped
 
 
-def serialize(item):
+def serialize(item, extended_registry=None):
+    if extended_registry is None:
+        extended_registry = {}
+
     if isinstance(item, (list, tuple, set, frozenset)):
-        return [serialize(o) for o in item]
+        return [serialize(o, extended_registry) for o in item]
     elif isinstance(item, dict):
-        return dict((k, serialize(v)) for k, v in item.iteritems())
+        return dict((k, serialize(v, extended_registry)) for k, v in item.iteritems())
     elif item is None:
         return None
     elif isinstance(item, (basestring, int, long, float, bool)):
         return item
 
-    serializer = _registry.get(type(item))
+    serializer = extended_registry.get(type(item))
+    if serializer is None:
+        serializer = _registry.get(type(item))
     if serializer:
-        return serialize(serializer(item))
+        return serialize(serializer(item), extended_registry)
     else:
         for cls, serializer in _registry.iteritems():
             if isinstance(item, cls):
-                return serialize(serializer(item))
+                return serialize(serializer(item), extended_registry)
     return item
 
 

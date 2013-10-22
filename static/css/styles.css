@@ -17,6 +17,11 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 300;
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
 }
+h1 small,
+h2 small,
+h3 small {
+  font-weight: 300;
+}
 
 h2 {
   font-family: 1.6em;
