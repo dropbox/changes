@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division
 
+from hashlib import sha1
 from lxml import etree
 
 from changes.config import db
@@ -66,7 +67,9 @@ class XunitHandler(ArtifactHandler):
             results.append(Test(
                 build_id=build.id,
                 project_id=build.project_id,
-                label=label,
+                name=attrs['name'],
+                package=attrs['classname'] or None,
+                label_sha=sha1(label).hexdigest(),
                 duration=float(attrs['time']),
                 result=result,
                 message=message,

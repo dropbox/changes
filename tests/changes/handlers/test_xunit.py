@@ -38,7 +38,8 @@ def test_result_generation():
     assert type(r1) == Test
     assert r1.build_id == build.id
     assert r1.project_id == build.project_id
-    assert r1.label == 'tests.test_report'
+    assert r1.package is None
+    assert r1.name == 'tests.test_report'
     assert r1.duration == 0.0
     assert r1.result == Result.failed
     assert r1.message == """tests/test_report.py:1: in <module>
@@ -48,7 +49,8 @@ E   ImportError: No module named mock"""
     assert type(r2) == Test
     assert r2.build_id == build.id
     assert r2.project_id == build.project_id
-    assert r2.label == 'tests.test_report.ParseTestResultsTest.test_simple'
+    assert r2.package == 'tests.test_report.ParseTestResultsTest'
+    assert r2.name == 'test_simple'
     assert r2.duration == 0.00165796279907
     assert r2.result == Result.passed
     assert r2.message == ''

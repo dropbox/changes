@@ -151,7 +151,10 @@ class JenkinsBuilder(BaseBackend):
             group_sha = sha1(group).hexdigest()
 
             for case in suite['cases']:
-                label = '{}.{}'.format(case['className'], case['name'])
+                if case['className']:
+                    label = '{}.{}'.format(case['className'], case['name'])
+                else:
+                    label = case['name']
                 label_sha = sha1(label).hexdigest()
                 if Test.query.filter_by(build=build, group_sha=group_sha, label_sha=label_sha).first():
                     continue
@@ -172,7 +175,8 @@ class JenkinsBuilder(BaseBackend):
                     project=build.project,
                     group=group,
                     group_sha=group_sha,
-                    label=label,
+                    name=case['name'],
+                    package=case['className'] or None,
                     label_sha=label_sha,
                     duration=int(case['duration'] * 1000),
                     message='\n'.join(message).strip(),

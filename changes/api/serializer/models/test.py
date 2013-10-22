@@ -7,7 +7,8 @@ class TestSerializer(Serializer):
     def serialize(self, instance):
         return {
             'id': instance.id.hex,
-            'name': instance.label,
+            'name': instance.name,
+            'package': instance.package,
             'result': instance.result,
             'duration': instance.duration,
             'message': instance.message,
