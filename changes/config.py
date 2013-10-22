@@ -31,6 +31,10 @@ def create_app(**config):
     app.config['KOALITY_URL'] = 'https://build.itc.dropbox.com'
     app.config['KOALITY_API_KEY'] = 'he8i7mxdzrocn6rg9qv852occkvpih9b'
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+    # CHANGES_CONF=/etc/changes.conf.py
+    app.config.from_envvar('CHANGES_CONF', silent=True)
+
     app.config.update(config)
 
     db.init_app(app)
