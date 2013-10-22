@@ -1,5 +1,5 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince', 'directives/duration',
-        'filters/escape', 'filters/wordwrap', 'modules/pagination', 'ngInfiniteScroll'], function(app) {
+        'filters/escape', 'filters/wordwrap', 'modules/pagination'], function(app) {
   app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', 'pagination', function($scope, initialData, $http, $routeParams, Stream, Pagination) {
     'use strict';
 
