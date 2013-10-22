@@ -72,7 +72,9 @@ dl.flat dt {
   color: #c7c0de;
   font-weight: normal;
 }
-.navbar .navbar-nav > li.active > a {
+.navbar .navbar-nav > li.active > a,
+.navbar .navbar-nav > li.active > a:hover,
+.navbar .navbar-nav > li.active > a:focus {
   background: #63519e;
   color: #fff;
 }
