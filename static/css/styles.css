@@ -140,6 +140,7 @@ dl.flat dt {
   white-space: nowrap;
   padding-right: 44px;
   height: 42px;
+  line-height: 42px;
 }
 .change-header .indicator,
 .change-header .indicator > div,
