@@ -14,27 +14,29 @@
 
 	<pre ng-if="test.message" class="build-message">{{test.message}}</pre>
 
-	<h3>Previous Results</h3>
+	<div id="previous-runs" ng-if="previousRuns">
+		<h3>Previous Results</h3>
 
-	<table class="build-list table table-striped">
-		<tbody>
-			<tr class="result-{{previousTest.result.id}}"
-				ng-repeat="previousTest in previousRuns">
-				<td>
-					<div class="indicator" title="{{previousTest.result.name}}">
-						<div>&nbsp;</div>
-					</div>
-				</td>
-				<td>
-					<a href="{{previousTest.build.link}}">{{previousTest.build.name}}</a><br>
-					<small>
-						{{previousTest.build.parent_revision.sha}}
-						<span ng-if="previousTest.build.author">&mdash; {{previousTest.build.author.name}}</span>
-					</small>
-					<span class="status">{{previousTest.result.name}}</span>
-					<span class="date" time-since="previousTest.dateCreated"></span>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+		<table class="build-list table table-striped">
+			<tbody>
+				<tr class="result-{{previousTest.result.id}}"
+					ng-repeat="previousTest in previousRuns">
+					<td>
+						<div class="indicator" title="{{previousTest.result.name}}">
+							<div>&nbsp;</div>
+						</div>
+					</td>
+					<td>
+						<a href="{{previousTest.build.link}}">{{previousTest.build.name}}</a><br>
+						<small>
+							{{previousTest.build.parent_revision.sha}}
+							<span ng-if="previousTest.build.author">&mdash; {{previousTest.build.author.name}}</span>
+						</small>
+						<span class="status">{{previousTest.result.name}}</span>
+						<span class="date" time-since="previousTest.dateCreated"></span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 </section>
