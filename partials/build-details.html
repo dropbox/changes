@@ -56,7 +56,7 @@
 				<p>No test results were recorded.</p>
 			</div>
 			<div ng-switch-default>
-				<ul class="pagination pagination-sm" ng-if="tests">
+				<ul class="pagination pagination-sm" ng-if="testsPaginator.numPages > 1">
 					<li ng-class="{'disabled': testsPaginator.page == 0}">
 						<a href="javascript:void(0)" ng-click="testsPaginator.prevPage()">&laquo;</a>
 					</li>
@@ -76,6 +76,17 @@
 						</tr>
 					</tbody>
 				</table>
+				<ul class="pagination pagination-sm" ng-if="testsPaginator.numPages > 1">
+					<li ng-class="{'disabled': testsPaginator.page == 0}">
+						<a href="javascript:void(0)" ng-click="testsPaginator.prevPage()">&laquo;</a>
+					</li>
+					<li ng-repeat="n in testsPaginator.getPageRange()" ng-class="{'active': n == testsPaginator.page}">
+						<a href="javascript:void(0)" ng-click="testsPaginator.jumpToPage(n)">{{n + 1}}</a>
+					</li>
+					<li ng-class="{'disabled': testsPaginator.page == testsPaginator.numPages - 1}">
+						<a href="javascript:void(0)" ng-click="testsPaginator.nextPage()">&raquo;</a>
+					</li>
+				</ul>
 			</div>
 		</div>
 	</div>

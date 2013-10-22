@@ -6,9 +6,48 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
     var stream,
         entrypoint = '/api/0/builds/' + $routeParams.build_id + '/';
 
+    function sortTests(arr) {
+      var resultScore = {
+        'errored': 1100,
+        'failed': 1000,
+        'skipped': 200,
+        'passed': 100
+      }
+
+      function getScore(object) {
+        return [resultScore[object.result.id] || 500, object.duration];
+      }
+
+      arr.sort(function(a, b){
+        var a_score = getScore(a),
+            b_score = getScore(b);
+        if (a_score[0] < b_score[0]) {
+          return 1
+        }
+        if (a_score[0] > b_score[0]) {
+          return -1
+        }
+        if (a_score[1] < b_score[1]) {
+          return 1
+        }
+        if (a_score[1] > b_score[1]) {
+          return -1
+        }
+        if (a_score[2] < b_score[2]) {
+          return 1
+        }
+        if (a_score[2] > b_score[2]) {
+          return -1
+        }
+        return 0;
+      });
+
+      return arr;
+    }
+
     $scope.build = initialData.data.build;
     $scope.phases = initialData.data.phase;
-    $scope.tests = initialData.data.tests;
+    $scope.tests = sortTests(initialData.data.tests);
     $scope.testsPaginator = Pagination.create($scope.tests);
 
     function updateBuild(data){
