@@ -71,3 +71,22 @@ class BuildCreateTest(APITestCase):
         assert patch.label == 'D1234'
         assert patch.url == 'http://phabricator.example.com/D1234'
         assert patch.parent_revision_sha == 'a' * 40
+
+    def test_with_project(self):
+        path = '/api/0/builds/'
+        resp = self.client.post(path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'author': 'David Cramer <dcramer@example.com>',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['build']['id']
+        build = Build.query.get(data['build']['id'])
+        assert build.change is None
+        assert build.project == self.project
+        assert build.parent_revision_sha == 'a' * 40
+        assert build.author.name == 'David Cramer'
+        assert build.author.email == 'dcramer@example.com'
+        self.mock_backend.create_build.assert_called_once_with(
+            build)

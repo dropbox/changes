@@ -10,7 +10,7 @@ from changes.api.validators.author import AuthorValidator
 from changes.config import db
 from changes.constants import Status
 from changes.jobs.sync_build import sync_build
-from changes.models import Build, Repository, Patch, Change
+from changes.models import Project, Build, Repository, Patch, Change
 
 
 class BuildIndexAPIView(APIView):
@@ -40,13 +40,19 @@ class BuildIndexAPIView(APIView):
 
         return self.respond(context)
 
-    @param('change_id', lambda x: Change.query.get(x), dest='change')
     @param('sha')
+    # TODO(dcramer): these params are getting messy, and in this case we've got
+    # multiple input styles (GET vs POST) that can potentially squash each other
+    @param('change', lambda x: Change.query.get(x), dest='change', required=False)
+    @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
+    @param('project', lambda x: Project.query.filter_by(slug=x).first(), dest='project', required=False)
     @param('author', AuthorValidator(), required=False)
     @param('patch[label]', required=False, dest='patch_label')
     @param('patch[url]', required=False, dest='patch_url')
-    def post(self, sha, change=None, author=None, patch_label=None,
-             patch_url=None, patch=None):
+    def post(self, sha, project=None, change=None, author=None,
+             patch_label=None, patch_url=None, patch=None):
+
+        assert change or project
 
         if request.form.get('patch'):
             raise ValueError('patch')
@@ -58,7 +64,9 @@ class BuildIndexAPIView(APIView):
         if patch_file and not patch_label:
             raise ValueError('patch_label')
 
-        repository = Repository.query.get(change.repository_id)
+        if change:
+            project = change.project
+        repository = Repository.query.get(project.repository_id)
 
         if patch_file:
             fp = StringIO()
@@ -68,7 +76,7 @@ class BuildIndexAPIView(APIView):
             patch = Patch(
                 change=change,
                 repository=repository,
-                project=change.project,
+                project=project,
                 parent_revision_sha=sha,
                 label=patch_label,
                 url=patch_url,
@@ -84,8 +92,7 @@ class BuildIndexAPIView(APIView):
             label = sha[:12]
 
         build = Build(
-            change=change,
-            project=change.project,
+            project=project,
             repository=repository,
             status=Status.queued,
             author=author,
@@ -93,10 +100,12 @@ class BuildIndexAPIView(APIView):
             parent_revision_sha=sha,
             patch=patch,
         )
-        db.session.add(build)
+        if change:
+            build.change = change
+            change.date_modified = datetime.utcnow()
+            db.session.add(change)
 
-        change.date_modified = datetime.utcnow()
-        db.session.add(change)
+        db.session.add(build)
 
         backend = self.get_backend()
         backend.create_build(build)

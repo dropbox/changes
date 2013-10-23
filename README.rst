@@ -152,14 +152,22 @@ List Builds
 Create Build
 ~~~~~~~~~~~~
 
+Create's a new build. A ``change`` or ``project`` is required to create a build.
+
 ::
 
-	POST /api/0/changes/:change_id/builds/
+	POST /api/0/builds/
 
 **Params**
 
 sha:
 	the base revision sha to build on
+
+(optional) change:
+	the change ID
+
+(optional) change:
+	the project ID
 
 (optional) author:
 	the author of this build (e.g. "David Cramer <dcramer@example.com>")
