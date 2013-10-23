@@ -7,7 +7,8 @@ define(['app', 'factories/stream', 'directives/timeSince', 'directives/duration'
 
     $scope.test = initialData.data.test;
     $scope.build = initialData.data.build;
-    $scope.previousRuns = initialData.data.previousRuns
+    $scope.previousRuns = initialData.data.previousRuns;
+    $scope.firstRun = initialData.data.firstRun;
 
     function updateTest(data){
       $scope.$apply(function() {

@@ -37,12 +37,22 @@ class TestDetailsAPIView(APIView):
             Build.status == Status.finished
         ).order_by(Build.date_created.desc())[:25]
 
+        first_run = Test.query.join(Build).outerjoin(Author).filter(
+            Test.group_sha == test.group_sha,
+            Test.label_sha == test.label_sha,
+            Test.id != test.id,
+            Build.status == Status.finished
+        ).order_by(Build.date_created.asc()).first()
+
+        extended_serializers = {
+            Test: TestWithBuildSerializer(),
+        }
+
         context = {
             'build': test.build,
             'test': test,
-            'previousRuns': self.serialize(previous_runs, {
-                Test: TestWithBuildSerializer(),
-            }),
+            'previousRuns': self.serialize(previous_runs, extended_serializers),
+            'firstRun': self.serialize(first_run, extended_serializers),
         }
 
         return self.respond(context)

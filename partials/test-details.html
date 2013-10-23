@@ -12,6 +12,9 @@
 		<dd>{{test.result.name}}</dd>
 		<dt>Duration:</dt>
 		<dd duration="test.duration"></dd>
+		<dt>First Seen:</dt>
+		<dd ng-if="firstRun"><a href="{{firstRun.link}}">{{firstRun.build.parent_revision.sha.substr(0, 12)}}</a> <small time-since="firstRun.dateCreated"></small></dd>
+		<dd ng-if="!firstRun">This is the first time this test has been seen</dd>
 	</dl>
 
 	<pre ng-if="test.message" class="build-message">{{test.message}}</pre>
