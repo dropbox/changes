@@ -199,7 +199,7 @@ dl.flat dt {
   text-overflow: ellipsis;
   white-space: nowrap;
   display: inline-block;
-  max-width: 730px;
+  max-width: 600px;
 }
 .change-list td small,
 .build-list td small,
@@ -214,6 +214,7 @@ dl.flat dt {
 .build-list td .date,
 .change-list td .status,
 .build-list td .status {
+  background: inherit;
   position: absolute;
   font-size: 0.7em;
   right: 15px;
