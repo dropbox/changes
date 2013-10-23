@@ -5,6 +5,7 @@ require.config({
     'angularLinkify': '../vendor/angular-linkify/angular-linkify',
     'angularRoute': '../vendor/angular-route/angular-route',
     'angularSanitize': '../vendor/angular-sanitize/angular-sanitize',
+    'angularLoadingBar': '../vendor/angular-loading-bar/build/loading-bar',
     'bootstrap': '../vendor/bootstrap/dist/js/bootstrap',
     'jquery': '../vendor/jquery/jquery',
     'moment': '../vendor/moment/moment',
@@ -14,6 +15,7 @@ require.config({
     'angular': {exports: 'angular'},
     'angularAnimate': ['angular'],
     'angularLinkify': ['angular'],
+    'angularLoadingBar': ['angular'],
     'angularRoute': ['angular'],
     'angularSanitize': ['angular'],
     'modules/pagination': ['angular'],
@@ -32,10 +34,11 @@ require([
   'jquery',
   'bootstrap',
   'angular',
+  'angularLoadingBar',
   'routes',
 ], function(jquery, bootstrap, angular, app, routes) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app']);
+    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar']);
   });
 });
