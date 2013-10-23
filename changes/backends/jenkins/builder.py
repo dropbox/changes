@@ -180,7 +180,7 @@ class JenkinsBuilder(BaseBackend):
                     duration=int(case['duration'] * 1000),
                     message='\n'.join(message).strip(),
                 )
-                if case['status'] == 'PASSED':
+                if case['status'] in ('PASSED', 'FIXED'):
                     test.result = Result.passed
                 elif case['status'] in ('FAILED', 'REGRESSION'):
                     test.result = Result.failed
