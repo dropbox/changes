@@ -15,7 +15,7 @@ db = SQLAlchemy(session_options={
 })
 pubsub = PubSub()
 queue = Queue()
-sentry = Sentry()
+sentry = Sentry(logging=True)
 
 
 def create_app(**config):
