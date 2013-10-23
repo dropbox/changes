@@ -47,7 +47,7 @@ def create_app(**config):
     db.init_app(app)
     pubsub.init_app(app)
     queue.init_app(app)
-    sentry.init_app(app, app.config['SENTRY_DSN'])
+    sentry.init_app(app)
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
