@@ -43,10 +43,13 @@ class BuildIndexAPIView(APIView):
     @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
     @param('project', lambda x: Project.query.filter_by(slug=x).first(), dest='project', required=False)
     @param('author', AuthorValidator(), required=False)
+    @param('label', required=False)
+    @param('message', required=False)
     @param('patch[label]', required=False, dest='patch_label')
     @param('patch[url]', required=False, dest='patch_url')
     def post(self, sha, project=None, change=None, author=None,
-             patch_label=None, patch_url=None, patch=None):
+             patch_label=None, patch_url=None, patch=None, label=None,
+             message=None):
 
         assert change or project
 
@@ -82,10 +85,11 @@ class BuildIndexAPIView(APIView):
         else:
             patch = None
 
-        if patch_label:
-            label = patch_label
-        else:
-            label = sha[:12]
+        if not label:
+            if patch_label:
+                label = patch_label
+            else:
+                label = sha[:12]
 
         build = Build(
             project=project,
@@ -94,6 +98,7 @@ class BuildIndexAPIView(APIView):
             author=author,
             label=label,
             parent_revision_sha=sha,
+            message=message,
         )
 
         if change:
