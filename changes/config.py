@@ -3,6 +3,7 @@ import os
 import os.path
 
 from flask.ext.sqlalchemy import SQLAlchemy
+from raven.contrib.flask import Sentry
 
 from changes.ext.pubsub import PubSub
 from changes.ext.queue import Queue
@@ -14,23 +15,29 @@ db = SQLAlchemy(session_options={
 })
 pubsub = PubSub()
 queue = Queue()
+sentry = Sentry()
 
 
 def create_app(**config):
     app = flask.Flask(__name__,
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
+
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///changes'
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
     app.config['REDIS_URL'] = 'redis://localhost/0'
     app.config['RQ_DEFAULT_RESULT_TTL'] = 0
     app.config['DEBUG'] = True
     app.config['HTTP_PORT'] = 5000
-    app.config['JENKINS_URL'] = 'https://jenkins.build.itc.dropbox.com'
-    app.config['JENKINS_TOKEN'] = 'test'
-    app.config['KOALITY_URL'] = 'https://build.itc.dropbox.com'
-    app.config['KOALITY_API_KEY'] = 'he8i7mxdzrocn6rg9qv852occkvpih9b'
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+    app.config['SENTRY_DSN'] = None
+
+    app.config['JENKINS_URL'] = None
+    app.config['JENKINS_TOKEN'] = None
+
+    app.config['KOALITY_URL'] = None
+    app.config['KOALITY_API_KEY'] = None
 
     # CHANGES_CONF=/etc/changes.conf.py
     app.config.from_envvar('CHANGES_CONF', silent=True)
@@ -40,6 +47,7 @@ def create_app(**config):
     db.init_app(app)
     pubsub.init_app(app)
     queue.init_app(app)
+    sentry.init_app(app, app.config['SENTRY_DSN'])
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)

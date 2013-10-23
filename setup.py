@@ -23,6 +23,7 @@ tests_require = [
     'loremipsum',
     'httpretty',
     'mock',
+    'raven',
     'pytest',
     'pytest-cov',
     'pytest-xdist',

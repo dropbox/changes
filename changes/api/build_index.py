@@ -98,12 +98,15 @@ class BuildIndexAPIView(APIView):
             author=author,
             label=label,
             parent_revision_sha=sha,
-            patch=patch,
         )
+
         if change:
             build.change = change
             change.date_modified = datetime.utcnow()
             db.session.add(change)
+
+        if patch:
+            build.patch = patch
 
         db.session.add(build)
 
