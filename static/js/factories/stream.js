@@ -13,18 +13,16 @@ define(['app'], function (app) {
       }
       console.log('[Stream] Initiating connection to ' + url);
 
-      $scope.$on('routeChangeStart', function(e){
-        if (window.streams) {
-          $.each(window.streams, function(_, stream){
-            stream.close();
-          });
-        }
-      });
-
       window.streams[url] = new EventSource(url + '?_=' + new Date().getTime());
       window.streams[url].onopen = function(e) {
         console.log('[Stream] Connection opened to ' + url);
       }
+
+      $scope.$on("$destroy", function() {
+        console.log('[Stream] Closing connection to ' + url);
+        window.streams[url].close();
+        delete window.streams[url];
+      });
 
       return {
         subscribe: function(event, callback){
