@@ -110,7 +110,6 @@ class JenkinsBuilder(BaseBackend):
             should_finish = True
             build.date_finished = datetime.utcnow()
 
-        if item['result']:
             if item['result'] == 'SUCCESS':
                 build.result = Result.passed
             elif item['result'] == 'ABORTED':
