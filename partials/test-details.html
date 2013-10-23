@@ -31,7 +31,7 @@
 					<td>
 						<a href="{{previousTest.link}}">{{previousTest.build.name}}</a><br>
 						<small>
-							{{previousTest.build.parent_revision.sha}}
+							{{previousTest.build.parent_revision.sha.substr(0, 12)}}
 							<span ng-if="previousTest.build.author">&mdash; {{previousTest.build.author.name}}</span>
 						</small>
 						<span class="status">{{previousTest.result.name}}</span>
