@@ -16,7 +16,7 @@
 					<a href="{{build.link}}">{{build.name}}</a><br>
 
 					<small>
-						<a href="#">{{build.project.name}}</a>
+						{{build.parent_revision.sha}}
 						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 					</small>
 					<span class="status">{{getBuildStatus(build)}}</span>
