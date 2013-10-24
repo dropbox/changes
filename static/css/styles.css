@@ -53,7 +53,7 @@ dl.flat dt {
 }
 
 .container {
-  margin: 0;
+  margin: 0 auto;
 }
 
 .navbar {
