@@ -40,9 +40,11 @@ class TestDetailsAPIView(APIView):
         first_run = Test.query.join(Build).outerjoin(Author).filter(
             Test.group_sha == test.group_sha,
             Test.label_sha == test.label_sha,
-            Test.id != test.id,
             Build.status == Status.finished
         ).order_by(Build.date_created.asc()).first()
+        # if we end up just discovering ourself, then we must be the first run
+        if first_run.id == test.id:
+            first_run = None
 
         extended_serializers = {
             Test: TestWithBuildSerializer(),
