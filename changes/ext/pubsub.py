@@ -65,10 +65,14 @@ class _PubSubState(object):
 
         channel = msg['channel']
         data = json.loads(msg['data'])
-        for pattern, callbacks in self._callbacks.iteritems():
+        # XXX(dcramer): this code can be run concurrently so its important
+        # to note that callbacks can change size/contents during iteration
+        for pattern, callbacks in self._callbacks.items():
             if not fnmatch(channel, pattern):
                 continue
-            for cb in callbacks:
+            # because callbacks is shared, we copy the set into a new list
+            # to ensure it doesnt change during iteration
+            for cb in list(callbacks):
                 cb(data)
                 gevent.sleep(0)
 
