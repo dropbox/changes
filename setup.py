@@ -81,7 +81,6 @@ setup(
     entry_points={
         'console_scripts': [
             'changes-web = changes.runner:web',
-            'changes-poller = changes.runner:poller',
             'changes-worker = changes.runner:worker',
         ],
     },

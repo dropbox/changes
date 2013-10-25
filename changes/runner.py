@@ -50,10 +50,6 @@ def web(host='0.0.0.0', port=5000):
     pywsgi.WSGIServer((host, port), app).serve_forever()
 
 
-def poller():
-    jenkins_poller()
-
-
 def worker(queues=('queues', 'default')):
     from changes.config import queue, create_app
 
@@ -74,43 +70,6 @@ def worker(queues=('queues', 'default')):
     except Exception:
         import traceback
         traceback.print_exc()
-
-
-def jenkins_poller():
-    import time
-    from changes.config import create_app, db
-    from changes.backends.jenkins.builder import JenkinsBuilder
-
-    app = create_app()
-    app_context = app.app_context()
-    app_context.push()
-
-    from changes.models import RemoteEntity
-
-    project = _get_or_create_server_project()
-
-    try:
-        entity = RemoteEntity.query.filter_by(
-            provider='jenkins',
-            remote_id='server',
-            type='job',
-        )[0]
-    except IndexError:
-        entity = RemoteEntity(
-            provider='jenkins',
-            remote_id='server',
-            internal_id=project.id,
-            type='job',
-        )
-        db.session.add(entity)
-
-    project.attach_entity(entity)
-
-    print "Polling for builds"
-    builder = JenkinsBuilder(app=app, base_url='https://jenkins.build.itc.dropbox.com')
-    while True:
-        builder.sync_build_list(project)
-        time.sleep(5)
 
 
 def phabricator_poller():
