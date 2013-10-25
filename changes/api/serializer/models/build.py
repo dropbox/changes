@@ -31,6 +31,14 @@ class BuildSerializer(Serializer):
         else:
             external = None
 
+        if instance.parent_id:
+            parent = {
+                'id': instance.parent_id.hex,
+                'link': '/builds/%s/' % (instance.parent_id.hex,),
+            }
+        else:
+            parent = None
+
         return {
             'id': instance.id.hex,
             'name': instance.label,
@@ -42,6 +50,7 @@ class BuildSerializer(Serializer):
             'parent_revision': {
                 'sha': instance.parent_revision_sha,
             },
+            'parent': parent,
             'message': instance.message,
             'duration': instance.duration,
             'estimatedDuration': avg_build_time,
