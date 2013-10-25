@@ -108,7 +108,9 @@ class BuildIndexAPIView(APIView):
         backend = self.get_backend()
         backend.create_build(build)
 
-        queue.delay('sync_build', build_id=build.id.hex)
+        queue.delay('sync_build', kwargs={
+            'build_id': build.id.hex,
+        })
 
         context = {
             'build': {

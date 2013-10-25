@@ -18,4 +18,6 @@ def cleanup_builds():
         Build.date_modified < cutoff,
     )
     for build in build_list:
-        queue.delay('sync_build', build_id=build.id.hex)
+        queue.delay('sync_build', kwargs={
+            'build_id': build.id.hex,
+        })

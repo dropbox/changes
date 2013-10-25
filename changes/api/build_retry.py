@@ -44,7 +44,9 @@ class BuildRetryAPIView(APIView):
         backend = self.get_backend()
         backend.create_build(new_build)
 
-        queue.delay('sync_build', build_id=new_build.id.hex)
+        queue.delay('sync_build', kwargs={
+            'build_id': new_build.id.hex,
+        })
 
         context = {
             'build': {

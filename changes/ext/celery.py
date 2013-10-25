@@ -24,11 +24,16 @@ class _Celery(object):
         self.celery = celery
         self.tasks = {}
 
-    def delay(self, name, *args, **kwargs):
+    def delay(self, name, args=None, kwargs=None, *fn_args, **fn_kwargs):
         # We don't assume the task is registered at this point, so manually
         # publish it
         with self.celery.producer_or_acquire() as P:
-            task_id = P.publish_task(name, args, kwargs)
+            task_id = P.publish_task(
+                task_name=name,
+                task_args=args,
+                task_kwargs=kwargs,
+                *fn_args, **fn_kwargs
+            )
         return task_id
 
     def retry(self, name, *args, **kwargs):
