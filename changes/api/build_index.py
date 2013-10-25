@@ -113,7 +113,7 @@ class BuildIndexAPIView(APIView):
         context = {
             'build': {
                 'id': build.id.hex,
-                'link': '/builds/{0]/'.format(build.id.hex),
+                'link': '/builds/{0}/'.format(build.id.hex),
             },
         }
 

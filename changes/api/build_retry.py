@@ -48,7 +48,7 @@ class BuildRetryAPIView(APIView):
         context = {
             'build': {
                 'id': new_build.id.hex,
-                'link': '/builds/{0]/'.format(new_build.id.hex),
+                'link': '/builds/{0}/'.format(new_build.id.hex),
             },
         }
 

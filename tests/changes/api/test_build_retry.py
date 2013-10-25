@@ -13,6 +13,7 @@ class BuildRetryTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['build']['id']
+        assert data['build']['link']
         new_build = Build.query.get(data['build']['id'])
         assert new_build.id != build.id
         assert new_build.change == change
