@@ -37,6 +37,7 @@ class BuildSerializer(Serializer):
             'result': instance.result,
             'status': instance.status,
             'project': instance.project,
+            'cause': instance.cause,
             'author': instance.author,
             'parent_revision': {
                 'sha': instance.parent_revision_sha,
