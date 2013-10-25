@@ -100,7 +100,7 @@ class JenkinsBuilder(BaseBackend):
         except NotFound:
             build.date_finished = datetime.utcnow()
             build.status = Status.finished
-            build.result = Status.aborted
+            build.result = Result.aborted
             db.session.add(build)
             return
 
