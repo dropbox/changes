@@ -22,7 +22,7 @@ class BuildIndexAPIView(APIView):
         if change:
             queryset = queryset.filter_by(change=change)
 
-        build_list = list(queryset)[:100]
+        build_list = list(queryset)[:25]
 
         context = {
             'builds': build_list,
