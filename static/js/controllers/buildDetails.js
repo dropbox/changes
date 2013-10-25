@@ -44,11 +44,16 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
 
       return arr;
     }
-
-    $scope.build = initialData.data.build;
-    $scope.phases = initialData.data.phase;
-    $scope.tests = sortTests(initialData.data.tests);
-    $scope.testsPaginator = Pagination.create($scope.tests);
+    function getTestStatus() {
+      if ($scope.build.status.id == "finished") {
+        if ($scope.tests.length === 0) {
+          return "no-results";
+        } else {
+          return "has-results";
+        }
+      }
+      return "pending";
+    }
 
     function updateBuild(data){
       $scope.$apply(function() {
@@ -78,16 +83,18 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
       });
     }
 
-    $scope.getTestStatus = function() {
-      if ($scope.build.status.id == "finished") {
-        if ($scope.tests.length === 0) {
-          return "no-results";
-        } else {
-          return "has-results";
-        }
-      }
-      return "pending";
-    };
+    $scope.build = initialData.data.build;
+    $scope.phases = initialData.data.phase;
+    $scope.tests = sortTests(initialData.data.tests);
+    $scope.testsPaginator = Pagination.create($scope.tests);
+    $scope.testStatus = getTestStatus();
+
+    $scope.$watch("build.status", function(status) {
+      $scope.testStatus = getTestStatus();
+    });
+    $scope.$watch("build.tests", function(status) {
+      $scope.testStatus = getTestStatus();
+    });
 
     $scope.retryBuild = function() {
       $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
