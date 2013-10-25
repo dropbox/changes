@@ -92,7 +92,7 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
     $scope.$watch("build.status", function(status) {
       $scope.testStatus = getTestStatus();
     });
-    $scope.$watch("build.tests", function(status) {
+    $scope.$watch("tests", function(status) {
       $scope.testStatus = getTestStatus();
     });
 
