@@ -1,6 +1,6 @@
 define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince', 'directives/duration',
-        'filters/escape', 'filters/wordwrap', 'modules/pagination'], function(app) {
-  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', 'pagination', function($scope, initialData, $http, $routeParams, Stream, Pagination) {
+        'filters/escape', 'filters/wordwrap', 'modules/pagination', 'factories/flash'], function(app) {
+  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$window', '$http', '$routeParams', 'stream', 'pagination', 'flash', function($scope, initialData, $window, $http, $routeParams, Stream, Pagination, flash) {
     'use strict';
 
     var stream,
@@ -87,6 +87,16 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
         }
       }
       return "pending";
+    };
+
+    $scope.retryBuild = function() {
+      $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
+        .success(function(data){
+          $window.location.href = data.build.link;
+        })
+        .error(function(){
+          flash('error', 'There was an error while retrying this build.');
+        });
     };
 
     stream = Stream($scope, entrypoint);

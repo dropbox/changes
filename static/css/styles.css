@@ -45,6 +45,7 @@ pre {
 dl.flat {
   position: relative;
   padding-left: 110px;
+  margin-top: 0;
 }
 dl.flat dt {
   position: absolute;

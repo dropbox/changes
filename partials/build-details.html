@@ -11,24 +11,37 @@
 			<h2>{{build.name}} <small>({{build.parent_revision.sha}})</small></h2>
 		</div>
 
-		<dl class="flat">
-			<dt ng-if="build.author">Author:</dt>
-			<dd ng-if="build.author">{{build.author.name}} <span ng-if="build.author.email">(<a href="mailto:{{build.author.email}}">{{build.author.email}}</a>)</span></dd>
-			<dt>Project:</dt>
-			<dd><a href="#">{{build.project.name}}</a></dd>
-			<dt ng-if="build.change">Change:</dt>
-			<dd ng-if="build.change"><a href="#">{{build.change.name}}</a></dd>
-			<dt>Revision:</dt>
-			<dd>{{build.parent_revision.sha}}</dd>
-			<dt>Status:</dt>
-			<dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
-			<dt ng-if="build.dateStarted">Started:</dt>
-			<dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
-			<dt ng-if="build.duration">Duration:</dt>
-			<dd ng-if="build.duration" duration="build.duration"></dd>
-			<dt ng-if="build.external">External:</dt>
-			<dd ng-if="build.external"><a href="{{ build.external.link }}">{{ build.external.label }}</a></dd>
-		</dl>
+		<div class="row">
+			<div class="col-lg-9 col-md-8">
+				<dl class="flat">
+					<dt ng-if="build.author">Author:</dt>
+					<dd ng-if="build.author">{{build.author.name}} <span ng-if="build.author.email">(<a href="mailto:{{build.author.email}}">{{build.author.email}}</a>)</span></dd>
+					<dt>Project:</dt>
+					<dd><a href="#">{{build.project.name}}</a></dd>
+					<dt ng-if="build.change">Change:</dt>
+					<dd ng-if="build.change"><a href="#">{{build.change.name}}</a></dd>
+					<dt>Revision:</dt>
+					<dd>{{build.parent_revision.sha}}</dd>
+					<dt>Status:</dt>
+					<dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
+					<dt ng-if="build.dateStarted">Started:</dt>
+					<dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
+					<dt ng-if="build.duration">Duration:</dt>
+					<dd ng-if="build.duration" duration="build.duration"></dd>
+					<dt ng-if="build.external">External:</dt>
+					<dd ng-if="build.external"><a href="{{ build.external.link }}">{{ build.external.label }}</a></dd>
+				</dl>
+			</div>
+			<div class="col-lg-3 col-md-4">
+				<div class="panel panel-default">
+  					<div class="panel-body">
+						<ul class="nav nav-small">
+							<li><a href="javascript:void(0)" ng-click="retryBuild()">Retry this build</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
 
 		<pre ng-if="build.message" class="build-message" ng-bind-html="build.message | escape | linkify"></pre>
 
