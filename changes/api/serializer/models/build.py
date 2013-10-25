@@ -33,7 +33,6 @@ class BuildSerializer(Serializer):
 
         return {
             'id': instance.id.hex,
-            'change': instance.change,
             'name': instance.label,
             'result': instance.result,
             'status': instance.status,
