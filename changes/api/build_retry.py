@@ -1,11 +1,11 @@
-from flask import Response, current_app
+from flask import Response
 from sqlalchemy.orm import joinedload, subqueryload_all
 
 from datetime import datetime
 
 from changes.api.base import APIView
 from changes.config import db, queue
-from changes.constants import Cause
+from changes.constants import Cause, Status
 from changes.models import Build
 
 
@@ -27,6 +27,7 @@ class BuildRetryAPIView(APIView):
             parent_id=build.id,
             patch=build.patch,
             label=build.label,
+            status=Status.queued,
             message=build.message,
             # TODO(dcramer): author is a lie
             author=build.author,
