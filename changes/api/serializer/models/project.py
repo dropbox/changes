@@ -9,4 +9,5 @@ class ProjectSerializer(Serializer):
             'id': instance.id.hex,
             'slug': instance.slug,
             'name': instance.name,
+            'dateCreated': instance.date_created,
         }
