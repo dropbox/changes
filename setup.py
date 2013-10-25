@@ -40,7 +40,7 @@ install_requires = [
     'flask-sqlalchemy',
     'gevent',
     'lxml',
-    'raven',
+    'raven>=3.5.1',
     'redis',
     'requests',
     'phabricator',
