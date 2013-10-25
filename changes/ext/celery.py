@@ -31,11 +31,11 @@ class _Celery(object):
             task_id = P.publish_task(name, args, kwargs)
         return task_id
 
-    def retry(self, name, args, kwargs, **options):
+    def retry(self, name, *args, **kwargs):
         # unlike delay, we actually want to rely on Celery's retry logic
         # and because we can only execute this within a task, it's safe
         # to say that the task is actually registered
-        self.tasks[name].retry(args, kwargs, **options)
+        self.tasks[name].retry(*args, **kwargs)
 
     def register(self, name, func):
         # XXX(dcramer): hacky way to ensure the task gets registered so
