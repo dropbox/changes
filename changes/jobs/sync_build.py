@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 from flask import current_app
 
@@ -5,6 +7,8 @@ from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.models import Build, RemoteEntity
+
+logger = logging.getLogger('jobs')
 
 
 def sync_build(build_id):
@@ -42,4 +46,5 @@ def sync_build(build_id):
         # Ensure we continue to synchronize this build as this could be a
         # temporary failure
         queue.retry('sync_build', build_id=build.id.hex)
+        logger.exception('Failed to sync build')
         raise
