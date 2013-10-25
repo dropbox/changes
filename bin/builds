@@ -3,12 +3,11 @@
 import argparse
 import sys
 
-from changes.config import create_app, db
+from changes.config import create_app, db, queue
 from changes.constants import Status
 from changes.models import (
     Project, Build
 )
-from changes.jobs.sync_build import sync_build
 
 app = create_app()
 app_context = app.app_context()
@@ -53,7 +52,7 @@ if args.command == 'add':
     backend = JenkinsBuilder(app=app, base_url=app.config['JENKINS_URL'])
     backend.create_build(build)
 
-    sync_build.delay(build_id=build.id)
+    queue.delay('sync_build', build_id=build.id.hex)
 
     db.session.add(build)
     db.session.commit()

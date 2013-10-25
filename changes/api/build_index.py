@@ -7,9 +7,8 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
-from changes.config import db
+from changes.config import db, queue
 from changes.constants import Status
-from changes.jobs.sync_build import sync_build
 from changes.models import Project, Build, Repository, Patch, Change
 
 
@@ -114,7 +113,7 @@ class BuildIndexAPIView(APIView):
         backend = self.get_backend()
         backend.create_build(build)
 
-        sync_build.delay(build_id=build.id)
+        queue.delay('sync_build', build_id=build.id.hex)
 
         context = {
             'build': {

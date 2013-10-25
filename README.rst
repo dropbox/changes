@@ -44,18 +44,6 @@ Apply migrations:
 .. note:: You can simply run ``make resetdb`` to drop and re-create a clean database.
 
 
-Fixture Data
-============
-
-You can generate sample data by running the following:
-
-::
-
-	python generate_data.py
-
-.. note:: This will wipe all existing data!
-
-
 Webserver
 =========
 
@@ -65,6 +53,16 @@ Run the webserver:
 
 	changes-web
 
+
+Backgorund Workers
+==================
+
+Workers are managed via Celery:
+
+::
+
+
+	celery -A changes.app worker
 
 API
 ===

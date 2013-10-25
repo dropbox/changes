@@ -50,28 +50,6 @@ def web(host='0.0.0.0', port=5000):
     pywsgi.WSGIServer((host, port), app).serve_forever()
 
 
-def worker(queues=('queues', 'default')):
-    from changes.config import queue, create_app
-
-    app = create_app()
-    app_context = app.app_context()
-    app_context.push()
-
-    print 'New worker consuming from queues: %s' % (queues,)
-
-    queues = [q.strip() for q in queues if q.strip()]
-
-    try:
-        # Creates a worker that handle jobs in ``default`` queue.
-        worker = queue.get_worker(*queues)
-        worker.work()
-    except (KeyboardInterrupt, SystemExit):
-        pass
-    except Exception:
-        import traceback
-        traceback.print_exc()
-
-
 def phabricator_poller():
     import time
     from changes.config import create_app, db

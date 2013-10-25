@@ -33,6 +33,7 @@ install_requires = [
     'argparse',
     'alembic',
     'blinker',
+    'celery',
     'enum34',
     'flask',
     'flask-actions',
@@ -42,7 +43,6 @@ install_requires = [
     'raven',
     'redis',
     'requests',
-    'rq',
     'phabricator',
     'psycopg2',
     'simplejson',
@@ -81,7 +81,6 @@ setup(
     entry_points={
         'console_scripts': [
             'changes-web = changes.runner:web',
-            'changes-worker = changes.runner:worker',
         ],
     },
     classifiers=[

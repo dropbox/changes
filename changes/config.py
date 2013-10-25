@@ -5,8 +5,8 @@ import os.path
 from flask.ext.sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 
+from changes.ext.celery import Celery
 from changes.ext.pubsub import PubSub
-from changes.ext.queue import Queue
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
@@ -14,7 +14,7 @@ db = SQLAlchemy(session_options={
     'autoflush': True,
 })
 pubsub = PubSub()
-queue = Queue()
+queue = Celery()
 sentry = Sentry(logging=True)
 
 
@@ -30,6 +30,9 @@ def create_app(**config):
     app.config['DEBUG'] = True
     app.config['HTTP_PORT'] = 5000
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+    app.config['CELERY_ACKS_LATE'] = True
+    app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
 
     app.config['SENTRY_DSN'] = None
 
@@ -100,7 +103,9 @@ def configure_web_routes(app):
 
 
 def configure_jobs(app):
-    import changes.jobs.sync_build  # NOQA
+    from changes.jobs.sync_build import sync_build
+
+    queue.register('sync_build', sync_build)
 
 
 def configure_event_listeners(app):
