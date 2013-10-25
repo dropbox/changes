@@ -30,6 +30,15 @@ class Provider(Enum):
     koality = 'koality'
 
 
+class Cause(Enum):
+    unknown = 0
+    manual = 1
+    push = 2
+    retry = 3
+
+    def __str__(self):
+        return CAUSE_LABELS[self]
+
 STATUS_LABELS = {
     Status.unknown: 'Unknown',
     Status.queued: 'Queued',
@@ -45,4 +54,11 @@ RESULT_LABELS = {
     Result.errored: 'Errored',
     Result.aborted: 'Aborted',
     Result.timedout: 'Timed out'
+}
+
+CAUSE_LABELS = {
+    Cause.unknown: 'Unknown',
+    Cause.manual: 'Manual',
+    Cause.push: 'Code Push',
+    Cause.retry: 'Retry',
 }

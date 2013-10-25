@@ -5,7 +5,7 @@ from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
 
 from changes.config import db
-from changes.constants import Status, Result
+from changes.constants import Status, Result, Cause
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
@@ -21,6 +21,8 @@ class Build(db.Model):
     parent_revision_sha = Column(String(40))
     patch_id = Column(GUID, ForeignKey('patch.id'))
     author_id = Column(GUID, ForeignKey('author.id'))
+    cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
+    parent = Column(GUID, ForeignKey('build.id'))
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
