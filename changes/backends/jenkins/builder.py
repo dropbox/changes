@@ -251,7 +251,9 @@ class JenkinsBuilder(BaseBackend):
             provider=self.provider,
             internal_id=build.id,
             type='build',
-        )[0]
+        ).first()
+        if not entity:
+            return
 
         if entity.data['queued']:
             self._sync_build_from_queue(build, entity)
@@ -274,7 +276,9 @@ class JenkinsBuilder(BaseBackend):
             provider=self.provider,
             internal_id=build.project.id,
             type='job',
-        )[0]
+        ).first()
+        if not entity:
+            raise Exception('Missing Jenkins project configuration')
         job_name = entity.remote_id
 
         json_data = {

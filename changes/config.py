@@ -2,6 +2,7 @@ import flask
 import os
 import os.path
 
+from datetime import timedelta
 from flask.ext.sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 
@@ -34,6 +35,16 @@ def create_app(**config):
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
 
+    # celerybeat must be running for our cleanup tasks to execute
+    # e.g. celery worker -B
+    app.config['CELERYBEAT_SCHEDULE'] = {
+        'cleanup-builds': {
+            'task': 'cleanup_builds',
+            'schedule': timedelta(minutes=1),
+        },
+    }
+    app.config['CELERY_TIMEZONE'] = 'UTC'
+
     app.config['SENTRY_DSN'] = None
 
     app.config['JENKINS_URL'] = None
@@ -51,6 +62,9 @@ def create_app(**config):
     pubsub.init_app(app)
     queue.init_app(app)
     sentry.init_app(app)
+
+    from raven.contrib.celery import register_signal
+    register_signal(sentry)
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
@@ -103,8 +117,10 @@ def configure_web_routes(app):
 
 
 def configure_jobs(app):
+    from changes.jobs.cleanup_builds import cleanup_builds
     from changes.jobs.sync_build import sync_build
 
+    queue.register('cleanup_builds', cleanup_builds)
     queue.register('sync_build', sync_build)
 
 

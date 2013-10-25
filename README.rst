@@ -62,7 +62,7 @@ Workers are managed via Celery:
 ::
 
 
-	celery -A changes.app worker
+	celery -A changes.app worker -B
 
 API
 ===
