@@ -48,6 +48,7 @@ class BuildSerializer(Serializer):
             'link': '/builds/%s/' % (instance.id.hex,),
             'external': external,
             'dateCreated': instance.date_created.isoformat(),
+            'dateModified': instance.date_modified.isoformat() if instance.date_modified else None,
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
             'dateFinished': instance.date_finished.isoformat() if instance.date_finished else None,
         }
