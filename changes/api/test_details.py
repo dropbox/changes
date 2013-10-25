@@ -43,7 +43,7 @@ class TestDetailsAPIView(APIView):
             Build.status == Status.finished
         ).order_by(Build.date_created.asc()).first()
         # if we end up just discovering ourself, then we must be the first run
-        if first_run.id == test.id:
+        if first_run and first_run.id == test.id:
             first_run = None
 
         extended_serializers = {
