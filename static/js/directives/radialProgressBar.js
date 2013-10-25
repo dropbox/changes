@@ -68,7 +68,7 @@ define(['app', 'utils/dial'], function(app, Dial) {
         update(progress);
 
         if (!is_finished) {
-          timeout_id = $timeout(tick, 500);
+          timeout_id = $timeout(tick, 1000);
         }
       }
 

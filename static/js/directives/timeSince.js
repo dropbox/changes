@@ -7,7 +7,7 @@ define(['app', 'moment'], function(app, moment) {
       function tick(){
         value = scope.$eval(attrs.timeSince);
         element.text(moment.utc(value).fromNow());
-        timeout_id = $timeout(tick, 500);
+        timeout_id = $timeout(tick, 1000);
       }
 
       scope.$watch(attrs.timeSince, function(value){
