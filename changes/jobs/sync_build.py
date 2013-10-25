@@ -37,7 +37,7 @@ def sync_build(build_id):
         db.session.add(build)
 
         if build.status != Status.finished:
-            queue.delay('sync_build', build_id=build.id.hex)
+            queue.delay('sync_build', build_id=build.id.hex, countdown=5)
     except Exception as exc:
         # Ensure we continue to synchronize this build as this could be a
         # temporary failure
