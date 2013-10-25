@@ -22,7 +22,7 @@ class Build(db.Model):
     patch_id = Column(GUID, ForeignKey('patch.id'))
     author_id = Column(GUID, ForeignKey('author.id'))
     cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
-    parent = Column(GUID, ForeignKey('build.id'))
+    parent_id = Column(GUID, ForeignKey('build.id'))
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
@@ -39,6 +39,7 @@ class Build(db.Model):
     project = relationship('Project')
     patch = relationship('Patch')
     author = relationship('Author')
+    parent = relationship('Build')
 
     def __init__(self, **kwargs):
         super(Build, self).__init__(**kwargs)

@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 from cStringIO import StringIO
 from datetime import datetime
-from flask import current_app as app, request
+from flask import request
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView, param
@@ -13,11 +13,6 @@ from changes.models import Project, Build, Repository, Patch, Change
 
 
 class BuildIndexAPIView(APIView):
-    def get_backend(self, app=app):
-        # TODO this should be automatic via a project
-        from changes.backends.jenkins.builder import JenkinsBuilder
-        return JenkinsBuilder(app=app, base_url=app.config['JENKINS_URL'])
-
     @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
     def get(self, change=None):
         queryset = Build.query.options(

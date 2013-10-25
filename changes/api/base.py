@@ -2,7 +2,7 @@ import json
 
 from functools import wraps
 
-from flask import Response, current_app as app, request
+from flask import Response, current_app, request
 from flask.views import MethodView
 
 from changes.api.serializer import serialize as serialize_func
@@ -72,12 +72,12 @@ class APIView(MethodView):
         try:
             return super(APIView, self).dispatch_request(*args, **kwargs)
         except APIError as exc:
-            app.logger.info(unicode(exc), exc_info=True)
+            current_app.logger.info(unicode(exc), exc_info=True)
             return self.respond({
                 'message': unicode(exc),
             }, status_code=403)
         except Exception as exc:
-            app.logger.exception(unicode(exc))
+            current_app.logger.exception(unicode(exc))
             return self.respond({
                 'message': 'Internal error',
             }, status_code=500)
@@ -100,3 +100,8 @@ class APIView(MethodView):
     def stream_response(self, channels):
         stream = EventStream(channels=channels)
         return Response(stream, mimetype='text/event-stream')
+
+    def get_backend(self, app=current_app):
+        # TODO this should be automatic via a project
+        from changes.backends.jenkins.builder import JenkinsBuilder
+        return JenkinsBuilder(app=current_app, base_url=app.config['JENKINS_URL'])

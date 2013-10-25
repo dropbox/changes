@@ -102,7 +102,7 @@ class APITestCase(TestCase):
             spec=BaseBackend(app=app),
         )
         self.patcher = mock.patch(
-            'changes.api.build_index.BuildIndexAPIView.get_backend',
+            'changes.api.base.APIView.get_backend',
             mock.Mock(return_value=self.mock_backend))
         self.patcher.start()
         self.addCleanup(self.patcher.stop)
