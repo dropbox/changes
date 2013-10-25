@@ -94,8 +94,15 @@ class JenkinsBuilder(BaseBackend):
 
     def _sync_build_from_active(self, build, entity):
         build_item = entity.data.copy()
-        item = self._get_response('/job/{}/{}'.format(
-            build_item['job_name'], build_item['build_no']))
+        try:
+            item = self._get_response('/job/{}/{}'.format(
+                build_item['job_name'], build_item['build_no']))
+        except NotFound:
+            build.date_finished = datetime.utcnow()
+            build.status = Status.finished
+            build.result = Status.aborted
+            db.session.add(build)
+            return
 
         should_finish = False
 
