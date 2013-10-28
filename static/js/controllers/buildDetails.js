@@ -72,9 +72,16 @@ define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/t
           if (result.length > 0) {
             item = result[0];
             for (attr in data) {
-              item[attr] = data[attr];
+              // ignore dateModified as we're updating this frequently and it causes
+              // the dirty checking behavior in angular to respond poorly
+              if (item[attr] != data[attr] && attr != 'dateModified') {
+                updated = true;
+                item[attr] = data[attr];
+              }
+              if (updated) {
+                item.dateModified = data.dateModified;
+              }
             }
-            updated = true;
           }
         }
         if (!updated) {

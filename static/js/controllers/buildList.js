@@ -20,24 +20,31 @@ define(['app', 'factories/stream', 'factories/flash', 'directives/radialProgress
       }
     }
 
-    function addBuild(build) {
+    function addBuild(data) {
       $scope.$apply(function() {
         var updated = false,
-            build_id = build.id,
+            item_id = data.id,
             attr, result, item;
 
         if ($scope.builds.length > 0) {
-          result = $.grep($scope.builds, function(e){ return e.id == build_id; });
+          result = $.grep($scope.builds, function(e){ return e.id == item_id; });
           if (result.length > 0) {
             item = result[0];
-            for (attr in build) {
-              item[attr] = build[attr];
+            for (attr in data) {
+              // ignore dateModified as we're updating this frequently and it causes
+              // the dirty checking behavior in angular to respond poorly
+              if (item[attr] != data[attr] && attr != 'dateModified') {
+                updated = true;
+                item[attr] = data[attr];
+              }
+              if (updated) {
+                item.dateModified = data.dateModified;
+              }
             }
-            updated = true;
           }
         }
         if (!updated) {
-          $scope.builds.unshift(build);
+          $scope.builds.unshift(data);
         }
       });
     }
