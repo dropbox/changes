@@ -1,7 +1,19 @@
 from flask import current_app, redirect, request, session, url_for
+from oauth2client.client import OAuth2WebServerFlow
 
 from changes.api.base import MethodView
-from changes.config import google_auth
+
+
+def get_auth_flow(redirect_uri=None):
+    # XXX(dcramer): we have to generate this each request because oauth2client
+    # doesn't want you to set redirect_uri as part of the request, which causes
+    # a lot of runtime issues.
+    return OAuth2WebServerFlow(
+        client_id=current_app.config['GOOGLE_CLIENT_ID'],
+        client_secret=current_app.config['GOOGLE_CLIENT_SECRET'],
+        scope='https://www.googleapis.com/auth/userinfo.email',
+        redirect_uri=redirect_uri,
+    )
 
 
 class LoginView(MethodView):
@@ -10,18 +22,22 @@ class LoginView(MethodView):
         super(LoginView, self).__init__()
 
     def get(self):
-        callback = url_for(self.authorized_url, _external=True)
-        auth_uri = google_auth.step1_get_authorize_url(callback)
+        redirect_uri = url_for(self.authorized_url, _external=True)
+        flow = get_auth_flow(redirect_uri=redirect_uri)
+        auth_uri = flow.step1_get_authorize_url()
         return redirect(auth_uri)
 
 
 class AuthorizedView(MethodView):
-    def __init__(self, complete_url):
+    def __init__(self, complete_url, authorized_url):
         self.complete_url = complete_url
+        self.authorized_url = authorized_url
         super(AuthorizedView, self).__init__()
 
     def get(self):
-        resp = google_auth.step2_exchange(request.args['code'])
+        redirect_uri = url_for(self.authorized_url, _external=True)
+        flow = get_auth_flow(redirect_uri=redirect_uri)
+        resp = flow.step2_exchange(request.args['code'])
 
         if current_app.config['GOOGLE_DOMAIN']:
             # TODO(dcramer): confirm this is actually what this value means

@@ -8,7 +8,6 @@ from raven.contrib.flask import Sentry
 from werkzeug.contrib.fixers import ProxyFix
 
 from changes.ext.celery import Celery
-from changes.ext.google_auth import GoogleAuth
 from changes.ext.pubsub import PubSub
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -19,7 +18,6 @@ db = SQLAlchemy(session_options={
 pubsub = PubSub()
 queue = Celery()
 sentry = Sentry(logging=True)
-google_auth = GoogleAuth()
 
 
 def create_app(**config):
@@ -82,7 +80,6 @@ def create_app(**config):
     pubsub.init_app(app)
     queue.init_app(app)
     sentry.init_app(app)
-    google_auth.init_app(app)
 
     from raven.contrib.celery import register_signal
     register_signal(sentry)
@@ -145,7 +142,7 @@ def configure_web_routes(app):
     app.add_url_rule(
         '/auth/logout/', view_func=LogoutView.as_view('logout', complete_url='index'))
     app.add_url_rule(
-        '/auth/complete/', view_func=AuthorizedView.as_view('authorized', complete_url='index'))
+        '/auth/complete/', view_func=AuthorizedView.as_view('authorized', authorized_url='authorized', complete_url='index'))
 
     app.add_url_rule(
         '/<path:path>', view_func=IndexView.as_view('index-path'))
