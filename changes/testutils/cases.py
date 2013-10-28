@@ -5,7 +5,7 @@ import uuid
 import json
 import unittest2
 
-from exam import fixture
+from exam import Exam, fixture
 from flask import current_app as app
 
 from changes.config import db
@@ -14,7 +14,7 @@ from changes.models import (
 )
 
 
-class TestCase(unittest2.TestCase):
+class TestCase(Exam, unittest2.TestCase):
     def setUp(self):
         self.repo = Repository(url='https://github.com/dropbox/changes.git')
         db.session.add(self.repo)

@@ -35,6 +35,10 @@ def create_app(**config):
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
 
+    app.config['EVENT_LISTENERS'] = (
+        # ('import.path', 'build.finished'),
+    )
+
     # celerybeat must be running for our cleanup tasks to execute
     # e.g. celery worker -B
     app.config['CELERYBEAT_SCHEDULE'] = {
@@ -70,6 +74,7 @@ def create_app(**config):
     configure_api_routes(app)
     configure_web_routes(app)
 
+    configure_database_listeners(app)
     configure_event_listeners(app)
     configure_jobs(app)
 
@@ -127,7 +132,7 @@ def configure_jobs(app):
     queue.register('sync_build', sync_build)
 
 
-def configure_event_listeners(app):
+def configure_database_listeners(app):
     from sqlalchemy import event
     from changes import events
     from changes.models import Build, Change, Phase, Test
@@ -141,3 +146,12 @@ def configure_event_listeners(app):
     event.listen(Change, 'after_update', events.publish_change_update)
     event.listen(Phase, 'after_update', events.publish_phase_update)
     event.listen(Test, 'after_update', events.publish_test_update)
+
+
+def configure_event_listeners(app):
+    from changes.signals import register_listener
+    from changes.utils.imports import import_string
+
+    for func_path, signal_name in app.config['EVENT_LISTENERS']:
+        func = import_string(func_path)
+        register_listener(func, signal_name)

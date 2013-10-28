@@ -5,6 +5,26 @@ from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.models import Build, RemoteEntity
+from changes.signals import build_finished
+
+
+def sync_with_builder(build):
+    # HACK(dcramer): this definitely is a temporary fix for our "things are
+    # only a single builder" problem
+    entity = RemoteEntity.query.filter_by(
+        provider='jenkins',
+        internal_id=build.id,
+        type='build',
+    ).first()
+    if not entity:
+        build.status = Status.finished
+        build.result = Result.aborted
+    else:
+        builder = JenkinsBuilder(
+            app=current_app,
+            base_url=current_app.config['JENKINS_URL'],
+        )
+        builder.sync_build(build)
 
 
 def sync_build(build_id):
@@ -16,22 +36,7 @@ def sync_build(build_id):
         if build.status == Status.finished:
             return
 
-        # HACK(dcramer): this definitely is a temporary fix for our "things are
-        # only a single builder" problem
-        entity = RemoteEntity.query.filter_by(
-            provider='jenkins',
-            internal_id=build.id,
-            type='build',
-        ).first()
-        if not entity:
-            build.status = Status.finished
-            build.result = Result.aborted
-        else:
-            builder = JenkinsBuilder(
-                app=current_app,
-                base_url=current_app.config['JENKINS_URL'],
-            )
-            builder.sync_build(build)
+        sync_with_builder(build)
 
         build.date_modified = datetime.utcnow()
         db.session.add(build)
@@ -40,6 +45,9 @@ def sync_build(build_id):
             queue.delay('sync_build', kwargs={
                 'build_id': build.id.hex
             }, countdown=5)
+        else:
+            build_finished.send(build)
+
     except Exception as exc:
         # Ensure we continue to synchronize this build as this could be a
         # temporary failure
