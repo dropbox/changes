@@ -7,6 +7,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 
 from changes.ext.celery import Celery
+from changes.ext.google_auth import GoogleAuth
 from changes.ext.pubsub import PubSub
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -17,6 +18,7 @@ db = SQLAlchemy(session_options={
 pubsub = PubSub()
 queue = Celery()
 sentry = Sentry(logging=True)
+google_auth = GoogleAuth()
 
 
 def create_app(**config):
@@ -24,6 +26,8 @@ def create_app(**config):
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
 
+    # This key is insecure and you should override it on the server
+    app.config['SECRET_KEY'] = 't\xad\xe7\xff%\xd2.\xfe\x03\x02=\xec\xaf\\2+\xb8=\xf7\x8a\x9aLD\xb1'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///changes'
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
     app.config['REDIS_URL'] = 'redis://localhost/0'
@@ -57,8 +61,17 @@ def create_app(**config):
     app.config['KOALITY_URL'] = None
     app.config['KOALITY_API_KEY'] = None
 
-    # CHANGES_CONF=/etc/changes.conf.py
-    app.config.from_envvar('CHANGES_CONF', silent=True)
+    app.config['GOOGLE_CLIENT_ID'] = None
+    app.config['GOOGLE_CLIENT_SECRET'] = None
+    app.config['GOOGLE_DOMAIN'] = None
+
+    if os.environ.get('CHANGES_CONF'):
+        # CHANGES_CONF=/etc/changes.conf.py
+        app.config.from_envvar('CHANGES_CONF')
+    else:
+        # Look for ~/.changes/changes.conf.py
+        path = os.path.normpath(os.path.expanduser('~/.changes/changes.conf.py'))
+        app.config.from_pyfile(path, silent=True)
 
     app.config.update(config)
 
@@ -66,6 +79,7 @@ def create_app(**config):
     pubsub.init_app(app)
     queue.init_app(app)
     sentry.init_app(app)
+    google_auth.init_app(app)
 
     from raven.contrib.celery import register_signal
     register_signal(sentry)
@@ -82,6 +96,7 @@ def create_app(**config):
 
 
 def configure_api_routes(app):
+    from changes.api.auth_index import AuthIndexAPIView
     from changes.api.build_details import BuildDetailsAPIView
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.build_retry import BuildRetryAPIView
@@ -90,6 +105,8 @@ def configure_api_routes(app):
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.test_details import TestDetailsAPIView
 
+    app.add_url_rule(
+        '/api/0/auth/', view_func=AuthIndexAPIView.as_view('api-auth'))
     app.add_url_rule(
         '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-build-list'))
     app.add_url_rule(
@@ -109,6 +126,7 @@ def configure_api_routes(app):
 
 
 def configure_web_routes(app):
+    from changes.web.auth import AuthorizedView, LoginView, LogoutView
     from changes.web.index import IndexView
     from changes.web.static import StaticView
 
@@ -118,6 +136,14 @@ def configure_web_routes(app):
     app.add_url_rule(
         '/partials/<path:filename>',
         view_func=StaticView.as_view('partials', root=os.path.join(PROJECT_ROOT, 'partials')))
+
+    app.add_url_rule(
+        '/auth/login/', view_func=LoginView.as_view('login', authorized_url='authorized'))
+    app.add_url_rule(
+        '/auth/logout/', view_func=LogoutView.as_view('logout', complete_url='index'))
+    app.add_url_rule(
+        '/auth/complete/', view_func=AuthorizedView.as_view('authorized', complete_url='index'))
+
     app.add_url_rule(
         '/<path:path>', view_func=IndexView.as_view('index-path'))
     app.add_url_rule(

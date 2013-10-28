@@ -22,8 +22,12 @@
           </button>
           <a class="navbar-brand" href="/#">Changes</a>
         </div>
+        <ul class="nav navbar-right navbar-auth" style="display:none">
+          <p class="navbar-text pull-right" ng-if="authenticated">{% raw %}{{user.email}}{% endraw %} (<a href="{{ url_for('logout') }}" target="_self">Logout</a>)</li>
+          <p class="navbar-text pull-right" ng-if="!authenticated"><a href="{{ url_for('login') }}" target="_self">Login</a></p>
+        </ul>
         <div class="navbar-collapse collapse navbar-header-collapse">
-          <ul class="nav navbar-nav">
+          <ul class="nav navbar-nav navbar-left">
             <li ng-class="navClass('/builds/')"><a href="/builds/">Builds</a></li>
           </ul>
         </div>

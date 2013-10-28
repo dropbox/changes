@@ -1,10 +1,11 @@
+.arcconfig
+.coverage
 .DS_Store
+.idea
+*.db
 *.egg-info
 *.pyc
 *.xml
-.coverage
-.idea
-*.db
 /htmlcov
 /node_modules
 /dist

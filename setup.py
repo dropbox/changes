@@ -43,6 +43,7 @@ install_requires = [
     'raven>=3.5.1',
     'redis',
     'requests',
+    'oauth2client',
     'phabricator',
     'psycopg2',
     'simplejson',
