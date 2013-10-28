@@ -466,7 +466,7 @@ span {
 #loading-bar-spinner {
   display: block;
   position: fixed;
-  top: 20px;
+  top: 18px;
   right: 20px;
   z-index: 1000000;
 }
