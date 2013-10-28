@@ -5,6 +5,7 @@ import os.path
 from datetime import timedelta
 from flask.ext.sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
+from werkzeug.contrib.fixers import ProxyFix
 
 from changes.ext.celery import Celery
 from changes.ext.google_auth import GoogleAuth
@@ -25,6 +26,8 @@ def create_app(**config):
     app = flask.Flask(__name__,
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
+
+    app.wsgi_app = ProxyFix(app.wsgi_app)
 
     # This key is insecure and you should override it on the server
     app.config['SECRET_KEY'] = 't\xad\xe7\xff%\xd2.\xfe\x03\x02=\xec\xaf\\2+\xb8=\xf7\x8a\x9aLD\xb1'
