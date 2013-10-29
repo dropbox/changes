@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 
 import mock
-import uuid
 import json
 import unittest2
 
 from exam import Exam, fixture
 from flask import current_app as app
+from uuid import uuid4
 
 from changes.config import db
 from changes.models import (
@@ -16,14 +16,19 @@ from changes.models import (
 
 class TestCase(Exam, unittest2.TestCase):
     def setUp(self):
-        self.repo = Repository(url='https://github.com/dropbox/changes.git')
-        db.session.add(self.repo)
-
-        self.project = Project(repository=self.repo, name='test', slug='test')
-        db.session.add(self.project)
-
-        self.project2 = Project(repository=self.repo, name='test2', slug='test2')
-        db.session.add(self.project2)
+        self.repo = self.create_repo(
+            url='https://github.com/dropbox/changes.git',
+        )
+        self.project = self.create_project(
+            repository=self.repo,
+            name='test',
+            slug='test'
+        )
+        self.project2 = self.create_project(
+            repository=self.repo,
+            name='test2',
+            slug='test2',
+        )
 
         super(TestCase, self).setUp()
 
@@ -31,11 +36,30 @@ class TestCase(Exam, unittest2.TestCase):
     def client(self):
         return app.test_client()
 
+    def create_repo(self, **kwargs):
+        kwargs.setdefault('url', 'http://example.com/{0}'.format(uuid4().hex))
+
+        repo = Repository(**kwargs)
+        db.session.add(repo)
+
+        return repo
+
+    def create_project(self, **kwargs):
+        if not kwargs.get('repository'):
+            kwargs['repository'] = self.create_repo()
+        kwargs.setdefault('name', uuid4().hex)
+        kwargs.setdefault('slug', kwargs['name'])
+
+        project = Project(**kwargs)
+        db.session.add(project)
+
+        return project
+
     def create_change(self, project, **kwargs):
         kwargs.setdefault('label', 'Sample')
 
         change = Change(
-            hash=uuid.uuid4().hex,
+            hash=uuid4().hex,
             repository=project.repository,
             project=project,
             **kwargs
@@ -46,7 +70,7 @@ class TestCase(Exam, unittest2.TestCase):
 
     def create_build(self, project, **kwargs):
         revision = Revision(
-            sha=uuid.uuid4().hex,
+            sha=uuid4().hex,
             repository=project.repository
         )
         db.session.add(revision)
