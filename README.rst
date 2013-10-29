@@ -51,10 +51,10 @@ Run the webserver:
 
 ::
 
-	changes-web
+	bin/web
 
 
-Backgorund Workers
+Background Workers
 ==================
 
 Workers are managed via Celery:
