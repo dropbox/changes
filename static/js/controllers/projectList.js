@@ -2,10 +2,20 @@ define(['app'], function(app) {
   'use strict';
 
   app.controller('projectListCtrl', ['initial', '$scope', 'stream', function(initial, $scope, Stream) {
-  	var entrypoint = '/api/0/projects/',
-  		stream;
+    var entrypoint = '/api/0/projects/',
+        stream;
 
     $scope.projects = initial.data.projects;
+
+    function sortByDateCreated(a, b){
+      if (a.dateCreated < b.dateCreated) {
+        return 1
+      } else if (a.dateCreated > b.dateCreated) {
+        return -1
+      } else {
+        return 0;
+      }
+    }
 
     function addBuild(data) {
       $scope.$apply(function() {
@@ -39,8 +49,10 @@ define(['app'], function(app) {
         }
         if (!updated) {
           project.recentBuilds.unshift(data);
+          // TODO(dcramer): we shouldn't be constantly sorting this
+          project.recentBuilds.sort(sortByDateCreated);
+          project.recentBuilds = project.recentBuilds.slice(0, 3);
         }
-        project.recentBuilds = project.recentBuilds.slice(0, 3);
       });
     }
 
