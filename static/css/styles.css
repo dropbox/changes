@@ -151,21 +151,6 @@ dl.flat dt {
   padding-left: 0;
 }
 
-.project-list > li {
-  padding-left: 42px;
-  position: relative;
-  min-height: 32px;
-}
-
-.project-list .indicator {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 32px;
-}
-
 .change-header h2,
 .build-header h2 {
   overflow: hidden;
