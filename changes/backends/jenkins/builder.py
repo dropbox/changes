@@ -157,14 +157,6 @@ class JenkinsBuilder(BaseBackend):
             group_sha = sha1(group).hexdigest()
 
             for case in suite['cases']:
-                if case['className']:
-                    label = '{}.{}'.format(case['className'], case['name'])
-                else:
-                    label = case['name']
-                label_sha = sha1(label).hexdigest()
-                if Test.query.filter_by(build=build, group_sha=group_sha, label_sha=label_sha).first():
-                    continue
-
                 message = []
                 if case['errorDetails']:
                     message.append('Error\n-----')
@@ -180,10 +172,8 @@ class JenkinsBuilder(BaseBackend):
                     build=build,
                     project=build.project,
                     group=group,
-                    group_sha=group_sha,
                     name=case['name'],
                     package=case['className'] or None,
-                    label_sha=label_sha,
                     duration=int(case['duration'] * 1000),
                     message='\n'.join(message).strip(),
                 )
@@ -195,6 +185,10 @@ class JenkinsBuilder(BaseBackend):
                     test.result = Result.skipped
                 else:
                     raise ValueError('Invalid test result: %s' % (case['status'],))
+
+                # TODO(dcramer): this doesnt handle concurrency
+                if Test.query.filter_by(build=build, group_sha=test.group_sha, label_sha=test.label_sha).first():
+                    continue
 
                 db.session.add(test)
 

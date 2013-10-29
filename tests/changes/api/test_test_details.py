@@ -9,8 +9,6 @@ class TestDetailsTest(APITestCase):
         test = Test(
             project=self.project,
             build=build,
-            label_sha='a' * 40,
-            group_sha='a' * 40,
             group='default',
             package='TestDetailsTest',
             name='test_retrieve',

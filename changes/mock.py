@@ -152,7 +152,7 @@ def test_result(build, **kwargs):
         kwargs['package'] = TEST_PACKAGES.next()
 
     if 'name' not in kwargs:
-        kwargs['name'] = TEST_NAMES.next()
+        kwargs['name'] = TEST_NAMES.next() + '_' + uuid4().hex
 
     if 'group' not in kwargs:
         kwargs['group'] = 'default'
@@ -162,9 +162,6 @@ def test_result(build, **kwargs):
 
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('project', build.project)
-
-    kwargs['label_sha'] = sha1(uuid4().hex).hexdigest()
-    kwargs['group_sha'] = sha1(kwargs['group']).hexdigest()
 
     result = Test(build=build, **kwargs)
     db.session.add(result)

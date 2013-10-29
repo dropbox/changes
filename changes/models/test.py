@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 from hashlib import sha1
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
+from sqlalchemy.event import listen
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint
 
@@ -24,7 +25,6 @@ class Test(db.Model):
     build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     group_sha = Column(String(40), nullable=False, default=sha1('default').hexdigest())
-    # label_sha should be SHA1(name + package)
     label_sha = Column(String(40), nullable=False)
     group = Column(Text, nullable=False, default='default')
     name = Column(Text, nullable=False)
@@ -45,3 +45,27 @@ class Test(db.Model):
             self.result = Result.unknown
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+
+    def calculate_label_sha(self):
+        if self.package and self.name:
+            return sha1('{0}.{1}'.format(self.package, self.name)).hexdigest()
+        elif self.name:
+            return sha1(self.name).hexdigest()
+
+    def calculate_group_sha(self):
+        return sha1(self.group or 'default').hexdigest()
+
+
+def set_label_sha(target, value, oldvalue, initiator):
+    target.label_sha = target.calculate_label_sha()
+    return value
+
+
+def set_group_sha(target, value, oldvalue, initiator):
+    target.group_sha = target.calculate_group_sha()
+    return value
+
+
+listen(Test.package, 'set', set_label_sha, retval=False)
+listen(Test.name, 'set', set_label_sha, retval=False)
+listen(Test.group, 'set', set_group_sha, retval=False)

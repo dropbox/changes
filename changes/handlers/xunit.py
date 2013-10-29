@@ -59,17 +59,11 @@ class XunitHandler(ArtifactHandler):
             if result is None:
                 result = Result.passed
 
-            if attrs['classname']:
-                label = '%s.%s' % (attrs['classname'], attrs['name'])
-            else:
-                label = attrs['name']
-
             results.append(Test(
                 build_id=build.id,
                 project_id=build.project_id,
                 name=attrs['name'],
                 package=attrs['classname'] or None,
-                label_sha=sha1(label).hexdigest(),
                 duration=float(attrs['time']),
                 result=result,
                 message=message,
