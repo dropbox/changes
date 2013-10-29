@@ -79,11 +79,6 @@ setup(
     tests_require=tests_require,
     cmdclass={'test': PyTest},
     include_package_data=True,
-    entry_points={
-        'console_scripts': [
-            'changes-web = changes.runner:web',
-        ],
-    },
     classifiers=[
         '__DO NOT UPLOAD__',
         'Intended Audience :: Developers',

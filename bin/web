@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+from changes.utils.gevent import patch_gevent
+patch_gevent()
+
+
+def main(argv=sys.argv[1:]):
+    parser = argparse.ArgumentParser(description='Manage builds')
+
+    parser.add_argument('--addr', default='127.0.0.1:5000')
+
+    args = parser.parse_args(argv)
+
+    web(addr=args.addr)
+
+
+def web(addr):
+    from gevent import pywsgi
+    from changes.config import create_app
+
+    patch_gevent()
+
+    host, port = addr.split(':')
+    if not host:
+        host = '127.0.0.1'
+    port = int(port)
+    addr = '{0}:{1}'.format(host, port)
+
+    print "Listening on http://{0}".format(addr)
+
+    app = create_app(SERVER_NAME=addr)
+    pywsgi.WSGIServer((host, port), app).serve_forever()
+
+
+if __name__ == '__main__':
+    main()
