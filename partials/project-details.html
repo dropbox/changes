@@ -1,0 +1,29 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2>{{project.name}}</h2>
+		</div>
+
+		<table class="build-list table table-striped">
+			<tbody>
+				<tr ng-repeat="build in builds | orderByBuild" class="status-{{build.status.id}} result-{{build.result.id}}">
+					<td>
+						<div class="indicator" title="{{build.result.name}}">
+							<div data-result="{{build.result.id}}" data-value="{{build.progress}}" ng-radial-progress-bar>&nbsp;</div>
+						</div>
+					</td>
+					<td>
+						<a href="{{build.link}}">{{build.name}}</a><br>
+
+						<small>
+							<a href="#">{{build.project.name}}</a>
+							<span ng-if="build.author">&mdash; {{build.author.name}}</span>
+							<span class="date" ng-if="build.dateStarted">{{timeSince(build.dateStarted)}}</span>
+						</small>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+</section>

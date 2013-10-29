@@ -1,7 +1,8 @@
 define(['app',
         'controllers/layout', 'controllers/changeList', 'controllers/changeDetails',
         'controllers/buildList', 'controllers/buildDetails', 'controllers/testDetails',
-        'controllers/projectList'], function(app) {
+        'controllers/projectList', 'controllers/projectDetails'
+       ], function(app) {
 
   'use strict';
 
@@ -53,6 +54,15 @@ define(['app',
           resolve: {
             initialData: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/builds/' + $route.current.params.build_id + '/');
+            }]
+          }
+        })
+        .when('/projects/:project_id/', {
+          templateUrl: 'partials/project-details.html',
+          controller: 'projectDetailsCtrl',
+          resolve: {
+            initial: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
             }]
           }
         })

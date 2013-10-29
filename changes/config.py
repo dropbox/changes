@@ -102,6 +102,7 @@ def configure_api_routes(app):
     from changes.api.build_retry import BuildRetryAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
+    from changes.api.project_build_index import ProjectBuildIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.test_details import TestDetailsAPIView
@@ -124,6 +125,8 @@ def configure_api_routes(app):
         '/api/0/projects/', view_func=ProjectIndexAPIView.as_view('api-project-list'))
     app.add_url_rule(
         '/api/0/projects/<project_id>/', view_func=ProjectDetailsAPIView.as_view('api-project-details'))
+    app.add_url_rule(
+        '/api/0/projects/<project_id>/builds/', view_func=ProjectBuildIndexAPIView.as_view('api-project-build-list'))
     app.add_url_rule(
         '/api/0/tests/<test_id>/', view_func=TestDetailsAPIView.as_view('api-change-test-details'))
 
