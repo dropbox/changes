@@ -2,7 +2,7 @@
 	<ul class="project-list">
 		<li ng-repeat="project in projects">
 			<h4><a href="{{project.link}}">{{project.name}}</a><small ng-if="project.numActiveBuilds"> {{project.numActiveBuilds}} builds pending</small></h4>
-			<table class="build-list table table-striped">
+			<table class="build-list table table-striped" ng-if="project.recentBuilds.length !== 0">
 				<tbody>
 					<tr class="status-{{build.status.id}} result-{{build.result.id}}"
 						ng-repeat="build in project.recentBuilds">
@@ -28,6 +28,7 @@
 					</tr>
 				</tbody>
 			</table>
+			<div ng-if="project.recentBuilds.length === 0" class="well"><small>No recent builds recorded for {{project.name}}.</small></div>
 		</li>
 	</ul>
 </section>

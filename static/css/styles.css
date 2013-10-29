@@ -250,7 +250,11 @@ dl.flat dt {
 .build-list > tbody > tr:nth-child(odd) > td {
   background: #f7f5fa;
 }
-
+.well {
+  background: #f7f5fa;
+  border: 0;
+  box-shadow: none;
+}
 
 .build-message {
   margin-bottom: 20px;
