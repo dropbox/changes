@@ -154,7 +154,6 @@ class JenkinsBuilder(BaseBackend):
 
         for suite in test_report['suites']:
             group = suite.get('name', 'default')
-            group_sha = sha1(group).hexdigest()
 
             for case in suite['cases']:
                 message = []
