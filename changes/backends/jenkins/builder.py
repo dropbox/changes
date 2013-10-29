@@ -5,7 +5,6 @@ import logging
 import requests
 
 from datetime import datetime
-from hashlib import sha1
 
 from changes.backends.base import BaseBackend
 from changes.config import db
