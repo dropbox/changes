@@ -66,6 +66,8 @@ def create_app(**config):
     app.config['GOOGLE_CLIENT_SECRET'] = None
     app.config['GOOGLE_DOMAIN'] = None
 
+    app.config.update(config)
+
     if os.environ.get('CHANGES_CONF'):
         # CHANGES_CONF=/etc/changes.conf.py
         app.config.from_envvar('CHANGES_CONF')
@@ -73,8 +75,6 @@ def create_app(**config):
         # Look for ~/.changes/changes.conf.py
         path = os.path.normpath(os.path.expanduser('~/.changes/changes.conf.py'))
         app.config.from_pyfile(path, silent=True)
-
-    app.config.update(config)
 
     db.init_app(app)
     pubsub.init_app(app)
