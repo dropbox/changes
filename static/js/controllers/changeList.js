@@ -1,4 +1,4 @@
-define(['app', 'factories/stream', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
+define(['app', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
   app.controller('changeListCtrl', ['$scope', 'initialData', '$http', 'stream', function($scope, initialData, $http, Stream) {
     'use strict';
 

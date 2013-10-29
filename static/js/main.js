@@ -18,7 +18,9 @@ require.config({
     'angularLoadingBar': ['angular'],
     'angularRoute': ['angular'],
     'angularSanitize': ['angular'],
+    'modules/flash': ['angular'],
     'modules/pagination': ['angular'],
+    'modules/stream': ['angular'],
     'jquery': {exports: 'jquery'},
     'bootstrap': {deps: ['jquery']},
   },
@@ -35,10 +37,12 @@ require([
   'bootstrap',
   'angular',
   'angularLoadingBar',
+  'modules/flash',
+  'modules/stream',
   'routes',
 ], function(jquery, bootstrap, angular, app, routes) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar']);
+    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'stream', 'flash']);
   });
 });

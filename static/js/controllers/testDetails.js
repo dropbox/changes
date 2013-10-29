@@ -1,4 +1,4 @@
-define(['app', 'factories/stream', 'directives/timeSince', 'directives/duration'], function(app) {
+define(['app', 'directives/timeSince', 'directives/duration'], function(app) {
   app.controller('testDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
     'use strict';
 

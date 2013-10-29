@@ -1,11 +1,14 @@
-define(['app', 'directives/flashMessages'], function(app) {
+define(['app'], function(app) {
   app.controller('layoutCtrl', ['$scope', '$location', '$http', function($scope, $location, $http) {
     'use strict';
 
     $scope.authenticated = null;
     $scope.user = null;
+    $scope.navPath = null;
 
-    $('.navbar-auth').show();
+    $scope.$on('$routeChangeSuccess', function(){
+      $scope.navPath = $location.path();
+    });
 
     $http.get('/api/0/auth/')
       .success(function(data){
@@ -13,9 +16,6 @@ define(['app', 'directives/flashMessages'], function(app) {
       	$scope.user = data.user || {};
       });
 
-    $scope.navClass = function(path) {
-        return $location.path() == path ? 'active' : '';
-    };
-
+    $('.navbar-auth').show();
   }]);
 });

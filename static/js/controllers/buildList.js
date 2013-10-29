@@ -1,4 +1,4 @@
-define(['app', 'factories/stream', 'factories/flash', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
+define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
   app.controller('buildListCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', 'flash', function($scope, initialData, $http, $routeParams, Stream, flash) {
     'use strict';
 
