@@ -10,20 +10,26 @@ class ProjectIndexAPIView(APIView):
     def get(self):
         queryset = Project.query.order_by(Project.name.asc())
 
-        # queryset = Build.query.options(
-        #     joinedload(Build.project),
-        #     joinedload(Build.author),
-        # ).order_by(Build.date_created.desc(), Build.date_started.desc())
-        # if change:
-        #     queryset = queryset.filter_by(change=change)
-
         project_list = list(queryset)
 
         context = {
-            'projects': project_list,
+            'projects': [],
         }
+
+        for project in project_list:
+            data = self.serialize(project)
+            data['recentBuilds'] = list(Build.query.options(
+                joinedload(Build.project),
+                joinedload(Build.author),
+            ).filter_by(
+                project=project,
+            ).order_by(
+                Build.date_created.desc(),
+            )[:3])
+
+            context['projects'].append(data)
 
         return self.respond(context)
 
     def get_stream_channels(self):
-        return []
+        return ['builds:*']
