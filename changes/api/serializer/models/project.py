@@ -10,5 +10,5 @@ class ProjectSerializer(Serializer):
             'slug': instance.slug,
             'name': instance.name,
             'dateCreated': instance.date_created,
-            'link': '/projects/{0}/'.format(instance.id.hex),
+            'link': '/projects/{0}/'.format(instance.slug),
         }

@@ -8,8 +8,18 @@ from changes.models import Project, Build
 
 
 class ProjectBuildIndexAPIView(APIView):
-    def get(self, project_id=None):
-        project = Project.query.get(project_id)
+    def _get_project(self, project_id):
+        project = Project.query.options(
+            joinedload(Project.repository),
+        ).filter_by(slug=project_id).first()
+        if project is None:
+            project = Project.query.options(
+                joinedload(Project.repository),
+            ).get(project_id)
+        return project
+
+    def get(self, project_id):
+        project = self._get_project(project_id)
         if not project:
             return Response(status=404)
         queryset = Build.query.options(
