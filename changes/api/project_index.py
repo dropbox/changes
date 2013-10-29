@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
+from changes.constants import Status
 from changes.models import Project, Build
 
 
@@ -26,6 +27,11 @@ class ProjectIndexAPIView(APIView):
             ).order_by(
                 Build.date_created.desc(),
             )[:3])
+
+            data['numActiveBuilds'] = Build.query.filter(
+                Build.project == project,
+                Build.status != Status.finished,
+            ).count()
 
             context['projects'].append(data)
 
