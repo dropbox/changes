@@ -13,11 +13,16 @@ from changes.models import (
 )
 
 
-TEST_LABELS = itertools.cycle([
-    'tests/changes/handlers/test_xunit.py:test_result_generation',
-    'tests/changes/handlers/test_coverage.py:test_result_generation',
-    'tests/changes/backends/koality/test_backend.py:ListBuildsTest.test_simple',
-    'tests/changes/backends/koality/test_backend.py:SyncBuildDetailsTest.test_simple',
+TEST_PACKAGES = itertools.cycle([
+    'tests/changes/handlers/test_xunit.py'
+    'tests/changes/handlers/test_coverage.py',
+    'tests/changes/backends/koality/test_backend.py',
+    'tests/changes/backends/koality/test_backend.py',
+])
+
+TEST_NAMES = itertools.cycle([
+    'ListBuildsTest.test_simple',
+    'SyncBuildDetailsTest.test_simple',
 ])
 
 TEST_STEP_LABELS = itertools.cycle([
@@ -143,14 +148,23 @@ def revision(repository, author):
 
 
 def test_result(build, **kwargs):
-    if 'label' not in kwargs:
-        kwargs['label'] = TEST_LABELS.next()
+    if 'package' not in kwargs:
+        kwargs['package'] = TEST_PACKAGES.next()
+
+    if 'name' not in kwargs:
+        kwargs['name'] = TEST_NAMES.next()
+
+    if 'group' not in kwargs:
+        kwargs['group'] = 'default'
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)
 
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('project', build.project)
+
+    kwargs['label_sha'] = sha1(uuid4().hex).hexdigest()
+    kwargs['group_sha'] = sha1(kwargs['group']).hexdigest()
 
     result = Test(build=build, **kwargs)
     db.session.add(result)
