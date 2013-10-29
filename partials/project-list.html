@@ -1,0 +1,33 @@
+<section>
+	<ul class="project-list">
+		<li ng-repeat="project in projects">
+			<h4><a href="#">{{project.name}}</a></h4>
+			<table class="build-list table table-striped">
+				<tbody>
+					<tr class="status-{{build.status.id}} result-{{build.result.id}}"
+						ng-repeat="build in project.recentBuilds">
+						<td>
+							<div class="indicator" title="{{build.result.name}}">
+								<div data-result="{{build.result.id}}"
+									 data-status="{{build.status.id}}"
+									 data-date-started="{{build.dateStarted}}"
+									 data-estimated-duration="{{build.estimatedDuration}}"
+									 radial-progress-bar>&nbsp;</div>
+							</div>
+						</td>
+						<td>
+							<a href="{{build.link}}">{{build.name}}</a><br>
+
+							<small>
+								{{build.parent_revision.sha.substr(0, 12)}}
+								<span ng-if="build.author">&mdash; {{build.author.name}}</span>
+							</small>
+							<span class="status">{{getBuildStatus(build)}}</span>
+							<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</li>
+	</ul>
+</section>

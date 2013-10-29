@@ -1,5 +1,8 @@
-define(['app', 'controllers/layout', 'controllers/changeList', 'controllers/changeDetails',
-        'controllers/buildList', 'controllers/buildDetails', 'controllers/testDetails'], function(app) {
+define(['app',
+        'controllers/layout', 'controllers/changeList', 'controllers/changeDetails',
+        'controllers/buildList', 'controllers/buildDetails', 'controllers/testDetails',
+        'controllers/projectList'], function(app) {
+
   'use strict';
 
   // TODO(dcramer): We need to load initial data as part of routes
@@ -9,6 +12,15 @@ define(['app', 'controllers/layout', 'controllers/changeList', 'controllers/chan
 
     $routeProvider
         .when('/', {
+          templateUrl: 'partials/project-list.html',
+          controller: 'projectListCtrl',
+          resolve: {
+            initial: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/');
+            }]
+          }
+        })
+        .when('/changes/', {
           templateUrl: 'partials/change-list.html',
           controller: 'changeListCtrl',
           resolve: {

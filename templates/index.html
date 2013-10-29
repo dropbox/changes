@@ -20,7 +20,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/#">Changes</a>
+          <a class="navbar-brand" href="/#">/</a>
         </div>
         <ul class="nav navbar-right navbar-auth" style="display:none">
           <p class="navbar-text pull-right" ng-if="authenticated">{% raw %}{{user.email}}{% endraw %} (<a href="{{ url_for('logout') }}" target="_self">Logout</a>)</li>
@@ -28,7 +28,8 @@
         </ul>
         <div class="navbar-collapse collapse navbar-header-collapse">
           <ul class="nav navbar-nav">
-            <li ng-class="navClass('/builds/')"><a href="/builds/">Builds</a></li>
+            <li ng-class="navPath == '/changes/' ? 'active': ''"><a href="/changes/">Changes</a></li>
+            <li ng-class="navPath == '/builds/' ? 'active': ''"><a href="/builds/">Builds</a></li>
           </ul>
         </div>
       </div>
