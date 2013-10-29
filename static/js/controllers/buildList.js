@@ -1,5 +1,5 @@
 define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
-  app.controller('buildListCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', 'flash', function($scope, initialData, $http, $routeParams, Stream, flash) {
+  app.controller('buildListCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
     'use strict';
 
     var stream, entrypoint;
