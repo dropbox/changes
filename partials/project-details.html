@@ -20,10 +20,11 @@
 						<a href="{{build.link}}">{{build.name}}</a><br>
 
 						<small>
-							<a href="#">{{build.project.name}}</a>
+							{{build.parent_revision.sha.substr(0, 12)}}
 							<span ng-if="build.author">&mdash; {{build.author.name}}</span>
-							<span class="date" ng-if="build.dateStarted">{{timeSince(build.dateStarted)}}</span>
 						</small>
+						<span class="status">{{getBuildStatus(build)}}</span>
+						<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
 					</td>
 				</tr>
 			</tbody>
