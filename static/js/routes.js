@@ -43,8 +43,34 @@ define(['app',
           templateUrl: 'partials/build-list.html',
           controller: 'buildListCtrl',
           resolve: {
-            initialData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/builds/');
+            initial: ['$q', '$route', '$location', '$http', function($q, $route, $location, $http){
+              var deferred = $q.defer(),
+                  filter = $location.search()['filter'] || '',
+                  entrypoint;
+
+              if ($route.current.params.change_id) {
+                // TODO: handle me filter
+                entrypoint = '/api/0/changes/' + $route.current.params.change_id + '/builds/';
+              } else {
+                if (filter === 'me') {
+                  entrypoint = '/api/0/authors/me/builds/';
+                } else {
+                  entrypoint = '/api/0/builds/';
+                }
+              }
+
+              $http.get(entrypoint)
+                .success(function(data){
+                  deferred.resolve({
+                    'data': data,
+                    'entrypoint': entrypoint,
+                  });
+                })
+                .error(function(){
+                  deferred.reject();
+                });
+
+              return deferred.promise;
             }]
           }
         })

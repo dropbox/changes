@@ -97,6 +97,7 @@ def create_app(**config):
 
 def configure_api_routes(app):
     from changes.api.auth_index import AuthIndexAPIView
+    from changes.api.author_build_index import AuthorBuildIndexAPIView
     from changes.api.build_details import BuildDetailsAPIView
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.build_retry import BuildRetryAPIView
@@ -109,6 +110,8 @@ def configure_api_routes(app):
 
     app.add_url_rule(
         '/api/0/auth/', view_func=AuthIndexAPIView.as_view('api-auth'))
+    app.add_url_rule(
+        '/api/0/authors/<author_id>/builds/', view_func=AuthorBuildIndexAPIView.as_view('api-author-build-list'))
     app.add_url_rule(
         '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-build-list'))
     app.add_url_rule(

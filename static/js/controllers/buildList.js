@@ -1,16 +1,11 @@
 define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
-  app.controller('buildListCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
-    'use strict';
+  var buildListCtrl = function(initial, $scope, $http, $routeParams, $location, Stream) {
+    var stream,
+        entrypoint = initial.entrypoint,
+        filter = $location.search()['filter'] || '';
 
-    var stream, entrypoint;
-
-    $scope.builds = initialData.data.builds;
-
-    if ($routeParams.change_id) {
-      entrypoint = '/api/0/changes/' + $routeParams.change_id + '/builds/';
-    } else {
-      entrypoint = '/api/0/builds/';
-    }
+    $scope.builds = initial.data.builds;
+    $scope.buildNavFilter = filter;
 
     $scope.getBuildStatus = function(build) {
       if (build.status.id == 'finished') {
@@ -19,6 +14,10 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/
         return build.status.name;
       }
     }
+
+    $scope.buildNavClass = function(path) {
+        return $location.path() == path ? 'active' : '';
+    };
 
     function addBuild(data) {
       $scope.$apply(function() {
@@ -52,5 +51,9 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/
     stream = Stream($scope, entrypoint);
     stream.subscribe('build.update', addBuild);
 
-  }]);
+  };
+
+  app.controller('buildListCtrl', ['initial', '$scope', '$http', '$routeParams', '$location', 'stream', buildListCtrl]);
+
+  return buildListCtrl;
 });
