@@ -17,7 +17,7 @@
 					<dt ng-if="build.author">Author:</dt>
 					<dd ng-if="build.author">{{build.author.name}} <span ng-if="build.author.email">(<a href="mailto:{{build.author.email}}">{{build.author.email}}</a>)</span></dd>
 					<dt>Project:</dt>
-					<dd><a href="#">{{build.project.name}}</a></dd>
+					<dd><a href="{{build.project.link}}">{{build.project.name}}</a></dd>
 					<dt ng-if="build.change">Change:</dt>
 					<dd ng-if="build.change"><a href="#">{{build.change.name}}</a></dd>
 					<dt>Revision:</dt>
