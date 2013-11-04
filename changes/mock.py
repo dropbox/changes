@@ -14,7 +14,7 @@ from changes.models import (
 
 
 TEST_PACKAGES = itertools.cycle([
-    'tests/changes/handlers/test_xunit.py'
+    'tests/changes/handlers/test_xunit.py',
     'tests/changes/handlers/test_coverage.py',
     'tests/changes/backends/koality/test_backend.py',
     'tests/changes/backends/koality/test_backend.py',
