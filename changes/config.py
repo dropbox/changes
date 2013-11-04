@@ -1,3 +1,4 @@
+import logging
 import flask
 import os
 import os.path
@@ -17,7 +18,7 @@ db = SQLAlchemy(session_options={
 })
 pubsub = PubSub()
 queue = Celery()
-sentry = Sentry(logging=True)
+sentry = Sentry(logging=True, level=logging.WARN)
 
 
 def create_app(**config):
