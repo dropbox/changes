@@ -17,7 +17,6 @@ class Result(Enum):
     passed = 1
     failed = 2
     skipped = 3
-    errored = 4
     aborted = 5
     timedout = 6
 
@@ -51,7 +50,6 @@ RESULT_LABELS = {
     Result.passed: 'Passed',
     Result.failed: 'Failed',
     Result.skipped: 'Skipped',
-    Result.errored: 'Errored',
     Result.aborted: 'Aborted',
     Result.timedout: 'Timed out'
 }
