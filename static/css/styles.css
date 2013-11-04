@@ -210,8 +210,8 @@ dl.flat dt {
   border-radius: 32px;
   position: relative;
 }
-.change-list a,
-.build-list a {
+.change-list td > a,
+.build-list td > a {
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
