@@ -4,7 +4,7 @@ from cStringIO import StringIO
 
 from changes.constants import Result
 from changes.models.build import Build
-from changes.models.test import Test
+from changes.models.test import TestCase
 from changes.handlers.xunit import XunitHandler
 
 
@@ -35,7 +35,7 @@ def test_result_generation():
     assert len(results) == 2
 
     r1 = results[0]
-    assert type(r1) == Test
+    assert type(r1) == TestCase
     assert r1.build_id == build.id
     assert r1.project_id == build.project_id
     assert r1.package is None
@@ -46,7 +46,7 @@ def test_result_generation():
 >   import mock
 E   ImportError: No module named mock"""
     r2 = results[1]
-    assert type(r2) == Test
+    assert type(r2) == TestCase
     assert r2.build_id == build.id
     assert r2.project_id == build.project_id
     assert r2.package == 'tests.test_report.ParseTestResultsTest'

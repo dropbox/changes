@@ -2,7 +2,8 @@ from flask import Response
 from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
-from changes.models import Build, Test
+from changes.constants import Result
+from changes.models import Build, TestGroup, TestCase
 
 
 class BuildDetailsAPIView(APIView):
@@ -15,14 +16,29 @@ class BuildDetailsAPIView(APIView):
         if build is None:
             return Response(status=404)
 
-        test_list = list(Test.query.filter_by(
-            build_id=build.id).order_by(
-                Test.result.desc(), Test.duration.desc()))
+        # find all parent groups (root trees)
+        test_groups = list(TestGroup.query.filter(
+            TestGroup.build_id == build.id,
+            TestGroup.parent_id == None,  # NOQA: we have to use == here
+        ))
+
+        test_failures = TestCase.query.filter(
+            TestCase.build_id == build.id,
+            TestCase.result == Result.failed,
+        ).order_by(
+            TestCase.result.desc(), TestCase.duration.desc()
+        )
+        num_test_failures = test_failures.count()
+        test_failures = test_failures[:25]
 
         context = {
             'build': build,
             'phases': build.phases,
-            'tests': test_list,
+            'testFailures': {
+                'total': num_test_failures,
+                'tests': test_failures,
+            },
+            'testGroups': test_groups,
         }
 
         return self.respond(context)

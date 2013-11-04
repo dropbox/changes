@@ -8,7 +8,7 @@ from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Repository, Project, RemoteEntity, Test
+from changes.models import Repository, Project, RemoteEntity, TestCase
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.testutils import BackendTestCase
 
@@ -317,7 +317,7 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_build(build)
 
-        test_list = sorted(Test.query.filter_by(build=build), key=lambda x: x.duration)
+        test_list = sorted(TestCase.query.filter_by(build=build), key=lambda x: x.duration)
 
         assert len(test_list) == 2
         assert test_list[0].name == 'Test'
@@ -325,9 +325,19 @@ class SyncBuildTest(BaseTestCase):
         assert test_list[0].result == Result.skipped
         assert test_list[0].message == 'collection skipped'
         assert test_list[0].duration == 0
+        groups = list(test_list[0].groups)
+        assert len(groups) == 1
+        assert groups[0].name == 'tests.changes.handlers.test_xunit'
+        assert groups[0].duration == 0
+        assert groups[0].num_tests == 1
 
         assert test_list[1].name == 'test_simple'
         assert test_list[1].package == 'tests.changes.api.test_build_details.BuildDetailsTest'
         assert test_list[1].result == Result.passed
         assert test_list[1].message == ''
         assert test_list[1].duration == 155
+        groups = list(test_list[1].groups)
+        assert len(groups) == 1
+        assert groups[0].name == 'tests.changes.api.test_build_details.BuildDetailsTest'
+        assert groups[0].duration == 155
+        assert groups[0].num_tests == 1

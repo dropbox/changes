@@ -1,9 +1,9 @@
 from changes.api.serializer import Serializer, register
-from changes.models.test import Test
+from changes.models.test import TestCase
 
 
-@register(Test)
-class TestSerializer(Serializer):
+@register(TestCase)
+class TestCaseSerializer(Serializer):
     def serialize(self, instance):
         return {
             'id': instance.id.hex,

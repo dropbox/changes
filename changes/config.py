@@ -171,17 +171,17 @@ def configure_jobs(app):
 def configure_database_listeners(app):
     from sqlalchemy import event
     from changes import events
-    from changes.models import Build, Change, Phase, Test
+    from changes.models import Build, Change, Phase, TestCase
 
     event.listen(Build, 'after_insert', events.publish_build_update)
     event.listen(Change, 'after_insert', events.publish_change_update)
     event.listen(Phase, 'after_insert', events.publish_phase_update)
-    event.listen(Test, 'after_insert', events.publish_test_update)
+    event.listen(TestCase, 'after_insert', events.publish_test_update)
 
     event.listen(Build, 'after_update', events.publish_build_update)
     event.listen(Change, 'after_update', events.publish_change_update)
     event.listen(Phase, 'after_update', events.publish_phase_update)
-    event.listen(Test, 'after_update', events.publish_test_update)
+    event.listen(TestCase, 'after_update', events.publish_test_update)
 
 
 def configure_event_listeners(app):

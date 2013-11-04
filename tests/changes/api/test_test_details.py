@@ -1,15 +1,21 @@
 from changes.config import db
-from changes.models import Test
+from changes.models import TestSuite, TestCase
 from changes.testutils import APITestCase
 
 
 class TestDetailsTest(APITestCase):
     def test_retrieve(self):
         build = self.create_build(self.project)
-        test = Test(
+        suite = TestSuite(
             project=self.project,
             build=build,
-            group='default',
+            name='default',
+        )
+        db.session.add(suite)
+        test = TestCase(
+            project=self.project,
+            build=build,
+            suite_id=suite.id,
             package='TestDetailsTest',
             name='test_retrieve',
         )

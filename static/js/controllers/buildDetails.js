@@ -6,47 +6,9 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'directiv
     var stream,
         entrypoint = '/api/0/builds/' + $routeParams.build_id + '/';
 
-    function sortTests(arr) {
-      var resultScore = {
-        'errored': 1100,
-        'failed': 1000,
-        'skipped': 200,
-        'passed': 100
-      }
-
-      function getScore(object) {
-        return [resultScore[object.result.id] || 500, object.duration];
-      }
-
-      arr.sort(function(a, b){
-        var a_score = getScore(a),
-            b_score = getScore(b);
-        if (a_score[0] < b_score[0]) {
-          return 1
-        }
-        if (a_score[0] > b_score[0]) {
-          return -1
-        }
-        if (a_score[1] < b_score[1]) {
-          return 1
-        }
-        if (a_score[1] > b_score[1]) {
-          return -1
-        }
-        if (a_score[2] < b_score[2]) {
-          return 1
-        }
-        if (a_score[2] > b_score[2]) {
-          return -1
-        }
-        return 0;
-      });
-
-      return arr;
-    }
     function getTestStatus() {
       if ($scope.build.status.id == "finished") {
-        if ($scope.tests.length === 0) {
+        if ($scope.testGroups.length === 0) {
           return "no-results";
         } else {
           return "has-results";
@@ -67,8 +29,13 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'directiv
             item_id = data.id,
             attr, result, item;
 
-        if ($scope.tests.length > 0) {
-          result = $.grep($scope.tests, function(e){ return e.id == item_id; });
+        if (data.result.id != 'failed') {
+          // we dont care about non-failures
+          return;
+        }
+
+        if ($scope.testFailures.length > 0) {
+          result = $.grep($scope.testFailures, function(e){ return e.id == item_id; });
           if (result.length > 0) {
             item = result[0];
             for (attr in data) {
@@ -85,15 +52,15 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'directiv
           }
         }
         if (!updated) {
-          $scope.tests.unshift(data);
+          $scope.testFailures.unshift(data);
         }
       });
     }
 
     $scope.build = initialData.data.build;
     $scope.phases = initialData.data.phase;
-    $scope.tests = sortTests(initialData.data.tests);
-    $scope.testsPaginator = Pagination.create($scope.tests);
+    $scope.testFailures = initialData.data.testFailures;
+    $scope.testGroups = initialData.data.testGroups;
     $scope.testStatus = getTestStatus();
 
     $scope.$watch("build.status", function(status) {

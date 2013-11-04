@@ -355,6 +355,19 @@ dl.flat dt {
   color: #6e5baa;
 }
 
+.test-list {
+  line-height: 1.8em;
+}
+.test-list > li {
+
+}
+.test-list li a {
+  color: inherit;
+}
+.test-list li small {
+  font-weight: 300;
+}
+
 .test-results > tbody > tr > td {
   border: 0;
 }

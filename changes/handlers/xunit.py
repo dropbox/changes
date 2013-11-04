@@ -1,11 +1,10 @@
 from __future__ import absolute_import, division
 
-from hashlib import sha1
 from lxml import etree
 
 from changes.config import db
 from changes.constants import Result
-from changes.models.test import Test
+from changes.models.test import TestCase
 
 from .base import ArtifactHandler
 
@@ -22,7 +21,7 @@ class XunitHandler(ArtifactHandler):
                     'label': result.label,
                 }
                 # TODO(cramer): this has a race condition
-                if not Test.query.filter_by(**constraints).first():
+                if not TestCase.query.filter_by(**constraints).first():
                     session.add(result)
 
         return results
@@ -59,7 +58,7 @@ class XunitHandler(ArtifactHandler):
             if result is None:
                 result = Result.passed
 
-            results.append(Test(
+            results.append(TestCase(
                 build_id=build.id,
                 project_id=build.project_id,
                 name=attrs['name'],

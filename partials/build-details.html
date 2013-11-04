@@ -55,7 +55,7 @@
 
 	<div id="test-results">
 		<div class="page-header">
-			<h3>Test Results</h3>
+			<h3>Test Results</p>
 		</div>
 
 		<div ng-if="build.status.id != 'finished'">
@@ -68,40 +68,50 @@
 
 		<div ng-switch="testStatus">
 			<div ng-switch-when="no-results">
-				<p>No test results were recorded.</p>
+				<p>No test failures were recorded.</p>
 			</div>
 			<div ng-switch-default>
-				<ul class="pagination pagination-sm" ng-if="testsPaginator.numPages > 1">
-					<li ng-class="{'disabled': testsPaginator.page == 0}">
-						<a href="javascript:void(0)" ng-click="testsPaginator.prevPage()">&laquo;</a>
-					</li>
-					<li ng-repeat="n in testsPaginator.getPageRange()" ng-class="{'active': n == testsPaginator.page}">
-						<a href="javascript:void(0)" ng-click="testsPaginator.jumpToPage(n)">{{n + 1}}</a>
-					</li>
-					<li ng-class="{'disabled': testsPaginator.page == testsPaginator.numPages - 1}">
-						<a href="javascript:void(0)" ng-click="testsPaginator.nextPage()">&raquo;</a>
-					</li>
-				</ul>
-				<table class="test-results table table-striped">
+				<div ng-if="testFailures.total">
+					<h4>Failing Tests <small>{{ testFailures.total }} total failures</small></h4>
+					<table class="table table-striped table-bordered">
+						<thead>
+							<tr>
+								<th>&nbsp;</th>
+								<th style="width:110px;text-align:center">Duration</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="test in testFailures.tests">
+								<td>
+									<a href="{{ test.link }}">{{ test.name }}</a><br>
+									<small>{{ test.package }}</small>
+								</td>
+								<td style="text-align:center" duration="test.duration"></td>
+							</tr>
+						</tbody>
+					</table>
+
+					<h4>All Tests</h4>
+				</div>
+
+				<table class="table table-striped table-bordered">
+					<thead>
+						<tr>
+							<th>&nbsp;</th>
+							<th style="width:110px;text-align:center">Duration</th>
+							<th style="width:80px;text-align:center">Failures</th>
+							<th style="width:80px;text-align:center">Total</th>
+						</tr>
+					</thead>
 					<tbody>
-						<tr ng-repeat="test in tests | startFrom: testsPaginator.offset | limitTo: testsPaginator.perPage" class="status-{{test.result.id}}">
-							<td><a href="{{test.link}}">{{ test.name }}</a><br><small>{{ test.package }}</small></td>
-							<td duration="test.duration"></td>
-							<td><a href="{{test.link}}"><span class="glyphicon glyphicon-zoom-in"></span></a></td>
+						<tr ng-repeat="testGroup in testGroups">
+							<td><a href="{{ testGroup.link }}">{{ testGroup.name }}</a></td>
+							<td style="text-align:center" duration="testGroup.duration"></td>
+							<td style="text-align:center">{{ testGroup.numFailures }}</td>
+							<td style="text-align:center">{{ testGroup.numTests }}</td>
 						</tr>
 					</tbody>
 				</table>
-				<ul class="pagination pagination-sm" ng-if="testsPaginator.numPages > 1">
-					<li ng-class="{'disabled': testsPaginator.page == 0}">
-						<a href="javascript:void(0)" ng-click="testsPaginator.prevPage()">&laquo;</a>
-					</li>
-					<li ng-repeat="n in testsPaginator.getPageRange()" ng-class="{'active': n == testsPaginator.page}">
-						<a href="javascript:void(0)" ng-click="testsPaginator.jumpToPage(n)">{{n + 1}}</a>
-					</li>
-					<li ng-class="{'disabled': testsPaginator.page == testsPaginator.numPages - 1}">
-						<a href="javascript:void(0)" ng-click="testsPaginator.nextPage()">&raquo;</a>
-					</li>
-				</ul>
 			</div>
 		</div>
 	</div>

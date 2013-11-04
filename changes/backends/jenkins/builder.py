@@ -9,7 +9,7 @@ from datetime import datetime
 from changes.backends.base import BaseBackend
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import RemoteEntity, Test
+from changes.models import RemoteEntity, TestSuite, TestGroup, TestCase
 
 
 class NotFound(Exception):
@@ -146,15 +146,58 @@ class JenkinsBuilder(BaseBackend):
         if should_finish:
             build.status = Status.finished
 
+    def _get_test_suite(self, build, name):
+        # TODO(dcramer): this doesnt handle concurrency
+        suite = TestSuite(
+            build=build,
+            project=build.project,
+            name=name,
+        )
+        result = TestSuite.query.filter_by(
+            build=build,
+            name_sha=suite.name_sha,
+        ).first()
+
+        if result:
+            return result
+
+        db.session.add(suite)
+        return suite
+
+    def _get_test_groups(self, test):
+        # TODO(dcramer); this logic is not specific to Jenkins
+        # TODO(dcramer): this doesnt handle concurrency
+        # TODO(dcramer): implement subtrees
+        # https://github.com/disqus/zumanji/blob/master/src/zumanji/importer.py#L217
+
+        group = TestGroup(
+            build=test.build,
+            project=test.project,
+            name=test.package or test.name.rsplit('.', 1)[1]
+        )
+        result = TestGroup.query.filter_by(
+            build=test.build,
+            name_sha=group.name_sha,
+        ).first()
+
+        if result:
+            return [result]
+
+        db.session.add(group)
+        return [group]
+
     def _sync_test_results(self, build, entity):
+        # TODO(dcramer): this doesnt handle concurrency
+
         build_item = entity.data
         test_report = self._get_response('/job/{}/{}/testReport/'.format(
             build_item['job_name'], build_item['build_no']))
 
-        for suite in test_report['suites']:
-            group = suite.get('name', 'default')
+        for suite_data in test_report['suites']:
+            suite_name = suite_data.get('name', 'default')
+            suite = self._get_test_suite(build, suite_name)
 
-            for case in suite['cases']:
+            for case in suite_data['cases']:
                 message = []
                 if case['errorDetails']:
                     message.append('Error\n-----')
@@ -165,11 +208,10 @@ class JenkinsBuilder(BaseBackend):
                 if case['skippedMessage']:
                     message.append(case['skippedMessage'] + '\n')
 
-                # TODO: expand Test to handle more message types
-                test = Test(
+                test = TestCase(
                     build=build,
                     project=build.project,
-                    group=group,
+                    suite_id=suite.id,
                     name=case['name'],
                     package=case['className'] or None,
                     duration=int(case['duration'] * 1000),
@@ -184,11 +226,19 @@ class JenkinsBuilder(BaseBackend):
                 else:
                     raise ValueError('Invalid test result: %s' % (case['status'],))
 
-                # TODO(dcramer): this doesnt handle concurrency
-                if Test.query.filter_by(build=build, group_sha=test.group_sha, label_sha=test.label_sha).first():
+                if TestCase.query.filter_by(build=build,
+                                            suite_id=test.suite_id,
+                                            name_sha=test.name_sha).first():
                     continue
 
                 db.session.add(test)
+
+                groups = self._get_test_groups(test)
+                for group in groups:
+                    group.num_tests += 1
+                    group.duration += test.duration
+                    group.testcases.append(test)
+                    db.session.add(group)
 
     def _find_job(self, job_name, build_id):
         """
