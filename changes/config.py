@@ -165,9 +165,11 @@ def configure_web_routes(app):
 
 def configure_jobs(app):
     from changes.jobs.cleanup_builds import cleanup_builds
+    from changes.jobs.create_build import create_build
     from changes.jobs.sync_build import sync_build
 
     queue.register('cleanup_builds', cleanup_builds)
+    queue.register('create_build', create_build)
     queue.register('sync_build', sync_build)
 
 

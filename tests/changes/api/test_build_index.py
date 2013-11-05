@@ -46,8 +46,6 @@ class BuildCreateTest(APITestCase):
         assert build.parent_revision_sha == 'a' * 40
         assert build.author.name == 'David Cramer'
         assert build.author.email == 'dcramer@example.com'
-        self.mock_backend.create_build.assert_called_once_with(
-            build)
 
     def test_with_patch(self):
         change = self.create_change(self.project)
@@ -63,8 +61,6 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert data['build']['id']
         build = Build.query.get(data['build']['id'])
-        self.mock_backend.create_build.assert_called_once_with(
-            build)
         assert build.patch_id is not None
         patch = Patch.query.get(build.patch_id)
         assert patch.diff == SAMPLE_DIFF
@@ -88,5 +84,3 @@ class BuildCreateTest(APITestCase):
         assert build.parent_revision_sha == 'a' * 40
         assert build.author.name == 'David Cramer'
         assert build.author.email == 'dcramer@example.com'
-        self.mock_backend.create_build.assert_called_once_with(
-            build)
