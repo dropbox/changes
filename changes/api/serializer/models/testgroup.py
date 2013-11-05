@@ -9,6 +9,7 @@ class TestGroupSerializer(Serializer):
             'id': instance.id.hex,
             'name': instance.name,
             'duration': instance.duration or 0,
+            'result': instance.result,
             'numTests': instance.num_tests or 0,
             'numFailures': instance.num_failed or 0,
             'link': '/testgroups/%s/' % (instance.id.hex,),

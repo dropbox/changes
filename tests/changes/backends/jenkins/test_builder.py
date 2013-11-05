@@ -330,6 +330,8 @@ class SyncBuildTest(BaseTestCase):
         assert groups[0].name == 'tests.changes.handlers.test_xunit'
         assert groups[0].duration == 0
         assert groups[0].num_tests == 1
+        assert groups[0].num_failed == 0
+        assert groups[0].result == Result.skipped
 
         assert test_list[1].name == 'test_simple'
         assert test_list[1].package == 'tests.changes.api.test_build_details.BuildDetailsTest'
@@ -341,3 +343,5 @@ class SyncBuildTest(BaseTestCase):
         assert groups[0].name == 'tests.changes.api.test_build_details.BuildDetailsTest'
         assert groups[0].duration == 155
         assert groups[0].num_tests == 1
+        assert groups[0].num_failed == 0
+        assert groups[0].result == Result.passed

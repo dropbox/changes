@@ -238,6 +238,12 @@ class JenkinsBuilder(BaseBackend):
                 for group in groups:
                     group.num_tests += 1
                     group.duration += test.duration
+                    if group.result:
+                        group.result = max(group.result, test.result)
+                    elif test.result:
+                        group.result = test.result
+                    else:
+                        group.result = Result.unknown
                     group.testcases.append(test)
                     db.session.add(group)
 

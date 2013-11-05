@@ -1,6 +1,31 @@
 from enum import Enum
 
 
+NUM_PREVIOUS_RUNS = 50
+
+
+class OrderedEnum(Enum):
+    def __ge__(self, other):
+        if type(self) is type(other):
+            return self._value_ >= other._value_
+        return NotImplemented
+
+    def __gt__(self, other):
+        if type(self) is type(other):
+            return self._value_ > other._value_
+        return NotImplemented
+
+    def __le__(self, other):
+        if type(self) is type(other):
+            return self._value_ <= other._value_
+        return NotImplemented
+
+    def __lt__(self, other):
+        if type(self) is type(other):
+            return self._value_ < other._value_
+        return NotImplemented
+
+
 class Status(Enum):
     unknown = 0
     queued = 1
@@ -12,16 +37,13 @@ class Status(Enum):
         return STATUS_LABELS[self]
 
 
-class Result(Enum):
+class Result(OrderedEnum):
     unknown = 0
-    passed = 1
-    failed = 2
-    skipped = 3
     aborted = 5
+    passed = 1
+    skipped = 3
+    failed = 2
     timedout = 6
-
-    def __str__(self):
-        return RESULT_LABELS[self]
 
 
 class Provider(Enum):

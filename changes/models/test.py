@@ -82,6 +82,7 @@ class TestGroup(db.Model):
     name_sha = Column(String(40), nullable=False)
     name = Column(Text)
     duration = Column(Integer, default=0)
+    result = Column(Enum(Result), default=Result.unknown)
     num_tests = Column(Integer, default=0)
     num_failed = Column(Integer, default=0)
     data = Column(JSONEncodedDict)
