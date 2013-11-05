@@ -2,7 +2,7 @@ from flask import Response
 from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
-from changes.constants import Result
+from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
 from changes.models import Build, TestGroup, TestCase
 
 
@@ -31,6 +31,13 @@ class BuildDetailsAPIView(APIView):
         num_test_failures = test_failures.count()
         test_failures = test_failures[:25]
 
+        previous_runs = Build.query.filter(
+            Build.project == build.project,
+            Build.date_created < build.date_created,
+            Build.status == Status.finished,
+            Build.id != build.id,
+        ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
+
         context = {
             'build': build,
             'phases': build.phases,
@@ -39,6 +46,7 @@ class BuildDetailsAPIView(APIView):
                 'tests': test_failures,
             },
             'testGroups': test_groups,
+            'previousRuns': previous_runs,
         }
 
         return self.respond(context)

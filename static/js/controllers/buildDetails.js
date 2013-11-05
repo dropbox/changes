@@ -57,11 +57,36 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'directiv
       });
     }
 
+    function getChartData(builds) {
+      // this should return two series, one with passes, and one with failures
+      var ok = [],
+          failures = [],
+          build, point, i;
+
+      for (i = 0; (build = builds[i]); i++) {
+        point = [i, build.duration || 1];
+        if (build.result.id == 'passed' || build.result.id == 'skipped') {
+          ok.push(point);
+        } else {
+          failures.push(point)
+        }
+      }
+
+      return {
+        values: [
+          {data: ok, color: '#c7c0de', label: 'Ok'},
+          {data: failures, color: '#d9322d', label: 'Failed'}
+        ]
+      }
+    }
+
     $scope.build = initialData.data.build;
     $scope.phases = initialData.data.phase;
     $scope.testFailures = initialData.data.testFailures;
     $scope.testGroups = initialData.data.testGroups;
     $scope.testStatus = getTestStatus();
+    $scope.previousRuns = initialData.data.previousRuns
+    $scope.chartData = getChartData($scope.previousRuns);
 
     $scope.$watch("build.status", function(status) {
       $scope.testStatus = getTestStatus();

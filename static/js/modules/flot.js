@@ -17,7 +17,8 @@ define(['flot', 'utils/duration'], function(flot, duration) {
                     tickColor: '#DEE3E9'
                 },
                 xaxis: {
-                  show: false,
+                  tickSize: 1,
+                  show: false
                 },
                 yaxis: {
                   tickFormatter: function (val, axis) {
@@ -44,6 +45,8 @@ define(['flot', 'utils/duration'], function(flot, duration) {
                 },
                 colors: ['#c7c0de', '#58488a']
               };
+
+          console.log(data.values);
 
           $.plot(elem, data.values, $.extend({}, options, data.options || {}));
         }
