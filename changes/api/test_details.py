@@ -39,7 +39,10 @@ class TestDetailsAPIView(APIView):
         ).order_by(Build.date_created.desc())[:25]
 
         if len(previous_runs) < 25:
-            first_run = previous_runs[0]
+            try:
+                first_run = previous_runs[0]
+            except IndexError:
+                first_run = None
         else:
             first_run = TestCase.query.join(Build, TestSuite).outerjoin(Author).filter(
                 TestSuite.name_sha == test.suite.name_sha,
