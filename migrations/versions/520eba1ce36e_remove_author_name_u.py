@@ -14,7 +14,7 @@ from alembic import op
 
 
 def upgrade():
-    op.drop_index('author_name_key')
+    op.drop_constraint('author_name_key', 'author')
 
 
 def downgrade():
