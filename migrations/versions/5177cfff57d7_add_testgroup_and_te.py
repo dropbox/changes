@@ -17,48 +17,49 @@ from sqlalchemy.sql import table
 from uuid import uuid4
 import sqlalchemy as sa
 
-testsuites_table = table(
-    'testsuite',
-    sa.Column('id', sa.GUID(), nullable=False),
-    sa.Column('build_id', sa.GUID(), nullable=False),
-    sa.Column('project_id', sa.GUID(), nullable=False),
-    sa.Column('name_sha', sa.String(length=40), nullable=False),
-    sa.Column('name', sa.Text(), nullable=True),
-    sa.Column('date_created', sa.DateTime(), nullable=True),
-)
-testgroups_table = table(
-    'testgroup',
-    sa.Column('id', sa.GUID(), nullable=False),
-    sa.Column('build_id', sa.GUID(), nullable=False),
-    sa.Column('project_id', sa.GUID(), nullable=False),
-    sa.Column('name_sha', sa.String(length=40), nullable=False),
-    sa.Column('duration', sa.Integer(), nullable=True),
-    sa.Column('num_tests', sa.Integer(), nullable=True),
-    sa.Column('num_failed', sa.Integer(), nullable=True),
-    sa.Column('name', sa.Text(), nullable=True),
-    sa.Column('date_created', sa.DateTime(), nullable=True),
-)
-testgroups_m2m_table = table(
-    'testgroup_test',
-    sa.Column('group_id', sa.GUID(), nullable=False),
-    sa.Column('test_id', sa.GUID(), nullable=False),
-)
-testcases_table = table(
-    'test',
-    sa.Column('id', sa.GUID(), nullable=False),
-    sa.Column('build_id', sa.GUID(), nullable=False),
-    sa.Column('project_id', sa.GUID(), nullable=False),
-    sa.Column('package', sa.Text(), nullable=True),
-    sa.Column('name', sa.Text(), nullable=True),
-    sa.Column('group', sa.Text(), nullable=True),
-    sa.Column('suite_id', sa.GUID(), nullable=True),
-    sa.Column('duration', sa.Integer(), nullable=True),
-    sa.Column('result', sa.Enum(), nullable=True),
-)
-
 
 def upgrade():
     from changes.constants import Result
+
+    testsuites_table = table(
+        'testsuite',
+        sa.Column('id', sa.GUID(), nullable=False),
+        sa.Column('build_id', sa.GUID(), nullable=False),
+        sa.Column('project_id', sa.GUID(), nullable=False),
+        sa.Column('name_sha', sa.String(length=40), nullable=False),
+        sa.Column('name', sa.Text(), nullable=True),
+        sa.Column('date_created', sa.DateTime(), nullable=True),
+    )
+    testgroups_table = table(
+        'testgroup',
+        sa.Column('id', sa.GUID(), nullable=False),
+        sa.Column('build_id', sa.GUID(), nullable=False),
+        sa.Column('project_id', sa.GUID(), nullable=False),
+        sa.Column('name_sha', sa.String(length=40), nullable=False),
+        sa.Column('duration', sa.Integer(), nullable=True),
+        sa.Column('num_tests', sa.Integer(), nullable=True),
+        sa.Column('num_failed', sa.Integer(), nullable=True),
+        sa.Column('name', sa.Text(), nullable=True),
+        sa.Column('date_created', sa.DateTime(), nullable=True),
+    )
+    testgroups_m2m_table = table(
+        'testgroup_test',
+        sa.Column('group_id', sa.GUID(), nullable=False),
+        sa.Column('test_id', sa.GUID(), nullable=False),
+    )
+    testcases_table = table(
+        'test',
+        sa.Column('id', sa.GUID(), nullable=False),
+        sa.Column('build_id', sa.GUID(), nullable=False),
+        sa.Column('project_id', sa.GUID(), nullable=False),
+        sa.Column('package', sa.Text(), nullable=True),
+        sa.Column('name', sa.Text(), nullable=True),
+        sa.Column('group', sa.Text(), nullable=True),
+        sa.Column('suite_id', sa.GUID(), nullable=True),
+        sa.Column('duration', sa.Integer(), nullable=True),
+        sa.Column('result', sa.Enum(), nullable=True),
+    )
+
 
     connection = op.get_bind()
 
