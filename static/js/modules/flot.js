@@ -35,7 +35,7 @@ define(['flot', 'utils/duration'], function(flot, duration) {
                 series: {
                   bars: {
                     show: true,
-                    lineWidth: 2,
+                    lineWidth: 1,
                     barWidth: 0.9,
                     align: 'center'
                   },
