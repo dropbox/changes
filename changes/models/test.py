@@ -101,7 +101,6 @@ class TestGroup(db.Model):
             self.duration = 0
         if self.num_tests is None:
             self.num_tests = 0
-        print self.name, self.name_sha
 
     def calculate_name_sha(self):
         if not self.name:
