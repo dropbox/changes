@@ -43,7 +43,7 @@ class BuildRetryAPIView(APIView):
 
         queue.delay('create_build', kwargs={
             'build_id': new_build.id.hex,
-        })
+        }, countdown=5)
 
         context = {
             'build': {

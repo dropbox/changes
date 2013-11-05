@@ -107,7 +107,7 @@ class BuildIndexAPIView(APIView):
 
         queue.delay('create_build', kwargs={
             'build_id': build.id.hex,
-        })
+        }, countdown=5)
 
         context = {
             'build': {
