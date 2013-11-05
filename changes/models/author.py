@@ -11,7 +11,7 @@ class Author(db.Model):
     __tablename__ = 'author'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    name = Column(String(128), nullable=False, unique=True)
+    name = Column(String(128), nullable=False)
     email = Column(String(128), unique=True)
     date_created = Column(DateTime, default=datetime.utcnow)
 
