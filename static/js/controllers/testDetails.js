@@ -19,7 +19,7 @@ define([
     $scope.build = initialData.data.build;
     $scope.previousRuns = initialData.data.previousRuns;
     $scope.firstRun = initialData.data.firstRun;
-    $scope.chartData = chartHelpers.getChartData($scope.previousRuns);
+    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.test);
 
     stream = Stream($scope, entrypoint);
     stream.subscribe('test.update', updateTest);

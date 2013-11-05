@@ -1,13 +1,18 @@
 define([], function() {
   return {
-    getChartData: function getChartData(items, limit) {
+    getChartData: function getChartData(items, current, limit) {
       // this should return two series, one with passes, and one with failures
       var ok = [],
           failures = [],
           skipped = [],
           unknown = [],
           test, point, i, y,
+          current = current || null,
           limit = limit || 50;
+
+      if (current) {
+        items = $.merge([current], items);
+      }
 
       for (i = items.length - 1, y = 0; (item = items[i]) && y < limit; i--, y++) {
         point = [i, item.duration || 1];

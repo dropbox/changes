@@ -63,7 +63,7 @@ define(['app', 'utils/chartHelpers', 'directives/radialProgressBar', 'directives
     $scope.testGroups = initialData.data.testGroups;
     $scope.testStatus = getTestStatus();
     $scope.previousRuns = initialData.data.previousRuns
-    $scope.chartData = chartHelpers.getChartData($scope.previousRuns);
+    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build);
 
     $scope.$watch("build.status", function(status) {
       $scope.testStatus = getTestStatus();
