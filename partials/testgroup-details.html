@@ -1,0 +1,61 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2 style="font-size: 1.4em;">{{testGroup.name}}</h2>
+		</div>
+
+		<dl class="flat">
+			<dt>Build:</dt>
+			<dd><a href="{{build.link}}">{{build.name}}</a></dd>
+			<dt>Duration:</dt>
+			<dd duration="testGroup.duration"></dd>
+		</dl>
+
+	</div>
+
+	<div id="test-results">
+		<div ng-if="testFailures.total">
+			<h4>Failing Tests <small>{{ testFailures.total }} total failures</small></h4>
+			<table class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th>&nbsp;</th>
+						<th style="width:110px;text-align:center">Duration</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="test in testFailures.tests">
+						<td>
+							<a href="{{ test.link }}">{{ test.name }}</a><br>
+							<small>{{ test.package }}</small>
+						</td>
+						<td style="text-align:center" duration="test.duration"></td>
+					</tr>
+				</tbody>
+			</table>
+
+		</div>
+
+		<div ng-if="childTestGroups">
+			<h4>Test Paths</h4>
+			<table class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th>&nbsp;</th>
+						<th style="width:110px;text-align:center">Duration</th>
+						<th style="width:80px;text-align:center">Failures</th>
+						<th style="width:80px;text-align:center">Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="testGroup in childTestGroups">
+						<td><a href="{{ testGroup.link }}">{{ testGroup.name }}</a></td>
+						<td style="text-align:center" duration="testGroup.duration"></td>
+						<td style="text-align:center">{{ testGroup.numFailures }}</td>
+						<td style="text-align:center">{{ testGroup.numTests }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</section>

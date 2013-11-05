@@ -1,6 +1,7 @@
 define(['app',
         'controllers/layout', 'controllers/changeList', 'controllers/changeDetails',
         'controllers/buildList', 'controllers/buildDetails', 'controllers/testDetails',
+        'controllers/testGroupDetails',
         'controllers/projectList', 'controllers/projectDetails'
        ], function(app) {
 
@@ -98,6 +99,15 @@ define(['app',
           resolve: {
             initialData: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/tests/' + $route.current.params.test_id + '/');
+            }]
+          }
+        })
+        .when('/testgroups/:testgroup_id/', {
+          templateUrl: 'partials/testgroup-details.html',
+          controller: 'testGroupDetailsCtrl',
+          resolve: {
+            initialData: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/testgroups/' + $route.current.params.testgroup_id + '/');
             }]
           }
         })
