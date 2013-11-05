@@ -1,4 +1,9 @@
-define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
+define([
+    'app',
+    'utils/chartHelpers',
+    'directives/radialProgressBar',
+    'directives/timeSince',
+    'filters/orderByBuild'], function(app, chartHelpers) {
   app.controller('projectDetailsCtrl', ['$scope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', function($scope, initialProject, initialBuildList, $http, $routeParams, Stream) {
     'use strict';
 
@@ -35,30 +40,6 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/
       });
     }
 
-    function getChartData(builds) {
-      // this should return two series, one with passes, and one with failures
-      var ok = [],
-          failures = [],
-          build, point, i;
-
-      for (i = 0; (build = builds[i]) && i < 50; i++) {
-        point = [i, build.duration || 1];
-        if (build.result.id == 'passed' || build.result.id == 'skipped') {
-          ok.push(point);
-        } else {
-          failures.push(point)
-        }
-      }
-
-      return {
-        values: [
-          {data: ok, color: '#c7c0de', label: 'Ok'},
-          {data: failures, color: '#d9322d', label: 'Failed'}
-        ],
-        options: {}
-      }
-    }
-
     $scope.getBuildStatus = function(build) {
       if (build.status.id == 'finished') {
         return build.result.name;
@@ -69,10 +50,10 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/
 
     $scope.project = initialProject.data.project;
     $scope.builds = initialBuildList.data.builds;
-    $scope.chartData = getChartData($scope.builds);
+    $scope.chartData = chartHelpers.getChartData($scope.builds);
 
     $scope.$watch("builds", function() {
-      $scope.chartData = getChartData($scope.builds);
+      $scope.chartData = chartHelpers.getChartData($scope.builds);
     });
 
     stream = Stream($scope, entrypoint);
