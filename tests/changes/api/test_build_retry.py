@@ -24,5 +24,3 @@ class BuildRetryTest(APITestCase):
         assert new_build.author_id == build.author_id
         assert new_build.label == build.label
         assert new_build.message == build.message
-        self.mock_backend.create_build.assert_called_once_with(
-            new_build)
