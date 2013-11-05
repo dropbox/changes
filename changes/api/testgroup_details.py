@@ -1,8 +1,8 @@
 from flask import Response
 
 from changes.api.base import APIView
-from changes.constants import Result
-from changes.models import TestGroup, TestCase
+from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
+from changes.models import Build, TestGroup, TestCase
 
 
 class TestGroupDetailsAPIView(APIView):
@@ -34,6 +34,13 @@ class TestGroupDetailsAPIView(APIView):
             num_test_failures = test_failures.count()
             test_failures = test_failures[:25]
 
+        previous_runs = TestGroup.query.join(Build).filter(
+            TestGroup.name_sha == testgroup.name_sha,
+            Build.date_created < testgroup.build.date_created,
+            Build.status == Status.finished,
+            TestGroup.id != testgroup.id,
+        ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
+
         context = {
             'build': testgroup.build,
             'testGroup': testgroup,
@@ -43,6 +50,7 @@ class TestGroupDetailsAPIView(APIView):
                 'tests': test_failures,
             },
             'childTests': tests,
+            'previousRuns': previous_runs,
         }
 
         return self.respond(context)

@@ -5,25 +5,36 @@ define(['app', 'directives/timeSince', 'directives/duration'], function(app) {
     var stream,
         entrypoint = '/api/0/testgroups/' + $routeParams.testgroup_id + '/';
 
-    function getTestFullName(test) {
-        if (test.package) {
-            return test.package + '.' + test.name;
-        } else {
-            return test.name;
-        }
-    }
+    function getChartData(testgroups) {
+      // this should return two series, one with passes, and one with failures
+      var ok = [],
+          failures = [],
+          testgroup, point, i;
 
-    $.each(initialData.data.childTests, function(_, test){
-        test.fullName = getTestFullName(test);
-    });
-    $.each(initialData.data.testFailures, function(_, test){
-        test.fullName = getTestFullName(test);
-    });
+      for (i = 0; (testgroup = testgroups[i]); i++) {
+        point = [i, testgroup.duration];
+        if (testgroup.result.id == 'passed' || testgroup.result.id == 'skipped') {
+          ok.push(point);
+        } else {
+          failures.push(point)
+        }
+      }
+
+      return {
+        values: [
+          {data: ok, color: '#c7c0de', label: 'Ok'},
+          {data: failures, color: '#d9322d', label: 'Failed'}
+        ],
+        options: {}
+      }
+    }
 
     $scope.build = initialData.data.build;
     $scope.testFailures = initialData.data.testFailures;
     $scope.testGroup = initialData.data.testGroup;
     $scope.childTestGroups = initialData.data.childTestGroups;
     $scope.childTests = initialData.data.childTests;
+    $scope.previousRuns = initialData.data.previousRuns
+    $scope.chartData = getChartData($scope.previousRuns);
   }]);
 });

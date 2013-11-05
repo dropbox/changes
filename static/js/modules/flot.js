@@ -45,7 +45,7 @@ define(['flot', 'utils/duration'], function(flot, duration) {
                 colors: ['#c7c0de', '#58488a']
               };
 
-          $.plot(elem, data, options);
+          $.plot(elem, data.values, $.extend({}, options, data.options));
         }
       };
   }]);

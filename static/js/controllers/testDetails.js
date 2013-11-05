@@ -20,10 +20,13 @@ define(['app', 'directives/timeSince', 'directives/duration'], function(app) {
         }
       }
 
-      return [
-        {data: ok, color: '#c7c0de', label: 'Ok'},
-        {data: failures, color: '#d9322d', label: 'Failed'}
-      ]
+      return {
+        values: [
+          {data: ok, color: '#c7c0de', label: 'Ok'},
+          {data: failures, color: '#d9322d', label: 'Failed'}
+        ],
+        options: {}
+      }
     }
 
     function updateTest(data){

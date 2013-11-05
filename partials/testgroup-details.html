@@ -12,6 +12,8 @@
 		</dl>
 	</div>
 
+	<chart ng-model="chartData" style="height:130px"></chart>
+
 	<div id="test-results">
 		<div ng-if="testFailures.total">
 			<h4>Failing Tests <small>{{ testFailures.total }} total failures</small></h4>

@@ -2,10 +2,8 @@ from flask import Response
 
 from changes.api.base import APIView
 from changes.api.serializer import Serializer
-from changes.constants import Status
+from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import Build, Author, TestCase, TestSuite
-
-NUM_PREVIOUS_RUNS = 50
 
 
 class TestCaseWithBuildSerializer(Serializer):
