@@ -115,9 +115,9 @@ class TestCase(db.Model):
     """
     __tablename__ = 'test'
     __table_args__ = (
-        UniqueConstraint('build_id', 'suite_id', 'label_sha', name='_test_key'),
-        Index('idx_project_id', 'project_id'),
-        Index('idx_suite_id', 'suite_id'),
+        UniqueConstraint('build_id', 'suite_id', 'label_sha', name='unq_test_key'),
+        Index('idx_test_project_id', 'project_id'),
+        Index('idx_test_suite_id', 'suite_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
