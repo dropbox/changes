@@ -40,6 +40,7 @@ class BuildRetryAPIView(APIView):
             db.session.add(new_build.change)
 
         db.session.add(new_build)
+        db.session.commit()
 
         queue.delay('create_build', kwargs={
             'build_id': new_build.id.hex,

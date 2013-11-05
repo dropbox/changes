@@ -104,6 +104,7 @@ class BuildIndexAPIView(APIView):
             build.patch = patch
 
         db.session.add(build)
+        db.session.commit()
 
         queue.delay('create_build', kwargs={
             'build_id': build.id.hex,

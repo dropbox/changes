@@ -30,6 +30,11 @@ class TestCase(Exam, unittest2.TestCase):
             slug='test2',
         )
 
+        # disable commit
+        self.patcher = mock.patch('changes.config.db.session.commit')
+        self.patcher.start()
+        self.addCleanup(self.patcher.stop)
+
         super(TestCase, self).setUp()
 
     @fixture
