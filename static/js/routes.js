@@ -88,8 +88,11 @@ define(['app',
           templateUrl: 'partials/project-details.html',
           controller: 'projectDetailsCtrl',
           resolve: {
-            initial: ['$http', '$route', function($http, $route) {
+            initialProject: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
+            }],
+            initialBuildList: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/');
             }]
           }
         })

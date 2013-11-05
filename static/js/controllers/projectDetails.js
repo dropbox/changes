@@ -1,25 +1,9 @@
 define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
-  app.controller('projectDetailsCtrl', ['$scope', 'initial', '$http', '$routeParams', 'stream', function($scope, initial, $http, $routeParams, Stream) {
+  app.controller('projectDetailsCtrl', ['$scope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', function($scope, initialProject, initialBuildList, $http, $routeParams, Stream) {
     'use strict';
 
     var stream,
         entrypoint = '/api/0/projects/' + $routeParams.project_id + '/builds/';
-
-    $scope.project = initial.data.project;
-    $scope.builds = [];
-
-    $http.get(entrypoint)
-      .success(function(data){
-        $scope.builds = data.builds;
-      })
-
-    $scope.getBuildStatus = function(build) {
-      if (build.status.id == 'finished') {
-        return build.result.name;
-      } else {
-        return build.status.name;
-      }
-    }
 
     function addBuild(data) {
       $scope.$apply(function() {
@@ -46,9 +30,50 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/
         }
         if (!updated) {
           $scope.builds.unshift(data);
+          $scope.builds = $scope.builds.slice(0, 100);
         }
       });
     }
+
+    function getChartData(builds) {
+      // this should return two series, one with passes, and one with failures
+      var ok = [],
+          failures = [],
+          build, point, i;
+
+      for (i = 0; (build = builds[i]) && i < 50; i++) {
+        point = [i, build.duration || 1];
+        if (build.result.id == 'passed' || build.result.id == 'skipped') {
+          ok.push(point);
+        } else {
+          failures.push(point)
+        }
+      }
+
+      return {
+        values: [
+          {data: ok, color: '#c7c0de', label: 'Ok'},
+          {data: failures, color: '#d9322d', label: 'Failed'}
+        ],
+        options: {}
+      }
+    }
+
+    $scope.getBuildStatus = function(build) {
+      if (build.status.id == 'finished') {
+        return build.result.name;
+      } else {
+        return build.status.name;
+      }
+    }
+
+    $scope.project = initialProject.data.project;
+    $scope.builds = initialBuildList.data.builds;
+    $scope.chartData = getChartData($scope.builds);
+
+    $scope.$watch("builds", function() {
+      $scope.chartData = getChartData($scope.builds);
+    });
 
     stream = Stream($scope, entrypoint);
     stream.subscribe('build.update', addBuild);

@@ -44,6 +44,7 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/
         }
         if (!updated) {
           $scope.builds.unshift(data);
+          $scope.builds = $scope.builds.slice(0, 100);
         }
       });
     }

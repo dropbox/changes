@@ -23,7 +23,8 @@ define(['flot', 'utils/duration'], function(flot, duration) {
                 yaxis: {
                   tickFormatter: function (val, axis) {
                     return Math.round(val / 1000 * 100) / 100 + ' sec';
-                  }
+                  },
+                  min: 0
                 },
                 hoverable: false,
                 legend: {
@@ -46,7 +47,15 @@ define(['flot', 'utils/duration'], function(flot, duration) {
                 colors: ['#c7c0de', '#58488a']
               };
 
-          $.plot(elem, data.values, $.extend({}, options, data.options || {}));
+
+          function render(data){
+            $.plot(elem, data.values || [], $.extend({}, options, data.options || {}));
+          }
+          render(data);
+
+          scope.$watch(attrs.ngModel, function(value) {
+            render(value);
+          });
         }
       };
   }]);

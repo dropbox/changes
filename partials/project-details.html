@@ -4,6 +4,8 @@
 			<h2>{{project.name}}</h2>
 		</div>
 
+		<chart ng-model="chartData" style="height:130px"></chart>
+
 		<table class="build-list table table-striped">
 			<tbody>
 				<tr ng-repeat="build in builds | orderByBuild" class="status-{{build.status.id}} result-{{build.result.id}}">

@@ -4,6 +4,7 @@ from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
+from changes.constants import NUM_PREVIOUS_RUNS
 from changes.models import Project, Build
 
 
@@ -29,7 +30,7 @@ class ProjectBuildIndexAPIView(APIView):
             project=project,
         ).order_by(Build.date_created.desc(), Build.date_started.desc())
 
-        build_list = list(queryset)[:25]
+        build_list = list(queryset)[:NUM_PREVIOUS_RUNS]
 
         context = {
             'builds': build_list,

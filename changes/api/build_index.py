@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, queue
-from changes.constants import Status
+from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import Project, Build, Repository, Patch, Change
 
 
@@ -22,7 +22,7 @@ class BuildIndexAPIView(APIView):
         if change:
             queryset = queryset.filter_by(change=change)
 
-        build_list = list(queryset)[:25]
+        build_list = list(queryset)[:NUM_PREVIOUS_RUNS]
 
         context = {
             'builds': build_list,
