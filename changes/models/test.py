@@ -33,7 +33,7 @@ class TestSuite(db.Model):
     __tablename__ = 'testsuite'
     __table_args__ = (
         UniqueConstraint('build_id', 'name_sha', name='_suite_key'),
-        Index('idx_project_id', 'project_id'),
+        Index('idx_testsuite_project_id', 'project_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
@@ -69,9 +69,9 @@ class TestGroup(db.Model):
     __tablename__ = 'testgroup'
     __table_args__ = (
         UniqueConstraint('build_id', 'suite_id', 'name_sha', name='_group_key'),
-        Index('idx_project_id', 'project_id'),
-        Index('idx_suite_id', 'suite_id'),
-        Index('idx_parent_id', 'parent_id'),
+        Index('idx_testgroup_project_id', 'project_id'),
+        Index('idx_testgroup_suite_id', 'suite_id'),
+        Index('idx_testgroup_parent_id', 'parent_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
