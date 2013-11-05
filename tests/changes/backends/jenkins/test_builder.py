@@ -75,7 +75,7 @@ class CreateBuildTest(BaseTestCase):
             type='build',
         )[0]
 
-        assert entity.remote_id == 'queue:13'
+        assert entity.remote_id
         assert entity.data == {
             'build_no': None,
             'item_id': 13,
@@ -111,7 +111,7 @@ class CreateBuildTest(BaseTestCase):
             type='build',
         )[0]
 
-        assert entity.remote_id == 'server#1'
+        assert entity.remote_id
         assert entity.data == {
             'build_no': 1,
             'item_id': None,

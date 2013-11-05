@@ -5,6 +5,7 @@ import logging
 import requests
 
 from datetime import datetime
+from uuid import uuid4
 
 from changes.backends.base import BaseBackend
 from changes.config import db
@@ -347,10 +348,9 @@ class JenkinsBuilder(BaseBackend):
         if build_item is None:
             raise Exception('Unable to find matching job after creation. GLHF')
 
-        if build_item['queued']:
-            remote_id = 'queue:{}'.format(build_item['item_id'])
-        else:
-            remote_id = '{}#{}'.format(build_item['job_name'], build_item['build_no'])
+        # we generate a random remote_id as the queue's item_ids seem to reset
+        # when jenkins restarts, which would create duplicates
+        remote_id = uuid4().hex
 
         entity = RemoteEntity(
             provider=self.provider,
