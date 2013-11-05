@@ -15,15 +15,24 @@ class TestGroupDetailsAPIView(APIView):
             parent_id=testgroup.id,
         ))
 
-        test_failures = TestCase.query.filter(
-            TestCase.groups.contains(testgroup),
-            TestCase.result == Result.failed,
-        ).order_by(
-            TestCase.result.desc(), TestCase.duration.desc()
-        )
+        if child_testgroups:
+            tests = None
+        else:
+            tests = list(TestCase.query.filter(
+                TestCase.groups.contains(testgroup),
+            ).order_by(TestCase.duration.desc()))
 
-        num_test_failures = test_failures.count()
-        test_failures = test_failures[:25]
+        if tests:
+            test_failures = filter(lambda x: x.result == Result.failed, tests)
+            num_test_failures = len(test_failures)
+        else:
+            test_failures = TestCase.query.filter(
+                TestCase.groups.contains(testgroup),
+                TestCase.result == Result.failed,
+            ).order_by(TestCase.duration.desc())
+
+            num_test_failures = test_failures.count()
+            test_failures = test_failures[:25]
 
         context = {
             'build': testgroup.build,
@@ -33,6 +42,7 @@ class TestGroupDetailsAPIView(APIView):
                 'total': num_test_failures,
                 'tests': test_failures,
             },
+            'childTests': tests,
         }
 
         return self.respond(context)

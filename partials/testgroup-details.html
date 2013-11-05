@@ -33,7 +33,6 @@
 					</tr>
 				</tbody>
 			</table>
-
 		</div>
 
 		<div ng-if="childTestGroups">
@@ -53,6 +52,26 @@
 						<td style="text-align:center" duration="testGroup.duration"></td>
 						<td style="text-align:center">{{ testGroup.numFailures }}</td>
 						<td style="text-align:center">{{ testGroup.numTests }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div ng-if="childTests">
+			<h4>All Tests</h4>
+			<table class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th>&nbsp;</th>
+						<th style="width:110px;text-align:center">Duration</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="test in childTests">
+						<td>
+							<a href="{{ test.link }}">{{ test.name }}</a>
+						</td>
+						<td style="text-align:center" duration="test.duration"></td>
 					</tr>
 				</tbody>
 			</table>
