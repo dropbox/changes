@@ -133,6 +133,7 @@ class TestCase(db.Model):
 
     build = relationship('Build')
     project = relationship('Project')
+    suite = relationship('TestSuite')
 
     def __init__(self, **kwargs):
         super(TestCase, self).__init__(**kwargs)
