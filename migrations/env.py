@@ -51,7 +51,11 @@ def run_migrations_offline():
     script output.
 
     """
-    context.configure(engine=db.engine)
+    connection = db.engine.connect()
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
