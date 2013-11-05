@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
+from sqlalchemy.schema import Index
 
 from changes.config import db
 from changes.constants import Status, Result, Cause
@@ -13,6 +14,13 @@ from changes.db.types.json import JSONEncodedDict
 
 class Build(db.Model):
     __tablename__ = 'build'
+    __table_args__ = (
+        Index('idx_build_project_id', 'project_id'),
+        Index('idx_build_repository_id', 'repository_id'),
+        Index('idx_build_author_id', 'author_id'),
+        Index('idx_build_patch_id', 'patch_id'),
+        Index('idx_build_change_id', 'change_id'),
+    )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     change_id = Column(GUID, ForeignKey('change.id'))
