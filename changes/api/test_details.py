@@ -5,6 +5,8 @@ from changes.api.serializer import Serializer
 from changes.constants import Status
 from changes.models import Build, Author, TestCase, TestSuite
 
+NUM_PREVIOUS_RUNS = 50
+
 
 class TestCaseWithBuildSerializer(Serializer):
     def serialize(self, instance):
@@ -36,9 +38,9 @@ class TestDetailsAPIView(APIView):
             Build.date_created < test.build.date_created,
             Build.status == Status.finished,
             TestCase.id != test.id,
-        ).order_by(Build.date_created.desc())[:25]
+        ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
-        if len(previous_runs) < 25:
+        if len(previous_runs) < NUM_PREVIOUS_RUNS:
             try:
                 first_run = previous_runs[0]
             except IndexError:
