@@ -7,7 +7,7 @@ from hashlib import sha1
 from sqlalchemy import Table, Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.event import listen
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.schema import UniqueConstraint, Index
 
 from changes.config import db
 from changes.constants import Result
@@ -33,6 +33,7 @@ class TestSuite(db.Model):
     __tablename__ = 'testsuite'
     __table_args__ = (
         UniqueConstraint('build_id', 'name_sha', name='_suite_key'),
+        Index('idx_project_id', 'project_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
@@ -68,6 +69,9 @@ class TestGroup(db.Model):
     __tablename__ = 'testgroup'
     __table_args__ = (
         UniqueConstraint('build_id', 'suite_id', 'name_sha', name='_group_key'),
+        Index('idx_project_id', 'project_id'),
+        Index('idx_suite_id', 'suite_id'),
+        Index('idx_parent_id', 'parent_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
@@ -112,6 +116,8 @@ class TestCase(db.Model):
     __tablename__ = 'test'
     __table_args__ = (
         UniqueConstraint('build_id', 'suite_id', 'label_sha', name='_test_key'),
+        Index('idx_project_id', 'project_id'),
+        Index('idx_suite_id', 'suite_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
