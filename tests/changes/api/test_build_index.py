@@ -84,3 +84,25 @@ class BuildCreateTest(APITestCase):
         assert build.parent_revision_sha == 'a' * 40
         assert build.author.name == 'David Cramer'
         assert build.author.email == 'dcramer@example.com'
+
+    def test_with_patch_without_change(self):
+        change = self.create_change(self.project)
+        path = '/api/0/builds/'.format(change.id.hex)
+        resp = self.client.post(path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'author': 'David Cramer <dcramer@example.com>',
+            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch[label]': 'D1234',
+            'patch[url]': 'http://phabricator.example.com/D1234',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['build']['id']
+        build = Build.query.get(data['build']['id'])
+        assert build.patch_id is not None
+        patch = Patch.query.get(build.patch_id)
+        assert patch.diff == SAMPLE_DIFF
+        assert patch.label == 'D1234'
+        assert patch.url == 'http://phabricator.example.com/D1234'
+        assert patch.parent_revision_sha == 'a' * 40

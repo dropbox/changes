@@ -65,7 +65,6 @@ class BuildIndexAPIView(APIView):
                 fp.write(line)
 
             patch = Patch(
-                change=change,
                 repository=repository,
                 project=project,
                 parent_revision_sha=sha,
@@ -73,6 +72,8 @@ class BuildIndexAPIView(APIView):
                 url=patch_url,
                 diff=fp.getvalue(),
             )
+            if change:
+                patch.change = change
             db.session.add(patch)
         else:
             patch = None
