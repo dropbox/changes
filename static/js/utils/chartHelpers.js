@@ -40,8 +40,6 @@ define([], function() {
         }
       }
 
-      console.log(ok);
-
       var itemLabelFormatter = function(xval, yval, flotItem) {
         return options.labelFormatter(points[xval]);
       };
