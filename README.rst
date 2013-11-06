@@ -64,6 +64,29 @@ Workers are managed via Celery:
 
 	celery -A changes.app worker -B
 
+
+NGINX Configuration
+===================
+
+::
+
+
+	    location / {
+	        proxy_pass              http://changes_server;
+	        proxy_set_header        Host $host;
+	        proxy_set_header        X-Real-IP $remote_addr;
+	        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+	        proxy_set_header        X-Forwarded-Proto $scheme;
+	        proxy_connect_timeout   150;
+	        proxy_send_timeout      100;
+	        proxy_read_timeout      100;
+	        proxy_buffers           4 32k;
+	        proxy_buffering	        off;
+	        client_max_body_size    8m;
+	        client_body_buffer_size 128k;
+
+	    }
+
 API
 ===
 
