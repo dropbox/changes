@@ -45,6 +45,9 @@ class Result(OrderedEnum):
     failed = 2
     timedout = 6
 
+    def __str__(self):
+        return RESULT_LABELS[self]
+
 
 class Provider(Enum):
     unknown = 0
