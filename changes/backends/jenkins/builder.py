@@ -54,7 +54,7 @@ class JenkinsBuilder(BaseBackend):
         params = {}
         for action in json['actions']:
             params.update(
-                (p['name'], p['value'])
+                (p['name'], p.get('value'))
                 for p in action.get('parameters', [])
             )
         return params
