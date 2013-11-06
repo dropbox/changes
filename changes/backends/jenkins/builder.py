@@ -284,12 +284,22 @@ class JenkinsBuilder(BaseBackend):
                 {'name': 'CHANGES_BID', 'value': build.id.hex},
             ]
         }
+        if build.patch:
+            json_data['parameter'].append(
+                {'name': 'PATCH', 'file': 'patch'}
+            )
+            files = {
+                'patch': build.patch.diff,
+            }
+        else:
+            files = None
+
         # TODO: Jenkins will return a 302 if it cannot queue the job which I
         # believe implies that there is already a job with the same parameters
         # queued.
         self._get_response('/job/{}/build'.format(job_name), method='POST', data={
             'json': json.dumps(json_data),
-        })
+        }, files=files)
 
         build_item = self._find_job(job_name, build.id.hex)
         if build_item is None:

@@ -8,9 +8,19 @@ from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Repository, Project, RemoteEntity, TestCase
+from changes.models import Repository, Project, RemoteEntity, TestCase, Patch
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.testutils import BackendTestCase
+
+
+SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
+index 2ef2938..ed80350 100644
+--- a/README.rst
++++ b/README.rst
+@@ -1,5 +1,5 @@
+ Setup
+------
++====="""
 
 
 class BaseTestCase(BackendTestCase):
@@ -46,6 +56,8 @@ class BaseTestCase(BackendTestCase):
             return fp.read()
 
 
+# TODO(dcramer): these tests need to ensure we're passing the right parameters
+# to jenkins
 class CreateBuildTest(BaseTestCase):
     @httpretty.activate
     def test_queued_creation(self):
@@ -118,6 +130,40 @@ class CreateBuildTest(BaseTestCase):
             'job_name': 'server',
             'queued': False,
         }
+
+    @httpretty.activate
+    def test_patch(self):
+        httpretty.register_uri(
+            httpretty.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+            body='',
+            status=201)
+
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/queue/api/json/',
+            body=self.load_fixture('fixtures/GET/queue_list.json'))
+
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/api/json/',
+            body=self.load_fixture('fixtures/GET/job_list.json'))
+
+        patch = Patch(
+            repository=self.repo,
+            project=self.project,
+            parent_revision_sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
+            label='D1345',
+            diff=SAMPLE_DIFF,
+        )
+        db.session.add(patch)
+
+        build = self.create_build(
+            self.project,
+            patch=patch,
+            parent_revision_sha=patch.parent_revision_sha,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8')
+        )
+
+        builder = self.get_builder()
+        builder.create_build(build)
 
 
 class SyncBuildTest(BaseTestCase):
