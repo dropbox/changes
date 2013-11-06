@@ -150,11 +150,6 @@ dl.flat dt {
   background: #d9322d;
 }
 
-.result-passed .indicator {
-  color: #fff;
-  background: #58488a;
-}
-
 .project-list {
   list-style: none;
   padding-left: 0;
@@ -293,11 +288,6 @@ dl.flat dt {
   background: #f7f5fa;
   color: #c7c0de;
   border-color: #f7f5fa;
-}
-.phase-list > li.result-passed > a {
-  background: #58488a;
-  color: #c7c0de;
-  border-color: #58488a;
 }
 .phase-list > li.result-aborted > a {
   color: #fff;
