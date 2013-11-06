@@ -192,21 +192,21 @@ dl.flat dt {
   color: #fff;
   background: gold;
 }
-.project-list > li.result-passed > a small {
-  color: rgb(55, 116, 55);
-}
-.project-list > li.result-failed > a small,
-.project-list > li.result-timedout > a small {
-  color: #FFCAC8;
-}
 .project-list > li.result-passed > a {
   color: #fff;
   background: rgb(114, 194, 114);
+}
+.project-list > li.result-passed > a small {
+  color: rgb(208, 255, 208);
 }
 .project-list > li.result-failed > a,
 .project-list > li.result-timedout > a {
   color: #fff;
   background: #d9322d;
+}
+.project-list > li.result-failed > a small,
+.project-list > li.result-timedout > a small {
+  color: #FFCAC8;
 }
 
 .change-header h2,
