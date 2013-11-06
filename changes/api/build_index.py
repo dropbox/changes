@@ -57,6 +57,7 @@ class BuildIndexAPIView(APIView):
 
         if change:
             project = change.project
+
         repository = Repository.query.get(project.repository_id)
 
         if patch_file:
@@ -65,6 +66,7 @@ class BuildIndexAPIView(APIView):
                 fp.write(line)
 
             patch = Patch(
+                change=change,
                 repository=repository,
                 project=project,
                 parent_revision_sha=sha,
@@ -72,8 +74,6 @@ class BuildIndexAPIView(APIView):
                 url=patch_url,
                 diff=fp.getvalue(),
             )
-            if change:
-                patch.change = change
             db.session.add(patch)
         else:
             patch = None
@@ -85,6 +85,7 @@ class BuildIndexAPIView(APIView):
                 label = sha[:12]
 
         build = Build(
+            change=change,
             project=project,
             repository=repository,
             status=Status.queued,

@@ -30,7 +30,6 @@ def param(key, validator=lambda x: x, required=True, dest=None):
             if not value:
                 if required:
                     raise ParamError(key, 'value is required')
-                kwargs[dest_key] = value
                 return func(*args, **kwargs)
 
             try:
