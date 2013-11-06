@@ -23,41 +23,29 @@ define(['app'], function(app) {
     }
 
     function addBuild(data) {
+      var project_id = data.project.id,
+          result, project;
+
+      result = $.grep($scope.projects, function(e){ return e.id == project_id; });
+      if (!result.length > 0) {
+        // project not found
+        return;
+      }
+
+      project = result[0];
+
+      if (data.status.id != 'finished') {
+        // not finished, so not relevant
+        return;
+      }
+
+      // older than the 'current' last build
+      if (data.dateCreated < project.lastBuild.dateCreated) {
+        return;
+      }
+
       $scope.$apply(function() {
-        var updated = false,
-            item_id = data.id,
-            attr, result, item, project;
-
-        // identify the project that this build belongs to
-        result = $.grep($scope.projects, function(e){ return e.id == data.project.id; });
-        if (!result.length) {
-        	return;
-        }
-        project = result[0];
-
-        if (project.recentBuilds.length > 0) {
-          result = $.grep(project.recentBuilds, function(e){ return e.id == item_id; });
-          if (result.length > 0) {
-            item = result[0];
-            for (attr in data) {
-              // ignore dateModified as we're updating this frequently and it causes
-              // the dirty checking behavior in angular to respond poorly
-              if (item[attr] != data[attr] && attr != 'dateModified') {
-                updated = true;
-                item[attr] = data[attr];
-              }
-              if (updated) {
-                item.dateModified = data.dateModified;
-              }
-            }
-          }
-        }
-        if (!updated) {
-          project.recentBuilds.unshift(data);
-          // TODO(dcramer): we shouldn't be constantly sorting this
-          project.recentBuilds.sort(sortByDateCreated);
-          project.recentBuilds = project.recentBuilds.slice(0, 3);
-        }
+        project.lastBuild = data;
       });
     }
 

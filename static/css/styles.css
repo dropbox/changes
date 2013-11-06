@@ -144,8 +144,7 @@ dl.flat dt {
   background: rgb(114, 194, 114);
 }
 .result-failed .indicator,
-.result-timedout .indicator,
-.result-errored .indicator {
+.result-timedout .indicator {
   color: #fff;
   background: #d9322d;
 }
@@ -196,13 +195,16 @@ dl.flat dt {
 .project-list > li.result-passed > a small {
   color: rgb(55, 116, 55);
 }
+.project-list > li.result-failed > a small,
+.project-list > li.result-timedout > a small {
+  color: #FFCAC8;
+}
 .project-list > li.result-passed > a {
   color: #fff;
   background: rgb(114, 194, 114);
 }
 .project-list > li.result-failed > a,
-.project-list > li.result-timedout > a,
-.project-list > li.result-errored > a {
+.project-list > li.result-timedout > a {
   color: #fff;
   background: #d9322d;
 }
@@ -358,7 +360,6 @@ dl.flat dt {
   border-color: rgb(114, 194, 114);
 }
 .phase-list > li.result-failed > a,
-.phase-list > li.result-errored > a,
 .phase-list > li.result-timedout > a {
   background: #d9322d;
   color: #fff;
