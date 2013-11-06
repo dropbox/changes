@@ -139,6 +139,10 @@ dl.flat dt {
   color: #fff;
   background: gold;
 }
+.result-passed .indicator {
+  color: #fff;
+  background: #5cb85c;
+}
 .result-failed .indicator,
 .result-timedout .indicator,
 .result-errored .indicator {
@@ -304,6 +308,12 @@ dl.flat dt {
   color: #fff;
   background: gold;
   border-color: gold;
+}
+
+.phase-list > li.result-passed > a {
+  color: #fff;
+  background: #5cb85c;
+  border-color: #5cb85c;
 }
 .phase-list > li.result-failed > a,
 .phase-list > li.result-errored > a,
