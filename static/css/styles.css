@@ -158,13 +158,12 @@ dl.flat dt {
   width: 25%;
   position: relative;
   min-height: 1px;
-  padding: 0 10px;
-  margin-bottom: 20px;
+  padding: 0 0.5px;
+  margin-bottom: 1px;
   float: left;
   display: block;
 }
 .project-list > li > a {
-  border-radius: 8px;
   display: block;
   background: #c7c0de;
   text-align: center;
