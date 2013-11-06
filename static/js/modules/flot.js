@@ -75,7 +75,6 @@ define(['flot', 'utils/duration'], function(flot, duration) {
             // find max value
             var max = 0;
             $.each(data.values, function(_, series){
-              console.log(series.data);
               $.each(series.data, function(_, point){
                 if (point && point[1] > max) {
                   max = point[1];
@@ -90,8 +89,6 @@ define(['flot', 'utils/duration'], function(flot, duration) {
               value = (i + 1) * per_step;
               ticks.push([value, options.yaxis.tickFormatter(value)]);
             }
-
-            console.log(ticks);
 
             options.yaxis.ticks = ticks
 
