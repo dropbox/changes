@@ -1,8 +1,16 @@
 from flask import Response
 
 from changes.api.base import APIView
+from changes.api.serializer.models.testgroup import TestGroupSerializer
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
 from changes.models import Build, TestGroup, TestCase
+
+
+class TestGroupWithBuildSerializer(TestGroupSerializer):
+    def serialize(self, instance):
+        data = super(TestGroupWithBuildSerializer, self).serialize(instance)
+        data['build'] = instance.build
+        return data
 
 
 class TestGroupDetailsAPIView(APIView):
@@ -41,6 +49,10 @@ class TestGroupDetailsAPIView(APIView):
             TestGroup.id != testgroup.id,
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
+        extended_serializers = {
+            TestGroup: TestGroupWithBuildSerializer(),
+        }
+
         context = {
             'build': testgroup.build,
             'testGroup': testgroup,
@@ -50,7 +62,7 @@ class TestGroupDetailsAPIView(APIView):
                 'tests': test_failures,
             },
             'childTests': tests,
-            'previousRuns': previous_runs,
+            'previousRuns': self.serialize(previous_runs, extended_serializers),
         }
 
         return self.respond(context)

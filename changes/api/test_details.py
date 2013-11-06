@@ -1,24 +1,16 @@
 from flask import Response
 
 from changes.api.base import APIView
-from changes.api.serializer import Serializer
+from changes.api.serializer.models.testcase import TestCaseSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import Build, Author, TestCase, TestSuite
 
 
-class TestCaseWithBuildSerializer(Serializer):
+class TestCaseWithBuildSerializer(TestCaseSerializer):
     def serialize(self, instance):
-        return {
-            'id': instance.id.hex,
-            'name': instance.name,
-            'package': instance.package,
-            'result': instance.result,
-            'duration': instance.duration,
-            'message': instance.message,
-            'link': '/tests/%s/' % (instance.id.hex,),
-            'dateCreated': instance.date_created,
-            'build': instance.build,
-        }
+        data = super(TestCaseWithBuildSerializer, self).serialize(instance)
+        data['build'] = instance.build
+        return data
 
 
 class TestDetailsAPIView(APIView):
