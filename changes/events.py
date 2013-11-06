@@ -8,6 +8,9 @@ def publish_build_update(mapper, connection, target):
             change_id=target.change_id.hex if target.change_id else '',
             build_id=target.id.hex,
         ),
+        'projects:{project_id}:builds'.format(
+            project_id=target.project_id.hex,
+        ),
     ]
     if target.author_id:
         channels.append('authors:{author_id}:builds'.format(

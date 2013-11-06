@@ -39,4 +39,7 @@ class ProjectBuildIndexAPIView(APIView):
         return self.respond(context)
 
     def get_stream_channels(self, project_id=None):
-        return ['projects:{0}:builds'.format(project_id)]
+        project = self._get_project(project_id)
+        if not project:
+            return Response(status=404)
+        return ['projects:{0}:builds'.format(project.id.hex)]
