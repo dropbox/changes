@@ -19,14 +19,16 @@ class ProjectIndexAPIView(APIView):
 
         for project in project_list:
             data = self.serialize(project)
-            data['recentBuilds'] = list(Build.query.options(
+            data['lastBuild'] = Build.query.options(
                 joinedload(Build.project),
                 joinedload(Build.author),
             ).filter_by(
+                patch=None,
                 project=project,
+                status=Status.finished,
             ).order_by(
                 Build.date_created.desc(),
-            )[:3])
+            ).first()
 
             data['numActiveBuilds'] = Build.query.filter(
                 Build.project == project,
@@ -37,5 +39,5 @@ class ProjectIndexAPIView(APIView):
 
         return self.respond(context)
 
-    def get_stream_channels(self):
-        return ['builds:*']
+    # def get_stream_channels(self):
+    #     return ['builds:*']

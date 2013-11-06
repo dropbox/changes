@@ -151,8 +151,56 @@ dl.flat dt {
 }
 
 .project-list {
+  position: relative;
   list-style: none;
   padding-left: 0;
+}
+.project-list > li {
+  width: 25%;
+  position: relative;
+  min-height: 1px;
+  padding: 0 10px;
+  margin-bottom: 20px;
+  float: left;
+  display: block;
+}
+.project-list > li > a {
+  border-radius: 8px;
+  display: block;
+  background: #c7c0de;
+  text-align: center;
+  height: 178px;
+  padding: 50px 10px;
+}
+.project-list > li > a:hover {
+  text-decoration: none;
+}
+.project-list > li h4 {
+  color: inherit;
+  overflow: hidden;
+  height: 20px;
+  white-space: nowrap;
+  text-align: center;
+}
+.project-list > li small {
+  display: block;
+  font-weight: 300;
+  color: #666;
+}
+
+.project-list > li.result-skipped > a {
+  color: #fff;
+  background: gold;
+}
+.project-list > li.result-passed > a {
+  color: #fff;
+  background: rgb(114, 194, 114);
+}
+.project-list > li.result-failed > a,
+.project-list > li.result-timedout > a,
+.project-list > li.result-errored > a {
+  color: #fff;
+  background: #d9322d;
 }
 
 .change-header h2,

@@ -5,8 +5,6 @@ define(['app'], function(app) {
     var entrypoint = '/api/0/projects/',
         stream;
 
-    $scope.projects = initial.data.projects;
-
     function sortByDateCreated(a, b){
       if (a.dateCreated < b.dateCreated) {
         return 1
@@ -15,6 +13,13 @@ define(['app'], function(app) {
       } else {
         return 0;
       }
+    }
+
+    function getProjectClass(project) {
+      if (project.lastBuild) {
+        return 'result-' + project.lastBuild.result.id;
+      }
+      return 'result-unknown';
     }
 
     function addBuild(data) {
@@ -55,6 +60,9 @@ define(['app'], function(app) {
         }
       });
     }
+
+    $scope.getProjectClass = getProjectClass;
+    $scope.projects = initial.data.projects;
 
     stream = Stream($scope, entrypoint);
     stream.subscribe('build.update', addBuild);
