@@ -21,8 +21,6 @@ def web(addr):
     from gevent import pywsgi
     from changes.config import create_app
 
-    patch_gevent()
-
     host, port = addr.split(':')
     if not host:
         host = '127.0.0.1'
