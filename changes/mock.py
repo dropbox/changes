@@ -9,7 +9,8 @@ from uuid import uuid4
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Project, Repository, Author, Revision, Build, Phase, Step, Test, Change
+    Project, Repository, Author, Revision, Build, Phase, Step, TestResult,
+    Change
 )
 
 
@@ -154,16 +155,15 @@ def test_result(build, **kwargs):
     if 'name' not in kwargs:
         kwargs['name'] = TEST_NAMES.next() + '_' + uuid4().hex
 
-    if 'group' not in kwargs:
-        kwargs['group'] = 'default'
+    if 'suite_name' not in kwargs:
+        kwargs['suite_name'] = 'default'
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)
 
     kwargs.setdefault('result', Result.passed)
-    kwargs.setdefault('project', build.project)
 
-    result = Test(build=build, **kwargs)
-    db.session.add(result)
+    result = TestResult(build=build, **kwargs)
+    result.save()
 
     return result

@@ -29,7 +29,7 @@ class TestResult(object):
     A helper class which ensures that TestGroup and TestSuite instances are
     managed correctly when TestCase's are created.
     """
-    def __init__(self, build, name, message, package=None,
+    def __init__(self, build, name, message=None, package=None,
                  result=None, suite_name=None, duration=None,
                  date_created=None):
 
