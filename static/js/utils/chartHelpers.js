@@ -23,6 +23,7 @@ define([], function() {
 
       if (current) {
         items = $.merge([], items);
+        items.pop();
         items.unshift(current);
       }
 

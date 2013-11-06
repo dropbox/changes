@@ -16,16 +16,18 @@ define(['flot', 'utils/duration'], function(flot, duration) {
             hoverable: true,
             backgroundColor: '#ffffff',
             borderColor: '#DEE3E9',
-            borderWidth: 2,
-            tickColor: '#DEE3E9'
+            borderWidth: 1,
+            tickColor: '#eeeeee',
+            margin: {right: 0}
         },
         xaxis: {
           tickSize: 1,
           min: 0,
-          tickColor: '#ffffff',
+          tickColor: 'transparent',
           tickFormatter: function() { return ''; }
         },
         yaxis: {
+          ticks: 3,
           tickFormatter: function (val, axis) {
             return Math.round(val / 1000 * 100) / 100 + ' sec';
           },
@@ -44,7 +46,6 @@ define(['flot', 'utils/duration'], function(flot, duration) {
             barWidth: 0.9,
             align: 'center'
           },
-          stack: true,
           shadowSize: 0
         },
         colors: ['#c7c0de', '#58488a']
@@ -61,7 +62,7 @@ define(['flot', 'utils/duration'], function(flot, duration) {
           function render(data){
             label_cache = {};
 
-            options = $.extend({}, default_options, data.options || {});
+            options = $.extend(true, {}, default_options, data.options || {});
             options.tooltipOpts.content = function(label, xval, yval, flotItem) {
               var retval = label_cache[[xval, yval]];
               if (retval === undefined) {
@@ -70,6 +71,29 @@ define(['flot', 'utils/duration'], function(flot, duration) {
               }
               return retval;
             };
+
+            // find max value
+            var max = 0;
+            $.each(data.values, function(_, series){
+              console.log(series.data);
+              $.each(series.data, function(_, point){
+                if (point && point[1] > max) {
+                  max = point[1];
+                }
+              });
+            });
+
+            var ticks = [[0, '']],
+                per_step = max / (options.yaxis.ticks + 1),
+                value, i;
+            for (i = 0; i < options.yaxis.ticks; i++) {
+              value = (i + 1) * per_step;
+              ticks.push([value, options.yaxis.tickFormatter(value)]);
+            }
+
+            console.log(ticks);
+
+            options.yaxis.ticks = ticks
 
             $.plot(elem, data.values, options);
           }
