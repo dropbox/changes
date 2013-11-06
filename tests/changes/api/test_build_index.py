@@ -54,8 +54,8 @@ class BuildCreateTest(APITestCase):
             'sha': 'a' * 40,
             'author': 'David Cramer <dcramer@example.com>',
             'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'patch_label': 'D1234',
-            'patch_url': 'http://phabricator.example.com/D1234',
+            'patch[label]': 'D1234',
+            'patch[url]': 'http://phabricator.example.com/D1234',
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)

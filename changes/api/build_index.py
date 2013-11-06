@@ -51,8 +51,6 @@ class BuildIndexAPIView(APIView):
             raise ValueError('patch')
 
         patch_file = request.files.get('patch')
-        patch_label = request.form.get('patch_label')
-        patch_url = request.form.get('patch_url')
 
         if patch_file and not patch_label:
             raise ValueError('patch_label')
