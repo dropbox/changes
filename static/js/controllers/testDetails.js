@@ -17,9 +17,17 @@ define([
 
     $scope.test = initialData.data.test;
     $scope.build = initialData.data.build;
+    $scope.test.build = $scope.build
     $scope.previousRuns = initialData.data.previousRuns;
     $scope.firstRun = initialData.data.firstRun;
-    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.test);
+    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.test, {
+      labelFormatter: function(item) {
+        return item.build.name;
+      },
+      linkFormatter: function(item) {
+        return item.link;
+      }
+    });
 
     stream = Stream($scope, entrypoint);
     stream.subscribe('test.update', updateTest);

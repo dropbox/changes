@@ -12,9 +12,17 @@ define([
     $scope.build = initialData.data.build;
     $scope.testFailures = initialData.data.testFailures;
     $scope.testGroup = initialData.data.testGroup;
+    $scope.testGroup.build = $scope.build;
     $scope.childTestGroups = initialData.data.childTestGroups;
     $scope.childTests = initialData.data.childTests;
     $scope.previousRuns = initialData.data.previousRuns
-    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.testGroup);
+    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.testGroup{
+      labelFormatter: function(item) {
+        return item.build.name;
+      },
+      linkFormatter: function(item) {
+        return item.link;
+      }
+    });
   }]);
 });

@@ -8,6 +8,8 @@
  *
  * build on 2013-09-30
  * released under MIT License, 2012
+
+ * Modified by Dropbox, see comments
 */
 (function ($) {
 
@@ -158,7 +160,7 @@
      * @return {string} real tooltip content for current item
      */
     FlotTooltip.prototype.stringFormat = function(content, item) {
-
+        // XXX(Dropbox): Changed to handle multi series
         var percentPattern = /%p\.{0,1}(\d{0,})/;
         var seriesPattern = /%s/;
         var xPattern = /%x\.{0,1}(?:\d{0,})/;
@@ -166,7 +168,7 @@
 
         // if it is a function callback get the content string
         if( typeof(content) === 'function' ) {
-            content = content(item.series.label, item.series.data[item.dataIndex][0], item.series.data[item.dataIndex][1], item);
+            content = content(item.series.label, item.datapoint[0], item.datapoint[1], item);
         }
 
         // percent match for pie charts
@@ -181,27 +183,27 @@
 
         // time mode axes with custom dateFormat
         if(this.isTimeMode('xaxis', item) && this.isXDateFormat(item)) {
-            content = content.replace(xPattern, this.timestampToDate(item.series.data[item.dataIndex][0], this.tooltipOptions.xDateFormat));
+            content = content.replace(xPattern, this.timestampToDate(item.datapoint[0], this.tooltipOptions.xDateFormat));
         }
 
         if(this.isTimeMode('yaxis', item) && this.isYDateFormat(item)) {
-            content = content.replace(yPattern, this.timestampToDate(item.series.data[item.dataIndex][1], this.tooltipOptions.yDateFormat));
+            content = content.replace(yPattern, this.timestampToDate(item.datapoint[1], this.tooltipOptions.yDateFormat));
         }
 
         // set precision if defined
-        if( typeof item.series.data[item.dataIndex][0] === 'number' ) {
-            content = this.adjustValPrecision(xPattern, content, item.series.data[item.dataIndex][0]);
+        if( typeof item.datapoint[0] === 'number' ) {
+            content = this.adjustValPrecision(xPattern, content, item.datapoint[0]);
         }
-        if( typeof item.series.data[item.dataIndex][1] === 'number' ) {
-            content = this.adjustValPrecision(yPattern, content, item.series.data[item.dataIndex][1]);
+        if( typeof item.datapoint[1] === 'number' ) {
+            content = this.adjustValPrecision(yPattern, content, item.datapoint[1]);
         }
 
         // if no value customization, use tickFormatter by default
         if(typeof item.series.xaxis.tickFormatter !== 'undefined') {
-            content = content.replace(xPattern, item.series.xaxis.tickFormatter(item.series.data[item.dataIndex][0], item.series.xaxis));
+            content = content.replace(xPattern, item.series.xaxis.tickFormatter(item.datapoint[0], item.series.xaxis));
         }
         if(typeof item.series.yaxis.tickFormatter !== 'undefined') {
-            content = content.replace(yPattern, item.series.yaxis.tickFormatter(item.series.data[item.dataIndex][1], item.series.yaxis));
+            content = content.replace(yPattern, item.series.yaxis.tickFormatter(item.datapoint[1], item.series.yaxis));
         }
 
         return content;

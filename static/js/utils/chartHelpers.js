@@ -1,31 +1,53 @@
 define([], function() {
+  var chart_defaults = {
+    limit: 50,
+    labelFormatter: function(item) {
+      return item.id;
+    },
+    linkFormatter: function(item) {
+      return null;
+    }
+  };
+
   return {
-    getChartData: function getChartData(items, current, limit) {
+    getChartData: function getChartData(items, current, options) {
       // this should return two series, one with passes, and one with failures
-      var ok = [],
-          failures = [],
-          skipped = [],
-          unknown = [],
+      var options = $.extend({}, chart_defaults, options || {}),
+          ok = new Array(options.limit),
+          failures = new Array(options.limit),
+          skipped = new Array(options.limit),
+          unknown = new Array(options.limit),
+          points = {},
           test, point, i, y,
-          current = current || null,
-          limit = limit || 50;
+          current = current || null;
 
       if (current) {
-        items = $.merge([current], items);
+        items = $.merge([], items);
+        items.unshift(current);
       }
 
-      for (i = items.length - 1, y = 0; (item = items[i]) && y < limit; i--, y++) {
-        point = [i, item.duration || 1];
+      for (i = 0, y = options.limit; (item = items[i]) && y > 0; i++, y--) {
+        points[y] = item;
+        point = [y, item.duration || 1];
         if (item.result.id == 'passed') {
-          ok.push(point);
+          ok[y] = point;
         } else if (item.result.id == 'skipped') {
-          skipped.push(point);
+          skipped[y] = point;
         } else if (item.result.id == 'aborted' || item.result.id == 'unknown') {
-          unknown.push(point);
+          unknown[y] = point;
         } else {
-          failures.push(point);
+          failures[y] = point;
         }
       }
+
+      console.log(ok);
+
+      var itemLabelFormatter = function(xval, yval, flotItem) {
+        return options.labelFormatter(points[xval]);
+      };
+      var itemLinkFormatter = function(xval, yval, flotItem) {
+        return options.linkFormatter(points[xval]);
+      };
 
       return {
         values: [
@@ -34,7 +56,10 @@ define([], function() {
           {data: skipped, color: 'rgb(255, 215, 0)', label: 'Skipped'},
           {data: unknown, color: '#aaaaaa', label: 'Unknown'}
         ],
-        options: {}
+        options: {
+          labelFormatter: itemLabelFormatter,
+          linkFormatter: itemLinkFormatter
+        }
       }
     }
   }

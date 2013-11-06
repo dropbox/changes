@@ -8,7 +8,15 @@ define([
     'use strict';
 
     var stream,
-        entrypoint = '/api/0/projects/' + $routeParams.project_id + '/builds/';
+        entrypoint = '/api/0/projects/' + $routeParams.project_id + '/builds/',
+        chart_options = {
+          labelFormatter: function(item) {
+            return item.name;
+          },
+          linkFormatter: function(item) {
+            return item.link;
+          }
+        };
 
     function addBuild(data) {
       $scope.$apply(function() {
@@ -50,10 +58,10 @@ define([
 
     $scope.project = initialProject.data.project;
     $scope.builds = initialBuildList.data.builds;
-    $scope.chartData = chartHelpers.getChartData($scope.builds);
+    $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
 
     $scope.$watch("builds", function() {
-      $scope.chartData = chartHelpers.getChartData($scope.builds);
+      $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
     });
 
     stream = Stream($scope, entrypoint);
