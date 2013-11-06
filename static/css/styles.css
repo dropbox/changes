@@ -184,6 +184,7 @@ dl.flat dt {
 }
 .project-list > li small {
   display: block;
+  color: inherit;
   font-weight: 300;
   color: #666;
 }
@@ -191,6 +192,9 @@ dl.flat dt {
 .project-list > li.result-skipped > a {
   color: #fff;
   background: gold;
+}
+.project-list > li.result-passed > a small {
+  color: rgb(55, 116, 55);
 }
 .project-list > li.result-passed > a {
   color: #fff;

@@ -3,7 +3,9 @@
 		<li ng-repeat="project in projects" class="{{getProjectClass(project)}}">
 			<a href="{{project.link}}">
 				<h4>{{project.name}}</h4>
-				<small>{{project.numActiveBuilds}} builds pending</small>
+				<div ng-if="project.lastBuild">
+					<small>{{project.lastBuild.parent_revision.sha.substr(0, 12)}}<span ng-if="project.lastBuild.author"> &mdash; {{project.lastBuild.author.name}}</span></small>
+				</div>
 			</a>
 		</li>
 	</ul>
