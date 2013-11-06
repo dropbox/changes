@@ -6,6 +6,9 @@
 				<div ng-if="project.lastBuild">
 					<small>{{project.lastBuild.parent_revision.sha.substr(0, 12)}}<span ng-if="project.lastBuild.author"> &mdash; {{project.lastBuild.author.name}}</span></small>
 				</div>
+				<div ng-if="!project.lastBuild">
+					<small>No build information available</small>
+				</div>
 			</a>
 		</li>
 	</ul>
