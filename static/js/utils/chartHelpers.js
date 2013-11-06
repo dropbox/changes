@@ -50,7 +50,7 @@ define([], function() {
 
       return {
         values: [
-          {data: ok, color: '#c7c0de', label: 'Passed'},
+          {data: ok, color: '#5cb85c', label: 'Passed'},
           {data: failures, color: '#d9322d', label: 'Failed'},
           {data: skipped, color: 'rgb(255, 215, 0)', label: 'Skipped'},
           {data: unknown, color: '#aaaaaa', label: 'Unknown'}
