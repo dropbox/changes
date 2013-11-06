@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import gevent
 
-from gevent.queue import Queue
+from collections import deque
 
 from changes.config import pubsub
 
@@ -10,7 +10,7 @@ from changes.config import pubsub
 class EventStream(object):
     def __init__(self, channels, pubsub=pubsub):
         self.pubsub = pubsub
-        self.pending = Queue()
+        self.pending = deque()
         self.channels = channels
         self.active = True
 
@@ -22,18 +22,20 @@ class EventStream(object):
             # TODO(dcramer): figure out why we have to send this to ensure
             # the connection is opened
             yield "\n"
-            event = self.pending.get()
-            yield "event: {}\n".format(event['event'])
-            for line in event['data'].splitlines():
-                yield "data: {}\n".format(line)
-            yield "\n"
-            gevent.sleep(0)
+            while self.pending:
+                event = self.pending.pop()
+                yield "event: {}\n".format(event['event'])
+                for line in event['data'].splitlines():
+                    yield "data: {}\n".format(line)
+                yield "\n"
+                gevent.sleep(0)
+            gevent.sleep(0.3)
 
     def __del__(self):
         self.close()
 
     def push(self, message):
-        self.pending.put_nowait(message)
+        self.pending.append(message)
 
     def close(self):
         for channel in self.channels:
