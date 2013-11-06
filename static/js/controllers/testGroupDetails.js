@@ -16,7 +16,7 @@ define([
     $scope.childTestGroups = initialData.data.childTestGroups;
     $scope.childTests = initialData.data.childTests;
     $scope.previousRuns = initialData.data.previousRuns
-    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.testGroup{
+    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.testGroup, {
       labelFormatter: function(item) {
         return item.build.name;
       },
