@@ -24,6 +24,96 @@ test_group_m2m_table = Table(
 )
 
 
+class TestResult(object):
+    def __init__(self, build, name, message, package=None,
+                 result=None, suite_name=None, duration=None,
+                 date_created=None):
+
+        self.build = build
+        self.name = name
+        self.package = package
+        self.message = message
+        self.result = result or Result.unknown
+        self.suite_name = suite_name or 'default'
+        self.duration = duration  # ms
+        self.date_created = date_created or datetime.utcnow()
+
+    def _get_or_create_test_suite(self):
+        # TODO(dcramer): this doesnt handle concurrency
+        suite = TestSuite(
+            build=self.build,
+            project=self.build.project,
+            name=self.suite_name,
+        )
+        result = TestSuite.query.filter_by(
+            build=self.build,
+            name_sha=suite.name_sha,
+        ).first()
+
+        if result:
+            return result
+
+        db.session.add(suite)
+        return suite
+
+    def _get_or_create_test_groups(self):
+        # TODO(dcramer): this doesnt handle concurrency
+        # TODO(dcramer): implement subtrees
+        # https://github.com/disqus/zumanji/blob/master/src/zumanji/importer.py#L217
+
+        group = TestGroup(
+            build=self.build,
+            project=self.build.project,
+            name=self.package or self.name.rsplit('.', 1)[1]
+        )
+        result = TestGroup.query.filter_by(
+            build=self.build,
+            name_sha=group.name_sha,
+        ).first()
+
+        if result:
+            return [result]
+
+        db.session.add(group)
+        return [group]
+
+    def save(self):
+        suite = self._get_or_create_test_suite()
+
+        test = TestCase(
+            build=self.build,
+            project=self.build.project,
+            suite_id=suite.id,
+            name=self.name,
+            package=self.package,
+            duration=self.duration,
+            message=self.message,
+            result=self.result,
+            date_created=self.date_created,
+        )
+
+        if TestCase.query.filter_by(build=test.build, suite_id=suite.id,
+                                    name_sha=test.name_sha).first():
+            return
+
+        db.session.add(test)
+
+        groups = self._get_or_create_test_groups()
+        for group in groups:
+            group.num_tests += 1
+            group.duration += test.duration
+            if group.result:
+                group.result = max(group.result, test.result)
+            elif test.result:
+                group.result = test.result
+            else:
+                group.result = Result.unknown
+            group.testcases.append(test)
+            db.session.add(group)
+
+        return test
+
+
 class TestSuite(db.Model):
     """
     A test suite is usually representive of the tooling running the tests.
