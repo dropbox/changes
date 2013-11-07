@@ -78,7 +78,7 @@ def upgrade():
                 date_created=testcase.date_created,
                 duration=testcase.duration,
                 parent_id=result.id,
-                result=testcase.result,
+                result=Result(testcase.result),
                 num_tests=1,
                 num_failed=1 if testcase.result == Result.failed else 0,
             )
