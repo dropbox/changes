@@ -143,8 +143,7 @@ dl.flat dt {
   color: #fff;
   background: rgb(114, 194, 114);
 }
-.result-failed .indicator,
-.result-timedout .indicator {
+.result-failed .indicator {
   color: #fff;
   background: #d9322d;
 }
@@ -198,13 +197,11 @@ dl.flat dt {
 .project-list > li.result-passed > a small {
   color: rgb(208, 255, 208);
 }
-.project-list > li.result-failed > a,
-.project-list > li.result-timedout > a {
+.project-list > li.result-failed > a {
   color: #fff;
   background: #d9322d;
 }
-.project-list > li.result-failed > a small,
-.project-list > li.result-timedout > a small {
+.project-list > li.result-failed > a small {
   color: #FFCAC8;
 }
 
@@ -358,8 +355,7 @@ dl.flat dt {
   background: rgb(114, 194, 114);
   border-color: rgb(114, 194, 114);
 }
-.phase-list > li.result-failed > a,
-.phase-list > li.result-timedout > a {
+.phase-list > li.result-failed > a {
   background: #d9322d;
   color: #fff;
   border-color: #d9322d;
@@ -590,4 +586,79 @@ span {
 chart {
   display: block;
   margin-bottom: 20px;
+}
+
+
+/* barChart.js */
+.barchart {
+  list-style: none;
+  margin-left: 0;
+  margin-bottom: 20px;
+  padding-left: 0;
+  font-size: 0.75em;
+  height: 10em;
+  border-bottom: 1px solid #eee;
+}
+.barchart li {
+  width: 2%;
+  position: relative;
+  min-height: 1px;
+  padding: 0 0.5px;
+  float: right;
+  display: block;
+  height: 10em;
+}
+.barchart li a {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+.barchart li .label {
+  display: block;
+  position: absolute;
+  bottom: -2em;
+  left: 0;
+  background: #fff;
+  width: 100%;
+  height: 2em;
+  line-height: 2em;
+  text-align: center;
+}
+.barchart li a .count {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 0;
+  min-height: 5px;
+  width: 100%;
+  background: #AAA;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+.barchart li:hover a {
+  background: #EFEFEF;
+}
+/*.barchart li a:hover .count {
+  background: #2D7BB2;
+}*/
+
+.barchart li.result-passed a .count {
+  background: rgb(114, 194, 114);
+}
+.barchart li.result-failed a .count {
+  background: #EB6D69;
+}
+.barchart li.result-skipped a .count {
+  background: rgb(255, 215, 0);
+}
+.barchart li.result-aborted a .count {
+  background: #aaa;
+}
+.barchart li.result-unknown a .count {
+  background: #ddd;
+}
+
+.tooltip {
+  min-width: 300px;
 }

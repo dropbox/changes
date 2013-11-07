@@ -43,7 +43,6 @@ class Result(OrderedEnum):
     passed = 1
     skipped = 3
     failed = 2
-    timedout = 6
 
     def __str__(self):
         return RESULT_LABELS[self]
@@ -76,7 +75,6 @@ RESULT_LABELS = {
     Result.failed: 'Failed',
     Result.skipped: 'Skipped',
     Result.aborted: 'Aborted',
-    Result.timedout: 'Timed out'
 }
 
 CAUSE_LABELS = {

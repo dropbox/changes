@@ -8,8 +8,6 @@ define(['app', 'utils/dial'], function(app, Dial) {
       function getResultColor(result) {
         switch (result) {
           case 'failed':
-          case 'errored':
-          case 'timedout':
             return '#d9322d';
           case 'passed':
             return '#58488a';

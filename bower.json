@@ -16,7 +16,6 @@
     "angular-route": "~1.2.0-rc.3",
     "angular-sanitize": "~1.2.0-rc.3",
     "bootstrap": "~3.0.0",
-    "flot": "~0.8.1",
     "jquery": "~2.0.3",
     "moment": "~2.1.0",
     "requirejs": "~2.1.8"

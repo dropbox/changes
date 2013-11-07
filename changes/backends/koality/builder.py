@@ -273,7 +273,7 @@ class KoalityBuilder(BaseBackend):
         cutoff = timedelta(minutes=90)
         if build.status in (Status.queued, Status.in_progress, Status.unknown) and check_time < now - cutoff:
             build.status = Status.finished
-            build.result = Result.timedout
+            build.result = Result.failed
 
         db.session.add(build)
 
