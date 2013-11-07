@@ -96,15 +96,6 @@ define(['app',
             }]
           }
         })
-        .when('/tests/:test_id/', {
-          templateUrl: 'partials/test-details.html',
-          controller: 'testDetailsCtrl',
-          resolve: {
-            initialData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/tests/' + $route.current.params.test_id + '/');
-            }]
-          }
-        })
         .when('/testgroups/:testgroup_id/', {
           templateUrl: 'partials/testgroup-details.html',
           controller: 'testGroupDetailsCtrl',

@@ -8,8 +8,13 @@
 					 data-estimated-duration="{{build.estimatedDuration}}"
 					 radial-progress-bar>&nbsp;</div>
 			</div>
-			<h2>{{build.name}} <small>({{build.parent_revision.sha}})</small></h2>
+			<h2>
+				{{build.name}}<br>
+				<small>{{build.parent_revision.sha}}</small>
+			</h2>
 		</div>
+
+		<barchart ng-model="chartData" style="height:130px"></barchart>
 
 		<div class="row">
 			<div class="col-lg-9 col-md-8">
@@ -43,8 +48,6 @@
 			</div>
 		</div>
 
-		<barchart ng-model="chartData" style="height:130px"></barchart>
-
 		<pre ng-if="build.message" class="build-message" ng-bind-html="build.message | escape | linkify"></pre>
 
 		<ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
@@ -73,29 +76,6 @@
 				<p>No test failures were recorded.</p>
 			</div>
 			<div ng-switch-default>
-				<div ng-if="testFailures.total">
-					<h4>Failing Tests <small>{{ testFailures.total }} total failures</small></h4>
-					<table class="table table-striped table-bordered">
-						<thead>
-							<tr>
-								<th>&nbsp;</th>
-								<th style="width:110px;text-align:center">Duration</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr ng-repeat="test in testFailures.tests">
-								<td>
-									<a href="{{ test.link }}">{{ test.name }}</a><br>
-									<small>{{ test.package }}</small>
-								</td>
-								<td style="text-align:center" duration="test.duration"></td>
-							</tr>
-						</tbody>
-					</table>
-
-					<h4>All Tests</h4>
-				</div>
-
 				<table class="table table-striped table-bordered" ng-if="testGroups">
 					<thead>
 						<tr>
@@ -106,7 +86,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="testGroup in testGroups">
+						<tr ng-repeat="testGroup in testGroups" class="result-{{testGroup.result.id}}">
 							<td><a href="{{ testGroup.link }}">{{ testGroup.name }}</a></td>
 							<td style="text-align:center" duration="testGroup.duration"></td>
 							<td style="text-align:center">{{ testGroup.numFailures }}</td>

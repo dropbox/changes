@@ -1,81 +1,83 @@
 <section>
 	<div id="overview">
-		<div class="page-header">
-			<h2 style="font-size: 1.4em;">{{testGroup.name}}</h2>
-		</div>
+		<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
+			<div class="indicator" title="{{build.result.name}}">
+				<div data-result="{{build.result.id}}"
+					 data-status="{{build.status.id}}"
+					 data-date-started="{{build.dateStarted}}"
+					 data-estimated-duration="{{build.estimatedDuration}}"
+					 radial-progress-bar>&nbsp;</div>
+			</div>
 
-		<dl class="flat">
-			<dt>Build:</dt>
-			<dd><a href="{{build.link}}">{{build.name}}</a></dd>
-			<dt>Duration:</dt>
-			<dd duration="testGroup.duration"></dd>
-		</dl>
+			<h2>
+				{{build.name}}<br>
+				<small>{{build.parent_revision.sha}}</small>
+			</h2>
+		</div>
+	</div>
+
+	<div ng-if="testFailures.total">
+		<h4>Failing Tests <small>{{ testFailures.total }} total failures</small></h4>
+		<table class="table table-striped table-bordered">
+			<thead>
+				<tr>
+					<th>&nbsp;</th>
+					<th style="width:110px;text-align:center">Duration</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="test in testFailures.tests">
+					<td>
+						<a href="{{ test.link }}">{{ test.name }}</a><br>
+						<small ng-if="test.package != testGroup.name">{{ test.package }}</small>
+					</td>
+					<td style="text-align:center" duration="test.duration"></td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 
 	<barchart ng-model="chartData" style="height:130px"></barchart>
 
-	<div id="test-results">
-		<div ng-if="testFailures.total">
-			<h4>Failing Tests <small>{{ testFailures.total }} total failures</small></h4>
-			<table class="table table-striped table-bordered">
-				<thead>
-					<tr>
-						<th>&nbsp;</th>
-						<th style="width:110px;text-align:center">Duration</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr ng-repeat="test in testFailures.tests">
-						<td>
-							<a href="{{ test.link }}">{{ test.name }}</a><br>
-							<small>{{ test.package }}</small>
-						</td>
-						<td style="text-align:center" duration="test.duration"></td>
-					</tr>
-				</tbody>
-			</table>
+	<ul class="breadcrumb">
+		<li title="{{build.name}}"><a href="{{build.link}}">Build</a></li>
+		<li ng-repeat="parentTestGroup in context" title="{{parentTestGroup.name}}" ng-class="testGroup.id == parentTestGroup.id ? 'active' : ''">
+			<a href="{{parentTestGroup.link}}">{{parentTestGroup.shortName|truncate}}</a>
+		</li>
+	</ul>
+
+	<div ng-if="childTestGroups">
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>&nbsp;</th>
+					<th style="width:110px;text-align:center">Duration</th>
+					<th style="width:80px;text-align:center">Failures</th>
+					<th style="width:80px;text-align:center">Total</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="childTestGroup in childTestGroups" class="result-{{childTestGroup.result.id}}">
+					<td><a href="{{childTestGroup.link}}">{{childTestGroup.shortName}}</a></td>
+					<td style="text-align:center" duration="childTestGroup.duration"></td>
+					<td style="text-align:center">{{childTestGroup.numFailures}}</td>
+					<td style="text-align:center">{{childTestGroup.numTests}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<div ng-if="testCase">
+		<div ng-switch="testCase.result.id" class="alert" ng-class="{'passed': 'alert-success', 'failed': 'alert-danger', 'skipped': 'alert-warning'}[testCase.result.id]">
+			<p ng-switch-when="passed">This test passed successfully!</p>
+			<p ng-switch-when="failed">This test failed. Check the console log or test result for more information.</p>
+			<p ng-switch-when="skipped">This test was not run (conditions for skipping were met).</p>
+			<p ng-switch-default>The result of this test was {{testCase.result.name}}.</p>
 		</div>
 
-		<div ng-if="childTestGroups">
-			<h4>Test Paths</h4>
-			<table class="table table-striped table-bordered">
-				<thead>
-					<tr>
-						<th>&nbsp;</th>
-						<th style="width:110px;text-align:center">Duration</th>
-						<th style="width:80px;text-align:center">Failures</th>
-						<th style="width:80px;text-align:center">Total</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr ng-repeat="testGroup in childTestGroups">
-						<td><a href="{{ testGroup.link }}">{{ testGroup.name }}</a></td>
-						<td style="text-align:center" duration="testGroup.duration"></td>
-						<td style="text-align:center">{{ testGroup.numFailures }}</td>
-						<td style="text-align:center">{{ testGroup.numTests }}</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-
-		<div ng-if="childTests">
-			<h4>All Tests</h4>
-			<table class="table table-striped table-bordered">
-				<thead>
-					<tr>
-						<th>&nbsp;</th>
-						<th style="width:110px;text-align:center">Duration</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr ng-repeat="test in childTests">
-						<td>
-							<a href="{{ test.link }}">{{ test.name }}</a>
-						</td>
-						<td style="text-align:center" duration="test.duration"></td>
-					</tr>
-				</tbody>
-			</table>
+		<div ng-if="testCase.message">
+			<h4>Message</h4>
+			<pre class="build-message">{{testCase.message}}</pre>
 		</div>
 	</div>
 </section>

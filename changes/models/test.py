@@ -65,21 +65,44 @@ class TestResult(object):
         # TODO(dcramer): implement subtrees
         # https://github.com/disqus/zumanji/blob/master/src/zumanji/importer.py#L217
 
-        group = TestGroup(
-            build=self.build,
-            project=self.build.project,
-            name=self.package or self.name.rsplit('.', 1)[1]
-        )
-        result = TestGroup.query.filter_by(
-            build=self.build,
-            name_sha=group.name_sha,
-        ).first()
+        labels = []
+        if self.package:
+            labels.extend([
+                self.package,
+                '%s.%s' % (self.package, self.name),
+            ])
+        else:
+            try:
+                package = self.name.rsplit('.', 1)[0]
+            except IndexError:
+                labels.append(self.name)
+            else:
+                labels.extend([
+                    package,
+                    self.name,
+                ])
 
-        if result:
-            return [result]
+        groups = []
+        parent_id = None
+        for label in labels:
+            group = TestGroup(
+                build=self.build,
+                project=self.build.project,
+                name=label,
+                parent_id=parent_id,
+            )
+            result = TestGroup.query.filter_by(
+                build=self.build,
+                name_sha=group.name_sha,
+            ).first()
 
-        db.session.add(group)
-        return [group]
+            if not result:
+                result = group
+                db.session.add(result)
+
+            parent_id = result.id
+            groups.append(result)
+        return groups
 
     def save(self):
         suite = self._get_or_create_test_suite()
@@ -105,6 +128,8 @@ class TestResult(object):
         groups = self._get_or_create_test_groups()
         for group in groups:
             group.num_tests += 1
+            if test.result == Result.failed:
+                group.num_failed += 1
             group.duration += test.duration
             if group.result:
                 group.result = max(group.result, test.result)
@@ -134,8 +159,8 @@ class TestSuite(db.Model):
     build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     name_sha = Column(String(40), nullable=False, default=sha1('default').hexdigest())
-    name = Column(Text, nullable=True, default='default')
-    date_created = Column(DateTime, default=datetime.utcnow)
+    name = Column(Text, nullable=False, default='default')
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     build = relationship('Build')
     project = relationship('Project')
@@ -174,17 +199,18 @@ class TestGroup(db.Model):
     suite_id = Column(GUID, ForeignKey('testsuite.id'))
     parent_id = Column(GUID, ForeignKey('testgroup.id'))
     name_sha = Column(String(40), nullable=False)
-    name = Column(Text)
+    name = Column(Text, nullable=False)
     duration = Column(Integer, default=0)
-    result = Column(Enum(Result), default=Result.unknown)
-    num_tests = Column(Integer, default=0)
-    num_failed = Column(Integer, default=0)
+    result = Column(Enum(Result), default=Result.unknown, nullable=False)
+    num_tests = Column(Integer, default=0, nullable=False)
+    num_failed = Column(Integer, default=0, nullable=False)
     data = Column(JSONEncodedDict)
-    date_created = Column(DateTime, default=datetime.utcnow)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     build = relationship('Build')
     project = relationship('Project')
     testcases = relationship('TestCase', secondary=test_group_m2m_table, backref="groups")
+    parent = relationship('TestGroup', remote_side=[id])
 
     def __init__(self, **kwargs):
         super(TestGroup, self).__init__(**kwargs)
@@ -221,10 +247,10 @@ class TestCase(db.Model):
     name_sha = Column('label_sha', String(40), nullable=False)
     name = Column(Text, nullable=False)
     package = Column(Text, nullable=True)
-    result = Column(Enum(Result))
-    duration = Column(Integer)
+    result = Column(Enum(Result), default=Result.unknown, nullable=False)
+    duration = Column(Integer, default=0)
     message = Column(Text)
-    date_created = Column(DateTime, default=datetime.utcnow)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     build = relationship('Build')
     project = relationship('Project')

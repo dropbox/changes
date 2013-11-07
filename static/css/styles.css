@@ -113,7 +113,8 @@ dl.flat dt {
 .build-header,
 .page-header,
 .phase-header,
-.stage-header {
+.stage-header,
+.test-header {
   position: relative;
 }
 
@@ -207,12 +208,15 @@ dl.flat dt {
 
 .change-header h2,
 .build-header h2 {
+  font-size: 1.4em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   padding-right: 44px;
   height: 42px;
-  line-height: 42px;
+}
+.build-header h2 small {
+  font-size: 0.7em;
 }
 .change-header .indicator,
 .change-header .indicator > div,
@@ -661,4 +665,16 @@ chart {
 
 .tooltip {
   min-width: 300px;
+}
+
+.breadcrumb li.active a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.test-header {
+  margin-bottom: 30px;
+}
+.test-header h3 {
+  font-size: 1.3em;
 }

@@ -12,6 +12,5 @@ class TestCaseSerializer(Serializer):
             'result': instance.result,
             'duration': instance.duration,
             'message': instance.message,
-            'link': '/tests/%s/' % (instance.id.hex,),
             'dateCreated': instance.date_created,
         }

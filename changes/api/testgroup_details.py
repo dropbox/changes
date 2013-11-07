@@ -22,25 +22,24 @@ class TestGroupDetailsAPIView(APIView):
         child_testgroups = list(TestGroup.query.filter_by(
             parent_id=testgroup.id,
         ))
+        for test_group in child_testgroups:
+            test_group.parent = testgroup
 
         if child_testgroups:
-            tests = None
-        else:
-            tests = list(TestCase.query.filter(
-                TestCase.groups.contains(testgroup),
-            ).order_by(TestCase.duration.desc()))
+            test_case = None
 
-        if tests:
-            test_failures = filter(lambda x: x.result == Result.failed, tests)
-            num_test_failures = len(test_failures)
-        else:
-            test_failures = TestCase.query.filter(
+            test_failures = list(TestCase.query.filter(
                 TestCase.groups.contains(testgroup),
                 TestCase.result == Result.failed,
-            ).order_by(TestCase.duration.desc())
+            ).order_by(TestCase.duration.desc()))
+            num_test_failures = len(test_failures)
 
-            num_test_failures = test_failures.count()
-            test_failures = test_failures[:25]
+        else:
+            # we make the assumption that if theres no child testgroups, then
+            # there should be a single test case
+            test_case = TestCase.query.filter(
+                TestCase.groups.contains(testgroup),
+            ).first()
 
         previous_runs = TestGroup.query.join(Build).filter(
             TestGroup.name_sha == testgroup.name_sha,
@@ -53,16 +52,29 @@ class TestGroupDetailsAPIView(APIView):
             TestGroup: TestGroupWithBuildSerializer(),
         }
 
+        # O(N) db calls, so dont abuse it
+        context = []
+        parent = testgroup
+        while parent:
+            context.append(parent)
+            parent = parent.parent
+        context.reverse()
+
         context = {
             'build': testgroup.build,
             'testGroup': testgroup,
             'childTestGroups': child_testgroups,
-            'testFailures': {
-                'total': num_test_failures,
-                'tests': test_failures,
-            },
-            'childTests': tests,
+            'context': context,
+            'testCase': test_case,
             'previousRuns': self.serialize(previous_runs, extended_serializers),
         }
+
+        if not test_case:
+            context['testFailures'] = {
+                'total': num_test_failures,
+                'tests': test_failures,
+            }
+        else:
+            context['testFailures'] = None
 
         return self.respond(context)

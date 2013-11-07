@@ -31,9 +31,9 @@ class TestResultTestCase(TestCase):
         assert suite.build == build
         assert suite.project == self.project
 
-        groups = list(test.groups)
+        groups = sorted(test.groups, key=lambda x: x.name)
 
-        assert len(groups) == 1
+        assert len(groups) == 2
         assert groups[0].build == build
         assert groups[0].project == self.project
         assert groups[0].name == 'tests.changes.handlers.test_xunit'
@@ -41,3 +41,11 @@ class TestResultTestCase(TestCase):
         assert groups[0].num_tests == 1
         assert groups[0].num_failed == 0
         assert groups[0].result == Result.skipped
+
+        assert groups[1].build == build
+        assert groups[1].project == self.project
+        assert groups[1].name == 'tests.changes.handlers.test_xunit.Test'
+        assert groups[1].duration == 156
+        assert groups[1].num_tests == 1
+        assert groups[1].num_failed == 0
+        assert groups[1].result == Result.skipped
