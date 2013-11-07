@@ -33,7 +33,7 @@ define(['jquery', 'angular'], function($) {
           self.addItem(item);
         });
 
-        self.parent.append(self.el);
+        self.parent.html(self.el);
       };
 
       BarChart.prototype.addItem = function addItem(item) {
