@@ -63,7 +63,7 @@ def upgrade():
         # find the parent
         result = connection.execute(testgroups_table.select().where(sa.and_(
             testgroups_table.c.build_id == testcase.build_id,
-            testgroups_table.c.name == testcase.packae or testcase.name.rsplit('.', 1)[0],
+            testgroups_table.c.name == testcase.package or testcase.name.rsplit('.', 1)[0],
         )).limit(1)).fetchone()
 
         connection.execute(
