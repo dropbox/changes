@@ -26,10 +26,12 @@ def upgrade():
         sa.Column('id', sa.GUID(), nullable=False),
         sa.Column('build_id', sa.GUID(), nullable=False),
         sa.Column('project_id', sa.GUID(), nullable=False),
+        sa.Column('parent_id', sa.GUID(), nullable=True),
         sa.Column('name_sha', sa.String(length=40), nullable=False),
         sa.Column('duration', sa.Integer(), nullable=True),
         sa.Column('num_tests', sa.Integer(), nullable=True),
         sa.Column('num_failed', sa.Integer(), nullable=True),
+        sa.Column('result', sa.Enum(), nullable=True),
         sa.Column('name', sa.Text(), nullable=True),
         sa.Column('date_created', sa.DateTime(), nullable=True),
     )
