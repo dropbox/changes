@@ -679,7 +679,6 @@ chart {
 .barchart-tip {
   font-weight: normal;
   text-align: left;
-  min-width: 300px;
   padding: 10px 10px 0;
 }
 .barchart-tip h5 {
