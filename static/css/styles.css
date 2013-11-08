@@ -175,7 +175,7 @@ dl.flat dt {
 }
 .project-list > li h4 {
   color: inherit;
-  overflow-wrap: hidden;
+  overflow: hidden;
   height: 20px;
   white-space: nowrap;
   text-align: center;
@@ -214,7 +214,7 @@ tr.result-failed a {
 .change-header h2,
 .build-header h2 {
   font-size: 1.4em;
-  overflow-wrap: hidden;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   padding-right: 44px;
@@ -271,7 +271,7 @@ tr.result-failed a {
 .change-list td > a,
 .build-list td > a {
   font-weight: 400;
-  overflow-wrap: hidden;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: inline-block;
@@ -640,7 +640,7 @@ chart {
   width: 100%;
   background: #AAA;
   text-indent: -9999px;
-  overflow-wrap: hidden;
+  overflow: hidden;
 }
 .barchart li:hover a {
   background: #EFEFEF;
@@ -675,7 +675,7 @@ chart {
   padding: 10px 10px 0;
 }
 .barchart-tip h5 {
-  overflow-wrap: hidden;
+  overflow: hidden;
   font-size: 1.2em;
   line-height: 1.2em;
   text-overflow: ellipsis;
