@@ -26,7 +26,10 @@
 							<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 						</small>
 						<span class="status">{{getBuildStatus(build)}}</span>
-						<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
+						<span class="date" ng-if="build.dateStarted">
+							<span time-since="build.dateStarted"></span>
+							<span ng-if="build.duration"> &mdash; <span duration="build.duration"></span></span>
+						</span>
 					</td>
 				</tr>
 			</tbody>
