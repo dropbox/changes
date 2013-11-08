@@ -1,6 +1,6 @@
 define(['app',
         'controllers/layout', 'controllers/changeList', 'controllers/changeDetails',
-        'controllers/buildList', 'controllers/buildDetails', 'controllers/testDetails',
+        'controllers/buildList', 'controllers/buildDetails',
         'controllers/testGroupDetails',
         'controllers/projectList', 'controllers/projectDetails'
        ], function(app) {
