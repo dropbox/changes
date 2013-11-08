@@ -10,7 +10,7 @@
 			</div>
 			<h2>
 				{{build.name}}<br>
-				<small>{{build.parent_revision.sha}}</small>
+				<small title="{{build.parent_revision.sha.substr(12)}}">{{build.parent_revision.sha.substr(0, 12)}}</small>
 			</h2>
 		</div>
 
@@ -26,7 +26,7 @@
 					<dt ng-if="build.change">Change:</dt>
 					<dd ng-if="build.change"><a href="#">{{build.change.name}}</a></dd>
 					<dt>Revision:</dt>
-					<dd>{{build.parent_revision.sha}}</dd>
+					<dd title="{{build.parent_revision.sha}}">{{build.parent_revision.sha.substr(0, 12)}}</dd>
 					<dt>Status:</dt>
 					<dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
 					<dt ng-if="build.dateStarted">Started:</dt>

@@ -11,7 +11,7 @@
 
 			<h2>
 				{{build.name}}<br>
-				<small>{{build.parent_revision.sha}}</small>
+				<small title="{{build.parent_revision.sha.substr(12)}}">{{build.parent_revision.sha.substr(0, 12)}}</small>
 			</h2>
 		</div>
 	</div>
