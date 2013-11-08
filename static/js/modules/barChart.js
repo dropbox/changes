@@ -37,7 +37,7 @@ define(['jquery', 'angular'], function($) {
       };
 
       BarChart.prototype.addItem = function addItem(item) {
-        // {value: 50, className: 'result-failed', id: 1, data: {}}
+        // {value: 50, className: 'result-failed', id: 1, data: {}, highlight: false}
         var node = $('<li></li>'),
             percent, innerNode, link;
 
@@ -55,6 +55,10 @@ define(['jquery', 'angular'], function($) {
         node.css({
           width: this.nodeWidthPercent + '%'
         });
+
+        if (item.highlight === true) {
+          node.addClass('active');
+        }
 
         if (item.className !== undefined) {
           node.addClass(item.className);
@@ -83,6 +87,7 @@ define(['jquery', 'angular'], function($) {
 
         this.el.append(node);
       };
+
 
       return {
         restrict: 'E',

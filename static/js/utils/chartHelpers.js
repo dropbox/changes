@@ -29,7 +29,8 @@ define([], function() {
           value: item.duration || 50,
           className: 'result-' + item.result.id,
           id: item.id,
-          data: item
+          data: item,
+          highlight: current && current.id == item.id
         });
       }
 
