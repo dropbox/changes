@@ -21,7 +21,10 @@ define([
             content += '<h5>';
             content += escapeHtml(item.name);
             content += '<br><small>';
-            content += escapeHtml(item.parent_revision.sha.substr(0, 12)) + ' &mdash; ' + item.author.name;
+            content += escapeHtml(item.parent_revision.sha.substr(0, 12));
+            if (item.author) {
+              content += ' &mdash; ' + item.author.name;
+            }
             content += '</small>'
             content += '</h5>';
             if (item.status.id == 'finished') {
