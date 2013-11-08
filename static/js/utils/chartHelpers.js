@@ -1,11 +1,8 @@
 define([], function() {
   var chart_defaults = {
     limit: 50,
-    labelFormatter: function(item) {
-      return item.id;
-    },
     linkFormatter: function(item) {
-      return null;
+      return item.link;
     }
   };
 

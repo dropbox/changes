@@ -1,7 +1,7 @@
-define(['app'], function (app) {
+define(['app', 'utils/escapeHtml'], function (app, escapeHtml) {
   app.filter('escape', function(){
     return function(input) {
-	  return $("<div>").text(input).html();
+	  return escapeHtml(input);
     }
   });
 });

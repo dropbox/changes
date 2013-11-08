@@ -4,7 +4,7 @@ define(['jquery', 'angular'], function($) {
   angular.module('barChart', [])
     .directive('barchart', ['$window', function($window) {
       var default_options = {
-        labelFormatter: function(item) {
+        tooltipFormatter: function(item) {
           return null;
         },
         linkFormatter: function(item) {
@@ -12,6 +12,17 @@ define(['jquery', 'angular'], function($) {
         },
         limit: 50
       };
+
+
+      function getTooltipContent(barchart, item) {
+        var content = '';
+
+        content += '<div class="barchart-tip">';
+        content += barchart.options.tooltipFormatter(item.data);
+        content += '</div>';
+
+        return content;
+      }
 
       function BarChart(element, items, options) {
         var self = this;
@@ -77,8 +88,9 @@ define(['jquery', 'angular'], function($) {
         }
 
         innerNode.data({
-          title: this.options.labelFormatter(item.data),
-          placement: 'bottom'
+          title: getTooltipContent(this, item),
+          placement: 'bottom',
+          html: true
         });
 
         innerNode.tooltip();

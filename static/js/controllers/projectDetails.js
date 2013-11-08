@@ -1,20 +1,37 @@
 define([
     'app',
     'utils/chartHelpers',
+    'utils/duration',
+    'utils/escapeHtml',
     'directives/radialProgressBar',
     'directives/timeSince',
-    'filters/orderByBuild'], function(app, chartHelpers) {
+    'filters/orderByBuild'], function(app, chartHelpers, duration, escapeHtml) {
   app.controller('projectDetailsCtrl', ['$scope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', function($scope, initialProject, initialBuildList, $http, $routeParams, Stream) {
     'use strict';
 
     var stream,
         entrypoint = '/api/0/projects/' + $routeParams.project_id + '/builds/',
         chart_options = {
-          labelFormatter: function(item) {
-            return item.name;
-          },
-          linkFormatter: function(item) {
-            return item.link;
+          tooltipFormatter: function(item) {
+            var content = ''
+
+            content += '<h5>';
+            content += escapeHtml(item.name);
+            content += '<br><small>';
+            content += escapeHtml(item.parent_revision.sha.substr(0, 12)) + ' &mdash; ' + item.author.name;
+            content += '</small>'
+            content += '</h5>';
+            if (item.status.id == 'finished') {
+              content += '<p>Build ' + item.result.name;
+              if (item.duration) {
+                content += ' in ' + duration(item.duration);
+              }
+              content += '</p>';
+            } else {
+              content += '<p>' + item.status.name + '</p>';
+            }
+
+            return content;
           }
         };
 

@@ -1,10 +1,42 @@
-define(['app', 'utils/chartHelpers', 'directives/radialProgressBar', 'directives/timeSince', 'directives/duration',
-        'filters/escape', 'filters/wordwrap', 'modules/pagination'], function(app, chartHelpers) {
+define([
+    'app',
+    'utils/chartHelpers',
+    'utils/duration',
+    'utils/escapeHtml',
+    'directives/radialProgressBar',
+    'directives/timeSince',
+    'directives/duration',
+    'filters/escape',
+    'filters/wordwrap',
+    'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
   app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$window', '$http', '$routeParams', 'stream', 'pagination', 'flash', function($scope, initialData, $window, $http, $routeParams, Stream, Pagination, flash) {
     'use strict';
 
     var stream,
-        entrypoint = '/api/0/builds/' + $routeParams.build_id + '/';
+        entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
+        chart_options = {
+          tooltipFormatter: function(item) {
+            var content = ''
+
+            content += '<h5>';
+            content += escapeHtml(item.name);
+            content += '<br><small>';
+            content += escapeHtml(item.parent_revision.sha.substr(0, 12)) + ' &mdash; ' + item.author.name;
+            content += '</small>'
+            content += '</h5>';
+            if (item.status.id == 'finished') {
+              content += '<p>Build ' + item.result.name;
+              if (item.duration) {
+                content += ' in ' + duration(item.duration);
+              }
+              content += '</p>';
+            } else {
+              content += '<p>' + item.status.name + '</p>';
+            }
+
+            return content;
+          }
+        };
 
     function getTestStatus() {
       if ($scope.build.status.id == "finished") {
@@ -63,14 +95,7 @@ define(['app', 'utils/chartHelpers', 'directives/radialProgressBar', 'directives
     $scope.testGroups = initialData.data.testGroups;
     $scope.testStatus = getTestStatus();
     $scope.previousRuns = initialData.data.previousRuns
-    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, {
-      labelFormatter: function(item) {
-        return item.name;
-      },
-      linkFormatter: function(item) {
-        return item.link;
-      }
-    });
+    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
 
     $scope.$watch("build.status", function(status) {
       $scope.testStatus = getTestStatus();
