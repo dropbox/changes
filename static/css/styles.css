@@ -206,6 +206,11 @@ dl.flat dt {
   color: #FFCAC8;
 }
 
+tr.result-failed,
+tr.result-failed a {
+  color: #d9322d;
+}
+
 .change-header h2,
 .build-header h2 {
   font-size: 1.4em;
