@@ -3,6 +3,7 @@ from __future__ import absolute_import, division
 import json
 import logging
 import requests
+import time
 
 from datetime import datetime
 from uuid import uuid4
@@ -90,14 +91,25 @@ class JenkinsBuilder(BaseBackend):
             build.result = Result.aborted
             db.session.add(build)
         elif item.get('executable'):
-            self._sync_build_from_active(build, entity)
+            for x in xrange(3):
+                # There's a possible race condition where the item has been
+                # assigned an ID, yet the API responds as if the build does
+                # not exist
+                try:
+                    self._sync_build_from_active(build, entity, fail_on_404=True)
+                except NotFound:
+                    time.sleep(0.3)
+                else:
+                    break
 
-    def _sync_build_from_active(self, build, entity):
+    def _sync_build_from_active(self, build, entity, fail_on_404=False):
         build_item = entity.data.copy()
         try:
             item = self._get_response('/job/{}/{}'.format(
                 build_item['job_name'], build_item['build_no']))
         except NotFound:
+            if fail_on_404:
+                raise
             build.date_finished = datetime.utcnow()
             build.status = Status.finished
             build.result = Result.aborted
