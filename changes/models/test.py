@@ -84,12 +84,13 @@ class TestResult(object):
 
         groups = []
         parent_id = None
-        for label in labels:
+        for idx, label in enumerate(labels):
             group = TestGroup(
                 build=self.build,
                 project=self.build.project,
                 name=label,
                 parent_id=parent_id,
+                num_leaves=len(labels) - 1 - idx,
             )
             result = TestGroup.query.filter_by(
                 build=self.build,
@@ -204,6 +205,9 @@ class TestGroup(db.Model):
     result = Column(Enum(Result), default=Result.unknown, nullable=False)
     num_tests = Column(Integer, default=0, nullable=False)
     num_failed = Column(Integer, default=0, nullable=False)
+    # the number of direct leaves -- this is useful to "find all trees which
+    # terminate"
+    num_leaves = Column(Integer, default=0, nullable=False)
     data = Column(JSONEncodedDict)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -222,6 +226,8 @@ class TestGroup(db.Model):
             self.duration = 0
         if self.num_tests is None:
             self.num_tests = 0
+        if self.num_leaves is None:
+            self.num_leaves = 0
 
     def calculate_name_sha(self):
         if not self.name:

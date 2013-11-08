@@ -2,7 +2,7 @@ from flask import Response
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupSerializer
-from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
+from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import Build, TestGroup, TestCase
 
 
@@ -27,13 +27,6 @@ class TestGroupDetailsAPIView(APIView):
 
         if child_testgroups:
             test_case = None
-
-            test_failures = list(TestCase.query.filter(
-                TestCase.groups.contains(testgroup),
-                TestCase.result == Result.failed,
-            ).order_by(TestCase.duration.desc()))
-            num_test_failures = len(test_failures)
-
         else:
             # we make the assumption that if theres no child testgroups, then
             # there should be a single test case
@@ -68,13 +61,5 @@ class TestGroupDetailsAPIView(APIView):
             'testCase': test_case,
             'previousRuns': self.serialize(previous_runs, extended_serializers),
         }
-
-        if not test_case:
-            context['testFailures'] = {
-                'total': num_test_failures,
-                'tests': test_failures,
-            }
-        else:
-            context['testFailures'] = None
 
         return self.respond(context)

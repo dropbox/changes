@@ -70,6 +70,3 @@ class TestGroupDetailsTest(APITestCase):
         assert data['build']['id'] == build.id.hex
         assert len(data['childTestGroups']) == 1
         assert data['childTestGroups'][0]['id'] == child_testgroup.id.hex
-        assert data['testFailures']['total'] == 1
-        assert len(data['testFailures']['tests']) == 1
-        assert data['testFailures']['tests'][0]['id'] == testcase.id.hex

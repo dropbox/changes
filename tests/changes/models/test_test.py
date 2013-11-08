@@ -41,6 +41,7 @@ class TestResultTestCase(TestCase):
         assert groups[0].num_tests == 1
         assert groups[0].num_failed == 1
         assert groups[0].result == Result.failed
+        assert groups[0].num_leaves == 1
 
         assert groups[1].build == build
         assert groups[1].project == self.project
@@ -49,3 +50,4 @@ class TestResultTestCase(TestCase):
         assert groups[1].num_tests == 1
         assert groups[1].num_failed == 1
         assert groups[1].result == Result.failed
+        assert groups[1].num_leaves == 0

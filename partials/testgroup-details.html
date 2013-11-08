@@ -71,7 +71,7 @@
 	</div>
 
 	<div ng-if="testCase">
-		<div ng-switch="testCase.result.id" class="alert" ng-class="{'passed': 'alert-success', 'failed': 'alert-danger', 'skipped': 'alert-warning'}[testCase.result.id]">
+		<div ng-switch="testCase.result.id" class="alert" ng-class="{'passed': 'alert-success', 'failed': 'alert-error', 'skipped': 'alert-warning'}[testCase.result.id]">
 			<p ng-switch-when="passed">This test passed successfully!</p>
 			<p ng-switch-when="failed">This test failed. Check the console log or test result for more information.</p>
 			<p ng-switch-when="skipped">This test was not run (conditions for skipping were met).</p>

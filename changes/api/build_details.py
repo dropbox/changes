@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, TestGroup, TestCase
+from changes.models import Build, TestGroup
 
 
 class BuildDetailsAPIView(APIView):
@@ -17,17 +17,16 @@ class BuildDetailsAPIView(APIView):
             return Response(status=404)
 
         # find all parent groups (root trees)
-        test_groups = list(TestGroup.query.filter(
+        test_groups = sorted(TestGroup.query.filter(
             TestGroup.build_id == build.id,
             TestGroup.parent_id == None,  # NOQA: we have to use == here
-        ))
+        ), key=lambda x: x.name)
 
-        test_failures = TestCase.query.filter(
-            TestCase.build_id == build.id,
-            TestCase.result == Result.failed,
-        ).order_by(
-            TestCase.result.desc(), TestCase.duration.desc()
-        )
+        test_failures = TestGroup.query.filter(
+            TestGroup.build_id == build.id,
+            TestGroup.result == Result.failed,
+            TestGroup.num_leaves == 0,
+        ).order_by(TestGroup.name.asc())
         num_test_failures = test_failures.count()
         test_failures = test_failures[:25]
 
@@ -43,7 +42,7 @@ class BuildDetailsAPIView(APIView):
             'phases': build.phases,
             'testFailures': {
                 'total': num_test_failures,
-                'tests': test_failures,
+                'testGroups': test_failures,
             },
             'testGroups': test_groups,
             'previousRuns': previous_runs,
