@@ -3,6 +3,7 @@ require.config({
     'angular': '../vendor/angular/angular',
     'angularAnimate': '../vendor/angular-animate/angular-animate',
     'angularLinkify': '../vendor/angular-linkify/angular-linkify',
+    'angularRaven': '../vendor/angular-raven/angular-raven',
     'angularRoute': '../vendor/angular-route/angular-route',
     'angularSanitize': '../vendor/angular-sanitize/angular-sanitize',
     'angularLoadingBar': '../vendor/angular-loading-bar/build/loading-bar',
@@ -16,6 +17,7 @@ require.config({
     'angularAnimate': ['angular'],
     'angularLinkify': ['angular'],
     'angularLoadingBar': ['angular'],
+    'angularRaven': ['angular'],
     'angularRoute': ['angular'],
     'angularSanitize': ['angular'],
     'modules/flash': ['angular'],
@@ -36,6 +38,7 @@ require.config({
 require([
   'angular',
   'angularLoadingBar',
+  'angularRaven',
   'modules/flash',
   'modules/barChart',
   'modules/stream',
@@ -46,6 +49,6 @@ require([
 ], function(angular) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'stream', 'flash', 'barChart']);
+    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'stream', 'flash', 'barChart', 'ngRaven']);
   });
 });
