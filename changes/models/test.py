@@ -130,7 +130,7 @@ class TestResult(object):
         for group in groups:
             group.num_tests += 1
             if test.result == Result.failed:
-                group.num_failed = (group.num_failed or 0) + 1
+                group.num_failed = group.num_failed + 1
             group.duration += test.duration
             if group.result:
                 group.result = max(group.result, test.result)
