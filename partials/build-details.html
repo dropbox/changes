@@ -79,7 +79,7 @@
 			<div ng-switch-when="no-results">
 				<p>No test results were recorded.</p>
 			</div>
-			<div ng-switch-default>
+			<div ng-switch-when="has-results">
 				<div ng-if="testFailures">
 					<h4>Failing Tests <small>{{ testFailures.total }} total</small></h4>
 					<table class="table table-striped table-bordered">
