@@ -223,12 +223,12 @@ class KoalityBuilder(BaseBackend):
         project = build.project
 
         author = self._sync_author(change['headCommit']['user'])
-        parent_revision = self._sync_revision(
+        revision = self._sync_revision(
             project.repository, author, change['headCommit'])
 
         build.label = change['headCommit']['message'].splitlines()[0][:128]
         build.author = author
-        build.parent_revision_sha = parent_revision.sha
+        build.revision_sha = revision.sha
         build.repository = project.repository
         build.project = project
 
@@ -336,7 +336,7 @@ class KoalityBuilder(BaseBackend):
         response = self._get_response('POST', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
             base_uri=self.base_url, project_id=project_entity.remote_id,
         ), data={
-            'sha': build.parent_revision_sha,
+            'sha': build.revision_sha,
         }, **req_kwargs)
 
         entity = RemoteEntity(

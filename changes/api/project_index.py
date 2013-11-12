@@ -22,10 +22,10 @@ class ProjectIndexAPIView(APIView):
             data['lastBuild'] = Build.query.options(
                 joinedload(Build.project),
                 joinedload(Build.author),
-            ).filter_by(
-                patch=None,
-                project=project,
-                status=Status.finished,
+            ).filter(
+                Build.revision_sha != None,  # NOQA
+                Build.project == project,
+                Build.status == Status.finished,
             ).order_by(
                 Build.date_created.desc(),
             ).first()

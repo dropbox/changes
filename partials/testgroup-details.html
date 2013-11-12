@@ -12,7 +12,7 @@
 			<h2>
 				{{build.name}}<br>
 				<small>
-					<span title="{{build.parent_revision.sha.substr(12)}}">{{build.parent_revision.sha.substr(0, 12)}}</span>
+					{{build.target}}
 					<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
 				</small>
 			</h2>

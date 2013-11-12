@@ -158,7 +158,7 @@ class CreateBuildTest(BaseTestCase):
         build = self.create_build(
             self.project,
             patch=patch,
-            parent_revision_sha=patch.parent_revision_sha,
+            revision_sha=patch.parent_revision_sha,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8')
         )
 

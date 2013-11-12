@@ -17,7 +17,7 @@ define([
             content += '<h5>';
             content += escapeHtml(item.build.name);
             content += '<br><small>';
-            content += escapeHtml(item.build.parent_revision.sha.substr(0, 12));
+            content += escapeHtml(item.build.target);
             if (item.author) {
               content += ' &mdash; ' + item.author.name;
             }

@@ -39,17 +39,27 @@ class BuildSerializer(Serializer):
         else:
             parent = None
 
+        target = instance.target
+        if target is None and instance.revision_sha:
+                target = instance.revision_sha[:12]
+
+        if instance.revision_sha:
+            revision = {
+                'sha': instance.revision_sha,
+            }
+        else:
+            revision = None
+
         return {
             'id': instance.id.hex,
             'name': instance.label,
+            'target': target,
             'result': instance.result,
             'status': instance.status,
             'project': instance.project,
             'cause': instance.cause,
             'author': instance.author,
-            'parent_revision': {
-                'sha': instance.parent_revision_sha,
-            },
+            'revision': revision,
             'parent': parent,
             'message': instance.message,
             'duration': instance.duration,

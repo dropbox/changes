@@ -20,7 +20,7 @@ class BuildRetryTest(APITestCase):
         assert new_build.project == self.project
         assert new_build.cause == Cause.retry
         assert new_build.parent_id == build.id
-        assert new_build.parent_revision_sha == build.parent_revision_sha
+        assert new_build.revision_sha == build.revision_sha
         assert new_build.author_id == build.author_id
         assert new_build.label == build.label
         assert new_build.message == build.message

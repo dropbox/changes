@@ -75,7 +75,7 @@ class TestCase(Exam, unittest2.TestCase):
 
     def create_build(self, project, **kwargs):
         revision = Revision(
-            sha=kwargs.pop('parent_revision_sha', uuid4().hex),
+            sha=kwargs.pop('revision_sha', uuid4().hex),
             repository=project.repository
         )
         db.session.add(revision)
@@ -88,7 +88,7 @@ class TestCase(Exam, unittest2.TestCase):
         build = Build(
             repository=project.repository,
             project=project,
-            parent_revision_sha=revision.sha,
+            revision_sha=revision.sha,
             **kwargs
         )
         db.session.add(build)

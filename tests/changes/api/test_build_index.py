@@ -31,59 +31,69 @@ class BuildListTest(APITestCase):
 
 class BuildCreateTest(APITestCase):
     def test_simple(self):
-        change = self.create_change(self.project)
-        path = '/api/0/changes/{0}/builds/'.format(change.id.hex)
+        path = '/api/0/builds/'
         resp = self.client.post(path, data={
-            'sha': 'a' * 40,
             'author': 'David Cramer <dcramer@example.com>',
+            'project': self.project.slug,
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['build']['id']
         build = Build.query.get(data['build']['id'])
-        assert build.change == change
         assert build.project == self.project
-        assert build.parent_revision_sha == 'a' * 40
+        assert build.revision_sha is None
         assert build.author.name == 'David Cramer'
         assert build.author.email == 'dcramer@example.com'
 
-    def test_with_patch(self):
-        change = self.create_change(self.project)
-        path = '/api/0/changes/{0}/builds/'.format(change.id.hex)
-        resp = self.client.post(path, data={
-            'sha': 'a' * 40,
-            'author': 'David Cramer <dcramer@example.com>',
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'patch[label]': 'D1234',
-            'patch[url]': 'http://phabricator.example.com/D1234',
-        })
-        assert resp.status_code == 200
-        data = self.unserialize(resp)
-        assert data['build']['id']
-        build = Build.query.get(data['build']['id'])
-        assert build.patch_id is not None
-        patch = Patch.query.get(build.patch_id)
-        assert patch.diff == SAMPLE_DIFF
-        assert patch.label == 'D1234'
-        assert patch.url == 'http://phabricator.example.com/D1234'
-        assert patch.parent_revision_sha == 'a' * 40
-
-    def test_with_project(self):
+    def test_with_sha(self):
         path = '/api/0/builds/'
         resp = self.client.post(path, data={
             'sha': 'a' * 40,
-            'project': self.project.slug,
             'author': 'David Cramer <dcramer@example.com>',
+            'project': self.project.slug,
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['build']['id']
         build = Build.query.get(data['build']['id'])
-        assert build.change is None
         assert build.project == self.project
-        assert build.parent_revision_sha == 'a' * 40
+        assert build.revision_sha == 'a' * 40
         assert build.author.name == 'David Cramer'
         assert build.author.email == 'dcramer@example.com'
+
+    def test_with_full_params(self):
+        change = self.create_change(self.project)
+        path = '/api/0/builds/'
+        resp = self.client.post(path, data={
+            'change': change.id.hex,
+            'sha': 'a' * 40,
+            'target': 'D1234',
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>',
+            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch[label]': 'My patch',
+        })
+        assert resp.status_code == 200
+
+        data = self.unserialize(resp)
+        assert data['build']['id']
+
+        build = Build.query.get(data['build']['id'])
+        assert build.change == change
+        assert build.project == self.project
+        assert build.revision_sha == 'a' * 40
+        assert build.author.name == 'David Cramer'
+        assert build.author.email == 'dcramer@example.com'
+        assert build.message == 'Hello world!'
+        assert build.label == 'Foo Bar'
+        assert build.target == 'D1234'
+        assert build.patch_id is not None
+
+        patch = Patch.query.get(build.patch_id)
+        assert patch.diff == SAMPLE_DIFF
+        assert patch.label == 'My patch'
+        assert patch.parent_revision_sha == 'a' * 40
 
     def test_with_patch_without_change(self):
         change = self.create_change(self.project)
@@ -94,7 +104,6 @@ class BuildCreateTest(APITestCase):
             'author': 'David Cramer <dcramer@example.com>',
             'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
             'patch[label]': 'D1234',
-            'patch[url]': 'http://phabricator.example.com/D1234',
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
@@ -104,5 +113,4 @@ class BuildCreateTest(APITestCase):
         patch = Patch.query.get(build.patch_id)
         assert patch.diff == SAMPLE_DIFF
         assert patch.label == 'D1234'
-        assert patch.url == 'http://phabricator.example.com/D1234'
         assert patch.parent_revision_sha == 'a' * 40

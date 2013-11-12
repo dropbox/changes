@@ -30,19 +30,19 @@ class BuildIndexAPIView(APIView):
 
         return self.respond(context)
 
-    @param('sha')
     # TODO(dcramer): these params are getting messy, and in this case we've got
     # multiple input styles (GET vs POST) that can potentially squash each other
     @param('change', lambda x: Change.query.get(x), dest='change', required=False)
     @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
     @param('project', lambda x: Project.query.filter_by(slug=x).first(), dest='project', required=False)
+    @param('sha', required=False)
     @param('author', AuthorValidator(), required=False)
     @param('label', required=False)
+    @param('target', required=False)
     @param('message', required=False)
     @param('patch[label]', required=False, dest='patch_label')
-    @param('patch[url]', required=False, dest='patch_url')
-    def post(self, sha, project=None, change=None, author=None,
-             patch_label=None, patch_url=None, patch=None, label=None,
+    def post(self, project=None, sha=None, change=None, author=None,
+             patch_label=None, patch=None, label=None, target=None,
              message=None):
 
         assert change or project
@@ -71,7 +71,6 @@ class BuildIndexAPIView(APIView):
                 project=project,
                 parent_revision_sha=sha,
                 label=patch_label,
-                url=patch_url,
                 diff=fp.getvalue(),
             )
             db.session.add(patch)
@@ -79,10 +78,13 @@ class BuildIndexAPIView(APIView):
             patch = None
 
         if not label:
+            label = "A homeless build"
+
+        if not target:
             if patch_label:
-                label = patch_label
-            else:
-                label = sha[:12]
+                target = patch_label
+            elif sha:
+                target = sha[:12]
 
         build = Build(
             change=change,
@@ -91,7 +93,8 @@ class BuildIndexAPIView(APIView):
             status=Status.queued,
             author=author,
             label=label,
-            parent_revision_sha=sha,
+            target=target,
+            revision_sha=sha,
             message=message,
         )
 

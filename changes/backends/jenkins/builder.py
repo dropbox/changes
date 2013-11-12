@@ -292,7 +292,7 @@ class JenkinsBuilder(BaseBackend):
 
         json_data = {
             'parameter': [
-                {'name': 'REVISION', 'value': build.parent_revision_sha},
+                {'name': 'REVISION', 'value': build.revision_sha},
                 {'name': 'CHANGES_BID', 'value': build.id.hex},
             ]
         }

@@ -11,7 +11,7 @@
 			<h2>
 				{{build.name}}<br>
 				<small>
-					<span title="{{build.parent_revision.sha.substr(12)}}">{{build.parent_revision.sha.substr(0, 12)}}</span>
+					{{build.target}}
 					<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
 				</small>
 			</h2>
@@ -29,8 +29,8 @@
 					<dd><a href="{{build.project.link}}">{{build.project.name}}</a></dd>
 					<dt ng-if="build.change">Change:</dt>
 					<dd ng-if="build.change"><a href="#">{{build.change.name}}</a></dd>
-					<dt>Revision:</dt>
-					<dd title="{{build.parent_revision.sha}}">{{build.parent_revision.sha.substr(0, 12)}}</dd>
+					<dt ng-if="build.revision">Revision:</dt>
+					<dd ng-if="build.revision" title="{{build.revision.sha}}">{{build.revision.sha}}</dd>
 					<dt>Status:</dt>
 					<dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
 					<dt ng-if="build.dateStarted">Started:</dt>
@@ -80,7 +80,7 @@
 				<p>No test results were recorded.</p>
 			</div>
 			<div ng-switch-when="has-results">
-				<div ng-if="testFailures">
+				<div ng-if="testFailures.total">
 					<h4>Failing Tests <small>{{ testFailures.total }} total</small></h4>
 					<table class="table table-striped table-bordered">
 						<thead>
@@ -97,7 +97,7 @@
 						</tbody>
 					</table>
 					<h4>All Results</h4>
-				</small>
+				</div>
 
 				<table class="table table-striped table-bordered" ng-if="testGroups">
 					<thead>

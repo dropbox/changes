@@ -21,7 +21,7 @@ parser_add = subparsers.add_parser('add', help='add build')
 parser_add.add_argument('--project', metavar='slug', dest='project_slug', help='project slug')
 parser_add.add_argument('--label', dest='label', help='build label')
 parser_add.add_argument('--message', dest='message', help='build message')
-parser_add.add_argument('--sha', metavar='sha', dest='parent_revision_sha', help='parent revision sha')
+parser_add.add_argument('--sha', metavar='sha', dest='revision_sha', help='parent revision sha')
 
 args = parser.parse_args()
 
@@ -36,14 +36,14 @@ if args.command == 'add':
 
     label = args.label or raw_input('Build label? ') or abort()
     message = args.message or raw_input('Build message? ') or abort()
-    parent_revision_sha = args.parent_revision_sha or raw_input('Parent revision SHA? ') or abort()
+    revision_sha = args.revision_sha or raw_input('Parent revision SHA? ') or abort()
 
     build = Build(
         project=project,
         repository=project.repository,
         label=label,
         message=message,
-        parent_revision_sha=parent_revision_sha,
+        revision_sha=revision_sha,
         status=Status.queued,
     )
 

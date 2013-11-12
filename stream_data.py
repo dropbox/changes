@@ -43,7 +43,7 @@ def create_new_entry(project):
     build = mock.build(
         change=change,
         author=change.author,
-        parent_revision_sha=revision.sha,
+        revision_sha=revision.sha,
         message=change.message,
         result=Result.unknown,
         status=Status.in_progress,

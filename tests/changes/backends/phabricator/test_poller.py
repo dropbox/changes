@@ -164,8 +164,8 @@ class PhabricatorPollerTest(BaseTestCase):
         change = self.create_change(self.project)
 
         poller = self.get_poller()
-        build = poller.sync_diff(change, diff)
+        patch = poller.sync_diff(change, diff)
 
-        assert build.label == 'Diff ID 16161: Initial'
-        assert build.change == change
-        assert build.parent_revision_sha == 'ca7a7927948babe35652a9ea58f94e470ae9e51f'
+        assert patch.label == 'Diff ID 16161: Initial'
+        assert patch.change == change
+        assert patch.parent_revision_sha == 'ca7a7927948babe35652a9ea58f94e470ae9e51f'

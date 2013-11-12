@@ -22,7 +22,7 @@
 						<a href="{{build.link}}">{{build.name}}</a><br>
 
 						<small>
-							{{build.parent_revision.sha.substr(0, 12)}}
+							{{build.target}}
 							<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 						</small>
 						<span class="status">{{getBuildStatus(build)}}</span>

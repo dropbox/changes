@@ -23,7 +23,7 @@ class BuildRetryAPIView(APIView):
             change=build.change,
             repository=build.repository,
             project=build.project,
-            parent_revision_sha=build.parent_revision_sha,
+            revision_sha=build.revision_sha,
             parent_id=build.id,
             patch=build.patch,
             label=build.label,

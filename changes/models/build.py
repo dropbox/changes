@@ -26,16 +26,13 @@ class Build(db.Model):
     change_id = Column(GUID, ForeignKey('change.id'))
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    # if this is a remote commit, we can represent its canonical revision here
-    revision_sha = Column(String(40), nullable=True)
-    # the parent revision is mostly used by patches, and implies that the patch
-    # should be applied on top of this sha
-    parent_revision_sha = Column(String(40))
+    revision_sha = Column(String(40))
     patch_id = Column(GUID, ForeignKey('patch.id'))
     author_id = Column(GUID, ForeignKey('author.id'))
     cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
     parent_id = Column(GUID, ForeignKey('build.id'))
     label = Column(String(128), nullable=False)
+    target = Column(String(128))
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
     message = Column(Text)
