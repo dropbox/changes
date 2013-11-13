@@ -8,7 +8,9 @@ from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Repository, Project, RemoteEntity, TestCase, Patch
+from changes.models import (
+    Repository, Project, RemoteEntity, TestCase, Patch, LogSource, LogChunk
+)
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.testutils import BackendTestCase
 
@@ -234,6 +236,10 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_building.json'))
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            body='')
 
         build = self.create_build(
             self.project,
@@ -267,6 +273,11 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_success.json'))
+
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            body='')
 
         build = self.create_build(
             self.project,
@@ -302,6 +313,10 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_failed.json'))
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            body='')
 
         build = self.create_build(
             self.project,
@@ -337,10 +352,13 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_with_test_report.json'))
-
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            body='')
 
         build = self.create_build(
             self.project,
@@ -377,3 +395,49 @@ class SyncBuildTest(BaseTestCase):
         assert test_list[1].result == Result.passed
         assert test_list[1].message == ''
         assert test_list[1].duration == 155
+
+    @httpretty.activate
+    def test_does_sync_log(self):
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_failed.json'))
+        httpretty.register_uri(
+            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            body='Foo bar')
+
+        build = self.create_build(
+            self.project,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+
+        entity = RemoteEntity(
+            provider=self.provider,
+            internal_id=build.id,
+            remote_id='server#2',
+            type='build',
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        db.session.add(entity)
+
+        builder = self.get_builder()
+        builder.sync_build(build)
+
+        source = LogSource.query.filter_by(build=build).first()
+        assert source.name == 'console'
+        assert source.project == self.project
+        assert source.date_created == build.date_started
+
+        chunks = list(LogChunk.query.filter_by(
+            source=source,
+        ).order_by(LogChunk.date_created.asc()))
+        assert len(chunks) == 1
+        assert chunks[0].build == build
+        assert chunks[0].project == self.project
+        assert chunks[0].offset == 0
+        assert chunks[0].size == 7
+        assert chunks[0].text == 'Foo bar'

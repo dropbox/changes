@@ -11,7 +11,7 @@ from uuid import uuid4
 from changes.backends.base import BaseBackend
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import RemoteEntity, TestResult
+from changes.models import RemoteEntity, TestResult, LogSource, LogChunk
 
 
 class NotFound(Exception):
@@ -150,6 +150,8 @@ class JenkinsBuilder(BaseBackend):
 
         db.session.add(build)
 
+        self._sync_console_log(build, entity)
+
         for action in item['actions']:
             # is this the best way to find this?
             if action.get('urlName') == 'testReport':
@@ -158,6 +160,51 @@ class JenkinsBuilder(BaseBackend):
 
         if should_finish:
             build.status = Status.finished
+
+    def _sync_console_log(self, build, entity):
+        # TODO(dcramer): this doesnt handle concurrency
+
+        logsource = LogSource.query.filter(
+            LogSource.name == 'console',
+            LogSource.build_id == build.id,
+        ).first()
+        if logsource is None:
+            logsource = LogSource(
+                name='console',
+                build=build,
+                project=build.project,
+                date_created=build.date_started,
+            )
+            db.session.add(logsource)
+
+        # find last offset
+        last_chunk = LogChunk.query.filter(
+            LogChunk.source_id == logsource.id,
+        ).order_by(LogChunk.offset.desc()).limit(1).first()
+        if last_chunk is None:
+            offset = 0
+        else:
+            offset = last_chunk.offset
+
+        build_item = entity.data
+        url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
+            base=self.base_url, job=build_item['job_name'],
+            build=build_item['build_no'],
+        )
+
+        resp = requests.get(url, params={'start': offset}, stream=True)
+        for chunk in resp.iter_content(chunk_size=4096):
+            chunk_size = len(chunk)
+            logchunk = LogChunk(
+                source=logsource,
+                build=build,
+                project=build.project,
+                offset=offset,
+                size=chunk_size,
+                text=chunk
+            )
+            db.session.add(logchunk)
+            offset += chunk_size
 
     def _sync_test_results(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
