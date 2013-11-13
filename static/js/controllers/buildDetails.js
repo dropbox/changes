@@ -12,7 +12,7 @@ define([
   app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$window', '$http', '$routeParams', 'stream', 'pagination', 'flash', function($scope, initialData, $window, $http, $routeParams, Stream, Pagination, flash) {
     'use strict';
 
-    var stream,
+    var stream, logSources = {},
         entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
         chart_options = {
           tooltipFormatter: function(item) {
@@ -41,6 +41,10 @@ define([
           }
         };
 
+    function getLogSourceEntrypoint(logSource) {
+      return '/api/0/builds/' + $scope.build.id + '/logs/' + logSource.id + '/';
+    }
+
     function getTestStatus() {
       if ($scope.build.status.id == "finished") {
         if ($scope.testGroups.length === 0) {
@@ -56,6 +60,40 @@ define([
       $scope.$apply(function() {
         $scope.build = data;
       });
+    }
+
+    function updateBuildLog(data) {
+      // Angular isn't intelligent enough to optimize this.
+      var el = $('#log-' + data.source.id),
+          item, source_id = data.source.id;
+
+      if (el.length === 0) {
+        // logsource isnt available in viewpane
+        return;
+      }
+
+      if (!logSources[source_id]) {
+        logSources[source_id] = {
+          text: '',
+          nextOffset: null
+        };
+      }
+
+      item = logSources[source_id];
+      if (data.offset < item.nextOffset) {
+        return;
+      }
+
+      // TODO(dcramer): we should only remove/append rows, rather
+      // than rewriting the entire block
+      item.text = (item.text + data.text).substr(-10000);
+      item.nextOffset = data.offset + data.size;
+
+      el.empty();
+      $.each(item.text.split('\n'), function(_, line){
+        el.append('<div class="line">' + line + '</div>');
+      });
+      el.scrollTop(el.height());
     }
 
     function updateTestGroup(data) {
@@ -112,7 +150,18 @@ define([
       });
     }
 
+    $scope.retryBuild = function() {
+      $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
+        .success(function(data){
+          $window.location.href = data.build.link;
+        })
+        .error(function(){
+          flash('error', 'There was an error while retrying this build.');
+        });
+    };
+
     $scope.build = initialData.data.build;
+    $scope.logSources = initialData.data.logs;
     $scope.phases = initialData.data.phase;
     $scope.testFailures = initialData.data.testFailures;
     $scope.testGroups = initialData.data.testGroups;
@@ -127,18 +176,19 @@ define([
       $scope.testStatus = getTestStatus();
     });
 
-    $scope.retryBuild = function() {
-      $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
+    $.each($scope.logSources, function(_, logSource){
+      $http.get(getLogSourceEntrypoint(logSource))
         .success(function(data){
-          $window.location.href = data.build.link;
-        })
-        .error(function(){
-          flash('error', 'There was an error while retrying this build.');
+          $.each(data.chunks, function(_, chunk){
+            updateBuildLog(chunk);
+          });
         });
-    };
+    });
 
+    // TODO: we need to support multiple soruces, a real-time stream, and real-time source changes
     stream = Stream($scope, entrypoint);
     stream.subscribe('build.update', updateBuild);
+    stream.subscribe('buildlog.update', updateBuildLog);
     stream.subscribe('testgroup.update', updateTestGroup);
   }]);
 });

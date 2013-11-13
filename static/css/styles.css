@@ -692,3 +692,19 @@ chart {
 .test-header h3 {
   font-size: 1.3em;
 }
+
+.build-log {
+  border-radius: 6px;
+  max-height: 300px;
+  background: #333;
+  color: #ddd;
+  padding: 9.5px;
+  font-size: 14px;
+  font-weight: 300;
+  min-height: 50px;
+  overflow: auto;
+}
+.build-log-inner {
+  overflow: scroll;
+  white-space: pre-wrap;
+}

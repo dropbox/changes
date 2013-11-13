@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, TestGroup
+from changes.models import Build, TestGroup, LogSource
 
 
 class BuildDetailsAPIView(APIView):
@@ -37,6 +37,10 @@ class BuildDetailsAPIView(APIView):
             Build.id != build.id,
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
+        log_sources = sorted(LogSource.query.filter(
+            LogSource.build_id == build.id,
+        ), key=lambda x: x.date_created)
+
         context = {
             'build': build,
             'phases': build.phases,
@@ -44,6 +48,7 @@ class BuildDetailsAPIView(APIView):
                 'total': num_test_failures,
                 'testGroups': test_failures,
             },
+            'logs': log_sources,
             'testGroups': test_groups,
             'previousRuns': previous_runs,
         }
@@ -54,4 +59,5 @@ class BuildDetailsAPIView(APIView):
         return [
             'builds:*:{0}'.format(build_id),
             'testgroups:{0}:*'.format(build_id),
+            'logsources:{0}:*'.format(build_id),
         ]

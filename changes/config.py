@@ -101,6 +101,7 @@ def configure_api_routes(app):
     from changes.api.author_build_index import AuthorBuildIndexAPIView
     from changes.api.build_details import BuildDetailsAPIView
     from changes.api.build_index import BuildIndexAPIView
+    from changes.api.build_log_details import BuildLogDetailsAPIView
     from changes.api.build_retry import BuildRetryAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
@@ -119,6 +120,8 @@ def configure_api_routes(app):
         '/api/0/builds/<build_id>/', view_func=BuildDetailsAPIView.as_view('api-build-details'))
     app.add_url_rule(
         '/api/0/builds/<build_id>/retry/', view_func=BuildRetryAPIView.as_view('api-build-retry'))
+    app.add_url_rule(
+        '/api/0/builds/<build_id>/logs/<source_id>/', view_func=BuildLogDetailsAPIView.as_view('api-build-log-details'))
     app.add_url_rule(
         '/api/0/changes/', view_func=ChangeIndexAPIView.as_view('api-change-list'))
     app.add_url_rule(
@@ -173,17 +176,19 @@ def configure_jobs(app):
 def configure_database_listeners(app):
     from sqlalchemy import event
     from changes import events
-    from changes.models import Build, Change, Phase, TestGroup
+    from changes.models import Build, Change, Phase, TestGroup, LogChunk
 
     event.listen(Build, 'after_insert', events.publish_build_update)
     event.listen(Change, 'after_insert', events.publish_change_update)
     event.listen(Phase, 'after_insert', events.publish_phase_update)
     event.listen(TestGroup, 'after_insert', events.publish_testgroup_update)
+    event.listen(LogChunk, 'after_insert', events.publish_logchunk_update)
 
     event.listen(Build, 'after_update', events.publish_build_update)
     event.listen(Change, 'after_update', events.publish_change_update)
     event.listen(Phase, 'after_update', events.publish_phase_update)
     event.listen(TestGroup, 'after_update', events.publish_testgroup_update)
+    event.listen(LogChunk, 'after_update', events.publish_logchunk_update)
 
 
 def configure_event_listeners(app):

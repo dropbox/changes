@@ -55,3 +55,14 @@ def publish_testgroup_update(mapper, connection, target):
         'data': as_json(target),
         'event': 'testgroup.update',
     })
+
+
+def publish_logchunk_update(mapper, connection, target):
+    channel = 'logsources:{build_id}:{source_id}'.format(
+        source_id=target.source_id.hex,
+        build_id=target.build_id.hex,
+    )
+    pubsub.publish(channel, {
+        'data': as_json(target),
+        'event': 'buildlog.update',
+    })

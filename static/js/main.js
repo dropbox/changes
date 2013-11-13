@@ -38,7 +38,6 @@ require.config({
 require([
   'angular',
   'angularLoadingBar',
-  'angularRaven',
   'modules/flash',
   'modules/barChart',
   'modules/stream',
@@ -49,6 +48,6 @@ require([
 ], function(angular) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'stream', 'flash', 'barChart', 'ngRaven']);
+    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'stream', 'flash', 'barChart']);
   });
 });

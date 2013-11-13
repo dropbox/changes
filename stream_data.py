@@ -8,7 +8,7 @@ from datetime import datetime
 from changes import mock
 from changes.config import db, create_app
 from changes.constants import Result, Status
-from changes.models import Change, Build
+from changes.models import Change, Build, LogSource
 
 app = create_app()
 app_context = app.app_context()
@@ -49,6 +49,18 @@ def create_new_entry(project):
         status=Status.in_progress,
         date_started=datetime.utcnow(),
     )
+
+    logsource = LogSource(
+        build=build,
+        project=build.project,
+        name='console',
+    )
+    db.session.add(logsource)
+
+    offset = 0
+    for x in xrange(5):
+        lc = mock.logchunk(source=logsource, offset=offset)
+        offset += lc.size
 
     return build
 

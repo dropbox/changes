@@ -10,7 +10,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Build, Phase, Step, TestResult,
-    Change
+    Change, LogChunk
 )
 
 
@@ -136,6 +136,24 @@ def build(change, **kwargs):
     db.session.add(step)
 
     return build
+
+
+def logchunk(source, **kwargs):
+    # TODO(dcramer): we should default offset to previosu entry in LogSource
+    kwargs.setdefault('offset', 0)
+
+    text = kwargs.pop('text', None) or '\n'.join(get_sentences(4))
+
+    logchunk = LogChunk(
+        source=source,
+        build=source.build,
+        project=source.project,
+        text=text,
+        size=len(text),
+        **kwargs
+    )
+    db.session.add(logchunk)
+    return logchunk
 
 
 def revision(repository, author):
