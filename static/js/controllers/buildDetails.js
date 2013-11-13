@@ -91,7 +91,7 @@ define([
 
       el.empty();
       $.each(item.text.split('\n'), function(_, line){
-        el.append('<div class="line">' + line + '</div>');
+        el.append($('<div class="line">' + line + '</div>'));
       });
       if (el.is(':visible')) {
         $timeout(function(){
