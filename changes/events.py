@@ -46,12 +46,12 @@ def publish_phase_update(mapper, connection, target):
     })
 
 
-def publish_test_update(mapper, connection, target):
-    channel = 'tests::{build_id}:{test_id}'.format(
+def publish_testgroup_update(mapper, connection, target):
+    channel = 'testgroups:{build_id}:{testgroup_id}'.format(
         build_id=target.build_id.hex,
-        test_id=target.id.hex
+        testgroup_id=target.id.hex
     )
     pubsub.publish(channel, {
         'data': as_json(target),
-        'event': 'test.update',
+        'event': 'testgroup.update',
     })

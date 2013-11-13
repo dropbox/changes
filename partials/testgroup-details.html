@@ -19,27 +19,6 @@
 		</div>
 	</div>
 
-	<div ng-if="testFailures.total">
-		<h4>Failing Tests <small>{{ testFailures.total }} total failures</small></h4>
-		<table class="table table-striped table-bordered">
-			<thead>
-				<tr>
-					<th>&nbsp;</th>
-					<th style="width:110px;text-align:center">Duration</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr ng-repeat="test in testFailures.tests">
-					<td>
-						<a href="{{ test.link }}">{{ test.name }}</a><br>
-						<small ng-if="test.package != testGroup.name">{{ test.package }}</small>
-					</td>
-					<td style="text-align:center" duration="test.duration"></td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-
 	<barchart ng-model="chartData" style="height:130px"></barchart>
 
 	<ul class="breadcrumb">

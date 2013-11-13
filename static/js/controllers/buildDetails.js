@@ -58,19 +58,16 @@ define([
       });
     }
 
-    function addTest(data) {
+    function updateTestGroup(data) {
       $scope.$apply(function() {
         var updated = false,
             item_id = data.id,
             attr, result, item;
 
-        if (data.result.id != 'failed') {
-          // we dont care about non-failures
-          return;
-        }
-
-        if ($scope.testFailures.length > 0) {
-          result = $.grep($scope.testFailures, function(e){ return e.id == item_id; });
+        // TODO(dcramer); we need to refactor all of this logic as its repeated in nealry
+        // every stream
+        if ($scope.testGroups.length > 0) {
+          result = $.grep($scope.testGroups, function(e){ return e.id == item_id; });
           if (result.length > 0) {
             item = result[0];
             for (attr in data) {
@@ -87,7 +84,30 @@ define([
           }
         }
         if (!updated) {
-          $scope.testFailures.unshift(data);
+          $scope.testGroups.unshift(data);
+        }
+
+        if (data.result.id == 'failed') {
+          if ($scope.testFailures.length > 0) {
+            result = $.grep($scope.testFailures, function(e){ return e.id == item_id; });
+            if (result.length > 0) {
+              item = result[0];
+              for (attr in data) {
+                // ignore dateModified as we're updating this frequently and it causes
+                // the dirty checking behavior in angular to respond poorly
+                if (item[attr] != data[attr] && attr != 'dateModified') {
+                  updated = true;
+                  item[attr] = data[attr];
+                }
+                if (updated) {
+                  item.dateModified = data.dateModified;
+                }
+              }
+            }
+          }
+          if (!updated) {
+            $scope.testFailures.unshift(data);
+          }
         }
       });
     }
@@ -119,6 +139,6 @@ define([
 
     stream = Stream($scope, entrypoint);
     stream.subscribe('build.update', updateBuild);
-    stream.subscribe('test.update', addTest);
+    stream.subscribe('testgroup.update', updateTestGroup);
   }]);
 });

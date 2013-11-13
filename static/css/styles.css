@@ -645,9 +645,6 @@ chart {
 .barchart li:hover a {
   background: #EFEFEF;
 }
-/*.barchart li a:hover .count {
-  background: #2D7BB2;
-}*/
 
 .barchart li.result-passed a .count {
   background: rgb(114, 194, 114);
