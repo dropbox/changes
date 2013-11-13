@@ -31,7 +31,7 @@ class BuildLogDetailsAPIView(APIView):
                 logchunks = []
             else:
                 logchunks = list(queryset.filter(
-                    LogChunk.offset >= tail.offset - LOG_BATCH_SIZE,
+                    LogChunk.offset >= min(tail.offset - LOG_BATCH_SIZE, 0),
                     LogChunk.offset <= tail.offset,
                 ))
         else:

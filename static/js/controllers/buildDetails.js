@@ -9,7 +9,7 @@ define([
     'filters/escape',
     'filters/wordwrap',
     'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
-  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$window', '$http', '$routeParams', 'stream', 'pagination', 'flash', function($scope, initialData, $window, $http, $routeParams, Stream, Pagination, flash) {
+  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$window', '$timeout', '$http', '$routeParams', 'stream', 'pagination', 'flash', function($scope, initialData, $window, $timeout, $http, $routeParams, Stream, Pagination, flash) {
     'use strict';
 
     var stream, logSources = {},
@@ -93,7 +93,9 @@ define([
       $.each(item.text.split('\n'), function(_, line){
         el.append('<div class="line">' + line + '</div>');
       });
-      el.scrollTop(el.height());
+      $timeout(function(){
+        el.scrollTop(el.height(), 100);
+      });
     }
 
     function updateTestGroup(data) {
