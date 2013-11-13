@@ -70,6 +70,8 @@ define([
       if (el.length === 0) {
         // logsource isnt available in viewpane
         return;
+      } else {
+        el = el[0];
       }
 
       if (!logSources[source_id]) {
@@ -93,11 +95,7 @@ define([
       $.each(item.text.split('\n'), function(_, line){
         el.append($('<div class="line">' + line + '</div>'));
       });
-      if (el.is(':visible')) {
-        $timeout(function(){
-          el.scrollTop(el.height(), 1000);
-        });
-      }
+      el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
     }
 
     function updateTestGroup(data) {
