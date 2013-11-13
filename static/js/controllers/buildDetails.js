@@ -93,9 +93,11 @@ define([
       $.each(item.text.split('\n'), function(_, line){
         el.append('<div class="line">' + line + '</div>');
       });
-      $timeout(function(){
-        el.scrollTop(el.height(), 100);
-      });
+      if (el.is(':visible')) {
+        $timeout(function(){
+          el.scrollTop(el.height(), 1000);
+        });
+      }
     }
 
     function updateTestGroup(data) {
