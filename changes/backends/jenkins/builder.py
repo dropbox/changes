@@ -204,6 +204,10 @@ class JenkinsBuilder(BaseBackend):
         if offset > log_length:
             return
 
+        # TODO(dcramer): if this is the last chunk it may appear to be newline
+        # terminated but its not actually. We should peak ahead to the next
+        # chunk in the iterator and .rstrip('\n') if this is the last chunk
+        # in the stream
         for chunk in resp.iter_content(chunk_size=4096):
             chunk_size = len(chunk)
             logchunk = LogChunk(
