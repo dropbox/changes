@@ -239,6 +239,7 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
+            adding_headers={'X-Text-Size': '0'},
             body='')
 
         build = self.create_build(
@@ -277,6 +278,7 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
+            adding_headers={'X-Text-Size': '0'},
             body='')
 
         build = self.create_build(
@@ -316,6 +318,7 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
+            adding_headers={'X-Text-Size': '0'},
             body='')
 
         build = self.create_build(
@@ -358,6 +361,7 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
+            adding_headers={'X-Text-Size': '0'},
             body='')
 
         build = self.create_build(
@@ -404,6 +408,7 @@ class SyncBuildTest(BaseTestCase):
         httpretty.register_uri(
             httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
+            adding_headers={'X-Text-Size': '7'},
             body='Foo bar')
 
         build = self.create_build(
