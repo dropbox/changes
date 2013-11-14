@@ -13,7 +13,7 @@ alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 # force model registration
 from changes.config import create_app, db
 
-app, app_context, connection, transaction = None, None, None, None
+app, app_context, connection, transaction, commit = None, None, None, None, None
 
 from flask_sqlalchemy import _SignallingSession
 
@@ -31,7 +31,7 @@ class SignallingSession(_SignallingSession):
 
 
 def pytest_sessionstart(session):
-    global app, app_context, connection, transaction
+    global app, app_context, connection, transaction, commit
 
     app = create_app(
         TESTING=True,
@@ -54,10 +54,14 @@ def pytest_sessionstart(session):
     connection = db.engine.connect()
     transaction = connection.begin()
 
+    commit = db.session.commit
+    db.session.commit = lambda: True
+
 
 def pytest_sessionfinish():
     transaction.rollback()
     connection.close()
+    db.session.commit = commit
 
 
 # TODO: mock session commands
