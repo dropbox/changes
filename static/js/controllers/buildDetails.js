@@ -94,7 +94,7 @@ define([
 
       if (chars_to_remove > buffer_size) {
         $el.empty();
-      } else {
+      } else if (chars_to_remove > 0) {
         // determine the number of actual lines to remove
         lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
         for (var i=0; i<lines_to_remove; i++) {
