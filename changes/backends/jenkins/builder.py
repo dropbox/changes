@@ -91,7 +91,7 @@ class JenkinsBuilder(BaseBackend):
             build.result = Result.aborted
             db.session.add(build)
         elif item.get('executable'):
-            for x in xrange(3):
+            for x in xrange(6):
                 # There's a possible race condition where the item has been
                 # assigned an ID, yet the API responds as if the build does
                 # not exist
