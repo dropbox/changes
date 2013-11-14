@@ -64,14 +64,12 @@ define([
 
     function updateBuildLog(data) {
       // Angular isn't intelligent enough to optimize this.
-      var el = $('#log-' + data.source.id),
+      var $el = $('#log-' + data.source.id),
           item, source_id = data.source.id;
 
-      if (el.length === 0) {
+      if ($el.length === 0) {
         // logsource isnt available in viewpane
         return;
-      } else {
-        el = el[0];
       }
 
       if (!logSources[source_id]) {
@@ -91,10 +89,11 @@ define([
       item.text = (item.text + data.text).substr(-10000);
       item.nextOffset = data.offset + data.size;
 
-      el.empty();
+      $el.empty();
       $.each(item.text.split('\n'), function(_, line){
-        el.append($('<div class="line">' + line + '</div>'));
+        $el.append($('<div class="line">' + line + '</div>'));
       });
+      var el = $el.get(0);
       el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
     }
 
