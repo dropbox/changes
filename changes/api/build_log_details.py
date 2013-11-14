@@ -28,10 +28,6 @@ class BuildLogDetailsAPIView(APIView):
             # starting from the end so we need to know total size
             tail = queryset.limit(1).first()
 
-            print queryset.filter(
-                LogChunk.offset >= min(tail.offset - LOG_BATCH_SIZE, 0),
-                LogChunk.offset <= tail.offset,
-            )
             if tail is None:
                 logchunks = []
             else:
