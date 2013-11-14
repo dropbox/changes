@@ -178,6 +178,7 @@ class JenkinsBuilder(BaseBackend):
                 date_created=build.date_started,
             )
             db.session.add(logsource)
+            db.session.commit()
             offset = 0
         else:
             # find last offset
@@ -188,8 +189,6 @@ class JenkinsBuilder(BaseBackend):
                 offset = 0
             else:
                 offset = last_chunk.offset
-
-        db.session.commit()
 
         build_item = entity.data
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
@@ -209,9 +208,8 @@ class JenkinsBuilder(BaseBackend):
                 text=chunk
             )
             db.session.add(logchunk)
-            offset += chunk_size
-
             db.session.commit()
+            offset += chunk_size
 
     def _sync_test_results(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
@@ -253,6 +251,7 @@ class JenkinsBuilder(BaseBackend):
                     result=result,
                 )
                 testresult.save()
+                db.session.commit()
 
     def _find_job(self, job_name, build_id):
         """
