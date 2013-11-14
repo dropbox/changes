@@ -90,7 +90,7 @@ define([
       item.nextOffset = data.offset + data.size;
 
       // determine how much space we need to clear up to append data.size
-      chars_to_remove = 0 - buffer_size - item.size - data.size;
+      chars_to_remove = 0 - (buffer_size - item.size - data.size);
 
       if (chars_to_remove > buffer_size) {
         $el.empty();
