@@ -44,7 +44,7 @@ def sync_build(build_id):
         if build.status != Status.finished:
             queue.delay('sync_build', kwargs={
                 'build_id': build.id.hex
-            }, countdown=5)
+            }, countdown=1)
         else:
             build_finished.send(build)
 
