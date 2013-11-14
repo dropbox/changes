@@ -66,7 +66,7 @@ define([
       // Angular isn't intelligent enough to optimize this.
       var $el = $('#log-' + data.source.id),
           item, source_id = data.source.id,
-          $lines, chars_to_remove, lines_to_remove,
+          chars_to_remove, lines_to_remove,
           buffer_size = 50000;
 
       if ($el.length === 0) {
@@ -99,10 +99,7 @@ define([
         lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
 
         // remove number of lines (accounted by <div>'s)
-        $lines = $el.find('div');
-        for (var i=0; i<lines_to_remove; i++) {
-          $lines[i].remove();
-        }
+        $el.find('div').slice(0, lines_to_remove - 1).remove();
       }
 
       // add each additional new line
