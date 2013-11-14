@@ -87,6 +87,8 @@ define([
         return;
       }
 
+      item.nextOffset = data.offset + data.size;
+
       // determine how much space we need to clear up to append data.size
       chars_to_remove = 0 - buffer_size - item.size - data.size;
 
@@ -110,7 +112,6 @@ define([
       });
 
       item.text = (item.text + data.text).substr(-buffer_size);
-      item.nextOffset = data.offset + data.size;
       item.size = item.text.length;
 
       var el = $el.get(0);
