@@ -6,7 +6,7 @@ from changes.api.base import APIView
 from changes.models import LogSource, LogChunk
 
 
-LOG_BATCH_SIZE = 10000  # 10k chars
+LOG_BATCH_SIZE = 50000  # in length of chars
 
 
 class BuildLogDetailsAPIView(APIView):

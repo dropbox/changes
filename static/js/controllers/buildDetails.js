@@ -67,7 +67,7 @@ define([
       var $el = $('#log-' + data.source.id),
           item, source_id = data.source.id,
           chars_to_remove, lines_to_remove,
-          buffer_size = 50000;
+          buffer_size = 100000;
 
       if ($el.length === 0) {
         // logsource isnt available in viewpane
