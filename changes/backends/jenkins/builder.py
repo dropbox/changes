@@ -196,8 +196,19 @@ class JenkinsBuilder(BaseBackend):
             build=build_item['build_no'],
         )
 
-        resp = requests.get(url, params={'start': offset}, stream=True)
+        # When you request an offset that doesnt exist in the build log, Jenkins
+        # will instead return the entire log. To combat this, we request the
+        # last known offset, and discard it's value. If there is nothing beyond
+        # this value, we assume that theres no new chunks
+        resp = requests.get(url, params={'start': offset - 1}, stream=True)
+        first_chunk = False
         for chunk in resp.iter_content(chunk_size=4096):
+            if first_chunk:
+                chunk = chunk[1:]
+                first_chunk = False
+            if not chunk:
+                break
+
             chunk_size = len(chunk)
             logchunk = LogChunk(
                 source=logsource,
