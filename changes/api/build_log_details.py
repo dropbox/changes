@@ -26,7 +26,7 @@ class BuildLogDetailsAPIView(APIView):
 
         if offset == -1:
             # starting from the end so we need to know total size
-            tail = queryset.first()
+            tail = queryset.limit(1).first()
             if tail is None:
                 logchunks = []
             else:
