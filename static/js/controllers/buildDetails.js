@@ -91,15 +91,17 @@ define([
 
       if (item.size > buffer_size) {
         $el.empty();
-      } else if (chars_to_remove > 0) {
+      } else {
         // determine how much space we need to clear up to append data.size
         chars_to_remove = 0 - (buffer_size - item.size - data.size);
 
-        // determine the number of actual lines to remove
-        lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
+        if (chars_to_remove > 0) {
+          // determine the number of actual lines to remove
+          lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
 
-        // remove number of lines (accounted by <div>'s)
-        $el.find('div').slice(0, lines_to_remove - 1).remove();
+          // remove number of lines (accounted by <div>'s)
+          $el.find('div').slice(0, lines_to_remove - 1).remove();
+        }
       }
 
       // add each additional new line
