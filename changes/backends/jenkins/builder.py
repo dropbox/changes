@@ -188,7 +188,7 @@ class JenkinsBuilder(BaseBackend):
             if last_chunk is None:
                 offset = 0
             else:
-                offset = last_chunk.offset
+                offset = last_chunk.offset + last_chunk.size
 
         build_item = entity.data
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
