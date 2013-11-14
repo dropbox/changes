@@ -3,9 +3,9 @@ define([
     'utils/chartHelpers',
     'utils/duration',
     'utils/escapeHtml',
+    'utils/sortBuildList',
     'directives/radialProgressBar',
-    'directives/timeSince',
-    'filters/orderByBuild'], function(app, chartHelpers, duration, escapeHtml) {
+    'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
   app.controller('projectDetailsCtrl', ['$scope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', function($scope, initialProject, initialBuildList, $http, $routeParams, Stream) {
     'use strict';
 
@@ -63,6 +63,7 @@ define([
         }
         if (!updated) {
           $scope.builds.unshift(data);
+          sortBuildList($scope.builds);
           $scope.builds = $scope.builds.slice(0, 100);
         }
       });
@@ -77,7 +78,7 @@ define([
     }
 
     $scope.project = initialProject.data.project;
-    $scope.builds = initialBuildList.data.builds;
+    $scope.builds = sortBuildList(initialBuildList.data.builds);
     $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
 
     $scope.$watch("builds", function() {

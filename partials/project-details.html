@@ -8,7 +8,7 @@
 
 		<table class="build-list table table-striped">
 			<tbody>
-				<tr ng-repeat="build in builds | orderByBuild" class="status-{{build.status.id}} result-{{build.result.id}}">
+				<tr ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
 					<td>
 						<div class="indicator" title="{{build.result.name}}">
 							<div data-result="{{build.result.id}}"

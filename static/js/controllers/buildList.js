@@ -1,10 +1,10 @@
-define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/orderByBuild'], function(app) {
+define(['app', 'utils/sortBuildList', 'directives/radialProgressBar', 'directives/timeSince'], function(app, sortBuildList) {
   var buildListCtrl = function(initial, $scope, $http, $routeParams, $location, Stream) {
     var stream,
         entrypoint = initial.entrypoint,
         filter = $location.search()['filter'] || '';
 
-    $scope.builds = initial.data.builds;
+    $scope.builds = sortBuildList(initial.data.builds);
     $scope.buildNavFilter = filter;
 
     $scope.getBuildStatus = function(build) {
@@ -44,6 +44,7 @@ define(['app', 'directives/radialProgressBar', 'directives/timeSince', 'filters/
         }
         if (!updated) {
           $scope.builds.unshift(data);
+          sortBuildList($scope.builds);
           $scope.builds = $scope.builds.slice(0, 100);
         }
       });
