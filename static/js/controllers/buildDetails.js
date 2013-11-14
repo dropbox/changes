@@ -65,7 +65,9 @@ define([
     function updateBuildLog(data) {
       // Angular isn't intelligent enough to optimize this.
       var $el = $('#log-' + data.source.id),
-          item, source_id = data.source.id;
+          item, source_id = data.source.id,
+          $lines, chars_to_remove, lines_to_remove,
+          buffer_size = 50000;
 
       if ($el.length === 0) {
         // logsource isnt available in viewpane
@@ -75,6 +77,7 @@ define([
       if (!logSources[source_id]) {
         logSources[source_id] = {
           text: '',
+          size: 0,
           nextOffset: 0
         };
       }
@@ -84,15 +87,26 @@ define([
         return;
       }
 
-      // TODO(dcramer): we should only remove/append rows, rather
-      // than rewriting the entire block
-      item.text = (item.text + data.text).substr(-10000);
-      item.nextOffset = data.offset + data.size;
+      $lines = $el.find('div');
 
-      $el.empty();
-      $.each(item.text.split('\n'), function(_, line){
+      // determine how much space we need to clear up to append data.size
+      chars_to_remove = 0 - buffer_size - item.size - data.size;
+
+      // determine the number of actual lines to remove
+      lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
+      for (var i=0; i<lines_to_remove; i++) {
+        $lines[i].remove();
+      }
+
+      // add each additional new line
+      $.each(data.text.split('\n'), function(_, line){
         $el.append($('<div class="line">' + line + '</div>'));
       });
+
+      item.text = (item.text + data.text).substr(-buffer_size);
+      item.nextOffset = data.offset + data.size;
+      item.size = item.text.length;
+
       var el = $el.get(0);
       el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
     }
