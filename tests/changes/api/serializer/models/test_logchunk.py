@@ -16,6 +16,7 @@ def test_simple():
         date_created=datetime(2013, 9, 19, 22, 15, 22),
     )
     result = serialize(logchunk)
+    assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['source']['id'] == '0b61b8a47ec844918d372d5741187b1c'
     assert result['text'] == 'foo bar'
     assert result['size'] == 7
