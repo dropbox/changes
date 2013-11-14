@@ -176,15 +176,16 @@ class JenkinsBuilder(BaseBackend):
                 date_created=build.date_started,
             )
             db.session.add(logsource)
-
-        # find last offset
-        last_chunk = LogChunk.query.filter(
-            LogChunk.source_id == logsource.id,
-        ).order_by(LogChunk.offset.desc()).limit(1).first()
-        if last_chunk is None:
             offset = 0
         else:
-            offset = last_chunk.offset
+            # find last offset
+            last_chunk = LogChunk.query.filter(
+                LogChunk.source_id == logsource.id,
+            ).order_by(LogChunk.offset.desc()).limit(1).first()
+            if last_chunk is None:
+                offset = 0
+            else:
+                offset = last_chunk.offset
 
         build_item = entity.data
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(

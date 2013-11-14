@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Index
+from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
 from changes.db.types.guid import GUID
@@ -39,6 +39,7 @@ class LogChunk(db.Model):
         Index('idx_logchunk_project_id', 'project_id'),
         Index('idx_logchunk_build_id', 'build_id'),
         Index('idx_logchunk_source_id', 'source_id'),
+        UniqueConstraint('source_id', 'offset', name='unq_logchunk_source_offset'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
