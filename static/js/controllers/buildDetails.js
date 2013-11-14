@@ -87,6 +87,8 @@ define([
         return;
       }
 
+      console.log('[Build Log] Got chunk ' + data.id + ' (offset ' + data.offset + ')');
+
       item.nextOffset = data.offset + data.size;
 
       if (item.size > buffer_size) {
