@@ -197,10 +197,11 @@ class JenkinsBuilder(BaseBackend):
         )
 
         resp = requests.get(url, params={'start': offset}, stream=True)
+        log_length = int(resp.headers['X-Text-Size'])
         # When you request an offset that doesnt exist in the build log, Jenkins
         # will instead return the entire log. Jenkins also seems to provide us
         # with X-Text-Size which indicates the total size of the log
-        if resp.headers['X-Text-Size'] <= offset:
+        if offset > log_length:
             return
 
         for chunk in resp.iter_content(chunk_size=4096):
