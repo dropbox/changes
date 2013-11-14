@@ -75,7 +75,7 @@ define([
       if (!logSources[source_id]) {
         logSources[source_id] = {
           text: '',
-          nextOffset: null
+          nextOffset: 0
         };
       }
 
