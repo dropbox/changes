@@ -92,10 +92,14 @@ define([
       // determine how much space we need to clear up to append data.size
       chars_to_remove = 0 - buffer_size - item.size - data.size;
 
-      // determine the number of actual lines to remove
-      lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
-      for (var i=0; i<lines_to_remove; i++) {
-        $lines[i].remove();
+      if (chars_to_remove > buffer_size) {
+        $el.empty();
+      } else {
+        // determine the number of actual lines to remove
+        lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
+        for (var i=0; i<lines_to_remove; i++) {
+          $lines[i].remove();
+        }
       }
 
       // add each additional new line
