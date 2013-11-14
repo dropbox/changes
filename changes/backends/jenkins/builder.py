@@ -187,6 +187,8 @@ class JenkinsBuilder(BaseBackend):
             else:
                 offset = last_chunk.offset
 
+        db.session.commit()
+
         build_item = entity.data
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
             base=self.base_url, job=build_item['job_name'],
@@ -206,6 +208,8 @@ class JenkinsBuilder(BaseBackend):
             )
             db.session.add(logchunk)
             offset += chunk_size
+
+            db.session.commit()
 
     def _sync_test_results(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
