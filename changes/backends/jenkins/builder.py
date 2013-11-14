@@ -149,6 +149,7 @@ class JenkinsBuilder(BaseBackend):
         }
 
         db.session.add(build)
+        db.session.commit()
 
         self._sync_console_log(build, entity)
 
@@ -160,6 +161,7 @@ class JenkinsBuilder(BaseBackend):
 
         if should_finish:
             build.status = Status.finished
+            db.session.add(build)
 
     def _sync_console_log(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
