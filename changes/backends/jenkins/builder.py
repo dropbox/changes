@@ -152,13 +152,15 @@ class JenkinsBuilder(BaseBackend):
         db.session.add(build)
         db.session.commit()
 
-        self._sync_console_log(build, entity)
-
+        # TODO(dcramer): ideally we could fire off jobs to sync test results
+        # and console logs
         for action in item['actions']:
             # is this the best way to find this?
             if action.get('urlName') == 'testReport':
                 self._sync_test_results(build, entity)
                 break
+
+        self._sync_console_log(build, entity)
 
         if should_finish:
             build.status = Status.finished
