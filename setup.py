@@ -25,6 +25,7 @@ tests_require = [
     'mock',
     'pytest',
     'pytest-cov',
+    'pytest-timeout',
     'pytest-xdist',
     'unittest2',
 ]
