@@ -6,6 +6,7 @@ import requests
 import time
 
 from datetime import datetime
+from more_itertools import peekable
 from uuid import uuid4
 
 from changes.backends.base import BaseBackend
@@ -204,11 +205,15 @@ class JenkinsBuilder(BaseBackend):
         if offset > log_length:
             return
 
-        # TODO(dcramer): if this is the last chunk it may appear to be newline
-        # terminated but its not actually. We should peak ahead to the next
-        # chunk in the iterator and .rstrip('\n') if this is the last chunk
-        # in the stream
-        for chunk in resp.iter_content(chunk_size=4096):
+        iterator = peekable(resp.iter_content(chunk_size=4096))
+        for chunk in iterator:
+            # If this is the last chunk it may appear to be newline
+            # terminated but its not actually. We should peak ahead to the next
+            # chunk in the iterator and .rstrip('\n') if this is the last chunk
+            # in the stream.
+            if not iterator:
+                chunk = chunk.strip('\n')
+
             chunk_size = len(chunk)
             logchunk = LogChunk(
                 source=logsource,
