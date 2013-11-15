@@ -67,7 +67,10 @@
 
 		<ul class="nav nav-pills" style="margin-bottom:10px;">
 			<li ng-repeat="logSource in logSources" ng-class="{active : $first}">
-				<a href="#log-{{logSource.id}}" data-toggle="tab">{{logSource.name}}</a>
+				<a href="#log-{{logSource.id}}" data-toggle="tab">
+					{{logSource.name}}
+					<span class="spinner-icon" ng-if="build.status.id == 'in_progress'"></span>
+				</a>
 			</li>
 		</ul>
 
@@ -77,23 +80,19 @@
 		</pre>
 	</div>
 
-	<div class="page-header">
-		<h3>Test Results</h3>
-	</div>
-
-	<div ng-if="build.status.id != 'finished'">
-		<div class="progress progress-striped active">
-			<div class="progress-bar" role="progressbar" style="width:100%">
-				<span class="sr-only">Waiting on test results...</span>
-		 	</div>
-		</div>
-	</div>
-
 	<div ng-switch="testStatus">
 		<div ng-switch-when="no-results">
+			<div class="page-header">
+				<h3>Test Results</h3>
+			</div>
+
 			<p>No test results were recorded.</p>
 		</div>
 		<div ng-switch-when="has-results">
+			<div class="page-header">
+				<h3>Test Results</h3>
+			</div>
+
 			<div ng-if="testFailures.total">
 				<h4>Failing Tests <small>{{ testFailures.total }} total</small></h4>
 				<table class="table table-striped table-bordered">

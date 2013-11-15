@@ -555,7 +555,7 @@ span {
   z-index: 1000000;
 }
 
-#loading-bar-spinner .spinner-icon {
+.spinner-icon {
   width: 14px;
   height: 14px;
 
@@ -564,11 +564,25 @@ span {
   border-left-color: #c7c0de;
   border-radius: 10px;
 
-  -webkit-animation: loading-bar-spinner 400ms linear infinite;
-  -moz-animation:    loading-bar-spinner 400ms linear infinite;
-  -ms-animation:     loading-bar-spinner 400ms linear infinite;
-  -o-animation:      loading-bar-spinner 400ms linear infinite;
-  animation:         loading-bar-spinner 400ms linear infinite;
+  -webkit-animation: loading-bar-spinner 600ms linear infinite;
+  -moz-animation:    loading-bar-spinner 600ms linear infinite;
+  -ms-animation:     loading-bar-spinner 600ms linear infinite;
+  -o-animation:      loading-bar-spinner 600ms linear infinite;
+  animation:         loading-bar-spinner 600ms linear infinite;
+}
+
+.nav .spinner-icon {
+  display: none;
+}
+
+.nav .active .spinner-icon {
+  display: inline-block;
+}
+
+.nav .spinner-icon {
+  height: 10px;
+  width: 10px;
+  margin-left: 5px;
 }
 
 @-webkit-keyframes loading-bar-spinner {
