@@ -215,16 +215,20 @@ class JenkinsBuilder(BaseBackend):
                 chunk = chunk.strip('\n')
 
             chunk_size = len(chunk)
-            logchunk = LogChunk(
-                source=logsource,
-                build=build,
-                project=build.project,
-                offset=offset,
-                size=chunk_size,
-                text=chunk
-            )
-            db.session.add(logchunk)
-            db.session.commit()
+            # TODO(dcramer): this shouldnt really happen, and even so, we should
+            # confirm that it's correct
+            if not LogChunk.query.filter_by(
+                    source=logsource, offset=offset).first():
+                logchunk = LogChunk(
+                    source=logsource,
+                    build=build,
+                    project=build.project,
+                    offset=offset,
+                    size=chunk_size,
+                    text=chunk
+                )
+                db.session.add(logchunk)
+                db.session.commit()
             offset += chunk_size
 
     def _sync_test_results(self, build, entity):
