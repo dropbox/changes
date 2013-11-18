@@ -1,5 +1,5 @@
-from changes.config import db
 from changes.models.author import Author
+from changes.db.utils import get_or_create
 
 
 class AuthorValidator(object):
@@ -9,12 +9,12 @@ class AuthorValidator(object):
             raise ValueError(value)
 
         name, email = parsed
-        try:
-            return Author.query.filter_by(email=email)[0]
-        except IndexError:
-            author = Author(email=email, name=name)
-            db.session.add(author)
-            return author
+        author, _ = get_or_create(Author, where={
+            'email': email,
+        }, defaults={
+            'name': name,
+        })
+        return author
 
     def parse(self, label):
         import re

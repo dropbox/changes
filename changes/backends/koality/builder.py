@@ -66,13 +66,12 @@ class KoalityBuilder(BaseBackend):
         if node is not None:
             return node
 
-        try:
-            node = RemoteEntity.query.filter_by(
-                type='node',
-                remote_id=str(node_id),
-                provider=self.provider,
-            )[0]
-        except IndexError:
+        entity = RemoteEntity.query.filter_by(
+            type='node',
+            remote_id=str(node_id),
+            provider=self.provider,
+        ).first()
+        if entity is None:
             node = Node()
             entity = RemoteEntity(
                 provider=self.provider, remote_id=str(node_id),
@@ -80,46 +79,44 @@ class KoalityBuilder(BaseBackend):
             )
             db.session.add(node)
             db.session.add(entity)
+        else:
+            node = Node.query.get(entity.internal_id)
 
         self._node_cache[node_id] = node
 
         return node
 
     def _sync_author(self, user):
-        author = create_or_update(Author, values={
+        return create_or_update(Author, values={
             'email': user['email'],
         }, where={
             'name': user['name'],
         })
-        db.session.add(author)
-        return author
 
     def _sync_revision(self, repository, author, commit):
-        revision = create_or_update(Revision, values={
+        return create_or_update(Revision, values={
             'message': commit['message'],
             'author': author,
         }, where={
             'repository': repository,
             'sha': commit['sha'],
         })
-        db.session.add(revision)
-        return revision
 
     def _sync_phase(self, build, stage_type, stage_list, phase=None):
         remote_id = '%s:%s' % (build.id.hex, stage_type)
 
         if phase is None:
-            try:
-                entity = RemoteEntity.query.filter_by(
-                    type='phase',
-                    provider=self.provider,
-                    remote_id=remote_id,
-                )[0]
-            except IndexError:
-                phase, entity = None, None
+            entity = RemoteEntity.query.filter_by(
+                type='phase',
+                provider=self.provider,
+                remote_id=remote_id,
+            ).first()
+            if entity is None:
+                phase = None
+                create_entity = True
             else:
                 phase = Phase.query.get(entity.internal_id)
-            create_entity = entity is None
+                create_entity = False
         else:
             create_entity = False
 

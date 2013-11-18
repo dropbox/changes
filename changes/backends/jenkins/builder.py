@@ -12,7 +12,19 @@ from uuid import uuid4
 from changes.backends.base import BaseBackend
 from changes.config import db
 from changes.constants import Result, Status
+from changes.db.utils import create_or_update, get_or_create
 from changes.models import RemoteEntity, TestResult, LogSource, LogChunk
+
+
+def chunked(iterator, chunk_size):
+    result = ''
+    for chunk in iterator:
+        result += chunk
+        if len(result) > chunk_size:
+            yield result[:chunk_size]
+            result = result[chunk_size:]
+    if result:
+        yield result
 
 
 class NotFound(Exception):
@@ -169,19 +181,14 @@ class JenkinsBuilder(BaseBackend):
     def _sync_console_log(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
 
-        logsource = LogSource.query.filter(
-            LogSource.name == 'console',
-            LogSource.build_id == build.id,
-        ).first()
-        if logsource is None:
-            logsource = LogSource(
-                name='console',
-                build=build,
-                project=build.project,
-                date_created=build.date_started,
-            )
-            db.session.add(logsource)
-            db.session.commit()
+        logsource, created = get_or_create(LogSource, where={
+            'name': 'console',
+            'build': build,
+        }, defaults={
+            'project': build.project,
+            'date_created': build.date_started,
+        })
+        if created:
             offset = 0
         else:
             # find last offset
@@ -208,29 +215,21 @@ class JenkinsBuilder(BaseBackend):
             return
 
         iterator = peekable(resp.iter_content(chunk_size=4096))
-        for chunk in iterator:
-            # If this is the last chunk it may appear to be newline
-            # terminated but its not actually. We should peak ahead to the next
-            # chunk in the iterator and .rstrip('\n') if this is the last chunk
-            # in the stream.
-            if not iterator:
-                chunk = chunk.strip('\n')
-
+        # XXX: requests doesnt seem to guarantee chunk_size, so we force it
+        # with our own helper
+        for chunk in chunked(iterator, 4096):
             chunk_size = len(chunk)
-            # TODO(dcramer): this shouldnt really happen, and even so, we should
-            # confirm that it's correct
-            if not LogChunk.query.filter_by(
-                    source=logsource, offset=offset).first():
-                logchunk = LogChunk(
-                    source=logsource,
-                    build=build,
-                    project=build.project,
-                    offset=offset,
-                    size=chunk_size,
-                    text=chunk
-                )
-                db.session.add(logchunk)
-                db.session.commit()
+            create_or_update(LogChunk, where={
+                'source': logsource,
+                'offset': offset,
+            }, values={
+                'build': build,
+                'project': build.project,
+                'offset': offset,
+                'size': chunk_size,
+                'text': chunk,
+            })
+            db.session.commit()
             offset += chunk_size
 
     def _sync_test_results(self, build, entity):

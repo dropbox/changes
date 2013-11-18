@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 
-import httpretty
 import os.path
+# TODO(dcramer): once responses is OS, replace this
+from changes.utils import responses
 
 from flask import current_app
 from uuid import UUID
@@ -61,19 +62,19 @@ class BaseTestCase(BackendTestCase):
 # TODO(dcramer): these tests need to ensure we're passing the right parameters
 # to jenkins
 class CreateBuildTest(BaseTestCase):
-    @httpretty.activate
+    @responses.activate
     def test_queued_creation(self):
-        httpretty.register_uri(
-            httpretty.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+        responses.add(
+            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
             body='',
             status=201)
 
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/queue/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/api/json/',
             body=self.load_fixture('fixtures/GET/queue_list.json'))
 
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
         build = self.create_build(
@@ -97,19 +98,19 @@ class CreateBuildTest(BaseTestCase):
             'queued': True,
         }
 
-    @httpretty.activate
+    @responses.activate
     def test_active_creation(self):
-        httpretty.register_uri(
-            httpretty.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+        responses.add(
+            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
             body='',
             status=201)
 
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/queue/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/api/json/',
             body=self.load_fixture('fixtures/GET/queue_list.json'))
 
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
         build = self.create_build(
@@ -133,19 +134,19 @@ class CreateBuildTest(BaseTestCase):
             'queued': False,
         }
 
-    @httpretty.activate
+    @responses.activate
     def test_patch(self):
-        httpretty.register_uri(
-            httpretty.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+        responses.add(
+            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
             body='',
             status=201)
 
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/queue/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/api/json/',
             body=self.load_fixture('fixtures/GET/queue_list.json'))
 
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
         patch = Patch(
@@ -169,10 +170,10 @@ class CreateBuildTest(BaseTestCase):
 
 
 class SyncBuildTest(BaseTestCase):
-    @httpretty.activate
+    @responses.activate
     def test_waiting_in_queue(self):
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_pending.json'))
 
         build = self.create_build(
@@ -198,10 +199,10 @@ class SyncBuildTest(BaseTestCase):
 
         assert build.status == Status.queued
 
-    @httpretty.activate
+    @responses.activate
     def test_cancelled_in_queue(self):
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_cancelled.json'))
 
         build = self.create_build(
@@ -228,16 +229,16 @@ class SyncBuildTest(BaseTestCase):
         assert build.status == Status.finished
         assert build.result == Result.aborted
 
-    @httpretty.activate
+    @responses.activate
     def test_queued_to_active(self):
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_building.json'))
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_building.json'))
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -269,14 +270,14 @@ class SyncBuildTest(BaseTestCase):
         assert build.status == Status.in_progress
         assert build.date_started is not None
 
-    @httpretty.activate
+    @responses.activate
     def test_success_result(self):
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_success.json'))
 
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -310,13 +311,13 @@ class SyncBuildTest(BaseTestCase):
         assert build.duration == 8875
         assert build.date_finished is not None
 
-    @httpretty.activate
+    @responses.activate
     def test_failed_result(self):
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_failed.json'))
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -350,16 +351,16 @@ class SyncBuildTest(BaseTestCase):
         assert build.duration == 8875
         assert build.date_finished is not None
 
-    @httpretty.activate
+    @responses.activate
     def test_does_sync_test_report(self):
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_with_test_report.json'))
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -400,13 +401,13 @@ class SyncBuildTest(BaseTestCase):
         assert test_list[1].message == ''
         assert test_list[1].duration == 155
 
-    @httpretty.activate
+    @responses.activate
     def test_does_sync_log(self):
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_failed.json'))
-        httpretty.register_uri(
-            httpretty.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '7'},
             body='Foo bar')

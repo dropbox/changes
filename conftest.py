@@ -1,3 +1,4 @@
+import mock
 import os
 import sys
 
@@ -13,7 +14,7 @@ alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 # force model registration
 from changes.config import create_app, db
 
-app, app_context, connection, transaction, commit = None, None, None, None, None
+app, app_context, connection, transaction, patchers = None, None, None, None, []
 
 from flask_sqlalchemy import _SignallingSession
 
@@ -31,7 +32,7 @@ class SignallingSession(_SignallingSession):
 
 
 def pytest_sessionstart(session):
-    global app, app_context, connection, transaction, commit
+    global app, app_context, connection, transaction, patchers
 
     app = create_app(
         TESTING=True,
@@ -49,25 +50,35 @@ def pytest_sessionstart(session):
 
     db.session = db.create_scoped_session({
         'autoflush': True,
+
+        # XXX: we specify autocommit to guarantee we can start/wrap
+        # tests in a single transaction
+        'autocommit': True,
     })
 
     connection = db.engine.connect()
     transaction = connection.begin()
 
-    commit = db.session.commit
-    db.session.commit = lambda: True
-
 
 def pytest_sessionfinish():
     transaction.rollback()
     connection.close()
-    db.session.commit = commit
 
 
 # TODO: mock session commands
 def pytest_runtest_setup(item):
-    item.__sqla_transaction = db.session.begin_nested()
+    item.__sqla_transaction = db.session.begin()
+    patchers.extend([
+        mock.patch.object(db.session, 'commit'),
+        # TODO(dcramer): if we correctly mocked out commit to only allow
+        # savepoint commits we wouldn't need to mock begin_nested
+        # mock.patch.object(db.session, 'begin_nested'),
+    ])
+    for p in patchers:
+        p.start()
 
 
 def pytest_runtest_teardown(item):
     item.__sqla_transaction.rollback()
+    while patchers:
+        patchers.pop().stop()
