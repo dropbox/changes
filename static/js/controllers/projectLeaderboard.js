@@ -31,7 +31,6 @@ define([
         bs.percentBuildTimeChange = null;
       }
 
-
       $scope.buildStats = bs
       $scope.newSlowTestGroups = initialTestData.data.newSlowTestGroups;
 
