@@ -10,16 +10,14 @@ define([
     'use strict';
       var bs = initialTestData.data.buildStats;
 
-      bs.numBuilds = bs.numFailed + bs.numPassed;
       if (bs.numBuilds > 0) {
-        bs.percentPassed = Math.round(bs.numPassed / bs.numBuilds * 100);
+        bs.percentPassed = Math.round(bs.numPassed / (bs.numFailed + bs.numPassed) * 100);
       } else {
         bs.percentPassed = null;
       }
 
-      bs.previousPeriod.numBuilds = bs.previousPeriod.numFailed + bs.previousPeriod.numPassed;
       if (bs.previousPeriod.numBuilds > 0) {
-        bs.previousPeriod.percentPassed = Math.round(bs.previousPeriod.numPassed / bs.previousPeriod.numBuilds * 100);
+        bs.previousPeriod.percentPassed = Math.round(bs.previousPeriod.numPassed / (bs.previousPeriod.numFailed + bs.previousPeriod.numPassed) * 100);
       } else {
         bs.previousPeriod.percentPassed = null;
       }

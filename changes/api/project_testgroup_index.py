@@ -24,6 +24,7 @@ class ProjectTestGroupIndexAPIView(APIView):
 
     def get(self, project_id):
         project = self._get_project(project_id)
+
         current_datetime = datetime.now()
 
         current_build = Build.query.options(
@@ -77,11 +78,29 @@ class ProjectTestGroupIndexAPIView(APIView):
             Build.date_created >= cutoff,
             Build.date_created < current_datetime,
         ).count()
+        num_builds = Build.query.filter(
+            Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.date_created >= cutoff,
+            Build.date_created < current_datetime,
+        ).count()
+
+        num_authors = db.session.query(
+            func.count(Build.author_id)
+        ).filter(
+            Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.date_created >= cutoff,
+            Build.date_created < current_datetime,
+        ).group_by(Build.author_id).scalar()
 
         avg_build_time = db.session.query(
             func.avg(Build.duration).label('avg_build_time'),
         ).filter(
             Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+            Build.duration > 0,
             Build.date_created >= cutoff,
             Build.date_created < current_datetime,
         ).scalar()
@@ -104,11 +123,20 @@ class ProjectTestGroupIndexAPIView(APIView):
             Build.date_created >= previous_cutoff,
             Build.date_created < cutoff,
         ).count()
+        previous_num_builds = Build.query.filter(
+            Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.date_created >= previous_cutoff,
+            Build.date_created < cutoff,
+        ).count()
 
         previous_avg_build_time = db.session.query(
             func.avg(Build.duration).label('avg_build_time'),
         ).filter(
             Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+            Build.duration > 0,
             Build.date_created >= previous_cutoff,
             Build.date_created < cutoff,
         ).scalar()
@@ -120,11 +148,14 @@ class ProjectTestGroupIndexAPIView(APIView):
                 'period': [current_datetime, cutoff],
                 'numFailed': num_failures,
                 'numPassed': num_passes,
+                'numBuilds': num_builds,
                 'avgBuildTime': avg_build_time,
+                'numAuthors': num_authors,
                 'previousPeriod': {
                     'period': [cutoff, previous_cutoff],
                     'numFailed': previous_num_failures,
                     'numPassed': previous_num_passes,
+                    'numBuilds': previous_num_builds,
                     'avgBuildTime': previous_avg_build_time,
                 }
             },

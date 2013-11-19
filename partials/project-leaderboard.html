@@ -1,11 +1,10 @@
 <h2>
-	{{project.name}} Stats
+	{{project.name}}
 	<small>{{buildStats.period[1] | date}} through {{buildStats.period[0] | date}}</small>
 </h2>
 
 <h3>
 	Overall Stability
-	<small>{{buildStats.percentPassed}}% of builds passed this period</small>
 </h3>
 
 <div class="progress">
@@ -17,15 +16,20 @@
   	</div>
 </div>
 
-<div>
-	<p ng-if="buildStats.avgBuildTime">
+<h3>Quick Facts</h3>
+
+<ul>
+	<li>There were {{buildStats.numBuilds}} completed builds.</li>
+	<li ng-if="buildStats.avgBuildTime">
 		The average build time was <span duration="buildStats.avgBuildTime"></span>
-		<span ng-if="buildStats.previousPeriod.numBuilds"> (<span ng-if="buildStats.buildTimeChange >= 0">+</span><span duration="buildStats.buildTimeChange"></span>)</span>.
-	</p>
-	<p ng-if="buildStats.previousPeriod.numBuilds">
-		During the previous period, {{buildStats.previousPeriod.percentPassed}}% of the {{buildStats.previousPeriod.numBuilds}} builds passed.
-	</p>
-</div>
+		<span ng-if="buildStats.previousPeriod.numBuilds"> (<span ng-if="buildStats.buildTimeChange >= 0">+</span><span duration="buildStats.buildTimeChange"></span>)</span>
+	</li>
+	<li>
+		{{buildStats.percentPassed}}% of builds passed.
+		<span ng-if="buildStats.previousPeriod.numBuilds">During the previous period, {{buildStats.previousPeriod.percentPassed}}% of the {{buildStats.previousPeriod.numBuilds}} builds passed.</span>
+	</li>
+	<li>{{buildStats.numAuthors}} unique people submitted builds.</li>
+</ul>
 
 <div ng-if="newSlowTestGroups">
 	<h3>Fresh Sadness <small>Newly created tests that are contributing to the slowness</h3>
