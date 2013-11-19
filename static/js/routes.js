@@ -104,6 +104,9 @@ define(['app',
           resolve: {
             initialProject: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
+            }],
+            initialTestData: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/testgroups/');
             }]
           }
         })
