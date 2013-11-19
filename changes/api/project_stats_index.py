@@ -12,7 +12,7 @@ from changes.models import TestGroup, Project, Build
 SLOW_TEST_THRESHOLD = 1000  # 1 second
 
 
-class ProjectTestGroupIndexAPIView(APIView):
+class ProjectStatsIndexAPIView(APIView):
     def _get_project(self, project_id):
         project = Project.query.options(
             joinedload(Project.repository),

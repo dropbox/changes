@@ -98,15 +98,15 @@ define(['app',
             }]
           }
         })
-        .when('/projects/:project_id/leaderboard/', {
-          templateUrl: 'partials/project-leaderboard.html',
+        .when('/projects/:project_id/stats/', {
+          templateUrl: 'partials/project-stats.html',
           controller: 'projectLeaderboardCtrl',
           resolve: {
             initialProject: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
             }],
             initialTestData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/testgroups/');
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/stats/');
             }]
           }
         })
