@@ -4,9 +4,9 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView
-from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
 from changes.config import db
-from changes.models import TestGroup, Project
+from changes.constants import Status
+from changes.models import TestGroup, Project, Build
 
 SLOW_TEST_THRESHOLD = 1000  # 1 second
 
@@ -25,26 +25,41 @@ class ProjectTestGroupIndexAPIView(APIView):
     def get(self, project_id):
         project = self._get_project(project_id)
 
+        current_build = Build.query.options(
+            joinedload(Build.project),
+            joinedload(Build.author),
+        ).filter(
+            Build.revision_sha != None,  # NOQA
+            Build.project == project,
+            Build.status == Status.finished,
+        ).order_by(
+            Build.date_created.desc(),
+        ).first()
+
+        # TODO(dcramer): if this is useful, we should denormalize testgroups
+        # identify all names which were first seen in the last week
+        # and have exceeded the threshold (ever)
         stmt = db.session.query(
-            TestGroup, func.min(TestGroup.date_created).label('first_seen')
+            TestGroup.name_sha
         ).filter(
             TestGroup.project_id == project.id,
             TestGroup.num_leaves == 0,
             TestGroup.duration > SLOW_TEST_THRESHOLD,
-        ).group_by(TestGroup).subquery('t')
+        ).group_by(TestGroup.name_sha).having(
+            func.min(TestGroup.date_created) >= datetime.now() - timedelta(days=7),
+        ).subquery('t')
 
-        new_slow_tests = list(db.session.query(TestGroup).select_from(stmt).filter(
-            stmt.c.first_seen >= datetime.now() - timedelta(days=7),
-        ).options(
-            joinedload(TestGroup.build),
-        ).order_by(stmt.c.first_seen.desc()).limit(100))
+        # find current build tests which are still over threshold and match
+        # our names
+        new_slow_tests = db.session.query(TestGroup).filter(
+            TestGroup.build_id == current_build.id,
+            TestGroup.name_sha.in_(stmt),
+        ).order_by(TestGroup.duration.desc()).limit(100)
 
-        extended_serializers = {
-            TestGroup: TestGroupWithBuildSerializer(),
-        }
+        new_slow_tests = list(new_slow_tests)
 
         context = {
-            'newSlowTestGroups': self.serialize(new_slow_tests, extended_serializers),
+            'newSlowTestGroups': new_slow_tests,
         }
 
         return self.respond(context)

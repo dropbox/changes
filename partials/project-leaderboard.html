@@ -12,8 +12,7 @@
 	<tbody>
 		<tr ng-repeat="testGroup in newSlowTestGroups" class="result-{{testGroup.result.id}}">
 			<td>
-				<a href="{{ testGroup.link }}">{{testGroup.name}}</a><br>
-				First seen in <a href="{{testGroup.build.link}}">{{testGroup.build.target}}</a>
+				<a href="{{ testGroup.link }}">{{testGroup.name}}</a>
 			</td>
 			<td style="text-align:center">{{testGroup.numFailures}}</td>
 			<td style="text-align:center">{{testGroup.numTests}}</td>
