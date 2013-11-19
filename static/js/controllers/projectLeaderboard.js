@@ -26,7 +26,7 @@ define([
       }
 
       if (bs.avgBuildTime && bs.previousPeriod.avgBuildTime) {
-        bs.percentBuildTimeChange = 100 - (bs.avgBuildTime / bs.previousPeriod.avgBuildTime);
+        bs.percentBuildTimeChange = Math.round(100 - (bs.avgBuildTime / bs.previousPeriod.avgBuildTime * 100));
       } else {
         bs.percentBuildTimeChange = null;
       }
