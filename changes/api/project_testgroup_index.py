@@ -85,6 +85,8 @@ class ProjectTestGroupIndexAPIView(APIView):
             Build.date_created >= cutoff,
             Build.date_created < current_datetime,
         ).scalar()
+        if avg_build_time is not None:
+            avg_build_time = float(avg_build_time)
 
         previous_cutoff = cutoff - timedelta(days=7)
 
@@ -110,6 +112,8 @@ class ProjectTestGroupIndexAPIView(APIView):
             Build.date_created >= previous_cutoff,
             Build.date_created < cutoff,
         ).scalar()
+        if previous_avg_build_time is not None:
+            previous_avg_build_time = float(previous_avg_build_time)
 
         context = {
             'buildStats': {
