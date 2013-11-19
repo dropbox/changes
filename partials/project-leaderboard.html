@@ -22,8 +22,6 @@
 	<thead>
 		<tr>
 			<th>&nbsp;</th>
-			<th style="width:80px;text-align:center">Failures</th>
-			<th style="width:80px;text-align:center">Total</th>
 			<th style="width:110px;text-align:center">Duration</th>
 		</tr>
 	</thead>
@@ -32,8 +30,6 @@
 			<td>
 				<a href="{{ testGroup.link }}">{{testGroup.name}}</a>
 			</td>
-			<td style="text-align:center">{{testGroup.numFailures}}</td>
-			<td style="text-align:center">{{testGroup.numTests}}</td>
 			<td style="text-align:center" duration="testGroup.duration"></td>
 		</tr>
 	</tbody>
