@@ -6,6 +6,11 @@ define(['app'], function(app) {
   return function duration(value) {
     var result;
 
+    neg = value < 0 ? true : false;
+    if (neg) {
+      value = -value;
+    }
+
     if (value > 7200000) {
       result = Math.round(value / 3600000) + ' hr';
     } else if (value > 120000) {
@@ -16,6 +21,10 @@ define(['app'], function(app) {
       result = round(value / 1000) + ' sec';
     } else {
       result = Math.round(value) + ' ms';
+    }
+
+    if (neg) {
+      result = '-' + result;
     }
 
     return result;
