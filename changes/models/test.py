@@ -192,6 +192,7 @@ class TestGroup(db.Model):
         Index('idx_testgroup_project_id', 'project_id'),
         Index('idx_testgroup_suite_id', 'suite_id'),
         Index('idx_testgroup_parent_id', 'parent_id'),
+        Index('idx_testgroup_project_date', 'project_id', 'date_created'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

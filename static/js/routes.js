@@ -2,7 +2,9 @@ define(['app',
         'controllers/layout', 'controllers/changeList', 'controllers/changeDetails',
         'controllers/buildList', 'controllers/buildDetails',
         'controllers/testGroupDetails',
-        'controllers/projectList', 'controllers/projectDetails'
+        'controllers/projectLeaderboard',
+        'controllers/projectList',
+        'controllers/projectDetails'
        ], function(app) {
 
   'use strict';
@@ -93,6 +95,15 @@ define(['app',
             }],
             initialBuildList: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/');
+            }]
+          }
+        })
+        .when('/projects/:project_id/leaderboard/', {
+          templateUrl: 'partials/project-leaderboard.html',
+          controller: 'projectLeaderboardCtrl',
+          resolve: {
+            initialProject: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
             }]
           }
         })

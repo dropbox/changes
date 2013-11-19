@@ -1,16 +1,9 @@
 from flask import Response
 
 from changes.api.base import APIView
-from changes.api.serializer.models.testgroup import TestGroupSerializer
+from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import Build, TestGroup, TestCase
-
-
-class TestGroupWithBuildSerializer(TestGroupSerializer):
-    def serialize(self, instance):
-        data = super(TestGroupWithBuildSerializer, self).serialize(instance)
-        data['build'] = instance.build
-        return data
 
 
 class TestGroupDetailsAPIView(APIView):

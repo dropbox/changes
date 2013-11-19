@@ -22,3 +22,10 @@ class TestGroupSerializer(Serializer):
             'link': '/testgroups/%s/' % (instance.id.hex,),
             'dateCreated': instance.date_created,
         }
+
+
+class TestGroupWithBuildSerializer(TestGroupSerializer):
+    def serialize(self, instance):
+        data = super(TestGroupWithBuildSerializer, self).serialize(instance)
+        data['build'] = instance.build
+        return data
