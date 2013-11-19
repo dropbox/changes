@@ -25,6 +25,13 @@ define([
         bs.previousPeriod.percentPassed = null;
       }
 
+      if (bs.avgBuildTime && bs.previousPeriod.avgBuildTime) {
+        bs.percentBuildTimeChange = 100 - (bs.avgBuildTime / bs.previousPeriod.avgBuildTime);
+      } else {
+        bs.percentBuildTimeChange = null;
+      }
+
+
       $scope.buildStats = bs
       $scope.newSlowTestGroups = initialTestData.data.newSlowTestGroups;
 

@@ -64,42 +64,64 @@ class ProjectTestGroupIndexAPIView(APIView):
         cutoff = current_datetime - timedelta(days=7)
 
         num_passes = Build.query.filter(
+            Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.passed,
             Build.date_created >= cutoff,
             Build.date_created < current_datetime,
         ).count()
         num_failures = Build.query.filter(
+            Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.failed,
             Build.date_created >= cutoff,
             Build.date_created < current_datetime,
         ).count()
 
+        avg_build_time = db.session.query(
+            func.avg(Build.duration).label('avg_build_time'),
+        ).filter(
+            Build.project_id == project.id,
+            Build.date_created >= cutoff,
+            Build.date_created < current_datetime,
+        ).scalar()
+
         previous_cutoff = cutoff - timedelta(days=7)
 
         previous_num_passes = Build.query.filter(
+            Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.passed,
             Build.date_created >= previous_cutoff,
             Build.date_created < cutoff,
         ).count()
         previous_num_failures = Build.query.filter(
+            Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.failed,
             Build.date_created >= previous_cutoff,
             Build.date_created < cutoff,
         ).count()
 
+        previous_avg_build_time = db.session.query(
+            func.avg(Build.duration).label('avg_build_time'),
+        ).filter(
+            Build.project_id == project.id,
+            Build.date_created >= previous_cutoff,
+            Build.date_created < cutoff,
+        ).scalar()
+
         context = {
             'buildStats': {
                 'period': [current_datetime, cutoff],
                 'numFailed': num_failures,
                 'numPassed': num_passes,
+                'avgBuildTime': avg_build_time,
                 'previousPeriod': {
                     'period': [cutoff, previous_cutoff],
                     'numFailed': previous_num_failures,
                     'numPassed': previous_num_passes,
+                    'avgBuildTime': previous_avg_build_time,
                 }
             },
             'newSlowTestGroups': new_slow_tests,
