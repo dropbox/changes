@@ -17,21 +17,23 @@
 	<p>During the previous period, {{buildStats.previousPeriod.percentPassed}}% of the {{buildStats.previousPeriod.numBuilds}} builds passed.</p>
 </div>
 
-<h2>Fresh Sadness <small>Newly created tests that are contributing to the slowness</h2>
+<div ng-if="newSlowTestGroups">
+	<h2>Fresh Sadness <small>Newly created tests that are contributing to the slowness</h2>
 
-<table class="table table-striped table-bordered">
-	<thead>
-		<tr>
-			<th>&nbsp;</th>
-			<th style="width:110px;text-align:center">Duration</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr ng-repeat="testGroup in newSlowTestGroups" class="result-{{testGroup.result.id}}">
-			<td>
-				<a href="{{ testGroup.link }}">{{testGroup.name}}</a>
-			</td>
-			<td style="text-align:center" duration="testGroup.duration"></td>
-		</tr>
-	</tbody>
-</table>
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th>&nbsp;</th>
+				<th style="width:110px;text-align:center">Duration</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="testGroup in newSlowTestGroups" class="result-{{testGroup.result.id}}">
+				<td>
+					<a href="{{ testGroup.link }}">{{testGroup.name}}</a>
+				</td>
+				<td style="text-align:center" duration="testGroup.duration"></td>
+			</tr>
+		</tbody>
+	</table>
+</small>
