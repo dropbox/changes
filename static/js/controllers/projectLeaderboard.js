@@ -8,7 +8,6 @@ define([
     'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
   app.controller('projectLeaderboardCtrl', ['$scope', 'initialProject', 'initialTestData', '$http', '$routeParams', 'stream', function($scope, initialProject, initialTestData, $http, $routeParams, Stream) {
     'use strict';
-
       var bs = initialTestData.data.buildStats;
 
       bs.numBuilds = bs.numFailed + bs.numPassed;
@@ -33,6 +32,7 @@ define([
 
       $scope.buildStats = bs
       $scope.newSlowTestGroups = initialTestData.data.newSlowTestGroups;
+      $scope.project = initialProject.data.project;
 
   }]);
 });

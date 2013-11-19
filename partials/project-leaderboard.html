@@ -1,7 +1,12 @@
 <h2>
+	{{project.name}} Stats
+	<small>{{buildStats.period[1] | date}} through {{buildStats.period[0] | date}}</small>
+</h2>
+
+<h3>
 	Overall Stability
 	<small>{{buildStats.percentPassed}}% of builds passed this period</small>
-</h2>
+</h3>
 
 <div class="progress">
 	<div class="progress-bar progress-bar-success" style="width:{{buildStats.percentPassed}}%">
@@ -18,7 +23,7 @@
 </div>
 
 <div ng-if="newSlowTestGroups">
-	<h2>Fresh Sadness <small>Newly created tests that are contributing to the slowness</h2>
+	<h3>Fresh Sadness <small>Newly created tests that are contributing to the slowness</h3>
 
 	<table class="table table-striped table-bordered">
 		<thead>
