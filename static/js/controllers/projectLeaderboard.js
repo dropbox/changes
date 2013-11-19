@@ -26,9 +26,9 @@ define([
       }
 
       if (bs.avgBuildTime && bs.previousPeriod.avgBuildTime) {
-        bs.percentBuildTimeChange = -Math.round(100 - (bs.avgBuildTime / bs.previousPeriod.avgBuildTime * 100));
+        bs.buildTimeChange = bs.avgBuildTime - bs.previousPeriod.avgBuildTime;
       } else {
-        bs.percentBuildTimeChange = null;
+        bs.buildTimeChange = null;
       }
 
       $scope.buildStats = bs

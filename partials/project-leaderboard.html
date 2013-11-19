@@ -13,7 +13,7 @@
 </div>
 
 <div ng-if="buildStats.previousPeriod.numBuilds">
-	<p ng-if="buildStats.avgBuildTime">The average build time was <span duration="buildStats.avgBuildTime"></span> (<span ng-if="buildStats.percentBuildTimeChange >= 0">+</span>{{buildStats.percentBuildTimeChange}}%).</p>
+	<p ng-if="buildStats.avgBuildTime">The average build time was <span duration="buildStats.avgBuildTime"></span> (<span ng-if="buildStats.buildTimeChange >= 0">+</span> <span duration="buildStats.buildTimeChange"></span>).</p>
 	<p>During the previous period, {{buildStats.previousPeriod.percentPassed}}% of the {{buildStats.previousPeriod.numBuilds}} builds passed.</p>
 </div>
 
