@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from sqlalchemy import distinct
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 
@@ -86,13 +87,13 @@ class ProjectTestGroupIndexAPIView(APIView):
         ).count()
 
         num_authors = db.session.query(
-            func.count(Build.author_id)
+            func.count(distinct(Build.author_id))
         ).filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.date_created >= cutoff,
             Build.date_created < current_datetime,
-        ).group_by(Build.author_id).scalar()
+        ).scalar()
 
         avg_build_time = db.session.query(
             func.avg(Build.duration).label('avg_build_time'),
