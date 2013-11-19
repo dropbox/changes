@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Status, Result
 from changes.models import TestGroup, Project, Build
 
 SLOW_TEST_THRESHOLD = 1000  # 1 second
@@ -24,6 +24,7 @@ class ProjectTestGroupIndexAPIView(APIView):
 
     def get(self, project_id):
         project = self._get_project(project_id)
+        current_datetime = datetime.now()
 
         current_build = Build.query.options(
             joinedload(Build.project),
@@ -46,7 +47,7 @@ class ProjectTestGroupIndexAPIView(APIView):
             TestGroup.num_leaves == 0,
             TestGroup.duration > SLOW_TEST_THRESHOLD,
         ).group_by(TestGroup.name_sha).having(
-            func.min(TestGroup.date_created) >= datetime.now() - timedelta(days=7),
+            func.min(TestGroup.date_created) >= current_datetime - timedelta(days=7),
         ).subquery('t')
 
         # find current build tests which are still over threshold and match
@@ -59,7 +60,48 @@ class ProjectTestGroupIndexAPIView(APIView):
 
         new_slow_tests = list(new_slow_tests)
 
+        # TODO(dcramer): this could be done in a single query
+        cutoff = current_datetime - timedelta(days=7)
+
+        num_passes = Build.query.filter(
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+            Build.date_created >= cutoff,
+            Build.date_created < current_datetime,
+        ).count()
+        num_failures = Build.query.filter(
+            Build.status == Status.finished,
+            Build.result == Result.failed,
+            Build.date_created >= cutoff,
+            Build.date_created < current_datetime,
+        ).count()
+
+        previous_cutoff = cutoff - timedelta(days=7)
+
+        previous_num_passes = Build.query.filter(
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+            Build.date_created >= previous_cutoff,
+            Build.date_created < cutoff,
+        ).count()
+        previous_num_failures = Build.query.filter(
+            Build.status == Status.finished,
+            Build.result == Result.failed,
+            Build.date_created >= previous_cutoff,
+            Build.date_created < cutoff,
+        ).count()
+
         context = {
+            'buildStats': {
+                'period': [current_datetime, cutoff],
+                'numFailed': num_failures,
+                'numPassed': num_passes,
+                'previousPeriod': {
+                    'period': [cutoff, previous_cutoff],
+                    'numFailed': previous_num_failures,
+                    'numPassed': previous_num_passes,
+                }
+            },
             'newSlowTestGroups': new_slow_tests,
         }
 

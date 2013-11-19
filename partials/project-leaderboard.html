@@ -1,3 +1,21 @@
+<h2>
+	Overall Stability
+	<small>{{buildStats.percentPassed}}% of builds passed this period</small>
+</h2>
+
+<div class="progress">
+	<div class="progress-bar progress-bar-success" style="width:{{buildStats.percentPassed}}%">
+		<span>{{buildStats.numPassed}} Passed</span>
+	</div>
+	<div class="progress-bar progress-bar-danger" style="width:{{100 - buildStats.percentPassed}}%">
+    	<span>{{buildStats.numFailed}} Failed</span>
+  	</div>
+</div>
+
+<div ng-if="buildStats.previousPeriod.numBuilds">
+	<p>During the previous period, {{buildStats.previousPeriod.percentPassed}}% of the {{buildStats.previousPeriod.numBuilds}} builds passed.</p>
+</div>
+
 <h2>Fresh Sadness <small>Newly created tests that are contributing to the slowness</h2>
 
 <table class="table table-striped table-bordered">
