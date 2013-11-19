@@ -53,6 +53,7 @@ class ProjectTestGroupIndexAPIView(APIView):
         # our names
         new_slow_tests = db.session.query(TestGroup).filter(
             TestGroup.build_id == current_build.id,
+            TestGroup.duration > SLOW_TEST_THRESHOLD,
             TestGroup.name_sha.in_(stmt),
         ).order_by(TestGroup.duration.desc()).limit(100)
 
