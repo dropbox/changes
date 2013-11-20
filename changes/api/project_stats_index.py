@@ -31,6 +31,8 @@ class ProjectStatsIndexAPIView(APIView):
     def get(self, project_id):
         project = self._get_project(project_id)
 
+        period_length = int(request.args.get('days') or 7)
+
         end_period = request.args.get('end')
         if end_period:
             end_period = parse_date(end_period)
@@ -41,7 +43,7 @@ class ProjectStatsIndexAPIView(APIView):
         if start_period:
             start_period = parse_date(start_period)
         else:
-            start_period = end_period - timedelta(days=7)
+            start_period = end_period - timedelta(days=period_length)
 
         current_build = Build.query.options(
             joinedload(Build.project),
