@@ -125,8 +125,8 @@ class ProjectStatsIndexAPIView(APIView):
         if avg_build_time is not None:
             avg_build_time = float(avg_build_time)
 
-        previous_start_period = start_period - (end_period - start_period)
         previous_end_period = start_period
+        previous_start_period = previous_end_period - (end_period - start_period)
 
         previous_num_passes = Build.query.filter(
             Build.project_id == project.id,
