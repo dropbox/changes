@@ -26,7 +26,6 @@ def get_build_history(project, end_period, days=90):
     query = db.session.query(
         Build.result,
         func.count('*').label('num'),
-        func.avg(Build.duration).label('avg_duration'),
         func.date_trunc(literal('day'), Build.date_created).label('date')
     ).filter(
         Build.project_id == project.id,
@@ -45,14 +44,12 @@ def get_build_history(project, end_period, days=90):
                 'aborted': 0,
                 'unknown': 0,
             },
-            'avgDuration': 0,
             'numBuilds': 0,
         }
 
-    for result, num, avg_duration, date in query:
+    for result, num, date in query:
         this = results[date_to_key(date)]
         this['counts'][result.name] += num
-        this['avgDuration'] = avg_duration
         this['numBuilds'] += num
 
     return results
