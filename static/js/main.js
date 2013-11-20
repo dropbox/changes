@@ -8,8 +8,10 @@ require.config({
     'angularSanitize': '../vendor/angular-sanitize/angular-sanitize',
     'angularLoadingBar': '../vendor/angular-loading-bar/build/loading-bar',
     'bootstrap': '../vendor/bootstrap/dist/js/bootstrap',
+    'd3': '../vendor/d3/d3',
     'jquery': '../vendor/jquery/jquery',
     'moment': '../vendor/moment/moment',
+    'nvd3': '../vendor/nvd3/nv.d3'
   },
   baseUrl: 'static/js',
   shim: {
@@ -26,6 +28,7 @@ require.config({
     'filters/truncate': ['angular'],
     'jquery': {exports: 'jquery'},
     'bootstrap': {deps: ['jquery']},
+    'nvd3': {deps: ['d3']}
   },
   priority: [
     "jquery",

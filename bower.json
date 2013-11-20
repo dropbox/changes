@@ -19,6 +19,7 @@
     "bootstrap": "~3.0.0",
     "jquery": "~2.0.3",
     "moment": "~2.1.0",
+    "nvd3": "",
     "requirejs": "~2.1.8"
   }
 }

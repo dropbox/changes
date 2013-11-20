@@ -105,7 +105,7 @@ define(['app',
             initialProject: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
             }],
-            initialTestData: ['$http', '$route', '$window', function($http, $route, $window) {
+            initialStats: ['$http', '$route', '$window', function($http, $route, $window) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/stats/' + $window.location.search);
             }]
           }

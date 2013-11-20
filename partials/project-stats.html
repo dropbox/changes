@@ -1,11 +1,11 @@
-<h2>
-	{{project.name}}
-	<small>{{buildStats.period[0] | date}} through {{buildStats.period[1] | date}}</small>
-</h2>
+<h1>
+	{{project.name}} <small>Stats</small>
+</h1>
 
-<h3>
-	Overall Stability
-</h3>
+<div id="chart"><svg style="height:200px"></svg></div>
+
+
+<h2>{{buildStats.period[0] | date}} through {{buildStats.period[1] | date}}</h2>
 
 <div class="progress">
 	<div class="progress-bar progress-bar-success" style="width:{{buildStats.percentPassed}}%">

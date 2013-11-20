@@ -28,8 +28,16 @@ h4 small {
   font-size: 0.7em;
 }
 
+h1 {
+  font-size: 2em;
+}
+
+h1 small {
+  font-size: 0.7em;
+}
+
 h2 {
-  font-family: 1.6em;
+  font-size: 1.6em;
 }
 
 th {
