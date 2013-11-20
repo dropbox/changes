@@ -125,27 +125,28 @@ class ProjectStatsIndexAPIView(APIView):
         if avg_build_time is not None:
             avg_build_time = float(avg_build_time)
 
-        previous_cutoff = start_period - (end_period - start_period)
+        previous_start_period = end_period
+        previous_end_period = start_period - (end_period - start_period)
 
         previous_num_passes = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.passed,
-            Build.date_created >= end_period,
-            Build.date_created < previous_cutoff,
+            Build.date_created >= previous_end_period,
+            Build.date_created < previous_start_period,
         ).count()
         previous_num_failures = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.failed,
-            Build.date_created >= end_period,
-            Build.date_created < previous_cutoff,
+            Build.date_created >= previous_end_period,
+            Build.date_created < previous_start_period,
         ).count()
         previous_num_builds = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
-            Build.date_created >= end_period,
-            Build.date_created < previous_cutoff,
+            Build.date_created >= previous_end_period,
+            Build.date_created < previous_start_period,
         ).count()
 
         previous_avg_build_time = db.session.query(
@@ -155,8 +156,8 @@ class ProjectStatsIndexAPIView(APIView):
             Build.status == Status.finished,
             Build.result == Result.passed,
             Build.duration > 0,
-            Build.date_created >= end_period,
-            Build.date_created < previous_cutoff,
+            Build.date_created >= previous_end_period,
+            Build.date_created < previous_start_period,
         ).scalar()
         if previous_avg_build_time is not None:
             previous_avg_build_time = float(previous_avg_build_time)
@@ -170,7 +171,7 @@ class ProjectStatsIndexAPIView(APIView):
                 'avgBuildTime': avg_build_time,
                 'numAuthors': num_authors,
                 'previousPeriod': {
-                    'period': [end_period, previous_cutoff],
+                    'period': [previous_start_period, previous_end_period],
                     'numFailed': previous_num_failures,
                     'numPassed': previous_num_passes,
                     'numBuilds': previous_num_builds,
