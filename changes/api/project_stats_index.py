@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-
-from sqlalchemy import distinct
+from flask import request
+from sqlalchemy import distinct, and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 
@@ -10,6 +10,11 @@ from changes.constants import Status, Result
 from changes.models import TestGroup, Project, Build
 
 SLOW_TEST_THRESHOLD = 1000  # 1 second
+
+
+def parse_date(value):
+    from dateutil.parser import parse
+    return parse(value)
 
 
 class ProjectStatsIndexAPIView(APIView):
@@ -26,7 +31,17 @@ class ProjectStatsIndexAPIView(APIView):
     def get(self, project_id):
         project = self._get_project(project_id)
 
-        current_datetime = datetime.now()
+        end_period = request.args.get('end')
+        if end_period:
+            end_period = parse_date(end_period)
+        else:
+            end_period = datetime.now()
+
+        start_period = request.args.get('start')
+        if start_period:
+            start_period = parse_date(start_period)
+        else:
+            start_period = end_period - timedelta(days=7)
 
         current_build = Build.query.options(
             joinedload(Build.project),
@@ -49,7 +64,10 @@ class ProjectStatsIndexAPIView(APIView):
             TestGroup.num_leaves == 0,
             TestGroup.duration > SLOW_TEST_THRESHOLD,
         ).group_by(TestGroup.name_sha).having(
-            func.min(TestGroup.date_created) >= current_datetime - timedelta(days=7),
+            and_(
+                func.min(TestGroup.date_created) >= start_period,
+                func.min(TestGroup.date_created) < end_period,
+            )
         ).subquery('t')
 
         # find current build tests which are still over threshold and match
@@ -62,28 +80,25 @@ class ProjectStatsIndexAPIView(APIView):
 
         new_slow_tests = list(new_slow_tests)
 
-        # TODO(dcramer): this could be done in a single query
-        cutoff = current_datetime - timedelta(days=7)
-
         num_passes = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.passed,
-            Build.date_created >= cutoff,
-            Build.date_created < current_datetime,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
         ).count()
         num_failures = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.failed,
-            Build.date_created >= cutoff,
-            Build.date_created < current_datetime,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
         ).count()
         num_builds = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
-            Build.date_created >= cutoff,
-            Build.date_created < current_datetime,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
         ).count()
 
         num_authors = db.session.query(
@@ -91,8 +106,8 @@ class ProjectStatsIndexAPIView(APIView):
         ).filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
-            Build.date_created >= cutoff,
-            Build.date_created < current_datetime,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
         ).scalar()
 
         avg_build_time = db.session.query(
@@ -102,33 +117,33 @@ class ProjectStatsIndexAPIView(APIView):
             Build.status == Status.finished,
             Build.result == Result.passed,
             Build.duration > 0,
-            Build.date_created >= cutoff,
-            Build.date_created < current_datetime,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
         ).scalar()
         if avg_build_time is not None:
             avg_build_time = float(avg_build_time)
 
-        previous_cutoff = cutoff - timedelta(days=7)
+        previous_cutoff = start_period - (end_period - start_period)
 
         previous_num_passes = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.passed,
-            Build.date_created >= previous_cutoff,
-            Build.date_created < cutoff,
+            Build.date_created >= end_period,
+            Build.date_created < previous_cutoff,
         ).count()
         previous_num_failures = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.failed,
-            Build.date_created >= previous_cutoff,
-            Build.date_created < cutoff,
+            Build.date_created >= end_period,
+            Build.date_created < previous_cutoff,
         ).count()
         previous_num_builds = Build.query.filter(
             Build.project_id == project.id,
             Build.status == Status.finished,
-            Build.date_created >= previous_cutoff,
-            Build.date_created < cutoff,
+            Build.date_created >= end_period,
+            Build.date_created < previous_cutoff,
         ).count()
 
         previous_avg_build_time = db.session.query(
@@ -138,22 +153,22 @@ class ProjectStatsIndexAPIView(APIView):
             Build.status == Status.finished,
             Build.result == Result.passed,
             Build.duration > 0,
-            Build.date_created >= previous_cutoff,
-            Build.date_created < cutoff,
+            Build.date_created >= end_period,
+            Build.date_created < previous_cutoff,
         ).scalar()
         if previous_avg_build_time is not None:
             previous_avg_build_time = float(previous_avg_build_time)
 
         context = {
             'buildStats': {
-                'period': [current_datetime, cutoff],
+                'period': [start_period, end_period],
                 'numFailed': num_failures,
                 'numPassed': num_passes,
                 'numBuilds': num_builds,
                 'avgBuildTime': avg_build_time,
                 'numAuthors': num_authors,
                 'previousPeriod': {
-                    'period': [cutoff, previous_cutoff],
+                    'period': [end_period, previous_cutoff],
                     'numFailed': previous_num_failures,
                     'numPassed': previous_num_passes,
                     'numBuilds': previous_num_builds,

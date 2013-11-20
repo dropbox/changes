@@ -50,6 +50,7 @@ install_requires = [
     'oauth2client',
     'phabricator',
     'psycopg2',
+    'python-dateutil',
     'simplejson',
     'unicode-slugify',
 ]
