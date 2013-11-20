@@ -47,6 +47,7 @@ class TestGroupDetailsAPIView(APIView):
         context.reverse()
 
         context = {
+            'project': testgroup.project,
             'build': testgroup.build,
             'testGroup': testgroup,
             'childTestGroups': child_testgroups,

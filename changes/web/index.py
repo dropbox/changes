@@ -1,11 +1,15 @@
 import urlparse
 
-from flask import render_template, current_app
+from flask import render_template, current_app, redirect, url_for, session
 from changes.api.base import MethodView
 
 
 class IndexView(MethodView):
     def get(self, path=''):
+        # require auth
+        if not session.get('email'):
+            return redirect(url_for('login'))
+
         if current_app.config['SENTRY_DSN']:
             parsed = urlparse.urlparse(current_app.config['SENTRY_DSN'])
             dsn = '%s://%s@%s/%s' % (

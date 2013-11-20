@@ -6,7 +6,9 @@ define([
     'utils/sortBuildList',
     'directives/radialProgressBar',
     'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
-  app.controller('projectDetailsCtrl', ['$scope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', function($scope, initialProject, initialBuildList, $http, $routeParams, Stream) {
+  app.controller('projectDetailsCtrl', [
+      '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream',
+      function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, Stream) {
     'use strict';
 
     var stream,
@@ -80,6 +82,8 @@ define([
     $scope.project = initialProject.data.project;
     $scope.builds = sortBuildList(initialBuildList.data.builds);
     $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
+
+    $rootScope.activeProject = $scope.project;
 
     $scope.$watch("builds", function() {
       $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);

@@ -42,6 +42,7 @@ class BuildDetailsAPIView(APIView):
         ), key=lambda x: x.date_created)
 
         context = {
+            'project': build.project,
             'build': build,
             'phases': build.phases,
             'testFailures': {

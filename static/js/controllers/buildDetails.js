@@ -9,7 +9,9 @@ define([
     'filters/escape',
     'filters/wordwrap',
     'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
-  app.controller('buildDetailsCtrl', ['$scope', 'initialData', '$window', '$timeout', '$http', '$routeParams', 'stream', 'pagination', 'flash', function($scope, initialData, $window, $timeout, $http, $routeParams, Stream, Pagination, flash) {
+  app.controller('buildDetailsCtrl', [
+      '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', 'stream', 'pagination', 'flash',
+      function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, Stream, Pagination, flash) {
     'use strict';
 
     var stream, logSources = {},
@@ -182,6 +184,7 @@ define([
         });
     };
 
+    $scope.project = initialData.data.project;
     $scope.build = initialData.data.build;
     $scope.logSources = initialData.data.logs;
     $scope.phases = initialData.data.phase;
@@ -190,6 +193,8 @@ define([
     $scope.testStatus = getTestStatus();
     $scope.previousRuns = initialData.data.previousRuns
     $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
+
+    $rootScope.activeProject = $scope.project;
 
     $scope.$watch("build.status", function(status) {
       $scope.testStatus = getTestStatus();

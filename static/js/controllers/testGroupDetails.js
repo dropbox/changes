@@ -5,7 +5,9 @@ define([
     'utils/escapeHtml',
     'directives/timeSince',
     'directives/duration'], function(app, chartHelpers, duration, escapeHtml) {
-  app.controller('testGroupDetailsCtrl', ['$scope', 'initialData', '$routeParams', function($scope, initialData, $routeParams) {
+  app.controller('testGroupDetailsCtrl', [
+        '$scope', '$rootScope', 'initialData', '$routeParams',
+        function($scope, $rootScope, initialData, $routeParams) {
     'use strict';
 
     var stream,
@@ -33,6 +35,7 @@ define([
           }
         };
 
+    $scope.project = initialData.data.project;
     $scope.build = initialData.data.build;
     $scope.testFailures = initialData.data.testFailures;
     $scope.testGroup = initialData.data.testGroup;
@@ -42,5 +45,7 @@ define([
     $scope.previousRuns = initialData.data.previousRuns;
     $scope.context = initialData.data.context;
     $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.testGroup, chart_options);
+
+    $rootScope.activeProject = $scope.project;
   }]);
 });

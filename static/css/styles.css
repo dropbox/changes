@@ -61,10 +61,12 @@ dl.flat dt {
 .container {
   margin: 0 auto;
 }
-
 .navbar {
   background: #58488a;
   color: #c7c0de;
+}
+.navbar .container {
+  position: relative;
 }
 .navbar .navbar-text {
   color: #c7c0de;
@@ -100,6 +102,81 @@ dl.flat dt {
   background: #58488a;
   color: #fff;
 }
+
+.changes-navbar-small li a {
+  padding: 15px 5px;
+}
+
+
+.project-selector {
+  width: auto;
+  display: block;
+  z-index: 20000;
+  max-width: 550px;
+  color: #fff;
+  float: left;
+  margin-left: -15px;
+  display: block;
+  height: auto;
+}
+.project-selector > a {
+  padding: 15px;
+  font-size: 18px;
+  line-height: 20px;
+  color: inherit;
+  text-decoration: none;
+  max-width: 430px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  position: relative;
+  cursor: pointer;
+  font-weight: 200;
+}
+.project-selector.open > a.dropdown-toggle {
+  background: #463C68;
+}
+.project-selector .caret {
+  border-top-color: #fff;
+  margin-left: 8px;
+}
+.project-selector .dropdown-menu {
+  max-height: 400px;
+  max-width: 502px;
+  overflow: auto;
+  position: absolute;
+  min-height: 50px;
+  padding: 10px;
+  margin: 0;
+  left: 0;
+  border-top: none;
+  color: #fff;
+  background: #463C68;
+  border-radius: 0 0 6px 6px;
+}
+.project-selector .dropdown-menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.project-selector .dropdown-menu ul li {
+  margin: 0;
+  display: inline-block;
+}
+.project-selector .dropdown-menu ul li a {
+  color: #c7c0de;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  width: 160px;
+}
+.project-selector .dropdown-menu ul li a:hover,
+.project-selector .dropdown-menu ul li.active a {
+  color: #fff;
+}
+
 
 .body {
   background: #fff;

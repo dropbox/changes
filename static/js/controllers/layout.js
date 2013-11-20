@@ -1,13 +1,15 @@
 define(['app'], function(app) {
-  app.controller('layoutCtrl', ['$scope', '$location', '$http', function($scope, $location, $http) {
+  app.controller('layoutCtrl', ['$scope', '$rootScope', '$location', '$http', function($scope, $rootScope, $location, $http) {
     'use strict';
 
+    $scope.projectList = [];
     $scope.authenticated = null;
     $scope.user = null;
     $scope.navPath = null;
 
     $scope.$on('$routeChangeSuccess', function(){
       $scope.navPath = $location.path();
+      $rootScope.activeProject = null;
     });
 
     $http.get('/api/0/auth/')
@@ -16,6 +18,11 @@ define(['app'], function(app) {
       	$scope.user = data.user || {};
       });
 
-    $('.navbar-auth').show();
+    $http.get('/api/0/projects/')
+      .success(function(data){
+        $scope.projectList = data.projects;
+      });
+
+    $('.navbar .container').show();
   }]);
 });

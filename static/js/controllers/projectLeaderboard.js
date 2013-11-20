@@ -6,7 +6,9 @@ define([
     'utils/sortBuildList',
     'directives/radialProgressBar',
     'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
-  app.controller('projectLeaderboardCtrl', ['$scope', 'initialProject', 'initialTestData', '$http', '$routeParams', 'stream', function($scope, initialProject, initialTestData, $http, $routeParams, Stream) {
+  app.controller('projectLeaderboardCtrl', [
+      '$scope', '$rootScope', 'initialProject', 'initialTestData', '$http', '$routeParams', 'stream',
+      function($scope, $rootScope, initialProject, initialTestData, $http, $routeParams, Stream) {
     'use strict';
       var bs = initialTestData.data.buildStats;
 
@@ -32,5 +34,6 @@ define([
       $scope.newSlowTestGroups = initialTestData.data.newSlowTestGroups;
       $scope.project = initialProject.data.project;
 
+      $rootScope.activeProject = $scope.project;
   }]);
 });
