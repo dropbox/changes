@@ -218,7 +218,7 @@ tr.result-failed a {
   text-overflow: ellipsis;
   white-space: nowrap;
   padding-right: 44px;
-  height: 42px;
+  min-height: 42px;
 }
 .build-header h2 small {
   font-size: 0.7em;
