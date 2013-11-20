@@ -43,6 +43,7 @@ def get_build_history(project, end_period, days=90):
                 'passed': 0,
                 'failed': 0,
                 'aborted': 0,
+                'unknown': 0,
             },
             'avgDuration': 0,
             'numBuilds': 0,
