@@ -66,5 +66,5 @@ class SendNotificationTestCase(TestCase):
         assert msg.subject == 'Build Failed - %s (%s)' % (build.revision_sha, build.project.name)
         assert msg.recipients == ['foo@example.com']
         build_link = 'http://example.com/builds/%s/' % (build.id.hex,)
-        assert build_link in msg.html_body
+        assert build_link in msg.html
         assert build_link in msg.body

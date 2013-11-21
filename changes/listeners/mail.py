@@ -89,7 +89,7 @@ def send_notification(build, recipients):
 
     msg = Message(subject, recipients=recipients)
     msg.body = render_template('listeners/mail/notification.txt', **context)
-    msg.html_body = render_template('listeners/mail/notification.html', **context)
+    msg.html = render_template('listeners/mail/notification.html', **context)
 
     mail.send(msg)
 
