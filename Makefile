@@ -1,11 +1,14 @@
 .PHONY: static
 
-develop: update-submodules
+develop: install-requirements
+	alembic upgrade head
+
+install-requirements:
+	update-submodules
 	npm install
 	bower install
 	pip install -e . --use-mirrors
 	make install-test-requirements
-	alembic upgrade head
 
 install-test-requirements:
 	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
