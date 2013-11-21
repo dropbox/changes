@@ -1,7 +1,7 @@
 from __future__ import absolute_import, print_function
 
 from flask import current_app, render_template
-from flask_mail import Message
+from flask_mail import Message, sanitize_address
 
 from changes.config import db, mail
 from changes.constants import Result, Status
@@ -87,7 +87,9 @@ def send_notification(build, recipients):
         'test_failures': test_failures,
     }
 
-    msg = Message(subject, recipients=recipients)
+    msg = Message(subject, recipients=recipients, extra_headers={
+        'Reply-To': ', '.join(sanitize_address(r) for r in recipients),
+    })
     msg.body = render_template('listeners/mail/notification.txt', **context)
     msg.html = render_template('listeners/mail/notification.html', **context)
 
