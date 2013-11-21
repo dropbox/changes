@@ -35,9 +35,11 @@ def pytest_sessionstart(session):
     global app, app_context, connection, transaction, patchers
 
     app = create_app(
+        _read_config=False,
         TESTING=True,
         SQLALCHEMY_DATABASE_URI='postgresql:///test_changes',
         REDIS_URL='redis://localhost/9',
+        BASE_URI='http://example.com',
     )
     app_context = app.test_request_context()
     app_context.push()

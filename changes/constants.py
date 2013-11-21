@@ -62,6 +62,7 @@ class Cause(Enum):
     def __str__(self):
         return CAUSE_LABELS[self]
 
+
 STATUS_LABELS = {
     Status.unknown: 'Unknown',
     Status.queued: 'Queued',

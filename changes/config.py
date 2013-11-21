@@ -5,7 +5,9 @@ import os.path
 
 from datetime import timedelta
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 from raven.contrib.flask import Sentry
+from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
 
 from changes.ext.celery import Celery
@@ -19,9 +21,10 @@ db = SQLAlchemy(session_options={
 pubsub = PubSub()
 queue = Celery()
 sentry = Sentry(logging=True, level=logging.WARN)
+mail = Mail()
 
 
-def create_app(**config):
+def create_app(_read_config=True, **config):
     app = flask.Flask(__name__,
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
@@ -42,7 +45,7 @@ def create_app(**config):
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
 
     app.config['EVENT_LISTENERS'] = (
-        # ('import.path', 'build.finished'),
+        ('changes.listeners.mail.build_finished_handler', 'build.finished'),
     )
 
     # celerybeat must be running for our cleanup tasks to execute
@@ -67,20 +70,34 @@ def create_app(**config):
     app.config['GOOGLE_CLIENT_SECRET'] = None
     app.config['GOOGLE_DOMAIN'] = None
 
+    app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
+    app.config['BASE_URI'] = None
+
     app.config.update(config)
 
-    if os.environ.get('CHANGES_CONF'):
-        # CHANGES_CONF=/etc/changes.conf.py
-        app.config.from_envvar('CHANGES_CONF')
-    else:
-        # Look for ~/.changes/changes.conf.py
-        path = os.path.normpath(os.path.expanduser('~/.changes/changes.conf.py'))
-        app.config.from_pyfile(path, silent=True)
+    if _read_config:
+        if os.environ.get('CHANGES_CONF'):
+            # CHANGES_CONF=/etc/changes.conf.py
+            app.config.from_envvar('CHANGES_CONF')
+        else:
+            # Look for ~/.changes/changes.conf.py
+            path = os.path.normpath(os.path.expanduser('~/.changes/changes.conf.py'))
+            app.config.from_pyfile(path, silent=True)
+
+    if not app.config['BASE_URI']:
+        raise ValueError('You must set ``BASE_URI`` in your configuration.')
+
+    parsed_url = urlparse(app.config['BASE_URI'])
+    app.config.setdefault('SERVER_NAME', parsed_url.netloc)
+    app.config.setdefault('PREFERRED_URL_SCHEME', parsed_url.scheme)
+
+    # init sentry first
+    sentry.init_app(app)
 
     db.init_app(app)
     pubsub.init_app(app)
     queue.init_app(app)
-    sentry.init_app(app)
+    mail.init_app(app)
 
     from raven.contrib.celery import register_signal
     register_signal(sentry)

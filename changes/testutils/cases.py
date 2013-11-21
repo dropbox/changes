@@ -8,9 +8,9 @@ from exam import Exam, fixture
 from flask import current_app as app
 from uuid import uuid4
 
-from changes.config import db
+from changes.config import db, mail
 from changes.models import (
-    Repository, Build, Project, Revision, RemoteEntity, Change
+    Repository, Build, Project, Revision, RemoteEntity, Change, Author
 )
 
 
@@ -34,6 +34,11 @@ class TestCase(Exam, unittest2.TestCase):
         self.patcher = mock.patch('changes.config.db.session.commit')
         self.patcher.start()
         self.addCleanup(self.patcher.stop)
+
+        # mock out mail
+        mail_context = mail.record_messages()
+        self.outbox = mail_context.__enter__()
+        self.addCleanup(lambda: mail_context.__exit__(None, None, None))
 
         super(TestCase, self).setUp()
 
@@ -94,6 +99,17 @@ class TestCase(Exam, unittest2.TestCase):
         db.session.add(build)
 
         return build
+
+    def create_author(self, email, **kwargs):
+        kwargs.setdefault('name', 'Test Case')
+
+        author = Author(
+            email=email,
+            **kwargs
+        )
+        db.session.add(author)
+
+        return author
 
     def unserialize(self, response):
         assert response.headers['Content-Type'] == 'application/json'

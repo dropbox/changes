@@ -1,0 +1,13 @@
+{{ build.label }} {{ build.result }} - {{ build.target or build.revision_sha }} ({{ build.project.name }})
+
+Build:
+  {{ build.uri }}
+Author:
+  {{ build.author.name }}
+
+Test Failures
+-------------
+{% if test_failures %}{% for test in test_failures %}
+* {{ test.label }} - {{ test.uri }}{% endfor %}
+{% else %}
+No test failures were recorded.{% endif %}

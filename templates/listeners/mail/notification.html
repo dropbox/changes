@@ -1,0 +1,26 @@
+<html lang="en">
+<head><title>{{ build.label }} {{ build.result }}</title></head>
+<body><div style="line-height: 1.5em;">
+
+<h2 style="font-weight:normal">{{ build.label }} ({{ build.target or build.revision_sha }}) <small style="color:#999">{{ build.date_finished }}</small></h2>
+
+<dl>
+    <dt style="font-weight:bold;float:left;width:60px;">Build:</dt>
+    <dd><a href="{{ build.uri }}">{{ build.id.hex }}</a></dd>
+    <dt style="font-weight:bold;float:left;width:60px;">Author:</dt>
+    <dd>{{ build.author.name }}</dd>
+</dl>
+
+<h3>Test Failures <small style="color:#999">{{ total_test_failures }} total</small></h3>
+
+{% if test_failures %}
+	<ul>
+		{% for test in test_failures %}
+			<li><a href="{{ test.uri }}">{{ test.label }}</a></li>
+		{% endfor %}
+	</ul>
+{% else %}
+	<p>No test failures were recorded.</p>
+{% endif %}
+
+</div></body></html>
