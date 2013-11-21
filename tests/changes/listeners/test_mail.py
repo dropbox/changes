@@ -59,12 +59,15 @@ class BuildHandlerTestCase(TestCase):
 class SendNotificationTestCase(TestCase):
     def test_simple(self):
         build = self.create_build(self.project, result=Result.failed)
-        send_notification(build, recipients=['foo@example.com'])
+        send_notification(build, recipients=['foo@example.com', 'Bob <bob@example.com>'])
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
         assert msg.subject == 'Build Failed - %s (%s)' % (build.revision_sha, build.project.name)
-        assert msg.recipients == ['foo@example.com']
+        assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
+        assert msg.reply_to == 'foo@example.com, Bob <bob@example.com>'
         build_link = 'http://example.com/builds/%s/' % (build.id.hex,)
         assert build_link in msg.html
         assert build_link in msg.body
+
+        assert msg.as_string()
