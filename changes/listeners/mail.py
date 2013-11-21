@@ -16,7 +16,7 @@ def build_uri(path):
 
 
 def get_test_failures(build):
-    return sorted([t.name_sha for t in db.sesison.query(
+    return sorted([t.name_sha for t in db.session.query(
         TestGroup.name_sha,
     ).filter(
         TestGroup.build_id == build.id,
