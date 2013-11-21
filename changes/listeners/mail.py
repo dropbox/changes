@@ -87,7 +87,7 @@ def send_notification(build, recipients):
         'test_failures': test_failures,
     }
 
-    msg = Message(subject, recipients=recipients)
+    msg = Message(subject, recipients=recipients, reply_to=recipients)
     msg.body = render_template('listeners/mail/notification.txt', **context)
     msg.html = render_template('listeners/mail/notification.html', **context)
 
