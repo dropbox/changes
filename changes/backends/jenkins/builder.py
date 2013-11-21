@@ -366,10 +366,14 @@ class JenkinsBuilder(BaseBackend):
 
         json_data = {
             'parameter': [
-                {'name': 'REVISION', 'value': build.revision_sha},
                 {'name': 'CHANGES_BID', 'value': build.id.hex},
             ]
         }
+        if build.revision_sha:
+            json_data['parameter'].append(
+                {'name': 'REVISION', 'value': build.revision_sha},
+            )
+
         if build.patch:
             json_data['parameter'].append(
                 {'name': 'PATCH', 'file': 'patch'}
