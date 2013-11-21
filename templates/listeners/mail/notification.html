@@ -16,7 +16,7 @@
 {% if test_failures %}
 	<ul>
 		{% for test in test_failures %}
-			<li><a href="{{ test.uri }}">{{ test.label }}</a></li>
+			<li><a href="{{ test.uri }}">{{ test.name }}</a></li>
 		{% endfor %}
 	</ul>
 {% else %}
