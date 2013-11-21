@@ -1,9 +1,11 @@
+from __future__ import absolute_import, print_function
+
 from flask import current_app, render_template
 from flask_mail import Message
 
 from changes.config import db, mail
 from changes.constants import Result, Status
-from changes.models import Build, TestGroup
+from changes.models import Build, TestGroup, ProjectOption
 
 
 def build_uri(path):
@@ -58,10 +60,8 @@ def did_cause_breakage(build):
     return False
 
 
-def send_notification(build):
+def send_notification(build, recipients):
     # TODO(dcramer): we should send a clipping of a relevant build log
-    author = build.author
-
     test_failures = TestGroup.query.filter(
         TestGroup.build_id == build.id,
         TestGroup.result == Result.failed,
@@ -70,7 +70,7 @@ def send_notification(build):
     num_test_failures = test_failures.count()
     test_failures = test_failures[:25]
 
-    subject = "Build {result} - {target} ({project})".format(
+    subject = u"Build {result} - {target} ({project})".format(
         result=unicode(build.result),
         target=build.target or build.revision_sha or 'Unknown',
         project=build.project.name,
@@ -87,8 +87,7 @@ def send_notification(build):
         'test_failures': test_failures,
     }
 
-    msg = Message(subject, cc=[author.email])
-    msg.add_recipient(author.email)
+    msg = Message(subject, recipients=recipients)
     msg.body = render_template('listeners/mail/notification.txt', **context)
     msg.html_body = render_template('listeners/mail/notification.html', **context)
 
@@ -96,12 +95,33 @@ def send_notification(build):
 
 
 def build_finished_handler(build, **kwargs):
-    author = build.author
+    # get relevant options
+    options = dict(
+        db.session.query(
+            ProjectOption.name, ProjectOption.value
+        ).filter(
+            ProjectOption.project_id == build.project_id,
+            ProjectOption.name.in_(['mail.notify-author', 'mail.notify-addresses'])
+        )
+    )
 
-    if not (author and author.email):
+    recipients = []
+    if options.get('mail.notify-author', '1') == '1':
+        author = build.author
+        if author:
+            recipients.append(u'%s <%s>' % (author.name, author.email))
+
+    if options.get('mail.notify-addresses'):
+        recipients.extend(
+            # XXX(dcramer): we dont have option validators so lets assume people
+            # enter slightly incorrect values
+            [x.strip() for x in options['mail.notify-addresses'].split(',')]
+        )
+
+    if not recipients:
         return
 
     if not did_cause_breakage(build):
         return
 
-    send_notification(build)
+    send_notification(build, recipients)

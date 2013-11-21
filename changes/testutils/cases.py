@@ -91,7 +91,9 @@ class TestCase(Exam, unittest2.TestCase):
         kwargs.setdefault('label', 'Sample')
 
         build = Build(
+            repository_id=project.repository_id,
             repository=project.repository,
+            project_id=project.id,
             project=project,
             revision_sha=revision.sha,
             **kwargs
