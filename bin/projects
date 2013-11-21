@@ -65,6 +65,7 @@ parser_add.add_argument('--provider-options', dest='provider_options', help='pro
 parser_add = subparsers.add_parser('edit', help='edit project')
 parser_add.add_argument('id', help='project ID or slug')
 parser_add.add_argument('--label', dest='label', help='project label')
+parser_add.add_argument('--repo-url', metavar='url', dest='repo_url', help='repository url')
 parser_add.add_argument('--slug', metavar='slug', dest='slug', help='project slug')
 parser_add.add_argument('--provider', dest='provider', help='provider slug', choices=PROVIDER_CHOICES)
 parser_add.add_argument('--provider-options', dest='provider_options', help='provider options (json)')
@@ -152,6 +153,15 @@ elif args.command == 'edit':
     else:
         provider_options = {}
         need_provider_options = False
+
+    if args.repo_url:
+        repo = Repository.query.filter(
+            Repository.url == args.repo_url
+        ).first()
+        if repo is None:
+            repo = Repository(url=args.repo_url)
+            db.session.add(repo)
+        project.repository = repo
 
     if args.provider:
         provider = args.provider
