@@ -1,8 +1,9 @@
 from slugify import slugify
 
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
+from sqlalchemy.schema import UniqueConstraint
 from uuid import uuid4
 
 from changes.config import db
@@ -39,3 +40,18 @@ class Project(db.Model):
         if not hasattr(self, '_entities'):
             self._entities = {}
         self._entities[entity.provider] = entity
+
+
+class ProjectOption(db.Model):
+    __tablename__ = 'projectoption'
+    __table_args__ = (
+        UniqueConstraint('project_id', 'name', name='unq_projectoption_name'),
+    )
+
+    id = Column(GUID, primary_key=True, default=uuid4)
+    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    name = Column(String(64), nullable=False)
+    value = Column(Text, nullable=False)
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    project = relationship('Project')
