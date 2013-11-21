@@ -3,8 +3,7 @@
 develop: install-requirements
 	alembic upgrade head
 
-install-requirements:
-	update-submodules
+install-requirements: update-submodules
 	npm install
 	bower install
 	pip install -e . --use-mirrors
