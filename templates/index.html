@@ -53,9 +53,8 @@
         {% raw %}
         <div class="navbar-collapse collapse navbar-header-collapse" ng-if="activeProject">
           <ul class="nav navbar-nav">
-            <!-- <li ng-class="navPath == '/changes/' ? 'active': ''"><a href="/changes/">Changes</a></li> -->
-            <li><a href="{{activeProject.link}}">Builds</a></li>
-            <li><a href="{{activeProject.link}}stats/">Stats</a></li>
+            <li ng-class="activeProject.link == navPath ? 'active': ''"><a href="{{activeProject.link}}">Builds</a></li>
+            <li ng-class="activeProject.link + 'stats/' == navPath ? 'active': ''"><a href="{{activeProject.link}}stats/">Stats</a></li>
           </ul>
         </div>
         {% endraw %}
