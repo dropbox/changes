@@ -69,12 +69,16 @@ class BuildIndexAPIView(APIView):
 
         if not label:
             label = "A homeless build"
+        else:
+            label = label[:128]
 
         if not target:
             if patch_label:
                 target = patch_label
             elif sha:
                 target = sha[:12]
+        else:
+            target = target[:128]
 
         if patch_file:
             fp = StringIO()
