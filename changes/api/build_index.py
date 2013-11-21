@@ -35,6 +35,7 @@ class BuildIndexAPIView(APIView):
     @param('change', lambda x: Change.query.get(x), dest='change', required=False)
     @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
     @param('project', lambda x: Project.query.filter_by(slug=x).first(), dest='project', required=False)
+    @param('repository', lambda x: Repository.query.filter_by(url=x).first(), dest='repository', required=False)
     @param('sha', required=False)
     @param('author', AuthorValidator(), required=False)
     @param('label', required=False)
@@ -43,9 +44,9 @@ class BuildIndexAPIView(APIView):
     @param('patch[label]', required=False, dest='patch_label')
     def post(self, project=None, sha=None, change=None, author=None,
              patch_label=None, patch=None, label=None, target=None,
-             message=None):
+             message=None, repository=None):
 
-        assert change or project
+        assert change or project or repository
 
         if request.form.get('patch'):
             raise ValueError('patch')
@@ -56,26 +57,15 @@ class BuildIndexAPIView(APIView):
             raise ValueError('patch_label')
 
         if change:
-            project = change.project
-
-        repository = Repository.query.get(project.repository_id)
-
-        if patch_file:
-            fp = StringIO()
-            for line in patch_file:
-                fp.write(line)
-
-            patch = Patch(
-                change=change,
-                repository=repository,
-                project=project,
-                parent_revision_sha=sha,
-                label=patch_label,
-                diff=fp.getvalue(),
-            )
-            db.session.add(patch)
+            projects = [change.project]
+            repository = Repository.query.get(change.project.repository_id)
+        elif project:
+            projects = [project]
+            repository = Repository.query.get(project.repository_id)
         else:
-            patch = None
+            projects = list(Project.query.filter(
+                Project.repository_id == repository.id,
+            ))
 
         if not label:
             label = "A homeless build"
@@ -86,38 +76,63 @@ class BuildIndexAPIView(APIView):
             elif sha:
                 target = sha[:12]
 
-        build = Build(
-            change=change,
-            project=project,
-            repository=repository,
-            status=Status.queued,
-            author=author,
-            label=label,
-            target=target,
-            revision_sha=sha,
-            message=message,
-        )
+        if patch_file:
+            fp = StringIO()
+            for line in patch_file:
+                fp.write(line)
 
-        if change:
-            build.change = change
-            change.date_modified = datetime.utcnow()
-            db.session.add(change)
+        builds = []
+        for project in projects:
+            if patch_file:
+                patch = Patch(
+                    change=change,
+                    repository=repository,
+                    project=project,
+                    parent_revision_sha=sha,
+                    label=patch_label,
+                    diff=fp.getvalue(),
+                )
+                db.session.add(patch)
+            else:
+                patch = None
 
-        if patch:
-            build.patch = patch
+            build = Build(
+                change=change,
+                project=project,
+                repository=repository,
+                status=Status.queued,
+                author=author,
+                label=label,
+                target=target,
+                revision_sha=sha,
+                message=message,
+            )
 
-        db.session.add(build)
-        db.session.commit()
+            if change:
+                build.change = change
+                change.date_modified = datetime.utcnow()
+                db.session.add(change)
 
-        queue.delay('create_build', kwargs={
-            'build_id': build.id.hex,
-        }, countdown=5)
+            if patch:
+                build.patch = patch
+
+            db.session.add(build)
+            db.session.commit()
+
+            queue.delay('create_build', kwargs={
+                'build_id': build.id.hex,
+            }, countdown=5)
+
+            builds.append(build)
 
         context = {
-            'build': {
-                'id': build.id.hex,
-                'link': '/builds/{0}/'.format(build.id.hex),
-            },
+            'builds': [
+                {
+                    'id': b.id.hex,
+                    'project': b.project,
+                    'link': '/builds/{0}/'.format(b.id.hex),
+                } for b in builds
+            ],
         }
 
         return self.respond(context)

@@ -38,8 +38,9 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['build']['id']
-        build = Build.query.get(data['build']['id'])
+        assert len(data['builds']) == 1
+        assert data['builds'][0]['id']
+        build = Build.query.get(data['builds'][0]['id'])
         assert build.project == self.project
         assert build.revision_sha is None
         assert build.author.name == 'David Cramer'
@@ -54,8 +55,9 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['build']['id']
-        build = Build.query.get(data['build']['id'])
+        assert len(data['builds']) == 1
+        assert data['builds'][0]['id']
+        build = Build.query.get(data['builds'][0]['id'])
         assert build.project == self.project
         assert build.revision_sha == 'a' * 40
         assert build.author.name == 'David Cramer'
@@ -77,9 +79,10 @@ class BuildCreateTest(APITestCase):
         assert resp.status_code == 200
 
         data = self.unserialize(resp)
-        assert data['build']['id']
+        assert len(data['builds']) == 1
+        assert data['builds'][0]['id']
 
-        build = Build.query.get(data['build']['id'])
+        build = Build.query.get(data['builds'][0]['id'])
         assert build.change == change
         assert build.project == self.project
         assert build.revision_sha == 'a' * 40
@@ -107,10 +110,28 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['build']['id']
-        build = Build.query.get(data['build']['id'])
+        assert len(data['builds']) == 1
+        assert data['builds'][0]['id']
+
+        build = Build.query.get(data['builds'][0]['id'])
         assert build.patch_id is not None
         patch = Patch.query.get(build.patch_id)
         assert patch.diff == SAMPLE_DIFF
         assert patch.label == 'D1234'
         assert patch.parent_revision_sha == 'a' * 40
+
+    def test_with_repository(self):
+        path = '/api/0/builds/'
+
+        repo = self.create_repo()
+
+        self.create_project(repository=repo)
+        self.create_project(repository=repo)
+
+        resp = self.client.post(path, data={
+            'author': 'David Cramer <dcramer@example.com>',
+            'repository': repo.url,
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data['builds']) == 2
