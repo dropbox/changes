@@ -45,7 +45,7 @@ def create_app(_read_config=True, **config):
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
 
     app.config['EVENT_LISTENERS'] = (
-        # ('changes.listeners.mail.build_finished_handler', 'build.finished'),
+        ('changes.listeners.mail.build_finished_handler', 'build.finished'),
     )
 
     # celerybeat must be running for our cleanup tasks to execute
