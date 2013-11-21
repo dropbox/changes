@@ -76,6 +76,10 @@ parser_options_set = options_subparsers.add_parser('set', help='set project opti
 parser_options_set.add_argument('id', help='project ID or slug')
 parser_options_set.add_argument('option', help='key=value')
 
+parser_options_set = options_subparsers.add_parser('delete', help='delete project option')
+parser_options_set.add_argument('id', help='project ID or slug')
+parser_options_set.add_argument('option', help='key')
+
 parser_options_get = options_subparsers.add_parser('get', help='get project option')
 parser_options_get.add_argument('id', help='project ID or slug')
 parser_options_get.add_argument('option', help='key', nargs='?')
@@ -202,6 +206,15 @@ elif args.command == 'options':
         })
         db.session.commit()
         print "%s=%s" % (name, value)
+
+    if args.option_command == 'delete':
+        project = get_project(args.id)
+
+        ProjectOption.query.filter(
+            ProjectOption.project_id == project.id,
+            ProjectOption.name == args.option,
+        ).delete()
+        print "Ok!"
 
     if args.option_command == 'get':
         project = get_project(args.id)
