@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+from changes.config import create_app, db
+from changes.models import Repository
+
+
+def abort():
+    print('Aborted!')
+    sys.exit(1)
+
+
+def get_input(name, default=None, required=True, choices=None):
+    output = name + ' ? '
+    if default:
+        output += '[%s] ' % (default,)
+
+    if choices:
+        output += '(%s) ' % ('|'.join(choices),)
+
+    value = raw_input(output)
+    if not value:
+        value = default
+    if required and not value:
+        abort()
+    return value
+
+
+def get_repo(id_):
+    if len(id_) == 40:
+        # assume its a uuid
+        repo = Repository.query.get(id_)
+    else:
+        repo = Repository.query.filter_by(url=id_).first()
+
+    if not repo:
+        print "Repository not found"
+        sys.exit(1)
+
+    return repo
+
+app = create_app()
+app_context = app.app_context()
+app_context.push()
+
+parser = argparse.ArgumentParser(description='Manage repositories')
+
+subparsers = parser.add_subparsers(dest='command')
+
+parser_add = subparsers.add_parser('add', help='add repository')
+parser_add.add_argument('--url', metavar='url', dest='url', help='repository url')
+
+parser_add = subparsers.add_parser('edit', help='edit repository')
+parser_add.add_argument('id', help='repository ID or url')
+parser_add.add_argument('--url', dest='url', help='repository url')
+
+args = parser.parse_args()
+
+if args.command == 'add':
+    url = args.url or get_input('Repository URL')
+    repo = Repository(url=url)
+
+    db.session.add(repo)
+    db.session.commit()
+
+    print "Created new repository with ID {%s}" % (
+        repo.id,
+    )
+
+elif args.command == 'edit':
+    repo = get_repo(args.id)
+
+    if args.url:
+        repo.url = args.url
+
+    db.session.add(repo)
+    db.session.commit()
+
+    print "Saved repo with ID {%s}" % (
+        repo.id,
+    )
