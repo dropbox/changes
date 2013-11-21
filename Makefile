@@ -17,7 +17,7 @@ update-submodules:
 	git submodule init
 	git submodule update
 
-test: develop lint
+test: install-requirements lint
 	@echo "Running Python tests"
 	py.test tests
 	@echo ""
@@ -27,7 +27,7 @@ lint:
 	PYFLAKES_NODOCTEST=1 flake8 changes tests
 	@echo ""
 
-test-full: develop lint
+test-full: install-requirements lint
 	py.test --junitxml=results.xml --cov-report=xml --cov=. tests
 
 resetdb:
