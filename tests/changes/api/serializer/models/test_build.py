@@ -34,3 +34,4 @@ def test_simple():
     assert result['dateStarted'] == '2013-09-19T22:15:23'
     assert result['dateFinished'] == '2013-09-19T22:15:33'
     assert result['duration'] == 10000
+    assert result['patch'] is None

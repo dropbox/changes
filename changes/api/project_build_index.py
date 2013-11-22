@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import Response
+from flask import Response, request
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -23,12 +23,20 @@ class ProjectBuildIndexAPIView(APIView):
         project = self._get_project(project_id)
         if not project:
             return Response(status=404)
+
+        include_patches = request.args.get('include_patches') or '1'
+
         queryset = Build.query.options(
             joinedload(Build.project),
             joinedload(Build.author),
         ).filter_by(
             project=project,
         ).order_by(Build.date_created.desc(), Build.date_started.desc())
+
+        if include_patches == '0':
+            queryset = queryset.filter(
+                Build.patch == None,  # NOQA
+            )
 
         build_list = list(queryset)[:NUM_PREVIOUS_RUNS]
 

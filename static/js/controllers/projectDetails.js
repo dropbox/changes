@@ -41,6 +41,10 @@ define([
         };
 
     function addBuild(data) {
+      if (data.patch && !$scope.includePatches) {
+        return;
+      }
+
       $scope.$apply(function() {
         var updated = false,
             item_id = data.id,
@@ -82,6 +86,14 @@ define([
     $scope.project = initialProject.data.project;
     $scope.builds = sortBuildList(initialBuildList.data.builds);
     $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
+    $scope.includePatches = true;
+
+    $scope.$watch("includePatches", function() {
+      $http.get(entrypoint + '?include_patches=' + ($scope.includePatches ? '1' : '0'))
+        .success(function(data){
+          $scope.builds = sortBuildList(data.builds);
+        });
+    })
 
     $rootScope.activeProject = $scope.project;
 

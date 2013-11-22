@@ -50,6 +50,13 @@ class BuildSerializer(Serializer):
         else:
             revision = None
 
+        if instance.patch_id:
+            patch = {
+                'id': instance.patch_id.hex,
+            }
+        else:
+            patch = None
+
         return {
             'id': instance.id.hex,
             'name': instance.label,
@@ -60,6 +67,7 @@ class BuildSerializer(Serializer):
             'cause': instance.cause,
             'author': instance.author,
             'revision': revision,
+            'patch': patch,
             'parent': parent,
             'message': instance.message,
             'duration': instance.duration,

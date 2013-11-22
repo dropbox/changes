@@ -9,6 +9,10 @@
 
 		<barchart ng-model="chartData" style="height:130px"></barchart>
 
+		<div class="pull-right">
+			<label><input type="checkbox" name="include_patches" ng-model="includePatches"> Show Patches</label>
+		</div>
+
 		<table class="build-list table table-striped">
 			<tbody>
 				<tr ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
