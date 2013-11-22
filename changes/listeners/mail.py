@@ -126,7 +126,7 @@ def build_finished_handler(build, **kwargs):
     if not build.patch_id:
         if options.get('mail.notify-addresses-revisions'):
             recipients.extend(
-                [x.strip() for x in options['mail.notify-addresses'].split(',')]
+                [x.strip() for x in options['mail.notify-addresses-revisions'].split(',')]
             )
 
     if not recipients:
