@@ -31,6 +31,7 @@ class TestGroupDetailsAPIView(APIView):
             TestGroup.name_sha == testgroup.name_sha,
             Build.date_created < testgroup.build.date_created,
             Build.status == Status.finished,
+            Build.revision_sha != None,  # NOQA
             TestGroup.id != testgroup.id,
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
