@@ -32,6 +32,7 @@ def get_build_history(project, end_period, days=90):
         Build.date_created >= end_period - timedelta(days=days),
         Build.date_created < end_period,
         Build.status == Status.finished,
+        Build.revision_sha != None,  # NOQA
     ).group_by(Build.result, 'date').order_by('date asc')
 
     # group results by day
@@ -62,6 +63,7 @@ def get_stats_for_period(project, start_period, end_period):
         Build.result == Result.passed,
         Build.date_created >= start_period,
         Build.date_created < end_period,
+        Build.revision_sha != None,  # NOQA
     ).count()
     num_failures = Build.query.filter(
         Build.project_id == project.id,
@@ -69,12 +71,14 @@ def get_stats_for_period(project, start_period, end_period):
         Build.result == Result.failed,
         Build.date_created >= start_period,
         Build.date_created < end_period,
+        Build.revision_sha != None,  # NOQA
     ).count()
     num_builds = Build.query.filter(
         Build.project_id == project.id,
         Build.status == Status.finished,
         Build.date_created >= start_period,
         Build.date_created < end_period,
+        Build.revision_sha != None,  # NOQA
     ).count()
 
     num_authors = db.session.query(
@@ -84,6 +88,7 @@ def get_stats_for_period(project, start_period, end_period):
         Build.status == Status.finished,
         Build.date_created >= start_period,
         Build.date_created < end_period,
+        Build.revision_sha != None,  # NOQA
     ).scalar()
 
     avg_build_time = db.session.query(
@@ -95,6 +100,7 @@ def get_stats_for_period(project, start_period, end_period):
         Build.duration > 0,
         Build.date_created >= start_period,
         Build.date_created < end_period,
+        Build.revision_sha != None,  # NOQA
     ).scalar()
     if avg_build_time is not None:
         avg_build_time = float(avg_build_time)
