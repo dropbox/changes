@@ -2,7 +2,7 @@ import mock
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import ProjectOption
+from changes.models import ProjectOption, Patch
 from changes.listeners.mail import build_finished_handler, send_notification
 from changes.testutils.cases import TestCase
 
@@ -48,6 +48,39 @@ class BuildHandlerTestCase(TestCase):
 
         author = self.create_author('foo@example.com')
         build = self.create_build(self.project, result=Result.failed, author=author)
+
+        build_finished_handler(build)
+
+        send_notifications.assert_called_once_with(
+            build, ['Test Case <foo@example.com>', 'test@example.com', 'bar@example.com']
+        )
+
+    @mock.patch('changes.listeners.mail.send_notification')
+    def test_with_revision_addressees(self, send_notifications):
+        db.session.add(ProjectOption(
+            project=self.project, name='mail.notify-author', value='1'))
+        db.session.add(ProjectOption(
+            project=self.project, name='mail.notify-addresses-revisions',
+            value='test@example.com, bar@example.com'))
+
+        author = self.create_author('foo@example.com')
+        patch = Patch(
+            repository=self.repo, project=self.project, label='foo',
+            diff='',
+        )
+        build = self.create_build(
+            self.project, result=Result.failed, author=author, patch=patch)
+
+        build_finished_handler(build)
+
+        send_notifications.assert_called_once_with(
+            build, ['Test Case <foo@example.com>']
+        )
+
+        send_notifications.reset_mock()
+
+        build = self.create_build(
+            self.project, result=Result.failed, author=author)
 
         build_finished_handler(build)
 
