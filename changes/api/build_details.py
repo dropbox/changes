@@ -35,6 +35,7 @@ class BuildDetailsAPIView(APIView):
             Build.date_created < build.date_created,
             Build.status == Status.finished,
             Build.id != build.id,
+            Build.revision_sha != None,  # NOQA
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         log_sources = sorted(LogSource.query.filter(
