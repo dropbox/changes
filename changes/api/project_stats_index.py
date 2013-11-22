@@ -105,6 +105,17 @@ def get_stats_for_period(project, start_period, end_period):
     if avg_build_time is not None:
         avg_build_time = float(avg_build_time)
 
+    bugs_caught_with_patches = db.session.query(
+        Build
+    ).filter(
+        Build.project_id == project.id,
+        Build.status == Status.finished,
+        Build.result == Result.failed,
+        Build.date_created >= start_period,
+        Build.date_created < end_period,
+        Build.revision_sha == None,  # NOQA
+    ).count()
+
     return {
         'period': [start_period, end_period],
         'numFailed': num_failures,
@@ -112,6 +123,7 @@ def get_stats_for_period(project, start_period, end_period):
         'numBuilds': num_builds,
         'avgBuildTime': avg_build_time,
         'numAuthors': num_authors,
+        'bugsCaughtFromPatches': bugs_caught_with_patches,
     }
 
 

@@ -29,6 +29,7 @@
 		<span ng-if="buildStats.previousPeriod.numBuilds">During the previous period, {{buildStats.previousPeriod.percentPassed}}% of the {{buildStats.previousPeriod.numBuilds}} builds passed.</span>
 	</li>
 	<li>{{buildStats.numAuthors}} unique people submitted builds.</li>
+	<li>{{buildStats.bugsCaughtFromPatches}} failures were prevented via patch testing.</li>
 </ul>
 
 <div ng-if="newSlowTestGroups">
