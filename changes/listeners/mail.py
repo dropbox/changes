@@ -103,7 +103,10 @@ def build_finished_handler(build, **kwargs):
             ProjectOption.name, ProjectOption.value
         ).filter(
             ProjectOption.project_id == build.project_id,
-            ProjectOption.name.in_(['mail.notify-author', 'mail.notify-addresses'])
+            ProjectOption.name.in_([
+                'mail.notify-author', 'mail.notify-addresses',
+                'mail.notify-addresses-revisions',
+            ])
         )
     )
 
@@ -119,6 +122,12 @@ def build_finished_handler(build, **kwargs):
             # enter slightly incorrect values
             [x.strip() for x in options['mail.notify-addresses'].split(',')]
         )
+
+    if not build.patch_id:
+        if options.get('mail.notify-addresses-revisions'):
+            recipients.extend(
+                [x.strip() for x in options['mail.notify-addresses'].split(',')]
+            )
 
     if not recipients:
         return
