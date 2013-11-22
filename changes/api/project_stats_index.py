@@ -113,7 +113,7 @@ def get_stats_for_period(project, start_period, end_period):
         Build.result == Result.failed,
         Build.date_created >= start_period,
         Build.date_created < end_period,
-        Build.revision_sha == None,  # NOQA
+        Build.patch_id != None,  # NOQA
     ).count()
 
     return {
