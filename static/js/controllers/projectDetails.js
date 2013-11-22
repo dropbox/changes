@@ -86,7 +86,7 @@ define([
     $scope.project = initialProject.data.project;
     $scope.builds = sortBuildList(initialBuildList.data.builds);
     $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
-    $scope.includePatches = true;
+    $scope.includePatches = false;
 
     $scope.$watch("includePatches", function() {
       $http.get(entrypoint + '?include_patches=' + ($scope.includePatches ? '1' : '0'))

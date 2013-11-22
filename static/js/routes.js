@@ -94,7 +94,7 @@ define(['app',
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
             }],
             initialBuildList: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/');
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/?include_patches=0');
             }]
           }
         })
