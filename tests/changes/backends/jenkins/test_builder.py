@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 
 import os.path
-# TODO(dcramer): once responses is OS, replace this
-from changes.utils import responses
+import responses
 
 from flask import current_app
 from uuid import UUID

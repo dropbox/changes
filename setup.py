@@ -27,8 +27,7 @@ tests_require = [
     'pytest-cov',
     'pytest-timeout',
     'pytest-xdist',
-    # TODO(dcramer): once responses is OS, uncomment this
-    # 'responses',
+    'responses',
     'unittest2',
 ]
 
