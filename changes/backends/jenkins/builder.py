@@ -172,9 +172,11 @@ class JenkinsBuilder(BaseBackend):
                 self._sync_test_results(build, entity)
                 break
 
-        self._sync_console_log(build, entity)
-
         if should_finish:
+            # FIXME(dcramer): we're waiting until the build is complete to sync
+            # logs due to our inability to correctly identify start offsets
+            self._sync_console_log(build, entity)
+
             build.status = Status.finished
             db.session.add(build)
 
