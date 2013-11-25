@@ -5,7 +5,6 @@ from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.models import Build, RemoteEntity
-from changes.signals import build_finished
 
 
 def sync_with_builder(build):
@@ -46,7 +45,10 @@ def sync_build(build_id):
                 'build_id': build.id.hex
             }, countdown=1)
         else:
-            build_finished.send(build)
+            queue.delay('notify_listeners', kwargs={
+                'build_id': build.id.hex,
+                'signal_name': 'build.finished',
+            })
 
     except Exception as exc:
         # Ensure we continue to synchronize this build as this could be a

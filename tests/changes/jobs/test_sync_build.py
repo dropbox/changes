@@ -10,8 +10,8 @@ from changes.testutils import TestCase
 
 class SyncBuildTest(TestCase):
     @mock.patch('changes.jobs.sync_build.sync_with_builder')
-    @mock.patch('changes.jobs.sync_build.build_finished')
-    def test_simple(self, build_finished, sync_with_builder):
+    @mock.patch('changes.jobs.sync_build.queue.delay')
+    def test_simple(self, queue_delay, sync_with_builder):
         def mark_finished(build):
             build.status = Status.finished
 
@@ -29,4 +29,7 @@ class SyncBuildTest(TestCase):
         sync_with_builder.assert_called_once_with(build)
 
         # ensure signal is fired
-        build_finished.send.assert_called_once_with(build)
+        queue_delay.assert_called_once_with('notify_listeners', kwargs={
+            'build_id': build.id.hex,
+            'signal_name': 'build.finished',
+        })
