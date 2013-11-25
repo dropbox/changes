@@ -180,7 +180,7 @@ class JenkinsBuilder(BaseBackend):
 
     def _sync_console_log(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
-
+        build_item = entity.data
         logsource, created = get_or_create(LogSource, where={
             'name': 'console',
             'build': build,
@@ -191,16 +191,8 @@ class JenkinsBuilder(BaseBackend):
         if created:
             offset = 0
         else:
-            # find last offset
-            last_chunk = LogChunk.query.filter(
-                LogChunk.source_id == logsource.id,
-            ).order_by(LogChunk.offset.desc()).limit(1).first()
-            if last_chunk is None:
-                offset = 0
-            else:
-                offset = last_chunk.offset + last_chunk.size
+            offset = build_item.get('log_offset', 0)
 
-        build_item = entity.data
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
             base=self.base_url, job=build_item['job_name'],
             build=build_item['build_no'],
@@ -231,6 +223,12 @@ class JenkinsBuilder(BaseBackend):
             })
             db.session.commit()
             offset += chunk_size
+
+        # We **must** track the log offset externally as Jenkins embeds encoded
+        # links and we cant accurately predict the next `start` param.
+        build_item['log_offset'] = log_length
+        entity.data = build_item
+        db.session.add(entity)
 
     def _sync_test_results(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency

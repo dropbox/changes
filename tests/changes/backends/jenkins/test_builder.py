@@ -446,3 +446,6 @@ class SyncBuildTest(BaseTestCase):
         assert chunks[0].offset == 0
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
+
+        entity = RemoteEntity.query.get(entity.id)
+        assert entity.data.get('log_offset') == 7
