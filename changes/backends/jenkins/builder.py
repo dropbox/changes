@@ -125,7 +125,7 @@ class JenkinsBuilder(BaseBackend):
                 raise
             build.date_finished = datetime.utcnow()
             build.status = Status.finished
-            build.result = Result.aborted
+            build.result = Result.unknown
             db.session.add(build)
             return
 
