@@ -229,6 +229,7 @@ class JenkinsBuilder(BaseBackend):
         build_item['log_offset'] = log_length
         entity.data = build_item
         db.session.add(entity)
+        db.session.commit()
 
     def _sync_test_results(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
