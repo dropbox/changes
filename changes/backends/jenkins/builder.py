@@ -188,7 +188,10 @@ class JenkinsBuilder(BaseBackend):
         if should_finish:
             # FIXME(dcramer): we're waiting until the build is complete to sync
             # logs due to our inability to correctly identify start offsets
-            self._sync_console_log(build, entity)
+            # if we're supposed to be finishing, lets ensure we actually
+            # get the entirety of the log
+            while self._sync_console_log(build, entity):
+                continue
 
             build.status = Status.finished
             db.session.add(build)
@@ -245,6 +248,10 @@ class JenkinsBuilder(BaseBackend):
         entity.data = build_item
         db.session.add(entity)
         db.session.commit()
+
+        # Jenkins will suggest to us that there is more data when the job has
+        # yet to complete
+        return True if resp.headers.get('X-More-Data') == 'true' else None
 
     def _sync_test_results(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
