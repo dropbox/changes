@@ -55,6 +55,10 @@ def create_app(_read_config=True, **config):
             'task': 'cleanup_builds',
             'schedule': timedelta(minutes=1),
         },
+        'check-repos': {
+            'task': 'check_repos',
+            'schedule': timedelta(minutes=1),
+        },
     }
     app.config['CELERY_TIMEZONE'] = 'UTC'
 
@@ -186,11 +190,13 @@ def configure_web_routes(app):
 
 
 def configure_jobs(app):
+    from changes.jobs.check_repos import check_repos
     from changes.jobs.cleanup_builds import cleanup_builds
     from changes.jobs.create_build import create_build
     from changes.jobs.notify_listeners import notify_listeners
     from changes.jobs.sync_build import sync_build
 
+    queue.register('check_repos', check_repos)
     queue.register('cleanup_builds', cleanup_builds)
     queue.register('create_build', create_build)
     queue.register('notify_listeners', notify_listeners)
