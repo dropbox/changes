@@ -33,6 +33,7 @@ def get_build_history(project, end_period, days=90):
         Build.date_created < end_period,
         Build.status == Status.finished,
         Build.revision_sha != None,  # NOQA
+        Build.patch_id == None,
     ).group_by(Build.result, 'date').order_by('date asc')
 
     # group results by day
@@ -160,6 +161,7 @@ class ProjectStatsIndexAPIView(APIView):
             joinedload(Build.author),
         ).filter(
             Build.revision_sha != None,  # NOQA
+            Build.patch_id == None,
             Build.project == project,
             Build.status == Status.finished,
         ).order_by(

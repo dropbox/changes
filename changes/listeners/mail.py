@@ -35,6 +35,7 @@ def did_cause_breakage(build):
 
     parent = Build.query.filter(
         Build.revision_sha != None,  # NOQA
+        Build.patch_id == None,
         Build.revision_sha != build.revision_sha,
         Build.date_created < build.date_created,
         Build.status == Status.finished,

@@ -24,6 +24,7 @@ class ProjectIndexAPIView(APIView):
                 joinedload(Build.author),
             ).filter(
                 Build.revision_sha != None,  # NOQA
+                Build.patch_id == None,
                 Build.project == project,
                 Build.status == Status.finished,
             ).order_by(
