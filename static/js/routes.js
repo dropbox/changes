@@ -1,6 +1,10 @@
 define(['app',
-        'controllers/layout', 'controllers/changeList', 'controllers/changeDetails',
-        'controllers/buildList', 'controllers/buildDetails',
+        'controllers/layout',
+        'controllers/authorBuildList',
+        'controllers/changeList',
+        'controllers/changeDetails',
+        'controllers/buildList',
+        'controllers/buildDetails',
         'controllers/testGroupDetails',
         'controllers/projectLeaderboard',
         'controllers/projectList',
@@ -83,6 +87,15 @@ define(['app',
           resolve: {
             initialData: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/builds/' + $route.current.params.build_id + '/');
+            }]
+          }
+        })
+        .when('/my/builds/', {
+          templateUrl: 'partials/author-build-list.html',
+          controller: 'authorBuildListCtrl',
+          resolve: {
+            initialBuildList: ['$http', function($http) {
+              return $http.get('/api/0/authors/me/builds/');
             }]
           }
         })
