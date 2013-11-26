@@ -40,6 +40,7 @@ def pytest_sessionstart(session):
         SQLALCHEMY_DATABASE_URI='postgresql:///test_changes',
         REDIS_URL='redis://localhost/9',
         BASE_URI='http://example.com',
+        REPO_ROOT='/tmp',
     )
     app_context = app.test_request_context()
     app_context.push()

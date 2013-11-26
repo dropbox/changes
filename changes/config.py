@@ -70,6 +70,8 @@ def create_app(_read_config=True, **config):
     app.config['GOOGLE_CLIENT_SECRET'] = None
     app.config['GOOGLE_DOMAIN'] = None
 
+    app.config['REPO_ROOT'] = None
+
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
     app.config['BASE_URI'] = None
 
