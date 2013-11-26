@@ -14,6 +14,7 @@ from changes.constants import Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
+from changes.db.utils import get_or_create
 
 
 test_group_m2m_table = Table(
@@ -43,21 +44,14 @@ class TestResult(object):
         self.date_created = date_created or datetime.utcnow()
 
     def _get_or_create_test_suite(self):
-        # TODO(dcramer): this doesnt handle concurrency
-        suite = TestSuite(
-            build=self.build,
-            project=self.build.project,
-            name=self.suite_name,
-        )
-        result = TestSuite.query.filter_by(
-            build=self.build,
-            name_sha=suite.name_sha,
-        ).first()
+        suite, _ = get_or_create(TestSuite, where={
+            'build': self.build,
+            'name_sha': sha1(self.suite_name).hexdigest(),
+        }, defaults={
+            'name': self.suite_name,
+            'project': self.build.project,
+        })
 
-        if result:
-            return result
-
-        db.session.add(suite)
         return suite
 
     def _get_or_create_test_groups(self):
@@ -85,24 +79,17 @@ class TestResult(object):
         groups = []
         parent_id = None
         for idx, label in enumerate(labels):
-            group = TestGroup(
-                build=self.build,
-                project=self.build.project,
-                name=label,
-                parent_id=parent_id,
-                num_leaves=len(labels) - 1 - idx,
-            )
-            result = TestGroup.query.filter_by(
-                build=self.build,
-                name_sha=group.name_sha,
-            ).first()
-
-            if not result:
-                result = group
-                db.session.add(result)
-
-            parent_id = result.id
-            groups.append(result)
+            group, _ = get_or_create(TestGroup, where={
+                'build': self.build,
+                'name_sha': sha1(label).hexdigest(),
+            }, defaults={
+                'name': label,
+                'project': self.build.project,
+                'num_leaves': len(labels) - 1 - idx,
+                'parent_id': parent_id,
+            })
+            parent_id = group.id
+            groups.append(group)
         return groups
 
     def save(self):
@@ -175,9 +162,6 @@ class TestSuite(db.Model):
         if self.name is None:
             self.name = 'default'
 
-    def calculate_name_sha(self):
-        return sha1(self.name or 'default').hexdigest()
-
 
 class TestGroup(db.Model):
     """
@@ -231,11 +215,6 @@ class TestGroup(db.Model):
             self.num_failed = 0
         if self.num_leaves is None:
             self.num_leaves = 0
-
-    def calculate_name_sha(self):
-        if not self.name:
-            return
-        return sha1(self.name).hexdigest()
 
 
 class TestCase(db.Model):
