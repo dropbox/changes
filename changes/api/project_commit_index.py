@@ -29,8 +29,7 @@ class ProjectCommitIndexAPIView(APIView):
 
         commits = Revision.query.filter(
             Revision.repository_id == repo.id,
-            Revision.date_committed != None,  # NOQA
-        ).join(Revision.author).order_by(Revision.date_committed.desc())[:100]
+        ).join(Revision.author).order_by(Revision.date_created.desc())[:100]
 
         builds_qs = list(Build.query.filter(
             Build.project_id == project.id,
