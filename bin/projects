@@ -62,13 +62,15 @@ parser_add.add_argument('--slug', metavar='slug', dest='slug', help='project slu
 parser_add.add_argument('--provider', dest='provider', help='provider slug', choices=PROVIDER_CHOICES)
 parser_add.add_argument('--provider-options', dest='provider_options', help='provider options (json)')
 
-parser_add = subparsers.add_parser('edit', help='edit project')
-parser_add.add_argument('id', help='project ID or slug')
-parser_add.add_argument('--label', dest='label', help='project label')
-parser_add.add_argument('--repo-url', metavar='url', dest='repo_url', help='repository url')
-parser_add.add_argument('--slug', metavar='slug', dest='slug', help='project slug')
-parser_add.add_argument('--provider', dest='provider', help='provider slug', choices=PROVIDER_CHOICES)
-parser_add.add_argument('--provider-options', dest='provider_options', help='provider options (json)')
+parser_edit = subparsers.add_parser('edit', help='edit project')
+parser_edit.add_argument('id', help='project ID or slug')
+parser_edit.add_argument('--label', dest='label', help='project label')
+parser_edit.add_argument('--repo-url', metavar='url', dest='repo_url', help='repository url')
+parser_edit.add_argument('--slug', metavar='slug', dest='slug', help='project slug')
+parser_edit.add_argument('--provider', dest='provider', help='provider slug', choices=PROVIDER_CHOICES)
+parser_edit.add_argument('--provider-options', dest='provider_options', help='provider options (json)')
+
+parser_list = subparsers.add_parser('list', help='list projects')
 
 parser_options = subparsers.add_parser('options', help='manage project options')
 options_subparsers = parser_options.add_subparsers(dest='option_command')
@@ -200,6 +202,10 @@ elif args.command == 'edit':
         project.id,
     )
 
+elif args.command == 'list':
+    for project in Project.query.order_by(Project.slug.asc()):
+        print project.slug
+
 elif args.command == 'options':
     if args.option_command == 'set':
         project = get_project(args.id)
@@ -237,5 +243,6 @@ elif args.command == 'options':
 
         for option in option_list:
             print "%s=%s" % (option.name, option.value)
+
 
 db.session.commit()

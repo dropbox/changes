@@ -62,6 +62,8 @@ parser_edit.add_argument(
     '--backend', metavar='backend', dest='backend',
     help='repository backend', choices=('git', 'hg', 'unknown'))
 
+parser_list = subparsers.add_parser('list', help='list repositories')
+
 args = parser.parse_args()
 
 if args.command == 'add':
@@ -93,3 +95,7 @@ elif args.command == 'edit':
     print "Saved repo with ID {%s}" % (
         repo.id,
     )
+
+elif args.command == 'list':
+    for repo in Repository.query.order_by(Repository.url.asc()):
+        print repo.url
