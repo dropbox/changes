@@ -111,11 +111,11 @@ class RevisionResult(object):
             'sha': self.id,
         }, values={
             'author': author,
-            'author_date': self.author_date,
             'committer': committer,
-            'committer_date': self.committer_date,
             'message': self.message,
             'parents': self.parents,
+            'date_created': self.author_date,
+            'date_committed': self.committer_date,
         })
 
         return (revision, created)
