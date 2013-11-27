@@ -51,10 +51,14 @@ def create_or_update(model, where, values=None):
             if instance is None:
                 raise Exception('Unable to create or update instance')
             update(instance, values)
+            created = False
+        else:
+            created = True
     else:
+        created = False
         update(instance, values)
 
-    return instance
+    return instance, created
 
 
 def update(instance, values):
