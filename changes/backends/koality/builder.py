@@ -91,7 +91,7 @@ class KoalityBuilder(BaseBackend):
             'email': user['email'],
         }, where={
             'name': user['name'],
-        })
+        })[0]
 
     def _sync_revision(self, repository, author, commit):
         return create_or_update(Revision, values={
@@ -100,7 +100,7 @@ class KoalityBuilder(BaseBackend):
         }, where={
             'repository': repository,
             'sha': commit['sha'],
-        })
+        })[0]
 
     def _sync_phase(self, build, stage_type, stage_list, phase=None):
         remote_id = '%s:%s' % (build.id.hex, stage_type)

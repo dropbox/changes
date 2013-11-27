@@ -59,20 +59,13 @@ def pytest_sessionstart(session):
         'autocommit': True,
     })
 
-    connection = db.engine.connect()
-    transaction = connection.begin()
-
-
-def pytest_sessionfinish():
-    transaction.rollback()
-    connection.close()
-
 
 # TODO: mock session commands
 def pytest_runtest_setup(item):
     item.__sqla_transaction = db.session.begin()
     patchers.extend([
         mock.patch.object(db.session, 'commit'),
+        mock.patch.object(db.session, 'rollback'),
         # TODO(dcramer): if we correctly mocked out commit to only allow
         # savepoint commits we wouldn't need to mock begin_nested
         # mock.patch.object(db.session, 'begin_nested'),

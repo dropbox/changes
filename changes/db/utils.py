@@ -1,5 +1,7 @@
 from changes.config import db
 
+from sqlalchemy.exc import IntegrityError
+
 
 def get_or_create(model, where, defaults=None):
     if defaults is None:
@@ -46,7 +48,7 @@ def create_or_update(model, where, values=None):
         try:
             with db.session.begin_nested():
                 db.session.add(instance)
-        except Exception:
+        except IntegrityError:
             instance = model.query.filter_by(**where).limit(1).first()
             if instance is None:
                 raise Exception('Unable to create or update instance')
