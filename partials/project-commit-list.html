@@ -1,0 +1,39 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2>{{project.name}}</h2>
+		</div>
+
+		<table class="build-list table table-striped">
+			<tbody>
+				<tr ng-repeat="commit in commits" class="status-{{commit.build.status.id}} result-{{commit.build.result.id}}">
+					<td>
+						<div ng-if="commit.build" class="indicator" title="{{commit.build.result.name}}">
+							<div data-result="{{commit.build.result.id}}"
+							     data-status="{{commit.build.status.id}}"
+							 	 data-date-started="{{commit.build.dateStarted}}"
+							 	 data-estimated-duration="{{commit.build.estimatedDuration}}"
+							 	 radial-progress-bar>&nbsp;</div>
+						</div>
+					</td>
+					<td>
+						<a href="{{commit.build.link}}">{{commit.subject}}</a><br>
+
+						<small>
+							{{commit.id.substr(12)}}
+							<span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
+						</small>
+						<span ng-if="commit.build">
+							<span class="status">{{getBuildStatus(commit.build)}}</span>
+							<span class="date" ng-if="commit.build.dateStarted">
+								<span time-since="commit.build.dateStarted"></span>
+								<span ng-if="commit.build.duration"> &mdash; <span duration="commit.build.duration"></span></span>
+							</span>
+						</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+</section>

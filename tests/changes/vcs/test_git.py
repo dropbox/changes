@@ -27,6 +27,9 @@ class GitVcsTest(TestCase):
         os.system('cd %s && touch FOO && git add FOO && git commit -m "test\nlol\n"' % (
             self.remote_path,
         ))
+        os.system('cd %s && touch BAR && git add BAR && git commit -m "biz\nbaz\n"' % (
+            self.remote_path,
+        ))
 
     def get_vcs(self):
         return GitVcs(
@@ -40,6 +43,20 @@ class GitVcsTest(TestCase):
         vcs.update()
         revision = vcs.get_revision('HEAD')
         assert len(revision.id) == 40
-        assert revision.message == 'test\nlol\n'
-        assert revision.subject == 'test'
+        assert revision.message == 'biz\nbaz\n'
+        assert revision.subject == 'biz'
         assert revision.author == 'Foo Bar <foo@example.com>'
+        revisions = list(vcs.log())
+        assert len(revisions) == 2
+        assert revisions[0].subject == 'biz'
+        assert revisions[0].message == 'biz\nbaz\n'
+        assert revisions[0].author == 'Foo Bar <foo@example.com>'
+        assert revisions[0].committer == 'Foo Bar <foo@example.com>'
+        assert revisions[0].parents == [revisions[1].id]
+        assert revisions[0].author_date == revisions[0].committer_date is not None
+        assert revisions[1].subject == 'test'
+        assert revisions[1].message == 'test\nlol\n'
+        assert revisions[1].author == 'Foo Bar <foo@example.com>'
+        assert revisions[1].committer == 'Foo Bar <foo@example.com>'
+        assert revisions[1].parents == []
+        assert revisions[1].author_date == revisions[1].committer_date is not None

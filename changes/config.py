@@ -129,6 +129,7 @@ def configure_api_routes(app):
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
     from changes.api.project_build_index import ProjectBuildIndexAPIView
+    from changes.api.project_commit_index import ProjectCommitIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_stats_index import ProjectStatsIndexAPIView
     from changes.api.project_details import ProjectDetailsAPIView
@@ -158,6 +159,8 @@ def configure_api_routes(app):
         '/api/0/projects/<project_id>/', view_func=ProjectDetailsAPIView.as_view('api-project-details'))
     app.add_url_rule(
         '/api/0/projects/<project_id>/builds/', view_func=ProjectBuildIndexAPIView.as_view('api-project-build-list'))
+    app.add_url_rule(
+        '/api/0/projects/<project_id>/commits/', view_func=ProjectCommitIndexAPIView.as_view('api-project-commit-list'))
     app.add_url_rule(
         '/api/0/projects/<project_id>/stats/', view_func=ProjectStatsIndexAPIView.as_view('api-project-stats'))
     app.add_url_rule(

@@ -5,7 +5,7 @@ define([
     'directives/timeSince'], function(app, sortBuildList) {
   var authorBuildListCtrl = function(initialBuildList, $scope, $http, Stream) {
     var stream,
-        entrypoint = '/api/0/authors/me/builds/';;
+        entrypoint = '/api/0/authors/me/builds/';
 
     $scope.builds = sortBuildList(initialBuildList.data.builds);
 

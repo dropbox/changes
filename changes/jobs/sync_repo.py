@@ -1,26 +1,7 @@
-import os.path
-
 from datetime import datetime
-from flask import current_app
 
 from changes.config import db, queue
-from changes.vcs.git import GitVcs
-from changes.vcs.hg import MercurialVcs
-from changes.models import Repository, RepositoryBackend
-
-
-def get_vcs(repo):
-    kwargs = {
-        'path': os.path.join(current_app.config['REPO_ROOT'], repo.id.hex),
-        'url': repo.url,
-    }
-
-    if repo.backend == RepositoryBackend.git:
-        return GitVcs(**kwargs)
-    elif repo.backend == RepositoryBackend.hg:
-        return MercurialVcs(**kwargs)
-    else:
-        return None
+from changes.models import Repository
 
 
 def sync_repo(repo_id):
@@ -28,7 +9,7 @@ def sync_repo(repo_id):
     if not repo:
         return
 
-    vcs = get_vcs(repo)
+    vcs = repo.get_vcs()
     if vcs is None:
         return
 
@@ -41,6 +22,21 @@ def sync_repo(repo_id):
             vcs.update()
         else:
             vcs.clone()
+
+        # TODO(dcramer): this doesnt scrape everything, and really we wouldn't
+        # want to do this all in a single job so we should split this into a
+        # backfill task
+        might_have_more = True
+        parent = None
+        while might_have_more:
+            might_have_more = False
+            for commit in vcs.log(parent=parent):
+                revision, created = commit.save(repo)
+                if not created:
+                    break
+                might_have_more = True
+                parent = commit.id
+
         repo.last_update = datetime.utcnow()
 
         db.session.add(repo)
