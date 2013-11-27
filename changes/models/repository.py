@@ -42,9 +42,21 @@ class Repository(db.Model):
         from changes.vcs.git import GitVcs
         from changes.vcs.hg import MercurialVcs
 
+        options = dict(
+            db.session.query(
+                RepositoryOption.name, RepositoryOption.value
+            ).filter(
+                RepositoryOption.repository_id == self.id,
+                RepositoryOption.name.in_([
+                    'auth.username',
+                ])
+            )
+        )
+
         kwargs = {
             'path': os.path.join(current_app.config['REPO_ROOT'], self.id.hex),
             'url': self.url,
+            'username': options.get('auth.username'),
         }
 
         if self.backend == RepositoryBackend.git:

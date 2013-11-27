@@ -33,9 +33,10 @@ class BufferParser(object):
 
 
 class Vcs(object):
-    def __init__(self, path, url):
+    def __init__(self, path, url, username=None):
         self.path = path
         self.url = url
+        self.username = username
 
         self._path_exists = None
 

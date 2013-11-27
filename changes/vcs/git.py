@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from datetime import datetime
+from urlparse import urlparse
 
 from .base import Vcs, RevisionResult, BufferParser
 
@@ -12,7 +13,18 @@ class GitVcs(Vcs):
     binary_path = 'git'
 
     def clone(self):
-        self.run([self.binary_path, 'clone', self.url, self.path])
+        if self.username:
+            parsed = urlparse.urlparse(self.url)
+            url = '%s://%s@%s/%s' % (
+                parsed.scheme,
+                self.username,
+                parsed.hostname + (':%s' % (parsed.port,) if parsed.port else ''),
+                parsed.path,
+            )
+        else:
+            url = self.url
+
+        self.run([self.binary_path, 'clone', url, self.path])
 
     def update(self):
         self.run([self.binary_path, 'fetch', '--all'])
