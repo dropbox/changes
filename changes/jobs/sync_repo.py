@@ -32,6 +32,7 @@ def sync_repo(repo_id):
             might_have_more = False
             for commit in vcs.log(parent=parent):
                 revision, created = commit.save(repo)
+                db.session.commit()
                 if not created:
                     break
                 might_have_more = True
