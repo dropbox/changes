@@ -50,9 +50,9 @@ def sync_build(build_id):
                 'signal_name': 'build.finished',
             })
 
-    except Exception:
+    except Exception as exc:
         # Ensure we continue to synchronize this build as this could be a
         # temporary failure
         raise queue.retry('sync_build', kwargs={
             'build_id': build_id,
-        }, countdown=60)
+        }, exc=exc, countdown=60)
