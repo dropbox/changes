@@ -198,12 +198,14 @@ def configure_jobs(app):
     from changes.jobs.create_build import create_build
     from changes.jobs.notify_listeners import notify_listeners
     from changes.jobs.sync_build import sync_build
+    from changes.jobs.sync_repo import sync_repo
 
     queue.register('check_repos', check_repos)
     queue.register('cleanup_builds', cleanup_builds)
     queue.register('create_build', create_build)
     queue.register('notify_listeners', notify_listeners)
     queue.register('sync_build', sync_build)
+    queue.register('sync_repo', sync_repo)
 
 
 def configure_database_listeners(app):
