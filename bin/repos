@@ -4,7 +4,7 @@ import argparse
 import sys
 
 from changes.config import create_app, db
-from changes.models import Repository
+from changes.models import Repository, RepositoryBackend
 
 
 def abort():
@@ -51,16 +51,25 @@ subparsers = parser.add_subparsers(dest='command')
 
 parser_add = subparsers.add_parser('add', help='add repository')
 parser_add.add_argument('--url', metavar='url', dest='url', help='repository url')
+parser_add.add_argument(
+    '--backend', metavar='backend', dest='backend',
+    help='repository backend', choices=('git', 'hg', 'unknown'), default='unknown')
 
-parser_add = subparsers.add_parser('edit', help='edit repository')
-parser_add.add_argument('id', help='repository ID or url')
-parser_add.add_argument('--url', dest='url', help='repository url')
+parser_edit = subparsers.add_parser('edit', help='edit repository')
+parser_edit.add_argument('id', help='repository ID or url')
+parser_edit.add_argument('--url', dest='url', help='repository url')
+parser_edit.add_argument(
+    '--backend', metavar='backend', dest='backend',
+    help='repository backend', choices=('git', 'hg', 'unknown'))
 
 args = parser.parse_args()
 
 if args.command == 'add':
     url = args.url or get_input('Repository URL')
-    repo = Repository(url=url)
+    repo = Repository(
+        url=url,
+        backend=RepositoryBackend[args.backend],
+    )
 
     db.session.add(repo)
     db.session.commit()
@@ -74,6 +83,9 @@ elif args.command == 'edit':
 
     if args.url:
         repo.url = args.url
+
+    if args.backend:
+        repo.backend = RepositoryBackend[args.backend]
 
     db.session.add(repo)
     db.session.commit()
