@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from sqlalchemy import or_
 
 from changes.config import queue
 from changes.models import Repository, RepositoryBackend
@@ -14,7 +15,10 @@ def check_repos():
 
     repo_list = Repository.query.filter(
         Repository.backend != RepositoryBackend.unknown,
-        Repository.last_update_attempt < cutoff,
+        or_(
+            Repository.last_update_attempt < cutoff,
+            Repository.last_update_attempt == None,  # NOQA
+        )
     )
     for repo in repo_list:
         queue.delay('sync_repo', kwargs={
