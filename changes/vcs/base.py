@@ -109,7 +109,7 @@ class RevisionResult(object):
         revision, created = create_or_update(Revision, where={
             'repository': repository,
             'sha': self.id,
-        }, defaults={
+        }, values={
             'author': author,
             'author_date': self.author_date,
             'committer': committer,
