@@ -26,6 +26,9 @@ class MercurialVcsTest(TestCase):
         os.system('cd %s && touch FOO && hg add FOO && hg commit -m "test\nlol"' % (
             self.remote_path,
         ))
+        os.system('cd %s && touch BAR && hg add BAR && hg commit -m "biz\nbaz"' % (
+            self.remote_path,
+        ))
 
     def get_vcs(self):
         return MercurialVcs(
@@ -39,6 +42,20 @@ class MercurialVcsTest(TestCase):
         vcs.update()
         revision = vcs.get_revision('tip')
         assert len(revision.id) == 40
-        assert revision.message == 'test\nlol'
-        assert revision.subject == 'test'
+        assert revision.message == 'biz\nbaz'
+        assert revision.subject == 'biz'
         assert revision.author == 'Foo Bar <foo@example.com>'
+        revisions = list(vcs.log())
+        assert len(revisions) == 2
+        assert revisions[0].subject == 'biz'
+        assert revisions[0].message == 'biz\nbaz'
+        assert revisions[0].author == 'Foo Bar <foo@example.com>'
+        assert revisions[0].committer == 'Foo Bar <foo@example.com>'
+        assert revisions[0].parents == [revisions[1].id]
+        assert revisions[0].author_date == revisions[0].committer_date is not None
+        assert revisions[1].subject == 'test'
+        assert revisions[1].message == 'test\nlol'
+        assert revisions[1].author == 'Foo Bar <foo@example.com>'
+        assert revisions[1].committer == 'Foo Bar <foo@example.com>'
+        assert revisions[1].parents == []
+        assert revisions[1].author_date == revisions[1].committer_date is not None

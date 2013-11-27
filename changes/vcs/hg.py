@@ -1,6 +1,10 @@
 from __future__ import absolute_import, division, print_function
 
-from .base import Vcs, Revision
+from datetime import datetime
+
+from .base import Vcs, RevisionResult, BufferParser
+
+LOG_FORMAT = '{node}\x01{author}\x01{date|hgdate}\x01{p1node} {p2node}\x01{desc}\x02'
 
 
 class MercurialVcs(Vcs):
@@ -12,13 +16,26 @@ class MercurialVcs(Vcs):
     def update(self):
         self.run([self.binary_path, 'pull'])
 
-    def get_revision(self, id):
-        result = self.run([self.binary_path, 'log', '-r %s' % (id,), '--template={node}\n{author}\n{desc}'])
+    def log(self, parent=None, limit=100):
+        # TODO(dcramer): we should make this streaming
+        cmd = [self.binary_path, 'log', '--template=%s' % (LOG_FORMAT,)]
+        if parent:
+            cmd.append('-r %s' % (parent,))
+        if limit:
+            cmd.append('--limit=%d' % (limit,))
+        result = self.run(cmd)
 
-        sha, author, message = result.split('\n', 2)
+        for chunk in BufferParser(result, '\x02'):
+            (sha, author, author_date, parents, message) = chunk.split('\x01')
 
-        return Revision(
-            id=sha,
-            author=author,
-            message=message,
-        )
+            parents = filter(lambda x: x and x != '0' * 40, parents.split(' '))
+
+            author_date = datetime.utcfromtimestamp(float(author_date.replace(' ', '.')))
+
+            yield RevisionResult(
+                id=sha,
+                author=author,
+                author_date=author_date,
+                message=message,
+                parents=parents,
+            )

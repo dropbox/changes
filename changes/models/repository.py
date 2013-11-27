@@ -1,7 +1,9 @@
+import os.path
 import uuid
 
 from datetime import datetime
 from enum import Enum
+from flask import current_app
 from sqlalchemy import Column, String, DateTime
 
 from changes.config import db
@@ -33,3 +35,19 @@ class Repository(db.Model):
             self.id = uuid.uuid4()
         if not self.date_created:
             self.date_created = datetime.utcnow()
+
+    def get_vcs(self):
+        from changes.vcs.git import GitVcs
+        from changes.vcs.hg import MercurialVcs
+
+        kwargs = {
+            'path': os.path.join(current_app.config['REPO_ROOT'], self.id.hex),
+            'url': self.url,
+        }
+
+        if self.backend == RepositoryBackend.git:
+            return GitVcs(**kwargs)
+        elif self.backend == RepositoryBackend.hg:
+            return MercurialVcs(**kwargs)
+        else:
+            return None

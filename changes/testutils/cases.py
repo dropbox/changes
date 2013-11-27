@@ -14,38 +14,7 @@ from changes.models import (
 )
 
 
-class TestCase(Exam, unittest2.TestCase):
-    def setUp(self):
-        self.repo = self.create_repo(
-            url='https://github.com/dropbox/changes.git',
-        )
-        self.project = self.create_project(
-            repository=self.repo,
-            name='test',
-            slug='test'
-        )
-        self.project2 = self.create_project(
-            repository=self.repo,
-            name='test2',
-            slug='test2',
-        )
-
-        # disable commit
-        self.patcher = mock.patch('changes.config.db.session.commit')
-        self.patcher.start()
-        self.addCleanup(self.patcher.stop)
-
-        # mock out mail
-        mail_context = mail.record_messages()
-        self.outbox = mail_context.__enter__()
-        self.addCleanup(lambda: mail_context.__exit__(None, None, None))
-
-        super(TestCase, self).setUp()
-
-    @fixture
-    def client(self):
-        return app.test_client()
-
+class Fixtures(object):
     def create_repo(self, **kwargs):
         kwargs.setdefault('url', 'http://example.com/{0}'.format(uuid4().hex))
 
@@ -79,13 +48,17 @@ class TestCase(Exam, unittest2.TestCase):
         return change
 
     def create_build(self, project, **kwargs):
-        revision = Revision(
-            sha=kwargs.pop('revision_sha', uuid4().hex),
-            repository=project.repository
-        )
-        db.session.add(revision)
+        revision_sha = kwargs.pop('revision_sha', uuid4().hex)
+        revision = Revision.query.filter_by(
+            sha=revision_sha, repository=project.repository).first()
+        if not revision:
+            revision = Revision(
+                sha=revision_sha,
+                repository=project.repository
+            )
+            db.session.add(revision)
 
-        if not kwargs.get('change'):
+        if kwargs.get('change', False) is False:
             kwargs['change'] = self.create_change(project)
 
         kwargs.setdefault('label', 'Sample')
@@ -102,16 +75,63 @@ class TestCase(Exam, unittest2.TestCase):
 
         return build
 
-    def create_author(self, email, **kwargs):
+    def create_revision(self, **kwargs):
+        kwargs.setdefault('sha', uuid4().hex)
+        if not kwargs.get('repository'):
+            kwargs['repository'] = self.create_repo()
+
+        if not kwargs.get('author'):
+            kwargs['author'] = self.create_author()
+
+        kwargs.setdefault('message', 'Test message')
+
+        revision = Revision(**kwargs)
+        db.session.add(revision)
+
+        return revision
+
+    def create_author(self, email=None, **kwargs):
+        if not email:
+            email = uuid4().hex + '@example.com'
         kwargs.setdefault('name', 'Test Case')
 
-        author = Author(
-            email=email,
-            **kwargs
-        )
+        author = Author(email=email, **kwargs)
         db.session.add(author)
 
         return author
+
+
+class TestCase(Exam, unittest2.TestCase, Fixtures):
+    def setUp(self):
+        self.repo = self.create_repo(
+            url='https://github.com/dropbox/changes.git',
+        )
+        self.project = self.create_project(
+            repository=self.repo,
+            name='test',
+            slug='test'
+        )
+        self.project2 = self.create_project(
+            repository=self.repo,
+            name='test2',
+            slug='test2',
+        )
+
+        # disable commit
+        self.patcher = mock.patch('changes.config.db.session.commit')
+        self.patcher.start()
+        self.addCleanup(self.patcher.stop)
+
+        # mock out mail
+        mail_context = mail.record_messages()
+        self.outbox = mail_context.__enter__()
+        self.addCleanup(lambda: mail_context.__exit__(None, None, None))
+
+        super(TestCase, self).setUp()
+
+    @fixture
+    def client(self):
+        return app.test_client()
 
     def unserialize(self, response):
         assert response.headers['Content-Type'] == 'application/json'
