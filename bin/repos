@@ -4,7 +4,8 @@ import argparse
 import sys
 
 from changes.config import create_app, db
-from changes.models import Repository, RepositoryBackend
+from changes.db.utils import create_or_update
+from changes.models import Repository, RepositoryBackend, RepositoryOption
 
 
 def abort():
@@ -64,6 +65,21 @@ parser_edit.add_argument(
 
 parser_list = subparsers.add_parser('list', help='list repositories')
 
+parser_options = subparsers.add_parser('options', help='manage repository options')
+options_subparsers = parser_options.add_subparsers(dest='option_command')
+
+parser_options_set = options_subparsers.add_parser('set', help='set repository option')
+parser_options_set.add_argument('id', help='repository ID or url')
+parser_options_set.add_argument('option', help='key=value')
+
+parser_options_set = options_subparsers.add_parser('delete', help='delete repository option')
+parser_options_set.add_argument('id', help='repository ID or url')
+parser_options_set.add_argument('option', help='key')
+
+parser_options_get = options_subparsers.add_parser('get', help='get repository option')
+parser_options_get.add_argument('id', help='repository ID or url')
+parser_options_get.add_argument('option', help='key', nargs='?')
+
 args = parser.parse_args()
 
 if args.command == 'add':
@@ -74,7 +90,6 @@ if args.command == 'add':
     )
 
     db.session.add(repo)
-    db.session.commit()
 
     print "Created new repository with ID {%s}" % (
         repo.id,
@@ -90,7 +105,6 @@ elif args.command == 'edit':
         repo.backend = RepositoryBackend[args.backend]
 
     db.session.add(repo)
-    db.session.commit()
 
     print "Saved repo with ID {%s}" % (
         repo.id,
@@ -99,3 +113,43 @@ elif args.command == 'edit':
 elif args.command == 'list':
     for repo in Repository.query.order_by(Repository.url.asc()):
         print repo.url
+
+elif args.command == 'options':
+    if args.option_command == 'set':
+        repo = get_repo(args.id)
+
+        name, value = args.option.split('=', 1)
+
+        create_or_update(RepositoryOption, where={
+            'repository': repo,
+            'name': name,
+        }, values={
+            'value': value,
+        })
+        print "%s=%s" % (name, value)
+
+    if args.option_command == 'delete':
+        repo = get_repo(args.id)
+
+        RepositoryOption.query.filter(
+            RepositoryOption.repository_id == repo.id,
+            RepositoryOption.name == args.option,
+        ).delete()
+        print "Ok!"
+
+    if args.option_command == 'get':
+        repo = get_repo(args.id)
+
+        option_list = RepositoryOption.query.filter(
+            RepositoryOption.repository_id == repo.id,
+        ).order_by(RepositoryOption.name.asc())
+
+        if args.option:
+            option_list = option_list.filter(
+                RepositoryOption.name == args.option,
+            )
+
+        for option in option_list:
+            print "%s=%s" % (option.name, option.value)
+
+db.commit()
