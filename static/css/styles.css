@@ -809,16 +809,30 @@ chart {
   overflow-y: scroll;
   resize: vertical;
 }
+.build-log a {
+  color: #c7c0de;
+}
+.build-log a:hover,
+.build-log a:focus {
+  color: #fff;
+}
+
 .build-log.expanded {
   height: auto;
   min-height: auto;
 }
+
 .expand-log-link {
   position: absolute;
   right: 20px;
   top: 5px;
+  color: #c7c0de;
+}
+.expand-log-link:hover,
+.expand-log-link:focus {
   color: #fff;
 }
+
 .build-log-inner {
   overflow: scroll;
   white-space: pre-wrap;
