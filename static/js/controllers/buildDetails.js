@@ -71,7 +71,7 @@ define([
 
     function updateBuildLog(data) {
       // Angular isn't intelligent enough to optimize this.
-      var $el = $('#log-' + data.source.id),
+      var $el = $('#log-' + data.source.id + ' > .build-log'),
           item, source_id = data.source.id,
           chars_to_remove, lines_to_remove,
           buffer_size = 100000;

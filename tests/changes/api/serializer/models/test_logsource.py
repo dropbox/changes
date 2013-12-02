@@ -16,5 +16,5 @@ def test_simple():
     result = serialize(logsource)
     assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['name'] == 'console'
-    assert result['link'] == '/api/0/builds/2e18a7cbc0c24316b2ef9d41fea191d6/logs/33846695b2774b29a71795a009e8168a/'
+    assert result['link'] == '/builds/2e18a7cbc0c24316b2ef9d41fea191d6/logs/33846695b2774b29a71795a009e8168a/'
     assert result['dateCreated'] == '2013-09-19T22:15:22'

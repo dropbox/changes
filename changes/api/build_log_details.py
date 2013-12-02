@@ -18,7 +18,8 @@ class BuildLogDetailsAPIView(APIView):
         if source is None or source.build_id.hex != build_id:
             return Response(status=404)
 
-        offset = request.args.get('offset', -1)
+        offset = int(request.args.get('offset', -1))
+        limit = int(request.args.get('limit', LOG_BATCH_SIZE))
 
         queryset = LogChunk.query.filter(
             LogChunk.source_id == source.id,
@@ -31,19 +32,28 @@ class BuildLogDetailsAPIView(APIView):
             if tail is None:
                 logchunks = []
             else:
-                logchunks = list(queryset.filter(
-                    (LogChunk.offset + LogChunk.size) >= max(tail.offset - LOG_BATCH_SIZE, 0),
+                queryset = queryset.filter(
                     LogChunk.offset <= tail.offset,
-                ))
+                )
+                if limit:
+                    queryset = queryset.filter(
+                        (LogChunk.offset + LogChunk.size) >= max(tail.offset - limit, 0),
+                    )
+                logchunks = list(queryset)
         else:
-            logchunks = list(queryset.filter(
+            queryset = queryset.filter(
                 (LogChunk.offset + LogChunk.size) >= offset,
-                LogChunk.offset <= offset + LOG_BATCH_SIZE,
-            ))
+            )
+            if limit:
+                queryset = queryset.filter(
+                    LogChunk.offset <= offset + limit,
+                )
+            logchunks = list(queryset)
 
         logchunks.sort(key=lambda x: x.date_created)
 
         return self.respond({
+            'source': source,
             'chunks': logchunks,
             'nextOffset': logchunks[-1].offset + logchunks[-1].size,
         })

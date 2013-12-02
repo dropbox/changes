@@ -4,6 +4,7 @@ define(['app',
         'controllers/changeList',
         'controllers/changeDetails',
         'controllers/buildList',
+        'controllers/buildLogDetails',
         'controllers/buildDetails',
         'controllers/testGroupDetails',
         'controllers/projectCommitList',
@@ -88,6 +89,18 @@ define(['app',
           resolve: {
             initialData: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/builds/' + $route.current.params.build_id + '/');
+            }]
+          }
+        })
+        .when('/builds/:build_id/logs/:source_id/', {
+          templateUrl: 'partials/build-log-details.html',
+          controller: 'buildLogDetailsCtrl',
+          resolve: {
+            initialBuild: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/builds/' + $route.current.params.build_id + '/');
+            }],
+            initialBuildLog: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/builds/' + $route.current.params.build_id + '/logs/' + $route.current.params.source_id + '?limit=0');
             }]
           }
         })

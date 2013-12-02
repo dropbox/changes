@@ -792,6 +792,10 @@ chart {
   font-size: 1.3em;
 }
 
+.build-log-wrapper {
+  position: relative;
+}
+
 .build-log {
   border-radius: 6px;
   height: 300px;
@@ -801,8 +805,19 @@ chart {
   font-size: 14px;
   font-weight: 300;
   min-height: 50px;
-  overflow: auto;
+  overflow: -moz-scrollbars-vertical;
+  overflow-y: scroll;
   resize: vertical;
+}
+.build-log.expanded {
+  height: auto;
+  min-height: auto;
+}
+.expand-log-link {
+  position: absolute;
+  right: 20px;
+  top: 5px;
+  color: #fff;
 }
 .build-log-inner {
   overflow: scroll;
