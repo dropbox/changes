@@ -14,8 +14,7 @@ define(['app'], function(app) {
     function updateBuildLog(data) {
       var $el = $('#log-' + data.source.id + ' > .build-log'),
           source_id = data.source.id,
-          chars_to_remove, lines_to_remove,
-          buffer_size = 100000;
+          chars_to_remove, lines_to_remove;
 
       if (data.offset < logChunkData.nextOffset) {
         return;
@@ -25,28 +24,13 @@ define(['app'], function(app) {
 
       logChunkData.nextOffset = data.offset + data.size;
 
-      if (logChunkData.size > buffer_size) {
-        $el.empty();
-      } else {
-        // determine how much space we need to clear up to append data.size
-        chars_to_remove = 0 - (buffer_size - logChunkData.size - data.size);
-
-        if (chars_to_remove > 0) {
-          // determine the number of actual lines to remove
-          lines_to_remove = logChunkData.text.substr(0, chars_to_remove).split('\n').length;
-
-          // remove number of lines (accounted by <div>'s)
-          $el.find('div').slice(0, lines_to_remove - 1).remove();
-        }
-      }
-
       // add each additional new line
       $.each(data.text.split('\n'), function(_, line){
         $el.append($('<div class="line">' + line + '</div>'));
       });
 
-      logChunkData.text = (logChunkData.text + data.text).substr(-buffer_size);
-      logChunkData.size = logChunkData.text.length;
+      logChunkData.text += data.text;
+      logChunkData.size += data.size;
 
       var el = $el.get(0);
       el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
