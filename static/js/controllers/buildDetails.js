@@ -10,8 +10,8 @@ define([
     'filters/wordwrap',
     'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
   app.controller('buildDetailsCtrl', [
-      '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', 'stream', 'pagination', 'flash',
-      function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, Stream, Pagination, flash) {
+      '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'pagination', 'flash',
+      function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, Pagination, flash) {
     'use strict';
 
     var stream, logSources = {},
@@ -42,6 +42,11 @@ define([
             return content;
           }
         };
+
+    function getFormattedBuildMessage(build) {
+      console.log($filter('escape')(build.message));
+      return $filter('linkify')($filter('escape')(build.message));
+    }
 
     function getLogSourceEntrypoint(logSource) {
       return '/api/0/builds/' + $scope.build.id + '/logs/' + logSource.id + '/';
@@ -186,6 +191,7 @@ define([
 
     $scope.project = initialData.data.project;
     $scope.build = initialData.data.build;
+    $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build);
     $scope.logSources = initialData.data.logs;
     $scope.phases = initialData.data.phase;
     $scope.testFailures = initialData.data.testFailures;
@@ -196,10 +202,13 @@ define([
 
     $rootScope.activeProject = $scope.project;
 
-    $scope.$watch("build.status", function(status) {
+    $scope.$watch("build.status", function() {
       $scope.testStatus = getTestStatus();
     });
-    $scope.$watch("tests", function(status) {
+    $scope.$watch("build.message", function() {
+      $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build);
+    });
+    $scope.$watch("tests", function() {
       $scope.testStatus = getTestStatus();
     });
 

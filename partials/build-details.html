@@ -52,7 +52,7 @@
 			</div>
 		</div>
 
-		<pre ng-if="build.message" class="build-message" ng-bind-html="build.message | escape | linkify"></pre>
+		<pre ng-if="build.message" class="build-message" ng-bind-html="formattedBuildMessage"></pre>
 
 		<ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
 			<li ng-repeat="phase in phases | orderBy:'dateStarted'" class="result-{{phase.result.id}}">
