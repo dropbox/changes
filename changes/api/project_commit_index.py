@@ -26,14 +26,40 @@ class ProjectCommitIndexAPIView(APIView):
             return Response(status=404)
 
         repo = project.repository
+        vcs = repo.get_vcs()
 
-        commits = Revision.query.filter(
-            Revision.repository_id == repo.id,
-        ).join(Revision.author).order_by(Revision.date_created.desc())[:100]
+        if vcs:
+            vcs_log = vcs.log()
+
+            revisions_qs = Revision.query.filter(
+                Revision.repository_id == repo.id,
+                Revision.sha.in_(c.id for c in vcs_log)
+            ).join(Revision.author)
+
+            revisions_map = dict(
+                (c.sha, d)
+                for c, d in itertools.izip(revisions_qs, self.serialize(revisions_qs))
+            )
+
+            commits = []
+            for commit in vcs_log:
+                if commit.id in revisions_map:
+                    result = revisions_map[commit.id]
+                else:
+                    result = self.serialize(commit)
+                commits.append(result)
+        else:
+            commits = self.serialize(list(
+                Revision.query.filter(
+                    Revision.repository_id == repo.id,
+                ).join(
+                    Revision.author,
+                ).order_by(Revision.date_created.desc())[:100]
+            ))
 
         builds_qs = list(Build.query.filter(
             Build.project_id == project.id,
-            Build.revision_sha.in_(c.sha for c in commits),
+            Build.revision_sha.in_(c['id'] for c in commits),
             Build.patch == None,  # NOQA
         ).order_by(Build.date_created.asc()))
 
@@ -43,9 +69,9 @@ class ProjectCommitIndexAPIView(APIView):
         )
 
         results = []
-        for (commit, data) in itertools.izip(commits, self.serialize(commits)):
-            data['build'] = builds_map.get(commit.sha)
-            results.append(data)
+        for result in commits:
+            result['build'] = builds_map.get(result['id'])
+            results.append(result)
 
         context = {
             'commits': results,
