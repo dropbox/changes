@@ -95,23 +95,22 @@ class TestResult(object):
     def save(self):
         suite = self._get_or_create_test_suite()
 
-        test = TestCase(
-            build=self.build,
-            project=self.build.project,
-            suite_id=suite.id,
-            name=self.name,
-            package=self.package,
-            duration=self.duration,
-            message=self.message,
-            result=self.result,
-            date_created=self.date_created,
-        )
+        name_sha = TestCase.calculate_name_sha(self.package, self.name)
 
-        if TestCase.query.filter_by(build=test.build, suite_id=suite.id,
-                                    name_sha=test.name_sha).first():
-            return
-
-        db.session.add(test)
+        test, _ = get_or_create(TestCase, where={
+            'build': self.build,
+            'suite_id': suite.id,
+            'name_sha': name_sha,
+        }, defaults={
+            'project': self.build.project,
+            'name': self.name,
+            'package': self.package,
+            'duration': self.duration,
+            'message': self.message,
+            'result': self.result,
+            'date_created': self.date_created,
+        })
+        db.session.commit()
 
         groups = self._get_or_create_test_groups()
         for group in groups:
@@ -253,6 +252,16 @@ class TestCase(db.Model):
         if self.date_created is None:
             self.date_created = datetime.utcnow()
 
+    @classmethod
+    def calculate_name_sha(self, package, name):
+        if package and name:
+            new_sha = sha1('{0}.{1}'.format(package, name)).hexdigest()
+        elif name:
+            new_sha = sha1(name).hexdigest()
+        else:
+            raise ValueError
+        return new_sha
+
 
 def test_name_sha_func(attr):
     def set_name_sha(target, value, oldvalue, initiator):
@@ -265,10 +274,7 @@ def test_name_sha_func(attr):
         else:
             name = target.name
 
-        if package and name:
-            new_sha = sha1('{0}.{1}'.format(package, name)).hexdigest()
-        elif name:
-            new_sha = sha1(name).hexdigest()
+        new_sha = TestCase.calculate_name_sha(package, name)
 
         if new_sha != target.name_sha:
             target.name_sha = new_sha
