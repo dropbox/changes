@@ -14,6 +14,8 @@ from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import RemoteEntity, TestResult, LogSource, LogChunk
 
+LOG_CHUNK_SIZE = 4096
+
 
 def chunked(iterator, chunk_size):
     """
@@ -23,7 +25,7 @@ def chunked(iterator, chunk_size):
     result = ''
     for chunk in iterator:
         result += chunk
-        if len(result) > chunk_size:
+        if len(result) >= chunk_size:
             newline_pos = result.find('\n', chunk_size - 1)
             if newline_pos == -1:
                 newline_pos = result.rfind('\n')
@@ -35,6 +37,7 @@ def chunked(iterator, chunk_size):
                 newline_pos += 1
             yield result[:newline_pos]
             result = result[newline_pos:]
+            assert len(result) < chunk_size
     if result:
         yield result
 
@@ -218,8 +221,8 @@ class JenkinsBuilder(BaseBackend):
 
         offset = 0
         resp = requests.get(url, stream=True)
-        iterator = resp.iter_content(chunk_size=4096)
-        for chunk in chunked(iterator, 4096):
+        iterator = resp.iter_content(chunk_size=LOG_CHUNK_SIZE)
+        for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
             create_or_update(LogChunk, where={
                 'source': logsource,
@@ -261,10 +264,10 @@ class JenkinsBuilder(BaseBackend):
         if offset > log_length:
             return
 
-        iterator = resp.iter_content(chunk_size=4096)
+        iterator = resp.iter_content(chunk_size=LOG_CHUNK_SIZE)
         # XXX: requests doesnt seem to guarantee chunk_size, so we force it
         # with our own helper
-        for chunk in chunked(iterator, 4096):
+        for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
             create_or_update(LogChunk, where={
                 'source': logsource,
