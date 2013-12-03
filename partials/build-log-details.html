@@ -1,19 +1,16 @@
 <section>
-	<div id="overview">
-		<div class="page-header build-header">
-			<h2>
-				{{build.name}}<br>
-				<small>
-					{{build.target}}
-					<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
-				</small>
-			</h2>
-		</div>
+	<div class="page-header build-header">
+		<h2>
+			{{build.name}}<br>
+			<small>
+				{{build.target}}
+				<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
+			</small>
+		</h2>
+	</div>
 
-	<div class="page-header">
-		<h3>{{logSource.name}} <small>Build Log</small></h3>
-		<div class="build-log-wrapper" id="log-{{logSource.id}}">
-			<div class="build-log expanded"></div>
-		</div>
+	<h3>{{logSource.name}} <small>Build Log</small></h3>
+	<div class="build-log-wrapper" id="log-{{logSource.id}}">
+		<div class="build-log expanded"></div>
 	</div>
 </section>
