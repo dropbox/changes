@@ -49,6 +49,7 @@ class JenkinsBuilder(BaseBackend):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['JENKINS_URL']
         self.token = token or self.app.config['JENKINS_TOKEN']
+        self.sync_artifacts = self.app.config['JENKINS_SYNC_ARTIFACTS']
         self.logger = logging.getLogger('jenkins')
 
     def _get_response(self, path, method='GET', params=None, **kwargs):
@@ -195,16 +196,15 @@ class JenkinsBuilder(BaseBackend):
                         raise Exception('Took too long to sync log')
                     continue
             except Exception:
+
                 current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)\
 
-            # TODO(dcramer): this takes way too long to sync large artifacts,
-            # and needs its own queue
-            # find any artifacts matching *.log and create logsource out of them
-            for artifact in item.get('artifacts', ()):
-                queue.delay('sync_artifact', kwargs={
-                    'build_id': build.id.hex,
-                    'artifact': artifact,
-                })
+            if self.sync_artifacts:
+                for artifact in item.get('artifacts', ()):
+                    queue.delay('sync_artifact', kwargs={
+                        'build_id': build.id.hex,
+                        'artifact': artifact,
+                    })
 
             build.status = Status.finished
             db.session.add(build)
