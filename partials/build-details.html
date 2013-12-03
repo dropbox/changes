@@ -64,9 +64,9 @@
 	<div class="page-header" ng-if="logSources">
 		<h3>Build Log</h3>
 
-		<ul class="nav nav-pills" style="margin-bottom:10px;">
-			<li ng-repeat="logSource in logSources" ng-class="{active : $first}">
-				<a href="#log-{{logSource.id}}" data-toggle="tab">
+		<ul class="nav nav-pills" style="margin-bottom:10px;" id="log_sources">
+			<li ng-repeat="logSource in logSources">
+				<a href="#log-{{logSource.id}}" data-toggle="tab" data-source="{{logSource.id}}">
 					{{logSource.name}}
 					<span class="spinner-icon" ng-if="build.status.id == 'in_progress'"></span>
 				</a>
@@ -74,7 +74,7 @@
 		</ul>
 
 		<div class="tab-content">
-			<div ng-repeat="logSource in logSources" class="tab-pane build-log-wrapper" ng-class="{active : $first}" id="log-{{logSource.id}}">
+			<div ng-repeat="logSource in logSources" class="tab-pane build-log-wrapper" id="log-{{logSource.id}}">
 				<div class="build-log"></div>
 				<a href="{{logSource.link}}" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
 			</div>

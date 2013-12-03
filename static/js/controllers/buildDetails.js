@@ -48,8 +48,8 @@ define([
       return $filter('linkify')($filter('escape')(build.message));
     }
 
-    function getLogSourceEntrypoint(logSource) {
-      return '/api/0/builds/' + $scope.build.id + '/logs/' + logSource.id + '/';
+    function getLogSourceEntrypoint(logSourceId) {
+      return '/api/0/builds/' + $scope.build.id + '/logs/' + logSourceId + '/';
     }
 
     function getTestStatus() {
@@ -81,11 +81,7 @@ define([
       }
 
       if (!logSources[source_id]) {
-        logSources[source_id] = {
-          text: '',
-          size: 0,
-          nextOffset: 0
-        };
+        return;
       }
 
       item = logSources[source_id];
@@ -120,8 +116,10 @@ define([
       item.text = (item.text + data.text).substr(-buffer_size);
       item.size = item.text.length;
 
-      var el = $el.get(0);
-      el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
+      if ($el.is(':visible')) {
+        var el = $el.get(0);
+        el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
+      }
     }
 
     function updateTestGroup(data) {
@@ -188,19 +186,6 @@ define([
         });
     };
 
-    $scope.project = initialData.data.project;
-    $scope.build = initialData.data.build;
-    $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build);
-    $scope.logSources = initialData.data.logs;
-    $scope.phases = initialData.data.phase;
-    $scope.testFailures = initialData.data.testFailures;
-    $scope.testGroups = initialData.data.testGroups;
-    $scope.testStatus = getTestStatus();
-    $scope.previousRuns = initialData.data.previousRuns
-    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
-
-    $rootScope.activeProject = $scope.project;
-
     $scope.$watch("build.status", function() {
       $scope.testStatus = getTestStatus();
     });
@@ -210,15 +195,48 @@ define([
     $scope.$watch("tests", function() {
       $scope.testStatus = getTestStatus();
     });
+    $scope.$watch("logSources", function(){
+      $timeout(function(){
+        $('#log_sources a[data-toggle="tab"]').tab();
+        $('#log_sources a[data-toggle="tab"]').on('show.bs.tab', function(e){
+          var source_id = $(e.target).attr("data-source"),
+              $el = $(e.target).attr("href");
 
-    $.each($scope.logSources, function(_, logSource){
-      $http.get(getLogSourceEntrypoint(logSource) + '?limit=' + buffer_size)
-        .success(function(data){
-          $.each(data.chunks, function(_, chunk){
-            updateBuildLog(chunk);
-          });
+          console.log('x');
+
+          if (!logSources[source_id]) {
+            logSources[source_id] = {
+              text: '',
+              size: 0,
+              nextOffset: 0
+            };
+
+            $http.get(getLogSourceEntrypoint(source_id) + '?limit=' + buffer_size)
+              .success(function(data){
+                $.each(data.chunks, function(_, chunk){
+                  updateBuildLog(chunk);
+                });
+                $("#log_sources").tab();
+              });
+          } else {
+            $el.tab('show');
+          }
         });
+        $('#log_sources a[data-toggle="tab"]:first').tab("show");
+      });
     });
+
+    $scope.project = initialData.data.project;
+    $scope.build = initialData.data.build;
+    $scope.logSources = initialData.data.logs;
+    $scope.phases = initialData.data.phase;
+    $scope.testFailures = initialData.data.testFailures;
+    $scope.testGroups = initialData.data.testGroups;
+    $scope.previousRuns = initialData.data.previousRuns
+    $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
+
+    $rootScope.activeProject = $scope.project;
+
 
     // TODO: we need to support multiple soruces, a real-time stream, and real-time source changes
     stream = Stream($scope, entrypoint);
