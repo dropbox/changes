@@ -2,7 +2,7 @@ import mock
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import ProjectOption, Patch
+from changes.models import ProjectOption, Patch, LogSource, LogChunk
 from changes.listeners.mail import build_finished_handler, send_notification
 from changes.testutils.cases import TestCase
 
@@ -92,15 +92,37 @@ class BuildHandlerTestCase(TestCase):
 class SendNotificationTestCase(TestCase):
     def test_simple(self):
         build = self.create_build(self.project, result=Result.failed)
+        logsource = LogSource(
+            project=self.project,
+            build=build,
+            name='console',
+        )
+        db.session.add(logsource)
+
+        logchunk = LogChunk(
+            project=self.project,
+            build=build,
+            source=logsource,
+            offset=0,
+            size=11,
+            text='hello world',
+        )
+        db.session.add(logchunk)
+
+        build_link = 'http://example.com/builds/%s/' % (build.id.hex,)
+        log_link = '%slogs/%s/' % (build_link, logsource.id.hex)
+
         send_notification(build, recipients=['foo@example.com', 'Bob <bob@example.com>'])
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
+
         assert msg.subject == 'Build Failed - %s (%s)' % (build.revision_sha, build.project.name)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
-        build_link = 'http://example.com/builds/%s/' % (build.id.hex,)
         assert build_link in msg.html
         assert build_link in msg.body
+        assert log_link in msg.html
+        assert log_link in msg.body
 
         assert msg.as_string()

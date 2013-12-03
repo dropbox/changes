@@ -1,13 +1,21 @@
 {{ build.label }} {{ build.result }} - {{ build.target or build.revision_sha }} ({{ build.project.name }})
 
 Build:
-  {{ build.uri }}
+  {{ build.uri }}{% if build.author %}
 Author:
-  {{ build.author.name }}
+  {{ build.author.name }}{% endif %}
 
+{% if test_failures %}
 Test Failures
 -------------
-{% if test_failures %}{% for test in test_failures %}
+{% for test in test_failures %}
 * {{ test.label }} - {{ test.uri }}{% endfor %}
-{% else %}
-No test failures were recorded.{% endif %}
+
+{% endif %}{% if build_log %}
+Build Log
+---------
+
+Full Log: {{ build_log.link }}
+
+{{ build_log.text }}
+{% endif %}

@@ -5,7 +5,7 @@ from flask_mail import Message, sanitize_address
 
 from changes.config import db, mail
 from changes.constants import Result, Status
-from changes.models import Build, TestGroup, ProjectOption
+from changes.models import Build, TestGroup, ProjectOption, LogSource, LogChunk
 
 
 def build_uri(path):
@@ -71,6 +71,23 @@ def send_notification(build, recipients):
     num_test_failures = test_failures.count()
     test_failures = test_failures[:25]
 
+    # TODO(dcramer): we should probably find a better way to do logs
+    primary_log = LogSource.query.filter(
+        LogSource.build_id == build.id,
+    ).order_by(LogSource.date_created.asc()).first()
+    if primary_log:
+        queryset = LogChunk.query.filter(
+            LogChunk.source_id == primary_log.id,
+        ).order_by(LogChunk.offset.desc())
+        tail = queryset.limit(1).first()
+
+        log_chunks = list(queryset.filter(
+            LogChunk.offset <= tail.offset,
+            (LogChunk.offset + LogChunk.size) >= max(tail.offset - 5000, 0),
+        ).order_by(LogChunk.offset.asc()))
+
+        log_clipping = ''.join(l.text for l in log_chunks)[-5000:]
+
     subject = u"Build {result} - {target} ({project})".format(
         result=unicode(build.result),
         target=build.target or build.revision_sha or 'Unknown',
@@ -87,6 +104,13 @@ def send_notification(build, recipients):
         'total_test_failures': num_test_failures,
         'test_failures': test_failures,
     }
+
+    if primary_log:
+        context['build_log'] = {
+            'text': log_clipping,
+            'name': primary_log.name,
+            'link': '{0}logs/{1}/'.format(build.uri, primary_log.id.hex),
+        }
 
     msg = Message(subject, recipients=recipients, extra_headers={
         'Reply-To': ', '.join(sanitize_address(r) for r in recipients),

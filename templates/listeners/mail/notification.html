@@ -5,22 +5,30 @@
 <h2 style="font-weight:normal">{{ build.label }} <small style="color:#999">{{ build.target or build.revision_sha }}</small></h2>
 
 <dl>
-    <dt style="font-weight:bold;float:left;width:60px;">Build:</dt>
-    <dd><a href="{{ build.uri }}">{{ build.id.hex }}</a></dd>
-    <dt style="font-weight:bold;float:left;width:60px;">Author:</dt>
-    <dd>{{ build.author.name }}</dd>
+	<dt style="font-weight:bold;float:left;width:60px;">Build:</dt>
+	<dd><a href="{{ build.uri }}">{{ build.id.hex }}</a></dd>
+	{% if build.author %}
+		<dt style="font-weight:bold;float:left;width:60px;">Author:</dt>
+		<dd>{{ build.author.name }}</dd>
+	{% endif %}
 </dl>
 
-<h3>Test Failures <small style="color:#999">{{ total_test_failures }} total</small></h3>
-
 {% if test_failures %}
+	<h3>Test Failures <small style="color:#999">{{ total_test_failures }} total</small></h3>
+
 	<ul>
 		{% for test in test_failures %}
 			<li><a href="{{ test.uri }}">{{ test.name }}</a></li>
 		{% endfor %}
 	</ul>
-{% else %}
-	<p>No test failures were recorded.</p>
+{% endif %}
+
+{% if build_log %}
+	<h3>Build Log <small style="color:#999">{{ build_log.name }}</small></h3>
+
+	<pre>{{ build_log.text }}</pre>
+
+	<p><a href="{{ build_log.link }}">View full log</a></p>
 {% endif %}
 
 </div></body></html>
