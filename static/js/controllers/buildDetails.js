@@ -44,7 +44,6 @@ define([
         };
 
     function getFormattedBuildMessage(build) {
-      console.log($filter('escape')(build.message));
       return $filter('linkify')($filter('escape')(build.message));
     }
 
