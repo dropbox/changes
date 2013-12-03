@@ -16,6 +16,7 @@ define([
 
     var stream, logSources = {},
         entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
+        buffer_size = 20000,
         chart_options = {
           tooltipFormatter: function(item) {
             var content = ''
@@ -72,8 +73,7 @@ define([
       // Angular isn't intelligent enough to optimize this.
       var $el = $('#log-' + data.source.id + ' > .build-log'),
           item, source_id = data.source.id,
-          chars_to_remove, lines_to_remove,
-          buffer_size = 20000;
+          chars_to_remove, lines_to_remove;
 
       if ($el.length === 0) {
         // logsource isnt available in viewpane
