@@ -461,7 +461,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/artifacts/artifacts/foobar.log',
+            responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/foobar.log',
             body='hello world')
 
         build = self.create_build(

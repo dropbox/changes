@@ -212,7 +212,7 @@ class JenkinsBuilder(BaseBackend):
             'date_created': build.date_started,
         })
 
-        url = '{base}/job/{job}/{build}/artifacts/{artifact}'.format(
+        url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
             base=self.base_url, job=build_item['job_name'],
             build=build_item['build_no'], artifact=artifact['relativePath'],
         )
