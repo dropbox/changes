@@ -56,12 +56,10 @@ def create_new_entry(project):
         name='console',
     )
     db.session.add(logsource)
-    db.session.commit()
 
     offset = 0
     for x in xrange(30):
         lc = mock.logchunk(source=logsource, offset=offset)
-        db.session.commit()
         offset += lc.size
         time.sleep(1)
 
@@ -96,8 +94,6 @@ def gen(project):
         build = create_new_entry(project)
     else:
         build = update_existing_entry(project)
-
-    db.session.commit()
 
     return build
 

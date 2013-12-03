@@ -38,5 +38,3 @@ for _ in xrange(50):
     )
     for _ in xrange(50):
         mock.test_result(build, result)
-
-db.session.commit()

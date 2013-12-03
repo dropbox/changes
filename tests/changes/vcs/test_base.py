@@ -23,7 +23,7 @@ class RevisionResultTestCase(TestCase):
         assert created
 
         assert type(revision) == Revision
-        assert revision.repository_id == repo.id
+        assert revision.repository.id == repo.id
         assert revision.sha == 'c' * 40
         assert revision.message == 'Hello world!'
         assert revision.author.name == 'Foo Bar'

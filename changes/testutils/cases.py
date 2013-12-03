@@ -117,11 +117,6 @@ class TestCase(Exam, unittest2.TestCase, Fixtures):
             slug='test2',
         )
 
-        # disable commit
-        self.patcher = mock.patch('changes.config.db.session.commit')
-        self.patcher.start()
-        self.addCleanup(self.patcher.stop)
-
         # mock out mail
         mail_context = mail.record_messages()
         self.outbox = mail_context.__enter__()

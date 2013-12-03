@@ -16,7 +16,6 @@ def sync_repo(repo_id):
 
     repo.last_update_attempt = datetime.utcnow()
     db.session.add(repo)
-    db.session.commit()
 
     try:
         if vcs.exists():
@@ -33,7 +32,6 @@ def sync_repo(repo_id):
             might_have_more = False
             for commit in vcs.log(parent=parent):
                 revision, created = commit.save(repo)
-                db.session.commit()
                 if not created:
                     break
                 might_have_more = True
@@ -42,7 +40,6 @@ def sync_repo(repo_id):
         repo.last_update = datetime.utcnow()
 
         db.session.add(repo)
-        db.session.commit()
 
         queue.delay('sync_repo', kwargs={
             'repo_id': repo_id
