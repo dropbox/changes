@@ -35,7 +35,7 @@ def create_app(_read_config=True, **config):
     # This key is insecure and you should override it on the server
     app.config['SECRET_KEY'] = 't\xad\xe7\xff%\xd2.\xfe\x03\x02=\xec\xaf\\2+\xb8=\xf7\x8a\x9aLD\xb1'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///changes'
-    app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+    app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = False
     app.config['REDIS_URL'] = 'redis://localhost/0'
     app.config['RQ_DEFAULT_RESULT_TTL'] = 0
     app.config['DEBUG'] = True
