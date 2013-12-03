@@ -11,6 +11,8 @@ from changes.config import create_app
 
 
 app = create_app()
+ctx = app.app_context()
+ctx.__enter__()
 
 manager = Manager(app)
 
