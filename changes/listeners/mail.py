@@ -87,6 +87,8 @@ def send_notification(build, recipients):
         ).order_by(LogChunk.offset.asc()))
 
         log_clipping = ''.join(l.text for l in log_chunks)[-5000:]
+        # only return the last 25 lines
+        log_clipping = '\n'.join(log_clipping.splitlines()[:-25])
 
     subject = u"Build {result} - {target} ({project})".format(
         result=unicode(build.result),
