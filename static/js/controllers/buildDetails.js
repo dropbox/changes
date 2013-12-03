@@ -73,7 +73,7 @@ define([
       var $el = $('#log-' + data.source.id + ' > .build-log'),
           item, source_id = data.source.id,
           chars_to_remove, lines_to_remove,
-          buffer_size = 100000;
+          buffer_size = 20000;
 
       if ($el.length === 0) {
         // logsource isnt available in viewpane
@@ -212,7 +212,7 @@ define([
     });
 
     $.each($scope.logSources, function(_, logSource){
-      $http.get(getLogSourceEntrypoint(logSource))
+      $http.get(getLogSourceEntrypoint(logSource) + '?limit=' + buffer_size)
         .success(function(data){
           $.each(data.chunks, function(_, chunk){
             updateBuildLog(chunk);
