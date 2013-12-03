@@ -197,13 +197,15 @@ class JenkinsBuilder(BaseBackend):
             except Exception:
                 current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)
 
+            # TODO(dcramer): this takes way too long to sync large artifacts,
+            # and needs its own queue
             # find any artifacts matching *.log and create logsource out of them
-            for artifact in item.get('artifacts', ()):
-                if artifact['fileName'].endswith('.log'):
-                    try:
-                        self._sync_artifact_as_log(build, entity, artifact)
-                    except Exception:
-                        current_app.logger.exception('Unable to sync artifact %r', artifact)
+            # for artifact in item.get('artifacts', ()):
+            #     if artifact['fileName'].endswith('.log'):
+            #         try:
+            #             self._sync_artifact_as_log(build, entity, artifact)
+            #         except Exception:
+            #             current_app.logger.exception('Unable to sync artifact %r', artifact)
 
             build.status = Status.finished
             db.session.add(build)
