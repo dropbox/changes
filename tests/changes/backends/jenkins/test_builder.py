@@ -450,6 +450,59 @@ class SyncBuildTest(BaseTestCase):
         entity = RemoteEntity.query.get(entity.id)
         assert entity.data.get('log_offset') == 7
 
+    @responses.activate
+    def test_does_sync_log_artifacts(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_with_artifacts.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            adding_headers={'X-Text-Size': '0'},
+            body='')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/artifacts/artifacts/foobar.log',
+            body='hello world')
+
+        build = self.create_build(
+            self.project,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+
+        entity = RemoteEntity(
+            provider=self.provider,
+            internal_id=build.id,
+            remote_id='server#2',
+            type='build',
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        db.session.add(entity)
+
+        builder = self.get_builder()
+        builder.sync_build(build)
+
+        source = LogSource.query.filter(
+            LogSource.build_id == build.id,
+            LogSource.name == 'foobar.log',
+        ).first()
+        assert source is not None
+        assert source.project == self.project
+        assert source.date_created == build.date_started
+
+        chunks = list(LogChunk.query.filter_by(
+            source=source,
+        ).order_by(LogChunk.date_created.asc()))
+        assert len(chunks) == 1
+        assert chunks[0].build == build
+        assert chunks[0].project == self.project
+        assert chunks[0].offset == 0
+        assert chunks[0].size == 11
+        assert chunks[0].text == 'hello world'
+
 
 class ChunkedTest(TestCase):
     def test_simple(self):

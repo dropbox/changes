@@ -1,0 +1,57 @@
+{
+    "actions": [
+        {
+            "parameters": [
+                {
+                    "name": "REVISION",
+                    "value": "default"
+                },
+                {
+                    "name": "CHANGES_BID",
+                    "value": "4d5b4e077c6a4fd9844b49adec480b5b"
+                }
+            ]
+        },
+        {
+            "causes": [
+                {
+                    "shortDescription": "Started by user David Cramer",
+                    "userId": "cramer",
+                    "userName": "David Cramer"
+                }
+            ]
+        },
+        {},
+        {}
+    ],
+    "artifacts": [
+        {
+            "displayPath": "foobar.log",
+            "fileName": "foobar.log",
+            "relativePath": "artifacts/foobar.log"
+        },
+        {
+            "displayPath": "tests.xml",
+            "fileName": "tests.xml",
+            "relativePath": "artifacts/tests.xml"
+        }
+    ],
+    "building": false,
+    "description": null,
+    "duration": 8875,
+    "estimatedDuration": 8878,
+    "executor": {},
+    "fullDisplayName": "server #2",
+    "id": "2013-10-17_18-21-57",
+    "keepLog": false,
+    "number": 2,
+    "result": "SUCCESS",
+    "timestamp": 1382034117892,
+    "url": "https://jenkins.build.itc.dropbox.com/job/server/2/",
+    "builtOn": "server-ubuntu-10.04 (ami-746cf244) (i-836023b7)",
+    "changeSet": {
+        "items": [],
+        "kind": null
+    },
+    "culprits": []
+}

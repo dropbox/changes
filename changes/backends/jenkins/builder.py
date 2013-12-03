@@ -193,8 +193,47 @@ class JenkinsBuilder(BaseBackend):
             while self._sync_console_log(build, entity):
                 continue
 
+            # find any artifacts matching *.log and create logsource out of them
+            for artifact in item.get('artifacts', ()):
+                if artifact['fileName'].endswith('.log'):
+                    self._sync_artifact_as_log(build, entity, artifact)
+
             build.status = Status.finished
             db.session.add(build)
+
+    def _sync_artifact_as_log(self, build, entity, artifact):
+        build_item = entity.data
+
+        logsource, created = get_or_create(LogSource, where={
+            'name': artifact['displayPath'],
+            'build': build,
+        }, defaults={
+            'project': build.project,
+            'date_created': build.date_started,
+        })
+
+        url = '{base}/job/{job}/{build}/artifacts/{artifact}'.format(
+            base=self.base_url, job=build_item['job_name'],
+            build=build_item['build_no'], artifact=artifact['relativePath'],
+        )
+
+        offset = 0
+        resp = requests.get(url, stream=True)
+        iterator = peekable(resp.iter_content(chunk_size=4096))
+        for chunk in chunked(iterator, 4096):
+            chunk_size = len(chunk)
+            create_or_update(LogChunk, where={
+                'source': logsource,
+                'offset': offset,
+            }, values={
+                'build': build,
+                'project': build.project,
+                'offset': offset,
+                'size': chunk_size,
+                'text': chunk,
+            })
+            offset += chunk_size
+            db.session.commit()
 
     def _sync_console_log(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
