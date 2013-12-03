@@ -811,6 +811,7 @@ chart {
 }
 .build-log a {
   color: #c7c0de;
+  text-decoration: underline;
 }
 .build-log a:hover,
 .build-log a:focus {
