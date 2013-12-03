@@ -6,6 +6,7 @@ from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
+from changes.constants import Status
 from changes.models import Project, Build, Revision
 
 
@@ -61,6 +62,7 @@ class ProjectCommitIndexAPIView(APIView):
             Build.project_id == project.id,
             Build.revision_sha.in_(c['id'] for c in commits),
             Build.patch == None,  # NOQA
+            Build.status.in_([Status.finished, Status.in_progress]),
         ).order_by(Build.date_created.asc()))
 
         builds_map = dict(

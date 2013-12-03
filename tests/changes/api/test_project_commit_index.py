@@ -3,6 +3,7 @@ import mock
 from datetime import datetime
 from uuid import uuid4
 
+from changes.constants import Status
 from changes.testutils import APITestCase
 from changes.vcs.base import Vcs, RevisionResult
 
@@ -19,7 +20,8 @@ class ProjectCommitIndexTest(APITestCase):
             repository=project.repository, parents=[revision1.sha])
 
         self.create_build(project, revision_sha=revision1.sha)
-        build = self.create_build(project, revision_sha=revision1.sha)
+        build = self.create_build(
+            project, revision_sha=revision1.sha, status=Status.finished)
 
         path = '/api/0/projects/{0}/commits/'.format(fake_project_id.hex)
 
@@ -62,8 +64,10 @@ class ProjectCommitIndexTest(APITestCase):
 
         project = self.create_project()
 
-        self.create_build(project, revision_sha='b' * 40)
-        build = self.create_build(project, revision_sha='b' * 40)
+        self.create_build(
+            project, revision_sha='b' * 40, status=Status.finished)
+        build = self.create_build(
+            project, revision_sha='b' * 40, status=Status.finished)
 
         path = '/api/0/projects/{0}/commits/'.format(project.id.hex)
 
