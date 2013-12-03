@@ -53,6 +53,7 @@ def sync_build(build_id):
     except Exception as exc:
         # Ensure we continue to synchronize this build as this could be a
         # temporary failure
+        current_app.logger.exception('Failed to sync build %s', build_id)
         raise queue.retry('sync_build', kwargs={
             'build_id': build_id,
         }, exc=exc, countdown=60)
