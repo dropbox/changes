@@ -7,6 +7,7 @@ define(['app',
         'controllers/buildLogDetails',
         'controllers/buildDetails',
         'controllers/testGroupDetails',
+        'controllers/projectCommitDetails',
         'controllers/projectCommitList',
         'controllers/projectLeaderboard',
         'controllers/projectList',
@@ -134,6 +135,18 @@ define(['app',
             }],
             initialCommitList: ['$http', '$route', '$window', function($http, $route, $window) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/commits/' + $window.location.search);
+            }]
+          }
+        })
+        .when('/projects/:project_id/commits/:commit_id/', {
+          templateUrl: 'partials/project-commit-details.html',
+          controller: 'projectCommitDetailsCtrl',
+          resolve: {
+            initialProject: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
+            }],
+            initialCommit: ['$http', '$route', '$window', function($http, $route, $window) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/commits/' + $route.current.params.commit_id + '/' + $window.location.search);
             }]
           }
         })

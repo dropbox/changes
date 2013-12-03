@@ -17,6 +17,11 @@ def publish_build_update(mapper, connection, target):
             author_id=target.author_id.hex,
         ))
 
+    if not target.patch_id and target.revision_sha:
+        channels.append('revisions:{revision_id}:builds'.format(
+            revision_id=target.revision_sha,
+        ))
+
     for channel in channels:
         json = as_json(target)
 
