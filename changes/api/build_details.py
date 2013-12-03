@@ -38,9 +38,9 @@ class BuildDetailsAPIView(APIView):
             Build.patch == None,  # NOQA
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
-        log_sources = sorted(LogSource.query.filter(
+        log_sources = list(LogSource.query.filter(
             LogSource.build_id == build.id,
-        ), key=lambda x: x.date_created)
+        ).order_by(LogSource.date_created.asc()))
 
         context = {
             'project': build.project,
