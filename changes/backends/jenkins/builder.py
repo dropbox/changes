@@ -10,7 +10,7 @@ from flask import current_app
 from uuid import uuid4
 
 from changes.backends.base import BaseBackend
-from changes.config import db
+from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import RemoteEntity, TestResult, LogSource, LogChunk
@@ -195,17 +195,16 @@ class JenkinsBuilder(BaseBackend):
                         raise Exception('Took too long to sync log')
                     continue
             except Exception:
-                current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)
+                current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)\
 
             # TODO(dcramer): this takes way too long to sync large artifacts,
             # and needs its own queue
             # find any artifacts matching *.log and create logsource out of them
-            # for artifact in item.get('artifacts', ()):
-            #     if artifact['fileName'].endswith('.log'):
-            #         try:
-            #             self._sync_artifact_as_log(build, entity, artifact)
-            #         except Exception:
-            #             current_app.logger.exception('Unable to sync artifact %r', artifact)
+            for artifact in item.get('artifacts', ()):
+                queue.delay('sync_artifact', kwargs={
+                    'build_id': build.id.hex,
+                    'artifact': artifact,
+                })
 
             build.status = Status.finished
             db.session.add(build)
@@ -409,6 +408,18 @@ class JenkinsBuilder(BaseBackend):
             self._sync_build_from_queue(build, entity)
         else:
             self._sync_build_from_active(build, entity)
+
+    def sync_artifact(self, build, artifact):
+        entity = RemoteEntity.query.filter_by(
+            provider=self.provider,
+            internal_id=build.id,
+            type='build',
+        ).first()
+        if not entity:
+            return
+
+        if artifact['fileName'].endswith('.log'):
+            self._sync_artifact_as_log(build, entity, artifact)
 
     def create_build(self, build):
         """
