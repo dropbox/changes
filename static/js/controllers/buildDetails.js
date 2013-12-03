@@ -16,7 +16,7 @@ define([
 
     var stream, logSources = {},
         entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
-        buffer_size = 20000,
+        buffer_size = 10000,
         chart_options = {
           tooltipFormatter: function(item) {
             var content = ''
@@ -201,8 +201,6 @@ define([
         $('#log_sources a[data-toggle="tab"]').on('show.bs.tab', function(e){
           var source_id = $(e.target).attr("data-source"),
               $el = $(e.target).attr("href");
-
-          console.log('x');
 
           if (!logSources[source_id]) {
             logSources[source_id] = {

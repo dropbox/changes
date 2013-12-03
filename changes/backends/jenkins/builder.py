@@ -6,7 +6,6 @@ import requests
 import time
 
 from datetime import datetime
-from more_itertools import peekable
 from uuid import uuid4
 
 from changes.backends.base import BaseBackend
@@ -219,7 +218,7 @@ class JenkinsBuilder(BaseBackend):
 
         offset = 0
         resp = requests.get(url, stream=True)
-        iterator = peekable(resp.iter_content(chunk_size=4096))
+        iterator = resp.iter_content(chunk_size=4096)
         for chunk in chunked(iterator, 4096):
             chunk_size = len(chunk)
             create_or_update(LogChunk, where={
@@ -263,7 +262,7 @@ class JenkinsBuilder(BaseBackend):
         if offset > log_length:
             return
 
-        iterator = peekable(resp.iter_content(chunk_size=4096))
+        iterator = resp.iter_content(chunk_size=4096)
         # XXX: requests doesnt seem to guarantee chunk_size, so we force it
         # with our own helper
         for chunk in chunked(iterator, 4096):
