@@ -61,8 +61,10 @@
 
 	</div>
 
-	<div class="page-header" ng-if="logSources">
-		<h3>Build Log</h3>
+	<div ng-if="logSources">
+		<div class="page-header">
+			<h3>Build Log</h3>
+		</div>
 
 		<ul class="nav nav-pills" style="margin-bottom:10px;" id="log_sources">
 			<li ng-repeat="logSource in logSources">
@@ -78,7 +80,7 @@
 				<div class="build-log"></div>
 				<a href="{{logSource.link}}" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
 			</div>
-		</pre>
+		</div>
 	</div>
 
 	<div ng-switch="testStatus">
