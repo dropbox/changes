@@ -189,7 +189,10 @@ class JenkinsBuilder(BaseBackend):
             # if we're supposed to be finishing, lets ensure we actually
             # get the entirety of the log
             try:
+                start = time.time()
                 while self._sync_console_log(build, entity):
+                    if time.time() - start > 15:
+                        raise Exception('Took too long to sync log')
                     continue
             except Exception:
                 current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)
