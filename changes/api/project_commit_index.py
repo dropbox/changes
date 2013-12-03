@@ -29,7 +29,7 @@ class ProjectCommitIndexAPIView(APIView):
         vcs = repo.get_vcs()
 
         if vcs:
-            vcs_log = vcs.log()
+            vcs_log = list(vcs.log())
 
             revisions_qs = Revision.query.filter(
                 Revision.repository_id == repo.id,

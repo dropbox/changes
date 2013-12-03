@@ -39,21 +39,22 @@ class ProjectCommitIndexTest(APITestCase):
 
     @mock.patch('changes.models.Repository.get_vcs')
     def test_with_vcs(self, get_vcs):
-        fake_vcs = mock.Mock(spec=Vcs)
-        fake_vcs.log.return_value = [
-            RevisionResult(
+        def log_results():
+            yield RevisionResult(
                 id='a' * 40,
                 message='hello world',
                 author='Foo <foo@example.com>',
                 author_date=datetime(2013, 9, 19, 22, 15, 22),
-            ),
-            RevisionResult(
+            )
+            yield RevisionResult(
                 id='b' * 40,
                 message='biz',
                 author='Bar <bar@example.com>',
                 author_date=datetime(2013, 9, 19, 22, 15, 21),
-            ),
-        ]
+            )
+
+        fake_vcs = mock.Mock(spec=Vcs)
+        fake_vcs.log.return_value = log_results()
 
         get_vcs.return_value = fake_vcs
 
