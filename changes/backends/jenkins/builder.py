@@ -227,7 +227,6 @@ class JenkinsBuilder(BaseBackend):
             }, values={
                 'build': build,
                 'project': build.project,
-                'offset': offset,
                 'size': chunk_size,
                 'text': chunk,
             })
@@ -273,7 +272,6 @@ class JenkinsBuilder(BaseBackend):
             }, values={
                 'build': build,
                 'project': build.project,
-                'offset': offset,
                 'size': chunk_size,
                 'text': chunk,
             })

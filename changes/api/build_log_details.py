@@ -32,12 +32,9 @@ class BuildLogDetailsAPIView(APIView):
             if tail is None:
                 logchunks = []
             else:
-                queryset = queryset.filter(
-                    LogChunk.offset <= tail.offset,
-                )
                 if limit:
                     queryset = queryset.filter(
-                        (LogChunk.offset + LogChunk.size) >= max(tail.offset - limit, 0),
+                        (LogChunk.offset + LogChunk.size) >= max(tail.offset + tail.size - limit, 0),
                     )
                 logchunks = list(queryset)
         else:
