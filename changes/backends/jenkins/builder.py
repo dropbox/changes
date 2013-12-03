@@ -188,8 +188,11 @@ class JenkinsBuilder(BaseBackend):
             # logs due to our inability to correctly identify start offsets
             # if we're supposed to be finishing, lets ensure we actually
             # get the entirety of the log
-            while self._sync_console_log(build, entity):
-                continue
+            try:
+                while self._sync_console_log(build, entity):
+                    continue
+            except Exception:
+                current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)
 
             # find any artifacts matching *.log and create logsource out of them
             for artifact in item.get('artifacts', ()):
