@@ -17,6 +17,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir
 
 db = SQLAlchemy(session_options={
     'autoflush': True,
+    'autocommit': True,
 })
 pubsub = PubSub()
 queue = Celery()
