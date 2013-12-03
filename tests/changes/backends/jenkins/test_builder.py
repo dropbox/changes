@@ -530,3 +530,8 @@ class ChunkedTest(TestCase):
         result = list(chunked(foo, 2))
         assert len(result) == 5
         assert all(r == 'aa' for r in result)
+
+        foo = 'aaaa\naaaa'
+
+        result = list(chunked(foo, 3))
+        assert len(result) == 3

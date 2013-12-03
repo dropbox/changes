@@ -25,19 +25,15 @@ def chunked(iterator, chunk_size):
     result = ''
     for chunk in iterator:
         result += chunk
-        if len(result) >= chunk_size:
-            newline_pos = result.find('\n', chunk_size - 1)
+        while len(result) >= chunk_size:
+            newline_pos = result.rfind('\n', 0, chunk_size)
             if newline_pos == -1:
-                newline_pos = result.rfind('\n')
-                if newline_pos == -1:
-                    newline_pos = chunk_size
-                else:
-                    newline_pos += 1
+                newline_pos = chunk_size
             else:
                 newline_pos += 1
             yield result[:newline_pos]
             result = result[newline_pos:]
-            assert len(result) < chunk_size
+        assert len(result) < chunk_size
     if result:
         yield result
 
