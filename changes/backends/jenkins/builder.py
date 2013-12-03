@@ -6,6 +6,7 @@ import requests
 import time
 
 from datetime import datetime
+from flask import current_app
 from uuid import uuid4
 
 from changes.backends.base import BaseBackend
@@ -193,7 +194,10 @@ class JenkinsBuilder(BaseBackend):
             # find any artifacts matching *.log and create logsource out of them
             for artifact in item.get('artifacts', ()):
                 if artifact['fileName'].endswith('.log'):
-                    self._sync_artifact_as_log(build, entity, artifact)
+                    try:
+                        self._sync_artifact_as_log(build, entity, artifact)
+                    except Exception:
+                        current_app.logger.exception('Unable to sync artifact %r', artifact)
 
             build.status = Status.finished
             db.session.add(build)
