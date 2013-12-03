@@ -33,7 +33,6 @@ def chunked(iterator, chunk_size):
                 newline_pos += 1
             yield result[:newline_pos]
             result = result[newline_pos:]
-        assert len(result) < chunk_size
     if result:
         yield result
 
