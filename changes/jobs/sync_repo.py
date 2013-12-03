@@ -1,4 +1,5 @@
 from datetime import datetime
+from flask import current_app
 
 from changes.config import db, queue
 from changes.models import Repository
@@ -49,6 +50,7 @@ def sync_repo(repo_id):
 
     except Exception as exc:
         # should we actually use retry support here?
+        current_app.logger.exception('Failed to sync repository %s', repo_id)
         raise queue.retry('sync_repo', kwargs={
             'repo_id': repo_id,
         }, exc=exc, countdown=120)
