@@ -31,10 +31,10 @@ class ProjectCommitIndexAPIView(APIView):
         if vcs:
             vcs_log = list(vcs.log())
 
-            revisions_qs = Revision.query.filter(
+            revisions_qs = list(Revision.query.filter(
                 Revision.repository_id == repo.id,
                 Revision.sha.in_(c.id for c in vcs_log)
-            ).join(Revision.author)
+            ).join(Revision.author))
 
             revisions_map = dict(
                 (c.sha, d)
