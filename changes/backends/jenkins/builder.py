@@ -216,7 +216,7 @@ class JenkinsBuilder(BaseBackend):
 
         offset = 0
         resp = requests.get(url, stream=True)
-        iterator = resp.iter_content(chunk_size=LOG_CHUNK_SIZE)
+        iterator = resp.iter_content()
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
             create_or_update(LogChunk, where={
@@ -259,7 +259,7 @@ class JenkinsBuilder(BaseBackend):
         if offset > log_length:
             return
 
-        iterator = resp.iter_content(chunk_size=LOG_CHUNK_SIZE)
+        iterator = resp.iter_content()
         # XXX: requests doesnt seem to guarantee chunk_size, so we force it
         # with our own helper
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
