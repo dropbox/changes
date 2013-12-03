@@ -151,3 +151,5 @@ elif args.command == 'options':
 
         for option in option_list:
             print "%s=%s" % (option.name, option.value)
+
+db.session.commit()

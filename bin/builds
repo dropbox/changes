@@ -57,6 +57,7 @@ if args.command == 'add':
     })
 
     db.session.add(build)
+    db.session.commit()
 
     print "Created new build with ID {%s}" % (
         build.id,

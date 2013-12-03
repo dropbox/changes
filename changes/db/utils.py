@@ -20,8 +20,9 @@ def get_or_create(model, where, defaults=None):
     for key, value in where.iteritems():
         setattr(instance, key, value)
     try:
-        db.session.add(instance)
-    except IntegrityError:
+        with db.session.begin_nested():
+            db.session.add(instance)
+    except Exception:
         instance = model.query.filter_by(**where).limit(1).first()
     else:
         created = True
@@ -45,7 +46,8 @@ def create_or_update(model, where, values=None):
         for key, value in where.iteritems():
             setattr(instance, key, value)
         try:
-            db.session.add(instance)
+            with db.session.begin_nested():
+                db.session.add(instance)
         except IntegrityError:
             instance = model.query.filter_by(**where).limit(1).first()
             if instance is None:

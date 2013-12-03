@@ -173,6 +173,7 @@ class JenkinsBuilder(BaseBackend):
         }
 
         db.session.add(build)
+        db.session.commit()
 
         # TODO(dcramer): ideally we could fire off jobs to sync test results
         # and console logs
@@ -238,6 +239,7 @@ class JenkinsBuilder(BaseBackend):
                 'text': chunk,
             })
             offset += chunk_size
+            db.session.commit()
 
     def _sync_console_log(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
@@ -281,6 +283,7 @@ class JenkinsBuilder(BaseBackend):
                 'size': chunk_size,
                 'text': chunk,
             })
+            db.session.commit()
             offset += chunk_size
 
         # We **must** track the log offset externally as Jenkins embeds encoded
@@ -288,6 +291,7 @@ class JenkinsBuilder(BaseBackend):
         build_item['log_offset'] = log_length
         entity.data = build_item
         db.session.add(entity)
+        db.session.commit()
 
         # Jenkins will suggest to us that there is more data when the job has
         # yet to complete
@@ -333,6 +337,7 @@ class JenkinsBuilder(BaseBackend):
                     result=result,
                 )
                 testresult.save()
+                db.session.commit()
 
     def _find_job(self, job_name, build_id):
         """

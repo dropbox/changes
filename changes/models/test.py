@@ -110,6 +110,7 @@ class TestResult(object):
             'result': self.result,
             'date_created': self.date_created,
         })
+        db.session.commit()
 
         groups = self._get_or_create_test_groups()
         for group in groups:
