@@ -30,4 +30,5 @@ def sync_artifact(build_id, artifact):
             'Failed to sync artifact %r, %r', build_id, artifact)
         raise queue.retry('sync_artifact', kwargs={
             'build_id': build_id,
+            'artifact': artifact,
         }, exc=exc, countdown=60)
