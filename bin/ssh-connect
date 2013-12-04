@@ -59,6 +59,7 @@ if options.get('auth.public-key'):
 elif options.get('auth.public-key-file'):
     command.append('-i {0}'.format(options['auth.public-key-file']))
 
+command.append('--')
 command.extend(sys.argv[1:])
 
 print subprocess.check_output(command, shell=True)
