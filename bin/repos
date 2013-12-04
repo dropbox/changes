@@ -120,8 +120,9 @@ elif args.command == 'list':
 elif args.command == 'show':
     repo = get_repo(args.id)
 
-    print "ID: {}".format(repo.id.hex)
-    print "URL: {}".format(repo.url)
+    print "ID:      {}".format(repo.id.hex)
+    print "URL:     {}".format(repo.url)
+    print "Backend: {}".format(repo.backend)
     print "Options:"
 
     for option in RepositoryOption.query.filter_by(repository_id=repo.id):
