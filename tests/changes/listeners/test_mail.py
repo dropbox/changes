@@ -3,7 +3,9 @@ import mock
 from changes.config import db
 from changes.constants import Result
 from changes.models import ProjectOption, Patch, LogSource, LogChunk
-from changes.listeners.mail import build_finished_handler, send_notification
+from changes.listeners.mail import (
+    build_finished_handler, send_notification, get_log_clipping
+)
 from changes.testutils.cases import TestCase
 
 
@@ -126,3 +128,37 @@ class SendNotificationTestCase(TestCase):
         assert log_link in msg.body
 
         assert msg.as_string()
+
+
+class GetLogClippingTestCase(TestCase):
+    def test_simple(self):
+        build = self.create_build(self.project)
+
+        logsource = LogSource(
+            project=self.project,
+            build=build,
+            name='console',
+        )
+        db.session.add(logsource)
+
+        logchunk = LogChunk(
+            project=self.project,
+            build=build,
+            source=logsource,
+            offset=0,
+            size=11,
+            text='hello\nworld\n',
+        )
+        db.session.add(logchunk)
+        logchunk = LogChunk(
+            project=self.project,
+            build=build,
+            source=logsource,
+            offset=11,
+            size=11,
+            text='hello\nworld\n',
+        )
+        db.session.add(logchunk)
+
+        result = get_log_clipping(logsource, max_size=200, max_lines=3)
+        assert result == "world\r\nhello\r\nworld"

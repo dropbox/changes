@@ -61,6 +61,24 @@ def did_cause_breakage(build):
     return False
 
 
+def get_log_clipping(logsource, max_size=5000, max_lines=25):
+    queryset = LogChunk.query.filter(
+        LogChunk.source_id == logsource.id,
+    ).order_by(LogChunk.offset.desc())
+    tail = queryset.limit(1).first()
+
+    chunks = list(queryset.filter(
+        LogChunk.offset <= tail.offset,
+        (LogChunk.offset + LogChunk.size) >= max(tail.offset - max_size, 0),
+    ).order_by(LogChunk.offset.asc()))
+
+    clipping = ''.join(l.text for l in chunks)[-max_size:]
+    # only return the last 25 lines
+    clipping = '\r\n'.join(clipping.splitlines()[-max_lines:])
+
+    return clipping
+
+
 def send_notification(build, recipients):
     # TODO(dcramer): we should send a clipping of a relevant build log
     test_failures = TestGroup.query.filter(
@@ -76,19 +94,8 @@ def send_notification(build, recipients):
         LogSource.build_id == build.id,
     ).order_by(LogSource.date_created.asc()).first()
     if primary_log:
-        queryset = LogChunk.query.filter(
-            LogChunk.source_id == primary_log.id,
-        ).order_by(LogChunk.offset.desc())
-        tail = queryset.limit(1).first()
-
-        log_chunks = list(queryset.filter(
-            LogChunk.offset <= tail.offset,
-            (LogChunk.offset + LogChunk.size) >= max(tail.offset - 5000, 0),
-        ).order_by(LogChunk.offset.asc()))
-
-        log_clipping = ''.join(l.text for l in log_chunks)[-5000:]
-        # only return the last 25 lines
-        log_clipping = '\r\n'.join(log_clipping.splitlines()[-25:])
+        log_clipping = get_log_clipping(
+            primary_log, max_size=5000, max_lines=50)
 
     subject = u"Build {result} - {target} ({project})".format(
         result=unicode(build.result),
