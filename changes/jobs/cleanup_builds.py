@@ -11,7 +11,7 @@ def cleanup_builds():
     and mark them as finished in an unknown state.
     """
     now = datetime.utcnow()
-    cutoff = now - timedelta(minutes=3)
+    cutoff = now - timedelta(minutes=5)
 
     build_list = Build.query.filter(
         Build.status != Status.finished,
