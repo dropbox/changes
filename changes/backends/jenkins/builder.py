@@ -6,6 +6,7 @@ import requests
 import time
 
 from datetime import datetime
+from hashlib import sha1
 from flask import current_app
 from uuid import uuid4
 
@@ -13,7 +14,7 @@ from changes.backends.base import BaseBackend
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
-from changes.models import RemoteEntity, TestResult, LogSource, LogChunk
+from changes.models import RemoteEntity, TestResult, TestSuite, LogSource, LogChunk
 
 LOG_CHUNK_SIZE = 4096
 
@@ -308,6 +309,14 @@ class JenkinsBuilder(BaseBackend):
         for suite_data in test_report['suites']:
             suite_name = suite_data.get('name', 'default')
 
+            suite, _ = get_or_create(TestSuite, where={
+                'build': build,
+                'name_sha': sha1(suite_name).hexdigest(),
+            }, defaults={
+                'name': suite_name,
+                'project': build.project,
+            })
+
             for case in suite_data['cases']:
                 message = []
                 if case['errorDetails']:
@@ -330,7 +339,7 @@ class JenkinsBuilder(BaseBackend):
 
                 testresult = TestResult(
                     build=build,
-                    suite_name=suite_name,
+                    suite=suite,
                     name=case['name'],
                     package=case['className'] or None,
                     duration=int(case['duration'] * 1000),

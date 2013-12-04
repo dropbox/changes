@@ -32,7 +32,7 @@ class TestResult(object):
     """
     def __init__(self, build, name, message=None, package=None,
                  result=None, suite_name=None, duration=None,
-                 date_created=None):
+                 date_created=None, suite=None):
 
         self.build = build
         self.name = name
@@ -43,16 +43,19 @@ class TestResult(object):
         self.duration = duration  # ms
         self.date_created = date_created or datetime.utcnow()
 
-    def _get_or_create_test_suite(self):
-        suite, _ = get_or_create(TestSuite, where={
-            'build': self.build,
-            'name_sha': sha1(self.suite_name).hexdigest(),
-        }, defaults={
-            'name': self.suite_name,
-            'project': self.build.project,
-        })
+        self.suite = suite
 
-        return suite
+    def _get_or_create_test_suite(self):
+        if self.suite is None:
+            self.suite, _ = get_or_create(TestSuite, where={
+                'build': self.build,
+                'name_sha': sha1(self.suite_name).hexdigest(),
+            }, defaults={
+                'name': self.suite_name,
+                'project': self.build.project,
+            })
+
+        return self.suite
 
     def _get_or_create_test_groups(self):
         # TODO(dcramer): this doesnt handle concurrency
