@@ -182,8 +182,10 @@ class JenkinsBuilder(BaseBackend):
         for action in item['actions']:
             # is this the best way to find this?
             if action.get('urlName') == 'testReport':
-                self._sync_test_results(build, entity)
-                break
+                try:
+                    self._sync_test_results(build, entity)
+                except Exception:
+                    current_app.logger.exception('Unable to sync test results for build %r', build.id.hex)
 
         if should_finish:
             # FIXME(dcramer): we're waiting until the build is complete to sync
@@ -197,8 +199,7 @@ class JenkinsBuilder(BaseBackend):
                         raise Exception('Took too long to sync log')
                     continue
             except Exception:
-
-                current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)\
+                current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)
 
             if self.sync_artifacts:
                 for artifact in item.get('artifacts', ()):
