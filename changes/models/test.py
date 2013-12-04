@@ -14,7 +14,7 @@ from changes.constants import Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
-from changes.db.utils import get_or_create
+from changes.db.utils import get_or_create, create_or_get
 
 
 test_group_m2m_table = Table(
@@ -97,11 +97,11 @@ class TestResult(object):
 
         name_sha = TestCase.calculate_name_sha(self.package, self.name)
 
-        test, _ = get_or_create(TestCase, where={
+        test, _ = create_or_get(TestCase, where={
             'build': self.build,
             'suite_id': suite.id,
             'name_sha': name_sha,
-        }, defaults={
+        }, values={
             'project': self.build.project,
             'name': self.name,
             'package': self.package,

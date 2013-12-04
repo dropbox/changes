@@ -63,6 +63,33 @@ def create_or_update(model, where, values=None):
     return instance, created
 
 
+def create_or_get(model, where, values=None):
+    if values is None:
+        values = {}
+
+    instance = model.query.filter_by(**where).limit(1).first()
+    if instance is None:
+        instance = model()
+        for key, value in values.iteritems():
+            setattr(instance, key, value)
+        for key, value in where.iteritems():
+            setattr(instance, key, value)
+        try:
+            with db.session.begin_nested():
+                db.session.add(instance)
+        except IntegrityError:
+            instance = model.query.filter_by(**where).limit(1).first()
+            if instance is None:
+                raise Exception('Unable to create or update instance')
+            created = False
+        else:
+            created = True
+    else:
+        created = False
+
+    return instance, created
+
+
 def update(instance, values):
     for key, value in values.iteritems():
         if getattr(instance, key) != value:
