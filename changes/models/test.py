@@ -126,6 +126,7 @@ class TestResult(object):
                 group.result = Result.unknown
             group.testcases.append(test)
             db.session.add(group)
+            db.session.commit()
 
         return test
 
