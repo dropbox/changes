@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from changes.config import queue
+from changes.config import db, queue
 from changes.constants import Status
 from changes.models.build import Build
 
@@ -17,7 +17,15 @@ def cleanup_builds():
         Build.status != Status.finished,
         Build.date_modified < cutoff,
     )
+
+    db.session.query(Build).filter(
+        Build.id.in_(b.id for b in build_list),
+    ).update({
+        Build.date_modified: now,
+    })
+
     for build in build_list:
+
         queue.delay('sync_build', kwargs={
             'build_id': build.id.hex,
         })
