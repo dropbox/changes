@@ -31,11 +31,6 @@ class ProjectIndexAPIView(APIView):
                 Build.date_created.desc(),
             ).first()
 
-            data['numActiveBuilds'] = Build.query.filter(
-                Build.project == project,
-                Build.status != Status.finished,
-            ).count()
-
             context['projects'].append(data)
 
         return self.respond(context)
