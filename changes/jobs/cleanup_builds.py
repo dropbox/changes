@@ -18,6 +18,8 @@ def cleanup_builds():
         Build.status != Status.finished,
         Build.date_modified < cutoff,
     ))
+    if not build_list:
+        return
 
     db.session.query(Build).filter(
         Build.id.in_([b.id for b in build_list]),
