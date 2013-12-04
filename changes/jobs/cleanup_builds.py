@@ -14,13 +14,13 @@ def cleanup_builds():
     now = datetime.utcnow()
     cutoff = now - timedelta(minutes=5)
 
-    build_list = Build.query.filter(
+    build_list = list(Build.query.filter(
         Build.status != Status.finished,
         Build.date_modified < cutoff,
-    )
+    ))
 
     db.session.query(Build).filter(
-        Build.id.in_(b.id for b in build_list),
+        Build.id.in_([b.id for b in build_list]),
     ).update({
         Build.date_modified: func.now(),
     })
