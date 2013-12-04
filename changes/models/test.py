@@ -114,18 +114,24 @@ class TestResult(object):
 
         groups = self._get_or_create_test_groups()
         for group in groups:
-            group.num_tests += 1
-            if test.result == Result.failed:
-                group.num_failed = group.num_failed + 1
-            group.duration += test.duration
             if group.result:
                 group.result = max(group.result, test.result)
             elif test.result:
                 group.result = test.result
             else:
                 group.result = Result.unknown
+
             group.testcases.append(test)
-            db.session.add(group)
+
+            db.session.query(TestGroup).filter(
+                TestGroup.id == group.id,
+            ).update({
+                TestGroup.num_tests: TestGroup.num_tests + 1,
+                TestGroup.duration: TestGroup.duration + test.duration,
+                TestGroup.num_failed: TestGroup.num_failed + int(test.result == Result.failed),
+                TestGroup.result: group.result,
+            })
+
             db.session.commit()
 
         return test
