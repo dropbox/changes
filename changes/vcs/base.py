@@ -60,8 +60,6 @@ class Vcs(object):
 
         kwargs['env'].setdefault('CHANGES_SSH_REPO', self.url)
 
-        print (args, kwargs)
-
         return check_output(*args, **kwargs)
 
     def exists(self):
