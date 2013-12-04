@@ -100,7 +100,7 @@ class TestResult(object):
 
         name_sha = TestCase.calculate_name_sha(self.package, self.name)
 
-        test, _ = create_or_get(TestCase, where={
+        test, created = create_or_get(TestCase, where={
             'build': self.build,
             'suite_id': suite.id,
             'name_sha': name_sha,
@@ -113,6 +113,9 @@ class TestResult(object):
             'result': self.result,
             'date_created': self.date_created,
         })
+        if not created:
+            return
+
         db.session.commit()
 
         groups = self._get_or_create_test_groups()
