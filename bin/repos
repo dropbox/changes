@@ -5,6 +5,7 @@ import sys
 
 from changes.config import create_app, db
 from changes.db.utils import create_or_update
+from changes.jobs.sync_repo import sync_repo
 from changes.models import Repository, RepositoryBackend, RepositoryOption
 
 
@@ -64,6 +65,9 @@ parser_edit.add_argument(
     help='repository backend', choices=('git', 'hg', 'unknown'))
 
 parser_show = subparsers.add_parser('show', help='show repository details')
+parser_show.add_argument('id', help='repository ID or url')
+
+parser_show = subparsers.add_parser('sync', help='sync repository details')
 parser_show.add_argument('id', help='repository ID or url')
 
 parser_list = subparsers.add_parser('list', help='list repositories')
@@ -127,6 +131,15 @@ elif args.command == 'show':
 
     for option in RepositoryOption.query.filter_by(repository_id=repo.id):
         print "  {} = {}".format(option.key, option.value)
+
+elif args.command == 'sync':
+    repo = get_repo(args.id)
+
+    if repo.backend == RepositoryBackend.unknown:
+        print "No backend configured for repository!"
+    else:
+        print "Forcing repository sync - {}".format(repo.url)
+        sync_repo(repo.id)
 
 elif args.command == 'options':
     if args.option_command == 'set':
