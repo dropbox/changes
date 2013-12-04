@@ -106,8 +106,9 @@ def create_app(_read_config=True, **config):
     queue.init_app(app)
     mail.init_app(app)
 
-    from raven.contrib.celery import register_signal
+    from raven.contrib.celery import register_signal, register_logger_signal
     register_signal(sentry)
+    register_logger_signal(sentry)
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
