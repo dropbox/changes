@@ -47,7 +47,8 @@ options = dict(
 
 command = [
     'ssh',
-    '-o UserAuthorizedKeysFile=/dev/null',
+    # Not supported in all ssh client versions
+    # '-o UserAuthorizedKeysFile=/dev/null',
     '-o LogLevel=ERROR',
     '-o StrictHostKeyChecking=no',
 ]
