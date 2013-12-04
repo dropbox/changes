@@ -10,10 +10,9 @@ from raven.contrib.flask import Sentry
 from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
 
+from changes.constants import PROJECT_ROOT
 from changes.ext.celery import Celery
 from changes.ext.pubsub import PubSub
-
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
 db = SQLAlchemy(session_options={
     'autoflush': True,

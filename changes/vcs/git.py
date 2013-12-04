@@ -12,6 +12,15 @@ LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
 class GitVcs(Vcs):
     binary_path = 'git'
 
+    def get_default_env(self):
+        return {
+            'GIT_SSH': self.ssh_connect_path,
+        }
+
+    def run(self, cmd, **kwargs):
+        cmd = [self.binary_path] + cmd
+        return super(GitVcs, self).run(cmd, **kwargs)
+
     def clone(self):
         if self.username:
             parsed = urlparse.urlparse(self.url)
@@ -24,15 +33,15 @@ class GitVcs(Vcs):
         else:
             url = self.url
 
-        self.run([self.binary_path, 'clone', url, self.path])
+        self.run(['clone', url, self.path])
 
     def update(self):
-        self.run([self.binary_path, 'fetch', '--all'])
-        self.run([self.binary_path, 'remote', 'prune', 'origin'])
+        self.run(['fetch', '--all'])
+        self.run(['remote', 'prune', 'origin'])
 
     def log(self, parent=None, limit=100):
         # TODO(dcramer): we should make this streaming
-        cmd = [self.binary_path, 'log', '--pretty=format:%s' % (LOG_FORMAT,)]
+        cmd = ['log', '--pretty=format:%s' % (LOG_FORMAT,)]
         if parent:
             cmd.append(parent)
         if limit:

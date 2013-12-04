@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+from tempfile import NamedTemporaryFile
+
+from changes.config import create_app, db
+from changes.models import Repository, RepositoryOption
+
+
+app = create_app()
+app_context = app.app_context()
+app_context.push()
+
+
+def get_repo(id_):
+    if len(id_) == 40:
+        # assume its a uuid
+        repo = Repository.query.get(id_)
+    else:
+        repo = Repository.query.filter_by(url=id_).first()
+
+    if not repo:
+        print "Repository not found"
+        sys.exit(1)
+
+    return repo
+
+repo_id = os.environ.get('CHANGES_SSH_REPO')
+if not repo_id:
+    raise ValueError("No 'CHANGES_SSH_REPO' in environment")
+
+repo = get_repo(repo_id)
+
+options = dict(
+    db.session.query(
+        RepositoryOption.name, RepositoryOption.value
+    ).filter(
+        RepositoryOption.repository_id == repo.id,
+        RepositoryOption.name.in_([
+            'auth.public-key',
+            'auth.public-key-file',
+        ])
+    )
+)
+
+command = [
+    'ssh',
+    '-o UserAuthorizedKeysFile=/dev/null',
+    '-o LogLevel=ERROR',
+    '-o StrictHostKeyChecking=no',
+]
+if options.get('auth.public-key'):
+    f = NamedTemporaryFile()
+    f.write(options['auth.public-key'])
+    f.close()
+    command.append('-i {0}'.format(f.name))
+elif options.get('auth.public-key-file'):
+    command.append('-i {0}'.format(options['auth.public-key-file']))
+
+print command
+print subprocess.check_output(command, shell=True)

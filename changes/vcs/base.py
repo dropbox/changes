@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import re
 
+from changes.constants import PROJECT_ROOT
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import Author, Revision
 
@@ -33,6 +34,8 @@ class BufferParser(object):
 
 
 class Vcs(object):
+    ssh_connect_path = os.path.join(PROJECT_ROOT, 'bin', 'ssh-connect')
+
     def __init__(self, path, url, username=None):
         self.path = path
         self.url = url
@@ -40,11 +43,24 @@ class Vcs(object):
 
         self._path_exists = None
 
+    def get_default_env(self):
+        return {}
+
     def run(self, *args, **kwargs):
         from subprocess import check_output
 
         if self.exists():
             kwargs.setdefault('cwd', self.path)
+
+        if not kwargs.get('env'):
+            kwargs['env'] = os.environ.copy()
+
+        for key, value in self.get_default_env().iteritems():
+            kwargs['env'].setdefault(key, value)
+
+        kwargs['env'].setdefault('CHANGES_SSH_REPO', self.url)
+
+        print (args, kwargs)
 
         return check_output(*args, **kwargs)
 

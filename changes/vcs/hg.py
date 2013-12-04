@@ -10,15 +10,28 @@ LOG_FORMAT = '{node}\x01{author}\x01{date|hgdate}\x01{p1node} {p2node}\x01{desc}
 class MercurialVcs(Vcs):
     binary_path = 'hg'
 
+    def get_default_env(self):
+        return {
+            'HGPLAIN': '1',
+        }
+
+    def run(self, cmd, **kwargs):
+        cmd = [
+            self.binary_path,
+            '--config',
+            'ui.ssh={0}'.format(self.ssh_connect_path)
+        ] + cmd
+        return super(MercurialVcs, self).run(cmd, **kwargs)
+
     def clone(self):
-        self.run([self.binary_path, 'clone', '--uncompressed', self.url, self.path])
+        self.run(['clone', '--uncompressed', self.url, self.path])
 
     def update(self):
-        self.run([self.binary_path, 'pull'])
+        self.run(['pull'])
 
     def log(self, parent=None, limit=100):
         # TODO(dcramer): we should make this streaming
-        cmd = [self.binary_path, 'log', '--template=%s' % (LOG_FORMAT,)]
+        cmd = ['log', '--template=%s' % (LOG_FORMAT,)]
         if parent:
             cmd.append('-r %s' % (parent,))
         if limit:
