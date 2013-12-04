@@ -63,6 +63,9 @@ parser_edit.add_argument(
     '--backend', metavar='backend', dest='backend',
     help='repository backend', choices=('git', 'hg', 'unknown'))
 
+parser_show = subparsers.add_parser('show', help='show repository details')
+parser_show.add_argument('id', help='repository ID or url')
+
 parser_list = subparsers.add_parser('list', help='list repositories')
 
 parser_options = subparsers.add_parser('options', help='manage repository options')
@@ -113,6 +116,16 @@ elif args.command == 'edit':
 elif args.command == 'list':
     for repo in Repository.query.order_by(Repository.url.asc()):
         print repo.url
+
+elif args.command == 'show':
+    repo = get_repo(args.id)
+
+    print "ID: {}".format(repo.id.hex)
+    print "URL: {}".format(repo.url)
+    print "Options:"
+
+    for option in RepositoryOption.query.filter_by(repository_id=repo.id):
+        print "  {} = {}".format(option.key, option.value)
 
 elif args.command == 'options':
     if args.option_command == 'set':
