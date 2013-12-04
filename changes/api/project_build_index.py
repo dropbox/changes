@@ -31,7 +31,7 @@ class ProjectBuildIndexAPIView(APIView):
             joinedload(Build.author),
         ).filter_by(
             project=project,
-        ).order_by(Build.date_created.desc(), Build.date_started.desc())
+        ).order_by(Build.date_created.desc())
 
         if include_patches == '0':
             queryset = queryset.filter(
