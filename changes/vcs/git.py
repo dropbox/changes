@@ -23,7 +23,7 @@ class GitVcs(Vcs):
 
     def clone(self):
         if self.username:
-            parsed = urlparse.urlparse(self.url)
+            parsed = urlparse(self.url)
             url = '%s://%s@%s/%s' % (
                 parsed.scheme,
                 self.username,
