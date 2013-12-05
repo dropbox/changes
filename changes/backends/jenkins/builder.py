@@ -187,6 +187,7 @@ class JenkinsBuilder(BaseBackend):
                 try:
                     self._sync_test_results(build, entity)
                 except Exception:
+                    db.session.rollback()
                     current_app.logger.exception('Unable to sync test results for build %r', build.id.hex)
 
         if should_finish:
@@ -201,6 +202,7 @@ class JenkinsBuilder(BaseBackend):
                         raise Exception('Took too long to sync log')
                     continue
             except Exception:
+                db.session.rollback()
                 current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)
 
             if self.sync_artifacts:
