@@ -16,9 +16,15 @@ class AuthorValidator(object):
         })
         return author
 
-    def parse(self, label):
+    def parse(self, value):
         import re
-        match = re.match(r'^(.+) <([^>]+)>$', label)
+        match = re.match(r'^(.+) <([^>]+)>$', value)
+
         if not match:
-            return
-        return match.group(1), match.group(2)
+            if '@' in value:
+                name, email = value, value
+            else:
+                raise ValueError(value)
+        else:
+            name, email = match.group(1), match.group(2)
+        return name, email

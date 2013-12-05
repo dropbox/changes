@@ -103,12 +103,17 @@ class RevisionResult(object):
     def _get_author(self, value):
         match = re.match(r'^(.+) <([^>]+)>$', value)
         if not match:
-            raise ValueError(value)
+            if '@' in value:
+                name, email = value, value
+            else:
+                raise ValueError(value)
+        else:
+            name, email = match.group(1), match.group(2)
 
         author, _ = get_or_create(Author, where={
-            'email': match.group(2),
+            'email': email,
         }, defaults={
-            'name': match.group(1),
+            'name': name,
         })
 
         return author
