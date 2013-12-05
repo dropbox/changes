@@ -112,7 +112,7 @@ class JenkinsBuilder(BaseBackend):
         if item['blocked']:
             build.status = Status.queued
             db.session.add(build)
-        elif item.get('cancelled'):
+        elif item.get('cancelled') and not build_item.get('build_no'):
             build.status = Status.finished
             build.result = Result.aborted
             db.session.add(build)
