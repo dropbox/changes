@@ -39,8 +39,8 @@ options = dict(
     ).filter(
         RepositoryOption.repository_id == repo.id,
         RepositoryOption.name.in_([
-            'auth.public-key',
-            'auth.public-key-file',
+            'auth.private-key',
+            'auth.private-key-file',
         ])
     )
 )
@@ -52,13 +52,13 @@ command = [
     '-o LogLevel=ERROR',
     '-o StrictHostKeyChecking=no',
 ]
-if options.get('auth.public-key'):
+if options.get('auth.private-key'):
     f = NamedTemporaryFile()
-    f.write(options['auth.public-key'])
+    f.write(options['auth.private-key'])
     f.close()
     command.append('-i {0}'.format(f.name))
-elif options.get('auth.public-key-file'):
-    command.append('-i {0}'.format(options['auth.public-key-file']))
+elif options.get('auth.private-key-file'):
+    command.append('-i {0}'.format(options['auth.private-key-file']))
 
 command.append('--')
 command.extend(sys.argv[1:])
