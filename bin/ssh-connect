@@ -60,7 +60,8 @@ if options.get('auth.private-key'):
 elif options.get('auth.private-key-file'):
     command.append('-i {0}'.format(options['auth.private-key-file']))
 
-command.append('--')
 command.extend(sys.argv[1:])
 
-print subprocess.check_output(command, shell=True)
+command = ' '.join(command)
+
+sys.exit(subprocess.call(command, shell=True))
