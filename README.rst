@@ -12,36 +12,49 @@ Supported code review platforms include:
 
 - `Phabricator <http://phabricator.com>`_
 
+Requirements
+============
+
+- Node.js
+	- Bower (npm install -g bower)
+- Postgresql
+- Python 2.7
+	- virtualenv
+	- pip
 
 Setup
 =====
 
-Create an environment:
+Create the database:
 
 ::
 
-	mkvirtualenv changes
+	$ createdb -E utf-8 changes
 
-
-Install dependencies:
-
-::
-
-	make
-
-Setup Postgres:
+Setup the default configuration:
 
 ::
 
-	createdb -E utf-8 changes
+	# ~/.changes/changes.conf.py
+	BASE_URI = 'http://localhost:5000'
+	SERVER_NAME = 'localhost:5000'
 
-Apply migrations:
+	REPO_ROOT = '/tmp'
+
+Create a Python environment:
 
 ::
 
-	alembic upgrade head
+	$ mkvirtualenv changes
 
-.. note:: You can simply run ``make resetdb`` to drop and re-create a clean database.
+Bootstrap your environment:
+
+::
+
+	$ make
+
+
+.. note:: You can run ``make resetdb`` to drop and re-create a clean database.
 
 
 Webserver
