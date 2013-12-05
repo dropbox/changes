@@ -47,7 +47,9 @@ class Vcs(object):
         return {}
 
     def run(self, *args, **kwargs):
-        from subprocess import check_output
+        from subprocess import check_output, call
+
+        capture = kwargs.pop('capture', False)
 
         if self.exists():
             kwargs.setdefault('cwd', self.path)
@@ -60,7 +62,9 @@ class Vcs(object):
 
         kwargs['env'].setdefault('CHANGES_SSH_REPO', self.url)
 
-        return check_output(*args, **kwargs)
+        if capture:
+            return check_output(*args, **kwargs)
+        return call(*args, **kwargs)
 
     def exists(self):
         return os.path.exists(self.path)

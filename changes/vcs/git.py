@@ -46,7 +46,7 @@ class GitVcs(Vcs):
             cmd.append(parent)
         if limit:
             cmd.append('-n %d' % (limit,))
-        result = self.run(cmd)
+        result = self.run(cmd, capture=True)
 
         for chunk in BufferParser(result, '\x02'):
             (sha, author, author_date, committer, committer_date,
