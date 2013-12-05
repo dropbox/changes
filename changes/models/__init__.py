@@ -1,3 +1,4 @@
+from .aggregatetest import *  # NOQA
 from .author import *  # NOQA
 from .build import *  # NOQA
 from .change import *  # NOQA
@@ -12,3 +13,4 @@ from .repository import *  # NOQA
 from .revision import *  # NOQA
 from .step import *  # NOQA
 from .test import *  # NOQA
+from .testresult import *  # NOQA

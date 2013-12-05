@@ -3,6 +3,23 @@ from changes.config import db
 from sqlalchemy.exc import IntegrityError
 
 
+def try_create(model, where, defaults):
+    if defaults is None:
+        defaults = {}
+
+    instance = model()
+    for key, value in defaults.iteritems():
+        setattr(instance, key, value)
+    for key, value in where.iteritems():
+        setattr(instance, key, value)
+    try:
+        with db.session.begin_nested():
+            db.session.add(instance)
+    except IntegrityError:
+        return
+    return instance
+
+
 def get_or_create(model, where, defaults=None):
     if defaults is None:
         defaults = {}
@@ -13,16 +30,8 @@ def get_or_create(model, where, defaults=None):
     if instance is not None:
         return instance, created
 
-    # no one had the lock, so try to create it
-    instance = model()
-    for key, value in defaults.iteritems():
-        setattr(instance, key, value)
-    for key, value in where.iteritems():
-        setattr(instance, key, value)
-    try:
-        with db.session.begin_nested():
-            db.session.add(instance)
-    except Exception:
+    instance = try_create(model, where, defaults)
+    if instance is None:
         instance = model.query.filter_by(**where).limit(1).first()
     else:
         created = True
@@ -38,26 +47,19 @@ def create_or_update(model, where, values=None):
     if values is None:
         values = {}
 
+    created = False
+
     instance = model.query.filter_by(**where).limit(1).first()
     if instance is None:
-        instance = model()
-        for key, value in values.iteritems():
-            setattr(instance, key, value)
-        for key, value in where.iteritems():
-            setattr(instance, key, value)
-        try:
-            with db.session.begin_nested():
-                db.session.add(instance)
-        except IntegrityError:
+        instance = try_create(model, where, values)
+        if instance is None:
             instance = model.query.filter_by(**where).limit(1).first()
             if instance is None:
                 raise Exception('Unable to create or update instance')
             update(instance, values)
-            created = False
         else:
             created = True
     else:
-        created = False
         update(instance, values)
 
     return instance, created
@@ -67,25 +69,18 @@ def create_or_get(model, where, values=None):
     if values is None:
         values = {}
 
+    created = False
+
     instance = model.query.filter_by(**where).limit(1).first()
     if instance is None:
-        instance = model()
-        for key, value in values.iteritems():
-            setattr(instance, key, value)
-        for key, value in where.iteritems():
-            setattr(instance, key, value)
-        try:
-            with db.session.begin_nested():
-                db.session.add(instance)
-        except IntegrityError:
+        instance = try_create(model, where, values)
+        if instance is None:
             instance = model.query.filter_by(**where).limit(1).first()
-            if instance is None:
-                raise Exception('Unable to create or update instance')
-            created = False
         else:
             created = True
-    else:
-        created = False
+
+        if instance is None:
+            raise Exception('Unable to get or create instance')
 
     return instance, created
 

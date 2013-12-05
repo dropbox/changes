@@ -1,14 +1,20 @@
+from changes.config import db
 from changes.constants import Result
-from changes.models.test import TestResult
+from changes.models import TestSuite, AggregateTestGroup
+from changes.models.testresult import TestResult
 from changes.testutils.cases import TestCase
 
 
 class TestResultTestCase(TestCase):
     def test_simple(self):
         build = self.create_build(self.project)
+        suite = TestSuite(name='foobar', build=build, project=self.project)
+
+        db.session.add(suite)
+
         result = TestResult(
             build=build,
-            suite_name='foobar',
+            suite=suite,
             name='Test',
             package='tests.changes.handlers.test_xunit',
             result=Result.failed,
@@ -34,6 +40,7 @@ class TestResultTestCase(TestCase):
         groups = sorted(test.groups, key=lambda x: x.name)
 
         assert len(groups) == 2
+
         assert groups[0].build == build
         assert groups[0].project == self.project
         assert groups[0].name == 'tests.changes.handlers.test_xunit'
@@ -51,3 +58,15 @@ class TestResultTestCase(TestCase):
         assert groups[1].num_failed == 1
         assert groups[1].result == Result.failed
         assert groups[1].num_leaves == 0
+
+        agg_groups = list(AggregateTestGroup.query.filter(
+            AggregateTestGroup.project_id == self.project.id,
+        ).order_by(AggregateTestGroup.name.asc()))
+
+        assert len(agg_groups) == 2
+
+        assert agg_groups[0].name == 'tests.changes.handlers.test_xunit'
+        assert agg_groups[0].first_build == build
+
+        assert agg_groups[1].name == 'tests.changes.handlers.test_xunit.Test'
+        assert agg_groups[1].first_build == build

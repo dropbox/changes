@@ -13,8 +13,10 @@ from uuid import uuid4
 from changes.backends.base import BaseBackend
 from changes.config import db, queue
 from changes.constants import Result, Status
-from changes.db.utils import create_or_update, get_or_create
-from changes.models import RemoteEntity, TestResult, TestSuite, LogSource, LogChunk
+from changes.db.utils import create_or_update, get_or_create, try_create
+from changes.models import (
+    AggregateTestSuite, RemoteEntity, TestResult, TestSuite, LogSource, LogChunk
+)
 
 LOG_CHUNK_SIZE = 4096
 
@@ -316,6 +318,14 @@ class JenkinsBuilder(BaseBackend):
             }, defaults={
                 'name': suite_name,
                 'project': build.project,
+            })
+
+            try_create(AggregateTestSuite, where={
+                'project': build.project,
+                'name_sha': suite.name_sha,
+            }, defaults={
+                'name': suite.name,
+                'first_build_id': build.id,
             })
 
             for case in suite_data['cases']:
