@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from sqlalchemy.sql import func
 
 from changes.config import db, queue
 from changes.constants import Status
@@ -24,11 +23,10 @@ def cleanup_builds():
     db.session.query(Build).filter(
         Build.id.in_([b.id for b in build_list]),
     ).update({
-        Build.date_modified: func.now(),
-    })
+        Build.date_modified: now,
+    }, synchronize_session=False)
 
     for build in build_list:
-
         queue.delay('sync_build', kwargs={
             'build_id': build.id.hex,
         })
