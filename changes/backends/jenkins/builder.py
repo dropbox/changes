@@ -13,7 +13,7 @@ from uuid import uuid4
 from changes.backends.base import BaseBackend
 from changes.config import db, queue
 from changes.constants import Result, Status
-from changes.db.utils import create_or_update, get_or_create, try_create
+from changes.db.utils import create_or_update, get_or_create
 from changes.models import (
     AggregateTestSuite, RemoteEntity, TestResult, TestSuite, LogSource, LogChunk
 )
@@ -305,8 +305,6 @@ class JenkinsBuilder(BaseBackend):
         return True if resp.headers.get('X-More-Data') == 'true' else None
 
     def _sync_test_results(self, build, entity):
-        # TODO(dcramer): this doesnt handle concurrency
-
         build_item = entity.data
         test_report = self._get_response('/job/{}/{}/testReport/'.format(
             build_item['job_name'], build_item['build_no']))
@@ -314,6 +312,8 @@ class JenkinsBuilder(BaseBackend):
         for suite_data in test_report['suites']:
             suite_name = suite_data.get('name', 'default')
 
+            # TODO(dcramer): this is not specific to Jenkins and should be
+            # abstracted
             suite, _ = get_or_create(TestSuite, where={
                 'build': build,
                 'name_sha': sha1(suite_name).hexdigest(),
@@ -322,13 +322,20 @@ class JenkinsBuilder(BaseBackend):
                 'project': build.project,
             })
 
-            try_create(AggregateTestSuite, where={
+            agg, created = get_or_create(AggregateTestSuite, where={
                 'project': build.project,
                 'name_sha': suite.name_sha,
             }, defaults={
                 'name': suite.name,
                 'first_build_id': build.id,
             })
+
+            if not created:
+                db.session.query(AggregateTestSuite).filter(
+                    AggregateTestSuite.id == agg.id,
+                ).update({
+                    AggregateTestSuite.last_build_id: build.id,
+                }, synchronize_session=False)
 
             for case in suite_data['cases']:
                 message = []

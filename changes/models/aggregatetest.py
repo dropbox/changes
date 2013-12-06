@@ -23,10 +23,12 @@ class AggregateTestSuite(db.Model):
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
     first_build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
+    last_build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
-    first_build = relationship('Build')
+    first_build = relationship('Build', foreign_keys=[first_build_id])
+    last_build = relationship('Build', foreign_keys=[last_build_id])
 
     def __init__(self, **kwargs):
         super(AggregateTestSuite, self).__init__(**kwargs)
@@ -53,12 +55,14 @@ class AggregateTestGroup(db.Model):
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
     first_build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
+    last_build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
     suite = relationship('AggregateTestSuite')
     parent = relationship('AggregateTestGroup', remote_side=[id])
-    first_build = relationship('Build')
+    first_build = relationship('Build', foreign_keys=[first_build_id])
+    last_build = relationship('Build', foreign_keys=[last_build_id])
 
     def __init__(self, **kwargs):
         super(AggregateTestGroup, self).__init__(**kwargs)

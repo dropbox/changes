@@ -32,6 +32,9 @@ class TestResult(object):
         # TODO(dcramer): implement subtrees
         # https://github.com/disqus/zumanji/blob/master/src/zumanji/importer.py#L217
 
+        build = self.build
+        project = self.build.project
+
         labels = []
         if self.package:
             labels.extend([
@@ -53,25 +56,36 @@ class TestResult(object):
         parent_id, agg_parent_id = None, None
         for idx, label in enumerate(labels):
             group, _ = get_or_create(TestGroup, where={
-                'build': self.build,
+                'build': build,
                 'name_sha': sha1(label).hexdigest(),
             }, defaults={
                 'name': label,
-                'project': self.build.project,
+                'project': project,
                 'num_leaves': len(labels) - 1 - idx,
                 'parent_id': parent_id,
             })
             parent_id = group.id
 
-            agg, _ = create_or_get(AggregateTestGroup, where={
-                'project': group.project,
+            # TODO(dcramer): last_build/first_build probably make less sense
+            # if we are only looking for a single revision-based build
+            # (e.g. on the master branch)
+            agg, created = create_or_get(AggregateTestGroup, where={
+                'project': project,
                 'name_sha': group.name_sha,
             }, values={
                 'name': label,
                 'parent_id': agg_parent_id,
-                'first_build_id': self.build.id,
+                'first_build_id': build.id,
+                'last_build_id': build.id,
             })
             agg_parent_id = agg.id
+
+            if not created:
+                db.session.query(AggregateTestGroup).filter(
+                    AggregateTestGroup.id == agg.id,
+                ).update({
+                    AggregateTestGroup.last_build_id: build.id,
+                }, synchronize_session=False)
 
             groups.append(group)
 

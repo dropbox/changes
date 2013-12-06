@@ -67,6 +67,8 @@ class TestResultTestCase(TestCase):
 
         assert agg_groups[0].name == 'tests.changes.handlers.test_xunit'
         assert agg_groups[0].first_build == build
+        assert agg_groups[0].last_build == build
 
         assert agg_groups[1].name == 'tests.changes.handlers.test_xunit.Test'
         assert agg_groups[1].first_build == build
+        assert agg_groups[1].last_build == build
