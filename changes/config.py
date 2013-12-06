@@ -6,6 +6,7 @@ import os.path
 from datetime import timedelta
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
+from kombu import Queue
 from raven.contrib.flask import Sentry
 from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
@@ -43,7 +44,29 @@ def create_app(_read_config=True, **config):
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
     app.config['CELERY_ACCEPT_CONTENT'] = ['json', 'pickle']
+    app.config['CELERY_RESULT_SERIALIZER'] = 'json'
     app.config['CELERY_TASK_SERIALIZER'] = 'json'
+    app.config['CELERY_DEFAULT_QUEUE'] = 'default'
+    app.config['CELERY_QUEUES'] = (
+        Queue('build.sync', routing_key='build.sync'),
+        Queue('build.create', routing_key='build.create'),
+        Queue('default', routing_key='default'),
+        Queue('repo.sync', routing_key='repo.sync'),
+    )
+    app.config['CELERY_ROUTES'] = {
+        'create_build': {
+            'queue': 'build.create',
+            'routing_key': 'build.create',
+        },
+        'sync_build': {
+            'queue': 'build.sync',
+            'routing_key': 'build.sync',
+        },
+        'sync_repo': {
+            'queue': 'repo.sync',
+            'routing_key': 'repo.sync',
+        },
+    }
 
     app.config['EVENT_LISTENERS'] = (
         ('changes.listeners.mail.build_finished_handler', 'build.finished'),
