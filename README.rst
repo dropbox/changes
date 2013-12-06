@@ -75,7 +75,7 @@ Workers are managed via Celery:
 ::
 
 
-	celery -A changes.app worker -B
+	bin/worker -B
 
 
 NGINX Configuration

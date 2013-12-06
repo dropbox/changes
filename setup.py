@@ -35,7 +35,7 @@ install_requires = [
     'argparse',
     'alembic',
     'blinker',
-    'celery>=3.0,<3.1',
+    'celery>=3.1,<3.2',
     'enum34',
     'flask',
     'flask-actions',

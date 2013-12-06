@@ -42,6 +42,8 @@ def create_app(_read_config=True, **config):
 
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
+    app.config['CELERY_ACCEPT_CONTENT'] = ['json', 'pickle']
+    app.config['CELERY_TASK_SERIALIZER'] = 'json'
 
     app.config['EVENT_LISTENERS'] = (
         ('changes.listeners.mail.build_finished_handler', 'build.finished'),
