@@ -24,6 +24,10 @@ def upgrade():
         sa.Column('build_id', sa.GUID(), nullable=False),
         sa.Column('name', sa.String(64), nullable=True),
     )
+    logchunks_table = table(
+        'logchunk',
+        sa.Column('source_id', sa.GUID(), nullable=False),
+    )
 
     done = set()
 
@@ -36,7 +40,11 @@ def upgrade():
         print "Checking LogSource %s - %s" % (
             logsource.build_id, logsource.name)
 
-        # remove any duplicate log sources
+        query = logchunks_table.delete().where(
+            logchunks_table.c.source_id == logsource.id,
+        )
+        connection.execute(query)
+
         query = logsources_table.delete().where(
             sa.and_(
                 logsources_table.c.build_id == logsource.build_id,
@@ -46,6 +54,7 @@ def upgrade():
         )
 
         connection.execute(query)
+
         done.add(key)
 
     op.create_unique_constraint(
