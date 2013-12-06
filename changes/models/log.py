@@ -12,8 +12,8 @@ from changes.db.types.guid import GUID
 class LogSource(db.Model):
     __tablename__ = 'logsource'
     __table_args__ = (
+        UniqueConstraint('build_id', 'name', name='unq_logsource_key'),
         Index('idx_build_project_id', 'project_id'),
-        Index('idx_build_build_id', 'build_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
