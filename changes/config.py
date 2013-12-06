@@ -134,6 +134,8 @@ def configure_api_routes(app):
     from changes.api.project_commit_index import ProjectCommitIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_stats_index import ProjectStatsIndexAPIView
+    from changes.api.project_test_details import ProjectTestDetailsAPIView
+    from changes.api.project_test_index import ProjectTestIndexAPIView
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.testgroup_details import TestGroupDetailsAPIView
 
@@ -167,6 +169,10 @@ def configure_api_routes(app):
         '/api/0/projects/<project_id>/commits/<commit_id>/', view_func=ProjectCommitDetailsAPIView.as_view('api-project-commit-details'))
     app.add_url_rule(
         '/api/0/projects/<project_id>/stats/', view_func=ProjectStatsIndexAPIView.as_view('api-project-stats'))
+    app.add_url_rule(
+        '/api/0/projects/<project_id>/tests/', view_func=ProjectTestIndexAPIView.as_view('api-project-test-list'))
+    app.add_url_rule(
+        '/api/0/projects/<project_id>/tests/<test_id>/', view_func=ProjectTestDetailsAPIView.as_view('api-project-test-details'))
     app.add_url_rule(
         '/api/0/testgroups/<testgroup_id>/', view_func=TestGroupDetailsAPIView.as_view('api-change-testgroup-details'))
 

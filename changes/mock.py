@@ -10,8 +10,9 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Build, Phase, Step, TestResult,
-    Change, LogChunk
+    Change, LogChunk, TestSuite
 )
+from changes.db.utils import get_or_create
 
 
 TEST_PACKAGES = itertools.cycle([
@@ -166,6 +167,17 @@ def revision(repository, author):
     return result
 
 
+def test_suite(build, name='default'):
+    suite, _ = get_or_create(TestSuite, where={
+        'build': build,
+        'name': name,
+    }, defaults={
+        'project': build.project,
+    })
+
+    return suite
+
+
 def test_result(build, **kwargs):
     if 'package' not in kwargs:
         kwargs['package'] = TEST_PACKAGES.next()
@@ -173,8 +185,8 @@ def test_result(build, **kwargs):
     if 'name' not in kwargs:
         kwargs['name'] = TEST_NAMES.next() + '_' + uuid4().hex
 
-    if 'suite_name' not in kwargs:
-        kwargs['suite_name'] = 'default'
+    if 'suite' not in kwargs:
+        kwargs['suite'] = test_suite(build)
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)

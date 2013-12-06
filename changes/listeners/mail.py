@@ -1,18 +1,12 @@
 from __future__ import absolute_import, print_function
 
-from flask import current_app, render_template
+from flask import render_template
 from flask_mail import Message, sanitize_address
 
 from changes.config import db, mail
 from changes.constants import Result, Status
 from changes.models import Build, TestGroup, ProjectOption, LogSource, LogChunk
-
-
-def build_uri(path):
-    return str('{base_uri}/{path}'.format(
-        base_uri=current_app.config['BASE_URI'].rstrip('/'),
-        path=path.lstrip('/'),
-    ))
+from changes.utils.http import build_uri
 
 
 def get_test_failures(build):
