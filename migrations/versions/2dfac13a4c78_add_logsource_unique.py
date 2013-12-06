@@ -46,7 +46,7 @@ def upgrade():
                     logsources_table.c.name == logsource.name,
                     logsources_table.c.id != logsource.id,
                 ),
-            ).subquery())
+            ))
         )
         connection.execute(query)
 
@@ -68,5 +68,5 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_unique_constraint('unq_logsource_key', 'logsource')
+    op.drop_constraint('unq_logsource_key', 'logsource')
     op.create_index('idx_logsource_build_id', 'logsource', ['build_id'])
