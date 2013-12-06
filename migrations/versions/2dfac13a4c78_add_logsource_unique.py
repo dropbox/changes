@@ -11,7 +11,7 @@ revision = '2dfac13a4c78'
 down_revision = '5896e31725d'
 
 from alembic import op
-from sqlalchemy.sql import table
+from sqlalchemy.sql import table, select
 import sqlalchemy as sa
 
 
@@ -39,9 +39,14 @@ def upgrade():
 
         print "Checking LogSource %s - %s" % (
             logsource.build_id, logsource.name)
-
         query = logchunks_table.delete().where(
-            logchunks_table.c.source_id == logsource.id,
+            logchunks_table.c.source_id.in_(select([logchunks_table]).where(
+                sa.and_(
+                    logsources_table.c.build_id == logsource.build_id,
+                    logsources_table.c.name == logsource.name,
+                    logsources_table.c.id != logsource.id,
+                ),
+            ).subquery())
         )
         connection.execute(query)
 
