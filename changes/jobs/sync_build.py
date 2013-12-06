@@ -8,8 +8,6 @@ from changes.models import Build, RemoteEntity
 
 
 def sync_with_builder(build):
-    # HACK(dcramer): this definitely is a temporary fix for our "things are
-    # only a single builder" problem
     build.date_modified = datetime.utcnow()
     db.session.add(build)
 
