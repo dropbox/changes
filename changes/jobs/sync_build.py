@@ -3,21 +3,25 @@ from flask import current_app
 
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
-from changes.constants import Status, Result
+from changes.constants import Status
 from changes.models import Build, RemoteEntity
 
 
 def sync_with_builder(build):
     # HACK(dcramer): this definitely is a temporary fix for our "things are
     # only a single builder" problem
+    build.date_modified = datetime.utcnow()
+    db.session.add(build)
+
     entity = RemoteEntity.query.filter_by(
         provider='jenkins',
         internal_id=build.id,
         type='build',
     ).first()
     if not entity:
-        build.status = Status.finished
-        build.result = Result.aborted
+        queue.delay('create_build', kwargs={
+            'build_id': build.id.hex,
+        }, countdown=5)
     else:
         builder = JenkinsBuilder(
             app=current_app,
