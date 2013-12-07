@@ -139,7 +139,7 @@ elif args.command == 'sync':
         print "No backend configured for repository!"
     else:
         print "Forcing repository sync - {}".format(repo.url)
-        sync_repo(repo.id)
+        sync_repo(repo.id.hex)
 
 elif args.command == 'options':
     if args.option_command == 'set':
