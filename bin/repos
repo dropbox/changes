@@ -130,7 +130,7 @@ elif args.command == 'show':
     print "Options:"
 
     for option in RepositoryOption.query.filter_by(repository_id=repo.id):
-        print "  {} = {}".format(option.key, option.value)
+        print "  {} = {}".format(option.name, option.value)
 
 elif args.command == 'sync':
     repo = get_repo(args.id)
