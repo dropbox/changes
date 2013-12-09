@@ -64,6 +64,10 @@ class AggregateTestGroup(db.Model):
     first_build = relationship('Build', foreign_keys=[first_build_id])
     last_build = relationship('Build', foreign_keys=[last_build_id])
 
+    # last_testgroup = relationship(
+    #     'TestGroup', primaryjoin="and_(AggregateTestGroup.name_sha==TestGroup.name_sha, "
+    #     "AggregateTestGroup.last_build_id==TestGroup.build_id)")
+
     def __init__(self, **kwargs):
         super(AggregateTestGroup, self).__init__(**kwargs)
         if self.id is None:

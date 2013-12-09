@@ -9,9 +9,11 @@ define(['app',
         'controllers/testGroupDetails',
         'controllers/projectCommitDetails',
         'controllers/projectCommitList',
+        'controllers/projectDetails',
         'controllers/projectLeaderboard',
         'controllers/projectList',
-        'controllers/projectDetails'
+        'controllers/projectTestDetails',
+        'controllers/projectTestList'
        ], function(app) {
 
   'use strict';
@@ -159,6 +161,30 @@ define(['app',
             }],
             initialStats: ['$http', '$route', '$window', function($http, $route, $window) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/stats/' + $window.location.search);
+            }]
+          }
+        })
+        .when('/projects/:project_id/tests/', {
+          templateUrl: 'partials/project-test-list.html',
+          controller: 'projectTestListCtrl',
+          resolve: {
+            initialProject: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
+            }],
+            initialTests: ['$http', '$route', '$window', function($http, $route, $window) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/tests/' + $window.location.search);
+            }]
+          }
+        })
+        .when('/projects/:project_id/tests/:test_id/', {
+          templateUrl: 'partials/project-test-details.html',
+          controller: 'projectTestDetailsCtrl',
+          resolve: {
+            initialProject: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
+            }],
+            initialTest: ['$http', '$route', '$window', function($http, $route, $window) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/tests/' + $route.current.params.test_id + '/' + $window.location.search);
             }]
           }
         })

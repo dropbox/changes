@@ -1,0 +1,52 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2>{{ test.name }}</h2>
+		</div>
+	</div>
+
+	<barchart ng-model="chartData" style="height:130px"></barchart>
+
+	<dl class="flat">
+		<dt>First Seen:</dt>
+		<dd>
+			<a href="{{test.firstBuild.link}}">{{test.firstBuild.target}}</a><br>
+			<span ng-if="test.firstBuild.author">{{test.firstBuild.author.name}} &mdash; </span><span time-since="test.firstBuild.dateCreated"></span>
+		</dd>
+		<dt>Last Seen:</dt>
+		<dd>
+			<a href="{{test.lastBuild.link}}">{{test.lastBuild.target}}</a><br>
+			<span ng-if="test.lastBuild.author">{{test.lastBuild.author.name}} &mdash; </span><span time-since="test.lastBuild.dateCreated"></span>
+		</dd>
+		<dt>Duration: <span class="help" title="duration from last build">?</span></dt>
+		<dd duration="test.lastTest.duration"></dd>
+	</dl>
+
+	<ul class="breadcrumb" ng-if="context">
+		<li ng-repeat="parent in context" title="{{parent.name}}" ng-class="test.id == parent.id ? 'active' : ''">
+			<a href="{{parent.link}}">{{parent.shortName|truncate}}</a>
+		</li>
+	</ul>
+
+	<div ng-if="childTests">
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>&nbsp;</th>
+					<th style="width:100px;text-align:center">Duration <span class="help" title="duration from last build">?</span></th>
+					<th style="width:150px;text-align:center">First Seen</th>
+					<th style="width:150px;text-align:center">Last Seen</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="childTest in childTests" class="result-{{childTest.result.id}}">
+					<td><a href="{{childTest.link}}">{{childTest.shortName}}</a></td>
+					<td style="text-align:center" duration="childTest.lastTest.duration"></td>
+					<td style="text-align:center"><a href="{{ childTest.firstBuild.link }}">{{ childTest.firstBuild.target }}</a></td>
+					<td style="text-align:center"><a href="{{ childTest.lastBuild.link }}">{{ childTest.lastBuild.target }}</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+</section>

@@ -838,3 +838,9 @@ chart {
   overflow: scroll;
   white-space: pre-wrap;
 }
+
+
+.help {
+  font-size: 0.85em;
+  border-bottom: 1px dotted #999;
+}
