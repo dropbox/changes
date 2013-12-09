@@ -24,3 +24,4 @@ class BuildRetryTest(APITestCase):
         assert new_build.author_id == build.author_id
         assert new_build.label == build.label
         assert new_build.message == build.message
+        assert new_build.target == build.target
