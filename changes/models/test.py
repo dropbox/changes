@@ -14,6 +14,7 @@ from changes.constants import Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
+from changes.db.utils import model_repr
 
 
 test_group_m2m_table = Table(
@@ -45,6 +46,8 @@ class TestSuite(db.Model):
 
     build = relationship('Build')
     project = relationship('Project')
+
+    __repr__ = model_repr('name')
 
     def __init__(self, **kwargs):
         super(TestSuite, self).__init__(**kwargs)
@@ -93,6 +96,8 @@ class TestGroup(db.Model):
     project = relationship('Project')
     testcases = relationship('TestCase', secondary=test_group_m2m_table, backref="groups")
     parent = relationship('TestGroup', remote_side=[id])
+
+    __repr__ = model_repr('name', 'result')
 
     def __init__(self, **kwargs):
         super(TestGroup, self).__init__(**kwargs)

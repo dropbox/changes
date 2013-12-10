@@ -10,7 +10,8 @@ from uuid import uuid4
 
 from changes.config import db, mail
 from changes.models import (
-    Repository, Build, Project, Revision, RemoteEntity, Change, Author
+    Repository, Build, Project, Revision, RemoteEntity, Change, Author,
+    TestGroup
 )
 
 
@@ -46,6 +47,18 @@ class Fixtures(object):
         db.session.add(change)
 
         return change
+
+    def create_testgroup(self, build, **kwargs):
+        kwargs.setdefault('name', uuid4().hex)
+
+        group = TestGroup(
+            build=build,
+            project=build.project,
+            **kwargs
+        )
+        db.session.add(group)
+
+        return group
 
     def create_build(self, project, **kwargs):
         revision_sha = kwargs.pop('revision_sha', uuid4().hex)

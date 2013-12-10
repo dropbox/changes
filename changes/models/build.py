@@ -10,6 +10,7 @@ from changes.constants import Status, Result, Cause
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
+from changes.db.utils import model_repr
 
 
 class Build(db.Model):
@@ -49,6 +50,8 @@ class Build(db.Model):
     patch = relationship('Patch')
     author = relationship('Author')
     parent = relationship('Build')
+
+    __repr__ = model_repr('label', 'target')
 
     def __init__(self, **kwargs):
         super(Build, self).__init__(**kwargs)

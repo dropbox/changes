@@ -29,3 +29,10 @@ class TestGroupWithBuildSerializer(TestGroupSerializer):
         data = super(TestGroupWithBuildSerializer, self).serialize(instance)
         data['build'] = instance.build
         return data
+
+
+class TestGroupWithOriginSerializer(TestGroupSerializer):
+    def serialize(self, instance):
+        data = super(TestGroupWithOriginSerializer, self).serialize(instance)
+        data['origin'] = getattr(instance, 'origin', None)
+        return data
