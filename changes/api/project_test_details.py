@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload, subqueryload
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
 from changes.config import db
+from changes.constants import Status
 from changes.models import Project, AggregateTestGroup, TestGroup, Build
 
 
@@ -59,6 +60,7 @@ class ProjectTestDetailsAPIView(APIView):
         previous_runs = list(TestGroup.query.filter(
             Build.patch_id == None,  # NOQA
             Build.revision_sha != None,  # NOQA
+            Build.status == Status.finished,
             TestGroup.name_sha == test.name_sha,
             TestGroup.project_id == test.project_id,
         ).join(Build).order_by(Build.date_created.desc())[:25])
