@@ -9,7 +9,9 @@ from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
-from changes.models import Project, Build, Repository, Patch, Change
+from changes.models import (
+    Project, Build, Repository, Patch, ProjectOption, Change
+)
 
 
 class BuildIndexAPIView(APIView):
@@ -66,6 +68,27 @@ class BuildIndexAPIView(APIView):
             projects = list(Project.query.filter(
                 Project.repository_id == repository.id,
             ))
+
+        if patch_file:
+            # eliminate projects without diff builds
+            options = dict(
+                db.session.query(
+                    ProjectOption.project_id, ProjectOption.value
+                ).filter(
+                    ProjectOption.project_id.in_([p.id for p in projects]),
+                    ProjectOption.name.in_([
+                        'build.allow-patches',
+                    ])
+                )
+            )
+
+            projects = [
+                p for p in projects
+                if options.get(p.id, '1') == '1'
+            ]
+
+        if not projects:
+            return self.respond({'builds': []})
 
         if not label:
             label = "A homeless build"

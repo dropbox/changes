@@ -1,6 +1,7 @@
 from cStringIO import StringIO
 
-from changes.models import Build, Patch
+from changes.config import db
+from changes.models import Build, Patch, ProjectOption
 from changes.testutils import APITestCase
 
 
@@ -99,8 +100,7 @@ class BuildCreateTest(APITestCase):
         assert patch.parent_revision_sha == 'a' * 40
 
     def test_with_patch_without_change(self):
-        change = self.create_change(self.project)
-        path = '/api/0/builds/'.format(change.id.hex)
+        path = '/api/0/builds/'
         resp = self.client.post(path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
@@ -135,3 +135,23 @@ class BuildCreateTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data['builds']) == 2
+
+    def test_with_patch_without_diffs_enabled(self):
+        po = ProjectOption(
+            project=self.project,
+            name='build.allow-patches',
+            value='0',
+        )
+        db.session.add(po)
+
+        path = '/api/0/builds/'
+        resp = self.client.post(path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'author': 'David Cramer <dcramer@example.com>',
+            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch[label]': 'D1234',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data['builds']) == 0
