@@ -14,6 +14,7 @@ from werkzeug.contrib.fixers import ProxyFix
 from changes.constants import PROJECT_ROOT
 from changes.ext.celery import Celery
 from changes.ext.pubsub import PubSub
+from changes.utils.trace import TracerMiddleware
 
 db = SQLAlchemy(session_options={
     'autoflush': True,
@@ -30,6 +31,7 @@ def create_app(_read_config=True, **config):
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
 
     app.wsgi_app = ProxyFix(app.wsgi_app)
+    app.wsgi_app = TracerMiddleware(app.wsgi_app, app)
 
     # This key is insecure and you should override it on the server
     app.config['SECRET_KEY'] = 't\xad\xe7\xff%\xd2.\xfe\x03\x02=\xec\xaf\\2+\xb8=\xf7\x8a\x9aLD\xb1'

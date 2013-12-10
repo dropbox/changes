@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <base href="/">
+    <meta charset="utf-8">
+    <title>Trace Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+    <link href="{{ url_for('static', filename='vendor/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
+    <link href="{{ url_for('static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Duration</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for start_time, message, duration in events %}
+            <tr>
+                <td>{{ message }}</td>
+                <td>{{ duration }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+  </body>
+</html>
+
