@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from functools import wraps
 
@@ -77,9 +78,12 @@ class APIView(MethodView):
             }, status_code=403)
         except Exception as exc:
             current_app.logger.exception(unicode(exc))
-            return self.respond({
+            data = {
                 'message': 'Internal error',
-            }, status_code=500)
+            }
+            if current_app.config['API_TRACEBACKS']:
+                data['traceback'] = ''.join(traceback.format_exc())
+            return self.respond(data, status_code=500)
 
     def respond(self, context, status_code=200):
         return Response(

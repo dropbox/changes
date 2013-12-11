@@ -43,6 +43,8 @@ def create_app(_read_config=True, **config):
     app.config['HTTP_PORT'] = 5000
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
+    app.config['API_TRACEBACKS'] = True
+
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
     app.config['CELERY_ACCEPT_CONTENT'] = ['json', 'pickle']
