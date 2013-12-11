@@ -25,7 +25,8 @@ parser_add.add_argument('--message', dest='message', help='build message')
 parser_add.add_argument('--sha', metavar='sha', dest='revision_sha', help='parent revision sha')
 
 parser_sync = subparsers.add_parser('sync', help='sync build details')
-parser_sync.add_argument('id', help='build ID')
+parser_sync.add_argument('id', help='build ID', nargs='?')
+parser_sync.add_argument('-a', '--all', dest='all', action='store_true', help='all pending builds', required=False)
 
 args = parser.parse_args()
 
@@ -80,8 +81,14 @@ if args.command == 'add':
 
 
 elif args.command == 'sync':
-    build = get_build(args.id)
+    if args.id:
+        builds = [get_build(args.id)]
+    elif args.all:
+        builds = Build.query.filter(Build.status != Status.finished)
+    else:
+        abort()
 
-    print "Forcing build sync - {}".format(build.id.hex)
+    for build in builds:
+        print "Forcing build sync - {}".format(build.id.hex)
 
-    sync_build(build.id.hex)
+        sync_build(build.id.hex)
