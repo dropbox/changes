@@ -32,7 +32,7 @@
 		<table class="table table-striped">
 			<thead>
 				<tr>
-					<th>&nbsp;</th>
+					<th colspan="2">&nbsp;</th>
 					<th style="width:110px;text-align:center">Duration</th>
 					<th style="width:80px;text-align:center">Failures</th>
 					<th style="width:80px;text-align:center">Total</th>
@@ -40,6 +40,7 @@
 			</thead>
 			<tbody>
 				<tr ng-repeat="childTestGroup in childTestGroups" class="result-{{childTestGroup.result.id}}">
+					<td class="result"><span></span></td>
 					<td><a href="{{childTestGroup.link}}">{{childTestGroup.shortName}}</a></td>
 					<td style="text-align:center" duration="childTestGroup.duration"></td>
 					<td style="text-align:center">{{childTestGroup.numFailures}}</td>
