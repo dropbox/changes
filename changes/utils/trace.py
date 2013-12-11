@@ -48,7 +48,7 @@ class SQLAlchemyTracer(object):
         self.tracking[(conn, clause)] = time()
 
     def after_execute(self, conn, clause, multiparams, params, results):
-        start_time = self.tracking.pop((conn, clause))
+        start_time = self.tracking.pop((conn, clause), None)
         if start_time:
             duration = time() - start_time
         else:
