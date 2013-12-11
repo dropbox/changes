@@ -81,11 +81,11 @@ def create_app(_read_config=True, **config):
     app.config['CELERYBEAT_SCHEDULE'] = {
         'cleanup-builds': {
             'task': 'cleanup_builds',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
         },
         'check-repos': {
             'task': 'check_repos',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
         },
     }
     app.config['CELERY_TIMEZONE'] = 'UTC'

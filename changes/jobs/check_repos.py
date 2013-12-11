@@ -12,7 +12,7 @@ def check_repos():
     and creates `sync_repo` tasks for them.
     """
     now = datetime.utcnow()
-    cutoff = now - timedelta(minutes=3)
+    cutoff = now - timedelta(minutes=5)
 
     repo_list = list(Repository.query.filter(
         Repository.backend != RepositoryBackend.unknown,
