@@ -20,6 +20,13 @@ def try_create(model, where, defaults):
     return instance
 
 
+def try_update(model, where, values):
+    result = db.session.query(type(model)).filter_by(
+        **where
+    ).update(values, synchronize_session=False)
+    return result.rowcount > 0
+
+
 def get_or_create(model, where, defaults=None):
     if defaults is None:
         defaults = {}
