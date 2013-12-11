@@ -80,10 +80,10 @@ class ProjectTestDetailsAPIView(APIView):
 
         context = {
             'test': self.serialize(test, {
-                AggregateTestGroup: AggregateTestGroupWithBuildSerializer,
+                AggregateTestGroup: AggregateTestGroupWithBuildSerializer(),
             }),
             'childTests': self.serialize(test_list, {
-                AggregateTestGroup: AggregateTestGroupWithBuildSerializer,
+                AggregateTestGroup: AggregateTestGroupWithBuildSerializer(),
             }),
             'context': context,
             'previousRuns': self.serialize(previous_runs, extended_serializers),
