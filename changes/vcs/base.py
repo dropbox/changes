@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
+import os
 import os.path
 import re
 
@@ -54,13 +55,17 @@ class Vcs(object):
         if self.exists():
             kwargs.setdefault('cwd', self.path)
 
-        if not kwargs.get('env'):
-            kwargs['env'] = os.environ.copy()
+        env = os.environ.copy()
 
         for key, value in self.get_default_env().iteritems():
-            kwargs['env'].setdefault(key, value)
+            env.setdefault(key, value)
 
-        kwargs['env'].setdefault('CHANGES_SSH_REPO', self.url)
+        env.setdefault('CHANGES_SSH_REPO', self.url)
+
+        for key, value in kwargs.pop('env', {}):
+            env[key] = value
+
+        kwargs['env'] = env
 
         if capture:
             return check_output(*args, **kwargs)
