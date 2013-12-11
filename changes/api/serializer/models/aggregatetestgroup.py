@@ -27,3 +27,13 @@ class AggregateTestGroupSerializer(Serializer):
         if hasattr(instance, 'last_testgroup'):
             data['lastTest'] = instance.last_testgroup
         return data
+
+
+class AggregateTestGroupWithBuildSerializer(AggregateTestGroupSerializer):
+    def serialize(self, instance):
+        data = super(AggregateTestGroupWithBuildSerializer, self).serialize(instance)
+        data.update({
+            'firstBuild': instance.first_build,
+            'lastBuild': instance.last_build,
+        })
+        return data

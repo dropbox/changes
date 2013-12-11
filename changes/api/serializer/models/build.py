@@ -5,7 +5,10 @@ from changes.models.build import Build
 @register(Build)
 class BuildSerializer(Serializer):
     def serialize(self, instance):
-        avg_build_time = instance.project.avg_build_time
+        if instance.project_id:
+            avg_build_time = instance.project.avg_build_time
+        else:
+            avg_build_time = None
 
         data = instance.data or {}
         backend_details = data.get('backend')

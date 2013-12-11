@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload, subqueryload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
+from changes.api.serializer.models.aggregatetestgroup import AggregateTestGroupWithBuildSerializer
 from changes.config import db
 from changes.constants import Status
 from changes.models import Project, AggregateTestGroup, TestGroup, Build
@@ -78,9 +79,12 @@ class ProjectTestDetailsAPIView(APIView):
         }
 
         context = {
-            'test': test,
-            'childTests': test_list,
-            # 'buildHistory'
+            'test': self.serialize(test, {
+                AggregateTestGroup: AggregateTestGroupWithBuildSerializer,
+            }),
+            'childTests': self.serialize(test_list, {
+                AggregateTestGroup: AggregateTestGroupWithBuildSerializer,
+            }),
             'context': context,
             'previousRuns': self.serialize(previous_runs, extended_serializers),
         }
