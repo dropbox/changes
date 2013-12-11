@@ -13,14 +13,17 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th></th>
+                <th>{{events|length}} events</th>
                 <th>Duration</th>
             </tr>
         </thead>
         <tbody>
-        {% for start_time, message, duration in events %}
+        {% for start_time, message, duration, stack in events %}
             <tr>
-                <td>{{ message }}</td>
+                <td>
+                    {{ message }}<br>
+                    <pre>{{ stack }}</pre>
+                </td>
                 <td>{{ duration }}</td>
             </tr>
         {% endfor %}

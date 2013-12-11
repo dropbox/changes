@@ -1,4 +1,5 @@
 import sqlalchemy.engine
+import traceback
 
 from flask import render_template
 from time import time
@@ -20,7 +21,12 @@ class Tracer(local):
 
     def add_event(self, message, duration=None):
         if self.active:
-            self.events.append((time(), unicode(message), duration))
+            self.events.append((
+                time(),
+                unicode(message),
+                duration,
+                ''.join(traceback.format_stack())
+            ))
 
     def collect(self):
         return self.events
