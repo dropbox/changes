@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import logging
+
 from celery import Celery as CeleryApp
 
 from .container import Container
@@ -23,10 +25,12 @@ class _Celery(object):
         self.app = app
         self.celery = celery
         self.tasks = {}
+        self.logger = logging.getLogger(app.name + '.celery')
 
     def delay(self, name, args=None, kwargs=None, *fn_args, **fn_kwargs):
         # We don't assume the task is registered at this point, so manually
         # publish it
+        self.logger.debug('Firing task %r args=%r kwargs=%r', name, args, kwargs)
         with self.celery.producer_or_acquire() as P:
             task_id = P.publish_task(
                 task_name=name,
