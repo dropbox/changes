@@ -1,25 +1,11 @@
 from changes.api.serializer import Serializer, register
-from changes.constants import Result, Status
 from changes.models.build import Build
 
 
 @register(Build)
 class BuildSerializer(Serializer):
     def serialize(self, instance):
-        # TODO(dcramer): this shouldnt be calculated at runtime
-        last_5_builds = list(Build.query.filter_by(
-            result=Result.passed,
-            status=Status.finished,
-            project=instance.project,
-        ).order_by(Build.date_finished.desc())[:3])
-
-        if last_5_builds:
-            avg_build_time = sum(
-                b.duration for b in last_5_builds
-                if b.duration
-            ) / len(last_5_builds)
-        else:
-            avg_build_time = None
+        avg_build_time = instance.project.avg_build_time
 
         data = instance.data or {}
         backend_details = data.get('backend')

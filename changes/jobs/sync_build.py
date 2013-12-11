@@ -3,8 +3,8 @@ from flask import current_app
 
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
-from changes.constants import Status
-from changes.models import Build, RemoteEntity
+from changes.constants import Status, Result
+from changes.models import Build, Project, RemoteEntity
 
 
 def sync_with_builder(build):
@@ -47,6 +47,25 @@ def sync_build(build_id):
                 'build_id': build.id.hex
             }, countdown=1)
         else:
+            last_5_builds = list(Build.query.filter_by(
+                result=Result.passed,
+                status=Status.finished,
+                project_id=build.project_id,
+            ).order_by(Build.date_finished.desc())[:5])
+            if last_5_builds:
+                avg_build_time = sum(
+                    b.duration for b in last_5_builds
+                    if b.duration
+                ) / len(last_5_builds)
+            else:
+                avg_build_time = None
+
+            db.session.query(Project).filter(
+                Project.id == build.project_id
+            ).update({
+                Project.avg_build_time: avg_build_time,
+            }, synchronize_session=False)
+
             queue.delay('notify_listeners', kwargs={
                 'build_id': build.id.hex,
                 'signal_name': 'build.finished',
