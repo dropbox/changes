@@ -67,8 +67,8 @@ parser_edit.add_argument(
 parser_show = subparsers.add_parser('show', help='show repository details')
 parser_show.add_argument('id', help='repository ID or url')
 
-parser_show = subparsers.add_parser('sync', help='sync repository details')
-parser_show.add_argument('id', help='repository ID or url')
+parser_sync = subparsers.add_parser('sync', help='sync repository details')
+parser_sync.add_argument('id', help='repository ID or url')
 
 parser_list = subparsers.add_parser('list', help='list repositories')
 

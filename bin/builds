@@ -5,6 +5,7 @@ import sys
 
 from changes.config import create_app, db, queue
 from changes.constants import Status
+from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, Build
 )
@@ -23,14 +24,28 @@ parser_add.add_argument('--label', dest='label', help='build label')
 parser_add.add_argument('--message', dest='message', help='build message')
 parser_add.add_argument('--sha', metavar='sha', dest='revision_sha', help='parent revision sha')
 
+parser_sync = subparsers.add_parser('sync', help='sync build details')
+parser_sync.add_argument('id', help='build ID')
+
 args = parser.parse_args()
 
 
-if args.command == 'add':
-    def abort():
-        print('Aborted!')
+def abort():
+    print('Aborted!')
+    sys.exit(1)
+
+
+def get_build(id_):
+    build = Build.query.get(id_)
+
+    if not build:
+        print "Build not found"
         sys.exit(1)
 
+    return build
+
+
+if args.command == 'add':
     project_slug = args.project_slug or raw_input('Project slug? ') or abort()
     project = Project.query.filter_by(slug=project_slug)[0]
 
@@ -62,3 +77,11 @@ if args.command == 'add':
     print "Created new build with ID {%s}" % (
         build.id,
     )
+
+
+elif args.command == 'sync':
+    build = get_build(args.id)
+
+    print "Forcing build sync - {}".format(build.id.hex)
+
+    sync_build(build.id.hex)
