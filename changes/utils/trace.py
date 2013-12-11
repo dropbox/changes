@@ -34,8 +34,11 @@ class Tracer(local):
 
 class SQLAlchemyTracer(object):
     def __init__(self, tracer):
-        self.tracking = {}
         self.tracer = tracer
+        self.reset()
+
+    def reset(self):
+        self.tracking = {}
 
     def install(self, engine=sqlalchemy.engine.Engine):
         sqlalchemy.event.listen(engine, "before_execute", self.before_execute)
@@ -88,6 +91,7 @@ class TracerMiddleware(object):
                 iterable.close()
 
             self.tracer.reset()
+            self.sqlalchemy_tracer.reset()
 
     def report(self, environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/html')])
