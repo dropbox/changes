@@ -36,11 +36,6 @@
 					<dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
 					<dt ng-if="build.duration">Duration:</dt>
 					<dd ng-if="build.duration" duration="build.duration"></dd>
-					<dt ng-if="build.origin">Result Origin:</dt>
-					<dt ng-if="build.origin">
-						<a href="{{ build.origin.link }}">{{ build.origin.name }}</a><br>
-						<span ng-if="build.origin.author">{{ build.origin.author.name }} &mdash; </span> {{ build.origin.target }}
-					</dt>
 					<dt ng-if="build.external">External:</dt>
 					<dd ng-if="build.external"><a href="{{ build.external.link }}">{{ build.external.label }}</a></dd>
 				</dl>
@@ -112,7 +107,13 @@
 					</thead>
 					<tbody>
 						<tr ng-repeat="testGroup in testFailures.testGroups" class="result-{{testGroup.result.id}}">
-							<td><a href="{{ testGroup.link }}">{{ testGroup.name }}</a></td>
+							<td>
+								<a href="{{ testGroup.link }}">{{ testGroup.name }}</a>
+								<div ng-if"testGroup.origin">
+									Origin: <a href="{{ testGroup.origin.link }}">{{ testGroup.origin.name }}</a><br>
+									<span ng-if="testGroup.origin.author">{{ testGroup.origin.author.name }} &mdash; </span> {{ testGroup.origin.target }}
+								</div>
+							</td>
 							<td style="text-align:center" duration="testGroup.duration"></td>
 						</tr>
 					</tbody>
