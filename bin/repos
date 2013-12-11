@@ -68,7 +68,8 @@ parser_show = subparsers.add_parser('show', help='show repository details')
 parser_show.add_argument('id', help='repository ID or url')
 
 parser_sync = subparsers.add_parser('sync', help='sync repository details')
-parser_sync.add_argument('id', help='repository ID or url')
+parser_sync.add_argument('id', help='repository ID or url', nargs='?')
+parser_sync.add_argument('-a', '--all', dest='all', action='store_true', help='all repositories', required=False)
 
 parser_list = subparsers.add_parser('list', help='list repositories')
 
@@ -133,13 +134,19 @@ elif args.command == 'show':
         print "  {} = {}".format(option.name, option.value)
 
 elif args.command == 'sync':
-    repo = get_repo(args.id)
-
-    if repo.backend == RepositoryBackend.unknown:
-        print "No backend configured for repository!"
+    if args.id:
+        repos = [get_repo(args.id)]
+    elif args.all:
+        repos = Repository.query.all()
     else:
-        print "Forcing repository sync - {}".format(repo.url)
-        sync_repo(repo.id.hex)
+        abort()
+
+    for repo in repos:
+        if repo.backend == RepositoryBackend.unknown:
+            print "No backend configured for {}!".format(repo.url)
+        else:
+            print "Forcing repository sync - {}".format(repo.url)
+            sync_repo(repo.id.hex)
 
 elif args.command == 'options':
     if args.option_command == 'set':
