@@ -72,6 +72,7 @@ class TestResult(object):
             agg, created = create_or_update(AggregateTestGroup, where={
                 'project': project,
                 'name_sha': group.name_sha,
+                'suite_id': None,
                 'first_build_id': build.id,
                 'name': label,
                 'parent_id': agg_parent_id,
