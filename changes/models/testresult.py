@@ -5,7 +5,7 @@ from hashlib import sha1
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import get_or_create, create_or_get
+from changes.db.utils import get_or_create, try_create, create_or_update
 from changes.models.aggregatetest import AggregateTestGroup
 from changes.models.test import TestGroup, TestCase
 
@@ -69,24 +69,16 @@ class TestResult(object):
             # TODO(dcramer): last_build/first_build probably make less sense
             # if we are only looking for a single revision-based build
             # (e.g. on the master branch)
-            agg, created = create_or_get(AggregateTestGroup, where={
+            agg, created = create_or_update(AggregateTestGroup, where={
                 'project': project,
                 'name_sha': group.name_sha,
-            }, values={
+                'first_build_id': build.id,
                 'name': label,
                 'parent_id': agg_parent_id,
-                'first_build_id': build.id,
+            }, values={
                 'last_build_id': build.id,
             })
             agg_parent_id = agg.id
-
-            if not created:
-                db.session.query(AggregateTestGroup).filter(
-                    AggregateTestGroup.id == agg.id,
-                ).update({
-                    AggregateTestGroup.last_build_id: build.id,
-                }, synchronize_session=False)
-
             groups.append(group)
 
         return groups
@@ -94,11 +86,11 @@ class TestResult(object):
     def save(self):
         name_sha = TestCase.calculate_name_sha(self.package, self.name)
 
-        test, created = create_or_get(TestCase, where={
+        test = try_create(TestCase, where={
             'build': self.build,
             'suite_id': self.suite.id,
             'name_sha': name_sha,
-        }, values={
+        }, defaults={
             'project': self.build.project,
             'name': self.name,
             'package': self.package,
@@ -107,7 +99,8 @@ class TestResult(object):
             'result': self.result,
             'date_created': self.date_created,
         })
-        if not created:
+        if not test:
+            # test was already present
             return
 
         db.session.commit()
