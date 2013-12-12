@@ -10,7 +10,7 @@ from changes.models import (
     Project, ProjectOption, Repository, RemoteEntity
 )
 
-PROVIDER_CHOICES = ['koality', 'jenkins']
+PROVIDER_CHOICES = ['koality', 'jenkins', 'unknown']
 
 
 def abort():
@@ -115,8 +115,6 @@ if args.command == 'add':
         provider_options.setdefault('type', 'job')
         if not provider_options.get('remote_id'):
             provider_options['remote_id'] = get_input('Jenkins job name')
-    else:
-        abort()
 
     try:
         repo = Repository.query.filter_by(url=repo_url)[0]
