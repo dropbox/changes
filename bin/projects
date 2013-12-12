@@ -164,7 +164,8 @@ elif args.command == 'edit':
 
     if args.provider:
         provider = args.provider
-        need_provider_options = True
+        if args.provider != 'unknown':
+            need_provider_options = True
 
     if need_provider_options:
         if provider == 'koality':
