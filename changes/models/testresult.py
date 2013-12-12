@@ -5,7 +5,7 @@ from hashlib import sha1
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import get_or_create, try_create, try_update, create_or_get
+from changes.db.utils import get_or_create, try_create, create_or_get
 from changes.models.aggregatetest import AggregateTestGroup
 from changes.models.test import TestGroup, TestCase
 
@@ -69,30 +69,23 @@ class TestResult(object):
             # TODO(dcramer): last_build/first_build probably make less sense
             # if we are only looking for a single revision-based build
             # (e.g. on the master branch)
-            affected = try_update(AggregateTestGroup, where={
+
+            agg, created = create_or_get(AggregateTestGroup, where={
                 'project': project,
                 'name_sha': group.name_sha,
                 'suite_id': None,
             }, values={
+                'first_build_id': build.id,
+                'name': label,
+                'parent_id': agg_parent_id,
                 'last_build_id': build.id,
             })
-            if not affected:
-                agg, created = create_or_get(AggregateTestGroup, where={
-                    'project': project,
-                    'name_sha': group.name_sha,
-                    'suite_id': None,
-                }, values={
-                    'first_build_id': build.id,
-                    'name': label,
-                    'parent_id': agg_parent_id,
-                    'last_build_id': build.id,
-                })
-                if not created:
-                    db.session.query(AggregateTestGroup).filter(
-                        AggregateTestGroup.id == agg.id,
-                    ).update({
-                        AggregateTestGroup.last_build_id: build.id,
-                    }, synchronize_session=False)
+            if not created:
+                db.session.query(AggregateTestGroup).filter(
+                    AggregateTestGroup.id == agg.id,
+                ).update({
+                    AggregateTestGroup.last_build_id: build.id,
+                }, synchronize_session=False)
             agg_parent_id = agg.id
             groups.append(group)
 
