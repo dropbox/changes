@@ -4,7 +4,7 @@ from changes.config import db, queue
 from changes.models import Repository
 
 
-def sync_repo(repo_id):
+def sync_repo(repo_id, continuous=True):
     repo = Repository.query.get(repo_id)
     if not repo:
         return
@@ -42,6 +42,7 @@ def sync_repo(repo_id):
     db.session.add(repo)
     db.session.commit()
 
-    queue.delay('sync_repo', kwargs={
-        'repo_id': repo_id
-    }, countdown=15)
+    if continuous:
+        queue.delay('sync_repo', kwargs={
+            'repo_id': repo_id
+        }, countdown=15)
