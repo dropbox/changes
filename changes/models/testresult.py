@@ -131,7 +131,7 @@ class TestResult(object):
                 TestGroup.duration: TestGroup.duration + test.duration,
                 TestGroup.num_failed: TestGroup.num_failed + int(test.result == Result.failed),
                 TestGroup.result: group.result,
-            })
+            }, synchronize_session=False)
 
             db.session.commit()
 
