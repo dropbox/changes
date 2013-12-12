@@ -1,6 +1,5 @@
-from slugify import slugify
-
 from datetime import datetime
+from slugify import slugify
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint

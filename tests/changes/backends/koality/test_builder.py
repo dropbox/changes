@@ -9,7 +9,7 @@ from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Repository, Project, Build, Revision, Author, Phase, Step, Patch
+    Repository, Project, Build, Revision, Author, BuildPhase, BuildStep, Patch
 )
 from changes.testutils import BackendTestCase
 from changes.testutils.http import MockedResponse
@@ -92,7 +92,7 @@ class SyncBuildDetailsTest(KoalityBuilderTestCase):
         assert author.email == 'john@example.com'
         assert author.name == 'John Developer'
 
-        phase_list = list(Phase.query.filter_by(
+        phase_list = list(BuildPhase.query.filter_by(
             build=build,
         ))
 
@@ -124,7 +124,7 @@ class SyncBuildDetailsTest(KoalityBuilderTestCase):
         assert phase_list[2].date_started == datetime(2013, 9, 19, 22, 15, 25)
         assert phase_list[2].date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
-        step_list = list(Step.query.filter_by(
+        step_list = list(BuildStep.query.filter_by(
             build=build,
         ))
 

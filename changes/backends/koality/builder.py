@@ -12,7 +12,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update
 from changes.models import (
-    Revision, Author, Phase, Step, RemoteEntity, Node
+    Revision, Author, BuildPhase, BuildStep, RemoteEntity, Node
 )
 
 
@@ -115,13 +115,13 @@ class KoalityBuilder(BaseBackend):
                 phase = None
                 create_entity = True
             else:
-                phase = Phase.query.get(entity.internal_id)
+                phase = BuildPhase.query.get(entity.internal_id)
                 create_entity = False
         else:
             create_entity = False
 
         if phase is None:
-            phase = Phase()
+            phase = BuildPhase()
 
         phase.build = build
         phase.repository = build.repository
@@ -170,13 +170,13 @@ class KoalityBuilder(BaseBackend):
             except IndexError:
                 step, entity = None, None
             else:
-                step = Step.query.get(entity.internal_id)
+                step = BuildStep.query.get(entity.internal_id)
             create_entity = entity is None
         else:
             create_entity = False
 
         if step is None:
-            step = Step()
+            step = BuildStep()
 
         node = self._get_node(stage['buildNode'])
 

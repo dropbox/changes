@@ -9,8 +9,8 @@ from uuid import uuid4
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Project, Repository, Author, Revision, Build, Phase, Step, TestResult,
-    Change, LogChunk, TestSuite
+    Project, Repository, Author, Revision, Build, BuildPhase, BuildStep,
+    TestResult, Change, LogChunk, TestSuite
 )
 from changes.db.utils import get_or_create
 
@@ -105,31 +105,31 @@ def build(change, **kwargs):
     build = Build(change=change, **kwargs)
     db.session.add(build)
 
-    phase1_setup = Phase(
+    phase1_setup = BuildPhase(
         repository=build.repository, project=build.project, build=build,
         status=Status.finished, result=Result.passed, label='Setup',
     )
     db.session.add(phase1_setup)
 
-    phase1_compile = Phase(
+    phase1_compile = BuildPhase(
         repository=build.repository, project=build.project, build=build,
         status=Status.finished, result=Result.passed, label='Compile',
     )
     db.session.add(phase1_compile)
 
-    phase1_test = Phase(
+    phase1_test = BuildPhase(
         repository=build.repository, project=build.project, build=build,
         status=kwargs['status'], result=kwargs['result'], label='Test',
     )
     db.session.add(phase1_test)
 
-    step = Step(
+    step = BuildStep(
         repository=build.repository, project=build.project, build=build,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
     db.session.add(step)
-    step = Step(
+    step = BuildStep(
         repository=build.repository, project=build.project, build=build,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),

@@ -10,12 +10,12 @@ from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 
 
-class Step(db.Model):
-    __tablename__ = 'step'
+class BuildStep(db.Model):
+    __tablename__ = 'buildstep'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    phase_id = Column(GUID, ForeignKey('phase.id'), nullable=False)
+    phase_id = Column(GUID, ForeignKey('buildphase.id'), nullable=False)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     label = Column(String(128), nullable=False)
@@ -29,10 +29,10 @@ class Step(db.Model):
     build = relationship('Build')
     project = relationship('Project')
     repository = relationship('Repository')
-    phase = relationship('Phase', backref='steps')
+    phase = relationship('BuildPhase', backref='steps')
 
     def __init__(self, **kwargs):
-        super(Step, self).__init__(**kwargs)
+        super(BuildStep, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid.uuid4()
         if self.result is None:

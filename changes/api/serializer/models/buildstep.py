@@ -1,9 +1,9 @@
 from changes.api.serializer import Serializer, register
-from changes.models.step import Step
+from changes.models.buildstep import BuildStep
 
 
-@register(Step)
-class StepSerializer(Serializer):
+@register(BuildStep)
+class BuildStepSerializer(Serializer):
     def serialize(self, instance):
         return {
             'id': instance.id.hex,

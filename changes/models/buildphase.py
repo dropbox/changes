@@ -10,8 +10,8 @@ from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 
 
-class Phase(db.Model):
-    __tablename__ = 'phase'
+class BuildPhase(db.Model):
+    __tablename__ = 'buildphase'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
@@ -24,12 +24,12 @@ class Phase(db.Model):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Build', backref=backref('phases', order_by='Phase.date_started'))
+    build = relationship('Build', backref=backref('phases', order_by='BuildPhase.date_started'))
     project = relationship('Project')
     repository = relationship('Repository')
 
     def __init__(self, **kwargs):
-        super(Phase, self).__init__(**kwargs)
+        super(BuildPhase, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid.uuid4()
         if self.result is None:

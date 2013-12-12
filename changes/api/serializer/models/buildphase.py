@@ -1,9 +1,9 @@
 from changes.api.serializer import Serializer, register
-from changes.models.phase import Phase
+from changes.models.buildphase import BuildPhase
 
 
-@register(Phase)
-class PhaseSerializer(Serializer):
+@register(BuildPhase)
+class BuildPhaseSerializer(Serializer):
     def serialize(self, instance):
         return {
             'id': instance.id.hex,
