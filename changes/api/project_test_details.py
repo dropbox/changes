@@ -59,7 +59,8 @@ class ProjectTestDetailsAPIView(APIView):
             test_list.append(agg)
 
         previous_runs = list(TestGroup.query.options(
-            subqueryload('build.author'),
+            joinedload('build'),
+            joinedload('build.author'),
         ).filter(
             Build.patch_id == None,  # NOQA
             Build.revision_sha != None,  # NOQA

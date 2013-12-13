@@ -1,6 +1,6 @@
 from flask import Response
 
-from sqlalchemy.orm import subqueryload
+from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
@@ -30,7 +30,8 @@ class TestGroupDetailsAPIView(APIView):
             ).first()
 
         previous_runs = TestGroup.query.join(Build).options(
-            subqueryload('build.author'),
+            joinedload('build'),
+            joinedload('build.author'),
         ).filter(
             TestGroup.name_sha == testgroup.name_sha,
             Build.date_created < testgroup.build.date_created,

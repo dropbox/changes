@@ -33,6 +33,7 @@
 			<thead>
 				<tr>
 					<th>&nbsp;</th>
+					<th style="width:80px;text-align:center"># Tests <span class="help" title="total from last build">?</span></th>
 					<th style="width:100px;text-align:center">Duration <span class="help" title="duration from last build">?</span></th>
 					<th style="width:150px;text-align:center">First Seen</th>
 					<th style="width:150px;text-align:center">Last Seen</th>
@@ -41,6 +42,7 @@
 			<tbody>
 				<tr ng-repeat="childTest in childTests" class="result-{{childTest.result.id}}">
 					<td><a href="{{childTest.link}}">{{childTest.shortName}}</a></td>
+					<td style="text-align:center">{{childTest.lastTest.numTests}}</td>
 					<td style="text-align:center" duration="childTest.lastTest.duration"></td>
 					<td style="text-align:center"><a href="{{ childTest.firstBuild.link }}">{{ childTest.firstBuild.target }}</a></td>
 					<td style="text-align:center"><a href="{{ childTest.lastBuild.link }}">{{ childTest.lastBuild.target }}</a></td>
