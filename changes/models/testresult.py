@@ -176,7 +176,6 @@ class TestResultManager(object):
                 date_created=test.date_created,
             )
             db.session.add(testcase)
-            db.session.commit()
 
             tests_by_id[test.id] = testcase
 
@@ -259,4 +258,4 @@ class TestResultManager(object):
 
             db.session.add(branch)
 
-            db.session.commit()
+        db.session.commit()
