@@ -1,74 +1,110 @@
 from changes.config import db
 from changes.constants import Result
 from changes.models import TestSuite, AggregateTestGroup
-from changes.models.testresult import TestResult
+from changes.models.testresult import TestResult, TestResultManager
 from changes.testutils.cases import TestCase
 
 
-class TestResultTestCase(TestCase):
+class TestResultManagerTestCase(TestCase):
     def test_simple(self):
+        from changes.models import TestCase, TestGroup
+
         build = self.create_build(self.project)
         suite = TestSuite(name='foobar', build=build, project=self.project)
 
         db.session.add(suite)
 
-        result = TestResult(
-            build=build,
-            suite=suite,
-            name='Test',
-            package='tests.changes.handlers.test_xunit',
-            result=Result.failed,
-            message='collection failed',
-            duration=156,
-        )
-        test = result.save()
+        results = [
+            TestResult(
+                build=build,
+                suite=suite,
+                name='test_bar',
+                package='tests.changes.handlers.test_xunit',
+                result=Result.failed,
+                message='collection failed',
+                duration=156,
+            ),
+            TestResult(
+                build=build,
+                suite=suite,
+                name='test_foo',
+                package='tests.changes.handlers.test_coverage',
+                result=Result.passed,
+                message='foobar failed',
+                duration=12,
+            ),
+        ]
+        manager = TestResultManager(build)
+        manager.save(results)
 
-        assert test.build == build
-        assert test.project == self.project
-        assert test.name == 'Test'
-        assert test.package == 'tests.changes.handlers.test_xunit'
-        assert test.result == Result.failed
-        assert test.message == 'collection failed'
-        assert test.duration == 156
+        testcase_list = sorted(TestCase.query.all(), key=lambda x: x.package)
 
-        suite = test.suite
+        assert len(testcase_list) == 2
 
-        assert suite.name == 'foobar'
-        assert suite.build == build
-        assert suite.project == self.project
+        for test in testcase_list:
+            assert test.build == build
+            assert test.project == self.project
+            assert test.suite == suite
 
-        groups = sorted(test.groups, key=lambda x: x.name)
+        assert testcase_list[0].name == 'test_foo'
+        assert testcase_list[0].package == 'tests.changes.handlers.test_coverage'
+        assert testcase_list[0].result == Result.passed
+        assert testcase_list[0].message == 'foobar failed'
+        assert testcase_list[0].duration == 12
 
-        assert len(groups) == 2
+        assert testcase_list[1].name == 'test_bar'
+        assert testcase_list[1].package == 'tests.changes.handlers.test_xunit'
+        assert testcase_list[1].result == Result.failed
+        assert testcase_list[1].message == 'collection failed'
+        assert testcase_list[1].duration == 156
 
-        assert groups[0].build == build
-        assert groups[0].project == self.project
-        assert groups[0].name == 'tests.changes.handlers.test_xunit'
-        assert groups[0].duration == 156
-        assert groups[0].num_tests == 1
-        assert groups[0].num_failed == 1
-        assert groups[0].result == Result.failed
-        assert groups[0].num_leaves == 1
+        group_list = sorted(TestGroup.query.all(), key=lambda x: x.name)
 
-        assert groups[1].build == build
-        assert groups[1].project == self.project
-        assert groups[1].name == 'tests.changes.handlers.test_xunit.Test'
-        assert groups[1].duration == 156
-        assert groups[1].num_tests == 1
-        assert groups[1].num_failed == 1
-        assert groups[1].result == Result.failed
-        assert groups[1].num_leaves == 0
+        assert len(group_list) == 4
 
-        agg_groups = list(AggregateTestGroup.query.filter(
-            AggregateTestGroup.project_id == self.project.id,
-        ).order_by(AggregateTestGroup.name.asc()))
+        for group in group_list:
+            assert group.build == build
+            assert group.project == self.project
+            assert group.suite == suite
 
-        assert len(agg_groups) == 2
+        assert group_list[0].name == 'tests.changes.handlers.test_coverage'
+        assert group_list[0].duration == 12
+        assert group_list[0].num_tests == 1
+        assert group_list[0].num_failed == 0
+        assert group_list[0].result == Result.passed
+        assert group_list[0].num_leaves == 1
 
-        assert agg_groups[0].name == 'tests.changes.handlers.test_xunit'
-        assert agg_groups[0].first_build == build
-        assert agg_groups[0].last_build == build
+        assert group_list[1].name == 'tests.changes.handlers.test_coverage.test_foo'
+        assert group_list[1].duration == 12
+        assert group_list[1].num_tests == 1
+        assert group_list[1].num_failed == 0
+        assert group_list[1].result == Result.passed
+        assert group_list[1].num_leaves == 0
 
-        assert agg_groups[1].name == 'tests.changes.handlers.test_xunit.Test'
-        assert agg_groups[1].first_build == build
-        assert agg_groups[1].last_build == build
+        assert group_list[2].name == 'tests.changes.handlers.test_xunit'
+        assert group_list[2].duration == 156
+        assert group_list[2].num_tests == 1
+        assert group_list[2].num_failed == 1
+        assert group_list[2].result == Result.failed
+        assert group_list[2].num_leaves == 1
+
+        assert group_list[3].name == 'tests.changes.handlers.test_xunit.test_bar'
+        assert group_list[3].duration == 156
+        assert group_list[3].num_tests == 1
+        assert group_list[3].num_failed == 1
+        assert group_list[3].result == Result.failed
+        assert group_list[3].num_leaves == 0
+
+        agg_groups = sorted(AggregateTestGroup.query.all(), key=lambda x: x.name)
+
+        assert len(agg_groups) == 4
+
+        for agg in agg_groups:
+            assert agg.last_build == build
+            assert agg.first_build == build
+            assert agg.project == self.project
+
+        assert agg_groups[0].name == 'tests.changes.handlers.test_coverage'
+        assert agg_groups[1].name == 'tests.changes.handlers.test_coverage.test_foo'
+        assert agg_groups[2].name == 'tests.changes.handlers.test_xunit'
+        assert agg_groups[3].name == 'tests.changes.handlers.test_xunit.test_bar'

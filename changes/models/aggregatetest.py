@@ -9,6 +9,7 @@ from sqlalchemy.schema import UniqueConstraint, Index
 
 from changes.config import db
 from changes.db.types.guid import GUID
+from changes.db.utils import model_repr
 
 
 class AggregateTestSuite(db.Model):
@@ -29,6 +30,8 @@ class AggregateTestSuite(db.Model):
     project = relationship('Project')
     first_build = relationship('Build', foreign_keys=[first_build_id])
     last_build = relationship('Build', foreign_keys=[last_build_id])
+
+    __repr__ = model_repr('name')
 
     def __init__(self, **kwargs):
         super(AggregateTestSuite, self).__init__(**kwargs)
@@ -67,6 +70,8 @@ class AggregateTestGroup(db.Model):
     # last_testgroup = relationship(
     #     'TestGroup', primaryjoin="and_(AggregateTestGroup.name_sha==TestGroup.name_sha, "
     #     "AggregateTestGroup.last_build_id==TestGroup.build_id)")
+
+    __repr__ = model_repr('name')
 
     def __init__(self, **kwargs):
         super(AggregateTestGroup, self).__init__(**kwargs)

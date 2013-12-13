@@ -14,15 +14,18 @@ from werkzeug.contrib.fixers import ProxyFix
 from changes.constants import PROJECT_ROOT
 from changes.ext.celery import Celery
 from changes.ext.pubsub import PubSub
+from changes.ext.redis import Redis
 from changes.utils.trace import TracerMiddleware
+
 
 db = SQLAlchemy(session_options={
     'autoflush': True,
 })
+mail = Mail()
 pubsub = PubSub()
 queue = Celery()
+redis = Redis()
 sentry = Sentry(logging=True, level=logging.WARN)
-mail = Mail()
 
 
 def create_app(_read_config=True, **config):
@@ -130,9 +133,10 @@ def create_app(_read_config=True, **config):
     sentry.init_app(app)
 
     db.init_app(app)
+    mail.init_app(app)
     pubsub.init_app(app)
     queue.init_app(app)
-    mail.init_app(app)
+    redis.init_app(app)
 
     from raven.contrib.celery import register_signal, register_logger_signal
     register_signal(sentry.client)

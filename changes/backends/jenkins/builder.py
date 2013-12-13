@@ -15,7 +15,8 @@ from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import (
-    AggregateTestSuite, RemoteEntity, TestResult, TestSuite, LogSource, LogChunk
+    AggregateTestSuite, RemoteEntity, TestResult, TestResultManager, TestSuite,
+    LogSource, LogChunk
 )
 
 LOG_CHUNK_SIZE = 4096
@@ -309,6 +310,7 @@ class JenkinsBuilder(BaseBackend):
         test_report = self._get_response('/job/{}/{}/testReport/'.format(
             build_item['job_name'], build_item['build_no']))
 
+        test_list = []
         for suite_data in test_report['suites']:
             suite_name = suite_data.get('name', 'default')
 
@@ -357,7 +359,7 @@ class JenkinsBuilder(BaseBackend):
                 else:
                     raise ValueError('Invalid test result: %s' % (case['status'],))
 
-                testresult = TestResult(
+                test_result = TestResult(
                     build=build,
                     suite=suite,
                     name=case['name'],
@@ -366,8 +368,11 @@ class JenkinsBuilder(BaseBackend):
                     message='\n'.join(message).strip(),
                     result=result,
                 )
-                testresult.save()
-                db.session.commit()
+                test_list.append(test_result)
+
+        manager = TestResultManager(build)
+        manager.save(test_list)
+        db.session.commit()
 
     def _find_job(self, job_name, build_id):
         """

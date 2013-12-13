@@ -96,6 +96,7 @@ class TestGroup(db.Model):
     project = relationship('Project')
     testcases = relationship('TestCase', secondary=test_group_m2m_table, backref="groups")
     parent = relationship('TestGroup', remote_side=[id])
+    suite = relationship('TestSuite')
 
     __repr__ = model_repr('name', 'result')
 
@@ -141,6 +142,8 @@ class TestCase(db.Model):
     build = relationship('Build')
     project = relationship('Project')
     suite = relationship('TestSuite')
+
+    __repr__ = model_repr('name', 'package', 'result')
 
     def __init__(self, **kwargs):
         super(TestCase, self).__init__(**kwargs)
