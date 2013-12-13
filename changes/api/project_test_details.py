@@ -58,7 +58,9 @@ class ProjectTestDetailsAPIView(APIView):
             agg.last_testgroup = group
             test_list.append(agg)
 
-        previous_runs = list(TestGroup.query.filter(
+        previous_runs = list(TestGroup.query.options(
+            subqueryload('build.author'),
+        ).filter(
             Build.patch_id == None,  # NOQA
             Build.revision_sha != None,  # NOQA
             Build.status == Status.finished,

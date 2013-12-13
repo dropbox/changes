@@ -1,5 +1,7 @@
 from flask import Response
 
+from sqlalchemy.orm import subqueryload
+
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
@@ -27,7 +29,9 @@ class TestGroupDetailsAPIView(APIView):
                 TestCase.groups.contains(testgroup),
             ).first()
 
-        previous_runs = TestGroup.query.join(Build).filter(
+        previous_runs = TestGroup.query.join(Build).options(
+            subqueryload('build.author'),
+        ).filter(
             TestGroup.name_sha == testgroup.name_sha,
             Build.date_created < testgroup.build.date_created,
             Build.status == Status.finished,
