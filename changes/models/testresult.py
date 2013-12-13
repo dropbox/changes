@@ -97,7 +97,7 @@ class TestResultManager(object):
             key.pop()
         return None
 
-    def create_test_leaf(self, test, parent):
+    def create_test_leaf(self, test, parent, testcase):
         build = self.build
         project = build.project
         name_sha = test.name_sha
@@ -116,6 +116,8 @@ class TestResultManager(object):
             parent=parent,
         )
         db.session.add(group)
+
+        group.testcases.append(testcase)
 
         return group
 
@@ -226,8 +228,10 @@ class TestResultManager(object):
 
             # Create any leaves which do not exist yet
             for test in tests:
+                testcase = tests_by_id[test.id]
+
                 if test.id not in groups_by_id:
-                    leaf = self.create_test_leaf(test, branch)
+                    leaf = self.create_test_leaf(test, branch, testcase)
 
                     groups_by_id[leaf.name] = leaf
 
@@ -236,14 +240,10 @@ class TestResultManager(object):
 
                     agg_groups_by_id[leaf.name] = leaf
 
-                testcase = tests_by_id[test.id]
-
                 g_duration += testcase.duration
                 g_total += 1
                 if testcase.result == Result.failed:
                     g_failed += 1
-
-                branch.testcases.append(testcase)
 
                 if branch.result:
                     branch.result = max(branch.result, testcase.result)

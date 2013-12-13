@@ -52,6 +52,8 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[0].message == 'foobar failed'
         assert testcase_list[0].duration == 12
 
+        assert len(testcase_list[0].groups) == 1
+
         assert testcase_list[1].name == 'test_bar'
         assert testcase_list[1].package == 'tests.changes.handlers.test_xunit'
         assert testcase_list[1].result == Result.failed
@@ -74,12 +76,16 @@ class TestResultManagerTestCase(TestCase):
         assert group_list[0].result == Result.passed
         assert group_list[0].num_leaves == 1
 
+        assert list(group_list[0].testcases) == []
+
         assert group_list[1].name == 'tests.changes.handlers.test_coverage.test_foo'
         assert group_list[1].duration == 12
         assert group_list[1].num_tests == 1
         assert group_list[1].num_failed == 0
         assert group_list[1].result == Result.passed
         assert group_list[1].num_leaves == 0
+
+        assert list(group_list[1].testcases) == [testcase_list[0]]
 
         assert group_list[2].name == 'tests.changes.handlers.test_xunit'
         assert group_list[2].duration == 156
@@ -88,12 +94,16 @@ class TestResultManagerTestCase(TestCase):
         assert group_list[2].result == Result.failed
         assert group_list[2].num_leaves == 1
 
+        assert list(group_list[2].testcases) == []
+
         assert group_list[3].name == 'tests.changes.handlers.test_xunit.test_bar'
         assert group_list[3].duration == 156
         assert group_list[3].num_tests == 1
         assert group_list[3].num_failed == 1
         assert group_list[3].result == Result.failed
         assert group_list[3].num_leaves == 0
+
+        assert list(group_list[3].testcases) == [testcase_list[1]]
 
         agg_groups = sorted(AggregateTestGroup.query.all(), key=lambda x: x.name)
 
