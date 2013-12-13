@@ -54,6 +54,7 @@ def create_app(_read_config=True, **config):
     app.config['CELERY_RESULT_SERIALIZER'] = 'json'
     app.config['CELERY_TASK_SERIALIZER'] = 'json'
     app.config['CELERY_DEFAULT_QUEUE'] = 'default'
+    app.config['CELERYD_PREFETCH_MULTIPLIER'] = 1
     app.config['CELERY_QUEUES'] = (
         Queue('build.sync', routing_key='build.sync'),
         Queue('build.create', routing_key='build.create'),
