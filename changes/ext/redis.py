@@ -53,7 +53,7 @@ class _Redis(object):
             self.logger.info('Releasing on %s', lock_key)
 
             try:
-                redis.delete(lock_key)
+                conn.delete(lock_key)
             except Exception as e:
                 self.logger.exception(e)
 
