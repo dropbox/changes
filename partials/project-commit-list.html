@@ -20,7 +20,7 @@
 						<a href="{{commit.build.link}}">{{commit.subject}}</a><br>
 
 						<small>
-							{{commit.id.substr(0, 12)}}
+							<a href="{{commit.id}}/">{{commit.id.substr(0, 12)}}</a>
 							<span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
 						</small>
 						<span ng-if="commit.build">
