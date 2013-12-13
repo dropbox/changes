@@ -18,6 +18,7 @@ def create_build(build_id):
     try:
         backend.create_build(build)
     except Exception as exc:
+        current_app.logger.exception('Failed to create build %s', build_id)
         raise queue.retry('create_build', kwargs={
             'build_id': build_id,
         }, exc=exc)
