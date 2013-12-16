@@ -1,5 +1,0 @@
-{
-  "result": "Adding new settings tabs\n\nSummary: The settings diff. Still need to finish ajax endpoints for most of the stuff. Also the gating is around merged account rather than a seperate settings gandalf. Hopefully I will work on this more this weekend.\n\nTest Plan: Try all the controls in paired and unpaired view\n\nReviewers: jonv\n\nCC: web-reviews, Server-Reviews\n\nDifferential Revision: https://tails.corp.dropbox.com/D23788",
-  "error_code": null,
-  "error_info": null
-}
