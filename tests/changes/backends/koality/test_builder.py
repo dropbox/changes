@@ -232,6 +232,8 @@ class CreateBuildTest(KoalityBuilderTestCase):
 
         call = responses.calls[0]
 
+        print call.request.body
+
         # TODO(dcramer): this is a pretty gross testing api
         assert call.request.body == 'sha={0}'.format(revision)
 
@@ -274,6 +276,8 @@ class CreateBuildTest(KoalityBuilderTestCase):
         assert len(responses.calls) == 1
 
         call = responses.calls[0]
+
+        print call.request.body
 
         # TODO(dcramer): this is a pretty gross testing api
         assert 'Content-Disposition: form-data; name="sha"\r\n\r\n{0}'.format(revision) in call.request.body
