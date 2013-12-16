@@ -1,12 +1,22 @@
 from datetime import datetime
 from slugify import slugify
-from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import (
+    Table, Column, String, DateTime, ForeignKey, Integer, Text
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint
 from uuid import uuid4
 
 from changes.config import db
 from changes.db.types.guid import GUID
+
+
+project_plan_m2m_table = Table(
+    'project_plan',
+    db.Model.metadata,
+    Column('project_id', GUID, ForeignKey('project.id'), nullable=False, primary_key=True),
+    Column('plan_id', GUID, ForeignKey('plan.id'), nullable=False, primary_key=True)
+)
 
 
 class Project(db.Model):
@@ -20,6 +30,7 @@ class Project(db.Model):
     avg_build_time = Column(Integer)
 
     repository = relationship('Repository')
+    plans = relationship('Plan', secondary=project_plan_m2m_table, backref="projects")
 
     def __init__(self, **kwargs):
         super(Project, self).__init__(**kwargs)
