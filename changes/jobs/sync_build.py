@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import current_app
 from sqlalchemy.orm import subqueryload_all
+import warnings
 
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, redis, queue
@@ -46,8 +47,8 @@ def _sync_build(build_id):
 
     if not build_plan:
         # TODO(dcramer): once we migrate to build plans we can remove this
-        current_app.logger.warning(
-            'Got sync_build task without build plan: %s', build_id)
+        warnings.warn(
+            'Got sync_build task without build plan: %s' % (build_id,))
         sync_with_builder(build)
         # raise Exception('No build plan available for %s' % (build_id,))
     else:
