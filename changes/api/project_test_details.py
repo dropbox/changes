@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
+from datetime import datetime, timedelta
 from flask import Response
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload, subqueryload
@@ -28,15 +29,20 @@ class ProjectTestDetailsAPIView(APIView):
         if not project:
             return Response(status=404)
 
+        cutoff = datetime.utcnow() - timedelta(days=3)
+
         queryset = db.session.query(AggregateTestGroup, TestGroup).options(
             subqueryload(AggregateTestGroup.first_build),
             subqueryload(AggregateTestGroup.last_build),
             subqueryload(AggregateTestGroup.parent),
             subqueryload('first_build.author'),
             subqueryload('last_build.author'),
+        ).join(
+            AggregateTestGroup.last_build,
         ).join(TestGroup, and_(
             TestGroup.build_id == AggregateTestGroup.last_build_id,
             TestGroup.name_sha == AggregateTestGroup.name_sha,
+            Build.date_created > cutoff,
         )).order_by(TestGroup.duration.desc())
 
         result = queryset.filter(
