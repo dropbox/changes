@@ -53,6 +53,7 @@ class BuildFamily(db.Model):
     data = Column(JSONEncodedDict)
 
     project = relationship('Project')
+    repository = relationship('Repository')
     patch = relationship('Patch')
     author = relationship('Author')
 

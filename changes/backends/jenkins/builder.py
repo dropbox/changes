@@ -519,3 +519,4 @@ class JenkinsBuilder(BaseBackend):
             data=build_item,
         )
         db.session.add(entity)
+        return entity

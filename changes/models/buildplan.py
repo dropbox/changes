@@ -22,14 +22,13 @@ class BuildPlan(db.Model):
     __table_args__ = (
         Index('idx_buildplan_project_id', 'project_id'),
         Index('idx_buildplan_family_id', 'family_id'),
-        Index('idx_buildplan_build_id', 'build_id'),
         Index('idx_buildplan_plan_id', 'plan_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     family_id = Column(GUID, ForeignKey('buildfamily.id'), nullable=False)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
+    build_id = Column(GUID, ForeignKey('build.id'), nullable=False, unique=True)
     plan_id = Column(GUID, ForeignKey('plan.id'), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
