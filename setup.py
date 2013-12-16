@@ -27,7 +27,7 @@ tests_require = [
     'pytest-cov',
     'pytest-timeout',
     'pytest-xdist',
-    'responses',
+    'responses>=0.2.0',
     'unittest2',
 ]
 

@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 
-import mock
 import os
+import responses
 
 from datetime import datetime
+from flask import current_app
 
 from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
@@ -12,7 +13,6 @@ from changes.models import (
     Repository, Project, Build, Revision, Author, BuildPhase, BuildStep, Patch
 )
 from changes.testutils import BackendTestCase
-from changes.testutils.http import MockedResponse
 
 
 SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
@@ -26,34 +26,31 @@ index 2ef2938..ed80350 100644
 
 
 class KoalityBuilderTestCase(BackendTestCase):
-    backend_cls = KoalityBuilder
-    backend_options = {
+    builder_cls = KoalityBuilder
+    builder_options = {
         'base_url': 'https://koality.example.com',
         'api_key': 'a' * 12,
     }
     provider = 'koality'
 
     def setUp(self):
-        self.mock_request = mock.Mock(
-            side_effect=MockedResponse(
-                self.backend_options['base_url'],
-                os.path.join(os.path.dirname(__file__), 'fixtures')),
-        )
-
-        self.patcher = mock.patch.object(
-            KoalityBuilder,
-            '_get_response',
-            side_effect=self.mock_request,
-        )
-        self.patcher.start()
-        self.addCleanup(self.patcher.stop)
-
         self.repo = Repository(url='https://github.com/dropbox/changes.git')
         self.project = Project(repository=self.repo, name='test', slug='test')
         self.project_entity = self.make_project_entity()
 
         db.session.add(self.repo)
         db.session.add(self.project)
+
+    def get_builder(self):
+        return self.builder_cls(app=current_app, **self.builder_options)
+
+    def load_fixture(self, filename):
+        filepath = os.path.join(
+            os.path.dirname(__file__),
+            filename,
+        )
+        with open(filepath, 'rb') as fp:
+            return fp.read()
 
     def make_project_entity(self, project=None):
         return self.make_entity('project', (project or self.project).id, 1)
@@ -62,8 +59,24 @@ class KoalityBuilderTestCase(BackendTestCase):
 class SyncBuildDetailsTest(KoalityBuilderTestCase):
     # TODO(dcramer): we should break this up into testing individual methods
     # so edge cases can be more isolated
+    @responses.activate
     def test_simple(self):
-        backend = self.get_backend()
+        responses.add(
+            responses.GET, 'https://koality.example.com/api/v/0/repositories/1/changes/?key=aaaaaaaaaaaa',
+            match_querystring=True,
+            body=self.load_fixture('fixtures/GET/change_index.json'))
+
+        responses.add(
+            responses.GET, 'https://koality.example.com/api/v/0/repositories/1/changes/1?key=aaaaaaaaaaaa',
+            match_querystring=True,
+            body=self.load_fixture('fixtures/GET/change_details.json'))
+
+        responses.add(
+            responses.GET, 'https://koality.example.com/api/v/0/repositories/1/changes/1/stages?key=aaaaaaaaaaaa',
+            match_querystring=True,
+            body=self.load_fixture('fixtures/GET/change_stage_index.json'))
+
+        backend = self.get_builder()
         change = self.create_change(self.project)
         build = self.create_build(project=self.project, change=change)
 
@@ -188,8 +201,13 @@ class SyncBuildDetailsTest(KoalityBuilderTestCase):
 
 
 class CreateBuildTest(KoalityBuilderTestCase):
+    @responses.activate
     def test_simple(self):
-        backend = self.get_backend()
+        responses.add(
+            responses.POST, 'https://koality.example.com/api/v/0/repositories/1/changes',
+            body=self.load_fixture('fixtures/POST/change_index.json'))
+
+        backend = self.get_builder()
 
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
@@ -204,18 +222,26 @@ class CreateBuildTest(KoalityBuilderTestCase):
         entity = backend.create_build(
             build=build,
         )
+
         assert entity.type == 'build'
         assert entity.internal_id == build.id
         assert entity.remote_id == '1501'
         assert entity.provider == 'koality'
 
-        self.mock_request.assert_called_once_with(
-            'POST', 'https://koality.example.com/api/v/0/repositories/1/changes',
-            data={'sha': revision},
-        )
+        assert len(responses.calls) == 1
 
+        call = responses.calls[0]
+
+        # TODO(dcramer): this is a pretty gross testing api
+        assert call.request.body == 'sha={0}'.format(revision)
+
+    @responses.activate
     def test_patch(self):
-        backend = self.get_backend()
+        responses.add(
+            responses.POST, 'https://koality.example.com/api/v/0/repositories/1/changes',
+            body=self.load_fixture('fixtures/POST/change_index.json'))
+
+        backend = self.get_builder()
 
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
@@ -245,8 +271,10 @@ class CreateBuildTest(KoalityBuilderTestCase):
         assert entity.remote_id == '1501'
         assert entity.provider == 'koality'
 
-        self.mock_request.assert_called_once_with(
-            'POST', 'https://koality.example.com/api/v/0/repositories/1/changes',
-            data={'sha': revision},
-            files={'patch': SAMPLE_DIFF},
-        )
+        assert len(responses.calls) == 1
+
+        call = responses.calls[0]
+
+        # TODO(dcramer): this is a pretty gross testing api
+        assert 'Content-Disposition: form-data; name="sha"\r\n\r\n{0}'.format(revision) in call.request.body
+        assert 'Content-Disposition: form-data; name="patch"; filename="patch"\r\nContent-Type: application/octet-stream\r\n\r\n{0}'.format(SAMPLE_DIFF) in call.request.body
