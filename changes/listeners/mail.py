@@ -62,7 +62,6 @@ def get_log_clipping(logsource, max_size=5000, max_lines=25):
     tail = queryset.limit(1).first()
 
     chunks = list(queryset.filter(
-        LogChunk.offset <= tail.offset,
         (LogChunk.offset + LogChunk.size) >= max(tail.offset - max_size, 0),
     ).order_by(LogChunk.offset.asc()))
 
