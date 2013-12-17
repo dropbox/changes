@@ -32,6 +32,7 @@ class TestGroupDetailsAPIView(APIView):
         previous_runs = TestGroup.query.join(Build).options(
             joinedload('build'),
             joinedload('build.author'),
+            joinedload('parent'),
         ).filter(
             TestGroup.name_sha == testgroup.name_sha,
             Build.date_created < testgroup.build.date_created,

@@ -29,12 +29,16 @@ class BuildDetailsAPIView(APIView):
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         # find all parent groups (root trees)
-        test_groups = sorted(TestGroup.query.filter(
+        test_groups = sorted(TestGroup.query.options(
+            joinedload('parent'),
+        ).filter(
             TestGroup.build_id == build.id,
             TestGroup.parent_id == None,  # NOQA: we have to use == here
         ), key=lambda x: x.name)
 
-        test_failures = TestGroup.query.filter(
+        test_failures = TestGroup.query.options(
+            joinedload('parent'),
+        ).filter(
             TestGroup.build_id == build.id,
             TestGroup.result == Result.failed,
             TestGroup.num_leaves == 0,
