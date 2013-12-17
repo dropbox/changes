@@ -10,7 +10,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Build, BuildPhase, BuildStep,
-    TestResult, Change, LogChunk, TestSuite
+    TestResult, TestResultManager, Change, LogChunk, TestSuite
 )
 from changes.db.utils import get_or_create
 
@@ -194,6 +194,6 @@ def test_result(build, **kwargs):
     kwargs.setdefault('result', Result.passed)
 
     result = TestResult(build=build, **kwargs)
-    result.save()
+    TestResultManager(build).save([result])
 
     return result
