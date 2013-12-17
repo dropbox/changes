@@ -35,6 +35,7 @@ install_requires = [
     'alembic>=0.6.0,<0.7.0',
     'blinker>=1.3,<1.4',
     'celery>=3.1,<3.2',
+    'kombu>=3.0.8,<4.0.0',
     'enum34>=0.9.18,<0.10.0',
     'flask>=0.10.1,<0.11.0',
     'flask-actions>=0.6.6,<0.7.0',
