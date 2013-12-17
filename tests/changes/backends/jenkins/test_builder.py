@@ -13,17 +13,7 @@ from changes.models import (
     Repository, Project, RemoteEntity, TestCase, Patch, LogSource, LogChunk
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
-from changes.testutils import BackendTestCase
-
-
-SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
-index 2ef2938..ed80350 100644
---- a/README.rst
-+++ b/README.rst
-@@ -1,5 +1,5 @@
- Setup
-------
-+====="""
+from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
 
 class BaseTestCase(BackendTestCase):

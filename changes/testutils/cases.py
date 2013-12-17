@@ -11,8 +11,18 @@ from uuid import uuid4
 from changes.config import db, mail
 from changes.models import (
     Repository, Build, Project, Revision, RemoteEntity, Change, Author,
-    TestGroup
+    TestGroup, Patch
 )
+
+
+SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
+index 2ef2938..ed80350 100644
+--- a/README.rst
++++ b/README.rst
+@@ -1,5 +1,5 @@
+ Setup
+------
++====="""
 
 
 class Fixtures(object):
@@ -87,6 +97,19 @@ class Fixtures(object):
         db.session.add(build)
 
         return build
+
+    def create_patch(self, project, **kwargs):
+        kwargs.setdefault('label', 'Test Patch')
+        kwargs.setdefault('message', 'Hello world!')
+        kwargs.setdefault('diff', SAMPLE_DIFF)
+        kwargs.setdefault('parent_revision_sha', uuid4().hex)
+        if not kwargs.get('repository'):
+            kwargs['repository'] = self.create_repo()
+
+        patch = Patch(project=project, **kwargs)
+        db.session.add(patch)
+
+        return patch
 
     def create_revision(self, **kwargs):
         kwargs.setdefault('sha', uuid4().hex)

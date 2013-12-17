@@ -2,17 +2,7 @@ from cStringIO import StringIO
 
 from changes.config import db
 from changes.models import Build, Patch, ProjectOption
-from changes.testutils import APITestCase
-
-
-SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
-index 2ef2938..ed80350 100644
---- a/README.rst
-+++ b/README.rst
-@@ -1,5 +1,5 @@
- Setup
-------
-+====="""
+from changes.testutils import APITestCase, SAMPLE_DIFF
 
 
 class BuildListTest(APITestCase):
