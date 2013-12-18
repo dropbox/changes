@@ -31,12 +31,15 @@ class BuildFamily(db.Model):
         Index('idx_buildfamily_repository_sha', 'repository_id', 'revision_sha'),
         Index('idx_buildfamily_author_id', 'author_id'),
         Index('idx_buildfamily_patch_id', 'patch_id'),
+        Index('idx_buildfamily_source_id', 'source_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
+    source_id = Column(GUID, ForeignKey('source.id'))
+    # TODO(dcramer): repo/sha/patch_id should be removed in favor of source
     revision_sha = Column(String(40))
+    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     patch_id = Column(GUID, ForeignKey('patch.id'))
     author_id = Column(GUID, ForeignKey('author.id'))
     cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
@@ -54,6 +57,7 @@ class BuildFamily(db.Model):
 
     project = relationship('Project')
     repository = relationship('Repository')
+    source = relationship('Source')
     patch = relationship('Patch')
     author = relationship('Author')
 

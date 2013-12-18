@@ -21,12 +21,17 @@ class Build(db.Model):
         Index('idx_build_author_id', 'author_id'),
         Index('idx_build_patch_id', 'patch_id'),
         Index('idx_build_change_id', 'change_id'),
+        Index('idx_build_source_id', 'source_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    # TODO(dcramer): change should be removed in favor of an m2m between
+    # Change and Source
     change_id = Column(GUID, ForeignKey('change.id'))
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    source_id = Column(GUID, ForeignKey('source.id'))
+    # TODO(dcramer): repo/sha/patch_id should be removed in favor of source
+    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
     revision_sha = Column(String(40))
     patch_id = Column(GUID, ForeignKey('patch.id'))
     author_id = Column(GUID, ForeignKey('author.id'))
@@ -47,6 +52,7 @@ class Build(db.Model):
     change = relationship('Change')
     repository = relationship('Repository')
     project = relationship('Project')
+    source = relationship('Source')
     patch = relationship('Patch')
     author = relationship('Author')
     parent = relationship('Build')
