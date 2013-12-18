@@ -4,14 +4,115 @@ from cStringIO import StringIO
 from datetime import datetime
 from flask import request
 from sqlalchemy.orm import joinedload
+import warnings
 
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import (
-    Project, Build, Repository, Patch, ProjectOption, Change
+    Project, BuildFamily, Build, BuildPlan, Repository, Patch, ProjectOption,
+    Change
 )
+
+
+def create_build(project, sha, label, target, message, author, change=None,
+                 patch_file=None, patch_label=None):
+    repository = project.repository
+
+    if patch_file:
+        patch = Patch(
+            change=change,
+            repository=repository,
+            project=project,
+            parent_revision_sha=sha,
+            label=patch_label,
+            diff=patch_file.getvalue(),
+        )
+        db.session.add(patch)
+    else:
+        patch = None
+
+    builds = []
+
+    plan_list = list(project.plans)
+    if not plan_list:
+        # Legacy support
+        # TODO(dcramer): remove this after we transition to plans
+        warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
+
+        build = Build(
+            project=project,
+            repository=repository,
+            status=Status.queued,
+            author=author,
+            label=label,
+            target=target,
+            revision_sha=sha,
+            message=message,
+            patch=patch,
+            change=change,
+        )
+
+        db.session.add(build)
+
+        builds.append(build)
+    else:
+        family = BuildFamily(
+            project=project,
+            repository=repository,
+            status=Status.queued,
+            author=author,
+            label=label,
+            target=target,
+            revision_sha=sha,
+            message=message,
+        )
+
+        db.session.add(family)
+
+    for plan in plan_list:
+        build = Build(
+            project=project,
+            repository=repository,
+            status=Status.queued,
+            author=author,
+            label=label,
+            target=target,
+            revision_sha=sha,
+            message=message,
+            patch=patch,
+            change=change
+        )
+
+        if patch:
+            build.patch = patch
+
+        db.session.add(build)
+
+        buildplan = BuildPlan(
+            project=project,
+            build=build,
+            family=family,
+            plan=plan,
+        )
+
+        db.session.add(buildplan)
+
+        builds.append(build)
+
+    if change:
+        change.date_modified = datetime.utcnow()
+        db.session.add(change)
+
+    db.session.commit()
+
+    for build in builds:
+        queue.delay('create_build', kwargs={
+            'build_id': build.id.hex,
+        }, countdown=5)
+
+    return builds
 
 
 class BuildIndexAPIView(APIView):
@@ -107,50 +208,21 @@ class BuildIndexAPIView(APIView):
             fp = StringIO()
             for line in patch_file:
                 fp.write(line)
+            patch_file = fp
 
         builds = []
         for project in projects:
-            if patch_file:
-                patch = Patch(
-                    change=change,
-                    repository=repository,
-                    project=project,
-                    parent_revision_sha=sha,
-                    label=patch_label,
-                    diff=fp.getvalue(),
-                )
-                db.session.add(patch)
-            else:
-                patch = None
-
-            build = Build(
-                change=change,
+            builds.extend(create_build(
                 project=project,
-                repository=repository,
-                status=Status.queued,
-                author=author,
-                label=label,
+                change=change,
+                sha=sha,
                 target=target,
-                revision_sha=sha,
+                label=label,
                 message=message,
-            )
-
-            if change:
-                build.change = change
-                change.date_modified = datetime.utcnow()
-                db.session.add(change)
-
-            if patch:
-                build.patch = patch
-
-            db.session.add(build)
-            db.session.commit()
-
-            queue.delay('create_build', kwargs={
-                'build_id': build.id.hex,
-            }, countdown=5)
-
-            builds.append(build)
+                author=author,
+                patch_label=patch_label,
+                patch_file=patch_file,
+            ))
 
         context = {
             'builds': [

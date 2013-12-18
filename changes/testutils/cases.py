@@ -11,7 +11,7 @@ from uuid import uuid4
 from changes.config import db, mail
 from changes.models import (
     Repository, Build, Project, Revision, RemoteEntity, Change, Author,
-    TestGroup, Patch
+    TestGroup, Patch, Plan, Step
 )
 
 
@@ -135,6 +135,23 @@ class Fixtures(object):
         db.session.add(author)
 
         return author
+
+    def create_plan(self, **kwargs):
+        kwargs.setdefault('label', 'test')
+
+        plan = Plan(**kwargs)
+        db.session.add(plan)
+
+        return plan
+
+    def create_step(self, plan, **kwargs):
+        kwargs.setdefault('implementation', 'test')
+        kwargs.setdefault('order', 0)
+
+        step = Step(plan=plan, **kwargs)
+        db.session.add(step)
+
+        return step
 
 
 class TestCase(Exam, unittest2.TestCase, Fixtures):

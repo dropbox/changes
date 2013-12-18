@@ -1,7 +1,7 @@
 from cStringIO import StringIO
 
 from changes.config import db
-from changes.models import Build, Patch, ProjectOption
+from changes.models import Build, BuildPlan, Patch, ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF
 
 
@@ -21,6 +21,16 @@ class BuildListTest(APITestCase):
 
 
 class BuildCreateTest(APITestCase):
+    def assertBuildMatchesFamily(self, build, family):
+        assert family.repository_id == build.repository_id
+        assert family.project_id == build.project_id
+        assert family.author_id == build.author_id
+        assert family.label == build.label
+        assert family.target == build.target
+        assert family.message == build.message
+        assert family.revision_sha == build.revision_sha
+        assert family.status == build.status
+
     def test_simple(self):
         path = '/api/0/builds/'
         resp = self.client.post(path, data={
@@ -145,3 +155,31 @@ class BuildCreateTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data['builds']) == 0
+
+    def test_with_plan(self):
+        plan = self.create_plan()
+        plan.projects.append(self.project)
+        self.create_step(plan)
+
+        path = '/api/0/builds/'
+        resp = self.client.post(path, data={
+            'project': self.project.slug,
+            'author': 'David Cramer <dcramer@example.com>',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data['builds']) == 1
+
+        buildplans = list(BuildPlan.query.filter(
+            BuildPlan.build_id == data['builds'][0]['id'],
+        ))
+
+        assert len(buildplans) == 1
+
+        assert buildplans[0].plan_id == plan.id
+        assert buildplans[0].project_id == self.project.id
+
+        build = buildplans[0].build
+        family = buildplans[0].family
+
+        self.assertBuildMatchesFamily(build, family)
