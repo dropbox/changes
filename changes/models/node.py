@@ -11,7 +11,7 @@ class Node(db.Model):
     __tablename__ = 'node'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    label = Column(String(128))
+    label = Column(String(128), unique=True)
     date_created = Column(DateTime, default=datetime.utcnow)
 
     def __init__(self, **kwargs):

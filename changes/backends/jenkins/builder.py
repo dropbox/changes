@@ -16,7 +16,7 @@ from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import (
     AggregateTestSuite, RemoteEntity, TestResult, TestResultManager, TestSuite,
-    LogSource, LogChunk
+    LogSource, LogChunk, Node, BuildPhase, BuildStep
 )
 
 LOG_CHUNK_SIZE = 4096
@@ -179,6 +179,47 @@ class JenkinsBuilder(BaseBackend):
 
         db.session.add(build)
         db.session.commit()
+
+        node, _ = get_or_create(Node, where={
+            'label': item['builtOn'],
+        })
+
+        buildphase, created = get_or_create(BuildPhase, where={
+            'build': build,
+            'label': build_item['job_name'],
+        }, defaults={
+            'project_id': build.project_id,
+            'repository_id': build.repository_id,
+            'date_started': build.date_started,
+            'status': build.status,
+            'result': build.result,
+        })
+
+        buildstep, created = get_or_create(BuildStep, where={
+            'phase': buildphase,
+            'label': item['fullDisplayName'],
+        }, defaults={
+            'build': build,
+            'project_id': build.project_id,
+            'node_id': node.id,
+            'repository_id': build.repository_id,
+            'date_started': build.date_started,
+            'status': build.status,
+            'result': build.result,
+        })
+
+        if should_finish:
+            buildphase.status = build.status
+            buildphase.result = build.result
+            buildphase.date_finished = build.date_finished
+
+            db.session.add(buildphase)
+
+            buildstep.status = build.status
+            buildstep.result = build.result
+            buildstep.date_finished = build.date_finished
+
+            db.session.add(buildstep)
 
         # TODO(dcramer): ideally we could fire off jobs to sync test results
         # and console logs
