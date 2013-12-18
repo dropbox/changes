@@ -5,7 +5,12 @@ import json
 import sys
 
 from changes.config import create_app, db
-from changes.models import Plan, Project
+from changes.models import Plan, Project, Step
+
+IMPL_CHOICES = (
+    'changes.backends.jenkins.buildstep.JenkinsBuildStep',
+    'changes.backends.koality.buildstep.KoalityBuildStep',
+)
 
 app = create_app()
 app_context = app.app_context()
@@ -40,6 +45,26 @@ parser_projects_delete.add_argument('project', help='project ID or slug')
 parser_projects_list = options_subparsers.add_parser('list', help='list plan projects')
 parser_projects_list.add_argument('id', help='plan ID')
 
+parser_steps = subparsers.add_parser('steps', help='manage plan steps')
+options_subparsers = parser_steps.add_subparsers(dest='step_command')
+
+parser_steps_add = options_subparsers.add_parser('add', help='add plan step')
+parser_steps_add.add_argument('id', help='step ID')
+parser_steps_add.add_argument(
+    '--implementation', dest='implementation', help='step implementation',
+    required=True, choices=IMPL_CHOICES)
+parser_steps_add.add_argument(
+    '--order', dest='order', help='step order',
+    required=True, type=int)
+parser_steps_add.add_argument('--data', dest='data', help='step data')
+
+parser_steps_delete = options_subparsers.add_parser('delete', help='remove plan step')
+parser_steps_delete.add_argument('id', help='plan ID')
+parser_steps_delete.add_argument('step', help='step ID')
+
+parser_steps_list = options_subparsers.add_parser('list', help='list plan steps')
+parser_steps_list.add_argument('id', help='plan ID')
+
 args = parser.parse_args()
 
 
@@ -71,6 +96,15 @@ def get_project(id_):
 
     return project
 
+
+def get_step(id_):
+    result = Step.query.get(id_)
+
+    if not result:
+        print "Step not found"
+        sys.exit(1)
+
+    return result
 
 if args.command == 'add':
     label = args.label or raw_input('Plan label? ') or abort()
@@ -128,5 +162,38 @@ elif args.command == 'projects':
 
         for project in plan.projects:
             print project.slug
+
+elif args.command == 'steps':
+    if args.step_command == 'add':
+        plan = get_plan(args.id)
+
+        step = Step(
+            plan=plan,
+            order=args.order,
+            implementation=args.implementation,
+            data=json.loads(args.data or '{}'),
+        )
+        db.session.add(step)
+
+        print "Added step %s (%s) to %s" % (
+            step.order, step.implementation, plan.id)
+
+    if args.step_command == 'delete':
+        plan = get_plan(args.id)
+        step = get_step(args.step)
+
+        Step.query.filter(
+            Step.id == step.id,
+        ).delete()
+
+        print "Removed step %s (%s) from %s" % (
+            step.order, step.implementation, plan.id)
+
+    if args.step_command == 'list':
+        plan = get_plan(args.id)
+
+        for step in plan.steps:
+            print step.order, step.implementation
+
 
 db.session.commit()

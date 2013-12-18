@@ -38,9 +38,9 @@ class Plan(db.Model):
 class Step(db.Model):
     """
     Represents one of N build steps for a plan.
-
-    TODO(dcramer): only a single step is currently supported
     """
+    # TODO(dcramer): only a single step is currently supported
+    # TODO(dcramer): (plan_id, order) should be unique
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     plan_id = Column(GUID, ForeignKey('plan.id'), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -50,7 +50,7 @@ class Step(db.Model):
     order = Column(Integer, nullable=False)
     data = Column(JSONEncodedDict)
 
-    plan = relationship('Plan', backref=backref('steps'))
+    plan = relationship('Plan', backref=backref('steps', order_by='Step.order'))
 
     __repr__ = model_repr('plan_id', 'implementation')
     __tablename__ = 'step'
