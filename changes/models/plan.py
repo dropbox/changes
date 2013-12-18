@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Integer
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.schema import Index, CheckConstraint
+from sqlalchemy.schema import UniqueConstraint, CheckConstraint
 
 from changes.config import db
 from changes.db.types.guid import GUID
@@ -40,7 +40,6 @@ class Step(db.Model):
     Represents one of N build steps for a plan.
     """
     # TODO(dcramer): only a single step is currently supported
-    # TODO(dcramer): (plan_id, order) should be unique
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     plan_id = Column(GUID, ForeignKey('plan.id'), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -55,7 +54,7 @@ class Step(db.Model):
     __repr__ = model_repr('plan_id', 'implementation')
     __tablename__ = 'step'
     __table_args__ = (
-        Index('idx_step_plan_id', 'plan_id'),
+        UniqueConstraint('plan_id', 'order', name='unq_plan_key'),
         CheckConstraint(order >= 0, name='chk_step_order_positive'),
     )
 
