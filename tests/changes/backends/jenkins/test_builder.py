@@ -21,6 +21,7 @@ class BaseTestCase(BackendTestCase):
     builder_cls = JenkinsBuilder
     builder_options = {
         'base_url': 'http://jenkins.example.com',
+        'job_name': 'server-foo',
     }
 
     def setUp(self):
@@ -157,6 +158,42 @@ class CreateBuildTest(BaseTestCase):
 
         builder = self.get_builder()
         builder.create_build(build)
+
+    @responses.activate
+    def test_without_entity(self):
+        responses.add(
+            responses.POST, 'http://jenkins.example.com/job/server-foo/build/api/json/',
+            body='',
+            status=201)
+
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/api/json/',
+            body=self.load_fixture('fixtures/GET/queue_list.json'))
+
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server-foo/api/json/',
+            body=self.load_fixture('fixtures/GET/job_list.json'))
+
+        build = self.create_build(
+            self.create_project(),
+            id=UUID('f9481a17aac446718d7893b6e1c6288b'))
+
+        builder = self.get_builder()
+        builder.create_build(build)
+
+        entity = RemoteEntity.query.filter_by(
+            provider=self.provider,
+            internal_id=build.id,
+            type='build',
+        )[0]
+
+        assert entity.remote_id
+        assert entity.data == {
+            'build_no': 1,
+            'item_id': None,
+            'job_name': 'server-foo',
+            'queued': False,
+        }
 
 
 class SyncBuildTest(BaseTestCase):

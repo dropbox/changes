@@ -32,8 +32,7 @@ def create_build(build_id):
         else:
             step = build_plan.plan.steps[0]
             implementation = step.get_implementation()
-            step_inst = implementation()
-            step_inst.execute(build)
+            implementation.execute(build)
 
     except Exception as exc:
         current_app.logger.exception('Failed to create build %s', build_id)

@@ -9,11 +9,12 @@ from changes.testutils import TestCase
 
 class JenkinsBuildStepTest(TestCase):
     def get_buildstep(self):
-        return JenkinsBuildStep()
+        return JenkinsBuildStep(job_name='foo-bar')
 
     def test_get_builder(self):
         buildstep = self.get_buildstep()
         builder = buildstep.get_builder()
+        assert builder.job_name == 'foo-bar'
         assert type(builder) == JenkinsBuilder
 
     @mock.patch.object(JenkinsBuildStep, 'get_builder')

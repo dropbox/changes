@@ -49,12 +49,13 @@ class NotFound(Exception):
 class JenkinsBuilder(BaseBackend):
     provider = 'jenkins'
 
-    def __init__(self, base_url=None, token=None, *args, **kwargs):
+    def __init__(self, base_url=None, job_name=None, token=None, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['JENKINS_URL']
         self.token = token or self.app.config['JENKINS_TOKEN']
         self.sync_artifacts = self.app.config['JENKINS_SYNC_ARTIFACTS']
         self.logger = logging.getLogger('jenkins')
+        self.job_name = job_name
 
     def _get_response(self, path, method='GET', params=None, **kwargs):
         url = '{}/{}/api/json/'.format(self.base_url, path.strip('/'))
@@ -512,9 +513,12 @@ class JenkinsBuilder(BaseBackend):
             internal_id=build.project.id,
             type='job',
         ).first()
-        if not entity:
+        if entity:
+            job_name = entity.remote_id
+        elif self.job_name:
+            job_name = self.job_name
+        else:
             raise Exception('Missing Jenkins project configuration')
-        job_name = entity.remote_id
 
         json_data = {
             'parameter': [

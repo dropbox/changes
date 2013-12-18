@@ -54,8 +54,7 @@ def _sync_build(build_id):
     else:
         step = build_plan.plan.steps[0]
         implementation = step.get_implementation()
-        step_inst = implementation()
-        step_inst.sync(build=build)
+        implementation.sync(build=build)
 
     build.date_modified = datetime.utcnow()
     db.session.add(build)

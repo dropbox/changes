@@ -14,9 +14,8 @@ class SyncBuildTest(TestCase):
     @mock.patch('changes.jobs.sync_build.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
     def test_simple(self, get_implementation, queue_delay, sync_with_builder):
-        implementation_cls = mock.Mock()
-        implementation = implementation_cls.return_value
-        get_implementation.return_value = implementation_cls
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
 
         build = self.create_build(self.project)
 

@@ -68,4 +68,4 @@ class Step(db.Model):
             self.date_modified = self.date_created
 
     def get_implementation(self):
-        return import_string(self.implementation)
+        return import_string(self.implementation)(**self.data)
