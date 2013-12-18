@@ -436,6 +436,9 @@ table > tbody > tr.result-skipped > td.result span {
 .phase-list > li:last-child > a {
   border-radius: 0 4px 4px 0;
 }
+.phase-list > li:first-child:last-child > a {
+  border-radius: 4px;
+}
 .phase-list.nav-tabs.nav-justified > li > a {
   border-bottom: 0;
 }
