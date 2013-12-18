@@ -227,7 +227,7 @@ define([
     $scope.project = initialData.data.project;
     $scope.build = initialData.data.build;
     $scope.logSources = initialData.data.logs;
-    $scope.phases = initialData.data.phase;
+    $scope.phases = initialData.data.phases;
     $scope.testFailures = initialData.data.testFailures;
     $scope.testGroups = initialData.data.testGroups;
     $scope.previousRuns = initialData.data.previousRuns
