@@ -8,7 +8,7 @@ from datetime import datetime
 from changes import mock
 from changes.config import db, create_app
 from changes.constants import Result, Status
-from changes.models import Change, Build, LogSource
+from changes.models import Change, Build, LogSource, TestResultManager
 
 app = create_app()
 app_context = app.app_context()
@@ -81,12 +81,14 @@ def update_existing_entry(project):
     build.date_finished = datetime.utcnow()
     db.session.add(build)
 
+    test_results = []
     for _ in xrange(50):
         if build.result == Result.failed:
             result = Result.failed if random.randint(0, 5) == 1 else Result.passed
         else:
             result = Result.passed
-        mock.test_result(build, result=result)
+        test_results.append(mock.test_result(build, result=result))
+    TestResultManager(build).save(test_results)
 
     return build
 
@@ -104,9 +106,10 @@ def gen(project):
 
 def loop():
     repository = mock.repository()
-    project = mock.project(repository)
 
     while True:
+        project = mock.project(repository)
+
         build = gen(project)
         print 'Pushed build {0}', build.id
         time.sleep(1)

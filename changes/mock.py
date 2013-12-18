@@ -10,7 +10,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Build, BuildPhase, BuildStep,
-    TestResult, TestResultManager, Change, LogChunk, TestSuite
+    TestResult, Change, LogChunk, TestSuite
 )
 from changes.db.utils import get_or_create
 
@@ -35,6 +35,14 @@ TEST_STEP_LABELS = itertools.cycle([
     'tests/changes/handlers/test_xunit.py',
 ])
 
+PROJECT_NAMES = itertools.cycle([
+    'Earth',
+    'Wind',
+    'Fire',
+    'Water',
+    'Heart',
+])
+
 
 def repository(**kwargs):
     if 'url' not in kwargs:
@@ -51,8 +59,13 @@ def repository(**kwargs):
 
 def project(repository, **kwargs):
     if 'name' not in kwargs:
-        kwargs['name'] = '{0} {1}'.format(
-            get_sentences(1)[0].split(' ')[0], random.randint(1, 100000))
+        kwargs['name'] = PROJECT_NAMES.next()
+
+    project = Project.query.filter(
+        Project.name == kwargs['name'],
+    ).first()
+    if project:
+        return project
 
     result = Project(repository=repository, **kwargs)
     db.session.add(result)
@@ -194,6 +207,5 @@ def test_result(build, **kwargs):
     kwargs.setdefault('result', Result.passed)
 
     result = TestResult(build=build, **kwargs)
-    TestResultManager(build).save([result])
 
     return result
