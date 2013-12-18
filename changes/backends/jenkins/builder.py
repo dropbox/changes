@@ -208,19 +208,6 @@ class JenkinsBuilder(BaseBackend):
             'result': build.result,
         })
 
-        if should_finish:
-            buildphase.status = build.status
-            buildphase.result = build.result
-            buildphase.date_finished = build.date_finished
-
-            db.session.add(buildphase)
-
-            buildstep.status = build.status
-            buildstep.result = build.result
-            buildstep.date_finished = build.date_finished
-
-            db.session.add(buildstep)
-
         # TODO(dcramer): ideally we could fire off jobs to sync test results
         # and console logs
         for action in item['actions']:
@@ -256,6 +243,18 @@ class JenkinsBuilder(BaseBackend):
 
             build.status = Status.finished
             db.session.add(build)
+
+            buildphase.status = build.status
+            buildphase.result = build.result
+            buildphase.date_finished = build.date_finished
+
+            db.session.add(buildphase)
+
+            buildstep.status = build.status
+            buildstep.result = build.result
+            buildstep.date_finished = build.date_finished
+
+            db.session.add(buildstep)
 
     def _sync_artifact_as_log(self, build, entity, artifact):
         build_item = entity.data
