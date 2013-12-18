@@ -65,6 +65,9 @@ parser_steps_delete.add_argument('step', help='step ID')
 parser_steps_list = options_subparsers.add_parser('list', help='list plan steps')
 parser_steps_list.add_argument('id', help='plan ID')
 
+parser_steps_clear = options_subparsers.add_parser('clear', help='clear plan steps')
+parser_steps_clear.add_argument('id', help='plan ID')
+
 args = parser.parse_args()
 
 
@@ -193,7 +196,15 @@ elif args.command == 'steps':
         plan = get_plan(args.id)
 
         for step in plan.steps:
-            print step.order, step.implementation
+            print step.id, step.order, step.implementation
 
+    if args.step_command == 'clear':
+        plan = get_plan(args.id)
+
+        Step.query.filter(
+            Step.plan_id == plan.id,
+        ).delete()
+
+        print "Removed all steps from %s" % (plan.id,)
 
 db.session.commit()
