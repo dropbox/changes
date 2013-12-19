@@ -343,6 +343,9 @@ class KoalityBuilder(BaseBackend):
         response = self._get_response('POST', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
             base_uri=self.base_url, project_id=project_id,
         ), data={
+            # XXX: passing an empty value for email causes Koality to not
+            # send out an email notification
+            'email': '',
             'sha': build.revision_sha,
         }, **req_kwargs)
 
