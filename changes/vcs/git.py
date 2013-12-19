@@ -38,6 +38,7 @@ class GitVcs(Vcs):
     def update(self):
         self.run(['fetch', '--all'])
         self.run(['remote', 'prune', 'origin'])
+        self.run(['reset', '--hard', 'origin/master'])
 
     def log(self, parent=None, limit=100):
         # TODO(dcramer): we should make this streaming
