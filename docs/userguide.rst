@@ -27,7 +27,7 @@ A few key things here:
 - The log streams available. In our example only a single console log was recorded.
 - Test results. In this case we hit a critical failure, so no test results were reported.
 
-So looking into how we'd understand this result, we're probably going to want to expand the build. You can do this via the icon in the top right corner of the log stream. Once you're in here, it should be much easier to visually spot the failure, in our case it looks like we failed on checking out the revision:
+So looking into how we'd understand this result, we're probably going to want to expand the build log. You can do this via the icon in the top right corner of the log stream. Once you're in here, it should be much easier to visually spot the failure, in our case it looks like we failed on checking out the revision:
 
 .. image:: images/console-log.png
    :alt: Console Log
