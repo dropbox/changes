@@ -240,7 +240,7 @@ class CreateBuildTest(KoalityBuilderTestCase):
 
         # TODO(dcramer): this is a pretty gross testing api
         assert 'sha={0}'.format(revision) in call.request.body
-        assert 'email=' in call.request.body
+        assert 'emailTo=' in call.request.body
 
     @responses.activate
     def test_patch(self):
