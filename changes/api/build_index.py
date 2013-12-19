@@ -12,7 +12,7 @@ from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import (
     Project, BuildFamily, Build, BuildPlan, Repository, Patch, ProjectOption,
-    Change
+    Change, ItemOption
 )
 
 
@@ -58,6 +58,25 @@ def create_build(project, sha, label, target, message, author, change=None,
 
         builds.append(build)
     else:
+        options = dict(
+            db.session.query(
+                ItemOption.item_id, ItemOption.value
+            ).filter(
+                ItemOption.item_id.in_([p.id for p in plan_list]),
+                ItemOption.name.in_([
+                    'build.allow-patches',
+                ])
+            )
+        )
+        plan_list = [
+            p for p in plan_list
+            if options.get(p.id, '1') == '1'
+        ]
+
+        # no plans remained
+        if not plan_list:
+            return []
+
         family = BuildFamily(
             project=project,
             repository=repository,

@@ -1,4 +1,4 @@
-import uuid
+from uuid import uuid4
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Integer
@@ -16,7 +16,7 @@ class Plan(db.Model):
     """
     Represents one of N build plans for a project.
     """
-    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid4)
     label = Column(String(128), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     date_modified = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -28,7 +28,7 @@ class Plan(db.Model):
     def __init__(self, **kwargs):
         super(Plan, self).__init__(**kwargs)
         if self.id is None:
-            self.id = uuid.uuid4()
+            self.id = uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
         if self.date_modified is None:
@@ -40,7 +40,7 @@ class Step(db.Model):
     Represents one of N build steps for a plan.
     """
     # TODO(dcramer): only a single step is currently supported
-    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid4)
     plan_id = Column(GUID, ForeignKey('plan.id'), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     date_modified = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -61,7 +61,7 @@ class Step(db.Model):
     def __init__(self, **kwargs):
         super(Step, self).__init__(**kwargs)
         if self.id is None:
-            self.id = uuid.uuid4()
+            self.id = uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
         if self.date_modified is None:

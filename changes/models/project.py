@@ -65,3 +65,10 @@ class ProjectOption(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
+
+    def __init__(self, **kwargs):
+        super(ProjectOption, self).__init__(**kwargs)
+        if self.id is None:
+            self.id = uuid4()
+        if self.date_created is None:
+            self.date_created = datetime.utcnow()

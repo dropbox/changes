@@ -9,6 +9,7 @@ from .change import *  # NOQA
 from .filecoverage import *  # NOQA
 from .log import *  # NOQA
 from .node import *  # NOQA
+from .option import *  # NOQA
 from .patch import *  # NOQA
 from .plan import *  # NOQA
 from .project import *  # NOQA
