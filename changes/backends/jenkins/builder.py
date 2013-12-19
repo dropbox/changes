@@ -507,19 +507,18 @@ class JenkinsBuilder(BaseBackend):
         - Polling for the newly created build to associate either a queue ID
           or a finalized build number.
         """
-
-        # TODO: patch support
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=build.project.id,
-            type='job',
-        ).first()
-        if entity:
-            job_name = entity.remote_id
-        elif self.job_name:
+        if self.job_name:
             job_name = self.job_name
         else:
-            raise Exception('Missing Jenkins project configuration')
+            entity = RemoteEntity.query.filter_by(
+                provider=self.provider,
+                internal_id=build.project.id,
+                type='job',
+            ).first()
+            if entity:
+                job_name = entity.remote_id
+            else:
+                raise Exception('Missing Jenkins project configuration')
 
         json_data = {
             'parameter': [

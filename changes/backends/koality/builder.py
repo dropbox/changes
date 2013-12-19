@@ -321,17 +321,8 @@ class KoalityBuilder(BaseBackend):
         self._sync_build(build, entity)
 
     def create_build(self, build):
-        project = build.project
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=project.id,
-            type='project',
-        ).first()
-        if entity:
-            project_id = entity.remote_id
-        elif self.project_id:
-            project_id = self.project_id
-        else:
+        project_id = self.project_id
+        if not project_id:
             raise Exception('Missing Koality project configuration')
 
         req_kwargs = {}

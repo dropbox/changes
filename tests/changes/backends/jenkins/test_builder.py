@@ -21,25 +21,20 @@ class BaseTestCase(BackendTestCase):
     builder_cls = JenkinsBuilder
     builder_options = {
         'base_url': 'http://jenkins.example.com',
-        'job_name': 'server-foo',
+        'job_name': 'server',
     }
 
     def setUp(self):
         self.repo = Repository(url='https://github.com/dropbox/changes.git')
         self.project = Project(repository=self.repo, name='test', slug='test')
-        self.project_entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=self.project.id,
-            remote_id='server',
-            type='job',
-        )
 
         db.session.add(self.repo)
         db.session.add(self.project)
-        db.session.add(self.project_entity)
 
-    def get_builder(self):
-        return self.builder_cls(app=current_app, **self.builder_options)
+    def get_builder(self, **options):
+        base_options = self.builder_options.copy()
+        base_options.update(options)
+        return self.builder_cls(app=current_app, **base_options)
 
     def load_fixture(self, filename):
         filepath = os.path.join(
@@ -160,7 +155,15 @@ class CreateBuildTest(BaseTestCase):
         builder.create_build(build)
 
     @responses.activate
-    def test_without_entity(self):
+    def test_with_entity(self):
+        project_entity = RemoteEntity(
+            provider=self.provider,
+            internal_id=self.project.id,
+            remote_id='server-foo',
+            type='job',
+        )
+        db.session.add(project_entity)
+
         responses.add(
             responses.POST, 'http://jenkins.example.com/job/server-foo/build/api/json/',
             body='',
@@ -175,10 +178,10 @@ class CreateBuildTest(BaseTestCase):
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
         build = self.create_build(
-            self.create_project(),
+            self.project,
             id=UUID('f9481a17aac446718d7893b6e1c6288b'))
 
-        builder = self.get_builder()
+        builder = self.get_builder(job_name=None)
         builder.create_build(build)
 
         entity = RemoteEntity.query.filter_by(
