@@ -9,11 +9,12 @@ from changes.testutils import TestCase
 
 class KoalityBuildStepTest(TestCase):
     def get_buildstep(self):
-        return KoalityBuildStep()
+        return KoalityBuildStep(project_id=26)
 
     def test_get_builder(self):
         buildstep = self.get_buildstep()
         builder = buildstep.get_builder()
+        assert builder.project_id == 26
         assert type(builder) == KoalityBuilder
 
     @mock.patch.object(KoalityBuildStep, 'get_builder')

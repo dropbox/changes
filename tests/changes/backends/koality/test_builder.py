@@ -10,7 +10,8 @@ from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Repository, Project, Build, Revision, Author, BuildPhase, BuildStep, Patch
+    Repository, Project, Build, Revision, Author, BuildPhase, BuildStep, Patch,
+    RemoteEntity
 )
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
@@ -20,6 +21,7 @@ class KoalityBuilderTestCase(BackendTestCase):
     builder_options = {
         'base_url': 'https://koality.example.com',
         'api_key': 'a' * 12,
+        'project_id': 26,
     }
     provider = 'koality'
 
@@ -42,11 +44,11 @@ class KoalityBuilderTestCase(BackendTestCase):
         with open(filepath, 'rb') as fp:
             return fp.read()
 
-    def make_project_entity(self, project=None):
+    def make_project_entity(self, project=None, data=None):
         return self.make_entity('project', (project or self.project).id, 1)
 
 
-class SyncBuildDetailsTest(KoalityBuilderTestCase):
+class SyncBuildTest(KoalityBuilderTestCase):
     # TODO(dcramer): we should break this up into testing individual methods
     # so edge cases can be more isolated
     @responses.activate
@@ -70,9 +72,19 @@ class SyncBuildDetailsTest(KoalityBuilderTestCase):
         change = self.create_change(self.project)
         build = self.create_build(project=self.project, change=change)
 
-        self.make_entity('build', build.id, 1)
+        entity = RemoteEntity(
+            type='build',
+            internal_id=build.id,
+            provider=self.provider,
+            remote_id='1',
+            data={
+                'project_id': 1,
+                'change_id': 1,
+            }
+        )
+        db.session.add(entity)
 
-        backend.sync_build_details(
+        backend.sync_build(
             build=build,
         )
 
@@ -217,12 +229,14 @@ class CreateBuildTest(KoalityBuilderTestCase):
         assert entity.internal_id == build.id
         assert entity.remote_id == '1501'
         assert entity.provider == 'koality'
+        assert entity.data == {
+            'project_id': 1,
+            'change_id': 1501,
+        }
 
         assert len(responses.calls) == 1
 
         call = responses.calls[0]
-
-        print call.request.body
 
         # TODO(dcramer): this is a pretty gross testing api
         assert call.request.body == 'sha={0}'.format(revision)
@@ -262,6 +276,10 @@ class CreateBuildTest(KoalityBuilderTestCase):
         assert entity.internal_id == build.id
         assert entity.remote_id == '1501'
         assert entity.provider == 'koality'
+        assert entity.data == {
+            'project_id': 1,
+            'change_id': 1501,
+        }
 
         assert len(responses.calls) == 1
 
@@ -272,3 +290,34 @@ class CreateBuildTest(KoalityBuilderTestCase):
         # # TODO(dcramer): this is a pretty gross testing api
         # assert 'Content-Disposition: form-data; name="sha"\r\n\r\n{0}'.format(revision) in call.request.body
         # assert 'Content-Disposition: form-data; name="patch"; filename="patch"\r\nContent-Type: application/octet-stream\r\n\r\n{0}'.format(SAMPLE_DIFF) in call.request.body
+
+    @responses.activate
+    def test_without_entity(self):
+        responses.add(
+            responses.POST, 'https://koality.example.com/api/v/0/repositories/26/changes',
+            body=self.load_fixture('fixtures/POST/change_index.json'))
+
+        backend = self.get_builder()
+
+        revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
+
+        build = Build(
+            repository=self.repo,
+            project=self.create_project(),
+            revision_sha=revision,
+            label='D1345',
+        )
+        db.session.add(build)
+
+        entity = backend.create_build(
+            build=build,
+        )
+
+        assert entity.type == 'build'
+        assert entity.internal_id == build.id
+        assert entity.remote_id == '1501'
+        assert entity.provider == 'koality'
+        assert entity.data == {
+            'project_id': 26,
+            'change_id': 1501,
+        }
