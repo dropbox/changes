@@ -4,9 +4,10 @@ from sqlalchemy.orm import subqueryload_all
 import warnings
 
 from changes.backends.jenkins.builder import JenkinsBuilder
-from changes.config import db, redis, queue
+from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.models import Build, BuildPlan, Plan, Project, RemoteEntity
+from changes.utils.locking import lock
 
 
 def sync_with_builder(build):
@@ -91,18 +92,14 @@ def _sync_build(build_id):
         })
 
 
+@lock
 def sync_build(build_id):
     try:
-        with redis.lock('sync_build:{}'.format(build_id),
-                        timeout=1, expire=60, nowait=True):
-            try:
-                _sync_build(build_id)
-            except Exception as exc:
-                # Ensure we continue to synchronize this build as this could be a
-                # temporary failure
-                current_app.logger.exception('Failed to sync build %s', build_id)
-                raise queue.retry('sync_build', kwargs={
-                    'build_id': build_id,
-                }, exc=exc, countdown=60)
-    except redis.UnableToGetLock:
-        current_app.logger.warn('Unable to get lock for sync_build %s', build_id)
+        _sync_build(build_id)
+    except Exception as exc:
+        # Ensure we continue to synchronize this build as this could be a
+        # temporary failure
+        current_app.logger.exception('Failed to sync build %s', build_id)
+        raise queue.retry('sync_build', kwargs={
+            'build_id': build_id,
+        }, exc=exc, countdown=60)

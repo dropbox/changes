@@ -91,4 +91,4 @@ elif args.command == 'sync':
     for build in builds:
         print "Forcing build sync - {}".format(build.id.hex)
 
-        sync_build(build.id.hex)
+        sync_build(build_id=build.id.hex)

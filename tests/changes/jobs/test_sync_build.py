@@ -49,7 +49,7 @@ class SyncBuildTest(TestCase):
         )
         db.session.add(buildplan)
 
-        sync_build(build.id.hex)
+        sync_build(build_id=build.id.hex)
 
         get_implementation.assert_called_once_with()
 
@@ -76,7 +76,7 @@ class SyncBuildTest(TestCase):
 
         build = self.create_build(self.project)
 
-        sync_build(build.id.hex)
+        sync_build(build_id=build.id.hex)
 
         build = Build.query.get(build.id)
 
