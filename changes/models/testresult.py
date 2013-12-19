@@ -145,6 +145,18 @@ class TestResultManager(object):
 
         return agg
 
+    def clear(self):
+        """
+        Removes all existing test data from this build.
+        """
+        TestCase.query.filter(
+            TestCase.build_id == self.build.id,
+        ).delete()
+
+        TestGroup.query.filter(
+            TestGroup.build_id == self.build.id,
+        ).delete()
+
     def save(self, test_list):
         build = self.build
         project = build.project

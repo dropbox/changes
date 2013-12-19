@@ -93,7 +93,7 @@ def _sync_build(build_id):
 
 def sync_build(build_id):
     try:
-        with redis.lock('sync_build:{}'.format(build_id), timeout=5, nowait=True):
+        with redis.lock('sync_build:{}'.format(build_id), timeout=60, nowait=True):
             try:
                 _sync_build(build_id)
             except Exception as exc:
