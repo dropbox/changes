@@ -58,8 +58,8 @@ def did_cause_breakage(build):
 def get_log_clipping(logsource, max_size=5000, max_lines=25):
     queryset = LogChunk.query.filter(
         LogChunk.source_id == logsource.id,
-    ).order_by(LogChunk.offset.desc())
-    tail = queryset.limit(1).first()
+    )
+    tail = queryset.limit(1).order_by(LogChunk.offset.desc()).first()
 
     chunks = list(queryset.filter(
         (LogChunk.offset + LogChunk.size) >= max(tail.offset - max_size, 0),
