@@ -162,3 +162,9 @@ class GetLogClippingTestCase(TestCase):
 
         result = get_log_clipping(logsource, max_size=200, max_lines=3)
         assert result == "world\r\nhello\r\nworld"
+
+        result = get_log_clipping(logsource, max_size=200, max_lines=1)
+        assert result == "world"
+
+        result = get_log_clipping(logsource, max_size=5, max_lines=3)
+        assert result == "world"

@@ -65,7 +65,7 @@ def get_log_clipping(logsource, max_size=5000, max_lines=25):
         (LogChunk.offset + LogChunk.size) >= max(tail.offset - max_size, 0),
     ).order_by(LogChunk.offset.asc()))
 
-    clipping = ''.join(l.text for l in chunks)[-max_size:]
+    clipping = ''.join(l.text for l in chunks).strip()[-max_size:]
     # only return the last 25 lines
     clipping = '\r\n'.join(clipping.splitlines()[-max_lines:])
 
