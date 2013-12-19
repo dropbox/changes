@@ -15,6 +15,8 @@ class UnableToGetLock(Exception):
 
 
 class _Redis(object):
+    UnableToGetLock = UnableToGetLock
+
     def __init__(self, app, options):
         self.app = app
         self.redis = redis.from_url(app.config['REDIS_URL'])

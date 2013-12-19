@@ -92,13 +92,16 @@ def _sync_build(build_id):
 
 
 def sync_build(build_id):
-    with redis.lock('sync_build:{}'.format(build_id), timeout=5, nowait=True):
-        try:
-            _sync_build(build_id)
-        except Exception as exc:
-            # Ensure we continue to synchronize this build as this could be a
-            # temporary failure
-            current_app.logger.exception('Failed to sync build %s', build_id)
-            raise queue.retry('sync_build', kwargs={
-                'build_id': build_id,
-            }, exc=exc, countdown=60)
+    try:
+        with redis.lock('sync_build:{}'.format(build_id), timeout=5, nowait=True):
+            try:
+                _sync_build(build_id)
+            except Exception as exc:
+                # Ensure we continue to synchronize this build as this could be a
+                # temporary failure
+                current_app.logger.exception('Failed to sync build %s', build_id)
+                raise queue.retry('sync_build', kwargs={
+                    'build_id': build_id,
+                }, exc=exc, countdown=60)
+    except redis.UnableToGetLock:
+        current_app.logger.warn('Unable to get lock for sync_build %s', build_id)
