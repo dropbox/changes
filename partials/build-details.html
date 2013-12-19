@@ -29,7 +29,9 @@
 					<dt ng-if="build.change">Change:</dt>
 					<dd ng-if="build.change"><a href="#">{{build.change.name}}</a></dd>
 					<dt ng-if="build.revision">Revision:</dt>
-					<dd ng-if="build.revision" title="{{build.revision.sha}}">{{build.revision.sha}}</dd>
+					<dd ng-if="build.revision">
+						<a href="/projects/{{project.id}}/commits/{{build.revision.sha}}/">{{build.revision.sha}}</a>
+					</dd>
 					<dt ng-if="build.patch">Patch:</dt>
 					<dd ng-if="build.patch"><a href="/api/0/patches/{{build.patch.id}}/?raw=1">{{build.patch.id}}</a></dd>
 					<dt>Status:</dt>
