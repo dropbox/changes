@@ -345,7 +345,7 @@ class KoalityBuilder(BaseBackend):
         ), data={
             # XXX: passing an empty value for email causes Koality to not
             # send out an email notification
-            'email': '',
+            'emailTo': '',
             'sha': build.revision_sha,
         }, **req_kwargs)
 
