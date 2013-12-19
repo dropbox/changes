@@ -163,7 +163,7 @@ class JenkinsBuilder(BaseBackend):
                 build.result = Result.passed
             elif item['result'] == 'ABORTED':
                 build.result = Result.aborted
-            elif item['result'] in ('FAILURE', 'REGRESSION'):
+            elif item['result'] in ('FAILURE', 'REGRESSION', 'UNSTABLE'):
                 build.result = Result.failed
             else:
                 raise ValueError('Invalid build result: %s' % (item['result'],))
