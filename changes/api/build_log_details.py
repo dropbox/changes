@@ -49,10 +49,15 @@ class BuildLogDetailsAPIView(APIView):
 
         logchunks.sort(key=lambda x: x.date_created)
 
+        if logchunks:
+            next_offset = logchunks[-1].offset + logchunks[-1].size
+        else:
+            next_offset = 0
+
         return self.respond({
             'source': source,
             'chunks': logchunks,
-            'nextOffset': logchunks[-1].offset + logchunks[-1].size,
+            'nextOffset': next_offset,
         })
 
     def get_stream_channels(self, build_id, source_id):
