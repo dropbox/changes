@@ -26,8 +26,11 @@ class _Redis(object):
         return getattr(self.redis, name)
 
     @contextmanager
-    def lock(self, lock_key, timeout=3, nowait=False):
+    def lock(self, lock_key, timeout=3, expire=None, nowait=False):
         conn = self.redis
+
+        if expire is None:
+            expire = timeout
 
         delay = 0.01 + random() / 10
         attempt = 0
@@ -36,7 +39,7 @@ class _Redis(object):
         while not got_lock and attempt < max_attempts:
             pipe = conn.pipeline()
             pipe.setnx(lock_key, '')
-            pipe.expire(lock_key, timeout)
+            pipe.expire(lock_key, expire)
             got_lock = pipe.execute()[0]
             if not got_lock:
                 if nowait:
@@ -52,7 +55,7 @@ class _Redis(object):
         try:
             yield
         finally:
-            self.logger.info('Releasing on %s', lock_key)
+            self.logger.info('Releasing lock on %s', lock_key)
 
             try:
                 conn.delete(lock_key)
