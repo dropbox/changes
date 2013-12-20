@@ -6,7 +6,7 @@ from datetime import datetime
 from changes.api.base import APIView
 from changes.config import db, queue
 from changes.constants import Cause, Status
-from changes.models import Build
+from changes.models import Build, BuildPlan
 
 
 class BuildRetryAPIView(APIView):
@@ -34,13 +34,25 @@ class BuildRetryAPIView(APIView):
             author=build.author,
             cause=Cause.retry,
         )
+        db.session.add(new_build)
+
+        buildplan = BuildPlan.query.filter(
+            BuildPlan.build_id == build.id,
+        ).first()
+        if buildplan:
+            new_build_plan = BuildPlan(
+                project_id=build.project_id,
+                build_id=new_build.id,
+                plan_id=buildplan.plan_id,
+                family_id=buildplan.family_id,
+            )
+            db.session.add(new_build_plan)
 
         # TODO: some of this logic is repeated from the create build endpoint
         if new_build.change:
             new_build.change.date_modified = datetime.utcnow()
             db.session.add(new_build.change)
 
-        db.session.add(new_build)
         db.session.commit()
 
         queue.delay('create_build', kwargs={
