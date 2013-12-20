@@ -48,7 +48,7 @@ class BuildDetailsAPIView(APIView):
 
         if test_failures:
             failure_origins = find_failure_origins(
-                build, test_failures, previous_runs)
+                build, test_failures)
             for test_failure in test_failures:
                 test_failure.origin = failure_origins.get(test_failure)
 
