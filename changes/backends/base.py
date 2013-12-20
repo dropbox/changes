@@ -1,4 +1,4 @@
-class UnrecoverableException(object):
+class UnrecoverableException(Exception):
     pass
 
 
