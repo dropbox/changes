@@ -412,7 +412,6 @@ class JenkinsBuilder(BaseBackend):
                 test_list.append(test_result)
 
         manager = TestResultManager(build)
-        manager.clear()
         manager.save(test_list)
         db.session.commit()
 
