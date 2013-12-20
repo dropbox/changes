@@ -114,6 +114,7 @@ def build(change, **kwargs):
     kwargs.setdefault('repository', change.repository)
     kwargs.setdefault('project', change.project)
     kwargs.setdefault('author', change.author)
+    kwargs.setdefault('duration', random.randint(10000, 100000))
 
     build = Build(change=change, **kwargs)
     db.session.add(build)
