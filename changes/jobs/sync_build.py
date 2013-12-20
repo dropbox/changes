@@ -1,8 +1,10 @@
 from datetime import datetime
 from flask import current_app
 from sqlalchemy.orm import subqueryload_all
+import sys
 import warnings
 
+from changes.backends.base import UnrecoverableException
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
@@ -50,12 +52,19 @@ def _sync_build(build_id):
         # TODO(dcramer): once we migrate to build plans we can remove this
         warnings.warn(
             'Got sync_build task without build plan: %s' % (build_id,))
-        sync_with_builder(build)
-        # raise Exception('No build plan available for %s' % (build_id,))
+        sync = sync_with_builder
     else:
         step = build_plan.plan.steps[0]
         implementation = step.get_implementation()
-        implementation.sync(build=build)
+        sync = implementation.sync
+
+    try:
+        sync(build=build)
+
+    except UnrecoverableException:
+        build.status = Status.finished
+        build.result = Result.unknown
+        current_app.logger.exception('Unrecoverable exception syncing %s', build_id)
 
     build.date_modified = datetime.utcnow()
     db.session.add(build)
@@ -96,10 +105,11 @@ def _sync_build(build_id):
 def sync_build(build_id):
     try:
         _sync_build(build_id)
-    except Exception as exc:
+
+    except Exception:
         # Ensure we continue to synchronize this build as this could be a
         # temporary failure
         current_app.logger.exception('Failed to sync build %s', build_id)
         raise queue.retry('sync_build', kwargs={
             'build_id': build_id,
-        }, exc=exc, countdown=60)
+        }, exc=sys.exc_info(), countdown=60)

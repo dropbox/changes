@@ -10,7 +10,7 @@ from hashlib import sha1
 from flask import current_app
 from uuid import uuid4
 
-from changes.backends.base import BaseBackend
+from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
@@ -517,7 +517,7 @@ class JenkinsBuilder(BaseBackend):
             if entity:
                 job_name = entity.remote_id
             else:
-                raise Exception('Missing Jenkins project configuration')
+                raise UnrecoverableException('Missing Jenkins project configuration')
 
         json_data = {
             'parameter': [

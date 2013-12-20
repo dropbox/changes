@@ -1,3 +1,7 @@
+class UnrecoverableException(object):
+    pass
+
+
 class BaseBackend(object):
     def __init__(self, app):
         self.app = app

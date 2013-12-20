@@ -83,7 +83,7 @@ class SyncBuildTest(TestCase):
         assert build.status == Status.finished
 
         # build sync is abstracted via sync_with_builder
-        sync_with_builder.assert_called_once_with(build)
+        sync_with_builder.assert_called_once_with(build=build)
 
         # ensure signal is fired
         queue_delay.assert_called_once_with('notify_listeners', kwargs={

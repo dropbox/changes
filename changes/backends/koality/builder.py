@@ -7,7 +7,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from changes.backends.base import BaseBackend
+from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update
@@ -323,7 +323,7 @@ class KoalityBuilder(BaseBackend):
     def create_build(self, build):
         project_id = self.project_id
         if not project_id:
-            raise Exception('Missing Koality project configuration')
+            raise UnrecoverableException('Missing Koality project configuration')
 
         req_kwargs = {}
         if build.patch:
