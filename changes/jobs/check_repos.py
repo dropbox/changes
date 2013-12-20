@@ -31,6 +31,7 @@ def check_repos():
     }, synchronize_session=False)
 
     for repo in repo_list:
+        db.session.expire(repo)
         queue.delay('sync_repo', kwargs={
             'repo_id': repo.id.hex,
         })
