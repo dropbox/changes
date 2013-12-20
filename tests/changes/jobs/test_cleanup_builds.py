@@ -24,7 +24,6 @@ class CleanupBuildsTest(TestCase):
 
         assert not queue_delay.called
 
-        db.session.expire_all()
         build = Build.query.filter(
             Build.id == build.id
         ).first()
@@ -45,7 +44,6 @@ class CleanupBuildsTest(TestCase):
         queue_delay.assert_called_once_with(
             'sync_build', kwargs={'build_id': build.id.hex})
 
-        db.session.expire_all()
         build = Build.query.filter(
             Build.id == build.id
         ).first()
@@ -62,7 +60,6 @@ class CleanupBuildsTest(TestCase):
 
         assert not queue_delay.called
 
-        db.session.expire_all()
         build = Build.query.filter(
             Build.id == build.id
         ).first()

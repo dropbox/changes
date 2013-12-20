@@ -28,9 +28,6 @@ def cleanup_builds():
     if not build_list:
         return
 
-    for build in build_list:
-        db.session.expire(build)
-
     expired = frozenset(
         b.id for b in build_list
         if b.date_created < now - EXPIRE_BUILDS
@@ -47,20 +44,24 @@ def cleanup_builds():
     }, synchronize_session=False)
 
     # remove expired builds
-    build_list = [
-        b for b in build_list
+    build_ids = [
+        b.id for b in build_list
         if b.id not in expired
     ]
+
+    for build in build_list:
+        db.session.expire(build)
+
     if not build_list:
         return
 
     db.session.query(Build).filter(
-        Build.id.in_([b.id for b in build_list]),
+        Build.id.in_(build_ids),
     ).update({
         Build.date_modified: now,
     }, synchronize_session=False)
 
-    for build in build_list:
+    for b_id in build_ids:
         queue.delay('sync_build', kwargs={
-            'build_id': build.id.hex,
+            'build_id': b_id.hex,
         })
