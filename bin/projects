@@ -225,7 +225,7 @@ elif args.command == 'options':
         ProjectOption.query.filter(
             ProjectOption.project_id == project.id,
             ProjectOption.name == args.option,
-        ).delete()
+        ).delete(synchronize_session=False)
         print "Ok!"
 
     if args.option_command == 'get':

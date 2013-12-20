@@ -45,7 +45,7 @@ if args.command == 'delete':
     ItemOption.query.filter(
         ItemOption.item_id == args.id,
         ItemOption.name == args.option,
-    ).delete()
+    ).delete(synchronize_session=False)
     print "Ok!"
 
 if args.command == 'get':

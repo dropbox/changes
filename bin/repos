@@ -168,7 +168,7 @@ elif args.command == 'options':
         RepositoryOption.query.filter(
             RepositoryOption.repository_id == repo.id,
             RepositoryOption.name == args.option,
-        ).delete()
+        ).delete(synchronize_session=False)
         print "Ok!"
 
     if args.option_command == 'get':

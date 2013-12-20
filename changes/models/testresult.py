@@ -151,11 +151,11 @@ class TestResultManager(object):
         """
         TestCase.query.filter(
             TestCase.build_id == self.build.id,
-        ).delete()
+        ).delete(synchronize_session=False)
 
         TestGroup.query.filter(
             TestGroup.build_id == self.build.id,
-        ).delete()
+        ).delete(synchronize_session=False)
 
     def save(self, test_list):
         build = self.build

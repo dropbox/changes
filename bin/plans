@@ -187,7 +187,7 @@ elif args.command == 'steps':
 
         Step.query.filter(
             Step.id == step.id,
-        ).delete()
+        ).delete(synchronize_session=False)
 
         print "Removed step %s (%s) from %s" % (
             step.order, step.implementation, plan.id)
@@ -203,7 +203,7 @@ elif args.command == 'steps':
 
         Step.query.filter(
             Step.plan_id == plan.id,
-        ).delete()
+        ).delete(synchronize_session=False)
 
         print "Removed all steps from %s" % (plan.id,)
 
