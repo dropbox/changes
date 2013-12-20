@@ -33,12 +33,17 @@ def create_build(build_id):
                 app=current_app,
                 base_url=current_app.config['JENKINS_URL'],
             )
-            backend.create_build(build)
-            # raise Exception('No build plan available for %s' % (build_id,))
+            create_build = backend.create_build
         else:
-            step = build_plan.plan.steps[0]
+            try:
+                step = build_plan.plan.steps[0]
+            except IndexError:
+                raise UnrecoverableException('Missing steps for plan')
+
             implementation = step.get_implementation()
-            implementation.execute(build)
+            create_build = implementation.execute
+
+        create_build(build=build)
 
     except UnrecoverableException:
         build.status = Status.finished

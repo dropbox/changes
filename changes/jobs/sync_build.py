@@ -48,17 +48,22 @@ def _sync_build(build_id):
         BuildPlan.build_id == build.id,
     ).join(Plan).first()
 
-    if not build_plan:
-        # TODO(dcramer): once we migrate to build plans we can remove this
-        warnings.warn(
-            'Got sync_build task without build plan: %s' % (build_id,))
-        sync = sync_with_builder
-    else:
-        step = build_plan.plan.steps[0]
-        implementation = step.get_implementation()
-        sync = implementation.sync
-
     try:
+
+        if not build_plan:
+            # TODO(dcramer): once we migrate to build plans we can remove this
+            warnings.warn(
+                'Got sync_build task without build plan: %s' % (build_id,))
+            sync = sync_with_builder
+        else:
+            try:
+                step = build_plan.plan.steps[0]
+            except IndexError:
+                raise UnrecoverableException('Missing steps for plan')
+
+            implementation = step.get_implementation()
+            sync = implementation.sync
+
         sync(build=build)
 
     except UnrecoverableException:
