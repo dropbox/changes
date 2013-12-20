@@ -68,7 +68,7 @@ def _sync_build(build_id):
 
     except UnrecoverableException:
         build.status = Status.finished
-        build.result = Result.unknown
+        build.result = Result.aborted
         current_app.logger.exception('Unrecoverable exception syncing %s', build_id)
 
     build.date_modified = datetime.utcnow()

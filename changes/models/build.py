@@ -71,5 +71,7 @@ class Build(db.Model):
             self.status = Status.unknown
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+        if self.date_modified is None:
+            self.date_modified = self.date_created
         if self.date_started and self.date_finished and not self.duration:
             self.duration = (self.date_finished - self.date_started).total_seconds() * 1000

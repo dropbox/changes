@@ -47,7 +47,7 @@ def create_build(build_id):
 
     except UnrecoverableException:
         build.status = Status.finished
-        build.result = Result.unknown
+        build.result = Result.aborted
         current_app.logger.exception('Unrecoverable exception creating %s', build_id)
         return
 
