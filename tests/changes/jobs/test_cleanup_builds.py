@@ -4,7 +4,7 @@ import mock
 
 from datetime import datetime
 
-from changes.config import db, queue
+from changes.config import queue
 from changes.constants import Result, Status
 from changes.jobs.cleanup_builds import (
     cleanup_builds, EXPIRE_BUILDS, CHECK_BUILDS)
