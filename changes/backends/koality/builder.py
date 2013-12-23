@@ -239,9 +239,12 @@ class KoalityBuilder(BaseBackend):
             build.date_finished = self._get_end_time(stage_list)
 
             if change['startTime']:
-                build.date_started = min(
-                    build.date_started,
-                    datetime.utcfromtimestamp(change['startTime'] / 1000))
+                if build.date_started:
+                    build.date_started = min(
+                        build.date_started,
+                        datetime.utcfromtimestamp(change['startTime'] / 1000))
+                else:
+                    build.date_started = datetime.utcfromtimestamp(change['startTime'] / 1000)
 
             # for stage in (s for s in stages if s['status'] == 'failed'):
             if build.date_started and build.date_finished:
