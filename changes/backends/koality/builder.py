@@ -55,6 +55,8 @@ class KoalityBuilder(BaseBackend):
 
     def _get_response(self, method, url, **kwargs):
         kwargs.setdefault('params', {})
+        # TODO(dcramer): ensure SSL is usable
+        kwargs.setdefault('verify', False)
         kwargs['params'].setdefault('key', self.api_key)
         response = getattr(requests, method.lower())(url, **kwargs)
         data = response.text
