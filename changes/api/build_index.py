@@ -20,6 +20,27 @@ def create_build(project, sha, label, target, message, author, change=None,
                  patch_file=None, patch_label=None):
     repository = project.repository
 
+    plan_list = list(project.plans)
+    if plan_list and patch_file:
+        options = dict(
+            db.session.query(
+                ItemOption.item_id, ItemOption.value
+            ).filter(
+                ItemOption.item_id.in_([p.id for p in plan_list]),
+                ItemOption.name.in_([
+                    'build.allow-patches',
+                ])
+            )
+        )
+        plan_list = [
+            p for p in plan_list
+            if options.get(p.id, '1') == '1'
+        ]
+
+        # no plans remained
+        if not plan_list:
+            return []
+
     if patch_file:
         patch = Patch(
             change=change,
@@ -35,13 +56,26 @@ def create_build(project, sha, label, target, message, author, change=None,
 
     builds = []
 
-    plan_list = list(project.plans)
+    family = BuildFamily(
+        project=project,
+        repository=repository,
+        status=Status.queued,
+        author=author,
+        label=label,
+        target=target,
+        revision_sha=sha,
+        message=message,
+    )
+
+    db.session.add(family)
+
     if not plan_list:
         # Legacy support
         # TODO(dcramer): remove this after we transition to plans
         warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
 
         build = Build(
+            family=family,
             project=project,
             repository=repository,
             status=Status.queued,
@@ -57,39 +91,6 @@ def create_build(project, sha, label, target, message, author, change=None,
         db.session.add(build)
 
         builds.append(build)
-    else:
-        if patch:
-            options = dict(
-                db.session.query(
-                    ItemOption.item_id, ItemOption.value
-                ).filter(
-                    ItemOption.item_id.in_([p.id for p in plan_list]),
-                    ItemOption.name.in_([
-                        'build.allow-patches',
-                    ])
-                )
-            )
-            plan_list = [
-                p for p in plan_list
-                if options.get(p.id, '1') == '1'
-            ]
-
-        # no plans remained
-        if not plan_list:
-            return []
-
-        family = BuildFamily(
-            project=project,
-            repository=repository,
-            status=Status.queued,
-            author=author,
-            label=label,
-            target=target,
-            revision_sha=sha,
-            message=message,
-        )
-
-        db.session.add(family)
 
     for plan in plan_list:
         build = Build(
@@ -105,9 +106,6 @@ def create_build(project, sha, label, target, message, author, change=None,
             change=change,
             family=family,
         )
-
-        if patch:
-            build.patch = patch
 
         db.session.add(build)
 

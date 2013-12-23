@@ -48,6 +48,10 @@ class BuildCreateTest(APITestCase):
         assert build.author.name == 'David Cramer'
         assert build.author.email == 'dcramer@example.com'
 
+        family = build.family
+
+        self.assertBuildMatchesFamily(build, family)
+
     def test_with_sha(self):
         path = '/api/0/builds/'
         resp = self.client.post(path, data={
