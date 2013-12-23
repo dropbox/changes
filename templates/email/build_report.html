@@ -240,7 +240,7 @@ tr.odd td {
 			</tr>
 		</thead>
 		<tbody>
-			{% for project, stats in projects %}
+			{% for project, stats in projects_by_green_builds %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<th><a href="#">{{ project.name }}</a></th>
 					{% if stats.green_percent %}
@@ -274,7 +274,7 @@ tr.odd td {
 			</tr>
 		</thead>
 		<tbody>
-			{% for project, stats in projects %}
+			{% for project, stats in projects_by_build_time %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<th><a href="#">{{ project.name }}</a></th>
 					{% if stats.green_percent %}
