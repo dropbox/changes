@@ -241,15 +241,15 @@ tr.odd td {
 			</tr>
 		</thead>
 		<tbody>
-			{% for project, stats in projects_by_green_builds %}
+			{% for project, data in projects_by_green_builds %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<th><a href="#">{{ project.name }}</a></th>
-					{% if stats.green_percent %}
-						<td style="text-align:right;width:60px">{{ stats.green_percent }}%</td>
+					<th><a href="{{ data.link }}">{{ project.name }}</a></th>
+					{% if data.green_percent %}
+						<td style="text-align:right;width:60px">{{ data.green_percent }}%</td>
 						<td style="text-align:left;width:40px"
-							class="{% if stats.percent_change > 0 %}up{% elif stats.percent_change %}down{% else %}none{% endif %}">
-							{% if stats.percent_change %}
-								{% if stats.percent_change > 0 %}+{% endif %}{{ stats.percent_change }}%
+							class="{% if data.percent_change > 0 %}up{% elif data.percent_change %}down{% else %}none{% endif %}">
+							{% if data.percent_change %}
+								{% if data.percent_change > 0 %}+{% endif %}{{ data.percent_change }}%
 							{% else %}
 								0%
 							{% endif %}
@@ -276,15 +276,15 @@ tr.odd td {
 				</tr>
 			</thead>
 			<tbody>
-				{% for project, stats in projects_by_build_time %}
+				{% for project, data in projects_by_build_time %}
 					<tr class="{{ loop.cycle('odd', 'even') }}">
-						<th><a href="#">{{ project.name }}</a></th>
-						{% if stats.green_percent %}
-							<td style="text-align:right;width:60px">{{ stats.avg_duration|duration }}</td>
+						<th><a href="{{ data.link }}">{{ project.name }}</a></th>
+						{% if data.green_percent %}
+							<td style="text-align:right;width:60px">{{ data.avg_duration|duration }}</td>
 							<td style="text-align:left;width:60px"
-								class="{% if stats.duration_change > 0 %}down{% elif stats.duration_change %}up{% else %}none{% endif %}">
-								{% if stats.duration_change %}
-									{% if stats.duration_change > 0 %}+{% endif %}{{ stats.duration_change|duration }}
+								class="{% if data.duration_change > 0 %}down{% elif data.duration_change %}up{% else %}none{% endif %}">
+								{% if data.duration_change %}
+									{% if data.duration_change > 0 %}+{% endif %}{{ data.duration_change|duration }}
 								{% else %}
 									0 s
 								{% endif %}
@@ -311,7 +311,7 @@ tr.odd td {
 					{% for test in tests.slow_list %}
 					<tr class="{{ loop.cycle('odd', 'even') }}">
 						<th>
-							<a href="#" class="truncate">{{ test.name }}</a><br>
+							<a href="{{ test.link }}" class="truncate">{{ test.name }}</a><br>
 							{% if test.package %}
 								<small class="truncate">{{ test.package }}</small>
 							{% endif %}
@@ -335,7 +335,7 @@ tr.odd td {
 					{% for test in tests.flakey_list %}
 					<tr class="{{ loop.cycle('odd', 'even') }}">
 						<th>
-							<a href="#" class="truncate">{{ test.name }}</a><br>
+							<a href="{{ test.link }}" class="truncate">{{ test.name }}</a><br>
 							{% if test.package %}
 								<small class="truncate">{{ test.package }}</small>
 							{% endif %}

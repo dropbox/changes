@@ -9,6 +9,8 @@ from sqlalchemy.sql import func, and_
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import Build, AggregateTestGroup, TestGroup
+from changes.utils.http import build_uri
+
 
 SLOW_TEST_THRESHOLD = 3000  # ms
 
@@ -108,6 +110,7 @@ class BuildReport(object):
                 'green_builds': 0,
                 'green_percent': None,
                 'avg_duration': 0,
+                'link': build_uri('/projects/{0}/'.format(project.slug)),
             }
 
         for project_id, result, num_builds, duration in query:
@@ -162,11 +165,15 @@ class BuildReport(object):
                 package = None
                 name = group.name
 
+            project = projects_by_id[group.project_id]
+
             slow_list.append({
-                'project': projects_by_id[group.project_id],
+                'project': project,
                 'name': name,
                 'package': package,
                 'duration': '%.2f s' % (group.duration / 1000.0,),
+                'link': build_uri('/projects/{0}/tests/{1}/'.format(
+                    project.slug, agg.id.hex)),
             })
 
         return slow_list
@@ -249,12 +256,16 @@ class BuildReport(object):
                 package = None
                 name = agg.name
 
+            project = projects_by_id[agg.project_id]
+
             results.append({
                 'name': name,
                 'package': package,
                 'fail_pct': int(pct),
                 'fail_count': fail_count,
                 'total_count': total,
+                'link': build_uri('/projects/{0}/tests/{1}/'.format(
+                    project.slug, agg.id.hex)),
             })
 
         return results
