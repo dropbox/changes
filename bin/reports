@@ -39,7 +39,7 @@ parser_send.add_argument(
     '-p', '--project', dest='projects', help='project ID or slug',
     action='append')
 parser_send.add_argument(
-    dest='emails', action='append', help='email', nargs='?')
+    dest='emails', action='append', help='email', nargs='+')
 
 
 args = parser.parse_args()
