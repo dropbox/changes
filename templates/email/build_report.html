@@ -54,6 +54,7 @@ a {
 }
 small {
 	color: #999;
+	font-size: 0.8em;
 }
 h2 {
 	font-size: 22px;
@@ -262,87 +263,92 @@ tr.odd td {
 		</tbody>
 	</table>
 
-	<div class="subheader">
-		<h2>Build Time</h2>
-	</div>
+	<div id="build-time">
+		<div class="subheader">
+			<h2>Build Time</h2>
+		</div>
 
-	<table>
-		<thead>
-			<tr>
-				<th>Project</th>
-				<th style="text-align:center;width:120px" colspan="2">Avg Duration</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for project, stats in projects_by_build_time %}
-				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<th><a href="#">{{ project.name }}</a></th>
-					{% if stats.green_percent %}
-						<td style="text-align:right;width:60px">{{ stats.avg_duration|duration }}</td>
-						<td style="text-align:left;width:60px"
-							class="{% if stats.duration_change > 0 %}down{% elif stats.duration_change %}up{% else %}none{% endif %}">
-							{% if stats.duration_change %}
-								{% if stats.duration_change > 0 %}+{% endif %}{{ stats.duration_change|duration }}
-							{% else %}
-								0 s
-							{% endif %}
-						</td>
-					{% else %}
-						<td>&nbsp;</td>
-						<td>&nbsp;</td>
-					{% endif %}
+		<table>
+			<thead>
+				<tr>
+					<th>Project</th>
+					<th style="text-align:center;width:120px" colspan="2">Avg Duration</th>
 				</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-
+			</thead>
+			<tbody>
+				{% for project, stats in projects_by_build_time %}
+					<tr class="{{ loop.cycle('odd', 'even') }}">
+						<th><a href="#">{{ project.name }}</a></th>
+						{% if stats.green_percent %}
+							<td style="text-align:right;width:60px">{{ stats.avg_duration|duration }}</td>
+							<td style="text-align:left;width:60px"
+								class="{% if stats.duration_change > 0 %}down{% elif stats.duration_change %}up{% else %}none{% endif %}">
+								{% if stats.duration_change %}
+									{% if stats.duration_change > 0 %}+{% endif %}{{ stats.duration_change|duration }}
+								{% else %}
+									0 s
+								{% endif %}
+							</td>
+						{% else %}
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+						{% endif %}
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
 
 
 	{% if tests.slow_list %}
-		<div class="subheader">
-			<h2>Slowest Tests</h2>
-		</div>
+		<div id="slowest-tests">
+			<div class="subheader">
+				<h2>Slowest Tests</h2>
+			</div>
 
-		<table>
-			<tbody>
-				{% for test in tests.slow_list %}
-				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<th>
-						<a href="#" class="truncate">{{ test.name }}</a><br>
-						{% if test.package %}
-							<small class="truncate">{{ test.package }}</small>
-						{% endif %}
-					</th>
-					<td class="duration">{{ test.duration }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+			<table>
+				<tbody>
+					{% for test in tests.slow_list %}
+					<tr class="{{ loop.cycle('odd', 'even') }}">
+						<th>
+							<a href="#" class="truncate">{{ test.name }}</a><br>
+							{% if test.package %}
+								<small class="truncate">{{ test.package }}</small>
+							{% endif %}
+						</th>
+						<td class="duration">{{ test.duration }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
 	{% endif %}
 
 	{% if tests.flakey_list %}
-		<div class="subheader">
-			<h2>Most Frequent Failures</h2>
-		</div>
+		<div id="frequent-failures">
+			<div class="subheader">
+				<h2>Most Frequent Failures</h2>
+			</div>
 
-		<table>
-			<tbody>
-				{% for test in tests.flakey_list %}
-				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<th>
-						<a href="#" class="truncate">{{ test.name }}</a><br>
-						{% if test.package %}
-							<small class="truncate">{{ test.package }}</small>
-						{% endif %}
-					</th>
-					<td class="duration">
-						{{ test.fail_pct }}%<br>
-						<small>{{ test.fail_count }} times</small>
-					</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+			<table>
+				<tbody>
+					{% for test in tests.flakey_list %}
+					<tr class="{{ loop.cycle('odd', 'even') }}">
+						<th>
+							<a href="#" class="truncate">{{ test.name }}</a><br>
+							{% if test.package %}
+								<small class="truncate">{{ test.package }}</small>
+							{% endif %}
+						</th>
+						<td class="duration">
+							{{ test.fail_pct }}%<br>
+							<small>{{ test.fail_count }} times</small>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
 	{% endif %}
 </div>
 
