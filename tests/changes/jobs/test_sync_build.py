@@ -62,7 +62,7 @@ class SyncBuildTest(TestCase):
         assert len(sync_with_builder.mock_calls) == 0
 
         # ensure signal is fired
-        queue_delay.assert_called_once_with('sync_build', kwargs={
+        queue_delay.assert_any_call('sync_build', kwargs={
             'build_id': build.id.hex,
         }, countdown=1)
 
@@ -86,7 +86,11 @@ class SyncBuildTest(TestCase):
         sync_with_builder.assert_called_once_with(build=build)
 
         # ensure signal is fired
-        queue_delay.assert_called_once_with('notify_listeners', kwargs={
+        queue_delay.assert_any_call('update_project_stats', kwargs={
+            'project_id': self.project.id.hex,
+        }, countdown=1)
+
+        queue_delay.assert_any_call('notify_listeners', kwargs={
             'build_id': build.id.hex,
             'signal_name': 'build.finished',
         })
