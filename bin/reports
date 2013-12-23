@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+from flask import render_template
+from flask_mail import Message
+from pynliner import Pynliner
+
+from changes.config import create_app, mail
+from changes.models import Project
+from changes.reports.build import BuildReport
+
+
+def get_project(id_):
+    if len(id_) == 40:
+        # assume its a uuid
+        project = Project.query.get(id_)
+    else:
+        project = Project.query.filter_by(slug=id_).first()
+
+    if not project:
+        print "Project not found: {0}".format(id_)
+        sys.exit(1)
+
+    return project
+
+
+app = create_app()
+app_context = app.app_context()
+app_context.push()
+
+parser = argparse.ArgumentParser(description='Manage reports')
+
+subparsers = parser.add_subparsers(dest='command')
+
+parser_send = subparsers.add_parser('send', help='send report')
+parser_send.add_argument(
+    '-p', '--project', dest='projects', help='project ID or slug',
+    action='append')
+parser_send.add_argument(
+    dest='emails', action='append', help='email', nargs='?')
+
+
+args = parser.parse_args()
+
+if args.command == 'send':
+    if not args.projects:
+        projects = Project.query.all()
+    else:
+        projects = [get_project(p) for p in args.projects]
+
+    report = BuildReport(projects)
+
+    context = report.generate()
+
+    html_content = Pynliner().from_string(
+        render_template('email/build_report.html', **context)
+    ).run()
+
+    msg = Message(context['title'], recipients=args.emails)
+    msg.body = 'HTML only, #dealwithit'
+    msg.html = html_content
+
+    mail.send(msg)

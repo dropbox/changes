@@ -8,8 +8,7 @@ from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import TestGroup, Project, Build
-
-SLOW_TEST_THRESHOLD = 1000  # 1 second
+from changes.reports.build import SLOW_TEST_THRESHOLD
 
 
 def parse_date(value):

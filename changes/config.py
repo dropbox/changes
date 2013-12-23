@@ -142,6 +142,12 @@ def create_app(_read_config=True, **config):
     register_signal(sentry.client)
     register_logger_signal(sentry.client)
 
+    # configure debug routes first
+    if app.debug:
+        configure_debug_routes(app)
+
+    configure_templates(app)
+
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
     configure_web_routes(app)
@@ -151,6 +157,12 @@ def create_app(_read_config=True, **config):
     configure_jobs(app)
 
     return app
+
+
+def configure_templates(app):
+    from changes.utils.times import duration
+
+    app.jinja_env.filters['duration'] = duration
 
 
 def configure_api_routes(app):
@@ -236,6 +248,13 @@ def configure_web_routes(app):
         '/<path:path>', view_func=IndexView.as_view('index-path'))
     app.add_url_rule(
         '/', view_func=IndexView.as_view('index'))
+
+
+def configure_debug_routes(app):
+    from changes.debug.reports.build import BuildReportMailView
+
+    app.add_url_rule(
+        '/debug/mail/report/build/', view_func=BuildReportMailView.as_view('debug-build-report'))
 
 
 def configure_jobs(app):
