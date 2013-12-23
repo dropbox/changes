@@ -220,7 +220,7 @@ class BuildReport(object):
             # if the test has failed 100% of the time, it's not flakey
             if pct == 100:
                 continue
-            tests_with_pct.append((test_key, pct))
+            tests_with_pct.append((test_key, pct, counts['failed']))
         tests_with_pct.sort(key=lambda x: x[1], reverse=True)
 
         flakiest_tests = tests_with_pct[:10]
@@ -238,7 +238,7 @@ class BuildReport(object):
         )
 
         results = []
-        for test_key, pct in flakiest_tests:
+        for test_key, pct, count in flakiest_tests:
             agg = aggregates[test_key]
 
             package, name = agg.name.rsplit('.', 1)
@@ -253,6 +253,7 @@ class BuildReport(object):
                 'name': name,
                 'package': package,
                 'fail_pct': int(pct),
+                'fail_count': count,
             })
 
         return results
