@@ -342,7 +342,7 @@ tr.odd td {
 						</th>
 						<td class="duration">
 							{{ test.fail_pct }}%<br>
-							<small>{{ test.fail_count }} times</small>
+							<small>{{ test.fail_count }} out of {{ test.total_count }}</small>
 						</td>
 					</tr>
 					{% endfor %}
