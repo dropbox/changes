@@ -88,7 +88,7 @@ def send_notification(build, recipients):
     ).order_by(LogSource.date_created.asc()).first()
     if primary_log:
         log_clipping = get_log_clipping(
-            primary_log, max_size=5000, max_lines=50)
+            primary_log, max_size=5000, max_lines=25)
 
     subject = u"Build {result} - {target} ({project})".format(
         result=unicode(build.result),
