@@ -22,11 +22,13 @@ class Build(db.Model):
         Index('idx_build_patch_id', 'patch_id'),
         Index('idx_build_change_id', 'change_id'),
         Index('idx_build_source_id', 'source_id'),
+        Index('idx_build_family_id', 'family_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     # TODO(dcramer): change should be removed in favor of an m2m between
     # Change and Source
+    family_id = Column(GUID, ForeignKey('buildfamily.id'))
     change_id = Column(GUID, ForeignKey('change.id'))
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     source_id = Column(GUID, ForeignKey('source.id'))
@@ -52,6 +54,7 @@ class Build(db.Model):
     data = Column(JSONEncodedDict)
 
     change = relationship('Change')
+    family = relationship('BuildFamily')
     repository = relationship('Repository')
     project = relationship('Project')
     source = relationship('Source')

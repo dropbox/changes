@@ -22,6 +22,7 @@ class BuildListTest(APITestCase):
 
 class BuildCreateTest(APITestCase):
     def assertBuildMatchesFamily(self, build, family):
+        assert family.id == build.family_id
         assert family.repository_id == build.repository_id
         assert family.project_id == build.project_id
         assert family.author_id == build.author_id

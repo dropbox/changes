@@ -102,7 +102,8 @@ def create_build(project, sha, label, target, message, author, change=None,
             revision_sha=sha,
             message=message,
             patch=patch,
-            change=change
+            change=change,
+            family=family,
         )
 
         if patch:
