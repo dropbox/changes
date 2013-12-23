@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import json
 import sys
 
 from changes.config import create_app, db
 from changes.db.utils import create_or_update
-from changes.models import (
-    Project, ProjectOption, Repository, RemoteEntity
-)
-
-PROVIDER_CHOICES = ['koality', 'jenkins', 'unknown']
+from changes.models import Project, ProjectOption, Repository
 
 
 def abort():
@@ -59,16 +54,12 @@ parser_add = subparsers.add_parser('add', help='add project')
 parser_add.add_argument('--label', dest='label', help='project label')
 parser_add.add_argument('--repo-url', metavar='url', dest='repo_url', help='repository url')
 parser_add.add_argument('--slug', metavar='slug', dest='slug', help='project slug')
-parser_add.add_argument('--provider', dest='provider', help='provider slug', choices=PROVIDER_CHOICES)
-parser_add.add_argument('--provider-options', dest='provider_options', help='provider options (json)')
 
 parser_edit = subparsers.add_parser('edit', help='edit project')
 parser_edit.add_argument('id', help='project ID or slug')
 parser_edit.add_argument('--label', dest='label', help='project label')
 parser_edit.add_argument('--repo-url', metavar='url', dest='repo_url', help='repository url')
 parser_edit.add_argument('--slug', metavar='slug', dest='slug', help='project slug')
-parser_edit.add_argument('--provider', dest='provider', help='provider slug', choices=PROVIDER_CHOICES)
-parser_edit.add_argument('--provider-options', dest='provider_options', help='provider options (json)')
 
 parser_list = subparsers.add_parser('list', help='list projects')
 
@@ -104,18 +95,6 @@ if args.command == 'add':
     except IndexError:
         repo = Repository(url=repo_url)
 
-    provider = args.provider or get_input('Provider', choices=PROVIDER_CHOICES)
-    provider_options = json.loads(args.provider_options or "{}")
-
-    if provider == 'koality':
-        provider_options.setdefault('type', 'project')
-        if not provider_options.get('remote_id'):
-            provider_options['remote_id'] = get_input('Koality project ID')
-    elif provider == 'jenkins':
-        provider_options.setdefault('type', 'job')
-        if not provider_options.get('remote_id'):
-            provider_options['remote_id'] = get_input('Jenkins job name')
-
     try:
         repo = Repository.query.filter_by(url=repo_url)[0]
     except IndexError:
@@ -126,13 +105,7 @@ if args.command == 'add':
         name=name,
         repository=repo,
     )
-    entity = RemoteEntity(
-        provider=provider,
-        internal_id=project.id,
-        **provider_options
-    )
     db.session.add(project)
-    db.session.add(entity)
 
     print "Created new project with ID {%s}" % (
         project.id,
@@ -146,13 +119,6 @@ elif args.command == 'edit':
     if args.slug:
         project.slug = args.slug
 
-    if args.provider_options:
-        provider_options = json.loads(args.provider_options)
-        need_provider_options = True
-    else:
-        provider_options = {}
-        need_provider_options = False
-
     if args.repo_url:
         repo = Repository.query.filter(
             Repository.url == args.repo_url
@@ -161,39 +127,6 @@ elif args.command == 'edit':
             repo = Repository(url=args.repo_url)
             db.session.add(repo)
         project.repository = repo
-
-    if args.provider:
-        provider = args.provider
-        if args.provider != 'unknown':
-            need_provider_options = True
-
-    if need_provider_options:
-        if provider == 'koality':
-            entity_type = 'project'
-        elif provider == 'jenkins':
-            entity_type = 'job'
-        else:
-            abort()
-
-        entity = RemoteEntity.query.filter_by(
-            provider=provider,
-            internal_id=project.id,
-            type=entity_type,
-        ).first()
-        if entity is None:
-            entity = RemoteEntity(
-                provider=provider,
-                internal_id=project.id,
-                remote_id=provider_options.get('remote_id'),
-                type=entity_type,
-            )
-
-        if provider == 'koality':
-            entity.remote_id = provider_options.get('remote_id') or get_input('Koality project ID')
-        elif provider == 'jenkins':
-            entity.remote_id = provider_options.get('remote_id') or get_input('Jenkins job name')
-
-        db.session.add(entity)
 
     db.session.add(project)
 
