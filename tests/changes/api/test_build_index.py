@@ -42,7 +42,9 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
+
         build = Build.query.get(data['builds'][0]['id'])
+
         assert build.project == self.project
         assert build.revision_sha is None
         assert build.author.name == 'David Cramer'
@@ -68,6 +70,10 @@ class BuildCreateTest(APITestCase):
         assert build.revision_sha == 'a' * 40
         assert build.author.name == 'David Cramer'
         assert build.author.email == 'dcramer@example.com'
+
+        source = build.source
+        assert source.repository_id == build.repository_id
+        assert source.revision_sha == 'a' * 40
 
     def test_with_full_params(self):
         change = self.create_change(self.project)
@@ -103,6 +109,11 @@ class BuildCreateTest(APITestCase):
         assert patch.diff == SAMPLE_DIFF
         assert patch.label == 'My patch'
         assert patch.parent_revision_sha == 'a' * 40
+
+        source = build.source
+        assert source.repository_id == build.repository_id
+        assert source.revision_sha == 'a' * 40
+        assert source.patch_id == patch.id
 
     def test_with_patch_without_change(self):
         path = '/api/0/builds/'

@@ -10,9 +10,10 @@ from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
+from changes.db.utils import get_or_create
 from changes.models import (
     Project, BuildFamily, Build, BuildPlan, Repository, Patch, ProjectOption,
-    Change, ItemOption
+    Change, ItemOption, Source
 )
 
 
@@ -54,10 +55,20 @@ def create_build(project, sha, label, target, message, author, change=None,
     else:
         patch = None
 
+    if sha or patch:
+        source, _ = get_or_create(Source, where={
+            'repository': repository,
+            'patch': patch,
+            'revision_sha': sha,
+        })
+    else:
+        source = None
+
     builds = []
 
     family = BuildFamily(
         project=project,
+        source=source,
         repository=repository,
         status=Status.queued,
         author=author,
@@ -76,6 +87,7 @@ def create_build(project, sha, label, target, message, author, change=None,
 
         build = Build(
             family=family,
+            source=source,
             project=project,
             repository=repository,
             status=Status.queued,
@@ -95,6 +107,7 @@ def create_build(project, sha, label, target, message, author, change=None,
     for plan in plan_list:
         build = Build(
             project=project,
+            source=source,
             repository=repository,
             status=Status.queued,
             author=author,

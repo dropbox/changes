@@ -20,6 +20,7 @@ class BuildRetryAPIView(APIView):
             return Response(status=404)
 
         new_build = Build(
+            source=build.source,
             change=build.change,
             repository=build.repository,
             project=build.project,
