@@ -205,7 +205,8 @@ class BuildReport(object):
             total = counts['passed'] + counts['failed']
             if counts['failed'] == 0:
                 continue
-            elif not total:
+            # exclude tests which haven't been seen frequently
+            elif total < 5:
                 continue
             else:
                 pct = counts['failed'] / total * 100
