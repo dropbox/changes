@@ -7,7 +7,7 @@ def duration(value):
 
     if value < 3 * ONE_SECOND:
         return '%d ms' % (value,)
-    elif value < 12 * ONE_MINUTE:
+    elif value < 5 * ONE_MINUTE:
         return '%d s' % (value / ONE_SECOND,)
     else:
         return '%d m' % (value / ONE_MINUTE,)
