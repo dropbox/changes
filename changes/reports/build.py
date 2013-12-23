@@ -83,7 +83,7 @@ class BuildReport(object):
         query = db.session.query(
             Build.project_id, Build.result,
             func.count(Build.id).label('num'),
-            func.sum(Build.duration).label('duration'),
+            func.avg(Build.duration).label('duration'),
         ).filter(
             Build.revision_sha != None,  # NOQA
             Build.patch_id == None,
@@ -110,7 +110,7 @@ class BuildReport(object):
             project = projects_by_id[project_id]
 
             if result == Result.passed:
-                project_results[project]['avg_duration'] += duration
+                project_results[project]['avg_duration'] = duration
 
             project_results[project]['total_builds'] += num_builds
             if result == Result.passed:
