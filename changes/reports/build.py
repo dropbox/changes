@@ -217,6 +217,9 @@ class BuildReport(object):
                 continue
             else:
                 pct = counts['failed'] / total * 100
+            # if the test has failed 100% of the time, it's not flakey
+            if pct == 100:
+                continue
             tests_with_pct.append((test_key, pct))
         tests_with_pct.sort(key=lambda x: x[1], reverse=True)
 
