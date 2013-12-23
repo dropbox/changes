@@ -20,8 +20,8 @@ from changes.db.utils import model_repr
 test_group_m2m_table = Table(
     'testgroup_test',
     db.Model.metadata,
-    Column('group_id', GUID, ForeignKey('testgroup.id'), nullable=False, primary_key=True),
-    Column('test_id', GUID, ForeignKey('test.id'), nullable=False, primary_key=True)
+    Column('group_id', GUID, ForeignKey('testgroup.id', ondelete="CASCADE"), nullable=False, primary_key=True),
+    Column('test_id', GUID, ForeignKey('test.id', ondelete="CASCADE"), nullable=False, primary_key=True)
 )
 
 
@@ -38,8 +38,8 @@ class TestSuite(db.Model):
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name_sha = Column(String(40), nullable=False, default=sha1('default').hexdigest())
     name = Column(Text, nullable=False, default='default')
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -76,10 +76,10 @@ class TestGroup(db.Model):
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    suite_id = Column(GUID, ForeignKey('testsuite.id'))
-    parent_id = Column(GUID, ForeignKey('testgroup.id'))
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
+    parent_id = Column(GUID, ForeignKey('testgroup.id', ondelete="CASCADE"))
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
     duration = Column(Integer, default=0)
@@ -128,9 +128,9 @@ class TestCase(db.Model):
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    suite_id = Column(GUID, ForeignKey('testsuite.id'))
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
     name_sha = Column('label_sha', String(40), nullable=False)
     name = Column(Text, nullable=False)
     package = Column(Text, nullable=True)
