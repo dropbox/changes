@@ -376,6 +376,7 @@ class JenkinsBuilder(BaseBackend):
             if not created:
                 db.session.query(AggregateTestSuite).filter(
                     AggregateTestSuite.id == agg.id,
+                    AggregateTestSuite.last_build_id == agg.last_build_id,
                 ).update({
                     AggregateTestSuite.last_build_id: build.id,
                 }, synchronize_session=False)
