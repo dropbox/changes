@@ -40,6 +40,9 @@ parser_send.add_argument(
     action='append')
 parser_send.add_argument(
     dest='emails', help='email', nargs='+')
+parser_send.add_argument(
+    '-d', '--days', dest='days', type=int, help='period length (days)',
+    default=7)
 
 
 args = parser.parse_args()
@@ -52,7 +55,7 @@ if args.command == 'send':
 
     report = BuildReport(projects)
 
-    context = report.generate()
+    context = report.generate(days=args.days)
 
     html_content = Pynliner().from_string(
         render_template('email/build_report.html', **context)
