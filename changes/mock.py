@@ -10,8 +10,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Build, BuildPhase, BuildStep,
-    TestResult, Change, LogChunk, TestSuite, BuildFamily, BuildPlan, Plan,
-    BuildPlan
+    TestResult, Change, LogChunk, TestSuite, BuildFamily, BuildPlan, Plan
 )
 from changes.db.utils import get_or_create
 
