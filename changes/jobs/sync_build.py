@@ -8,7 +8,7 @@ from changes.backends.base import UnrecoverableException
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
-from changes.models import Build, BuildPlan, Plan, Project, RemoteEntity
+from changes.models import Build, BuildPlan, Plan, RemoteEntity
 from changes.utils.locking import lock
 
 
