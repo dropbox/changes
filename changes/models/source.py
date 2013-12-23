@@ -2,6 +2,7 @@
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.schema import UniqueConstraint
 from uuid import uuid4
 
 from changes.config import db
@@ -16,15 +17,21 @@ class Source(db.Model):
     integration this is considered optional, and defaults to tip/master), and
     an optional patch_id to apply on top of it.
     """
-    __tablename__ = 'source'
-
     id = Column(GUID, primary_key=True, default=uuid4)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    patch_id = Column(GUID, ForeignKey('patch.id'))
+    patch_id = Column(GUID, ForeignKey('patch.id'), unique=True)
     revision_sha = Column(String(40))
     date_created = Column(DateTime, default=datetime.utcnow)
 
     repository = relationship('Repository')
+    patch = relationship('Patch')
+
+    __tablename__ = 'source'
+    __table_args__ = (
+        UniqueConstraint(
+            'repository_id', 'revision_sha', name='unq_source_revision',
+            postgresql_where=(patch_id == None)),  # NOQA
+    )
 
     def __init__(self, **kwargs):
         super(Source, self).__init__(**kwargs)
