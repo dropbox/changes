@@ -40,32 +40,40 @@ def create_new_entry(project):
         db.session.add(change)
         revision = mock.revision(project.repository, change.author)
 
-    build = mock.build(
-        change=change,
+    date_started = datetime.utcnow()
+
+    family = mock.family(
         author=change.author,
+        project=project,
         revision_sha=revision.sha,
         message=change.message,
         result=Result.unknown,
         status=Status.in_progress,
-        date_started=datetime.utcnow(),
+        date_started=date_started,
     )
 
-    logsource = LogSource(
-        build=build,
-        project=build.project,
-        name='console',
-    )
-    db.session.add(logsource)
-    db.session.commit()
+    for x in xrange(3):
+        build = mock.build(
+            family=family,
+            change=change,
+            author=change.author,
+        )
 
-    offset = 0
-    for x in xrange(30):
-        lc = mock.logchunk(source=logsource, offset=offset)
+        logsource = LogSource(
+            build=build,
+            project=build.project,
+            name='console',
+        )
+        db.session.add(logsource)
         db.session.commit()
-        offset += lc.size
-        time.sleep(1)
 
-    return build
+        offset = 0
+        for x in xrange(30):
+            lc = mock.logchunk(source=logsource, offset=offset)
+            db.session.commit()
+            offset += lc.size
+
+    return family
 
 
 def update_existing_entry(project):
@@ -95,13 +103,13 @@ def update_existing_entry(project):
 
 def gen(project):
     if random.randint(0, 3) == 1:
-        build = create_new_entry(project)
+        family = create_new_entry(project)
     else:
-        build = update_existing_entry(project)
+        family = update_existing_entry(project)
 
     db.session.commit()
 
-    return build
+    return family
 
 
 def loop():
@@ -110,8 +118,11 @@ def loop():
     while True:
         project = mock.project(repository)
 
-        build = gen(project)
-        print 'Pushed build {0}', build.id
+        plan = mock.plan()
+        plan.projects.append(project)
+
+        family = gen(project)
+        print 'Pushed family {0}', family.id
         time.sleep(1)
 
 

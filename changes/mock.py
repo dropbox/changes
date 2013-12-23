@@ -10,7 +10,8 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Build, BuildPhase, BuildStep,
-    TestResult, Change, LogChunk, TestSuite
+    TestResult, Change, LogChunk, TestSuite, BuildFamily, BuildPlan, Plan,
+    BuildPlan
 )
 from changes.db.utils import get_or_create
 
@@ -41,6 +42,11 @@ PROJECT_NAMES = itertools.cycle([
     'Fire',
     'Water',
     'Heart',
+])
+
+PLAN_NAMES = itertools.cycle([
+    'Build Foo',
+    'Build Bar',
 ])
 
 
@@ -107,17 +113,64 @@ def change(project, **kwargs):
     return result
 
 
-def build(change, **kwargs):
+def family(project, **kwargs):
     kwargs.setdefault('label', get_sentences(1)[0])
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
-    kwargs.setdefault('repository', change.repository)
-    kwargs.setdefault('project', change.project)
-    kwargs.setdefault('author', change.author)
+    kwargs.setdefault('repository', project.repository)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
-    build = Build(change=change, **kwargs)
+    family = BuildFamily(project=project, **kwargs)
+    db.session.add(family)
+
+    return family
+
+
+def plan(**kwargs):
+    if 'label' not in kwargs:
+        kwargs['label'] = PLAN_NAMES.next()
+
+    plan = Plan.query.filter(
+        Plan.label == kwargs['label'],
+    ).first()
+    if plan:
+        return plan
+
+    result = Plan(**kwargs)
+    db.session.add(result)
+    return result
+
+
+def build(family=None, change=None, **kwargs):
+    if family:
+        kwargs.setdefault('repository', family.repository)
+        kwargs.setdefault('project', family.project)
+        kwargs.setdefault('author', family.author)
+    elif change:
+        kwargs.setdefault('repository', change.repository)
+        kwargs.setdefault('project', change.project)
+        kwargs.setdefault('author', change.author)
+
+    kwargs.setdefault('label', get_sentences(1)[0])
+    kwargs.setdefault('status', Status.finished)
+    kwargs.setdefault('result', Result.passed)
+    kwargs.setdefault('duration', random.randint(10000, 100000))
+
+    build = Build(
+        family=family,
+        change=change,
+        **kwargs
+    )
     db.session.add(build)
+
+    if family:
+        buildplan = BuildPlan(
+            plan=plan(),
+            family=family,
+            project=build.project,
+            build=build,
+        )
+        db.session.add(buildplan)
 
     phase1_setup = BuildPhase(
         repository=build.repository, project=build.project, build=build,
