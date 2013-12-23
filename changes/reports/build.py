@@ -233,7 +233,7 @@ class BuildReport(object):
             for a in AggregateTestGroup.query.options(
                 subqueryload(AggregateTestGroup.parent),
             ).filter(
-                AggregateTestGroup.id.in_([k for k, _ in flakiest_tests])
+                AggregateTestGroup.id.in_([x[0] for x in flakiest_tests])
             )
         )
 
