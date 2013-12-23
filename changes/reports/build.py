@@ -59,7 +59,7 @@ class BuildReport(object):
 
         projects_by_build_time = sorted(
             current_results.items(), key=lambda x: (
-                -abs(x[1]['avg_duration'] or 0), -(x[1]['duration_change'] or 0),
+                -abs(x[1]['avg_duration'] or 0), (x[1]['duration_change'] or 0),
                 x[0].name,
             ))
 
