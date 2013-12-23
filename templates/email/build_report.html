@@ -270,7 +270,7 @@ tr.odd td {
 		<thead>
 			<tr>
 				<th>Project</th>
-				<th style="text-align:center;width:100px" colspan="2">Avg Duration</th>
+				<th style="text-align:center;width:120px" colspan="2">Avg Duration</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -279,7 +279,7 @@ tr.odd td {
 					<th><a href="#">{{ project.name }}</a></th>
 					{% if stats.green_percent %}
 						<td style="text-align:right;width:60px">{{ stats.avg_duration|duration }}</td>
-						<td style="text-align:left;width:40px"
+						<td style="text-align:left;width:60px"
 							class="{% if stats.duration_change > 0 %}up{% elif stats.duration_change %}down{% else %}none{% endif %}">
 							{% if stats.duration_change %}
 								{% if stats.duration_change > 0 %}+{% endif %}{{ stats.duration_change|duration }}
