@@ -139,6 +139,7 @@ class TestResultManager(object):
         if not created:
             db.session.query(AggregateTestGroup).filter(
                 AggregateTestGroup.id == agg.id,
+                AggregateTestGroup.last_build_id == agg.last_build_id,
             ).update({
                 AggregateTestGroup.last_build_id: build.id,
             }, synchronize_session=False)
@@ -224,6 +225,7 @@ class TestResultManager(object):
             if not created:
                 db.session.query(AggregateTestGroup).filter(
                     AggregateTestGroup.id == agg.id,
+                    AggregateTestGroup.last_build_id == agg.last_build_id,
                 ).update({
                     AggregateTestGroup.last_build_id: build.id,
                 }, synchronize_session=False)
