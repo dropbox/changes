@@ -50,7 +50,7 @@ class _Redis(object):
         self.logger.info('Acquiring lock on %s', lock_key)
 
         if not got_lock:
-            raise UnableToGetLock('Unable to fetch lock on %s' % (lock_key,))
+            raise self.UnableToGetLock('Unable to fetch lock on %s' % (lock_key,))
 
         try:
             yield
