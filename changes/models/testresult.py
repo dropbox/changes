@@ -136,13 +136,13 @@ class TestResultManager(object):
             'first_build_id': build.id,
             'last_build_id': build.id,
         })
-        if not created:
-            db.session.query(AggregateTestGroup).filter(
-                AggregateTestGroup.id == agg.id,
-                AggregateTestGroup.last_build_id == agg.last_build_id,
-            ).update({
-                AggregateTestGroup.last_build_id: build.id,
-            }, synchronize_session=False)
+        # if not created:
+        #     db.session.query(AggregateTestGroup).filter(
+        #         AggregateTestGroup.id == agg.id,
+        #         AggregateTestGroup.last_build_id == agg.last_build_id,
+        #     ).update({
+        #         AggregateTestGroup.last_build_id: build.id,
+        #     }, synchronize_session=False)
 
         return agg
 
@@ -222,13 +222,13 @@ class TestResultManager(object):
                 'last_build_id': build.id,
             })
 
-            if not created:
-                db.session.query(AggregateTestGroup).filter(
-                    AggregateTestGroup.id == agg.id,
-                    AggregateTestGroup.last_build_id == agg.last_build_id,
-                ).update({
-                    AggregateTestGroup.last_build_id: build.id,
-                }, synchronize_session=False)
+            # if not created:
+            #     db.session.query(AggregateTestGroup).filter(
+            #         AggregateTestGroup.id == agg.id,
+            #         AggregateTestGroup.last_build_id == agg.last_build_id,
+            #     ).update({
+            #         AggregateTestGroup.last_build_id: build.id,
+            #     }, synchronize_session=False)
 
             agg_groups_by_id[name] = agg
 

@@ -13,11 +13,11 @@
 			<a href="{{test.firstBuild.link}}">{{test.firstBuild.target}}</a><br>
 			<span ng-if="test.firstBuild.author">{{test.firstBuild.author.name}} &mdash; </span><span time-since="test.firstBuild.dateCreated"></span>
 		</dd>
-		<dt>Last Seen:</dt>
+<!-- 		<dt>Last Seen:</dt>
 		<dd>
 			<a href="{{test.lastBuild.link}}">{{test.lastBuild.target}}</a><br>
 			<span ng-if="test.lastBuild.author">{{test.lastBuild.author.name}} &mdash; </span><span time-since="test.lastBuild.dateCreated"></span>
-		</dd>
+		</dd> -->
 		<dt>Duration: <span class="help" title="duration from last build">?</span></dt>
 		<dd duration="test.lastTest.duration"></dd>
 	</dl>
