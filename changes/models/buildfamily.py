@@ -35,13 +35,13 @@ class BuildFamily(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    source_id = Column(GUID, ForeignKey('source.id'))
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
     # TODO(dcramer): repo/sha/patch_id should be removed in favor of source
     revision_sha = Column(String(40))
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    patch_id = Column(GUID, ForeignKey('patch.id'))
-    author_id = Column(GUID, ForeignKey('author.id'))
+    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
+    patch_id = Column(GUID, ForeignKey('patch.id', ondelete="CASCADE"))
+    author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
     cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
     label = Column(String(128), nullable=False)
     target = Column(String(128))
