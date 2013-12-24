@@ -64,7 +64,7 @@ class SyncBuildTest(TestCase):
         # ensure signal is fired
         queue_delay.assert_any_call('sync_build', kwargs={
             'build_id': build.id.hex,
-        }, countdown=1)
+        }, countdown=5)
 
     @mock.patch('changes.jobs.sync_build.sync_with_builder')
     @mock.patch('changes.jobs.sync_build.queue.delay')
