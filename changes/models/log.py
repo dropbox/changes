@@ -17,8 +17,8 @@ class LogSource(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name = Column(String(64), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
 
@@ -43,9 +43,9 @@ class LogChunk(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    source_id = Column(GUID, ForeignKey('logsource.id'), nullable=False)
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    source_id = Column(GUID, ForeignKey('logsource.id', ondelete="CASCADE"), nullable=False)
     # offset is sum(c.size for c in chunks_before_this)
     offset = Column(Integer, nullable=False)
     # size is len(text)
