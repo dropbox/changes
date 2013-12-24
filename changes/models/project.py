@@ -14,8 +14,8 @@ from changes.db.types.guid import GUID
 project_plan_m2m_table = Table(
     'project_plan',
     db.Model.metadata,
-    Column('project_id', GUID, ForeignKey('project.id'), nullable=False, primary_key=True),
-    Column('plan_id', GUID, ForeignKey('plan.id'), nullable=False, primary_key=True)
+    Column('project_id', GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False, primary_key=True),
+    Column('plan_id', GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False, primary_key=True)
 )
 
 
