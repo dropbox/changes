@@ -14,6 +14,7 @@ from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
+from changes.events import publish_logchunk_update
 from changes.models import (
     AggregateTestSuite, RemoteEntity, TestResult, TestResultManager, TestSuite,
     LogSource, LogChunk, Node, BuildPhase, BuildStep
@@ -278,7 +279,7 @@ class JenkinsBuilder(BaseBackend):
         iterator = resp.iter_content()
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
-            create_or_update(LogChunk, where={
+            chunk, _ = create_or_update(LogChunk, where={
                 'source': logsource,
                 'offset': offset,
             }, values={
@@ -289,6 +290,8 @@ class JenkinsBuilder(BaseBackend):
             })
             offset += chunk_size
             db.session.commit()
+
+            publish_logchunk_update(chunk)
 
     def _sync_console_log(self, build, entity):
         # TODO(dcramer): this doesnt handle concurrency
@@ -323,7 +326,7 @@ class JenkinsBuilder(BaseBackend):
         # with our own helper
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
-            create_or_update(LogChunk, where={
+            chunk, _ = create_or_update(LogChunk, where={
                 'source': logsource,
                 'offset': offset,
             }, values={
@@ -334,6 +337,8 @@ class JenkinsBuilder(BaseBackend):
             })
             db.session.commit()
             offset += chunk_size
+
+            publish_logchunk_update(chunk)
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.

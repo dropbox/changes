@@ -152,7 +152,6 @@ def create_app(_read_config=True, **config):
     configure_api_routes(app)
     configure_web_routes(app)
 
-    configure_database_listeners(app)
     configure_event_listeners(app)
     configure_jobs(app)
 
@@ -275,24 +274,6 @@ def configure_jobs(app):
     queue.register('sync_build', sync_build)
     queue.register('sync_repo', sync_repo)
     queue.register('update_project_stats', update_project_stats)
-
-
-def configure_database_listeners(app):
-    from sqlalchemy import event
-    from changes import events
-    from changes.models import Build, Change, BuildPhase, TestGroup, LogChunk
-
-    event.listen(Build, 'after_insert', events.publish_build_update)
-    event.listen(Change, 'after_insert', events.publish_change_update)
-    event.listen(BuildPhase, 'after_insert', events.publish_phase_update)
-    event.listen(TestGroup, 'after_insert', events.publish_testgroup_update)
-    event.listen(LogChunk, 'after_insert', events.publish_logchunk_update)
-
-    event.listen(Build, 'after_update', events.publish_build_update)
-    event.listen(Change, 'after_update', events.publish_change_update)
-    event.listen(BuildPhase, 'after_update', events.publish_phase_update)
-    event.listen(TestGroup, 'after_update', events.publish_testgroup_update)
-    event.listen(LogChunk, 'after_update', events.publish_logchunk_update)
 
 
 def configure_event_listeners(app):

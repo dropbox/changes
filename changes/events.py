@@ -2,7 +2,7 @@ from changes.api.base import as_json
 from changes.config import pubsub
 
 
-def publish_build_update(mapper, connection, target):
+def publish_build_update(target):
     channels = [
         'builds:{change_id}:{build_id}'.format(
             change_id=target.change_id.hex if target.change_id else '',
@@ -31,7 +31,7 @@ def publish_build_update(mapper, connection, target):
         })
 
 
-def publish_change_update(mapper, connection, target):
+def publish_change_update(target):
     channel = 'changes:{0}'.format(target.id.hex)
     pubsub.publish(channel, {
         'data': as_json(target),
@@ -39,7 +39,7 @@ def publish_change_update(mapper, connection, target):
     })
 
 
-def publish_phase_update(mapper, connection, target):
+def publish_phase_update(target):
     channel = 'phases:{change_id}:{build_id}:{phase_id}'.format(
         change_id=target.build.change_id.hex if target.build.change_id else '',
         build_id=target.build_id,
@@ -51,7 +51,7 @@ def publish_phase_update(mapper, connection, target):
     })
 
 
-def publish_testgroup_update(mapper, connection, target):
+def publish_testgroup_update(target):
     channel = 'testgroups:{build_id}:{testgroup_id}'.format(
         build_id=target.build_id.hex,
         testgroup_id=target.id.hex
@@ -62,7 +62,7 @@ def publish_testgroup_update(mapper, connection, target):
     })
 
 
-def publish_logchunk_update(mapper, connection, target):
+def publish_logchunk_update(target):
     channel = 'logsources:{build_id}:{source_id}'.format(
         source_id=target.source_id.hex,
         build_id=target.build_id.hex,
