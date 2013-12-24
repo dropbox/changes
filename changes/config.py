@@ -84,7 +84,7 @@ def create_app(_read_config=True, **config):
     app.config['CELERYBEAT_SCHEDULE'] = {
         'cleanup-builds': {
             'task': 'cleanup_builds',
-            'schedule': timedelta(minutes=5),
+            'schedule': timedelta(minutes=1),
         },
         # 'check-repos': {
         #     'task': 'check_repos',
