@@ -52,11 +52,15 @@ def create_app(_read_config=True, **config):
     app.config['CELERY_ACCEPT_CONTENT'] = ['json', 'pickle']
     app.config['CELERY_RESULT_SERIALIZER'] = 'json'
     app.config['CELERY_TASK_SERIALIZER'] = 'json'
-    app.config['CELERY_DEFAULT_QUEUE'] = 'default'
     app.config['CELERYD_PREFETCH_MULTIPLIER'] = 1
+    app.config['CELERY_DEFAULT_QUEUE'] = "default"
+    app.config['CELERY_DEFAULT_EXCHANGE'] = "default"
+    app.config['CELERY_DEFAULT_EXCHANGE_TYPE'] = "direct"
+    app.config['CELERY_DEFAULT_ROUTING_KEY'] = "default"
     app.config['CELERY_QUEUES'] = (
         Queue('build.sync', routing_key='build.sync'),
         Queue('build.create', routing_key='build.create'),
+        Queue('celery', routing_key='celery'),
         Queue('default', routing_key='default'),
         Queue('repo.sync', routing_key='repo.sync'),
     )
