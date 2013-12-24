@@ -2,11 +2,33 @@ from __future__ import absolute_import
 
 import json
 
+from collections import MutableMapping
+
 from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.types import TypeDecorator, Unicode
 
 
-class MutableDict(Mutable, dict):
+class MutableDict(Mutable, MutableMapping):
+    def __init__(self, value):
+        self.value = value or {}
+
+    def __setitem__(self, key, value):
+        self.value[key] = value
+        self.changed()
+
+    def __delitem__(self, key):
+        del self.value[key]
+        self.changed()
+
+    def __getitem__(self, key):
+        return self.value[key]
+
+    def __len__(self):
+        return len(self.value)
+
+    def __iter__(self):
+        return iter(self)
+
     @classmethod
     def coerce(cls, key, value):
         "Convert plain dictionaries to MutableDict."
@@ -19,18 +41,6 @@ class MutableDict(Mutable, dict):
             return Mutable.coerce(key, value)
         else:
             return value
-
-    def __setitem__(self, key, value):
-        "Detect dictionary set events and emit change events."
-
-        dict.__setitem__(self, key, value)
-        self.changed()
-
-    def __delitem__(self, key):
-        "Detect dictionary del events and emit change events."
-
-        dict.__delitem__(self, key)
-        self.changed()
 
 
 class JSONEncodedDict(TypeDecorator):
