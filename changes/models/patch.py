@@ -14,9 +14,9 @@ class Patch(db.Model):
     __tablename__ = 'patch'
 
     id = Column(GUID, primary_key=True, default=uuid4)
-    change_id = Column(GUID, ForeignKey('change.id'))
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    change_id = Column(GUID, ForeignKey('change.id', ondelete="CASCADE"))
+    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     parent_revision_sha = Column(String(40))
     label = Column(String(64), nullable=False)
     diff = Column(Text)
