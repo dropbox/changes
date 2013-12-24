@@ -66,6 +66,8 @@ class Build(db.Model):
 
     def __init__(self, **kwargs):
         super(Build, self).__init__(**kwargs)
+        if self.data is None:
+            self.data = {}
         if self.id is None:
             self.id = uuid.uuid4()
         if self.result is None:
