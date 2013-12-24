@@ -20,11 +20,11 @@ class AggregateTestSuite(db.Model):
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
-    first_build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    last_build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
+    first_build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    last_build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
