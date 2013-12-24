@@ -14,14 +14,11 @@ from alembic import op
 
 
 def upgrade():
-    op.drop_constraint('patch_change_id_fkey', 'patch')
-    op.create_foreign_key('patch_change_id_fkey', 'patch', 'change', ['change_id'], ['id'], ondelete='CASCADE')
+    op.drop_constraint('testsuite_project_id_fkey', 'testsuite')
+    op.create_foreign_key('testsuite_project_id_fkey', 'testsuite', 'project', ['project_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('patch_project_id_fkey', 'patch')
-    op.create_foreign_key('patch_project_id_fkey', 'patch', 'project', ['project_id'], ['id'], ondelete='CASCADE')
-
-    op.drop_constraint('patch_repository_id_fkey', 'patch')
-    op.create_foreign_key('patch_repository_id_fkey', 'patch', 'repository', ['repository_id'], ['id'], ondelete='CASCADE')
+    op.drop_constraint('testsuite_build_id_fkey', 'testsuite')
+    op.create_foreign_key('testsuite_build_id_fkey', 'testsuite', 'build', ['build_id'], ['id'], ondelete='CASCADE')
 
 
 def downgrade():
