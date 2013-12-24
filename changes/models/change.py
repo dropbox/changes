@@ -28,9 +28,9 @@ class Change(db.Model):
 
     id = Column(GUID, primary_key=True, default=uuid4)
     hash = Column(String(40), unique=True, nullable=False)
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    author_id = Column(GUID, ForeignKey('author.id'))
+    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
     label = Column(String(128), nullable=False)
     message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
