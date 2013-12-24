@@ -24,7 +24,7 @@ class Project(db.Model):
 
     id = Column(GUID, primary_key=True, default=uuid4)
     slug = Column(String(64), unique=True, nullable=False)
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
+    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="RESTRICT"), nullable=False)
     name = Column(String(64))
     date_created = Column(DateTime, default=datetime.utcnow)
     avg_build_time = Column(Integer)
@@ -59,7 +59,7 @@ class ProjectOption(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid4)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name = Column(String(64), nullable=False)
     value = Column(Text, nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
