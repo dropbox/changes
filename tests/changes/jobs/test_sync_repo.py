@@ -19,7 +19,7 @@ class SyncRepoTest(TestCase):
         repo = self.create_repo(
             backend=RepositoryBackend.git)
 
-        sync_repo(repo.id.hex)
+        sync_repo(repo_id=repo.id.hex)
 
         get_vcs_backend.assert_called_once_with()
 
