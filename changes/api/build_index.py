@@ -242,19 +242,20 @@ class BuildIndexAPIView(APIView):
                 fp.write(line)
             patch_file = fp
 
-        builds = []
-        for project in projects:
-            builds.extend(create_build(
-                project=project,
-                change=change,
-                sha=sha,
-                target=target,
-                label=label,
-                message=message,
-                author=author,
-                patch_label=patch_label,
-                patch_file=patch_file,
-            ))
+        with db.session.begin_nested():
+            builds = []
+            for project in projects:
+                builds.extend(create_build(
+                    project=project,
+                    change=change,
+                    sha=sha,
+                    target=target,
+                    label=label,
+                    message=message,
+                    author=author,
+                    patch_label=patch_label,
+                    patch_file=patch_file,
+                ))
 
         context = {
             'builds': [

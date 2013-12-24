@@ -418,8 +418,8 @@ class JenkinsBuilder(BaseBackend):
                 test_list.append(test_result)
 
         manager = TestResultManager(build)
-        # manager.clear()
-        manager.save(test_list)
+        with db.session.begin_nested():
+            manager.save(test_list)
         db.session.commit()
 
     def _find_job(self, job_name, build_id):

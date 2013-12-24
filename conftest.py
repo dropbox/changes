@@ -53,9 +53,6 @@ def pytest_sessionstart(session):
 
     db.session = db.create_scoped_session({
         'autoflush': True,
-
-        # XXX: we specify autocommit to guarantee we can start/wrap
-        # tests in a single transaction
         'autocommit': True,
     })
 
