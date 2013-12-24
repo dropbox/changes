@@ -18,7 +18,7 @@ class JenkinsBuildStepTest(TestCase):
         assert type(builder) == JenkinsBuilder
 
     @mock.patch.object(JenkinsBuildStep, 'get_builder')
-    def test_execute(self, get_builder):
+    def test_create_build(self, get_builder):
         builder = mock.Mock()
         get_builder.return_value = builder
 
@@ -30,13 +30,16 @@ class JenkinsBuildStepTest(TestCase):
         builder.create_build.assert_called_once_with(build)
 
     @mock.patch.object(JenkinsBuildStep, 'get_builder')
-    def test_sync(self, get_builder):
+    def test_sync_build(self, get_builder):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        build = self.create_build(self.project, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
 
         buildstep = self.get_buildstep()
-        buildstep.sync(build)
+        buildstep.execute(build)
 
         builder.sync_build.assert_called_once_with(build)

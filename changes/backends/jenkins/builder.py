@@ -8,7 +8,6 @@ import time
 from datetime import datetime
 from hashlib import sha1
 from flask import current_app
-from uuid import uuid4
 
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db, queue
@@ -91,16 +90,13 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _sync_build_from_queue(self, build, entity):
-        # TODO(dcramer); determine whats going on w/ the JSON field
-        build_item = entity.data.copy()
-
+    def _sync_build_from_queue(self, build):
         # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
         # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
         # doesnt explicitly mean that the job doesnt exist
         try:
             item = self._get_response('/queue/item/{}'.format(
-                build_item['item_id']))
+                build.data['item_id']))
         except NotFound:
             build.status = Status.finished
             build.result = Result.unknown
@@ -109,15 +105,13 @@ class JenkinsBuilder(BaseBackend):
 
         if item.get('executable'):
             build_no = item['executable']['number']
-            build_item['queued'] = False
-            build_item['build_no'] = build_no
-            entity.data = build_item
-            db.session.add(entity)
+            build.data['queued'] = False
+            build.data['build_no'] = build_no
 
         if item['blocked']:
             build.status = Status.queued
             db.session.add(build)
-        elif item.get('cancelled') and not build_item.get('build_no'):
+        elif item.get('cancelled') and not build.data.get('build_no'):
             build.status = Status.finished
             build.result = Result.aborted
             db.session.add(build)
@@ -127,17 +121,16 @@ class JenkinsBuilder(BaseBackend):
                 # assigned an ID, yet the API responds as if the build does
                 # not exist
                 try:
-                    self._sync_build_from_active(build, entity, fail_on_404=True)
+                    self._sync_build_from_active(build, fail_on_404=True)
                 except NotFound:
                     time.sleep(0.3)
                 else:
                     break
 
-    def _sync_build_from_active(self, build, entity, fail_on_404=False):
-        build_item = entity.data.copy()
+    def _sync_build_from_active(self, build, fail_on_404=False):
         try:
             item = self._get_response('/job/{}/{}'.format(
-                build_item['job_name'], build_item['build_no']))
+                build.data['job_name'], build.data['build_no']))
         except NotFound:
             if fail_on_404:
                 raise
@@ -172,12 +165,12 @@ class JenkinsBuilder(BaseBackend):
         if item['duration']:
             build.duration = item['duration']
 
-        build.data = {
+        build.data.update({
             'backend': {
                 'uri': item['url'],
                 'label': item['fullDisplayName'],
             }
-        }
+        })
 
         db.session.add(build)
         db.session.commit()
@@ -188,7 +181,7 @@ class JenkinsBuilder(BaseBackend):
 
         buildphase, created = get_or_create(BuildPhase, where={
             'build': build,
-            'label': build_item['job_name'],
+            'label': build.data['job_name'],
         }, defaults={
             'project_id': build.project_id,
             'repository_id': build.repository_id,
@@ -216,7 +209,7 @@ class JenkinsBuilder(BaseBackend):
             # is this the best way to find this?
             if action.get('urlName') == 'testReport':
                 try:
-                    self._sync_test_results(build, entity)
+                    self._sync_test_results(build)
                 except Exception:
                     db.session.rollback()
                     current_app.logger.exception('Unable to sync test results for build %r', build.id.hex)
@@ -228,7 +221,7 @@ class JenkinsBuilder(BaseBackend):
             # get the entirety of the log
             try:
                 start = time.time()
-                while self._sync_console_log(build, entity):
+                while self._sync_console_log(build):
                     if time.time() - start > 15:
                         raise Exception('Took too long to sync log')
                     continue
@@ -258,9 +251,7 @@ class JenkinsBuilder(BaseBackend):
 
             db.session.add(buildstep)
 
-    def _sync_artifact_as_log(self, build, entity, artifact):
-        build_item = entity.data
-
+    def _sync_artifact_as_log(self, build, artifact):
         logsource, created = get_or_create(LogSource, where={
             'name': artifact['displayPath'],
             'build': build,
@@ -270,8 +261,8 @@ class JenkinsBuilder(BaseBackend):
         })
 
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url, job=build_item['job_name'],
-            build=build_item['build_no'], artifact=artifact['relativePath'],
+            base=self.base_url, job=build.data['job_name'],
+            build=build.data['build_no'], artifact=artifact['relativePath'],
         )
 
         offset = 0
@@ -293,9 +284,8 @@ class JenkinsBuilder(BaseBackend):
 
             publish_logchunk_update(chunk)
 
-    def _sync_console_log(self, build, entity):
+    def _sync_console_log(self, build):
         # TODO(dcramer): this doesnt handle concurrency
-        build_item = entity.data
         logsource, created = get_or_create(LogSource, where={
             'name': 'console',
             'build': build,
@@ -306,11 +296,11 @@ class JenkinsBuilder(BaseBackend):
         if created:
             offset = 0
         else:
-            offset = build_item.get('log_offset', 0)
+            offset = build.data.get('log_offset', 0)
 
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
-            base=self.base_url, job=build_item['job_name'],
-            build=build_item['build_no'],
+            base=self.base_url, job=build.data['job_name'],
+            build=build.data['build_no'],
         )
 
         resp = requests.get(url, params={'start': offset}, stream=True)
@@ -342,19 +332,17 @@ class JenkinsBuilder(BaseBackend):
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
-        build_item['log_offset'] = log_length
-        entity.data = build_item
-        db.session.add(entity)
+        build.data['log_offset'] = log_length
+        db.session.add(build)
         db.session.commit()
 
         # Jenkins will suggest to us that there is more data when the job has
         # yet to complete
         return True if resp.headers.get('X-More-Data') == 'true' else None
 
-    def _sync_test_results(self, build, entity):
-        build_item = entity.data
+    def _sync_test_results(self, build):
         test_report = self._get_response('/job/{}/{}/testReport/'.format(
-            build_item['job_name'], build_item['build_no']))
+            build.data['job_name'], build.data['build_no']))
 
         test_list = []
         for suite_data in test_report['suites']:
@@ -478,30 +466,14 @@ class JenkinsBuilder(BaseBackend):
                 }
 
     def sync_build(self, build):
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=build.id,
-            type='build',
-        ).first()
-        if not entity:
-            return
-
-        if entity.data['queued']:
-            self._sync_build_from_queue(build, entity)
+        if build.data['queued']:
+            self._sync_build_from_queue(build)
         else:
-            self._sync_build_from_active(build, entity)
+            self._sync_build_from_active(build)
 
     def sync_artifact(self, build, artifact):
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=build.id,
-            type='build',
-        ).first()
-        if not entity:
-            return
-
         if artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(build, entity, artifact)
+            self._sync_artifact_as_log(build, artifact)
 
     def create_build(self, build):
         """
@@ -557,16 +529,5 @@ class JenkinsBuilder(BaseBackend):
         if build_item is None:
             raise Exception('Unable to find matching job after creation. GLHF')
 
-        # we generate a random remote_id as the queue's item_ids seem to reset
-        # when jenkins restarts, which would create duplicates
-        remote_id = uuid4().hex
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            type='build',
-            remote_id=remote_id,
-            data=build_item,
-        )
-        db.session.add(entity)
-        return entity
+        build.data = build_item
+        db.session.add(build)

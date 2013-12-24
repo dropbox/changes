@@ -50,12 +50,11 @@ def _sync_build(build_id):
     ).join(Plan).first()
 
     try:
-
         if not build_plan:
             # TODO(dcramer): once we migrate to build plans we can remove this
             warnings.warn(
                 'Got sync_build task without build plan: %s' % (build_id,))
-            sync = sync_with_builder
+            execute = sync_with_builder
         else:
             try:
                 step = build_plan.plan.steps[0]
@@ -63,9 +62,9 @@ def _sync_build(build_id):
                 raise UnrecoverableException('Missing steps for plan')
 
             implementation = step.get_implementation()
-            sync = implementation.sync
+            execute = implementation.execute
 
-        sync(build=build)
+        execute(build=build)
 
     except UnrecoverableException:
         build.status = Status.finished

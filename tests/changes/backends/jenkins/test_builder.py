@@ -70,14 +70,7 @@ class CreateBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.create_build(build)
 
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=build.id,
-            type='build',
-        )[0]
-
-        assert entity.remote_id
-        assert entity.data == {
+        assert build.data == {
             'build_no': None,
             'item_id': 13,
             'job_name': 'server',
@@ -106,14 +99,7 @@ class CreateBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.create_build(build)
 
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=build.id,
-            type='build',
-        )[0]
-
-        assert entity.remote_id
-        assert entity.data == {
+        assert build.data == {
             'build_no': 1,
             'item_id': None,
             'job_name': 'server',
@@ -184,14 +170,7 @@ class CreateBuildTest(BaseTestCase):
         builder = self.get_builder(job_name=None)
         builder.create_build(build)
 
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=build.id,
-            type='build',
-        )[0]
-
-        assert entity.remote_id
-        assert entity.data == {
+        assert build.data == {
             'build_no': 1,
             'item_id': None,
             'job_name': 'server-foo',
@@ -208,13 +187,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='queue:13',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': None,
                 'item_id': 13,
@@ -222,7 +195,6 @@ class SyncBuildTest(BaseTestCase):
                 'queued': True,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_build(build)
@@ -237,13 +209,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='queue:13',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': None,
                 'item_id': 13,
@@ -251,7 +217,6 @@ class SyncBuildTest(BaseTestCase):
                 'queued': True,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_build(build)
@@ -275,13 +240,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='queue:13',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': None,
                 'item_id': 13,
@@ -289,14 +248,11 @@ class SyncBuildTest(BaseTestCase):
                 'queued': True,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_build(build)
 
-        entity = RemoteEntity.query.get(entity.id)
-
-        assert entity.data['build_no'] == 2
+        assert build.data['build_no'] == 2
         assert build.status == Status.in_progress
         assert build.date_started is not None
 
@@ -314,13 +270,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='server#2',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
                 'item_id': 13,
@@ -328,14 +278,11 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_build(build)
 
-        entity = RemoteEntity.query.get(entity.id)
-
-        assert entity.data['build_no'] == 2
+        assert build.data['build_no'] == 2
         assert build.status == Status.finished
         assert build.result == Result.passed
         assert build.duration == 8875
@@ -354,13 +301,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='server#2',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
                 'item_id': 13,
@@ -368,14 +309,11 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_build(build)
 
-        entity = RemoteEntity.query.get(entity.id)
-
-        assert entity.data['build_no'] == 2
+        assert build.data['build_no'] == 2
         assert build.status == Status.finished
         assert build.result == Result.failed
         assert build.duration == 8875
@@ -397,13 +335,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='server#2',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
                 'item_id': 13,
@@ -411,7 +343,6 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_build(build)
@@ -444,13 +375,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='server#2',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
                 'item_id': 13,
@@ -458,7 +383,6 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_build(build)
@@ -478,8 +402,7 @@ class SyncBuildTest(BaseTestCase):
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
 
-        entity = RemoteEntity.query.get(entity.id)
-        assert entity.data.get('log_offset') == 7
+        assert build.data.get('log_offset') == 7
 
     @responses.activate
     @mock.patch('changes.backends.jenkins.builder.queue')
@@ -495,13 +418,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='server#2',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
                 'item_id': 13,
@@ -509,8 +426,6 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-        db.session.add(entity)
-
         builder = self.get_builder()
         builder.sync_build(build)
 
@@ -542,13 +457,7 @@ class SyncBuildTest(BaseTestCase):
 
         build = self.create_build(
             self.project,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=build.id,
-            remote_id='server#2',
-            type='build',
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
                 'item_id': 13,
@@ -556,7 +465,6 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-        db.session.add(entity)
 
         builder = self.get_builder()
         builder.sync_artifact(build, {

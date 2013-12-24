@@ -10,8 +10,7 @@ from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Repository, Project, Build, Revision, Author, BuildPhase, BuildStep, Patch,
-    RemoteEntity
+    Repository, Project, Build, Revision, Author, BuildPhase, BuildStep, Patch
 )
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
@@ -68,19 +67,14 @@ class SyncBuildTest(KoalityBuilderTestCase):
 
         backend = self.get_builder()
         change = self.create_change(self.project)
-        build = self.create_build(project=self.project, change=change)
-
-        entity = RemoteEntity(
-            type='build',
-            internal_id=build.id,
-            provider=self.provider,
-            remote_id='1',
+        build = self.create_build(
+            project=self.project,
+            change=change,
             data={
                 'project_id': 1,
                 'change_id': 1,
             }
         )
-        db.session.add(entity)
 
         backend.sync_build(
             build=build,
@@ -207,27 +201,19 @@ class CreateBuildTest(KoalityBuilderTestCase):
             responses.POST, 'https://koality.example.com/api/v/0/repositories/1/changes',
             body=self.load_fixture('fixtures/POST/change_index.json'))
 
-        backend = self.get_builder()
-
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
-        build = Build(
-            repository=self.repo,
+        build = self.create_build(
             project=self.project,
             revision_sha=revision,
-            label='D1345',
         )
-        db.session.add(build)
 
-        entity = backend.create_build(
+        backend = self.get_builder()
+        backend.create_build(
             build=build,
         )
 
-        assert entity.type == 'build'
-        assert entity.internal_id == build.id
-        assert entity.remote_id == '1501'
-        assert entity.provider == 'koality'
-        assert entity.data == {
+        assert build.data == {
             'project_id': 1,
             'change_id': 1501,
         }
@@ -246,8 +232,6 @@ class CreateBuildTest(KoalityBuilderTestCase):
             responses.POST, 'https://koality.example.com/api/v/0/repositories/1/changes',
             body=self.load_fixture('fixtures/POST/change_index.json'))
 
-        backend = self.get_builder()
-
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
         patch = Patch(
@@ -259,23 +243,17 @@ class CreateBuildTest(KoalityBuilderTestCase):
         )
         db.session.add(patch)
 
-        build = Build(
-            repository=self.repo,
+        build = self.create_build(
             project=self.project,
             revision_sha=revision,
             patch=patch,
-            label='D1345',
         )
-        db.session.add(build)
 
-        entity = backend.create_build(
+        backend = self.get_builder()
+        backend.create_build(
             build=build,
         )
-        assert entity.type == 'build'
-        assert entity.internal_id == build.id
-        assert entity.remote_id == '1501'
-        assert entity.provider == 'koality'
-        assert entity.data == {
+        assert build.data == {
             'project_id': 1,
             'change_id': 1501,
         }

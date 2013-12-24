@@ -28,15 +28,3 @@ class KoalityBuildStepTest(TestCase):
         buildstep.execute(build)
 
         builder.create_build.assert_called_once_with(build)
-
-    @mock.patch.object(KoalityBuildStep, 'get_builder')
-    def test_sync(self, get_builder):
-        builder = mock.Mock()
-        get_builder.return_value = builder
-
-        build = self.create_build(self.project)
-
-        buildstep = self.get_buildstep()
-        buildstep.sync(build)
-
-        builder.sync_build.assert_called_once_with(build)

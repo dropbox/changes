@@ -281,21 +281,19 @@ class KoalityBuilder(BaseBackend):
 
         db.session.add(build)
 
-    def _sync_build(self, build, entity):
-        build_item = entity.data
-
+    def _sync_build(self, build):
         # {u'branch': u'verify only (api)', u'number': 760, u'createTime': 1379712159000, u'headCommit': {u'sha': u'257e20ba86c5fe1ff1e1f44613a2590bb56d7285', u'message': u'Change format of mobile gandalf info\n\nSummary: Made it more prettier\n\nTest Plan: tried it with my emulator, it works\n\nReviewers: fta\n\nReviewed By: fta\n\nCC: Reviews-Aloha, Server-Reviews\n\nDifferential Revision: https://tails.corp.dropbox.com/D23207'}, u'user': {u'lastName': u'Verifier', u'id': 3, u'firstName': u'Koality', u'email': u'verify-koala@koalitycode.com'}, u'startTime': 1379712161000, u'mergeStatus': None, u'endTime': 1379712870000, u'id': 814}
         change = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes/{change_id}'.format(
             base_uri=self.base_url,
-            project_id=build_item['project_id'],
-            change_id=build_item['change_id'],
+            project_id=build.data['project_id'],
+            change_id=build.data['change_id'],
         ))
 
         # [{u'status': u'passed', u'type': u'compile', u'id': 18421, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18427, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18426, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18408, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18409, u'name': u'provision'}, {u'status': u'passed', u'type': u'test', u'id': 18428, u'name': u'blockserver'}, {u'status': u'passed', u'type': u'test', u'id': 18429, u'name': u'dropbox'}, {u'status': u'passed', u'type': u'compile', u'id': 18422, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18431, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18430, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18406, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18412, u'name': u'provision'}, {u'status': u'passed', u'type': u'test', u'id': 18432, u'name': u'magicpocket'}, {u'status': u'passed', u'type': u'compile', u'id': 18433, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18441, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18437, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18407, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18411, u'name': u'provision'}, {u'status': u'passed', u'type': u'compile', u'id': 18420, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18424, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18423, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18405, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18410, u'name': u'provision'}, {u'status': u'passed', u'type': u'test', u'id': 18425, u'name': u'metaserver'}]
         stage_list = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes/{change_id}/stages'.format(
             base_uri=self.base_url,
-            project_id=build_item['project_id'],
-            change_id=build_item['change_id'],
+            project_id=build.data['project_id'],
+            change_id=build.data['change_id'],
         ))
 
         self._sync_build_details(build, change, stage_list)
@@ -315,15 +313,7 @@ class KoalityBuilder(BaseBackend):
         return build
 
     def sync_build(self, build):
-        entity = RemoteEntity.query.filter_by(
-            provider=self.provider,
-            internal_id=build.id,
-            type='build',
-        ).first()
-        if not entity:
-            return
-
-        self._sync_build(build, entity)
+        self._sync_build(build)
 
     def create_build(self, build):
         project_id = self.project_id
@@ -345,18 +335,8 @@ class KoalityBuilder(BaseBackend):
             'sha': build.revision_sha,
         }, **req_kwargs)
 
-        build_item = {
+        build.data = {
             'project_id': project_id,
             'change_id': response['changeId'],
         }
-
-        entity = RemoteEntity(
-            provider=self.provider,
-            remote_id=str(response['changeId']),
-            internal_id=build.id,
-            type='build',
-            data=build_item,
-        )
-        db.session.add(entity)
-
-        return entity
+        db.session.add(build)

@@ -53,7 +53,7 @@ class SyncBuildTest(TestCase):
 
         get_implementation.assert_called_once_with()
 
-        implementation.sync.assert_called_once_with(
+        implementation.execute.assert_called_once_with(
             build=build,
         )
 
