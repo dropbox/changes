@@ -79,7 +79,7 @@ def _sync_build(build_id):
     if build.status != Status.finished:
         queue.delay('sync_build', kwargs={
             'build_id': build.id.hex
-        }, countdown=1)
+        }, countdown=5)
 
     else:
         queue.delay('update_project_stats', kwargs={
