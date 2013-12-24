@@ -41,7 +41,7 @@ class Step(db.Model):
     """
     # TODO(dcramer): only a single step is currently supported
     id = Column(GUID, primary_key=True, default=uuid4)
-    plan_id = Column(GUID, ForeignKey('plan.id'), nullable=False)
+    plan_id = Column(GUID, ForeignKey('plan.id', ondelete='CASCADE'), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     date_modified = Column(DateTime, default=datetime.utcnow, nullable=False)
     # implementation should be class path notation
