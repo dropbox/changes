@@ -13,7 +13,7 @@ def lock(func):
             for k, v in sorted(kwargs.iteritems()))
         )
         try:
-            with redis.lock(key, timeout=1, expire=60, nowait=True):
+            with redis.lock(key, timeout=1, expire=300, nowait=True):
                 return func(**kwargs)
         except redis.UnableToGetLock:
             current_app.logger.warn('Unable to get lock for %s', key)
