@@ -17,12 +17,18 @@ def sync_with_builder(build):
     build.date_modified = datetime.utcnow()
     db.session.add(build)
 
-    entity = RemoteEntity.query.filter_by(
-        provider='jenkins',
-        internal_id=build.id,
-        type='build',
-    ).first()
-    if not entity:
+    # TODO(dcramer): remove migration after 12/24
+    if not build.data:
+        entity = RemoteEntity.query.filter_by(
+            provider='jenkins',
+            internal_id=build.id,
+            type='build',
+        ).first()
+        if entity is not None:
+            build.data = entity.data
+            db.session.add(build)
+
+    if not build.data:
         queue.delay('create_build', kwargs={
             'build_id': build.id.hex,
         }, countdown=5)
