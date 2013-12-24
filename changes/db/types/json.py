@@ -32,7 +32,6 @@ class MutableDict(Mutable, MutableMapping):
     @classmethod
     def coerce(cls, key, value):
         "Convert plain dictionaries to MutableDict."
-
         if not isinstance(value, MutableDict):
             if isinstance(value, dict):
                 return MutableDict(value)
@@ -48,6 +47,8 @@ class JSONEncodedDict(TypeDecorator):
 
     def process_bind_param(self, value, dialect):
         if value:
+            if isinstance(value, MutableDict):
+                value = value.value
             return unicode(json.dumps(value))
 
         return u'{}'
