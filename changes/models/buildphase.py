@@ -14,9 +14,9 @@ class BuildPhase(db.Model):
     __tablename__ = 'buildphase'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
