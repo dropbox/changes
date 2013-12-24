@@ -4,6 +4,8 @@ import mock
 
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.backends.jenkins.buildstep import JenkinsBuildStep
+from changes.config import db
+from changes.models import RemoteEntity
 from changes.testutils import TestCase
 
 
@@ -38,6 +40,30 @@ class JenkinsBuildStepTest(TestCase):
             'job_name': 'server',
             'build_no': '35',
         })
+
+        buildstep = self.get_buildstep()
+        buildstep.execute(build)
+
+        builder.sync_build.assert_called_once_with(build)
+
+    @mock.patch.object(JenkinsBuildStep, 'get_builder')
+    def test_legacy_sync_build(self, get_builder):
+        builder = mock.Mock()
+        get_builder.return_value = builder
+
+        build = self.create_build(self.project)
+
+        entity = RemoteEntity(
+            provider='jenkins',
+            remote_id='a' * 40,
+            internal_id=build.id.hex,
+            type='build',
+            data={
+                'job_name': 'server',
+                'build_no': '35',
+            },
+        )
+        db.session.add(entity)
 
         buildstep = self.get_buildstep()
         buildstep.execute(build)
