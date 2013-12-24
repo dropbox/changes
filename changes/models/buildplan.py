@@ -26,10 +26,10 @@ class BuildPlan(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
-    family_id = Column(GUID, ForeignKey('buildfamily.id'), nullable=False)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False, unique=True)
-    plan_id = Column(GUID, ForeignKey('plan.id'), nullable=False)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    family_id = Column(GUID, ForeignKey('buildfamily.id', ondelete="CASCADE"), nullable=False)
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False, unique=True)
+    plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
 
