@@ -14,7 +14,6 @@ from alembic import op
 
 
 def upgrade():
-    return
     op.drop_constraint('aggtestgroup_project_id_fkey', 'aggtestgroup')
     op.create_foreign_key('aggtestgroup_project_id_fkey', 'aggtestgroup', 'project', ['project_id'], ['id'], ondelete='CASCADE')
 
@@ -31,5 +30,4 @@ def upgrade():
 
 
 def downgrade():
-    return
     op.drop_constraint('aggtestgroup_last_build_id_fkey', 'aggtestgroup')
