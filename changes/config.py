@@ -20,7 +20,6 @@ from changes.utils.trace import TracerMiddleware
 
 db = SQLAlchemy(session_options={
     'autoflush': True,
-    'autocommit': True,
 })
 mail = Mail()
 pubsub = PubSub()
