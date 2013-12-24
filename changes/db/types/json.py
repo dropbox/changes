@@ -27,7 +27,7 @@ class MutableDict(Mutable, MutableMapping):
         return len(self.value)
 
     def __iter__(self):
-        return iter(self)
+        return iter(self.value)
 
     @classmethod
     def coerce(cls, key, value):
