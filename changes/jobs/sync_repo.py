@@ -2,8 +2,10 @@ from datetime import datetime
 
 from changes.config import db, queue
 from changes.models import Repository
+from changes.utils.locking import lock
 
 
+@lock
 def sync_repo(repo_id, continuous=True):
     repo = Repository.query.get(repo_id)
     if not repo:
