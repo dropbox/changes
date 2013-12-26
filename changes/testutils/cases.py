@@ -37,6 +37,7 @@ class Fixtures(object):
     def create_project(self, **kwargs):
         if not kwargs.get('repository'):
             kwargs['repository'] = self.create_repo()
+        kwargs['repository_id'] = kwargs['repository'].id
         kwargs.setdefault('name', uuid4().hex)
         kwargs.setdefault('slug', kwargs['name'])
 
@@ -70,21 +71,34 @@ class Fixtures(object):
 
         return group
 
-    def create_job(self, project, **kwargs):
-        revision_sha = kwargs.pop('revision_sha', uuid4().hex)
-        revision = Revision.query.filter_by(
-            sha=revision_sha, repository=project.repository).first()
+    def create_job(self, project=None, build=None, **kwargs):
+        assert build or project
+
+        if build:
+            kwargs.setdefault('label', build.label)
+            kwargs.setdefault('status', build.status)
+            kwargs.setdefault('result', build.result)
+            kwargs['build_id'] = build.id
+            revision_sha = kwargs.pop('revision_sha', build.revision_sha)
+            project = build.project
+        else:
+            kwargs.setdefault('label', 'Sample')
+            revision_sha = kwargs.pop('revision_sha', uuid4().hex)
+
+        revision = Revision.query.filter(
+            Revision.sha == revision_sha,
+            Revision.repository_id == project.repository_id,
+        ).first()
         if not revision:
             revision = Revision(
                 sha=revision_sha,
-                repository=project.repository
+                repository_id=project.repository_id,
+                repository=project.repository,
             )
             db.session.add(revision)
 
         if kwargs.get('change', False) is False:
             kwargs['change'] = self.create_change(project)
-
-        kwargs.setdefault('label', 'Sample')
 
         job = Job(
             repository_id=project.repository_id,
@@ -98,8 +112,22 @@ class Fixtures(object):
 
         return job
 
-    # temp
-    create_build = create_job
+    def create_build(self, project, **kwargs):
+        revision_sha = kwargs.pop('revision_sha', uuid4().hex)
+
+        kwargs.setdefault('label', 'Sample')
+
+        build = Build(
+            repository_id=project.repository_id,
+            repository=project.repository,
+            project_id=project.id,
+            project=project,
+            revision_sha=revision_sha,
+            **kwargs
+        )
+        db.session.add(build)
+
+        return build
 
     def create_patch(self, project, **kwargs):
         kwargs.setdefault('label', 'Test Patch')
@@ -108,8 +136,13 @@ class Fixtures(object):
         kwargs.setdefault('parent_revision_sha', uuid4().hex)
         if not kwargs.get('repository'):
             kwargs['repository'] = self.create_repo()
+        kwargs['repository_id'] = kwargs['repository'].id
 
-        patch = Patch(project=project, **kwargs)
+        patch = Patch(
+            project=project,
+            project_id=project.id,
+            **kwargs
+        )
         db.session.add(patch)
 
         return patch

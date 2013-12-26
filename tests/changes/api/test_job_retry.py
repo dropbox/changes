@@ -7,7 +7,8 @@ from changes.testutils import APITestCase
 class JobRetryTest(APITestCase):
     def test_simple(self):
         change = self.create_change(self.project)
-        job = self.create_job(self.project, change=change)
+        build = self.create_build(project=self.project)
+        job = self.create_job(build=build, change=change)
 
         path = '/api/0/jobs/{0}/retry/'.format(job.id.hex)
         resp = self.client.post(path)
@@ -32,9 +33,8 @@ class JobRetryTest(APITestCase):
         plan.projects.append(self.project)
 
         change = self.create_change(self.project)
-        job = self.create_job(self.project, change=change)
-
-        build = self.create_build_from_job(job)
+        build = self.create_build(project=self.project)
+        job = self.create_job(build=build, change=change)
 
         jobplan = JobPlan(
             build=build,
