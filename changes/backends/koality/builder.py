@@ -12,7 +12,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update
 from changes.models import (
-    Revision, Author, BuildPhase, BuildStep, RemoteEntity, Node
+    Revision, Author, JobPhase, BuildStep, RemoteEntity, Node
 )
 
 
@@ -119,13 +119,13 @@ class KoalityBuilder(BaseBackend):
                 phase = None
                 create_entity = True
             else:
-                phase = BuildPhase.query.get(entity.internal_id)
+                phase = JobPhase.query.get(entity.internal_id)
                 create_entity = False
         else:
             create_entity = False
 
         if phase is None:
-            phase = BuildPhase()
+            phase = JobPhase()
 
         phase.build = build
         phase.repository = build.repository

@@ -10,7 +10,7 @@ from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Repository, Project, Job, Revision, Author, BuildPhase, BuildStep, Patch
+    Repository, Project, Job, Revision, Author, JobPhase, BuildStep, Patch
 )
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
@@ -99,7 +99,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert author.email == 'john@example.com'
         assert author.name == 'John Developer'
 
-        phase_list = list(BuildPhase.query.filter_by(
+        phase_list = list(JobPhase.query.filter_by(
             build=build,
         ))
 

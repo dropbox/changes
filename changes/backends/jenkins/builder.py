@@ -16,7 +16,7 @@ from changes.db.utils import create_or_update, get_or_create
 from changes.events import publish_logchunk_update
 from changes.models import (
     AggregateTestSuite, RemoteEntity, TestResult, TestResultManager, TestSuite,
-    LogSource, LogChunk, Node, BuildPhase, BuildStep
+    LogSource, LogChunk, Node, JobPhase, BuildStep
 )
 
 LOG_CHUNK_SIZE = 4096
@@ -179,7 +179,7 @@ class JenkinsBuilder(BaseBackend):
             'label': item['builtOn'],
         })
 
-        buildphase, created = get_or_create(BuildPhase, where={
+        buildphase, created = get_or_create(JobPhase, where={
             'build': build,
             'label': build.data['job_name'],
         }, defaults={

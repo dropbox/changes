@@ -15,7 +15,7 @@ class BuildStep(db.Model):
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
-    phase_id = Column(GUID, ForeignKey('buildphase.id', ondelete="CASCADE"), nullable=False)
+    phase_id = Column(GUID, ForeignKey('jobphase.id', ondelete="CASCADE"), nullable=False)
     repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     label = Column(String(128), nullable=False)
@@ -29,7 +29,7 @@ class BuildStep(db.Model):
     build = relationship('Job')
     project = relationship('Project')
     repository = relationship('Repository')
-    phase = relationship('BuildPhase', backref='steps')
+    phase = relationship('JobPhase', backref='steps')
 
     def __init__(self, **kwargs):
         super(BuildStep, self).__init__(**kwargs)
