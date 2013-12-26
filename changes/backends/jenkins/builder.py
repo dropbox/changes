@@ -232,7 +232,7 @@ class JenkinsBuilder(BaseBackend):
             if self.sync_artifacts:
                 for artifact in item.get('artifacts', ()):
                     queue.delay('sync_artifact', kwargs={
-                        'build_id': job.id.hex,
+                        'job_id': job.id.hex,
                         'artifact': artifact,
                     })
 

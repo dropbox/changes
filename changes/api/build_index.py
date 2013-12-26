@@ -140,8 +140,8 @@ def create_build(project, sha, label, target, message, author, change=None,
     db.session.commit()
 
     for build in builds:
-        queue.delay('create_build', kwargs={
-            'build_id': build.id.hex,
+        queue.delay('create_job', kwargs={
+            'job_id': build.id.hex,
         }, countdown=5)
 
     return builds

@@ -432,7 +432,7 @@ class SyncBuildTest(BaseTestCase):
         assert len(queue.mock_calls) == 2
 
         queue.delay.assert_any_call('sync_artifact', kwargs={
-            'build_id': job.id.hex,
+            'job_id': job.id.hex,
             'artifact': {
                 "displayPath": "foobar.log",
                 "fileName": "foobar.log",
@@ -441,7 +441,7 @@ class SyncBuildTest(BaseTestCase):
         })
 
         queue.delay.assert_any_call('sync_artifact', kwargs={
-            'build_id': job.id.hex,
+            'job_id': job.id.hex,
             'artifact': {
                 "displayPath": "tests.xml",
                 "fileName": "tests.xml",

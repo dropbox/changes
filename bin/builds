@@ -69,7 +69,7 @@ if args.command == 'add':
     backend.create_job(build)
 
     queue.delay('sync_job', kwargs={
-        'build_id': build.id.hex,
+        'job_id': build.id.hex,
     })
 
     db.session.add(build)
@@ -91,4 +91,4 @@ elif args.command == 'sync':
     for build in builds:
         print "Forcing build sync - {}".format(build.id.hex)
 
-        sync_job(build_id=build.id.hex)
+        sync_job(job_id=build.id.hex)
