@@ -1,17 +1,19 @@
-define([], function () {
+(function(){
   'use strict';
 
-  var entityMap = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': '&quot;',
-    "'": '&#39;'
-  };
+  define([], function () {
+    var entityMap = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': '&quot;',
+      "'": '&#39;'
+    };
 
-  return function escapeHtml(string) {
-    return String(string).replace(/[&<>"']/g, function (s) {
-      return entityMap[s];
-    });
-  };
-});
+    return function escapeHtml(string) {
+      return String(string).replace(/[&<>"']/g, function (s) {
+        return entityMap[s];
+      });
+    };
+  });
+})();

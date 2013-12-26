@@ -1,11 +1,13 @@
-define(['utils/sortArray'], function(sortArray) {
+(function(){
   'use strict';
 
-  return function sortBuildList(arr) {
-    function getBuildScore(object) {
-      return [new Date(object.dateCreated).getTime()];
-    }
+  define(['utils/sortArray'], function(sortArray) {
+    return function sortBuildList(arr) {
+      function getBuildScore(object) {
+        return [new Date(object.dateCreated).getTime()];
+      }
 
-    return sortArray(arr, getBuildScore);
-  };
-});
+      return sortArray(arr, getBuildScore);
+    };
+  });
+})();
