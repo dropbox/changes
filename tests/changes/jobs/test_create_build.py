@@ -71,7 +71,7 @@ class CreateBuildTest(TestCase):
         create_build(build_id=job.id.hex)
 
         # build sync is abstracted via sync_with_builder
-        builder_create_build.assert_called_once_with(build=job)
+        builder_create_build.assert_called_once_with(job=job)
 
         # ensure signal is fired
         queue_delay.assert_called_once_with('sync_build', kwargs={
