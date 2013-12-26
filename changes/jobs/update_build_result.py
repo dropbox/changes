@@ -8,10 +8,12 @@ from changes.models import Build, Job
 def update_build_result(build_id, job_id):
     job = Job.query.get(job_id)
 
-    is_finished = not Job.query.filter(
+    # TODO(dcramer): ideally this could be an exists query, but no idea how
+    # to do that
+    is_finished = (Job.query.filter(
         Job.build_id == build_id,
         Job.status != Status.finished,
-    ).exists()
+    ).first() is None)
 
     current_datetime = datetime.utcnow()
 
@@ -21,6 +23,7 @@ def update_build_result(build_id, job_id):
             Build.query.filter(
                 Build.id == build_id
             ).update({
+                Build.status: Status.in_progress,
                 Build.result: Result.failed,
                 Build.date_modified: current_datetime,
             }, synchronize_session=False)
@@ -30,15 +33,19 @@ def update_build_result(build_id, job_id):
         Job.build_id == build_id,
     ))
 
+    date_started = min(j.date_started for j in all_jobs)
+    date_finished = max(j.date_finished for j in all_jobs)
+    duration = int((date_finished - date_started).total_seconds() * 1000)
+
     Build.query.filter(
         Build.id == build_id
     ).update({
         Build.result: max(j.result for j in all_jobs),
         Build.status: Status.finished,
-        Build.duration: sum(j.duration for j in all_jobs),
-        Build.date_started: min(j.date_started for j in all_jobs),
         Build.date_modified: current_datetime,
-        Build.date_finished: max(j.date_finished for j in all_jobs),
+        Build.date_started: date_started,
+        Build.date_finished: date_finished,
+        Build.duration: duration,
     }, synchronize_session=False)
 
     for job in all_jobs:
