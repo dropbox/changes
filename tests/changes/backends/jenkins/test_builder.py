@@ -146,7 +146,7 @@ class CreateBuildTest(BaseTestCase):
             provider=self.provider,
             internal_id=self.project.id,
             remote_id='server-foo',
-            type='build',
+            type='job',
         )
         db.session.add(project_entity)
 
