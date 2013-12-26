@@ -24,39 +24,39 @@ class JenkinsBuildStepTest(TestCase):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        job = self.create_job(self.project)
 
         buildstep = self.get_buildstep()
-        buildstep.execute(build)
+        buildstep.execute(job)
 
-        builder.create_build.assert_called_once_with(build)
+        builder.create_job.assert_called_once_with(job)
 
     @mock.patch.object(JenkinsBuildStep, 'get_builder')
     def test_sync_build(self, get_builder):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project, data={
+        job = self.create_job(self.project, data={
             'job_name': 'server',
             'build_no': '35',
         })
 
         buildstep = self.get_buildstep()
-        buildstep.execute(build)
+        buildstep.execute(job)
 
-        builder.sync_build.assert_called_once_with(build)
+        builder.sync_job.assert_called_once_with(job)
 
     @mock.patch.object(JenkinsBuildStep, 'get_builder')
     def test_legacy_sync_build(self, get_builder):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        job = self.create_job(self.project)
 
         entity = RemoteEntity(
             provider='jenkins',
             remote_id='a' * 40,
-            internal_id=build.id.hex,
+            internal_id=job.id.hex,
             type='build',
             data={
                 'job_name': 'server',
@@ -66,6 +66,6 @@ class JenkinsBuildStepTest(TestCase):
         db.session.add(entity)
 
         buildstep = self.get_buildstep()
-        buildstep.execute(build)
+        buildstep.execute(job)
 
-        builder.sync_build.assert_called_once_with(build)
+        builder.sync_job.assert_called_once_with(job)

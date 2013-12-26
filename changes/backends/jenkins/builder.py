@@ -90,117 +90,117 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _sync_build_from_queue(self, build):
+    def _sync_job_from_queue(self, job):
         # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
         # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
         # doesnt explicitly mean that the job doesnt exist
         try:
             item = self._get_response('/queue/item/{}'.format(
-                build.data['item_id']))
+                job.data['item_id']))
         except NotFound:
-            build.status = Status.finished
-            build.result = Result.unknown
-            db.session.add(build)
+            job.status = Status.finished
+            job.result = Result.unknown
+            db.session.add(job)
             return
 
         if item.get('executable'):
             build_no = item['executable']['number']
-            build.data['queued'] = False
-            build.data['build_no'] = build_no
+            job.data['queued'] = False
+            job.data['build_no'] = build_no
 
         if item['blocked']:
-            build.status = Status.queued
-            db.session.add(build)
-        elif item.get('cancelled') and not build.data.get('build_no'):
-            build.status = Status.finished
-            build.result = Result.aborted
-            db.session.add(build)
+            job.status = Status.queued
+            db.session.add(job)
+        elif item.get('cancelled') and not job.data.get('build_no'):
+            job.status = Status.finished
+            job.result = Result.aborted
+            db.session.add(job)
         elif item.get('executable'):
             for x in xrange(6):
                 # There's a possible race condition where the item has been
-                # assigned an ID, yet the API responds as if the build does
+                # assigned an ID, yet the API responds as if the job does
                 # not exist
                 try:
-                    self._sync_build_from_active(build, fail_on_404=True)
+                    self._sync_job_from_active(job, fail_on_404=True)
                 except NotFound:
                     time.sleep(0.3)
                 else:
                     break
 
-    def _sync_build_from_active(self, build, fail_on_404=False):
+    def _sync_job_from_active(self, job, fail_on_404=False):
         try:
             item = self._get_response('/job/{}/{}'.format(
-                build.data['job_name'], build.data['build_no']))
+                job.data['job_name'], job.data['build_no']))
         except NotFound:
             if fail_on_404:
                 raise
-            build.date_finished = datetime.utcnow()
-            build.status = Status.finished
-            build.result = Result.unknown
-            db.session.add(build)
+            job.date_finished = datetime.utcnow()
+            job.status = Status.finished
+            job.result = Result.unknown
+            db.session.add(job)
             return
 
         should_finish = False
 
         # XXX(dcramer): timestamp implies creation date, so lets just assume
         # we were able to track it immediately
-        if not build.date_started:
-            build.date_started = datetime.utcnow()
+        if not job.date_started:
+            job.date_started = datetime.utcnow()
 
         if item['building']:
-            build.status = Status.in_progress
+            job.status = Status.in_progress
         else:
             should_finish = True
-            build.date_finished = datetime.utcnow()
+            job.date_finished = datetime.utcnow()
 
             if item['result'] == 'SUCCESS':
-                build.result = Result.passed
+                job.result = Result.passed
             elif item['result'] == 'ABORTED':
-                build.result = Result.aborted
+                job.result = Result.aborted
             elif item['result'] in ('FAILURE', 'REGRESSION', 'UNSTABLE'):
-                build.result = Result.failed
+                job.result = Result.failed
             else:
-                raise ValueError('Invalid build result: %s' % (item['result'],))
+                raise ValueError('Invalid job result: %s' % (item['result'],))
 
         if item['duration']:
-            build.duration = item['duration']
+            job.duration = item['duration']
 
-        build.data.update({
+        job.data.update({
             'backend': {
                 'uri': item['url'],
                 'label': item['fullDisplayName'],
             }
         })
 
-        db.session.add(build)
+        db.session.add(job)
         db.session.commit()
 
         node, _ = get_or_create(Node, where={
             'label': item['builtOn'],
         })
 
-        buildphase, created = get_or_create(JobPhase, where={
-            'job': build,
-            'label': build.data['job_name'],
+        jobphase, created = get_or_create(JobPhase, where={
+            'job': job,
+            'label': job.data['job_name'],
         }, defaults={
-            'project_id': build.project_id,
-            'repository_id': build.repository_id,
-            'date_started': build.date_started,
-            'status': build.status,
-            'result': build.result,
+            'project_id': job.project_id,
+            'repository_id': job.repository_id,
+            'date_started': job.date_started,
+            'status': job.status,
+            'result': job.result,
         })
 
-        buildstep, created = get_or_create(JobStep, where={
-            'phase': buildphase,
+        jobstep, created = get_or_create(JobStep, where={
+            'phase': jobphase,
             'label': item['fullDisplayName'],
         }, defaults={
-            'job': build,
-            'project_id': build.project_id,
+            'job': job,
+            'project_id': job.project_id,
             'node_id': node.id,
-            'repository_id': build.repository_id,
-            'date_started': build.date_started,
-            'status': build.status,
-            'result': build.result,
+            'repository_id': job.repository_id,
+            'date_started': job.date_started,
+            'status': job.status,
+            'result': job.result,
         })
 
         # TODO(dcramer): ideally we could fire off jobs to sync test results
@@ -209,60 +209,60 @@ class JenkinsBuilder(BaseBackend):
             # is this the best way to find this?
             if action.get('urlName') == 'testReport':
                 try:
-                    self._sync_test_results(build)
+                    self._sync_test_results(job)
                 except Exception:
                     db.session.rollback()
-                    current_app.logger.exception('Unable to sync test results for build %r', build.id.hex)
+                    current_app.logger.exception('Unable to sync test results for job %r', job.id.hex)
 
         if should_finish:
-            # FIXME(dcramer): we're waiting until the build is complete to sync
+            # FIXME(dcramer): we're waiting until the job is complete to sync
             # logs due to our inability to correctly identify start offsets
             # if we're supposed to be finishing, lets ensure we actually
             # get the entirety of the log
             try:
                 start = time.time()
-                while self._sync_console_log(build):
+                while self._sync_console_log(job):
                     if time.time() - start > 15:
                         raise Exception('Took too long to sync log')
                     continue
             except Exception:
                 db.session.rollback()
-                current_app.logger.exception('Unable to sync console log for build %r', build.id.hex)
+                current_app.logger.exception('Unable to sync console log for job %r', job.id.hex)
 
             if self.sync_artifacts:
                 for artifact in item.get('artifacts', ()):
                     queue.delay('sync_artifact', kwargs={
-                        'build_id': build.id.hex,
+                        'build_id': job.id.hex,
                         'artifact': artifact,
                     })
 
-            build.status = Status.finished
-            db.session.add(build)
+            job.status = Status.finished
+            db.session.add(job)
 
-            buildphase.status = build.status
-            buildphase.result = build.result
-            buildphase.date_finished = build.date_finished
+            jobphase.status = job.status
+            jobphase.result = job.result
+            jobphase.date_finished = job.date_finished
 
-            db.session.add(buildphase)
+            db.session.add(jobphase)
 
-            buildstep.status = build.status
-            buildstep.result = build.result
-            buildstep.date_finished = build.date_finished
+            jobstep.status = job.status
+            jobstep.result = job.result
+            jobstep.date_finished = job.date_finished
 
-            db.session.add(buildstep)
+            db.session.add(jobstep)
 
-    def _sync_artifact_as_log(self, build, artifact):
+    def _sync_artifact_as_log(self, job, artifact):
         logsource, created = get_or_create(LogSource, where={
             'name': artifact['displayPath'],
-            'build': build,
+            'build': job,
         }, defaults={
-            'project': build.project,
-            'date_created': build.date_started,
+            'project': job.project,
+            'date_created': job.date_started,
         })
 
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url, job=build.data['job_name'],
-            build=build.data['build_no'], artifact=artifact['relativePath'],
+            base=self.base_url, job=job.data['job_name'],
+            build=job.data['build_no'], artifact=artifact['relativePath'],
         )
 
         offset = 0
@@ -274,8 +274,8 @@ class JenkinsBuilder(BaseBackend):
                 'source': logsource,
                 'offset': offset,
             }, values={
-                'build': build,
-                'project': build.project,
+                'build': job,
+                'project': job.project,
                 'size': chunk_size,
                 'text': chunk,
             })
@@ -284,23 +284,23 @@ class JenkinsBuilder(BaseBackend):
 
             publish_logchunk_update(chunk)
 
-    def _sync_console_log(self, build):
+    def _sync_console_log(self, job):
         # TODO(dcramer): this doesnt handle concurrency
         logsource, created = get_or_create(LogSource, where={
             'name': 'console',
-            'build': build,
+            'build': job,
         }, defaults={
-            'project': build.project,
-            'date_created': build.date_started,
+            'project': job.project,
+            'date_created': job.date_started,
         })
         if created:
             offset = 0
         else:
-            offset = build.data.get('log_offset', 0)
+            offset = job.data.get('log_offset', 0)
 
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
-            base=self.base_url, job=build.data['job_name'],
-            build=build.data['build_no'],
+            base=self.base_url, job=job.data['job_name'],
+            build=job.data['build_no'],
         )
 
         resp = requests.get(url, params={'start': offset}, stream=True)
@@ -320,8 +320,8 @@ class JenkinsBuilder(BaseBackend):
                 'source': logsource,
                 'offset': offset,
             }, values={
-                'build': build,
-                'project': build.project,
+                'build': job,
+                'project': job.project,
                 'size': chunk_size,
                 'text': chunk,
             })
@@ -332,17 +332,17 @@ class JenkinsBuilder(BaseBackend):
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
-        build.data['log_offset'] = log_length
-        db.session.add(build)
+        job.data['log_offset'] = log_length
+        db.session.add(job)
         db.session.commit()
 
         # Jenkins will suggest to us that there is more data when the job has
         # yet to complete
         return True if resp.headers.get('X-More-Data') == 'true' else None
 
-    def _sync_test_results(self, build):
+    def _sync_test_results(self, job):
         test_report = self._get_response('/job/{}/{}/testReport/'.format(
-            build.data['job_name'], build.data['build_no']))
+            job.data['job_name'], job.data['build_no']))
 
         test_list = []
         for suite_data in test_report['suites']:
@@ -351,19 +351,19 @@ class JenkinsBuilder(BaseBackend):
             # TODO(dcramer): this is not specific to Jenkins and should be
             # abstracted
             suite, _ = get_or_create(TestSuite, where={
-                'job': build,
+                'job': job,
                 'name_sha': sha1(suite_name).hexdigest(),
             }, defaults={
                 'name': suite_name,
-                'project': build.project,
+                'project': job.project,
             })
 
             agg, created = get_or_create(AggregateTestSuite, where={
-                'project': build.project,
+                'project': job.project,
                 'name_sha': suite.name_sha,
             }, defaults={
                 'name': suite.name,
-                'first_build_id': build.id,
+                'first_build_id': job.id,
             })
 
             # if not created:
@@ -395,7 +395,7 @@ class JenkinsBuilder(BaseBackend):
                     raise ValueError('Invalid test result: %s' % (case['status'],))
 
                 test_result = TestResult(
-                    job=build,
+                    job=job,
                     suite=suite,
                     name=case['name'],
                     package=case['className'] or None,
@@ -405,21 +405,20 @@ class JenkinsBuilder(BaseBackend):
                 )
                 test_list.append(test_result)
 
-        manager = TestResultManager(build)
+        manager = TestResultManager(job)
         with db.session.begin_nested():
             manager.save(test_list)
-        db.session.commit()
 
-    def _find_job(self, job_name, build_id):
+    def _find_job(self, job_name, job_id):
         """
-        Given a build identifier, we attempt to poll the various endpoints
+        Given a job identifier, we attempt to poll the various endpoints
         for a limited amount of time, trying to match up either a queued item
         or a running job that has the CHANGES_BID parameter.
 
         This is nescesary because Jenkins does not give us any identifying
         information when we create a job initially.
 
-        The build_id parameter should be the corresponding value to look for in
+        The job_id parameter should be the corresponding value to look for in
         the CHANGES_BID parameter.
 
         The result is a mapping with the following keys:
@@ -429,18 +428,18 @@ class JenkinsBuilder(BaseBackend):
         - build_no: the build number, if available
         """
         # Check the queue first to ensure that we don't miss a transition
-        # from queue -> active builds
+        # from queue -> active jobs
         for item in self._get_response('/queue')['items']:
             if item['task']['name'] != job_name:
                 continue
 
             params = self._parse_parameters(item)
             try:
-                job_build_id = params['CHANGES_BID']
+                changes_bid = params['CHANGES_BID']
             except KeyError:
                 continue
 
-            if job_build_id == build_id:
+            if changes_bid == job_id:
                 return {
                     'job_name': job_name,
                     'queued': True,
@@ -453,11 +452,11 @@ class JenkinsBuilder(BaseBackend):
         for item in self._get_response('/job/{}'.format(job_name), params={'depth': 2})['builds']:
             params = self._parse_parameters(item)
             try:
-                job_build_id = params['CHANGES_BID']
+                changes_bid = params['CHANGES_BID']
             except KeyError:
                 continue
 
-            if job_build_id == build_id:
+            if changes_bid == job_id:
                 return {
                     'job_name': job_name,
                     'queued': False,
@@ -465,24 +464,24 @@ class JenkinsBuilder(BaseBackend):
                     'build_no': item['number'],
                 }
 
-    def sync_build(self, build):
-        if build.data['queued']:
-            self._sync_build_from_queue(build)
+    def sync_job(self, job):
+        if job.data['queued']:
+            self._sync_job_from_queue(job)
         else:
-            self._sync_build_from_active(build)
+            self._sync_job_from_active(job)
 
-    def sync_artifact(self, build, artifact):
+    def sync_artifact(self, job, artifact):
         if artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(build, artifact)
+            self._sync_artifact_as_log(job, artifact)
 
-    def create_build(self, build):
+    def create_job(self, job):
         """
-        Creates a build within Jenkins.
+        Creates a job within Jenkins.
 
         Due to the way the API works, this consists of two steps:
 
-        - Submitting the build
-        - Polling for the newly created build to associate either a queue ID
+        - Submitting the job
+        - Polling for the newly created job to associate either a queue ID
           or a finalized build number.
         """
         if self.job_name:
@@ -490,7 +489,7 @@ class JenkinsBuilder(BaseBackend):
         else:
             entity = RemoteEntity.query.filter_by(
                 provider=self.provider,
-                internal_id=build.project.id,
+                internal_id=job.project.id,
                 type='job',
             ).first()
             if entity:
@@ -500,20 +499,20 @@ class JenkinsBuilder(BaseBackend):
 
         json_data = {
             'parameter': [
-                {'name': 'CHANGES_BID', 'value': build.id.hex},
+                {'name': 'CHANGES_BID', 'value': job.id.hex},
             ]
         }
-        if build.revision_sha:
+        if job.revision_sha:
             json_data['parameter'].append(
-                {'name': 'REVISION', 'value': build.revision_sha},
+                {'name': 'REVISION', 'value': job.revision_sha},
             )
 
-        if build.patch:
+        if job.patch:
             json_data['parameter'].append(
                 {'name': 'PATCH', 'file': 'patch'}
             )
             files = {
-                'patch': build.patch.diff,
+                'patch': job.patch.diff,
             }
         else:
             files = None
@@ -525,9 +524,9 @@ class JenkinsBuilder(BaseBackend):
             'json': json.dumps(json_data),
         }, files=files)
 
-        build_item = self._find_job(job_name, build.id.hex)
-        if build_item is None:
+        job_data = self._find_job(job_name, job.id.hex)
+        if job_data is None:
             raise Exception('Unable to find matching job after creation. GLHF')
 
-        build.data = build_item
-        db.session.add(build)
+        job.data = job_data
+        db.session.add(job)

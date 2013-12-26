@@ -20,20 +20,20 @@ class JenkinsBuildStep(BuildStep):
     def get_builder(self, app=current_app):
         return JenkinsBuilder(app=app, job_name=self.job_name)
 
-    def execute(self, build):
+    def execute(self, job):
         # TODO(dcramer): remove migration after 12/24
-        if 'queued' not in build.data:
+        if 'queued' not in job.data:
             entity = RemoteEntity.query.filter_by(
                 provider='jenkins',
-                internal_id=build.id,
+                internal_id=job.id,
                 type='build',
             ).first()
             if entity is not None:
-                build.data.update(entity.data)
-                db.session.add(build)
+                job.data.update(entity.data)
+                db.session.add(job)
 
         builder = self.get_builder()
-        if not build.data:
-            builder.create_build(build)
+        if not job.data:
+            builder.create_job(job)
         else:
-            builder.sync_build(build)
+            builder.sync_job(job)

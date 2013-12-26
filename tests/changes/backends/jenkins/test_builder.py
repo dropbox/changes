@@ -63,14 +63,14 @@ class CreateBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
 
         builder = self.get_builder()
-        builder.create_build(build)
+        builder.create_job(job)
 
-        assert build.data == {
+        assert job.data == {
             'build_no': None,
             'item_id': 13,
             'job_name': 'server',
@@ -92,14 +92,14 @@ class CreateBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('f9481a17aac446718d7893b6e1c6288b'))
 
         builder = self.get_builder()
-        builder.create_build(build)
+        builder.create_job(job)
 
-        assert build.data == {
+        assert job.data == {
             'build_no': 1,
             'item_id': None,
             'job_name': 'server',
@@ -130,7 +130,7 @@ class CreateBuildTest(BaseTestCase):
         )
         db.session.add(patch)
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             patch=patch,
             revision_sha=patch.parent_revision_sha,
@@ -138,7 +138,7 @@ class CreateBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.create_build(build)
+        builder.create_job(job)
 
     @responses.activate
     def test_with_entity(self):
@@ -163,14 +163,14 @@ class CreateBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server-foo/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('f9481a17aac446718d7893b6e1c6288b'))
 
         builder = self.get_builder(job_name=None)
-        builder.create_build(build)
+        builder.create_job(job)
 
-        assert build.data == {
+        assert job.data == {
             'build_no': 1,
             'item_id': None,
             'job_name': 'server-foo',
@@ -185,7 +185,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_pending.json'))
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -197,9 +197,9 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
-        assert build.status == Status.queued
+        assert job.status == Status.queued
 
     @responses.activate
     def test_cancelled_in_queue(self):
@@ -207,7 +207,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_cancelled.json'))
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -219,10 +219,10 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
-        assert build.status == Status.finished
-        assert build.result == Result.aborted
+        assert job.status == Status.finished
+        assert job.result == Result.aborted
 
     @responses.activate
     def test_queued_to_active(self):
@@ -238,7 +238,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -250,11 +250,11 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
-        assert build.data['build_no'] == 2
-        assert build.status == Status.in_progress
-        assert build.date_started is not None
+        assert job.data['build_no'] == 2
+        assert job.status == Status.in_progress
+        assert job.date_started is not None
 
     @responses.activate
     def test_success_result(self):
@@ -268,7 +268,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -280,13 +280,13 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
-        assert build.data['build_no'] == 2
-        assert build.status == Status.finished
-        assert build.result == Result.passed
-        assert build.duration == 8875
-        assert build.date_finished is not None
+        assert job.data['build_no'] == 2
+        assert job.status == Status.finished
+        assert job.result == Result.passed
+        assert job.duration == 8875
+        assert job.date_finished is not None
 
     @responses.activate
     def test_failed_result(self):
@@ -299,7 +299,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -311,13 +311,13 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
-        assert build.data['build_no'] == 2
-        assert build.status == Status.finished
-        assert build.result == Result.failed
-        assert build.duration == 8875
-        assert build.date_finished is not None
+        assert job.data['build_no'] == 2
+        assert job.status == Status.finished
+        assert job.result == Result.failed
+        assert job.duration == 8875
+        assert job.date_finished is not None
 
     @responses.activate
     def test_does_sync_test_report(self):
@@ -333,7 +333,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -345,9 +345,9 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
-        test_list = sorted(TestCase.query.filter_by(job=build), key=lambda x: x.duration)
+        test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
 
         assert len(test_list) == 2
         assert test_list[0].name == 'Test'
@@ -373,7 +373,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '7'},
             body='Foo bar')
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -385,24 +385,24 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
-        source = LogSource.query.filter_by(build=build).first()
+        source = LogSource.query.filter_by(build=job).first()
         assert source.name == 'console'
         assert source.project == self.project
-        assert source.date_created == build.date_started
+        assert source.date_created == job.date_started
 
         chunks = list(LogChunk.query.filter_by(
             source=source,
         ).order_by(LogChunk.date_created.asc()))
         assert len(chunks) == 1
-        assert chunks[0].build == build
+        assert chunks[0].build == job
         assert chunks[0].project == self.project
         assert chunks[0].offset == 0
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
 
-        assert build.data.get('log_offset') == 7
+        assert job.data.get('log_offset') == 7
 
     @responses.activate
     @mock.patch('changes.backends.jenkins.builder.queue')
@@ -416,7 +416,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -427,12 +427,12 @@ class SyncBuildTest(BaseTestCase):
             },
         )
         builder = self.get_builder()
-        builder.sync_build(build)
+        builder.sync_job(job)
 
         assert len(queue.mock_calls) == 2
 
         queue.delay.assert_any_call('sync_artifact', kwargs={
-            'build_id': build.id.hex,
+            'build_id': job.id.hex,
             'artifact': {
                 "displayPath": "foobar.log",
                 "fileName": "foobar.log",
@@ -441,7 +441,7 @@ class SyncBuildTest(BaseTestCase):
         })
 
         queue.delay.assert_any_call('sync_artifact', kwargs={
-            'build_id': build.id.hex,
+            'build_id': job.id.hex,
             'artifact': {
                 "displayPath": "tests.xml",
                 "fileName": "tests.xml",
@@ -455,7 +455,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/foobar.log',
             body='hello world')
 
-        build = self.create_build(
+        job = self.create_job(
             self.project,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
@@ -467,14 +467,14 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_artifact(build, {
+        builder.sync_artifact(job, {
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log"
         })
 
         source = LogSource.query.filter(
-            LogSource.build_id == build.id,
+            LogSource.build_id == job.id,
             LogSource.name == 'foobar.log',
         ).first()
         assert source is not None
@@ -484,8 +484,8 @@ class SyncBuildTest(BaseTestCase):
             source=source,
         ).order_by(LogChunk.date_created.asc()))
         assert len(chunks) == 1
-        assert chunks[0].build == build
-        assert chunks[0].project == self.project
+        assert chunks[0].build_id == job.id
+        assert chunks[0].project_id == self.project.id
         assert chunks[0].offset == 0
         assert chunks[0].size == 11
         assert chunks[0].text == 'hello world'

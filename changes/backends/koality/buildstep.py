@@ -16,20 +16,20 @@ class KoalityBuildStep(BuildStep):
     def get_builder(self, app=current_app):
         return KoalityBuilder(app=app, project_id=self.project_id)
 
-    def execute(self, build):
+    def execute(self, job):
         # TODO(dcramer): remove migration after 12/24
-        if not build.data:
+        if not job.data:
             entity = RemoteEntity.query.filter_by(
                 provider='koality',
-                internal_id=build.id,
+                internal_id=job.id,
                 type='build',
             ).first()
             if entity is not None:
-                build.data = entity.data
-                db.session.add(build)
+                job.data = entity.data
+                db.session.add(job)
 
         builder = self.get_builder()
-        if not build.data:
-            builder.create_build(build)
+        if not job.data:
+            builder.create_job(job)
         else:
-            builder.sync_build(build)
+            builder.sync_job(job)

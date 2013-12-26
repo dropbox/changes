@@ -106,8 +106,8 @@ class KoalityBuilder(BaseBackend):
             'sha': commit['sha'],
         })[0]
 
-    def _sync_phase(self, build, stage_type, stage_list, phase=None):
-        remote_id = '%s:%s' % (build.id.hex, stage_type)
+    def _sync_phase(self, job, stage_type, stage_list, phase=None):
+        remote_id = '%s:%s' % (job.id.hex, stage_type)
 
         if phase is None:
             entity = RemoteEntity.query.filter_by(
@@ -127,9 +127,9 @@ class KoalityBuilder(BaseBackend):
         if phase is None:
             phase = JobPhase()
 
-        phase.job = build
-        phase.repository = build.repository
-        phase.project = build.project
+        phase.job = job
+        phase.repository = job.repository
+        phase.project = job.project
         phase.label = stage_type.title()
 
         phase.date_started = self._get_start_time(stage_list)
@@ -163,7 +163,7 @@ class KoalityBuilder(BaseBackend):
 
         return phase
 
-    def _sync_step(self, build, phase, stage, step=None):
+    def _sync_step(self, job, phase, stage, step=None):
         if step is None:
             try:
                 entity = RemoteEntity.query.filter_by(
@@ -184,9 +184,9 @@ class KoalityBuilder(BaseBackend):
 
         node = self._get_node(stage['buildNode'])
 
-        step.job = build
-        step.repository = build.repository
-        step.project = build.project
+        step.job = job
+        step.repository = job.repository
+        step.project = job.project
         step.phase = phase
         step.node = node
         step.label = stage['name']
@@ -220,83 +220,83 @@ class KoalityBuilder(BaseBackend):
 
         return step
 
-    def _sync_build_details(self, build, change, stage_list=None):
-        project = build.project
+    def _sync_job_details(self, job, change, stage_list=None):
+        project = job.project
 
         author = self._sync_author(change['headCommit']['user'])
         revision = self._sync_revision(
             project.repository, author, change['headCommit'])
 
-        build.label = change['headCommit']['message'].splitlines()[0][:128]
-        build.author = author
-        build.revision_sha = revision.sha
-        build.repository = project.repository
-        build.project = project
+        job.label = change['headCommit']['message'].splitlines()[0][:128]
+        job.author = author
+        job.revision_sha = revision.sha
+        job.repository = project.repository
+        job.project = project
 
         if stage_list is not None:
-            build.date_created = datetime.utcfromtimestamp(change['createTime'] / 1000)
-            build.date_started = self._get_start_time(stage_list)
-            build.date_finished = self._get_end_time(stage_list)
+            job.date_created = datetime.utcfromtimestamp(change['createTime'] / 1000)
+            job.date_started = self._get_start_time(stage_list)
+            job.date_finished = self._get_end_time(stage_list)
 
             if change['startTime']:
-                if build.date_started:
-                    build.date_started = min(
-                        build.date_started,
+                if job.date_started:
+                    job.date_started = min(
+                        job.date_started,
                         datetime.utcfromtimestamp(change['startTime'] / 1000))
                 else:
-                    build.date_started = datetime.utcfromtimestamp(change['startTime'] / 1000)
+                    job.date_started = datetime.utcfromtimestamp(change['startTime'] / 1000)
 
             # for stage in (s for s in stages if s['status'] == 'failed'):
-            if build.date_started and build.date_finished:
+            if job.date_started and job.date_finished:
                 if all(s['status'] == 'passed' for s in stage_list):
-                    build.result = Result.passed
+                    job.result = Result.passed
                 else:
-                    build.result = Result.failed
-                build.status = Status.finished
-            elif build.date_started:
+                    job.result = Result.failed
+                job.status = Status.finished
+            elif job.date_started:
                 if any(s['status'] == 'failed' for s in stage_list):
-                    build.result = Result.failed
+                    job.result = Result.failed
                 else:
-                    build.result = Result.unknown
-                build.status = Status.in_progress
+                    job.result = Result.unknown
+                job.status = Status.in_progress
             else:
-                build.status = Status.queued
-                build.result = Result.unknown
-        elif change['startTime'] and not build.date_started:
-            build.date_started = datetime.utcfromtimestamp(
+                job.status = Status.queued
+                job.result = Result.unknown
+        elif change['startTime'] and not job.date_started:
+            job.date_started = datetime.utcfromtimestamp(
                 change['startTime'] / 1000)
 
-            if build.status in (Status.queued, Status.unknown):
-                build.status = Status.in_progress
-        elif build.status == Status.unknown:
-                build.status = Status.queued
+            if job.status in (Status.queued, Status.unknown):
+                job.status = Status.in_progress
+        elif job.status == Status.unknown:
+                job.status = Status.queued
 
         # 'timeout' jobs that dont seem to be doing anything
         now = datetime.utcnow()
         check_time = datetime.utcfromtimestamp(max(change['startTime'], change['createTime']) / 1000.0)
         cutoff = timedelta(minutes=90)
-        if build.status in (Status.queued, Status.in_progress, Status.unknown) and check_time < now - cutoff:
-            build.status = Status.finished
-            build.result = Result.failed
+        if job.status in (Status.queued, Status.in_progress, Status.unknown) and check_time < now - cutoff:
+            job.status = Status.finished
+            job.result = Result.failed
 
-        db.session.add(build)
+        db.session.add(job)
 
-    def _sync_build(self, build):
+    def sync_job(self, job):
         # {u'branch': u'verify only (api)', u'number': 760, u'createTime': 1379712159000, u'headCommit': {u'sha': u'257e20ba86c5fe1ff1e1f44613a2590bb56d7285', u'message': u'Change format of mobile gandalf info\n\nSummary: Made it more prettier\n\nTest Plan: tried it with my emulator, it works\n\nReviewers: fta\n\nReviewed By: fta\n\nCC: Reviews-Aloha, Server-Reviews\n\nDifferential Revision: https://tails.corp.dropbox.com/D23207'}, u'user': {u'lastName': u'Verifier', u'id': 3, u'firstName': u'Koality', u'email': u'verify-koala@koalitycode.com'}, u'startTime': 1379712161000, u'mergeStatus': None, u'endTime': 1379712870000, u'id': 814}
         change = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes/{change_id}'.format(
             base_uri=self.base_url,
-            project_id=build.data['project_id'],
-            change_id=build.data['change_id'],
+            project_id=job.data['project_id'],
+            change_id=job.data['change_id'],
         ))
 
         # [{u'status': u'passed', u'type': u'compile', u'id': 18421, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18427, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18426, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18408, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18409, u'name': u'provision'}, {u'status': u'passed', u'type': u'test', u'id': 18428, u'name': u'blockserver'}, {u'status': u'passed', u'type': u'test', u'id': 18429, u'name': u'dropbox'}, {u'status': u'passed', u'type': u'compile', u'id': 18422, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18431, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18430, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18406, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18412, u'name': u'provision'}, {u'status': u'passed', u'type': u'test', u'id': 18432, u'name': u'magicpocket'}, {u'status': u'passed', u'type': u'compile', u'id': 18433, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18441, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18437, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18407, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18411, u'name': u'provision'}, {u'status': u'passed', u'type': u'compile', u'id': 18420, u'name': u'sudo -H -u lt3 ci/compile'}, {u'status': u'passed', u'type': u'compile', u'id': 18424, u'name': u'sudo ln -svf /usr/local/encap/python-2.7.4.1/bin/tox /usr/local/bin/tox'}, {u'status': u'passed', u'type': u'compile', u'id': 18423, u'name': u'sudo pip install tox'}, {u'status': u'passed', u'type': u'setup', u'id': 18405, u'name': u'hg'}, {u'status': u'passed', u'type': u'setup', u'id': 18410, u'name': u'provision'}, {u'status': u'passed', u'type': u'test', u'id': 18425, u'name': u'metaserver'}]
         stage_list = self._get_response('GET', '{base_uri}/api/v/0/repositories/{project_id}/changes/{change_id}/stages'.format(
             base_uri=self.base_url,
-            project_id=build.data['project_id'],
-            change_id=build.data['change_id'],
+            project_id=job.data['project_id'],
+            change_id=job.data['change_id'],
         ))
 
-        self._sync_build_details(build, change, stage_list)
+        self._sync_job_details(job, change, stage_list)
 
         grouped_stages = defaultdict(list)
         for stage in stage_list:
@@ -305,25 +305,22 @@ class KoalityBuilder(BaseBackend):
         for stage_type, stage_list in grouped_stages.iteritems():
             stage_list.sort(key=lambda x: x['status'] == 'passed')
 
-            phase = self._sync_phase(build, stage_type, stage_list)
+            phase = self._sync_phase(job, stage_type, stage_list)
 
             for stage in stage_list:
-                self._sync_step(build, phase, stage)
+                self._sync_step(job, phase, stage)
 
-        return build
+        return job
 
-    def sync_build(self, build):
-        self._sync_build(build)
-
-    def create_build(self, build):
+    def create_job(self, job):
         project_id = self.project_id
         if not project_id:
             raise UnrecoverableException('Missing Koality project configuration')
 
         req_kwargs = {}
-        if build.patch:
+        if job.patch:
             req_kwargs['files'] = {
-                'patch': build.patch.diff,
+                'patch': job.patch.diff,
             }
 
         response = self._get_response('POST', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
@@ -332,11 +329,11 @@ class KoalityBuilder(BaseBackend):
             # XXX: passing an empty value for email causes Koality to not
             # send out an email notification
             'emailTo': '',
-            'sha': build.revision_sha,
+            'sha': job.revision_sha,
         }, **req_kwargs)
 
-        build.data = {
+        job.data = {
             'project_id': project_id,
             'change_id': response['changeId'],
         }
-        db.session.add(build)
+        db.session.add(job)

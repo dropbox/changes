@@ -22,9 +22,9 @@ class KoalityBuildStepTest(TestCase):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        job = self.create_job(self.project)
 
         buildstep = self.get_buildstep()
-        buildstep.execute(build)
+        buildstep.execute(job)
 
-        builder.create_build.assert_called_once_with(build)
+        builder.create_job.assert_called_once_with(job)
