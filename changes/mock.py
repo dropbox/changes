@@ -10,7 +10,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep,
-    TestResult, Change, LogChunk, TestSuite, BuildFamily, JobPlan, Plan
+    TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan
 )
 from changes.db.utils import get_or_create
 
@@ -112,17 +112,17 @@ def change(project, **kwargs):
     return result
 
 
-def family(project, **kwargs):
+def build(project, **kwargs):
     kwargs.setdefault('label', get_sentences(1)[0])
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('repository', project.repository)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
-    family = BuildFamily(project=project, **kwargs)
-    db.session.add(family)
+    build = Build(project=project, **kwargs)
+    db.session.add(build)
 
-    return family
+    return build
 
 
 def plan(**kwargs):
@@ -140,11 +140,11 @@ def plan(**kwargs):
     return result
 
 
-def build(family=None, change=None, **kwargs):
-    if family:
-        kwargs.setdefault('repository', family.repository)
-        kwargs.setdefault('project', family.project)
-        kwargs.setdefault('author', family.author)
+def job(build=None, change=None, **kwargs):
+    if build:
+        kwargs.setdefault('repository', build.repository)
+        kwargs.setdefault('project', build.project)
+        kwargs.setdefault('author', build.author)
     elif change:
         kwargs.setdefault('repository', change.repository)
         kwargs.setdefault('project', change.project)
@@ -155,54 +155,54 @@ def build(family=None, change=None, **kwargs):
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
-    build = Job(
-        family=family,
+    job = Job(
+        family=build,
         change=change,
         **kwargs
     )
-    db.session.add(build)
+    db.session.add(job)
 
-    if family:
-        buildplan = JobPlan(
+    if build:
+        jobplan = JobPlan(
             plan=plan(),
-            family=family,
-            project=build.project,
-            job=build,
+            family=job,
+            project=job.project,
+            job=job,
         )
-        db.session.add(buildplan)
+        db.session.add(jobplan)
 
     phase1_setup = JobPhase(
-        repository=build.repository, project=build.project, job=build,
+        repository=job.repository, project=job.project, job=job,
         status=Status.finished, result=Result.passed, label='Setup',
     )
     db.session.add(phase1_setup)
 
     phase1_compile = JobPhase(
-        repository=build.repository, project=build.project, job=build,
+        repository=job.repository, project=job.project, job=job,
         status=Status.finished, result=Result.passed, label='Compile',
     )
     db.session.add(phase1_compile)
 
     phase1_test = JobPhase(
-        repository=build.repository, project=build.project, job=build,
+        repository=job.repository, project=job.project, job=job,
         status=kwargs['status'], result=kwargs['result'], label='Test',
     )
     db.session.add(phase1_test)
 
     step = JobStep(
-        repository=build.repository, project=build.project, job=build,
+        repository=job.repository, project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
     db.session.add(step)
     step = JobStep(
-        repository=build.repository, project=build.project, job=build,
+        repository=job.repository, project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
     db.session.add(step)
 
-    return build
+    return job
 
 
 def logchunk(source, **kwargs):

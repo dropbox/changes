@@ -28,7 +28,7 @@ class Job(db.Model):
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     # TODO(dcramer): change should be removed in favor of an m2m between
     # Change and Source
-    family_id = Column(GUID, ForeignKey('buildfamily.id', ondelete="CASCADE"))
+    family_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"))
     change_id = Column(GUID, ForeignKey('change.id', ondelete="CASCADE"))
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
@@ -41,7 +41,7 @@ class Job(db.Model):
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
     # TODO(dcramer): message, target, cause, and author should be removed in
-    # favor of reading them from BuildFamily
+    # favor of reading them from Build
     message = Column(Text)
     target = Column(String(128))
     cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
@@ -54,7 +54,7 @@ class Job(db.Model):
     data = Column(JSONEncodedDict)
 
     change = relationship('Change')
-    family = relationship('BuildFamily')
+    family = relationship('Build')
     repository = relationship('Repository')
     project = relationship('Project')
     source = relationship('Source')

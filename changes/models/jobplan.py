@@ -14,7 +14,7 @@ from changes.db.utils import model_repr
 
 class JobPlan(db.Model):
     """
-    A link to all Build + Plan's for a BuildFamily.
+    A link to all Job + Plan's for a Build.
 
     TODO(dcramer): this should include a snapshot of the plan at build time.
     """
@@ -27,14 +27,14 @@ class JobPlan(db.Model):
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
-    family_id = Column(GUID, ForeignKey('buildfamily.id', ondelete="CASCADE"), nullable=False)
+    family_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False, unique=True)
     plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
 
     project = relationship('Project')
-    family = relationship('BuildFamily')
+    family = relationship('Build')
     job = relationship('Job')
     plan = relationship('Plan')
 

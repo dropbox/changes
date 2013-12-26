@@ -4,7 +4,7 @@ import mock
 
 from changes.config import db
 from changes.jobs.create_job import create_job
-from changes.models import Plan, Step, BuildFamily, JobPlan
+from changes.models import Plan, Step, Build, JobPlan
 from changes.testutils import TestCase
 
 
@@ -30,7 +30,7 @@ class CreateBuildTest(TestCase):
         )
         db.session.add(step)
 
-        family = BuildFamily(
+        build = Build(
             project=job.project,
             repository=job.repository,
             revision_sha=job.revision_sha,
@@ -38,11 +38,11 @@ class CreateBuildTest(TestCase):
             author=job.author,
             target=job.target,
         )
-        db.session.add(family)
+        db.session.add(build)
 
         jobplan = JobPlan(
             plan=plan,
-            family=family,
+            family=build,
             job=job,
             project=self.project,
         )

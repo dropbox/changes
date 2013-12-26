@@ -53,15 +53,15 @@ def create_new_entry(project):
     )
 
     for x in xrange(3):
-        build = mock.build(
+        job = mock.job(
             family=family,
             change=change,
             author=change.author,
         )
 
         logsource = LogSource(
-            job=build,
-            project=build.project,
+            job=job,
+            project=job.project,
             name='console',
         )
         db.session.add(logsource)
@@ -78,27 +78,27 @@ def create_new_entry(project):
 
 def update_existing_entry(project):
     try:
-        build = Job.query.filter(
+        job = Job.query.filter(
             Job.status == Status.in_progress,
         )[0]
     except IndexError:
         return create_new_entry(project)
 
-    build.status = Status.finished
-    build.result = Result.failed if random.randint(0, 5) == 1 else Result.passed
-    build.date_finished = datetime.utcnow()
-    db.session.add(build)
+    job.status = Status.finished
+    job.result = Result.failed if random.randint(0, 5) == 1 else Result.passed
+    job.date_finished = datetime.utcnow()
+    db.session.add(job)
 
     test_results = []
     for _ in xrange(50):
-        if build.result == Result.failed:
+        if job.result == Result.failed:
             result = Result.failed if random.randint(0, 5) == 1 else Result.passed
         else:
             result = Result.passed
-        test_results.append(mock.test_result(build, result=result))
-    TestResultManager(build).save(test_results)
+        test_results.append(mock.test_result(job, result=result))
+    TestResultManager(job).save(test_results)
 
-    return build
+    return job
 
 
 def gen(project):

@@ -15,17 +15,14 @@ from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
 
 
-class BuildFamily(db.Model):
+class Build(db.Model):
     """
     Represents a collection of builds for a single target, as well as the sum
     of their results.
 
-    Each BuildFamily contains many JobPlan, which links to an individual Build.
-
-    A JobPlan generally represents a discrete job in a matrix, and is useful
-    for things like "build this on Windows and Linux".
+    Each Build contains many Jobs (usually linked to a JobPlan).
     """
-    __tablename__ = 'buildfamily'
+    __tablename__ = 'build'
     __table_args__ = (
         Index('idx_buildfamily_project_id', 'project_id'),
         Index('idx_buildfamily_repository_sha', 'repository_id', 'revision_sha'),
@@ -64,7 +61,7 @@ class BuildFamily(db.Model):
     __repr__ = model_repr('label', 'target')
 
     def __init__(self, **kwargs):
-        super(BuildFamily, self).__init__(**kwargs)
+        super(Build, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid.uuid4()
         if self.result is None:

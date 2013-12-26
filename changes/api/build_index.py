@@ -12,7 +12,7 @@ from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.db.utils import get_or_create
 from changes.models import (
-    Project, BuildFamily, Job, JobPlan, Repository, Patch, ProjectOption,
+    Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
     Change, ItemOption, Source
 )
 
@@ -64,9 +64,9 @@ def create_build(project, sha, label, target, message, author, change=None,
     else:
         source = None
 
-    builds = []
+    jobs = []
 
-    family = BuildFamily(
+    family = Build(
         project=project,
         source=source,
         repository=repository,
@@ -85,7 +85,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         # TODO(dcramer): remove this after we transition to plans
         warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
 
-        build = Job(
+        job = Job(
             family=family,
             source=source,
             project=project,
@@ -100,12 +100,12 @@ def create_build(project, sha, label, target, message, author, change=None,
             change=change,
         )
 
-        db.session.add(build)
+        db.session.add(job)
 
-        builds.append(build)
+        jobs.append(job)
 
     for plan in plan_list:
-        build = Job(
+        job = Job(
             project=project,
             source=source,
             repository=repository,
@@ -120,18 +120,18 @@ def create_build(project, sha, label, target, message, author, change=None,
             family=family,
         )
 
-        db.session.add(build)
+        db.session.add(job)
 
-        buildplan = JobPlan(
+        jobplan = JobPlan(
             project=project,
-            job=build,
+            job=job,
             family=family,
             plan=plan,
         )
 
-        db.session.add(buildplan)
+        db.session.add(jobplan)
 
-        builds.append(build)
+        jobs.append(job)
 
     if change:
         change.date_modified = datetime.utcnow()
@@ -139,12 +139,12 @@ def create_build(project, sha, label, target, message, author, change=None,
 
     db.session.commit()
 
-    for build in builds:
+    for job in jobs:
         queue.delay('create_job', kwargs={
-            'job_id': build.id.hex,
+            'job_id': job.id.hex,
         }, countdown=5)
 
-    return builds
+    return jobs
 
 
 class BuildIndexAPIView(APIView):

@@ -11,7 +11,7 @@ from uuid import uuid4
 from changes.config import db, mail
 from changes.models import (
     Repository, Job, Project, Revision, RemoteEntity, Change, Author,
-    TestGroup, Patch, Plan, Step, BuildFamily
+    TestGroup, Patch, Plan, Step, Build
 )
 
 
@@ -157,7 +157,7 @@ class Fixtures(object):
         return step
 
     def create_buildfamily_from_build(self, build):
-        family = BuildFamily(
+        build = Build(
             project=build.project,
             repository=build.repository,
             status=build.status,
@@ -167,9 +167,9 @@ class Fixtures(object):
             revision_sha=build.revision_sha,
             message=build.message,
         )
-        db.session.add(family)
+        db.session.add(build)
 
-        return family
+        return build
 
 
 class TestCase(Exam, unittest2.TestCase, Fixtures):

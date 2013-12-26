@@ -5,7 +5,7 @@ import mock
 from changes.config import db
 from changes.constants import Status
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, Plan, Step, BuildFamily, JobPlan
+from changes.models import Job, Plan, Step, Build, JobPlan
 from changes.testutils import TestCase
 
 
@@ -31,7 +31,7 @@ class SyncBuildTest(TestCase):
         )
         db.session.add(step)
 
-        family = BuildFamily(
+        build = Build(
             project=job.project,
             repository=job.repository,
             revision_sha=job.revision_sha,
@@ -39,11 +39,11 @@ class SyncBuildTest(TestCase):
             author=job.author,
             target=job.target,
         )
-        db.session.add(family)
+        db.session.add(build)
 
         jobplan = JobPlan(
             plan=plan,
-            family=family,
+            family=build,
             job=job,
             project=self.project,
         )
