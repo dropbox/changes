@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
 
 from datetime import datetime
+from rfc822 import parsedate_tz, mktime_tz
 
 from .base import Vcs, RevisionResult, BufferParser
 
-LOG_FORMAT = '{node}\x01{author}\x01{date}\x01{p1node} {p2node}\x01{desc}\x02'
+LOG_FORMAT = '{node}\x01{author}\x01{date|rfc822date}\x01{p1node} {p2node}\x01{desc}\x02'
 
 
 class MercurialVcs(Vcs):
@@ -43,7 +44,8 @@ class MercurialVcs(Vcs):
 
             parents = filter(lambda x: x and x != '0' * 40, parents.split(' '))
 
-            author_date = datetime.utcfromtimestamp(float(author_date))
+            author_date = datetime.utcfromtimestamp(
+                mktime_tz(parsedate_tz(author_date)))
 
             yield RevisionResult(
                 id=sha,

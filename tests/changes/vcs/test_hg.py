@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import os
 
+from datetime import datetime
+
 from changes.testutils import TestCase
 from changes.vcs.hg import MercurialVcs
 
@@ -52,6 +54,7 @@ class MercurialVcsTest(TestCase):
         assert revisions[0].author == 'Foo Bar <foo@example.com>'
         assert revisions[0].committer == 'Foo Bar <foo@example.com>'
         assert revisions[0].parents == [revisions[1].id]
+        assert type(revisions[0].author_date) is datetime
         assert revisions[0].author_date == revisions[0].committer_date is not None
         assert revisions[1].subject == 'test'
         assert revisions[1].message == 'test\nlol'
