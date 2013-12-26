@@ -4,7 +4,6 @@ from flask import Response, request
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.constants import NUM_PREVIOUS_RUNS
 from changes.models import Project, Build
 
 
@@ -38,13 +37,7 @@ class ProjectBuildIndexAPIView(APIView):
                 Build.patch == None,  # NOQA
             )
 
-        build_list = list(queryset)[:NUM_PREVIOUS_RUNS]
-
-        context = {
-            'builds': build_list,
-        }
-
-        return self.respond(context)
+        return self.paginate(queryset)
 
     def get_stream_channels(self, project_id=None):
         project = self._get_project(project_id)

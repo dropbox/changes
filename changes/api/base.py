@@ -2,12 +2,16 @@ import json
 import traceback
 
 from functools import wraps
+from urllib import quote
 
 from flask import Response, current_app, request
 from flask.views import MethodView
 
 from changes.api.serializer import serialize as serialize_func
 from changes.api.stream import EventStream
+
+
+LINK_HEADER = '<{uri}&page={page}>; rel="{name}"'
 
 
 def as_json(context):
@@ -84,6 +88,45 @@ class APIView(MethodView):
             if current_app.config['API_TRACEBACKS']:
                 data['traceback'] = ''.join(traceback.format_exc())
             return self.respond(data, status_code=500)
+
+    def paginate(self, queryset):
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 50))
+        assert per_page <= 100
+        assert page > 0
+
+        offset = (page - 1) * per_page
+
+        result = list(queryset)[offset:offset + per_page + 1]
+
+        links = []
+        if page > 1:
+            links.append(('previous', page - 1))
+        if len(result) > per_page:
+            links.append(('next', page + 1))
+            result = result[:per_page]
+
+        response = self.respond(result)
+
+        querystring = u'&'.join(
+            u'{0}={1}'.format(quote(k), quote(v))
+            for k, v in request.args.iteritems()
+            if k != 'page'
+        )
+        base_url = request.base_url
+        if querystring:
+            base_url += u'?' + querystring
+
+        link_values = []
+        for name, page_no in links:
+            link_values.append(LINK_HEADER.format(
+                uri=base_url,
+                page=page_no,
+                name=name,
+            ))
+        if link_values:
+            response.headers['Link'] = ', '.join(link_values)
+        return response
 
     def respond(self, context, status_code=200):
         return Response(

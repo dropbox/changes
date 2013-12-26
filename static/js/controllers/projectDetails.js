@@ -83,19 +83,57 @@ define([
       }
     }
 
+    // TODO: abstract pagination functionality
+    function parseLinkHeader(header) {
+      var header_vals = header.split(','),
+          links = {};
+
+      $.each(header_vals, function(_, val){
+          var match = /<([^>]+)>; rel="([^"]+)"/g.exec(val);
+
+          links[match[2]] = match[1];
+      });
+
+      return links;
+    }
+
+    function loadBuildList(url) {
+      if (!url) {
+        return;
+      }
+      $http.get(url)
+        .success(function(data, status, headers){
+          $scope.builds = sortBuildList(data);
+          $scope.pageLinks = parseLinkHeader(headers('Link'));
+        });
+    }
+
+    $scope.loadPreviousPage = function() {
+      $(document.body).scrollTop(0);
+      loadBuildList($scope.pageLinks.previous);
+    };
+
+    $scope.loadNextPage = function() {
+      $(document.body).scrollTop(0);
+      loadBuildList($scope.pageLinks.next);
+    };
+
+    $scope.$watch("pageLinks", function(value) {
+      $scope.nextPage = value.next || null;
+      $scope.previousPage = value.previous || null;
+    });
+
+    $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
+
     $scope.project = initialProject.data.project;
-    $scope.builds = sortBuildList(initialBuildList.data.builds);
+    $scope.builds = sortBuildList(initialBuildList.data);
     $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
     $scope.includePatches = false;
+    $rootScope.activeProject = $scope.project;
 
     $scope.$watch("includePatches", function() {
-      $http.get(entrypoint + '?include_patches=' + ($scope.includePatches ? '1' : '0'))
-        .success(function(data){
-          $scope.builds = sortBuildList(data.builds);
-        });
+      loadBuildList(entrypoint + '?include_patches=' + ($scope.includePatches ? '1' : '0'));
     })
-
-    $rootScope.activeProject = $scope.project;
 
     $scope.$watch("builds", function() {
       $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);

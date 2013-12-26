@@ -863,3 +863,42 @@ chart {
   font-size: 0.85em;
   border-bottom: 1px dotted #999;
 }
+
+
+/* Button Styles */
+.btn-default {
+  color: #58488a;
+  border-color: #c7c0de;
+}
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active {
+  background: #63519e;
+  color: #fff;
+  border-color: #63519e;
+}
+
+.btn-primary {
+  background: #58488a;
+  color: #c7c0de;
+  border-color: #58488a;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background: #58488a;
+  color: #fff;
+  border-color: #58488a;
+
+}
+.btn-primary.active {
+  background: #63519e;
+  color: #fff;
+  border-color: #63519e;
+}
+
+
+label.btn input[type=checkbox] {
+  margin: 0 5px 0 0;
+}
