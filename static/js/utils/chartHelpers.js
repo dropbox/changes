@@ -12,7 +12,7 @@ define([], function() {
     getChartData: function getChartData(items, current, options) {
       // this should return two series, one with passes, and one with failures
       var data = new Array(options.limit),
-          i, y, item, result;
+          i, y, item, result = [];
 
       options = $.extend({}, chart_defaults, options || {});
       current = current || null;
