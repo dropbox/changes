@@ -85,6 +85,10 @@ define([
 
     // TODO: abstract pagination functionality
     function parseLinkHeader(header) {
+      if (header === null) {
+        return {};
+      }
+
       var header_vals = header.split(','),
           links = {};
 
