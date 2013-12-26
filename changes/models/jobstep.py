@@ -10,8 +10,8 @@ from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 
 
-class BuildStep(db.Model):
-    __tablename__ = 'buildstep'
+class JobStep(db.Model):
+    __tablename__ = 'jobstep'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
@@ -32,7 +32,7 @@ class BuildStep(db.Model):
     phase = relationship('JobPhase', backref='steps')
 
     def __init__(self, **kwargs):
-        super(BuildStep, self).__init__(**kwargs)
+        super(JobStep, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid.uuid4()
         if self.result is None:

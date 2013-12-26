@@ -10,7 +10,7 @@ from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Repository, Project, Job, Revision, Author, JobPhase, BuildStep, Patch
+    Repository, Project, Job, Revision, Author, JobPhase, JobStep, Patch
 )
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
@@ -131,7 +131,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert phase_list[2].date_started == datetime(2013, 9, 19, 22, 15, 25)
         assert phase_list[2].date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
-        step_list = list(BuildStep.query.filter_by(
+        step_list = list(JobStep.query.filter_by(
             build=build,
         ))
 

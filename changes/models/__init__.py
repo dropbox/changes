@@ -1,12 +1,12 @@
 from .aggregatetest import *  # NOQA
 from .author import *  # NOQA
 from .buildfamily import *  # NOQA
-from .buildstep import *  # NOQA
 from .change import *  # NOQA
 from .filecoverage import *  # NOQA
 from .job import *  # NOQA
 from .jobphase import *  # NOQA
 from .jobplan import *  # NOQA
+from .jobstep import *  # NOQA
 from .log import *  # NOQA
 from .node import *  # NOQA
 from .option import *  # NOQA

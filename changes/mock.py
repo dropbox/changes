@@ -9,7 +9,7 @@ from uuid import uuid4
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Project, Repository, Author, Revision, Job, JobPhase, BuildStep,
+    Project, Repository, Author, Revision, Job, JobPhase, JobStep,
     TestResult, Change, LogChunk, TestSuite, BuildFamily, JobPlan, Plan
 )
 from changes.db.utils import get_or_create
@@ -189,13 +189,13 @@ def build(family=None, change=None, **kwargs):
     )
     db.session.add(phase1_test)
 
-    step = BuildStep(
+    step = JobStep(
         repository=build.repository, project=build.project, build=build,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
     db.session.add(step)
-    step = BuildStep(
+    step = JobStep(
         repository=build.repository, project=build.project, build=build,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),

@@ -12,7 +12,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update
 from changes.models import (
-    Revision, Author, JobPhase, BuildStep, RemoteEntity, Node
+    Revision, Author, JobPhase, JobStep, RemoteEntity, Node
 )
 
 
@@ -174,13 +174,13 @@ class KoalityBuilder(BaseBackend):
             except IndexError:
                 step, entity = None, None
             else:
-                step = BuildStep.query.get(entity.internal_id)
+                step = JobStep.query.get(entity.internal_id)
             create_entity = entity is None
         else:
             create_entity = False
 
         if step is None:
-            step = BuildStep()
+            step = JobStep()
 
         node = self._get_node(stage['buildNode'])
 
