@@ -9,7 +9,7 @@ from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.events import publish_build_update
-from changes.models import Build, BuildPlan, Plan, RemoteEntity
+from changes.models import Job, BuildPlan, Plan, RemoteEntity
 from changes.utils.locking import lock
 
 
@@ -41,7 +41,7 @@ def sync_with_builder(build):
 
 
 def _sync_build(build_id):
-    build = Build.query.get(build_id)
+    build = Job.query.get(build_id)
     if not build:
         return
 

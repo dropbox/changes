@@ -1,6 +1,6 @@
 from changes.config import db
 from changes.constants import Cause
-from changes.models import Build, BuildPlan
+from changes.models import Job, BuildPlan
 from changes.testutils import APITestCase
 
 
@@ -15,7 +15,7 @@ class BuildRetryTest(APITestCase):
         data = self.unserialize(resp)
         assert data['build']['id']
         assert data['build']['link']
-        new_build = Build.query.get(data['build']['id'])
+        new_build = Job.query.get(data['build']['id'])
         assert new_build.id != build.id
         assert new_build.change == change
         assert new_build.project == self.project
@@ -50,7 +50,7 @@ class BuildRetryTest(APITestCase):
         data = self.unserialize(resp)
         assert data['build']['id']
         assert data['build']['link']
-        new_build = Build.query.get(data['build']['id'])
+        new_build = Job.query.get(data['build']['id'])
         assert new_build.id != build.id
         assert new_build.change == change
         assert new_build.project == self.project

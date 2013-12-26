@@ -4,7 +4,7 @@ from sqlalchemy import or_
 
 from changes.config import db, queue
 from changes.constants import Status, Result
-from changes.models.build import Build
+from changes.models import Job
 
 CHECK_BUILDS = timedelta(minutes=5)
 EXPIRE_BUILDS = timedelta(hours=6)
@@ -18,11 +18,11 @@ def cleanup_builds():
     now = datetime.utcnow()
     cutoff = now - CHECK_BUILDS
 
-    build_list = list(Build.query.filter(
-        Build.status != Status.finished,
+    build_list = list(Job.query.filter(
+        Job.status != Status.finished,
         or_(
-            Build.date_modified < cutoff,
-            Build.date_modified == None,  # NOQA
+            Job.date_modified < cutoff,
+            Job.date_modified == None,  # NOQA
         )
     ))
     if not build_list:
@@ -35,12 +35,12 @@ def cleanup_builds():
     for b_id in expired:
         current_app.logger.warn('Expiring build %s', b_id)
 
-    db.session.query(Build).filter(
-        Build.id.in_(expired),
+    db.session.query(Job).filter(
+        Job.id.in_(expired),
     ).update({
-        Build.date_modified: now,
-        Build.status: Status.finished,
-        Build.result: Result.aborted,
+        Job.date_modified: now,
+        Job.status: Status.finished,
+        Job.result: Result.aborted,
     }, synchronize_session=False)
 
     # remove expired builds
@@ -55,10 +55,10 @@ def cleanup_builds():
     if not build_list:
         return
 
-    db.session.query(Build).filter(
-        Build.id.in_(build_ids),
+    db.session.query(Job).filter(
+        Job.id.in_(build_ids),
     ).update({
-        Build.date_modified: now,
+        Job.date_modified: now,
     }, synchronize_session=False)
 
     for b_id in build_ids:

@@ -10,7 +10,7 @@ from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
 from changes.api.serializer.models.aggregatetestgroup import AggregateTestGroupWithBuildSerializer
 from changes.config import db
 from changes.constants import Status
-from changes.models import Project, AggregateTestGroup, TestGroup, Build
+from changes.models import Project, AggregateTestGroup, TestGroup, Job
 
 
 class ProjectTestDetailsAPIView(APIView):
@@ -42,7 +42,7 @@ class ProjectTestDetailsAPIView(APIView):
         ).join(TestGroup, and_(
             TestGroup.build_id == AggregateTestGroup.last_build_id,
             TestGroup.name_sha == AggregateTestGroup.name_sha,
-            Build.date_created > cutoff,
+            Job.date_created > cutoff,
         )).order_by(TestGroup.duration.desc())
 
         result = queryset.filter(
@@ -68,12 +68,12 @@ class ProjectTestDetailsAPIView(APIView):
             joinedload('build'),
             joinedload('build.author'),
         ).filter(
-            Build.patch_id == None,  # NOQA
-            Build.revision_sha != None,  # NOQA
-            Build.status == Status.finished,
+            Job.patch_id == None,  # NOQA
+            Job.revision_sha != None,  # NOQA
+            Job.status == Status.finished,
             TestGroup.name_sha == test.name_sha,
             TestGroup.project_id == test.project_id,
-        ).join(Build).order_by(Build.date_created.desc())[:25])
+        ).join(Job).order_by(Job.date_created.desc())[:25])
 
         # O(N) db calls, so dont abuse it
         context = []

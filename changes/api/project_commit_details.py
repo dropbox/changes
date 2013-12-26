@@ -4,7 +4,7 @@ from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Project, Build, Revision
+from changes.models import Project, Job, Revision
 
 
 class ProjectCommitDetailsAPIView(APIView):
@@ -31,11 +31,11 @@ class ProjectCommitDetailsAPIView(APIView):
         if not revision:
             return Response(status=404)
 
-        build_list = list(Build.query.filter(
-            Build.project_id == project.id,
-            Build.revision_sha == revision.sha,
-            Build.patch == None,  # NOQA
-        ).order_by(Build.date_created.desc()))
+        build_list = list(Job.query.filter(
+            Job.project_id == project.id,
+            Job.revision_sha == revision.sha,
+            Job.patch == None,  # NOQA
+        ).order_by(Job.date_created.desc()))
 
         context = {
             'repository': repo,

@@ -1,7 +1,7 @@
 from cStringIO import StringIO
 
 from changes.config import db
-from changes.models import Build, BuildPlan, Patch, ProjectOption
+from changes.models import Job, BuildPlan, Patch, ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF
 
 
@@ -43,7 +43,7 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        build = Build.query.get(data['builds'][0]['id'])
+        build = Job.query.get(data['builds'][0]['id'])
 
         assert build.project == self.project
         assert build.revision_sha is None
@@ -65,7 +65,7 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
-        build = Build.query.get(data['builds'][0]['id'])
+        build = Job.query.get(data['builds'][0]['id'])
         assert build.project == self.project
         assert build.revision_sha == 'a' * 40
         assert build.author.name == 'David Cramer'
@@ -94,7 +94,7 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        build = Build.query.get(data['builds'][0]['id'])
+        build = Job.query.get(data['builds'][0]['id'])
         assert build.change == change
         assert build.project == self.project
         assert build.revision_sha == 'a' * 40
@@ -129,7 +129,7 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        build = Build.query.get(data['builds'][0]['id'])
+        build = Job.query.get(data['builds'][0]['id'])
         assert build.patch_id is not None
         patch = Patch.query.get(build.patch_id)
         assert patch.diff == SAMPLE_DIFF

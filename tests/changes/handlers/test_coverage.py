@@ -2,7 +2,7 @@ import uuid
 
 from cStringIO import StringIO
 
-from changes.models.build import Build
+from changes.models import Job
 from changes.models.filecoverage import FileCoverage
 from changes.handlers.coverage import CoverageHandler
 
@@ -40,26 +40,26 @@ COVERAGE_RESULT_XML = """<?xml version="1.0" ?>
 
 
 def test_result_generation():
-    build = Build(
+    job = Job(
         id=uuid.uuid4(),
         project_id=uuid.uuid4(),
     )
 
     fp = StringIO(COVERAGE_RESULT_XML)
 
-    handler = CoverageHandler(build)
+    handler = CoverageHandler(job)
     results = handler.get_coverage(fp)
 
     assert len(results) == 2
 
     r1 = results[0]
     assert type(r1) == FileCoverage
-    assert r1.build_id == build.id
-    assert r1.project_id == build.project_id
+    assert r1.build_id == job.id
+    assert r1.project_id == job.project_id
     assert r1.filename == 'setup.py'
     assert r1.data == 'NUNNNNNNNNNUCCNU'
     r2 = results[1]
     assert type(r2) == FileCoverage
-    assert r2.build_id == build.id
-    assert r2.project_id == build.project_id
+    assert r2.build_id == job.id
+    assert r2.project_id == job.project_id
     assert r2.data == 'CCCNNNU'

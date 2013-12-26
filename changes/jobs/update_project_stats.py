@@ -1,16 +1,16 @@
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Project, Build
+from changes.models import Project, Job
 from changes.utils.locking import lock
 
 
 @lock
 def update_project_stats(project_id):
-    last_5_builds = list(Build.query.filter_by(
+    last_5_builds = list(Job.query.filter_by(
         result=Result.passed,
         status=Status.finished,
         project_id=project_id,
-    ).order_by(Build.date_finished.desc())[:5])
+    ).order_by(Job.date_finished.desc())[:5])
     if last_5_builds:
         avg_build_time = sum(
             b.duration for b in last_5_builds

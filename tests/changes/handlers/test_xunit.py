@@ -3,7 +3,7 @@ import uuid
 from cStringIO import StringIO
 
 from changes.constants import Result
-from changes.models.build import Build
+from changes.models import Job
 from changes.models.test import TestCase
 from changes.handlers.xunit import XunitHandler
 
@@ -22,22 +22,22 @@ E   ImportError: No module named mock</failure>
 
 
 def test_result_generation():
-    build = Build(
+    job = Job(
         id=uuid.uuid4(),
         project_id=uuid.uuid4()
     )
 
     fp = StringIO(UNITTEST_RESULT_XML)
 
-    handler = XunitHandler(build)
+    handler = XunitHandler(job)
     results = handler.get_tests(fp)
 
     assert len(results) == 2
 
     r1 = results[0]
     assert type(r1) == TestCase
-    assert r1.build_id == build.id
-    assert r1.project_id == build.project_id
+    assert r1.build_id == job.id
+    assert r1.project_id == job.project_id
     assert r1.package is None
     assert r1.name == 'tests.test_report'
     assert r1.duration == 0.0
@@ -47,8 +47,8 @@ def test_result_generation():
 E   ImportError: No module named mock"""
     r2 = results[1]
     assert type(r2) == TestCase
-    assert r2.build_id == build.id
-    assert r2.project_id == build.project_id
+    assert r2.build_id == job.id
+    assert r2.project_id == job.project_id
     assert r2.package == 'tests.test_report.ParseTestResultsTest'
     assert r2.name == 'test_simple'
     assert r2.duration == 0.00165796279907

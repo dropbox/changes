@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.constants import Status
-from changes.models import Project, Build
+from changes.models import Project, Job
 
 
 class ProjectIndexAPIView(APIView):
@@ -19,16 +19,16 @@ class ProjectIndexAPIView(APIView):
 
         for project in project_list:
             data = self.serialize(project)
-            data['lastBuild'] = Build.query.options(
-                joinedload(Build.project),
-                joinedload(Build.author),
+            data['lastBuild'] = Job.query.options(
+                joinedload(Job.project),
+                joinedload(Job.author),
             ).filter(
-                Build.revision_sha != None,  # NOQA
-                Build.patch_id == None,
-                Build.project == project,
-                Build.status == Status.finished,
+                Job.revision_sha != None,  # NOQA
+                Job.patch_id == None,
+                Job.project == project,
+                Job.status == Status.finished,
             ).order_by(
-                Build.date_created.desc(),
+                Job.date_created.desc(),
             ).first()
 
             context['projects'].append(data)

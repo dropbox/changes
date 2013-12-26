@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
-from changes.models import Change, Build, Project, Repository
+from changes.models import Change, Job, Project, Repository
 
 
 class ChangeIndexAPIView(APIView):
@@ -20,11 +20,11 @@ class ChangeIndexAPIView(APIView):
         # TODO(dcramer): denormalize this
         for change in change_list:
             try:
-                change.last_build = Build.query.filter_by(
+                change.last_build = Job.query.filter_by(
                     change=change,
                 ).order_by(
-                    Build.date_created.desc(),
-                    Build.date_started.desc()
+                    Job.date_created.desc(),
+                    Job.date_started.desc()
                 )[0]
             except IndexError:
                 change.last_build = None

@@ -14,7 +14,7 @@ class BuildStep(db.Model):
     __tablename__ = 'buildstep'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     phase_id = Column(GUID, ForeignKey('buildphase.id', ondelete="CASCADE"), nullable=False)
     repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
@@ -26,7 +26,7 @@ class BuildStep(db.Model):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Build')
+    build = relationship('Job')
     project = relationship('Project')
     repository = relationship('Repository')
     phase = relationship('BuildPhase', backref='steps')

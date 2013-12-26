@@ -28,14 +28,14 @@ class BuildPlan(db.Model):
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     family_id = Column(GUID, ForeignKey('buildfamily.id', ondelete="CASCADE"), nullable=False)
-    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False, unique=True)
+    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False, unique=True)
     plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
 
     project = relationship('Project')
     family = relationship('BuildFamily')
-    build = relationship('Build')
+    build = relationship('Job')
     plan = relationship('Plan')
 
     __repr__ = model_repr('family_id', 'build_id', 'plan_id')

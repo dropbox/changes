@@ -23,13 +23,13 @@ class AggregateTestSuite(db.Model):
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
-    first_build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
-    last_build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    first_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    last_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
-    first_build = relationship('Build', foreign_keys=[first_build_id])
-    last_build = relationship('Build', foreign_keys=[last_build_id])
+    first_build = relationship('Job', foreign_keys=[first_build_id])
+    last_build = relationship('Job', foreign_keys=[last_build_id])
 
     __repr__ = model_repr('name')
 
@@ -57,15 +57,15 @@ class AggregateTestGroup(db.Model):
     parent_id = Column(GUID, ForeignKey('aggtestgroup.id', ondelete="CASCADE"))
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
-    first_build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
-    last_build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    first_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    last_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
     suite = relationship('AggregateTestSuite')
     parent = relationship('AggregateTestGroup', remote_side=[id])
-    first_build = relationship('Build', foreign_keys=[first_build_id])
-    last_build = relationship('Build', foreign_keys=[last_build_id])
+    first_build = relationship('Job', foreign_keys=[first_build_id])
+    last_build = relationship('Job', foreign_keys=[last_build_id])
 
     # last_testgroup = relationship(
     #     'TestGroup', primaryjoin="and_(AggregateTestGroup.name_sha==TestGroup.name_sha, "

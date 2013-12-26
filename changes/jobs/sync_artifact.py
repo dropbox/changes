@@ -2,7 +2,7 @@ from flask import current_app
 
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import queue
-from changes.models import Build
+from changes.models import Job
 
 
 def sync_with_builder(build, artifact):
@@ -17,7 +17,7 @@ def sync_with_builder(build, artifact):
 
 def sync_artifact(build_id, artifact):
     try:
-        build = Build.query.get(build_id)
+        build = Job.query.get(build_id)
         if not build:
             return
 

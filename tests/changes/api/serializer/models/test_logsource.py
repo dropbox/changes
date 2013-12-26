@@ -2,14 +2,14 @@ from datetime import datetime
 from uuid import UUID
 
 from changes.api.serializer import serialize
-from changes.models import LogSource, Build
+from changes.models import LogSource, Job
 
 
 def test_simple():
     logsource = LogSource(
         id=UUID(hex='33846695b2774b29a71795a009e8168a'),
         build_id=UUID(hex='2e18a7cbc0c24316b2ef9d41fea191d6'),
-        build=Build(id=UUID(hex='2e18a7cbc0c24316b2ef9d41fea191d6')),
+        build=Job(id=UUID(hex='2e18a7cbc0c24316b2ef9d41fea191d6')),
         name='console',
         date_created=datetime(2013, 9, 19, 22, 15, 22),
     )

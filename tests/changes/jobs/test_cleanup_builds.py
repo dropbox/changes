@@ -8,7 +8,7 @@ from changes.config import queue
 from changes.constants import Result, Status
 from changes.jobs.cleanup_builds import (
     cleanup_builds, EXPIRE_BUILDS, CHECK_BUILDS)
-from changes.models import Build
+from changes.models import Job
 from changes.testutils import TestCase
 
 
@@ -24,8 +24,8 @@ class CleanupBuildsTest(TestCase):
 
         assert not queue_delay.called
 
-        build = Build.query.filter(
-            Build.id == build.id
+        build = Job.query.filter(
+            Job.id == build.id
         ).first()
 
         assert build.date_modified != dt
@@ -44,8 +44,8 @@ class CleanupBuildsTest(TestCase):
         queue_delay.assert_called_once_with(
             'sync_build', kwargs={'build_id': build.id.hex})
 
-        build = Build.query.filter(
-            Build.id == build.id
+        build = Job.query.filter(
+            Job.id == build.id
         ).first()
         assert build.date_modified != dt
 
@@ -60,7 +60,7 @@ class CleanupBuildsTest(TestCase):
 
         assert not queue_delay.called
 
-        build = Build.query.filter(
-            Build.id == build.id
+        build = Job.query.filter(
+            Job.id == build.id
         ).first()
         assert build.date_modified == dt

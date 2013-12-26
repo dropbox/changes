@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, TestGroup, TestCase
+from changes.models import Job, TestGroup, TestCase
 
 
 class TestGroupDetailsAPIView(APIView):
@@ -29,17 +29,17 @@ class TestGroupDetailsAPIView(APIView):
                 TestCase.groups.contains(testgroup),
             ).first()
 
-        previous_runs = TestGroup.query.join(Build).options(
+        previous_runs = TestGroup.query.join(Job).options(
             joinedload('build'),
             joinedload('build.author'),
             joinedload('parent'),
         ).filter(
             TestGroup.name_sha == testgroup.name_sha,
-            Build.date_created < testgroup.build.date_created,
-            Build.status == Status.finished,
-            Build.patch == None,  # NOQA
             TestGroup.id != testgroup.id,
-        ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
+            Job.date_created < testgroup.build.date_created,
+            Job.status == Status.finished,
+            Job.patch == None,  # NOQA
+        ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         extended_serializers = {
             TestGroup: TestGroupWithBuildSerializer(),

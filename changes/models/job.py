@@ -13,8 +13,8 @@ from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
 
 
-class Build(db.Model):
-    __tablename__ = 'build'
+class Job(db.Model):
+    __tablename__ = 'job'
     __table_args__ = (
         Index('idx_build_project_id', 'project_id'),
         Index('idx_build_repository_id', 'repository_id'),
@@ -36,7 +36,7 @@ class Build(db.Model):
     repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     revision_sha = Column(String(40))
     patch_id = Column(GUID, ForeignKey('patch.id', ondelete="CASCADE"))
-    parent_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"))
+    parent_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"))
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
@@ -60,12 +60,12 @@ class Build(db.Model):
     source = relationship('Source')
     patch = relationship('Patch')
     author = relationship('Author')
-    parent = relationship('Build')
+    parent = relationship('Job')
 
     __repr__ = model_repr('label', 'target')
 
     def __init__(self, **kwargs):
-        super(Build, self).__init__(**kwargs)
+        super(Job, self).__init__(**kwargs)
         if self.data is None:
             self.data = {}
         if self.id is None:

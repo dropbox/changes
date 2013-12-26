@@ -4,7 +4,7 @@ from flask import session
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Author, Build
+from changes.models import Author, Job
 
 
 class AuthorBuildIndexAPIView(APIView):
@@ -22,12 +22,12 @@ class AuthorBuildIndexAPIView(APIView):
                 'builds': [],
             })
 
-        queryset = Build.query.options(
-            joinedload(Build.project),
-            joinedload(Build.author),
+        queryset = Job.query.options(
+            joinedload(Job.project),
+            joinedload(Job.author),
         ).filter_by(
             author=author,
-        ).order_by(Build.date_created.desc(), Build.date_started.desc())
+        ).order_by(Job.date_created.desc(), Job.date_started.desc())
 
         build_list = list(queryset)[:25]
 

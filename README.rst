@@ -252,8 +252,8 @@ Build Family:
   A build family is a collection of builds bound to a single source. Think of the family as
   the collective matrix of builds for an individual change. e.g. you may want to test "Windows" and "Linux",
   which would both be contained within the same family.
-Build:
-  An individual build within a family. e.g. "Linux"
+Job:
+  An individual job within a build family. e.g. "Linux"
 Build Plan:
   A snapshot of the plan at the time a build is created.
 

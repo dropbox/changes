@@ -6,20 +6,20 @@ from datetime import datetime
 from changes.api.base import APIView
 from changes.config import db, queue
 from changes.constants import Cause, Status
-from changes.models import Build, BuildPlan
+from changes.models import Job, BuildPlan
 
 
 class BuildRetryAPIView(APIView):
     def post(self, build_id):
-        build = Build.query.options(
-            subqueryload_all(Build.phases),
-            joinedload(Build.project),
-            joinedload(Build.author),
+        build = Job.query.options(
+            subqueryload_all(Job.phases),
+            joinedload(Job.project),
+            joinedload(Job.author),
         ).get(build_id)
         if build is None:
             return Response(status=404)
 
-        new_build = Build(
+        new_build = Job(
             source=build.source,
             change=build.change,
             repository=build.repository,

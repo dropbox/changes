@@ -5,7 +5,7 @@ import mock
 from changes.config import db
 from changes.constants import Status
 from changes.jobs.sync_build import sync_build
-from changes.models import Build, Plan, Step, BuildFamily, BuildPlan
+from changes.models import Job, Plan, Step, BuildFamily, BuildPlan
 from changes.testutils import TestCase
 
 
@@ -57,7 +57,7 @@ class SyncBuildTest(TestCase):
             build=build,
         )
 
-        build = Build.query.get(build.id)
+        build = Job.query.get(build.id)
 
         assert len(sync_with_builder.mock_calls) == 0
 
@@ -78,7 +78,7 @@ class SyncBuildTest(TestCase):
 
         sync_build(build_id=build.id.hex)
 
-        build = Build.query.get(build.id)
+        build = Job.query.get(build.id)
 
         assert build.status == Status.finished
 

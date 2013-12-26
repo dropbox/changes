@@ -6,27 +6,27 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithOriginSerializer
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, TestGroup, LogSource
+from changes.models import Job, TestGroup, LogSource
 from changes.utils.originfinder import find_failure_origins
 
 
 class BuildDetailsAPIView(APIView):
     def get(self, build_id):
-        build = Build.query.options(
-            subqueryload_all(Build.phases),
-            joinedload(Build.project),
-            joinedload(Build.author),
+        build = Job.query.options(
+            subqueryload_all(Job.phases),
+            joinedload(Job.project),
+            joinedload(Job.author),
         ).get(build_id)
         if build is None:
             return Response(status=404)
 
-        previous_runs = Build.query.filter(
-            Build.project == build.project,
-            Build.date_created < build.date_created,
-            Build.status == Status.finished,
-            Build.id != build.id,
-            Build.patch == None,  # NOQA
-        ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
+        previous_runs = Job.query.filter(
+            Job.project == build.project,
+            Job.date_created < build.date_created,
+            Job.status == Status.finished,
+            Job.id != build.id,
+            Job.patch == None,  # NOQA
+        ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         # find all parent groups (root trees)
         test_groups = sorted(TestGroup.query.options(

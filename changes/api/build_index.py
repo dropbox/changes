@@ -12,7 +12,7 @@ from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.db.utils import get_or_create
 from changes.models import (
-    Project, BuildFamily, Build, BuildPlan, Repository, Patch, ProjectOption,
+    Project, BuildFamily, Job, BuildPlan, Repository, Patch, ProjectOption,
     Change, ItemOption, Source
 )
 
@@ -85,7 +85,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         # TODO(dcramer): remove this after we transition to plans
         warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
 
-        build = Build(
+        build = Job(
             family=family,
             source=source,
             project=project,
@@ -105,7 +105,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         builds.append(build)
 
     for plan in plan_list:
-        build = Build(
+        build = Job(
             project=project,
             source=source,
             repository=repository,
@@ -150,10 +150,10 @@ def create_build(project, sha, label, target, message, author, change=None,
 class BuildIndexAPIView(APIView):
     @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
     def get(self, change=None):
-        queryset = Build.query.options(
-            joinedload(Build.project),
-            joinedload(Build.author),
-        ).order_by(Build.date_created.desc(), Build.date_started.desc())
+        queryset = Job.query.options(
+            joinedload(Job.project),
+            joinedload(Job.author),
+        ).order_by(Job.date_created.desc(), Job.date_started.desc())
         if change:
             queryset = queryset.filter_by(change=change)
 

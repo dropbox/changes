@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload, subqueryload
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Project, AggregateTestGroup, TestGroup, Build
+from changes.models import Project, AggregateTestGroup, TestGroup, Job
 
 
 class ProjectTestIndexAPIView(APIView):
@@ -44,7 +44,7 @@ class ProjectTestIndexAPIView(APIView):
         ).filter(
             AggregateTestGroup.parent_id == None,  # NOQA: we have to use == here
             AggregateTestGroup.project_id == project.id,
-            Build.date_created > cutoff,
+            Job.date_created > cutoff,
         ).order_by(TestGroup.duration.desc())
 
         results = []

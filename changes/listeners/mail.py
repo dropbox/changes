@@ -5,7 +5,7 @@ from flask_mail import Message, sanitize_address
 
 from changes.config import db, mail
 from changes.constants import Result, Status
-from changes.models import Build, TestGroup, ProjectOption, LogSource, LogChunk
+from changes.models import Job, TestGroup, ProjectOption, LogSource, LogChunk
 from changes.utils.http import build_uri
 
 
@@ -27,13 +27,13 @@ def did_cause_breakage(build):
     if build.result != Result.failed:
         return False
 
-    parent = Build.query.filter(
-        Build.revision_sha != None,  # NOQA
-        Build.patch_id == None,
-        Build.revision_sha != build.revision_sha,
-        Build.date_created < build.date_created,
-        Build.status == Status.finished,
-    ).order_by(Build.date_created.desc()).first()
+    parent = Job.query.filter(
+        Job.revision_sha != None,  # NOQA
+        Job.patch_id == None,
+        Job.revision_sha != build.revision_sha,
+        Job.date_created < build.date_created,
+        Job.status == Status.finished,
+    ).order_by(Job.date_created.desc()).first()
 
     # if theres no parent, this build must be at fault
     if parent is None:

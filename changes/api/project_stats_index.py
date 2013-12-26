@@ -7,7 +7,7 @@ from sqlalchemy.sql import func, literal
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import TestGroup, Project, Build
+from changes.models import TestGroup, Project, Job
 from changes.reports.build import SLOW_TEST_THRESHOLD
 
 
@@ -23,17 +23,17 @@ def get_build_history(project, end_period, days=90):
         ).strftime('%s'))
 
     query = db.session.query(
-        Build.result,
+        Job.result,
         func.count('*').label('num'),
-        func.date_trunc(literal('day'), Build.date_created).label('date')
+        func.date_trunc(literal('day'), Job.date_created).label('date')
     ).filter(
-        Build.project_id == project.id,
-        Build.date_created >= end_period - timedelta(days=days),
-        Build.date_created < end_period,
-        Build.status == Status.finished,
-        Build.revision_sha != None,  # NOQA
-        Build.patch_id == None,
-    ).group_by(Build.result, 'date').order_by('date asc')
+        Job.project_id == project.id,
+        Job.date_created >= end_period - timedelta(days=days),
+        Job.date_created < end_period,
+        Job.status == Status.finished,
+        Job.revision_sha != None,  # NOQA
+        Job.patch_id == None,
+    ).group_by(Job.result, 'date').order_by('date asc')
 
     # group results by day
     results = {}
@@ -57,63 +57,63 @@ def get_build_history(project, end_period, days=90):
 
 
 def get_stats_for_period(project, start_period, end_period):
-    num_passes = Build.query.filter(
-        Build.project_id == project.id,
-        Build.status == Status.finished,
-        Build.result == Result.passed,
-        Build.date_created >= start_period,
-        Build.date_created < end_period,
-        Build.revision_sha != None,  # NOQA
+    num_passes = Job.query.filter(
+        Job.project_id == project.id,
+        Job.status == Status.finished,
+        Job.result == Result.passed,
+        Job.date_created >= start_period,
+        Job.date_created < end_period,
+        Job.revision_sha != None,  # NOQA
     ).count()
-    num_failures = Build.query.filter(
-        Build.project_id == project.id,
-        Build.status == Status.finished,
-        Build.result == Result.failed,
-        Build.date_created >= start_period,
-        Build.date_created < end_period,
-        Build.revision_sha != None,  # NOQA
+    num_failures = Job.query.filter(
+        Job.project_id == project.id,
+        Job.status == Status.finished,
+        Job.result == Result.failed,
+        Job.date_created >= start_period,
+        Job.date_created < end_period,
+        Job.revision_sha != None,  # NOQA
     ).count()
-    num_builds = Build.query.filter(
-        Build.project_id == project.id,
-        Build.status == Status.finished,
-        Build.date_created >= start_period,
-        Build.date_created < end_period,
-        Build.revision_sha != None,  # NOQA
+    num_builds = Job.query.filter(
+        Job.project_id == project.id,
+        Job.status == Status.finished,
+        Job.date_created >= start_period,
+        Job.date_created < end_period,
+        Job.revision_sha != None,  # NOQA
     ).count()
 
     num_authors = db.session.query(
-        func.count(distinct(Build.author_id))
+        func.count(distinct(Job.author_id))
     ).filter(
-        Build.project_id == project.id,
-        Build.status == Status.finished,
-        Build.date_created >= start_period,
-        Build.date_created < end_period,
-        Build.revision_sha != None,  # NOQA
+        Job.project_id == project.id,
+        Job.status == Status.finished,
+        Job.date_created >= start_period,
+        Job.date_created < end_period,
+        Job.revision_sha != None,  # NOQA
     ).scalar()
 
     avg_build_time = db.session.query(
-        func.avg(Build.duration).label('avg_build_time'),
+        func.avg(Job.duration).label('avg_build_time'),
     ).filter(
-        Build.project_id == project.id,
-        Build.status == Status.finished,
-        Build.result == Result.passed,
-        Build.duration > 0,
-        Build.date_created >= start_period,
-        Build.date_created < end_period,
-        Build.revision_sha != None,  # NOQA
+        Job.project_id == project.id,
+        Job.status == Status.finished,
+        Job.result == Result.passed,
+        Job.duration > 0,
+        Job.date_created >= start_period,
+        Job.date_created < end_period,
+        Job.revision_sha != None,  # NOQA
     ).scalar()
     if avg_build_time is not None:
         avg_build_time = float(avg_build_time)
 
     bugs_caught_with_patches = db.session.query(
-        Build
+        Job
     ).filter(
-        Build.project_id == project.id,
-        Build.status == Status.finished,
-        Build.result == Result.failed,
-        Build.date_created >= start_period,
-        Build.date_created < end_period,
-        Build.patch_id != None,  # NOQA
+        Job.project_id == project.id,
+        Job.status == Status.finished,
+        Job.result == Result.failed,
+        Job.date_created >= start_period,
+        Job.date_created < end_period,
+        Job.patch_id != None,  # NOQA
     ).count()
 
     return {
@@ -155,16 +155,16 @@ class ProjectStatsIndexAPIView(APIView):
         else:
             start_period = end_period - timedelta(days=period_length)
 
-        current_build = Build.query.options(
-            joinedload(Build.project),
-            joinedload(Build.author),
+        current_build = Job.query.options(
+            joinedload(Job.project),
+            joinedload(Job.author),
         ).filter(
-            Build.revision_sha != None,  # NOQA
-            Build.patch_id == None,
-            Build.project == project,
-            Build.status == Status.finished,
+            Job.revision_sha != None,  # NOQA
+            Job.patch_id == None,
+            Job.project == project,
+            Job.status == Status.finished,
         ).order_by(
-            Build.date_created.desc(),
+            Job.date_created.desc(),
         ).first()
 
         # TODO(dcramer): if this is useful, we should denormalize testgroups

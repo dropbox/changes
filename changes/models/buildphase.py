@@ -14,7 +14,7 @@ class BuildPhase(db.Model):
     __tablename__ = 'buildphase'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     label = Column(String(128), nullable=False)
@@ -24,7 +24,7 @@ class BuildPhase(db.Model):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Build', backref=backref('phases', order_by='BuildPhase.date_started'))
+    build = relationship('Job', backref=backref('phases', order_by='BuildPhase.date_started'))
     project = relationship('Project')
     repository = relationship('Repository')
 

@@ -8,7 +8,7 @@ from datetime import datetime
 from changes import mock
 from changes.config import db, create_app
 from changes.constants import Result, Status
-from changes.models import Change, Build, LogSource, TestResultManager
+from changes.models import Change, Job, LogSource, TestResultManager
 
 app = create_app()
 app_context = app.app_context()
@@ -78,8 +78,8 @@ def create_new_entry(project):
 
 def update_existing_entry(project):
     try:
-        build = Build.query.filter(
-            Build.status == Status.in_progress,
+        build = Job.query.filter(
+            Job.status == Status.in_progress,
         )[0]
     except IndexError:
         return create_new_entry(project)

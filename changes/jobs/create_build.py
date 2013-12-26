@@ -7,13 +7,13 @@ from changes.backends.base import UnrecoverableException
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import queue
 from changes.constants import Status, Result
-from changes.models import Build, BuildPlan, Plan
+from changes.models import Job, BuildPlan, Plan
 from changes.utils.locking import lock
 
 
 @lock
 def create_build(build_id):
-    build = Build.query.get(build_id)
+    build = Job.query.get(build_id)
     if not build:
         return
 

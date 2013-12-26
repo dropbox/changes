@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from changes.api.serializer import serialize
-from changes.models import AggregateTestGroup, Build, Project
+from changes.models import AggregateTestGroup, Job, Project
 
 
 def test_simple():
@@ -11,7 +11,7 @@ def test_simple():
         slug='test',
         name='test',
     )
-    build = Build(id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50'))
+    build = Job(id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50'))
 
     parent = AggregateTestGroup(
         id=UUID(hex='33846695b2774b29a71745a009e8168a'),

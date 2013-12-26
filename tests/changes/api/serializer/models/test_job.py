@@ -2,11 +2,11 @@ from datetime import datetime
 from uuid import UUID
 
 from changes.api.serializer import serialize
-from changes.models import Build, Project, Change
+from changes.models import Job, Project, Change
 
 
 def test_simple():
-    build = Build(
+    job = Job(
         id=UUID(hex='33846695b2774b29a71795a009e8168a'),
         label='Hello world',
         target='D1234',
@@ -21,7 +21,7 @@ def test_simple():
             label='Hello world',
         ),
     )
-    result = serialize(build)
+    result = serialize(job)
     assert result['name'] == 'Hello world'
     assert result['link'] == '/builds/33846695b2774b29a71795a009e8168a/'
     assert result['id'] == '33846695b2774b29a71795a009e8168a'

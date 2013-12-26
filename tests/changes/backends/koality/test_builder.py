@@ -10,7 +10,7 @@ from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Repository, Project, Build, Revision, Author, BuildPhase, BuildStep, Patch
+    Repository, Project, Job, Revision, Author, BuildPhase, BuildStep, Patch
 )
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
@@ -92,7 +92,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
             repository=build.repository,
         )[0]
         author = Author.query.get(revision.author_id)
-        build = Build.query.get(build.id)
+        build = Job.query.get(build.id)
 
         assert revision.message == 'Fixing visual regression with visuals.'
 

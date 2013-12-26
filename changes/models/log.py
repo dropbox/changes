@@ -17,12 +17,12 @@ class LogSource(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name = Column(String(64), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Build')
+    build = relationship('Job')
     project = relationship('Project')
 
     def __init__(self, **kwargs):
@@ -43,7 +43,7 @@ class LogChunk(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
+    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('logsource.id', ondelete="CASCADE"), nullable=False)
     # offset is sum(c.size for c in chunks_before_this)
@@ -53,7 +53,7 @@ class LogChunk(db.Model):
     text = Column(Text, nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Build')
+    build = relationship('Job')
     project = relationship('Project')
     source = relationship('LogSource')
 

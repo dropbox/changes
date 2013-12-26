@@ -8,7 +8,7 @@ from sqlalchemy.sql import func, and_
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Build, AggregateTestGroup, TestGroup
+from changes.models import Job, AggregateTestGroup, TestGroup
 from changes.utils.http import build_uri
 
 
@@ -90,18 +90,18 @@ class BuildReport(object):
 
         # fetch overall build statistics per project
         query = db.session.query(
-            Build.project_id, Build.result,
-            func.count(Build.id).label('num'),
-            func.avg(Build.duration).label('duration'),
+            Job.project_id, Job.result,
+            func.count(Job.id).label('num'),
+            func.avg(Job.duration).label('duration'),
         ).filter(
-            Build.revision_sha != None,  # NOQA
-            Build.patch_id == None,
-            Build.project_id.in_(project_ids),
-            Build.status == Status.finished,
-            Build.result.in_([Result.failed, Result.passed]),
-            Build.date_created >= start_period,
-            Build.date_created < end_period,
-        ).group_by(Build.project_id, Build.result)
+            Job.revision_sha != None,  # NOQA
+            Job.patch_id == None,
+            Job.project_id.in_(project_ids),
+            Job.status == Status.finished,
+            Job.result.in_([Result.failed, Result.passed]),
+            Job.date_created >= start_period,
+            Job.date_created < end_period,
+        ).group_by(Job.project_id, Job.result)
 
         project_results = {}
         for project in self.projects:
@@ -151,8 +151,8 @@ class BuildReport(object):
         ).filter(
             AggregateTestGroup.project_id.in_(project_ids),
             TestGroup.num_leaves == 0,
-            Build.date_created > start_period,
-            Build.date_created <= end_period,
+            Job.date_created > start_period,
+            Job.date_created <= end_period,
         ).order_by(TestGroup.duration.desc())
 
         slow_list = []
@@ -197,8 +197,8 @@ class BuildReport(object):
             AggregateTestGroup.project_id.in_(project_ids),
             TestGroup.num_leaves == 0,
             TestGroup.result.in_([Result.passed, Result.failed]),
-            Build.date_created > start_period,
-            Build.date_created <= end_period,
+            Job.date_created > start_period,
+            Job.date_created <= end_period,
         ).group_by(
             AggregateTestGroup.id,
             TestGroup.result,

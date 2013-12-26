@@ -14,14 +14,14 @@ class FileCoverage(db.Model):
     __tablename__ = 'filecoverage'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('build.id'), nullable=False)
+    build_id = Column(GUID, ForeignKey('job.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     filename = Column(String(256), nullable=False, primary_key=True)
     project_id = Column(Integer, nullable=False)
     data = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    # build = relationship('Build')
+    # build = relationship('Job')
     # project = relationship('Project')
 
     def __init__(self, **kwargs):

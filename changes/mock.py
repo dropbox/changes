@@ -9,7 +9,7 @@ from uuid import uuid4
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Project, Repository, Author, Revision, Build, BuildPhase, BuildStep,
+    Project, Repository, Author, Revision, Job, BuildPhase, BuildStep,
     TestResult, Change, LogChunk, TestSuite, BuildFamily, BuildPlan, Plan
 )
 from changes.db.utils import get_or_create
@@ -155,7 +155,7 @@ def build(family=None, change=None, **kwargs):
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
-    build = Build(
+    build = Job(
         family=family,
         change=change,
         **kwargs

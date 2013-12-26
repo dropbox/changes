@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from changes.config import db, mail
 from changes.models import (
-    Repository, Build, Project, Revision, RemoteEntity, Change, Author,
+    Repository, Job, Project, Revision, RemoteEntity, Change, Author,
     TestGroup, Patch, Plan, Step, BuildFamily
 )
 
@@ -86,7 +86,7 @@ class Fixtures(object):
 
         kwargs.setdefault('label', 'Sample')
 
-        build = Build(
+        build = Job(
             repository_id=project.repository_id,
             repository=project.repository,
             project_id=project.id,

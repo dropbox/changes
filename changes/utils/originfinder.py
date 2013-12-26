@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from collections import defaultdict
 
 from changes.constants import Result, Status
-from changes.models import Build, TestGroup
+from changes.models import Job, TestGroup
 
 
 def first(key, iterable):
@@ -17,20 +17,20 @@ def find_failure_origins(build, test_failures):
     """
     Attempt to find originating causes of failures.
 
-    Returns a mapping of {TestGroup.name_sha: Build}.
+    Returns a mapping of {TestGroup.name_sha: Job}.
     """
     project = build.project
 
     # find any existing failures in the previous runs
     # to do this we first need to find the last passing build
-    last_pass = Build.query.filter(
-        Build.project == project,
-        Build.date_created <= build.date_created,
-        Build.status == Status.finished,
-        Build.result == Result.passed,
-        Build.id != build.id,
-        Build.patch == None,  # NOQA
-    ).order_by(Build.date_created.desc()).first()
+    last_pass = Job.query.filter(
+        Job.project == project,
+        Job.date_created <= build.date_created,
+        Job.status == Status.finished,
+        Job.result == Result.passed,
+        Job.id != build.id,
+        Job.patch == None,  # NOQA
+    ).order_by(Job.date_created.desc()).first()
 
     if last_pass is None:
         return {}
@@ -38,16 +38,16 @@ def find_failure_origins(build, test_failures):
     # We have to query all runs between build and last_pass, but we only
     # care about runs where the suite failed. Because we're paranoid about
     # performance, we limit this to 100 results.
-    previous_runs = Build.query.filter(
-        Build.project == project,
-        Build.date_created <= build.date_created,
-        Build.date_created >= last_pass.date_created,
-        Build.status == Status.finished,
-        Build.result.in_([Result.failed, Result.passed]),
-        Build.id != build.id,
-        Build.id != last_pass.id,
-        Build.patch == None,  # NOQA
-    ).order_by(Build.date_created.desc())[:100]
+    previous_runs = Job.query.filter(
+        Job.project == project,
+        Job.date_created <= build.date_created,
+        Job.date_created >= last_pass.date_created,
+        Job.status == Status.finished,
+        Job.result.in_([Result.failed, Result.passed]),
+        Job.id != build.id,
+        Job.id != last_pass.id,
+        Job.patch == None,  # NOQA
+    ).order_by(Job.date_created.desc())[:100]
 
     # we now have a list of previous_runs so let's find all test failures in
     # these runs

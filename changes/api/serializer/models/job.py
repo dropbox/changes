@@ -1,9 +1,9 @@
 from changes.api.serializer import Serializer, register
-from changes.models.build import Build
+from changes.models import Job
 
 
-@register(Build)
-class BuildSerializer(Serializer):
+@register(Job)
+class JobSerializer(Serializer):
     def serialize(self, instance):
         if instance.project_id:
             avg_build_time = instance.project.avg_build_time
