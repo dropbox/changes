@@ -490,7 +490,7 @@ class JenkinsBuilder(BaseBackend):
             entity = RemoteEntity.query.filter_by(
                 provider=self.provider,
                 internal_id=job.project.id,
-                type='build',
+                type='job',
             ).first()
             if entity:
                 job_name = entity.remote_id
