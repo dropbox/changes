@@ -15,7 +15,7 @@ class BuildLogDetailsAPIView(APIView):
         Return chunks for a LogSource.
         """
         source = LogSource.query.get(source_id)
-        if source is None or source.build_id.hex != build_id:
+        if source is None or source.job_id.hex != build_id:
             return Response(status=404)
 
         offset = int(request.args.get('offset', -1))
@@ -62,7 +62,7 @@ class BuildLogDetailsAPIView(APIView):
 
     def get_stream_channels(self, build_id, source_id):
         source = LogSource.query.get(source_id)
-        if source is None or source.build_id.hex != build_id:
+        if source is None or source.job_id.hex != build_id:
             return Response(status=404)
 
         return ['logsources:{0}:{1}'.format(build_id, source.id.hex)]

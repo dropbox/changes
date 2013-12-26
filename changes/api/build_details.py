@@ -57,7 +57,7 @@ class BuildDetailsAPIView(APIView):
         }
 
         log_sources = list(LogSource.query.filter(
-            LogSource.build_id == build.id,
+            LogSource.job_id == build.id,
         ).order_by(LogSource.date_created.asc()))
 
         context = {

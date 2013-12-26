@@ -387,7 +387,7 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_job(job)
 
-        source = LogSource.query.filter_by(build=job).first()
+        source = LogSource.query.filter_by(job=job).first()
         assert source.name == 'console'
         assert source.project == self.project
         assert source.date_created == job.date_started
@@ -396,8 +396,8 @@ class SyncBuildTest(BaseTestCase):
             source=source,
         ).order_by(LogChunk.date_created.asc()))
         assert len(chunks) == 1
-        assert chunks[0].build == job
-        assert chunks[0].project == self.project
+        assert chunks[0].job_id == job.id
+        assert chunks[0].project_id == self.project.id
         assert chunks[0].offset == 0
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
@@ -474,7 +474,7 @@ class SyncBuildTest(BaseTestCase):
         })
 
         source = LogSource.query.filter(
-            LogSource.build_id == job.id,
+            LogSource.job_id == job.id,
             LogSource.name == 'foobar.log',
         ).first()
         assert source is not None
@@ -484,7 +484,7 @@ class SyncBuildTest(BaseTestCase):
             source=source,
         ).order_by(LogChunk.date_created.asc()))
         assert len(chunks) == 1
-        assert chunks[0].build_id == job.id
+        assert chunks[0].job_id == job.id
         assert chunks[0].project_id == self.project.id
         assert chunks[0].offset == 0
         assert chunks[0].size == 11

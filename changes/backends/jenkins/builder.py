@@ -254,7 +254,7 @@ class JenkinsBuilder(BaseBackend):
     def _sync_artifact_as_log(self, job, artifact):
         logsource, created = get_or_create(LogSource, where={
             'name': artifact['displayPath'],
-            'build': job,
+            'job': job,
         }, defaults={
             'project': job.project,
             'date_created': job.date_started,
@@ -274,7 +274,7 @@ class JenkinsBuilder(BaseBackend):
                 'source': logsource,
                 'offset': offset,
             }, values={
-                'build': job,
+                'job': job,
                 'project': job.project,
                 'size': chunk_size,
                 'text': chunk,
@@ -288,7 +288,7 @@ class JenkinsBuilder(BaseBackend):
         # TODO(dcramer): this doesnt handle concurrency
         logsource, created = get_or_create(LogSource, where={
             'name': 'console',
-            'build': job,
+            'job': job,
         }, defaults={
             'project': job.project,
             'date_created': job.date_started,
@@ -320,7 +320,7 @@ class JenkinsBuilder(BaseBackend):
                 'source': logsource,
                 'offset': offset,
             }, values={
-                'build': job,
+                'job': job,
                 'project': job.project,
                 'size': chunk_size,
                 'text': chunk,

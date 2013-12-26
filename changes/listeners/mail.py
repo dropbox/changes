@@ -84,7 +84,7 @@ def send_notification(build, recipients):
 
     # TODO(dcramer): we should probably find a better way to do logs
     primary_log = LogSource.query.filter(
-        LogSource.build_id == build.id,
+        LogSource.job_id == build.id,
     ).order_by(LogSource.date_created.asc()).first()
     if primary_log:
         log_clipping = get_log_clipping(

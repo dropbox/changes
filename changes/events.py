@@ -4,9 +4,9 @@ from changes.config import pubsub
 
 def publish_build_update(target):
     channels = [
-        'builds:{change_id}:{build_id}'.format(
+        'builds:{change_id}:{job_id}'.format(
             change_id=target.change_id.hex if target.change_id else '',
-            build_id=target.id.hex,
+            job_id=target.id.hex,
         ),
         'projects:{project_id}:builds'.format(
             project_id=target.project_id.hex,
@@ -40,9 +40,9 @@ def publish_change_update(target):
 
 
 def publish_phase_update(target):
-    channel = 'phases:{change_id}:{build_id}:{phase_id}'.format(
+    channel = 'phases:{change_id}:{job_id}:{phase_id}'.format(
         change_id=target.build.change_id.hex if target.build.change_id else '',
-        build_id=target.build_id,
+        job_id=target.job_id,
         phase_id=target.id.hex,
     )
     pubsub.publish(channel, {
@@ -52,8 +52,8 @@ def publish_phase_update(target):
 
 
 def publish_testgroup_update(target):
-    channel = 'testgroups:{build_id}:{testgroup_id}'.format(
-        build_id=target.build_id.hex,
+    channel = 'testgroups:{job_id}:{testgroup_id}'.format(
+        job_id=target.job_id.hex,
         testgroup_id=target.id.hex
     )
     pubsub.publish(channel, {
@@ -63,9 +63,9 @@ def publish_testgroup_update(target):
 
 
 def publish_logchunk_update(target):
-    channel = 'logsources:{build_id}:{source_id}'.format(
+    channel = 'logsources:{job_id}:{source_id}'.format(
         source_id=target.source_id.hex,
-        build_id=target.build_id.hex,
+        job_id=target.job_id.hex,
     )
     pubsub.publish(channel, {
         'data': as_json(target),

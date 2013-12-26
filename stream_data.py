@@ -60,7 +60,7 @@ def create_new_entry(project):
         )
 
         logsource = LogSource(
-            build=build,
+            job=build,
             project=build.project,
             name='console',
         )

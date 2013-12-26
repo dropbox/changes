@@ -12,17 +12,17 @@ from changes.db.types.guid import GUID
 class LogSource(db.Model):
     __tablename__ = 'logsource'
     __table_args__ = (
-        UniqueConstraint('build_id', 'name', name='unq_logsource_key'),
+        UniqueConstraint('job_id', 'name', name='unq_logsource_key'),
         Index('idx_build_project_id', 'project_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name = Column(String(64), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Job')
+    job = relationship('Job')
     project = relationship('Project')
 
     def __init__(self, **kwargs):
@@ -37,13 +37,13 @@ class LogChunk(db.Model):
     __tablename__ = 'logchunk'
     __table_args__ = (
         Index('idx_logchunk_project_id', 'project_id'),
-        Index('idx_logchunk_build_id', 'build_id'),
+        Index('idx_logchunk_build_id', 'job_id'),
         Index('idx_logchunk_source_id', 'source_id'),
         UniqueConstraint('source_id', 'offset', name='unq_logchunk_source_offset'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('logsource.id', ondelete="CASCADE"), nullable=False)
     # offset is sum(c.size for c in chunks_before_this)
@@ -53,7 +53,7 @@ class LogChunk(db.Model):
     text = Column(Text, nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    build = relationship('Job')
+    job = relationship('Job')
     project = relationship('Project')
     source = relationship('LogSource')
 

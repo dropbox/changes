@@ -93,17 +93,17 @@ class BuildHandlerTestCase(TestCase):
 
 class SendNotificationTestCase(TestCase):
     def test_simple(self):
-        build = self.create_build(self.project, result=Result.failed)
+        job = self.create_job(self.project, result=Result.failed)
         logsource = LogSource(
             project=self.project,
-            build=build,
+            job=job,
             name='console',
         )
         db.session.add(logsource)
 
         logchunk = LogChunk(
             project=self.project,
-            build=build,
+            job=job,
             source=logsource,
             offset=0,
             size=11,
@@ -111,19 +111,19 @@ class SendNotificationTestCase(TestCase):
         )
         db.session.add(logchunk)
 
-        build_link = 'http://example.com/builds/%s/' % (build.id.hex,)
-        log_link = '%slogs/%s/' % (build_link, logsource.id.hex)
+        job_link = 'http://example.com/builds/%s/' % (job.id.hex,)
+        log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
 
-        send_notification(build, recipients=['foo@example.com', 'Bob <bob@example.com>'])
+        send_notification(job, recipients=['foo@example.com', 'Bob <bob@example.com>'])
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
 
-        assert msg.subject == 'Build Failed - %s (%s)' % (build.revision_sha, build.project.name)
+        assert msg.subject == 'Build Failed - %s (%s)' % (job.revision_sha, job.project.name)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
-        assert build_link in msg.html
-        assert build_link in msg.body
+        assert job_link in msg.html
+        assert job_link in msg.body
         assert log_link in msg.html
         assert log_link in msg.body
 
@@ -132,18 +132,18 @@ class SendNotificationTestCase(TestCase):
 
 class GetLogClippingTestCase(TestCase):
     def test_simple(self):
-        build = self.create_build(self.project)
+        job = self.create_job(self.project)
 
         logsource = LogSource(
             project=self.project,
-            build=build,
+            job=job,
             name='console',
         )
         db.session.add(logsource)
 
         logchunk = LogChunk(
             project=self.project,
-            build=build,
+            job=job,
             source=logsource,
             offset=0,
             size=11,
@@ -152,7 +152,7 @@ class GetLogClippingTestCase(TestCase):
         db.session.add(logchunk)
         logchunk = LogChunk(
             project=self.project,
-            build=build,
+            job=job,
             source=logsource,
             offset=11,
             size=11,

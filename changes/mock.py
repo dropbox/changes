@@ -213,7 +213,7 @@ def logchunk(source, **kwargs):
 
     logchunk = LogChunk(
         source=source,
-        build=source.build,
+        job=source.job,
         project=source.project,
         text=text,
         size=len(text),
