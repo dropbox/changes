@@ -1,4 +1,6 @@
 define([], function() {
+  'use strict';
+
   var chart_defaults = {
     limit: 50,
     linkFormatter: function(item) {
@@ -9,10 +11,11 @@ define([], function() {
   return {
     getChartData: function getChartData(items, current, options) {
       // this should return two series, one with passes, and one with failures
-      var options = $.extend({}, chart_defaults, options || {}),
-          data = new Array(options.limit),
-          current = current || null,
-          i, y;
+      var data = new Array(options.limit),
+          i, y, item, result;
+
+      options = $.extend({}, chart_defaults, options || {});
+      current = current || null;
 
       if (current) {
         items = $.merge([], items);
@@ -20,9 +23,8 @@ define([], function() {
         items.unshift(current);
       }
 
-      var data = [];
       for (i = 0, y = options.limit; (item = items[i]) && y > 0; i++, y--) {
-        data.push({
+        result.push({
           value: item.duration || 50,
           className: 'result-' + item.result.id,
           id: item.id,
@@ -32,9 +34,9 @@ define([], function() {
       }
 
       return {
-        data: data,
+        data: result,
         options: options
-      }
+      };
     }
-  }
+  };
 });

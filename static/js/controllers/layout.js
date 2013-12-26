@@ -1,28 +1,30 @@
-define(['app'], function(app) {
-  app.controller('layoutCtrl', ['$scope', '$rootScope', '$location', '$http', function($scope, $rootScope, $location, $http) {
-    'use strict';
+(function(){
+  'use strict';
 
-    $scope.projectList = [];
-    $scope.authenticated = null;
-    $scope.user = null;
-    $scope.navPath = null;
+  define(['app'], function(app) {
+    app.controller('layoutCtrl', ['$scope', '$rootScope', '$location', '$http', function($scope, $rootScope, $location, $http) {
+      $scope.projectList = [];
+      $scope.authenticated = null;
+      $scope.user = null;
+      $scope.navPath = null;
 
-    $scope.$on('$routeChangeSuccess', function(){
-      $scope.navPath = $location.path();
-      $rootScope.activeProject = null;
-    });
-
-    $http.get('/api/0/auth/')
-      .success(function(data){
-      	$scope.authenticated = data.authenticated;
-      	$scope.user = data.user || {};
+      $scope.$on('$routeChangeSuccess', function(){
+        $scope.navPath = $location.path();
+        $rootScope.activeProject = null;
       });
 
-    $http.get('/api/0/projects/')
-      .success(function(data){
-        $scope.projectList = data.projects;
-      });
+      $http.get('/api/0/auth/')
+        .success(function(data){
+          $scope.authenticated = data.authenticated;
+          $scope.user = data.user || {};
+        });
 
-    $('.navbar .container').show();
-  }]);
-});
+      $http.get('/api/0/projects/')
+        .success(function(data){
+          $scope.projectList = data.projects;
+        });
+
+      $('.navbar .container').show();
+    }]);
+  });
+})();

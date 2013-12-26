@@ -1,10 +1,12 @@
 define(['app'], function(app) {
+  'use strict';
+
   function round(value) {
     return parseInt(value * 100, 10) / 100;
   }
 
   return function duration(value) {
-    var result;
+    var result, neg;
 
     neg = value < 0 ? true : false;
     if (neg) {
@@ -28,5 +30,5 @@ define(['app'], function(app) {
     }
 
     return result;
-  }
+  };
 });

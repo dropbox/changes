@@ -57,7 +57,7 @@ define(['app',
           resolve: {
             initial: ['$q', '$route', '$location', '$http', function($q, $route, $location, $http){
               var deferred = $q.defer(),
-                  filter = $location.search()['filter'] || '',
+                  filter = $location.search().filter || '',
                   entrypoint;
 
               if ($route.current.params.change_id) {
@@ -75,7 +75,7 @@ define(['app',
                 .success(function(data){
                   deferred.resolve({
                     'data': data,
-                    'entrypoint': entrypoint,
+                    'entrypoint': entrypoint
                   });
                 })
                 .error(function(){

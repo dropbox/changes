@@ -1,24 +1,28 @@
-define(['app', 'moment'], function(app, moment) {
-  app.directive('timeSince', ['$timeout', function($timeout) {
-    return function timeSince(scope, element, attrs) {
-      var $element = $(element),
-          timeout_id;
+(function(){
+  'use strict';
 
-      function tick(){
-        value = scope.$eval(attrs.timeSince);
-        element.text(moment.utc(value).fromNow());
-        timeout_id = $timeout(tick, 1000);
-      }
+  define(['app', 'moment'], function(app, moment) {
+    app.directive('timeSince', ['$timeout', function($timeout) {
+      return function timeSince(scope, element, attrs) {
+        var $element = $(element),
+            timeout_id;
 
-      scope.$watch(attrs.timeSince, function(value){
-      	element.text(moment.utc(value).fromNow());
-      });
+        function tick(){
+          var value = scope.$eval(attrs.timeSince);
+          element.text(moment.utc(value).fromNow());
+          timeout_id = $timeout(tick, 1000);
+        }
 
-      element.bind('$destroy', function() {
-        $timeout.cancel(timeout_id);
-      });
+        scope.$watch(attrs.timeSince, function(value){
+          element.text(moment.utc(value).fromNow());
+        });
 
-      tick();
-    }
-  }]);
-});
+        element.bind('$destroy', function() {
+          $timeout.cancel(timeout_id);
+        });
+
+        tick();
+      };
+    }]);
+  });
+})();

@@ -1,4 +1,6 @@
 define([], function () {
+  'use strict';
+
   var entityMap = {
     "&": "&amp;",
     "<": "&lt;",
@@ -11,5 +13,5 @@ define([], function () {
     return String(string).replace(/[&<>"']/g, function (s) {
       return entityMap[s];
     });
-  }
+  };
 });

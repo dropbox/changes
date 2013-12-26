@@ -16,5 +16,7 @@
     "license": "Apache 2.0",
     "readmeFilename": "README.rst",
     "devDependencies": {
-    }
+        "jshint": "0.9.x"
+    },
+    "private": true
 }

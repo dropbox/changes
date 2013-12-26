@@ -21,9 +21,16 @@ test: install-requirements lint
 	py.test tests
 	@echo ""
 
-lint:
+lint: lint-js lint-python
+
+lint-python:
 	@echo "Linting Python files"
-	PYFLAKES_NODOCTEST=1 flake8 changes tests
+	@PYFLAKES_NODOCTEST=1 flake8 changes tests
+	@echo ""
+
+lint-js:
+	@echo "Linting JavaScript files"
+	@node_modules/.bin/jshint static/
 	@echo ""
 
 test-full: install-requirements lint

@@ -3,8 +3,6 @@
 
   angular.module('flash', [])
     .factory('flash', ['$rootScope', '$timeout', function($rootScope, $timeout){
-      'use strict';
-
       var messages = [],
           reset;
 
@@ -44,7 +42,6 @@
       };
     }])
     .directive('flashMessages', function() {
-      'use strict';
       return {
         restrict: 'E',
         replace: true,
@@ -59,13 +56,13 @@
           '</ol>',
         controller: function($scope, $rootScope) {
           $scope.levelClassName = function(level) {
-            switch (level) {
-              case 'error':
-                return 'danger';
-              default:
-                return level;
+            if (level == 'error') {
+              return 'danger';
+            } else {
+              return level;
             }
-          }
+          };
+
           $rootScope.$on('flash:message', function(_, messages, done) {
             $scope.messages = messages;
             done();

@@ -5,6 +5,8 @@ define([
   'angularSanitize'
   // 'angularAnimate',
   ], function (angular) {
+    'use strict';
+
     return angular.module('app', [
       'linkify',
       'ngRoute',

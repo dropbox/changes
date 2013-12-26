@@ -1,0 +1,13 @@
+{
+    "strict": true,
+    "browser": true,
+    "jquery": true,
+    "predef": [
+    	"G_vmlCanvasManager",
+    	"EventSource",
+    	"angular",
+    	"define",
+    	"nv",
+    	"d3"
+    ]
+}

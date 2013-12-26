@@ -4,6 +4,8 @@
  */
 
 define([], function() {
+    'use strict';
+
     return function Dial(element, options) {
         this.startAngle = null;
         this.xy = null;
@@ -23,7 +25,7 @@ define([], function() {
             width: 200,
             height: 200,
             bgColor: '#EEEEEE',
-            fgColor: '#87CEEB',
+            fgColor: '#87CEEB'
         }, options || {});
 
 
@@ -63,7 +65,7 @@ define([], function() {
             this.$canvas.css({
                 width: this.options.width + 'px',
                 height: this.options.height + 'px'
-            })
+            });
 
             this.$element.html(this.$canvas);
 
@@ -95,15 +97,15 @@ define([], function() {
         this.set = function(k, v) {
             this.options[k] = v;
             this.draw();
-        }
+        };
 
         this.draw = function () {
-            var c = this.ctx,                 // context
-                a = this.angle(this.v)    // Angle
-                , sat = this.startAngle     // Start angle
-                , eat = sat + a             // End angle
-                , sa, ea                    // Previous angles
-                , r = 1;
+            var c = this.ctx,              // context
+                a = this.angle(this.v),    // Angle
+                sat = this.startAngle,     // Start angle
+                eat = sat + a,             // End angle
+                sa, ea,                    // Previous angles
+                r = 1;
 
             c.lineWidth = this.lineWidth;
 

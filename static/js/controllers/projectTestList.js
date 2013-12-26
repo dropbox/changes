@@ -1,14 +1,16 @@
-define([
-    'app',
-    'utils/duration',
-    'directives/timeSince'], function(app, duration) {
-  app.controller('projectTestListCtrl', [
-      '$scope', '$rootScope', 'initialProject', 'initialTests',
-      function($scope, $rootScope, initialProject, initialTests) {
-    'use strict';
+(function(){
+  'use strict';
 
-    $scope.project = initialProject.data.project;
-    $scope.tests = initialTests.data.tests;
-    $rootScope.activeProject = $scope.project;
-  }]);
-});
+  define([
+      'app',
+      'utils/duration',
+      'directives/timeSince'], function(app, duration) {
+    app.controller('projectTestListCtrl', [
+        '$scope', '$rootScope', 'initialProject', 'initialTests',
+        function($scope, $rootScope, initialProject, initialTests) {
+      $scope.project = initialProject.data.project;
+      $scope.tests = initialTests.data.tests;
+      $rootScope.activeProject = $scope.project;
+    }]);
+  });
+})();

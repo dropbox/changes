@@ -1,13 +1,17 @@
-define(['app'], function (app) {
-  app.filter('truncate', function(){
-    return function(input, length) {
-      length = length || 100;
+(function(){
+  'use strict';
 
-      if (input.length < length) {
-        return input;
-      }
+  define(['app'], function (app) {
+    app.filter('truncate', function(){
+      return function(input, length) {
+        length = length || 100;
 
-      return input.substr(0, length - 3) + '...';
-    }
+        if (input.length < length) {
+          return input;
+        }
+
+        return input.substr(0, length - 3) + '...';
+      };
+    });
   });
-});
+})();

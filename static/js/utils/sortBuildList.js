@@ -7,5 +7,5 @@ define(['utils/sortArray'], function(sortArray) {
     }
 
     return sortArray(arr, getBuildScore);
-  }
+  };
 });

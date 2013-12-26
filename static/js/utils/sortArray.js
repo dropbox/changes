@@ -11,12 +11,12 @@ define([], function() {
           return 1;
         }
         if (a_score[i] > b_score[i]) {
-          return -1
+          return -1;
         }
       }
       return 0;
     });
 
     return arr;
-  }
+  };
 });
