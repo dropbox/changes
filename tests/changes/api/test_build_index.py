@@ -1,7 +1,7 @@
 from cStringIO import StringIO
 
 from changes.config import db
-from changes.models import Job, BuildPlan, Patch, ProjectOption
+from changes.models import Job, JobPlan, Patch, ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF
 
 
@@ -186,8 +186,8 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data['builds']) == 1
 
-        buildplans = list(BuildPlan.query.filter(
-            BuildPlan.build_id == data['builds'][0]['id'],
+        buildplans = list(JobPlan.query.filter(
+            JobPlan.build_id == data['builds'][0]['id'],
         ))
 
         assert len(buildplans) == 1

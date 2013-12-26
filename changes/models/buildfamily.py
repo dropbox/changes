@@ -20,9 +20,9 @@ class BuildFamily(db.Model):
     Represents a collection of builds for a single target, as well as the sum
     of their results.
 
-    Each BuildFamily contains many BuildPlan, which links to an individual Build.
+    Each BuildFamily contains many JobPlan, which links to an individual Build.
 
-    A BuildPlan generally represents a discrete job in a matrix, and is useful
+    A JobPlan generally represents a discrete job in a matrix, and is useful
     for things like "build this on Windows and Linux".
     """
     __tablename__ = 'buildfamily'

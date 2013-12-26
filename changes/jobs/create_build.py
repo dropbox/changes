@@ -7,7 +7,7 @@ from changes.backends.base import UnrecoverableException
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import queue
 from changes.constants import Status, Result
-from changes.models import Job, BuildPlan, Plan
+from changes.models import Job, JobPlan, Plan
 from changes.utils.locking import lock
 
 
@@ -17,10 +17,10 @@ def create_build(build_id):
     if not build:
         return
 
-    build_plan = BuildPlan.query.options(
+    build_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
     ).filter(
-        BuildPlan.build_id == build.id,
+        JobPlan.build_id == build.id,
     ).join(Plan).first()
 
     try:

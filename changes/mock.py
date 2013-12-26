@@ -10,7 +10,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
     Project, Repository, Author, Revision, Job, BuildPhase, BuildStep,
-    TestResult, Change, LogChunk, TestSuite, BuildFamily, BuildPlan, Plan
+    TestResult, Change, LogChunk, TestSuite, BuildFamily, JobPlan, Plan
 )
 from changes.db.utils import get_or_create
 
@@ -163,7 +163,7 @@ def build(family=None, change=None, **kwargs):
     db.session.add(build)
 
     if family:
-        buildplan = BuildPlan(
+        buildplan = JobPlan(
             plan=plan(),
             family=family,
             project=build.project,

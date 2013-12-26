@@ -9,7 +9,7 @@ from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.events import publish_build_update
-from changes.models import Job, BuildPlan, Plan, RemoteEntity
+from changes.models import Job, JobPlan, Plan, RemoteEntity
 from changes.utils.locking import lock
 
 
@@ -49,10 +49,10 @@ def _sync_build(build_id):
         return
 
     # TODO(dcramer): we make an assumption that there is a single step
-    build_plan = BuildPlan.query.options(
+    build_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
     ).filter(
-        BuildPlan.build_id == build.id,
+        JobPlan.build_id == build.id,
     ).join(Plan).first()
 
     try:

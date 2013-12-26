@@ -12,13 +12,13 @@ from changes.db.types.guid import GUID
 from changes.db.utils import model_repr
 
 
-class BuildPlan(db.Model):
+class JobPlan(db.Model):
     """
     A link to all Build + Plan's for a BuildFamily.
 
     TODO(dcramer): this should include a snapshot of the plan at build time.
     """
-    __tablename__ = 'buildplan'
+    __tablename__ = 'jobplan'
     __table_args__ = (
         Index('idx_buildplan_project_id', 'project_id'),
         Index('idx_buildplan_family_id', 'family_id'),
@@ -41,7 +41,7 @@ class BuildPlan(db.Model):
     __repr__ = model_repr('family_id', 'build_id', 'plan_id')
 
     def __init__(self, **kwargs):
-        super(BuildPlan, self).__init__(**kwargs)
+        super(JobPlan, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid.uuid4()
         if self.date_created is None:

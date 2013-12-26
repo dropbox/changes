@@ -1,6 +1,6 @@
 from changes.config import db
 from changes.constants import Cause
-from changes.models import Job, BuildPlan
+from changes.models import Job, JobPlan
 from changes.testutils import APITestCase
 
 
@@ -36,7 +36,7 @@ class BuildRetryTest(APITestCase):
 
         family = self.create_buildfamily_from_build(build)
 
-        buildplan = BuildPlan(
+        buildplan = JobPlan(
             family=family,
             build=build,
             plan=plan,
@@ -62,8 +62,8 @@ class BuildRetryTest(APITestCase):
         assert new_build.message == build.message
         assert new_build.target == build.target
 
-        new_buildplan = BuildPlan.query.filter(
-            BuildPlan.build_id == new_build.id
+        new_buildplan = JobPlan.query.filter(
+            JobPlan.build_id == new_build.id
         ).first()
 
         assert new_buildplan.family_id == family.id

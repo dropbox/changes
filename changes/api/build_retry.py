@@ -6,7 +6,7 @@ from datetime import datetime
 from changes.api.base import APIView
 from changes.config import db, queue
 from changes.constants import Cause, Status
-from changes.models import Job, BuildPlan
+from changes.models import Job, JobPlan
 
 
 class BuildRetryAPIView(APIView):
@@ -37,11 +37,11 @@ class BuildRetryAPIView(APIView):
         )
         db.session.add(new_build)
 
-        buildplan = BuildPlan.query.filter(
-            BuildPlan.build_id == build.id,
+        buildplan = JobPlan.query.filter(
+            JobPlan.build_id == build.id,
         ).first()
         if buildplan:
-            new_build_plan = BuildPlan(
+            new_build_plan = JobPlan(
                 project_id=build.project_id,
                 build_id=new_build.id,
                 plan_id=buildplan.plan_id,

@@ -5,7 +5,7 @@ import mock
 from changes.config import db
 from changes.constants import Status
 from changes.jobs.sync_build import sync_build
-from changes.models import Job, Plan, Step, BuildFamily, BuildPlan
+from changes.models import Job, Plan, Step, BuildFamily, JobPlan
 from changes.testutils import TestCase
 
 
@@ -41,7 +41,7 @@ class SyncBuildTest(TestCase):
         )
         db.session.add(family)
 
-        buildplan = BuildPlan(
+        buildplan = JobPlan(
             plan=plan,
             family=family,
             build=build,

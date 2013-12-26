@@ -12,7 +12,7 @@ from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.db.utils import get_or_create
 from changes.models import (
-    Project, BuildFamily, Job, BuildPlan, Repository, Patch, ProjectOption,
+    Project, BuildFamily, Job, JobPlan, Repository, Patch, ProjectOption,
     Change, ItemOption, Source
 )
 
@@ -122,7 +122,7 @@ def create_build(project, sha, label, target, message, author, change=None,
 
         db.session.add(build)
 
-        buildplan = BuildPlan(
+        buildplan = JobPlan(
             project=project,
             build=build,
             family=family,
