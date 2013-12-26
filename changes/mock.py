@@ -190,13 +190,13 @@ def build(family=None, change=None, **kwargs):
     db.session.add(phase1_test)
 
     step = JobStep(
-        repository=build.repository, project=build.project, build=build,
+        repository=build.repository, project=build.project, job=build,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
     db.session.add(step)
     step = JobStep(
-        repository=build.repository, project=build.project, build=build,
+        repository=build.repository, project=build.project, job=build,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )

@@ -132,7 +132,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert phase_list[2].date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
         step_list = list(JobStep.query.filter_by(
-            build=build,
+            job=build,
         ))
 
         step_list.sort(key=lambda x: (x.date_started, x.date_created))

@@ -184,7 +184,7 @@ class KoalityBuilder(BaseBackend):
 
         node = self._get_node(stage['buildNode'])
 
-        step.build = build
+        step.job = build
         step.repository = build.repository
         step.project = build.project
         step.phase = phase

@@ -194,7 +194,7 @@ class JenkinsBuilder(BaseBackend):
             'phase': buildphase,
             'label': item['fullDisplayName'],
         }, defaults={
-            'build': build,
+            'job': build,
             'project_id': build.project_id,
             'node_id': node.id,
             'repository_id': build.repository_id,
