@@ -66,7 +66,7 @@ def create_build(project, sha, label, target, message, author, change=None,
 
     jobs = []
 
-    family = Build(
+    build = Build(
         project=project,
         source=source,
         repository=repository,
@@ -78,7 +78,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         message=message,
     )
 
-    db.session.add(family)
+    db.session.add(build)
 
     if not plan_list:
         # Legacy support
@@ -86,7 +86,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
 
         job = Job(
-            family=family,
+            build=build,
             source=source,
             project=project,
             repository=repository,
@@ -117,7 +117,7 @@ def create_build(project, sha, label, target, message, author, change=None,
             message=message,
             patch=patch,
             change=change,
-            family=family,
+            build=build,
         )
 
         db.session.add(job)
@@ -125,7 +125,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         jobplan = JobPlan(
             project=project,
             job=job,
-            family=family,
+            build=build,
             plan=plan,
         )
 

@@ -42,7 +42,7 @@ def create_new_entry(project):
 
     date_started = datetime.utcnow()
 
-    family = mock.family(
+    build = mock.build(
         author=change.author,
         project=project,
         revision_sha=revision.sha,
@@ -54,7 +54,7 @@ def create_new_entry(project):
 
     for x in xrange(3):
         job = mock.job(
-            family=family,
+            build=build,
             change=change,
             author=change.author,
         )
@@ -73,7 +73,7 @@ def create_new_entry(project):
             db.session.commit()
             offset += lc.size
 
-    return family
+    return build
 
 
 def update_existing_entry(project):
@@ -103,13 +103,13 @@ def update_existing_entry(project):
 
 def gen(project):
     if random.randint(0, 3) == 1:
-        family = create_new_entry(project)
+        build = create_new_entry(project)
     else:
-        family = update_existing_entry(project)
+        build = update_existing_entry(project)
 
     db.session.commit()
 
-    return family
+    return build
 
 
 def loop():
@@ -121,8 +121,8 @@ def loop():
         plan = mock.plan()
         plan.projects.append(project)
 
-        family = gen(project)
-        print 'Pushed family {0}', family.id
+        build = gen(project)
+        print 'Pushed build {0}', build.id
         time.sleep(1)
 
 

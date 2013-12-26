@@ -248,21 +248,21 @@ Source:
 Change:
   A change is discrete changeset throughout its lifecycle. It may consist of several sources, such as
   an initial patch, a commit, a revert, a followup patch, and a followup commit.
-Build Family:
-  A build family is a collection of builds bound to a single source. Think of the family as
-  the collective matrix of builds for an individual change. e.g. you may want to test "Windows" and "Linux",
-  which would both be contained within the same family.
+Build:
+  A build is a collection of jobs bound to a single source. Think of the build as
+  the collective matrix of jobs for an individual change. e.g. you may want to test "Windows" and "Linux",
+  which would both be contained within the same grouping.
 Job:
-  An individual job within a build family. e.g. "Linux"
-Build Plan:
-  A snapshot of the plan at the time a build is created.
+  An individual job within a build. e.g. "Linux"
+Job Plan:
+  A snapshot of the plan at the time a job is created.
 
 Inside of each build, a few items exist for collecting and reporting results:
 
-Build Step:
-  An individual step run as part of a build. For example, this could be the provision step.
-Build Phase:
-  A grouping of steps at the same tier. If you're using build factories, you may have several
+Job Step:
+  An individual step run as part of a job. For example, this could be the provision step.
+Job Phase:
+  A grouping of steps at the same tier. If you're using job factories, you may have several
   steps that execute similar tasks. These steps are grouped together as a phase.
 Tests:
   Several types of models exist for reporting tests. These exist both on the per-build level, as well

@@ -156,7 +156,7 @@ def job(build=None, change=None, **kwargs):
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
     job = Job(
-        family=build,
+        build=build,
         change=change,
         **kwargs
     )
@@ -165,7 +165,7 @@ def job(build=None, change=None, **kwargs):
     if build:
         jobplan = JobPlan(
             plan=plan(),
-            family=job,
+            build=job,
             project=job.project,
             job=job,
         )

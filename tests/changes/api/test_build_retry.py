@@ -34,10 +34,10 @@ class BuildRetryTest(APITestCase):
         change = self.create_change(self.project)
         job = self.create_job(self.project, change=change)
 
-        family = self.create_buildfamily_from_build(job)
+        build = self.create_build_from_job(job)
 
         jobplan = JobPlan(
-            family=family,
+            build=build,
             job=job,
             plan=plan,
             project=self.project,
@@ -66,6 +66,6 @@ class BuildRetryTest(APITestCase):
             JobPlan.job_id == new_job.id
         ).first()
 
-        assert new_jobplan.family_id == family.id
+        assert new_jobplan.build_id == build.id
         assert new_jobplan.plan_id == plan.id
         assert new_jobplan.project_id == self.project.id

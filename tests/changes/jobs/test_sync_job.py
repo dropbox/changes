@@ -43,7 +43,7 @@ class SyncBuildTest(TestCase):
 
         jobplan = JobPlan(
             plan=plan,
-            family=build,
+            build=build,
             job=job,
             project=self.project,
         )

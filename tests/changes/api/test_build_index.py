@@ -21,16 +21,16 @@ class BuildListTest(APITestCase):
 
 
 class BuildCreateTest(APITestCase):
-    def assertBuildMatchesFamily(self, build, family):
-        assert family.id == build.family_id
-        assert family.repository_id == build.repository_id
-        assert family.project_id == build.project_id
-        assert family.author_id == build.author_id
-        assert family.label == build.label
-        assert family.target == build.target
-        assert family.message == build.message
-        assert family.revision_sha == build.revision_sha
-        assert family.status == build.status
+    def assertJobMatchesBuild(self, job, build):
+        assert build.id == job.build_id
+        assert build.repository_id == job.repository_id
+        assert build.project_id == job.project_id
+        assert build.author_id == job.author_id
+        assert build.label == job.label
+        assert build.target == job.target
+        assert build.message == job.message
+        assert build.revision_sha == job.revision_sha
+        assert build.status == job.status
 
     def test_simple(self):
         path = '/api/0/builds/'
@@ -50,9 +50,9 @@ class BuildCreateTest(APITestCase):
         assert job.author.name == 'David Cramer'
         assert job.author.email == 'dcramer@example.com'
 
-        family = job.family
+        build = job.build
 
-        self.assertBuildMatchesFamily(job, family)
+        self.assertJobMatchesBuild(job, build)
 
     def test_with_sha(self):
         path = '/api/0/builds/'
@@ -196,6 +196,6 @@ class BuildCreateTest(APITestCase):
         assert jobplans[0].project_id == self.project.id
 
         job = jobplans[0].job
-        family = jobplans[0].family
+        build = jobplans[0].build
 
-        self.assertBuildMatchesFamily(job, family)
+        self.assertJobMatchesBuild(job, build)

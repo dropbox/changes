@@ -22,13 +22,13 @@ class Job(db.Model):
         Index('idx_build_patch_id', 'patch_id'),
         Index('idx_build_change_id', 'change_id'),
         Index('idx_build_source_id', 'source_id'),
-        Index('idx_build_family_id', 'family_id'),
+        Index('idx_build_family_id', 'build_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     # TODO(dcramer): change should be removed in favor of an m2m between
     # Change and Source
-    family_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"))
+    build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"))
     change_id = Column(GUID, ForeignKey('change.id', ondelete="CASCADE"))
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
@@ -54,7 +54,7 @@ class Job(db.Model):
     data = Column(JSONEncodedDict)
 
     change = relationship('Change')
-    family = relationship('Build')
+    build = relationship('Build')
     repository = relationship('Repository')
     project = relationship('Project')
     source = relationship('Source')

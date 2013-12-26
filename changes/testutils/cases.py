@@ -156,16 +156,16 @@ class Fixtures(object):
 
         return step
 
-    def create_buildfamily_from_build(self, build):
+    def create_build_from_job(self, job):
         build = Build(
-            project=build.project,
-            repository=build.repository,
-            status=build.status,
-            author=build.author,
-            label=build.label,
-            target=build.target,
-            revision_sha=build.revision_sha,
-            message=build.message,
+            project=job.project,
+            repository=job.repository,
+            status=job.status,
+            author=job.author,
+            label=job.label,
+            target=job.target,
+            revision_sha=job.revision_sha,
+            message=job.message,
         )
         db.session.add(build)
 

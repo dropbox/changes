@@ -22,6 +22,7 @@ class BuildRetryAPIView(APIView):
         new_job = Job(
             source=job.source,
             change=job.change,
+            build=job.build,
             repository=job.repository,
             project=job.project,
             revision_sha=job.revision_sha,
@@ -45,7 +46,7 @@ class BuildRetryAPIView(APIView):
                 project_id=job.project_id,
                 job_id=new_job.id,
                 plan_id=jobplan.plan_id,
-                family_id=jobplan.family_id,
+                build_id=jobplan.build_id,
             )
             db.session.add(new_job_plan)
 
