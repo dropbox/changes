@@ -6,5 +6,5 @@ class BaseBackend(object):
     def __init__(self, app):
         self.app = app
 
-    def create_build(self, build):
+    def create_job(self, job):
         raise NotImplementedError
