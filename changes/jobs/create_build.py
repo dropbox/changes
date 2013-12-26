@@ -59,4 +59,4 @@ def create_build(build_id):
 
     queue.delay('sync_build', kwargs={
         'build_id': build_id,
-    })
+    }, countdown=5)
