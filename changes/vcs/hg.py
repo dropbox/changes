@@ -4,7 +4,7 @@ from datetime import datetime
 
 from .base import Vcs, RevisionResult, BufferParser
 
-LOG_FORMAT = '{node}\x01{author}\x01{date|hgdate}\x01{p1node} {p2node}\x01{desc}\x02'
+LOG_FORMAT = '{node}\x01{author}\x01{date}\x01{p1node} {p2node}\x01{desc}\x02'
 
 
 class MercurialVcs(Vcs):
@@ -43,7 +43,7 @@ class MercurialVcs(Vcs):
 
             parents = filter(lambda x: x and x != '0' * 40, parents.split(' '))
 
-            author_date = datetime.utcfromtimestamp(float(author_date.replace(' ', '.')))
+            author_date = datetime.utcfromtimestamp(float(author_date))
 
             yield RevisionResult(
                 id=sha,
