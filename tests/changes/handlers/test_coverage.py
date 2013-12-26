@@ -54,12 +54,12 @@ def test_result_generation():
 
     r1 = results[0]
     assert type(r1) == FileCoverage
-    assert r1.build_id == job.id
+    assert r1.job_id == job.id
     assert r1.project_id == job.project_id
     assert r1.filename == 'setup.py'
     assert r1.data == 'NUNNNNNNNNNUCCNU'
     r2 = results[1]
     assert type(r2) == FileCoverage
-    assert r2.build_id == job.id
+    assert r2.job_id == job.id
     assert r2.project_id == job.project_id
     assert r2.data == 'CCCNNNU'

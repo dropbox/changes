@@ -16,7 +16,7 @@ class CoverageHandler(ArtifactHandler):
             for result in results:
                 # TODO(cramer): this has a race condition
                 constraints = {
-                    'build_id': result.build_id,
+                    'job_id': result.job_id,
                     'project_id': result.project_id,
                     'filename': result.filename,
                 }
@@ -59,7 +59,7 @@ class CoverageHandler(ArtifactHandler):
                         file_coverage.append('U')
                     lineno = number
             results.append(FileCoverage(
-                build_id=job.id,
+                job_id=job.id,
                 project_id=job.project_id,
                 filename=node.get('filename'),
                 data=''.join(file_coverage),
