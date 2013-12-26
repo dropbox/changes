@@ -45,12 +45,15 @@ class BuildCreateTest(APITestCase):
 
         job = Job.query.get(data['builds'][0]['id'])
 
+        assert job.number == 1
         assert job.project == self.project
         assert job.revision_sha is None
         assert job.author.name == 'David Cramer'
         assert job.author.email == 'dcramer@example.com'
 
         build = job.build
+
+        assert build.number == 1
 
         self.assertJobMatchesBuild(job, build)
 

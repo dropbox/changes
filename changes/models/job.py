@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Index
+from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
 from changes.constants import Status, Result, Cause
@@ -23,9 +23,11 @@ class Job(db.Model):
         Index('idx_build_change_id', 'change_id'),
         Index('idx_build_source_id', 'source_id'),
         Index('idx_build_family_id', 'build_id'),
+        UniqueConstraint('build_id', 'number', name='unq_job_number'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    number = Column(Integer)
     # TODO(dcramer): change should be removed in favor of an m2m between
     # Change and Source
     build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"))

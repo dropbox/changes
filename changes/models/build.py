@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Index
+from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
 from changes.constants import Status, Result, Cause
@@ -29,9 +29,11 @@ class Build(db.Model):
         Index('idx_buildfamily_author_id', 'author_id'),
         Index('idx_buildfamily_patch_id', 'patch_id'),
         Index('idx_buildfamily_source_id', 'source_id'),
+        UniqueConstraint('project_id', 'number', name='unq_build_number'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    number = Column(Integer)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
     # TODO(dcramer): repo/sha/patch_id should be removed in favor of source

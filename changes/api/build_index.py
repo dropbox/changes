@@ -1,15 +1,18 @@
 from __future__ import absolute_import, division, unicode_literals
 
+import warnings
+
 from cStringIO import StringIO
 from datetime import datetime
 from flask import request
 from sqlalchemy.orm import joinedload
-import warnings
+from sqlalchemy.sql import func
 
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
+from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
@@ -66,7 +69,15 @@ def create_build(project, sha, label, target, message, author, change=None,
 
     jobs = []
 
+    # TODO(dcramer): find a way to abstract this
+    cur_no_query = db.session.query(
+        coalesce(func.max(Build.number), 0)
+    ).filter(
+        Build.project_id == project.id,
+    ).scalar()
+
     build = Build(
+        number=cur_no_query + 1,
         project=project,
         source=source,
         repository=repository,
@@ -85,8 +96,15 @@ def create_build(project, sha, label, target, message, author, change=None,
         # TODO(dcramer): remove this after we transition to plans
         warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
 
+        cur_no_query = db.session.query(
+            coalesce(func.max(Job.number), 0)
+        ).filter(
+            Job.build_id == build.id,
+        ).scalar()
+
         job = Job(
             build=build,
+            number=cur_no_query + 1,
             source=source,
             project=project,
             repository=repository,
@@ -105,7 +123,15 @@ def create_build(project, sha, label, target, message, author, change=None,
         jobs.append(job)
 
     for plan in plan_list:
+        cur_no_query = db.session.query(
+            coalesce(func.max(Job.number), 0)
+        ).filter(
+            Job.build_id == build.id,
+        ).scalar()
+
         job = Job(
+            build=build,
+            number=cur_no_query + 1,
             project=project,
             source=source,
             repository=repository,
@@ -117,7 +143,6 @@ def create_build(project, sha, label, target, message, author, change=None,
             message=message,
             patch=patch,
             change=change,
-            build=build,
         )
 
         db.session.add(job)
