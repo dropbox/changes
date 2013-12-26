@@ -15,7 +15,7 @@ from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.events import publish_logchunk_update
 from changes.models import (
-    AggregateTestSuite, RemoteEntity, TestResult, TestResultManager, TestSuite,
+    AggregateTestSuite, TestResult, TestResultManager, TestSuite,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 
@@ -484,18 +484,9 @@ class JenkinsBuilder(BaseBackend):
         - Polling for the newly created job to associate either a queue ID
           or a finalized build number.
         """
-        if self.job_name:
-            job_name = self.job_name
-        else:
-            entity = RemoteEntity.query.filter_by(
-                provider=self.provider,
-                internal_id=job.project.id,
-                type='job',
-            ).first()
-            if entity:
-                job_name = entity.remote_id
-            else:
-                raise UnrecoverableException('Missing Jenkins project configuration')
+        job_name = self.job_name
+        if not job_name:
+            raise UnrecoverableException('Missing Jenkins project configuration')
 
         json_data = {
             'parameter': [

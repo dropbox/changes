@@ -10,7 +10,7 @@ from uuid import UUID
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Repository, Project, RemoteEntity, TestCase, Patch, LogSource, LogChunk
+    Repository, Project, TestCase, Patch, LogSource, LogChunk
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
@@ -139,43 +139,6 @@ class CreateBuildTest(BaseTestCase):
 
         builder = self.get_builder()
         builder.create_job(job)
-
-    @responses.activate
-    def test_with_entity(self):
-        project_entity = RemoteEntity(
-            provider=self.provider,
-            internal_id=self.project.id,
-            remote_id='server-foo',
-            type='job',
-        )
-        db.session.add(project_entity)
-
-        responses.add(
-            responses.POST, 'http://jenkins.example.com/job/server-foo/build/api/json/',
-            body='',
-            status=201)
-
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/json/',
-            body=self.load_fixture('fixtures/GET/queue_list.json'))
-
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server-foo/api/json/',
-            body=self.load_fixture('fixtures/GET/job_list.json'))
-
-        job = self.create_job(
-            self.project,
-            id=UUID('f9481a17aac446718d7893b6e1c6288b'))
-
-        builder = self.get_builder(job_name=None)
-        builder.create_job(job)
-
-        assert job.data == {
-            'build_no': 1,
-            'item_id': None,
-            'job_name': 'server-foo',
-            'queued': False,
-        }
 
 
 class SyncBuildTest(BaseTestCase):
