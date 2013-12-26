@@ -11,59 +11,59 @@ from changes.models import Job, JobPlan
 
 class BuildRetryAPIView(APIView):
     def post(self, build_id):
-        build = Job.query.options(
+        job = Job.query.options(
             subqueryload_all(Job.phases),
             joinedload(Job.project),
             joinedload(Job.author),
         ).get(build_id)
-        if build is None:
+        if job is None:
             return Response(status=404)
 
-        new_build = Job(
-            source=build.source,
-            change=build.change,
-            repository=build.repository,
-            project=build.project,
-            revision_sha=build.revision_sha,
-            target=build.target,
-            parent_id=build.id,
-            patch=build.patch,
-            label=build.label,
+        new_job = Job(
+            source=job.source,
+            change=job.change,
+            repository=job.repository,
+            project=job.project,
+            revision_sha=job.revision_sha,
+            target=job.target,
+            parent_id=job.id,
+            patch=job.patch,
+            label=job.label,
             status=Status.queued,
-            message=build.message,
+            message=job.message,
             # TODO(dcramer): author is a lie
-            author=build.author,
+            author=job.author,
             cause=Cause.retry,
         )
-        db.session.add(new_build)
+        db.session.add(new_job)
 
-        buildplan = JobPlan.query.filter(
-            JobPlan.build_id == build.id,
+        jobplan = JobPlan.query.filter(
+            JobPlan.job_id == job.id,
         ).first()
-        if buildplan:
-            new_build_plan = JobPlan(
-                project_id=build.project_id,
-                build_id=new_build.id,
-                plan_id=buildplan.plan_id,
-                family_id=buildplan.family_id,
+        if jobplan:
+            new_job_plan = JobPlan(
+                project_id=job.project_id,
+                job_id=new_job.id,
+                plan_id=jobplan.plan_id,
+                family_id=jobplan.family_id,
             )
-            db.session.add(new_build_plan)
+            db.session.add(new_job_plan)
 
-        # TODO: some of this logic is repeated from the create build endpoint
-        if new_build.change:
-            new_build.change.date_modified = datetime.utcnow()
-            db.session.add(new_build.change)
+        # TODO: some of this logic is repeated from the create job endpoint
+        if new_job.change:
+            new_job.change.date_modified = datetime.utcnow()
+            db.session.add(new_job.change)
 
         db.session.commit()
 
-        queue.delay('create_build', kwargs={
-            'build_id': new_build.id.hex,
+        queue.delay('create_job', kwargs={
+            'job_id': new_job.id.hex,
         }, countdown=5)
 
         context = {
             'build': {
-                'id': new_build.id.hex,
-                'link': '/builds/{0}/'.format(new_build.id.hex),
+                'id': new_job.id.hex,
+                'link': '/jobs/{0}/'.format(new_job.id.hex),
             },
         }
 

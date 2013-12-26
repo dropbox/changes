@@ -28,17 +28,17 @@ class JobPlan(db.Model):
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     family_id = Column(GUID, ForeignKey('buildfamily.id', ondelete="CASCADE"), nullable=False)
-    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False, unique=True)
+    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False, unique=True)
     plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
 
     project = relationship('Project')
     family = relationship('BuildFamily')
-    build = relationship('Job')
+    job = relationship('Job')
     plan = relationship('Plan')
 
-    __repr__ = model_repr('family_id', 'build_id', 'plan_id')
+    __repr__ = model_repr('family_id', 'job_id', 'plan_id')
 
     def __init__(self, **kwargs):
         super(JobPlan, self).__init__(**kwargs)

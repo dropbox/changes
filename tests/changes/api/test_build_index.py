@@ -187,7 +187,7 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
 
         buildplans = list(JobPlan.query.filter(
-            JobPlan.build_id == data['builds'][0]['id'],
+            JobPlan.job_id == data['builds'][0]['id'],
         ))
 
         assert len(buildplans) == 1
@@ -195,7 +195,7 @@ class BuildCreateTest(APITestCase):
         assert buildplans[0].plan_id == plan.id
         assert buildplans[0].project_id == self.project.id
 
-        build = buildplans[0].build
+        job = buildplans[0].job
         family = buildplans[0].family
 
-        self.assertBuildMatchesFamily(build, family)
+        self.assertBuildMatchesFamily(job, family)

@@ -124,7 +124,7 @@ def create_build(project, sha, label, target, message, author, change=None,
 
         buildplan = JobPlan(
             project=project,
-            build=build,
+            job=build,
             family=family,
             plan=plan,
         )

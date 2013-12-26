@@ -44,7 +44,7 @@ class SyncBuildTest(TestCase):
         buildplan = JobPlan(
             plan=plan,
             family=family,
-            build=build,
+            job=build,
             project=self.project,
         )
         db.session.add(buildplan)

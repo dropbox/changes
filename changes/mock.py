@@ -167,7 +167,7 @@ def build(family=None, change=None, **kwargs):
             plan=plan(),
             family=family,
             project=build.project,
-            build=build,
+            job=build,
         )
         db.session.add(buildplan)
 
