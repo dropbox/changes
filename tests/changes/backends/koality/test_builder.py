@@ -100,7 +100,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert author.name == 'John Developer'
 
         phase_list = list(JobPhase.query.filter_by(
-            build=build,
+            job=build,
         ))
 
         phase_list.sort(key=lambda x: x.date_started)

@@ -172,19 +172,19 @@ def build(family=None, change=None, **kwargs):
         db.session.add(buildplan)
 
     phase1_setup = JobPhase(
-        repository=build.repository, project=build.project, build=build,
+        repository=build.repository, project=build.project, job=build,
         status=Status.finished, result=Result.passed, label='Setup',
     )
     db.session.add(phase1_setup)
 
     phase1_compile = JobPhase(
-        repository=build.repository, project=build.project, build=build,
+        repository=build.repository, project=build.project, job=build,
         status=Status.finished, result=Result.passed, label='Compile',
     )
     db.session.add(phase1_compile)
 
     phase1_test = JobPhase(
-        repository=build.repository, project=build.project, build=build,
+        repository=build.repository, project=build.project, job=build,
         status=kwargs['status'], result=kwargs['result'], label='Test',
     )
     db.session.add(phase1_test)

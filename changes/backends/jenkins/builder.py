@@ -180,7 +180,7 @@ class JenkinsBuilder(BaseBackend):
         })
 
         buildphase, created = get_or_create(JobPhase, where={
-            'build': build,
+            'job': build,
             'label': build.data['job_name'],
         }, defaults={
             'project_id': build.project_id,

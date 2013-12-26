@@ -127,7 +127,7 @@ class KoalityBuilder(BaseBackend):
         if phase is None:
             phase = JobPhase()
 
-        phase.build = build
+        phase.job = build
         phase.repository = build.repository
         phase.project = build.project
         phase.label = stage_type.title()
