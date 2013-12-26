@@ -20,7 +20,7 @@ def create_build(build_id):
     build_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
     ).filter(
-        JobPlan.build_id == build.id,
+        JobPlan.job_id == build.id,
     ).join(Plan).first()
 
     try:
