@@ -58,20 +58,20 @@ def create_app(_read_config=True, **config):
     app.config['CELERY_DEFAULT_EXCHANGE_TYPE'] = "direct"
     app.config['CELERY_DEFAULT_ROUTING_KEY'] = "default"
     app.config['CELERY_QUEUES'] = (
-        Queue('build.sync', routing_key='build.sync'),
-        Queue('build.create', routing_key='build.create'),
+        Queue('job.sync', routing_key='job.sync'),
+        Queue('job.create', routing_key='job.create'),
         Queue('celery', routing_key='celery'),
         Queue('default', routing_key='default'),
         Queue('repo.sync', routing_key='repo.sync'),
     )
     app.config['CELERY_ROUTES'] = {
-        'create_build': {
-            'queue': 'build.create',
-            'routing_key': 'build.create',
+        'create_job': {
+            'queue': 'job.create',
+            'routing_key': 'job.create',
         },
-        'sync_build': {
-            'queue': 'build.sync',
-            'routing_key': 'build.sync',
+        'sync_job': {
+            'queue': 'job.sync',
+            'routing_key': 'job.sync',
         },
         'sync_repo': {
             'queue': 'repo.sync',
@@ -80,14 +80,14 @@ def create_app(_read_config=True, **config):
     }
 
     app.config['EVENT_LISTENERS'] = (
-        ('changes.listeners.mail.build_finished_handler', 'job.finished'),
+        ('changes.listeners.mail.job_finished_handler', 'job.finished'),
     )
 
     # celerybeat must be running for our cleanup tasks to execute
     # e.g. celery worker -B
     app.config['CELERYBEAT_SCHEDULE'] = {
-        'cleanup-builds': {
-            'task': 'cleanup_builds',
+        'cleanup-jobs': {
+            'task': 'cleanup_jobs',
             'schedule': timedelta(minutes=1),
         },
         # 'check-repos': {
@@ -262,20 +262,20 @@ def configure_debug_routes(app):
 
 def configure_jobs(app):
     from changes.jobs.check_repos import check_repos
-    from changes.jobs.cleanup_builds import cleanup_builds
-    from changes.jobs.create_build import create_build
+    from changes.jobs.cleanup_jobs import cleanup_jobs
+    from changes.jobs.create_job import create_job
     from changes.jobs.notify_listeners import notify_listeners
     from changes.jobs.sync_artifact import sync_artifact
-    from changes.jobs.sync_build import sync_build
+    from changes.jobs.sync_job import sync_job
     from changes.jobs.sync_repo import sync_repo
     from changes.jobs.update_project_stats import update_project_stats
 
     queue.register('check_repos', check_repos)
-    queue.register('cleanup_builds', cleanup_builds)
-    queue.register('create_build', create_build)
+    queue.register('cleanup_jobs', cleanup_jobs)
+    queue.register('create_job', create_job)
     queue.register('notify_listeners', notify_listeners)
     queue.register('sync_artifact', sync_artifact)
-    queue.register('sync_build', sync_build)
+    queue.register('sync_job', sync_job)
     queue.register('sync_repo', sync_repo)
     queue.register('update_project_stats', update_project_stats)
 

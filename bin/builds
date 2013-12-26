@@ -5,7 +5,7 @@ import sys
 
 from changes.config import create_app, db, queue
 from changes.constants import Status
-from changes.jobs.sync_build import sync_build
+from changes.jobs.sync_job import sync_job
 from changes.models import (
     Project, Build
 )
@@ -68,7 +68,7 @@ if args.command == 'add':
     backend = JenkinsBuilder(app=app, base_url=app.config['JENKINS_URL'])
     backend.create_job(build)
 
-    queue.delay('sync_build', kwargs={
+    queue.delay('sync_job', kwargs={
         'build_id': build.id.hex,
     })
 
@@ -91,4 +91,4 @@ elif args.command == 'sync':
     for build in builds:
         print "Forcing build sync - {}".format(build.id.hex)
 
-        sync_build(build_id=build.id.hex)
+        sync_job(build_id=build.id.hex)

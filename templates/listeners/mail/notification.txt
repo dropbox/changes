@@ -1,9 +1,9 @@
-{{ build.label }} {{ build.result }} - {{ build.target or build.revision_sha }} ({{ build.project.name }})
+{{ job.label }} {{ job.result }} - {{ job.target or job.revision_sha }} ({{ job.project.name }})
 
 Build:
-  {{ build.uri }}{% if build.author %}
+  {{ job.uri }}{% if job.author %}
 Author:
-  {{ build.author.name }}{% endif %}
+  {{ job.author.name }}{% endif %}
 
 {% if test_failures %}
 Test Failures

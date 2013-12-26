@@ -4,7 +4,7 @@ from changes.config import db
 from changes.constants import Result
 from changes.models import ProjectOption, Patch, LogSource, LogChunk
 from changes.listeners.mail import (
-    build_finished_handler, send_notification, get_log_clipping
+    job_finished_handler, send_notification, get_log_clipping
 )
 from changes.testutils.cases import TestCase
 
@@ -13,20 +13,20 @@ class BuildHandlerTestCase(TestCase):
     @mock.patch('changes.listeners.mail.send_notification')
     def test_default_options(self, send_notifications):
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project, result=Result.passed, author=author)
+        job = self.create_job(self.project, result=Result.passed, author=author)
 
-        build_finished_handler(build)
+        job_finished_handler(job)
 
         # not failing
         assert not send_notifications.called
 
-        build = self.create_build(self.project, result=Result.failed, author=author)
+        job = self.create_job(self.project, result=Result.failed, author=author)
 
-        build_finished_handler(build)
+        job_finished_handler(job)
 
         # notify author
         send_notifications.assert_called_once_with(
-            build, ['Test Case <foo@example.com>']
+            job, ['Test Case <foo@example.com>']
         )
 
     @mock.patch('changes.listeners.mail.send_notification')
@@ -34,9 +34,9 @@ class BuildHandlerTestCase(TestCase):
         db.session.add(ProjectOption(
             project=self.project, name='mail.notify-author', value='0'))
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project, result=Result.failed, author=author)
+        job = self.create_job(self.project, result=Result.failed, author=author)
 
-        build_finished_handler(build)
+        job_finished_handler(job)
 
         assert not send_notifications.called
 
@@ -49,12 +49,12 @@ class BuildHandlerTestCase(TestCase):
             value='test@example.com, bar@example.com'))
 
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project, result=Result.failed, author=author)
+        job = self.create_job(self.project, result=Result.failed, author=author)
 
-        build_finished_handler(build)
+        job_finished_handler(job)
 
         send_notifications.assert_called_once_with(
-            build, ['Test Case <foo@example.com>', 'test@example.com', 'bar@example.com']
+            job, ['Test Case <foo@example.com>', 'test@example.com', 'bar@example.com']
         )
 
     @mock.patch('changes.listeners.mail.send_notification')
@@ -70,24 +70,24 @@ class BuildHandlerTestCase(TestCase):
             repository=self.repo, project=self.project, label='foo',
             diff='',
         )
-        build = self.create_build(
+        job = self.create_job(
             self.project, result=Result.failed, author=author, patch=patch)
 
-        build_finished_handler(build)
+        job_finished_handler(job)
 
         send_notifications.assert_called_once_with(
-            build, ['Test Case <foo@example.com>']
+            job, ['Test Case <foo@example.com>']
         )
 
         send_notifications.reset_mock()
 
-        build = self.create_build(
+        job = self.create_job(
             self.project, result=Result.failed, author=author)
 
-        build_finished_handler(build)
+        job_finished_handler(job)
 
         send_notifications.assert_called_once_with(
-            build, ['Test Case <foo@example.com>', 'test@example.com', 'bar@example.com']
+            job, ['Test Case <foo@example.com>', 'test@example.com', 'bar@example.com']
         )
 
 

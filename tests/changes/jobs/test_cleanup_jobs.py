@@ -6,8 +6,8 @@ from datetime import datetime
 
 from changes.config import queue
 from changes.constants import Result, Status
-from changes.jobs.cleanup_builds import (
-    cleanup_builds, EXPIRE_BUILDS, CHECK_BUILDS)
+from changes.jobs.cleanup_jobs import (
+    cleanup_jobs, EXPIRE_BUILDS, CHECK_BUILDS)
 from changes.models import Job
 from changes.testutils import TestCase
 
@@ -17,50 +17,50 @@ class CleanupBuildsTest(TestCase):
     def test_expires_builds(self, queue_delay):
         dt = datetime.utcnow() - (EXPIRE_BUILDS * 2)
 
-        build = self.create_build(
+        job = self.create_job(
             self.project, date_created=dt, status=Status.queued)
 
-        cleanup_builds()
+        cleanup_jobs()
 
         assert not queue_delay.called
 
-        build = Job.query.filter(
-            Job.id == build.id
+        job = Job.query.filter(
+            Job.id == job.id
         ).first()
 
-        assert build.date_modified != dt
-        assert build.result == Result.aborted
-        assert build.status == Status.finished
+        assert job.date_modified != dt
+        assert job.result == Result.aborted
+        assert job.status == Status.finished
 
     @mock.patch.object(queue, 'delay')
-    def test_queues_builds(self, queue_delay):
+    def test_queues_jobs(self, queue_delay):
         dt = datetime.utcnow() - (CHECK_BUILDS * 2)
 
-        build = self.create_build(
+        job = self.create_job(
             self.project, date_created=dt, status=Status.queued)
 
-        cleanup_builds()
+        cleanup_jobs()
 
         queue_delay.assert_called_once_with(
-            'sync_build', kwargs={'build_id': build.id.hex})
+            'sync_job', kwargs={'job_id': job.id.hex})
 
-        build = Job.query.filter(
-            Job.id == build.id
+        job = Job.query.filter(
+            Job.id == job.id
         ).first()
-        assert build.date_modified != dt
+        assert job.date_modified != dt
 
     @mock.patch.object(queue, 'delay')
-    def test_ignores_recent_builds(self, queue_delay):
+    def test_ignores_recent_jobs(self, queue_delay):
         dt = datetime.utcnow()
 
-        build = self.create_build(
+        job = self.create_job(
             self.project, date_created=dt, status=Status.queued)
 
-        cleanup_builds()
+        cleanup_jobs()
 
         assert not queue_delay.called
 
-        build = Job.query.filter(
-            Job.id == build.id
+        job = Job.query.filter(
+            Job.id == job.id
         ).first()
-        assert build.date_modified == dt
+        assert job.date_modified == dt

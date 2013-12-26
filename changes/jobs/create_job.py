@@ -12,8 +12,8 @@ from changes.utils.locking import lock
 
 
 @lock
-def create_build(build_id):
-    job = Job.query.get(build_id)
+def create_job(job_id):
+    job = Job.query.get(job_id)
     if not job:
         return
 
@@ -27,7 +27,7 @@ def create_build(build_id):
         if not job_plan:
             # TODO(dcramer): once we migrate to job plans we can remove this
             current_app.logger.warning(
-                'Got create_build task without job plan: %s', build_id)
+                'Got create_job task without job plan: %s', job_id)
 
             backend = JenkinsBuilder(
                 app=current_app,
@@ -48,15 +48,15 @@ def create_build(build_id):
     except UnrecoverableException:
         job.status = Status.finished
         job.result = Result.aborted
-        current_app.logger.exception('Unrecoverable exception creating %s', build_id)
+        current_app.logger.exception('Unrecoverable exception creating %s', job_id)
         return
 
     except Exception:
-        current_app.logger.exception('Failed to create job %s', build_id)
-        raise queue.retry('create_build', kwargs={
-            'build_id': build_id,
+        current_app.logger.exception('Failed to create job %s', job_id)
+        raise queue.retry('create_job', kwargs={
+            'job_id': job_id,
         }, exc=sys.exc_info())
 
-    queue.delay('sync_build', kwargs={
-        'build_id': build_id,
+    queue.delay('sync_job', kwargs={
+        'job_id': job_id,
     }, countdown=5)

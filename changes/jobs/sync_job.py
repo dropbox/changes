@@ -29,8 +29,8 @@ def sync_with_builder(job):
             db.session.add(job)
 
     if not job.data:
-        queue.delay('create_build', kwargs={
-            'build_id': job.id.hex,
+        queue.delay('create_job', kwargs={
+            'job_id': job.id.hex,
         }, countdown=5)
     else:
         builder = JenkinsBuilder(
@@ -59,7 +59,7 @@ def _sync_job(job_id):
         if not job_plan:
             # TODO(dcramer): once we migrate to job plans we can remove this
             warnings.warn(
-                'Got sync_build task without job plan: %s' % (job_id,))
+                'Got sync_job task without job plan: %s' % (job_id,))
             execute = sync_with_builder
         else:
             try:
@@ -80,10 +80,10 @@ def _sync_job(job_id):
     job.date_modified = datetime.utcnow()
     db.session.add(job)
 
-    # if this build isnt finished, we assume that there's still data to sync
+    # if this job isnt finished, we assume that there's still data to sync
     if job.status != Status.finished:
-        queue.delay('sync_build', kwargs={
-            'build_id': job.id.hex
+        queue.delay('sync_job', kwargs={
+            'job_id': job.id.hex
         }, countdown=5)
 
     else:
@@ -92,7 +92,7 @@ def _sync_job(job_id):
         }, countdown=1)
 
         queue.delay('notify_listeners', kwargs={
-            'build_id': job.id.hex,
+            'job_id': job.id.hex,
             'signal_name': 'job.finished',
         })
 
@@ -100,14 +100,14 @@ def _sync_job(job_id):
 
 
 @lock
-def sync_build(build_id):
+def sync_job(job_id):
     try:
-        _sync_job(build_id)
+        _sync_job(job_id)
 
     except Exception:
-        # Ensure we continue to synchronize this build as this could be a
+        # Ensure we continue to synchronize this job as this could be a
         # temporary failure
-        current_app.logger.exception('Failed to sync build %s', build_id)
-        raise queue.retry('sync_build', kwargs={
-            'build_id': build_id,
+        current_app.logger.exception('Failed to sync job %s', job_id)
+        raise queue.retry('sync_job', kwargs={
+            'job_id': job_id,
         }, exc=sys.exc_info(), countdown=60)

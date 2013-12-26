@@ -1,15 +1,15 @@
 <html lang="en">
-<head><title>{{ build.label }} {{ build.result }}</title></head>
+<head><title>{{ job.label }} {{ job.result }}</title></head>
 <body><div style="line-height: 1.5em;">
 
-<h2 style="font-weight:normal">{{ build.label }} <small style="color:#999">{{ build.target or build.revision_sha }}</small></h2>
+<h2 style="font-weight:normal">{{ job.label }} <small style="color:#999">{{ job.target or job.revision_sha }}</small></h2>
 
 <dl>
 	<dt style="font-weight:bold;float:left;width:60px;">Build:</dt>
-	<dd><a href="{{ build.uri }}">{{ build.id.hex }}</a></dd>
-	{% if build.author %}
+	<dd><a href="{{ job.uri }}">{{ job.id.hex }}</a></dd>
+	{% if job.author %}
 		<dt style="font-weight:bold;float:left;width:60px;">Author:</dt>
-		<dd>{{ build.author.name }}</dd>
+		<dd>{{ job.author.name }}</dd>
 	{% endif %}
 </dl>
 

@@ -36,13 +36,13 @@ class BuildRetryTest(APITestCase):
 
         family = self.create_buildfamily_from_build(job)
 
-        buildplan = JobPlan(
+        jobplan = JobPlan(
             family=family,
             job=job,
             plan=plan,
             project=self.project,
         )
-        db.session.add(buildplan)
+        db.session.add(jobplan)
 
         path = '/api/0/builds/{0}/retry/'.format(job.id.hex)
         resp = self.client.post(path)

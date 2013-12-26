@@ -7,10 +7,10 @@ class ProjectBuildListTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 
-        self.create_build(self.project)
+        self.create_job(self.project)
 
         project = self.create_project()
-        build = self.create_build(project)
+        job = self.create_job(project)
 
         path = '/api/0/projects/{0}/builds/'.format(fake_project_id.hex)
 
@@ -23,4 +23,4 @@ class ProjectBuildListTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == build.id.hex
+        assert data[0]['id'] == job.id.hex

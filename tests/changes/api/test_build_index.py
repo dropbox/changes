@@ -8,8 +8,8 @@ from changes.testutils import APITestCase, SAMPLE_DIFF
 class BuildListTest(APITestCase):
     def test_simple(self):
         change = self.create_change(self.project)
-        build = self.create_build(self.project, change=change)
-        self.create_build(self.project2)
+        job = self.create_job(self.project, change=change)
+        self.create_job(self.project2)
 
         path = '/api/0/changes/{0}/builds/'.format(change.id.hex)
 
@@ -17,7 +17,7 @@ class BuildListTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data['builds']) == 1
-        assert data['builds'][0]['id'] == build.id.hex
+        assert data['builds'][0]['id'] == job.id.hex
 
 
 class BuildCreateTest(APITestCase):
@@ -43,16 +43,16 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        build = Job.query.get(data['builds'][0]['id'])
+        job = Job.query.get(data['builds'][0]['id'])
 
-        assert build.project == self.project
-        assert build.revision_sha is None
-        assert build.author.name == 'David Cramer'
-        assert build.author.email == 'dcramer@example.com'
+        assert job.project == self.project
+        assert job.revision_sha is None
+        assert job.author.name == 'David Cramer'
+        assert job.author.email == 'dcramer@example.com'
 
-        family = build.family
+        family = job.family
 
-        self.assertBuildMatchesFamily(build, family)
+        self.assertBuildMatchesFamily(job, family)
 
     def test_with_sha(self):
         path = '/api/0/builds/'
@@ -65,14 +65,14 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
-        build = Job.query.get(data['builds'][0]['id'])
-        assert build.project == self.project
-        assert build.revision_sha == 'a' * 40
-        assert build.author.name == 'David Cramer'
-        assert build.author.email == 'dcramer@example.com'
+        job = Job.query.get(data['builds'][0]['id'])
+        assert job.project == self.project
+        assert job.revision_sha == 'a' * 40
+        assert job.author.name == 'David Cramer'
+        assert job.author.email == 'dcramer@example.com'
 
-        source = build.source
-        assert source.repository_id == build.repository_id
+        source = job.source
+        assert source.repository_id == job.repository_id
         assert source.revision_sha == 'a' * 40
 
     def test_with_full_params(self):
@@ -94,24 +94,24 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        build = Job.query.get(data['builds'][0]['id'])
-        assert build.change == change
-        assert build.project == self.project
-        assert build.revision_sha == 'a' * 40
-        assert build.author.name == 'David Cramer'
-        assert build.author.email == 'dcramer@example.com'
-        assert build.message == 'Hello world!'
-        assert build.label == 'Foo Bar'
-        assert build.target == 'D1234'
-        assert build.patch_id is not None
+        job = Job.query.get(data['builds'][0]['id'])
+        assert job.change == change
+        assert job.project == self.project
+        assert job.revision_sha == 'a' * 40
+        assert job.author.name == 'David Cramer'
+        assert job.author.email == 'dcramer@example.com'
+        assert job.message == 'Hello world!'
+        assert job.label == 'Foo Bar'
+        assert job.target == 'D1234'
+        assert job.patch_id is not None
 
-        patch = Patch.query.get(build.patch_id)
+        patch = Patch.query.get(job.patch_id)
         assert patch.diff == SAMPLE_DIFF
         assert patch.label == 'My patch'
         assert patch.parent_revision_sha == 'a' * 40
 
-        source = build.source
-        assert source.repository_id == build.repository_id
+        source = job.source
+        assert source.repository_id == job.repository_id
         assert source.revision_sha == 'a' * 40
         assert source.patch_id == patch.id
 
@@ -129,9 +129,9 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        build = Job.query.get(data['builds'][0]['id'])
-        assert build.patch_id is not None
-        patch = Patch.query.get(build.patch_id)
+        job = Job.query.get(data['builds'][0]['id'])
+        assert job.patch_id is not None
+        patch = Patch.query.get(job.patch_id)
         assert patch.diff == SAMPLE_DIFF
         assert patch.label == 'D1234'
         assert patch.parent_revision_sha == 'a' * 40
@@ -186,16 +186,16 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data['builds']) == 1
 
-        buildplans = list(JobPlan.query.filter(
+        jobplans = list(JobPlan.query.filter(
             JobPlan.job_id == data['builds'][0]['id'],
         ))
 
-        assert len(buildplans) == 1
+        assert len(jobplans) == 1
 
-        assert buildplans[0].plan_id == plan.id
-        assert buildplans[0].project_id == self.project.id
+        assert jobplans[0].plan_id == plan.id
+        assert jobplans[0].project_id == self.project.id
 
-        job = buildplans[0].job
-        family = buildplans[0].family
+        job = jobplans[0].job
+        family = jobplans[0].family
 
         self.assertBuildMatchesFamily(job, family)
