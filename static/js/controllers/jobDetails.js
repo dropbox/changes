@@ -179,7 +179,7 @@
       $scope.retryJob = function() {
         $http.post('/api/0/jobs/' + $scope.job.id + '/retry/')
           .success(function(data){
-            $window.location.href = data.job.link;
+            $window.location.href = data.build.link;
           })
           .error(function(){
             flash('error', 'There was an error while retrying this job.');
