@@ -30,13 +30,13 @@ class TestGroupDetailsAPIView(APIView):
             ).first()
 
         previous_runs = TestGroup.query.join(Job).options(
-            joinedload('build'),
-            joinedload('build.author'),
+            joinedload('job'),
+            joinedload('job.author'),
             joinedload('parent'),
         ).filter(
             TestGroup.name_sha == testgroup.name_sha,
             TestGroup.id != testgroup.id,
-            Job.date_created < testgroup.build.date_created,
+            Job.date_created < testgroup.job.date_created,
             Job.status == Status.finished,
             Job.patch == None,  # NOQA
         ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
@@ -55,7 +55,7 @@ class TestGroupDetailsAPIView(APIView):
 
         context = {
             'project': testgroup.project,
-            'build': testgroup.build,
+            'build': testgroup.job,
             'testGroup': testgroup,
             'childTestGroups': child_testgroups,
             'context': context,

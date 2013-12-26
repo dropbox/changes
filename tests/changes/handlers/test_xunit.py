@@ -36,7 +36,7 @@ def test_result_generation():
 
     r1 = results[0]
     assert type(r1) == TestCase
-    assert r1.build_id == job.id
+    assert r1.job_id == job.id
     assert r1.project_id == job.project_id
     assert r1.package is None
     assert r1.name == 'tests.test_report'
@@ -47,7 +47,7 @@ def test_result_generation():
 E   ImportError: No module named mock"""
     r2 = results[1]
     assert type(r2) == TestCase
-    assert r2.build_id == job.id
+    assert r2.job_id == job.id
     assert r2.project_id == job.project_id
     assert r2.package == 'tests.test_report.ParseTestResultsTest'
     assert r2.name == 'test_simple'

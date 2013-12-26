@@ -18,10 +18,9 @@ class TestResult(object):
     A helper class which ensures that TestGroup and TestSuite instances are
     managed correctly when TestCase's are created.
     """
-    def __init__(self, build, name, message=None, package=None,
+    def __init__(self, job, name, message=None, package=None,
                  result=None, duration=None, date_created=None, suite=None):
-
-        self.build = build
+        self.job = job
         self.name = name
         self.package = package
         self.message = message
@@ -52,8 +51,8 @@ class TestResult(object):
 
 
 class TestResultManager(object):
-    def __init__(self, build):
-        self.build = build
+    def __init__(self, job):
+        self.job = job
 
     def regroup_tests(self, test_list):
         grouped = defaultdict(list)
@@ -98,12 +97,12 @@ class TestResultManager(object):
         return None
 
     def create_test_leaf(self, test, parent, testcase):
-        build = self.build
-        project = build.project
+        job = self.job
+        project = job.project
         name_sha = test.name_sha
 
         group = TestGroup(
-            build=build,
+            job=job,
             name_sha=name_sha,
             name=test.id,
             suite=test.suite,
@@ -122,7 +121,7 @@ class TestResultManager(object):
         return group
 
     def create_aggregate_test_leaf(self, test, parent):
-        build = self.build
+        build = self.job
         project = build.project
         name_sha = test.name_sha
 
@@ -151,15 +150,15 @@ class TestResultManager(object):
         Removes all existing test data from this build.
         """
         TestCase.query.filter(
-            TestCase.build_id == self.build.id,
+            TestCase.job_id == self.build.id,
         ).delete(synchronize_session=False)
 
         TestGroup.query.filter(
-            TestGroup.build_id == self.build.id,
+            TestGroup.job_id == self.build.id,
         ).delete(synchronize_session=False)
 
     def save(self, test_list):
-        build = self.build
+        build = self.job
         project = build.project
         groups_by_id = {}
         tests_by_id = {}
@@ -179,7 +178,7 @@ class TestResultManager(object):
         # create all test cases
         for test in test_list:
             testcase = TestCase(
-                build=build,
+                job=build,
                 name_sha=test.name_sha,
                 project=project,
                 suite=test.suite,
@@ -199,7 +198,7 @@ class TestResultManager(object):
             parent = self.find_parent(name, sep, groups_by_id)
 
             group = TestGroup(
-                build=build,
+                job=build,
                 name_sha=sha1(name).hexdigest(),
                 suite=test.suite,
                 name=name,

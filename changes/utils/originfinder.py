@@ -13,38 +13,38 @@ def first(key, iterable):
     return None
 
 
-def find_failure_origins(build, test_failures):
+def find_failure_origins(job, test_failures):
     """
     Attempt to find originating causes of failures.
 
     Returns a mapping of {TestGroup.name_sha: Job}.
     """
-    project = build.project
+    project = job.project
 
     # find any existing failures in the previous runs
-    # to do this we first need to find the last passing build
+    # to do this we first need to find the last passing job
     last_pass = Job.query.filter(
         Job.project == project,
-        Job.date_created <= build.date_created,
+        Job.date_created <= job.date_created,
         Job.status == Status.finished,
         Job.result == Result.passed,
-        Job.id != build.id,
+        Job.id != job.id,
         Job.patch == None,  # NOQA
     ).order_by(Job.date_created.desc()).first()
 
     if last_pass is None:
         return {}
 
-    # We have to query all runs between build and last_pass, but we only
+    # We have to query all runs between job and last_pass, but we only
     # care about runs where the suite failed. Because we're paranoid about
     # performance, we limit this to 100 results.
     previous_runs = Job.query.filter(
         Job.project == project,
-        Job.date_created <= build.date_created,
+        Job.date_created <= job.date_created,
         Job.date_created >= last_pass.date_created,
         Job.status == Status.finished,
         Job.result.in_([Result.failed, Result.passed]),
-        Job.id != build.id,
+        Job.id != job.id,
         Job.id != last_pass.id,
         Job.patch == None,  # NOQA
     ).order_by(Job.date_created.desc())[:100]
@@ -52,7 +52,7 @@ def find_failure_origins(build, test_failures):
     # we now have a list of previous_runs so let's find all test failures in
     # these runs
     queryset = TestGroup.query.filter(
-        TestGroup.build_id.in_(b.id for b in previous_runs),
+        TestGroup.job_id.in_(b.id for b in previous_runs),
         TestGroup.result == Result.failed,
         TestGroup.num_leaves == 0,
         TestGroup.name_sha.in_(t.name_sha for t in test_failures),
@@ -60,22 +60,22 @@ def find_failure_origins(build, test_failures):
 
     previous_test_failures = defaultdict(set)
     for t in queryset:
-        previous_test_failures[t.build_id].add(t.name_sha)
+        previous_test_failures[t.job_id].add(t.name_sha)
 
-    failures_at_build = dict()
+    failures_at_job = dict()
     searching = set(t for t in test_failures)
-    last_checked_run = build
+    last_checked_run = job
 
-    for p_build in previous_runs:
-        p_build_failures = previous_test_failures[p_build.id]
+    for p_job in previous_runs:
+        p_job_failures = previous_test_failures[p_job.id]
         # we have to copy the set as it might change size during iteration
         for f_test in list(searching):
-            if f_test.name_sha not in p_build_failures:
-                failures_at_build[f_test] = last_checked_run
+            if f_test.name_sha not in p_job_failures:
+                failures_at_job[f_test] = last_checked_run
                 searching.remove(f_test)
-        last_checked_run = p_build
+        last_checked_run = p_job
 
     for f_test in searching:
-        failures_at_build[f_test] = last_checked_run
+        failures_at_job[f_test] = last_checked_run
 
-    return failures_at_build
+    return failures_at_job

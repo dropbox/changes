@@ -58,19 +58,19 @@ class Fixtures(object):
 
         return change
 
-    def create_testgroup(self, build, **kwargs):
+    def create_testgroup(self, job, **kwargs):
         kwargs.setdefault('name', uuid4().hex)
 
         group = TestGroup(
-            build=build,
-            project=build.project,
+            job=job,
+            project=job.project,
             **kwargs
         )
         db.session.add(group)
 
         return group
 
-    def create_build(self, project, **kwargs):
+    def create_job(self, project, **kwargs):
         revision_sha = kwargs.pop('revision_sha', uuid4().hex)
         revision = Revision.query.filter_by(
             sha=revision_sha, repository=project.repository).first()
@@ -86,7 +86,7 @@ class Fixtures(object):
 
         kwargs.setdefault('label', 'Sample')
 
-        build = Job(
+        job = Job(
             repository_id=project.repository_id,
             repository=project.repository,
             project_id=project.id,
@@ -94,9 +94,12 @@ class Fixtures(object):
             revision_sha=revision.sha,
             **kwargs
         )
-        db.session.add(build)
+        db.session.add(job)
 
-        return build
+        return job
+
+    # temp
+    create_build = create_job
 
     def create_patch(self, project, **kwargs):
         kwargs.setdefault('label', 'Test Patch')

@@ -11,7 +11,7 @@ def test_simple():
         id=UUID(hex='33846695b2774b29a71795a009e8168a'),
         package='test.group.ClassName',
         name='test_foo',
-        build=Job(id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50')),
+        job=Job(id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50')),
         project=Project(slug='test', name='test'),
         duration=134,
         result=Result.failed,

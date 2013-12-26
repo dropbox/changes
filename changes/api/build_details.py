@@ -32,14 +32,14 @@ class BuildDetailsAPIView(APIView):
         test_groups = sorted(TestGroup.query.options(
             joinedload('parent'),
         ).filter(
-            TestGroup.build_id == build.id,
+            TestGroup.job_id == build.id,
             TestGroup.parent_id == None,  # NOQA: we have to use == here
         ), key=lambda x: x.name)
 
         test_failures = TestGroup.query.options(
             joinedload('parent'),
         ).filter(
-            TestGroup.build_id == build.id,
+            TestGroup.job_id == build.id,
             TestGroup.result == Result.failed,
             TestGroup.num_leaves == 0,
         ).order_by(TestGroup.name.asc())

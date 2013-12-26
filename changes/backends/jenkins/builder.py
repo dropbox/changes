@@ -351,7 +351,7 @@ class JenkinsBuilder(BaseBackend):
             # TODO(dcramer): this is not specific to Jenkins and should be
             # abstracted
             suite, _ = get_or_create(TestSuite, where={
-                'build': build,
+                'job': build,
                 'name_sha': sha1(suite_name).hexdigest(),
             }, defaults={
                 'name': suite_name,
@@ -395,7 +395,7 @@ class JenkinsBuilder(BaseBackend):
                     raise ValueError('Invalid test result: %s' % (case['status'],))
 
                 test_result = TestResult(
-                    build=build,
+                    job=build,
                     suite=suite,
                     name=case['name'],
                     package=case['className'] or None,

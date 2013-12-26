@@ -9,14 +9,14 @@ class TestResultManagerTestCase(TestCase):
     def test_simple(self):
         from changes.models import TestCase, TestGroup
 
-        build = self.create_build(self.project)
-        suite = TestSuite(name='foobar', build=build, project=self.project)
+        job = self.create_job(self.project)
+        suite = TestSuite(name='foobar', job=job, project=self.project)
 
         db.session.add(suite)
 
         results = [
             TestResult(
-                build=build,
+                job=job,
                 suite=suite,
                 name='test_bar',
                 package='tests.changes.handlers.test_xunit',
@@ -25,7 +25,7 @@ class TestResultManagerTestCase(TestCase):
                 duration=156,
             ),
             TestResult(
-                build=build,
+                job=job,
                 suite=suite,
                 name='test_foo',
                 package='tests.changes.handlers.test_coverage',
@@ -34,7 +34,7 @@ class TestResultManagerTestCase(TestCase):
                 duration=12,
             ),
         ]
-        manager = TestResultManager(build)
+        manager = TestResultManager(job)
         manager.save(results)
 
         testcase_list = sorted(TestCase.query.all(), key=lambda x: x.package)
@@ -42,9 +42,9 @@ class TestResultManagerTestCase(TestCase):
         assert len(testcase_list) == 2
 
         for test in testcase_list:
-            assert test.build == build
-            assert test.project == self.project
-            assert test.suite == suite
+            assert test.job_id == job.id
+            assert test.project_id == self.project.id
+            assert test.suite_id == suite.id
 
         assert testcase_list[0].name == 'test_foo'
         assert testcase_list[0].package == 'tests.changes.handlers.test_coverage'
@@ -65,9 +65,9 @@ class TestResultManagerTestCase(TestCase):
         assert len(group_list) == 4
 
         for group in group_list:
-            assert group.build == build
-            assert group.project == self.project
-            assert group.suite == suite
+            assert group.job_id == job.id
+            assert group.project_id == self.project.id
+            assert group.suite_id == suite.id
 
         assert group_list[0].name == 'tests.changes.handlers.test_coverage'
         assert group_list[0].duration == 12
@@ -111,8 +111,8 @@ class TestResultManagerTestCase(TestCase):
 
         for agg in agg_groups:
             # assert agg.last_build == build
-            assert agg.first_build == build
-            assert agg.project == self.project
+            assert agg.first_build_id == job.id
+            assert agg.project_id == self.project.id
 
         assert agg_groups[0].name == 'tests.changes.handlers.test_coverage'
         assert agg_groups[1].name == 'tests.changes.handlers.test_coverage.test_foo'

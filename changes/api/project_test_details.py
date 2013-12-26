@@ -40,7 +40,7 @@ class ProjectTestDetailsAPIView(APIView):
         ).join(
             AggregateTestGroup.last_build,
         ).join(TestGroup, and_(
-            TestGroup.build_id == AggregateTestGroup.last_build_id,
+            TestGroup.job_id == AggregateTestGroup.last_build_id,
             TestGroup.name_sha == AggregateTestGroup.name_sha,
             Job.date_created > cutoff,
         )).order_by(TestGroup.duration.desc())
@@ -65,8 +65,8 @@ class ProjectTestDetailsAPIView(APIView):
             test_list.append(agg)
 
         previous_runs = list(TestGroup.query.options(
-            joinedload('build'),
-            joinedload('build.author'),
+            joinedload('job'),
+            joinedload('job.author'),
         ).filter(
             Job.patch_id == None,  # NOQA
             Job.revision_sha != None,  # NOQA

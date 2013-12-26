@@ -69,7 +69,7 @@ class AggregateTestGroup(db.Model):
 
     # last_testgroup = relationship(
     #     'TestGroup', primaryjoin="and_(AggregateTestGroup.name_sha==TestGroup.name_sha, "
-    #     "AggregateTestGroup.last_build_id==TestGroup.build_id)")
+    #     "AggregateTestGroup.last_build_id==TestGroup.job_id)")
 
     __repr__ = model_repr('name')
 

@@ -347,7 +347,7 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_build(build)
 
-        test_list = sorted(TestCase.query.filter_by(build=build), key=lambda x: x.duration)
+        test_list = sorted(TestCase.query.filter_by(job=build), key=lambda x: x.duration)
 
         assert len(test_list) == 2
         assert test_list[0].name == 'Test'

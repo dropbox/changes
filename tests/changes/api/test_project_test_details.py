@@ -9,22 +9,22 @@ class ProjectTestDetailsTest(APITestCase):
     def test_simple(self):
         fake_id = uuid4()
 
-        self.create_build(self.project)
+        self.create_job(self.project)
 
         project = self.create_project()
-        build = self.create_build(project)
+        job = self.create_job(project)
 
         parent_agg_group = AggregateTestGroup(
             project=project,
             name='foo',
             name_sha='a' * 40,
-            first_build=build,
-            last_build=build,
+            first_build=job,
+            last_build=job,
         )
         db.session.add(parent_agg_group)
 
         parent_group = TestGroup(
-            build=build,
+            job=job,
             project=project,
             name=parent_agg_group.name,
             name_sha=parent_agg_group.name_sha,
@@ -35,14 +35,14 @@ class ProjectTestDetailsTest(APITestCase):
             project=project,
             name='foo.bar',
             name_sha='b' * 40,
-            first_build=build,
-            last_build=build,
+            first_build=job,
+            last_build=job,
             parent=parent_agg_group,
         )
         db.session.add(child_agg_group)
 
         child_group = TestGroup(
-            build=build,
+            job=job,
             project=project,
             parent=parent_group,
             name=child_agg_group.name,

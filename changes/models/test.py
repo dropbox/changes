@@ -33,18 +33,18 @@ class TestSuite(db.Model):
     """
     __tablename__ = 'testsuite'
     __table_args__ = (
-        UniqueConstraint('build_id', 'name_sha', name='_suite_key'),
+        UniqueConstraint('job_id', 'name_sha', name='_suite_key'),
         Index('idx_testsuite_project_id', 'project_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name_sha = Column(String(40), nullable=False, default=sha1('default').hexdigest())
     name = Column(Text, nullable=False, default='default')
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    build = relationship('Job')
+    job = relationship('Job')
     project = relationship('Project')
 
     __repr__ = model_repr('name')
@@ -68,7 +68,7 @@ class TestGroup(db.Model):
     """
     __tablename__ = 'testgroup'
     __table_args__ = (
-        UniqueConstraint('build_id', 'suite_id', 'name_sha', name='_group_key'),
+        UniqueConstraint('job_id', 'suite_id', 'name_sha', name='_group_key'),
         Index('idx_testgroup_project_id', 'project_id'),
         Index('idx_testgroup_suite_id', 'suite_id'),
         Index('idx_testgroup_parent_id', 'parent_id'),
@@ -76,7 +76,7 @@ class TestGroup(db.Model):
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
     parent_id = Column(GUID, ForeignKey('testgroup.id', ondelete="CASCADE"))
@@ -92,7 +92,7 @@ class TestGroup(db.Model):
     data = Column(JSONEncodedDict)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    build = relationship('Job')
+    job = relationship('Job')
     project = relationship('Project')
     testcases = relationship('TestCase', secondary=test_group_m2m_table, backref="groups")
     parent = relationship('TestGroup', remote_side=[id])
@@ -122,13 +122,13 @@ class TestCase(db.Model):
     """
     __tablename__ = 'test'
     __table_args__ = (
-        UniqueConstraint('build_id', 'suite_id', 'label_sha', name='unq_test_key'),
+        UniqueConstraint('job_id', 'suite_id', 'label_sha', name='unq_test_key'),
         Index('idx_test_project_id', 'project_id'),
         Index('idx_test_suite_id', 'suite_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
     name_sha = Column('label_sha', String(40), nullable=False)
@@ -139,7 +139,7 @@ class TestCase(db.Model):
     message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    build = relationship('Job')
+    job = relationship('Job')
     project = relationship('Project')
     suite = relationship('TestSuite')
 

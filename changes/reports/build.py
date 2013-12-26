@@ -143,7 +143,7 @@ class BuildReport(object):
             subqueryload(TestGroup.parent),
         ).join(
             TestGroup, and_(
-                TestGroup.build_id == AggregateTestGroup.last_build_id,
+                TestGroup.job_id == AggregateTestGroup.last_build_id,
                 TestGroup.name_sha == AggregateTestGroup.name_sha,
             )
         ).join(

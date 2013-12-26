@@ -1,3 +1,3 @@
 class ArtifactHandler(object):
-    def __init__(self, build):
-        self.build = build
+    def __init__(self, job):
+        self.job = job

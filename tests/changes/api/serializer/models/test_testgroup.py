@@ -9,7 +9,7 @@ def test_simple():
     testgroup = TestGroup(
         id=UUID(hex='33846695b2774b29a71795a009e8168a'),
         name='test.group.ClassName',
-        build=Job(id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50')),
+        job=Job(id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50')),
         project=Project(slug='test', name='test'),
         duration=134,
         num_tests=5,

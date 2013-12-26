@@ -13,7 +13,7 @@ def get_test_failures(build):
     return sorted([t.name_sha for t in db.session.query(
         TestGroup.name_sha,
     ).filter(
-        TestGroup.build_id == build.id,
+        TestGroup.job_id == build.id,
         TestGroup.result == Result.failed,
         TestGroup.num_leaves == 0,
     )])
@@ -75,7 +75,7 @@ def get_log_clipping(logsource, max_size=5000, max_lines=25):
 def send_notification(build, recipients):
     # TODO(dcramer): we should send a clipping of a relevant build log
     test_failures = TestGroup.query.filter(
-        TestGroup.build_id == build.id,
+        TestGroup.job_id == build.id,
         TestGroup.result == Result.failed,
         TestGroup.num_leaves == 0,
     ).order_by(TestGroup.name.asc())

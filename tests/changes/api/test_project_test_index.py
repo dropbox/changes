@@ -9,22 +9,22 @@ class ProjectTestIndexTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 
-        self.create_build(self.project)
+        self.create_job(self.project)
 
         project = self.create_project()
-        build = self.create_build(project)
+        job = self.create_job(project)
 
         agg_group = AggregateTestGroup(
             project=project,
             name='foo',
             name_sha='a' * 40,
-            first_build=build,
-            last_build=build,
+            first_build=job,
+            last_build=job,
         )
         db.session.add(agg_group)
 
         group = TestGroup(
-            build=build,
+            job=job,
             project=project,
             name='foo',
             name_sha='a' * 40,

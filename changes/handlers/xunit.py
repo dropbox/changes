@@ -16,7 +16,7 @@ class XunitHandler(ArtifactHandler):
         with db.get_session() as session:
             for result in results:
                 constraints = {
-                    'build_id': result.build_id,
+                    'job_id': result.job_id,
                     'project_id': result.project_id,
                     'label': result.label,
                 }
@@ -27,7 +27,7 @@ class XunitHandler(ArtifactHandler):
         return results
 
     def get_tests(self, fp):
-        build = self.build
+        job = self.job
         root = etree.fromstring(fp.read())
 
         results = []
@@ -59,8 +59,8 @@ class XunitHandler(ArtifactHandler):
                 result = Result.passed
 
             results.append(TestCase(
-                build_id=build.id,
-                project_id=build.project_id,
+                job_id=job.id,
+                project_id=job.project_id,
                 name=attrs['name'],
                 package=attrs['classname'] or None,
                 duration=float(attrs['time']),
