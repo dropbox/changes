@@ -13,46 +13,46 @@ from changes.utils.locking import lock
 
 @lock
 def create_build(build_id):
-    build = Job.query.get(build_id)
-    if not build:
+    job = Job.query.get(build_id)
+    if not job:
         return
 
-    build_plan = JobPlan.query.options(
+    job_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
     ).filter(
-        JobPlan.job_id == build.id,
+        JobPlan.job_id == job.id,
     ).join(Plan).first()
 
     try:
-        if not build_plan:
-            # TODO(dcramer): once we migrate to build plans we can remove this
+        if not job_plan:
+            # TODO(dcramer): once we migrate to job plans we can remove this
             current_app.logger.warning(
-                'Got create_build task without build plan: %s', build_id)
+                'Got create_build task without job plan: %s', build_id)
 
             backend = JenkinsBuilder(
                 app=current_app,
                 base_url=current_app.config['JENKINS_URL'],
             )
-            create_build = backend.create_build
+            create_job = backend.create_job
         else:
             try:
-                step = build_plan.plan.steps[0]
+                step = job_plan.plan.steps[0]
             except IndexError:
                 raise UnrecoverableException('Missing steps for plan')
 
             implementation = step.get_implementation()
-            create_build = implementation.execute
+            create_job = implementation.execute
 
-        create_build(build=build)
+        create_job(job=job)
 
     except UnrecoverableException:
-        build.status = Status.finished
-        build.result = Result.aborted
+        job.status = Status.finished
+        job.result = Result.aborted
         current_app.logger.exception('Unrecoverable exception creating %s', build_id)
         return
 
     except Exception:
-        current_app.logger.exception('Failed to create build %s', build_id)
+        current_app.logger.exception('Failed to create job %s', build_id)
         raise queue.retry('create_build', kwargs={
             'build_id': build_id,
         }, exc=sys.exc_info())

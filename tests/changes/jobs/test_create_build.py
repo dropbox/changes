@@ -40,20 +40,20 @@ class CreateBuildTest(TestCase):
         )
         db.session.add(family)
 
-        buildplan = JobPlan(
+        jobplan = JobPlan(
             plan=plan,
             family=family,
             job=job,
             project=self.project,
         )
-        db.session.add(buildplan)
+        db.session.add(jobplan)
 
         create_build(build_id=job.id.hex)
 
         get_implementation.assert_called_once_with()
 
         implementation.execute.assert_called_once_with(
-            build=job,
+            job=job,
         )
 
         assert len(builder_create_build.mock_calls) == 0
