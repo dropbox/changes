@@ -66,7 +66,7 @@ if args.command == 'add':
     # TODO: this should use a backend defined by the project
     from changes.backends.jenkins.builder import JenkinsBuilder
     backend = JenkinsBuilder(app=app, base_url=app.config['JENKINS_URL'])
-    backend.create_build(build)
+    backend.create_job(build)
 
     queue.delay('sync_build', kwargs={
         'build_id': build.id.hex,
