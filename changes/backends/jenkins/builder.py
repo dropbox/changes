@@ -363,15 +363,15 @@ class JenkinsBuilder(BaseBackend):
                 'name_sha': suite.name_sha,
             }, defaults={
                 'name': suite.name,
-                'first_build_id': job.id,
+                'first_job_id': job.id,
             })
 
             # if not created:
             #     db.session.query(AggregateTestSuite).filter(
             #         AggregateTestSuite.id == agg.id,
-            #         AggregateTestSuite.last_build_id == agg.last_build_id,
+            #         AggregateTestSuite.last_job_id == agg.last_job_id,
             #     ).update({
-            #         AggregateTestSuite.last_build_id: build.id,
+            #         AggregateTestSuite.last_job_id: build.id,
             #     }, synchronize_session=False)
 
             for case in suite_data['cases']:

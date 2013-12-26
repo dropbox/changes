@@ -18,8 +18,8 @@ class ProjectTestIndexTest(APITestCase):
             project=project,
             name='foo',
             name_sha='a' * 40,
-            first_build=job,
-            last_build=job,
+            first_job=job,
+            last_job=job,
         )
         db.session.add(agg_group)
 

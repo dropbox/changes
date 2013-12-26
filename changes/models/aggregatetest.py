@@ -16,20 +16,20 @@ class AggregateTestSuite(db.Model):
     __tablename__ = 'aggtestsuite'
     __table_args__ = (
         UniqueConstraint('project_id', 'name_sha', name='unq_aggtestsuite_key'),
-        Index('idx_aggtestsuite_first_build_id', 'first_build_id'),
+        Index('idx_aggtestsuite_first_build_id', 'first_job_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
-    first_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
-    last_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    first_job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    last_job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
-    first_build = relationship('Job', foreign_keys=[first_build_id])
-    last_build = relationship('Job', foreign_keys=[last_build_id])
+    first_job = relationship('Job', foreign_keys=[first_job_id])
+    last_job = relationship('Job', foreign_keys=[last_job_id])
 
     __repr__ = model_repr('name')
 
@@ -49,7 +49,7 @@ class AggregateTestGroup(db.Model):
         UniqueConstraint('project_id', 'suite_id', 'name_sha', name='unq_aggtestgroup_key'),
         Index('idx_aggtestgroup_suite_id', 'suite_id'),
         Index('idx_aggtestgroup_parent_id', 'parent_id'),
-        Index('idx_aggtestgroup_first_build_id', 'first_build_id'),
+        Index('idx_aggtestgroup_first_build_id', 'first_job_id'),
     )
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
@@ -57,19 +57,19 @@ class AggregateTestGroup(db.Model):
     parent_id = Column(GUID, ForeignKey('aggtestgroup.id', ondelete="CASCADE"))
     name_sha = Column(String(40), nullable=False)
     name = Column(Text, nullable=False)
-    first_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
-    last_build_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    first_job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    last_job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     project = relationship('Project')
     suite = relationship('AggregateTestSuite')
     parent = relationship('AggregateTestGroup', remote_side=[id])
-    first_build = relationship('Job', foreign_keys=[first_build_id])
-    last_build = relationship('Job', foreign_keys=[last_build_id])
+    first_job = relationship('Job', foreign_keys=[first_job_id])
+    last_job = relationship('Job', foreign_keys=[last_job_id])
 
     # last_testgroup = relationship(
     #     'TestGroup', primaryjoin="and_(AggregateTestGroup.name_sha==TestGroup.name_sha, "
-    #     "AggregateTestGroup.last_build_id==TestGroup.job_id)")
+    #     "AggregateTestGroup.last_job_id==TestGroup.job_id)")
 
     __repr__ = model_repr('name')
 

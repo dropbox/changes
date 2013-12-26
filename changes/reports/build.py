@@ -139,15 +139,15 @@ class BuildReport(object):
         project_ids = projects_by_id.keys()
 
         queryset = db.session.query(AggregateTestGroup, TestGroup).options(
-            joinedload(AggregateTestGroup.last_build),
+            joinedload(AggregateTestGroup.last_job),
             subqueryload(TestGroup.parent),
         ).join(
             TestGroup, and_(
-                TestGroup.job_id == AggregateTestGroup.last_build_id,
+                TestGroup.job_id == AggregateTestGroup.last_job_id,
                 TestGroup.name_sha == AggregateTestGroup.name_sha,
             )
         ).join(
-            AggregateTestGroup.last_build,
+            AggregateTestGroup.last_job,
         ).filter(
             AggregateTestGroup.project_id.in_(project_ids),
             TestGroup.num_leaves == 0,

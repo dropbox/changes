@@ -18,8 +18,8 @@ class ProjectTestDetailsTest(APITestCase):
             project=project,
             name='foo',
             name_sha='a' * 40,
-            first_build=job,
-            last_build=job,
+            first_job=job,
+            last_job=job,
         )
         db.session.add(parent_agg_group)
 
@@ -35,8 +35,8 @@ class ProjectTestDetailsTest(APITestCase):
             project=project,
             name='foo.bar',
             name_sha='b' * 40,
-            first_build=job,
-            last_build=job,
+            first_job=job,
+            last_job=job,
             parent=parent_agg_group,
         )
         db.session.add(child_agg_group)

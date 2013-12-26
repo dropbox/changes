@@ -20,14 +20,14 @@ class ChangeIndexAPIView(APIView):
         # TODO(dcramer): denormalize this
         for change in change_list:
             try:
-                change.last_build = Job.query.filter_by(
+                change.last_job = Job.query.filter_by(
                     change=change,
                 ).order_by(
                     Job.date_created.desc(),
                     Job.date_started.desc()
                 )[0]
             except IndexError:
-                change.last_build = None
+                change.last_job = None
 
         context = {
             'changes': change_list,

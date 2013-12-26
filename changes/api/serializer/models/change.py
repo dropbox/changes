@@ -15,6 +15,6 @@ class ChangeSerializer(Serializer):
             'dateCreated': instance.date_created.isoformat(),
             'dateModified': instance.date_modified.isoformat(),
         }
-        if hasattr(instance, 'last_build'):
-            result['lastBuild'] = instance.last_build
+        if hasattr(instance, 'last_job'):
+            result['lastBuild'] = instance.last_job
         return result

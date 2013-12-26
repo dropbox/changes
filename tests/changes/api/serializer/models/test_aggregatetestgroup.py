@@ -16,7 +16,7 @@ def test_simple():
     parent = AggregateTestGroup(
         id=UUID(hex='33846695b2774b29a71745a009e8168a'),
         name='test.group',
-        first_build=build,
+        first_job=build,
         project=project,
         project_id=project.id,
         date_created=datetime(2013, 9, 19, 22, 15, 22),
@@ -24,7 +24,7 @@ def test_simple():
     test = AggregateTestGroup(
         id=UUID(hex='33846695b2774b29a71795a009e8168a'),
         name='test.group.ClassName',
-        first_build=build,
+        first_job=build,
         project=project,
         project_id=project.id,
         date_created=datetime(2013, 9, 19, 22, 15, 22),

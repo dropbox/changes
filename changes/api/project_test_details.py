@@ -32,15 +32,15 @@ class ProjectTestDetailsAPIView(APIView):
         cutoff = datetime.utcnow() - timedelta(days=3)
 
         queryset = db.session.query(AggregateTestGroup, TestGroup).options(
-            subqueryload(AggregateTestGroup.first_build),
-            subqueryload(AggregateTestGroup.last_build),
+            subqueryload(AggregateTestGroup.first_job),
+            subqueryload(AggregateTestGroup.last_job),
             subqueryload(AggregateTestGroup.parent),
-            subqueryload('first_build.author'),
-            subqueryload('last_build.author'),
+            subqueryload('first_job.author'),
+            subqueryload('last_job.author'),
         ).join(
-            AggregateTestGroup.last_build,
+            AggregateTestGroup.last_job,
         ).join(TestGroup, and_(
-            TestGroup.job_id == AggregateTestGroup.last_build_id,
+            TestGroup.job_id == AggregateTestGroup.last_job_id,
             TestGroup.name_sha == AggregateTestGroup.name_sha,
             Job.date_created > cutoff,
         )).order_by(TestGroup.duration.desc())

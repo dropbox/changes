@@ -29,18 +29,18 @@ class ProjectTestIndexAPIView(APIView):
         cutoff = datetime.utcnow() - timedelta(days=3)
 
         test_list = db.session.query(AggregateTestGroup, TestGroup).options(
-            subqueryload(AggregateTestGroup.first_build),
-            subqueryload(AggregateTestGroup.last_build),
+            subqueryload(AggregateTestGroup.first_job),
+            subqueryload(AggregateTestGroup.last_job),
             subqueryload(AggregateTestGroup.parent),
-            subqueryload('first_build.author'),
-            subqueryload('last_build.author'),
+            subqueryload('first_job.author'),
+            subqueryload('last_job.author'),
         ).join(
             TestGroup, and_(
-                TestGroup.job_id == AggregateTestGroup.last_build_id,
+                TestGroup.job_id == AggregateTestGroup.last_job_id,
                 TestGroup.name_sha == AggregateTestGroup.name_sha,
             )
         ).join(
-            AggregateTestGroup.last_build,
+            AggregateTestGroup.last_job,
         ).filter(
             AggregateTestGroup.parent_id == None,  # NOQA: we have to use == here
             AggregateTestGroup.project_id == project.id,

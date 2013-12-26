@@ -19,8 +19,8 @@ class AggregateTestGroupSerializer(Serializer):
                 instance.project_id.hex,
                 instance.id.hex,
             )),
-            'firstBuild': instance.first_build,
-            'lastBuild': instance.last_build,
+            'firstBuild': instance.first_job,
+            'lastBuild': instance.last_job,
             'dateCreated': instance.date_created,
         }
 
@@ -33,7 +33,7 @@ class AggregateTestGroupWithBuildSerializer(AggregateTestGroupSerializer):
     def serialize(self, instance):
         data = super(AggregateTestGroupWithBuildSerializer, self).serialize(instance)
         data.update({
-            'firstBuild': instance.first_build,
-            'lastBuild': instance.last_build,
+            'firstBuild': instance.first_job,
+            'lastBuild': instance.last_job,
         })
         return data

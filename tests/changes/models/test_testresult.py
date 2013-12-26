@@ -110,8 +110,8 @@ class TestResultManagerTestCase(TestCase):
         assert len(agg_groups) == 4
 
         for agg in agg_groups:
-            # assert agg.last_build == build
-            assert agg.first_build_id == job.id
+            # assert agg.last_job == build
+            assert agg.first_job_id == job.id
             assert agg.project_id == self.project.id
 
         assert agg_groups[0].name == 'tests.changes.handlers.test_coverage'

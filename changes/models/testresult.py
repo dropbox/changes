@@ -121,8 +121,8 @@ class TestResultManager(object):
         return group
 
     def create_aggregate_test_leaf(self, test, parent):
-        build = self.job
-        project = build.project
+        job = self.job
+        project = job.project
         name_sha = test.name_sha
 
         agg, created = get_or_create(AggregateTestGroup, where={
@@ -132,34 +132,34 @@ class TestResultManager(object):
         }, defaults={
             'name': test.id,
             'parent': parent,
-            'first_build_id': build.id,
-            'last_build_id': build.id,
+            'first_job_id': job.id,
+            'last_job_id': job.id,
         })
         # if not created:
         #     db.session.query(AggregateTestGroup).filter(
         #         AggregateTestGroup.id == agg.id,
-        #         AggregateTestGroup.last_build_id == agg.last_build_id,
+        #         AggregateTestGroup.last_job_id == agg.last_job_id,
         #     ).update({
-        #         AggregateTestGroup.last_build_id: build.id,
+        #         AggregateTestGroup.last_job_id: job.id,
         #     }, synchronize_session=False)
 
         return agg
 
     def clear(self):
         """
-        Removes all existing test data from this build.
+        Removes all existing test data from this job.
         """
         TestCase.query.filter(
-            TestCase.job_id == self.build.id,
+            TestCase.job_id == self.job.id,
         ).delete(synchronize_session=False)
 
         TestGroup.query.filter(
-            TestGroup.job_id == self.build.id,
+            TestGroup.job_id == self.job.id,
         ).delete(synchronize_session=False)
 
     def save(self, test_list):
-        build = self.job
-        project = build.project
+        job = self.job
+        project = job.project
         groups_by_id = {}
         tests_by_id = {}
         agg_groups_by_id = {}
@@ -178,7 +178,7 @@ class TestResultManager(object):
         # create all test cases
         for test in test_list:
             testcase = TestCase(
-                job=build,
+                job=job,
                 name_sha=test.name_sha,
                 project=project,
                 suite=test.suite,
@@ -198,7 +198,7 @@ class TestResultManager(object):
             parent = self.find_parent(name, sep, groups_by_id)
 
             group = TestGroup(
-                job=build,
+                job=job,
                 name_sha=sha1(name).hexdigest(),
                 suite=test.suite,
                 name=name,
@@ -217,16 +217,16 @@ class TestResultManager(object):
             }, defaults={
                 'name': name,
                 'parent': self.find_parent(name, sep, agg_groups_by_id),
-                'first_build_id': build.id,
-                'last_build_id': build.id,
+                'first_job_id': job.id,
+                'last_job_id': job.id,
             })
 
             # if not created:
             #     db.session.query(AggregateTestGroup).filter(
             #         AggregateTestGroup.id == agg.id,
-            #         AggregateTestGroup.last_build_id == agg.last_build_id,
+            #         AggregateTestGroup.last_job_id == agg.last_job_id,
             #     ).update({
-            #         AggregateTestGroup.last_build_id: build.id,
+            #         AggregateTestGroup.last_job_id: job.id,
             #     }, synchronize_session=False)
 
             agg_groups_by_id[name] = agg
