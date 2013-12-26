@@ -17,7 +17,7 @@ class SyncBuildTest(TestCase):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
-        build = self.create_build(self.project)
+        job = self.create_job(self.project)
 
         plan = Plan(
             label='test',
@@ -32,58 +32,58 @@ class SyncBuildTest(TestCase):
         db.session.add(step)
 
         family = BuildFamily(
-            project=build.project,
-            repository=build.repository,
-            revision_sha=build.revision_sha,
-            label=build.label,
-            author=build.author,
-            target=build.target,
+            project=job.project,
+            repository=job.repository,
+            revision_sha=job.revision_sha,
+            label=job.label,
+            author=job.author,
+            target=job.target,
         )
         db.session.add(family)
 
-        buildplan = JobPlan(
+        jobplan = JobPlan(
             plan=plan,
             family=family,
-            job=build,
+            job=job,
             project=self.project,
         )
-        db.session.add(buildplan)
+        db.session.add(jobplan)
 
-        sync_build(build_id=build.id.hex)
+        sync_build(build_id=job.id.hex)
 
         get_implementation.assert_called_once_with()
 
         implementation.execute.assert_called_once_with(
-            build=build,
+            job=job,
         )
 
-        build = Job.query.get(build.id)
+        job = Job.query.get(job.id)
 
         assert len(sync_with_builder.mock_calls) == 0
 
         # ensure signal is fired
         queue_delay.assert_any_call('sync_build', kwargs={
-            'build_id': build.id.hex,
+            'build_id': job.id.hex,
         }, countdown=5)
 
     @mock.patch('changes.jobs.sync_build.sync_with_builder')
     @mock.patch('changes.jobs.sync_build.queue.delay')
     def test_without_build_plan(self, queue_delay, sync_with_builder):
-        def mark_finished(build):
-            build.status = Status.finished
+        def mark_finished(job):
+            job.status = Status.finished
 
         sync_with_builder.side_effect = mark_finished
 
-        build = self.create_build(self.project)
+        job = self.create_job(self.project)
 
-        sync_build(build_id=build.id.hex)
+        sync_build(build_id=job.id.hex)
 
-        build = Job.query.get(build.id)
+        job = Job.query.get(job.id)
 
-        assert build.status == Status.finished
+        assert job.status == Status.finished
 
-        # build sync is abstracted via sync_with_builder
-        sync_with_builder.assert_called_once_with(build=build)
+        # job sync is abstracted via sync_with_builder
+        sync_with_builder.assert_called_once_with(job=job)
 
         # ensure signal is fired
         queue_delay.assert_any_call('update_project_stats', kwargs={
@@ -91,6 +91,6 @@ class SyncBuildTest(TestCase):
         }, countdown=1)
 
         queue_delay.assert_any_call('notify_listeners', kwargs={
-            'build_id': build.id.hex,
-            'signal_name': 'build.finished',
+            'build_id': job.id.hex,
+            'signal_name': 'job.finished',
         })

@@ -8,101 +8,101 @@ from changes.backends.base import UnrecoverableException
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
-from changes.events import publish_build_update
+from changes.events import publish_job_update
 from changes.models import Job, JobPlan, Plan, RemoteEntity
 from changes.utils.locking import lock
 
 
-def sync_with_builder(build):
-    build.date_modified = datetime.utcnow()
-    db.session.add(build)
+def sync_with_builder(job):
+    job.date_modified = datetime.utcnow()
+    db.session.add(job)
 
     # TODO(dcramer): remove migration after 12/24
-    if 'queued' not in build.data:
+    if 'queued' not in job.data:
         entity = RemoteEntity.query.filter_by(
             provider='jenkins',
-            internal_id=build.id,
+            internal_id=job.id,
             type='build',
         ).first()
         if entity is not None:
-            build.data.update(entity.data)
-            db.session.add(build)
+            job.data.update(entity.data)
+            db.session.add(job)
 
-    if not build.data:
+    if not job.data:
         queue.delay('create_build', kwargs={
-            'build_id': build.id.hex,
+            'build_id': job.id.hex,
         }, countdown=5)
     else:
         builder = JenkinsBuilder(
             app=current_app,
             base_url=current_app.config['JENKINS_URL'],
         )
-        builder.sync_build(build)
+        builder.sync_job(job)
 
 
-def _sync_build(build_id):
-    build = Job.query.get(build_id)
-    if not build:
+def _sync_job(job_id):
+    job = Job.query.get(job_id)
+    if not job:
         return
 
-    if build.status == Status.finished:
+    if job.status == Status.finished:
         return
 
     # TODO(dcramer): we make an assumption that there is a single step
-    build_plan = JobPlan.query.options(
+    job_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
     ).filter(
-        JobPlan.job_id == build.id,
+        JobPlan.job_id == job.id,
     ).join(Plan).first()
 
     try:
-        if not build_plan:
-            # TODO(dcramer): once we migrate to build plans we can remove this
+        if not job_plan:
+            # TODO(dcramer): once we migrate to job plans we can remove this
             warnings.warn(
-                'Got sync_build task without build plan: %s' % (build_id,))
+                'Got sync_build task without job plan: %s' % (job_id,))
             execute = sync_with_builder
         else:
             try:
-                step = build_plan.plan.steps[0]
+                step = job_plan.plan.steps[0]
             except IndexError:
                 raise UnrecoverableException('Missing steps for plan')
 
             implementation = step.get_implementation()
             execute = implementation.execute
 
-        execute(build=build)
+        execute(job=job)
 
     except UnrecoverableException:
-        build.status = Status.finished
-        build.result = Result.aborted
-        current_app.logger.exception('Unrecoverable exception syncing %s', build_id)
+        job.status = Status.finished
+        job.result = Result.aborted
+        current_app.logger.exception('Unrecoverable exception syncing %s', job_id)
 
-    build.date_modified = datetime.utcnow()
-    db.session.add(build)
+    job.date_modified = datetime.utcnow()
+    db.session.add(job)
 
     # if this build isnt finished, we assume that there's still data to sync
-    if build.status != Status.finished:
+    if job.status != Status.finished:
         queue.delay('sync_build', kwargs={
-            'build_id': build.id.hex
+            'build_id': job.id.hex
         }, countdown=5)
 
     else:
         queue.delay('update_project_stats', kwargs={
-            'project_id': build.project_id.hex,
+            'project_id': job.project_id.hex,
         }, countdown=1)
 
         queue.delay('notify_listeners', kwargs={
-            'build_id': build.id.hex,
-            'signal_name': 'build.finished',
+            'build_id': job.id.hex,
+            'signal_name': 'job.finished',
         })
 
-    publish_build_update(build)
+    publish_job_update(job)
 
 
 @lock
 def sync_build(build_id):
     try:
-        _sync_build(build_id)
+        _sync_job(build_id)
 
     except Exception:
         # Ensure we continue to synchronize this build as this could be a

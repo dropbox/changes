@@ -2,7 +2,7 @@ from changes.api.base import as_json
 from changes.config import pubsub
 
 
-def publish_build_update(target):
+def publish_job_update(target):
     channels = [
         'builds:{change_id}:{job_id}'.format(
             change_id=target.change_id.hex if target.change_id else '',
