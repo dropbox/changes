@@ -270,5 +270,3 @@ class TestResultManager(object):
             branch.num_tests = g_total
 
             db.session.add(branch)
-
-        db.session.commit()
