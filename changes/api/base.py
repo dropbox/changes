@@ -130,7 +130,7 @@ class APIView(MethodView):
 
     def respond(self, context, status_code=200):
         return Response(
-            as_json(context),
+            as_json(self.serialize(context)),
             mimetype='application/json',
             status=status_code)
 
@@ -138,7 +138,7 @@ class APIView(MethodView):
         return serialize_func(*args, **kwargs)
 
     def as_json(self, context):
-        return json.dumps(serialize_func(context))
+        return json.dumps(context)
 
     def get_stream_channels(self, **kwargs):
         return []

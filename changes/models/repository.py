@@ -18,6 +18,16 @@ class RepositoryBackend(Enum):
     git = 1
     hg = 2
 
+    def __str__(self):
+        return BACKEND_LABELS[self]
+
+
+BACKEND_LABELS = {
+    RepositoryBackend.unknown: 'Unknown',
+    RepositoryBackend.git: 'git',
+    RepositoryBackend.hg: 'hg',
+}
+
 
 class Repository(db.Model):
     __tablename__ = 'repository'

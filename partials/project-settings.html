@@ -1,0 +1,31 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2>Project Settings</h2>
+		</div>
+
+		<h3>VCS</h3>
+
+		<dl class="flat">
+			<dt>URL:</dt>
+			<dd>{{ repo.url }}</dd>
+			<dt>Backend:</dt>
+			<dd>{{ repo.backend.name }}</dd>
+		</dl>
+
+		<div>
+			<h3>Build Plans</h3>
+
+			<ul>
+				<li ng-repeat="plan in plans">
+					<strong>{{ plan.name }}</strong>
+					<ol>
+						<li ng-repeat="step in plan.steps">
+							{{ step.name }}
+						</li>
+					</ol>
+				</li>
+			</ul>
+		</div>
+	</div>
+</section>

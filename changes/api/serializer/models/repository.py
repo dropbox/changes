@@ -1,5 +1,5 @@
 from changes.api.serializer import Serializer, register
-from changes.models.repository import Repository
+from changes.models.repository import Repository, RepositoryBackend
 
 
 @register(Repository)
@@ -8,4 +8,14 @@ class RepositorySerializer(Serializer):
         return {
             'id': instance.id.hex,
             'url': instance.url,
+            'backend': instance.backend,
+        }
+
+
+@register(RepositoryBackend)
+class RepositoryBackendSerializer(Serializer):
+    def serialize(self, instance):
+        return {
+            'id': instance.name,
+            'name': unicode(instance),
         }

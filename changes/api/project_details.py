@@ -1,9 +1,9 @@
 from flask import Response, request
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Project
+from changes.models import Project, Plan
 
 
 class ValidationError(Exception):
@@ -55,8 +55,16 @@ class ProjectDetailsAPIView(APIView):
         if project is None:
             return Response(status=404)
 
+        plans = Plan.query.options(
+            subqueryload_all(Plan.steps),
+        ).filter(
+            Plan.projects.contains(project),
+        )
+
         context = {
             'project': project,
+            'repository': project.repository,
+            'plans': list(plans),
         }
 
         return self.respond(context)
@@ -83,7 +91,7 @@ class ProjectDetailsAPIView(APIView):
         db.session.add(project)
 
         context = {
-            'project': project,
+            'project': 'project',
         }
 
         return self.respond(context)

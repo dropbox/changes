@@ -13,6 +13,7 @@ define(['app',
         'controllers/projectDetails',
         'controllers/projectLeaderboard',
         'controllers/projectList',
+        'controllers/projectSettings',
         'controllers/projectTestDetails',
         'controllers/projectTestList'
        ], function(app) {
@@ -159,6 +160,15 @@ define(['app',
             }],
             initialCommit: ['$http', '$route', '$window', function($http, $route, $window) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/commits/' + $route.current.params.commit_id + '/' + $window.location.search);
+            }]
+          }
+        })
+        .when('/projects/:project_id/settings/', {
+          templateUrl: 'partials/project-settings.html',
+          controller: 'projectSettingsCtrl',
+          resolve: {
+            initialProject: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
             }]
           }
         })

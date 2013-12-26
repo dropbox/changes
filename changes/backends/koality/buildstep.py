@@ -33,3 +33,6 @@ class KoalityBuildStep(BuildStep):
             builder.create_job(job)
         else:
             builder.sync_job(job)
+
+    def get_label(self):
+        return 'Build project {0} on Koality'.format(self.project_id)

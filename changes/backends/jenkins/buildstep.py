@@ -37,3 +37,6 @@ class JenkinsBuildStep(BuildStep):
             builder.create_job(job)
         else:
             builder.sync_job(job)
+
+    def get_label(self):
+        return 'Execute job {0} on Jenkins'.format(self.job_name)
