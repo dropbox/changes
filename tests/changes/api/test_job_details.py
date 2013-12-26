@@ -3,7 +3,7 @@ from changes.models import LogSource
 from changes.testutils import APITestCase
 
 
-class BuildDetailsTest(APITestCase):
+class JobDetailsTest(APITestCase):
     def test_simple(self):
         change = self.create_change(self.project)
         job = self.create_job(self.project, change=change)
@@ -13,7 +13,7 @@ class BuildDetailsTest(APITestCase):
         ls2 = LogSource(job=job, project=self.project, name='test2')
         db.session.add(ls2)
 
-        path = '/api/0/builds/{1}/'.format(
+        path = '/api/0/jobs/{1}/'.format(
             change.id.hex, job.id.hex)
 
         resp = self.client.get(path)

@@ -261,7 +261,7 @@ class BuildIndexAPIView(APIView):
                 {
                     'id': b.id.hex,
                     'project': b.project,
-                    'link': '/builds/{0}/'.format(b.id.hex),
+                    'link': '/jobs/{0}/'.format(b.id.hex),
                 } for b in builds
             ],
         }

@@ -2,16 +2,16 @@
   'use strict';
 
   define(['app'], function(app) {
-    app.controller('buildLogDetailsCtrl', [
-        '$scope', '$rootScope', 'initialBuild', 'initialBuildLog', '$window', '$timeout', '$http', '$routeParams', 'stream', 'flash',
-        function($scope, $rootScope, initialBuild, initialBuildLog, $window, $timeout, $http, $routeParams, Stream, flash) {
+    app.controller('jobLogDetailsCtrl', [
+        '$scope', '$rootScope', 'initialJob', 'initialBuildLog', '$window', '$timeout', '$http', '$routeParams', 'stream', 'flash',
+        function($scope, $rootScope, initialJob, initialBuildLog, $window, $timeout, $http, $routeParams, Stream, flash) {
       var stream,
           logChunkData = {
             text: '',
             size: 0,
             nextOffset: 0
           },
-          entrypoint = '/api/0/builds/' + $routeParams.build_id + '/logs/' + $routeParams.source_id + '/';
+          entrypoint = '/api/0/jobs/' + $routeParams.job_id + '/logs/' + $routeParams.source_id + '/';
 
       function updateBuildLog(data) {
         var $el = $('#log-' + data.source.id + ' > .build-log'),
@@ -89,18 +89,18 @@
         });
       }
 
-      $scope.retryBuild = function() {
-        $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
+      $scope.retryJob = function() {
+        $http.post('/api/0/jobs/' + $scope.job.id + '/retry/')
           .success(function(data){
-            $window.location.href = data.build.link;
+            $window.location.href = data.job.link;
           })
           .error(function(){
-            flash('error', 'There was an error while retrying this build.');
+            flash('error', 'There was an error while retrying this job.');
           });
       };
 
-      $scope.project = initialBuild.data.project;
-      $scope.build = initialBuild.data.build;
+      $scope.project = initialJob.data.project;
+      $scope.job = initialJob.data.build;
       $scope.logSource = initialBuildLog.data.source;
 
       $rootScope.activeProject = $scope.project;

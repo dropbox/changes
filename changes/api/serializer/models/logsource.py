@@ -8,7 +8,7 @@ class LogSourceSerializer(Serializer):
         return {
             'id': instance.id.hex,
             'name': instance.name,
-            'link': '/builds/{0}/logs/{1}/'.format(
+            'link': '/jobs/{0}/logs/{1}/'.format(
                 instance.job_id.hex, instance.id.hex),
             'dateCreated': instance.date_created,
         }

@@ -3,7 +3,7 @@ from changes.models import LogSource, LogChunk
 from changes.testutils import APITestCase
 
 
-class LogDetailsTest(APITestCase):
+class JobLogDetailsTest(APITestCase):
     def test_simple(self):
         job = self.create_job(self.project)
         source = LogSource(job=job, project=self.project, name='test')
@@ -20,7 +20,7 @@ class LogDetailsTest(APITestCase):
         )
         db.session.add(lc2)
 
-        path = '/api/0/builds/{0}/logs/{1}/'.format(
+        path = '/api/0/jobs/{0}/logs/{1}/'.format(
             job.id.hex, source.id.hex)
 
         resp = self.client.get(path)

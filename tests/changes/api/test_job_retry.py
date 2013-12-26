@@ -4,12 +4,12 @@ from changes.models import Job, JobPlan
 from changes.testutils import APITestCase
 
 
-class BuildRetryTest(APITestCase):
+class JobRetryTest(APITestCase):
     def test_simple(self):
         change = self.create_change(self.project)
         job = self.create_job(self.project, change=change)
 
-        path = '/api/0/builds/{0}/retry/'.format(job.id.hex)
+        path = '/api/0/jobs/{0}/retry/'.format(job.id.hex)
         resp = self.client.post(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
@@ -44,7 +44,7 @@ class BuildRetryTest(APITestCase):
         )
         db.session.add(jobplan)
 
-        path = '/api/0/builds/{0}/retry/'.format(job.id.hex)
+        path = '/api/0/jobs/{0}/retry/'.format(job.id.hex)
         resp = self.client.post(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)

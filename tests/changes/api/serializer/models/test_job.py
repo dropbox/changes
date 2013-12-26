@@ -23,7 +23,7 @@ def test_simple():
     )
     result = serialize(job)
     assert result['name'] == 'Hello world'
-    assert result['link'] == '/builds/33846695b2774b29a71795a009e8168a/'
+    assert result['link'] == '/jobs/33846695b2774b29a71795a009e8168a/'
     assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['revision'] == {
         'sha': '1e7958a368f44b0eb5a57372a9910d50',

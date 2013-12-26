@@ -111,7 +111,7 @@ class SendNotificationTestCase(TestCase):
         )
         db.session.add(logchunk)
 
-        job_link = 'http://example.com/builds/%s/' % (job.id.hex,)
+        job_link = 'http://example.com/jobs/%s/' % (job.id.hex,)
         log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
 
         send_notification(job, recipients=['foo@example.com', 'Bob <bob@example.com>'])

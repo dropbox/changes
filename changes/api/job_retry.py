@@ -9,13 +9,13 @@ from changes.constants import Cause, Status
 from changes.models import Job, JobPlan
 
 
-class BuildRetryAPIView(APIView):
-    def post(self, build_id):
+class JobRetryAPIView(APIView):
+    def post(self, job_id):
         job = Job.query.options(
             subqueryload_all(Job.phases),
             joinedload(Job.project),
             joinedload(Job.author),
-        ).get(build_id)
+        ).get(job_id)
         if job is None:
             return Response(status=404)
 

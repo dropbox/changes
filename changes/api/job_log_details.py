@@ -9,13 +9,13 @@ from changes.models import LogSource, LogChunk
 LOG_BATCH_SIZE = 50000  # in length of chars
 
 
-class BuildLogDetailsAPIView(APIView):
-    def get(self, build_id, source_id):
+class JobLogDetailsAPIView(APIView):
+    def get(self, job_id, source_id):
         """
         Return chunks for a LogSource.
         """
         source = LogSource.query.get(source_id)
-        if source is None or source.job_id.hex != build_id:
+        if source is None or source.job_id.hex != job_id:
             return Response(status=404)
 
         offset = int(request.args.get('offset', -1))
@@ -60,9 +60,9 @@ class BuildLogDetailsAPIView(APIView):
             'nextOffset': next_offset,
         })
 
-    def get_stream_channels(self, build_id, source_id):
+    def get_stream_channels(self, job_id, source_id):
         source = LogSource.query.get(source_id)
-        if source is None or source.job_id.hex != build_id:
+        if source is None or source.job_id.hex != job_id:
             return Response(status=404)
 
-        return ['logsources:{0}:{1}'.format(build_id, source.id.hex)]
+        return ['logsources:{0}:{1}'.format(job_id, source.id.hex)]

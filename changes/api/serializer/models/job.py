@@ -23,7 +23,7 @@ class JobSerializer(Serializer):
         if instance.parent_id:
             parent = {
                 'id': instance.parent_id.hex,
-                'link': '/builds/%s/' % (instance.parent_id.hex,),
+                'link': '/jobs/%s/' % (instance.parent_id.hex,),
             }
         else:
             parent = None
@@ -61,7 +61,7 @@ class JobSerializer(Serializer):
             'message': instance.message,
             'duration': instance.duration,
             'estimatedDuration': avg_build_time,
-            'link': '/builds/%s/' % (instance.id.hex,),
+            'link': '/jobs/%s/' % (instance.id.hex,),
             'external': external,
             'dateCreated': instance.date_created.isoformat(),
             'dateModified': instance.date_modified.isoformat() if instance.date_modified else None,

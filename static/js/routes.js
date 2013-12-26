@@ -4,8 +4,9 @@ define(['app',
         'controllers/changeList',
         'controllers/changeDetails',
         'controllers/buildList',
-        'controllers/buildLogDetails',
         'controllers/buildDetails',
+        'controllers/jobDetails',
+        'controllers/jobLogDetails',
         'controllers/testGroupDetails',
         'controllers/projectCommitDetails',
         'controllers/projectCommitList',
@@ -95,15 +96,24 @@ define(['app',
             }]
           }
         })
-        .when('/builds/:build_id/logs/:source_id/', {
-          templateUrl: 'partials/build-log-details.html',
-          controller: 'buildLogDetailsCtrl',
+        .when('/jobs/:job_id/', {
+          templateUrl: 'partials/job-details.html',
+          controller: 'jobDetailsCtrl',
           resolve: {
-            initialBuild: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/builds/' + $route.current.params.build_id + '/');
+            initialData: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/');
+            }]
+          }
+        })
+        .when('/jobs/:job_id/logs/:source_id/', {
+          templateUrl: 'partials/job-log-details.html',
+          controller: 'jobLogDetailsCtrl',
+          resolve: {
+            initialJob: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/');
             }],
             initialBuildLog: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/builds/' + $route.current.params.build_id + '/logs/' + $route.current.params.source_id + '?limit=0');
+              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/logs/' + $route.current.params.source_id + '?limit=0');
             }]
           }
         })
