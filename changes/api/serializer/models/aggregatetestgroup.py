@@ -19,8 +19,6 @@ class AggregateTestGroupSerializer(Serializer):
                 instance.project_id.hex,
                 instance.id.hex,
             )),
-            'firstBuild': instance.first_job,
-            'lastBuild': instance.last_job,
             'dateCreated': instance.date_created,
         }
 

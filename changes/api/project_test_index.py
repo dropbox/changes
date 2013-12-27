@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload, subqueryload
 
 from changes.api.base import APIView
 from changes.config import db
+from changes.constants import Status
 from changes.models import Project, AggregateTestGroup, TestGroup, Job
 
 
@@ -28,29 +29,39 @@ class ProjectTestIndexAPIView(APIView):
 
         cutoff = datetime.utcnow() - timedelta(days=3)
 
-        test_list = db.session.query(AggregateTestGroup, TestGroup).options(
-            subqueryload(AggregateTestGroup.first_job),
-            subqueryload(AggregateTestGroup.last_job),
-            subqueryload(AggregateTestGroup.parent),
-            subqueryload('first_job.author'),
-            subqueryload('last_job.author'),
-        ).join(
-            TestGroup, and_(
-                TestGroup.job_id == AggregateTestGroup.last_job_id,
-                TestGroup.name_sha == AggregateTestGroup.name_sha,
-            )
-        ).join(
-            AggregateTestGroup.last_job,
+        latest_job = Job.query.options(
+            joinedload(Job.project),
+            joinedload(Job.author),
         ).filter(
-            AggregateTestGroup.parent_id == None,  # NOQA: we have to use == here
-            AggregateTestGroup.project_id == project.id,
-            Job.date_created > cutoff,
-        ).order_by(TestGroup.duration.desc())
+            Job.revision_sha != None,  # NOQA
+            Job.patch_id == None,
+            Job.project == project,
+            Job.status == Status.finished,
+        ).order_by(
+            Job.date_created.desc(),
+        ).first()
 
-        results = []
-        for agg, group in test_list:
-            agg.last_testgroup = group
-            results.append(agg)
+        if latest_job:
+            test_list = db.session.query(AggregateTestGroup, TestGroup).options(
+                subqueryload(AggregateTestGroup.first_job),
+                subqueryload(AggregateTestGroup.parent),
+            ).join(
+                TestGroup, and_(
+                    TestGroup.job_id == latest_job.id,
+                    TestGroup.name_sha == AggregateTestGroup.name_sha,
+                )
+            ).filter(
+                AggregateTestGroup.parent_id == None,  # NOQA: we have to use == here
+                AggregateTestGroup.project_id == project.id,
+                Job.date_created > cutoff,
+            ).order_by(TestGroup.duration.desc())
+
+            results = []
+            for agg, group in test_list:
+                agg.last_testgroup = group
+                results.append(agg)
+        else:
+            results = []
 
         context = {
             'tests': results,
