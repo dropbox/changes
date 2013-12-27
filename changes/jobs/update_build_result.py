@@ -2,6 +2,7 @@ from datetime import datetime
 
 from changes.config import db
 from changes.constants import Status, Result
+from changes.events import publish_build_update
 from changes.models import Build, Job
 
 
@@ -47,6 +48,10 @@ def update_build_result(build_id, job_id):
         Build.date_finished: date_finished,
         Build.duration: duration,
     }, synchronize_session=False)
+
+    build = Build.query.get(build_id)
+
+    publish_build_update(build)
 
     for job in all_jobs:
         db.session.expire(job)

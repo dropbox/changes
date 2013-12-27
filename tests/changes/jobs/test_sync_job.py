@@ -13,7 +13,10 @@ class SyncBuildTest(TestCase):
     @mock.patch('changes.jobs.sync_job.sync_with_builder')
     @mock.patch('changes.jobs.sync_job.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
-    def test_simple(self, get_implementation, queue_delay, sync_with_builder):
+    @mock.patch('changes.jobs.sync_job.publish_build_update')
+    @mock.patch('changes.jobs.sync_job.publish_job_update')
+    def test_simple(self, publish_job_update, publish_build_update,
+                    get_implementation, queue_delay, sync_with_builder):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -61,14 +64,19 @@ class SyncBuildTest(TestCase):
 
         assert build.status == Status.in_progress
 
-        # ensure signal is fired
         queue_delay.assert_any_call('sync_job', kwargs={
             'job_id': job.id.hex,
         }, countdown=5)
 
+        publish_build_update.assert_called_once_with(build)
+        publish_job_update.assert_called_once_with(job)
+
     @mock.patch('changes.jobs.sync_job.sync_with_builder')
     @mock.patch('changes.jobs.sync_job.queue.delay')
-    def test_without_build_plan(self, queue_delay, sync_with_builder):
+    @mock.patch('changes.jobs.sync_job.publish_build_update')
+    @mock.patch('changes.jobs.sync_job.publish_job_update')
+    def test_without_build_plan(self, publish_job_update, publish_build_update,
+                                queue_delay, sync_with_builder):
         def mark_finished(job):
             job.duration = 5000
             job.status = Status.finished
@@ -89,8 +97,10 @@ class SyncBuildTest(TestCase):
         assert job.status == Status.finished
         assert build.status == Status.finished
 
-        # job sync is abstracted via sync_with_builder
         sync_with_builder.assert_called_once_with(job=job)
+
+        publish_build_update.assert_called_once_with(build)
+        publish_job_update.assert_called_once_with(job)
 
         queue_delay.assert_any_call('update_build_result', kwargs={
             'build_id': build.id.hex,

@@ -8,7 +8,7 @@ from changes.backends.base import UnrecoverableException
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
-from changes.events import publish_job_update
+from changes.events import publish_build_update, publish_job_update
 from changes.models import Build, Job, JobPlan, Plan, RemoteEntity
 from changes.utils.locking import lock
 
@@ -95,6 +95,10 @@ def _sync_job(job_id):
             Build.date_started: job.date_started,
             Build.date_modified: current_datetime,
         }, synchronize_session=False)
+
+        build = Build.query.get(job.build_id)
+
+        publish_build_update(build)
 
     # if this job isnt finished, we assume that there's still data to sync
     if job.status != Status.finished:

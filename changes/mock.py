@@ -165,6 +165,13 @@ def job(build, change=None, **kwargs):
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
+    kwargs['repository_id'] = kwargs['repository'].id
+    kwargs['project_id'] = kwargs['project'].id
+    kwargs['author_id'] = kwargs['author'].id
+    kwargs['build_id'] = build.id
+    if change:
+        kwargs['change_id'] = change.id
+
     cur_no_query = db.session.query(
         coalesce(func.max(Job.number), 0)
     ).filter(
