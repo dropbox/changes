@@ -49,13 +49,19 @@ def update_build_result(build_id, job_id=None):
         Job.build_id == build_id,
     ))
 
-    date_started = safe_agg(min, (j.date_started for j in all_jobs if j.date_started))
-    date_finished = safe_agg(max, (j.date_finished for j in all_jobs if j.date_finished))
-    if date_started and date_finished:
-        duration = int((date_finished - date_started).total_seconds() * 1000)
+    if all_jobs:
+        date_started = safe_agg(min, (j.date_started for j in all_jobs if j.date_started))
+        date_finished = safe_agg(max, (j.date_finished for j in all_jobs if j.date_finished))
+        if date_started and date_finished:
+            duration = int((date_finished - date_started).total_seconds() * 1000)
+        else:
+            duration = None
+        result = safe_agg(max, (j.result for j in all_jobs), Result.unknown)
     else:
+        date_started = None
+        date_finished = None
         duration = None
-    result = safe_agg(max, (j.result for j in all_jobs), Result.unknown)
+        result = Result.aborted
 
     Build.query.filter(
         Build.id == build_id
