@@ -113,9 +113,10 @@ class APIView(MethodView):
             for k, v in request.args.iteritems()
             if k != 'page'
         )
-        base_url = request.base_url
         if querystring:
-            base_url += u'?' + querystring
+            base_url = '{0}?{1}'.format(request.base_url, querystring)
+        else:
+            base_url = request.base_url + '?'
 
         link_values = []
         for name, page_no in links:
