@@ -35,7 +35,6 @@ class _PubSubState(object):
 
         self._redis = self.get_connection()
         self._pubsub = self._redis.pubsub()
-        self._pubsub.psubscribe('*')
 
         gevent.spawn(self._redis_listen)
 
@@ -43,8 +42,7 @@ class _PubSubState(object):
         return redis.from_url(self.app.config['REDIS_URL'])
 
     def publish(self, channel, data):
-        self._redis.publish(channel, json.dumps(data))
-        gevent.sleep(0)
+        gevent.spawn(self._redis.publish, channel, json.dumps(data))
 
     def subscribe(self, channel, callback):
         self._callbacks[channel].add(callback)
@@ -76,17 +74,16 @@ class _PubSubState(object):
             # because callbacks is shared, we copy the set into a new list
             # to ensure it doesnt change during iteration
             for cb in list(callbacks):
-                cb(data)
-                gevent.sleep(0)
+                gevent.spawn(cb, data)
 
     def _redis_listen(self):
+        self._pubsub.psubscribe('*')
         for msg in self._pubsub.listen():
             try:
-                self._process_msg(msg)
+                gevent.spawn(self._process_msg, msg)
             except Exception as exc:
                 self.app.logger.warn(
                     'Could not process message: %s', exc, exc_info=True)
-            gevent.sleep(0)
 
 
 class PubSub(object):
