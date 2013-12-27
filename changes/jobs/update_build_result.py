@@ -6,10 +6,12 @@ from changes.events import publish_build_update
 from changes.models import Build, Job
 
 
-def safe_agg(func, sequence):
-    m = None
+def safe_agg(func, sequence, default=None):
+    m = default
     for item in sequence:
-        if m is None:
+        if item is None:
+            continue
+        elif m is None:
             m = item
         elif item:
             m = func(m, item)
@@ -53,11 +55,12 @@ def update_build_result(build_id, job_id=None):
         duration = int((date_finished - date_started).total_seconds() * 1000)
     else:
         duration = None
+    result = safe_agg(max, (j.result for j in all_jobs), Result.unknown)
 
     Build.query.filter(
         Build.id == build_id
     ).update({
-        Build.result: max(j.result for j in all_jobs),
+        Build.result: result,
         Build.status: Status.finished,
         Build.date_modified: current_datetime,
         Build.date_started: date_started,
