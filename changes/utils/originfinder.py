@@ -21,6 +21,9 @@ def find_failure_origins(job, test_failures):
     """
     project = job.project
 
+    if not test_failures:
+        return {}
+
     # find any existing failures in the previous runs
     # to do this we first need to find the last passing job
     last_pass = Job.query.filter(
@@ -48,6 +51,9 @@ def find_failure_origins(job, test_failures):
         Job.id != last_pass.id,
         Job.patch == None,  # NOQA
     ).order_by(Job.date_created.desc())[:100]
+
+    if not previous_runs:
+        return {}
 
     # we now have a list of previous_runs so let's find all test failures in
     # these runs
