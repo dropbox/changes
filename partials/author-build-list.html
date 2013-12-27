@@ -16,11 +16,16 @@
 				<td>
 					<a href="{{build.link}}">{{build.name}}</a>
 					<small>
-						<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash; {{build.target}}
+						<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash;
+						<span ng-if="build.number">#{{build.number}} &mdash; </span>
+						{{build.target}}
 						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 					</small>
 					<span class="status">{{getBuildStatus(build)}}</span>
-					<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
+					<span class="date" ng-if="build.dateStarted">
+						<span time-since="build.dateStarted"></span>
+						<span ng-if="build.duration"> &mdash; <span duration="build.duration"></span></span>
+					</span>
 				</td>
 			</tr>
 		</tbody>

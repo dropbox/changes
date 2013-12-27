@@ -6,20 +6,10 @@
       'utils/sortBuildList',
       'directives/radialProgressBar',
       'directives/timeSince'], function(app, sortBuildList) {
-    var authorBuildListCtrl = function(initialBuildList, $scope, $http, Stream) {
+    var authorBuildListCtrl = function(initialBuildList, $scope, $rootScope, $http, Stream) {
 
       var stream,
           entrypoint = '/api/0/authors/me/builds/';
-
-      $scope.builds = sortBuildList(initialBuildList.data.builds);
-
-      $scope.getBuildStatus = function(build) {
-        if (build.status.id == 'finished') {
-          return build.result.name;
-        } else {
-          return build.status.name;
-        }
-      };
 
       function addBuild(data) {
         $scope.$apply(function() {
@@ -52,12 +42,51 @@
         });
       }
 
+      function loadBuildList(url) {
+        if (!url) {
+          return;
+        }
+        $http.get(url)
+          .success(function(data, status, headers){
+            $scope.builds = sortBuildList(data);
+            $scope.pageLinks = parseLinkHeader(headers('Link'));
+          });
+      }
+
+      $scope.loadPreviousPage = function() {
+        $(document.body).scrollTop(0);
+        loadBuildList($scope.pageLinks.previous);
+      };
+
+      $scope.loadNextPage = function() {
+        $(document.body).scrollTop(0);
+        loadBuildList($scope.pageLinks.next);
+      };
+
+      $scope.$watch("pageLinks", function(value) {
+        $scope.nextPage = value.next || null;
+        $scope.previousPage = value.previous || null;
+      });
+
+      $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
+
+      $scope.builds = sortBuildList(initialBuildList.data.builds);
+      $rootScope.pageTitle = 'My Builds';
+
+      $scope.getBuildStatus = function(build) {
+        if (build.status.id == 'finished') {
+          return build.result.name;
+        } else {
+          return build.status.name;
+        }
+      };
+
       stream = new Stream($scope, entrypoint);
-      stream.subscribe('job.update', addBuild);
+      stream.subscribe('build.update', addBuild);
 
     };
 
-    app.controller('authorBuildListCtrl', ['initialBuildList', '$scope', '$http', 'stream', authorBuildListCtrl]);
+    app.controller('authorBuildListCtrl', ['initialBuildList', '$scope', '$rootScope', '$http', 'stream', authorBuildListCtrl]);
 
     return authorBuildListCtrl;
   });

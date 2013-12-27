@@ -29,5 +29,5 @@ class AuthorBuildListTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['builds']) == 1
-        assert data['builds'][0]['id'] == job.id.hex
+        assert len(data) == 1
+        assert data[0]['id'] == job.id.hex

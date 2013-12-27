@@ -4,7 +4,7 @@ from flask import session
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Author, Job
+from changes.models import Author, Build
 
 
 class AuthorBuildIndexAPIView(APIView):
@@ -22,23 +22,17 @@ class AuthorBuildIndexAPIView(APIView):
                 'builds': [],
             })
 
-        queryset = Job.query.options(
-            joinedload(Job.project),
-            joinedload(Job.author),
-        ).filter_by(
-            author=author,
-        ).order_by(Job.date_created.desc(), Job.date_started.desc())
+        queryset = Build.query.options(
+            joinedload(Build.project),
+            joinedload(Build.author),
+        ).filter(
+            Build.author_id == author.id,
+        ).order_by(Build.date_created.desc(), Build.date_started.desc())
 
-        build_list = list(queryset)[:25]
-
-        context = {
-            'builds': build_list,
-        }
-
-        return self.respond(context)
+        return self.paginate(queryset)
 
     def get_stream_channels(self, author_id):
         author = self._get_author(author_id)
         if not author:
             return []
-        return ['authors:{0}:jobs'.format(author.id.hex)]
+        return ['authors:{0}:builds'.format(author.id.hex)]
