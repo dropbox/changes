@@ -8,11 +8,12 @@
       'utils/escapeHtml',
       'utils/parseLinkHeader',
       'utils/sortBuildList',
+      'modules/collection',
       'directives/radialProgressBar',
       'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
     app.controller('projectDetailsCtrl', [
-        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream',
-        function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, Stream) {
+        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', 'collection',
+        function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, Stream, Collection) {
       var stream,
           entrypoint = '/api/0/projects/' + $routeParams.project_id + '/builds/',
           chart_options = {
@@ -42,41 +43,6 @@
             }
           };
 
-      function addBuild(data) {
-        if (data.patch && !$scope.includePatches) {
-          return;
-        }
-
-        $scope.$apply(function() {
-          var updated = false,
-              item_id = data.id,
-              attr, result, item;
-
-          if ($scope.builds.length > 0) {
-            result = $.grep($scope.builds, function(e){ return e.id == item_id; });
-            if (result.length > 0) {
-              item = result[0];
-              for (attr in data) {
-                // ignore dateModified as we're updating this frequently and it causes
-                // the dirty checking behavior in angular to respond poorly
-                if (item[attr] != data[attr] && attr != 'dateModified') {
-                  updated = true;
-                  item[attr] = data[attr];
-                }
-                if (updated) {
-                  item.dateModified = data.dateModified;
-                }
-              }
-            }
-          }
-          if (!updated) {
-            $scope.builds.unshift(data);
-            sortBuildList($scope.builds);
-            $scope.builds = $scope.builds.slice(0, 100);
-          }
-        });
-      }
-
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
           return build.result.name;
@@ -91,7 +57,10 @@
         }
         $http.get(url)
           .success(function(data, status, headers){
-            $scope.builds = sortBuildList(data);
+            $scope.builds = new Collection($scope, data, {
+              sortFunc: sortBuildList,
+              limit: 100
+            });
             $scope.pageLinks = parseLinkHeader(headers('Link'));
           });
       }
@@ -114,7 +83,10 @@
       $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
 
       $scope.project = initialProject.data.project;
-      $scope.builds = sortBuildList(initialBuildList.data);
+      $scope.builds = new Collection($scope, initialBuildList.data, {
+        sortFunc: sortBuildList,
+        limit: 100
+      });
       $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       $scope.includePatches = false;
       $rootScope.activeProject = $scope.project;
@@ -129,7 +101,9 @@
       });
 
       stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', addBuild);
+      stream.subscribe('build.update', function(data){
+        $scope.builds.updateItem(data);
+      });
     }]);
   });
 })();
