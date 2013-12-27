@@ -24,7 +24,7 @@
 
       $http.get('/api/0/projects/')
         .success(function(data){
-          $scope.projectList = data.projects;
+          $scope.projectList = data;
         });
 
       $rootScope.$watch('pageTitle', function(value) {
