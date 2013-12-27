@@ -43,7 +43,7 @@
         }
 
         // older than the 'current' last build
-        if (data.dateCreated < project.lastBuild.dateCreated) {
+        if (!project.lastBuild || data.dateCreated < project.lastBuild.dateCreated) {
           return;
         }
 
