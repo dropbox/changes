@@ -36,7 +36,10 @@ def update_build_result(build_id, job_id):
 
     date_started = min(j.date_started for j in all_jobs)
     date_finished = max(j.date_finished for j in all_jobs)
-    duration = int((date_finished - date_started).total_seconds() * 1000)
+    if date_started and date_finished:
+        duration = int((date_finished - date_started).total_seconds() * 1000)
+    else:
+        duration = None
 
     Build.query.filter(
         Build.id == build_id
