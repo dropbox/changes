@@ -27,11 +27,9 @@ class ProjectTestIndexAPIView(APIView):
         if not project:
             return Response(status=404)
 
-        cutoff = datetime.utcnow() - timedelta(days=3)
-
         latest_job = Job.query.options(
-            joinedload(Job.project),
-            joinedload(Job.author),
+            subqueryload(Job.project),
+            subqueryload(Job.author),
         ).filter(
             Job.revision_sha != None,  # NOQA
             Job.patch_id == None,
@@ -39,7 +37,7 @@ class ProjectTestIndexAPIView(APIView):
             Job.status == Status.finished,
         ).order_by(
             Job.date_created.desc(),
-        ).first()
+        ).limit(1).first()
 
         if latest_job:
             test_list = db.session.query(AggregateTestGroup, TestGroup).options(
@@ -54,7 +52,6 @@ class ProjectTestIndexAPIView(APIView):
             ).filter(
                 AggregateTestGroup.parent_id == None,  # NOQA: we have to use == here
                 AggregateTestGroup.project_id == project.id,
-                Job.date_created > cutoff,
             ).order_by(TestGroup.duration.desc())
 
             results = []
