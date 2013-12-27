@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import statprof
 import sys
 
 from changes.utils.gevent import patch_gevent
@@ -11,13 +12,14 @@ def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser(description='Manage builds')
 
     parser.add_argument('--addr', default='127.0.0.1:5000')
+    parser.add_argument('--profile')
 
     args = parser.parse_args(argv)
 
-    web(addr=args.addr)
+    web(addr=args.addr, profile=args.profile)
 
 
-def web(addr):
+def web(addr, profile=None):
     from gevent import pywsgi
     from changes.config import create_app
 
@@ -30,7 +32,15 @@ def web(addr):
     print "Listening on http://{0}".format(addr)
 
     app = create_app(SERVER_NAME=addr)
-    pywsgi.WSGIServer((host, port), app).serve_forever()
+    if profile:
+        statprof.start()
+    try:
+        pywsgi.WSGIServer((host, port), app).serve_forever()
+    finally:
+        if profile:
+            statprof.stop()
+            with open(profile, 'wb') as fp:
+                statprof.display(fp)
 
 
 if __name__ == '__main__':
