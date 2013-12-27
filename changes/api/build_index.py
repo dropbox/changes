@@ -86,6 +86,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         label=label,
         target=target,
         revision_sha=sha,
+        patch=patch,
         message=message,
     )
 
