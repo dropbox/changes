@@ -14,6 +14,7 @@ from changes.config import db, queue
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
+from changes.events import publish_build_update, publish_job_update
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
     Change, ItemOption, Source
@@ -80,10 +81,12 @@ def create_build(project, sha, label, target, message, author, change=None,
     build = Build(
         number=cur_no_query + 1,
         project=project,
+        project_id=project.id,
         source=source,
         repository=repository,
         status=Status.queued,
         author=author,
+        author_id=author.id,
         label=label,
         target=target,
         revision_sha=sha,
@@ -106,12 +109,15 @@ def create_build(project, sha, label, target, message, author, change=None,
 
         job = Job(
             build=build,
+            build_id=build.id,
             number=cur_no_query + 1,
             source=source,
             project=project,
+            project_id=project.id,
             repository=repository,
             status=Status.queued,
             author=author,
+            author_id=author.id,
             label=label,
             target=target,
             revision_sha=sha,
@@ -133,12 +139,15 @@ def create_build(project, sha, label, target, message, author, change=None,
 
         job = Job(
             build=build,
+            build_id=build.id,
             number=cur_no_query + 1,
             project=project,
+            project_id=project.id,
             source=source,
             repository=repository,
             status=Status.queued,
             author=author,
+            author_id=author.id,
             label=plan.label,
             target=target,
             revision_sha=sha,
@@ -165,7 +174,10 @@ def create_build(project, sha, label, target, message, author, change=None,
 
     db.session.commit()
 
+    publish_build_update(build)
+
     for job in jobs:
+        publish_job_update(job)
         queue.delay('create_job', kwargs={
             'job_id': job.id.hex,
         }, countdown=5)
