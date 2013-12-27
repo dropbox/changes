@@ -4,7 +4,7 @@
 
 <h2 style="font-weight:normal">
 	{{ build.label }} <small style="color:#999">{{ build.target or build.revision_sha }}</small><br>
-	<small style="color:#999">{{ job.label }}</small>
+	<small style="color:#999">#{{ build.number }}.{{ job.number }} {{ job.label }}</small>
 </h2>
 
 <dl>
