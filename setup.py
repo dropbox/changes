@@ -31,8 +31,9 @@ tests_require = [
 ]
 
 install_requires = [
-    'argparse>=1.2.1,<1.3.0',
     'alembic>=0.6.0,<0.7.0',
+    'ansi2html>=1.0.5,<1.1.0',
+    'argparse>=1.2.1,<1.3.0',
     'blinker>=1.3,<1.4',
     'celery>=3.1,<3.2',
     'kombu>=3.0.8,<4.0.0',
