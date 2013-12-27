@@ -99,7 +99,7 @@ def change(project, **kwargs):
         kwargs['message'] = '\n\n'.join(get_paragraphs(2))
 
     if 'label' not in kwargs:
-        diff_id = 'D{0}'.format(random.randint(1000, 100000))
+        diff_id = 'D{0}'.format(random.randint(1000, 1000000000000))
         kwargs['label'] = '{0}: {1}'.format(
             diff_id, kwargs['message'].splitlines()[0]
         )[:128]
