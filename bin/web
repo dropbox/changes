@@ -21,7 +21,7 @@ def main(argv=sys.argv[1:]):
 
 def web(addr, profile=None):
     from gevent import pywsgi
-    from changes.config import create_app
+    from changes.config import create_app, db
 
     host, port = addr.split(':')
     if not host:
@@ -32,6 +32,9 @@ def web(addr, profile=None):
     print "Listening on http://{0}".format(addr)
 
     app = create_app(SERVER_NAME=addr)
+    # use threadlocals for gevent compatibility
+    db.get_engine(app).engine.pool._use_threadlocal = True
+
     if profile:
         statprof.start()
     try:

@@ -21,6 +21,7 @@ from changes.utils.trace import TracerMiddleware
 db = SQLAlchemy(session_options={
     'autoflush': True,
 })
+
 mail = Mail()
 pubsub = PubSub()
 queue = Celery()
