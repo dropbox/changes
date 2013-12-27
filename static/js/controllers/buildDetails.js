@@ -92,7 +92,7 @@
       }
 
       $scope.retryBuild = function() {
-        $http.post('/api/0/builds/' + $scope.job.id + '/retry/')
+        $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
           .success(function(data){
             $window.location.href = data.build.link;
           })
