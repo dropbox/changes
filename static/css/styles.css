@@ -405,12 +405,9 @@ table > tbody > tr.result-skipped > td.result span {
 .build-list td small,
 .change-list td .date,
 .build-list td .date,
-.job-list td .date,
 .change-list td .status,
-.build-list td .status,
-.job-list td .status {
+.build-list td .status {
   color: #999;
-  font-weight: 300;
 }
 .change-list td .date,
 .build-list td .date,
@@ -432,11 +429,12 @@ table > tbody > tr.result-skipped > td.result span {
 }
 
 .job-list td .info {
-  top: 12px;
-  background: inherit;
   position: absolute;
-  font-size: 0.7em;
+  top: 12px;
   right: 15px;
+  background: inherit;
+  font-size: 0.7em;
+  color: #999;
 }
 
 .change-list > tbody > tr:nth-child(odd) > td,
