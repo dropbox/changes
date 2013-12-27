@@ -46,7 +46,7 @@
 		<pre ng-if="build.message" class="build-message" ng-bind-html="formattedBuildMessage"></pre>
 
 		<h3>Jobs</h3>
-		<table class="build-list table table-striped">
+		<table class="job-list table table-striped">
 			<tbody>
 				<tr class="status-{{job.status.id}} result-{{job.result.id}}"
 					ng-repeat="job in jobs">
@@ -60,14 +60,11 @@
 						</div>
 					</td>
 					<td>
-						<a href="{{job.link}}">{{job.name}}</a><br>
-
-						<small>
-							<span ng-if="build.number">#{{build.number}}.{{job.number}} &mdash; </span>
-							{{job.target}}
-						</small>
-						<span class="status">{{getBuildStatus(job)}}</span>
-						<span class="date" ng-if="job.dateStarted" time-since="job.dateStarted"></span>
+						<a href="{{job.link}}">#{{build.number}}.{{job.number}} &mdash; {{job.name}}</a><br>
+						<span class="info">
+							<span class="status">{{getBuildStatus(job)}}</span>
+							<span class="date" ng-if="job.dateStarted" time-since="job.dateStarted"></span>
+						</span>
 					</td>
 				</tr>
 			</tbody>

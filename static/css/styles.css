@@ -341,21 +341,29 @@ table > tbody > tr.result-skipped > td.result span {
 
 
 .build-list,
-.change-list {
+.change-list,
+.job-list {
   list-style: none;
   padding-left: 0;
 }
 
-
 .change-list td:first-child,
-.build-list td:first-child {
+.build-list td:first-child,
+.job-list td:first-child {
   width: 32px;
   vertical-align: middle;
   padding-top: 10px;
   padding-left: 15px;
 }
+
+.job-list td:first-child {
+  width: 16px;
+  padding-top: 5px;
+}
+
 .change-list > tbody > tr > td,
-.build-list > tbody > tr > td {
+.build-list > tbody > tr > td,
+.job-list > tbody > tr > td {
   border-top: 0;
   position: relative;
 }
@@ -363,14 +371,25 @@ table > tbody > tr.result-skipped > td.result span {
 .change-list td .indicator,
 .change-list td .indicator > div,
 .build-list td .indicator,
-.build-list td .indicator > div {
+.build-list td .indicator > div,
+ {
   width: 32px;
   height: 32px;
   border-radius: 32px;
   position: relative;
 }
+
+.job-list td .indicator,
+.job-list td .indicator > div {
+  width: 16px;
+  height: 16px;
+  border-radius: 16px;
+  position: relative;
+}
+
 .change-list td > a,
-.build-list td > a {
+.build-list td > a,
+.job-list td > a {
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -382,8 +401,10 @@ table > tbody > tr.result-skipped > td.result span {
 .build-list td small,
 .change-list td .date,
 .build-list td .date,
+.job-list td .date,
 .change-list td .status,
-.build-list td .status {
+.build-list td .status,
+.job-list td .status {
   color: #999;
   font-weight: 300;
 }
@@ -400,13 +421,23 @@ table > tbody > tr.result-skipped > td.result span {
 .build-list td .date {
   bottom: 10px;
 }
+
 .change-list td .status,
 .build-list td .status {
   top: 10px;
 }
 
+.job-list td .info {
+  top: 12px;
+  background: inherit;
+  position: absolute;
+  font-size: 0.7em;
+  right: 15px;
+}
+
 .change-list > tbody > tr:nth-child(odd) > td,
-.build-list > tbody > tr:nth-child(odd) > td {
+.build-list > tbody > tr:nth-child(odd) > td,
+.job-list > tbody > tr:nth-child(odd) > td {
   background: #f7f5fa;
 }
 .well {
