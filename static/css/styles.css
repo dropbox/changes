@@ -408,6 +408,7 @@ table > tbody > tr.result-skipped > td.result span {
 .change-list td .status,
 .build-list td .status {
   color: #999;
+  font-weight: 300;
 }
 .change-list td .date,
 .build-list td .date,
@@ -435,6 +436,7 @@ table > tbody > tr.result-skipped > td.result span {
   background: inherit;
   font-size: 0.7em;
   color: #999;
+  font-weight: 300;
 }
 
 .change-list > tbody > tr:nth-child(odd) > td,
