@@ -3,6 +3,7 @@ import flask
 import os
 import os.path
 
+from celery.signals import after_task_publish
 from datetime import timedelta
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
@@ -274,6 +275,11 @@ def configure_jobs(app):
     from changes.jobs.sync_repo import sync_repo
     from changes.jobs.update_build_result import update_build_result
     from changes.jobs.update_project_stats import update_project_stats
+
+    @after_task_publish.connect
+    def cleanup_session(*args, **kwargs):
+        db.session.commit()
+        db.session.remove()
 
     queue.register('check_repos', check_repos)
     queue.register('cleanup_jobs', cleanup_jobs)
