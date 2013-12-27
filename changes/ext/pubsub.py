@@ -7,6 +7,7 @@ import redis
 from collections import defaultdict
 from flask import _app_ctx_stack
 from fnmatch import fnmatch
+from gevent.pool import Pool
 from uuid import uuid4
 
 
@@ -30,6 +31,8 @@ class _PubSubState(object):
         self.ext = ext
         self.app = app
 
+        self._gpool = Pool()
+
         self._callbacks = defaultdict(set)
         self._channel = 't_' + uuid4().hex
 
@@ -38,23 +41,19 @@ class _PubSubState(object):
 
         self._spawn(self._redis_listen)
 
-    def _spawn(self, *args, **kwargs):
-        return gevent.spawn(*args, **kwargs).link_exception(self._log_error)
-
-    def _log_error(self, greenlet):
-        self.app.logger.error(unicode(greenlet.exception))
-
     def get_connection(self):
         return redis.from_url(self.app.config['REDIS_URL'])
 
     def publish(self, channel, data):
-        self._spawn(self._redis.publish, channel, json.dumps(data))
+        self._spawn(self._publish_msg, channel, data)
+        gevent.sleep(0)
 
     def subscribe(self, channel, callback):
         self._callbacks[channel].add(callback)
         self.app.logger.info(
             'Channel {%s} has %d subscriber(s)', channel,
             len(self._callbacks[channel]))
+        gevent.sleep(0)
 
     def unsubscribe(self, channel, callback):
         try:
@@ -65,6 +64,16 @@ class _PubSubState(object):
         self.app.logger.info(
             'Channel {%s} has %d subscriber(s)',
             channel, len(self._callbacks[channel]))
+        gevent.sleep(0)
+
+    def _spawn(self, *args, **kwargs):
+        return self._gpool.spawn(*args, **kwargs).link_exception(self._log_error)
+
+    def _log_error(self, greenlet):
+        self.app.logger.error(unicode(greenlet.exception))
+
+    def _publish_msg(self, channel, data):
+        self._redis.publish(channel, json.dumps(data))
 
     def _process_msg(self, msg):
         if msg.get('type') in ('psubscribe', 'psubscribe'):

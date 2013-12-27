@@ -130,8 +130,12 @@ def build(project, **kwargs):
         Build.project_id == project.id,
     ).scalar()
 
+    kwargs['project'] = project
+    kwargs['repository_id'] = kwargs['repository'].id
+    kwargs['project_id'] = kwargs['project'].id
+    kwargs['author_id'] = kwargs['author'].id
+
     build = Build(
-        project=project,
         number=cur_no_query + 1,
         **kwargs
     )

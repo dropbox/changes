@@ -8,6 +8,7 @@ from datetime import datetime
 from changes import mock
 from changes.config import db, create_app
 from changes.constants import Result, Status
+from changes.events import publish_build_update, publish_job_update
 from changes.models import Change, Job, LogSource, TestResultManager
 
 app = create_app()
@@ -51,6 +52,7 @@ def create_new_entry(project):
         status=Status.in_progress,
         date_started=date_started,
     )
+    publish_build_update(build)
 
     for x in xrange(3):
         job = mock.job(
@@ -59,6 +61,7 @@ def create_new_entry(project):
             author=change.author,
             status=Status.in_progress,
         )
+        publish_job_update(job)
 
         logsource = LogSource(
             job=job,
@@ -89,6 +92,7 @@ def update_existing_entry(project):
     job.result = Result.failed if random.randint(0, 3) == 1 else Result.passed
     job.date_finished = datetime.utcnow()
     db.session.add(job)
+    publish_job_update(job)
 
     test_results = []
     for _ in xrange(50):
