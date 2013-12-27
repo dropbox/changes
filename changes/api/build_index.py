@@ -18,6 +18,7 @@ from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
     Change, ItemOption, Source
 )
+from changes.utils.http import build_uri
 
 
 def create_build(project, sha, label, target, message, author, change=None,
@@ -169,7 +170,7 @@ def create_build(project, sha, label, target, message, author, change=None,
             'job_id': job.id.hex,
         }, countdown=5)
 
-    return jobs
+    return build
 
 
 class BuildIndexAPIView(APIView):
@@ -269,7 +270,7 @@ class BuildIndexAPIView(APIView):
 
         builds = []
         for project in projects:
-            builds.extend(create_build(
+            builds.append(create_build(
                 project=project,
                 change=change,
                 sha=sha,
@@ -286,7 +287,7 @@ class BuildIndexAPIView(APIView):
                 {
                     'id': b.id.hex,
                     'project': b.project,
-                    'link': '/jobs/{0}/'.format(b.id.hex),
+                    'link': build_uri('/builds/{0}/'.format(b.id.hex)),
                 } for b in builds
             ],
         }
