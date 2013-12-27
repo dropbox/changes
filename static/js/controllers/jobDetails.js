@@ -46,8 +46,8 @@
             }
           };
 
-      function getFormattedJobMessage(job) {
-        return $filter('linkify')($filter('escape')(job.message));
+      function getFormattedMessage(message) {
+        return $filter('linkify')($filter('escape')(message));
       }
 
       function getLogSourceEntrypoint(logSourceId) {
@@ -196,8 +196,8 @@
       $scope.$watch("job.status", function() {
         $scope.testStatus = getTestStatus();
       });
-      $scope.$watch("job.message", function() {
-        $scope.formattedJobMessage = getFormattedJobMessage($scope.job);
+      $scope.$watch("build.message", function(value) {
+        $scope.formattedBuildMessage = getFormattedMessage(value);
       });
       $scope.$watch("tests", function() {
         $scope.testStatus = getTestStatus();

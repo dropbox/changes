@@ -141,7 +141,6 @@ def create_build(project, sha, label, target, message, author, change=None,
             label=label,
             target=target,
             revision_sha=sha,
-            message=message,
             patch=patch,
             change=change,
         )
