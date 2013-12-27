@@ -48,10 +48,10 @@ class BuildDetailsAPIView(APIView):
         for failure in test_failures:
             failures_by_job[failure.job].append(failure)
 
-        for job, failures in failures_by_job.iteritems():
+        for job, job_failures in failures_by_job.iteritems():
             failure_origins = find_failure_origins(
-                job, failures)
-            for test_failure in test_failures:
+                job, job_failures)
+            for test_failure in job_failures:
                 test_failure.origin = failure_origins.get(test_failure)
 
         extended_serializers = {
