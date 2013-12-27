@@ -44,6 +44,7 @@ class _PubSubState(object):
 
     def publish(self, channel, data):
         self._redis.publish(channel, json.dumps(data))
+        gevent.sleep(0)
 
     def subscribe(self, channel, callback):
         self._callbacks[channel].add(callback)
