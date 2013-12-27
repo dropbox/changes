@@ -81,6 +81,7 @@ class _PubSubState(object):
             # to ensure it doesnt change during iteration
             for cb in list(callbacks):
                 self._spawn(cb, data)
+            gevent.sleep(0)
 
     def _redis_listen(self):
         self._pubsub.psubscribe('*')
