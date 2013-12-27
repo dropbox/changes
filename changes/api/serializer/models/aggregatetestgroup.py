@@ -29,9 +29,9 @@ class AggregateTestGroupSerializer(Serializer):
         return data
 
 
-class AggregateTestGroupWithBuildSerializer(AggregateTestGroupSerializer):
+class AggregateTestGroupWithJobSerializer(AggregateTestGroupSerializer):
     def serialize(self, instance):
-        data = super(AggregateTestGroupWithBuildSerializer, self).serialize(instance)
+        data = super(AggregateTestGroupWithJobSerializer, self).serialize(instance)
         data.update({
             'firstBuild': instance.first_job,
             'lastBuild': instance.last_job,

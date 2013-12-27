@@ -79,6 +79,7 @@
       $scope.jobs = initialData.data.jobs;
       $scope.previousRuns = initialData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
+      $scope.testFailures = initialData.data.testFailures;
 
       $rootScope.activeProject = $scope.project;
       $rootScope.pageTitle = getPageTitle($scope.build);

@@ -24,14 +24,14 @@ class TestGroupSerializer(Serializer):
         }
 
 
-class TestGroupWithBuildSerializer(TestGroupSerializer):
+class TestGroupWithJobSerializer(TestGroupSerializer):
     def serialize(self, instance):
-        data = super(TestGroupWithBuildSerializer, self).serialize(instance)
-        data['build'] = instance.job
+        data = super(TestGroupWithJobSerializer, self).serialize(instance)
+        data['job'] = instance.job
         return data
 
 
-class TestGroupWithOriginSerializer(TestGroupSerializer):
+class TestGroupWithOriginSerializer(TestGroupWithJobSerializer):
     def serialize(self, instance):
         data = super(TestGroupWithOriginSerializer, self).serialize(instance)
         data['origin'] = getattr(instance, 'origin', None)

@@ -3,7 +3,7 @@ from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.api.serializer.models.testgroup import TestGroupWithBuildSerializer
+from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import Job, TestGroup, TestCase
 
@@ -42,7 +42,7 @@ class TestGroupDetailsAPIView(APIView):
         ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         extended_serializers = {
-            TestGroup: TestGroupWithBuildSerializer(),
+            TestGroup: TestGroupWithJobSerializer(),
         }
 
         # O(N) db calls, so dont abuse it
