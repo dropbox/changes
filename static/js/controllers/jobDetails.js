@@ -179,7 +179,7 @@
       $scope.retryJob = function() {
         $http.post('/api/0/jobs/' + $scope.job.id + '/retry/')
           .success(function(data){
-            $window.location.href = data.build.link;
+            $window.location.href = data.job.link;
           })
           .error(function(){
             flash('error', 'There was an error while retrying this job.');
@@ -225,7 +225,8 @@
       });
 
       $scope.project = initialData.data.project;
-      $scope.job = initialData.data.build;
+      $scope.build = initialData.data.build;
+      $scope.job = initialData.data.job;
       $scope.logSources = initialData.data.logs;
       $scope.phases = initialData.data.phases;
       $scope.testFailures = initialData.data.testFailures;
@@ -235,8 +236,6 @@
 
       $rootScope.activeProject = $scope.project;
 
-
-      // TODO: we need to support multiple soruces, a real-time stream, and real-time source changes
       stream = new Stream($scope, entrypoint);
       stream.subscribe('job.update', updateJob);
       stream.subscribe('buildlog.update', updateBuildLog);

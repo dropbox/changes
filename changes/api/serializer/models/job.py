@@ -48,6 +48,7 @@ class JobSerializer(Serializer):
 
         return {
             'id': instance.id.hex,
+            'number': instance.number,
             'name': instance.label,
             'target': target,
             'result': instance.result,

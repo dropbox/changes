@@ -11,6 +11,7 @@
 			<h2>
 				{{job.name}}<br>
 				<small>
+					<span ng-if="build.number">#{{build.number}}.{{job.number}} &mdash; </span>
 					{{job.target}}
 					<span ng-if="job.author"> &mdash; {{job.author.name}}</span>
 				</small>
@@ -22,6 +23,8 @@
 		<div class="row">
 			<div class="col-lg-9 col-md-8">
 				<dl class="flat">
+					<dt ng-if="build.number">Build:</dt>
+					<dd ng-if="build.number"><a href="/builds/{{build.id}}/">#{{build.number}}</a></dd>
 					<dt ng-if="job.author">Author:</dt>
 					<dd ng-if="job.author">{{job.author.name}} <span ng-if="job.author.email">(<a href="mailto:{{job.author.email}}">{{job.author.email}}</a>)</span></dd>
 					<dt>Project:</dt>

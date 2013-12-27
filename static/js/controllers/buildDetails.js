@@ -49,6 +49,14 @@
         return $filter('linkify')($filter('escape')(build.message));
       }
 
+      $scope.getBuildStatus = function(build) {
+        if (build.status.id == 'finished') {
+          return build.result.name;
+        } else {
+          return build.status.name;
+        }
+      };
+
       function updateBuild(data){
         $scope.$apply(function() {
           $scope.build = data;
@@ -61,6 +69,7 @@
 
       $scope.project = initialData.data.project;
       $scope.build = initialData.data.build;
+      $scope.jobs = initialData.data.jobs;
       $scope.previousRuns = initialData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
 

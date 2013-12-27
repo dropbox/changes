@@ -61,8 +61,9 @@ class JobDetailsAPIView(APIView):
         ).order_by(LogSource.date_created.asc()))
 
         context = {
+            'build': job.build,
             'project': job.project,
-            'build': job,
+            'job': job,
             'phases': job.phases,
             'testFailures': {
                 'total': num_test_failures,

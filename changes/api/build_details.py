@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.constants import Status, NUM_PREVIOUS_RUNS
-from changes.models import Build
+from changes.models import Build, Job
 
 
 class BuildDetailsAPIView(APIView):
@@ -25,9 +25,14 @@ class BuildDetailsAPIView(APIView):
             Build.patch == None,  # NOQA
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
+        jobs = list(Job.query.filter(
+            Job.build_id == build.id,
+        ))
+
         context = {
             'project': build.project,
             'build': build,
+            'jobs': jobs,
             'previousRuns': previous_runs,
         }
 
