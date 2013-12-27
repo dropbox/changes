@@ -135,6 +135,7 @@
       $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       $scope.includePatches = false;
       $rootScope.activeProject = $scope.project;
+      $rootScope.pageTitle = $scope.project.name + ' Builds';
 
       $scope.$watch("includePatches", function() {
         loadBuildList(entrypoint + '?include_patches=' + ($scope.includePatches ? '1' : '0'));

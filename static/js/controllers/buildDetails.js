@@ -49,6 +49,19 @@
         return $filter('linkify')($filter('escape')(build.message));
       }
 
+      function getPageTitle(build) {
+        if (build.number) {
+          return 'Build #' + build.number + ' - ' + $scope.project.name;
+        }
+        return 'Build ' + build.id + ' - ' + $scope.project.name;
+      }
+
+      function updateBuild(data){
+        $scope.$apply(function() {
+          $scope.build = data;
+        });
+      }
+
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
           return build.result.name;
@@ -56,12 +69,6 @@
           return build.status.name;
         }
       };
-
-      function updateBuild(data){
-        $scope.$apply(function() {
-          $scope.build = data;
-        });
-      }
 
       $scope.$watch("build.message", function() {
         $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build);
@@ -74,6 +81,7 @@
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
 
       $rootScope.activeProject = $scope.project;
+      $rootScope.pageTitle = getPageTitle($scope.build);
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('job.update', updateBuild);

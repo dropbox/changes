@@ -1,9 +1,9 @@
 <!doctype html>
-<html>
+<html ng-controller="layoutCtrl">
   <head>
     <base href="/">
     <meta charset="utf-8">
-    <title>Changes</title>
+    <title ng-bind="pageTitle">Changes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% if SENTRY_PUBLIC_DSN %}
       <script type="text/javascript" src="//cdn.ravenjs.com/1.1.0-rc4/jquery,native,require/raven.min.js"></script>
@@ -18,7 +18,7 @@
     <link href="{{ url_for('static', filename='vendor/nvd3/nv.d3.css') }}" rel="stylesheet" media="screen">
     <link href="{{ url_for('static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
   </head>
-  <body ng-controller="layoutCtrl">
+  <body>
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
       <div class="row container" style="display:none">
         <!-- Brand and toggle get grouped for better mobile display -->

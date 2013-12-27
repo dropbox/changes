@@ -2,7 +2,9 @@
   'use strict';
 
   define(['app'], function(app) {
-    app.controller('layoutCtrl', ['$scope', '$rootScope', '$location', '$http', function($scope, $rootScope, $location, $http) {
+    app.controller('layoutCtrl', [
+        '$scope', '$rootScope', '$location', '$http', '$document',
+        function($scope, $rootScope, $location, $http, $document) {
       $scope.projectList = [];
       $scope.authenticated = null;
       $scope.user = null;
@@ -10,6 +12,7 @@
 
       $scope.$on('$routeChangeSuccess', function(){
         $scope.navPath = $location.path();
+        $rootScope.pageTitle = 'Changes';
         $rootScope.activeProject = null;
       });
 
@@ -23,6 +26,10 @@
         .success(function(data){
           $scope.projectList = data.projects;
         });
+
+      $rootScope.$watch('pageTitle', function(value) {
+        $document.title = value;
+      });
 
       $('.navbar .container').show();
     }]);

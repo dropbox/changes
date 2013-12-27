@@ -176,6 +176,13 @@
         });
       }
 
+      function getPageTitle(build, job) {
+        if (build.number) {
+          return 'Job #' + build.number + '.' + job.number +' - ' + $scope.project.name;
+        }
+        return 'Job ' + job.id + ' - ' + $scope.project.name;
+      }
+
       $scope.retryJob = function() {
         $http.post('/api/0/jobs/' + $scope.job.id + '/retry/')
           .success(function(data){
@@ -235,6 +242,7 @@
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.job, chart_options);
 
       $rootScope.activeProject = $scope.project;
+      $rootScope.pageTitle = getPageTitle($scope.build, $scope.job);
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('job.update', updateJob);

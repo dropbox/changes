@@ -21,7 +21,9 @@ define(['app',
   'use strict';
 
   // TODO(dcramer): We need to load initial data as part of routes
-  return app.config(['$routeProvider', '$httpProvider', '$locationProvider', function($routeProvider, $httpProvider, $locationProvider) {
+  return app.config([
+      '$routeProvider', '$httpProvider', '$locationProvider',
+      function($routeProvider, $httpProvider, $locationProvider) {
 
     $locationProvider.html5Mode(true);
 
