@@ -45,6 +45,7 @@ class ProjectTestIndexAPIView(APIView):
             test_list = db.session.query(AggregateTestGroup, TestGroup).options(
                 subqueryload(AggregateTestGroup.first_job),
                 subqueryload(AggregateTestGroup.parent),
+                subqueryload(TestGroup.parent),
             ).join(
                 TestGroup, and_(
                     TestGroup.job_id == latest_job.id,
