@@ -53,7 +53,7 @@
       }
 
       stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', addBuild);
+      stream.subscribe('job.update', addBuild);
 
     };
 
