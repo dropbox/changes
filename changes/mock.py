@@ -1,18 +1,22 @@
+# TODO(dcramer): make the API queryable internally so we dont have to have
+# multiple abstractions to creating objects
 import itertools
 import random
 
 from hashlib import sha1
 from loremipsum import get_paragraphs, get_sentences
 from slugify import slugify
+from sqlalchemy.sql import func
 from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Status, Result
+from changes.db.funcs import coalesce
+from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep,
     TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan
 )
-from changes.db.utils import get_or_create
 
 
 TEST_PACKAGES = itertools.cycle([
@@ -118,8 +122,19 @@ def build(project, **kwargs):
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('repository', project.repository)
     kwargs.setdefault('duration', random.randint(10000, 100000))
+    kwargs.setdefault('target', uuid4().hex)
 
-    build = Build(project=project, **kwargs)
+    cur_no_query = db.session.query(
+        coalesce(func.max(Build.number), 0)
+    ).filter(
+        Build.project_id == project.id,
+    ).scalar()
+
+    build = Build(
+        project=project,
+        number=cur_no_query + 1,
+        **kwargs
+    )
     db.session.add(build)
 
     return build
@@ -140,22 +155,24 @@ def plan(**kwargs):
     return result
 
 
-def job(build=None, change=None, **kwargs):
-    if build:
-        kwargs.setdefault('repository', build.repository)
-        kwargs.setdefault('project', build.project)
-        kwargs.setdefault('author', build.author)
-    elif change:
-        kwargs.setdefault('repository', change.repository)
-        kwargs.setdefault('project', change.project)
-        kwargs.setdefault('author', change.author)
-
+def job(build, change=None, **kwargs):
+    kwargs.setdefault('repository', build.repository)
+    kwargs.setdefault('project', build.project)
+    kwargs.setdefault('author', build.author)
     kwargs.setdefault('label', get_sentences(1)[0])
+    kwargs.setdefault('target', build.target)
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
+    cur_no_query = db.session.query(
+        coalesce(func.max(Job.number), 0)
+    ).filter(
+        Job.build_id == build.id,
+    ).scalar()
+
     job = Job(
+        number=cur_no_query + 1,
         build=build,
         change=change,
         **kwargs
@@ -165,7 +182,7 @@ def job(build=None, change=None, **kwargs):
     if build:
         jobplan = JobPlan(
             plan=plan(),
-            build=job,
+            build=build,
             project=job.project,
             job=job,
         )
