@@ -3,9 +3,10 @@
 
   define([
       'app',
+      'utils/parseLinkHeader',
       'utils/sortBuildList',
       'directives/radialProgressBar',
-      'directives/timeSince'], function(app, sortBuildList) {
+      'directives/timeSince'], function(app, parseLinkHeader, sortBuildList) {
     var authorBuildListCtrl = function(initialBuildList, $scope, $rootScope, $http, Stream) {
 
       var stream,

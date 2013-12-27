@@ -6,9 +6,10 @@
       'utils/chartHelpers',
       'utils/duration',
       'utils/escapeHtml',
+      'utils/parseLinkHeader',
       'utils/sortBuildList',
       'directives/radialProgressBar',
-      'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
+      'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
     app.controller('projectDetailsCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream',
         function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, Stream) {
@@ -83,24 +84,6 @@
           return build.status.name;
         }
       };
-
-      // TODO: abstract pagination functionality
-      function parseLinkHeader(header) {
-        if (header === null) {
-          return {};
-        }
-
-        var header_vals = header.split(','),
-            links = {};
-
-        $.each(header_vals, function(_, val){
-            var match = /<([^>]+)>; rel="([^"]+)"/g.exec(val);
-
-            links[match[2]] = match[1];
-        });
-
-        return links;
-      }
 
       function loadBuildList(url) {
         if (!url) {
