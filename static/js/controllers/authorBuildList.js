@@ -71,7 +71,7 @@
 
       $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
 
-      $scope.builds = sortBuildList(initialBuildList.data.builds);
+      $scope.builds = sortBuildList(initialBuildList.data);
       $rootScope.pageTitle = 'My Builds';
 
       $scope.getBuildStatus = function(build) {
