@@ -4,21 +4,26 @@ from changes.config import pubsub
 
 def publish_job_update(target):
     channels = [
-        'builds:{change_id}:{job_id}'.format(
+        'jobs:{change_id}:{job_id}'.format(
             change_id=target.change_id.hex if target.change_id else '',
             job_id=target.id.hex,
         ),
-        'projects:{project_id}:builds'.format(
+        'projects:{project_id}:jobs'.format(
             project_id=target.project_id.hex,
         ),
     ]
+    if target.build_id:
+        'builds:{build_id}:jobs:{job_id}'.format(
+            build_id=target.build_id.hex,
+            job_id=target.id.hex,
+        )
     if target.author_id:
-        channels.append('authors:{author_id}:builds'.format(
+        channels.append('authors:{author_id}:jobs'.format(
             author_id=target.author_id.hex,
         ))
 
     if not target.patch_id and target.revision_sha:
-        channels.append('revisions:{revision_id}:builds'.format(
+        channels.append('revisions:{revision_id}:jobs'.format(
             revision_id=target.revision_sha,
         ))
 
@@ -27,7 +32,7 @@ def publish_job_update(target):
 
         pubsub.publish(channel, {
             'data': json,
-            'event': 'build.update',
+            'event': 'job.update',
         })
 
 

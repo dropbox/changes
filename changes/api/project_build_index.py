@@ -43,4 +43,4 @@ class ProjectBuildIndexAPIView(APIView):
         project = self._get_project(project_id)
         if not project:
             return Response(status=404)
-        return ['projects:{0}:builds'.format(project.id.hex)]
+        return ['projects:{0}:jobs'.format(project.id.hex)]

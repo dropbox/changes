@@ -295,5 +295,5 @@ class BuildIndexAPIView(APIView):
 
     def get_stream_channels(self, change_id=None):
         if not change_id:
-            return ['builds:*']
-        return ['builds:{0}:*'.format(change_id)]
+            return ['jobs:*']
+        return ['jobs:{0}:*'.format(change_id)]

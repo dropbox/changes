@@ -36,4 +36,4 @@ class ProjectIndexAPIView(APIView):
         return self.respond(context)
 
     def get_stream_channels(self):
-        return ['builds:*']
+        return ['jobs:*']

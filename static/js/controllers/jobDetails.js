@@ -238,7 +238,7 @@
 
       // TODO: we need to support multiple soruces, a real-time stream, and real-time source changes
       stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', updateJob);
+      stream.subscribe('job.update', updateJob);
       stream.subscribe('buildlog.update', updateBuildLog);
       stream.subscribe('testgroup.update', updateTestGroup);
     }]);

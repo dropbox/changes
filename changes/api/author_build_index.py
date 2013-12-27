@@ -41,4 +41,4 @@ class AuthorBuildIndexAPIView(APIView):
         author = self._get_author(author_id)
         if not author:
             return []
-        return ['authors:{0}:builds'.format(author.id.hex)]
+        return ['authors:{0}:jobs'.format(author.id.hex)]
