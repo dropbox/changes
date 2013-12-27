@@ -16,9 +16,8 @@
         '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'pagination', 'flash',
         function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, Pagination, flash) {
 
-      var stream, logSources = {},
+      var stream,
           entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
-          buffer_size = 10000,
           chart_options = {
             tooltipFormatter: function(item) {
               var content = '';
@@ -50,197 +49,25 @@
         return $filter('linkify')($filter('escape')(build.message));
       }
 
-      function getLogSourceEntrypoint(logSourceId) {
-        return '/api/0/builds/' + $scope.build.id + '/logs/' + logSourceId + '/';
-      }
-
-      function getTestStatus() {
-        if ($scope.build.status.id == "finished") {
-          if ($scope.testGroups.length === 0) {
-            return "no-results";
-          } else {
-            return "has-results";
-          }
-        }
-        return "pending";
-      }
-
       function updateBuild(data){
         $scope.$apply(function() {
           $scope.build = data;
         });
       }
 
-      function updateBuildLog(data) {
-        // Angular isn't intelligent enough to optimize this.
-        var $el = $('#log-' + data.source.id + ' > .build-log'),
-            item, source_id = data.source.id,
-            chars_to_remove, lines_to_remove;
-
-        if ($el.length === 0) {
-          // logsource isnt available in viewpane
-          return;
-        }
-
-        if (!logSources[source_id]) {
-          return;
-        }
-
-        item = logSources[source_id];
-        if (data.offset < item.nextOffset) {
-          return;
-        }
-
-        item.nextOffset = data.offset + data.size;
-
-        if (item.size > buffer_size) {
-          $el.empty();
-        } else {
-          // determine how much space we need to clear up to append data.size
-          chars_to_remove = 0 - (buffer_size - item.size - data.size);
-
-          if (chars_to_remove > 0) {
-            // determine the number of actual lines to remove
-            lines_to_remove = item.text.substr(0, chars_to_remove).split('\n').length;
-
-            // remove number of lines (accounted by <div>'s)
-            $el.find('div').slice(0, lines_to_remove - 1).remove();
-          }
-        }
-
-        // add each additional new line
-        $.each(data.text.split('\n'), function(_, line){
-          $el.append($('<div class="line">' + line + '</div>'));
-        });
-
-        item.text = (item.text + data.text).substr(-buffer_size);
-        item.size = item.text.length;
-
-        if ($el.is(':visible')) {
-          var el = $el.get(0);
-          el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
-        }
-      }
-
-      function updateTestGroup(data) {
-        $scope.$apply(function() {
-          var updated = false,
-              item_id = data.id,
-              attr, result, item;
-
-          // TODO(dcramer); we need to refactor all of this logic as its repeated in nealry
-          // every stream
-          if ($scope.testGroups.length > 0) {
-            result = $.grep($scope.testGroups, function(e){ return e.id == item_id; });
-            if (result.length > 0) {
-              item = result[0];
-              for (attr in data) {
-                // ignore dateModified as we're updating this frequently and it causes
-                // the dirty checking behavior in angular to respond poorly
-                if (item[attr] != data[attr] && attr != 'dateModified') {
-                  updated = true;
-                  item[attr] = data[attr];
-                }
-                if (updated) {
-                  item.dateModified = data.dateModified;
-                }
-              }
-            }
-          }
-          if (!updated) {
-            $scope.testGroups.unshift(data);
-          }
-
-          if (data.result.id == 'failed') {
-            if ($scope.testFailures.length > 0) {
-              result = $.grep($scope.testFailures, function(e){ return e.id == item_id; });
-              if (result.length > 0) {
-                item = result[0];
-                for (attr in data) {
-                  // ignore dateModified as we're updating this frequently and it causes
-                  // the dirty checking behavior in angular to respond poorly
-                  if (item[attr] != data[attr] && attr != 'dateModified') {
-                    updated = true;
-                    item[attr] = data[attr];
-                  }
-                  if (updated) {
-                    item.dateModified = data.dateModified;
-                  }
-                }
-              }
-            }
-            if (!updated) {
-              $scope.testFailures.unshift(data);
-            }
-          }
-        });
-      }
-
-      $scope.retryBuild = function() {
-        $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
-          .success(function(data){
-            $window.location.href = data.build.link;
-          })
-          .error(function(){
-            flash('error', 'There was an error while retrying this build.');
-          });
-      };
-
-      $scope.$watch("build.status", function() {
-        $scope.testStatus = getTestStatus();
-      });
       $scope.$watch("build.message", function() {
         $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build);
-      });
-      $scope.$watch("tests", function() {
-        $scope.testStatus = getTestStatus();
-      });
-      $scope.$watch("logSources", function(){
-        $timeout(function(){
-          $('#log_sources a[data-toggle="tab"]').tab();
-          $('#log_sources a[data-toggle="tab"]').on('show.bs.tab', function(e){
-            var source_id = $(e.target).attr("data-source"),
-                $el = $(e.target).attr("href");
-
-            if (!logSources[source_id]) {
-              logSources[source_id] = {
-                text: '',
-                size: 0,
-                nextOffset: 0
-              };
-
-              $http.get(getLogSourceEntrypoint(source_id) + '?limit=' + buffer_size)
-                .success(function(data){
-                  $.each(data.chunks, function(_, chunk){
-                    updateBuildLog(chunk);
-                  });
-                  $("#log_sources").tab();
-                });
-            } else {
-              $el.tab('show');
-            }
-          });
-          $('#log_sources a[data-toggle="tab"]:first').tab("show");
-        });
       });
 
       $scope.project = initialData.data.project;
       $scope.build = initialData.data.build;
-      $scope.logSources = initialData.data.logs;
-      $scope.phases = initialData.data.phases;
-      $scope.testFailures = initialData.data.testFailures;
-      $scope.testGroups = initialData.data.testGroups;
       $scope.previousRuns = initialData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
 
       $rootScope.activeProject = $scope.project;
 
-
-      // TODO: we need to support multiple soruces, a real-time stream, and real-time source changes
       stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', updateBuild);
-      stream.subscribe('buildlog.update', updateBuildLog);
-      stream.subscribe('testgroup.update', updateTestGroup);
+      stream.subscribe('job.update', updateBuild);
     }]);
   });
 })();
