@@ -295,6 +295,7 @@ def configure_jobs(app):
         db.session.commit()
         db.session.remove()
 
+
 def configure_event_listeners(app):
     from changes.signals import register_listener
     from changes.utils.imports import import_string
