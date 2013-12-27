@@ -90,6 +90,7 @@ class _PubSubState(object):
             except Exception as exc:
                 self.app.logger.warn(
                     'Could not process message: %s', exc, exc_info=True)
+            gevent.sleep(0)
 
 
 class PubSub(object):
