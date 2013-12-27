@@ -41,8 +41,8 @@ class _PubSubState(object):
     def _spawn(self, *args, **kwargs):
         return gevent.spawn(*args, **kwargs).link_exception(self._log_error)
 
-    def _log_error(self, exc):
-        self.app.logger.exception(unicode(exc))
+    def _log_error(self, greenlet):
+        self.app.logger.exception(unicode(greenlet.exception))
 
     def get_connection(self):
         return redis.from_url(self.app.config['REDIS_URL'])
