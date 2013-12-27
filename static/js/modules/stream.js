@@ -29,6 +29,7 @@
           subscribe: function(event, callback){
             window.streams[url].addEventListener(event, function(e) {
               var data = $.parseJSON(e.data);
+              console.log('[Stream] Got event for ' + event);
               callback(data);
             }, false);
           }
