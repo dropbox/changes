@@ -16,9 +16,7 @@ def safe_agg(func, sequence):
     return m
 
 
-def update_build_result(build_id, job_id):
-    job = Job.query.get(job_id)
-
+def update_build_result(build_id, job_id=None):
     # TODO(dcramer): ideally this could be an exists query, but no idea how
     # to do that
     is_finished = (Job.query.filter(
@@ -30,6 +28,10 @@ def update_build_result(build_id, job_id):
 
     # dont perform most work if all jobs have not finished
     if not is_finished:
+        if not job_id:
+            return
+
+        job = Job.query.get(job_id)
         if job.result == Result.failed:
             Build.query.filter(
                 Build.id == build_id
@@ -38,6 +40,7 @@ def update_build_result(build_id, job_id):
                 Build.result: Result.failed,
                 Build.date_modified: current_datetime,
             }, synchronize_session=False)
+
         return
 
     all_jobs = list(Job.query.filter(

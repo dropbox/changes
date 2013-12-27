@@ -33,6 +33,8 @@ class UpdateBuildResultTest(TestCase):
             date_finished=datetime(2013, 9, 19, 22, 15, 26),
         )
         update_build_result(build_id=build.id.hex, job_id=job_a.id.hex)
+        # for good measure, test without job_id as well
+        update_build_result(build_id=build.id.hex)
 
         db.session.expire(build)
 
