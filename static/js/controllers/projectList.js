@@ -2,7 +2,7 @@
   'use strict';
 
   define(['app'], function(app) {
-    app.controller('projectListCtrl', ['initial', '$scope', 'stream', function(initial, $scope, Stream) {
+    app.controller('projectListCtrl', ['initial', '$scope', 'collection', 'stream', function(initial, $scope, Collection, Stream) {
       var entrypoint = '/api/0/projects/',
           stream;
 
@@ -27,7 +27,9 @@
         var project_id = data.project.id,
             result, project;
 
-        result = $.grep($scope.projects, function(e){ return e.id == project_id; });
+        result = $.grep($scope.projects, function(e){
+          return e.id == project_id;
+        });
         if (!result.length) {
           // project not found
           return;
@@ -51,9 +53,10 @@
       }
 
       $scope.getProjectClass = getProjectClass;
-      $scope.projects = initial.data.projects;
+      $scope.projects = new Collection($scope, initial.data);
 
       stream = new Stream($scope, entrypoint);
+      stream.subscribe('project.update', $scope.projects.updateItem);
       stream.subscribe('job.update', addBuild);
     }]);
   });
