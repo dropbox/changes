@@ -4,7 +4,7 @@ from flask import Response, request
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Project, Job
+from changes.models import Project, Build
 
 
 class ProjectBuildIndexAPIView(APIView):
@@ -25,16 +25,16 @@ class ProjectBuildIndexAPIView(APIView):
 
         include_patches = request.args.get('include_patches') or '1'
 
-        queryset = Job.query.options(
-            joinedload(Job.project),
-            joinedload(Job.author),
-        ).filter_by(
-            project=project,
-        ).order_by(Job.date_created.desc())
+        queryset = Build.query.options(
+            joinedload(Build.project),
+            joinedload(Build.author),
+        ).filter(
+            Build.project_id == project.id,
+        ).order_by(Build.date_created.desc())
 
         if include_patches == '0':
             queryset = queryset.filter(
-                Job.patch == None,  # NOQA
+                Build.patch == None,  # NOQA
             )
 
         return self.paginate(queryset)
@@ -43,4 +43,4 @@ class ProjectBuildIndexAPIView(APIView):
         project = self._get_project(project_id)
         if not project:
             return Response(status=404)
-        return ['projects:{0}:jobs'.format(project.id.hex)]
+        return ['projects:{0}:builds'.format(project.id.hex)]
