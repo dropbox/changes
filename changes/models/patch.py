@@ -11,6 +11,8 @@ from changes.db.types.guid import GUID
 
 
 class Patch(db.Model):
+    # TODO(dcramer): a patch is repo specific, not project specific, and the
+    # label/message/etc aren't super useful
     __tablename__ = 'patch'
 
     id = Column(GUID, primary_key=True, default=uuid4)

@@ -41,6 +41,15 @@
 					<dd ng-if="build.duration" duration="build.duration"></dd>
 				</dl>
 			</div>
+			<div class="col-lg-3 col-md-4">
+				<div class="panel panel-default">
+  					<div class="panel-body">
+						<ul class="nav nav-small">
+							<li><a href="javascript:void(0)" ng-click="retryBuild()">Retry this build</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<pre ng-if="build.message" class="build-message" ng-bind-html="formattedBuildMessage"></pre>

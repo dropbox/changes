@@ -5,7 +5,7 @@ import warnings
 from cStringIO import StringIO
 from datetime import datetime
 from flask import request
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload_all
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView, param
@@ -23,42 +23,8 @@ from changes.utils.http import build_uri
 
 
 def create_build(project, sha, label, target, message, author, change=None,
-                 patch_file=None, patch_label=None):
+                 patch=None, cause=None):
     repository = project.repository
-
-    plan_list = list(project.plans)
-    if plan_list and patch_file:
-        options = dict(
-            db.session.query(
-                ItemOption.item_id, ItemOption.value
-            ).filter(
-                ItemOption.item_id.in_([p.id for p in plan_list]),
-                ItemOption.name.in_([
-                    'build.allow-patches',
-                ])
-            )
-        )
-        plan_list = [
-            p for p in plan_list
-            if options.get(p.id, '1') == '1'
-        ]
-
-        # no plans remained
-        if not plan_list:
-            return []
-
-    if patch_file:
-        patch = Patch(
-            change=change,
-            repository=repository,
-            project=project,
-            parent_revision_sha=sha,
-            label=patch_label,
-            diff=patch_file.getvalue(),
-        )
-        db.session.add(patch)
-    else:
-        patch = None
 
     if sha or patch:
         source, _ = get_or_create(Source, where={
@@ -86,17 +52,18 @@ def create_build(project, sha, label, target, message, author, change=None,
         repository=repository,
         status=Status.queued,
         author=author,
-        author_id=author.id,
+        author_id=author.id if author else None,
         label=label,
         target=target,
         revision_sha=sha,
         patch=patch,
         message=message,
+        cause=cause,
     )
 
     db.session.add(build)
 
-    if not plan_list:
+    if not project.plans:
         # Legacy support
         # TODO(dcramer): remove this after we transition to plans
         warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
@@ -116,8 +83,8 @@ def create_build(project, sha, label, target, message, author, change=None,
             project_id=project.id,
             repository=repository,
             status=Status.queued,
-            author=author,
-            author_id=author.id,
+            author=build.author,
+            author_id=build.author_id,
             label=label,
             target=target,
             revision_sha=sha,
@@ -130,7 +97,7 @@ def create_build(project, sha, label, target, message, author, change=None,
 
         jobs.append(job)
 
-    for plan in plan_list:
+    for plan in project.plans:
         cur_no_query = db.session.query(
             coalesce(func.max(Job.number), 0)
         ).filter(
@@ -146,8 +113,8 @@ def create_build(project, sha, label, target, message, author, change=None,
             source=source,
             repository=repository,
             status=Status.queued,
-            author=author,
-            author_id=author.id,
+            author=build.author,
+            author_id=build.author_id,
             label=plan.label,
             target=target,
             revision_sha=sha,
@@ -236,7 +203,9 @@ class BuildIndexAPIView(APIView):
             projects = [project]
             repository = Repository.query.get(project.repository_id)
         else:
-            projects = list(Project.query.filter(
+            projects = list(Project.query.options(
+                subqueryload_all(Project.plans),
+            ).filter(
                 Project.repository_id == repository.id,
             ))
 
@@ -282,6 +251,40 @@ class BuildIndexAPIView(APIView):
 
         builds = []
         for project in projects:
+            plan_list = list(project.plans)
+            if plan_list and patch_file:
+                options = dict(
+                    db.session.query(
+                        ItemOption.item_id, ItemOption.value
+                    ).filter(
+                        ItemOption.item_id.in_([p.id for p in plan_list]),
+                        ItemOption.name.in_([
+                            'build.allow-patches',
+                        ])
+                    )
+                )
+                plan_list = [
+                    p for p in plan_list
+                    if options.get(p.id, '1') == '1'
+                ]
+
+                # no plans remained
+                if not plan_list:
+                    continue
+
+            if patch_file:
+                patch = Patch(
+                    change=change,
+                    repository=repository,
+                    project=project,
+                    parent_revision_sha=sha,
+                    label=patch_label,
+                    diff=patch_file.getvalue(),
+                )
+                db.session.add(patch)
+            else:
+                patch = None
+
             builds.append(create_build(
                 project=project,
                 change=change,
@@ -290,8 +293,7 @@ class BuildIndexAPIView(APIView):
                 label=label,
                 message=message,
                 author=author,
-                patch_label=patch_label,
-                patch_file=patch_file,
+                patch=patch,
             ))
 
         context = {

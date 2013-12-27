@@ -13,8 +13,8 @@
       'filters/wordwrap',
       'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('jobDetailsCtrl', [
-        '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'pagination', 'flash',
-        function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, Pagination, flash) {
+        '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'pagination',
+        function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, Pagination) {
 
       var stream, logSources = {},
           entrypoint = '/api/0/jobs/' + $routeParams.job_id + '/',
@@ -182,16 +182,6 @@
         }
         return 'Job ' + job.id + ' - ' + $scope.project.name;
       }
-
-      $scope.retryJob = function() {
-        $http.post('/api/0/jobs/' + $scope.job.id + '/retry/')
-          .success(function(data){
-            $window.location.href = data.job.link;
-          })
-          .error(function(){
-            flash('error', 'There was an error while retrying this job.');
-          });
-      };
 
       $scope.$watch("job.status", function() {
         $scope.testStatus = getTestStatus();

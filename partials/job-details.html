@@ -48,15 +48,6 @@
 					<dd ng-if="job.external"><a href="{{ job.external.link }}">{{ job.external.label }}</a></dd>
 				</dl>
 			</div>
-			<div class="col-lg-3 col-md-4">
-				<div class="panel panel-default">
-  					<div class="panel-body">
-						<ul class="nav nav-small">
-							<li><a href="javascript:void(0)" ng-click="retryJob()">Retry this job</a></li>
-						</ul>
-					</div>
-				</div>
-			</div>
 		</div>
 
 		<pre ng-if="formattedBuildMessage" class="build-message" ng-bind-html="formattedBuildMessage"></pre>
