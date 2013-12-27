@@ -27,7 +27,7 @@ class TestGroupSerializer(Serializer):
 class TestGroupWithBuildSerializer(TestGroupSerializer):
     def serialize(self, instance):
         data = super(TestGroupWithBuildSerializer, self).serialize(instance)
-        data['build'] = instance.build
+        data['build'] = instance.job
         return data
 
 
