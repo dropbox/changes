@@ -171,6 +171,7 @@ def configure_templates(app):
 def configure_api_routes(app):
     from changes.api.auth_index import AuthIndexAPIView
     from changes.api.author_build_index import AuthorBuildIndexAPIView
+    from changes.api.build_details import BuildDetailsAPIView
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
@@ -192,14 +193,14 @@ def configure_api_routes(app):
         '/api/0/auth/', view_func=AuthIndexAPIView.as_view('api-auth'))
     app.add_url_rule(
         '/api/0/authors/<author_id>/builds/', view_func=AuthorBuildIndexAPIView.as_view('api-author-build-list'))
+    # app.add_url_rule(
+    #     '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-build-list'))
     app.add_url_rule(
-        '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-build-list'))
-    app.add_url_rule(
-        '/api/0/builds/<job_id>/', view_func=JobDetailsAPIView.as_view('api-build-details'))
-    app.add_url_rule(
-        '/api/0/builds/<job_id>/retry/', view_func=JobRetryAPIView.as_view('api-build-retry'))
-    app.add_url_rule(
-        '/api/0/builds/<job_id>/logs/<source_id>/', view_func=JobLogDetailsAPIView.as_view('api-build-log-details'))
+        '/api/0/builds/<build_id>/', view_func=BuildDetailsAPIView.as_view('api-build-details'))
+    # app.add_url_rule(
+    #     '/api/0/builds/<job_id>/retry/', view_func=JobRetryAPIView.as_view('api-build-retry'))
+    # app.add_url_rule(
+    #     '/api/0/builds/<job_id>/logs/<source_id>/', view_func=JobLogDetailsAPIView.as_view('api-build-log-details'))
     app.add_url_rule(
         '/api/0/jobs/<job_id>/', view_func=JobDetailsAPIView.as_view('api-job-details'))
     app.add_url_rule(
