@@ -5,17 +5,19 @@
     .factory('collection', function(){
       var defaults = {
         sortFunc: null,
-        limit: null,
+        limit: null
       };
 
       function Collection($scope, collection, options) {
+        var i;
+
         Array.call(this);
 
         if (options === undefined) {
           options = {};
         }
 
-        for (var i in defaults) {
+        for (i in defaults) {
           if (options[i] === undefined) {
             options[i] = defaults[i];
           }
@@ -25,7 +27,7 @@
         this.$scope = $scope;
 
         if (collection !== undefined) {
-          for (var i=0; i<collection.length; i++) {
+          for (i=0; i<collection.length; i++) {
             this.push(collection[i]);
           }
         }
@@ -33,7 +35,7 @@
         return this;
       }
 
-      Collection.prototype = new Array();
+      Collection.prototype = [];
 
       Collection.prototype.constructor = Collection;
 
