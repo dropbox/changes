@@ -22,6 +22,7 @@ require.config({
     'angularRaven': ['angular'],
     'angularRoute': ['angular'],
     'angularSanitize': ['angular'],
+    'modules/collection': ['angular'],
     'modules/flash': ['angular'],
     'modules/pagination': ['angular'],
     'modules/stream': ['angular'],
@@ -41,8 +42,9 @@ require.config({
 require([
   'angular',
   'angularLoadingBar',
-  'modules/flash',
   'modules/barChart',
+  'modules/collection',
+  'modules/flash',
   'modules/stream',
   'filters/truncate',
   'routes',
@@ -51,6 +53,6 @@ require([
 ], function(angular) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'stream', 'flash', 'barChart']);
+    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'barChart', 'collection', 'flash', 'stream']);
   });
 });
