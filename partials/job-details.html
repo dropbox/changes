@@ -9,11 +9,12 @@
 					 radial-progress-bar>&nbsp;</div>
 			</div>
 			<h2>
-				{{job.name}}<br>
+				{{build.name}}<br>
 				<small>
 					<span ng-if="build.number">#{{build.number}}.{{job.number}} &mdash; </span>
 					{{job.target}}
 					<span ng-if="job.author"> &mdash; {{job.author.name}}</span>
+					&mdash; {{job.name}}
 				</small>
 			</h2>
 		</div>
