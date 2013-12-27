@@ -45,7 +45,9 @@
 
 		<pre ng-if="build.message" class="build-message" ng-bind-html="formattedBuildMessage"></pre>
 
-		<h3>Jobs</h3>
+		<div class="page-header">
+			<h3>Jobs</h3>
+		</div>
 		<table class="job-list table table-striped">
 			<tbody>
 				<tr class="status-{{job.status.id}} result-{{job.result.id}}"
