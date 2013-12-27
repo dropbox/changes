@@ -17,8 +17,12 @@ class CleanupBuildsTest(TestCase):
     def test_expires_builds(self, queue_delay):
         dt = datetime.utcnow() - (EXPIRE_BUILDS * 2)
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project, date_created=dt, status=Status.queued)
+            build=build,
+            date_created=dt,
+            status=Status.queued,
+        )
 
         cleanup_jobs()
 
@@ -36,8 +40,12 @@ class CleanupBuildsTest(TestCase):
     def test_queues_jobs(self, queue_delay):
         dt = datetime.utcnow() - (CHECK_BUILDS * 2)
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project, date_created=dt, status=Status.queued)
+            build=build,
+            date_created=dt,
+            status=Status.queued,
+        )
 
         cleanup_jobs()
 
@@ -53,8 +61,12 @@ class CleanupBuildsTest(TestCase):
     def test_ignores_recent_jobs(self, queue_delay):
         dt = datetime.utcnow()
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project, date_created=dt, status=Status.queued)
+            build=build,
+            date_created=dt,
+            status=Status.queued,
+        )
 
         cleanup_jobs()
 

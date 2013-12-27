@@ -67,8 +67,9 @@ class SyncBuildTest(KoalityBuilderTestCase):
 
         backend = self.get_builder()
         change = self.create_change(self.project)
+        build = self.create_build(self.project)
         job = self.create_job(
-            project=self.project,
+            build=build,
             change=change,
             data={
                 'project_id': 1,
@@ -203,8 +204,9 @@ class CreateBuildTest(KoalityBuilderTestCase):
 
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            project=self.project,
+            build=build,
             revision_sha=revision,
         )
 
@@ -243,8 +245,9 @@ class CreateBuildTest(KoalityBuilderTestCase):
         )
         db.session.add(patch)
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            project=self.project,
+            build=build,
             revision_sha=revision,
             patch=patch,
         )

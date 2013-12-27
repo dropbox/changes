@@ -10,10 +10,12 @@ class ProjectTestIndexTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 
-        self.create_job(self.project)
+        build = self.create_build(self.project)
+        self.create_job(build)
 
         project = self.create_project()
-        job = self.create_job(project, status=Status.finished)
+        build = self.create_build(project)
+        job = self.create_job(build, status=Status.finished)
 
         agg_group = AggregateTestGroup(
             project=project,

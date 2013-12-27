@@ -5,7 +5,8 @@ from changes.testutils import APITestCase
 
 class JobLogDetailsTest(APITestCase):
     def test_simple(self):
-        job = self.create_job(self.project)
+        build = self.create_build(self.project)
+        job = self.create_job(build)
         source = LogSource(job=job, project=self.project, name='test')
         db.session.add(source)
 

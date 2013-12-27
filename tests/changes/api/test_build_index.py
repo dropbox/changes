@@ -8,8 +8,10 @@ from changes.testutils import APITestCase, SAMPLE_DIFF
 class BuildListTest(APITestCase):
     def test_simple(self):
         change = self.create_change(self.project)
-        job = self.create_job(self.project, change=change)
-        self.create_job(self.project2)
+        build = self.create_build(self.project)
+        job = self.create_job(build, change=change)
+        build2 = self.create_build(self.project2)
+        self.create_job(build2)
 
         path = '/api/0/changes/{0}/builds/'.format(change.id.hex)
 
@@ -42,7 +44,9 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        job = Job.query.get(data['builds'][0]['id'])
+        job = Job.query.filter(
+            Job.build_id == data['builds'][0]['id']
+        ).first()
 
         assert job.number == 1
         assert job.project == self.project
@@ -67,7 +71,11 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
-        job = Job.query.get(data['builds'][0]['id'])
+
+        job = Job.query.filter(
+            Job.build_id == data['builds'][0]['id']
+        ).first()
+
         assert job.project == self.project
         assert job.revision_sha == 'a' * 40
         assert job.author.name == 'David Cramer'
@@ -96,7 +104,10 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        job = Job.query.get(data['builds'][0]['id'])
+        job = Job.query.filter(
+            Job.build_id == data['builds'][0]['id']
+        ).first()
+
         assert job.change == change
         assert job.project == self.project
         assert job.revision_sha == 'a' * 40
@@ -131,7 +142,10 @@ class BuildCreateTest(APITestCase):
         assert len(data['builds']) == 1
         assert data['builds'][0]['id']
 
-        job = Job.query.get(data['builds'][0]['id'])
+        job = Job.query.filter(
+            Job.build_id == data['builds'][0]['id']
+        ).first()
+
         assert job.patch_id is not None
         patch = Patch.query.get(job.patch_id)
         assert patch.diff == SAMPLE_DIFF
@@ -184,12 +198,15 @@ class BuildCreateTest(APITestCase):
             'project': self.project.slug,
             'author': 'David Cramer <dcramer@example.com>',
         })
+
         assert resp.status_code == 200
+
         data = self.unserialize(resp)
+
         assert len(data['builds']) == 1
 
         jobplans = list(JobPlan.query.filter(
-            JobPlan.job_id == data['builds'][0]['id'],
+            JobPlan.build_id == data['builds'][0]['id'],
         ))
 
         assert len(jobplans) == 1

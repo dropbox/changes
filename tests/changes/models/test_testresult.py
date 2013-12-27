@@ -9,7 +9,8 @@ class TestResultManagerTestCase(TestCase):
     def test_simple(self):
         from changes.models import TestCase, TestGroup
 
-        job = self.create_job(self.project)
+        build = self.create_build(self.project)
+        job = self.create_job(build)
         suite = TestSuite(name='foobar', job=job, project=self.project)
 
         db.session.add(suite)

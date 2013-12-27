@@ -7,7 +7,7 @@ class ProjectBuildListTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 
-        self.create_job(self.project)
+        self.create_build(self.project)
 
         project = self.create_project()
         build = self.create_build(project)

@@ -16,7 +16,8 @@ class CreateBuildTest(TestCase):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
-        job = self.create_job(self.project)
+        build = self.create_build(self.project)
+        job = self.create_job(build)
 
         plan = Plan(
             label='test',
@@ -66,7 +67,8 @@ class CreateBuildTest(TestCase):
     @mock.patch('changes.jobs.create_job.queue.delay')
     @mock.patch('changes.backends.jenkins.builder.JenkinsBuilder.create_job')
     def test_without_build_plan(self, builder_create_job, queue_delay):
-        job = self.create_job(self.project)
+        build = self.create_build(self.project)
+        job = self.create_job(build)
 
         create_job(job_id=job.id.hex)
 

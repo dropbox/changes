@@ -7,7 +7,8 @@ from changes.testutils import APITestCase
 class TestGroupDetailsTest(APITestCase):
     def test_simple(self):
         change = self.create_change(self.project)
-        job = self.create_job(self.project, change=change)
+        build = self.create_build(self.project)
+        job = self.create_job(build, change=change)
         testgroup = TestGroup(
             name='test.group',
             job=job,

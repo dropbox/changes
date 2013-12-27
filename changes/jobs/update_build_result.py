@@ -43,6 +43,11 @@ def update_build_result(build_id, job_id=None):
                 Build.date_modified: current_datetime,
             }, synchronize_session=False)
 
+            build = Build.query.get(build_id)
+
+            publish_build_update(build)
+
+            db.session.expire(build)
         return
 
     all_jobs = list(Job.query.filter(
@@ -80,3 +85,4 @@ def update_build_result(build_id, job_id=None):
 
     for job in all_jobs:
         db.session.expire(job)
+    db.session.expire(build)

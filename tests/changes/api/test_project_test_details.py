@@ -9,10 +9,9 @@ class ProjectTestDetailsTest(APITestCase):
     def test_simple(self):
         fake_id = uuid4()
 
-        self.create_job(self.project)
-
         project = self.create_project()
-        job = self.create_job(project)
+        build = self.create_build(project)
+        job = self.create_job(build)
 
         parent_agg_group = AggregateTestGroup(
             project=project,

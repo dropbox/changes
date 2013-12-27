@@ -63,8 +63,9 @@ class CreateBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
 
         builder = self.get_builder()
@@ -92,9 +93,11 @@ class CreateBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/api/json/',
             body=self.load_fixture('fixtures/GET/job_list.json'))
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
-            id=UUID('f9481a17aac446718d7893b6e1c6288b'))
+            build=build,
+            id=UUID('f9481a17aac446718d7893b6e1c6288b'),
+        )
 
         builder = self.get_builder()
         builder.create_job(job)
@@ -130,8 +133,9 @@ class CreateBuildTest(BaseTestCase):
         )
         db.session.add(patch)
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             patch=patch,
             revision_sha=patch.parent_revision_sha,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8')
@@ -148,8 +152,9 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_pending.json'))
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': None,
@@ -170,8 +175,9 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_cancelled.json'))
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': None,
@@ -201,8 +207,9 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': None,
@@ -231,8 +238,9 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
@@ -262,8 +270,9 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
@@ -296,8 +305,9 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
@@ -336,8 +346,9 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '7'},
             body='Foo bar')
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
@@ -379,8 +390,9 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,
@@ -418,8 +430,9 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/foobar.log',
             body='hello world')
 
+        build = self.create_build(self.project)
         job = self.create_job(
-            self.project,
+            build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
             data={
                 'build_no': 2,

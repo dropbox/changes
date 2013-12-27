@@ -90,7 +90,8 @@ def send_notification(job, recipients):
         log_clipping = get_log_clipping(
             primary_log, max_size=5000, max_lines=25)
 
-    subject = u"Build {result} - {target} ({project})".format(
+    subject = u"Build {result} - {project} #{number} ({target})".format(
+        number='{0}.{1}'.format(job.build.number, job.number),
         result=unicode(job.result),
         target=job.target or job.revision_sha or 'Unknown',
         project=job.project.name,

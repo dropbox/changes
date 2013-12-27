@@ -6,9 +6,11 @@ import unittest2
 
 from exam import Exam, fixture
 from flask import current_app as app
+from sqlalchemy.sql import func
 from uuid import uuid4
 
 from changes.config import db, mail
+from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, Project, Revision, RemoteEntity, Change, Author,
     TestGroup, Patch, Plan, Step, Build
@@ -71,41 +73,34 @@ class Fixtures(object):
 
         return group
 
-    def create_job(self, project=None, build=None, **kwargs):
-        assert build or project
+    def create_job(self, build, **kwargs):
+        project = build.project
 
-        if build:
-            kwargs.setdefault('label', build.label)
-            kwargs.setdefault('status', build.status)
-            kwargs.setdefault('result', build.result)
-            kwargs['build_id'] = build.id
-            revision_sha = kwargs.pop('revision_sha', build.revision_sha)
-            project = build.project
-        else:
-            kwargs.setdefault('label', 'Sample')
-            revision_sha = kwargs.pop('revision_sha', uuid4().hex)
-
-        revision = Revision.query.filter(
-            Revision.sha == revision_sha,
-            Revision.repository_id == project.repository_id,
-        ).first()
-        if not revision:
-            revision = Revision(
-                sha=revision_sha,
-                repository_id=project.repository_id,
-                repository=project.repository,
-            )
-            db.session.add(revision)
+        kwargs.setdefault('label', build.label)
+        kwargs.setdefault('status', build.status)
+        kwargs.setdefault('result', build.result)
+        kwargs.setdefault('author', build.author)
+        kwargs.setdefault('target', build.target)
+        kwargs.setdefault('revision_sha', build.revision_sha)
+        kwargs.setdefault('patch', build.patch)
 
         if kwargs.get('change', False) is False:
             kwargs['change'] = self.create_change(project)
 
+        cur_no_query = db.session.query(
+            coalesce(func.max(Job.number), 0)
+        ).filter(
+            Job.build_id == build.id,
+        ).scalar()
+
         job = Job(
+            build=build,
+            build_id=build.id,
+            number=cur_no_query + 1,
             repository_id=project.repository_id,
             repository=project.repository,
             project_id=project.id,
             project=project,
-            revision_sha=revision.sha,
             **kwargs
         )
         db.session.add(job)
@@ -117,7 +112,14 @@ class Fixtures(object):
 
         kwargs.setdefault('label', 'Sample')
 
+        cur_no_query = db.session.query(
+            coalesce(func.max(Build.number), 0)
+        ).filter(
+            Build.project_id == project.id,
+        ).scalar()
+
         build = Build(
+            number=cur_no_query + 1,
             repository_id=project.repository_id,
             repository=project.repository,
             project_id=project.id,

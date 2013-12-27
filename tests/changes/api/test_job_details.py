@@ -6,7 +6,8 @@ from changes.testutils import APITestCase
 class JobDetailsTest(APITestCase):
     def test_simple(self):
         change = self.create_change(self.project)
-        job = self.create_job(self.project, change=change)
+        build = self.create_build(self.project)
+        job = self.create_job(build, change=change)
 
         ls1 = LogSource(job=job, project=self.project, name='test')
         db.session.add(ls1)
