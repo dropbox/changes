@@ -193,14 +193,14 @@ def configure_api_routes(app):
         '/api/0/auth/', view_func=AuthIndexAPIView.as_view('api-auth'))
     app.add_url_rule(
         '/api/0/authors/<author_id>/builds/', view_func=AuthorBuildIndexAPIView.as_view('api-author-build-list'))
-    # app.add_url_rule(
-    #     '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-build-list'))
+    app.add_url_rule(
+        '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-build-list'))
     app.add_url_rule(
         '/api/0/builds/<build_id>/', view_func=BuildDetailsAPIView.as_view('api-build-details'))
-    # app.add_url_rule(
-    #     '/api/0/builds/<job_id>/retry/', view_func=JobRetryAPIView.as_view('api-build-retry'))
-    # app.add_url_rule(
-    #     '/api/0/builds/<job_id>/logs/<source_id>/', view_func=JobLogDetailsAPIView.as_view('api-build-log-details'))
+    app.add_url_rule(
+        '/api/0/builds/<job_id>/retry/', view_func=JobRetryAPIView.as_view('api-build-retry'))
+    app.add_url_rule(
+        '/api/0/builds/<job_id>/logs/<source_id>/', view_func=JobLogDetailsAPIView.as_view('api-build-log-details'))
     app.add_url_rule(
         '/api/0/jobs/<job_id>/', view_func=JobDetailsAPIView.as_view('api-job-details'))
     app.add_url_rule(
