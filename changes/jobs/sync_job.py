@@ -84,6 +84,8 @@ def _sync_job(job_id):
     job.date_modified = current_datetime
     db.session.add(job)
 
+    db.session.commit()
+
     # this might be the first job firing for the build, so ensure we update the
     # build if its applicable
     if job.build_id and job.status != prev_status:
@@ -95,6 +97,8 @@ def _sync_job(job_id):
             Build.date_started: job.date_started,
             Build.date_modified: current_datetime,
         }, synchronize_session=False)
+
+        db.session.commit()
 
         build = Build.query.get(job.build_id)
 
