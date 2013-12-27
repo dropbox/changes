@@ -73,5 +73,6 @@ class BuildDetailsAPIView(APIView):
 
     def get_stream_channels(self, build_id):
         return [
+            'builds:{0}'.format(build_id),
             'builds:{0}:jobs'.format(build_id),
         ]
