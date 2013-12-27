@@ -38,6 +38,7 @@ class Job(db.Model):
     repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     revision_sha = Column(String(40))
     patch_id = Column(GUID, ForeignKey('patch.id', ondelete="CASCADE"))
+    # TODO(dcramer): parent is no longer useful
     parent_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"))
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
