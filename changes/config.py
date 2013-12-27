@@ -3,7 +3,7 @@ import flask
 import os
 import os.path
 
-from celery.signals import after_task_publish
+from celery.signals import task_postrun
 from datetime import timedelta
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
@@ -164,7 +164,7 @@ def create_app(_read_config=True, **config):
     return app
 
 
-@after_task_publish.connect
+@task_postrun.connect
 def cleanup_session(*args, **kwargs):
     """
     Emulate a request cycle for each task to ensure the session objects
