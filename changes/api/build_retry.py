@@ -3,7 +3,6 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.build_index import create_build
-from changes.config import db, queue
 from changes.constants import Cause
 from changes.models import Build
 
@@ -27,11 +26,5 @@ class BuildRetryAPIView(APIView):
             patch=build.patch,
             cause=Cause.retry,
         )
-
-        db.session.commit()
-
-        queue.delay('create_build', kwargs={
-            'build_id': new_build.id.hex,
-        }, countdown=5)
 
         return redirect('/api/0/builds/{0}/'.format(new_build.id.hex))

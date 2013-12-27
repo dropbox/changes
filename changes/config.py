@@ -276,15 +276,6 @@ def configure_jobs(app):
     from changes.jobs.update_build_result import update_build_result
     from changes.jobs.update_project_stats import update_project_stats
 
-    @task_postrun.connect
-    def cleanup_session(*args, **kwargs):
-        """
-        Emulate a request cycle for each task to ensure the session objects
-        get cleaned up as expected.
-        """
-        db.session.commit()
-        db.session.remove()
-
     queue.register('check_repos', check_repos)
     queue.register('cleanup_jobs', cleanup_jobs)
     queue.register('create_job', create_job)
@@ -295,6 +286,14 @@ def configure_jobs(app):
     queue.register('update_build_result', update_build_result)
     queue.register('update_project_stats', update_project_stats)
 
+    @task_postrun.connect
+    def cleanup_session(*args, **kwargs):
+        """
+        Emulate a request cycle for each task to ensure the session objects
+        get cleaned up as expected.
+        """
+        db.session.commit()
+        db.session.remove()
 
 def configure_event_listeners(app):
     from changes.signals import register_listener
