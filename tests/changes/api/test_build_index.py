@@ -26,7 +26,6 @@ class BuildCreateTest(APITestCase):
         assert build.repository_id == job.repository_id
         assert build.project_id == job.project_id
         assert build.author_id == job.author_id
-        assert build.label == job.label
         assert build.target == job.target
         assert build.message == job.message
         assert build.revision_sha == job.revision_sha

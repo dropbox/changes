@@ -103,6 +103,7 @@ def send_notification(job, recipients):
 
     context = {
         'job': job,
+        'build': job.build,
         'total_test_failures': num_test_failures,
         'test_failures': test_failures,
     }
