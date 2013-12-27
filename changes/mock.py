@@ -117,7 +117,7 @@ def change(project, **kwargs):
 
 
 def build(project, **kwargs):
-    kwargs.setdefault('label', get_sentences(1)[0])
+    kwargs.setdefault('label', get_sentences(1)[0][:128])
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('repository', project.repository)
@@ -159,7 +159,7 @@ def job(build, change=None, **kwargs):
     kwargs.setdefault('repository', build.repository)
     kwargs.setdefault('project', build.project)
     kwargs.setdefault('author', build.author)
-    kwargs.setdefault('label', get_sentences(1)[0])
+    kwargs.setdefault('label', get_sentences(1)[0][:128])
     kwargs.setdefault('target', build.target)
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
@@ -257,18 +257,18 @@ def revision(repository, author):
     return result
 
 
-def test_suite(build, name='default'):
+def test_suite(job, name='default'):
     suite, _ = get_or_create(TestSuite, where={
-        'build': build,
+        'job': job,
         'name': name,
     }, defaults={
-        'project': build.project,
+        'project': job.project,
     })
 
     return suite
 
 
-def test_result(build, **kwargs):
+def test_result(job, **kwargs):
     if 'package' not in kwargs:
         kwargs['package'] = TEST_PACKAGES.next()
 
@@ -276,13 +276,13 @@ def test_result(build, **kwargs):
         kwargs['name'] = TEST_NAMES.next() + '_' + uuid4().hex
 
     if 'suite' not in kwargs:
-        kwargs['suite'] = test_suite(build)
+        kwargs['suite'] = test_suite(job)
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)
 
     kwargs.setdefault('result', Result.passed)
 
-    result = TestResult(build=build, **kwargs)
+    result = TestResult(job=job, **kwargs)
 
     return result

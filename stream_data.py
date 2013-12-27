@@ -57,6 +57,7 @@ def create_new_entry(project):
             build=build,
             change=change,
             author=change.author,
+            status=Status.in_progress,
         )
 
         logsource = LogSource(
@@ -85,14 +86,14 @@ def update_existing_entry(project):
         return create_new_entry(project)
 
     job.status = Status.finished
-    job.result = Result.failed if random.randint(0, 5) == 1 else Result.passed
+    job.result = Result.failed if random.randint(0, 3) == 1 else Result.passed
     job.date_finished = datetime.utcnow()
     db.session.add(job)
 
     test_results = []
     for _ in xrange(50):
         if job.result == Result.failed:
-            result = Result.failed if random.randint(0, 5) == 1 else Result.passed
+            result = Result.failed if random.randint(0, 3) == 1 else Result.passed
         else:
             result = Result.passed
         test_results.append(mock.test_result(job, result=result))
