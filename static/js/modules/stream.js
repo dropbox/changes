@@ -1,4 +1,4 @@
-(function() {
+(function(console) {
   'use strict';
 
   angular.module('stream', [])
@@ -9,18 +9,18 @@
 
       return function($scope, url, callback) {
         if (window.streams[url]) {
-          // console.log('[Stream] Closing connection to ' + url);
+          console.log('[Stream] Closing connection to ' + url);
           window.streams[url].close();
         }
-        // console.log('[Stream] Initiating connection to ' + url);
+        console.log('[Stream] Initiating connection to ' + url);
 
         window.streams[url] = new EventSource(url + '?_=' + new Date().getTime());
         window.streams[url].onopen = function(e) {
-          // console.log('[Stream] Connection opened to ' + url);
+          console.log('[Stream] Connection opened to ' + url);
         };
 
         $scope.$on("$destroy", function() {
-          // console.log('[Stream] Closing connection to ' + url);
+          console.log('[Stream] Closing connection to ' + url);
           window.streams[url].close();
           delete window.streams[url];
         });
@@ -35,4 +35,4 @@
         };
       };
     }]);
-})();
+})(console);
