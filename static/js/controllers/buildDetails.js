@@ -47,8 +47,8 @@
             }
           };
 
-      function getFormattedBuildMessage(build) {
-        return $filter('linkify')($filter('escape')(build.message));
+      function getFormattedBuildMessage(message) {
+        return $filter('linkify')($filter('escape')(message));
       }
 
       function getPageTitle(build) {
