@@ -46,7 +46,7 @@
             }
           };
 
-      function getFormattedMessage(message) {
+      function getFormattedBuildMessage(message) {
         return $filter('linkify')($filter('escape')(message));
       }
 
