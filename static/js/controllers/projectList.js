@@ -27,6 +27,10 @@
         var project_id = data.project.id,
             result, project;
 
+        if (data.source.patch) {
+          return;
+        }
+
         result = $.grep($scope.projects, function(e){
           return e.id == project_id;
         });
