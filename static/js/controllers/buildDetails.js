@@ -82,8 +82,12 @@
         }
       };
 
-      $scope.$watch("build.message", function() {
-        $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build);
+      $scope.$watch("build.message", function(value) {
+        if (value) {
+          $scope.formattedBuildMessage = getFormattedBuildMessage(value);
+        } else {
+          $scope.formattedBuildMessage = null;
+        }
       });
 
       $scope.project = initialData.data.project;

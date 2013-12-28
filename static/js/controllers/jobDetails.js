@@ -187,7 +187,11 @@
         $scope.testStatus = getTestStatus();
       });
       $scope.$watch("build.message", function(value) {
-        $scope.formattedBuildMessage = getFormattedMessage(value);
+        if (value) {
+          $scope.formattedBuildMessage = getFormattedBuildMessage(value);
+        } else {
+          $scope.formattedBuildMessage = null;
+        }
       });
       $scope.$watch("tests", function() {
         $scope.testStatus = getTestStatus();
