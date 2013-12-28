@@ -1,14 +1,40 @@
 (function(){
   'use strict';
 
-  define(['app', 'utils/sortBuildList', 'directives/radialProgressBar', 'directives/timeSince'], function(app, sortBuildList) {
-    var buildListCtrl = function(initial, $scope, $http, $routeParams, $location, Stream) {
+  define([
+      'app',
+      'utils/parseLinkHeader',
+      'utils/sortBuildList',
+      'directives/radialProgressBar',
+      'directives/timeSince'
+    ], function(app, parseLinkHeader, sortBuildList) {
+    var buildListCtrl = function(initial, $scope, $http, $routeParams, $location, Stream, Collection) {
       var stream,
-          entrypoint = initial.entrypoint,
-          filter = $location.search().filter || '';
+          entrypoint = initial.entrypoint;
 
-      $scope.builds = sortBuildList(initial.data.builds);
-      $scope.buildNavFilter = filter;
+      function loadBuildList(url) {
+        if (!url) {
+          return;
+        }
+        $http.get(url)
+          .success(function(data, status, headers){
+            $scope.builds = new Collection($scope, data, {
+              sortFunc: sortBuildList,
+              limit: 100
+            });
+            $scope.pageLinks = parseLinkHeader(headers('Link'));
+          });
+      }
+
+      $scope.loadPreviousPage = function() {
+        $(document.body).scrollTop(0);
+        loadBuildList($scope.pageLinks.previous);
+      };
+
+      $scope.loadNextPage = function() {
+        $(document.body).scrollTop(0);
+        loadBuildList($scope.pageLinks.next);
+      };
 
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
@@ -18,47 +44,25 @@
         }
       };
 
-      $scope.buildNavClass = function(path) {
-          return $location.path() == path ? 'active' : '';
-      };
+      $scope.$watch("pageLinks", function(value) {
+        $scope.nextPage = value.next || null;
+        $scope.previousPage = value.previous || null;
+      });
 
-      function addBuild(data) {
-        $scope.$apply(function() {
-          var updated = false,
-              item_id = data.id,
-              attr, result, item;
+      $scope.pageLinks = parseLinkHeader(initial.headers('Link'));
 
-          if ($scope.builds.length > 0) {
-            result = $.grep($scope.builds, function(e){ return e.id == item_id; });
-            if (result.length > 0) {
-              item = result[0];
-              for (attr in data) {
-                // ignore dateModified as we're updating this frequently and it causes
-                // the dirty checking behavior in angular to respond poorly
-                if (item[attr] != data[attr] && attr != 'dateModified') {
-                  updated = true;
-                  item[attr] = data[attr];
-                }
-                if (updated) {
-                  item.dateModified = data.dateModified;
-                }
-              }
-            }
-          }
-          if (!updated) {
-            $scope.builds.unshift(data);
-            sortBuildList($scope.builds);
-            $scope.builds = $scope.builds.slice(0, 100);
-          }
-        });
-      }
+      $scope.builds = new Collection($scope, initial.data, {
+        sortFunc: sortBuildList,
+        limit: 100
+      });
 
       stream = new Stream($scope, entrypoint);
-      stream.subscribe('job.update', addBuild);
-
+      stream.subscribe('build.update', function(data){
+        $scope.builds.updateItem(data);
+      });
     };
 
-    app.controller('buildListCtrl', ['initial', '$scope', '$http', '$routeParams', '$location', 'stream', buildListCtrl]);
+    app.controller('buildListCtrl', ['initial', '$scope', '$http', '$routeParams', '$location', 'stream', 'collection', buildListCtrl]);
 
     return buildListCtrl;
   });

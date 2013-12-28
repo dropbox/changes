@@ -76,9 +76,11 @@ define(['app',
               }
 
               $http.get(entrypoint)
-                .success(function(data){
+                .success(function(data, status, headers){
                   deferred.resolve({
                     'data': data,
+                    'status': status,
+                    'headers': headers,
                     'entrypoint': entrypoint
                   });
                 })

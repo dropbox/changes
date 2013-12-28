@@ -11,7 +11,7 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, queue
-from changes.constants import Status, NUM_PREVIOUS_RUNS
+from changes.constants import Status
 from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
@@ -153,22 +153,13 @@ def create_build(project, sha, label, target, message, author, change=None,
 
 
 class BuildIndexAPIView(APIView):
-    @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
-    def get(self, change=None):
-        queryset = Job.query.options(
-            joinedload(Job.project),
-            joinedload(Job.author),
-        ).order_by(Job.date_created.desc(), Job.date_started.desc())
-        if change:
-            queryset = queryset.filter_by(change=change)
+    def get(self):
+        queryset = Build.query.options(
+            joinedload(Build.project),
+            joinedload(Build.author),
+        ).order_by(Build.date_created.desc(), Build.date_started.desc())
 
-        build_list = list(queryset)[:NUM_PREVIOUS_RUNS]
-
-        context = {
-            'builds': build_list,
-        }
-
-        return self.respond(context)
+        return self.paginate(queryset)
 
     # TODO(dcramer): these params are getting messy, and in this case we've got
     # multiple input styles (GET vs POST) that can potentially squash each other
@@ -308,7 +299,5 @@ class BuildIndexAPIView(APIView):
 
         return self.respond(context)
 
-    def get_stream_channels(self, change_id=None):
-        if not change_id:
-            return ['jobs:*']
-        return ['jobs:{0}:*'.format(change_id)]
+    def get_stream_channels(self):
+        return ['builds:*']

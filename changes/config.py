@@ -210,8 +210,6 @@ def configure_api_routes(app):
     app.add_url_rule(
         '/api/0/changes/<change_id>/', view_func=ChangeDetailsAPIView.as_view('api-change-details'))
     app.add_url_rule(
-        '/api/0/changes/<change_id>/builds/', view_func=BuildIndexAPIView.as_view('api-change-build-list'))
-    app.add_url_rule(
         '/api/0/patches/<patch_id>/', view_func=PatchDetailsAPIView.as_view('api-patch-details'))
     app.add_url_rule(
         '/api/0/projects/', view_func=ProjectIndexAPIView.as_view('api-project-list'))

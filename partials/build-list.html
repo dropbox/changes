@@ -1,32 +1,52 @@
 <section>
-	<ul class="nav nav-tabs">
-		<li ng-class="buildNavFilter === '' ? 'active' : ''"><a href="/builds/">All Builds</a></li>
-		<li ng-class="buildNavFilter === 'me' ? 'active' : ''"><a href="/builds/?filter=me">My Builds</a></li>
-	</ul>
-	<br>
-	<table class="build-list table table-striped">
-		<tbody>
-			<tr class="status-{{build.status.id}} result-{{build.result.id}}"
-				ng-repeat="build in builds | orderBy:'-dateCreated'">
-				<td>
-					<div class="indicator" title="{{build.result.name}}">
-						<div data-result="{{build.result.id}}"
-							 data-status="{{build.status.id}}"
-							 data-date-started="{{build.dateStarted}}"
-							 data-estimated-duration="{{build.estimatedDuration}}"
-							 radial-progress-bar>&nbsp;</div>
-					</div>
-				</td>
-				<td>
-					<a href="{{build.link}}">{{build.name}}</a>
-					<small>
-						<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash; {{build.target}}
-						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
-					</small>
-					<span class="status">{{getBuildStatus(build)}}</span>
-					<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+	<div class="page-header">
+		<h2>All Builds</h2>
+	</div>
+	<div ng-if="builds">
+		<ul class="pager">
+			<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+				<a ng-click="loadPreviousPage()">&larr; Newer</a>
+			</li>
+			<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+				<a ng-click="loadNextPage()">Older &rarr;</a>
+			</li>
+		</ul>
+		<table class="build-list table table-striped">
+			<tbody>
+				<tr ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
+					<td>
+						<div class="indicator" title="{{build.result.name}}">
+							<div data-result="{{build.result.id}}"
+							     data-status="{{build.status.id}}"
+							 	 data-date-started="{{build.dateStarted}}"
+							 	 data-estimated-duration="{{build.estimatedDuration}}"
+							 	 radial-progress-bar>&nbsp;</div>
+						</div>
+					</td>
+					<td>
+						<a href="{{build.link}}">{{build.name}}</a>
+						<small>
+							<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash;
+							<span ng-if="build.number">#{{build.number}} &mdash; </span>
+							{{build.target}}
+							<span ng-if="build.author">&mdash; {{build.author.name}}</span>
+						</small>
+						<span class="status">{{getBuildStatus(build)}}</span>
+						<span class="date" ng-if="build.dateStarted">
+							<span time-since="build.dateStarted"></span>
+							<span ng-if="build.duration"> &mdash; <span duration="build.duration"></span></span>
+						</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<ul class="pager">
+			<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+				<a ng-click="loadPreviousPage()">&larr; Newer</a>
+			</li>
+			<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+				<a ng-click="loadNextPage()">Older &rarr;</a>
+			</li>
+		</ul>
+	</div>
 </section>

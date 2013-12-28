@@ -7,19 +7,17 @@ from changes.testutils import APITestCase, SAMPLE_DIFF
 
 class BuildListTest(APITestCase):
     def test_simple(self):
-        change = self.create_change(self.project)
         build = self.create_build(self.project)
-        job = self.create_job(build, change=change)
         build2 = self.create_build(self.project2)
-        self.create_job(build2)
 
-        path = '/api/0/changes/{0}/builds/'.format(change.id.hex)
+        path = '/api/0/builds/'
 
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['builds']) == 1
-        assert data['builds'][0]['id'] == job.id.hex
+        assert len(data) == 2
+        assert data[0]['id'] == build2.id.hex
+        assert data[1]['id'] == build.id.hex
 
 
 class BuildCreateTest(APITestCase):
