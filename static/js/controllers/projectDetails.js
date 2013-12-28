@@ -102,7 +102,7 @@
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('build.update', function(data){
-        if (data.patch && !$scope.includePatches) {
+        if (data.source.patch && !$scope.includePatches) {
           return;
         }
         $scope.builds.updateItem(data);
