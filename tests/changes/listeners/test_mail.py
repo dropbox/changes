@@ -2,9 +2,11 @@ import mock
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import ProjectOption, Patch, LogSource, LogChunk
+from changes.models import (
+    ProjectOption, Patch, LogSource, LogChunk, ItemOption
+)
 from changes.listeners.mail import (
-    job_finished_handler, send_notification, get_log_clipping
+    job_finished_handler, send_notification, get_log_clipping, get_job_options
 )
 from changes.testutils.cases import TestCase
 
@@ -184,3 +186,36 @@ class GetLogClippingTestCase(TestCase):
 
         result = get_log_clipping(logsource, max_size=5, max_lines=3)
         assert result == "world"
+
+
+class GetJobOptionsTestCase(TestCase):
+    def test_simple(self):
+        project = self.project
+        plan = self.create_plan()
+        plan.projects.append(project)
+        build = self.create_build(project)
+        job = self.create_job(build)
+        self.create_job_plan(job, plan)
+
+        db.session.add(ItemOption(
+            item_id=plan.id,
+            name='mail.notify-author',
+            value='0',
+        ))
+
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='mail.notify-author',
+            value='1',
+        ))
+
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='mail.notify-addresses',
+            value='foo@example.com',
+        ))
+
+        assert get_job_options(job) == {
+            'mail.notify-addresses': 'foo@example.com',
+            'mail.notify-author': '0',
+        }

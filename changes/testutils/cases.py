@@ -12,7 +12,7 @@ from uuid import uuid4
 from changes.config import db, mail
 from changes.db.funcs import coalesce
 from changes.models import (
-    Repository, Job, Project, Revision, RemoteEntity, Change, Author,
+    Repository, Job, JobPlan, Project, Revision, RemoteEntity, Change, Author,
     TestGroup, Patch, Plan, Step, Build
 )
 
@@ -106,6 +106,17 @@ class Fixtures(object):
         db.session.add(job)
 
         return job
+
+    def create_job_plan(self, job, plan):
+        job_plan = JobPlan(
+            project_id=job.project_id,
+            build_id=job.build_id,
+            plan_id=plan.id,
+            job_id=job.id,
+        )
+        db.session.add(job_plan)
+
+        return job_plan
 
     def create_build(self, project, **kwargs):
         revision_sha = kwargs.pop('revision_sha', uuid4().hex)

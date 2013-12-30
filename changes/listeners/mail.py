@@ -5,7 +5,9 @@ from flask_mail import Message, sanitize_address
 
 from changes.config import db, mail
 from changes.constants import Result, Status
-from changes.models import Job, TestGroup, ProjectOption, LogSource, LogChunk
+from changes.models import (
+    Job, JobPlan, TestGroup, ProjectOption, LogSource, LogChunk, ItemOption
+)
 from changes.utils.http import build_uri
 
 
@@ -125,19 +127,43 @@ def send_notification(job, recipients):
     mail.send(msg)
 
 
-def job_finished_handler(job, **kwargs):
+def get_job_options(job):
+    option_names = [
+        'mail.notify-author',
+        'mail.notify-addresses',
+        'mail.notify-addresses-revisions',
+    ]
+
     # get relevant options
     options = dict(
         db.session.query(
             ProjectOption.name, ProjectOption.value
         ).filter(
             ProjectOption.project_id == job.project_id,
-            ProjectOption.name.in_([
-                'mail.notify-author', 'mail.notify-addresses',
-                'mail.notify-addresses-revisions',
-            ])
+            ProjectOption.name.in_(option_names),
         )
     )
+
+    # if a plan was specified, it's options override the project's
+    job_plan = JobPlan.query.filter(
+        JobPlan.job_id == job.id,
+    ).first()
+    if job_plan:
+        plan_options = db.session.query(
+            ItemOption.name, ItemOption.value
+        ).filter(
+            ItemOption.item_id == job_plan.plan_id,
+            ItemOption.name.in_(option_names),
+        )
+        # determine plan options
+        for key, value in plan_options:
+            options[key] = value
+
+    return options
+
+
+def job_finished_handler(job, **kwargs):
+    options = get_job_options(job)
 
     recipients = []
     if options.get('mail.notify-author', '1') == '1':
