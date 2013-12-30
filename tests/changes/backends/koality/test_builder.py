@@ -9,9 +9,7 @@ from flask import current_app
 from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import (
-    Repository, Project, Job, Revision, Author, JobPhase, JobStep, Patch
-)
+from changes.models import Repository, Project, JobPhase, JobStep, Patch
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
 

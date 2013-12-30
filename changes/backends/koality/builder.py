@@ -10,10 +10,7 @@ from datetime import datetime, timedelta
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
 from changes.constants import Result, Status
-from changes.db.utils import create_or_update
-from changes.models import (
-    Revision, Author, JobPhase, JobStep, RemoteEntity, Node
-)
+from changes.models import JobPhase, JobStep, RemoteEntity, Node
 
 
 class KoalityBuilder(BaseBackend):
