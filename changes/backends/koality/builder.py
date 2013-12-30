@@ -108,9 +108,9 @@ class KoalityBuilder(BaseBackend):
         if phase is None:
             phase = JobPhase()
 
-        phase.job = job
-        phase.repository = job.repository
-        phase.project = job.project
+        phase.job_id = job.id
+        phase.repository_id = job.repository_id
+        phase.project_id = job.project_id
         phase.label = stage_type.title()
 
         phase.date_started = self._get_start_time(stage_list)
@@ -165,11 +165,11 @@ class KoalityBuilder(BaseBackend):
 
         node = self._get_node(stage['buildNode'])
 
-        step.job = job
-        step.repository = job.repository
-        step.project = job.project
-        step.phase = phase
-        step.node = node
+        step.job_id = job.id
+        step.repository_id = job.repository_id
+        step.project_id = job.project_id
+        step.phase_id = phase.id
+        step.node_id = node.id
         step.label = stage['name']
         step.date_started = self._get_start_time([stage])
         step.date_finished = self._get_end_time([stage])
