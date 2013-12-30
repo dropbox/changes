@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Integer
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import UniqueConstraint, CheckConstraint
 
@@ -21,6 +22,8 @@ class Plan(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     date_modified = Column(DateTime, default=datetime.utcnow, nullable=False)
     data = Column(JSONEncodedDict)
+
+    projects = association_proxy('plan_projects', 'project')
 
     __repr__ = model_repr('label')
     __tablename__ = 'plan'

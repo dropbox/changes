@@ -17,7 +17,7 @@ from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
-    Change, ItemOption, Source
+    Change, ItemOption, Source, ProjectPlan
 )
 from changes.utils.http import build_uri
 
@@ -195,7 +195,7 @@ class BuildIndexAPIView(APIView):
             repository = Repository.query.get(project.repository_id)
         else:
             projects = list(Project.query.options(
-                subqueryload_all(Project.plans),
+                subqueryload_all(Project.project_plans, ProjectPlan.plan),
             ).filter(
                 Project.repository_id == repository.id,
             ))
