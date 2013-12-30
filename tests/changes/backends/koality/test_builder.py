@@ -81,24 +81,10 @@ class SyncBuildTest(KoalityBuilderTestCase):
             job=job,
         )
 
-        assert job.label == 'Fixing visual regression with visuals.'
-        assert job.revision_sha == '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
         assert job.status == Status.finished
         assert job.result == Result.failed
         assert job.date_started == datetime(2013, 9, 19, 22, 15, 22)
         assert job.date_finished == datetime(2013, 9, 19, 22, 15, 36)
-
-        revision = Revision.query.filter_by(
-            sha=job.revision_sha,
-            repository=job.repository,
-        )[0]
-        author = Author.query.get(revision.author_id)
-        job = Job.query.get(job.id)
-
-        assert revision.message == 'Fixing visual regression with visuals.'
-
-        assert author.email == 'john@example.com'
-        assert author.name == 'John Developer'
 
         phase_list = list(JobPhase.query.filter_by(
             job=job,

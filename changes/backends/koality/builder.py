@@ -90,22 +90,6 @@ class KoalityBuilder(BaseBackend):
 
         return node
 
-    def _sync_author(self, user):
-        return create_or_update(Author, values={
-            'email': user['email'],
-        }, where={
-            'name': user['name'],
-        })[0]
-
-    def _sync_revision(self, repository, author, commit):
-        return create_or_update(Revision, values={
-            'message': commit['message'],
-            'author': author,
-        }, where={
-            'repository': repository,
-            'sha': commit['sha'],
-        })[0]
-
     def _sync_phase(self, job, stage_type, stage_list, phase=None):
         remote_id = '%s:%s' % (job.id.hex, stage_type)
 
@@ -221,20 +205,7 @@ class KoalityBuilder(BaseBackend):
         return step
 
     def _sync_job_details(self, job, change, stage_list=None):
-        project = job.project
-
-        author = self._sync_author(change['headCommit']['user'])
-        revision = self._sync_revision(
-            project.repository, author, change['headCommit'])
-
-        job.label = change['headCommit']['message'].splitlines()[0][:128]
-        job.author = author
-        job.revision_sha = revision.sha
-        job.repository = project.repository
-        job.project = project
-
         if stage_list is not None:
-            job.date_created = datetime.utcfromtimestamp(change['createTime'] / 1000)
             job.date_started = self._get_start_time(stage_list)
             job.date_finished = self._get_end_time(stage_list)
 
