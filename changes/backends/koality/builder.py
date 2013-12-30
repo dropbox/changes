@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
 from changes.constants import Result, Status
+from changes.db.utils import get_or_create
 from changes.models import JobPhase, JobStep, RemoteEntity, Node
 
 
@@ -82,36 +83,24 @@ class KoalityBuilder(BaseBackend):
             db.session.add(entity)
         else:
             node = Node.query.get(entity.internal_id)
+            assert node
 
         self._node_cache[node_id] = node
 
         return node
 
-    def _sync_phase(self, job, stage_type, stage_list, phase=None):
-        remote_id = '%s:%s' % (job.id.hex, stage_type)
-
-        if phase is None:
-            entity = RemoteEntity.query.filter_by(
-                type='phase',
-                provider=self.provider,
-                remote_id=remote_id,
-            ).first()
-            if entity is None:
-                phase = None
-                create_entity = True
-            else:
-                phase = JobPhase.query.get(entity.internal_id)
-                create_entity = False
-        else:
-            create_entity = False
-
-        if phase is None:
-            phase = JobPhase()
-
-        phase.job_id = job.id
-        phase.repository_id = job.repository_id
-        phase.project_id = job.project_id
-        phase.label = stage_type.title()
+    def _sync_phase(self, job, stage_type, stage_list):
+        phase, _ = get_or_create(
+            JobPhase,
+            where={
+                'job_id': job.id,
+                'label': stage_type.title(),
+            },
+            defaults={
+                'repository_id': job.repository_id,
+                'project_id': job.project_id,
+            },
+        )
 
         phase.date_started = self._get_start_time(stage_list)
         phase.date_finished = self._get_end_time(stage_list)
@@ -133,14 +122,8 @@ class KoalityBuilder(BaseBackend):
             phase.status = Status.queued
             phase.result = Result.unknown
 
-        if create_entity:
-            entity = RemoteEntity(
-                provider=self.provider, remote_id=remote_id,
-                internal_id=phase.id, type='phase',
-            )
-            db.session.add(entity)
-
         db.session.add(phase)
+        db.session.commit()
 
         return phase
 
