@@ -29,6 +29,7 @@ class JobStep(db.Model):
     job = relationship('Job')
     project = relationship('Project')
     repository = relationship('Repository')
+    node = relationship('Node')
     phase = relationship('JobPhase', backref='steps')
 
     def __init__(self, **kwargs):
