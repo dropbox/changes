@@ -19,12 +19,12 @@ parser_set = subparsers.add_parser('set', help='set option')
 parser_set.add_argument('id', help='item ID')
 parser_set.add_argument('option', help='key=value')
 
-parser_set = subparsers.add_parser('delete', help='delete option')
-parser_set.add_argument('id', help='item ID')
-parser_set.add_argument('option', help='key')
+parser_delete = subparsers.add_parser('delete', help='delete option')
+parser_delete.add_argument('id', help='item ID')
+parser_delete.add_argument('option', help='key')
 
 parser_get = subparsers.add_parser('get', help='get option')
-parser_set.add_argument('id', help='item ID')
+parser_get.add_argument('id', help='item ID')
 parser_get.add_argument('option', help='key', nargs='?')
 
 
