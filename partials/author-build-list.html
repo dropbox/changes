@@ -1,10 +1,10 @@
 <section>
 	<h2>My Builds <small>{{user.email}}</small></h2>
 	<ul class="pager">
-		<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+		<li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
 			<a ng-click="loadNextPage()">&larr; Older</a>
 		</li>
-		<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+		<li class="next" ng-class="previousPage === null ? 'disabled' : ''">
 			<a ng-click="loadPreviousPage()">Newer &rarr;</a>
 		</li>
 	</ul>
@@ -39,10 +39,10 @@
 		</tbody>
 	</table>
 	<ul class="pager">
-		<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+		<li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
 			<a ng-click="loadNextPage()">&larr; Older</a>
 		</li>
-		<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+		<li class="next" ng-class="previousPage === null ? 'disabled' : ''">
 			<a ng-click="loadPreviousPage()">Newer &rarr;</a>
 		</li>
 	</ul>
