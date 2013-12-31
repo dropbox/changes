@@ -4,11 +4,11 @@
 	</div>
 	<div ng-if="builds">
 		<ul class="pager">
-			<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-				<a ng-click="loadPreviousPage()">&larr; Newer</a>
-			</li>
 			<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-				<a ng-click="loadNextPage()">Older &rarr;</a>
+				<a ng-click="loadNextPage()">&larr; Older</a>
+			</li>
+			<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+				<a ng-click="loadPreviousPage()">Newer &rarr;</a>
 			</li>
 		</ul>
 		<table class="build-list table table-striped">
@@ -41,11 +41,11 @@
 			</tbody>
 		</table>
 		<ul class="pager">
-			<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-				<a ng-click="loadPreviousPage()">&larr; Newer</a>
-			</li>
 			<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-				<a ng-click="loadNextPage()">Older &rarr;</a>
+				<a ng-click="loadNextPage()">&larr; Older</a>
+			</li>
+			<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+				<a ng-click="loadPreviousPage()">Newer &rarr;</a>
 			</li>
 		</ul>
 	</div>
