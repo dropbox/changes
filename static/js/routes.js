@@ -7,6 +7,7 @@ define(['app',
         'controllers/buildDetails',
         'controllers/jobDetails',
         'controllers/jobLogDetails',
+        'controllers/jobPhaseList',
         'controllers/testGroupDetails',
         'controllers/projectCommitDetails',
         'controllers/projectCommitList',
@@ -107,6 +108,18 @@ define(['app',
           resolve: {
             initialData: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/');
+            }]
+          }
+        })
+        .when('/jobs/:job_id/phases/', {
+          templateUrl: 'partials/job-phase-list.html',
+          controller: 'jobPhaseListCtrl',
+          resolve: {
+            initialJob: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/');
+            }],
+            initialPhaseList: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/phases/');
             }]
           }
         })

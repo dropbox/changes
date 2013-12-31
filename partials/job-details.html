@@ -54,7 +54,7 @@
 
 		<ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
 			<li ng-repeat="phase in phases | orderBy:'dateStarted'" class="result-{{phase.result.id}}">
-				<a href="#">{{phase.name}}</a>
+				<a href="/jobs/{{job.id}}/phases/">{{phase.name}}</a>
 			</li>
 		</ul>
 

@@ -1,0 +1,25 @@
+<section>
+	<div class="page-header build-header">
+		<h2>
+			{{job.name}}<br>
+			<small>
+				{{job.target}}
+				<span ng-if="job.author"> &mdash; {{job.author.name}}</span>
+			</small>
+		</h2>
+	</div>
+
+	<h3>Phase Breakdown</h3>
+	<ol class="phase-list">
+		<li ng-repeat="phase in phaseList">
+			<h4>{{phase.name}} <small duration="phase.duration"></small></h4>
+			<table class="table">
+				<tr ng-repeat="step in phase.steps">
+					<td style="width:80px;" duration="step.durjation"></td>
+					<td>{{step.name}}</td>
+					<td>{{step.node.id}}</td>
+				</tr>
+			</table>
+		</li>
+	</ol>
+</section>
