@@ -53,6 +53,7 @@ install_requires = [
     'pynliner>=0.5.0,<0.6.0',
     'python-dateutil>=2.1,<2.2',
     'simplejson>=3.3.0,<3.4.0',
+    'sqlalchemy>=0.9.0,<0.10.0',
     'statprof',
     'unicode-slugify>=0.1.1,<0.2.0',
 ]
