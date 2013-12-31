@@ -3,7 +3,7 @@ from changes.config import db
 from sqlalchemy.exc import IntegrityError
 
 
-def try_create(model, where, defaults):
+def try_create(model, where, defaults=None):
     if defaults is None:
         defaults = {}
 
