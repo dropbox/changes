@@ -5,7 +5,8 @@ import json
 import sys
 
 from changes.config import create_app, db
-from changes.models import Plan, Project, Step
+from changes.db.utils import try_create
+from changes.models import Plan, Project, ProjectPlan, Step
 
 IMPL_CHOICES = (
     'changes.backends.jenkins.buildstep.JenkinsBuildStep',
@@ -148,7 +149,10 @@ elif args.command == 'projects':
         plan = get_plan(args.id)
         project = get_project(args.project)
 
-        project.plans.append(plan)
+        try_create(ProjectPlan, where={
+            'plan_id': plan.id,
+            'project_id': project.id,
+        })
 
         print "Added %s to %s" % (project.slug, plan.id)
 
