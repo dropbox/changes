@@ -15,3 +15,10 @@ class JobPhaseSerializer(Serializer):
             'dateStarted': instance.date_started,
             'dateFinished': instance.date_finished,
         }
+
+
+class JobPhaseWithStepsSerializer(JobPhaseSerializer):
+    def serialize(self, instance):
+        data = super(JobPhaseWithStepsSerializer, self).serialize(instance)
+        data['steps'] = list(instance.steps)
+        return data

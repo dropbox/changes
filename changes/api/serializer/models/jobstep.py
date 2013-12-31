@@ -10,6 +10,7 @@ class JobStepSerializer(Serializer):
             'name': instance.label,
             'result': instance.result,
             'status': instance.status,
+            'node': instance.node,
             'duration': instance.duration,
             'dateCreated': instance.date_created,
             'dateStarted': instance.date_started,

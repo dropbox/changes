@@ -180,6 +180,7 @@ def configure_api_routes(app):
     from changes.api.change_index import ChangeIndexAPIView
     from changes.api.job_details import JobDetailsAPIView
     from changes.api.job_log_details import JobLogDetailsAPIView
+    from changes.api.jobphase_index import JobPhaseIndexAPIView
     from changes.api.patch_details import PatchDetailsAPIView
     from changes.api.project_build_index import ProjectBuildIndexAPIView
     from changes.api.project_commit_details import ProjectCommitDetailsAPIView
@@ -205,6 +206,8 @@ def configure_api_routes(app):
         '/api/0/jobs/<job_id>/', view_func=JobDetailsAPIView.as_view('api-job-details'))
     app.add_url_rule(
         '/api/0/jobs/<job_id>/logs/<source_id>/', view_func=JobLogDetailsAPIView.as_view('api-job-log-details'))
+    app.add_url_rule(
+        '/api/0/jobs/<job_id>/phases/', view_func=JobPhaseIndexAPIView.as_view('api-job-phase-list'))
     app.add_url_rule(
         '/api/0/changes/', view_func=ChangeIndexAPIView.as_view('api-change-list'))
     app.add_url_rule(

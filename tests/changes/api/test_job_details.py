@@ -5,17 +5,15 @@ from changes.testutils import APITestCase
 
 class JobDetailsTest(APITestCase):
     def test_simple(self):
-        change = self.create_change(self.project)
         build = self.create_build(self.project)
-        job = self.create_job(build, change=change)
+        job = self.create_job(build)
 
         ls1 = LogSource(job=job, project=self.project, name='test')
         db.session.add(ls1)
         ls2 = LogSource(job=job, project=self.project, name='test2')
         db.session.add(ls2)
 
-        path = '/api/0/jobs/{1}/'.format(
-            change.id.hex, job.id.hex)
+        path = '/api/0/jobs/{0}/'.format(job.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
