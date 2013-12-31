@@ -89,16 +89,6 @@
         });
       }
 
-      $scope.retryJob = function() {
-        $http.post('/api/0/jobs/' + $scope.job.id + '/retry/')
-          .success(function(data){
-            $window.location.href = data.job.link;
-          })
-          .error(function(){
-            flash('error', 'There was an error while retrying this job.');
-          });
-      };
-
       $scope.project = initialJob.data.project;
       $scope.job = initialJob.data.job;
       $scope.logSource = initialBuildLog.data.source;
