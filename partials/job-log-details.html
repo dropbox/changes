@@ -1,9 +1,9 @@
 <section>
 	<div class="page-header build-header">
 		<h2>
-			{{job.name}}<br>
+			{{build.name}}<br>
 			<small>
-				{{job.target}}
+				#{{build.number}}.{{job.number}} {{job.name}} &mdash; {{job.target}}
 				<span ng-if="job.author"> &mdash; {{job.author.name}}</span>
 			</small>
 		</h2>
