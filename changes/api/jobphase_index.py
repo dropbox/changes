@@ -22,7 +22,7 @@ class JobPhaseIndexAPIView(APIView):
             subqueryload_all(JobPhase.steps, JobStep.node),
         ).filter(
             JobPhase.job_id == job.id,
-        ))
+        ).order_by(JobPhase.date_started.asc(), JobPhase.date_created.asc()))
 
         return self.respond(self.serialize(phase_list, {
             JobPhase: JobPhaseWithStepsSerializer(),
