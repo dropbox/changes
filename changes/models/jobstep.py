@@ -2,7 +2,7 @@ import uuid
 
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 from changes.config import db
 from changes.constants import Status, Result
@@ -30,7 +30,7 @@ class JobStep(db.Model):
     project = relationship('Project')
     repository = relationship('Repository')
     node = relationship('Node')
-    phase = relationship('JobPhase', backref='steps')
+    phase = relationship('JobPhase', backref=backref('steps', order_by='JobStep.date_started'))
 
     def __init__(self, **kwargs):
         super(JobStep, self).__init__(**kwargs)
