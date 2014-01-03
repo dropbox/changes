@@ -1,6 +1,6 @@
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Project, Job, JobPlan
+from changes.models import Project, ProjectPlan, Job, JobPlan
 from changes.utils.locking import lock
 
 
@@ -50,8 +50,9 @@ def update_project_plan_stats(project_id, plan_id):
     else:
         avg_build_time = None
 
-    db.session.query(JobPlan).filter(
-        JobPlan.id == job_plan.id
+    db.session.query(ProjectPlan).filter(
+        ProjectPlan.project_id == job_plan.project_id,
+        ProjectPlan.plan_id == job_plan.plan_id,
     ).update({
-        JobPlan.avg_build_time: avg_build_time,
+        ProjectPlan.avg_build_time: avg_build_time,
     }, synchronize_session=False)
