@@ -1,16 +1,18 @@
+from sqlalchemy import and_
+
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Project, ProjectPlan, Job, JobPlan
+from changes.models import Project, ProjectPlan, Build, Job, JobPlan
 from changes.utils.locking import lock
 
 
 @lock
 def update_project_stats(project_id):
-    last_5_builds = Job.query.filter_by(
+    last_5_builds = Build.query.filter_by(
         result=Result.passed,
         status=Status.finished,
         project_id=project_id,
-    ).order_by(Job.date_finished.desc())[:5]
+    ).order_by(Build.date_finished.desc())[:5]
     if last_5_builds:
         avg_build_time = sum(
             b.duration for b in last_5_builds
@@ -40,7 +42,11 @@ def update_project_plan_stats(project_id, plan_id):
         Job.status == Status.finished,
         Job.project_id == project_id,
     ).join(
-        JobPlan, JobPlan.id == job_plan.id
+        JobPlan,
+        and_(
+            JobPlan.id == job_plan.id,
+            JobPlan.job_id == Job.id,
+        )
     ).order_by(Job.date_finished.desc())[:5]
     if last_5_builds:
         avg_build_time = sum(

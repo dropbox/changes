@@ -83,6 +83,9 @@ class Fixtures(object):
         kwargs.setdefault('target', build.target)
         kwargs.setdefault('revision_sha', build.revision_sha)
         kwargs.setdefault('patch', build.patch)
+        kwargs.setdefault('duration', build.duration)
+        kwargs.setdefault('date_started', build.date_started)
+        kwargs.setdefault('date_finished', build.date_finished)
 
         if kwargs.get('change', False) is False:
             kwargs['change'] = self.create_change(project)
