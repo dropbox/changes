@@ -32,7 +32,7 @@ class SyncBuildTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server-downstream/api/xml/?depth=1&xpath=/freeStyleProject/build[action/cause/upstreamProject=%22server%22%20and%20action/cause/upstreamBuild=2]/number&wrapper=a',
+            responses.GET, 'http://jenkins.example.com/job/server-downstream/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fcause%2FupstreamProject%3D%22server%22+and+action%2Fcause%2FupstreamBuild%3D%222%22%5D%2Fnumber&depth=1&wrapper=a',
             body=self.load_fixture('fixtures/GET/job_list_by_upstream.xml'),
             match_querystring=True)
 

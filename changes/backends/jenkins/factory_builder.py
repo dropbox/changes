@@ -11,7 +11,7 @@ from changes.models import TestResultManager, Node, JobPhase, JobStep
 
 from .builder import JenkinsBuilder, NotFound, RESULT_MAP
 
-BASE_XPATH = '/freeStyleProject/build[action/cause/upstreamProject=%22{upstream_job}%22%20and%20action/cause/upstreamBuild={build_no}]/number'
+BASE_XPATH = '/freeStyleProject/build[action/cause/upstreamProject="{upstream_job}" and action/cause/upstreamBuild="{build_no}"]/number'
 DOWNSTREAM_XML_RE = re.compile(r'<number>(\d+)</number>')
 
 
@@ -27,10 +27,13 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
             upstream_job=job.data['job_name'],
             build_no=job.data['build_no']
         )
-        response = self._get_raw_response('/job/{job_name}/api/xml/?depth=1&xpath={xpath}&wrapper=a'.format(
+        response = self._get_raw_response('/job/{job_name}/api/xml/'.format(
             job_name=downstream_job_name,
-            xpath=xpath,
-        ))
+        ), params={
+            'depth': 1,
+            'xpath': xpath,
+            'wrapper': 'a',
+        })
         if not response:
             return []
 

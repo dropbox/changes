@@ -29,6 +29,9 @@ class MutableDict(Mutable, MutableMapping):
     def __iter__(self):
         return iter(self.value)
 
+    def __repr__(self):
+        return repr(self.value)
+
     @classmethod
     def coerce(cls, key, value):
         "Convert plain dictionaries to MutableDict."

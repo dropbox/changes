@@ -56,12 +56,14 @@ class CreateBuildTest(BaseTestCase):
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/json/',
-            body=self.load_fixture('fixtures/GET/queue_list.json'))
+            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid',
+            body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
+            match_querystring=True)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/api/json/',
-            body=self.load_fixture('fixtures/GET/job_list.json'))
+            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?depth=1&xpath=/queue/item[action/parameter/name=%22CHANGES_BID%22%20and%20action/parameter/value=%2281d1596fd4d642f4a6bdf86c45e014e8%22]/id',
+            status=404,
+            match_querystring=True)
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -73,7 +75,7 @@ class CreateBuildTest(BaseTestCase):
 
         assert job.data == {
             'build_no': None,
-            'item_id': 13,
+            'item_id': '13',
             'job_name': 'server',
             'queued': True,
         }
@@ -86,12 +88,14 @@ class CreateBuildTest(BaseTestCase):
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/json/',
-            body=self.load_fixture('fixtures/GET/queue_list.json'))
+            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid',
+            status=404,
+            match_querystring=True)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/api/json/',
-            body=self.load_fixture('fixtures/GET/job_list.json'))
+            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid&depth=1',
+            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
+            match_querystring=True)
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -103,26 +107,26 @@ class CreateBuildTest(BaseTestCase):
         builder.create_job(job)
 
         assert job.data == {
-            'build_no': 1,
+            'build_no': '1',
             'item_id': None,
             'job_name': 'server',
             'queued': False,
         }
 
     @responses.activate
-    def test_patch(self):
+    @mock.patch.object(JenkinsBuilder, '_find_job')
+    def test_patch(self, find_job):
         responses.add(
             responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
             body='',
             status=201)
 
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/json/',
-            body=self.load_fixture('fixtures/GET/queue_list.json'))
-
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/api/json/',
-            body=self.load_fixture('fixtures/GET/job_list.json'))
+        find_job.return_value = {
+            'build_no': '1',
+            'item_id': None,
+            'job_name': 'server',
+            'queued': False,
+        }
 
         patch = Patch(
             repository=self.repo,

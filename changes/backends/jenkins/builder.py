@@ -2,6 +2,7 @@ from __future__ import absolute_import, division
 
 import json
 import logging
+import re
 import requests
 import time
 
@@ -28,6 +29,12 @@ RESULT_MAP = {
     'REGRESSION': Result.failed,
     'UNSTABLE': Result.failed,
 }
+
+QUEUE_ID_XPATH = '/queue/item[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/id'
+BUILD_ID_XPATH = '/freeStyleProject/build[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/number'
+
+ID_XML_RE = re.compile(r'<id>(\d+)</id>')
+NUMBER_XML_RE = re.compile(r'<number>(\d+)</number>')
 
 
 def chunked(iterator, chunk_size):
@@ -447,40 +454,50 @@ class JenkinsBuilder(BaseBackend):
         """
         # Check the queue first to ensure that we don't miss a transition
         # from queue -> active jobs
-        for item in self._get_response('/queue')['items']:
-            if item['task']['name'] != job_name:
-                continue
+        item = self._find_job_in_queue(job_name, job_id)
+        if item:
+            return item
+        return self._find_job_in_active(job_name, job_id)
 
-            params = self._parse_parameters(item)
-            try:
-                changes_bid = params['CHANGES_BID']
-            except KeyError:
-                continue
+    def _find_job_in_queue(self, job_name, job_id):
+        xpath = QUEUE_ID_XPATH.format(
+            job_id=job_id,
+        )
+        try:
+            response = self._get_raw_response('/queue/api/xml/', params={
+                'xpath': xpath,
+            })
+        except NotFound:
+            return
 
-            if changes_bid == job_id:
-                return {
-                    'job_name': job_name,
-                    'queued': True,
-                    'item_id': item['id'],
-                    'build_no': None,
-                }
+        # TODO: it's possible this isnt queued when this gets run
+        return {
+            'job_name': job_name,
+            'queued': True,
+            'item_id': ID_XML_RE.search(response).group(1),
+            'build_no': None,
+        }
 
-        # It wasn't found in the queue, so lets look for an active build
-        # the depth=2 is important here, otherwise parameters are not included
-        for item in self._get_response('/job/{}'.format(job_name), params={'depth': 2})['builds']:
-            params = self._parse_parameters(item)
-            try:
-                changes_bid = params['CHANGES_BID']
-            except KeyError:
-                continue
+    def _find_job_in_active(self, job_name, job_id):
+        xpath = QUEUE_ID_XPATH.format(
+            job_id=job_id,
+        )
+        try:
+            response = self._get_raw_response('/job/{job_name}/api/xml/'.format(
+                job_name=job_name,
+            ), params={
+                'depth': 1,
+                'xpath': xpath,
+            })
+        except NotFound:
+            return
 
-            if changes_bid == job_id:
-                return {
-                    'job_name': job_name,
-                    'queued': False,
-                    'item_id': None,
-                    'build_no': item['number'],
-                }
+        return {
+            'job_name': job_name,
+            'queued': False,
+            'item_id': None,
+            'build_no': NUMBER_XML_RE.search(response).group(1),
+        }
 
     def sync_job(self, job):
         if job.data['queued']:
