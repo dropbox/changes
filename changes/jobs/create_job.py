@@ -4,7 +4,6 @@ from flask import current_app
 from sqlalchemy.orm import subqueryload_all
 
 from changes.backends.base import UnrecoverableException
-from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import queue
 from changes.constants import Status, Result
 from changes.models import Job, JobPlan, Plan
@@ -25,25 +24,14 @@ def create_job(job_id):
 
     try:
         if not job_plan:
-            # TODO(dcramer): once we migrate to job plans we can remove this
-            current_app.logger.warning(
-                'Got create_job task without job plan: %s', job_id)
+            raise UnrecoverableException('Got create_job task without job plan: %s' % (job_id,))
+        try:
+            step = job_plan.plan.steps[0]
+        except IndexError:
+            raise UnrecoverableException('Missing steps for plan')
 
-            backend = JenkinsBuilder(
-                app=current_app,
-                base_url=current_app.config['JENKINS_URL'],
-            )
-            create_job = backend.create_job
-        else:
-            try:
-                step = job_plan.plan.steps[0]
-            except IndexError:
-                raise UnrecoverableException('Missing steps for plan')
-
-            implementation = step.get_implementation()
-            create_job = implementation.execute
-
-        create_job(job=job)
+        implementation = step.get_implementation()
+        implementation.execute(job=job)
 
     except UnrecoverableException:
         job.status = Status.finished

@@ -2,42 +2,13 @@ from datetime import datetime
 from flask import current_app
 from sqlalchemy.orm import subqueryload_all
 import sys
-import warnings
 
 from changes.backends.base import UnrecoverableException
-from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.events import publish_build_update, publish_job_update
-from changes.models import Build, Job, JobPlan, Plan, RemoteEntity
+from changes.models import Build, Job, JobPlan, Plan
 from changes.utils.locking import lock
-
-
-def sync_with_builder(job):
-    job.date_modified = datetime.utcnow()
-    db.session.add(job)
-
-    # TODO(dcramer): remove migration after 12/24
-    if 'queued' not in job.data:
-        entity = RemoteEntity.query.filter_by(
-            provider='jenkins',
-            internal_id=job.id,
-            type='build',
-        ).first()
-        if entity is not None:
-            job.data.update(entity.data)
-            db.session.add(job)
-
-    if not job.data:
-        queue.delay('create_job', kwargs={
-            'job_id': job.id.hex,
-        }, countdown=5)
-    else:
-        builder = JenkinsBuilder(
-            app=current_app,
-            base_url=current_app.config['JENKINS_URL'],
-        )
-        builder.sync_job(job)
 
 
 def _sync_job(job_id):
@@ -56,23 +27,17 @@ def _sync_job(job_id):
     ).filter(
         JobPlan.job_id == job.id,
     ).join(Plan).first()
-
     try:
         if not job_plan:
-            # TODO(dcramer): once we migrate to job plans we can remove this
-            warnings.warn(
-                'Got sync_job task without job plan: %s' % (job_id,))
-            execute = sync_with_builder
-        else:
-            try:
-                step = job_plan.plan.steps[0]
-            except IndexError:
-                raise UnrecoverableException('Missing steps for plan')
+            raise UnrecoverableException('Got sync_job task without job plan: %s' % (job_id,))
 
-            implementation = step.get_implementation()
-            execute = implementation.execute
+        try:
+            step = job_plan.plan.steps[0]
+        except IndexError:
+            raise UnrecoverableException('Missing steps for plan')
 
-        execute(job=job)
+        implementation = step.get_implementation()
+        implementation.execute(job=job)
 
     except UnrecoverableException:
         job.status = Status.finished
