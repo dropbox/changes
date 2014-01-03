@@ -61,7 +61,7 @@ class JobPhaseIndexTest(APITestCase):
             status=Status.finished,
             result=Result.passed,
             date_created=datetime(2013, 9, 19, 22, 15, 23),
-            date_started=datetime(2013, 9, 19, 22, 15, 24),
+            date_started=datetime(2013, 9, 19, 22, 15, 23),
             date_finished=datetime(2013, 9, 19, 22, 15, 25),
         )
         db.session.add(step_2_a)
@@ -74,7 +74,7 @@ class JobPhaseIndexTest(APITestCase):
             label='test_bar.py',
             status=Status.finished,
             result=Result.failed,
-            date_created=datetime(2013, 9, 19, 22, 15, 23),
+            date_created=datetime(2013, 9, 19, 22, 15, 24),
             date_started=datetime(2013, 9, 19, 22, 15, 24),
             date_finished=datetime(2013, 9, 19, 22, 15, 26),
         )
@@ -91,5 +91,6 @@ class JobPhaseIndexTest(APITestCase):
         assert data[0]['steps'][0]['id'] == step_1.id.hex
         assert data[1]['id'] == phase_2.id.hex
         assert len(data[1]['steps']) == 2
+        print data[1]['steps']
         assert data[1]['steps'][0]['id'] == step_2_a.id.hex
         assert data[1]['steps'][1]['id'] == step_2_b.id.hex

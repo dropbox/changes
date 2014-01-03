@@ -24,6 +24,10 @@ class JobPhaseIndexAPIView(APIView):
             JobPhase.job_id == job.id,
         ).order_by(JobPhase.date_started.asc(), JobPhase.date_created.asc()))
 
+        for phase in phase_list:
+            phase.steps = sorted(
+                phase.steps, key=lambda x: (x.date_started, x.date_created))
+
         return self.respond(self.serialize(phase_list, {
             JobPhase: JobPhaseWithStepsSerializer(),
         }))
