@@ -1,6 +1,6 @@
 from changes.config import db
 from changes.constants import Result
-from changes.models import TestSuite, AggregateTestGroup
+from changes.models import TestSuite
 from changes.models.testresult import TestResult, TestResultManager
 from changes.testutils.cases import TestCase
 
