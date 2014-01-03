@@ -30,18 +30,6 @@ class Project(db.Model):
         if not self.slug:
             self.slug = slugify(self.name)
 
-    def get_entity(self, provider):
-        if not hasattr(self, '_entities') or provider not in self._entities:
-            raise ValueError('Entity not attached')
-        return self._entities[provider]
-
-    def attach_entity(self, entity):
-        assert entity.internal_id == self.id
-
-        if not hasattr(self, '_entities'):
-            self._entities = {}
-        self._entities[entity.provider] = entity
-
 
 class ProjectOption(db.Model):
     __tablename__ = 'projectoption'
