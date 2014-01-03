@@ -116,10 +116,14 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 else:
                     test_list.extend(self._process_test_report(job, test_report))
 
-            # update phase statistics
-            jobphase.date_started = min(s.date_started for s in jobsteps)
-            jobphase.date_finished = max(s.date_finished for s in jobsteps)
-            # jobphase.duration = (jobphase.date_finished - jobphase.date_started).total_seconds()
+            if jobsteps:
+                # update phase statistics
+                jobphase.date_started = min(s.date_started for s in jobsteps)
+                jobphase.date_finished = max(s.date_finished for s in jobsteps)
+                # jobphase.duration = (jobphase.date_finished - jobphase.date_started).total_seconds()
+            else:
+                jobphase.date_started = job.date_started
+                jobphase.date_finished = job.date_finished
             db.session.add(jobphase)
 
         manager = TestResultManager(job)
