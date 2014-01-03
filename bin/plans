@@ -9,6 +9,7 @@ from changes.db.utils import try_create
 from changes.models import Plan, Project, ProjectPlan, Step
 
 IMPL_CHOICES = (
+    'changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsBuildStep',
     'changes.backends.koality.buildstep.KoalityBuildStep',
 )
