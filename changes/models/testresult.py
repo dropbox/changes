@@ -162,7 +162,7 @@ class TestResultManager(object):
         project = job.project
         groups_by_id = {}
         tests_by_id = {}
-        agg_groups_by_id = {}
+        # agg_groups_by_id = {}
 
         # Eliminate useless parents (parents which only have a single child)
         leaf_counts = self.count_leaves_with_tests(test_list)
@@ -210,16 +210,16 @@ class TestResultManager(object):
 
             groups_by_id[name] = group
 
-            agg, created = get_or_create(AggregateTestGroup, where={
-                'project': project,
-                'name_sha': group.name_sha,
-                'suite_id': None,  # TODO
-            }, defaults={
-                'name': name,
-                'parent': self.find_parent(name, sep, agg_groups_by_id),
-                'first_job_id': job.id,
-                'last_job_id': job.id,
-            })
+            # agg, created = get_or_create(AggregateTestGroup, where={
+            #     'project': project,
+            #     'name_sha': group.name_sha,
+            #     'suite_id': None,  # TODO
+            # }, defaults={
+            #     'name': name,
+            #     'parent': self.find_parent(name, sep, agg_groups_by_id),
+            #     'first_job_id': job.id,
+            #     'last_job_id': job.id,
+            # })
 
             # if not created:
             #     db.session.query(AggregateTestGroup).filter(
@@ -229,11 +229,11 @@ class TestResultManager(object):
             #         AggregateTestGroup.last_job_id: job.id,
             #     }, synchronize_session=False)
 
-            agg_groups_by_id[name] = agg
+            # agg_groups_by_id[name] = agg
 
         for (name, sep), tests in reversed(grouped_tests):
             branch = groups_by_id[name]
-            agg_branch = agg_groups_by_id[name]
+            # agg_branch = agg_groups_by_id[name]
 
             g_duration = 0
             g_failed = 0
@@ -248,10 +248,10 @@ class TestResultManager(object):
 
                     groups_by_id[leaf.name] = leaf
 
-                if test.id not in agg_groups_by_id:
-                    leaf = self.create_aggregate_test_leaf(test, agg_branch)
+                # if test.id not in agg_groups_by_id:
+                #     leaf = self.create_aggregate_test_leaf(test, agg_branch)
 
-                    agg_groups_by_id[leaf.name] = leaf
+                #     agg_groups_by_id[leaf.name] = leaf
 
                 g_duration += testcase.duration
                 g_total += 1
