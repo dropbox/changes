@@ -6,11 +6,11 @@ develop: install-requirements
 install-requirements: update-submodules
 	npm install
 	bower install
-	pip install -e . --use-mirrors
+	pip install -e . --use-mirrors --no-use-wheel
 	make install-test-requirements
 
 install-test-requirements:
-	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
+	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors --no-use-wheel
 
 update-submodules:
 	git submodule init
