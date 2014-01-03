@@ -106,16 +106,16 @@ class TestResultManagerTestCase(TestCase):
 
         assert list(group_list[3].testcases) == [testcase_list[1]]
 
-        agg_groups = sorted(AggregateTestGroup.query.all(), key=lambda x: x.name)
+        # agg_groups = sorted(AggregateTestGroup.query.all(), key=lambda x: x.name)
 
-        assert len(agg_groups) == 4
+        # assert len(agg_groups) == 4
 
-        for agg in agg_groups:
-            # assert agg.last_job == build
-            assert agg.first_job_id == job.id
-            assert agg.project_id == self.project.id
+        # for agg in agg_groups:
+        #     # assert agg.last_job == build
+        #     assert agg.first_job_id == job.id
+        #     assert agg.project_id == self.project.id
 
-        assert agg_groups[0].name == 'tests.changes.handlers.test_coverage'
-        assert agg_groups[1].name == 'tests.changes.handlers.test_coverage.test_foo'
-        assert agg_groups[2].name == 'tests.changes.handlers.test_xunit'
-        assert agg_groups[3].name == 'tests.changes.handlers.test_xunit.test_bar'
+        # assert agg_groups[0].name == 'tests.changes.handlers.test_coverage'
+        # assert agg_groups[1].name == 'tests.changes.handlers.test_coverage.test_foo'
+        # assert agg_groups[2].name == 'tests.changes.handlers.test_xunit'
+        # assert agg_groups[3].name == 'tests.changes.handlers.test_xunit.test_bar'
