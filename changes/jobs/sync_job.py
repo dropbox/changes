@@ -128,7 +128,7 @@ def _sync_job(job_id):
         if job_plan:
             queue.delay('update_project_plan_stats', kwargs={
                 'project_id': job.project_id.hex,
-                'plan_id': job_plan.plan_id,
+                'plan_id': job_plan.plan_id.hex,
             }, countdown=1)
 
     publish_job_update(job)
