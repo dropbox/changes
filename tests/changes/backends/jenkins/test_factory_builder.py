@@ -4,9 +4,9 @@ import responses
 
 from uuid import UUID
 
-from changes.constants import Result
+from changes.constants import Result, Status
 from changes.backends.jenkins.factory_builder import JenkinsFactoryBuilder
-from changes.models import TestCase
+from changes.models import TestCase, JobPhase
 from .test_builder import BaseTestCase
 
 
@@ -35,6 +35,14 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server-downstream/api/xml/?depth=1&xpath=/freeStyleProject/build[action/cause/upstreamProject=%22server%22%20and%20action/cause/upstreamBuild=2]/number&wrapper=a',
             body=self.load_fixture('fixtures/GET/job_list_by_upstream.xml'),
             match_querystring=True)
+
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server-downstream/171/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_171.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server-downstream/172/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_172.json'))
+
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server-downstream/171/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
@@ -71,3 +79,19 @@ class SyncBuildTest(BaseTestCase):
         assert test_list[1].result == Result.passed
         assert test_list[1].message == ''
         assert test_list[1].duration == 155
+
+        phase_list = list(JobPhase.query.filter(
+            JobPhase.job_id == job.id,
+        ).order_by(JobPhase.label.asc()))
+        assert len(phase_list) == 2
+        assert phase_list[0].label == 'server'
+        assert phase_list[1].label == 'server-downstream'
+
+        step_list = sorted(phase_list[1].steps, key=lambda x: x.label)
+        assert len(step_list) == 2
+        assert step_list[0].label == 'server-downstream #171'
+        assert step_list[1].label == 'server-downstream #172'
+
+        for step in step_list:
+            assert step.result == Result.passed
+            assert step.status == Status.finished

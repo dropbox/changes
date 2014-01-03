@@ -11,6 +11,7 @@ from changes.db.types.guid import GUID
 
 
 class JobStep(db.Model):
+    # TODO(dcramer): make duration a column
     __tablename__ = 'jobstep'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

@@ -2,10 +2,14 @@ from __future__ import absolute_import, division
 
 import re
 
-from changes.config import db
-from changes.models import TestResultManager
+from datetime import datetime
 
-from .builder import JenkinsBuilder, NotFound
+from changes.config import db
+from changes.constants import Status
+from changes.db.utils import get_or_create, create_or_update
+from changes.models import TestResultManager, Node, JobPhase, JobStep
+
+from .builder import JenkinsBuilder, NotFound, RESULT_MAP
 
 BASE_XPATH = '/freeStyleProject/build[action/cause/upstreamProject=%22{upstream_job}%22%20and%20action/cause/upstreamBuild={build_no}]/number'
 DOWNSTREAM_XML_RE = re.compile(r'<number>(\d+)</number>')
@@ -32,6 +36,38 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
 
         return map(int, DOWNSTREAM_XML_RE.findall(response))
 
+    def _sync_downstream_job(self, phase, job_name, build_no):
+        item = self._get_response('/job/{}/{}'.format(
+            job_name, build_no))
+
+        node, _ = get_or_create(Node, where={
+            'label': item['builtOn'],
+        })
+
+        values = {
+            'date_started': datetime.utcfromtimestamp(
+                item['timestamp'] / 1000),
+        }
+        if item['building']:
+            values['status'] = Status.in_progress
+        else:
+            values['status'] = Status.finished
+            values['result'] = RESULT_MAP[item['result']]
+            # values['duration'] = item['duration'] or None
+            values['date_finished'] = datetime.utcfromtimestamp(
+                (item['timestamp'] + item['duration']) / 1000)
+
+        jobstep, created = create_or_update(JobStep, where={
+            'phase': phase,
+            'label': item['fullDisplayName'],
+            'repository_id': phase.repository_id,
+            'job_id': phase.job_id,
+            'project_id': phase.project_id,
+            'node_id': node.id,
+        }, values=values)
+
+        return jobstep
+
     def _sync_test_results(self, job):
         # sync any upstream results we may have collected
         try:
@@ -46,8 +82,28 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
 
         # for any downstream jobs, pull their results using xpath magic
         for downstream_job_name in self.downstream_job_names:
+            # XXX(dcramer): this is kind of gross, as we create the phase first
+            # so we have an ID to reference, and then we update it with the
+            # collective stats
+            jobphase, created = get_or_create(JobPhase, where={
+                'job': job,
+                'label': downstream_job_name,
+            }, defaults={
+                'status': job.status,
+                'result': job.result,
+                'project_id': job.project_id,
+                'repository_id': job.repository_id,
+            })
+            jobsteps = []
+
             for build_no in self._get_downstream_jobs(job, downstream_job_name):
                 try:
+                    # XXX(dcramer): ideally we would grab this with the first query
+                    # but because we dont want to rely on an XML parser, we're doing
+                    # a second http request for build details
+                    jobsteps.append(self._sync_downstream_job(
+                        jobphase, downstream_job_name, build_no))
+
                     test_report = self._get_response('/job/{job_name}/{build_no}/testReport/'.format(
                         job_name=downstream_job_name,
                         build_no=build_no,
@@ -56,6 +112,12 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                     pass
                 else:
                     test_list.extend(self._process_test_report(job, test_report))
+
+            # update phase statistics
+            jobphase.date_started = min(s.date_started for s in jobsteps)
+            jobphase.date_finished = max(s.date_finished for s in jobsteps)
+            # jobphase.duration = (jobphase.date_finished - jobphase.date_started).total_seconds()
+            db.session.add(jobphase)
 
         manager = TestResultManager(job)
         with db.session.begin_nested():

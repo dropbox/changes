@@ -21,6 +21,14 @@ from changes.models import (
 
 LOG_CHUNK_SIZE = 4096
 
+RESULT_MAP = {
+    'SUCCESS': Result.passed,
+    'ABORTED': Result.aborted,
+    'FAILURE': Result.failed,
+    'REGRESSION': Result.failed,
+    'UNSTABLE': Result.failed,
+}
+
 
 def chunked(iterator, chunk_size):
     """
@@ -160,15 +168,7 @@ class JenkinsBuilder(BaseBackend):
         else:
             should_finish = True
             job.date_finished = datetime.utcnow()
-
-            if item['result'] == 'SUCCESS':
-                job.result = Result.passed
-            elif item['result'] == 'ABORTED':
-                job.result = Result.aborted
-            elif item['result'] in ('FAILURE', 'REGRESSION', 'UNSTABLE'):
-                job.result = Result.failed
-            else:
-                raise ValueError('Invalid job result: %s' % (item['result'],))
+            job.result = RESULT_MAP[item['result']]
 
         if item['duration']:
             job.duration = item['duration']
@@ -210,6 +210,8 @@ class JenkinsBuilder(BaseBackend):
             'status': job.status,
             'result': job.result,
         })
+
+        db.session.commit()
 
         if should_finish:
             # TODO(dcramer): ideally we could fire off jobs to sync test results
