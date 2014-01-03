@@ -5,13 +5,10 @@ from flask import current_app
 from changes.backends.buildstep import BuildStep
 
 from .builder import JenkinsBuilder
+from .factory_builder import JenkinsFactoryBuilder
 
 
 class JenkinsBuildStep(BuildStep):
-    """
-    Should execute be required to be idempotent (e.g. handle create + sync)
-    or should we provide two APIs?
-    """
     def __init__(self, job_name=None):
         self.job_name = job_name
 
@@ -27,3 +24,16 @@ class JenkinsBuildStep(BuildStep):
 
     def get_label(self):
         return 'Execute job {0} on Jenkins'.format(self.job_name)
+
+
+class JenkinsFactoryBuildStep(JenkinsBuildStep):
+    def __init__(self, job_name=None, downstream_job_names=()):
+        self.job_name = job_name
+        self.downstream_job_names = downstream_job_names
+
+    def get_builder(self, app=current_app):
+        return JenkinsFactoryBuilder(
+            app=app,
+            job_name=self.job_name,
+            downstream_job_names=self.downstream_job_names,
+        )

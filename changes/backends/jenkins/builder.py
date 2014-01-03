@@ -57,8 +57,8 @@ class JenkinsBuilder(BaseBackend):
         self.logger = logging.getLogger('jenkins')
         self.job_name = job_name
 
-    def _get_response(self, path, method='GET', params=None, **kwargs):
-        url = '{}/{}/api/json/'.format(self.base_url, path.strip('/'))
+    def _get_raw_response(self, path, method='GET', params=None, **kwargs):
+        url = '{}/{}'.format(self.base_url, path.lstrip('/'))
 
         if params is None:
             params = {}
@@ -73,13 +73,21 @@ class JenkinsBuilder(BaseBackend):
         elif not (200 <= resp.status_code < 300):
             raise Exception('Invalid response. Status code was %s' % resp.status_code)
 
-        data = resp.text
-        if data:
-            try:
-                return json.loads(data)
-            except ValueError:
-                raise Exception('Invalid JSON data')
-        return
+        return resp.text
+
+    def _get_json_response(self, path, *args, **kwargs):
+        path = '{}/api/json/'.format(path.strip('/'))
+
+        data = self._get_raw_response(path, *args, **kwargs)
+        if not data:
+            return
+
+        try:
+            return json.loads(data)
+        except ValueError:
+            raise Exception('Invalid JSON data')
+
+    _get_response = _get_json_response
 
     def _parse_parameters(self, json):
         params = {}
@@ -205,14 +213,11 @@ class JenkinsBuilder(BaseBackend):
 
         # TODO(dcramer): ideally we could fire off jobs to sync test results
         # and console logs
-        for action in item['actions']:
-            # is this the best way to find this?
-            if action.get('urlName') == 'testReport':
-                try:
-                    self._sync_test_results(job)
-                except Exception:
-                    db.session.rollback()
-                    current_app.logger.exception('Unable to sync test results for job %r', job.id.hex)
+        try:
+            self._sync_test_results(job)
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception('Unable to sync test results for job %r', job.id.hex)
 
         if should_finish:
             # FIXME(dcramer): we're waiting until the job is complete to sync
@@ -340,11 +345,12 @@ class JenkinsBuilder(BaseBackend):
         # yet to complete
         return True if resp.headers.get('X-More-Data') == 'true' else None
 
-    def _sync_test_results(self, job):
-        test_report = self._get_response('/job/{}/{}/testReport/'.format(
-            job.data['job_name'], job.data['build_no']))
-
+    def _process_test_report(self, job, test_report):
         test_list = []
+
+        if not test_report:
+            return test_list
+
         for suite_data in test_report['suites']:
             suite_name = suite_data.get('name', 'default')
 
@@ -404,6 +410,16 @@ class JenkinsBuilder(BaseBackend):
                     result=result,
                 )
                 test_list.append(test_result)
+        return test_list
+
+    def _sync_test_results(self, job):
+        try:
+            test_report = self._get_response('/job/{}/{}/testReport/'.format(
+                job.data['job_name'], job.data['build_no']))
+        except NotFound:
+            return
+
+        test_list = self._process_test_report(job, test_report)
 
         manager = TestResultManager(job)
         with db.session.begin_nested():
