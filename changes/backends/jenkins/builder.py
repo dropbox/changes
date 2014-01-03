@@ -211,15 +211,15 @@ class JenkinsBuilder(BaseBackend):
             'result': job.result,
         })
 
-        # TODO(dcramer): ideally we could fire off jobs to sync test results
-        # and console logs
-        try:
-            self._sync_test_results(job)
-        except Exception:
-            db.session.rollback()
-            current_app.logger.exception('Unable to sync test results for job %r', job.id.hex)
-
         if should_finish:
+            # TODO(dcramer): ideally we could fire off jobs to sync test results
+            # and console logs
+            try:
+                self._sync_test_results(job)
+            except Exception:
+                db.session.rollback()
+                current_app.logger.exception('Unable to sync test results for job %r', job.id.hex)
+
             # FIXME(dcramer): we're waiting until the job is complete to sync
             # logs due to our inability to correctly identify start offsets
             # if we're supposed to be finishing, lets ensure we actually
