@@ -5,7 +5,7 @@
 *.db
 *.egg-info
 *.pyc
-*.xml
+/*.xml
 /docs/_build/
 /htmlcov
 /node_modules
