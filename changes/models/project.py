@@ -72,7 +72,7 @@ class ProjectPlan(db.Model):
                         nullable=False, primary_key=True)
     plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"),
                      nullable=False, primary_key=True)
-    # avg_build_time = Column(Integer)
+    avg_build_time = Column(Integer)
 
     project = relationship('Project', backref=backref(
         "project_plans", cascade="all, delete-orphan"))

@@ -275,7 +275,8 @@ def configure_jobs(app):
     from changes.jobs.sync_job import sync_job
     from changes.jobs.sync_repo import sync_repo
     from changes.jobs.update_build_result import update_build_result
-    from changes.jobs.update_project_stats import update_project_stats
+    from changes.jobs.update_project_stats import (
+        update_project_stats, update_project_plan_stats)
 
     queue.register('check_repos', check_repos)
     queue.register('cleanup_jobs', cleanup_jobs)
@@ -286,6 +287,7 @@ def configure_jobs(app):
     queue.register('sync_repo', sync_repo)
     queue.register('update_build_result', update_build_result)
     queue.register('update_project_stats', update_project_stats)
+    queue.register('update_project_plan_stats', update_project_plan_stats)
 
     @task_postrun.connect
     def cleanup_session(*args, **kwargs):
