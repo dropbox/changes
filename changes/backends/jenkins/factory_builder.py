@@ -8,6 +8,7 @@ from changes.config import db
 from changes.constants import Status
 from changes.db.utils import get_or_create, create_or_update
 from changes.models import TestResultManager, Node, JobPhase, JobStep
+from changes.utils.agg import safe_agg
 
 from .builder import JenkinsBuilder, NotFound, RESULT_MAP
 
@@ -118,8 +119,10 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
 
             if jobsteps:
                 # update phase statistics
-                jobphase.date_started = min(s.date_started for s in jobsteps)
-                jobphase.date_finished = max(s.date_finished for s in jobsteps)
+                jobphase.date_started = safe_agg(
+                    min, (s.date_started for s in jobsteps), default=job.date_started)
+                jobphase.date_finished = safe_agg(
+                    max, (s.date_finished for s in jobsteps), default=job.date_finished)
                 # jobphase.duration = (jobphase.date_finished - jobphase.date_started).total_seconds()
             else:
                 jobphase.date_started = job.date_started

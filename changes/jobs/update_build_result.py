@@ -4,18 +4,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.events import publish_build_update
 from changes.models import Build, Job
-
-
-def safe_agg(func, sequence, default=None):
-    m = default
-    for item in sequence:
-        if item is None:
-            continue
-        elif m is None:
-            m = item
-        elif item:
-            m = func(m, item)
-    return m
+from changes.utils.agg import safe_agg
 
 
 def update_build_result(build_id, job_id=None):
