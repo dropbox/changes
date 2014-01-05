@@ -65,7 +65,7 @@ class BuildReport(object):
                 x[0].name,
             ))
 
-        slow_tests = self.get_slow_tests(start_period, end_period)
+        # slow_tests = self.get_slow_tests(start_period, end_period)
         flakey_tests = self.get_frequent_failures(start_period, end_period)
 
         title = 'Build Report ({0} through {1})'.format(
@@ -79,7 +79,7 @@ class BuildReport(object):
             'projects_by_build_time': projects_by_build_time,
             'projects_by_green_builds': projects_by_green_builds,
             'tests': {
-                'slow_list': slow_tests,
+                # 'slow_list': slow_tests,
                 'flakey_list': flakey_tests,
             },
         }
