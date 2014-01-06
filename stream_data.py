@@ -122,14 +122,13 @@ def gen(project):
 def loop():
     repository = mock.repository()
     project = mock.project(repository)
+    plan = mock.plan()
+    get_or_create(ProjectPlan, where={
+        'plan': plan,
+        'project': project,
+    })
 
     while True:
-        plan = mock.plan()
-        get_or_create(ProjectPlan, where={
-            'plan': plan,
-            'project': project,
-        })
-
         build = gen(project)
         print 'Pushed build {0} on {1}'.format(build.id, project.slug)
         time.sleep(1)
