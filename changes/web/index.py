@@ -1,7 +1,7 @@
 import urlparse
 
 from flask import render_template, current_app, redirect, url_for, session
-from changes.api.base import MethodView
+from flask.views import MethodView
 
 
 class IndexView(MethodView):

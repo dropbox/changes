@@ -1,7 +1,7 @@
 from flask import render_template
+from flask.views import MethodView
 from jinja2 import Markup
 
-from changes.api.base import MethodView
 from changes.models import Project
 from changes.reports.build import BuildReport
 

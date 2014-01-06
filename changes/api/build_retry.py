@@ -1,4 +1,4 @@
-from flask import Response, redirect
+from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -27,4 +27,4 @@ class BuildRetryAPIView(APIView):
             cause=Cause.retry,
         )
 
-        return redirect('/api/0/builds/{0}/'.format(new_build.id.hex))
+        return '', 302, {'Location': '/api/0/builds/{0}/'.format(new_build.id.hex)}

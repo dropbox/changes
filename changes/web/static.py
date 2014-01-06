@@ -1,7 +1,6 @@
 from flask import current_app as app
 from flask.helpers import send_from_directory
-
-from changes.api.base import MethodView
+from flask.views import MethodView
 
 
 class StaticView(MethodView):

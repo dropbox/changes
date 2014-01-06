@@ -5,6 +5,7 @@ import os.path
 
 from celery.signals import task_postrun
 from datetime import timedelta
+from flask.ext.restful import Api
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from kombu import Queue
@@ -22,7 +23,7 @@ from changes.utils.trace import TracerMiddleware
 db = SQLAlchemy(session_options={
     'autoflush': True,
 })
-
+api = Api(prefix='/api/0')
 mail = Mail()
 pubsub = PubSub()
 queue = Celery()
@@ -138,6 +139,7 @@ def create_app(_read_config=True, **config):
     # init sentry first
     sentry.init_app(app)
 
+    api.init_app(app)
     db.init_app(app)
     mail.init_app(app)
     pubsub.init_app(app)
@@ -192,46 +194,26 @@ def configure_api_routes(app):
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.testgroup_details import TestGroupDetailsAPIView
 
-    app.add_url_rule(
-        '/api/0/auth/', view_func=AuthIndexAPIView.as_view('api-auth'))
-    app.add_url_rule(
-        '/api/0/authors/<author_id>/builds/', view_func=AuthorBuildIndexAPIView.as_view('api-author-build-list'))
-    app.add_url_rule(
-        '/api/0/builds/', view_func=BuildIndexAPIView.as_view('api-build-list'))
-    app.add_url_rule(
-        '/api/0/builds/<build_id>/', view_func=BuildDetailsAPIView.as_view('api-build-details'))
-    app.add_url_rule(
-        '/api/0/builds/<build_id>/retry/', view_func=BuildRetryAPIView.as_view('api-build-retry'))
-    app.add_url_rule(
-        '/api/0/jobs/<job_id>/', view_func=JobDetailsAPIView.as_view('api-job-details'))
-    app.add_url_rule(
-        '/api/0/jobs/<job_id>/logs/<source_id>/', view_func=JobLogDetailsAPIView.as_view('api-job-log-details'))
-    app.add_url_rule(
-        '/api/0/jobs/<job_id>/phases/', view_func=JobPhaseIndexAPIView.as_view('api-job-phase-list'))
-    app.add_url_rule(
-        '/api/0/changes/', view_func=ChangeIndexAPIView.as_view('api-change-list'))
-    app.add_url_rule(
-        '/api/0/changes/<change_id>/', view_func=ChangeDetailsAPIView.as_view('api-change-details'))
-    app.add_url_rule(
-        '/api/0/patches/<patch_id>/', view_func=PatchDetailsAPIView.as_view('api-patch-details'))
-    app.add_url_rule(
-        '/api/0/projects/', view_func=ProjectIndexAPIView.as_view('api-project-list'))
-    app.add_url_rule(
-        '/api/0/projects/<project_id>/', view_func=ProjectDetailsAPIView.as_view('api-project-details'))
-    app.add_url_rule(
-        '/api/0/projects/<project_id>/builds/', view_func=ProjectBuildIndexAPIView.as_view('api-project-build-list'))
-    app.add_url_rule(
-        '/api/0/projects/<project_id>/commits/', view_func=ProjectCommitIndexAPIView.as_view('api-project-commit-list'))
-    app.add_url_rule(
-        '/api/0/projects/<project_id>/commits/<commit_id>/', view_func=ProjectCommitDetailsAPIView.as_view('api-project-commit-details'))
-    app.add_url_rule(
-        '/api/0/projects/<project_id>/stats/', view_func=ProjectStatsIndexAPIView.as_view('api-project-stats'))
-    app.add_url_rule(
-        '/api/0/projects/<project_id>/tests/', view_func=ProjectTestIndexAPIView.as_view('api-project-test-list'))
-    app.add_url_rule(
-        '/api/0/projects/<project_id>/tests/<test_id>/', view_func=ProjectTestDetailsAPIView.as_view('api-project-test-details'))
-    app.add_url_rule(
-        '/api/0/testgroups/<testgroup_id>/', view_func=TestGroupDetailsAPIView.as_view('api-change-testgroup-details'))
+    api.add_resource(AuthIndexAPIView, '/auth/')
+    api.add_resource(BuildIndexAPIView, '/builds/')
+    api.add_resource(AuthorBuildIndexAPIView, '/authors/<author_id>/builds/')
+    api.add_resource(BuildDetailsAPIView, '/builds/<build_id>/')
+    api.add_resource(BuildRetryAPIView, '/builds/<build_id>/retry/')
+    api.add_resource(JobDetailsAPIView, '/jobs/<job_id>/')
+    api.add_resource(JobLogDetailsAPIView, '/jobs/<job_id>/logs/<source_id>/')
+    api.add_resource(JobPhaseIndexAPIView, '/jobs/<job_id>/phases/')
+    api.add_resource(ChangeIndexAPIView, '/changes/')
+    api.add_resource(ChangeDetailsAPIView, '/changes/<change_id>/')
+    api.add_resource(PatchDetailsAPIView, '/patches/<patch_id>/')
+    api.add_resource(ProjectIndexAPIView, '/projects/')
+    api.add_resource(ProjectDetailsAPIView, '/projects/<project_id>/')
+    api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/')
+    api.add_resource(ProjectCommitIndexAPIView, '/projects/<project_id>/commits/')
+    api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')
+    api.add_resource(ProjectStatsIndexAPIView, '/projects/<project_id>/stats/')
+    api.add_resource(ProjectTestIndexAPIView, '/projects/<project_id>/tests/')
+    api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_id>/')
+    api.add_resource(TestGroupDetailsAPIView, '/testgroups/<testgroup_id>/')
 
 
 def configure_web_routes(app):

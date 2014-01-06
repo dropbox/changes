@@ -2,11 +2,12 @@ from __future__ import absolute_import, division, unicode_literals
 
 from cStringIO import StringIO
 from datetime import datetime
-from flask import request
+from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, subqueryload_all
 from sqlalchemy.sql import func
+from werkzeug.datastructures import FileStorage
 
-from changes.api.base import APIView, param
+from changes.api.base import APIView
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, queue
 from changes.constants import Status
@@ -117,6 +118,17 @@ def create_build(project, label, target, message, author, change=None,
 
 
 class BuildIndexAPIView(APIView):
+    parser = reqparse.RequestParser()
+    parser.add_argument('sha', type=str, required=True)
+    parser.add_argument('project', type=lambda x: Project.query.filter_by(slug=x).first())
+    parser.add_argument('repository', type=lambda x: Repository.query.filter_by(url=x).first())
+    parser.add_argument('author', type=AuthorValidator())
+    parser.add_argument('label', type=str, default="A homeless build")
+    parser.add_argument('target', type=str)
+    parser.add_argument('message', type=str)
+    parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
+    parser.add_argument('patch[label]', type=str, dest='patch_label')
+
     def get(self):
         queryset = Build.query.options(
             joinedload(Build.project),
@@ -125,41 +137,27 @@ class BuildIndexAPIView(APIView):
 
         return self.paginate(queryset)
 
-    # TODO(dcramer): these params are getting messy, and in this case we've got
-    # multiple input styles (GET vs POST) that can potentially squash each other
-    @param('sha')
-    @param('project', lambda x: Project.query.filter_by(slug=x).first(), dest='project', required=False)
-    @param('repository', lambda x: Repository.query.filter_by(url=x).first(), dest='repository', required=False)
-    @param('author', AuthorValidator(), required=False)
-    @param('label', required=False)
-    @param('target', required=False)
-    @param('message', required=False)
-    @param('patch[label]', required=False, dest='patch_label')
-    def post(self, sha=None, project=None, author=None, patch_label=None, patch=None,
-             label=None, target=None, message=None, repository=None):
+    def post(self):
+        args = self.parser.parse_args()
 
-        assert sha
-        assert project or repository
+        print args
 
-        if request.form.get('patch'):
-            raise ValueError('patch')
+        assert args.project or args.repository
 
-        patch_file = request.files.get('patch')
-
-        if patch_file and not patch_label:
+        if args.patch_file and not args.patch_label:
             raise ValueError('patch_label')
 
-        if project:
-            projects = [project]
-            repository = Repository.query.get(project.repository_id)
+        if args.project:
+            projects = [args.project]
+            repository = Repository.query.get(args.project.repository_id)
         else:
             projects = list(Project.query.options(
                 subqueryload_all(Project.project_plans, ProjectPlan.plan),
             ).filter(
-                Project.repository_id == repository.id,
+                Project.repository_id == args.repository.id,
             ))
 
-        if patch_file:
+        if args.patch_file:
             # eliminate projects without diff builds
             options = dict(
                 db.session.query(
@@ -180,24 +178,23 @@ class BuildIndexAPIView(APIView):
         if not projects:
             return self.respond({'builds': []})
 
-        if not label:
-            label = "A homeless build"
-        else:
-            label = label[:128]
+        label = args.label[:128]
 
-        if not target:
-            if patch_label:
-                target = patch_label
-            elif sha:
-                target = sha[:12]
+        if not args.target:
+            if args.patch_label:
+                target = args.patch_label[:128]
+            else:
+                target = args.sha[:12]
         else:
-            target = target[:128]
+            target = args.target[:128]
 
-        if patch_file:
+        if args.patch_file:
             fp = StringIO()
-            for line in patch_file:
+            for line in args.patch_file:
                 fp.write(line)
             patch_file = fp
+        else:
+            patch_file = None
 
         builds = []
         for project in projects:
@@ -226,8 +223,8 @@ class BuildIndexAPIView(APIView):
                 patch = Patch(
                     repository=repository,
                     project=project,
-                    parent_revision_sha=sha,
-                    label=patch_label,
+                    parent_revision_sha=args.sha,
+                    label=args.patch_label,
                     diff=patch_file.getvalue(),
                 )
                 db.session.add(patch)
@@ -236,11 +233,11 @@ class BuildIndexAPIView(APIView):
 
             builds.append(create_build(
                 project=project,
-                sha=sha,
+                sha=args.sha,
                 target=target,
                 label=label,
-                message=message,
-                author=author,
+                message=args.message,
+                author=args.author,
                 patch=patch,
             ))
 

@@ -1,11 +1,10 @@
 import json
-import traceback
 
 from functools import wraps
 from urllib import quote
 
 from flask import Response, current_app, request
-from flask.views import MethodView
+from flask.ext.restful import Resource
 
 from changes.api.serializer import serialize as serialize_func
 from changes.api.stream import EventStream
@@ -65,7 +64,7 @@ class ParamError(APIError):
         return '{0} is not valid: {1}'.format(self.key, self.msg)
 
 
-class APIView(MethodView):
+class APIView(Resource):
     def dispatch_request(self, *args, **kwargs):
         if 'text/event-stream' in request.headers.get('Accept', ''):
             channels = self.get_stream_channels(**kwargs)
@@ -73,21 +72,7 @@ class APIView(MethodView):
                 return Response(status=404)
             return self.stream_response(channels)
 
-        try:
-            return super(APIView, self).dispatch_request(*args, **kwargs)
-        except APIError as exc:
-            current_app.logger.info(unicode(exc), exc_info=True)
-            return self.respond({
-                'message': unicode(exc),
-            }, status_code=403)
-        except Exception as exc:
-            current_app.logger.exception(unicode(exc))
-            data = {
-                'message': 'Internal error',
-            }
-            if current_app.config['API_TRACEBACKS']:
-                data['traceback'] = ''.join(traceback.format_exc())
-            return self.respond(data, status_code=500)
+        return super(APIView, self).dispatch_request(*args, **kwargs)
 
     def paginate(self, queryset):
         page = int(request.args.get('page', 1))
