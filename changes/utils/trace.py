@@ -1,10 +1,14 @@
+import inspect
+import os.path
 import sqlalchemy.engine
-import traceback
+import sys
 
 from flask import render_template
 from time import time
 from threading import local
 from urlparse import parse_qs
+
+ROOT = os.path.dirname(sys.modules['changes'].__file__)
 
 
 class Tracer(local):
@@ -20,13 +24,38 @@ class Tracer(local):
         self.active = False
 
     def add_event(self, message, duration=None):
+        __traceback_hide__ = True
+
         if self.active:
             self.events.append((
                 time(),
                 unicode(message),
                 duration,
-                ''.join(traceback.format_stack())
+                self.get_traceback(),
             ))
+
+    def get_traceback(self):
+        __traceback_hide__ = True
+
+        result = []
+
+        for frame, filename, lineno, function, (code,), _ in inspect.stack():
+            f_locals = getattr(frame, 'f_locals', {})
+            if '__traceback_hide__' in f_locals:
+                continue
+            # filename = frame.f_code.co_filename
+            if not filename.startswith(ROOT):
+                continue
+
+            result.append(
+                'File "{filename}", line {lineno}, in {function}\n{code}'.format(
+                    function=function,
+                    lineno=lineno,
+                    code=code.rstrip('\n'),
+                    filename=filename[len(ROOT) + 1:],
+                )
+            )
+        return '\n'.join(result)
 
     def collect(self):
         return self.events
@@ -48,6 +77,8 @@ class SQLAlchemyTracer(object):
         self.tracking[(conn, clause)] = time()
 
     def after_execute(self, conn, clause, multiparams, params, results):
+        __traceback_hide__ = True
+
         start_time = self.tracking.pop((conn, clause), None)
         if start_time:
             duration = time() - start_time
@@ -67,6 +98,8 @@ class TracerMiddleware(object):
         self.app = app
 
     def __call__(self, environ, start_response):
+        __traceback_hide__ = True
+
         # if we've passed ?trace and we're a capable request we show
         # our tracing report
         qs = parse_qs(environ.get('QUERY_STRING', ''), True)
