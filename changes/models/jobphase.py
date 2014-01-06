@@ -13,12 +13,10 @@ from changes.db.types.guid import GUID
 class JobPhase(db.Model):
     # TODO(dcramer): add order column rather than implicity date_started ordering
     # TODO(dcramer): make duration a column
-    # TODO(dcramer): remove repository_id
     __tablename__ = 'jobphase'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
-    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
@@ -29,7 +27,6 @@ class JobPhase(db.Model):
 
     job = relationship('Job', backref=backref('phases', order_by='JobPhase.date_started'))
     project = relationship('Project')
-    repository = relationship('Repository')
 
     def __init__(self, **kwargs):
         super(JobPhase, self).__init__(**kwargs)

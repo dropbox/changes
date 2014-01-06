@@ -86,7 +86,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert len(phase_list) == 3
 
         assert phase_list[0].project_id == job.project_id
-        assert phase_list[0].repository_id == build.repository_id
         assert phase_list[0].label == 'Setup'
         assert phase_list[0].status == Status.finished
         assert phase_list[0].result == Result.passed
@@ -94,7 +93,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert phase_list[0].date_finished == datetime(2013, 9, 19, 22, 15, 33)
 
         assert phase_list[1].project_id == job.project_id
-        assert phase_list[1].repository_id == build.repository_id
         assert phase_list[1].label == 'Compile'
         assert phase_list[1].status == Status.finished
         assert phase_list[1].result == Result.passed
@@ -102,7 +100,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert phase_list[1].date_finished == datetime(2013, 9, 19, 22, 15, 34)
 
         assert phase_list[2].project_id == job.project_id
-        assert phase_list[2].repository_id == build.repository_id
         assert phase_list[2].label == 'Test'
         assert phase_list[2].status == Status.finished
         assert phase_list[2].result == Result.failed
@@ -118,7 +115,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert len(step_list) == 6
 
         assert step_list[0].project_id == job.project_id
-        assert step_list[0].repository_id == build.repository_id
         assert step_list[0].phase_id == phase_list[0].id
         assert step_list[0].label == 'ci/setup'
         assert step_list[0].status == Status.finished
@@ -127,7 +123,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[0].date_finished == datetime(2013, 9, 19, 22, 15, 33)
 
         assert step_list[1].project_id == job.project_id
-        assert step_list[1].repository_id == build.repository_id
         assert step_list[1].phase_id == phase_list[0].id
         assert step_list[1].label == 'ci/setup'
         assert step_list[1].status == Status.finished
@@ -136,7 +131,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[1].date_finished == datetime(2013, 9, 19, 22, 15, 33)
 
         assert step_list[2].project_id == job.project_id
-        assert step_list[2].repository_id == build.repository_id
         assert step_list[2].phase_id == phase_list[1].id
         assert step_list[2].label == 'ci/compile'
         assert step_list[2].status == Status.finished
@@ -145,7 +139,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[2].date_finished == datetime(2013, 9, 19, 22, 15, 33, 500000)
 
         assert step_list[3].project_id == job.project_id
-        assert step_list[3].repository_id == build.repository_id
         assert step_list[3].phase_id == phase_list[1].id
         assert step_list[3].label == 'ci/compile'
         assert step_list[3].status == Status.finished
@@ -154,7 +147,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[3].date_finished == datetime(2013, 9, 19, 22, 15, 34)
 
         assert step_list[4].project_id == job.project_id
-        assert step_list[4].repository_id == build.repository_id
         assert step_list[4].phase_id == phase_list[2].id
         assert step_list[4].label == 'ci/test'
         assert step_list[4].status == Status.finished
@@ -163,7 +155,6 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[4].date_finished == datetime(2013, 9, 19, 22, 15, 35)
 
         assert step_list[5].project_id == job.project_id
-        assert step_list[5].repository_id == build.repository_id
         assert step_list[5].phase_id == phase_list[2].id
         assert step_list[5].label == 'ci/test'
         assert step_list[5].status == Status.finished

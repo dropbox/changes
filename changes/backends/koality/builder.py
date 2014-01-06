@@ -149,7 +149,6 @@ class KoalityBuilder(BaseBackend):
         node = self._get_node(stage['buildNode'])
 
         step.job_id = job.id
-        step.repository_id = job.build.repository_id
         step.project_id = job.project_id
         step.phase_id = phase.id
         step.node_id = node.id

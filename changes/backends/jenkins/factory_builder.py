@@ -64,7 +64,6 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
         jobstep, created = create_or_update(JobStep, where={
             'phase': phase,
             'label': item['fullDisplayName'],
-            'repository_id': phase.repository_id,
             'job_id': phase.job_id,
             'project_id': phase.project_id,
             'node_id': node.id,
@@ -96,7 +95,6 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 'status': job.status,
                 'result': job.result,
                 'project_id': job.project_id,
-                'repository_id': job.build.repository_id,
             })
             jobsteps = []
 

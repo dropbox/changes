@@ -12,13 +12,11 @@ from changes.db.types.guid import GUID
 
 class JobStep(db.Model):
     # TODO(dcramer): make duration a column
-    # TODO(dcramer): remove repository_id
     __tablename__ = 'jobstep'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     phase_id = Column(GUID, ForeignKey('jobphase.id', ondelete="CASCADE"), nullable=False)
-    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
@@ -30,7 +28,6 @@ class JobStep(db.Model):
 
     job = relationship('Job')
     project = relationship('Project')
-    repository = relationship('Repository')
     node = relationship('Node')
     phase = relationship('JobPhase', backref=backref('steps', order_by='JobStep.date_started'))
 
