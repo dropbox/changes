@@ -105,6 +105,13 @@ def update_existing_entry(project):
         test_results.append(mock.test_result(job, result=result))
     TestResultManager(job).save(test_results)
 
+    if job.status == Status.finished:
+        job.build.status = job.status
+        job.build.result = job.result
+        job.build.date_finished = job.date_finished
+        db.session.add(job.build)
+        publish_build_update(job.build)
+
     return job
 
 
