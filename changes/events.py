@@ -16,7 +16,7 @@ def publish_build_update(target):
             author_id=target.author_id.hex,
         ))
 
-    if not target.patch_id and target.revision_sha:
+    if not target.source.patch_id and target.source.revision_sha:
         channels.append('revisions:{revision_id}:builds'.format(
             revision_id=target.revision_sha,
         ))
@@ -35,24 +35,10 @@ def publish_job_update(target):
         'jobs:{job_id}'.format(
             job_id=target.id.hex,
         ),
-        'projects:{project_id}:jobs'.format(
-            project_id=target.project_id.hex,
+        'builds:{build_id}:jobs'.format(
+            build_id=target.build_id.hex,
         ),
     ]
-
-    if target.build_id:
-        channels.append('builds:{build_id}:jobs'.format(
-            build_id=target.build_id.hex,
-        ))
-    if target.author_id:
-        channels.append('authors:{author_id}:jobs'.format(
-            author_id=target.author_id.hex,
-        ))
-
-    if not target.patch_id and target.revision_sha:
-        channels.append('revisions:{revision_id}:jobs'.format(
-            revision_id=target.revision_sha,
-        ))
 
     for channel in channels:
         json = as_json(target)

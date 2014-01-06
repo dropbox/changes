@@ -96,7 +96,7 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 'status': job.status,
                 'result': job.result,
                 'project_id': job.project_id,
-                'repository_id': job.repository_id,
+                'repository_id': job.build.repository_id,
             })
             jobsteps = []
 

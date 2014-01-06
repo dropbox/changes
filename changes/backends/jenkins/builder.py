@@ -199,7 +199,7 @@ class JenkinsBuilder(BaseBackend):
             'label': job.data['job_name'],
         }, defaults={
             'project_id': job.project_id,
-            'repository_id': job.repository_id,
+            'repository_id': job.build.repository_id,
             'date_started': job.date_started,
             'status': job.status,
             'result': job.result,
@@ -212,7 +212,7 @@ class JenkinsBuilder(BaseBackend):
             'job': job,
             'project_id': job.project_id,
             'node_id': node.id,
-            'repository_id': job.repository_id,
+            'repository_id': job.build.repository_id,
             'date_started': job.date_started,
             'status': job.status,
             'result': job.result,
@@ -528,17 +528,17 @@ class JenkinsBuilder(BaseBackend):
                 {'name': 'CHANGES_BID', 'value': job.id.hex},
             ]
         }
-        if job.revision_sha:
+        if job.build.source.revision_sha:
             json_data['parameter'].append(
-                {'name': 'REVISION', 'value': job.revision_sha},
+                {'name': 'REVISION', 'value': job.build.source.revision_sha},
             )
 
-        if job.patch:
+        if job.build.source.patch:
             json_data['parameter'].append(
                 {'name': 'PATCH', 'file': 'patch'}
             )
             files = {
-                'patch': job.patch.diff,
+                'patch': job.build.source.patch.diff,
             }
         else:
             files = None

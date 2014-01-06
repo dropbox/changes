@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
 
-import warnings
-
 from cStringIO import StringIO
 from datetime import datetime
 from flask import request
@@ -17,23 +15,28 @@ from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
-    Change, ItemOption, Source, ProjectPlan
+    ItemOption, Source, ProjectPlan
 )
 from changes.utils.http import build_uri
 
 
-def create_build(project, sha, label, target, message, author, change=None,
-                 patch=None, cause=None):
+def create_build(project, label, target, message, author, change=None,
+                 patch=None, cause=None, source=None, sha=None):
+    assert sha or source
+
+    if not project.plans:
+        # Legacy support
+        # TODO(dcramer): remove this after we transition to plans
+        raise ValueError('No plans defined for project {0}'.format(project))
+
     repository = project.repository
 
-    if sha or patch:
+    if source is None:
         source, _ = get_or_create(Source, where={
             'repository': repository,
             'patch': patch,
             'revision_sha': sha,
         })
-    else:
-        source = None
 
     jobs = []
 
@@ -49,6 +52,7 @@ def create_build(project, sha, label, target, message, author, change=None,
         project=project,
         project_id=project.id,
         source=source,
+        source_id=source.id if source else None,
         repository=repository,
         status=Status.queued,
         author=author,
@@ -63,40 +67,6 @@ def create_build(project, sha, label, target, message, author, change=None,
 
     db.session.add(build)
 
-    if not project.plans:
-        # Legacy support
-        # TODO(dcramer): remove this after we transition to plans
-        warnings.warn('{0} is missing a build plan. Falling back to legacy mode.')
-
-        cur_no_query = db.session.query(
-            coalesce(func.max(Job.number), 0)
-        ).filter(
-            Job.build_id == build.id,
-        ).scalar()
-
-        job = Job(
-            build=build,
-            build_id=build.id,
-            number=cur_no_query + 1,
-            source=source,
-            project=project,
-            project_id=project.id,
-            repository=repository,
-            status=Status.queued,
-            author=build.author,
-            author_id=build.author_id,
-            label=label,
-            target=target,
-            revision_sha=sha,
-            message=message,
-            patch=patch,
-            change=change,
-        )
-
-        db.session.add(job)
-
-        jobs.append(job)
-
     for plan in project.plans:
         cur_no_query = db.session.query(
             coalesce(func.max(Job.number), 0)
@@ -110,16 +80,10 @@ def create_build(project, sha, label, target, message, author, change=None,
             number=cur_no_query + 1,
             project=project,
             project_id=project.id,
-            source=source,
-            repository=repository,
-            status=Status.queued,
-            author=build.author,
-            author_id=build.author_id,
+            source=build.source,
+            source_id=build.source_id,
+            status=build.status,
             label=plan.label,
-            target=target,
-            revision_sha=sha,
-            patch=patch,
-            change=change,
         )
 
         db.session.add(job)
@@ -163,21 +127,19 @@ class BuildIndexAPIView(APIView):
 
     # TODO(dcramer): these params are getting messy, and in this case we've got
     # multiple input styles (GET vs POST) that can potentially squash each other
-    @param('change', lambda x: Change.query.get(x), dest='change', required=False)
-    @param('change_id', lambda x: Change.query.get(x), dest='change', required=False)
+    @param('sha')
     @param('project', lambda x: Project.query.filter_by(slug=x).first(), dest='project', required=False)
     @param('repository', lambda x: Repository.query.filter_by(url=x).first(), dest='repository', required=False)
-    @param('sha', required=False)
     @param('author', AuthorValidator(), required=False)
     @param('label', required=False)
     @param('target', required=False)
     @param('message', required=False)
     @param('patch[label]', required=False, dest='patch_label')
-    def post(self, project=None, sha=None, change=None, author=None,
-             patch_label=None, patch=None, label=None, target=None,
-             message=None, repository=None):
+    def post(self, sha=None, project=None, author=None, patch_label=None, patch=None,
+             label=None, target=None, message=None, repository=None):
 
-        assert change or project or repository
+        assert sha
+        assert project or repository
 
         if request.form.get('patch'):
             raise ValueError('patch')
@@ -187,10 +149,7 @@ class BuildIndexAPIView(APIView):
         if patch_file and not patch_label:
             raise ValueError('patch_label')
 
-        if change:
-            projects = [change.project]
-            repository = Repository.query.get(change.project.repository_id)
-        elif project:
+        if project:
             projects = [project]
             repository = Repository.query.get(project.repository_id)
         else:
@@ -265,7 +224,6 @@ class BuildIndexAPIView(APIView):
 
             if patch_file:
                 patch = Patch(
-                    change=change,
                     repository=repository,
                     project=project,
                     parent_revision_sha=sha,
@@ -278,7 +236,6 @@ class BuildIndexAPIView(APIView):
 
             builds.append(create_build(
                 project=project,
-                change=change,
                 sha=sha,
                 target=target,
                 label=label,

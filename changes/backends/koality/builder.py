@@ -97,7 +97,7 @@ class KoalityBuilder(BaseBackend):
                 'label': stage_type.title(),
             },
             defaults={
-                'repository_id': job.repository_id,
+                'repository_id': job.build.repository_id,
                 'project_id': job.project_id,
             },
         )
@@ -149,7 +149,7 @@ class KoalityBuilder(BaseBackend):
         node = self._get_node(stage['buildNode'])
 
         step.job_id = job.id
-        step.repository_id = job.repository_id
+        step.repository_id = job.build.repository_id
         step.project_id = job.project_id
         step.phase_id = phase.id
         step.node_id = node.id
@@ -269,9 +269,9 @@ class KoalityBuilder(BaseBackend):
             raise UnrecoverableException('Missing Koality project configuration')
 
         req_kwargs = {}
-        if job.patch:
+        if job.build.source.patch:
             req_kwargs['files'] = {
-                'patch': job.patch.diff,
+                'patch': job.build.source.patch.diff,
             }
 
         response = self._get_response('POST', '{base_uri}/api/v/0/repositories/{project_id}/changes'.format(
@@ -280,7 +280,7 @@ class KoalityBuilder(BaseBackend):
             # XXX: passing an empty value for email causes Koality to not
             # send out an email notification
             'emailTo': '',
-            'sha': job.revision_sha,
+            'sha': job.build.source.revision_sha,
         }, **req_kwargs)
 
         job.data = {

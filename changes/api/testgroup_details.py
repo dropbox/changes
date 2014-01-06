@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
-from changes.models import Job, TestGroup, TestCase
+from changes.models import Job, TestGroup, TestCase, Source
 
 
 class TestGroupDetailsAPIView(APIView):
@@ -29,16 +29,19 @@ class TestGroupDetailsAPIView(APIView):
                 TestCase.groups.contains(testgroup),
             ).first()
 
-        previous_runs = TestGroup.query.join(Job).options(
+        previous_runs = TestGroup.query.options(
             joinedload('job'),
-            joinedload('job.author'),
             joinedload('parent'),
+        ).join(
+            Job, Job.id == TestGroup.job_id,
+        ).join(
+            Source, Source.id == Job.source_id,
         ).filter(
             TestGroup.name_sha == testgroup.name_sha,
             TestGroup.id != testgroup.id,
             Job.date_created < testgroup.job.date_created,
             Job.status == Status.finished,
-            Job.patch == None,  # NOQA
+            Source.patch == None,  # NOQA
         ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         extended_serializers = {

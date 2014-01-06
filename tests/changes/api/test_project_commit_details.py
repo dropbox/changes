@@ -12,10 +12,8 @@ class ProjectCommitIndexTest(APITestCase):
 
         project = self.create_project()
         revision = self.create_revision(repository=project.repository)
-
-        build = self.create_build(project)
-        job1 = self.create_job(build, revision_sha=revision.sha)
-        job2 = self.create_job(build, revision_sha=revision.sha)
+        source = self.create_source(project, revision_sha=revision.sha)
+        build = self.create_build(project, source=source)
 
         path = '/api/0/projects/{0}/commits/{1}/'.format(
             self.project.id.hex, fake_commit_id)
@@ -30,6 +28,5 @@ class ProjectCommitIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['commit']['id'] == revision.sha
-        assert len(data['builds']) == 2
-        assert data['builds'][0]['id'] == job2.id.hex
-        assert data['builds'][1]['id'] == job1.id.hex
+        assert len(data['builds']) == 1
+        assert data['builds'][0]['id'] == build.id.hex

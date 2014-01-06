@@ -1,12 +1,12 @@
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
+from sqlalchemy import Column, DateTime, ForeignKey, String, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
-from changes.constants import Status, Result, Cause
+from changes.constants import Status, Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
@@ -17,9 +17,6 @@ class Job(db.Model):
     __tablename__ = 'job'
     __table_args__ = (
         Index('idx_build_project_id', 'project_id'),
-        Index('idx_build_repository_id', 'repository_id'),
-        Index('idx_build_author_id', 'author_id'),
-        Index('idx_build_patch_id', 'patch_id'),
         Index('idx_build_change_id', 'change_id'),
         Index('idx_build_source_id', 'source_id'),
         Index('idx_build_family_id', 'build_id'),
@@ -34,21 +31,9 @@ class Job(db.Model):
     change_id = Column(GUID, ForeignKey('change.id', ondelete="CASCADE"))
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
-    # TODO(dcramer): repo/sha/patch_id should be removed in favor of source
-    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
-    revision_sha = Column(String(40))
-    patch_id = Column(GUID, ForeignKey('patch.id', ondelete="CASCADE"))
-    # TODO(dcramer): parent is no longer useful
-    parent_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"))
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
-    # TODO(dcramer): message, target, cause, and author should be removed in
-    # favor of reading them from Build
-    message = Column(Text)
-    target = Column(String(128))
-    cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
-    author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
     duration = Column(Integer)
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
@@ -58,12 +43,8 @@ class Job(db.Model):
 
     change = relationship('Change')
     build = relationship('Build')
-    repository = relationship('Repository')
     project = relationship('Project')
     source = relationship('Source')
-    patch = relationship('Patch')
-    author = relationship('Author')
-    parent = relationship('Job')
 
     __repr__ = model_repr('label', 'target')
 

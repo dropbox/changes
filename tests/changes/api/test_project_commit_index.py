@@ -17,10 +17,8 @@ class ProjectCommitIndexTest(APITestCase):
         revision2 = self.create_revision(
             repository=project.repository, parents=[revision1.sha])
 
-        build = self.create_build(project)
-        self.create_job(build, revision_sha=revision1.sha)
-        job = self.create_job(
-            build, revision_sha=revision1.sha, status=Status.finished)
+        source = self.create_source(project, revision_sha=revision1.sha)
+        build = self.create_build(project, source=source, status=Status.finished)
 
         path = '/api/0/projects/{0}/commits/'.format(fake_project_id.hex)
 
@@ -36,7 +34,7 @@ class ProjectCommitIndexTest(APITestCase):
         assert data['commits'][0]['id'] == revision2.sha
         assert data['commits'][0]['build'] is None
         assert data['commits'][1]['id'] == revision1.sha
-        assert data['commits'][1]['build']['id'] == job.id.hex
+        assert data['commits'][1]['build']['id'] == build.id.hex
 
     @mock.patch('changes.models.Repository.get_vcs')
     def test_with_vcs(self, get_vcs):
@@ -61,11 +59,8 @@ class ProjectCommitIndexTest(APITestCase):
 
         project = self.create_project()
 
-        build = self.create_build(project)
-        self.create_job(
-            build, revision_sha='b' * 40, status=Status.finished)
-        job = self.create_job(
-            build, revision_sha='b' * 40, status=Status.finished)
+        source = self.create_source(project, revision_sha='b' * 40)
+        build = self.create_build(project, source=source, status=Status.finished)
 
         path = '/api/0/projects/{0}/commits/'.format(project.id.hex)
 
@@ -76,4 +71,4 @@ class ProjectCommitIndexTest(APITestCase):
         assert data['commits'][0]['id'] == 'a' * 40
         assert data['commits'][0]['build'] is None
         assert data['commits'][1]['id'] == 'b' * 40
-        assert data['commits'][1]['build']['id'] == job.id.hex
+        assert data['commits'][1]['build']['id'] == build.id.hex

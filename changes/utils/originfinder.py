@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from collections import defaultdict
 
 from changes.constants import Result, Status
-from changes.models import Job, TestGroup
+from changes.models import Job, TestGroup, Source
 
 
 def first(key, iterable):
@@ -26,13 +26,15 @@ def find_failure_origins(job, test_failures):
 
     # find any existing failures in the previous runs
     # to do this we first need to find the last passing job
-    last_pass = Job.query.filter(
+    last_pass = Job.query.join(
+        Source, Source.id == Job.source_id,
+    ).filter(
         Job.project == project,
         Job.date_created <= job.date_created,
         Job.status == Status.finished,
         Job.result == Result.passed,
         Job.id != job.id,
-        Job.patch == None,  # NOQA
+        Source.patch == None,  # NOQA
     ).order_by(Job.date_created.desc()).first()
 
     if last_pass is None:
@@ -41,7 +43,9 @@ def find_failure_origins(job, test_failures):
     # We have to query all runs between job and last_pass, but we only
     # care about runs where the suite failed. Because we're paranoid about
     # performance, we limit this to 100 results.
-    previous_runs = Job.query.filter(
+    previous_runs = Job.query.join(
+        Source, Source.id == Job.source_id,
+    ).filter(
         Job.project == project,
         Job.date_created <= job.date_created,
         Job.date_created >= last_pass.date_created,
@@ -49,7 +53,7 @@ def find_failure_origins(job, test_failures):
         Job.result.in_([Result.failed, Result.passed]),
         Job.id != job.id,
         Job.id != last_pass.id,
-        Job.patch == None,  # NOQA
+        Source.patch == None,  # NOQA
     ).order_by(Job.date_created.desc())[:100]
 
     if not previous_runs:

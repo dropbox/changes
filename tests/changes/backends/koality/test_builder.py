@@ -9,7 +9,7 @@ from flask import current_app
 from changes.backends.koality.builder import KoalityBuilder
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Repository, Project, JobPhase, JobStep, Patch
+from changes.models import JobPhase, JobStep, Patch
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
 
 
@@ -21,13 +21,6 @@ class KoalityBuilderTestCase(BackendTestCase):
         'project_id': 1,
     }
     provider = 'koality'
-
-    def setUp(self):
-        self.repo = Repository(url='https://github.com/dropbox/changes.git')
-        self.project = Project(repository=self.repo, name='test', slug='test')
-
-        db.session.add(self.repo)
-        db.session.add(self.project)
 
     def get_builder(self, **options):
         base_options = self.builder_options.copy()
@@ -93,7 +86,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert len(phase_list) == 3
 
         assert phase_list[0].project_id == job.project_id
-        assert phase_list[0].repository_id == job.repository_id
+        assert phase_list[0].repository_id == build.repository_id
         assert phase_list[0].label == 'Setup'
         assert phase_list[0].status == Status.finished
         assert phase_list[0].result == Result.passed
@@ -101,7 +94,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert phase_list[0].date_finished == datetime(2013, 9, 19, 22, 15, 33)
 
         assert phase_list[1].project_id == job.project_id
-        assert phase_list[1].repository_id == job.repository_id
+        assert phase_list[1].repository_id == build.repository_id
         assert phase_list[1].label == 'Compile'
         assert phase_list[1].status == Status.finished
         assert phase_list[1].result == Result.passed
@@ -109,15 +102,15 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert phase_list[1].date_finished == datetime(2013, 9, 19, 22, 15, 34)
 
         assert phase_list[2].project_id == job.project_id
-        assert phase_list[2].repository_id == job.repository_id
+        assert phase_list[2].repository_id == build.repository_id
         assert phase_list[2].label == 'Test'
         assert phase_list[2].status == Status.finished
         assert phase_list[2].result == Result.failed
         assert phase_list[2].date_started == datetime(2013, 9, 19, 22, 15, 25)
         assert phase_list[2].date_finished == datetime(2013, 9, 19, 22, 15, 36)
 
-        step_list = list(JobStep.query.filter_by(
-            job=job,
+        step_list = list(JobStep.query.filter(
+            JobStep.job_id == job.id,
         ))
 
         step_list.sort(key=lambda x: (x.date_started, x.date_created))
@@ -125,7 +118,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert len(step_list) == 6
 
         assert step_list[0].project_id == job.project_id
-        assert step_list[0].repository_id == job.repository_id
+        assert step_list[0].repository_id == build.repository_id
         assert step_list[0].phase_id == phase_list[0].id
         assert step_list[0].label == 'ci/setup'
         assert step_list[0].status == Status.finished
@@ -134,7 +127,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[0].date_finished == datetime(2013, 9, 19, 22, 15, 33)
 
         assert step_list[1].project_id == job.project_id
-        assert step_list[1].repository_id == job.repository_id
+        assert step_list[1].repository_id == build.repository_id
         assert step_list[1].phase_id == phase_list[0].id
         assert step_list[1].label == 'ci/setup'
         assert step_list[1].status == Status.finished
@@ -143,7 +136,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[1].date_finished == datetime(2013, 9, 19, 22, 15, 33)
 
         assert step_list[2].project_id == job.project_id
-        assert step_list[2].repository_id == job.repository_id
+        assert step_list[2].repository_id == build.repository_id
         assert step_list[2].phase_id == phase_list[1].id
         assert step_list[2].label == 'ci/compile'
         assert step_list[2].status == Status.finished
@@ -152,7 +145,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[2].date_finished == datetime(2013, 9, 19, 22, 15, 33, 500000)
 
         assert step_list[3].project_id == job.project_id
-        assert step_list[3].repository_id == job.repository_id
+        assert step_list[3].repository_id == build.repository_id
         assert step_list[3].phase_id == phase_list[1].id
         assert step_list[3].label == 'ci/compile'
         assert step_list[3].status == Status.finished
@@ -161,7 +154,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[3].date_finished == datetime(2013, 9, 19, 22, 15, 34)
 
         assert step_list[4].project_id == job.project_id
-        assert step_list[4].repository_id == job.repository_id
+        assert step_list[4].repository_id == build.repository_id
         assert step_list[4].phase_id == phase_list[2].id
         assert step_list[4].label == 'ci/test'
         assert step_list[4].status == Status.finished
@@ -170,7 +163,7 @@ class SyncBuildTest(KoalityBuilderTestCase):
         assert step_list[4].date_finished == datetime(2013, 9, 19, 22, 15, 35)
 
         assert step_list[5].project_id == job.project_id
-        assert step_list[5].repository_id == job.repository_id
+        assert step_list[5].repository_id == build.repository_id
         assert step_list[5].phase_id == phase_list[2].id
         assert step_list[5].label == 'ci/test'
         assert step_list[5].status == Status.finished
@@ -188,11 +181,9 @@ class CreateBuildTest(KoalityBuilderTestCase):
 
         revision = '7ebd1f2d750064652ef5bbff72452cc19e1731e0'
 
-        build = self.create_build(self.project)
-        job = self.create_job(
-            build=build,
-            revision_sha=revision,
-        )
+        source = self.create_source(self.project, revision_sha=revision)
+        build = self.create_build(self.project, source=source)
+        job = self.create_job(build=build)
 
         backend = self.get_builder()
         backend.create_job(
@@ -229,11 +220,10 @@ class CreateBuildTest(KoalityBuilderTestCase):
         )
         db.session.add(patch)
 
-        build = self.create_build(self.project)
+        source = self.create_source(self.project, patch=patch, revision_sha=revision)
+        build = self.create_build(self.project, source=source)
         job = self.create_job(
             build=build,
-            revision_sha=revision,
-            patch=patch,
         )
 
         backend = self.get_builder()

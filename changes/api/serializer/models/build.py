@@ -11,22 +11,8 @@ class BuildSerializer(Serializer):
             avg_build_time = None
 
         target = instance.target
-        if target is None and instance.revision_sha:
-            target = instance.revision_sha[:12]
-
-        if instance.revision_sha:
-            revision = {
-                'sha': instance.revision_sha,
-            }
-        else:
-            revision = None
-
-        if instance.patch_id:
-            patch = {
-                'id': instance.patch_id.hex,
-            }
-        else:
-            patch = None
+        if target is None and instance.source.revision_sha:
+            target = instance.source.revision_sha[:12]
 
         return {
             'id': instance.id.hex,
@@ -38,10 +24,7 @@ class BuildSerializer(Serializer):
             'project': instance.project,
             'cause': instance.cause,
             'author': instance.author,
-            'source': {
-                'revision': revision,
-                'patch': patch,
-            },
+            'source': instance.source,
             'message': instance.message,
             'duration': instance.duration,
             'estimatedDuration': avg_build_time,

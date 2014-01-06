@@ -8,7 +8,7 @@ from sqlalchemy.sql import func, and_
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Job, AggregateTestGroup, TestGroup
+from changes.models import Job, AggregateTestGroup, TestGroup, Source
 from changes.utils.http import build_uri
 
 
@@ -93,9 +93,10 @@ class BuildReport(object):
             Job.project_id, Job.result,
             func.count(Job.id).label('num'),
             func.avg(Job.duration).label('duration'),
+        ).join(
+            Source, Source.id == Job.source_id,
         ).filter(
-            Job.revision_sha != None,  # NOQA
-            Job.patch_id == None,
+            Source.patch_id == None,  # NOQA
             Job.project_id.in_(project_ids),
             Job.status == Status.finished,
             Job.result.in_([Result.failed, Result.passed]),

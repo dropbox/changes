@@ -13,6 +13,7 @@ from changes.db.types.guid import GUID
 class JobPhase(db.Model):
     # TODO(dcramer): add order column rather than implicity date_started ordering
     # TODO(dcramer): make duration a column
+    # TODO(dcramer): remove repository_id
     __tablename__ = 'jobphase'
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

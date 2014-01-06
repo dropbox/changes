@@ -15,7 +15,6 @@ class JobDetailsAPIView(APIView):
         job = Job.query.options(
             subqueryload_all(Job.phases),
             joinedload(Job.project),
-            joinedload(Job.author),
         ).get(job_id)
         if job is None:
             return Response(status=404)
@@ -25,7 +24,6 @@ class JobDetailsAPIView(APIView):
             Job.date_created < job.date_created,
             Job.status == Status.finished,
             Job.id != job.id,
-            Job.patch == None,  # NOQA
         ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         # find all parent groups (root trees)

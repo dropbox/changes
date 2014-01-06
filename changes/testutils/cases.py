@@ -13,7 +13,7 @@ from changes.config import db, mail
 from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, RemoteEntity, Change, Author,
-    TestGroup, Patch, Plan, Step, Build
+    TestGroup, Patch, Plan, Step, Build, Source
 )
 
 
@@ -79,13 +79,10 @@ class Fixtures(object):
         kwargs.setdefault('label', build.label)
         kwargs.setdefault('status', build.status)
         kwargs.setdefault('result', build.result)
-        kwargs.setdefault('author', build.author)
-        kwargs.setdefault('target', build.target)
-        kwargs.setdefault('revision_sha', build.revision_sha)
-        kwargs.setdefault('patch', build.patch)
         kwargs.setdefault('duration', build.duration)
         kwargs.setdefault('date_started', build.date_started)
         kwargs.setdefault('date_finished', build.date_finished)
+        kwargs.setdefault('source', build.source)
 
         if kwargs.get('change', False) is False:
             kwargs['change'] = self.create_change(project)
@@ -100,10 +97,8 @@ class Fixtures(object):
             build=build,
             build_id=build.id,
             number=cur_no_query + 1,
-            repository_id=project.repository_id,
-            repository=project.repository,
-            project_id=project.id,
             project=project,
+            project_id=project.id,
             **kwargs
         )
         db.session.add(job)
@@ -121,8 +116,20 @@ class Fixtures(object):
 
         return job_plan
 
+    def create_source(self, project, **kwargs):
+        kwargs.setdefault('revision_sha', uuid4().hex)
+
+        source = Source(
+            repository_id=project.repository_id,
+            **kwargs
+        )
+        db.session.add(source)
+
+        return source
+
     def create_build(self, project, **kwargs):
-        revision_sha = kwargs.pop('revision_sha', uuid4().hex)
+        if 'source' not in kwargs:
+            kwargs['source'] = self.create_source(project)
 
         kwargs.setdefault('label', 'Sample')
 
@@ -138,7 +145,6 @@ class Fixtures(object):
             repository=project.repository,
             project_id=project.id,
             project=project,
-            revision_sha=revision_sha,
             **kwargs
         )
         db.session.add(build)
@@ -205,21 +211,6 @@ class Fixtures(object):
 
         return step
 
-    def create_build_from_job(self, job):
-        build = Build(
-            project=job.project,
-            repository=job.repository,
-            status=job.status,
-            author=job.author,
-            label=job.label,
-            target=job.target,
-            revision_sha=job.revision_sha,
-            message=job.message,
-        )
-        db.session.add(build)
-
-        return build
-
 
 class TestCase(Exam, unittest2.TestCase, Fixtures):
     def setUp(self):
@@ -236,6 +227,9 @@ class TestCase(Exam, unittest2.TestCase, Fixtures):
             name='test2',
             slug='test2',
         )
+
+        self.plan = self.create_plan()
+        self.plan.projects.append(self.project)
 
         # disable commit
         self.patcher = mock.patch('changes.config.db.session.commit')

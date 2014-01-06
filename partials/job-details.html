@@ -12,8 +12,8 @@
 				{{build.name}}<br>
 				<small>
 					<span ng-if="build.number">#{{build.number}}.{{job.number}} &mdash; </span>
-					{{job.target}}
-					<span ng-if="job.author"> &mdash; {{job.author.name}}</span>
+					{{build.target}}
+					<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
 					&mdash; {{job.name}}
 				</small>
 			</h2>
@@ -26,18 +26,18 @@
 				<dl class="flat">
 					<dt ng-if="build.number">Build:</dt>
 					<dd ng-if="build.number"><a href="/builds/{{build.id}}/">#{{build.number}}</a></dd>
-					<dt ng-if="job.author">Author:</dt>
-					<dd ng-if="job.author">{{job.author.name}} <span ng-if="job.author.email">(<a href="mailto:{{job.author.email}}">{{job.author.email}}</a>)</span></dd>
+					<dt ng-if="build.author">Author:</dt>
+					<dd ng-if="build.author">{{build.author.name}} <span ng-if="build.author.email">(<a href="mailto:{{build.author.email}}">{{build.author.email}}</a>)</span></dd>
 					<dt>Project:</dt>
 					<dd><a href="{{job.project.link}}">{{job.project.name}}</a></dd>
 					<dt ng-if="job.change">Change:</dt>
 					<dd ng-if="job.change"><a href="#">{{job.change.name}}</a></dd>
-					<dt ng-if="job.revision">Revision:</dt>
-					<dd ng-if="job.revision">
-						<a href="/projects/{{project.id}}/commits/{{job.revision.sha}}/">{{job.revision.sha}}</a>
+					<dt ng-if="build.source.revision">Revision:</dt>
+					<dd ng-if="build.source.revision">
+						<a href="/projects/{{project.id}}/commits/{{build.source.revision.sha}}/">{{build.source.revision.sha}}</a>
 					</dd>
-					<dt ng-if="job.patch">Patch:</dt>
-					<dd ng-if="job.patch"><a href="/api/0/patches/{{job.patch.id}}/?raw=1" target="_self">{{job.patch.id}}</a></dd>
+					<dt ng-if="build.source.patch">Patch:</dt>
+					<dd ng-if="build.source.patch"><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
 					<dt>Status:</dt>
 					<dd>{{job.status.name}} <span ng-if="job.status.id == 'finished'">({{job.result.name}})</span></dd>
 					<dt ng-if="job.dateStarted">Started:</dt>

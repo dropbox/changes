@@ -18,12 +18,12 @@ class BuildRetryAPIView(APIView):
 
         new_build = create_build(
             project=build.project,
-            sha=build.revision_sha,
             label=build.label,
             target=build.target,
             message=build.message,
             author=build.author,
             patch=build.patch,
+            source=build.source,
             cause=Cause.retry,
         )
 

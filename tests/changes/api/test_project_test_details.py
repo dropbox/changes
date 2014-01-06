@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from changes.constants import Result, Status
 from changes.config import db
 from changes.models import AggregateTestGroup, TestGroup
 from changes.testutils import APITestCase
@@ -10,7 +11,11 @@ class ProjectTestDetailsTest(APITestCase):
         fake_id = uuid4()
 
         project = self.create_project()
-        build = self.create_build(project)
+        build = self.create_build(
+            project=project,
+            status=Status.finished,
+            result=Result.passed,
+        )
         job = self.create_job(build)
 
         parent_agg_group = AggregateTestGroup(

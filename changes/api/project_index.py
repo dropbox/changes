@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.constants import Status
-from changes.models import Project, Build
+from changes.models import Project, Build, Source
 
 
 class ProjectIndexAPIView(APIView):
@@ -21,8 +21,8 @@ class ProjectIndexAPIView(APIView):
                 joinedload(Build.project),
                 joinedload(Build.author),
             ).filter(
-                Build.revision_sha != None,  # NOQA
-                Build.patch_id == None,
+                Build.source_id == Source.id,
+                Source.patch_id == None,  # NOQA
                 Build.project == project,
                 Build.status == Status.finished,
             ).order_by(

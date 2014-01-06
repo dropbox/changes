@@ -7,7 +7,7 @@ from sqlalchemy.sql import func, literal
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import TestGroup, Project, Job
+from changes.models import TestGroup, Project, Build, Job, Source
 from changes.reports.build import SLOW_TEST_THRESHOLD
 
 
@@ -31,8 +31,8 @@ def get_build_history(project, end_period, days=90):
         Job.date_created >= end_period - timedelta(days=days),
         Job.date_created < end_period,
         Job.status == Status.finished,
-        Job.revision_sha != None,  # NOQA
-        Job.patch_id == None,
+        Source.revision_sha != None,  # NOQA
+        Source.patch_id == None,
     ).group_by(Job.result, 'date').order_by('date asc')
 
     # group results by day
@@ -63,7 +63,7 @@ def get_stats_for_period(project, start_period, end_period):
         Job.result == Result.passed,
         Job.date_created >= start_period,
         Job.date_created < end_period,
-        Job.revision_sha != None,  # NOQA
+        Source.revision_sha != None,  # NOQA
     ).count()
     num_failures = Job.query.filter(
         Job.project_id == project.id,
@@ -71,24 +71,24 @@ def get_stats_for_period(project, start_period, end_period):
         Job.result == Result.failed,
         Job.date_created >= start_period,
         Job.date_created < end_period,
-        Job.revision_sha != None,  # NOQA
+        Source.revision_sha != None,  # NOQA
     ).count()
     num_builds = Job.query.filter(
         Job.project_id == project.id,
         Job.status == Status.finished,
         Job.date_created >= start_period,
         Job.date_created < end_period,
-        Job.revision_sha != None,  # NOQA
+        Source.revision_sha != None,  # NOQA
     ).count()
 
     num_authors = db.session.query(
-        func.count(distinct(Job.author_id))
+        func.count(distinct(Build.author_id))
     ).filter(
-        Job.project_id == project.id,
-        Job.status == Status.finished,
-        Job.date_created >= start_period,
-        Job.date_created < end_period,
-        Job.revision_sha != None,  # NOQA
+        Build.project_id == project.id,
+        Build.status == Status.finished,
+        Build.date_created >= start_period,
+        Build.date_created < end_period,
+        Source.revision_sha != None,  # NOQA
     ).scalar()
 
     avg_build_time = db.session.query(
@@ -100,7 +100,7 @@ def get_stats_for_period(project, start_period, end_period):
         Job.duration > 0,
         Job.date_created >= start_period,
         Job.date_created < end_period,
-        Job.revision_sha != None,  # NOQA
+        Source.revision_sha != None,  # NOQA
     ).scalar()
     if avg_build_time is not None:
         avg_build_time = float(avg_build_time)
@@ -113,7 +113,7 @@ def get_stats_for_period(project, start_period, end_period):
         Job.result == Result.failed,
         Job.date_created >= start_period,
         Job.date_created < end_period,
-        Job.patch_id != None,  # NOQA
+        Source.patch_id != None,  # NOQA
     ).count()
 
     return {
@@ -157,10 +157,9 @@ class ProjectStatsIndexAPIView(APIView):
 
         current_build = Job.query.options(
             joinedload(Job.project),
-            joinedload(Job.author),
         ).filter(
-            Job.revision_sha != None,  # NOQA
-            Job.patch_id == None,
+            Source.revision_sha != None,  # NOQA
+            Source.patch_id == None,
             Job.project == project,
             Job.status == Status.finished,
         ).order_by(

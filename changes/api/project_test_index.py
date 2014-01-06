@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload, subqueryload
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Status
-from changes.models import Project, AggregateTestGroup, TestGroup, Job
+from changes.models import Project, AggregateTestGroup, TestGroup, Job, Source
 
 
 class ProjectTestIndexAPIView(APIView):
@@ -28,10 +28,10 @@ class ProjectTestIndexAPIView(APIView):
 
         latest_job = Job.query.options(
             subqueryload(Job.project),
-            subqueryload(Job.author),
+        ).join(
+            Source, Source.id == Job.source_id,
         ).filter(
-            Job.revision_sha != None,  # NOQA
-            Job.patch_id == None,
+            Source.patch_id == None,  # NOQA
             Job.project == project,
             Job.status == Status.finished,
         ).order_by(

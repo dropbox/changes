@@ -21,10 +21,10 @@ class BuildRetryTest(APITestCase):
         new_build = Build.query.get(data['build']['id'])
 
         assert new_build.id != build.id
-        assert new_build.project == self.project
+        assert new_build.project_id == self.project.id
         assert new_build.cause == Cause.retry
-        assert new_build.revision_sha == build.revision_sha
         assert new_build.author_id == build.author_id
+        assert new_build.source_id == build.source_id
         assert new_build.label == build.label
         assert new_build.message == build.message
         assert new_build.target == build.target
@@ -37,7 +37,3 @@ class BuildRetryTest(APITestCase):
 
         new_job = jobs[0]
         assert new_job.id != job.id
-        assert new_job.project == self.project
-        assert new_job.revision_sha == job.revision_sha
-        assert new_job.author_id == job.author_id
-        assert new_job.label == job.label

@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.constants import Status
-from changes.models import Project, Job, Revision
+from changes.models import Build, Project, Revision, Source
 
 
 class ProjectCommitIndexAPIView(APIView):
@@ -58,15 +58,18 @@ class ProjectCommitIndexAPIView(APIView):
                 ).order_by(Revision.date_created.desc())[:100]
             ))
 
-        builds_qs = list(Job.query.filter(
-            Job.project_id == project.id,
-            Job.revision_sha.in_(c['id'] for c in commits),
-            Job.patch == None,  # NOQA
-            Job.status.in_([Status.finished, Status.in_progress]),
-        ).order_by(Job.date_created.asc()))
+        builds_qs = list(Build.query.options(
+            joinedload('author'),
+        ).filter(
+            Build.source_id == Source.id,
+            Build.project_id == project.id,
+            Build.status.in_([Status.finished, Status.in_progress]),
+            Source.revision_sha.in_(c['id'] for c in commits),
+            Source.patch == None,  # NOQA
+        ).order_by(Build.date_created.asc()))
 
         builds_map = dict(
-            (b.revision_sha, d)
+            (b.source.revision_sha, d)
             for b, d in itertools.izip(builds_qs, self.serialize(builds_qs))
         )
 

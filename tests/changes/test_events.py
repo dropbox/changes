@@ -36,10 +36,6 @@ class PublishJobUpdateTest(TestCase):
             'data': json,
             'event': 'job.update',
         })
-        publish.assert_any_call('projects:{0}:jobs'.format(job.project_id.hex), {
-            'data': json,
-            'event': 'job.update',
-        })
         publish.assert_any_call('builds:{0}:jobs'.format(job.build_id.hex), {
             'data': json,
             'event': 'job.update',

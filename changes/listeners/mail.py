@@ -6,7 +6,8 @@ from flask_mail import Message, sanitize_address
 from changes.config import db, mail
 from changes.constants import Result, Status
 from changes.models import (
-    Job, JobPlan, TestGroup, ProjectOption, LogSource, LogChunk, ItemOption
+    Job, JobPlan, TestGroup, ProjectOption, LogSource, LogChunk, ItemOption,
+    Source
 )
 from changes.utils.http import build_uri
 
@@ -29,10 +30,11 @@ def did_cause_breakage(job):
     if job.result != Result.failed:
         return False
 
-    parent = Job.query.filter(
-        Job.revision_sha != None,  # NOQA
-        Job.patch_id == None,
-        Job.revision_sha != job.revision_sha,
+    parent = Job.query.join(
+        Source, Source.id == Job.source_id,
+    ).filter(
+        Source.patch_id == None,  # NOQA
+        Source.revision_sha != job.build.source.revision_sha,
         Job.date_created < job.date_created,
         Job.status == Status.finished,
     ).order_by(Job.date_created.desc()).first()
@@ -84,6 +86,8 @@ def send_notification(job, recipients):
     num_test_failures = test_failures.count()
     test_failures = test_failures[:25]
 
+    build = job.build
+
     # TODO(dcramer): we should probably find a better way to do logs
     primary_log = LogSource.query.filter(
         LogSource.job_id == job.id,
@@ -95,7 +99,7 @@ def send_notification(job, recipients):
     subject = u"Build {result} - {project} #{number} ({target})".format(
         number='{0}.{1}'.format(job.build.number, job.number),
         result=unicode(job.result),
-        target=job.target or job.revision_sha or 'Unknown',
+        target=build.target or build.source.revision_sha or 'Unknown',
         project=job.project.name,
     )
 
@@ -103,6 +107,7 @@ def send_notification(job, recipients):
         testgroup.uri = build_uri('/testgroups/{0}/'.format(testgroup.id.hex))
 
     job.uri = build_uri('/jobs/{0}/'.format(job.id.hex))
+    build.uri = build_uri('/builds/{0}/'.format(build.id.hex))
 
     context = {
         'job': job,
@@ -167,7 +172,7 @@ def job_finished_handler(job, **kwargs):
 
     recipients = []
     if options.get('mail.notify-author', '1') == '1':
-        author = job.author
+        author = job.build.author
         if author:
             recipients.append(u'%s <%s>' % (author.name, author.email))
 
@@ -178,7 +183,7 @@ def job_finished_handler(job, **kwargs):
             [x.strip() for x in options['mail.notify-addresses'].split(',')]
         )
 
-    if not job.patch_id:
+    if not job.build.source.patch_id:
         if options.get('mail.notify-addresses-revisions'):
             recipients.extend(
                 [x.strip() for x in options['mail.notify-addresses-revisions'].split(',')]

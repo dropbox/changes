@@ -10,7 +10,7 @@ from uuid import UUID
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Repository, Project, TestCase, Patch, LogSource, LogChunk
+    TestCase, Patch, LogSource, LogChunk
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
@@ -23,13 +23,6 @@ class BaseTestCase(BackendTestCase):
         'base_url': 'http://jenkins.example.com',
         'job_name': 'server',
     }
-
-    def setUp(self):
-        self.repo = Repository(url='https://github.com/dropbox/changes.git')
-        self.project = Project(repository=self.repo, name='test', slug='test')
-
-        db.session.add(self.repo)
-        db.session.add(self.project)
 
     def get_builder(self, **options):
         base_options = self.builder_options.copy()
@@ -137,11 +130,10 @@ class CreateBuildTest(BaseTestCase):
         )
         db.session.add(patch)
 
-        build = self.create_build(self.project)
+        source = self.create_source(self.project, patch=patch)
+        build = self.create_build(self.project, source=source)
         job = self.create_job(
             build=build,
-            patch=patch,
-            revision_sha=patch.parent_revision_sha,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8')
         )
 

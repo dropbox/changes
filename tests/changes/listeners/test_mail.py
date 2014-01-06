@@ -15,16 +15,16 @@ class BuildHandlerTestCase(TestCase):
     @mock.patch('changes.listeners.mail.send_notification')
     def test_default_options(self, send_notifications):
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project)
-        job = self.create_job(build, result=Result.passed, author=author)
+        build = self.create_build(self.project, result=Result.passed, author=author)
+        job = self.create_job(build)
 
         job_finished_handler(job)
 
         # not failing
         assert not send_notifications.called
 
-        build = self.create_build(self.project)
-        job = self.create_job(build, result=Result.failed, author=author)
+        build = self.create_build(self.project, result=Result.failed, author=author)
+        job = self.create_job(build)
 
         job_finished_handler(job)
 
@@ -38,8 +38,8 @@ class BuildHandlerTestCase(TestCase):
         db.session.add(ProjectOption(
             project=self.project, name='mail.notify-author', value='0'))
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project)
-        job = self.create_job(build, result=Result.failed, author=author)
+        build = self.create_build(self.project, result=Result.failed, author=author)
+        job = self.create_job(build)
 
         job_finished_handler(job)
 
@@ -54,8 +54,8 @@ class BuildHandlerTestCase(TestCase):
             value='test@example.com, bar@example.com'))
 
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project)
-        job = self.create_job(build, result=Result.failed, author=author)
+        build = self.create_build(self.project, result=Result.failed, author=author)
+        job = self.create_job(build)
 
         job_finished_handler(job)
 
@@ -76,13 +76,14 @@ class BuildHandlerTestCase(TestCase):
             repository=self.repo, project=self.project, label='foo',
             diff='',
         )
-        build = self.create_build(self.project)
-        job = self.create_job(
-            build=build,
-            result=Result.failed,
+        source = self.create_source(self.project, patch=patch)
+        build = self.create_build(
+            project=self.project,
+            source=source,
             author=author,
-            patch=patch,
+            result=Result.failed,
         )
+        job = self.create_job(build=build)
 
         job_finished_handler(job)
 
@@ -92,12 +93,12 @@ class BuildHandlerTestCase(TestCase):
 
         send_notifications.reset_mock()
 
-        build = self.create_build(self.project)
-        job = self.create_job(
-            build=build,
+        build = self.create_build(
+            project=self.project,
             result=Result.failed,
             author=author,
         )
+        job = self.create_job(build=build)
 
         job_finished_handler(job)
 
@@ -136,7 +137,7 @@ class SendNotificationTestCase(TestCase):
         msg = self.outbox[0]
 
         assert msg.subject == 'Build Failed - %s #%s.%s (%s)' % (
-            job.project.name, job.build.number, job.number, job.revision_sha)
+            job.project.name, job.build.number, job.number, job.build.source.revision_sha)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
         assert job_link in msg.html

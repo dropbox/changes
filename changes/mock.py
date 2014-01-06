@@ -190,41 +190,40 @@ def job(build, change=None, **kwargs):
     )
     db.session.add(job)
 
-    if build:
-        jobplan = JobPlan(
-            plan=plan(),
-            build=build,
-            project=job.project,
-            job=job,
-        )
-        db.session.add(jobplan)
+    jobplan = JobPlan(
+        plan=plan(),
+        build=build,
+        project=job.project,
+        job=job,
+    )
+    db.session.add(jobplan)
 
     phase1_setup = JobPhase(
-        repository=job.repository, project=job.project, job=job,
+        repository=build.repository, project=job.project, job=job,
         status=Status.finished, result=Result.passed, label='Setup',
     )
     db.session.add(phase1_setup)
 
     phase1_compile = JobPhase(
-        repository=job.repository, project=job.project, job=job,
+        repository=build.repository, project=job.project, job=job,
         status=Status.finished, result=Result.passed, label='Compile',
     )
     db.session.add(phase1_compile)
 
     phase1_test = JobPhase(
-        repository=job.repository, project=job.project, job=job,
+        repository=build.repository, project=job.project, job=job,
         status=kwargs['status'], result=kwargs['result'], label='Test',
     )
     db.session.add(phase1_test)
 
     step = JobStep(
-        repository=job.repository, project=job.project, job=job,
+        repository=build.repository, project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
     db.session.add(step)
     step = JobStep(
-        repository=job.repository, project=job.project, job=job,
+        repository=build.repository, project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )

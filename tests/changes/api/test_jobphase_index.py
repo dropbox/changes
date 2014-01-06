@@ -14,7 +14,7 @@ class JobPhaseIndexTest(APITestCase):
 
         phase_1 = JobPhase(
             job_id=job.id,
-            repository_id=job.repository_id,
+            repository_id=build.repository_id,
             project_id=job.project_id,
             label='Setup',
             status=Status.finished,
@@ -28,7 +28,7 @@ class JobPhaseIndexTest(APITestCase):
         step_1 = JobStep(
             job_id=job.id,
             phase_id=phase_1.id,
-            repository_id=job.repository_id,
+            repository_id=build.repository_id,
             project_id=job.project_id,
             label='ci/setup',
             status=Status.finished,
@@ -41,7 +41,7 @@ class JobPhaseIndexTest(APITestCase):
 
         phase_2 = JobPhase(
             job_id=job.id,
-            repository_id=job.repository_id,
+            repository_id=build.repository_id,
             project_id=job.project_id,
             label='Test',
             status=Status.finished,
@@ -55,7 +55,7 @@ class JobPhaseIndexTest(APITestCase):
         step_2_a = JobStep(
             job_id=job.id,
             phase_id=phase_2.id,
-            repository_id=job.repository_id,
+            repository_id=build.repository_id,
             project_id=job.project_id,
             label='test_foo.py',
             status=Status.finished,
@@ -69,7 +69,7 @@ class JobPhaseIndexTest(APITestCase):
         step_2_b = JobStep(
             job_id=job.id,
             phase_id=phase_2.id,
-            repository_id=job.repository_id,
+            repository_id=build.repository_id,
             project_id=job.project_id,
             label='test_bar.py',
             status=Status.finished,

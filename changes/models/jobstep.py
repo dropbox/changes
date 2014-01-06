@@ -12,6 +12,7 @@ from changes.db.types.guid import GUID
 
 class JobStep(db.Model):
     # TODO(dcramer): make duration a column
+    # TODO(dcramer): remove repository_id
     __tablename__ = 'jobstep'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

@@ -13,7 +13,6 @@ class JobPhaseIndexAPIView(APIView):
         job = Job.query.options(
             subqueryload_all(Job.phases),
             joinedload(Job.project),
-            joinedload(Job.author),
         ).get(job_id)
         if job is None:
             return Response(status=404)
