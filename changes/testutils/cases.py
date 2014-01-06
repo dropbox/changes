@@ -13,7 +13,7 @@ from changes.config import db, mail
 from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, RemoteEntity, Change, Author,
-    TestGroup, Patch, Plan, Step, Build, Source
+    TestGroup, Patch, Plan, Step, Build, Source, Node
 )
 
 
@@ -35,6 +35,14 @@ class Fixtures(object):
         db.session.add(repo)
 
         return repo
+
+    def create_node(self, **kwargs):
+        kwargs.setdefault('label', uuid4().hex)
+
+        node = Node(**kwargs)
+        db.session.add(node)
+
+        return node
 
     def create_project(self, **kwargs):
         if not kwargs.get('repository'):

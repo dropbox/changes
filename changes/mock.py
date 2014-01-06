@@ -14,7 +14,7 @@ from changes.constants import Status, Result
 from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.models import (
-    Project, Repository, Author, Revision, Job, JobPhase, JobStep,
+    Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
     TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan, Source
 )
 
@@ -186,6 +186,10 @@ def job(build, change=None, **kwargs):
     )
     db.session.add(job)
 
+    node, _ = get_or_create(Node, where={
+        'label': get_sentences(1)[0],
+    })
+
     jobplan = JobPlan(
         plan=plan(),
         build=build,
@@ -215,13 +219,13 @@ def job(build, change=None, **kwargs):
     step = JobStep(
         project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
-        label=TEST_STEP_LABELS.next(),
+        label=TEST_STEP_LABELS.next(), node=node,
     )
     db.session.add(step)
     step = JobStep(
         project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
-        label=TEST_STEP_LABELS.next(),
+        label=TEST_STEP_LABELS.next(), node=node,
     )
     db.session.add(step)
 

@@ -8,6 +8,7 @@ define(['app',
         'controllers/jobDetails',
         'controllers/jobLogDetails',
         'controllers/jobPhaseList',
+        'controllers/nodeDetails',
         'controllers/testGroupDetails',
         'controllers/projectCommitDetails',
         'controllers/projectCommitList',
@@ -141,6 +142,18 @@ define(['app',
           resolve: {
             initialBuildList: ['$http', function($http) {
               return $http.get('/api/0/authors/me/builds/');
+            }]
+          }
+        })
+        .when('/nodes/:node_id/', {
+          templateUrl: 'partials/node-details.html',
+          controller: 'nodeDetailsCtrl',
+          resolve: {
+            initialNode: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/nodes/' + $route.current.params.node_id + '/');
+            }],
+            initialJobList: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/nodes/' + $route.current.params.node_id + '/jobs/');
             }]
           }
         })

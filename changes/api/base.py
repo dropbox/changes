@@ -74,7 +74,7 @@ class APIView(Resource):
 
         return super(APIView, self).dispatch_request(*args, **kwargs)
 
-    def paginate(self, queryset):
+    def paginate(self, queryset, **kwargs):
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 50))
         assert per_page <= 100
@@ -91,7 +91,7 @@ class APIView(Resource):
             links.append(('next', page + 1))
             result = result[:per_page]
 
-        response = self.respond(result)
+        response = self.respond(result, **kwargs)
 
         querystring = u'&'.join(
             u'{0}={1}'.format(quote(k), quote(v))
@@ -114,9 +114,9 @@ class APIView(Resource):
             response.headers['Link'] = ', '.join(link_values)
         return response
 
-    def respond(self, context, status_code=200):
+    def respond(self, context, status_code=200, serializers=None):
         return Response(
-            as_json(self.serialize(context)),
+            as_json(self.serialize(context, serializers)),
             mimetype='application/json',
             status=status_code)
 

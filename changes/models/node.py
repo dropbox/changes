@@ -14,7 +14,7 @@ class Node(db.Model):
     label = Column(String(128), unique=True)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    def __init__(self, **kwargs):
-        super(Node, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(Node, self).__init__(*args, **kwargs)
         if not self.id:
             self.id = uuid.uuid4()

@@ -36,3 +36,10 @@ class JobSerializer(Serializer):
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
             'dateFinished': instance.date_finished.isoformat() if instance.date_finished else None,
         }
+
+
+class JobWithBuildSerializer(JobSerializer):
+    def serialize(self, instance):
+        data = super(JobWithBuildSerializer, self).serialize(instance)
+        data['build'] = instance.build
+        return data
