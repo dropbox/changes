@@ -149,10 +149,11 @@ class BuildIndexAPIView(APIView):
             projects = [args.project]
             repository = Repository.query.get(args.project.repository_id)
         else:
+            repository = args.repository
             projects = list(Project.query.options(
                 subqueryload_all(Project.project_plans, ProjectPlan.plan),
             ).filter(
-                Project.repository_id == args.repository.id,
+                Project.repository_id == repository.id,
             ))
 
         if args.patch_file:
