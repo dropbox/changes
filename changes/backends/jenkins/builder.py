@@ -550,7 +550,16 @@ class JenkinsBuilder(BaseBackend):
             'json': json.dumps(json_data),
         }, files=files)
 
-        job_data = self._find_job(job_name, job.id.hex)
+        # we retry for a period of time as Jenkins doesn't have strong consistency
+        # guarantees and the job may not show up right away
+        t = time.time() + 5
+        job_data = None
+        while time.time() < t:
+            job_data = self._find_job(job_name, job.id.hex)
+            if job_data:
+                break
+            time.sleep(0.3)
+
         if job_data is None:
             raise Exception('Unable to find matching job after creation. GLHF')
 
