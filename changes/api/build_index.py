@@ -140,8 +140,6 @@ class BuildIndexAPIView(APIView):
     def post(self):
         args = self.parser.parse_args()
 
-        print args
-
         assert args.project or args.repository
 
         if args.patch_file and not args.patch_label:
