@@ -24,7 +24,7 @@ class Tracer(local):
         self.active = False
 
     def add_event(self, message, duration=None):
-        __traceback_hide__ = True
+        __traceback_hide__ = True  # NOQA
 
         if self.active:
             self.events.append((
@@ -35,7 +35,7 @@ class Tracer(local):
             ))
 
     def get_traceback(self):
-        __traceback_hide__ = True
+        __traceback_hide__ = True  # NOQA
 
         result = []
 
@@ -77,7 +77,7 @@ class SQLAlchemyTracer(object):
         self.tracking[(conn, clause)] = time()
 
     def after_execute(self, conn, clause, multiparams, params, results):
-        __traceback_hide__ = True
+        __traceback_hide__ = True  # NOQA
 
         start_time = self.tracking.pop((conn, clause), None)
         if start_time:
@@ -98,7 +98,7 @@ class TracerMiddleware(object):
         self.app = app
 
     def __call__(self, environ, start_response):
-        __traceback_hide__ = True
+        __traceback_hide__ = True  # NOQA
 
         # if we've passed ?trace and we're a capable request we show
         # our tracing report
