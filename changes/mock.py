@@ -15,7 +15,7 @@ from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep,
-    TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan
+    TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan, Source
 )
 
 
@@ -156,22 +156,18 @@ def plan(**kwargs):
 
     result = Plan(**kwargs)
     db.session.add(result)
+
     return result
 
 
 def job(build, change=None, **kwargs):
-    kwargs.setdefault('repository', build.repository)
     kwargs.setdefault('project', build.project)
-    kwargs.setdefault('author', build.author)
     kwargs.setdefault('label', get_sentences(1)[0][:128])
-    kwargs.setdefault('target', build.target)
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
-    kwargs['repository_id'] = kwargs['repository'].id
     kwargs['project_id'] = kwargs['project'].id
-    kwargs['author_id'] = kwargs['author'].id
     kwargs['build_id'] = build.id
     if change:
         kwargs['change_id'] = change.id
@@ -199,31 +195,31 @@ def job(build, change=None, **kwargs):
     db.session.add(jobplan)
 
     phase1_setup = JobPhase(
-        repository=build.repository, project=job.project, job=job,
+        project=job.project, job=job,
         status=Status.finished, result=Result.passed, label='Setup',
     )
     db.session.add(phase1_setup)
 
     phase1_compile = JobPhase(
-        repository=build.repository, project=job.project, job=job,
+        project=job.project, job=job,
         status=Status.finished, result=Result.passed, label='Compile',
     )
     db.session.add(phase1_compile)
 
     phase1_test = JobPhase(
-        repository=build.repository, project=job.project, job=job,
+        project=job.project, job=job,
         status=kwargs['status'], result=kwargs['result'], label='Test',
     )
     db.session.add(phase1_test)
 
     step = JobStep(
-        repository=build.repository, project=job.project, job=job,
+        project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
     db.session.add(step)
     step = JobStep(
-        repository=build.repository, project=job.project, job=job,
+        project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(),
     )
@@ -258,6 +254,15 @@ def revision(repository, author):
     db.session.add(result)
 
     return result
+
+
+def source(repository, **kwargs):
+    kwargs.setdefault('revision_sha', uuid4().hex)
+
+    source = Source(repository=repository, **kwargs)
+    db.session.add(source)
+
+    return source
 
 
 def test_suite(job, name='default'):

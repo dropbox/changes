@@ -8,8 +8,9 @@ from datetime import datetime
 from changes import mock
 from changes.config import db, create_app
 from changes.constants import Result, Status
+from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
-from changes.models import Change, Job, LogSource, TestResultManager
+from changes.models import Change, Job, LogSource, TestResultManager, ProjectPlan
 
 app = create_app()
 app_context = app.app_context()
@@ -41,12 +42,14 @@ def create_new_entry(project):
         db.session.add(change)
         revision = mock.revision(project.repository, change.author)
 
+    source = mock.source(project.repository, revision_sha=revision.sha)
+
     date_started = datetime.utcnow()
 
     build = mock.build(
         author=change.author,
         project=project,
-        revision_sha=revision.sha,
+        source=source,
         message=change.message,
         result=Result.unknown,
         status=Status.in_progress,
@@ -58,7 +61,6 @@ def create_new_entry(project):
         job = mock.job(
             build=build,
             change=change,
-            author=change.author,
             status=Status.in_progress,
         )
         publish_job_update(job)
@@ -123,7 +125,10 @@ def loop():
 
     while True:
         plan = mock.plan()
-        plan.projects.append(project)
+        get_or_create(ProjectPlan, where={
+            'plan': plan,
+            'project': project,
+        })
 
         build = gen(project)
         print 'Pushed build {0} on {1}'.format(build.id, project.slug)
