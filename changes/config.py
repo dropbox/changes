@@ -178,6 +178,7 @@ def configure_api_routes(app):
     from changes.api.build_details import BuildDetailsAPIView
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.build_retry import BuildRetryAPIView
+    from changes.api.build_test_index import BuildTestIndexAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
     from changes.api.job_details import JobDetailsAPIView
@@ -201,6 +202,7 @@ def configure_api_routes(app):
     api.add_resource(AuthorBuildIndexAPIView, '/authors/<author_id>/builds/')
     api.add_resource(BuildDetailsAPIView, '/builds/<build_id>/')
     api.add_resource(BuildRetryAPIView, '/builds/<build_id>/retry/')
+    api.add_resource(BuildTestIndexAPIView, '/builds/<build_id>/tests/')
     api.add_resource(JobDetailsAPIView, '/jobs/<job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<job_id>/logs/<source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<job_id>/phases/')
