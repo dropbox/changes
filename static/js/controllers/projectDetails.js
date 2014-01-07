@@ -82,7 +82,7 @@
 
       $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
 
-      $scope.project = initialProject.data.project;
+      $scope.project = initialProject.data;
       $scope.builds = new Collection($scope, initialBuildList.data, {
         sortFunc: sortBuildList,
         limit: 100

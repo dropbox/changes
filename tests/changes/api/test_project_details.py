@@ -10,7 +10,7 @@ class ProjectDetailsTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['project']['id'] == self.project.id.hex
+        assert data['id'] == self.project.id.hex
 
     def test_retrieve_by_slug(self):
         path = '/api/0/projects/{0}/'.format(
@@ -19,7 +19,7 @@ class ProjectDetailsTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['project']['id'] == self.project.id.hex
+        assert data['id'] == self.project.id.hex
 
     def test_update(self):
         path = '/api/0/projects/{0}/'.format(
@@ -44,6 +44,9 @@ class ProjectDetailsTest(APITestCase):
             'slug': 'details-test-project',
         })
         assert resp.status_code == 200
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == self.project.id.hex
 
         project = Project.query.get(self.project.id)
         assert project.name == 'details test project'

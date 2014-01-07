@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Project, Plan
+from changes.models import Project, Plan, Build, Source, Status
 
 
 class ValidationError(Exception):
@@ -61,13 +61,22 @@ class ProjectDetailsAPIView(APIView):
             Plan.projects.contains(project),
         )
 
-        context = {
-            'project': project,
-            'repository': project.repository,
-            'plans': list(plans),
-        }
+        data = self.serialize(project)
+        data['lastBuild'] = Build.query.options(
+            joinedload(Build.author),
+        ).join(
+            Source, Build.source_id == Source.id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
+            Build.project == project,
+            Build.status == Status.finished,
+        ).order_by(
+            Build.date_created.desc(),
+        ).first()
+        data['repository'] = self.serialize(project.repository)
+        data['plans'] = self.serialize(list(plans))
 
-        return self.respond(context)
+        return self.respond(data)
 
     def post(self, project_id):
         project = self._get_project(project_id)
@@ -90,8 +99,4 @@ class ProjectDetailsAPIView(APIView):
         project.slug = result['slug']
         db.session.add(project)
 
-        context = {
-            'project': 'project',
-        }
-
-        return self.respond(context)
+        return self.respond(project)

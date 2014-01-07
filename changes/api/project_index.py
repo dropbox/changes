@@ -20,8 +20,9 @@ class ProjectIndexAPIView(APIView):
             data['lastBuild'] = Build.query.options(
                 joinedload(Build.project),
                 joinedload(Build.author),
+            ).join(
+                Source, Build.source_id == Source.id,
             ).filter(
-                Build.source_id == Source.id,
                 Source.patch_id == None,  # NOQA
                 Build.project == project,
                 Build.status == Status.finished,
