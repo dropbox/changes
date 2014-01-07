@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
+import logging
+
 from cStringIO import StringIO
 from datetime import datetime
 from flask.ext.restful import reqparse
@@ -24,11 +26,6 @@ from changes.utils.http import build_uri
 def create_build(project, label, target, message, author, change=None,
                  patch=None, cause=None, source=None, sha=None):
     assert sha or source
-
-    if not project.plans:
-        # Legacy support
-        # TODO(dcramer): remove this after we transition to plans
-        raise ValueError('No plans defined for project {0}'.format(project))
 
     repository = project.repository
 
@@ -198,6 +195,10 @@ class BuildIndexAPIView(APIView):
         builds = []
         for project in projects:
             plan_list = list(project.plans)
+            if not plan_list:
+                logging.warning('No plans defined for project %s', project.slug)
+                continue
+
             if plan_list and patch_file:
                 options = dict(
                     db.session.query(
