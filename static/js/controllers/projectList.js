@@ -27,7 +27,7 @@
         var project_id = data.project.id,
             result, project;
 
-        if (data.source.patch) {
+        if (data.source && data.source.patch) {
           return;
         }
 
