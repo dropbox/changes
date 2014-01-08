@@ -1,13 +1,18 @@
 .PHONY: static
 
-develop: install-requirements
+develop: install-requirements install-test-requirements setup-git
+
+upgrade:
 	alembic upgrade head
+
+setup-git:
+	git config branch.autosetuprebase always
+	cd .git/hooks && ln -sf ../../hooks/* ./
 
 install-requirements: update-submodules
 	npm install
 	bower install
 	pip install -e . --use-mirrors
-	make install-test-requirements
 
 install-test-requirements:
 	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
