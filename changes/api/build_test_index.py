@@ -18,7 +18,7 @@ class BuildTestIndexAPIView(APIView):
             Job, TestGroup.job_id == Job.id,
         ).filter(
             Job.build_id == build.id,
-            TestGroup.parent_id == None,  # NOQA
+            TestGroup.num_leaves == 0,  # NOQA
         ).order_by(TestGroup.duration.desc()))
 
         return self.respond(test_list)
