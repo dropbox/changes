@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Project, Plan, Build, Source, Status
+from changes.models import Project, Plan, Build, Source, Status, Result
 
 
 class ValidationError(Exception):
@@ -61,8 +61,7 @@ class ProjectDetailsAPIView(APIView):
             Plan.projects.contains(project),
         )
 
-        data = self.serialize(project)
-        data['lastBuild'] = Build.query.options(
+        last_build = Build.query.options(
             joinedload(Build.author),
         ).join(
             Source, Build.source_id == Source.id,
@@ -73,8 +72,27 @@ class ProjectDetailsAPIView(APIView):
         ).order_by(
             Build.date_created.desc(),
         ).first()
-        data['repository'] = self.serialize(project.repository)
-        data['plans'] = self.serialize(list(plans))
+        if not last_build or last_build.result == Result.passed:
+            last_passing_build = last_build
+        else:
+            last_passing_build = Build.query.options(
+                joinedload(Build.author),
+            ).join(
+                Source, Build.source_id == Source.id,
+            ).filter(
+                Source.patch_id == None,  # NOQA
+                Build.project == project,
+                Build.result == Result.passed,
+                Build.status == Status.finished,
+            ).order_by(
+                Build.date_created.desc(),
+            ).first()
+
+        data = self.serialize(project)
+        data['lastBuild'] = last_build
+        data['lastPassingBuild'] = last_passing_build
+        data['repository'] = project.repository
+        data['plans'] = list(plans)
 
         return self.respond(data)
 
