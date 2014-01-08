@@ -102,7 +102,7 @@
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('build.update', updateBuild);
-      stream.subscribe('job.update', $scope.jobs.updateItem);
+      stream.subscribe('job.update', function(data) { $scope.jobs.updateItem(data) });
     }]);
   });
 })();
