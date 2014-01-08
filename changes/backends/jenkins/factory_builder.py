@@ -67,7 +67,22 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
             'job_id': phase.job_id,
             'project_id': phase.project_id,
             'node_id': node.id,
+            'data': {
+                'job_name': job_name,
+                'queued': False,
+                'item_id': None,
+                'build_no': build_no,
+            },
         }, values=values)
+
+        if 'backend' not in jobstep.data:
+            jobstep.data.update({
+                'backend': {
+                    'uri': item['url'],
+                    'label': item['fullDisplayName'],
+                }
+            })
+            db.session.add(jobstep)
 
         return jobstep
 
