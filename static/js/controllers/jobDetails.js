@@ -26,9 +26,9 @@
               content += '<h5>';
               content += escapeHtml(item.name);
               content += '<br><small>';
-              content += escapeHtml(item.target);
-              if (item.author) {
-                content += ' &mdash; ' + item.author.name;
+              content += escapeHtml(item.build.target);
+              if (item.build.author) {
+                content += ' &mdash; ' + item.build.author.name;
               }
               content += '</small>';
               content += '</h5>';
