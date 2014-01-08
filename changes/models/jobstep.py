@@ -8,6 +8,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
+from changes.db.types.json import JSONEncodedDict
 
 
 class JobStep(db.Model):
@@ -25,6 +26,7 @@ class JobStep(db.Model):
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
+    data = Column(JSONEncodedDict)
 
     job = relationship('Job')
     project = relationship('Project')
@@ -41,6 +43,8 @@ class JobStep(db.Model):
             self.status = Result.unknown
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+        if self.data is None:
+            self.data = {}
 
     @property
     def duration(self):
