@@ -1,6 +1,7 @@
 from changes.api.serializer import Serializer, register
 from changes.constants import Result
 from changes.models.test import TestGroup
+from changes.utils.http import build_uri
 
 
 @register(TestGroup)
@@ -19,7 +20,7 @@ class TestGroupSerializer(Serializer):
             'result': instance.result or Result.unknown,
             'numTests': instance.num_tests or 0,
             'numFailures': instance.num_failed or 0,
-            'link': '/testgroups/%s/' % (instance.id.hex,),
+            'link': build_uri('/testgroups/%s/' % (instance.id.hex,)),
             'dateCreated': instance.date_created,
         }
 

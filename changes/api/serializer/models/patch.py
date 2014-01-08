@@ -1,5 +1,6 @@
 from changes.api.serializer import Serializer, register
 from changes.models.patch import Patch
+from changes.utils.http import build_uri
 
 
 @register(Patch)
@@ -10,7 +11,7 @@ class PatchSerializer(Serializer):
             'name': instance.label,
             'message': instance.message,
             'diff': instance.diff,
-            'link': '/patches/{0}/'.format(instance.id.hex),
+            'link': build_uri('/patches/{0}/'.format(instance.id.hex)),
             'parentRevision': {
                 'sha': instance.parent_revision_sha,
             },

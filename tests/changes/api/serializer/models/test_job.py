@@ -20,7 +20,7 @@ def test_simple():
     )
     result = serialize(job)
     assert result['name'] == 'Hello world'
-    assert result['link'] == '/jobs/33846695b2774b29a71795a009e8168a/'
+    assert result['link'] == 'http://example.com/jobs/33846695b2774b29a71795a009e8168a/'
     assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['dateCreated'] == '2013-09-19T22:15:22'
     assert result['dateStarted'] == '2013-09-19T22:15:23'

@@ -1,5 +1,6 @@
 from changes.api.serializer import Serializer, register
 from changes.models.project import Project
+from changes.utils.http import build_uri
 
 
 @register(Project)
@@ -10,5 +11,5 @@ class ProjectSerializer(Serializer):
             'slug': instance.slug,
             'name': instance.name,
             'dateCreated': instance.date_created,
-            'link': '/projects/{0}/'.format(instance.slug),
+            'link': build_uri('/projects/{0}/'.format(instance.slug)),
         }

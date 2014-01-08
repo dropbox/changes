@@ -18,7 +18,7 @@ def test_simple():
     )
     result = serialize(patch)
     assert result['name'] == 'Hello world'
-    assert result['link'] == '/patches/33846695b2774b29a71795a009e8168a/'
+    assert result['link'] == 'http://example.com/patches/33846695b2774b29a71795a009e8168a/'
     assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['parentRevision'] == {
         'sha': '1e7958a368f44b0eb5a57372a9910d50',
