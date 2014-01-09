@@ -172,6 +172,8 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 jobphase.date_finished = job.date_finished
             db.session.add(jobphase)
 
+        db.session.commit()
+
         manager = TestResultManager(job)
         with db.session.begin_nested():
             manager.save(test_list)

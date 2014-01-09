@@ -53,7 +53,7 @@
 		<pre ng-if="formattedBuildMessage" class="build-message" ng-bind-html="formattedBuildMessage"></pre>
 
 		<ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
-			<li ng-repeat="phase in phases | orderBy:'dateStarted'" class="result-{{phase.result.id}}">
+			<li ng-repeat="phase in phases" class="result-{{phase.result.id}}">
 				<a href="/jobs/{{job.id}}/phases/">{{phase.name}}</a>
 			</li>
 		</ul>

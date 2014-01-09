@@ -91,6 +91,10 @@ class SyncBuildTest(BaseTestCase):
         assert phase_list[0].label == 'server'
         assert phase_list[1].label == 'server-downstream'
 
+        for phase in phase_list:
+            assert phase.date_started
+            assert phase.date_finished
+
         step_list = sorted(phase_list[1].steps, key=lambda x: x.label)
         assert len(step_list) == 2
         assert step_list[0].label == 'server-downstream #171'
@@ -98,6 +102,8 @@ class SyncBuildTest(BaseTestCase):
         assert step_list[1].label == 'server-downstream #172'
 
         for step in step_list:
+            assert step.date_started
+            assert step.date_finished
             assert step.result == Result.passed
             assert step.status == Status.finished
 
