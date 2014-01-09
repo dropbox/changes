@@ -235,7 +235,7 @@ class JenkinsBuilder(BaseBackend):
             # get the entirety of the log
             try:
                 start = time.time()
-                while self._sync_console_log(job):
+                while self._sync_console_log(jobstep):
                     if time.time() - start > 15:
                         raise Exception('Took too long to sync log')
                     continue
@@ -298,10 +298,20 @@ class JenkinsBuilder(BaseBackend):
 
             publish_logchunk_update(chunk)
 
-    def _sync_console_log(self, job):
+    def _sync_console_log(self, jobstep):
+        job = jobstep.job
+        return self._sync_log(
+            jobstep=jobstep,
+            name='console',
+            job_name=job.data['job_name'],
+            build_no=job.data['build_no'],
+        )
+
+    def _sync_log(self, jobstep, name, job_name, build_no):
+        job = jobstep.job
         # TODO(dcramer): this doesnt handle concurrency
         logsource, created = get_or_create(LogSource, where={
-            'name': 'console',
+            'name': name,
             'job': job,
         }, defaults={
             'project': job.project,
@@ -310,11 +320,12 @@ class JenkinsBuilder(BaseBackend):
         if created:
             offset = 0
         else:
-            offset = job.data.get('log_offset', 0)
+            offset = jobstep.data.get('log_offset', 0)
 
         url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
-            base=self.base_url, job=job.data['job_name'],
-            build=job.data['build_no'],
+            base=self.base_url,
+            job=job_name,
+            build=build_no,
         )
 
         resp = requests.get(url, params={'start': offset}, stream=True)
@@ -346,8 +357,8 @@ class JenkinsBuilder(BaseBackend):
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
-        job.data['log_offset'] = log_length
-        db.session.add(job)
+        jobstep.data['log_offset'] = log_length
+        db.session.add(jobstep)
         db.session.commit()
 
         # Jenkins will suggest to us that there is more data when the job has

@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division
 
 import re
+import time
 
 from datetime import datetime
+from flask import current_app
 
 from changes.config import db
 from changes.constants import Status
@@ -111,16 +113,20 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 'result': job.result,
                 'project_id': job.project_id,
             })
+            db.session.commit()
+
             jobsteps = []
 
             for build_no in self._get_downstream_jobs(job, downstream_job_name):
-                try:
-                    # XXX(dcramer): ideally we would grab this with the first query
-                    # but because we dont want to rely on an XML parser, we're doing
-                    # a second http request for build details
-                    jobsteps.append(self._sync_downstream_job(
-                        jobphase, downstream_job_name, build_no))
+                # XXX(dcramer): ideally we would grab this with the first query
+                # but because we dont want to rely on an XML parser, we're doing
+                # a second http request for build details
+                downstream_jobstep = self._sync_downstream_job(
+                    jobphase, downstream_job_name, build_no)
 
+                jobsteps.append(downstream_jobstep)
+
+                try:
                     test_report = self._get_response('/job/{job_name}/{build_no}/testReport/'.format(
                         job_name=downstream_job_name,
                         build_no=build_no,
@@ -129,6 +135,30 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                     pass
                 else:
                     test_list.extend(self._process_test_report(job, test_report))
+
+                db.session.commit()
+
+                try:
+                    start = time.time()
+                    result = True
+                    while result:
+                        if time.time() - start > 15:
+                            raise Exception('Took too long to sync log')
+
+                        result = self._sync_log(
+                            jobstep=downstream_jobstep,
+                            name=downstream_jobstep.label,
+                            job_name=downstream_job_name,
+                            build_no=build_no,
+                        )
+
+                except Exception:
+                    db.session.rollback()
+                    current_app.logger.exception(
+                        'Unable to sync console log for job step %r',
+                        downstream_jobstep.id.hex)
+
+                db.session.commit()
 
             if jobsteps:
                 # update phase statistics

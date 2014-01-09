@@ -6,7 +6,7 @@ from uuid import UUID
 
 from changes.constants import Result, Status
 from changes.backends.jenkins.factory_builder import JenkinsFactoryBuilder
-from changes.models import TestCase, JobPhase
+from changes.models import TestCase, JobPhase, LogSource, LogChunk
 from .test_builder import BaseTestCase
 
 
@@ -19,7 +19,7 @@ class SyncBuildTest(BaseTestCase):
     }
 
     @responses.activate
-    def test_does_sync_test_report(self):
+    def test_does_sync_details(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_success.json'))
@@ -42,7 +42,11 @@ class SyncBuildTest(BaseTestCase):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server-downstream/172/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_172.json'))
-
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server-downstream/171/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            adding_headers={'X-Text-Size': '7'},
+            body='Foo bar')
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server-downstream/171/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
@@ -90,8 +94,27 @@ class SyncBuildTest(BaseTestCase):
         step_list = sorted(phase_list[1].steps, key=lambda x: x.label)
         assert len(step_list) == 2
         assert step_list[0].label == 'server-downstream #171'
+        assert step_list[0].data['log_offset'] == 7
         assert step_list[1].label == 'server-downstream #172'
 
         for step in step_list:
             assert step.result == Result.passed
             assert step.status == Status.finished
+
+        source = LogSource.query.filter_by(
+            job=job,
+            name='server-downstream #171',
+        ).first()
+        assert source
+        assert source.project == self.project
+        assert source.date_created == job.date_started
+
+        chunks = list(LogChunk.query.filter_by(
+            source=source,
+        ).order_by(LogChunk.date_created.asc()))
+        assert len(chunks) == 1
+        assert chunks[0].job_id == job.id
+        assert chunks[0].project_id == self.project.id
+        assert chunks[0].offset == 0
+        assert chunks[0].size == 7
+        assert chunks[0].text == 'Foo bar'

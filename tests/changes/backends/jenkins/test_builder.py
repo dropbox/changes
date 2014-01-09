@@ -10,7 +10,7 @@ from uuid import UUID
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    TestCase, Patch, LogSource, LogChunk
+    TestCase, Patch, LogSource, LogChunk, JobStep
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import BackendTestCase, SAMPLE_DIFF
@@ -337,6 +337,9 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_failed.json'))
         responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
+            body=self.load_fixture('fixtures/GET/job_test_report.json'))
+        responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '7'},
@@ -372,7 +375,11 @@ class SyncBuildTest(BaseTestCase):
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
 
-        assert job.data.get('log_offset') == 7
+        jobstep = JobStep.query.filter(
+            JobStep.job_id == job.id,
+        ).first()
+
+        assert jobstep.data.get('log_offset') == 7
 
     @responses.activate
     @mock.patch('changes.backends.jenkins.builder.queue')
@@ -380,6 +387,9 @@ class SyncBuildTest(BaseTestCase):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_with_artifacts.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
+            body=self.load_fixture('fixtures/GET/job_test_report.json'))
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,

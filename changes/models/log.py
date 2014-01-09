@@ -18,6 +18,7 @@ class LogSource(db.Model):
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
+    # step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"))
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     name = Column(String(64), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
