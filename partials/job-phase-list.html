@@ -16,7 +16,7 @@
 			<table class="table">
 				<tr ng-repeat="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
 					<td style="width:20px">
-						<div class="indicator" title="{{step.result.name}}" style="width:20px">
+						<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;">
 							<div data-result="{{step.result.id}}"
 								 data-status="{{step.status.id}}"
 								 data-date-started="{{step.dateStarted}}"
