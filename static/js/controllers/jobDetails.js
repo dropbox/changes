@@ -26,9 +26,9 @@
               content += '<h5>';
               content += escapeHtml(item.name);
               content += '<br><small>';
-              content += escapeHtml(item.build.target);
-              if (item.build.author) {
-                content += ' &mdash; ' + item.build.author.name;
+              content += escapeHtml($scope.build.target);
+              if ($scope.build.author) {
+                content += ' &mdash; ' + $scope.build.author.name;
               }
               content += '</small>';
               content += '</h5>';
@@ -201,7 +201,7 @@
           $('#log_sources a[data-toggle="tab"]').tab();
           $('#log_sources a[data-toggle="tab"]').on('show.bs.tab', function(e){
             var source_id = $(e.target).attr("data-source"),
-                $el = $(e.target).attr("href");
+                $el = $($(e.target).attr("href"));
 
             if (!logSources[source_id]) {
               logSources[source_id] = {
