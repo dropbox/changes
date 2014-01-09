@@ -13,7 +13,7 @@ from changes.config import db, mail
 from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, RemoteEntity, Change, Author,
-    TestGroup, Patch, Plan, Step, Build, Source, Node
+    TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep
 )
 
 
@@ -215,6 +215,31 @@ class Fixtures(object):
         kwargs.setdefault('order', 0)
 
         step = Step(plan=plan, **kwargs)
+        db.session.add(step)
+
+        return step
+
+    def create_jobphase(self, job, **kwargs):
+        kwargs.setdefault('label', 'test')
+
+        phase = JobPhase(
+            job=job,
+            project=job.project,
+            **kwargs
+        )
+        db.session.add(phase)
+
+        return phase
+
+    def create_jobstep(self, phase, **kwargs):
+        kwargs.setdefault('label', 'test')
+
+        step = JobStep(
+            job=phase.job,
+            project=phase.project,
+            phase=phase,
+            **kwargs
+        )
         db.session.add(step)
 
         return step
