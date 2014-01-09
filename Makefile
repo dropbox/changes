@@ -21,7 +21,7 @@ update-submodules:
 	git submodule init
 	git submodule update
 
-test: install-requirements lint
+test: lint
 	@echo "Running Python tests"
 	py.test tests
 	@echo ""
@@ -38,7 +38,7 @@ lint-js:
 	@node_modules/.bin/jshint static/
 	@echo ""
 
-test-full: install-requirements lint
+test-full: install-requirements install-test-requirements lint
 	py.test --junitxml=results.xml --cov-report=xml --cov=. tests
 
 resetdb:
