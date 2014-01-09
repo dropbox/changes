@@ -14,7 +14,16 @@
 		<li ng-repeat="phase in phaseList">
 			<h4>{{phase.name}} <small duration="phase.duration"></small></h4>
 			<table class="table">
-				<tr ng-repeat="step in phase.steps">
+				<tr ng-repeat="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
+					<td style="width:20px">
+						<div class="indicator" title="{{step.result.name}}" style="width:20px">
+							<div data-result="{{step.result.id}}"
+								 data-status="{{step.status.id}}"
+								 data-date-started="{{step.dateStarted}}"
+								 data-estimated-duration="{{step.duration}}"
+								 radial-progress-bar>&nbsp;</div>
+						</div>
+					</td>
 					<td style="width:80px;" duration="step.duration"></td>
 					<td>{{step.name}}</td>
 					<td><a href="/nodes/{{step.node.id}}/">{{step.node.name || step.node.id}}</a></td>
