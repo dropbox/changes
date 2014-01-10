@@ -11,11 +11,7 @@ from changes.models import Build, Job, JobPlan, Plan, Task
 from changes.utils.locking import lock
 
 
-def _sync_job(job_id):
-    job = Job.query.get(job_id)
-    if not job:
-        return
-
+def _sync_job(job):
     if job.status == Status.finished:
         return
 
@@ -29,7 +25,7 @@ def _sync_job(job_id):
     ).join(Plan).first()
     try:
         if not job_plan:
-            raise UnrecoverableException('Got sync_job task without job plan: %s' % (job_id,))
+            raise UnrecoverableException('Got sync_job task without job plan: %s' % (job.id,))
 
         try:
             step = job_plan.plan.steps[0]
@@ -42,7 +38,7 @@ def _sync_job(job_id):
     except UnrecoverableException:
         job.status = Status.finished
         job.result = Result.aborted
-        current_app.logger.exception('Unrecoverable exception syncing %s', job_id)
+        current_app.logger.exception('Unrecoverable exception syncing %s', job.id)
 
     current_datetime = datetime.utcnow()
 
@@ -86,6 +82,35 @@ def _sync_job(job_id):
                 'plan_id': job_plan.plan_id.hex,
             }, countdown=1)
 
+    publish_job_update(job)
+
+
+@lock
+def sync_job(job_id):
+    job = Job.query.get(job_id)
+    if not job:
+        return
+
+    try:
+        _sync_job(job)
+
+    except Exception:
+        # Ensure we continue to synchronize this job as this could be a
+        # temporary failure
+        current_app.logger.exception('Failed to sync job %s', job_id)
+
+        # TODO(dcramer): we should set a maximum number of retries
+        Task.query.filter(
+            Task.task_name == 'sync_job',
+            Task.parent_id == job.build_id,
+        ).update({
+            Task.num_retries: Task.num_retries + 1,
+        })
+
+        raise queue.retry('sync_job', kwargs={
+            'job_id': job_id,
+        }, exc=sys.exc_info(), countdown=60)
+    else:
         Task.query.filter(
             Task.task_name == 'sync_job',
             Task.parent_id == job.build_id,
@@ -93,19 +118,3 @@ def _sync_job(job_id):
             Task.status: Status.finished,
             Task.result: Result.passed,
         })
-
-    publish_job_update(job)
-
-
-@lock
-def sync_job(job_id):
-    try:
-        _sync_job(job_id)
-
-    except Exception:
-        # Ensure we continue to synchronize this job as this could be a
-        # temporary failure
-        current_app.logger.exception('Failed to sync job %s', job_id)
-        raise queue.retry('sync_job', kwargs={
-            'job_id': job_id,
-        }, exc=sys.exc_info(), countdown=60)
