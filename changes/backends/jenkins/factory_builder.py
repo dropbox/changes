@@ -86,6 +86,9 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
             })
             db.session.add(jobstep)
 
+        for artifact in item.get('artifacts', ()):
+            self.sync_artifact(job=phase.job, artifact=artifact)
+
         return jobstep
 
     def _sync_test_results(self, job):
