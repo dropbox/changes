@@ -7,7 +7,7 @@ from changes.backends.base import UnrecoverableException
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.events import publish_build_update, publish_job_update
-from changes.models import Build, Job, JobPlan, Plan
+from changes.models import Build, Job, JobPlan, Plan, Task
 from changes.utils.locking import lock
 
 
@@ -85,6 +85,14 @@ def _sync_job(job_id):
                 'project_id': job.project_id.hex,
                 'plan_id': job_plan.plan_id.hex,
             }, countdown=1)
+
+        Task.query.filter(
+            Task.task_name == 'sync_job',
+            Task.parent_id == job.build_id,
+        ).update({
+            Task.status: Status.finished,
+            Task.result: Result.passed,
+        })
 
     publish_job_update(job)
 
