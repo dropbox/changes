@@ -13,7 +13,7 @@ from changes.config import db, mail
 from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, RemoteEntity, Change, Author,
-    TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep
+    TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task
 )
 
 
@@ -253,6 +253,12 @@ class Fixtures(object):
         db.session.add(step)
 
         return step
+
+    def create_task(self, **kwargs):
+        task = Task(**kwargs)
+        db.session.add(task)
+
+        return task
 
 
 class TestCase(Exam, unittest2.TestCase, Fixtures):

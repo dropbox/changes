@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import mock
 
 from changes.jobs.create_job import create_job
-from changes.models import Step
+from changes.models import Step, Task
 from changes.testutils import TestCase
 
 
@@ -27,6 +27,13 @@ class CreateBuildTest(TestCase):
         implementation.execute.assert_called_once_with(
             job=job,
         )
+
+        task = Task.query.filter(
+            Task.task_name == 'sync_job',
+            Task.parent_id == build.id,
+        ).first()
+
+        assert task is not None
 
         # ensure signal is fired
         queue_delay.assert_called_once_with('sync_job', kwargs={

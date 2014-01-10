@@ -12,9 +12,9 @@ from changes.models import Job
 from changes.testutils import TestCase
 
 
-class CleanupBuildsTest(TestCase):
+class CleanupJobsTest(TestCase):
     @mock.patch.object(queue, 'delay')
-    def test_expires_builds(self, queue_delay):
+    def test_expires_jobs(self, queue_delay):
         dt = datetime.utcnow() - (EXPIRE_BUILDS * 2)
 
         build = self.create_build(self.project)

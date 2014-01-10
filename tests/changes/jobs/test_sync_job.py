@@ -88,15 +88,6 @@ class SyncBuildTest(TestCase):
         publish_build_update.assert_called_once_with(build)
         publish_job_update.assert_called_once_with(job)
 
-        queue_delay.assert_any_call('update_build_result', kwargs={
-            'build_id': build.id.hex,
-            'job_id': job.id.hex,
-        })
-
-        queue_delay.assert_any_call('update_project_stats', kwargs={
-            'project_id': self.project.id.hex,
-        }, countdown=1)
-
         queue_delay.assert_any_call('update_project_plan_stats', kwargs={
             'project_id': self.project.id.hex,
             'plan_id': plan.id.hex,

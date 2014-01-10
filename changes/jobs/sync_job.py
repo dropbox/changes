@@ -75,16 +75,6 @@ def _sync_job(job_id):
             'job_id': job.id.hex
         }, countdown=5)
     else:
-        if job.build_id:
-            queue.delay('update_build_result', kwargs={
-                'build_id': job.build_id.hex,
-                'job_id': job.id.hex,
-            })
-
-        queue.delay('update_project_stats', kwargs={
-            'project_id': job.project_id.hex,
-        }, countdown=1)
-
         queue.delay('notify_listeners', kwargs={
             'job_id': job.id.hex,
             'signal_name': 'job.finished',
