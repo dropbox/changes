@@ -14,11 +14,11 @@ class TestGroupDetailsAPIView(APIView):
         if testgroup is None:
             return Response(status=404)
 
-        child_testgroups = list(TestGroup.query.filter_by(
-            parent_id=testgroup.id,
+        child_testgroups = list(TestGroup.query.filter(
+            TestGroup.parent_id == testgroup.id,
         ))
-        for test_group in child_testgroups:
-            test_group.parent = testgroup
+        for tg in child_testgroups:
+            tg.parent = testgroup
 
         if child_testgroups:
             test_case = None
@@ -42,6 +42,20 @@ class TestGroupDetailsAPIView(APIView):
             Job.status == Status.finished,
             Source.patch == None,  # NOQA
         ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
+
+        print TestGroup.query.options(
+            subqueryload('parent'),
+        ).join(
+            Job, Job.id == TestGroup.job_id,
+        ).join(
+            Source, Source.id == Job.source_id,
+        ).filter(
+            TestGroup.name_sha == testgroup.name_sha,
+            TestGroup.id != testgroup.id,
+            Job.date_created < testgroup.job.date_created,
+            Job.status == Status.finished,
+            Source.patch == None,  # NOQA
+        ).order_by(Job.date_created.desc())
 
         extended_serializers = {
             TestGroup: TestGroupWithJobSerializer(),

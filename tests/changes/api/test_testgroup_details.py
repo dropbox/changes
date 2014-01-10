@@ -1,35 +1,36 @@
-from changes.constants import Result
+from datetime import datetime
+
+from changes.constants import Result, Status
 from changes.config import db
-from changes.models import TestGroup, TestCase
+from changes.models import TestCase
 from changes.testutils import APITestCase
 
 
 class TestGroupDetailsTest(APITestCase):
     def test_simple(self):
-        change = self.create_change(self.project)
-        build = self.create_build(self.project)
-        job = self.create_job(build, change=change)
-        testgroup = TestGroup(
-            name='test.group',
-            job=job,
-            project=job.project,
-        )
-        db.session.add(testgroup)
-        child_testgroup = TestGroup(
-            name='test.group.child',
-            job=job,
-            project=job.project,
-            parent_id=testgroup.id,
-        )
-        db.session.add(child_testgroup)
+        previous_source = self.create_source(self.project)
+        previous_build = self.create_build(
+            project=self.project, source=previous_source,
+            date_created=datetime(2013, 9, 19, 22, 15, 22))
+        previous_job = self.create_job(
+            build=previous_build, date_created=datetime(2013, 9, 19, 22, 15, 22),
+            status=Status.finished)
+        previous_testgroup = self.create_testgroup(
+            job=previous_job, name='test.group')
+
+        source = self.create_source(self.project)
+        build = self.create_build(
+            project=self.project, source=source,
+            date_created=datetime(2013, 9, 19, 22, 15, 23))
+        job = self.create_job(
+            build=build, date_created=datetime(2013, 9, 19, 22, 15, 23),
+            status=Status.finished)
+        testgroup = self.create_testgroup(
+            job=job, name='test.group')
+        child_testgroup = self.create_testgroup(job, parent=testgroup)
 
         # a testgroup which shouldnt show up
-        invalid_testgroup = TestGroup(
-            name='test.group.child',
-            job=job,
-            project=job.project,
-        )
-        db.session.add(invalid_testgroup)
+        self.create_testgroup(job=job, name='test.group.child')
 
         testcase = TestCase(
             name='test_simple',
@@ -71,3 +72,4 @@ class TestGroupDetailsTest(APITestCase):
         assert data['build']['id'] == job.id.hex
         assert len(data['childTestGroups']) == 1
         assert data['childTestGroups'][0]['id'] == child_testgroup.id.hex
+        assert data['previousRuns'][0]['id'] == previous_testgroup.id.hex
