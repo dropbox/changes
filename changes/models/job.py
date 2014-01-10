@@ -2,7 +2,7 @@ import uuid
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Integer
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
@@ -42,7 +42,7 @@ class Job(db.Model):
     data = Column(JSONEncodedDict)
 
     change = relationship('Change')
-    build = relationship('Build')
+    build = relationship('Build', backref=backref('jobs', order_by='Job.number'))
     project = relationship('Project')
     source = relationship('Source')
 
