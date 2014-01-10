@@ -7,22 +7,27 @@ from changes.utils.originfinder import find_failure_origins
 
 class FindFailureOriginsTest(TestCase):
     def test_simple(self):
-        build_a = self.create_build(self.project)
-        job_a = self.create_job(
-            build=build_a, result=Result.passed, status=Status.finished,
-            label='job a', date_created=datetime(2013, 9, 19, 22, 15, 22))
-        build_b = self.create_build(self.project)
-        job_b = self.create_job(
-            build=build_b, result=Result.failed, status=Status.finished,
-            label='job b', date_created=datetime(2013, 9, 19, 22, 15, 23))
-        build_c = self.create_build(self.project)
-        job_c = self.create_job(
-            build=build_c, result=Result.failed, status=Status.finished,
-            label='job c', date_created=datetime(2013, 9, 19, 22, 15, 24))
-        build_d = self.create_build(self.project)
-        job_d = self.create_job(
-            build=build_d, result=Result.failed, status=Status.finished,
-            label='job d', date_created=datetime(2013, 9, 19, 22, 15, 25))
+        source = self.create_source(self.project)
+        build_a = self.create_build(
+            project=self.project, result=Result.passed, status=Status.finished,
+            label='build a', date_created=datetime(2013, 9, 19, 22, 15, 22),
+            source=source)
+        job_a = self.create_job(build=build_a)
+        build_b = self.create_build(
+            project=self.project, result=Result.failed, status=Status.finished,
+            label='build b', date_created=datetime(2013, 9, 19, 22, 15, 23),
+            source=source)
+        job_b = self.create_job(build=build_b)
+        build_c = self.create_build(
+            project=self.project, result=Result.failed, status=Status.finished,
+            label='build c', date_created=datetime(2013, 9, 19, 22, 15, 24),
+            source=source)
+        job_c = self.create_job(build=build_c)
+        build_d = self.create_build(
+            project=self.project, result=Result.failed, status=Status.finished,
+            label='build d', date_created=datetime(2013, 9, 19, 22, 15, 25),
+            source=source)
+        job_d = self.create_job(build=build_d)
 
         self.create_testgroup(job_a, name='foo', result=Result.passed)
         self.create_testgroup(job_a, name='bar', result=Result.passed)
@@ -33,8 +38,8 @@ class FindFailureOriginsTest(TestCase):
         foo_d = self.create_testgroup(job_d, name='foo', result=Result.failed)
         bar_d = self.create_testgroup(job_d, name='bar', result=Result.failed)
 
-        result = find_failure_origins(job_d, [foo_d, bar_d])
+        result = find_failure_origins(build_d, [foo_d, bar_d])
         assert result == {
-            foo_d: job_b,
-            bar_d: job_c
+            foo_d: build_b,
+            bar_d: build_c
         }
