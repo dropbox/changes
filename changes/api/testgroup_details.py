@@ -1,6 +1,6 @@
 from flask import Response
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import subqueryload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
@@ -30,8 +30,7 @@ class TestGroupDetailsAPIView(APIView):
             ).first()
 
         previous_runs = TestGroup.query.options(
-            joinedload('job'),
-            joinedload('parent'),
+            subqueryload('parent'),
         ).join(
             Job, Job.id == TestGroup.job_id,
         ).join(
