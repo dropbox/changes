@@ -441,7 +441,7 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_artifact(job, {
+        builder.sync_artifact(job, 'server', 2, {
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log"
@@ -484,7 +484,7 @@ class SyncBuildTest(BaseTestCase):
         )
 
         builder = self.get_builder()
-        builder.sync_artifact(job, {
+        builder.sync_artifact(job, 'server', 2, {
             "displayPath": "xunit.xml",
             "fileName": "xunit.xml",
             "relativePath": "artifacts/xunit.xml"
