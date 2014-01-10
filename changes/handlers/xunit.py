@@ -42,7 +42,7 @@ class XunitHandler(ArtifactHandler):
                 elif r_node.tag == 'skipped':
                     result = Result.skipped
                 elif r_node.tag == 'error':
-                    result = Result.error
+                    result = Result.failed
                 else:
                     result = None
 
