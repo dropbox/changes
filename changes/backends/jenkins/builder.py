@@ -262,10 +262,10 @@ class JenkinsBuilder(BaseBackend):
 
             db.session.add(jobstep)
 
-    def _sync_artifact_as_xunit(self, job, artifact):
+    def _sync_artifact_as_xunit(self, job, job_name, build_no, artifact):
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url, job=job.data['job_name'],
-            build=job.data['build_no'], artifact=artifact['relativePath'],
+            base=self.base_url, job=job_name,
+            build=build_no, artifact=artifact['relativePath'],
         )
 
         resp = requests.get(url, stream=True)
@@ -275,7 +275,7 @@ class JenkinsBuilder(BaseBackend):
         handler = XunitHandler(job)
         handler.process(StringIO(resp.content))
 
-    def _sync_artifact_as_log(self, job, artifact):
+    def _sync_artifact_as_log(self, job, job_name, build_no, artifact):
         logsource, created = get_or_create(LogSource, where={
             'name': artifact['displayPath'],
             'job': job,
@@ -285,8 +285,8 @@ class JenkinsBuilder(BaseBackend):
         })
 
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url, job=job.data['job_name'],
-            build=job.data['build_no'], artifact=artifact['relativePath'],
+            base=self.base_url, job=job_name,
+            build=build_no, artifact=artifact['relativePath'],
         )
 
         offset = 0
@@ -526,11 +526,11 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_job_from_active(job)
 
-    def sync_artifact(self, job, artifact):
+    def sync_artifact(self, job, job_name, build_no, artifact):
         if artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(job, artifact)
+            self._sync_artifact_as_log(job, job_name, build_no, artifact)
         if artifact['fileName'].endswith(('junit.xml', 'xunit.xml', 'nosetests.xml')):
-            self._sync_artifact_as_xunit(job, artifact)
+            self._sync_artifact_as_xunit(job, job_name, build_no, artifact)
 
     def create_job(self, job):
         """
