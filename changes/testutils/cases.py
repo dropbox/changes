@@ -26,6 +26,16 @@ index 2ef2938..ed80350 100644
 ------
 +====="""
 
+SAMPLE_XUNIT = """<?xml version="1.0" encoding="utf-8"?>
+<testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.077">
+    <testcase classname="" name="tests.test_report" time="0">
+        <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
+&gt;   import mock
+E   ImportError: No module named mock</failure>
+    </testcase>
+    <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907"/>
+</testsuite>"""
+
 
 class Fixtures(object):
     def create_repo(self, **kwargs):

@@ -13,7 +13,7 @@ from changes.models import (
     TestCase, Patch, LogSource, LogChunk, JobStep
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
-from changes.testutils import BackendTestCase, SAMPLE_DIFF
+from changes.testutils import BackendTestCase, SAMPLE_DIFF, SAMPLE_XUNIT
 
 
 class BaseTestCase(BackendTestCase):
@@ -382,8 +382,8 @@ class SyncBuildTest(BaseTestCase):
         assert jobstep.data.get('log_offset') == 7
 
     @responses.activate
-    @mock.patch('changes.backends.jenkins.builder.queue')
-    def test_does_fire_sync_artifacts(self, queue):
+    @mock.patch('changes.backends.jenkins.builder.JenkinsBuilder.sync_artifact')
+    def test_does_fire_sync_artifacts(self, sync_artifact):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_with_artifacts.json'))
@@ -410,28 +410,20 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_job(job)
 
-        assert len(queue.mock_calls) == 2
-
-        queue.delay.assert_any_call('sync_artifact', kwargs={
-            'job_id': job.id.hex,
-            'artifact': {
-                "displayPath": "foobar.log",
-                "fileName": "foobar.log",
-                "relativePath": "artifacts/foobar.log"
-            },
+        sync_artifact.assert_any_call(job=job, artifact={
+            "displayPath": "foobar.log",
+            "fileName": "foobar.log",
+            "relativePath": "artifacts/foobar.log",
         })
 
-        queue.delay.assert_any_call('sync_artifact', kwargs={
-            'job_id': job.id.hex,
-            'artifact': {
-                "displayPath": "tests.xml",
-                "fileName": "tests.xml",
-                "relativePath": "artifacts/tests.xml"
-            },
+        sync_artifact.assert_any_call(job=job, artifact={
+            "displayPath": "tests.xml",
+            "fileName": "tests.xml",
+            "relativePath": "artifacts/tests.xml",
         })
 
     @responses.activate
-    def test_sync_artifact(self):
+    def test_sync_artifact_as_log(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/foobar.log',
             body='hello world')
@@ -471,6 +463,38 @@ class SyncBuildTest(BaseTestCase):
         assert chunks[0].offset == 0
         assert chunks[0].size == 11
         assert chunks[0].text == 'hello world'
+
+    @responses.activate
+    def test_sync_artifact_as_xunit(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/xunit.xml',
+            body=SAMPLE_XUNIT,
+            stream=True)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+
+        builder = self.get_builder()
+        builder.sync_artifact(job, {
+            "displayPath": "xunit.xml",
+            "fileName": "xunit.xml",
+            "relativePath": "artifacts/xunit.xml"
+        })
+
+        test_list = list(TestCase.query.filter(
+            TestCase.job_id == job.id
+        ))
+
+        assert len(test_list) == 2
 
 
 class ChunkedTest(TestCase):

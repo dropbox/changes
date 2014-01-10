@@ -6,12 +6,13 @@ import re
 import requests
 import time
 
+from cStringIO import StringIO
 from datetime import datetime
 from hashlib import sha1
 from flask import current_app
 
 from changes.backends.base import BaseBackend, UnrecoverableException
-from changes.config import db, queue
+from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.events import publish_logchunk_update
@@ -19,6 +20,7 @@ from changes.models import (
     AggregateTestSuite, TestResult, TestResultManager, TestSuite,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
+from changes.handlers.xunit import XunitHandler
 
 LOG_CHUNK_SIZE = 4096
 
@@ -68,7 +70,6 @@ class JenkinsBuilder(BaseBackend):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['JENKINS_URL']
         self.token = token or self.app.config['JENKINS_TOKEN']
-        self.sync_artifacts = self.app.config['JENKINS_SYNC_ARTIFACTS']
         self.logger = logging.getLogger('jenkins')
         self.job_name = job_name
 
@@ -243,12 +244,8 @@ class JenkinsBuilder(BaseBackend):
                 db.session.rollback()
                 current_app.logger.exception('Unable to sync console log for job %r', job.id.hex)
 
-            if self.sync_artifacts:
-                for artifact in item.get('artifacts', ()):
-                    queue.delay('sync_artifact', kwargs={
-                        'job_id': job.id.hex,
-                        'artifact': artifact,
-                    })
+            for artifact in item.get('artifacts', ()):
+                self.sync_artifact(job=job, artifact=artifact)
 
             job.status = Status.finished
             db.session.add(job)
@@ -264,6 +261,19 @@ class JenkinsBuilder(BaseBackend):
             jobstep.date_finished = job.date_finished
 
             db.session.add(jobstep)
+
+    def _sync_artifact_as_xunit(self, job, artifact):
+        url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
+            base=self.base_url, job=job.data['job_name'],
+            build=job.data['build_no'], artifact=artifact['relativePath'],
+        )
+
+        resp = requests.get(url, stream=True)
+
+        # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
+        # API, so we're stuffing it into StringIO
+        handler = XunitHandler(job)
+        handler.process(StringIO(resp.content))
 
     def _sync_artifact_as_log(self, job, artifact):
         logsource, created = get_or_create(LogSource, where={
@@ -519,6 +529,8 @@ class JenkinsBuilder(BaseBackend):
     def sync_artifact(self, job, artifact):
         if artifact['fileName'].endswith('.log'):
             self._sync_artifact_as_log(job, artifact)
+        if artifact['fileName'].endswith(('junit.xml', 'xunit.xml', 'nosetests.xml')):
+            self._sync_artifact_as_xunit(job, artifact)
 
     def create_job(self, job):
         """

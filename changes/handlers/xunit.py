@@ -4,29 +4,23 @@ from lxml import etree
 
 from changes.config import db
 from changes.constants import Result
-from changes.models.test import TestCase
+from changes.models import TestResult, TestResultManager
 
 from .base import ArtifactHandler
 
 
 class XunitHandler(ArtifactHandler):
     def process(self, fp):
-        results = self.get_tests(fp)
+        test_list = self.get_tests(fp)
 
-        with db.get_session() as session:
-            for result in results:
-                constraints = {
-                    'job_id': result.job_id,
-                    'project_id': result.project_id,
-                    'label': result.label,
-                }
-                # TODO(cramer): this has a race condition
-                if not TestCase.query.filter_by(**constraints).first():
-                    session.add(result)
+        manager = TestResultManager(self.job)
+        with db.session.begin_nested():
+            manager.save(test_list)
 
-        return results
+        return test_list
 
     def get_tests(self, fp):
+        # TODO(dcramer): needs to handle TestSuite's
         job = self.job
         root = etree.fromstring(fp.read())
 
@@ -58,9 +52,8 @@ class XunitHandler(ArtifactHandler):
             if result is None:
                 result = Result.passed
 
-            results.append(TestCase(
-                job_id=job.id,
-                project_id=job.project_id,
+            results.append(TestResult(
+                job=job,
                 name=attrs['name'],
                 package=attrs['classname'] or None,
                 duration=float(attrs['time']),
