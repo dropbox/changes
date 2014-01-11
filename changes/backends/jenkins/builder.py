@@ -527,8 +527,8 @@ class JenkinsBuilder(BaseBackend):
             self._sync_job_from_active(job)
 
     def sync_artifact(self, job, job_name, build_no, artifact):
-        if artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(job, job_name, build_no, artifact)
+        # if artifact['fileName'].endswith('.log'):
+        #     self._sync_artifact_as_log(job, job_name, build_no, artifact)
         if artifact['fileName'].endswith(('junit.xml', 'xunit.xml', 'nosetests.xml')):
             self._sync_artifact_as_xunit(job, job_name, build_no, artifact)
 
