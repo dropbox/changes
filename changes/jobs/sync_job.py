@@ -122,6 +122,10 @@ def sync_job(job_id):
             Task.result: Result.passed,
             Task.date_finished: datetime.utcnow(),
         })
+    else:
+        task_values.update({
+            Task.status: Status.in_progress,
+        })
 
     Task.query.filter(
         Task.task_name == 'sync_job',
