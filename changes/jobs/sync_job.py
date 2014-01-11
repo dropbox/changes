@@ -104,17 +104,26 @@ def sync_job(job_id):
             Task.task_name == 'sync_job',
             Task.parent_id == job.build_id,
         ).update({
+            Task.date_modified: datetime.utcnow(),
             Task.num_retries: Task.num_retries + 1,
-        })
+        }, synchronize_session=False)
 
         raise queue.retry('sync_job', kwargs={
             'job_id': job_id,
         }, exc=sys.exc_info(), countdown=60)
-    else:
-        Task.query.filter(
-            Task.task_name == 'sync_job',
-            Task.parent_id == job.build_id,
-        ).update({
+
+    task_values = {
+        Task.date_modified: datetime.utcnow(),
+    }
+
+    if job.status == Status.finished:
+        task_values.update({
             Task.status: Status.finished,
             Task.result: Result.passed,
+            Task.date_finished: datetime.utcnow(),
         })
+
+    Task.query.filter(
+        Task.task_name == 'sync_job',
+        Task.parent_id == job.build_id,
+    ).update(task_values, synchronize_session=False)
