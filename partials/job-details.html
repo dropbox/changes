@@ -110,7 +110,7 @@
 							<td>
 								<a href="{{ testGroup.link }}">{{ testGroup.name }}</a><br>
 								<small ng-if="testGroup.origin">
-									This failure originated in <span ng-if="testGroup.origin.id == job.id">this job</span><span ng-if="testGroup.origin.id != job.id"><a href="{{ testGroup.origin.link }}">{{ testGroup.origin.target }}</a><span ng-if="testGroup.origin.author"> &mdash; {{ testGroup.origin.author.name }}</span></span>
+									This failure likely originated in <span ng-if="testGroup.origin.id == job.id">this job</span><span ng-if="testGroup.origin.id != job.id"><a href="{{ testGroup.origin.link }}">{{ testGroup.origin.target }}</a><span ng-if="testGroup.origin.author"> &mdash; {{ testGroup.origin.author.name }}</span></span>
 								</small>
 							</td>
 							<td style="text-align:center" duration="testGroup.duration"></td>
