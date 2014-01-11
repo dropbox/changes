@@ -36,6 +36,6 @@ E   ImportError: No module named mock"""
     assert r2.job == job
     assert r2.package == 'tests.test_report.ParseTestResultsTest'
     assert r2.name == 'test_simple'
-    assert r2.duration == 0.00165796279907
+    assert r2.duration == 1.65796279907
     assert r2.result == Result.passed
     assert r2.message == ''
