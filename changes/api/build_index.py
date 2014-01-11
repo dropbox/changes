@@ -120,11 +120,11 @@ class BuildIndexAPIView(APIView):
     parser.add_argument('project', type=lambda x: Project.query.filter_by(slug=x).first())
     parser.add_argument('repository', type=lambda x: Repository.query.filter_by(url=x).first())
     parser.add_argument('author', type=AuthorValidator())
-    parser.add_argument('label', type=str, default="A homeless build")
-    parser.add_argument('target', type=str)
-    parser.add_argument('message', type=str)
+    parser.add_argument('label', type=unicode, default="A homeless build")
+    parser.add_argument('target', type=unicode)
+    parser.add_argument('message', type=unicode)
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
-    parser.add_argument('patch[label]', type=str, dest='patch_label')
+    parser.add_argument('patch[label]', type=unicode, dest='patch_label')
 
     def get(self):
         queryset = Build.query.options(
