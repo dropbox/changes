@@ -103,6 +103,7 @@ def sync_job(job_id):
         Task.query.filter(
             Task.task_name == 'sync_job',
             Task.parent_id == job.build_id,
+            Task.child_id == job.id,
         ).update({
             Task.date_modified: datetime.utcnow(),
             Task.num_retries: Task.num_retries + 1,
@@ -130,4 +131,5 @@ def sync_job(job_id):
     Task.query.filter(
         Task.task_name == 'sync_job',
         Task.parent_id == job.build_id,
+        Task.child_id == job.id,
     ).update(task_values, synchronize_session=False)

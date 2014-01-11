@@ -5,7 +5,7 @@ import mock
 from changes.config import db
 from changes.constants import Status
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, Step, Build
+from changes.models import Job, Step, Build, Task
 from changes.testutils import TestCase
 
 
@@ -21,6 +21,11 @@ class SyncBuildTest(TestCase):
 
         build = self.create_build(project=self.project)
         job = self.create_job(build=build)
+        task = self.create_task(
+            parent_id=build.id,
+            child_id=job.id,
+            task_name='sync_job',
+        )
 
         plan = self.create_plan()
         self.create_step(plan, implementation='test', order=0)
@@ -40,6 +45,7 @@ class SyncBuildTest(TestCase):
         )
 
         db.session.expire(build)
+        db.session.expire(task)
 
         build = Build.query.get(build.id)
 
@@ -51,6 +57,10 @@ class SyncBuildTest(TestCase):
 
         publish_build_update.assert_called_once_with(build)
         publish_job_update.assert_called_once_with(job)
+
+        task = Task.query.get(task.id)
+
+        assert task.status == Status.in_progress
 
     @mock.patch('changes.jobs.sync_job.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
@@ -69,6 +79,11 @@ class SyncBuildTest(TestCase):
 
         build = self.create_build(project=self.project)
         job = self.create_job(build=build)
+        task = self.create_task(
+            parent_id=build.id,
+            child_id=job.id,
+            task_name='sync_job',
+        )
 
         plan = self.create_plan()
         self.create_step(plan, implementation='test', order=0)
@@ -78,6 +93,7 @@ class SyncBuildTest(TestCase):
 
         db.session.expire(job)
         db.session.expire(build)
+        db.session.expire(task)
 
         job = Job.query.get(job.id)
         build = Build.query.get(build.id)
@@ -97,3 +113,7 @@ class SyncBuildTest(TestCase):
             'job_id': job.id.hex,
             'signal_name': 'job.finished',
         })
+
+        task = Task.query.get(task.id)
+
+        assert task.status == Status.finished
