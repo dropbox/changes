@@ -41,6 +41,7 @@ def pytest_sessionstart(session):
         REDIS_URL='redis://localhost/9',
         BASE_URI='http://example.com',
         REPO_ROOT='/tmp',
+        JENKINS_SYNC_LOG_ARTIFACTS=True,
     )
     app_context = app.test_request_context()
     app_context.push()

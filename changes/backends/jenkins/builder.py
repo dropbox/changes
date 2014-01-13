@@ -35,6 +35,8 @@ RESULT_MAP = {
 QUEUE_ID_XPATH = '/queue/item[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/id'
 BUILD_ID_XPATH = '/freeStyleProject/build[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/number'
 
+XUNIT_FILENAMES = ('junit.xml', 'xunit.xml', 'nosetests.xml')
+
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
 NUMBER_XML_RE = re.compile(r'<number>(\d+)</number>')
 
@@ -72,6 +74,9 @@ class JenkinsBuilder(BaseBackend):
         self.token = token or self.app.config['JENKINS_TOKEN']
         self.logger = logging.getLogger('jenkins')
         self.job_name = job_name
+        # disabled by default as it's expensive
+        self.sync_log_artifacts = self.app.config.get('JENKINS_SYNC_LOG_ARTIFACTS', False)
+        self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
 
     def _get_raw_response(self, path, method='GET', params=None, **kwargs):
         url = '{}/{}'.format(self.base_url, path.lstrip('/'))
@@ -527,9 +532,9 @@ class JenkinsBuilder(BaseBackend):
             self._sync_job_from_active(job)
 
     def sync_artifact(self, job, job_name, build_no, artifact):
-        # if artifact['fileName'].endswith('.log'):
-        #     self._sync_artifact_as_log(job, job_name, build_no, artifact)
-        if artifact['fileName'].endswith(('junit.xml', 'xunit.xml', 'nosetests.xml')):
+        if self.sync_log_artifacts and artifact['fileName'].endswith('.log'):
+            self._sync_artifact_as_log(job, job_name, build_no, artifact)
+        if self.sync_xunit_artifacts and artifact['fileName'].endswith(XUNIT_FILENAMES):
             self._sync_artifact_as_xunit(job, job_name, build_no, artifact)
 
     def create_job(self, job):
