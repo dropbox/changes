@@ -8,15 +8,15 @@ def publish_build_update(target):
             build_id=target.id.hex,
         ),
         'projects:{project_id}:builds'.format(
-            project_id=target.project_id.hex,
+            project_id=target.project.id.hex,
         ),
     ]
-    if target.author_id:
+    if target.author:
         channels.append('authors:{author_id}:builds'.format(
-            author_id=target.author_id.hex,
+            author_id=target.author.id.hex,
         ))
 
-    if not target.source.patch_id and target.source.revision_sha:
+    if not target.source.patch and target.source.revision_sha:
         channels.append('revisions:{revision_id}:builds'.format(
             revision_id=target.revision_sha,
         ))
@@ -36,7 +36,7 @@ def publish_job_update(target):
             job_id=target.id.hex,
         ),
         'builds:{build_id}:jobs'.format(
-            build_id=target.build_id.hex,
+            build_id=target.build.id.hex,
         ),
     ]
 
@@ -59,8 +59,8 @@ def publish_change_update(target):
 
 def publish_phase_update(target):
     channel = 'phases:{change_id}:{job_id}:{phase_id}'.format(
-        change_id=target.build.change_id.hex if target.build.change_id else '',
-        job_id=target.job_id,
+        change_id=target.build.change.id.hex if target.build.change else '',
+        job_id=target.job.id.hex,
         phase_id=target.id.hex,
     )
     pubsub.publish(channel, {
@@ -71,7 +71,7 @@ def publish_phase_update(target):
 
 def publish_testgroup_update(target):
     channel = 'testgroups:{job_id}:{testgroup_id}'.format(
-        job_id=target.job_id.hex,
+        job_id=target.job.id.hex,
         testgroup_id=target.id.hex
     )
     pubsub.publish(channel, {
@@ -82,8 +82,8 @@ def publish_testgroup_update(target):
 
 def publish_logchunk_update(target):
     channel = 'logsources:{job_id}:{source_id}'.format(
-        source_id=target.source_id.hex,
-        job_id=target.job_id.hex,
+        source_id=target.source.id.hex,
+        job_id=target.job.id.hex,
     )
     pubsub.publish(channel, {
         'data': as_json(target),

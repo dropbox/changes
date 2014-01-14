@@ -1,4 +1,3 @@
-import mock
 import os
 import sys
 
@@ -9,31 +8,16 @@ if root not in sys.path:
 from alembic.config import Config
 from alembic import command
 
+
 alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 
 # force model registration
 from changes.config import create_app, db
 
-app, app_context, connection, transaction, patchers = None, None, None, None, []
-
-from flask_sqlalchemy import _SignallingSession
-
-
-class SignallingSession(_SignallingSession):
-    def __init__(self, db, autocommit=False, autoflush=False, **options):
-        self.app = db.get_app()
-        self._model_changes = {}
-        bind = options.pop('bind', db.engine)
-        super(_SignallingSession, self).__init__(
-            autocommit=autocommit,
-            autoflush=autoflush,
-            bind=bind,
-            binds=db.get_binds(self.app), **options)
+patchers = []
 
 
 def pytest_sessionstart(session):
-    global app, app_context, connection, transaction, patchers
-
     app = create_app(
         _read_config=False,
         TESTING=True,
@@ -45,6 +29,7 @@ def pytest_sessionstart(session):
     )
     app_context = app.test_request_context()
     app_context.push()
+
     # 9.1 does not support --if-exists
     if os.system("psql -l | grep 'test_changes'") == 0:
         assert not os.system('dropdb test_changes')
@@ -52,27 +37,13 @@ def pytest_sessionstart(session):
 
     command.upgrade(alembic_cfg, 'head')
 
-    db.session = db.create_scoped_session({
-        'autoflush': True,
-        'autocommit': True,
-    })
 
-
-# TODO: mock session commands
-def pytest_runtest_setup(item):
-    item.__sqla_transaction = db.session.begin()
-    patchers.extend([
-        mock.patch.object(db.session, 'commit'),
-        mock.patch.object(db.session, 'rollback'),
-        # TODO(dcramer): if we correctly mocked out commit to only allow
-        # savepoint commits we wouldn't need to mock begin_nested
-        # mock.patch.object(db.session, 'begin_nested'),
-    ])
-    for p in patchers:
-        p.start()
-
-
+# TODO(dcramer): we should be able to use fast transaction testing here but
+# that seems to be extremely difficult to abstract in sqlalchemy
 def pytest_runtest_teardown(item):
-    item.__sqla_transaction.rollback()
-    while patchers:
-        patchers.pop().stop()
+    db.session.rollback()
+    db.session.execute('truncate table %s' % (
+        ', '.join("%s" % (t,) for t in db.metadata.sorted_tables),
+    ))
+    db.session.commit()
+    db.session.remove()

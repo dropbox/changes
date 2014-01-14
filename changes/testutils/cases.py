@@ -149,6 +149,8 @@ class Fixtures(object):
         if 'source' not in kwargs:
             kwargs['source'] = self.create_source(project)
 
+        kwargs['source_id'] = kwargs['source'].id
+
         kwargs.setdefault('label', 'Sample')
 
         cur_no_query = db.session.query(
@@ -279,11 +281,6 @@ class TestCase(Exam, unittest2.TestCase, Fixtures):
 
         self.plan = self.create_plan()
         self.plan.projects.append(self.project)
-
-        # disable commit
-        self.patcher = mock.patch('changes.config.db.session.commit')
-        self.patcher.start()
-        self.addCleanup(self.patcher.stop)
 
         # mock out mail
         mail_context = mail.record_messages()

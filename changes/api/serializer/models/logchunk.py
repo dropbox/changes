@@ -13,7 +13,7 @@ class LogChunkSerializer(Serializer):
         return {
             'id': instance.id.hex,
             'source': {
-                'id': instance.source_id.hex,
+                'id': instance.source.id.hex,
             },
             'text': formatted_text,
             'offset': instance.offset,
