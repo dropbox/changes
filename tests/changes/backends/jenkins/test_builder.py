@@ -13,7 +13,8 @@ from changes.models import (
     TestCase, Patch, LogSource, LogChunk, JobStep
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
-from changes.testutils import BackendTestCase, SAMPLE_DIFF, SAMPLE_XUNIT
+from changes.testutils import (
+    BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT)
 
 
 class BaseTestCase(BackendTestCase):
@@ -528,3 +529,68 @@ class ChunkedTest(TestCase):
 
         result = list(chunked(foo, 3))
         assert len(result) == 3
+
+
+class JenkinsIntegrationTest(TestCase):
+    """
+    This test should ensure a full cycle of tasks completes successfully within
+    the jenkins builder space.
+    """
+    @eager_tasks
+    @responses.activate
+    def test_full(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_with_test_report.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
+            body=self.load_fixture('fixtures/GET/job_test_report.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            match_querystring=True,
+            adding_headers={'X-Text-Size': '7'},
+            body='Foo bar')
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+
+        builder = self.get_builder()
+        builder.create_job(job)
+
+        test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
+
+        assert len(test_list) == 2
+        assert test_list[0].name == 'Test'
+        assert test_list[0].package == 'tests.changes.handlers.test_xunit'
+        assert test_list[0].result == Result.skipped
+        assert test_list[0].message == 'collection skipped'
+        assert test_list[0].duration == 0
+
+        assert test_list[1].name == 'test_simple'
+        assert test_list[1].package == 'tests.changes.api.test_build_details.BuildDetailsTest'
+        assert test_list[1].result == Result.passed
+        assert test_list[1].message == ''
+        assert test_list[1].duration == 155
+
+        source = LogSource.query.filter_by(job=job).first()
+        assert source.name == 'console'
+        assert source.project == self.project
+        assert source.date_created == job.date_started
+
+        chunks = list(LogChunk.query.filter_by(
+            source=source,
+        ).order_by(LogChunk.date_created.asc()))
+        assert len(chunks) == 1
+        assert chunks[0].job_id == job.id
+        assert chunks[0].project_id == self.project.id
+        assert chunks[0].offset == 0
+        assert chunks[0].size == 7
+        assert chunks[0].text == 'Foo bar'
+
+        jobstep = JobStep.query.filter(
+            JobStep.job_id == job.id,
+        ).first()
+
+        assert jobstep.data.get('log_offset') == 7
