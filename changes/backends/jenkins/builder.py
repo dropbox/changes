@@ -78,7 +78,8 @@ class JenkinsBuilder(BaseBackend):
         self.sync_log_artifacts = self.app.config.get('JENKINS_SYNC_LOG_ARTIFACTS', False)
         self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
 
-    def _get_raw_response(self, path, method='GET', params=None, **kwargs):
+    def _get_raw_response(self, path, method='GET', params=None,
+                          allow_redirects=False, **kwargs):
         url = '{}/{}'.format(self.base_url, path.lstrip('/'))
 
         if params is None:
