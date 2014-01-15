@@ -5,9 +5,11 @@ def duration(value):
     if not value:
         return '0 s'
 
-    if value < 3 * ONE_SECOND:
+    abs_value = abs(value)
+
+    if abs_value < 3 * ONE_SECOND:
         return '%d ms' % (value,)
-    elif value < 5 * ONE_MINUTE:
+    elif abs_value < 5 * ONE_MINUTE:
         return '%d s' % (value / ONE_SECOND,)
     else:
         return '%d m' % (value / ONE_MINUTE,)
