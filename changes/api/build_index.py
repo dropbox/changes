@@ -110,7 +110,7 @@ def create_build(project, label, target, message, author, change=None,
         queue.delay('create_job', kwargs={
             'job_id': job.id.hex,
             'task_id': job.id.hex,
-            'parent_id': job.build_id.hex,
+            'parent_task_id': job.build_id.hex,
         }, countdown=5)
 
     return build
