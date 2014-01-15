@@ -33,7 +33,7 @@
             }
           };
 
-      $scope.project = initialProject.data.project;
+      $scope.project = initialProject.data;
       $scope.test = initialTest.data.test;
       $scope.childTests = initialTest.data.childTests;
       $scope.context = initialTest.data.context;

@@ -8,7 +8,7 @@
     app.controller('projectTestListCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialTests',
         function($scope, $rootScope, initialProject, initialTests) {
-      $scope.project = initialProject.data.project;
+      $scope.project = initialProject.data;
       $scope.tests = initialTests.data.tests;
       $rootScope.activeProject = $scope.project;
     }]);

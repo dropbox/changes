@@ -35,7 +35,7 @@
 
         $scope.buildStats = bs;
         $scope.newSlowTestGroups = initialStats.data.newSlowTestGroups;
-        $scope.project = initialProject.data.project;
+        $scope.project = initialProject.data;
 
         $rootScope.activeProject = $scope.project;
 

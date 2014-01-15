@@ -51,7 +51,7 @@
         }
       };
 
-      $scope.project = initialProject.data.project;
+      $scope.project = initialProject.data;
       $scope.commit = initialCommit.data.commit;
       $scope.repository = initialCommit.data.repository;
       $scope.builds = sortBuildList(initialCommit.data.builds);

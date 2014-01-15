@@ -8,7 +8,7 @@
         '$scope', '$rootScope', 'initialProject', '$http', '$routeParams',
         function($scope, $rootScope, initialProject, $http, $routeParams) {
 
-      $scope.project = initialProject.data.project;
+      $scope.project = initialProject.data;
       $scope.repo = initialProject.data.repository;
       $scope.plans = initialProject.data.plans;
       $rootScope.activeProject = $scope.project;

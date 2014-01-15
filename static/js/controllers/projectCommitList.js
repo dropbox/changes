@@ -22,7 +22,7 @@
         });
       }
 
-      $scope.project = initialProject.data.project;
+      $scope.project = initialProject.data;
       $rootScope.activeProject = $scope.project;
       $scope.commits = fromCommits(initialBuildList.data.commits);
 
