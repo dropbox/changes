@@ -136,39 +136,56 @@ class BuildReport(object):
         return project_results
 
     def get_slow_tests(self, start_period, end_period):
-        projects_by_id = dict((p.id, p) for p in self.projects)
-        project_ids = projects_by_id.keys()
+        slow_tests = []
+        for project in self.projects:
+            slow_tests.extend(self.get_slow_tests_for_project(
+                project, start_period, end_period))
+        slow_tests.sort(key=lambda x: x['duration_raw'], reverse=True)
+        return slow_tests[:10]
 
+    def get_slow_tests_for_project(self, project, start_period, end_period):
         parent_alias = aliased(TestGroup, name='testparent')
 
+        latest_build = Build.query.filter(
+            Build.project == project,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).order_by(
+            Build.date_created.desc(),
+        ).limit(1).first()
+
+        if not latest_build:
+            return []
+
+        job_list = list(latest_build.jobs)
+        if not job_list:
+            return []
+
         queryset = db.session.query(
-            TestGroup.project_id, TestGroup.name, parent_alias.name,
-            TestGroup.duration,
+            TestGroup.name, parent_alias.name, TestGroup.duration,
         ).outerjoin(
             parent_alias, parent_alias.id == TestGroup.parent_id,
         ).filter(
-            TestGroup.project_id.in_(project_ids),
+            TestGroup.job_id.in_(j.id for j in job_list),
             TestGroup.num_leaves == 0,
             TestGroup.result == Result.passed,
             TestGroup.date_created > start_period,
             TestGroup.date_created <= end_period,
         ).group_by(
-            TestGroup.project_id, TestGroup.name, parent_alias.name,
-            TestGroup.duration,
+            TestGroup.name, parent_alias.name, TestGroup.duration,
         ).order_by(TestGroup.duration.desc())
 
         slow_list = []
-        for project_id, name, parent_name, duration in queryset[:10]:
+        for name, parent_name, duration in queryset[:10]:
             if parent_name:
                 name = name[len(parent_name) + 1:]
-
-            project = projects_by_id[project_id]
 
             slow_list.append({
                 'project': project,
                 'name': name,
                 'package': parent_name,
                 'duration': '%.2f s' % (duration / 1000.0,),
+                'duration_raw': duration,
                 # 'link': build_uri('/projects/{0}/tests/{1}/'.format(
                 #     project.slug, agg_id.hex)),
             })
