@@ -11,11 +11,12 @@ from werkzeug.datastructures import FileStorage
 
 from changes.api.base import APIView
 from changes.api.validators.author import AuthorValidator
-from changes.config import db, queue
+from changes.config import db
 from changes.constants import Status
 from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
+from changes.jobs.create_job import create_job
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
     ItemOption, Source, ProjectPlan
@@ -107,11 +108,11 @@ def create_build(project, label, target, message, author, change=None,
 
     for job in jobs:
         publish_job_update(job)
-        queue.delay('create_job', kwargs={
-            'job_id': job.id.hex,
-            'task_id': job.id.hex,
-            'parent_task_id': job.build_id.hex,
-        }, countdown=5)
+        create_job.delay(
+            job_id=job.id.hex,
+            task_id=job.id.hex,
+            parent_task_id=job.build_id.hex,
+        )
 
     return build
 
