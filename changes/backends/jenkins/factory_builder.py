@@ -150,15 +150,15 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                         if time.time() - start > 15:
                             raise Exception('Took too long to sync log')
 
-                        result = self._sync_log(
-                            jobstep=downstream_jobstep,
-                            name=downstream_jobstep.label,
-                            job_name=downstream_job_name,
-                            build_no=build_no,
-                        )
+                        with db.session.begin_nested():
+                            result = self._sync_log(
+                                jobstep=downstream_jobstep,
+                                name=downstream_jobstep.label,
+                                job_name=downstream_job_name,
+                                build_no=build_no,
+                            )
 
                 except Exception:
-                    db.session.rollback()
                     current_app.logger.exception(
                         'Unable to sync console log for job step %r',
                         downstream_jobstep.id.hex)

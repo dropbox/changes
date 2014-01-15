@@ -2,9 +2,10 @@ from datetime import datetime, timedelta
 from flask import current_app
 from sqlalchemy import or_
 
-from changes.config import db, queue
+from changes.config import db
 from changes.constants import Status, Result
 from changes.models import Build
+from changes.jobs.sync_build import sync_build
 
 CHECK_BUILDS = timedelta(minutes=5)
 EXPIRE_BUILDS = timedelta(hours=6)
@@ -64,6 +65,4 @@ def cleanup_builds():
     }, synchronize_session=False)
 
     for b_id in build_ids:
-        queue.delay('sync_build', kwargs={
-            'build_id': b_id.hex,
-        })
+        sync_build.delay(build_id=b_id.hex, task_id=b_id.hex)

@@ -55,7 +55,7 @@ class BuildCreateTest(APITestCase):
             'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
             'patch[label]': 'My patch',
         })
-        assert resp.status_code == 200
+        assert resp.status_code == 200, resp.data
 
         data = self.unserialize(resp)
         assert len(data['builds']) == 1

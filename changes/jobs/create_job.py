@@ -6,8 +6,8 @@ from sqlalchemy.orm import subqueryload_all
 from changes.backends.base import UnrecoverableException
 from changes.config import queue
 from changes.constants import Status, Result
-from changes.db.utils import get_or_create
-from changes.models import Job, JobPlan, Plan, Task
+from changes.jobs.sync_job import sync_job
+from changes.models import Job, JobPlan, Plan
 from changes.utils.locking import lock
 
 
@@ -16,12 +16,6 @@ def create_job(job_id):
     job = Job.query.get(job_id)
     if not job:
         return
-
-    task, task_created = get_or_create(Task, where={
-        'task_name': 'sync_job',
-        'parent_id': job.build_id,
-        'child_id': job.id,
-    })
 
     job_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
@@ -52,9 +46,8 @@ def create_job(job_id):
             'job_id': job_id,
         }, exc=sys.exc_info())
 
-    # this should always be true, but for consistency we want to enforce the
-    # same constraints throughout the task management
-    if task_created:
-        queue.delay('sync_job', kwargs={
-            'job_id': job_id,
-        }, countdown=5)
+    sync_job.delay(
+        job_id=job.id.hex,
+        task_id=job.id.hex,
+        parent_task_id=job.build_id.hex,
+    )

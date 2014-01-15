@@ -3,14 +3,14 @@ from __future__ import absolute_import
 import mock
 
 from changes.jobs.create_job import create_job
-from changes.models import Step, Task
+from changes.models import Step
 from changes.testutils import TestCase
 
 
 class CreateBuildTest(TestCase):
-    @mock.patch('changes.jobs.create_job.queue.delay')
+    @mock.patch('changes.jobs.create_job.sync_job')
     @mock.patch.object(Step, 'get_implementation')
-    def test_simple(self, get_implementation, queue_delay):
+    def test_simple(self, get_implementation, sync_job):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -28,14 +28,8 @@ class CreateBuildTest(TestCase):
             job=job,
         )
 
-        task = Task.query.filter(
-            Task.task_name == 'sync_job',
-            Task.parent_id == build.id,
-        ).first()
-
-        assert task is not None
-
-        # ensure signal is fired
-        queue_delay.assert_called_once_with('sync_job', kwargs={
-            'job_id': job.id.hex,
-        }, countdown=5)
+        sync_job.delay.assert_called_once_with(
+            job_id=job.id.hex,
+            task_id=job.id.hex,
+            parent_task_id=build.id.hex,
+        )

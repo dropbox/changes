@@ -23,7 +23,7 @@ class Task(db.Model):
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     task_name = Column(String(128), nullable=False)
-    child_id = Column(GUID, nullable=False)
+    task_id = Column('child_id', GUID, nullable=False)
     parent_id = Column(GUID)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)

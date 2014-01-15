@@ -46,7 +46,10 @@ class CleanupBuildsTest(TestCase):
         cleanup_builds()
 
         queue_delay.assert_called_once_with(
-            'sync_build', kwargs={'build_id': build.id.hex})
+            'sync_build', kwargs={
+                'build_id': build.id.hex,
+                'task_id': build.id.hex,
+            })
 
         build = Build.query.get(build.id)
 

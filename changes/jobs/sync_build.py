@@ -1,15 +1,12 @@
-from datetime import datetime
-from flask import current_app
-
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.events import publish_build_update
-from changes.models import Build, Job, Task
+from changes.models import Build, Job
 from changes.utils.agg import safe_agg
-from changes.utils.locking import lock
+from changes.queue.task import tracked_task
 
 
-@lock
+@tracked_task
 def sync_build(build_id):
     """
     Synchronizing the build happens continuously until all jobs have reported in
@@ -20,21 +17,6 @@ def sync_build(build_id):
     - Aborting/retrying them if they're beyond limits
     - Aggregating the results from jobs into the build itself
     """
-    try:
-        _sync_build(build_id)
-
-    except Exception:
-        # Ensure we continue to synchronize this job as this could be a
-        # temporary failure
-        current_app.logger.exception('Failed to sync build %s', build_id)
-        raise queue.retry('sync_build', kwargs={
-            'build_id': build_id,
-        }, countdown=60)
-
-
-def _sync_build(build_id):
-    # TODO(dcramer): sync_build should be responsible for requeueing sync_job
-    # tasks that haven't checked in
     build = Build.query.get(build_id)
     if not build:
         return
@@ -42,68 +24,53 @@ def _sync_build(build_id):
     if build.status == Status.finished:
         return
 
-    is_finished = Task.check('sync_job', build.id) == Status.finished
-
-    current_datetime = datetime.utcnow()
-
     all_jobs = list(Job.query.filter(
         Job.build_id == build_id,
     ))
 
-    date_started = safe_agg(
+    is_finished = sync_build.verify_children(
+        'sync_job',
+        [j.id.hex for j in all_jobs],
+        lambda child_id: {'job_id': child_id},
+    ) == Status.finished
+
+    build.date_started = safe_agg(
         min, (j.date_started for j in all_jobs if j.date_started))
 
     if is_finished:
-        date_finished = safe_agg(
+        build.date_finished = safe_agg(
             max, (j.date_finished for j in all_jobs if j.date_finished))
     else:
-        date_finished = None
+        build.date_finished = None
 
-    if date_started and date_finished:
-        duration = int((date_finished - date_started).total_seconds() * 1000)
+    if build.date_started and build.date_finished:
+        build.duration = int((build.date_finished - build.date_started).total_seconds() * 1000)
     else:
-        duration = None
+        build.duration = None
 
     if any(j.result is Result.failed for j in all_jobs):
-        result = Result.failed
+        build.result = Result.failed
     elif is_finished:
-        result = safe_agg(
+        build.result = safe_agg(
             max, (j.result for j in all_jobs), Result.unknown)
     else:
-        result = Result.unknown
+        build.result = Result.unknown
 
     if is_finished:
-        status = Status.finished
+        build.status = Status.finished
     elif any(j.status is Status.in_progress for j in all_jobs):
-        status = Status.in_progress
+        build.status = Status.in_progress
     else:
-        status = Status.queued
+        build.status = Status.queued
 
-    Build.query.filter(
-        Build.id == build_id
-    ).update({
-        Build.result: result,
-        Build.status: status,
-        Build.date_modified: current_datetime,
-        Build.date_started: date_started,
-        Build.date_finished: date_finished,
-        Build.duration: duration,
-    }, synchronize_session=False)
-
-    build = Build.query.get(build_id)
+    db.session.add(build)
+    db.session.commit()
 
     publish_build_update(build)
 
-    if is_finished:
-        queue.delay('update_project_stats', kwargs={
-            'project_id': build.project_id.hex,
-        }, countdown=1)
+    if not is_finished:
+        raise sync_build.NotFinished
 
-    else:
-        queue.delay('sync_build', kwargs={
-            'build_id': build.id.hex,
-        }, countdown=5)
-
-    for job in all_jobs:
-        db.session.expire(job)
-    db.session.expire(build)
+    queue.delay('update_project_stats', kwargs={
+        'project_id': build.project_id.hex,
+    }, countdown=1)

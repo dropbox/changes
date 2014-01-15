@@ -233,25 +233,25 @@ class JenkinsBuilder(BaseBackend):
             try:
                 self._sync_test_results(job)
             except Exception:
-                db.session.rollback()
                 current_app.logger.exception('Unable to sync test results for job %r', job.id.hex)
 
             # FIXME(dcramer): we're waiting until the job is complete to sync
             # logs due to our inability to correctly identify start offsets
             # if we're supposed to be finishing, lets ensure we actually
             # get the entirety of the log
-            try:
-                start = time.time()
-                while self._sync_console_log(jobstep):
-                    if time.time() - start > 15:
-                        raise Exception('Took too long to sync log')
-                    continue
-            except Exception:
-                db.session.rollback()
-                current_app.logger.exception('Unable to sync console log for job %r', job.id.hex)
+            with db.session.begin_nested():
+                try:
+                    start = time.time()
+                    while self._sync_console_log(jobstep):
+                        if time.time() - start > 15:
+                            raise Exception('Took too long to sync log')
+                        continue
+                except Exception:
+                    current_app.logger.exception('Unable to sync console log for job %r', job.id.hex)
 
             for artifact in item.get('artifacts', ()):
-                self.sync_artifact(job=job, artifact=artifact)
+                with db.session.begin_nested():
+                    self.sync_artifact(job=job, artifact=artifact)
 
             job.status = Status.finished
             db.session.add(job)
@@ -310,7 +310,6 @@ class JenkinsBuilder(BaseBackend):
                 'text': chunk,
             })
             offset += chunk_size
-            db.session.commit()
 
             publish_logchunk_update(chunk)
 
@@ -366,7 +365,6 @@ class JenkinsBuilder(BaseBackend):
                 'size': chunk_size,
                 'text': chunk,
             })
-            db.session.commit()
             offset += chunk_size
 
             publish_logchunk_update(chunk)
@@ -375,7 +373,6 @@ class JenkinsBuilder(BaseBackend):
         # links and we cant accurately predict the next `start` param.
         jobstep.data['log_offset'] = log_length
         db.session.add(jobstep)
-        db.session.commit()
 
         # Jenkins will suggest to us that there is more data when the job has
         # yet to complete

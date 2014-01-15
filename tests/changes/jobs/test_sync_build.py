@@ -19,6 +19,7 @@ class SyncBuildTest(TestCase):
             status=Status.unknown,
             result=Result.unknown,
         )
+
         job_a = self.create_job(
             build=build,
             status=Status.finished,
@@ -38,18 +39,17 @@ class SyncBuildTest(TestCase):
         self.create_task(
             task_name='sync_job',
             parent_id=build.id,
-            child_id=job_a.id,
+            task_id=job_a.id,
             status=Status.finished,
         )
         task_b = self.create_task(
             task_name='sync_job',
             parent_id=build.id,
-            child_id=job_b.id,
+            task_id=job_b.id,
+            status=Status.in_progress,
         )
 
-        sync_build(build_id=build.id.hex)
-
-        db.session.expire(build)
+        sync_build(build_id=build.id.hex, task_id=build.id.hex)
 
         build = Build.query.get(build.id)
 
@@ -61,9 +61,7 @@ class SyncBuildTest(TestCase):
         job_b.status = Status.finished
         db.session.add(job_b)
 
-        sync_build(build_id=build.id.hex)
-
-        db.session.expire(build)
+        sync_build(build_id=build.id.hex, task_id=build.id.hex)
 
         build = Build.query.get(build.id)
 

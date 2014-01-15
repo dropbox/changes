@@ -2,20 +2,18 @@ from __future__ import absolute_import
 
 import mock
 
-from changes.config import db
 from changes.constants import Status
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, Step, Build, Task
+from changes.models import Job, Step, Task
 from changes.testutils import TestCase
 
 
 class SyncBuildTest(TestCase):
     @mock.patch('changes.jobs.sync_job.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
-    @mock.patch('changes.jobs.sync_job.publish_build_update')
     @mock.patch('changes.jobs.sync_job.publish_job_update')
-    def test_in_progress(self, publish_job_update, publish_build_update,
-                         get_implementation, queue_delay):
+    def test_in_progress(self, publish_job_update, get_implementation,
+                         queue_delay):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -23,7 +21,7 @@ class SyncBuildTest(TestCase):
         job = self.create_job(build=build)
         task = self.create_task(
             parent_id=build.id,
-            child_id=job.id,
+            task_id=job.id,
             task_name='sync_job',
         )
 
@@ -36,7 +34,8 @@ class SyncBuildTest(TestCase):
 
         implementation.execute.side_effect = mark_in_progress
 
-        sync_job(job_id=job.id.hex)
+        sync_job(job_id=job.id.hex, task_id=job.id.hex,
+                 parent_task_id=build.id.hex)
 
         get_implementation.assert_called_once_with()
 
@@ -44,19 +43,16 @@ class SyncBuildTest(TestCase):
             job=job,
         )
 
-        db.session.expire(build)
-        db.session.expire(task)
-
-        build = Build.query.get(build.id)
-
-        assert build.status == Status.in_progress
-
         queue_delay.assert_any_call('sync_job', kwargs={
             'job_id': job.id.hex,
+            'task_id': job.id.hex,
+            'parent_task_id': build.id.hex,
         }, countdown=5)
 
-        publish_build_update.assert_called_once_with(build)
         publish_job_update.assert_called_once_with(job)
+
+        from changes.config import db
+        db.session.expire(task)
 
         task = Task.query.get(task.id)
 
@@ -64,15 +60,12 @@ class SyncBuildTest(TestCase):
 
     @mock.patch('changes.jobs.sync_job.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
-    @mock.patch('changes.jobs.sync_job.publish_build_update')
     @mock.patch('changes.jobs.sync_job.publish_job_update')
-    def test_finished(self, publish_job_update, publish_build_update,
-                      get_implementation, queue_delay):
+    def test_finished(self, publish_job_update, get_implementation, queue_delay):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
         def mark_finished(job):
-            job.duration = 5000
             job.status = Status.finished
 
         implementation.execute.side_effect = mark_finished
@@ -81,7 +74,7 @@ class SyncBuildTest(TestCase):
         job = self.create_job(build=build)
         task = self.create_task(
             parent_id=build.id,
-            child_id=job.id,
+            task_id=job.id,
             task_name='sync_job',
         )
 
@@ -89,19 +82,12 @@ class SyncBuildTest(TestCase):
         self.create_step(plan, implementation='test', order=0)
         self.create_job_plan(job, plan)
 
-        sync_job(job_id=job.id.hex)
-
-        db.session.expire(job)
-        db.session.expire(build)
-        db.session.expire(task)
-
+        sync_job(job_id=job.id.hex, task_id=job.id.hex,
+                 parent_task_id=build.id.hex)
         job = Job.query.get(job.id)
-        build = Build.query.get(build.id)
 
         assert job.status == Status.finished
-        assert build.status == Status.finished
 
-        publish_build_update.assert_called_once_with(build)
         publish_job_update.assert_called_once_with(job)
 
         queue_delay.assert_any_call('update_project_plan_stats', kwargs={
@@ -113,7 +99,6 @@ class SyncBuildTest(TestCase):
             'job_id': job.id.hex,
             'signal_name': 'job.finished',
         })
-
         task = Task.query.get(task.id)
 
         assert task.status == Status.finished
