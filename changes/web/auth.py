@@ -2,6 +2,9 @@ from flask import current_app, redirect, request, session, url_for
 from flask.views import MethodView
 from oauth2client.client import OAuth2WebServerFlow
 
+from changes.db.utils import get_or_create
+from changes.models import User
+
 
 def get_auth_flow(redirect_uri=None):
     # XXX(dcramer): we have to generate this each request because oauth2client
@@ -44,6 +47,11 @@ class AuthorizedView(MethodView):
                 # TODO(dcramer): this should show some kind of error
                 return redirect(self.complete_url)
 
+        user, _ = get_or_create(User, where={
+            'email': resp.id_token['email'],
+        })
+
+        session['uid'] = user.id
         session['access_token'] = resp.access_token
         session['email'] = resp.id_token['email']
 
@@ -56,6 +64,7 @@ class LogoutView(MethodView):
         super(LogoutView, self).__init__()
 
     def get(self):
+        session.pop('uid', None)
         session.pop('access_token', None)
         session.pop('email', None)
         return redirect(self.complete_url)

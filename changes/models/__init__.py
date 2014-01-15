@@ -20,3 +20,4 @@ from .source import *  # NOQA
 from .task import *  # NOQA
 from .test import *  # NOQA
 from .testresult import *  # NOQA
+from .user import *  # NOQA

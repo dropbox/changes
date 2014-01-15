@@ -10,10 +10,11 @@ class AuthIndexAPIView(APIView):
         """
         Return information on the currently authenticated user.
         """
-        if session.get('email'):
+        if session.get('uid'):
             context = {
                 'authenticated': True,
                 'user': {
+                    'id': session['uid'],
                     'email': session['email'],
                 },
             }
