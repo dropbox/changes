@@ -7,7 +7,7 @@ from changes.models import Step
 from changes.testutils import TestCase
 
 
-class CreateBuildTest(TestCase):
+class CreateJobTest(TestCase):
     @mock.patch('changes.jobs.create_job.sync_job')
     @mock.patch.object(Step, 'get_implementation')
     def test_simple(self, get_implementation, sync_job):
