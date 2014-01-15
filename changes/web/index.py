@@ -1,3 +1,4 @@
+import changes
 import urlparse
 
 from flask import render_template, current_app, redirect, url_for, session
@@ -23,4 +24,5 @@ class IndexView(MethodView):
 
         return render_template('index.html', **{
             'SENTRY_PUBLIC_DSN': dsn,
+            'VERSION': changes.get_version(),
         })
