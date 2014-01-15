@@ -20,7 +20,11 @@ class CreateBuildTest(TestCase):
         self.create_step(plan)
         self.create_job_plan(job, plan)
 
-        create_job(job_id=job.id.hex)
+        create_job(
+            job_id=job.id.hex,
+            task_id=job.id.hex,
+            parent_task_id=build.id.hex,
+        )
 
         get_implementation.assert_called_once_with()
 
