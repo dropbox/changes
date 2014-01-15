@@ -1,3 +1,6 @@
+import changes
+import sys
+
 from flask import current_app, redirect, request, session, url_for
 from flask.views import MethodView
 from oauth2client.client import OAuth2WebServerFlow
@@ -15,6 +18,10 @@ def get_auth_flow(redirect_uri=None):
         client_secret=current_app.config['GOOGLE_CLIENT_SECRET'],
         scope='https://www.googleapis.com/auth/userinfo.email',
         redirect_uri=redirect_uri,
+        user_agent='changes/{0} (python {1})'.format(
+            changes.VERSION,
+            sys.version,
+        )
     )
 
 
@@ -45,7 +52,7 @@ class AuthorizedView(MethodView):
             # TODO(dcramer): confirm this is actually what this value means
             if resp.id_token.get('hd') != current_app.config['GOOGLE_DOMAIN']:
                 # TODO(dcramer): this should show some kind of error
-                return redirect(self.complete_url)
+                return redirect(url_for(self.complete_url))
 
         user, _ = get_or_create(User, where={
             'email': resp.id_token['email'],
@@ -55,7 +62,7 @@ class AuthorizedView(MethodView):
         session['access_token'] = resp.access_token
         session['email'] = resp.id_token['email']
 
-        return redirect(self.complete_url)
+        return redirect(url_for(self.complete_url))
 
 
 class LogoutView(MethodView):
@@ -67,4 +74,4 @@ class LogoutView(MethodView):
         session.pop('uid', None)
         session.pop('access_token', None)
         session.pop('email', None)
-        return redirect(self.complete_url)
+        return redirect(url_for(self.complete_url))

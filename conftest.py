@@ -26,6 +26,8 @@ def app(request):
         BASE_URI='http://example.com',
         REPO_ROOT='/tmp',
         JENKINS_SYNC_LOG_ARTIFACTS=True,
+        GOOGLE_CLIENT_ID='a' * 12,
+        GOOGLE_CLIENT_SECRET='b' * 40,
     )
     app_context = app.test_request_context()
     app_context.push()
