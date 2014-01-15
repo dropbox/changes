@@ -51,7 +51,7 @@ class AuthorizedView(MethodView):
             'email': resp.id_token['email'],
         })
 
-        session['uid'] = user.id
+        session['uid'] = user.id.hex
         session['access_token'] = resp.access_token
         session['email'] = resp.id_token['email']
 
