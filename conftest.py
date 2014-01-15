@@ -1,4 +1,5 @@
 import os
+import pytest
 import sys
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -7,17 +8,16 @@ if root not in sys.path:
 
 from alembic.config import Config
 from alembic import command
-
+from sqlalchemy import event
+from sqlalchemy.orm import Session
 
 alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 
-# force model registration
 from changes.config import create_app, db
 
-patchers = []
 
-
-def pytest_sessionstart(session):
+@pytest.fixture(scope='session')
+def app(request):
     app = create_app(
         _read_config=False,
         TESTING=True,
@@ -29,7 +29,11 @@ def pytest_sessionstart(session):
     )
     app_context = app.test_request_context()
     app_context.push()
+    return app
 
+
+@pytest.fixture(scope='session', autouse=True)
+def setup_db(request, app):
     # 9.1 does not support --if-exists
     if os.system("psql -l | grep 'test_changes'") == 0:
         assert not os.system('dropdb test_changes')
@@ -37,13 +41,14 @@ def pytest_sessionstart(session):
 
     command.upgrade(alembic_cfg, 'head')
 
+    @event.listens_for(Session, "after_transaction_end")
+    def restart_savepoint(session, transaction):
+        if transaction.nested and not transaction._parent.nested:
+            session.begin_nested()
 
-# TODO(dcramer): we should be able to use fast transaction testing here but
-# that seems to be extremely difficult to abstract in sqlalchemy
-def pytest_runtest_teardown(item):
-    db.session.rollback()
-    db.session.execute('truncate table %s' % (
-        ', '.join("%s" % (t,) for t in db.metadata.sorted_tables),
-    ))
-    db.session.commit()
-    db.session.remove()
+
+@pytest.fixture(autouse=True)
+def dbsession(request):
+    request.addfinalizer(db.session.remove)
+
+    db.session.begin_nested()
