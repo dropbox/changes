@@ -217,9 +217,9 @@ class TrackedTask(local):
             has_pending = True
 
             if task.date_modified < expire_datetime:
-                need_expire.add(task.task_id)
+                need_expire.add(task.task_id.hex)
             elif task.date_modified < run_datetime:
-                need_run.add(task.task_id)
+                need_run.add(task.task_id.hex)
 
         if need_expire:
             Task.query.filter(
