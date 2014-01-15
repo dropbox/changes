@@ -17,6 +17,7 @@ from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
 from changes.jobs.create_job import create_job
+from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
     ItemOption, Source, ProjectPlan
@@ -113,6 +114,11 @@ def create_build(project, label, target, message, author, change=None,
             task_id=job.id.hex,
             parent_task_id=job.build_id.hex,
         )
+
+    sync_build.delay(
+        build_id=job.build_id.hex,
+        task_id=job.build_id.hex,
+    )
 
     return build
 
