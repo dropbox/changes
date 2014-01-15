@@ -67,9 +67,7 @@ class TrackedTask(local):
         self.task_id = kwargs.pop('task_id', None)
         if not self.task_id:
             self.logger.warning('Missing task_id for job: %r', kwargs)
-            with db.session.begin_nested():
-                self.func(**kwargs)
-            return
+            self.func(**kwargs)
 
         self.parent_id = kwargs.pop('parent_task_id', None)
         self.kwargs = kwargs
