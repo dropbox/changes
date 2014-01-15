@@ -578,7 +578,9 @@ table > tbody > tr.result-skipped > td.result span {
 }
 
 footer {
-  color: #333;
+  text-align: center;
+  padding: 20px 0;
+  color: #666;
   background: #f7f5fa;
   min-height: 150px;
 }
