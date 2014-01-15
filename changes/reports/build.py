@@ -151,6 +151,8 @@ class BuildReport(object):
             Build.project == project,
             Build.status == Status.finished,
             Build.result == Result.passed,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
         ).order_by(
             Build.date_created.desc(),
         ).limit(1).first()
