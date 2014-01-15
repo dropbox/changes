@@ -66,7 +66,8 @@ class BuildReport(object):
             ))
 
         slow_tests = self.get_slow_tests(start_period, end_period)
-        flakey_tests = self.get_frequent_failures(start_period, end_period)
+        # flakey_tests = self.get_frequent_failures(start_period, end_period)
+        flakey_tests = []
 
         title = 'Build Report ({0} through {1})'.format(
             start_period.strftime('%b %d, %Y'),
