@@ -131,7 +131,7 @@ class TrackedTask(local):
             Task.task_name == self.task_name,
             Task.parent_id == self.parent_id,
             Task.task_id == self.task_id,
-        ).update(kwargs)
+        ).update(kwargs, synchronize_session=False)
 
     def _retry(self):
         """
@@ -230,7 +230,7 @@ class TrackedTask(local):
                 Task.date_modified: current_datetime,
                 Task.status: Status.finished,
                 Task.result: Result.aborted,
-            })
+            }, synchronize_session=False)
 
         if need_run:
             Task.query.filter(
@@ -239,7 +239,7 @@ class TrackedTask(local):
                 Task.task_id.in_([n for n in need_run]),
             ).update({
                 Task.date_modified: current_datetime,
-            })
+            }, synchronize_session=False)
 
         for child_id in need_created:
             child_task = Task(
