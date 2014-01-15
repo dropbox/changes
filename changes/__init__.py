@@ -8,7 +8,7 @@ except Exception, e:
 
 
 def _get_git_revision(path):
-    revision_file = os.path.join(path, 'refs', 'heads', 'master')
+    revision_file = os.path.join(path, 'HEAD')
     if not os.path.exists(revision_file):
         return None
     fh = open(revision_file, 'r')
