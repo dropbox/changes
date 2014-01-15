@@ -93,10 +93,6 @@ def create_app(_read_config=True, **config):
             'task': 'cleanup_builds',
             'schedule': timedelta(minutes=1),
         },
-        'cleanup-jobs': {
-            'task': 'cleanup_jobs',
-            'schedule': timedelta(minutes=1),
-        },
         # 'check-repos': {
         #     'task': 'check_repos',
         #     'schedule': timedelta(minutes=5),
@@ -260,7 +256,6 @@ def configure_debug_routes(app):
 def configure_jobs(app):
     from changes.jobs.check_repos import check_repos
     from changes.jobs.cleanup_builds import cleanup_builds
-    from changes.jobs.cleanup_jobs import cleanup_jobs
     from changes.jobs.create_job import create_job
     from changes.jobs.notify_listeners import notify_listeners
     from changes.jobs.sync_artifact import sync_artifact
@@ -272,7 +267,6 @@ def configure_jobs(app):
 
     queue.register('check_repos', check_repos)
     queue.register('cleanup_builds', cleanup_builds)
-    queue.register('cleanup_jobs', cleanup_jobs)
     queue.register('create_job', create_job)
     queue.register('notify_listeners', notify_listeners)
     queue.register('sync_artifact', sync_artifact)
