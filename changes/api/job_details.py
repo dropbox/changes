@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-from flask import Response
 from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
@@ -17,7 +16,7 @@ class JobDetailsAPIView(APIView):
             joinedload(Job.project),
         ).get(job_id)
         if job is None:
-            return Response(status=404)
+            return '', 404
 
         previous_runs = Job.query.filter(
             Job.project == job.project,

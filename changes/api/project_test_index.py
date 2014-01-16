@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import Response
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload, subqueryload
 
@@ -24,7 +23,7 @@ class ProjectTestIndexAPIView(APIView):
     def get(self, project_id):
         project = self._get_project(project_id)
         if not project:
-            return Response(status=404)
+            return '', 404
 
         latest_job = Job.query.options(
             subqueryload(Job.project),

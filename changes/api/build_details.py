@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
-from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -18,7 +17,7 @@ class BuildDetailsAPIView(APIView):
             joinedload(Build.author),
         ).get(build_id)
         if build is None:
-            return Response(status=404)
+            return '', 404
 
         previous_runs = Build.query.filter(
             Build.project == build.project,

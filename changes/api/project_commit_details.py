@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -21,7 +20,7 @@ class ProjectCommitDetailsAPIView(APIView):
     def get(self, project_id, commit_id):
         project = self._get_project(project_id)
         if not project:
-            return Response(status=404)
+            return '', 404
 
         repo = project.repository
         revision = Revision.query.filter(
@@ -29,7 +28,7 @@ class ProjectCommitDetailsAPIView(APIView):
             Revision.sha == commit_id,
         ).join(Revision.author).first()
         if not revision:
-            return Response(status=404)
+            return '', 404
 
         build_list = list(Build.query.options(
             joinedload('author'),

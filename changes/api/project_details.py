@@ -1,4 +1,4 @@
-from flask import Response, request
+from flask import request
 from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
@@ -53,7 +53,7 @@ class ProjectDetailsAPIView(APIView):
     def get(self, project_id):
         project = self._get_project(project_id)
         if project is None:
-            return Response(status=404)
+            return '', 404
 
         plans = Plan.query.options(
             subqueryload_all(Plan.steps),
@@ -99,7 +99,7 @@ class ProjectDetailsAPIView(APIView):
     def post(self, project_id):
         project = self._get_project(project_id)
         if project is None:
-            return Response(status=404)
+            return '', 404
 
         validator = ProjectValidator(
             data=request.form,
@@ -111,7 +111,7 @@ class ProjectDetailsAPIView(APIView):
         try:
             result = validator.clean()
         except ValidationError:
-            return Response(status=400)
+            return '', 400
 
         project.name = result['name']
         project.slug = result['slug']

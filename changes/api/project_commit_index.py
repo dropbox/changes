@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, unicode_literals
 
 import itertools
 
-from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -24,7 +23,7 @@ class ProjectCommitIndexAPIView(APIView):
     def get(self, project_id):
         project = self._get_project(project_id)
         if not project:
-            return Response(status=404)
+            return '', 404
 
         repo = project.repository
         vcs = repo.get_vcs()

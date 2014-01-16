@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-from flask import Response
 from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
@@ -15,7 +14,7 @@ class JobPhaseIndexAPIView(APIView):
             joinedload(Job.project),
         ).get(job_id)
         if job is None:
-            return Response(status=404)
+            return '', 404
 
         phase_list = list(JobPhase.query.options(
             subqueryload_all(JobPhase.steps, JobStep.node),

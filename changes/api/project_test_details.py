@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from datetime import datetime, timedelta
-from flask import Response
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload, subqueryload
 
@@ -27,14 +26,14 @@ class ProjectTestDetailsAPIView(APIView):
     def get(self, project_id, test_id):
         project = self._get_project(project_id)
         if not project:
-            return Response(status=404)
+            return '', 404
 
         test = AggregateTestGroup.query.filter(
             AggregateTestGroup.id == test_id,
             AggregateTestGroup.project_id == project_id,
         ).first()
         if not test:
-            return Response(status=404)
+            return '', 404
 
         cutoff = datetime.utcnow() - timedelta(days=3)
 

@@ -1,5 +1,3 @@
-from flask import Response
-
 from sqlalchemy.orm import subqueryload
 
 from changes.api.base import APIView
@@ -12,7 +10,7 @@ class TestGroupDetailsAPIView(APIView):
     def get(self, testgroup_id):
         testgroup = TestGroup.query.get(testgroup_id)
         if testgroup is None:
-            return Response(status=404)
+            return '', 404
 
         child_testgroups = list(TestGroup.query.filter(
             TestGroup.parent_id == testgroup.id,

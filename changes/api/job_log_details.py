@@ -16,7 +16,7 @@ class JobLogDetailsAPIView(APIView):
         """
         source = LogSource.query.get(source_id)
         if source is None or source.job_id.hex != job_id:
-            return Response(status=404)
+            return '', 404
 
         offset = int(request.args.get('offset', -1))
         limit = int(request.args.get('limit', LOG_BATCH_SIZE))

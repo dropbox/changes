@@ -1,4 +1,3 @@
-from flask import Response
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -14,7 +13,7 @@ class BuildRetryAPIView(APIView):
             joinedload(Build.author),
         ).get(build_id)
         if build is None:
-            return Response(status=404)
+            return '', 404
 
         new_build = create_build(
             project=build.project,
