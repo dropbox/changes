@@ -4,6 +4,7 @@ import mock
 
 from uuid import UUID
 
+from changes.config import db
 from changes.constants import Status
 from changes.models import Task
 from changes.testutils import TestCase
@@ -173,6 +174,9 @@ class RunTest(TestCase):
             task_id=task_id,
             parent_id=parent_task_id,
         )
+
+        # force a commit as the error will cause a rollback
+        db.session.commit()
 
         error_task(
             foo='bar',

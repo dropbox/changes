@@ -61,9 +61,6 @@ class TrackedTask(local):
             self._run(kwargs)
 
     def _run(self, kwargs):
-        # commit any changes before we begin running hthe task
-        db.session.commit()
-
         self.task_id = kwargs.pop('task_id', None)
         if not self.task_id:
             self.logger.warning('Missing task_id for job: %r', kwargs)
