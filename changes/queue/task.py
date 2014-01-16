@@ -261,7 +261,7 @@ class TrackedTask(local):
             child_kwargs['task_id'] = child_id
             queue.delay(task_name, kwargs=child_kwargs)
 
-        if need_run or has_pending:
+        if need_created or need_run or has_pending:
             status = Status.in_progress
 
         else:
