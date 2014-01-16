@@ -7,9 +7,22 @@ from threading import local, Lock
 
 from changes.config import db, queue
 from changes.constants import Result, Status
-from changes.db.utils import try_create
+from changes.db.utils import try_create, get_or_create
 from changes.models import Task
 from changes.utils.locking import lock
+
+
+RETRY_COUNTDOWN = 60
+CONTINUE_COUNTDOWN = 5
+
+RUN_TIMEOUT = timedelta(minutes=5)
+EXPIRE_TIMEOUT = timedelta(minutes=60)
+
+
+def needs_requeued(task):
+    current_datetime = datetime.utcnow()
+    run_datetime = current_datetime - RUN_TIMEOUT
+    return task.date_modified < run_datetime
 
 
 class NotFinished(Exception):
@@ -38,12 +51,6 @@ class TrackedTask(local):
     >>> foo.delay(foo='bar', task_id='bar')
     """
     NotFinished = NotFinished
-
-    RETRY_COUNTDOWN = 60
-    CONTINUE_COUNTDOWN = 5
-
-    RUN_TIMEOUT = timedelta(minutes=5)
-    EXPIRE_TIMEOUT = timedelta(minutes=60)
 
     def __init__(self, func):
         self.func = lock(func)
@@ -87,7 +94,7 @@ class TrackedTask(local):
             queue.delay(
                 self.task_name,
                 kwargs=kwargs,
-                countdown=self.CONTINUE_COUNTDOWN,
+                countdown=CONTINUE_COUNTDOWN,
             )
 
         except Exception as exc:
@@ -158,8 +165,35 @@ class TrackedTask(local):
         queue.retry(
             self.task_name,
             kwargs=kwargs,
-            countdown=self.RETRY_COUNTDOWN,
+            countdown=RETRY_COUNTDOWN,
         )
+
+    def delay_if_needed(self, **kwargs):
+        """
+        Enqueue this task if it's new or hasn't checked in in a reasonable
+        amount of time.
+
+        >>> task.delay_if_needed(
+        >>>     task_id='33846695b2774b29a71795a009e8168a',
+        >>>     parent_task_id='659974858dcf4aa08e73a940e1066328',
+        >>> )
+        """
+        assert kwargs.get('task_id')
+
+        task, created = get_or_create(Task, where={
+            'task_name': self.task_name,
+            'parent_id': kwargs.get('parent_task_id'),
+            'task_id': kwargs['task_id'],
+        }, defaults={
+            'status': Status.queued,
+        })
+
+        if created or needs_requeued(task):
+            queue.delay(
+                self.task_name,
+                kwargs=kwargs,
+                countdown=CONTINUE_COUNTDOWN,
+            )
 
     def delay(self, **kwargs):
         """
@@ -179,9 +213,71 @@ class TrackedTask(local):
             'status': Status.queued,
         })
 
-        queue.delay(self.task_name, kwargs=kwargs)
+        queue.delay(
+            self.task_name,
+            kwargs=kwargs,
+            countdown=CONTINUE_COUNTDOWN,
+        )
 
-    def verify_children(self, task_name, child_ids=(), kwarg_func=lambda x: {}):
+    def verify_all_children(self):
+        task_list = list(Task.query.filter(
+            Task.parent_id == self.task_id
+        ))
+
+        current_datetime = datetime.utcnow()
+        expire_datetime = current_datetime - EXPIRE_TIMEOUT
+
+        need_expire = set()
+        need_run = set()
+
+        has_pending = False
+
+        for task in task_list:
+            if task.status == Status.finished:
+                continue
+
+            if task.date_modified < expire_datetime:
+                need_expire.add(task.task_id.hex)
+                continue
+
+            has_pending = True
+
+            if needs_requeued(task):
+                need_run.add(task.task_id.hex)
+
+        if need_expire:
+            Task.query.filter(
+                Task.task_name == task.task_name,
+                Task.parent_id == self.task_id,
+                Task.task_id.in_([n for n in need_expire]),
+            ).update({
+                Task.date_modified: current_datetime,
+                Task.status: Status.finished,
+                Task.result: Result.aborted,
+            }, synchronize_session=False)
+            db.session.commit()
+
+        # TODO(dcramer): if we store params with Task we could re-run
+        # failed tasks here
+        # if need_run:
+        #     Task.query.filter(
+        #         Task.task_name == task.task_name,
+        #         Task.parent_id == self.task_id,
+        #         Task.task_id.in_([n for n in need_run]),
+        #     ).update({
+        #         Task.date_modified: current_datetime,
+        #     }, synchronize_session=False)
+
+        if has_pending:
+            status = Status.in_progress
+
+        else:
+            status = Status.finished
+
+        return status
+
+    def verify_children(self, task_name, child_ids=(), kwarg_func=lambda x: {},
+                        create=True):
         """
         Ensure all child tasks are running. If child_ids is
         present this will automatically manage creation of the any missing jobs.
@@ -192,18 +288,25 @@ class TrackedTask(local):
         >>>     'job_id': child_id
         >>> })
         """
+        # TODO(dcramer): once we've migrated legacy tasks we should remove the
+        # "auto create" jobs and have this simply do a check
         assert self.task_id
 
+        if not child_ids:
+            return Status.finished
+
         current_datetime = datetime.utcnow()
-        run_datetime = current_datetime - self.RUN_TIMEOUT
-        expire_datetime = current_datetime - self.EXPIRE_TIMEOUT
+        expire_datetime = current_datetime - EXPIRE_TIMEOUT
 
         task_list = list(Task.query.filter(
             Task.task_name == task_name,
             Task.parent_id == self.task_id,
         ))
 
-        need_created = set(child_ids)
+        if create:
+            need_created = set(child_ids)
+        else:
+            need_created = frozenset()
         need_expire = set()
         need_run = set()
         has_pending = False
@@ -223,12 +326,12 @@ class TrackedTask(local):
 
             has_pending = True
 
-            if task.date_modified < run_datetime:
+            if needs_requeued(task):
                 need_run.add(task.task_id.hex)
 
         if need_expire:
             Task.query.filter(
-                Task.task_name == task_name,
+                Task.task_name == task.task_name,
                 Task.parent_id == self.task_id,
                 Task.task_id.in_([n for n in need_expire]),
             ).update({
@@ -239,7 +342,7 @@ class TrackedTask(local):
 
         if need_run:
             Task.query.filter(
-                Task.task_name == task_name,
+                Task.task_name == task.task_name,
                 Task.parent_id == self.task_id,
                 Task.task_id.in_([n for n in need_run]),
             ).update({
@@ -263,7 +366,7 @@ class TrackedTask(local):
             child_kwargs['task_id'] = child_id
             queue.delay(task_name, kwargs=child_kwargs)
 
-        if need_created or has_pending:
+        if has_pending or need_created or need_run:
             status = Status.in_progress
 
         else:

@@ -65,4 +65,4 @@ def cleanup_builds():
     }, synchronize_session=False)
 
     for b_id in build_ids:
-        sync_build.delay(build_id=b_id.hex, task_id=b_id.hex)
+        sync_build.delay_if_needed(build_id=b_id.hex, task_id=b_id.hex)
