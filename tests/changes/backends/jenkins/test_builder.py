@@ -411,13 +411,15 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_job(job)
 
-        sync_artifact.assert_any_call(job=job, artifact={
+        jobstep = job.phases[0].steps[0]
+
+        sync_artifact.assert_any_call(jobstep=jobstep, artifact={
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log",
         })
 
-        sync_artifact.assert_any_call(job=job, artifact={
+        sync_artifact.assert_any_call(jobstep=jobstep, artifact={
             "displayPath": "tests.xml",
             "fileName": "tests.xml",
             "relativePath": "artifacts/tests.xml",
@@ -441,8 +443,11 @@ class SyncBuildTest(BaseTestCase):
             },
         )
 
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
         builder = self.get_builder()
-        builder.sync_artifact(job, 'server', 2, {
+        builder.sync_artifact(jobstep, 'server', 2, {
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log"
@@ -453,6 +458,7 @@ class SyncBuildTest(BaseTestCase):
             LogSource.name == 'foobar.log',
         ).first()
         assert source is not None
+        assert source.step == jobstep
         assert source.project == self.project
 
         chunks = list(LogChunk.query.filter_by(
@@ -483,9 +489,11 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
 
         builder = self.get_builder()
-        builder.sync_artifact(job, 'server', 2, {
+        builder.sync_artifact(jobstep, 'server', 2, {
             "displayPath": "xunit.xml",
             "fileName": "xunit.xml",
             "relativePath": "artifacts/xunit.xml"

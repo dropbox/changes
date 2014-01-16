@@ -251,7 +251,7 @@ class JenkinsBuilder(BaseBackend):
 
             for artifact in item.get('artifacts', ()):
                 with db.session.begin_nested():
-                    self.sync_artifact(job=job, artifact=artifact)
+                    self.sync_artifact(jobstep=jobstep, artifact=artifact)
 
             job.status = Status.finished
             db.session.add(job)
@@ -268,7 +268,7 @@ class JenkinsBuilder(BaseBackend):
 
             db.session.add(jobstep)
 
-    def _sync_artifact_as_xunit(self, job, job_name, build_no, artifact):
+    def _sync_artifact_as_xunit(self, jobstep, job_name, build_no, artifact):
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
             base=self.base_url, job=job_name,
             build=build_no, artifact=artifact['relativePath'],
@@ -278,13 +278,15 @@ class JenkinsBuilder(BaseBackend):
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
-        handler = XunitHandler(job)
+        handler = XunitHandler(jobstep.job)
         handler.process(StringIO(resp.content))
 
-    def _sync_artifact_as_log(self, job, job_name, build_no, artifact):
+    def _sync_artifact_as_log(self, jobstep, job_name, build_no, artifact):
+        job = jobstep.job
         logsource, created = get_or_create(LogSource, where={
             'name': artifact['displayPath'],
             'job': job,
+            'step': jobstep,
         }, defaults={
             'project': job.project,
             'date_created': job.date_started,
@@ -328,6 +330,7 @@ class JenkinsBuilder(BaseBackend):
         logsource, created = get_or_create(LogSource, where={
             'name': name,
             'job': job,
+            'step': jobstep,
         }, defaults={
             'project': job.project,
             'date_created': job.date_started,
@@ -529,11 +532,11 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_job_from_active(job)
 
-    def sync_artifact(self, job, job_name, build_no, artifact):
+    def sync_artifact(self, jobstep, job_name, build_no, artifact):
         if self.sync_log_artifacts and artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(job, job_name, build_no, artifact)
+            self._sync_artifact_as_log(jobstep, job_name, build_no, artifact)
         if self.sync_xunit_artifacts and artifact['fileName'].endswith(XUNIT_FILENAMES):
-            self._sync_artifact_as_xunit(job, job_name, build_no, artifact)
+            self._sync_artifact_as_xunit(jobstep, job_name, build_no, artifact)
 
     def create_job(self, job):
         """
