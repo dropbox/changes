@@ -94,17 +94,25 @@ class TrackedTask(local):
 
             self.logger.exception(unicode(exc))
 
-            self._retry()
+            try:
+                self._retry()
+            except Exception as exc:
+                self.logger.exception(unicode(exc))
+                raise
 
         else:
             date_finished = datetime.utcnow()
 
-            self._update({
-                Task.date_started: date_started,
-                Task.date_finished: date_finished,
-                Task.date_modified: date_finished,
-                Task.status: Status.finished,
-            })
+            try:
+                self._update({
+                    Task.date_started: date_started,
+                    Task.date_finished: date_finished,
+                    Task.date_modified: date_finished,
+                    Task.status: Status.finished,
+                })
+            except Exception as exc:
+                self.logger.exception(unicode(exc))
+                raise
 
         finally:
             db.session.commit()
