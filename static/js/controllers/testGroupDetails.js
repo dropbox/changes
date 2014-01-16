@@ -38,6 +38,7 @@
 
       $scope.project = initialData.data.project;
       $scope.build = initialData.data.build;
+      $scope.job = initialData.data.job;
       $scope.testFailures = initialData.data.testFailures;
       $scope.testGroup = initialData.data.testGroup;
       $scope.testGroup.build = $scope.build;

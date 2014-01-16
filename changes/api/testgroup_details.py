@@ -57,7 +57,8 @@ class TestGroupDetailsAPIView(APIView):
 
         context = {
             'project': testgroup.project,
-            'build': testgroup.job,
+            'build': testgroup.build,
+            'job': testgroup.job,
             'testGroup': testgroup,
             'childTestGroups': child_testgroups,
             'context': context,
