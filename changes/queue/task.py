@@ -7,6 +7,7 @@ from threading import local, Lock
 
 from changes.config import db, queue
 from changes.constants import Result, Status
+from changes.db.utils import try_create
 from changes.models import Task
 from changes.utils.locking import lock
 
@@ -245,13 +246,13 @@ class TrackedTask(local):
             }, synchronize_session=False)
 
         for child_id in need_created:
-            child_task = Task(
-                task_name=task_name,
-                parent_id=self.task_id,
-                task_id=child_id,
-            )
-            db.session.add(child_task)
-            need_run.add(child_id)
+            child_task = try_create(Task, where={
+                'task_name': task_name,
+                'parent_id': self.task_id,
+                'task_id': child_id,
+            })
+            if child_task:
+                need_run.add(child_id)
 
         db.session.commit()
 
