@@ -5,6 +5,7 @@ import os.path
 
 from celery.signals import task_postrun
 from datetime import timedelta
+from flask import session
 from flask.ext.restful import Api
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
@@ -137,6 +138,14 @@ def create_app(_read_config=True, **config):
 
     # init sentry first
     sentry.init_app(app)
+
+    @app.before_request
+    def capture_user(*args, **kwargs):
+        if 'uid' in session:
+            sentry.client.user_context({
+                'id': session['uid'],
+                'email': session['email'],
+            })
 
     api.init_app(app)
     db.init_app(app)
