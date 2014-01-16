@@ -88,7 +88,7 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
 
         for artifact in item.get('artifacts', ()):
             self.sync_artifact(
-                job=phase.job, job_name=job_name, build_no=build_no,
+                jobstep=jobstep, job_name=job_name, build_no=build_no,
                 artifact=artifact)
 
         return jobstep
