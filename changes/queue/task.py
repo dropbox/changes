@@ -172,13 +172,12 @@ class TrackedTask(local):
         """
         assert kwargs.get('task_id')
 
-        task = Task(
-            task_name=self.task_name,
-            parent_id=kwargs.get('parent_task_id'),
-            task_id=kwargs['task_id'],
-            status=Status.queued,
-        )
-        db.session.add(task)
+        try_create(Task, where={
+            'task_name': self.task_name,
+            'parent_id': kwargs.get('parent_task_id'),
+            'task_id': kwargs['task_id'],
+            'status': Status.queued,
+        })
 
         queue.delay(self.task_name, kwargs=kwargs)
 
