@@ -9,6 +9,11 @@
 		</h2>
 	</div>
 
+	<ul class="breadcrumb">
+		<li title="{{build.name}}"><a href="{{build.link}}">#{{build.number}}.{{job.number}}</a></li>
+		<li class="active"><a>{{ logSource.name }}</a></li>
+	</ul>
+
 	<h3>{{logSource.name}} <small>Build Log</small></h3>
 	<div class="build-log-wrapper" id="log-{{logSource.id}}">
 		<div class="build-log expanded"></div>
