@@ -33,11 +33,13 @@ class ProjectCommitDetailsAPIView(APIView):
 
         build_list = list(Build.query.options(
             joinedload('author'),
+        ).join(
+            Source, Source.id == Build.source_id,
         ).filter(
             Build.project_id == project.id,
             Source.revision_sha == revision.sha,
             Source.patch == None,  # NOQA
-        ).order_by(Build.date_created.desc()))
+        ).order_by(Build.date_created.desc()))[:100]
 
         context = {
             'repository': repo,
