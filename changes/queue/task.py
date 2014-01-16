@@ -217,11 +217,13 @@ class TrackedTask(local):
             if task.status == Status.finished:
                 continue
 
-            has_pending = True
-
             if task.date_modified < expire_datetime:
                 need_expire.add(task.task_id.hex)
-            elif task.date_modified < run_datetime:
+                continue
+
+            has_pending = True
+
+            if task.date_modified < run_datetime:
                 need_run.add(task.task_id.hex)
 
         if need_expire:
@@ -261,7 +263,7 @@ class TrackedTask(local):
             child_kwargs['task_id'] = child_id
             queue.delay(task_name, kwargs=child_kwargs)
 
-        if need_created or need_run or has_pending:
+        if need_created or has_pending:
             status = Status.in_progress
 
         else:
