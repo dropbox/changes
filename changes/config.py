@@ -52,9 +52,9 @@ def create_app(_read_config=True, **config):
 
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
-    app.config['CELERY_ACCEPT_CONTENT'] = ['json', 'pickle']
-    app.config['CELERY_RESULT_SERIALIZER'] = 'json'
-    app.config['CELERY_TASK_SERIALIZER'] = 'json'
+    app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json', 'json', 'pickle']
+    app.config['CELERY_RESULT_SERIALIZER'] = 'changes_json'
+    app.config['CELERY_TASK_SERIALIZER'] = 'changes_json'
     app.config['CELERYD_PREFETCH_MULTIPLIER'] = 1
     app.config['CELERY_DEFAULT_QUEUE'] = "default"
     app.config['CELERY_DEFAULT_EXCHANGE'] = "default"
@@ -284,6 +284,27 @@ def configure_jobs(app):
         """
         db.session.commit()
         db.session.remove()
+
+    def register_changes_json():
+        from kombu.serialization import register
+        from kombu.utils.encoding import bytes_t
+        from json import dumps, loads
+        from uuid import UUID
+
+        def _loads(obj):
+            if isinstance(obj, UUID):
+                obj = obj.hex
+            elif isinstance(obj, bytes_t):
+                obj = obj.decode()
+            elif isinstance(obj, buffer):
+                obj = bytes(obj).decode()
+            return loads(obj)
+
+        register('changes_json', dumps, _loads,
+                 content_type='application/json',
+                 content_encoding='utf-8')
+
+    register_changes_json()
 
 
 def configure_event_listeners(app):
