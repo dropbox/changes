@@ -50,7 +50,7 @@ class DelayTest(TestCase):
 
         assert task
         assert task.status == Status.queued
-        assert task.parent_id == parent_task_id.hex
+        assert task.parent_id == parent_task_id
 
 
 class VerifyChildrenTest(TestCase):
