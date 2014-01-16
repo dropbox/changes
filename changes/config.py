@@ -52,7 +52,7 @@ def create_app(_read_config=True, **config):
 
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
-    app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json', 'json', 'pickle']
+    app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json']
     app.config['CELERY_RESULT_SERIALIZER'] = 'changes_json'
     app.config['CELERY_TASK_SERIALIZER'] = 'changes_json'
     app.config['CELERYD_PREFETCH_MULTIPLIER'] = 1
