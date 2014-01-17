@@ -25,6 +25,7 @@ def app(request):
         REDIS_URL='redis://localhost/9',
         BASE_URI='http://example.com',
         REPO_ROOT='/tmp',
+        JENKINS_URL='http://jenkins.example.com',
         JENKINS_SYNC_LOG_ARTIFACTS=True,
         GOOGLE_CLIENT_ID='a' * 12,
         GOOGLE_CLIENT_SECRET='b' * 40,
@@ -50,7 +51,14 @@ def setup_db(request, app):
 
 
 @pytest.fixture(autouse=True)
-def dbsession(request):
+def db_session(request):
     request.addfinalizer(db.session.remove)
 
     db.session.begin_nested()
+
+
+@pytest.fixture(autouse=True)
+def redis_session(request, app):
+    import redis
+    conn = redis.from_url(app.config['REDIS_URL'])
+    conn.flushdb()

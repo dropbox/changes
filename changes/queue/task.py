@@ -83,6 +83,8 @@ class TrackedTask(local):
             self.func(**kwargs)
 
         except NotFinished:
+            self.logger.debug(
+                'Task marked as not finished: %s %s', self.task_name, self.task_id)
             kwargs['task_id'] = self.task_id
             kwargs['parent_task_id'] = self.parent_id
 
@@ -90,6 +92,8 @@ class TrackedTask(local):
                 Task.date_modified: datetime.utcnow(),
                 Task.status: Status.in_progress,
             })
+
+            db.session.commit()
 
             queue.delay(
                 self.task_name,
@@ -122,8 +126,8 @@ class TrackedTask(local):
                 self.logger.exception(unicode(exc))
                 raise
 
-        finally:
             db.session.commit()
+        finally:
             db.session.expire_all()
 
             self.task_id = None

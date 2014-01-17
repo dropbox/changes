@@ -308,16 +308,6 @@ class BackendTestCase(TestCase):
             app=app, **self.backend_options
         )
 
-    def make_entity(self, type, internal_id, remote_id):
-        entity = RemoteEntity(
-            type=type,
-            remote_id=remote_id,
-            internal_id=internal_id,
-            provider=self.provider,
-        )
-        db.session.add(entity)
-        return entity
-
 
 class APITestCase(TestCase):
     def setUp(self):

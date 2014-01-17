@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import logging
 
 from celery import Celery as CeleryApp
+from uuid import uuid4
 
 from .container import Container
 
@@ -31,13 +32,19 @@ class _Celery(object):
         # We don't assume the task is registered at this point, so manually
         # publish it
         self.logger.debug('Firing task %r args=%r kwargs=%r', name, args, kwargs)
-        with self.celery.producer_or_acquire() as P:
-            task_id = P.publish_task(
-                task_name=name,
-                task_args=args,
-                task_kwargs=kwargs,
-                *fn_args, **fn_kwargs
-            )
+        celery = self.celery
+        if celery.conf.CELERY_ALWAYS_EAGER:
+            task_id = uuid4()
+            # we dont call out to delay() as it causes db rollbacks/etc
+            celery.tasks[name].run(*args or (), **kwargs or {})
+        else:
+            with celery.producer_or_acquire() as P:
+                task_id = P.publish_task(
+                    task_name=name,
+                    task_args=args,
+                    task_kwargs=kwargs,
+                    *fn_args, **fn_kwargs
+                )
         return task_id
 
     def retry(self, name, *args, **kwargs):

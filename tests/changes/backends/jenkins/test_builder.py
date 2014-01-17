@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import mock
 import os.path
 import responses
+import pytest
 
 from flask import current_app
 from uuid import UUID
@@ -10,7 +11,7 @@ from uuid import UUID
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    TestCase, Patch, LogSource, LogChunk, JobStep
+    TestCase, Patch, LogSource, LogChunk, Job, JobStep
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import (
@@ -506,19 +507,21 @@ class SyncBuildTest(BaseTestCase):
         assert len(test_list) == 2
 
 
-class ChunkedTest(TestCase):
+class ChunkedTest(BaseTestCase):
     def test_simple(self):
         foo = 'aaa\naaa\naaa\n'
 
         result = list(chunked(foo, 5))
-        assert len(result) == 2
-        assert result[0] == 'aaa\naaa\n'
+        assert len(result) == 3
+        assert result[0] == 'aaa\n'
         assert result[1] == 'aaa\n'
+        assert result[2] == 'aaa\n'
 
         result = list(chunked(foo, 8))
 
-        assert len(result) == 1
-        assert result[0] == 'aaa\naaa\naaa\n'
+        assert len(result) == 2
+        assert result[0] == 'aaa\naaa\n'
+        assert result[1] == 'aaa\n'
 
         result = list(chunked(foo, 4))
 
@@ -536,17 +539,35 @@ class ChunkedTest(TestCase):
         foo = 'aaaa\naaaa'
 
         result = list(chunked(foo, 3))
-        assert len(result) == 3
+        assert len(result) == 4
 
 
-class JenkinsIntegrationTest(TestCase):
+class JenkinsIntegrationTest(BaseTestCase):
     """
     This test should ensure a full cycle of tasks completes successfully within
     the jenkins builder space.
     """
+    # it's possible for this test to infinitely hang due to continuous polling,
+    # so let's ensure we set a timeout
+    @pytest.mark.timeout(1)
+    @mock.patch('changes.config.redis.lock', mock.MagicMock())
     @eager_tasks
     @responses.activate
     def test_full(self):
+        from changes.jobs.create_job import create_job
+
+        # TODO: move this out of this file and integrate w/ buildstep
+        responses.add(
+            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+            body='',
+            status=201)
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid',
+            body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
+            match_querystring=True)
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
+            body=self.load_fixture('fixtures/GET/queue_details_building.json'))
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_with_test_report.json'))
@@ -564,8 +585,54 @@ class JenkinsIntegrationTest(TestCase):
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
 
-        builder = self.get_builder()
-        builder.create_job(job)
+        plan = self.create_plan()
+        plan.projects.append(self.project)
+        self.create_step(
+            plan, order=0, implementation='changes.backends.jenkins.buildstep.JenkinsBuildStep', data={
+                'job_name': 'server',
+            },
+        )
+        self.create_job_plan(job, plan)
+
+        job_id = job.id.hex
+        build_id = build.id.hex
+
+        create_job.delay(
+            job_id=job_id,
+            task_id=job_id,
+            parent_task_id=build_id,
+        )
+
+        job = Job.query.get(job_id)
+
+        assert job.status == Status.finished
+        assert job.result == Result.passed
+        assert job.date_created
+        assert job.date_started
+        assert job.date_finished
+
+        phase_list = job.phases
+
+        assert len(phase_list) == 1
+
+        assert phase_list[0].status == Status.finished
+        assert phase_list[0].result == Result.passed
+        assert phase_list[0].date_created
+        assert phase_list[0].date_started
+        assert phase_list[0].date_finished
+
+        step_list = phase_list[0].steps
+
+        assert len(step_list) == 1
+
+        assert step_list[0].status == Status.finished
+        assert step_list[0].result == Result.passed
+        assert step_list[0].date_created
+        assert step_list[0].date_started
+        assert step_list[0].date_finished
+        assert step_list[0].data == {
+            'log_offset': 7,
+        }
 
         test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
 
