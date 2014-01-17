@@ -651,6 +651,7 @@ class JenkinsIntegrationTest(BaseTestCase):
 
         source = LogSource.query.filter_by(job=job).first()
         assert source.name == 'console'
+        assert source.step == step_list[0]
         assert source.project == self.project
         assert source.date_created == job.date_started
 
@@ -663,9 +664,3 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert chunks[0].offset == 0
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
-
-        jobstep = JobStep.query.filter(
-            JobStep.job_id == job.id,
-        ).first()
-
-        assert jobstep.data.get('log_offset') == 7
