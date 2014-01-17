@@ -12,7 +12,7 @@ from uuid import uuid4
 from changes.config import db, mail
 from changes.db.funcs import coalesce
 from changes.models import (
-    Repository, Job, JobPlan, Project, Revision, RemoteEntity, Change, Author,
+    Repository, Job, JobPlan, Project, Revision, Change, Author,
     TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task
 )
 
