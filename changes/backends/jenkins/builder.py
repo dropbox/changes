@@ -535,7 +535,7 @@ class JenkinsBuilder(BaseBackend):
             start = time.time()
             result = True
             while result:
-                if time.time() - start > 15:
+                if time.time() - start > 30:
                     raise Exception('Took too long to sync log')
 
                 result = self._sync_log(
