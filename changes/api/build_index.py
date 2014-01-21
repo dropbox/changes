@@ -115,6 +115,8 @@ def create_build(project, label, target, message, author, change=None,
             parent_task_id=job.build_id.hex,
         )
 
+    db.session.commit()
+
     sync_build.delay(
         build_id=job.build_id.hex,
         task_id=job.build_id.hex,
