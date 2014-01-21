@@ -178,6 +178,7 @@ class JenkinsBuilder(BaseBackend):
             'job': job,
             'label': job.data['job_name'],
             'project': job.project,
+        }, defaults={
             'status': Status.in_progress,
         })
 
