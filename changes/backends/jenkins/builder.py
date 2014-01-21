@@ -79,9 +79,11 @@ class JenkinsBuilder(BaseBackend):
         self.sync_log_artifacts = self.app.config.get('JENKINS_SYNC_LOG_ARTIFACTS', False)
         self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
 
-    def _get_raw_response(self, path, method='GET', params=None,
-                          allow_redirects=False, **kwargs):
+    def _get_raw_response(self, path, method='GET', params=None, **kwargs):
         url = '{}/{}'.format(self.base_url, path.lstrip('/'))
+
+        kwargs.setdefault('allow_redirects', False)
+        kwargs.setdefault('timeout', 5)
 
         if params is None:
             params = {}
@@ -202,7 +204,7 @@ class JenkinsBuilder(BaseBackend):
             build=build_no, artifact=artifact['relativePath'],
         )
 
-        resp = requests.get(url, stream=True)
+        resp = requests.get(url, stream=True, timeout=5)
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
@@ -226,7 +228,7 @@ class JenkinsBuilder(BaseBackend):
         )
 
         offset = 0
-        resp = requests.get(url, stream=True)
+        resp = requests.get(url, stream=True, timeout=5)
         iterator = resp.iter_content()
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
@@ -274,7 +276,8 @@ class JenkinsBuilder(BaseBackend):
             build=build_no,
         )
 
-        resp = requests.get(url, params={'start': offset}, stream=True)
+        resp = requests.get(
+            url, params={'start': offset}, stream=True, timeout=5)
         log_length = int(resp.headers['X-Text-Size'])
         # When you request an offset that doesnt exist in the build log, Jenkins
         # will instead return the entire log. Jenkins also seems to provide us
@@ -539,12 +542,8 @@ class JenkinsBuilder(BaseBackend):
 
         # sync console log
         try:
-            start = time.time()
             result = True
             while result:
-                if time.time() - start > 30:
-                    raise Exception('Took too long to sync log')
-
                 result = self._sync_log(
                     jobstep=step,
                     name=step.label,
