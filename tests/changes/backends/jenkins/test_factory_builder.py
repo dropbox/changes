@@ -41,16 +41,17 @@ class SyncBuildTest(BaseTestCase):
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': 2,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': False,
-            },
         )
+        phase = self.create_jobphase(job, label='server')
+        step = self.create_jobstep(phase, data={
+            'build_no': 2,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': False,
+        })
 
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
         phase_list = list(JobPhase.query.filter(
             JobPhase.job_id == job.id,

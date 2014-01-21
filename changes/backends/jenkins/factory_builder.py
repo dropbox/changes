@@ -20,10 +20,10 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
         self.downstream_job_names = kwargs.pop('downstream_job_names', ())
         super(JenkinsFactoryBuilder, self).__init__(*args, **kwargs)
 
-    def _get_downstream_jobs(self, job, downstream_job_name):
+    def _get_downstream_jobs(self, step, downstream_job_name):
         xpath = BASE_XPATH.format(
-            upstream_job=job.data['job_name'],
-            build_no=job.data['build_no']
+            upstream_job=step.data['job_name'],
+            build_no=step.data['build_no']
         )
         response = self._get_raw_response('/job/{job_name}/api/xml/'.format(
             job_name=downstream_job_name,
@@ -37,32 +37,33 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
 
         return map(int, DOWNSTREAM_XML_RE.findall(response))
 
-    def sync_job(self, job):
+    def sync_step(self, step):
+        super(JenkinsFactoryBuilder, self).sync_step(step)
+
+        if step.data.get('job_name') != self.job_name:
+            return
+
         # for any downstream jobs, pull their results using xpath magic
         for downstream_job_name in self.downstream_job_names:
             phase, created = get_or_create(JobPhase, where={
-                'job': job,
+                'job': step.job,
                 'label': downstream_job_name,
             }, defaults={
-                'status': job.status,
-                'result': job.result,
-                'project_id': job.project_id,
+                'project_id': step.job.project_id,
             })
             db.session.commit()
 
-            for build_no in self._get_downstream_jobs(job, downstream_job_name):
+            for build_no in self._get_downstream_jobs(step, downstream_job_name):
                 # XXX(dcramer): ideally we would grab this with the first query
                 # but because we dont want to rely on an XML parser, we're doing
                 # a second http request for build details
-                step = self._create_job_step(
+                downstream_step = self._create_job_step(
                     phase, downstream_job_name, build_no)
 
                 db.session.commit()
 
                 sync_job_step.delay_if_needed(
-                    step_id=step.id.hex,
-                    task_id=step.id.hex,
-                    parent_task_id=job.id.hex,
+                    step_id=downstream_step.id.hex,
+                    task_id=downstream_step.id.hex,
+                    parent_task_id=step.job.id.hex,
                 )
-
-        super(JenkinsFactoryBuilder, self).sync_job(job)
