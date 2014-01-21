@@ -461,14 +461,17 @@ class JenkinsBuilder(BaseBackend):
             self._sync_job_from_active(job)
 
     def sync_step(self, step):
-        job_name = step.data['job_name']
-        build_no = step.data['build_no']
+        try:
+            job_name = step.data['job_name']
+            build_no = step.data['build_no']
+        except KeyError:
+            raise UnrecoverableException('Missing Jenkins job information')
 
         try:
             item = self._get_response('/job/{}/{}'.format(
                 job_name, build_no))
         except NotFound:
-            raise UnrecoverableException
+            raise UnrecoverableException('Unable to find job in Jenkins')
 
         # TODO(dcramer): we're doing a lot of work here when we might
         # not need to due to it being sync'd previously
