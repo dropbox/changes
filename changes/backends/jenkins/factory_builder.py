@@ -38,10 +38,8 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
         return map(int, DOWNSTREAM_XML_RE.findall(response))
 
     def sync_step(self, step):
-        super(JenkinsFactoryBuilder, self).sync_step(step)
-
         if step.data.get('job_name') != self.job_name:
-            return
+            return super(JenkinsFactoryBuilder, self).sync_step(step)
 
         # for any downstream jobs, pull their results using xpath magic
         for downstream_job_name in self.downstream_job_names:
@@ -67,3 +65,5 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                     task_id=downstream_step.id.hex,
                     parent_task_id=step.job.id.hex,
                 )
+
+        return super(JenkinsFactoryBuilder, self).sync_step(step)
