@@ -204,7 +204,7 @@ class JenkinsBuilder(BaseBackend):
             build=build_no, artifact=artifact['relativePath'],
         )
 
-        resp = requests.get(url, stream=True, timeout=5)
+        resp = requests.get(url, stream=True, timeout=15)
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
@@ -228,7 +228,7 @@ class JenkinsBuilder(BaseBackend):
         )
 
         offset = 0
-        resp = requests.get(url, stream=True, timeout=5)
+        resp = requests.get(url, stream=True, timeout=15)
         iterator = resp.iter_content()
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
@@ -277,7 +277,7 @@ class JenkinsBuilder(BaseBackend):
         )
 
         resp = requests.get(
-            url, params={'start': offset}, stream=True, timeout=5)
+            url, params={'start': offset}, stream=True, timeout=15)
         log_length = int(resp.headers['X-Text-Size'])
         # When you request an offset that doesnt exist in the build log, Jenkins
         # will instead return the entire log. Jenkins also seems to provide us
