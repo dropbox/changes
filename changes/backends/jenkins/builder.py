@@ -257,8 +257,8 @@ class JenkinsBuilder(BaseBackend):
         logsource, created = get_or_create(LogSource, where={
             'name': name,
             'job': job,
-            'step': jobstep,
         }, defaults={
+            'step': jobstep,
             'project': jobstep.project,
             'date_created': jobstep.date_started,
         })
