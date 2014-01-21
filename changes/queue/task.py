@@ -16,7 +16,7 @@ RETRY_COUNTDOWN = 60
 CONTINUE_COUNTDOWN = 5
 
 RUN_TIMEOUT = timedelta(minutes=5)
-EXPIRE_TIMEOUT = timedelta(minutes=60)
+EXPIRE_TIMEOUT = timedelta(minutes=30)
 
 
 def needs_requeued(task):
