@@ -516,6 +516,9 @@ class JenkinsBuilder(BaseBackend):
 
         db.session.commit()
 
+        if step.status != Status.finished:
+            return
+
         # sync artifacts
         for artifact in item.get('artifacts', ()):
             self.sync_artifact(
