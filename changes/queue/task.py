@@ -163,6 +163,8 @@ class TrackedTask(local):
             Task.num_retries: Task.num_retries + 1,
         })
 
+        db.session.commit()
+
         kwargs = self.kwargs.copy()
         kwargs['task_id'] = self.task_id
         kwargs['parent_task_id'] = self.parent_id
@@ -193,6 +195,8 @@ class TrackedTask(local):
         })
 
         if created or needs_requeued(task):
+            db.session.commit()
+
             queue.delay(
                 self.task_name,
                 kwargs=kwargs,
@@ -216,6 +220,8 @@ class TrackedTask(local):
             'task_id': kwargs['task_id'],
             'status': Status.queued,
         })
+
+        db.session.commit()
 
         queue.delay(
             self.task_name,
