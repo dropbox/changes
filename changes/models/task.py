@@ -33,7 +33,7 @@ class Task(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
 
-    __repr__ = model_repr('task_name', 'parent_id', 'child_id')
+    __repr__ = model_repr('task_name', 'parent_id', 'child_id', 'status')
 
     def __init__(self, **kwargs):
         super(Task, self).__init__(**kwargs)

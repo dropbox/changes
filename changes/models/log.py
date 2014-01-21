@@ -13,6 +13,9 @@ class LogSource(db.Model):
     __tablename__ = 'logsource'
     __table_args__ = (
         UniqueConstraint('job_id', 'name', name='unq_logsource_key'),
+        # TODO: this should be unique based on the step, or if theres no
+        # step it should be unique based on the job
+        # UniqueConstraint('step_id', 'name', name='unq_logsource_key'),
         Index('idx_build_project_id', 'project_id'),
     )
 

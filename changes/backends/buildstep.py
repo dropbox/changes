@@ -2,8 +2,18 @@ from __future__ import absolute_import
 
 
 class BuildStep(object):
-    def execute(self, job):
+    def get_label(self):
         raise NotImplementedError
 
-    def get_label(self):
+    def execute(self, job):
+        """
+        Given a new job, execute it (either sync or async), and report the
+        results or yield to an update step.
+        """
+        raise NotImplementedError
+
+    def update(self, job):
+        raise NotImplementedError
+
+    def update_step(self, step):
         raise NotImplementedError

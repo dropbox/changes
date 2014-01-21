@@ -16,6 +16,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.events import publish_logchunk_update
+from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
     AggregateTestSuite, TestResult, TestResultManager, TestSuite,
     LogSource, LogChunk, Node, JobPhase, JobStep
@@ -146,127 +147,53 @@ class JenkinsBuilder(BaseBackend):
             job.result = Result.aborted
             db.session.add(job)
         elif item.get('executable'):
-            for x in xrange(6):
-                # There's a possible race condition where the item has been
-                # assigned an ID, yet the API responds as if the job does
-                # not exist
-                try:
-                    self._sync_job_from_active(job, fail_on_404=True)
-                except NotFound:
-                    time.sleep(0.3)
-                else:
-                    break
+            self._sync_job_from_active(job)
 
-    def _sync_job_from_active(self, job, fail_on_404=False):
-        try:
-            item = self._get_response('/job/{}/{}'.format(
-                job.data['job_name'], job.data['build_no']))
-        except NotFound:
-            if fail_on_404:
-                raise
-            job.date_finished = datetime.utcnow()
-            job.status = Status.finished
-            job.result = Result.unknown
-            db.session.add(job)
-            return
+    def _create_job_step(self, phase, job_name, build_no, **kwargs):
+        defaults = {
+            'data': {
+                'job_name': job_name,
+                'build_no': build_no,
+            },
+        }
+        defaults.update(kwargs)
 
-        should_finish = False
+        step, created = get_or_create(JobStep, where={
+            'job': phase.job,
+            'project': phase.project,
+            'phase': phase,
+            'label': '{0} #{1}'.format(job_name, build_no),
+        }, defaults=defaults)
+        if not created:
+            db.session.add(step)
 
-        # XXX(dcramer): timestamp implies creation date, so lets just assume
-        # we were able to track it immediately
-        if not job.date_started:
-            job.date_started = datetime.utcnow()
+        return step
 
-        if item['building']:
+    def _sync_job_from_active(self, job):
+        if job.status not in (Status.in_progress, Status.finished):
             job.status = Status.in_progress
-        else:
-            should_finish = True
-            job.date_finished = datetime.utcnow()
-            job.result = RESULT_MAP[item['result']]
+            db.session.add(job)
 
-        if item['duration']:
-            job.duration = item['duration']
-
-        job.data.update({
-            'backend': {
-                'uri': item['url'],
-                'label': item['fullDisplayName'],
-            }
-        })
-
-        db.session.add(job)
-        db.session.commit()
-
-        node, _ = get_or_create(Node, where={
-            'label': item['builtOn'],
-        })
-
-        jobphase, created = get_or_create(JobPhase, where={
+        phase, created = get_or_create(JobPhase, where={
             'job': job,
             'label': job.data['job_name'],
-        }, defaults={
-            'project_id': job.project_id,
-            'repository_id': job.build.repository_id,
-            'date_started': job.date_started,
-            'status': job.status,
-            'result': job.result,
+            'project': job.project,
+            'status': Status.in_progress,
         })
 
-        jobstep, created = get_or_create(JobStep, where={
-            'phase': jobphase,
-            'label': item['fullDisplayName'],
-        }, defaults={
-            'job': job,
-            'project_id': job.project_id,
-            'node_id': node.id,
-            'repository_id': job.build.repository_id,
-            'date_started': job.date_started,
-            'status': job.status,
-            'result': job.result,
-        })
-
+        step = self._create_job_step(
+            phase=phase,
+            job_name=job.data['job_name'],
+            build_no=job.data['build_no'],
+            status=Status.in_progress,
+        )
         db.session.commit()
 
-        if should_finish:
-            # TODO(dcramer): ideally we could fire off jobs to sync test results
-            # and console logs
-            try:
-                self._sync_test_results(job)
-            except Exception:
-                current_app.logger.exception('Unable to sync test results for job %r', job.id.hex)
-
-            # FIXME(dcramer): we're waiting until the job is complete to sync
-            # logs due to our inability to correctly identify start offsets
-            # if we're supposed to be finishing, lets ensure we actually
-            # get the entirety of the log
-            with db.session.begin_nested():
-                try:
-                    start = time.time()
-                    while self._sync_console_log(jobstep):
-                        if time.time() - start > 15:
-                            raise Exception('Took too long to sync log')
-                        continue
-                except Exception:
-                    current_app.logger.exception('Unable to sync console log for job %r', job.id.hex)
-
-            for artifact in item.get('artifacts', ()):
-                with db.session.begin_nested():
-                    self.sync_artifact(jobstep=jobstep, artifact=artifact)
-
-            job.status = Status.finished
-            db.session.add(job)
-
-            jobphase.status = job.status
-            jobphase.result = job.result
-            jobphase.date_finished = job.date_finished
-
-            db.session.add(jobphase)
-
-            jobstep.status = job.status
-            jobstep.result = job.result
-            jobstep.date_finished = job.date_finished
-
-            db.session.add(jobstep)
+        sync_job_step.delay_if_needed(
+            step_id=step.id.hex,
+            task_id=step.id.hex,
+            parent_task_id=job.id.hex,
+        )
 
     def _sync_artifact_as_xunit(self, jobstep, job_name, build_no, artifact):
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
@@ -332,8 +259,8 @@ class JenkinsBuilder(BaseBackend):
             'job': job,
             'step': jobstep,
         }, defaults={
-            'project': job.project,
-            'date_created': job.date_started,
+            'project': jobstep.project,
+            'date_created': jobstep.date_started,
         })
         if created:
             offset = 0
@@ -448,16 +375,16 @@ class JenkinsBuilder(BaseBackend):
                 test_list.append(test_result)
         return test_list
 
-    def _sync_test_results(self, job):
+    def _sync_test_results(self, step, job_name, build_no):
         try:
             test_report = self._get_response('/job/{}/{}/testReport/'.format(
-                job.data['job_name'], job.data['build_no']))
+                job_name, build_no))
         except NotFound:
             return
 
-        test_list = self._process_test_report(job, test_report)
+        test_list = self._process_test_report(step.job, test_report)
 
-        manager = TestResultManager(job)
+        manager = TestResultManager(step.job)
         with db.session.begin_nested():
             manager.save(test_list)
 
@@ -532,6 +459,98 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_job_from_active(job)
 
+    def sync_step(self, step):
+        job_name = step.data['job_name']
+        build_no = step.data['build_no']
+
+        item = self._get_response('/job/{}/{}'.format(
+            job_name, build_no))
+
+        # TODO(dcramer): we're doing a lot of work here when we might
+        # not need to due to it being sync'd previously
+        node, _ = get_or_create(Node, where={
+            'label': item['builtOn'],
+        })
+
+        step.node = node
+        step.label = item['fullDisplayName']
+        step.date_started = datetime.utcfromtimestamp(
+            item['timestamp'] / 1000)
+
+        if item['building']:
+            step.status = Status.in_progress
+        else:
+            step.status = Status.finished
+            step.result = RESULT_MAP[item['result']]
+            # values['duration'] = item['duration'] or None
+            step.date_finished = datetime.utcfromtimestamp(
+                (item['timestamp'] + item['duration']) / 1000)
+
+        # step.data.update({
+        #     'backend': {
+        #         'uri': item['url'],
+        #         'label': item['fullDisplayName'],
+        #     }
+        # })
+        db.session.add(step)
+
+        # TODO(dcramer): we shoudl abstract this into a sync_phase
+        phase = step.phase
+
+        phase.status = step.status
+        phase.result = step.result
+        phase.date_started = step.date_started
+        phase.date_finished = step.date_finished
+
+        db.session.add(phase)
+
+        db.session.commit()
+
+        # sync artifacts
+        for artifact in item.get('artifacts', ()):
+            self.sync_artifact(
+                jobstep=step,
+                job_name=job_name,
+                build_no=build_no,
+                artifact=artifact,
+            )
+            db.session.commit()
+
+        # sync test results
+        try:
+            with db.session.begin_nested():
+                self._sync_test_results(
+                    step=step,
+                    job_name=job_name,
+                    build_no=build_no,
+                )
+        except Exception:
+            self.logger.exception(
+                'Failed to sync test results for %s #%s', job_name, build_no)
+        else:
+            db.session.commit()
+
+        # sync console log
+        try:
+            start = time.time()
+            result = True
+            while result:
+                if time.time() - start > 15:
+                    raise Exception('Took too long to sync log')
+
+                result = self._sync_log(
+                    jobstep=step,
+                    name=step.label,
+                    job_name=job_name,
+                    build_no=build_no,
+                )
+
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception(
+                'Unable to sync console log for job step %r',
+                step.id.hex)
+
     def sync_artifact(self, jobstep, job_name, build_no, artifact):
         if self.sync_log_artifacts and artifact['fileName'].endswith('.log'):
             self._sync_artifact_as_log(jobstep, job_name, build_no, artifact)
@@ -593,4 +612,9 @@ class JenkinsBuilder(BaseBackend):
             raise Exception('Unable to find matching job after creation. GLHF')
 
         job.data = job_data
+        if job.data['queued']:
+            job.status = Status.queued
+        else:
+            job.status = Status.in_progress
         db.session.add(job)
+        db.session.commit()

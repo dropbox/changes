@@ -28,11 +28,7 @@ def sync_build(build_id):
         Job.build_id == build_id,
     ))
 
-    is_finished = sync_build.verify_children(
-        'sync_job',
-        [j.id.hex for j in all_jobs],
-        lambda child_id: {'job_id': child_id},
-    ) == Status.finished
+    is_finished = sync_build.verify_all_children() == Status.finished
 
     build.date_started = safe_agg(
         min, (j.date_started for j in all_jobs if j.date_started))

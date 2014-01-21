@@ -10,9 +10,7 @@ from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import (
-    TestCase, Patch, LogSource, LogChunk, Job, JobStep
-)
+from changes.models import TestCase, Patch, LogSource, LogChunk, Job
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import (
     BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT)
@@ -220,9 +218,9 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_job(job)
 
-        assert job.data['build_no'] == 2
-        assert job.status == Status.in_progress
-        assert job.date_started is not None
+        step = job.phases[0].steps[0]
+
+        assert step.data['build_no'] == 2
 
     @responses.activate
     def test_success_result(self):
@@ -247,15 +245,16 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
-        assert job.data['build_no'] == 2
-        assert job.status == Status.finished
-        assert job.result == Result.passed
-        assert job.duration == 8875
-        assert job.date_finished is not None
+        assert step.data['build_no'] == 2
+        assert step.status == Status.finished
+        assert step.result == Result.passed
+        assert step.date_finished is not None
 
     @responses.activate
     def test_failed_result(self):
@@ -279,15 +278,16 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
-        assert job.data['build_no'] == 2
-        assert job.status == Status.finished
-        assert job.result == Result.failed
-        assert job.duration == 8875
-        assert job.date_finished is not None
+        assert step.data['build_no'] == 2
+        assert step.status == Status.finished
+        assert step.result == Result.failed
+        assert step.date_finished is not None
 
     @responses.activate
     def test_does_sync_test_report(self):
@@ -314,9 +314,11 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
         test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
 
@@ -358,14 +360,17 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
         source = LogSource.query.filter_by(job=job).first()
-        assert source.name == 'console'
+        assert source.step == step
+        assert source.name == 'server #2'
         assert source.project == self.project
-        assert source.date_created == job.date_started
+        assert source.date_created == step.date_started
 
         chunks = list(LogChunk.query.filter_by(
             source=source,
@@ -377,11 +382,7 @@ class SyncBuildTest(BaseTestCase):
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
 
-        jobstep = JobStep.query.filter(
-            JobStep.job_id == job.id,
-        ).first()
-
-        assert jobstep.data.get('log_offset') == 7
+        assert step.data.get('log_offset') == 7
 
     @responses.activate
     @mock.patch('changes.backends.jenkins.builder.JenkinsBuilder.sync_artifact')
@@ -409,22 +410,22 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
-        jobstep = job.phases[0].steps[0]
-
-        sync_artifact.assert_any_call(jobstep=jobstep, artifact={
+        sync_artifact.assert_any_call(jobstep=step, artifact={
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log",
-        })
+        }, job_name='server', build_no=2)
 
-        sync_artifact.assert_any_call(jobstep=jobstep, artifact={
+        sync_artifact.assert_any_call(jobstep=step, artifact={
             "displayPath": "tests.xml",
             "fileName": "tests.xml",
             "relativePath": "artifacts/tests.xml",
-        })
+        }, job_name='server', build_no=2)
 
     @responses.activate
     def test_sync_artifact_as_log(self):
@@ -443,12 +444,11 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-
-        jobphase = self.create_jobphase(job)
-        jobstep = self.create_jobstep(jobphase)
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_artifact(jobstep, 'server', 2, {
+        builder.sync_artifact(step, 'server', 2, {
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log"
@@ -459,7 +459,7 @@ class SyncBuildTest(BaseTestCase):
             LogSource.name == 'foobar.log',
         ).first()
         assert source is not None
-        assert source.step == jobstep
+        assert source.step == step
         assert source.project == self.project
 
         chunks = list(LogChunk.query.filter_by(
@@ -490,11 +490,11 @@ class SyncBuildTest(BaseTestCase):
                 'queued': False,
             },
         )
-        jobphase = self.create_jobphase(job)
-        jobstep = self.create_jobstep(jobphase)
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_artifact(jobstep, 'server', 2, {
+        builder.sync_artifact(step, 'server', 2, {
             "displayPath": "xunit.xml",
             "fileName": "xunit.xml",
             "relativePath": "artifacts/xunit.xml"
@@ -632,6 +632,8 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert step_list[0].date_finished
         assert step_list[0].data == {
             'log_offset': 7,
+            'job_name': 'server',
+            'build_no': 2,
         }
 
         test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
@@ -650,7 +652,7 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert test_list[1].duration == 155
 
         source = LogSource.query.filter_by(job=job).first()
-        assert source.name == 'console'
+        assert source.name == 'server #2'
         assert source.step == step_list[0]
         assert source.project == self.project
         assert source.date_created == job.date_started

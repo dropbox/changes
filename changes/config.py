@@ -270,6 +270,7 @@ def configure_jobs(app):
     from changes.jobs.sync_artifact import sync_artifact
     from changes.jobs.sync_build import sync_build
     from changes.jobs.sync_job import sync_job
+    from changes.jobs.sync_job_step import sync_job_step
     from changes.jobs.sync_repo import sync_repo
     from changes.jobs.update_project_stats import (
         update_project_stats, update_project_plan_stats)
@@ -281,6 +282,7 @@ def configure_jobs(app):
     queue.register('sync_artifact', sync_artifact)
     queue.register('sync_build', sync_build)
     queue.register('sync_job', sync_job)
+    queue.register('sync_job_step', sync_job_step)
     queue.register('sync_repo', sync_repo)
     queue.register('update_project_stats', update_project_stats)
     queue.register('update_project_plan_stats', update_project_plan_stats)

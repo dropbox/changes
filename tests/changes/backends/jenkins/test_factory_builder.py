@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 
+import mock
 import responses
 
 from uuid import UUID
 
-from changes.constants import Result, Status
 from changes.backends.jenkins.factory_builder import JenkinsFactoryBuilder
-from changes.models import TestCase, JobPhase, LogSource, LogChunk
+from changes.models import JobPhase
 from .test_builder import BaseTestCase
 
 
@@ -19,7 +19,8 @@ class SyncBuildTest(BaseTestCase):
     }
 
     @responses.activate
-    def test_does_sync_details(self):
+    @mock.patch('changes.config.queue.delay')
+    def test_does_sync_details(self, delay):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_success.json'))
@@ -36,24 +37,6 @@ class SyncBuildTest(BaseTestCase):
             body=self.load_fixture('fixtures/GET/job_list_by_upstream.xml'),
             match_querystring=True)
 
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server-downstream/171/api/json/',
-            body=self.load_fixture('fixtures/GET/job_details_171.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server-downstream/172/api/json/',
-            body=self.load_fixture('fixtures/GET/job_details_172.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server-downstream/171/logText/progressiveHtml/?start=0',
-            match_querystring=True,
-            adding_headers={'X-Text-Size': '7'},
-            body='Foo bar')
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server-downstream/171/testReport/api/json/',
-            body=self.load_fixture('fixtures/GET/job_test_report.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server-downstream/172/testReport/api/json/',
-            body='')
-
         build = self.create_build(self.project)
         job = self.create_job(
             build=build,
@@ -69,21 +52,6 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_job(job)
 
-        test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
-
-        assert len(test_list) == 2
-        assert test_list[0].name == 'Test'
-        assert test_list[0].package == 'tests.changes.handlers.test_xunit'
-        assert test_list[0].result == Result.skipped
-        assert test_list[0].message == 'collection skipped'
-        assert test_list[0].duration == 0
-
-        assert test_list[1].name == 'test_simple'
-        assert test_list[1].package == 'tests.changes.api.test_build_details.BuildDetailsTest'
-        assert test_list[1].result == Result.passed
-        assert test_list[1].message == ''
-        assert test_list[1].duration == 155
-
         phase_list = list(JobPhase.query.filter(
             JobPhase.job_id == job.id,
         ).order_by(JobPhase.label.asc()))
@@ -91,36 +59,7 @@ class SyncBuildTest(BaseTestCase):
         assert phase_list[0].label == 'server'
         assert phase_list[1].label == 'server-downstream'
 
-        for phase in phase_list:
-            assert phase.date_started
-            assert phase.date_finished
-
         step_list = sorted(phase_list[1].steps, key=lambda x: x.label)
         assert len(step_list) == 2
         assert step_list[0].label == 'server-downstream #171'
-        assert step_list[0].data['log_offset'] == 7
         assert step_list[1].label == 'server-downstream #172'
-
-        for step in step_list:
-            assert step.date_started
-            assert step.date_finished
-            assert step.result == Result.passed
-            assert step.status == Status.finished
-
-        source = LogSource.query.filter_by(
-            job=job,
-            name='server-downstream #171',
-        ).first()
-        assert source
-        assert source.project == self.project
-        assert source.date_created == job.date_started
-
-        chunks = list(LogChunk.query.filter_by(
-            source=source,
-        ).order_by(LogChunk.date_created.asc()))
-        assert len(chunks) == 1
-        assert chunks[0].job_id == job.id
-        assert chunks[0].project_id == self.project.id
-        assert chunks[0].offset == 0
-        assert chunks[0].size == 7
-        assert chunks[0].text == 'Foo bar'
