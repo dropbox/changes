@@ -166,7 +166,7 @@ class TrackedTask(local):
         kwargs = self.kwargs.copy()
         kwargs['task_id'] = self.task_id
         kwargs['parent_task_id'] = self.parent_id
-        queue.retry(
+        queue.delay(
             self.task_name,
             kwargs=kwargs,
             countdown=RETRY_COUNTDOWN,
