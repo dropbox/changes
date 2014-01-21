@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.schema import UniqueConstraint
 
 from changes.config import db
 from changes.constants import Status, Result
@@ -14,6 +15,9 @@ class JobPhase(db.Model):
     # TODO(dcramer): add order column rather than implicity date_started ordering
     # TODO(dcramer): make duration a column
     __tablename__ = 'jobphase'
+    __table_args__ = (
+        UniqueConstraint('job_id', 'label', name='unq_jobphase_key'),
+    )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
