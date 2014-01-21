@@ -498,7 +498,7 @@ table > tbody > tr.result-skipped > td.result span {
   border-color: gold;
 }
 
-.phase-list > li.result-passed > a {
+.phase-list > li.status-finished.result-passed > a {
   color: #fff;
   background: rgb(114, 194, 114);
   border-color: rgb(114, 194, 114);
