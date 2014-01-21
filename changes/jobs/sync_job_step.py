@@ -1,7 +1,9 @@
+from flask import current_app
+
 from sqlalchemy.orm import subqueryload_all
 
 from changes.backends.base import UnrecoverableException
-from changes.constants import Status
+from changes.constants import Status, Result
 from changes.config import db
 from changes.models import JobStep, JobPlan, Plan
 from changes.queue.task import tracked_task
@@ -34,8 +36,14 @@ def sync_job_step(step_id):
     if step.status == Status.finished:
         return
 
-    implementation = get_build_step(step.job_id)
-    implementation.update_step(step=step)
+    try:
+        implementation = get_build_step(step.job_id)
+        implementation.update_step(step=step)
+
+    except UnrecoverableException:
+        step.status = Status.finished
+        step.result = Result.aborted
+        current_app.logger.exception('Unrecoverable exception syncing step %s', step.id)
 
     db.session.add(step)
     db.session.commit()

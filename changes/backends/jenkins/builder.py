@@ -464,8 +464,11 @@ class JenkinsBuilder(BaseBackend):
         job_name = step.data['job_name']
         build_no = step.data['build_no']
 
-        item = self._get_response('/job/{}/{}'.format(
-            job_name, build_no))
+        try:
+            item = self._get_response('/job/{}/{}'.format(
+                job_name, build_no))
+        except NotFound:
+            raise UnrecoverableException
 
         # TODO(dcramer): we're doing a lot of work here when we might
         # not need to due to it being sync'd previously
