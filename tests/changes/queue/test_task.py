@@ -307,7 +307,7 @@ class RunTest(TestCase):
         assert task.num_retries == 1
         assert task.parent_id == parent_task_id
 
-        queue_retry.assert_called_once_with(
+        queue_delay.assert_called_once_with(
             'error_task',
             kwargs={
                 'foo': 'bar',
