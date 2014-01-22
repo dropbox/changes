@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
-from sqlalchemy.orm import subqueryload_all
 
 from changes.config import db
 from changes.constants import Result, Status
