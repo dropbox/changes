@@ -54,7 +54,9 @@ class JobDetailsAPIView(APIView):
             TestGroup: TestGroupWithOriginSerializer(),
         }
 
-        log_sources = list(LogSource.query.filter(
+        log_sources = list(LogSource.query.options(
+            joinedload('step'),
+        ).filter(
             LogSource.job_id == job.id,
         ).order_by(LogSource.date_created.asc()))
 
