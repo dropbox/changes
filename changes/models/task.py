@@ -10,6 +10,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
+from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
 
 
@@ -32,6 +33,7 @@ class Task(db.Model):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
+    data = Column(JSONEncodedDict)
 
     __repr__ = model_repr('task_name', 'parent_id', 'child_id', 'status')
 
