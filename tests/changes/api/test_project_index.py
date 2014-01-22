@@ -6,7 +6,6 @@ class ProjectListTest(APITestCase):
     def test_simple(self):
         build = self.create_build(
             self.project, status=Status.finished)
-        print build.source
 
         path = '/api/0/projects/'.format(
             self.project.id.hex)

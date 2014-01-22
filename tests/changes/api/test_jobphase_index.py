@@ -86,6 +86,5 @@ class JobPhaseIndexTest(APITestCase):
         assert data[0]['steps'][0]['id'] == step_1.id.hex
         assert data[1]['id'] == phase_2.id.hex
         assert len(data[1]['steps']) == 2
-        print data[1]['steps']
         assert data[1]['steps'][0]['id'] == step_2_a.id.hex
         assert data[1]['steps'][1]['id'] == step_2_b.id.hex
