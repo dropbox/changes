@@ -83,23 +83,10 @@ class TrackedTask(local):
             self.func(**kwargs)
 
         except NotFinished:
-            self.logger.debug(
+            self.logger.info(
                 'Task marked as not finished: %s %s', self.task_name, self.task_id)
-            kwargs['task_id'] = self.task_id
-            kwargs['parent_task_id'] = self.parent_id
 
-            self._update({
-                Task.date_modified: datetime.utcnow(),
-                Task.status: Status.in_progress,
-            })
-
-            db.session.commit()
-
-            queue.delay(
-                self.task_name,
-                kwargs=kwargs,
-                countdown=CONTINUE_COUNTDOWN,
-            )
+            self._continue(kwargs)
 
         except Exception as exc:
             db.session.rollback()
@@ -148,6 +135,23 @@ class TrackedTask(local):
             Task.task_id == self.task_id,
         ).update(kwargs, synchronize_session=False)
 
+    def _continue(self, kwargs):
+        kwargs['task_id'] = self.task_id
+        kwargs['parent_task_id'] = self.parent_id
+
+        self._update({
+            Task.date_modified: datetime.utcnow(),
+            Task.status: Status.in_progress,
+        })
+
+        db.session.commit()
+
+        queue.delay(
+            self.task_name,
+            kwargs=kwargs,
+            countdown=CONTINUE_COUNTDOWN,
+        )
+
     def _retry(self):
         """
         Retry this task and update it's state.
@@ -168,6 +172,7 @@ class TrackedTask(local):
         kwargs = self.kwargs.copy()
         kwargs['task_id'] = self.task_id
         kwargs['parent_task_id'] = self.parent_id
+
         queue.delay(
             self.task_name,
             kwargs=kwargs,
