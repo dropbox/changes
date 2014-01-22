@@ -550,14 +550,14 @@ table > tbody > tr.result-skipped > td.result span {
 .nav-pills > li.active > a > .badge {
   color: #6e5baa;
 }
-.nav-pills > li.result-failed {
+.nav-pills > li.result-failed > a {
   color: #d9322d;
 }
-.nav-pills > li.active.result-passed {
+.nav-pills > li.active.result-passed > a {
   background: rgb(114, 194, 114);
   color: #fff;
 }
-.nav-pills > li.active.result-failed {
+.nav-pills > li.active.result-failed > a {
   background: #d9322d;
   color: #fff;
 }
