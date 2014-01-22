@@ -51,6 +51,9 @@ class DelayTest(TestCase):
         assert task
         assert task.status == Status.queued
         assert task.parent_id == parent_task_id
+        assert task.data == {
+            'kwargs': {'foo': 'bar'},
+        }
 
 
 class DelayIfNeededTest(TestCase):
@@ -78,6 +81,9 @@ class DelayIfNeededTest(TestCase):
         assert task
         assert task.status == Status.queued
         assert task.parent_id == parent_task_id
+        assert task.data == {
+            'kwargs': {'foo': 'bar'},
+        }
 
     @mock.patch('changes.queue.task.needs_requeued', mock.Mock(return_value=False))
     @mock.patch('changes.config.queue.delay')

@@ -191,11 +191,19 @@ class TrackedTask(local):
         """
         assert kwargs.get('task_id')
 
+        fn_kwargs = dict(
+            (k, v) for k, v in kwargs.iteritems()
+            if k not in ('task_id', 'parent_task_id')
+        )
+
         task, created = get_or_create(Task, where={
             'task_name': self.task_name,
             'parent_id': kwargs.get('parent_task_id'),
             'task_id': kwargs['task_id'],
         }, defaults={
+            'data': {
+                'kwargs': fn_kwargs,
+            },
             'status': Status.queued,
         })
 
@@ -219,11 +227,19 @@ class TrackedTask(local):
         """
         assert kwargs.get('task_id')
 
+        fn_kwargs = dict(
+            (k, v) for k, v in kwargs.iteritems()
+            if k not in ('task_id', 'parent_task_id')
+        )
+
         try_create(Task, where={
             'task_name': self.task_name,
             'parent_id': kwargs.get('parent_task_id'),
             'task_id': kwargs['task_id'],
             'status': Status.queued,
+            'data': {
+                'kwargs': fn_kwargs,
+            },
         })
 
         db.session.commit()
