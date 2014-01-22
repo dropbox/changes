@@ -104,8 +104,6 @@ class SyncJobTest(TestCase):
 
         publish_job_update.assert_called_once_with(job)
 
-        print self.plan.id
-
         queue_delay.assert_any_call('update_project_plan_stats', kwargs={
             'project_id': self.project.id.hex,
             'plan_id': self.plan.id.hex,
