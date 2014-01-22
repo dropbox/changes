@@ -25,6 +25,12 @@ def needs_requeued(task):
     return task.date_modified < run_datetime
 
 
+def needs_expired(task):
+    current_datetime = datetime.utcnow()
+    expire_datetime = current_datetime - EXPIRE_TIMEOUT
+    return task.date_modified < expire_datetime
+
+
 class NotFinished(Exception):
     pass
 
@@ -256,7 +262,6 @@ class TrackedTask(local):
         ))
 
         current_datetime = datetime.utcnow()
-        expire_datetime = current_datetime - EXPIRE_TIMEOUT
 
         need_expire = set()
         need_run = set()
@@ -267,7 +272,7 @@ class TrackedTask(local):
             if task.status == Status.finished:
                 continue
 
-            if task.date_modified < expire_datetime:
+            if needs_expired(task):
                 need_expire.add(task)
                 continue
 
@@ -278,9 +283,7 @@ class TrackedTask(local):
 
         if need_expire:
             Task.query.filter(
-                Task.task_name == task.task_name,
-                Task.parent_id == self.task_id,
-                Task.task_id.in_([n.id for n in need_expire]),
+                Task.id.in_([n.id for n in need_expire]),
             ).update({
                 Task.date_modified: current_datetime,
                 Task.status: Status.finished,
@@ -296,11 +299,11 @@ class TrackedTask(local):
                 queue.delay(task.task_name, kwargs=child_kwargs)
 
             Task.query.filter(
-                Task.parent_id == self.task_id,
-                Task.task_id.in_([n.id for n in need_run]),
+                Task.id.in_([n.id for n in need_run]),
             ).update({
                 Task.date_modified: current_datetime,
             }, synchronize_session=False)
+            db.session.commit()
 
         if has_pending:
             status = Status.in_progress

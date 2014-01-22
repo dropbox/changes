@@ -5,7 +5,7 @@ import mock
 from uuid import UUID
 
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.models import Task
 from changes.testutils import TestCase
 from changes.queue.task import tracked_task
@@ -203,6 +203,37 @@ class VerifyAllChildrenTest(TestCase):
                 'foo': 'bar',
             },
         )
+
+    @mock.patch('changes.queue.task.needs_expired')
+    @mock.patch('changes.config.queue.delay')
+    def test_child_is_expired(self, queue_delay, needs_expired):
+        child_id = UUID('33846695b2774b29a71795a009e8168a')
+        parent_task_id = UUID('659974858dcf4aa08e73a940e1066328')
+
+        needs_expired.return_value = True
+
+        task = self.create_task(
+            task_name='success_task',
+            task_id=child_id,
+            parent_id=parent_task_id,
+            status=Status.in_progress,
+            data={
+                'kwargs': {'foo': 'bar'},
+            },
+        )
+
+        success_task.task_id = parent_task_id.hex
+
+        result = success_task.verify_all_children()
+
+        assert result == Status.finished
+
+        db.session.refresh(task)
+
+        needs_expired.assert_called_once_with(task)
+
+        assert task.status == Status.finished
+        assert task.result == Result.aborted
 
 
 class RunTest(TestCase):
