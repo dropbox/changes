@@ -437,7 +437,7 @@ class JenkinsBuilder(BaseBackend):
         }
 
     def _find_job_in_active(self, job_name, job_id):
-        xpath = QUEUE_ID_XPATH.format(
+        xpath = BUILD_ID_XPATH.format(
             job_id=job_id,
         )
         try:

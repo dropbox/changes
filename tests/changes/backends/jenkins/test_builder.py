@@ -86,7 +86,7 @@ class CreateBuildTest(BaseTestCase):
             match_querystring=True)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid&depth=1',
+            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fnumber&depth=1',
             body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
             match_querystring=True)
 
