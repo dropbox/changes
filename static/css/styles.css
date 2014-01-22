@@ -550,6 +550,12 @@ table > tbody > tr.result-skipped > td.result span {
 .nav-pills > li.active > a > .badge {
   color: #6e5baa;
 }
+.nav-pills > li.result-passed {
+  background: rgb(114, 194, 114);
+}
+.nav-pills > li.result-failed {
+  background: #d9322d;
+}
 
 .test-list {
   line-height: 1.8em;

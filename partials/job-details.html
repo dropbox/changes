@@ -66,7 +66,7 @@
 		</div>
 
 		<ul class="nav nav-pills" style="margin-bottom:10px;" id="log_sources">
-			<li ng-repeat="logSource in logSources">
+			<li ng-repeat="logSource in logSources" class="result-{{logSource.step.result}}">
 				<a href="#log-{{logSource.id}}" data-toggle="tab" data-source="{{logSource.id}}">
 					{{logSource.name}}
 					<span class="spinner-icon" ng-if="job.status.id == 'in_progress'"></span>
