@@ -205,51 +205,6 @@ class VerifyAllChildrenTest(TestCase):
         )
 
 
-class VerifyChildrenTest(TestCase):
-    @mock.patch('changes.config.queue.delay')
-    def test_missing_children(self, queue_delay):
-        child_id = UUID('33846695b2774b29a71795a009e8168a')
-        parent_task_id = UUID('659974858dcf4aa08e73a940e1066328')
-
-        success_task.task_id = parent_task_id.hex
-
-        result = success_task.verify_children(
-            'unfinished_task', [child_id.hex]
-        )
-        assert result == Status.in_progress
-
-        task = Task.query.filter(
-            Task.task_id == child_id,
-            Task.task_name == 'unfinished_task',
-        ).first()
-
-        assert task
-        assert task.parent_id == parent_task_id
-
-        queue_delay.assert_called_once_with('unfinished_task', kwargs={
-            'task_id': child_id.hex,
-            'parent_task_id': parent_task_id.hex,
-        })
-
-    def test_children_finished(self):
-        child_id = UUID('33846695b2774b29a71795a009e8168a')
-        parent_task_id = UUID('659974858dcf4aa08e73a940e1066328')
-
-        self.create_task(
-            task_name='success_task',
-            task_id=child_id,
-            parent_id=parent_task_id,
-            status=Status.finished,
-        )
-
-        success_task.task_id = parent_task_id.hex
-
-        result = success_task.verify_children(
-            'success_task', [child_id.hex]
-        )
-        assert result == Status.finished
-
-
 class RunTest(TestCase):
     @mock.patch('changes.config.queue.delay')
     @mock.patch('changes.config.queue.retry')
