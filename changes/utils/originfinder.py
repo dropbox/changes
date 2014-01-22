@@ -70,6 +70,8 @@ def find_failure_origins(build, test_failures):
         Job, Job.id == TestGroup.job_id,
     ).filter(
         Job.build_id.in_(b.id for b in previous_runs),
+        Job.status == Status.finished,
+        Job.result == Result.failed,
         TestGroup.result == Result.failed,
         TestGroup.num_leaves == 0,
         TestGroup.name_sha.in_(t.name_sha for t in test_failures),
