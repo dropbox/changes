@@ -268,19 +268,19 @@ class TrackedTask(local):
                 continue
 
             if task.date_modified < expire_datetime:
-                need_expire.add(task.task_id.hex)
+                need_expire.add(task)
                 continue
 
             has_pending = True
 
-            if needs_requeued(task):
-                need_run.add(task.task_id.hex)
+            if needs_requeued(task) and 'kwargs' in task.data:
+                need_run.add(task)
 
         if need_expire:
             Task.query.filter(
                 Task.task_name == task.task_name,
                 Task.parent_id == self.task_id,
-                Task.task_id.in_([n for n in need_expire]),
+                Task.task_id.in_([n.id for n in need_expire]),
             ).update({
                 Task.date_modified: current_datetime,
                 Task.status: Status.finished,
@@ -290,14 +290,19 @@ class TrackedTask(local):
 
         # TODO(dcramer): if we store params with Task we could re-run
         # failed tasks here
-        # if need_run:
-        #     Task.query.filter(
-        #         Task.task_name == task.task_name,
-        #         Task.parent_id == self.task_id,
-        #         Task.task_id.in_([n for n in need_run]),
-        #     ).update({
-        #         Task.date_modified: current_datetime,
-        #     }, synchronize_session=False)
+        if need_run:
+            for task in need_run:
+                child_kwargs = task.data['kwargs'].copy()
+                child_kwargs['parent_task_id'] = task.parent_id.hex
+                child_kwargs['task_id'] = task.task_id.hex
+                queue.delay(task.task_name, kwargs=child_kwargs)
+
+            Task.query.filter(
+                Task.parent_id == self.task_id,
+                Task.task_id.in_([n.id for n in need_run]),
+            ).update({
+                Task.date_modified: current_datetime,
+            }, synchronize_session=False)
 
         if has_pending:
             status = Status.in_progress

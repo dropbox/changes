@@ -171,6 +171,39 @@ class VerifyAllChildrenTest(TestCase):
         result = success_task.verify_all_children()
         assert result == Status.finished
 
+    @mock.patch('changes.queue.task.needs_requeued')
+    @mock.patch('changes.config.queue.delay')
+    def test_child_needs_run(self, queue_delay, needs_requeued):
+        child_id = UUID('33846695b2774b29a71795a009e8168a')
+        parent_task_id = UUID('659974858dcf4aa08e73a940e1066328')
+
+        needs_requeued.return_value = True
+
+        task = self.create_task(
+            task_name='success_task',
+            task_id=child_id,
+            parent_id=parent_task_id,
+            status=Status.in_progress,
+            data={
+                'kwargs': {'foo': 'bar'},
+            },
+        )
+
+        success_task.task_id = parent_task_id.hex
+
+        result = success_task.verify_all_children()
+
+        assert result == Status.in_progress
+
+        needs_requeued.assert_called_once_with(task)
+        queue_delay.assert_called_once_with(
+            'success_task', kwargs={
+                'task_id': child_id.hex,
+                'parent_task_id': parent_task_id.hex,
+                'foo': 'bar',
+            },
+        )
+
 
 class VerifyChildrenTest(TestCase):
     @mock.patch('changes.config.queue.delay')
