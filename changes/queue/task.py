@@ -288,8 +288,6 @@ class TrackedTask(local):
             }, synchronize_session=False)
             db.session.commit()
 
-        # TODO(dcramer): if we store params with Task we could re-run
-        # failed tasks here
         if need_run:
             for task in need_run:
                 child_kwargs = task.data['kwargs'].copy()
