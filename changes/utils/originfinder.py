@@ -46,8 +46,6 @@ def find_failure_origins(build, test_failures):
     # paranoid about performance, we limit this to 100 results.
     previous_runs = Build.query.join(
         Source, Source.id == build.source_id,
-    ).options(
-        subqueryload_all(Build.jobs),
     ).filter(
         Build.project == project,
         Build.date_created <= build.date_created,
