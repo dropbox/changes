@@ -13,7 +13,8 @@ from changes.config import db, mail
 from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
-    TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task
+    TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
+    User
 )
 
 
@@ -263,7 +264,26 @@ class Fixtures(object):
         return task
 
 
-class TestCase(Exam, unittest2.TestCase, Fixtures):
+class AuthMixin(object):
+    @fixture
+    def default_user(self):
+        user = User(
+            email='foo@example.com',
+        )
+        db.session.add(user)
+
+        return user
+
+    def login(self, user):
+        with self.client.session_transaction() as session:
+            session['uid'] = user.id.hex
+            session['email'] = user.email
+
+    def login_default(self):
+        return self.login(self.default_user)
+
+
+class TestCase(Exam, unittest2.TestCase, Fixtures, AuthMixin):
     def setUp(self):
         self.repo = self.create_repo(
             url='https://github.com/dropbox/changes.git',
@@ -287,11 +307,9 @@ class TestCase(Exam, unittest2.TestCase, Fixtures):
         self.outbox = mail_context.__enter__()
         self.addCleanup(lambda: mail_context.__exit__(None, None, None))
 
-        super(TestCase, self).setUp()
+        self.client = app.test_client()
 
-    @fixture
-    def client(self):
-        return app.test_client()
+        super(TestCase, self).setUp()
 
     def unserialize(self, response):
         assert response.headers['Content-Type'] == 'application/json'

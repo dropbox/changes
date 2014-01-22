@@ -8,6 +8,16 @@
 					 data-estimated-duration="{{build.estimatedDuration}}"
 					 radial-progress-bar>&nbsp;</div>
 			</div>
+			<div class="seen-by">
+				<ul>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="left">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+				</ul>
+			</div>
 			<h2>
 				{{build.name}}<br>
 				<small>

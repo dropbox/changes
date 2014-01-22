@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithOriginSerializer
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, Job, TestGroup
+from changes.models import Build, Job, TestGroup, BuildSeen, User
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -52,6 +52,12 @@ class BuildDetailsAPIView(APIView):
         for test_failure in test_failures:
             test_failure.origin = failure_origins.get(test_failure)
 
+        seen_by = list(User.query.join(
+            BuildSeen, BuildSeen.user_id == User.id,
+        ).filter(
+            BuildSeen.build_id == build.id,
+        ))
+
         extended_serializers = {
             TestGroup: TestGroupWithOriginSerializer(),
         }
@@ -61,6 +67,7 @@ class BuildDetailsAPIView(APIView):
             'build': build,
             'jobs': jobs,
             'previousRuns': previous_runs,
+            'seenBy': seen_by,
             'testFailures': {
                 'total': num_test_failures,
                 'testGroups': self.serialize(test_failures, extended_serializers),

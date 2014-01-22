@@ -2,6 +2,7 @@ require.config({
   paths: {
     'angular': '../vendor/angular/angular',
     'angularAnimate': '../vendor/angular-animate/angular-animate',
+    'angularBootstrap': '../vendor/angular-bootstrap/ui-bootstrap-tpls',
     'angularLinkify': '../vendor/angular-linkify/angular-linkify',
     'angularRaven': '../vendor/angular-raven/angular-raven',
     'angularRoute': '../vendor/angular-route/angular-route',
@@ -17,6 +18,7 @@ require.config({
   shim: {
     'angular': {exports: 'angular'},
     'angularAnimate': ['angular'],
+    'angularBootstrap': ['angular'],
     'angularLinkify': ['angular'],
     'angularLoadingBar': ['angular'],
     'angularRaven': ['angular'],
@@ -41,6 +43,7 @@ require.config({
 
 require([
   'angular',
+  'angularBootstrap',
   'angularLoadingBar',
   'modules/barChart',
   'modules/collection',
@@ -53,6 +56,6 @@ require([
 ], function(angular) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'barChart', 'collection', 'flash', 'stream']);
+    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'barChart', 'collection', 'flash', 'ui.bootstrap', 'stream']);
   });
 });

@@ -234,6 +234,59 @@ dl.flat dt {
   background: #d9322d;
 }
 
+.seen-by ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.seen-by li {
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+}
+.seen-by img {
+  width: 16px;
+  height: 16px;
+  border-radius: 16px;
+  -moz-border-radius: 16px;
+  -webkit-border-radius: 16px;
+}
+
+.change-header h2,
+.build-header h2 {
+  font-size: 1.4em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 44px;
+  min-height: 42px;
+}
+.build-header h2 small {
+  font-size: 0.7em;
+}
+.change-header .indicator,
+.change-header .indicator > div,
+.build-header .indicator,
+.build-header .indicator > div {
+  width: 34px;
+  height: 34px;
+}
+.change-header .indicator,
+.build-header .indicator {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  border-radius: 34px;
+}
+
+.build-header .seen-by {
+  position: absolute;
+  right: 47px;
+  top: 0;
+  bottom: 20px;
+  max-width: 150px;
+}
+
 .project-list {
   position: relative;
   list-style: none;
@@ -310,33 +363,6 @@ table > tbody > tr.result-passed > td.result span {
 }
 table > tbody > tr.result-skipped > td.result span {
   background-color: gold;
-}
-
-.change-header h2,
-.build-header h2 {
-  font-size: 1.4em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding-right: 44px;
-  min-height: 42px;
-}
-.build-header h2 small {
-  font-size: 0.7em;
-}
-.change-header .indicator,
-.change-header .indicator > div,
-.build-header .indicator,
-.build-header .indicator > div {
-  width: 34px;
-  height: 34px;
-}
-.change-header .indicator,
-.build-header .indicator {
-  position: absolute;
-  top: 5px;
-  right: 0;
-  border-radius: 34px;
 }
 
 .build-list,

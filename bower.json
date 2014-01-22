@@ -9,12 +9,13 @@
     "tests"
   ],
   "devDependencies": {
-    "angular": "~1.2.3",
+    "angular": "1.2.9",
+    "angular-bootstrap": "~0.10.0",
     "angular-loading-bar": "~0.0.5",
     "angular-linkify": "~0.3.0",
     "angular-raven": "~0.5.4",
-    "angular-route": "~1.2.3",
-    "angular-sanitize": "~1.2.3",
+    "angular-route": "1.2.9",
+    "angular-sanitize": "1.2.9",
     "bootstrap": "~3.0.0",
     "jquery": "~2.0.3",
     "moment": "~2.1.0",

@@ -1,6 +1,7 @@
 from .aggregatetest import *  # NOQA
 from .author import *  # NOQA
 from .build import *  # NOQA
+from .buildseen import *  # NOQA
 from .change import *  # NOQA
 from .filecoverage import *  # NOQA
 from .job import *  # NOQA

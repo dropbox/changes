@@ -242,6 +242,11 @@
       stream.subscribe('job.update', updateJob);
       stream.subscribe('buildlog.update', updateBuildLog);
       stream.subscribe('testgroup.update', updateTestGroup);
+
+      if ($scope.build.status.id == 'finished') {
+        $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');
+      }
+
     }]);
   });
 })();

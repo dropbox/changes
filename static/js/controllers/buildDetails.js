@@ -96,6 +96,7 @@
       $scope.previousRuns = initialData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
       $scope.testFailures = initialData.data.testFailures;
+      $scope.seenBy = initialData.data.seenBy.slice(0, 14);
 
       $rootScope.activeProject = $scope.project;
       $rootScope.pageTitle = getPageTitle($scope.build);
@@ -103,6 +104,11 @@
       stream = new Stream($scope, entrypoint);
       stream.subscribe('build.update', updateBuild);
       stream.subscribe('job.update', function(data) { $scope.jobs.updateItem(data); });
+
+      if ($scope.build.status.id == 'finished') {
+        $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');
+      }
+
     }]);
   });
 })();
