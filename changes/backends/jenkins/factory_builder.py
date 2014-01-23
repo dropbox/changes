@@ -43,6 +43,11 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
 
         # for any downstream jobs, pull their results using xpath magic
         for downstream_job_name in self.downstream_job_names:
+            downstream_build_nos = self._get_downstream_jobs(step, downstream_job_name)
+
+            if not downstream_build_nos:
+                continue
+
             phase, created = get_or_create(JobPhase, where={
                 'job': step.job,
                 'label': downstream_job_name,
@@ -51,7 +56,7 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
             })
             db.session.commit()
 
-            for build_no in self._get_downstream_jobs(step, downstream_job_name):
+            for build_no in downstream_build_nos:
                 # XXX(dcramer): ideally we would grab this with the first query
                 # but because we dont want to rely on an XML parser, we're doing
                 # a second http request for build details
