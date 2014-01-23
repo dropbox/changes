@@ -66,7 +66,9 @@ class CreateBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.create_job(job)
 
-        assert job.data == {
+        step = job.phases[0].steps[0]
+
+        assert step.data == {
             'build_no': None,
             'item_id': '13',
             'job_name': 'server',
@@ -99,7 +101,9 @@ class CreateBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.create_job(job)
 
-        assert job.data == {
+        step = job.phases[0].steps[0]
+
+        assert step.data == {
             'build_no': '1',
             'item_id': None,
             'job_name': 'server',
@@ -152,18 +156,19 @@ class SyncBuildTest(BaseTestCase):
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': None,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': True,
-            },
         )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'build_no': None,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': True,
+        })
 
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
-        assert job.status == Status.queued
+        assert step.status == Status.queued
 
     @responses.activate
     def test_cancelled_in_queue(self):
@@ -175,19 +180,20 @@ class SyncBuildTest(BaseTestCase):
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': None,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': True,
-            },
         )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'build_no': None,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': True,
+        })
 
         builder = self.get_builder()
-        builder.sync_job(job)
+        builder.sync_step(step)
 
-        assert job.status == Status.finished
-        assert job.result == Result.aborted
+        assert step.status == Status.finished
+        assert step.result == Result.aborted
 
     @responses.activate
     def test_queued_to_active(self):
@@ -207,18 +213,16 @@ class SyncBuildTest(BaseTestCase):
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': None,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': True,
-            },
         )
-
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'build_no': None,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': True,
+        })
         builder = self.get_builder()
-        builder.sync_job(job)
-
-        step = job.phases[0].steps[0]
+        builder.sync_step(step)
 
         assert step.data['build_no'] == 2
 
@@ -631,6 +635,8 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert step_list[0].date_started
         assert step_list[0].date_finished
         assert step_list[0].data == {
+            'item_id': '13',
+            'queued': False,
             'log_offset': 7,
             'job_name': 'server',
             'build_no': 2,

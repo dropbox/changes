@@ -123,35 +123,7 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _sync_job_from_queue(self, job):
-        # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
-        # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
-        # doesnt explicitly mean that the job doesnt exist
-        try:
-            item = self._get_response('/queue/item/{}'.format(
-                job.data['item_id']))
-        except NotFound:
-            job.status = Status.finished
-            job.result = Result.unknown
-            db.session.add(job)
-            return
-
-        if item.get('executable'):
-            build_no = item['executable']['number']
-            job.data['queued'] = False
-            job.data['build_no'] = build_no
-
-        if item['blocked']:
-            job.status = Status.queued
-            db.session.add(job)
-        elif item.get('cancelled') and not job.data.get('build_no'):
-            job.status = Status.finished
-            job.result = Result.aborted
-            db.session.add(job)
-        elif item.get('executable'):
-            self._sync_job_from_active(job)
-
-    def _create_job_step(self, phase, job_name, build_no, **kwargs):
+    def _create_job_step(self, phase, job_name=None, build_no=None, **kwargs):
         defaults = {
             'data': {
                 'job_name': job_name,
@@ -170,33 +142,6 @@ class JenkinsBuilder(BaseBackend):
             db.session.add(step)
 
         return step
-
-    def _sync_job_from_active(self, job):
-        if job.status not in (Status.in_progress, Status.finished):
-            job.status = Status.in_progress
-            db.session.add(job)
-
-        phase, created = get_or_create(JobPhase, where={
-            'job': job,
-            'label': job.data['job_name'],
-            'project': job.project,
-        }, defaults={
-            'status': Status.in_progress,
-        })
-
-        step = self._create_job_step(
-            phase=phase,
-            job_name=job.data['job_name'],
-            build_no=job.data['build_no'],
-            status=Status.in_progress,
-        )
-        db.session.commit()
-
-        sync_job_step.delay_if_needed(
-            step_id=step.id.hex,
-            task_id=step.id.hex,
-            parent_task_id=job.id.hex,
-        )
 
     def _sync_artifact_as_xunit(self, jobstep, job_name, build_no, artifact):
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
@@ -457,13 +402,36 @@ class JenkinsBuilder(BaseBackend):
             'build_no': NUMBER_XML_RE.search(response).group(1),
         }
 
-    def sync_job(self, job):
-        if job.data['queued']:
-            self._sync_job_from_queue(job)
-        else:
-            self._sync_job_from_active(job)
+    def _sync_step_from_queue(self, step):
+        # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
+        # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
+        # doesnt explicitly mean that the job doesnt exist
+        try:
+            item = self._get_response('/queue/item/{}'.format(
+                step.data['item_id']))
+        except NotFound:
+            step.status = Status.finished
+            step.result = Result.unknown
+            db.session.add(step)
+            return
 
-    def sync_step(self, step):
+        if item.get('executable'):
+            build_no = item['executable']['number']
+            step.data['queued'] = False
+            step.data['build_no'] = build_no
+            db.session.add(step)
+
+        if item['blocked']:
+            step.status = Status.queued
+            db.session.add(step)
+        elif item.get('cancelled') and not step.data.get('build_no'):
+            step.status = Status.finished
+            step.result = Result.aborted
+            db.session.add(step)
+        elif item.get('executable'):
+            return self._sync_step_from_active(step)
+
+    def _sync_step_from_active(self, step):
         try:
             job_name = step.data['job_name']
             build_no = step.data['build_no']
@@ -560,6 +528,18 @@ class JenkinsBuilder(BaseBackend):
                 'Unable to sync console log for job step %r',
                 step.id.hex)
 
+    def sync_job(self, job):
+        """
+        Steps get created during the create_job and sync_step phases so we only
+        rely on those steps syncing.
+        """
+
+    def sync_step(self, step):
+        if step.data.get('queued'):
+            self._sync_step_from_queue(step)
+        else:
+            self._sync_step_from_active(step)
+
     def sync_artifact(self, jobstep, job_name, build_no, artifact):
         if self.sync_log_artifacts and artifact['fileName'].endswith('.log'):
             self._sync_artifact_as_log(jobstep, job_name, build_no, artifact)
@@ -620,10 +600,29 @@ class JenkinsBuilder(BaseBackend):
         if job_data is None:
             raise Exception('Unable to find matching job after creation. GLHF')
 
-        job.data = job_data
-        if job.data['queued']:
+        if job_data['queued']:
             job.status = Status.queued
         else:
             job.status = Status.in_progress
         db.session.add(job)
+
+        phase, created = get_or_create(JobPhase, where={
+            'job': job,
+            'label': job_data['job_name'],
+            'project': job.project,
+        }, defaults={
+            'status': Status.in_progress,
+        })
+
+        step = self._create_job_step(
+            phase=phase,
+            status=Status.in_progress,
+            data=job_data,
+        )
         db.session.commit()
+
+        sync_job_step.delay(
+            step_id=step.id.hex,
+            task_id=step.id.hex,
+            parent_task_id=job.id.hex,
+        )
