@@ -16,11 +16,11 @@ Requirements
 ============
 
 - Node.js
-	- Bower (npm install -g bower)
+  - Bower (npm install -g bower)
 - Postgresql
 - Python 2.7
-	- virtualenv
-	- pip
+  - virtualenv
+  - pip
 
 Setup
 =====
@@ -74,7 +74,6 @@ Workers are managed via Celery:
 
 ::
 
-
 	bin/worker -B
 
 
@@ -82,7 +81,6 @@ NGINX Configuration
 ===================
 
 ::
-
 
 	    location / {
 	        proxy_pass              http://changes_server;
@@ -97,7 +95,6 @@ NGINX Configuration
 	        proxy_buffering	        off;
 	        client_max_body_size    8m;
 	        client_body_buffer_size 128k;
-
 	    }
 
 
@@ -120,12 +117,9 @@ Within each project, we have a few things relevant to builds:
 Source:
   Generally either a commit or a patch (for diff testing).
 Change:
-  A change is discrete changeset throughout its lifecycle. It may consist of several sources, such as
-  an initial patch, a commit, a revert, a followup patch, and a followup commit.
+  A change is discrete changeset throughout its lifecycle. It may consist of several sources, such as an initial patch, a commit, a revert, a followup patch, and a followup commit.
 Build:
-  A build is a collection of jobs bound to a single source. Think of the build as
-  the collective matrix of jobs for an individual change. e.g. you may want to test "Windows" and "Linux",
-  which would both be contained within the same grouping.
+  A build is a collection of jobs bound to a single source. Think of the build as the collective matrix of jobs for an individual change. e.g. you may want to test "Windows" and "Linux", which would both be contained within the same grouping.
 Job:
   An individual job within a build. e.g. "Linux"
 Job Plan:
@@ -136,11 +130,9 @@ Inside of each build, a few items exist for collecting and reporting results:
 Job Step:
   An individual step run as part of a job. For example, this could be the provision step.
 Job Phase:
-  A grouping of steps at the same tier. If you're using job factories, you may have several
-  steps that execute similar tasks. These steps are grouped together as a phase.
+  A grouping of steps at the same tier. If you're using job factories, you may have several steps that execute similar tasks. These steps are grouped together as a phase.
 Tests:
-  Several types of models exist for reporting tests. These exist both on the per-build level, as well
-  as per-project for aggregate results.
+  Several types of models exist for reporting tests. These exist both on the per-build level, as well as per-project for aggregate results.
 
 
 Implementation
@@ -152,15 +144,15 @@ Phabricator
 ~~~~~~~~~~~
 
 Revision (e.g. DXXXX):
-	Change
+  Change
 Diff (a change within a revision):
-	Patch
+  Patch
 
 Koality
 ~~~~~~~
 
 Change
-	Build
+  Build
 Stage
-	Each stage is grouped by stage[type] as single Phase, and created as many Steps.
+  Each stage is grouped by stage[type] as single Phase, and created as many Steps.
 
