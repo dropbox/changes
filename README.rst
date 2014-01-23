@@ -6,11 +6,7 @@ Changes is a dashboard to view information about your code. Specifically, it foc
 Supported build platforms include:
 
 - `Koality <http://koalitycode.com>`_
-- `Jenkins <http://jenkins-ci.org>`_ (not actually implemented yet)
-
-Supported code review platforms include:
-
-- `Phabricator <http://phabricator.com>`_
+- `Jenkins <http://jenkins-ci.org>`_
 
 Requirements
 ============
@@ -133,26 +129,3 @@ Job Phase:
   A grouping of steps at the same tier. If you're using job factories, you may have several steps that execute similar tasks. These steps are grouped together as a phase.
 Tests:
   Several types of models exist for reporting tests. These exist both on the per-build level, as well as per-project for aggregate results.
-
-
-Implementation
-==============
-
-An attempt to explain how some things map from their counterparts to the data models within Changes.
-
-Phabricator
-~~~~~~~~~~~
-
-Revision (e.g. DXXXX):
-  Change
-Diff (a change within a revision):
-  Patch
-
-Koality
-~~~~~~~
-
-Change
-  Build
-Stage
-  Each stage is grouped by stage[type] as single Phase, and created as many Steps.
-
