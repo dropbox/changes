@@ -134,7 +134,7 @@ elif args.command == 'edit':
     if args.data is not None:
         plan.data = json.loads(args.data)
 
-    db.sesison.add(plan)
+    db.session.add(plan)
 
     print "Saved plan with ID {%s}" % (
         plan.id,
