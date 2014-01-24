@@ -22,7 +22,7 @@
         if (!options[group]) {
           options[group] = {};
         }
-        options[group][key.replace('-', '_')] = value;
+        options[group][key.replace(/-/g, '_')] = value;
       }
 
       $scope.project = initialProject.data;

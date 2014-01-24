@@ -34,7 +34,7 @@ class Validator(object):
         return result
 
 OPTION_DEFAULTS = {
-    'mail.notify-authors': '1',
+    'mail.notify-author': '1',
     'mail.notify-addresses': '',
     'mail.notify-addresses-revisions': '',
     'build.allow-patches': '1',

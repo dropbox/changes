@@ -23,18 +23,18 @@
 
 			<div class="form-group checkbox">
 				<label>
-					<input type="checkbox" value="1" ng-model="options.mail.notify_authors">
+					<input type="checkbox" value="1" ng-model="options.mail.notify_author">
 					Notify authors of build failures.
 				</label>
 			</div>
 
 			<div class="form-group">
-				<label>Addresses to notify of commit failures</label>
+				<label>Addresses to notify of any build failure</label>
 				<input type="text" class="form-control" ng-model="options.mail.notify_addresses">
 			</div>
 
 			<div class="form-group">
-				<label>Addresses to notify of patch failures</label>
+				<label>Addresses to notify of failures from commits (not patches)</label>
 				<input type="text" class="form-control" ng-model="options.mail.notify_addresses_revisions">
 			</div>
 
