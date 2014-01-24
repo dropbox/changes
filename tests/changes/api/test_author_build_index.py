@@ -16,7 +16,7 @@ class AuthorBuildListTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['builds']) == 0
+        assert len(data) == 0
 
         author = Author(email='foo@example.com', name='Foo Bar')
         db.session.add(author)
