@@ -205,6 +205,7 @@ def configure_api_routes(app):
     from changes.api.project_test_index import ProjectTestIndexAPIView
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.project_source_details import ProjectSourceDetailsAPIView
+    from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.testgroup_details import TestGroupDetailsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
@@ -231,6 +232,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectTestIndexAPIView, '/projects/<project_id>/tests/')
     api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_id>/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
+    api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(TestGroupDetailsAPIView, '/testgroups/<testgroup_id>/')
 
 
