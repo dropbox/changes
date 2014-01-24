@@ -2,7 +2,7 @@
 
 develop: install-requirements install-test-requirements setup-git
 
-upgrade:
+upgrade: develop
 	alembic upgrade head
 
 setup-git:
