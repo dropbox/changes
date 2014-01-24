@@ -55,6 +55,10 @@ pre {
   background: #f7f5fa;
 }
 
+fieldset {
+  margin-bottom: 20px;
+}
+
 dl.flat {
   position: relative;
   padding-left: 110px;

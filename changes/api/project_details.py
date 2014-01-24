@@ -3,7 +3,9 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Project, Plan, Build, Source, Status, Result
+from changes.models import (
+    Project, Plan, Build, Source, Status, Result, ProjectOption
+)
 
 
 class ValidationError(Exception):
@@ -30,6 +32,13 @@ class Validator(object):
                 raise ValidationError('%s is required' % (key,))
 
         return result
+
+OPTION_DEFAULTS = {
+    'mail.notify-authors': '1',
+    'mail.notify-addresses': '',
+    'mail.notify-addresses-revisions': '',
+    'build.allow-patches': '1',
+}
 
 
 class ProjectValidator(Validator):
@@ -88,11 +97,20 @@ class ProjectDetailsAPIView(APIView):
                 Build.date_created.desc(),
             ).first()
 
+        options = dict(
+            (o.name, o.value) for o in ProjectOption.query.filter(
+                ProjectOption.project_id == project.id,
+            )
+        )
+        for key, value in OPTION_DEFAULTS.iteritems():
+            options.setdefault(key, value)
+
         data = self.serialize(project)
         data['lastBuild'] = last_build
         data['lastPassingBuild'] = last_passing_build
         data['repository'] = project.repository
         data['plans'] = list(plans)
+        data['options'] = options
 
         return self.respond(data)
 

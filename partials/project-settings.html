@@ -1,20 +1,61 @@
 <section>
 	<div id="overview">
 		<div class="page-header">
-			<h2>Project Settings</h2>
+			<h2>Settings for {{project.name}}</h2>
 		</div>
 
-		<h3>VCS</h3>
+		<fieldset>
 
-		<dl class="flat">
-			<dt>URL:</dt>
-			<dd>{{ repo.url }}</dd>
-			<dt>Backend:</dt>
-			<dd>{{ repo.backend.name }}</dd>
-		</dl>
+			<legend>VCS</legend>
 
-		<div>
-			<h3>Build Plans</h3>
+			<dl class="flat">
+				<dt>URL:</dt>
+				<dd>{{ repo.url }}</dd>
+				<dt>Backend:</dt>
+				<dd>{{ repo.backend.name }}</dd>
+			</dl>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Notifications</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options.mail.notify_authors">
+					Notify authors of build failures.
+				</label>
+			</div>
+
+			<div class="form-group">
+				<label>Notify addresses of commit failures.</label>
+				<input type="text" class="form-control" ng-model="options.mail.notify_addresses">
+			</div>
+
+			<div class="form-group">
+				<label>Notify addresses of commit failures from patches.</label>
+				<input type="text" class="form-control" ng-model="options.mail.notify_addresses_revisions">
+			</div>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Builds</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1"  ng-model="options.build.allow_patches">
+					Allow builds to be created from patches.
+				</label>
+			</div>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Build Plans</legend>
 
 			<ul>
 				<li ng-repeat="plan in plans">
@@ -26,6 +67,7 @@
 					</ol>
 				</li>
 			</ul>
-		</div>
+
+		</fieldset>
 	</div>
 </section>
