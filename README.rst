@@ -123,7 +123,7 @@ Job:
 Job Plan:
   A snapshot of the plan at the time a job is created.
 
-Inside of each build, a few items exist for collecting and reporting results:
+Inside of each job, a few items exist for collecting and reporting results:
 
 Job Step:
   An individual step run as part of a job. For example, this could be the provision step.
