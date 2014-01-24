@@ -47,7 +47,7 @@ Bootstrap your environment:
 
 ::
 
-	$ make
+	$ make upgrade
 
 
 .. note:: You can run ``make resetdb`` to drop and re-create a clean database.
@@ -71,6 +71,8 @@ Workers are managed via Celery:
 ::
 
 	bin/worker -B
+
+.. note:: In development you can set ``CELERY_ALWAYS_EAGER`` to run the queue in-process. You likely don't want this if you're synchronizing builds as it can cause recursion errors.
 
 
 NGINX Configuration
