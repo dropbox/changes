@@ -83,6 +83,9 @@ class Vcs(object):
     def log(self, parent=None, limit=100):
         raise NotImplementedError
 
+    def export(self, id):
+        raise NotImplementedError
+
     def get_revision(self, id):
         """
         Return a ``Revision`` given by ``id`.

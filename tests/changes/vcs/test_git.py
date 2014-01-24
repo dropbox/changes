@@ -60,3 +60,9 @@ class GitVcsTest(TestCase):
         assert revisions[1].committer == 'Foo Bar <foo@example.com>'
         assert revisions[1].parents == []
         assert revisions[1].author_date == revisions[1].committer_date is not None
+        diff = vcs.export(revisions[0].id)
+        print diff
+        assert diff == """diff --git a/BAR b/BAR
+new file mode 100644
+index 0000000..e69de29
+"""
