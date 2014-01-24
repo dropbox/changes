@@ -248,6 +248,9 @@ define(['app',
             }],
             initialSource: ['$http', '$route', '$window', function($http, $route, $window) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/sources/' + $route.current.params.source_id + '/');
+            }],
+            initialBuildList: ['$http', '$route', '$window', function($http, $route, $window) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/sources/' + $route.current.params.source_id + '/builds/');
             }]
           }
         })

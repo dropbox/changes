@@ -11,6 +11,34 @@
 		<dd ng-if="!source.patch">&mdash;</dd>
 	</dl>
 
+	<h4>Builds</h4>
+	<table class="build-list table table-striped">
+		<tbody>
+			<tr class="status-{{build.status.id}} result-{{build.result.id}}"
+				ng-repeat="build in builds">
+				<td>
+					<div class="indicator" title="{{build.result.name}}">
+						<div data-result="{{build.result.id}}"
+							 data-status="{{build.status.id}}"
+							 data-date-started="{{build.dateStarted}}"
+							 data-estimated-duration="{{build.estimatedDuration}}"
+							 radial-progress-bar>&nbsp;</div>
+					</div>
+				</td>
+				<td>
+					<a href="{{build.link}}">{{build.name}}</a>
+					<small>
+						<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash; {{build.target}}
+						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
+					</small>
+					<span class="status">{{getBuildStatus(build)}}</span>
+					<span class="date" ng-if="build.dateStarted" time-since="build.dateStarted"></span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h4>Diff</h4>
 	<div ng-if="source.diff">
 		<div hljs source="source.diff" language="diff"></div>
 	</div>
