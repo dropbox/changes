@@ -18,9 +18,7 @@ class AuthorBuildIndexAPIView(APIView):
     def get(self, author_id):
         author = self._get_author(author_id)
         if not author:
-            return self.respond({
-                'builds': [],
-            })
+            return self.respond([])
 
         queryset = Build.query.options(
             joinedload(Build.project),
