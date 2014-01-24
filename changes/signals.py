@@ -1,10 +1,12 @@
 from blinker import signal
 
-build_finished = signal('job.finished')
+job_finished = signal('job.finished')
+build_finished = signal('build.finished')
 
 
 SIGNAL_MAP = {
-    'job.finished': build_finished,
+    'job.finished': job_finished,
+    'build.finished': build_finished,
 }
 
 
