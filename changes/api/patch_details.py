@@ -15,8 +15,4 @@ class PatchDetailsAPIView(APIView):
         if request.args.get('raw'):
             return Response(patch.diff, mimetype='text/plain')
 
-        context = {
-            'patch': patch,
-        }
-
-        return self.respond(context)
+        return self.respond(patch)

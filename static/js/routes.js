@@ -17,7 +17,8 @@ define(['app',
         'controllers/projectList',
         'controllers/projectSettings',
         'controllers/projectTestDetails',
-        'controllers/projectTestList'
+        'controllers/projectTestList',
+        'controllers/projectSourceDetails'
        ], function(app) {
 
   'use strict';
@@ -235,6 +236,18 @@ define(['app',
             }],
             initialTest: ['$http', '$route', '$window', function($http, $route, $window) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/tests/' + $route.current.params.test_id + '/' + $window.location.search);
+            }]
+          }
+        })
+        .when('/projects/:project_id/sources/:source_id/', {
+          templateUrl: 'partials/project-source-details.html',
+          controller: 'projectSourceDetailsCtrl',
+          resolve: {
+            initialProject: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
+            }],
+            initialSource: ['$http', '$route', '$window', function($http, $route, $window) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/sources/' + $route.current.params.source_id + '/');
             }]
           }
         })

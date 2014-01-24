@@ -3,6 +3,7 @@ require.config({
     'angular': '../vendor/angular/angular',
     'angularAnimate': '../vendor/angular-animate/angular-animate',
     'angularBootstrap': '../vendor/angular-bootstrap/ui-bootstrap-tpls',
+    'angularHighlightjs': '../vendor/angular-highlightjs/angular-highlightjs',
     'angularLinkify': '../vendor/angular-linkify/angular-linkify',
     'angularRaven': '../vendor/angular-raven/angular-raven',
     'angularRoute': '../vendor/angular-route/angular-route',
@@ -11,6 +12,7 @@ require.config({
     'bootstrap': '../vendor/bootstrap/dist/js/bootstrap',
     'd3': '../vendor/d3/d3',
     'jquery': '../vendor/jquery/jquery',
+    'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
     'nvd3': '../vendor/nvd3/nv.d3'
   },
@@ -19,6 +21,7 @@ require.config({
     'angular': {exports: 'angular'},
     'angularAnimate': ['angular'],
     'angularBootstrap': ['angular'],
+    'angularHighlightjs': {deps: ['angular', 'highlightjs']},
     'angularLinkify': ['angular'],
     'angularLoadingBar': ['angular'],
     'angularRaven': ['angular'],
@@ -44,6 +47,7 @@ require.config({
 require([
   'angular',
   'angularBootstrap',
+  'angularHighlightjs',
   'angularLoadingBar',
   'modules/barChart',
   'modules/collection',
@@ -56,6 +60,6 @@ require([
 ], function(angular) {
   'use strict';
   $(function(){
-    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'barChart', 'collection', 'flash', 'ui.bootstrap', 'stream']);
+    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'barChart', 'collection', 'flash', 'hljs', 'ui.bootstrap', 'stream']);
   });
 });

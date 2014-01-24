@@ -1,0 +1,20 @@
+<section>
+	<div class="page-header">
+		<h2>Source Details</h2>
+	</div>
+
+	<dl class="flat">
+		<dt>Sha:</dt>
+		<dd>{{source.revision.sha}}</dd>
+		<dt>Patch:</dt>
+		<dd ng-if="source.patch"><a href="/api/0/patches/{{source.patch.id}}/?raw=1" target="_self">{{source.patch.id}}</a></dd>
+		<dd ng-if="!source.patch">&mdash;</dd>
+	</dl>
+
+	<div ng-if="source.diff">
+		<div hljs source="source.diff" language="diff"></div>
+	</div>
+	<div ng-if="!source.diff">
+		<p>No diff available for this source.</p>
+	</div>
+</section>

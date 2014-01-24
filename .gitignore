@@ -5,6 +5,7 @@
 *.db
 *.egg-info
 *.pyc
+npm-debug.log
 /*.xml
 /docs/_build/
 /htmlcov

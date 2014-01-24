@@ -10,7 +10,7 @@ class PatchDetailsTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['patch']['id'] == patch.id.hex
+        assert data['id'] == patch.id.hex
 
     def test_raw(self):
         patch = self.create_patch(self.project)

@@ -15,8 +15,10 @@ from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
-    TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan, Source
+    TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan, Source,
+    Patch
 )
+from changes.testutils.cases import SAMPLE_DIFF
 
 
 TEST_PACKAGES = itertools.cycle([
@@ -258,6 +260,20 @@ def revision(repository, author):
     db.session.add(result)
 
     return result
+
+
+def patch(project, **kwargs):
+    kwargs.setdefault('diff', SAMPLE_DIFF)
+    kwargs.setdefault('label', 'D1234')
+
+    patch = Patch(
+        repository=project.repository,
+        project=project,
+        **kwargs
+    )
+    db.session.add(patch)
+
+    return patch
 
 
 def source(repository, **kwargs):

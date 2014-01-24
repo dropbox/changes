@@ -42,7 +42,13 @@ def create_new_entry(project):
         db.session.add(change)
         revision = mock.revision(project.repository, change.author)
 
-    source = mock.source(project.repository, revision_sha=revision.sha)
+    if random.randint(0, 1) == 1:
+        patch = mock.patch(project)
+    else:
+        patch = None
+    print patch
+    source = mock.source(
+        project.repository, revision_sha=revision.sha, patch=patch)
 
     date_started = datetime.utcnow()
 
