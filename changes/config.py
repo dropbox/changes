@@ -55,16 +55,23 @@ def create_app(_read_config=True, **config):
 
     app.config['API_TRACEBACKS'] = True
 
+    app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json']
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'
-    app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json']
-    app.config['CELERY_RESULT_SERIALIZER'] = 'changes_json'
-    app.config['CELERY_TASK_SERIALIZER'] = 'changes_json'
-    app.config['CELERYD_PREFETCH_MULTIPLIER'] = 1
     app.config['CELERY_DEFAULT_QUEUE'] = "default"
     app.config['CELERY_DEFAULT_EXCHANGE'] = "default"
     app.config['CELERY_DEFAULT_EXCHANGE_TYPE'] = "direct"
     app.config['CELERY_DEFAULT_ROUTING_KEY'] = "default"
+    app.config['CELERY_DISABLE_RATE_LIMITS'] = True
+    app.config['CELERY_IGNORE_RESULT'] = True
+    app.config['CELERY_RESULT_BACKEND'] = None
+    app.config['CELERY_RESULT_SERIALIZER'] = 'changes_json'
+    app.config['CELERY_SEND_EVENTS'] = False
+    app.config['CELERY_TASK_RESULT_EXPIRES'] = 1
+    app.config['CELERY_TASK_SERIALIZER'] = 'changes_json'
+    app.config['CELERYD_PREFETCH_MULTIPLIER'] = 1
+    app.config['CELERYD_MAX_TASKS_PER_CHILD'] = 10000
+
     app.config['CELERY_QUEUES'] = (
         Queue('job.sync', routing_key='job.sync'),
         Queue('job.create', routing_key='job.create'),
