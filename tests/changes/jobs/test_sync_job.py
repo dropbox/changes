@@ -109,9 +109,8 @@ class SyncJobTest(TestCase):
             'plan_id': self.plan.id.hex,
         }, countdown=1)
 
-        queue_delay.assert_any_call('notify_listeners', kwargs={
+        queue_delay.assert_any_call('notify_job_finished', kwargs={
             'job_id': job.id.hex,
-            'signal_name': 'job.finished',
         })
 
         task = Task.query.get(task.id)

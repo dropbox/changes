@@ -90,9 +90,8 @@ def sync_job(job_id):
     if not is_finished:
         raise sync_job.NotFinished
 
-    queue.delay('notify_listeners', kwargs={
+    queue.delay('notify_job_finished', kwargs={
         'job_id': job.id.hex,
-        'signal_name': 'job.finished',
     })
 
     if job_plan:

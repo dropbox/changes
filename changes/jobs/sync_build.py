@@ -67,9 +67,8 @@ def sync_build(build_id):
     if not is_finished:
         raise sync_build.NotFinished
 
-    queue.delay('notify_listeners', kwargs={
+    queue.delay('notify_build_finished', kwargs={
         'build_id': build.id.hex,
-        'signal_name': 'build.finished',
     })
 
     queue.delay('update_project_stats', kwargs={
