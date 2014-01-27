@@ -1,7 +1,50 @@
 from datetime import datetime
 
+from changes.config import db
 from changes.constants import Status
-from changes.testutils import APITestCase
+from changes.models import TestGroup
+from changes.testutils import APITestCase, TestCase
+from changes.api.build_details import find_changed_tests
+
+
+class FindChangedTestsTest(TestCase):
+    def test_simple(self):
+        previous_build = self.create_build(self.project)
+        previous_job = self.create_job(previous_build)
+
+        changed_test = TestGroup(
+            job=previous_job,
+            project=previous_job.project,
+            name='unchanged test',
+        )
+        removed_test = TestGroup(
+            job=previous_job,
+            project=previous_job.project,
+            name='removed test',
+        )
+        db.session.add(removed_test)
+        db.session.add(changed_test)
+
+        current_build = self.create_build(self.project)
+        current_job = self.create_job(current_build)
+        added_test = TestGroup(
+            job=current_job,
+            project=current_job.project,
+            name='added test',
+        )
+
+        db.session.add(added_test)
+        db.session.add(TestGroup(
+            job=current_job,
+            project=current_job.project,
+            name='unchanged test',
+        ))
+        results = find_changed_tests(current_build, previous_build)
+
+        assert ('-', removed_test) in results
+        assert ('+', added_test) in results
+
+        assert len(results) == 2
 
 
 class BuildDetailsTest(APITestCase):
@@ -29,3 +72,4 @@ class BuildDetailsTest(APITestCase):
         assert data['seenBy'] == []
         assert data['testFailures']['total'] == 0
         assert data['testFailures']['testGroups'] == []
+        assert data['testChanges'] == []
