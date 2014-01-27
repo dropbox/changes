@@ -37,6 +37,12 @@ Setup the default configuration:
 
 	REPO_ROOT = '/tmp'
 
+	# Changes only supports Google Auth, so you'll need to obtain tokens
+    GOOGLE_CLIENT_ID = None
+    GOOGLE_CLIENT_SECRET = None
+
+
+
 Create a Python environment:
 
 ::
