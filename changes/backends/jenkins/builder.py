@@ -22,6 +22,7 @@ from changes.models import (
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 from changes.handlers.xunit import XunitHandler
+from changes.utils.http import build_uri
 
 LOG_CHUNK_SIZE = 4096
 
@@ -571,21 +572,28 @@ class JenkinsBuilder(BaseBackend):
             )
 
         if job.build.source.patch:
+            # XXX(dcramer): Jenkins cannot pass file parameters to downstream
+            # builds which prevents us from simply uploading a file
+            # json_data['parameter'].append(
+            #     {'name': 'PATCH', 'file': 'patch'}
+            # )
+            # files = {
+            #     'patch': job.build.source.patch.diff,
+            # }
             json_data['parameter'].append(
-                {'name': 'PATCH', 'file': 'patch'}
+                {
+                    'name': 'PATCH_URL',
+                    'value': build_uri('/api/0/patches/{0}/?raw=1'.format(
+                        job.build.source.patch.id)),
+                }
             )
-            files = {
-                'patch': job.build.source.patch.diff,
-            }
-        else:
-            files = None
 
         # TODO: Jenkins will return a 302 if it cannot queue the job which I
         # believe implies that there is already a job with the same parameters
         # queued.
         self._get_response('/job/{}/build'.format(job_name), method='POST', data={
             'json': json.dumps(json_data),
-        }, files=files)
+        })
 
         # we retry for a period of time as Jenkins doesn't have strong consistency
         # guarantees and the job may not show up right away
