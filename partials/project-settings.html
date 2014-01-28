@@ -40,6 +40,24 @@
 
 		</fieldset>
 
+		<fiedlset>
+
+			<legend>Green Build</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options.green_build.notify">
+					Notify of passing builds.
+				</label>
+			</div>
+
+			<div class="form-group">
+				<label>Project name</label>
+				<input type="text" class="form-control" ng-model="options.green_build.project">
+			</div>
+
+		</fieldset>
+
 		<fieldset>
 
 			<legend>Builds</legend>

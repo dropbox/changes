@@ -34,6 +34,8 @@ class Validator(object):
         return result
 
 OPTION_DEFAULTS = {
+    'green-build.notify': '0',
+    'green-build.project': '',
     'mail.notify-author': '1',
     'mail.notify-addresses': '',
     'mail.notify-addresses-revisions': '',

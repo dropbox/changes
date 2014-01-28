@@ -8,12 +8,16 @@
         '$scope', '$rootScope', 'initialProject', '$http', '$routeParams',
         function($scope, $rootScope, initialProject, $http, $routeParams) {
 
-      var booleans = {"mail.notify-authors": 1, "build.allow-patches": 1};
+      var booleans = {
+        "build.allow-patches": 1,
+        "green-build.notify": 1,
+        "mail.notify-authors": 1
+      };
       var options = {};
       for (var k in initialProject.data.options) {
         var bits = k.split('.');
-        var group = bits[0];
-        var key = bits[1];
+        var group = bits[0].replace(/-/g, '_');
+        var key = bits[1].replace(/-/g, '_');
         var value = initialProject.data.options[k];
         if (booleans[k]) {
           value = parseInt(value, 10) == 1;
@@ -22,7 +26,7 @@
         if (!options[group]) {
           options[group] = {};
         }
-        options[group][key.replace(/-/g, '_')] = value;
+        options[group][key] = value;
       }
 
       $scope.project = initialProject.data;
