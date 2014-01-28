@@ -584,7 +584,7 @@ class JenkinsBuilder(BaseBackend):
                 {
                     'name': 'PATCH_URL',
                     'value': build_uri('/api/0/patches/{0}/?raw=1'.format(
-                        job.build.source.patch.id)),
+                        job.build.source.patch.id.hex)),
                 }
             )
 
