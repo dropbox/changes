@@ -38,9 +38,6 @@
         logChunkData.size += data.size;
 
         $el.append(frag);
-
-        var el = $el.get(0);
-        el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
       }
 
       function updateTestGroup(data) {
