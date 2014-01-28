@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.models import TestGroup, AggregateTestGroup
 from changes.testutils import APITestCase
 
@@ -15,7 +15,8 @@ class ProjectTestIndexTest(APITestCase):
 
         project = self.create_project()
         build = self.create_build(project)
-        job = self.create_job(build, status=Status.finished)
+        job = self.create_job(
+            build, status=Status.finished, result=Result.passed)
 
         agg_group = AggregateTestGroup(
             project=project,

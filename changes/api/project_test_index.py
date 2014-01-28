@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload, subqueryload
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.models import Project, AggregateTestGroup, TestGroup, Job, Source
 
 
@@ -32,6 +32,7 @@ class ProjectTestIndexAPIView(APIView):
         ).filter(
             Source.patch_id == None,  # NOQA
             Job.project == project,
+            Job.result == Result.passed,
             Job.status == Status.finished,
         ).order_by(
             Job.date_created.desc(),
