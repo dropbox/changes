@@ -75,7 +75,8 @@
         // Angular isn't intelligent enough to optimize this.
         var $el = $('#log-' + data.source.id + ' > .build-log'),
             item, source_id = data.source.id,
-            chars_to_remove, lines_to_remove;
+            chars_to_remove, lines_to_remove,
+            frag;
 
         if ($el.length === 0) {
           // logsource isnt available in viewpane
@@ -108,13 +109,21 @@
           }
         }
 
+        frag = document.createDocumentFragment();
+
         // add each additional new line
         $.each(data.text.split('\n'), function(_, line){
-          $el.append($('<div class="line">' + line + '</div>'));
+          var div = document.createElement('div');
+          div.className = 'line';
+          div.innerText = line;
+          frag.appendChild(div);
         });
+
 
         item.text = (item.text + data.text).substr(-buffer_size);
         item.size = item.text.length;
+
+        $el.append(frag);
 
         if ($el.is(':visible')) {
           var el = $el.get(0);

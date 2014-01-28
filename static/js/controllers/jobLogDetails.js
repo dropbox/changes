@@ -16,20 +16,28 @@
       function updateBuildLog(data) {
         var $el = $('#log-' + data.source.id + ' > .build-log'),
             source_id = data.source.id,
-            chars_to_remove, lines_to_remove;
+            chars_to_remove, lines_to_remove,
+            frag;
 
         if (data.offset < logChunkData.nextOffset) {
           return;
         }
         logChunkData.nextOffset = data.offset + data.size;
 
+        frag = document.createDocumentFragment();
+
         // add each additional new line
         $.each(data.text.split('\n'), function(_, line){
-          $el.append($('<div class="line">' + line + '</div>'));
+          var div = document.createElement('div');
+          div.className = 'line';
+          div.innerText = line;
+          frag.appendChild(div);
         });
 
         logChunkData.text += data.text;
         logChunkData.size += data.size;
+
+        $el.append(frag);
 
         var el = $el.get(0);
         el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
