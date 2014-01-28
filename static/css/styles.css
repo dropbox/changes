@@ -244,16 +244,22 @@ dl.flat dt {
   padding: 0;
 }
 .seen-by li {
+  float: left;
   margin: 0;
   padding: 0;
-  display: inline-block;
+}
+.seen-by li.active img {
+  opacity: 1;
 }
 .seen-by img {
-  width: 16px;
-  height: 16px;
-  border-radius: 16px;
-  -moz-border-radius: 16px;
-  -webkit-border-radius: 16px;
+  display: block;
+  opacity: 0.3;
+  padding: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 22px;
+  -moz-border-radius: 22px;
+  -webkit-border-radius: 22px;
 }
 
 .change-header h2,
@@ -278,15 +284,15 @@ dl.flat dt {
 .change-header .indicator,
 .build-header .indicator {
   position: absolute;
-  top: 5px;
+  top: 10px;
   right: 0;
   border-radius: 34px;
 }
 
 .build-header .seen-by {
   position: absolute;
-  right: 47px;
-  top: 0;
+  right: 30px;
+  top: 5px;
   bottom: 20px;
   max-width: 150px;
 }

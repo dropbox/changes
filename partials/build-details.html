@@ -10,9 +10,69 @@
 			</div>
 			<div class="seen-by">
 				<ul>
+					<li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy" class="active">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
 					<li ng-repeat="seenUser in seenBy">
 						<a tooltip="{{seenUser.email}}"
-						   tooltip-placement="left">
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
+							<img src="{{seenUser.avatar}}&amp;s=16">
+						</a>
+					</li>
+					<li ng-repeat="seenUser in seenBy">
+						<a tooltip="{{seenUser.email}}"
+						   tooltip-placement="bottom">
 							<img src="{{seenUser.avatar}}&amp;s=16">
 						</a>
 					</li>
