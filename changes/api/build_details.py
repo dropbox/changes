@@ -110,8 +110,6 @@ class BuildDetailsAPIView(APIView):
         test_failures = TestGroup.query.options(
             joinedload('parent'),
             joinedload('job'),
-        ).join(
-            Job, Job.build_id == build.id,
         ).filter(
             TestGroup.job_id == Job.id,
             TestGroup.result == Result.failed,
