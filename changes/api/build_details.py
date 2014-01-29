@@ -61,6 +61,9 @@ def find_changed_tests(current_build, previous_build):
         else:
             all_test_ids.add(p_id)
 
+    if not all_test_ids:
+        return []
+
     test_map = dict(
         (t.id, t) for t in TestGroup.query.filter(
             TestGroup.id.in_(all_test_ids),
