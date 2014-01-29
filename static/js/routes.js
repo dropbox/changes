@@ -100,7 +100,7 @@ define(['app',
           controller: 'buildDetailsCtrl',
           resolve: {
             initialData: ['$http', '$route', '$window', function($http, $route, $window) {
-              var deferred = $q.defer(),
+              var deferred = $q.defer();
 
               $http.get('/api/0/builds/' + $route.current.params.build_id + '/')
                 .success(function(data, status, headers){
@@ -114,8 +114,7 @@ define(['app',
                   deferred.resolve({
                     'data': data,
                     'status': status,
-                    'headers': headers,
-                    'entrypoint': entrypoint
+                    'headers': headers
                   });
                 })
                 .error(function(){
