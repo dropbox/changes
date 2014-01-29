@@ -209,7 +209,7 @@
         $timeout(function(){
           $('#log_sources a[data-toggle="tab"]').tab();
           $('#log_sources a[data-toggle="tab"]').on('show.bs.tab', function(e){
-            var source_id = $(e.target).attr("data-source"),
+            var source_id = $(e.target).attr("data-source-id"),
                 $el = $($(e.target).attr("href"));
 
             if (!logSources[source_id]) {
