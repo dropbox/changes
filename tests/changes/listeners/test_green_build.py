@@ -39,6 +39,11 @@ def test_simple(get_options):
 
         build_finished_handler(build)
 
+        vcs.run.assert_called_once_with([
+            'log', '-r aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--limit=1',
+            '--template={rev}:{node|short}'
+        ])
+
         get_options.assert_called_once_with(build.project_id)
 
         assert len(responses.calls) == 1
