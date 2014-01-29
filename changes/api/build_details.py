@@ -111,7 +111,6 @@ class BuildDetailsAPIView(APIView):
             joinedload('parent'),
             joinedload('job'),
         ).filter(
-            TestGroup.job_id == Job.id,
             TestGroup.result == Result.failed,
             TestGroup.num_leaves == 0,
         ).order_by(TestGroup.name.asc())
