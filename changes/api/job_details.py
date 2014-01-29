@@ -35,7 +35,6 @@ class JobDetailsAPIView(APIView):
 
         test_failures = TestGroup.query.options(
             joinedload('parent'),
-            joinedload('job'),
         ).filter(
             TestGroup.job_id == job.id,
             TestGroup.result == Result.failed,
