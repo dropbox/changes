@@ -99,7 +99,7 @@ define(['app',
           templateUrl: 'partials/build-details.html',
           controller: 'buildDetailsCtrl',
           resolve: {
-            initialData: ['$http', '$route', '$window', function($http, $route, $window) {
+            initialData: ['$q', '$http', '$route', '$window', function($q, $http, $route, $window) {
               var deferred = $q.defer();
 
               $http.get('/api/0/builds/' + $route.current.params.build_id + '/')
