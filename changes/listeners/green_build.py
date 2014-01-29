@@ -41,7 +41,7 @@ def build_finished_handler(build, **kwargs):
 
     options = get_options(build.project_id)
 
-    if options.get('green-build.notify') != '1':
+    if options.get('green-build.notify', '1') != '0':
         logger.info('green-build.notify disabled for project: %s', build.project_id)
         return
 
