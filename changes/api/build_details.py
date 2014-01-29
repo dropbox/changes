@@ -111,7 +111,7 @@ class BuildDetailsAPIView(APIView):
             joinedload('parent'),
             joinedload('job', innerjoin=True),
         ).filter(
-            TestGroup.job.in_(j.id for j in jobs),
+            TestGroup.job_id.in_([j.id for j in jobs]),
             TestGroup.result == Result.failed,
             TestGroup.num_leaves == 0,
         ).order_by(TestGroup.name.asc())
