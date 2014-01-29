@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 from sqlalchemy import or_
 
-from changes.config import db
-from changes.config import queue
 from changes.models import Repository, RepositoryBackend
+from changes.jobs.sync_repo import sync_repo
 
 
 def check_repos():
@@ -24,14 +23,14 @@ def check_repos():
     if not repo_list:
         return
 
-    db.session.query(Repository).filter(
+    Repository.query.filter(
         Repository.id.in_([r.id for r in repo_list]),
     ).update({
         Repository.last_update_attempt: now,
     }, synchronize_session=False)
 
     for repo in repo_list:
-        db.session.expire(repo)
-        queue.delay('sync_repo', kwargs={
-            'repo_id': repo.id.hex,
-        })
+        sync_repo.delay(
+            task_id=repo.id.hex,
+            repo_id=repo.id.hex,
+        )

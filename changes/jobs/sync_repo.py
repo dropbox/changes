@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from changes.config import db, queue
+from changes.config import db
 from changes.models import Repository
-from changes.utils.locking import lock
+from changes.queue.task import tracked_task
 
 
-@lock
+@tracked_task
 def sync_repo(repo_id, continuous=True):
     repo = Repository.query.get(repo_id)
     if not repo:
@@ -45,6 +45,4 @@ def sync_repo(repo_id, continuous=True):
     db.session.commit()
 
     if continuous:
-        queue.delay('sync_repo', kwargs={
-            'repo_id': repo_id
-        }, countdown=15)
+        raise sync_repo.NotFinished

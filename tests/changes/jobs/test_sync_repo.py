@@ -10,7 +10,7 @@ from changes.vcs.base import Vcs
 
 class SyncRepoTest(TestCase):
     @mock.patch('changes.models.Repository.get_vcs')
-    @mock.patch('changes.jobs.sync_repo.queue.delay')
+    @mock.patch('changes.config.queue.delay')
     def test_simple(self, queue_delay, get_vcs_backend):
         vcs_backend = mock.MagicMock(spec=Vcs)
 
@@ -19,7 +19,7 @@ class SyncRepoTest(TestCase):
         repo = self.create_repo(
             backend=RepositoryBackend.git)
 
-        sync_repo(repo_id=repo.id.hex)
+        sync_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
 
         get_vcs_backend.assert_called_once_with()
 
@@ -34,4 +34,6 @@ class SyncRepoTest(TestCase):
         # ensure signal is fired
         queue_delay.assert_called_once_with('sync_repo', kwargs={
             'repo_id': repo.id.hex,
-        }, countdown=15)
+            'task_id': repo.id.hex,
+            'parent_task_id': None,
+        }, countdown=5)
