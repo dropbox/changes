@@ -18,6 +18,13 @@
         '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'flash', 'collection',
         function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, flash, Collection) {
 
+      // TODO(dcramer): find a better way to render partials/something where we can keep the
+      // build header, but change the body based on the number of jobs
+      if (initialData.data.jobs.length == 1) {
+        $window.location.href = initialData.data.jobs[0].link;
+        return;
+      }
+
       var stream,
           entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
           chart_options = {
