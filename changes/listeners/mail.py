@@ -22,13 +22,13 @@ def get_test_failures(job):
     )])
 
 
-def did_cause_breakage(job):
+def should_notify(job):
     """
     Compare with parent job (previous job) and confirm if current
     job provided any change in state (e.g. new failures).
     """
-    if job.result != Result.failed:
-        return False
+    if job.result not in (Result.failed, Result.passed):
+        return
 
     parent = Job.query.join(
         Source, Source.id == Job.source_id,
@@ -41,7 +41,10 @@ def did_cause_breakage(job):
 
     # if theres no parent, this job must be at fault
     if parent is None:
-        return True
+        return job.result == Result.failed
+
+    if parent.result == job.result != Result.failed:
+        return False
 
     if parent.result == Result.passed:
         return True
@@ -192,7 +195,7 @@ def job_finished_handler(job, **kwargs):
     if not recipients:
         return
 
-    if not did_cause_breakage(job):
+    if not should_notify(job):
         return
 
     send_notification(job, recipients)
