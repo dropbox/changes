@@ -37,7 +37,7 @@ class MercurialVcs(Vcs):
             cmd.append('-r %s' % (parent,))
         if limit:
             cmd.append('--limit=%d' % (limit,))
-        result = self.run(cmd, capture=True)
+        result = self.run(cmd)
 
         for chunk in BufferParser(result, '\x02'):
             (sha, author, author_date, parents, message) = chunk.split('\x01')
@@ -57,6 +57,6 @@ class MercurialVcs(Vcs):
 
     def export(self, id):
         cmd = ['diff', '-g', '-c %s' % (id,)]
-        result = self.run(cmd, capture=True)
+        result = self.run(cmd)
         print (cmd, result)
         return result

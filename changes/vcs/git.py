@@ -47,7 +47,7 @@ class GitVcs(Vcs):
             cmd.append(parent)
         if limit:
             cmd.append('-n %d' % (limit,))
-        result = self.run(cmd, capture=True)
+        result = self.run(cmd)
 
         for chunk in BufferParser(result, '\x02'):
             (sha, author, author_date, committer, committer_date,
@@ -73,5 +73,5 @@ class GitVcs(Vcs):
 
     def export(self, id):
         cmd = ['log', '-n 1', '-p', '--pretty="%b"', id]
-        result = self.run(cmd, capture=True)[4:]
+        result = self.run(cmd)[4:]
         return result

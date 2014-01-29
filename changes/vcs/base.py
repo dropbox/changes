@@ -3,10 +3,23 @@ from __future__ import absolute_import, division, print_function
 import os
 import os.path
 import re
+from subprocess import Popen, PIPE
 
 from changes.constants import PROJECT_ROOT
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import Author, Revision
+
+
+class CommandError(Exception):
+    def __init__(self, cmd, retcode, stdout=None, stderr=None):
+        self.cmd = cmd
+        self.retcode = retcode
+        self.stdout = stdout
+        self.stderr = stderr
+
+    def __unicode__(self):
+        return '%s returned %d:\nSTDOUT: %r\nSTDERR: %r' % (
+            self.cmd, self.retcode, self.stdout, self.stderr)
 
 
 class BufferParser(object):
@@ -48,10 +61,6 @@ class Vcs(object):
         return {}
 
     def run(self, *args, **kwargs):
-        from subprocess import check_output, call
-
-        capture = kwargs.pop('capture', False)
-
         if self.exists():
             kwargs.setdefault('cwd', self.path)
 
@@ -66,10 +75,14 @@ class Vcs(object):
             env[key] = value
 
         kwargs['env'] = env
+        kwargs['stdout'] = PIPE
+        kwargs['stderr'] = PIPE
 
-        if capture:
-            return check_output(*args, **kwargs)
-        return call(*args, **kwargs)
+        proc = Popen(*args, **kwargs)
+        (stdout, stderr) = proc.communicate()
+        if proc.returncode != 0:
+            raise CommandError(args[0], proc.returncode, stdout, stderr)
+        return stdout
 
     def exists(self):
         return os.path.exists(self.path)
