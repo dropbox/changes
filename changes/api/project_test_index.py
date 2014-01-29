@@ -12,7 +12,7 @@ from changes.models import Project, AggregateTestGroup, TestGroup, Job, Source
 class ProjectTestIndexAPIView(APIView):
     def _get_project(self, project_id):
         queryset = Project.query.options(
-            joinedload(Project.repository),
+            joinedload(Project.repository, innerjoin=True),
         )
 
         project = queryset.filter_by(slug=project_id).first()

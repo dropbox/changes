@@ -130,11 +130,11 @@ def get_stats_for_period(project, start_period, end_period):
 class ProjectStatsIndexAPIView(APIView):
     def _get_project(self, project_id):
         project = Project.query.options(
-            joinedload(Project.repository),
+            joinedload(Project.repository, innerjoin=True),
         ).filter_by(slug=project_id).first()
         if project is None:
             project = Project.query.options(
-                joinedload(Project.repository),
+                joinedload(Project.repository, innerjoin=True),
             ).get(project_id)
         return project
 
@@ -156,7 +156,7 @@ class ProjectStatsIndexAPIView(APIView):
             start_period = end_period - timedelta(days=period_length)
 
         current_build = Job.query.options(
-            joinedload(Job.project),
+            joinedload(Job.project, innerjoin=True),
         ).filter(
             Source.revision_sha != None,  # NOQA
             Source.patch_id == None,

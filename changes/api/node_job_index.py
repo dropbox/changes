@@ -16,7 +16,7 @@ class NodeJobIndexAPIView(APIView):
         jobs = Job.query.join(
             JobStep, JobStep.job_id == Job.id,
         ).options(
-            joinedload(Job.build),
+            joinedload(Job.build, innerjoin=True),
         ).filter(
             JobStep.node_id == node.id,
         ).order_by(Job.date_created.desc())

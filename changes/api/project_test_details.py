@@ -15,7 +15,7 @@ from changes.models import Project, AggregateTestGroup, TestGroup, Job, Source
 class ProjectTestDetailsAPIView(APIView):
     def _get_project(self, project_id):
         queryset = Project.query.options(
-            joinedload(Project.repository),
+            joinedload(Project.repository, innerjoin=True),
         )
 
         project = queryset.filter_by(slug=project_id).first()
@@ -71,7 +71,7 @@ class ProjectTestDetailsAPIView(APIView):
                 test_list.append(agg)
 
             previous_runs = list(TestGroup.query.options(
-                joinedload('job'),
+                joinedload('job', innerjoin=True),
                 joinedload('job.source'),
             ).join(
                 Job, TestGroup.job_id == Job.id,

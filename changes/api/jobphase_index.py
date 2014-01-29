@@ -11,7 +11,7 @@ class JobPhaseIndexAPIView(APIView):
     def get(self, job_id):
         job = Job.query.options(
             subqueryload_all(Job.phases),
-            joinedload(Job.project),
+            joinedload('project', innerjoin=True),
         ).get(job_id)
         if job is None:
             return '', 404

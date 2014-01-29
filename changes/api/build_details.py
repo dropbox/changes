@@ -66,7 +66,7 @@ def find_changed_tests(current_build, previous_build):
             TestGroup.id.in_(all_test_ids),
         ).options(
             joinedload('parent'),
-            joinedload('job'),
+            joinedload('job', innerjoin=True),
         )
     )
 
@@ -83,8 +83,8 @@ def find_changed_tests(current_build, previous_build):
 class BuildDetailsAPIView(APIView):
     def get(self, build_id):
         build = Build.query.options(
-            joinedload(Build.project),
-            joinedload(Build.author),
+            joinedload('project', innerjoin=True),
+            joinedload('author'),
         ).get(build_id)
         if build is None:
             return '', 404
@@ -109,8 +109,9 @@ class BuildDetailsAPIView(APIView):
         # identify failures
         test_failures = TestGroup.query.options(
             joinedload('parent'),
-            joinedload('job'),
+            joinedload('job', innerjoin=True),
         ).filter(
+            TestGroup.job.in_(j.id for j in jobs),
             TestGroup.result == Result.failed,
             TestGroup.num_leaves == 0,
         ).order_by(TestGroup.name.asc())

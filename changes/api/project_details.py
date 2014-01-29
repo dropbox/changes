@@ -53,11 +53,11 @@ class ProjectValidator(Validator):
 class ProjectDetailsAPIView(APIView):
     def _get_project(self, project_id):
         project = Project.query.options(
-            joinedload(Project.repository),
+            joinedload(Project.repository, innerjoin=True),
         ).filter_by(slug=project_id).first()
         if project is None:
             project = Project.query.options(
-                joinedload(Project.repository),
+                joinedload(Project.repository, innerjoin=True),
             ).get(project_id)
         return project
 

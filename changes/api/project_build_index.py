@@ -10,7 +10,7 @@ from changes.models import Project, Build
 class ProjectBuildIndexAPIView(APIView):
     def _get_project(self, project_id):
         project = Project.query.options(
-            joinedload(Project.repository),
+            joinedload(Project.repository, innerjoin=True),
         ).filter_by(slug=project_id).first()
         if project is None:
             project = Project.query.options(
@@ -26,7 +26,7 @@ class ProjectBuildIndexAPIView(APIView):
         include_patches = request.args.get('include_patches') or '1'
 
         queryset = Build.query.options(
-            joinedload(Build.project),
+            joinedload(Build.project, innerjoin=True),
             joinedload(Build.author),
         ).filter(
             Build.project_id == project.id,

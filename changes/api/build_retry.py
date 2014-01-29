@@ -9,8 +9,8 @@ from changes.models import Build
 class BuildRetryAPIView(APIView):
     def post(self, build_id):
         build = Build.query.options(
-            joinedload(Build.project),
-            joinedload(Build.author),
+            joinedload('project', innerjoin=True),
+            joinedload('author'),
         ).get(build_id)
         if build is None:
             return '', 404

@@ -13,7 +13,7 @@ class JobDetailsAPIView(APIView):
     def get(self, job_id):
         job = Job.query.options(
             subqueryload_all(Job.phases),
-            joinedload(Job.project),
+            joinedload('project', innerjoin=True),
         ).get(job_id)
         if job is None:
             return '', 404
@@ -26,9 +26,7 @@ class JobDetailsAPIView(APIView):
         ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         # find all parent groups (root trees)
-        test_groups = sorted(TestGroup.query.options(
-            joinedload('parent'),
-        ).filter(
+        test_groups = sorted(TestGroup.query.filter(
             TestGroup.job_id == job.id,
             TestGroup.parent_id == None,  # NOQA: we have to use == here
         ), key=lambda x: x.name)

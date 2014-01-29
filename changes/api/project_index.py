@@ -18,7 +18,7 @@ class ProjectIndexAPIView(APIView):
         for project in project_list:
             data = self.serialize(project)
             data['lastBuild'] = Build.query.options(
-                joinedload(Build.project),
+                joinedload(Build.project, innerjoin=True),
                 joinedload(Build.author),
             ).join(
                 Source, Build.source_id == Source.id,
