@@ -196,6 +196,7 @@ def configure_templates(app):
 def configure_api_routes(app):
     from changes.api.auth_index import AuthIndexAPIView
     from changes.api.author_build_index import AuthorBuildIndexAPIView
+    from changes.api.build_comment_index import BuildCommentIndexAPIView
     from changes.api.build_details import BuildDetailsAPIView
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.build_mark_seen import BuildMarkSeenAPIView
@@ -224,6 +225,7 @@ def configure_api_routes(app):
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
     api.add_resource(AuthorBuildIndexAPIView, '/authors/<author_id>/builds/')
+    api.add_resource(BuildCommentIndexAPIView, '/builds/<build_id>/comments/')
     api.add_resource(BuildDetailsAPIView, '/builds/<build_id>/')
     api.add_resource(BuildMarkSeenAPIView, '/builds/<build_id>/mark_seen/')
     api.add_resource(BuildRetryAPIView, '/builds/<build_id>/retry/')

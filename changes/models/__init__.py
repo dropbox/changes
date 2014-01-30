@@ -3,6 +3,7 @@ from .author import *  # NOQA
 from .build import *  # NOQA
 from .buildseen import *  # NOQA
 from .change import *  # NOQA
+from .comment import *  # NOQA
 from .filecoverage import *  # NOQA
 from .job import *  # NOQA
 from .jobphase import *  # NOQA
