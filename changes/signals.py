@@ -8,11 +8,8 @@ class RobustSignal(Signal):
         super(RobustSignal, self).__init__(name, **kwargs)
         self.logger = logging.getLogger(name)
 
-    def send_robust(self, *sender, **kwargs):
-        if sender:
-            sender = sender[0]
-        else:
-            sender = None
+    def send_robust(self, *args, **kwargs):
+        sender = kwargs.pop('sender', None)
         for receiver in self.receivers_for(sender):
             try:
                 receiver(**kwargs)
