@@ -29,6 +29,7 @@ def app(request):
         JENKINS_SYNC_LOG_ARTIFACTS=True,
         GOOGLE_CLIENT_ID='a' * 12,
         GOOGLE_CLIENT_SECRET='b' * 40,
+        HIPCHAT_TOKEN='abc',
     )
     app_context = app.test_request_context()
     app_context.push()
