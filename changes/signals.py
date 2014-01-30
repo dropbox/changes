@@ -12,7 +12,7 @@ class RobustSignal(Signal):
         sender = kwargs.get('sender', None)
         for receiver in self.receivers_for(sender):
             try:
-                receiver(**kwargs)
+                receiver(*args, **kwargs)
             except Exception as e:
                 self.logger.exception(unicode(e))
 
