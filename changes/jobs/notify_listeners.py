@@ -8,7 +8,7 @@ def notify_job_finished(job_id):
         return
 
     signal = SIGNAL_MAP['job.finished']
-    signal.send(job)
+    signal.send_robust(job)
 
 
 def notify_build_finished(build_id):
@@ -17,4 +17,4 @@ def notify_build_finished(build_id):
         return
 
     signal = SIGNAL_MAP['build.finished']
-    signal.send(build)
+    signal.send_robust(build)
