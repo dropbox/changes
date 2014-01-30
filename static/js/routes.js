@@ -99,29 +99,8 @@ define(['app',
           templateUrl: 'partials/build-details.html',
           controller: 'buildDetailsCtrl',
           resolve: {
-            initialData: ['$q', '$http', '$route', '$location', function($q, $http, $route, $location) {
-              var deferred = $q.defer();
-
-              $http.get('/api/0/builds/' + $route.current.params.build_id + '/')
-                .success(function(data, status, headers){
-                  // TODO(dcramer): find a better way to render partials/something where we can keep the
-                  // build header, but change the body based on the number of jobs
-                  if (data.jobs.length == 1) {
-                    $location.path('/jobs/' + data.jobs[0].id + '/');
-                    return;
-                  }
-
-                  deferred.resolve({
-                    'data': data,
-                    'status': status,
-                    'headers': headers
-                  });
-                })
-                .error(function(){
-                  deferred.reject();
-                });
-
-              return deferred.promise;
+            initialData: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/builds/' + $route.current.params.build_id + '/');
             }]
           }
         })
