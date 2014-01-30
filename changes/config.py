@@ -97,6 +97,7 @@ def create_app(_read_config=True, **config):
     app.config['EVENT_LISTENERS'] = (
         ('changes.listeners.mail.job_finished_handler', 'job.finished'),
         ('changes.listeners.green_build.build_finished_handler', 'build.finished'),
+        ('changes.listeners.hipchat.build_finished_handler', 'build.finished'),
     )
 
     # celerybeat must be running for our cleanup tasks to execute
