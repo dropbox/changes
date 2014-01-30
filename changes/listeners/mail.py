@@ -43,11 +43,8 @@ def should_notify(job):
     if parent is None:
         return job.result == Result.failed
 
-    if parent.result == job.result != Result.failed:
+    if parent.result != job.result != Result.failed:
         return False
-
-    if parent.result == Result.passed:
-        return True
 
     current_failures = get_test_failures(job)
     # if we dont have any testgroup failures, then we cannot identify the cause
