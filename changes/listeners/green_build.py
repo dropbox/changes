@@ -4,7 +4,7 @@ import requests
 from flask import current_app
 
 from changes.config import db
-from changes.models import ProjectOption
+from changes.models import ProjectOption, RepositoryBackend
 from changes.utils.http import build_uri
 
 logger = logging.getLogger('green_build')
@@ -43,6 +43,10 @@ def build_finished_handler(build, **kwargs):
 
     if options.get('green-build.notify', '1') != '1':
         logger.info('green-build.notify disabled for project: %s', build.project_id)
+        return
+
+    if build.repository.backend != RepositoryBackend.hg:
+        logger.info('Repository backend is not supported: %s', build.repository.id)
         return
 
     vcs = build.repository.get_vcs()
