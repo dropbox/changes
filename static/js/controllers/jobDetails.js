@@ -115,7 +115,7 @@
         $.each(data.text.split('\n'), function(_, line){
           var div = document.createElement('div');
           div.className = 'line';
-          div.innerText = line;
+          div.innerHTML = line;
           frag.appendChild(div);
         });
 
