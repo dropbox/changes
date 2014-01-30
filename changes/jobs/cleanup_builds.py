@@ -36,27 +36,30 @@ def cleanup_builds():
     for b_id in expired:
         current_app.logger.warn('Expiring build %s', b_id)
 
-    # TODO(dcramer): we have the power to re-queue these, so let's make it
-    # configurable and default to requeue rather than abort
-    db.session.query(Build).filter(
-        Build.id.in_(expired),
-    ).update({
-        Build.date_modified: now,
-        Build.status: Status.finished,
-        Build.result: Result.aborted,
-    }, synchronize_session=False)
+    if expired:
+        # TODO(dcramer): we have the power to re-queue these, so let's make it
+        # configurable and default to requeue rather than abort
+        db.session.query(Build).filter(
+            Build.id.in_(expired),
+        ).update({
+            Build.date_modified: now,
+            Build.status: Status.finished,
+            Build.result: Result.aborted,
+        }, synchronize_session=False)
 
-    # remove expired jobs
-    build_ids = [
-        b.id for b in build_list
-        if b.id not in expired
-    ]
+        # remove expired jobs
+        build_ids = [
+            b.id for b in build_list
+            if b.id not in expired
+        ]
+    else:
+        build_ids = [b.id for b in build_list]
+
+    if not build_ids:
+        return
 
     for build in build_list:
         db.session.expire(build)
-
-    if not build_list:
-        return
 
     db.session.query(Build).filter(
         Build.id.in_(build_ids),
