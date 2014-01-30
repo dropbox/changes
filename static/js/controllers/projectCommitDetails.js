@@ -7,8 +7,8 @@
       'directives/radialProgressBar',
       'directives/timeSince'], function(app, sortBuildList) {
     app.controller('projectCommitDetailsCtrl', [
-        '$scope', '$rootScope', 'initialProject', 'initialCommit', '$http', '$location', '$routeParams', 'stream',
-        function($scope, $rootScope, initialProject, initialCommit, $http, $location, $routeParams, Stream) {
+        '$scope', '$rootScope', 'initialProject', 'initialCommit', '$http', '$location', '$routeParams', 'stream', 'flash',
+        function($scope, $rootScope, initialProject, initialCommit, $http, $location, $routeParams, Stream, flash) {
       var stream,
           entrypoint = '/api/0/projects/' + $routeParams.project_id + '/commits/' + $routeParams.commit_id + '/';
 
@@ -55,7 +55,7 @@
         var data = {
           repository: $scope.repository.url,
           sha: $scope.commit.sha
-        }
+        };
 
         $http.post('/api/0/builds/' + $scope.build.id + '/', data)
           .success(function(data){
