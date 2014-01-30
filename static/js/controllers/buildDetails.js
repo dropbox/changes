@@ -66,7 +66,7 @@
       $scope.retryBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
           .success(function(data){
-            $location.path(data.build.link);
+            $location.path('/builds/' + data.build.id + '/');
           })
           .error(function(){
             flash('error', 'There was an error while retrying this build.');
