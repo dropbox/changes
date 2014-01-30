@@ -15,8 +15,8 @@
       'modules/flash',
       'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('buildDetailsCtrl', [
-        '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'flash', 'collection',
-        function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, flash, Collection) {
+        '$scope', '$rootScope', 'initialData', '$location', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'flash', 'collection',
+        function($scope, $rootScope, initialData, $location, $timeout, $http, $routeParams, $filter, Stream, flash, Collection) {
       var stream,
           entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
           chart_options = {
@@ -66,7 +66,7 @@
       $scope.retryBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
           .success(function(data){
-            $window.location.href = data.build.link;
+            $location.path(data.build.link);
           })
           .error(function(){
             flash('error', 'There was an error while retrying this build.');
