@@ -2,6 +2,7 @@ import logging
 import flask
 import os
 import os.path
+import warnings
 
 from celery.signals import task_postrun
 from datetime import timedelta
@@ -20,6 +21,9 @@ from changes.ext.pubsub import PubSub
 from changes.ext.redis import Redis
 from changes.utils.trace import TracerMiddleware
 
+# because foo.in_([]) ever executing is a bad idea
+from sqlalchemy.exc import SAWarning
+warnings.simplefilter('error', SAWarning)
 
 db = SQLAlchemy(session_options={
     'autoflush': True,
