@@ -47,7 +47,7 @@
         if (build.status.id == 'finished') {
           return build.result.name;
         } else {
-          return build.status.name;
+          return build.status.name
         }
       };
 
