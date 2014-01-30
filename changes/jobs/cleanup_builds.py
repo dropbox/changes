@@ -47,19 +47,17 @@ def cleanup_builds():
             Build.result: Result.aborted,
         }, synchronize_session=False)
 
-        # remove expired jobs
-        build_ids = [
-            b.id for b in build_list
-            if b.id not in expired
-        ]
-    else:
-        build_ids = [b.id for b in build_list]
-
-    if not build_ids:
-        return
+    # remove expired jobs
+    build_ids = [
+        b.id for b in build_list
+        if b.id not in expired
+    ]
 
     for build in build_list:
         db.session.expire(build)
+
+    if not build_ids:
+        return
 
     db.session.query(Build).filter(
         Build.id.in_(build_ids),
