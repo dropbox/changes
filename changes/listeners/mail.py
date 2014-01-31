@@ -35,6 +35,7 @@ def should_notify(job):
     ).filter(
         Source.patch_id == None,  # NOQA
         Source.revision_sha != job.build.source.revision_sha,
+        Job.project == job.project,
         Job.date_created < job.date_created,
         Job.status == Status.finished,
     ).order_by(Job.date_created.desc()).first()
