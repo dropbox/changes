@@ -37,6 +37,7 @@ def should_notify(build):
     ).filter(
         Source.patch_id == None,  # NOQA
         Source.revision_sha != build.source.revision_sha,
+        Build.project == build.project,
         Build.date_created < build.date_created,
         Build.status == Status.finished,
     ).order_by(Build.date_created.desc()).first()
