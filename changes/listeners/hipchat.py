@@ -5,8 +5,8 @@ import requests
 from flask import current_app
 
 from changes.config import db
-from changes.constants import Result
-from changes.models import ProjectOption
+from changes.constants import Result, Status
+from changes.models import Build, ProjectOption, Source
 from changes.utils.http import build_uri
 
 logger = logging.getLogger('hipchat')
@@ -28,14 +28,36 @@ def get_options(project_id):
     )
 
 
-def build_finished_handler(build, **kwargs):
-    if build.result != Result.failed:
+def should_notify(build):
+    if build.result not in (Result.failed, Result.passed):
         return
 
+    parent = Build.query.join(
+        Source, Source.id == Build.source_id,
+    ).filter(
+        Source.patch_id == None,  # NOQA
+        Source.revision_sha != build.source.revision_sha,
+        Build.date_created < build.date_created,
+        Build.status == Status.finished,
+    ).order_by(Build.date_created.desc()).first()
+
+    if parent is None:
+        return build.result == Result.failed
+
+    if parent.result == build.result:
+        return False
+
+    return True
+
+
+def build_finished_handler(build, **kwargs):
     if build.patch_id:
         return
 
     if not current_app.config.get('HIPCHAT_TOKEN'):
+        return
+
+    if not should_notify(build):
         return
 
     options = get_options(build.project_id)
