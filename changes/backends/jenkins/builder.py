@@ -476,12 +476,21 @@ class JenkinsBuilder(BaseBackend):
         # TODO(dcramer): we shoudl abstract this into a sync_phase
         phase = step.phase
 
-        phase.status = step.status
-        phase.result = step.result
-        phase.date_started = step.date_started
-        phase.date_finished = step.date_finished
+        if phase.status != step.status:
+            phase.status = step.status
+            db.session.add(phase)
 
-        db.session.add(phase)
+        if step.status == Status.finished:
+            phase.status = Status.finished
+            phase.date_started = min(s.date_started for s in phase.steps)
+            phase.date_finished = max(s.date_finished for s in phase.steps)
+
+            if any(s.result is Result.failed for s in phase.steps):
+                phase.result = Result.failed
+            else:
+                phase.result = max(s.result for s in phase.steps)
+
+            db.session.add(phase)
 
         db.session.commit()
 
