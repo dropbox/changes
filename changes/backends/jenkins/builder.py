@@ -22,6 +22,7 @@ from changes.models import (
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 from changes.handlers.xunit import XunitHandler
+from changes.utils.agg import safe_agg
 from changes.utils.http import build_uri
 
 LOG_CHUNK_SIZE = 4096
@@ -482,13 +483,16 @@ class JenkinsBuilder(BaseBackend):
 
         if step.status == Status.finished:
             phase.status = Status.finished
-            phase.date_started = min(s.date_started for s in phase.steps)
-            phase.date_finished = max(s.date_finished for s in phase.steps)
+            phase.date_started = safe_agg(
+                min, (s.date_started for s in phase.steps), step.date_started)
+            phase.date_finished = safe_agg(
+                max, (s.date_finished for s in phase.steps), step.date_finished)
 
             if any(s.result is Result.failed for s in phase.steps):
                 phase.result = Result.failed
             else:
-                phase.result = max(s.result for s in phase.steps)
+                phase.result = safe_agg(
+                    max, (s.result for s in phase.steps), Result.unknown)
 
             db.session.add(phase)
 
