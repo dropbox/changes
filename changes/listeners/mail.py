@@ -44,7 +44,7 @@ def should_notify(job):
     if parent is None:
         return job.result == Result.failed
 
-    if parent.result != job.result != Result.failed:
+    if job.result == Result.passed == parent.result:
         return False
 
     current_failures = get_test_failures(job)
