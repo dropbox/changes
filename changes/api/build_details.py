@@ -119,7 +119,7 @@ class BuildDetailsAPIView(APIView):
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         if previous_runs:
-            most_recent_run = previous_runs[-1]
+            most_recent_run = previous_runs[0]
         else:
             most_recent_run = None
 
