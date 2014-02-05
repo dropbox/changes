@@ -9,7 +9,10 @@ except Exception, e:
 
 
 def _get_git_revision(path):
-    r = subprocess.check_output('git rev-parse HEAD', cwd=path, shell=True)
+    try:
+        r = subprocess.check_output('git rev-parse HEAD', cwd=path, shell=True)
+    except Exception:
+        return None
     return r.strip()
 
 
