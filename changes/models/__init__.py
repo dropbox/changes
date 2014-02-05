@@ -19,6 +19,7 @@ from .remoteentity import *  # NOQA
 from .repository import *  # NOQA
 from .revision import *  # NOQA
 from .source import *  # NOQA
+from .step import *  # NOQA
 from .task import *  # NOQA
 from .test import *  # NOQA
 from .testresult import *  # NOQA
