@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import mock
 import responses
 
+from changes.constants import Result
 from changes.models import Build, RepositoryBackend
 from flask import Flask
 from uuid import UUID
@@ -29,6 +30,7 @@ def test_simple(get_options):
         build.project_id = UUID(hex='b' * 32)
         build.revision_sha = 'a' * 40
         build.repository.backend = RepositoryBackend.hg
+        build.result = Result.passed
 
         vcs = build.repository.get_vcs.return_value
         vcs.run.return_value = release_id
