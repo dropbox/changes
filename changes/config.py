@@ -34,7 +34,7 @@ mail = Mail()
 pubsub = PubSub()
 queue = Celery()
 redis = Redis()
-sentry = Sentry(logging=True, level=logging.WARN)
+sentry = Sentry(logging=True, level=logging.ERROR)
 
 
 def create_app(_read_config=True, **config):
