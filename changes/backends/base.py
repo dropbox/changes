@@ -8,3 +8,15 @@ class BaseBackend(object):
 
     def create_job(self, job):
         raise NotImplementedError
+
+    def sync_job(self, job):
+        raise NotImplementedError
+
+    def sync_step(self, step):
+        raise NotImplementedError
+
+    def cancel_job(self, job):
+        raise NotImplementedError
+
+    def cancel_step(self, step):
+        raise NotImplementedError

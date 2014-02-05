@@ -145,6 +145,79 @@ class CreateBuildTest(BaseTestCase):
         builder.create_job(job)
 
 
+class CancelJobTest(BaseTestCase):
+    @mock.patch.object(JenkinsBuilder, 'cancel_step')
+    def test_simple(self, cancel_step):
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+        )
+        phase = self.create_jobphase(job)
+        step1 = self.create_jobstep(phase, data={
+            'item_id': 1,
+            'job_name': 'server',
+        }, status=Status.queued)
+
+        self.create_jobstep(phase, data={
+            'item_id': 2,
+            'job_name': 'server',
+        }, status=Status.finished)
+
+        builder = self.get_builder()
+        builder.cancel_job(job)
+
+        cancel_step.assert_called_once_with(step1)
+
+
+class CancelStepTest(BaseTestCase):
+    @responses.activate
+    def test_queued(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/cancelItem?id=13',
+            match_querystring=True, status=302)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        }, status=Status.queued)
+
+        builder = self.get_builder()
+        builder.cancel_step(step)
+
+        assert step.result == Result.aborted
+        assert step.status == Status.finished
+
+    @responses.activate
+    def test_active(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/stop/',
+            body='', status=302)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'build_no': 2,
+            'job_name': 'server',
+        }, status=Status.in_progress)
+
+        builder = self.get_builder()
+        builder.cancel_step(step)
+
+        assert step.status == Status.finished
+        assert step.result == Result.aborted
+
+
 class SyncBuildTest(BaseTestCase):
     @responses.activate
     def test_waiting_in_queue(self):

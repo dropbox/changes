@@ -97,7 +97,7 @@ class JenkinsBuilder(BaseBackend):
 
         if resp.status_code == 404:
             raise NotFound
-        elif not (200 <= resp.status_code < 300):
+        elif not (200 <= resp.status_code < 400):
             raise Exception('Invalid response. Status code was %s' % resp.status_code)
 
         return resp.text
@@ -559,6 +559,34 @@ class JenkinsBuilder(BaseBackend):
             self._sync_artifact_as_log(jobstep, job_name, build_no, artifact)
         if self.sync_xunit_artifacts and artifact['fileName'].endswith(XUNIT_FILENAMES):
             self._sync_artifact_as_xunit(jobstep, job_name, build_no, artifact)
+
+    def cancel_job(self, job):
+        active_steps = JobStep.query.filter(
+            JobStep.job == job,
+            JobStep.status != Status.finished,
+        )
+        for step in active_steps:
+            self.cancel_step(step)
+
+        job.status = Status.finished
+        job.result = Result.aborted
+        db.session.add(job)
+
+    def cancel_step(self, step):
+        if step.data.get('build_no'):
+            url = '/job/{}/{}/stop/'.format(
+                step.data['job_name'], step.data['build_no'])
+        else:
+            url = '/queue/cancelItem?id={}'.format(step.data['item_id'])
+
+        try:
+            self._get_raw_response(url)
+        except NotFound:
+            raise UnrecoverableException('Unable to find job in Jenkins')
+
+        step.status = Status.finished
+        step.result = Result.aborted
+        db.session.add(step)
 
     def create_job(self, job):
         """
