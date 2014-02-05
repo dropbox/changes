@@ -149,7 +149,7 @@ class BuildDetailsAPIView(APIView):
             test_failure.origin = failure_origins.get(test_failure)
 
         # identify added/removed tests
-        if most_recent_run:
+        if most_recent_run and build.status == Status.finished:
             changed_tests = find_changed_tests(build, most_recent_run)
         else:
             changed_tests = []
