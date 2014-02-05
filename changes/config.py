@@ -8,7 +8,6 @@ import warnings
 from celery.signals import task_postrun
 from datetime import timedelta
 from flask import session
-from flask.ext.restful import Api
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from kombu import Queue
@@ -17,6 +16,7 @@ from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
 
 from changes.constants import PROJECT_ROOT
+from changes.api.controller import APIController
 from changes.ext.celery import Celery
 from changes.ext.pubsub import PubSub
 from changes.ext.redis import Redis
@@ -29,7 +29,7 @@ warnings.simplefilter('error', SAWarning)
 db = SQLAlchemy(session_options={
     'autoflush': True,
 })
-api = Api(prefix='/api/0')
+api = APIController(prefix='/api/0')
 mail = Mail()
 pubsub = PubSub()
 queue = Celery()

@@ -1,5 +1,4 @@
 import json
-import logging
 
 from functools import wraps
 from urllib import quote
@@ -9,8 +8,6 @@ from flask.ext.restful import Resource
 
 from changes.api.serializer import serialize as serialize_func
 from changes.api.stream import EventStream
-
-logger = logging.getLogger('api')
 
 LINK_HEADER = '<{uri}&page={page}>; rel="{name}"'
 
@@ -74,15 +71,7 @@ class APIView(Resource):
                 return Response(status=404)
             return self.stream_response(channels)
 
-        # XXX(dcramer): there is an issue w/ Flask-Restful that causes exceptions
-        # to not propagate in a useful way, so let's also use our own logger
-        try:
-            result = super(APIView, self).dispatch_request(*args, **kwargs)
-        except Exception as e:
-            logger.exception(unicode(e))
-            raise
-        else:
-            return result
+        return super(APIView, self).dispatch_request(*args, **kwargs)
 
     def paginate(self, queryset, **kwargs):
         page = int(request.args.get('page', 1))
