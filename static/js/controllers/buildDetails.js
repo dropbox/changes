@@ -95,6 +95,7 @@
       $scope.previousRuns = initialData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
       $scope.testFailures = initialData.data.testFailures;
+      $scope.testChanges = initialData.data.testChanges;
       $scope.seenBy = initialData.data.seenBy.slice(0, 14);
 
       $rootScope.activeProject = $scope.project;

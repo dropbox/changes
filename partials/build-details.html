@@ -124,5 +124,19 @@
 				</tbody>
 			</table>
 		</div>
+
+		<div ng-if="testChanges.total">
+			<div class="page-header">
+				<h3>Changed Tests <small>{{ testChanges.total }} total</small></h3>
+			</div>
+
+			<ul class="test-list">
+				<li ng-repeat="testChange in testChanges.changes" ng-class="{'-': 'test-removed', '+': 'test-added'}[testChange[0]]">
+					<i class="glyphicon" ng-class="{'-': 'glyphicon-minus', '+': 'glyphicon-plus'}[testChange[0]]"></i>
+					{{testChange[1].name}}<br>
+					<small>{{testChange[1].package}}</li>
+				</li>
+			</ul>
+		</div>
 	</div>
 </section>

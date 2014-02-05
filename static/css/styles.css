@@ -599,10 +599,27 @@ table > tbody > tr.result-skipped > td.result span {
 }
 
 .test-list {
-  line-height: 1.8em;
+  list-style: none;
+  padding-left: 0;
 }
 .test-list > li {
-
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 5px;
+}
+.test-list > li i {
+  font-size: 11px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 2.2em;
+  display: block;
+}
+.test-list > li.test-added {
+  color: green;
+}
+.test-list > li.test-removed {
+  color: #d9322d;
 }
 .test-list li a {
   color: inherit;

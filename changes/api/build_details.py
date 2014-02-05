@@ -8,11 +8,11 @@ from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithOriginSerializer
 from changes.config import db
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, Job, TestGroup, BuildSeen, User
+from changes.models import Build, Job, TestCase, TestGroup, BuildSeen, User
 from changes.utils.originfinder import find_failure_origins
 
 
-def find_changed_tests(current_build, previous_build):
+def find_changed_tests(current_build, previous_build, limit=25):
     current_job_ids = [j.id.hex for j in current_build.jobs]
     previous_job_ids = [j.id.hex for j in previous_build.jobs]
 
@@ -32,26 +32,45 @@ def find_changed_tests(current_build, previous_build):
     for idx, job_id in enumerate(previous_job_ids):
         params['p_job_id_%s' % idx] = job_id
 
+    # find all tests that have appeared in one job but not the other
+    # we have to build this query up manually as sqlalchemy doesnt support
+    # the FULL OUTER JOIN clause
+    query = """
+        SELECT c.id AS c_id,
+               p.id AS p_id
+        FROM (
+            SELECT label_sha, id
+            FROM test
+            WHERE job_id IN (%(current_job_clause)s)
+        ) as c
+        FULL OUTER JOIN (
+            SELECT label_sha, id
+            FROM test
+            WHERE job_id IN (%(previous_job_clause)s)
+        ) as p
+        ON c.label_sha = p.label_sha
+        WHERE (c.id IS NULL OR p.id IS NULL)
+    """ % {
+        'current_job_clause': current_job_clause,
+        'previous_job_clause': previous_job_clause
+    }
+
+    total = db.session.query(
+        'count'
+    ).from_statement(
+        'SELECT COUNT(*) FROM (%s) as a' % (query,)
+    ).params(**params).scalar()
+
+    if not total:
+        return {
+            'total': 0,
+            'changes': [],
+        }
+
     results = db.session.query(
         'c_id', 'p_id'
     ).from_statement(
-        """
-            SELECT c.id AS c_id,
-                   p.id AS p_id
-            FROM (
-                SELECT name_sha, id
-                FROM testgroup
-                WHERE job_id IN (%(current_job_clause)s)
-            ) as c
-            FULL OUTER JOIN (
-                SELECT name_sha, id
-                FROM testgroup
-                WHERE job_id IN (%(previous_job_clause)s)
-            ) as p
-            ON c.name_sha = p.name_sha
-            WHERE (c.id IS NULL OR p.id IS NULL)
-        """ % {'current_job_clause': current_job_clause,
-               'previous_job_clause': previous_job_clause}
+        '%s LIMIT %d' % (query, limit)
     ).params(**params)
 
     all_test_ids = set()
@@ -61,14 +80,10 @@ def find_changed_tests(current_build, previous_build):
         else:
             all_test_ids.add(p_id)
 
-    if not all_test_ids:
-        return []
-
     test_map = dict(
-        (t.id, t) for t in TestGroup.query.filter(
-            TestGroup.id.in_(all_test_ids),
+        (t.id, t) for t in TestCase.query.filter(
+            TestCase.id.in_(all_test_ids),
         ).options(
-            joinedload('parent'),
             joinedload('job', innerjoin=True),
         )
     )
@@ -80,7 +95,10 @@ def find_changed_tests(current_build, previous_build):
         else:
             diff.append(('+', test_map[UUID(c_id)]))
 
-    return diff
+    return {
+        'total': total,
+        'changes': diff,
+    }
 
 
 class BuildDetailsAPIView(APIView):
