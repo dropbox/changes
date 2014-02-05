@@ -1,22 +1,25 @@
 {
-    "name": "changes",
-    "version": "0.1.0",
-    "description": "",
-    "directories": {
-        "tests": "tests"
-    },
-    "scripts": {
-        "tests": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/dropbox/changes.git"
-    },
-    "author": "Dropbox, Inc.",
-    "license": "Apache 2.0",
-    "readmeFilename": "README.rst",
-    "devDependencies": {
-        "jshint": "0.9.x"
-    },
-    "private": true
+  "name": "changes",
+  "version": "0.1.0",
+  "description": "",
+  "directories": {
+    "tests": "tests"
+  },
+  "scripts": {
+    "tests": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dropbox/changes.git"
+  },
+  "author": "Dropbox, Inc.",
+  "license": "Apache 2.0",
+  "readmeFilename": "README.rst",
+  "devDependencies": {
+    "jshint": "0.9.x",
+    "requirejs": "2.1.x",
+    "grunt-contrib-requirejs": "~0.4.1",
+    "grunt": "~0.4.2"
+  },
+  "private": true
 }

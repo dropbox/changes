@@ -1,16 +1,31 @@
 define([
   'angular',
+  'angularBootstrap',
+  'angularHighlightjs',
   'angularLinkify',
+  'angularLoadingBar',
   'angularRoute',
-  'angularSanitize'
-  // 'angularAnimate',
+  'angularSanitize',
+  'modules/barChart',
+  'modules/collection',
+  'modules/flash',
+  'modules/stream',
+  'filters/truncate',
+  'jquery',
+  'bootstrap'
   ], function (angular) {
     'use strict';
 
     return angular.module('app', [
+      'barChart',
+      'chieffancypants.loadingBar',
+      'collection',
+      'flash',
+      'hljs',
       'linkify',
       'ngRoute',
-      'ngSanitize'
-      // 'ngAnimate',
+      'ngSanitize',
+      'stream',
+      'ui.bootstrap'
     ]);
 });

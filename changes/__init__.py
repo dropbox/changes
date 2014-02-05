@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 try:
     VERSION = __import__('pkg_resources') \
@@ -8,14 +9,8 @@ except Exception, e:
 
 
 def _get_git_revision(path):
-    revision_file = os.path.join(path, 'HEAD')
-    if not os.path.exists(revision_file):
-        return None
-    fh = open(revision_file, 'r')
-    try:
-        return fh.read().strip()[:7]
-    finally:
-        fh.close()
+    r = subprocess.check_output('git rev-parse HEAD', cwd=path, shell=True)
+    return r.strip()
 
 
 def get_revision():

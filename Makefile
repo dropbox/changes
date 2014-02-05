@@ -4,6 +4,7 @@ develop: install-requirements install-test-requirements setup-git
 
 upgrade: develop
 	alembic upgrade head
+	grunt requirejs
 
 setup-git:
 	git config branch.autosetuprebase always

@@ -1,7 +1,6 @@
-require.config({
+requirejs.config({
   paths: {
     'angular': '../vendor/angular/angular',
-    'angularAnimate': '../vendor/angular-animate/angular-animate',
     'angularBootstrap': '../vendor/angular-bootstrap/ui-bootstrap-tpls',
     'angularHighlightjs': '../vendor/angular-highlightjs/angular-highlightjs',
     'angularLinkify': '../vendor/angular-linkify/angular-linkify',
@@ -14,14 +13,20 @@ require.config({
     'jquery': '../vendor/jquery/jquery',
     'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
-    'nvd3': '../vendor/nvd3/nv.d3'
+    'nvd3': '../vendor/nvd3/nv.d3',
+    'requirejs': '../vendor/requirejs/requirejs'
   },
-  baseUrl: 'static/js',
   shim: {
-    'angular': {exports: 'angular'},
-    'angularAnimate': ['angular'],
-    'angularBootstrap': ['angular'],
-    'angularHighlightjs': {deps: ['angular', 'highlightjs']},
+    'angular': {
+    	exports: 'angular',
+    	deps: ['jquery']
+   	},
+    'angularBootstrap': {
+    	deps: ['angular', 'bootstrap']
+    },
+    'angularHighlightjs': {
+    	deps: ['angular', 'highlightjs']
+   	},
     'angularLinkify': ['angular'],
     'angularLoadingBar': ['angular'],
     'angularRaven': ['angular'],
@@ -32,19 +37,20 @@ require.config({
     'modules/pagination': ['angular'],
     'modules/stream': ['angular'],
     'filters/truncate': ['angular'],
-    'jquery': {exports: 'jquery'},
-    'bootstrap': {deps: ['jquery']},
-    'nvd3': {deps: ['d3']}
-  },
-  priority: [
-    "jquery",
-    "bootstrap",
-    "moment",
-    "angular"
-  ]
+    'jquery': {
+    	exports: 'jquery'
+   	},
+    'bootstrap': {
+    	deps: ['jquery']
+    },
+    'nvd3': {
+    	exports: 'nvd3',
+    	deps: ['d3']
+    }
+  }
 });
 
-require([
+define([
   'angular',
   'angularBootstrap',
   'angularHighlightjs',
@@ -55,11 +61,8 @@ require([
   'modules/stream',
   'filters/truncate',
   'routes',
-  'jquery',
   'bootstrap'
 ], function(angular) {
   'use strict';
-  $(function(){
-    angular.bootstrap(document, ['app', 'chieffancypants.loadingBar', 'barChart', 'collection', 'flash', 'hljs', 'ui.bootstrap', 'stream']);
-  });
+   angular.bootstrap(document, ['app']);
 });

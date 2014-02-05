@@ -1,3 +1,4 @@
+import changes
 import logging
 import flask
 import os
@@ -153,6 +154,11 @@ def create_app(_read_config=True, **config):
     app.config.setdefault('SERVER_NAME', parsed_url.netloc)
     app.config.setdefault('PREFERRED_URL_SCHEME', parsed_url.scheme)
 
+    if app.debug:
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    else:
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30
+
     # init sentry first
     sentry.init_app(app)
 
@@ -260,9 +266,16 @@ def configure_web_routes(app):
     from changes.web.index import IndexView
     from changes.web.static import StaticView
 
+    if app.debug:
+        static_root = os.path.join(PROJECT_ROOT, 'static')
+        revision = '0'
+    else:
+        static_root = os.path.join(PROJECT_ROOT, 'static-built')
+        revision = changes.get_revision() or '0'
+
     app.add_url_rule(
-        '/static/<path:filename>',
-        view_func=StaticView.as_view('static', root=os.path.join(PROJECT_ROOT, 'static')))
+        '/static/' + revision + '/<path:filename>',
+        view_func=StaticView.as_view('static', root=static_root))
     app.add_url_rule(
         '/partials/<path:filename>',
         view_func=StaticView.as_view('partials', root=os.path.join(PROJECT_ROOT, 'partials')))
