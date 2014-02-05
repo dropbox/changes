@@ -18,15 +18,15 @@ requirejs.config({
   },
   shim: {
     'angular': {
-    	exports: 'angular',
-    	deps: ['jquery']
-   	},
+        exports: 'angular',
+        deps: ['jquery']
+    },
     'angularBootstrap': {
-    	deps: ['angular', 'bootstrap']
+        deps: ['angular', 'bootstrap']
     },
     'angularHighlightjs': {
-    	deps: ['angular', 'highlightjs']
-   	},
+        deps: ['angular', 'highlightjs']
+    },
     'angularLinkify': ['angular'],
     'angularLoadingBar': ['angular'],
     'angularRaven': ['angular'],
@@ -38,14 +38,14 @@ requirejs.config({
     'modules/stream': ['angular'],
     'filters/truncate': ['angular'],
     'jquery': {
-    	exports: 'jquery'
-   	},
+        exports: 'jquery'
+    },
     'bootstrap': {
-    	deps: ['jquery']
+        deps: ['jquery']
     },
     'nvd3': {
-    	exports: 'nvd3',
-    	deps: ['d3']
+        exports: 'nvd3',
+        deps: ['d3']
     }
   }
 });
