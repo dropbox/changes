@@ -23,6 +23,11 @@ def test_simple(get_options):
     with app.test_request_context():
         release_id = '134:asdadfadf'
 
+        responses.add(responses.POST, 'https://foo.example.com')
+        get_options.return_value = {
+            'green-build.notify': '1',
+        }
+
         build = mock.Mock(spec=Build())
         build.patch_id = None
         build.project.slug = 'server'
@@ -30,15 +35,19 @@ def test_simple(get_options):
         build.project_id = UUID(hex='b' * 32)
         build.revision_sha = 'a' * 40
         build.repository.backend = RepositoryBackend.hg
-        build.result = Result.passed
 
         vcs = build.repository.get_vcs.return_value
         vcs.run.return_value = release_id
 
-        responses.add(responses.POST, 'https://foo.example.com')
-        get_options.return_value = {
-            'green-build.notify': '1',
-        }
+        # test with failing build
+        build.result = Result.failed
+
+        build_finished_handler(build)
+
+        assert len(responses.calls) == 0
+
+        # test with passing build
+        build.result = Result.passed
 
         build_finished_handler(build)
 
