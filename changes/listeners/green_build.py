@@ -4,6 +4,7 @@ import requests
 from flask import current_app
 
 from changes.config import db
+from changes.constants import Result
 from changes.models import ProjectOption, RepositoryBackend
 from changes.utils.http import build_uri
 
@@ -24,6 +25,9 @@ def get_options(project_id):
 
 
 def build_finished_handler(build, **kwargs):
+    if build.result != Result.passed:
+        return
+
     url = current_app.config.get('GREEN_BUILD_URL')
     if not url:
         logger.info('GREEN_BUILD_URL not set')
