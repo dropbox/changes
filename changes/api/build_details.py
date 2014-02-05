@@ -97,7 +97,7 @@ def find_changed_tests(current_build, previous_build, limit=25):
 
     return {
         'total': total,
-        'changes': diff,
+        'changes': sorted(diff, key=lambda x: (x[1].package, x[1].name)),
     }
 
 
