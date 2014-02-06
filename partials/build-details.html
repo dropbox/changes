@@ -22,7 +22,7 @@
 				{{build.name}}<br>
 				<small>
 					<span ng-if="build.number">#{{build.number}} &mdash; </span>
-					{{build.target}}
+					<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
 					<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
 				</small>
 			</h2>

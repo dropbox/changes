@@ -26,7 +26,7 @@
 					<small>
 						<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash;
 						<span ng-if="build.number">#{{build.number}} &mdash; </span>
-						{{build.target}}
+						<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
 						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 					</small>
 					<span class="status">{{getBuildStatus(build)}}</span>

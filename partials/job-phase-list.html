@@ -3,7 +3,7 @@
 		<h2>
 			{{build.name}}<br>
 			<small>
-				#{{build.number}}.{{job.number}} {{job.name}} &mdash; {{build.target}}
+				#{{build.number}}.{{job.number}} {{job.name}} &mdash; <a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
 				<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
 			</small>
 		</h2>
