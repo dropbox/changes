@@ -100,6 +100,8 @@ class SQLAlchemyTracer(object):
         sqlalchemy.event.listen(engine, "after_execute", self.after_execute)
 
     def before_execute(self, conn, clause, multiparams, params):
+        __traceback_hide__ = True  # NOQA
+
         query = unicode(clause.compile(dialect=postgresql.dialect()))
         self.tracking[(conn, clause)] = self.tracer.start_event(query)
 
