@@ -5,6 +5,7 @@ import sys
 
 from flask import render_template
 from time import time
+from sqlalchemy.dialects import postgresql
 from threading import local
 from urlparse import parse_qs
 
@@ -14,7 +15,7 @@ ROOT = os.path.dirname(sys.modules['changes'].__file__)
 class Event(object):
     def __init__(self, start_time, message, traceback=None, end_time=None):
         self.start_time = start_time
-        self.message = unicode(message)
+        self.message = message
         self.traceback = traceback
         self.end_time = end_time
 
@@ -95,7 +96,8 @@ class SQLAlchemyTracer(object):
         sqlalchemy.event.listen(engine, "after_execute", self.after_execute)
 
     def before_execute(self, conn, clause, multiparams, params):
-        self.tracking[(conn, clause)] = self.tracer.start_event(clause)
+        query = unicode(clause.compile(dialect=postgresql.dialect()))
+        self.tracking[(conn, clause)] = self.tracer.start_event(query)
 
     def after_execute(self, conn, clause, multiparams, params, results):
         __traceback_hide__ = True  # NOQA
