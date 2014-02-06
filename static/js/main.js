@@ -14,6 +14,7 @@ requirejs.config({
     'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
     'nvd3': '../vendor/nvd3/nv.d3',
+    'notify': 'lib/notify',
     'requirejs': '../vendor/requirejs/requirejs'
   },
   shim: {
@@ -43,6 +44,9 @@ requirejs.config({
     'bootstrap': {
         deps: ['jquery']
     },
+    'notify': {
+        deps: ['bootstrap']
+    },
     'nvd3': {
         exports: 'nvd3',
         deps: ['d3']
@@ -58,6 +62,7 @@ define([
   'modules/barChart',
   'modules/collection',
   'modules/flash',
+  'modules/notify',
   'modules/stream',
   'filters/truncate',
   'routes',

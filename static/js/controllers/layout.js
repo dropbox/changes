@@ -1,10 +1,10 @@
 (function(){
   'use strict';
 
-  define(['app', 'modules/flash'], function(app) {
+  define(['app', 'modules/notify', 'modules/flash'], function(app) {
     app.controller('layoutCtrl', [
-        '$scope', '$rootScope', '$location', '$http', '$document', 'flash',
-        function($scope, $rootScope, $location, $http, $document, flash) {
+        '$scope', '$rootScope', '$location', '$http', '$document', 'notify', 'flash',
+        function($scope, $rootScope, $location, $http, $document, notify, flash) {
       $scope.projectList = [];
       $scope.authenticated = null;
       $scope.user = null;
@@ -20,6 +20,8 @@
         .success(function(data){
           $scope.authenticated = data.authenticated;
           $scope.user = data.user || {};
+
+          notify("Authenticated as " + data.user.email);
         });
 
       $http.get('/api/0/projects/')

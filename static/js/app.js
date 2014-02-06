@@ -9,6 +9,7 @@ define([
   'modules/barChart',
   'modules/collection',
   'modules/flash',
+  'modules/notify',
   'modules/stream',
   'filters/truncate',
   'jquery',
@@ -25,6 +26,7 @@ define([
       'linkify',
       'ngRoute',
       'ngSanitize',
+      'notify',
       'stream',
       'ui.bootstrap'
     ]);

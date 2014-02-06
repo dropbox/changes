@@ -1011,3 +1011,16 @@ label.btn input[type=checkbox] {
 .pager a {
   cursor: pointer;
 }
+
+
+/* notify.js */
+.notifyjs-plain-base {
+  font-size: 12px;
+  padding: 8px 15px;
+  background-color: #c7c0de;
+  border-color: #c7c0de;
+  color: #333;
+  white-space: nowrap;
+  background-repeat: no-repeat;
+  background-position: 3px 7px;
+}
