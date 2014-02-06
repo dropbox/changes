@@ -22,6 +22,11 @@ sa.JSONEncodedDict = JSONEncodedDict
 # for 'autogenerate' support
 from flask import current_app
 from changes.config import create_app, db
+
+import warnings
+from sqlalchemy.exc import SAWarning
+warnings.simplefilter("ignore", SAWarning)
+
 if not current_app:
     app = create_app()
 else:
@@ -31,7 +36,6 @@ target_metadata = db.metadata
 
 # force registration of models
 import changes.models  # NOQA
-
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
