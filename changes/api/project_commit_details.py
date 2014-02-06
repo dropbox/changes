@@ -32,8 +32,7 @@ class ProjectCommitDetailsAPIView(APIView):
 
         build_list = list(Build.query.options(
             joinedload('author'),
-        ).join(
-            Source, Source.id == Build.source_id,
+            joinedload('source'),
         ).filter(
             Build.project_id == project.id,
             Source.revision_sha == revision.sha,

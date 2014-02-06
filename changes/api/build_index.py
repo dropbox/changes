@@ -141,6 +141,7 @@ class BuildIndexAPIView(APIView):
         queryset = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
+            joinedload('source'),
         ).order_by(Build.date_created.desc(), Build.date_started.desc())
 
         return self.paginate(queryset)
