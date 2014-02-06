@@ -116,6 +116,9 @@ class BuildDetailsAPIView(APIView):
             Build.status == Status.finished,
             Build.id != build.id,
             Build.patch == None,  # NOQA
+        ).options(
+            joinedload('source'),
+            joinedload('author'),
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         if previous_runs:
