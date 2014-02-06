@@ -1,10 +1,10 @@
 (function(){
   'use strict';
 
-  define(['app'], function(app) {
+  define(['app', 'modules/flash'], function(app) {
     app.controller('layoutCtrl', [
-        '$scope', '$rootScope', '$location', '$http', '$document',
-        function($scope, $rootScope, $location, $http, $document) {
+        '$scope', '$rootScope', '$location', '$http', '$document', 'flash',
+        function($scope, $rootScope, $location, $http, $document, flash) {
       $scope.projectList = [];
       $scope.authenticated = null;
       $scope.user = null;
@@ -29,6 +29,10 @@
 
       $rootScope.$watch('pageTitle', function(value) {
         $document.title = value;
+      });
+
+      $rootScope.$on('$routeChangeError', function(e, current, previous){
+        flash('error', 'There was an error loading the page you requested :(');
       });
 
       $('.navbar .container').show();
