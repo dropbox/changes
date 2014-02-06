@@ -3,8 +3,16 @@
 
   define(['app', 'modules/notify', 'modules/flash'], function(app) {
     app.controller('layoutCtrl', [
-        '$scope', '$rootScope', '$location', '$http', '$document', 'notify', 'flash',
-        function($scope, $rootScope, $location, $http, $document, notify, flash) {
+        '$scope', '$rootScope', '$location', '$http', '$document', 'notify', 'flash', 'stream',
+        function($scope, $rootScope, $location, $http, $document, notify, flash, Stream) {
+
+      function notifyBuild(build) {
+        if (build.status.id == 'finished') {
+          var msg = 'Build <a href="/builds/' + build.id + '/">#' + build.number + '</a> (' + build.project.name + ') ' + build.result.name + ' &mdash; ' + build.target;
+          notify(msg, build.result.id == 'failed' ? 'error' : 'success');
+        }
+      }
+
       $scope.projectList = [];
       $scope.authenticated = null;
       $scope.user = null;
@@ -22,6 +30,10 @@
           $scope.user = data.user || {};
 
           notify("Authenticated as " + data.user.email);
+
+          var stream = new Stream($scope, '/api/0/authors/me/builds/');
+          stream.subscribe('build.update', notifyBuild);
+
         });
 
       $http.get('/api/0/projects/')

@@ -1016,11 +1016,24 @@ label.btn input[type=checkbox] {
 /* notify.js */
 .notifyjs-plain-base {
   font-size: 12px;
-  padding: 8px 15px;
+  padding: 5px 8px;
+  border: 1px solid #c7c0de;
   background-color: #c7c0de;
   border-color: #c7c0de;
   color: #333;
   white-space: nowrap;
   background-repeat: no-repeat;
   background-position: 3px 7px;
+}
+.notifyjs-plain-base a {
+  color: inherit;
+  font-weight: bold;
+}
+.notifyjs-plain-success {
+  background: rgb(175, 224, 175);
+  border-color: rgb(114, 194, 114);
+}
+.notifyjs-plain-error {
+  background: #E78987;
+  border-color: #d9322d;
 }
