@@ -11,6 +11,23 @@ from urlparse import parse_qs
 ROOT = os.path.dirname(sys.modules['changes'].__file__)
 
 
+class Event(object):
+    def __init__(self, start_time, message, traceback=None, end_time=None):
+        self.start_time = start_time
+        self.message = unicode(message)
+        self.traceback = traceback
+        self.end_time = end_time
+
+    def __hash__(self):
+        return hash([self.time, self.message])
+
+    @property
+    def duration(self):
+        if not self.end_time:
+            return 0
+        return self.end_time - self.start_time
+
+
 class Tracer(local):
     def __init__(self):
         super(Tracer, self).__init__()
@@ -23,23 +40,27 @@ class Tracer(local):
         self.events = []
         self.active = False
 
-    def add_event(self, message, duration=None):
+    def start_event(self, message):
         __traceback_hide__ = True  # NOQA
 
+        event = Event(
+            start_time=time(),
+            message=message,
+            traceback=self.get_traceback(),
+        )
         if self.active:
-            self.events.append((
-                time(),
-                unicode(message),
-                duration,
-                self.get_traceback(),
-            ))
+            self.events.append(event)
+        return event
+
+    def end_event(self, event):
+        event.end_time = time()
 
     def get_traceback(self):
         __traceback_hide__ = True  # NOQA
 
         result = []
 
-        for frame, filename, lineno, function, (code,), _ in inspect.stack():
+        for frame, filename, lineno, function, code, _ in inspect.stack():
             f_locals = getattr(frame, 'f_locals', {})
             if '__traceback_hide__' in f_locals:
                 continue
@@ -51,7 +72,7 @@ class Tracer(local):
                 'File "{filename}", line {lineno}, in {function}\n{code}'.format(
                     function=function,
                     lineno=lineno,
-                    code=code.rstrip('\n'),
+                    code='\n'.join(code or '').rstrip('\n'),
                     filename=filename[len(ROOT) + 1:],
                 )
             )
@@ -74,17 +95,17 @@ class SQLAlchemyTracer(object):
         sqlalchemy.event.listen(engine, "after_execute", self.after_execute)
 
     def before_execute(self, conn, clause, multiparams, params):
-        self.tracking[(conn, clause)] = time()
+        self.tracking[(conn, clause)] = self.tracer.start_event(clause)
 
     def after_execute(self, conn, clause, multiparams, params, results):
         __traceback_hide__ = True  # NOQA
 
-        start_time = self.tracking.pop((conn, clause), None)
-        if start_time:
-            duration = time() - start_time
-        else:
-            duration = None
-        self.tracer.add_event(clause, duration)
+        try:
+            event = self.tracking.pop((conn, clause))
+        except KeyError:
+            return
+
+        self.tracer.end_event(event)
 
 
 class TracerMiddleware(object):

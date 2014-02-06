@@ -18,13 +18,13 @@
             </tr>
         </thead>
         <tbody>
-        {% for start_time, message, duration, stack in events %}
+        {% for event in events %}
             <tr>
                 <td>
-                    {{ message }}<br>
-                    <pre>{{ stack }}</pre>
+                    {{ event.message }}<br>
+                    <pre>{{ event.stacktrace }}</pre>
                 </td>
-                <td>{{ duration }}</td>
+                <td>{{ event.duration }}</td>
             </tr>
         {% endfor %}
         </tbody>
