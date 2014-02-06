@@ -61,7 +61,8 @@ class ProjectCommitIndexAPIView(APIView):
 
         builds_qs = list(Build.query.options(
             joinedload('author'),
-        ).join('source').filter(
+            joinedload('source'),
+        ).filter(
             Build.source_id == Source.id,
             Build.project_id == project.id,
             Build.status.in_([Status.finished, Status.in_progress]),
