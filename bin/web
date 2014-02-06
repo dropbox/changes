@@ -1,11 +1,19 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
+
+
+def patch_gevent():
+    from gevent import monkey
+    monkey.patch_all()
+
+    from changes.db import psyco_gevent
+    psyco_gevent.make_psycopg_green()
+
+patch_gevent()
 
 import argparse
 import statprof
 import sys
-
-from changes.utils.gevent import patch_gevent
-patch_gevent()
 
 
 def main(argv=sys.argv[1:]):
