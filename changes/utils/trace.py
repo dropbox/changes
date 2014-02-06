@@ -44,16 +44,20 @@ class Tracer(local):
     def start_event(self, message):
         __traceback_hide__ = True  # NOQA
 
+        if not self.active:
+            return
+
         event = Event(
             start_time=time(),
             message=message,
             traceback=self.get_traceback(),
         )
-        if self.active:
-            self.events.append(event)
+        self.events.append(event)
         return event
 
     def end_event(self, event):
+        if not event:
+            return
         event.end_time = time()
 
     def get_traceback(self):
