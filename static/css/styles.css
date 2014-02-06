@@ -938,6 +938,9 @@ chart {
 .build-log a:focus {
   color: #fff;
 }
+.build-log .line {
+  white-space: pre-wrap;
+}
 
 .build-log.expanded {
   height: auto;
