@@ -19,7 +19,7 @@ class Source(db.Model):
     """
     id = Column(GUID, primary_key=True, default=uuid4)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    patch_id = Column(GUID, ForeignKey('patch.id'), unique=True)
+    patch_id = Column(GUID, ForeignKey('patch.id'))
     revision_sha = Column(String(40))
     date_created = Column(DateTime, default=datetime.utcnow)
 
@@ -30,6 +30,9 @@ class Source(db.Model):
     __table_args__ = (
         UniqueConstraint(
             'repository_id', 'revision_sha', name='unq_source_revision',
+            postgresql_where=(patch_id == None)),  # NOQA
+        UniqueConstraint(
+            'patch_id', name='unq_source_patch_id',
             postgresql_where=(patch_id == None)),  # NOQA
     )
 
