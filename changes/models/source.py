@@ -33,7 +33,7 @@ class Source(db.Model):
             postgresql_where=(patch_id == None)),  # NOQA
         UniqueConstraint(
             'patch_id', name='unq_source_patch_id',
-            postgresql_where=(patch_id == None)),  # NOQA
+            postgresql_where=(patch_id != None)),  # NOQA
     )
 
     def __init__(self, **kwargs):
