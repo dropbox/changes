@@ -29,11 +29,7 @@ class TestGroupDetailsAPIView(APIView):
 
         previous_runs = TestGroup.query.options(
             subqueryload('parent'),
-        ).join(
-            Job, Job.id == TestGroup.job_id,
-        ).join(
-            Source, Source.id == Job.source_id,
-        ).filter(
+        ).join('job', 'source').filter(
             TestGroup.name_sha == testgroup.name_sha,
             TestGroup.id != testgroup.id,
             Job.date_created < testgroup.job.date_created,
