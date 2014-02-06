@@ -34,7 +34,7 @@ class ProjectCommitIndexAPIView(APIView):
             revisions_qs = list(Revision.query.filter(
                 Revision.repository_id == repo.id,
                 Revision.sha.in_(c.id for c in vcs_log)
-            ).join(Revision.author))
+            ).join('author'))
 
             revisions_map = dict(
                 (c.sha, d)
@@ -52,13 +52,12 @@ class ProjectCommitIndexAPIView(APIView):
             commits = self.serialize(list(
                 Revision.query.filter(
                     Revision.repository_id == repo.id,
-                ).join(
-                    Revision.author,
-                ).order_by(Revision.date_created.desc())[:100]
+                ).join('author').order_by(Revision.date_created.desc())[:100]
             ))
 
         builds_qs = list(Build.query.options(
             joinedload('author'),
+            joinedload('source'),
         ).filter(
             Build.source_id == Source.id,
             Build.project_id == project.id,
