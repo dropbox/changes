@@ -23,6 +23,7 @@ class AuthorBuildIndexAPIView(APIView):
         queryset = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
+            joinedload('source'),
         ).filter(
             Build.author_id == author.id,
         ).order_by(Build.date_created.desc(), Build.date_started.desc())
