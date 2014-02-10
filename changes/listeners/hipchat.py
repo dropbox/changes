@@ -86,7 +86,7 @@ def build_finished_handler(build, **kwargs):
         room=options['hipchat.room'],
         message=message,
         notify=True,
-        color='red'
+        color='green' if build.result == Result.passed else 'red',
     )
 
 
