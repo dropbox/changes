@@ -35,7 +35,8 @@ install_requires = [
     'ansi2html>=1.0.5,<1.1.0',
     'argparse>=1.2.1,<1.3.0',
     'blinker>=1.3,<1.4',
-    'celery>=3.1,<3.2',
+    # celery 3.1.9 breaks TrackedTask (wraps is incorrect)
+    'celery==3.1.8',
     'kombu>=3.0.8,<4.0.0',
     'enum34>=0.9.18,<0.10.0',
     'flask>=0.10.1,<0.11.0',
@@ -54,7 +55,8 @@ install_requires = [
     'pynliner>=0.5.0,<0.6.0',
     'python-dateutil>=2.1,<2.2',
     'simplejson>=3.3.0,<3.4.0',
-    'sqlalchemy>=0.9.0,<0.10.0',
+    # sqlalchemy 0.9.2 breaks postgres_where
+    'sqlalchemy==0.9.1',
     'statprof',
     'unicode-slugify>=0.1.1,<0.2.0',
 ]

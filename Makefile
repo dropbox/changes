@@ -13,7 +13,7 @@ setup-git:
 install-requirements: update-submodules
 	npm install
 	bower install
-	pip install -e . --use-mirrors
+	pip install -e . --use-mirrors --allow-external=argparse
 
 install-test-requirements:
 	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors

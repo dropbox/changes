@@ -69,6 +69,7 @@ class TrackedTask(local):
         self.__name__ = func.__name__
         self.__doc__ = func.__doc__
         self.__wraps__ = getattr(func, '__wraps__', func)
+        self.__code__ = getattr(func, '__code__', None)
 
     def __call__(self, **kwargs):
         with self.lock:
