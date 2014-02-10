@@ -1,0 +1,9 @@
+{
+    "@python": "2.7",
+    "linters": {
+        "pep8": {
+            "ignore": "E501",
+            "max-line-length": "100"
+        }
+    }
+}
