@@ -1,3 +1,7 @@
+import pkgutil
+import sys
+
+
 class ModuleProxyCache(dict):
     def __missing__(self, key):
         if not '.' in key:
@@ -24,3 +28,12 @@ def import_string(path):
     """
     result = _cache[path]
     return result
+
+
+def import_submodules(context, root_module, path):
+    for loader, module_name, is_pkg in pkgutil.walk_packages(path):
+        module = loader.find_module(module_name).load_module(module_name)
+        for k, v in vars(module).iteritems():
+            if not k.startswith('_'):
+                context[k] = v
+        sys.modules['{0}.{1}'.format(root_module, module_name)] = module
