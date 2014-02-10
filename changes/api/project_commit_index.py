@@ -65,7 +65,7 @@ class ProjectCommitIndexAPIView(APIView):
         ).filter(
             Build.source_id == Source.id,
             Build.project_id == project.id,
-            Build.status.in_([Status.finished, Status.in_progress]),
+            Build.status.in_([Status.finished, Status.in_progress, Status.queued]),
             Source.revision_sha.in_(c['id'] for c in commits),
             Source.patch == None,  # NOQA
         ).order_by(Build.date_created.asc()))
