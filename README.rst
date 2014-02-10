@@ -25,19 +25,19 @@ Create the database:
 
 ::
 
-	$ createdb -E utf-8 changes
+    $ createdb -E utf-8 changes
 
 Setup the default configuration:
 
 ::
 
-	# ~/.changes/changes.conf.py
-	BASE_URI = 'http://localhost:5000'
-	SERVER_NAME = 'localhost:5000'
+    # ~/.changes/changes.conf.py
+    BASE_URI = 'http://localhost:5000'
+    SERVER_NAME = 'localhost:5000'
 
-	REPO_ROOT = '/tmp'
+    REPO_ROOT = '/tmp'
 
-	# Changes only supports Google Auth, so you'll need to obtain tokens
+    # Changes only supports Google Auth, so you'll need to obtain tokens
     GOOGLE_CLIENT_ID = None
     GOOGLE_CLIENT_SECRET = None
 
@@ -47,13 +47,13 @@ Create a Python environment:
 
 ::
 
-	$ mkvirtualenv changes
+    $ mkvirtualenv changes
 
 Bootstrap your environment:
 
 ::
 
-	$ make upgrade
+    $ make upgrade
 
 
 .. note:: You can run ``make resetdb`` to drop and re-create a clean database.
@@ -66,7 +66,7 @@ Run the webserver:
 
 ::
 
-	bin/web
+    bin/web
 
 
 Background Workers
@@ -76,7 +76,7 @@ Workers are managed via Celery:
 
 ::
 
-	bin/worker -B
+    bin/worker -B
 
 .. note:: In development you can set ``CELERY_ALWAYS_EAGER`` to run the queue in-process. You likely don't want this if you're synchronizing builds as it can cause recursion errors.
 
@@ -86,20 +86,20 @@ NGINX Configuration
 
 ::
 
-	    location / {
-	        proxy_pass              http://changes_server;
-	        proxy_set_header        Host $host;
-	        proxy_set_header        X-Real-IP $remote_addr;
-	        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-	        proxy_set_header        X-Forwarded-Proto $scheme;
-	        proxy_connect_timeout   150;
-	        proxy_send_timeout      100;
-	        proxy_read_timeout      100;
-	        proxy_buffers           4 32k;
-	        proxy_buffering	        off;
-	        client_max_body_size    8m;
-	        client_body_buffer_size 128k;
-	    }
+        location / {
+            proxy_pass              http://changes_server;
+            proxy_set_header        Host $host;
+            proxy_set_header        X-Real-IP $remote_addr;
+            proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header        X-Forwarded-Proto $scheme;
+            proxy_connect_timeout   150;
+            proxy_send_timeout      100;
+            proxy_read_timeout      100;
+            proxy_buffers           4 32k;
+            proxy_buffering         off;
+            client_max_body_size    8m;
+            client_body_buffer_size 128k;
+        }
 
 
 Architecture
