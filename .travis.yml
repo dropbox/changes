@@ -7,6 +7,6 @@ python:
 install:
   - make develop
 before_script:
-  - make resetedb
+  - make resetdb
 script:
   - make test
