@@ -13,28 +13,52 @@
         }
       }
 
+      function getNavPath() {
+        if (!$rootScope.activeProject) {
+          return;
+        }
+
+        var urlBase = '/projects/' + $rootScope.activeProject.slug + '/';
+        switch ($location.path()) {
+          case urlBase:
+          case urlBase + 'search/':
+            return 'builds';
+          case urlBase + 'commits/':
+            return 'commits';
+          case urlBase + 'tests/':
+            return 'tests';
+          case urlBase + 'stats/':
+            return 'stats';
+        }
+
+      }
+
       $scope.projectList = [];
       $scope.authenticated = null;
       $scope.user = null;
       $scope.navPath = null;
-      $scope.sourceQuery = $location.search().source || '';
+      $scope.projectSearchQuery = {
+        source: null
+      };
 
       $scope.searchBuilds = function(){
         if (!$rootScope.activeProject) {
           return false;
         }
 
-        if (!this.sourceQuery) {
+        if (!this.projectSearchQuery) {
           $location.path('/projects/' + $rootScope.activeProject.slug + '/').search({});
         } else {
-          $location.path('/projects/' + $rootScope.activeProject.slug + '/search/').search({source: this.sourceQuery});
+          $location.path('/projects/' + $rootScope.activeProject.slug + '/search/').search(this.projectSearchQuery);
         }
 
         return false;
       };
 
       $scope.$on('$routeChangeSuccess', function(){
-        $scope.navPath = $location.path();
+        $scope.navPath = getNavPath();
+        $scope.projectSearchQuery = $location.search();
+
         $rootScope.pageTitle = 'Changes';
         $rootScope.activeProject = null;
       });

@@ -56,16 +56,16 @@
         </ul>
         <form class="navbar-form navbar-right" role="search" ng-if="activeProject" ng-submit="searchBuilds()">
           <div class="form-group">
-            <input type="text" class="form-control" ng-model="sourceQuery" placeholder="e.g. D1234 or b1e3708a1e81">
+            <input type="text" class="form-control" ng-model="projectSearchQuery.source" placeholder="e.g. D1234 or b1e3708a1e81">
           </div>
         </form>
         {% raw %}
         <div class="navbar-collapse collapse navbar-header-collapse" ng-if="activeProject">
           <ul class="nav navbar-nav">
-            <li ng-class="activeProject.link == navPath ? 'active': ''"><a href="{{activeProject.link}}">Builds</a></li>
-            <li ng-class="activeProject.link + 'tests/' == navPath ? 'active': ''"><a href="{{activeProject.link}}tests/">Tests</a></li>
-            <li ng-class="activeProject.link + 'commits/' == navPath ? 'active': ''"><a href="{{activeProject.link}}commits/">Commits</a></li>
-            <li ng-class="activeProject.link + 'stats/' == navPath ? 'active': ''"><a href="{{activeProject.link}}stats/">Stats</a></li>
+            <li ng-class="navPath == 'builds' ? 'active': ''"><a href="{{activeProject.link}}">Builds</a></li>
+            <li ng-class="navPath == 'tests' ? 'active': ''"><a href="{{activeProject.link}}tests/">Tests</a></li>
+            <li ng-class="navPath == 'commits' ? 'active': ''"><a href="{{activeProject.link}}commits/">Commits</a></li>
+            <li ng-class="navPath == 'stats' ? 'active': ''"><a href="{{activeProject.link}}stats/">Stats</a></li>
           </ul>
         </div>
         {% endraw %}
