@@ -3,6 +3,8 @@ Changes
 
 Changes is a dashboard to view information about your code. Specifically, it focuses on aggregating quality metrics and history, such as results from a build server.
 
+.. note:: Changes is under extremely active and rapid development, and you probably shouldn't use it unless you like broken software.
+
 Supported build platforms include:
 
 - `Koality <http://koalitycode.com>`_
