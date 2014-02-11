@@ -17,7 +17,7 @@
       $scope.authenticated = null;
       $scope.user = null;
       $scope.navPath = null;
-      $scope.sourceQuery = $location.search()['source'] || '';
+      $scope.sourceQuery = $location.search().source || '';
 
       $scope.searchBuilds = function(){
         if (!$rootScope.activeProject) {
