@@ -5,7 +5,7 @@ changes
 
 Magic.
 
-:copyright: (c) 2013 Dropbox, Inc.
+:copyright: (c) 2014 Dropbox, Inc.
 """
 
 from setuptools import setup, find_packages
