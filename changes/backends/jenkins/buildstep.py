@@ -30,6 +30,10 @@ class JenkinsBuildStep(BuildStep):
         builder = self.get_builder()
         builder.sync_step(step)
 
+    def cancel(self, job):
+        builder = self.get_builder()
+        builder.cancel_job(job)
+
 
 class JenkinsFactoryBuildStep(JenkinsBuildStep):
     def __init__(self, job_name=None, downstream_job_names=()):

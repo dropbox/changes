@@ -17,3 +17,6 @@ class BuildStep(object):
 
     def update_step(self, step):
         raise NotImplementedError
+
+    def cancel(self, job):
+        raise NotImplementedError
