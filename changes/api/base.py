@@ -81,7 +81,7 @@ class APIView(Resource):
 
         offset = (page - 1) * per_page
 
-        result = list(queryset)[offset:offset + per_page + 1]
+        result = queryset[offset:offset + per_page + 1]
 
         links = []
         if page > 1:
