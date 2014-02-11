@@ -57,7 +57,6 @@
       };
 
       $scope.$on('$routeChangeSuccess', function(){
-        $scope.navPath = getNavPath();
         $scope.projectSearchQuery = $location.search();
 
         $rootScope.pageTitle = 'Changes';
@@ -83,6 +82,10 @@
 
       $rootScope.$watch('pageTitle', function(value) {
         $document.title = value;
+      });
+
+      $rootScope.$watch('activeProject', function(){
+        $scope.navPath = getNavPath();
       });
 
       $rootScope.$on('$routeChangeError', function(e, current, previous){
