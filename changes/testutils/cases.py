@@ -14,7 +14,7 @@ from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
-    User
+    User, Artifact
 )
 
 
@@ -262,6 +262,17 @@ class Fixtures(object):
         db.session.add(task)
 
         return task
+
+    def create_artifact(self, step, **kwargs):
+        artifact = Artifact(
+            step=step,
+            project=step.project,
+            job=step.job,
+            **kwargs
+        )
+        db.session.add(artifact)
+
+        return artifact
 
 
 class AuthMixin(object):
