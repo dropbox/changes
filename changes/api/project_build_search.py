@@ -34,7 +34,7 @@ class ProjectBuildSearchAPIView(APIView):
 
         if query:
             filters.append(or_(
-                Build.label.startswith(query),
+                Build.label.contains(query),
                 Build.target.startswith(query),
             ))
 
