@@ -1,0 +1,12 @@
+language: python
+services:
+  - postgresql
+  - redis-server
+python:
+  - "2.7"
+install:
+  - make develop
+before_script:
+  - make resetedb
+script:
+  - make test
