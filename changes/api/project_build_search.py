@@ -33,6 +33,7 @@ class ProjectBuildSearchAPIView(APIView):
             joinedload('source'),
         ).filter(
             Build.target.startswith(source),
+            Build.project_id == project.id,
         ).order_by(Build.date_created.desc())
 
         return self.paginate(queryset)
