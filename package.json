@@ -16,6 +16,7 @@
   "license": "Apache 2.0",
   "readmeFilename": "README.rst",
   "devDependencies": {
+    "bower": "~1.2.8",
     "jshint": "0.9.x",
     "requirejs": "2.1.x",
     "grunt-contrib-requirejs": "~0.4.1",
