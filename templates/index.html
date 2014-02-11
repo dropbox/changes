@@ -54,6 +54,11 @@
           <li><a href="{{ url_for('index') }}" title="Dashboard"><i class="glyphicon glyphicon-th"></i></a></li>
           <li><a href="{{ url_for('logout') }}" target="_self" title="Logout"><i class="glyphicon glyphicon-off"></i></a></li>
         </ul>
+        <form class="navbar-form navbar-right" role="search" ng-if="activeProject" ng-submit="searchBuilds()">
+          <div class="form-group">
+            <input type="text" class="form-control" ng-model="sourceQuery" placeholder="e.g. D1234 or b1e3708a1e81">
+          </div>
+        </form>
         {% raw %}
         <div class="navbar-collapse collapse navbar-header-collapse" ng-if="activeProject">
           <ul class="nav navbar-nav">

@@ -1,0 +1,61 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2>Builds</h2>
+		</div>
+
+		<barchart ng-if="chartData" ng-model="chartData" style="height:130px"></barchart>
+
+		<div ng-if="builds.length">
+			<ul class="pager">
+				<li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
+					<a ng-click="loadNextPage()">&larr; Older</a>
+				</li>
+				<li class="next" ng-class="previousPage === null ? 'disabled' : ''">
+					<a ng-click="loadPreviousPage()">Newer &rarr;</a>
+				</li>
+			</ul>
+
+			<table class="build-list table table-striped">
+				<tbody>
+					<tr ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
+						<td>
+							<div class="indicator" title="{{build.result.name}}">
+								<div data-result="{{build.result.id}}"
+								     data-status="{{build.status.id}}"
+								 	 data-date-started="{{build.dateStarted}}"
+								 	 data-estimated-duration="{{build.estimatedDuration}}"
+								 	 radial-progress-bar>&nbsp;</div>
+							</div>
+						</td>
+						<td>
+							<a href="{{build.link}}">{{build.name}}</a>
+							<small>
+								<span ng-if="build.number">#{{build.number}} &mdash; </span>
+								<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
+								<span ng-if="build.author">&mdash; {{build.author.name}}</span>
+							</small>
+							<span class="status">{{getBuildStatus(build)}}</span>
+							<span class="date" ng-if="build.dateStarted">
+								<span time-since="build.dateStarted"></span>
+								<span ng-if="build.duration"> &mdash; <span duration="build.duration"></span></span>
+							</span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<ul class="pager">
+				<li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
+					<a ng-click="loadNextPage()">&larr; Older</a>
+				</li>
+				<li class="next" ng-class="previousPage === null ? 'disabled' : ''">
+					<a ng-click="loadPreviousPage()">Newer &rarr;</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div ng-if="!builds.length">
+		<p>There are no builds to show here.</p>
+	</div>
+</section>

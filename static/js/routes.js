@@ -10,6 +10,7 @@ define(['app',
         'controllers/jobPhaseList',
         'controllers/nodeDetails',
         'controllers/testGroupDetails',
+        'controllers/projectBuildSearch',
         'controllers/projectCommitDetails',
         'controllers/projectCommitList',
         'controllers/projectDetails',
@@ -167,6 +168,18 @@ define(['app',
             }],
             initialBuildList: ['$http', '$route', function($http, $route) {
               return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/?include_patches=0');
+            }]
+          }
+        })
+        .when('/projects/:project_id/search/', {
+          templateUrl: 'partials/project-build-list.html',
+          controller: 'projectBuildSearchCtrl',
+          resolve: {
+            initialProject: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
+            }],
+            initialBuildList: ['$http', '$route', '$window', function($http, $route, $window) {
+              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/search/' + $window.location.search);
             }]
           }
         })

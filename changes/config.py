@@ -221,6 +221,7 @@ def configure_api_routes(app):
     from changes.api.node_job_index import NodeJobIndexAPIView
     from changes.api.patch_details import PatchDetailsAPIView
     from changes.api.project_build_index import ProjectBuildIndexAPIView
+    from changes.api.project_build_search import ProjectBuildSearchAPIView
     from changes.api.project_commit_details import ProjectCommitDetailsAPIView
     from changes.api.project_commit_index import ProjectCommitIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
@@ -251,6 +252,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectIndexAPIView, '/projects/')
     api.add_resource(ProjectDetailsAPIView, '/projects/<project_id>/')
     api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/')
+    api.add_resource(ProjectBuildSearchAPIView, '/projects/<project_id>/builds/search/')
     api.add_resource(ProjectCommitIndexAPIView, '/projects/<project_id>/commits/')
     api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')
     api.add_resource(ProjectStatsIndexAPIView, '/projects/<project_id>/stats/')

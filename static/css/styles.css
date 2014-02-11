@@ -80,6 +80,18 @@ dl.flat dt {
 .navbar .container {
   position: relative;
 }
+.navbar .navbar-form input[type=text] {
+  color: #eee;
+  font-size: 12px;
+  background: #63519e;
+  border-color: #63519e;
+}
+.navbar .navbar-form .form-control::-webkit-input-placeholder {
+  color: #c7c0de;
+}
+.navbar .navbar-form .form-control::-moz-placeholder {
+  color: #c7c0de;
+}
 .navbar .navbar-text {
   color: #c7c0de;
   font-size: 0.8em;

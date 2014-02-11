@@ -17,6 +17,21 @@
       $scope.authenticated = null;
       $scope.user = null;
       $scope.navPath = null;
+      $scope.sourceQuery = $location.search()['source'] || '';
+
+      $scope.searchBuilds = function(){
+        if (!$rootScope.activeProject) {
+          return false;
+        }
+
+        if (!this.sourceQuery) {
+          $location.path('/projects/' + $rootScope.activeProject.slug + '/').search({});
+        } else {
+          $location.path('/projects/' + $rootScope.activeProject.slug + '/search/').search({source: this.sourceQuery});
+        }
+
+        return false;
+      };
 
       $scope.$on('$routeChangeSuccess', function(){
         $scope.navPath = $location.path();
