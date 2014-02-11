@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from flask import request
+from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -23,17 +24,27 @@ class ProjectBuildSearchAPIView(APIView):
         if not project:
             return '', 404
 
+        query = request.args.get('q')
         source = request.args.get('source')
-        if not source:
-            return '', 400
+
+        filters = []
+
+        if source:
+            filters.append(Build.target.startswith(source))
+
+        if query:
+            filters.append(or_(
+                Build.label.startswith(query),
+                Build.target.startswith(query),
+            ))
 
         queryset = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
             joinedload('source'),
         ).filter(
-            Build.target.startswith(source),
             Build.project_id == project.id,
+            *filters
         ).order_by(Build.date_created.desc())
 
         return self.paginate(queryset)

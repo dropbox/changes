@@ -38,6 +38,7 @@
       $scope.user = null;
       $scope.navPath = null;
       $scope.projectSearchQuery = {
+        query: null,
         source: null
       };
 

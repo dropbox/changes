@@ -10,9 +10,9 @@ class ProjectBuildSearchTest(APITestCase):
         self.create_build(self.project)
 
         project1 = self.create_project()
-        build1 = self.create_build(project1, target='D1234')
+        build1 = self.create_build(project1, label='test', target='D1234')
         project2 = self.create_project()
-        self.create_build(project2, target='D1234')
+        self.create_build(project2, label='test', target='D1234')
 
         path = '/api/0/projects/{0}/builds/search/?source=D1234'.format(fake_project_id.hex)
 
@@ -22,7 +22,10 @@ class ProjectBuildSearchTest(APITestCase):
         path = '/api/0/projects/{0}/builds/search/'.format(project1.id.hex)
 
         resp = self.client.get(path)
-        assert resp.status_code == 400
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
 
         path = '/api/0/projects/{0}/builds/search/?source=D1234'.format(project1.id.hex)
 
@@ -31,3 +34,26 @@ class ProjectBuildSearchTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 1
         assert data[0]['id'] == build1.id.hex
+
+        path = '/api/0/projects/{0}/builds/search/?q=D1234'.format(project1.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
+
+        path = '/api/0/projects/{0}/builds/search/?q=test'.format(project1.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
+
+        path = '/api/0/projects/{0}/builds/search/?q=something_impossible'.format(project1.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 0
