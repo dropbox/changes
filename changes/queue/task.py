@@ -80,6 +80,7 @@ class TrackedTask(local):
         if not self.task_id:
             self.logger.warning('Missing task_id for job: %r', kwargs)
             self.func(**kwargs)
+            return
 
         self.parent_id = kwargs.pop('parent_task_id', None)
         self.kwargs = kwargs
