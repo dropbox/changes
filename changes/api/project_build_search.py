@@ -24,7 +24,7 @@ class ProjectBuildSearchAPIView(APIView):
         if not project:
             return '', 404
 
-        query = request.args.get('q')
+        query = request.args.get('q', request.args.get('query'))
         source = request.args.get('source')
 
         filters = []
