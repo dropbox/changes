@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 
 from cStringIO import StringIO
-from datetime import datetime
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, subqueryload_all
 from sqlalchemy.sql import func
@@ -38,8 +37,6 @@ def create_build(project, label, target, message, author, change=None,
             'revision_sha': sha,
         })
 
-    jobs = []
-
     # TODO(dcramer): find a way to abstract this
     cur_no_query = db.session.query(
         coalesce(func.max(Build.number), 0)
@@ -67,6 +64,17 @@ def create_build(project, label, target, message, author, change=None,
 
     db.session.add(build)
 
+    execute_build(build=build)
+
+    return build
+
+
+def execute_build(build):
+    # TODO(dcramer): most of this should be abstracted into sync_build as if it
+    # were a "im on step 0, create step 1"
+    project = build.project
+
+    jobs = []
     for plan in project.plans:
         cur_no_query = db.session.query(
             coalesce(func.max(Job.number), 0)
@@ -98,10 +106,6 @@ def create_build(project, label, target, message, author, change=None,
         db.session.add(jobplan)
 
         jobs.append(job)
-
-    if change:
-        change.date_modified = datetime.utcnow()
-        db.session.add(change)
 
     db.session.commit()
 
