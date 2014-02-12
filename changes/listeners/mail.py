@@ -38,6 +38,7 @@ def should_notify(job):
         Job.project == job.project,
         Job.date_created < job.date_created,
         Job.status == Status.finished,
+        Job.result.in_([Result.passed, Result.failed]),
     ).order_by(Job.date_created.desc()).first()
 
     # if theres no parent, this job must be at fault

@@ -40,6 +40,7 @@ def should_notify(build):
         Build.project == build.project,
         Build.date_created < build.date_created,
         Build.status == Status.finished,
+        Build.result.in_([Result.passed, Result.failed]),
     ).order_by(Build.date_created.desc()).first()
 
     if parent is None:
