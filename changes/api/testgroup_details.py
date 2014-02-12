@@ -1,3 +1,5 @@
+from sqlalchemy.orm import joinedload
+
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
@@ -26,7 +28,8 @@ class TestGroupDetailsAPIView(APIView):
             ).first()
 
         previous_runs = TestGroup.query.options(
-        ).join('job', 'source', 'parent').filter(
+            joinedload('parent'),
+        ).join('job', 'source').filter(
             TestGroup.name_sha == testgroup.name_sha,
             TestGroup.id != testgroup.id,
             Job.date_created < testgroup.job.date_created,
