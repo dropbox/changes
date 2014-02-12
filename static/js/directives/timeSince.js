@@ -14,6 +14,10 @@
         }
 
         scope.$watch(attrs.timeSince, function(value){
+          if (!value) {
+            return '';
+          }
+
           element.text(moment.utc(value).fromNow());
         });
 
