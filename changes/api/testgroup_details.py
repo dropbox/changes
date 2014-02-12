@@ -1,5 +1,3 @@
-from sqlalchemy.orm import subqueryload
-
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
