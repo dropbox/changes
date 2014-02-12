@@ -1043,9 +1043,9 @@ label.btn input[type=checkbox] {
 }
 .notifyjs-plain-success {
   background: rgb(175, 224, 175);
-  border-color: rgb(114, 194, 114);
+  border-color: rgb(175, 224, 175);
 }
 .notifyjs-plain-error {
   background: #E78987;
-  border-color: #d9322d;
+  border-color: #E78987;
 }
