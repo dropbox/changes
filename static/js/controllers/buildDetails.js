@@ -63,15 +63,26 @@
         });
       }
 
-      $scope.retryBuild = function() {
-        $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
+      $scope.cancelBuild = function() {
+        $http.post('/api/0/builds/' + $scope.build.id + '/cancel/')
           .success(function(data){
-            $location.path('/builds/' + data.build.id + '/');
+            $scope.build = data;
           })
           .error(function(){
-            flash('error', 'There was an error while retrying this build.');
+            flash('error', 'There was an error cancelling this build.');
           });
       };
+
+      $scope.restartBuild = function() {
+        $http.post('/api/0/builds/' + $scope.build.id + '/restart/')
+          .success(function(data){
+            $scope.build = data;
+          })
+          .error(function(){
+            flash('error', 'There was an error restarting this build.');
+          });
+      };
+
 
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
