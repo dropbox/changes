@@ -1,4 +1,4 @@
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
@@ -29,6 +29,8 @@ class TestGroupDetailsAPIView(APIView):
 
         previous_runs = TestGroup.query.options(
             joinedload('parent'),
+            contains_eager('job'),
+            contains_eager('job', 'source'),
         ).join('job').join('job', 'source').filter(
             TestGroup.name_sha == testgroup.name_sha,
             TestGroup.id != testgroup.id,
