@@ -45,3 +45,46 @@ class JenkinsBuildStepTest(TestCase):
         buildstep.update(job)
 
         builder.sync_job.assert_called_once_with(job)
+
+    @mock.patch.object(JenkinsBuildStep, 'get_builder')
+    def test_update_step(self, get_builder):
+        builder = mock.Mock()
+        get_builder.return_value = builder
+
+        build = self.create_build(self.project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+
+        buildstep = self.get_buildstep()
+        buildstep.update_step(step)
+
+        builder.sync_step.assert_called_once_with(step)
+
+    @mock.patch.object(JenkinsBuildStep, 'get_builder')
+    def test_fetch_artifact(self, get_builder):
+        builder = mock.Mock()
+        get_builder.return_value = builder
+
+        build = self.create_build(self.project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+        artifact = {'foo': 'bar'}
+
+        buildstep = self.get_buildstep()
+        buildstep.fetch_artifact(step, artifact)
+
+        builder.sync_artifact.assert_called_once_with(step, artifact)

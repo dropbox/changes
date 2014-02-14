@@ -20,3 +20,6 @@ class BuildStep(object):
 
     def cancel(self, job):
         raise NotImplementedError
+
+    def fetch_artifact(self, step, artifact):
+        raise NotImplementedError

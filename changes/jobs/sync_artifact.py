@@ -1,34 +1,51 @@
 from flask import current_app
 
-from changes.backends.jenkins.builder import JenkinsBuilder
-from changes.config import queue
-from changes.models import Job
+from sqlalchemy.orm import subqueryload_all
+
+from changes.backends.base import UnrecoverableException
+from changes.models import Artifact, JobStep, JobPlan, Plan
+from changes.queue.task import tracked_task
 
 
-def sync_with_builder(job, artifact):
-    # HACK(dcramer): this definitely is a temporary fix for our "things are
-    # only a single builder" problem
-    builder = JenkinsBuilder(
-        app=current_app,
-        base_url=current_app.config['JENKINS_URL'],
-    )
-    builder.sync_artifact(job, artifact)
+def get_build_step(job_id):
+    job_plan = JobPlan.query.options(
+        subqueryload_all('plan.steps')
+    ).filter(
+        JobPlan.job_id == job_id,
+    ).join(Plan).first()
+    if not job_plan:
+        raise UnrecoverableException('Missing job plan for job: %s' % (job_id,))
 
-
-def sync_artifact(job_id, artifact):
     try:
-        job = Job.query.get(job_id)
-        if not job:
+        step = job_plan.plan.steps[0]
+    except IndexError:
+        raise UnrecoverableException('Missing steps for plan: %s' % (job_plan.plan.id))
+
+    implementation = step.get_implementation()
+    return implementation
+
+
+@tracked_task
+def sync_artifact(step_id=None, artifact=None, artifact_id=None):
+    if artifact_id:
+        artifact = Artifact.query.get(artifact_id)
+        if artifact is None:
             return
+        step = artifact.step
+        data = artifact.data
 
-        sync_with_builder(job)
+    # TODO(dcramer): remove after version transition
+    else:
+        step = JobStep.query.get(step_id)
+        if not step:
+            return
+        data = artifact
 
-    except Exception as exc:
-        # Ensure we continue to synchronize this job as this could be a
-        # temporary failure
+    try:
+        implementation = get_build_step(step.job_id)
+        implementation.fetch_artifact(step=step, artifact=data)
+
+    except UnrecoverableException:
         current_app.logger.exception(
-            'Failed to sync artifact %r, %r', job_id, artifact)
-        raise queue.retry('sync_artifact', kwargs={
-            'job_id': job_id,
-            'artifact': artifact,
-        }, exc=exc, countdown=60)
+            'Unrecoverable exception fetching artifact %s: %s',
+            step.id, artifact)

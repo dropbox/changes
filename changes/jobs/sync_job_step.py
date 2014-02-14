@@ -49,4 +49,9 @@ def sync_job_step(step_id):
     db.session.commit()
 
     if step.status != Status.finished:
+        is_finished = False
+    else:
+        is_finished = sync_job_step.verify_all_children() == Status.finished
+
+    if not is_finished:
         raise sync_job_step.NotFinished

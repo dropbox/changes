@@ -16,9 +16,10 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.events import publish_logchunk_update
+from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
-    AggregateTestSuite, TestResult, TestResultManager, TestSuite,
+    AggregateTestSuite, Artifact, TestResult, TestResultManager, TestSuite,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 from changes.handlers.xunit import XunitHandler
@@ -503,13 +504,19 @@ class JenkinsBuilder(BaseBackend):
 
         # sync artifacts
         for artifact in item.get('artifacts', ()):
-            self.sync_artifact(
-                jobstep=step,
-                job_name=job_name,
-                build_no=build_no,
-                artifact=artifact,
+            artifact, created = get_or_create(Artifact, where={
+                'step': step,
+                'name': artifact['fileName'],
+            }, defaults={
+                'project': step.project,
+                'job': step.job,
+                'data': artifact,
+            })
+            sync_artifact.delay_if_needed(
+                artifact_id=artifact.id.hex,
+                task_id=artifact.id.hex,
+                parent_task_id=step.id.hex,
             )
-            db.session.commit()
 
         # sync test results
         try:
@@ -554,11 +561,13 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_step_from_active(step)
 
-    def sync_artifact(self, jobstep, job_name, build_no, artifact):
+    def sync_artifact(self, step, artifact):
+        job_name = step.data['job_name']
+        build_no = step.data['build_no']
         if self.sync_log_artifacts and artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(jobstep, job_name, build_no, artifact)
+            self._sync_artifact_as_log(step, job_name, build_no, artifact)
         if self.sync_xunit_artifacts and artifact['fileName'].endswith(XUNIT_FILENAMES):
-            self._sync_artifact_as_xunit(jobstep, job_name, build_no, artifact)
+            self._sync_artifact_as_xunit(step, job_name, build_no, artifact)
 
     def cancel_job(self, job):
         active_steps = JobStep.query.filter(

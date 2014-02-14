@@ -10,10 +10,13 @@ from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import TestCase, Patch, LogSource, LogChunk, Job
+from changes.models import (
+    Artifact, TestCase, Patch, LogSource, LogChunk, Job
+)
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import (
-    BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT)
+    BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT
+)
 
 
 class BaseTestCase(BackendTestCase):
@@ -462,7 +465,7 @@ class SyncBuildTest(BaseTestCase):
         assert step.data.get('log_offset') == 7
 
     @responses.activate
-    @mock.patch('changes.backends.jenkins.builder.JenkinsBuilder.sync_artifact')
+    @mock.patch('changes.backends.jenkins.builder.sync_artifact')
     def test_does_fire_sync_artifacts(self, sync_artifact):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
@@ -492,17 +495,39 @@ class SyncBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_step(step)
 
-        sync_artifact.assert_any_call(jobstep=step, artifact={
+        log_artifact = Artifact.query.filter(
+            Artifact.name == 'foobar.log',
+            Artifact.step == step,
+        ).first()
+
+        assert log_artifact.data == {
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log",
-        }, job_name='server', build_no=2)
+        }
 
-        sync_artifact.assert_any_call(jobstep=step, artifact={
+        sync_artifact.delay_if_needed.assert_any_call(
+            artifact_id=log_artifact.id.hex,
+            task_id=log_artifact.id.hex,
+            parent_task_id=step.id.hex
+        )
+
+        xunit_artifact = Artifact.query.filter(
+            Artifact.name == 'tests.xml',
+            Artifact.step == step,
+        ).first()
+
+        assert xunit_artifact.data == {
             "displayPath": "tests.xml",
             "fileName": "tests.xml",
             "relativePath": "artifacts/tests.xml",
-        }, job_name='server', build_no=2)
+        }
+
+        sync_artifact.delay_if_needed.assert_any_call(
+            artifact_id=xunit_artifact.id.hex,
+            task_id=xunit_artifact.id.hex,
+            parent_task_id=step.id.hex
+        )
 
     @responses.activate
     def test_sync_artifact_as_log(self):
@@ -525,7 +550,7 @@ class SyncBuildTest(BaseTestCase):
         step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_artifact(step, 'server', 2, {
+        builder.sync_artifact(step, {
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log"
@@ -571,7 +596,7 @@ class SyncBuildTest(BaseTestCase):
         step = self.create_jobstep(phase, data=job.data)
 
         builder = self.get_builder()
-        builder.sync_artifact(step, 'server', 2, {
+        builder.sync_artifact(step, {
             "displayPath": "xunit.xml",
             "fileName": "xunit.xml",
             "relativePath": "artifacts/xunit.xml"
