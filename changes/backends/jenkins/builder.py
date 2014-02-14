@@ -478,14 +478,17 @@ class JenkinsBuilder(BaseBackend):
         # TODO(dcramer): we shoudl abstract this into a sync_phase
         phase = step.phase
 
+        if not phase.date_started:
+            phase.date_started = safe_agg(
+                min, (s.date_started for s in phase.steps), step.date_started)
+            db.session.add(phase)
+
         if phase.status != step.status:
             phase.status = step.status
             db.session.add(phase)
 
         if step.status == Status.finished:
             phase.status = Status.finished
-            phase.date_started = safe_agg(
-                min, (s.date_started for s in phase.steps), step.date_started)
             phase.date_finished = safe_agg(
                 max, (s.date_finished for s in phase.steps), step.date_finished)
 
