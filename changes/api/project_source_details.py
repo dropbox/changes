@@ -1,24 +1,12 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import joinedload
-
 from changes.api.base import APIView
 from changes.models import Project, Source
 
 
 class ProjectSourceDetailsAPIView(APIView):
-    def _get_project(self, project_id):
-        project = Project.query.options(
-            joinedload(Project.repository, innerjoin=True),
-        ).filter_by(slug=project_id).first()
-        if project is None:
-            project = Project.query.options(
-                joinedload(Project.repository, innerjoin=True),
-            ).get(project_id)
-        return project
-
     def get(self, project_id, source_id):
-        project = self._get_project(project_id)
+        project = Project.get(project_id)
         if not project:
             return '', 404
 

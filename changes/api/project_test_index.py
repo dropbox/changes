@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from sqlalchemy import and_
-from sqlalchemy.orm import joinedload, subqueryload
+from sqlalchemy.orm import subqueryload
 
 from changes.api.base import APIView
 from changes.config import db
@@ -10,18 +10,8 @@ from changes.models import Project, AggregateTestGroup, TestGroup, Job, Source
 
 
 class ProjectTestIndexAPIView(APIView):
-    def _get_project(self, project_id):
-        queryset = Project.query.options(
-            joinedload(Project.repository, innerjoin=True),
-        )
-
-        project = queryset.filter_by(slug=project_id).first()
-        if project is None:
-            project = queryset.get(project_id)
-        return project
-
     def get(self, project_id):
-        project = self._get_project(project_id)
+        project = Project.get(project_id)
         if not project:
             return '', 404
 

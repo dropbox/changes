@@ -128,18 +128,8 @@ def get_stats_for_period(project, start_period, end_period):
 
 
 class ProjectStatsIndexAPIView(APIView):
-    def _get_project(self, project_id):
-        project = Project.query.options(
-            joinedload(Project.repository, innerjoin=True),
-        ).filter_by(slug=project_id).first()
-        if project is None:
-            project = Project.query.options(
-                joinedload(Project.repository, innerjoin=True),
-            ).get(project_id)
-        return project
-
     def get(self, project_id):
-        project = self._get_project(project_id)
+        project = Project.get(project_id)
 
         period_length = int(request.args.get('days') or 7)
 

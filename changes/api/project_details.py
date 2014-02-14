@@ -51,18 +51,8 @@ class ProjectValidator(Validator):
 
 
 class ProjectDetailsAPIView(APIView):
-    def _get_project(self, project_id):
-        project = Project.query.options(
-            joinedload(Project.repository, innerjoin=True),
-        ).filter_by(slug=project_id).first()
-        if project is None:
-            project = Project.query.options(
-                joinedload(Project.repository, innerjoin=True),
-            ).get(project_id)
-        return project
-
     def get(self, project_id):
-        project = self._get_project(project_id)
+        project = Project.get(project_id)
         if project is None:
             return '', 404
 
@@ -117,7 +107,7 @@ class ProjectDetailsAPIView(APIView):
         return self.respond(data)
 
     def post(self, project_id):
-        project = self._get_project(project_id)
+        project = Project.get(project_id)
         if project is None:
             return '', 404
 

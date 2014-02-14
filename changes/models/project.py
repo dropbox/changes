@@ -2,7 +2,7 @@ from datetime import datetime
 from slugify import slugify
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, relationship, joinedload
 from sqlalchemy.schema import UniqueConstraint
 from uuid import uuid4
 
@@ -29,6 +29,17 @@ class Project(db.Model):
             self.id = uuid4()
         if not self.slug:
             self.slug = slugify(self.name)
+
+    @classmethod
+    def get(cls, id):
+        project = cls.query.options(
+            joinedload(cls.repository, innerjoin=True),
+        ).filter_by(slug=id).first()
+        if project is None and len(id) == 32:
+            project = cls.query.options(
+                joinedload(cls.repository),
+            ).get(id)
+        return project
 
 
 class ProjectOption(db.Model):

@@ -7,18 +7,8 @@ from changes.models import Build, Project, Revision, Source
 
 
 class ProjectCommitDetailsAPIView(APIView):
-    def _get_project(self, project_id):
-        project = Project.query.options(
-            joinedload(Project.repository, innerjoin=True),
-        ).filter_by(slug=project_id).first()
-        if project is None:
-            project = Project.query.options(
-                joinedload(Project.repository, innerjoin=True),
-            ).get(project_id)
-        return project
-
     def get(self, project_id, commit_id):
-        project = self._get_project(project_id)
+        project = Project.get(project_id)
         if not project:
             return '', 404
 
