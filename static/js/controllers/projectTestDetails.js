@@ -12,13 +12,14 @@
       var chart_options = {
             tooltipFormatter: function(item) {
               var content = '';
+              var build = item.job.build;
 
               content += '<h5>';
-              content += escapeHtml(item.build.name);
+              content += escapeHtml(build.name);
               content += '<br><small>';
-              content += escapeHtml(item.build.target);
-              if (item.author) {
-                content += ' &mdash; ' + item.author.name;
+              content += escapeHtml(build.target);
+              if (build.author) {
+                content += ' &mdash; ' + build.author.name;
               }
               content += '</small>';
               content += '</h5>';
@@ -26,7 +27,7 @@
               if (item.duration) {
                 content += ' in ' + duration(item.duration);
               }
-              content += ' (Build ' + item.build.result.name + ')</p>';
+              content += ' (Build ' + build.result.name + ')</p>';
 
               return content;
             }
