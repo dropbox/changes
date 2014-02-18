@@ -2,9 +2,10 @@ from __future__ import absolute_import, division, unicode_literals
 
 from datetime import datetime, timedelta
 from sqlalchemy import and_
-from sqlalchemy.orm import contains_eager, subqueryload
+from sqlalchemy.orm import contains_eager, joinedload, subqueryload
 
 from changes.api.base import APIView
+from changes.api.serializer.models.job import JobWithBuildSerializer
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
 from changes.api.serializer.models.aggregatetestgroup import AggregateTestGroupWithJobSerializer
 from changes.config import db
@@ -70,6 +71,7 @@ class ProjectTestDetailsAPIView(APIView):
             previous_runs = list(TestGroup.query.options(
                 contains_eager('job', alias=job_sq),
                 contains_eager('job.source'),
+                joinedload('job', 'build'),
             ).join(
                 job_sq, TestGroup.job_id == job_sq.c.id,
             ).join(
@@ -97,6 +99,7 @@ class ProjectTestDetailsAPIView(APIView):
 
         extended_serializers = {
             TestGroup: TestGroupWithJobSerializer(),
+            Job: JobWithBuildSerializer(),
         }
 
         context = {
