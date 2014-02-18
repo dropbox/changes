@@ -32,7 +32,7 @@ class TestGroupDetailsAPIView(APIView):
             joinedload('parent'),
             contains_eager('job'),
             contains_eager('job', 'source'),
-            joinedload('job.build'),
+            joinedload('job', 'build'),
         ).join('job').join('job', 'source').filter(
             TestGroup.name_sha == testgroup.name_sha,
             TestGroup.id != testgroup.id,
