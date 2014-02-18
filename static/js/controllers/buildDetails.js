@@ -5,15 +5,7 @@
       'app',
       'utils/chartHelpers',
       'utils/duration',
-      'utils/escapeHtml',
-      'directives/radialProgressBar',
-      'directives/timeSince',
-      'directives/duration',
-      'filters/escape',
-      'filters/wordwrap',
-      'modules/collection',
-      'modules/flash',
-      'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
+      'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('buildDetailsCtrl', [
         '$scope', '$rootScope', 'initialData', '$location', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'flash', 'collection',
         function($scope, $rootScope, initialData, $location, $timeout, $http, $routeParams, $filter, Stream, flash, Collection) {

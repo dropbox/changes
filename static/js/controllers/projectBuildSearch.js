@@ -6,10 +6,7 @@
       'utils/duration',
       'utils/escapeHtml',
       'utils/parseLinkHeader',
-      'utils/sortBuildList',
-      'modules/collection',
-      'directives/radialProgressBar',
-      'directives/timeSince'], function(app, duration, escapeHtml, parseLinkHeader, sortBuildList) {
+      'utils/sortBuildList'], function(app, duration, escapeHtml, parseLinkHeader, sortBuildList) {
     app.controller('projectBuildSearchCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', '$window', 'collection',
         function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, $window, Collection) {

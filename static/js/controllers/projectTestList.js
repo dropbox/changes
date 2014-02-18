@@ -1,10 +1,7 @@
 (function(){
   'use strict';
 
-  define([
-      'app',
-      'utils/duration',
-      'directives/timeSince'], function(app, duration) {
+  define(['app', 'utils/duration'], function(app, duration) {
     app.controller('projectTestListCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialTests',
         function($scope, $rootScope, initialProject, initialTests) {

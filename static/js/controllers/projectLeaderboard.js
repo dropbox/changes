@@ -7,8 +7,6 @@
       'utils/duration',
       'utils/escapeHtml',
       'utils/sortBuildList',
-      'directives/radialProgressBar',
-      'directives/timeSince',
       'nvd3'], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
     app.controller('projectLeaderboardCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialStats', '$http', '$routeParams', 'stream',

@@ -5,8 +5,7 @@
       'app',
       'utils/chartHelpers',
       'utils/duration',
-      'utils/escapeHtml',
-      'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml) {
+      'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('projectTestDetailsCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialTest',
         function($scope, $rootScope, initialProject, initialTest) {

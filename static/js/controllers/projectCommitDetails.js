@@ -3,9 +3,7 @@
 
   define([
       'app',
-      'utils/sortBuildList',
-      'directives/radialProgressBar',
-      'directives/timeSince'], function(app, sortBuildList) {
+      'utils/sortBuildList'], function(app, sortBuildList) {
     app.controller('projectCommitDetailsCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialCommit', '$http', '$location', '$routeParams', 'stream', 'flash',
         function($scope, $rootScope, initialProject, initialCommit, $http, $location, $routeParams, Stream, flash) {

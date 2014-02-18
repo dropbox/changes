@@ -7,10 +7,7 @@
       'utils/duration',
       'utils/escapeHtml',
       'utils/parseLinkHeader',
-      'utils/sortBuildList',
-      'modules/collection',
-      'directives/radialProgressBar',
-      'directives/timeSince'], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
+      'utils/sortBuildList'], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
     app.controller('projectDetailsCtrl', [
         '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', 'collection',
         function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, Stream, Collection) {

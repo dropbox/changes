@@ -4,9 +4,7 @@
   define([
       'app',
       'utils/parseLinkHeader',
-      'utils/sortBuildList',
-      'directives/radialProgressBar',
-      'directives/timeSince'
+      'utils/sortBuildList'
     ], function(app, parseLinkHeader, sortBuildList) {
     var buildListCtrl = function(initial, $scope, $http, $routeParams, $location, Stream, Collection) {
       var stream,

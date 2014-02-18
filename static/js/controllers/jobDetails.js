@@ -5,13 +5,7 @@
       'app',
       'utils/chartHelpers',
       'utils/duration',
-      'utils/escapeHtml',
-      'directives/radialProgressBar',
-      'directives/timeSince',
-      'directives/duration',
-      'filters/escape',
-      'filters/wordwrap',
-      'modules/pagination'], function(app, chartHelpers, duration, escapeHtml) {
+      'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('jobDetailsCtrl', [
         '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'pagination',
         function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, Pagination) {

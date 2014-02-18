@@ -5,12 +5,7 @@
       'app',
       'utils/chartHelpers',
       'utils/duration',
-      'utils/parseLinkHeader',
-      'directives/radialProgressBar',
-      'directives/timeSince',
-      'directives/duration',
-      'modules/collection',
-      'modules/pagination'], function(app, chartHelpers, duration, parseLinkHeader) {
+      'utils/parseLinkHeader'], function(app, chartHelpers, duration, parseLinkHeader) {
     app.controller('nodeDetailsCtrl', [
         '$scope', '$rootScope', '$http', 'initialNode', 'initialJobList', 'collection',
         function($scope, $rootScope, $http, initialNode, initialJobList, Collection) {

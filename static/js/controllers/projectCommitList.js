@@ -1,10 +1,7 @@
 (function(){
   'use strict';
 
-  define([
-      'app',
-      'directives/radialProgressBar',
-      'directives/timeSince'], function(app) {
+  define(['app'], function(app) {
     app.controller('projectCommitListCtrl', [
       'initialProject', 'initialCommitList', '$scope', '$rootScope',
       function(initialProject, initialBuildList, $scope, $rootScope) {

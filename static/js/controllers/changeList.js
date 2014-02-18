@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  define(['app', 'directives/radialProgressBar', 'directives/timeSince'], function(app) {
+  define(['app'], function(app) {
     app.controller('changeListCtrl', ['$scope', 'initialData', '$http', 'stream', function($scope, initialData, $http, Stream) {
       var stream,
           entrypoint = '/api/0/changes/';

@@ -37,7 +37,6 @@ requirejs.config({
     'modules/flash': ['angular'],
     'modules/pagination': ['angular'],
     'modules/stream': ['angular'],
-    'filters/truncate': ['angular'],
     'jquery': {
         exports: 'jquery'
     },
@@ -56,17 +55,7 @@ requirejs.config({
 
 define([
   'angular',
-  'angularBootstrap',
-  'angularHighlightjs',
-  'angularLoadingBar',
-  'modules/barChart',
-  'modules/collection',
-  'modules/flash',
-  'modules/notify',
-  'modules/stream',
-  'filters/truncate',
-  'routes',
-  'bootstrap'
+  'routes'
 ], function(angular) {
   'use strict';
    angular.bootstrap(document, ['app']);

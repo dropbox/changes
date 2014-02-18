@@ -10,10 +10,7 @@ define([
   'modules/collection',
   'modules/flash',
   'modules/notify',
-  'modules/stream',
-  'filters/truncate',
-  'jquery',
-  'bootstrap'
+  'modules/stream'
   ], function (angular) {
     'use strict';
 

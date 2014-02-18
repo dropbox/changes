@@ -5,9 +5,7 @@
       'app',
       'utils/chartHelpers',
       'utils/duration',
-      'utils/escapeHtml',
-      'directives/timeSince',
-      'directives/duration'], function(app, chartHelpers, duration, escapeHtml) {
+      'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('testGroupDetailsCtrl', [
           '$scope', '$rootScope', 'initialData', '$routeParams',
           function($scope, $rootScope, initialData, $routeParams) {

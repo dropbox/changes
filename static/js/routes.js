@@ -1,3 +1,4 @@
+// Routes is a misnomer, this more like "actually bootstrap the app"
 define(['app',
         'controllers/layout',
         'controllers/authorBuildList',
@@ -19,18 +20,25 @@ define(['app',
         'controllers/projectSettings',
         'controllers/projectTestDetails',
         'controllers/projectTestList',
-        'controllers/projectSourceDetails'
+        'controllers/projectSourceDetails',
+        'directives/duration',
+        'directives/radialProgressBar',
+        'directives/timeSince',
+        'filters/escape',
+        'filters/truncate',
+        'filters/wordwrap'
        ], function(app) {
 
   'use strict';
 
-  // TODO(dcramer): We need to load initial data as part of routes
   return app.config([
       '$routeProvider', '$httpProvider', '$locationProvider',
       function($routeProvider, $httpProvider, $locationProvider) {
 
+    // use html5 location rather than hashes
     $locationProvider.html5Mode(true);
 
+    // configure routes
     $routeProvider
         .when('/', {
           templateUrl: 'partials/project-list.html',
