@@ -1,5 +1,5 @@
 from flask import request
-from sqlalchemy.orm import joinedload, subqueryload_all
+from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
 
 from changes.api.base import APIView
 from changes.config import db
@@ -63,7 +63,8 @@ class ProjectDetailsAPIView(APIView):
         )
 
         last_build = Build.query.options(
-            joinedload(Build.author),
+            joinedload('author'),
+            contains_eager('source')
         ).join(
             Source, Build.source_id == Source.id,
         ).filter(
@@ -77,7 +78,8 @@ class ProjectDetailsAPIView(APIView):
             last_passing_build = last_build
         else:
             last_passing_build = Build.query.options(
-                joinedload(Build.author),
+                joinedload('author'),
+                contains_eager('source')
             ).join(
                 Source, Build.source_id == Source.id,
             ).filter(

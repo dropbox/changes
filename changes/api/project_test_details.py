@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 from datetime import datetime, timedelta
 from sqlalchemy import and_
-from sqlalchemy.orm import joinedload, subqueryload
+from sqlalchemy.orm import contains_eager, subqueryload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
@@ -61,8 +61,8 @@ class ProjectTestDetailsAPIView(APIView):
                 test_list.append(agg)
 
             previous_runs = list(TestGroup.query.options(
-                joinedload('job', innerjoin=True),
-                joinedload('job.source'),
+                contains_eager('job'),
+                contains_eager('job.source'),
             ).join(
                 Job, TestGroup.job_id == Job.id,
             ).join(

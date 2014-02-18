@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import subqueryload
+from sqlalchemy.orm import subqueryload, contains_eager
 
 from changes.api.base import APIView
 from changes.models import Build, TestGroup, Job
@@ -13,7 +13,8 @@ class BuildTestIndexAPIView(APIView):
             return '', 404
 
         test_list = list(TestGroup.query.options(
-            subqueryload(TestGroup.parent),
+            subqueryload('parent'),
+            contains_eager('job')
         ).join(
             Job, TestGroup.job_id == Job.id,
         ).filter(

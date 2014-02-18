@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.base import APIView
 from changes.constants import Status
@@ -18,8 +18,9 @@ class ProjectIndexAPIView(APIView):
         for project in project_list:
             data = self.serialize(project)
             data['lastBuild'] = Build.query.options(
-                joinedload(Build.project, innerjoin=True),
-                joinedload(Build.author),
+                joinedload('project', innerjoin=True),
+                joinedload('author'),
+                contains_eager('source'),
             ).join(
                 Source, Build.source_id == Source.id,
             ).filter(
