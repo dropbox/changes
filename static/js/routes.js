@@ -38,6 +38,28 @@ define(['app',
     // use html5 location rather than hashes
     $locationProvider.html5Mode(true);
 
+    // on a 401 (from the API) redirect the user to the login view
+    var logInUserOn401 = ['$window', '$q', function($window, $q) {
+        function success(response) {
+            return response;
+        }
+
+        function error(response) {
+            if(response.status === 401) {
+                $window.location.href = '/auth/login/';
+                return $q.reject(response);
+            }
+            else {
+                return $q.reject(response);
+            }
+        }
+
+        return function(promise) {
+            return promise.then(success, error);
+        };
+    }];
+    $httpProvider.responseInterceptors.push(logInUserOn401);
+
     // configure routes
     $routeProvider
         .when('/', {
