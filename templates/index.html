@@ -6,7 +6,7 @@
     <title ng-bind="pageTitle">Changes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% if SENTRY_PUBLIC_DSN %}
-      <script type="text/javascript" src="//cdn.ravenjs.com/1.1.0-rc4/jquery,native,require/raven.min.js"></script>
+      <script type="text/javascript" src="//cdn.ravenjs.com/1.1.11/jquery,native/raven.min.js"></script>
       <script type="text/javascript">
       Raven.config('{{ SENTRY_PUBLIC_DSN }}', {
         whitelistUrls: [/changes\.build\.itc\.dropbox\.com/]
