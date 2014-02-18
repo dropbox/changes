@@ -1,6 +1,7 @@
 from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView
+from changes.api.serializer.models.job import JobWithBuildSerializer
 from changes.api.serializer.models.testgroup import TestGroupWithJobSerializer
 from changes.constants import Status, NUM_PREVIOUS_RUNS
 from changes.models import Job, TestGroup, TestCase, Source
@@ -31,6 +32,7 @@ class TestGroupDetailsAPIView(APIView):
             joinedload('parent'),
             contains_eager('job'),
             contains_eager('job', 'source'),
+            joinedload('job.build'),
         ).join('job').join('job', 'source').filter(
             TestGroup.name_sha == testgroup.name_sha,
             TestGroup.id != testgroup.id,
@@ -41,6 +43,7 @@ class TestGroupDetailsAPIView(APIView):
 
         extended_serializers = {
             TestGroup: TestGroupWithJobSerializer(),
+            Job: JobWithBuildSerializer(),
         }
 
         # O(N) db calls, so dont abuse it
