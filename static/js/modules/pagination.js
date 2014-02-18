@@ -1,8 +1,8 @@
 (function(){
   'use strict';
 
-  define(['app'], function(app, Dial) {
-    app.factory('pagination', function() {
+  angular.module('pagination', [])
+    .factory('pagination', function() {
       // TODO(dcramer): we should clean this up so the filters are just handled internally by a results list
       return {
         create: function(results, options) {
@@ -78,5 +78,4 @@
          return input.slice(+start);
        };
     });
-  });
 })();

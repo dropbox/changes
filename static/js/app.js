@@ -10,6 +10,7 @@ define([
   'modules/collection',
   'modules/flash',
   'modules/notify',
+  'modules/pagination',
   'modules/stream'
   ], function (angular) {
     'use strict';
@@ -24,6 +25,7 @@ define([
       'ngRoute',
       'ngSanitize',
       'notify',
+      'pagination',
       'stream',
       'ui.bootstrap'
     ]);
