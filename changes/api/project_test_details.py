@@ -68,7 +68,7 @@ class ProjectTestDetailsAPIView(APIView):
             ).order_by(Job.date_created.desc()).limit(1000).subquery()
 
             previous_runs = list(TestGroup.query.options(
-                contains_eager('job'),
+                contains_eager('job', alias=job_sq),
                 contains_eager('job.source'),
             ).join(
                 job_sq, TestGroup.job_id == job_sq.c.id,
