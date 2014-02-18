@@ -11,6 +11,14 @@ class ProjectTestDetailsTest(APITestCase):
         fake_id = uuid4()
 
         project = self.create_project()
+
+        previous_build = self.create_build(
+            project=project,
+            status=Status.finished,
+            result=Result.passed,
+        )
+        previous_job = self.create_job(previous_build)
+
         build = self.create_build(
             project=project,
             status=Status.finished,
@@ -22,10 +30,18 @@ class ProjectTestDetailsTest(APITestCase):
             project=project,
             name='foo',
             name_sha='a' * 40,
-            first_job=job,
+            first_job=previous_job,
             last_job=job,
         )
         db.session.add(parent_agg_group)
+
+        previous_parent_group = TestGroup(
+            job=previous_job,
+            project=project,
+            name=parent_agg_group.name,
+            name_sha=parent_agg_group.name_sha,
+        )
+        db.session.add(previous_parent_group)
 
         parent_group = TestGroup(
             job=job,
@@ -54,7 +70,9 @@ class ProjectTestDetailsTest(APITestCase):
         )
         db.session.add(child_group)
 
-        path = '/api/0/projects/{0}/tests/'.format(fake_id.hex)
+        # invalid project id
+        path = '/api/0/projects/{0}/tests/{1}/'.format(
+            fake_id.hex, parent_agg_group.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 404
@@ -78,3 +96,6 @@ class ProjectTestDetailsTest(APITestCase):
         assert data['childTests'][0]['lastTest']['id'] == child_group.id.hex
         assert len(data['context']) == 1
         assert data['context'][0]['id'] == parent_agg_group.id.hex
+        assert len(data['previousRuns']) == 2
+        assert data['previousRuns'][1]['id'] == previous_parent_group.id.hex
+        assert data['previousRuns'][0]['id'] == parent_group.id.hex
