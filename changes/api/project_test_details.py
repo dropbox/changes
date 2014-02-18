@@ -64,6 +64,7 @@ class ProjectTestDetailsAPIView(APIView):
             # significantly expensive as we have to seek quite a ways
             job_sq = Job.query.filter(
                 Job.status == Status.finished,
+                Job.project_id == project_id,
             ).order_by(Job.date_created.desc()).limit(1000).subquery()
 
             previous_runs = list(TestGroup.query.options(
