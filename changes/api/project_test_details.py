@@ -60,20 +60,24 @@ class ProjectTestDetailsAPIView(APIView):
                 agg.last_testgroup = group
                 test_list.append(agg)
 
+            # restrict the join to the last 1000 jobs otherwise this can get
+            # significantly expensive as we have to seek quite a ways
+            job_sq = Job.query.filter(
+                Job.status == Status.finished,
+            ).order_by(Job.date_created.desc()).limit(1000).subquery()
+
             previous_runs = list(TestGroup.query.options(
                 contains_eager('job'),
                 contains_eager('job.source'),
             ).join(
-                Job, TestGroup.job_id == Job.id,
+                job_sq, TestGroup.job_id == job_sq.c.id,
             ).join(
-                Source, Job.source_id == Source.id,
+                Source, job_sq.c.source_id == Source.id,
             ).filter(
                 Source.patch_id == None,  # NOQA
                 Source.revision_sha != None,  # NOQA
-                Job.status == Status.finished,
                 TestGroup.name_sha == test.name_sha,
-                TestGroup.project_id == test.project_id,
-            ).order_by(Job.date_created.desc())[:25])
+            ).order_by(job_sq.c.date_created.desc())[:25])
 
         else:
             test_list = list(AggregateTestGroup.query.filter(
