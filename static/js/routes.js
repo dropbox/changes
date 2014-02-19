@@ -1,4 +1,3 @@
-// Routes is a misnomer, this more like "actually bootstrap the app"
 define(['app',
         'controllers/layout',
         'controllers/authorBuildList',
@@ -31,9 +30,8 @@ define(['app',
 
   'use strict';
 
-  return app.config([
-      '$routeProvider', '$httpProvider', '$locationProvider',
-      function($routeProvider, $httpProvider, $locationProvider) {
+  app.config(['$routeProvider', '$httpProvider', '$locationProvider',
+            function($routeProvider, $httpProvider, $locationProvider) {
 
     // use html5 location rather than hashes
     $locationProvider.html5Mode(true);

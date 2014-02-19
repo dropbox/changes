@@ -8,11 +8,12 @@ module.exports = function(grunt) {
       compile: {
         options: {
           baseUrl: "js/",
-          mainConfigFile: "static/js/main.js",
+          mainConfigFile: "static/js/config.js",
           appDir: "static/",
           dir: "static-built/",
           skipDirOptimize: true,
           generateSourceMaps: true,
+          findNestedDependencies: true,
           preserveLicenseComments: false,
           uglify2: {
             mangle: false
