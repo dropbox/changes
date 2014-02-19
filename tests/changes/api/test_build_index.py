@@ -6,13 +6,13 @@ from changes.testutils import APITestCase, SAMPLE_DIFF
 
 
 class BuildListTest(APITestCase):
+    path = '/api/0/builds/'
+
     def test_simple(self):
         build = self.create_build(self.project)
         build2 = self.create_build(self.project2)
 
-        path = '/api/0/builds/'
-
-        resp = self.client.get(path)
+        resp = self.client.get(self.path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 2
