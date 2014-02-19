@@ -11,7 +11,7 @@ class IndexView(MethodView):
         if not session.get('email'):
             return redirect(url_for('login'))
 
-        if current_app.config['SENTRY_DSN']:
+        if current_app.config['SENTRY_DSN'] and False:
             parsed = urlparse.urlparse(current_app.config['SENTRY_DSN'])
             dsn = '%s://%s@%s/%s' % (
                 parsed.scheme,
