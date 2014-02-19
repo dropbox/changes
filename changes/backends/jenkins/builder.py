@@ -614,14 +614,24 @@ class JenkinsBuilder(BaseBackend):
         if not job_name:
             raise UnrecoverableException('Missing Jenkins project configuration')
 
+        project = job.project
+        repository = project.repository
+
         json_data = {
             'parameter': [
                 {'name': 'CHANGES_BID', 'value': job.id.hex},
+                {'name': 'CHANGES_PID', 'value': project.slug},
+                {'name': 'REPO_URL', 'value': repository.url},
             ]
         }
         if job.build.source.revision_sha:
             json_data['parameter'].append(
                 {'name': 'REVISION', 'value': job.build.source.revision_sha},
+            )
+
+        if repository.backend:
+            json_data['parameter'].append(
+                {'name': 'REPO_VCS', 'value': repository.backend.name},
             )
 
         if job.build.source.patch:
