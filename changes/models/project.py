@@ -7,7 +7,9 @@ from sqlalchemy.schema import UniqueConstraint
 from uuid import uuid4
 
 from changes.config import db
+from changes.constants import ProjectStatus
 from changes.db.types.guid import GUID
+from changes.db.types.enum import Enum
 
 
 class Project(db.Model):
@@ -19,6 +21,8 @@ class Project(db.Model):
     name = Column(String(64))
     date_created = Column(DateTime, default=datetime.utcnow)
     avg_build_time = Column(Integer)
+    status = Column(Enum(ProjectStatus), default=ProjectStatus.active,
+                    server_default='1')
 
     repository = relationship('Repository')
     plans = association_proxy('project_plans', 'plan')

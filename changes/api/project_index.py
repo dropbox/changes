@@ -3,13 +3,15 @@ from __future__ import absolute_import, division, unicode_literals
 from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.base import APIView
-from changes.constants import Status
+from changes.constants import Status, ProjectStatus
 from changes.models import Project, Build, Source
 
 
 class ProjectIndexAPIView(APIView):
     def get(self):
-        queryset = Project.query.order_by(Project.name.asc())
+        queryset = Project.query.filter(
+            Project.status == ProjectStatus.active,
+        ).order_by(Project.name.asc())
 
         project_list = list(queryset)
 

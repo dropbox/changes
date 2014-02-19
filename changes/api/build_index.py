@@ -11,7 +11,7 @@ from werkzeug.datastructures import FileStorage
 from changes.api.base import APIView
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Status, ProjectStatus
 from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
@@ -166,6 +166,7 @@ class BuildIndexAPIView(APIView):
             projects = list(Project.query.options(
                 subqueryload_all(Project.project_plans, ProjectPlan.plan),
             ).filter(
+                Project.status == ProjectStatus.active,
                 Project.repository_id == repository.id,
             ))
 

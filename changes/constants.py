@@ -65,6 +65,12 @@ class Cause(Enum):
         return CAUSE_LABELS[self]
 
 
+class ProjectStatus(Enum):
+    unknown = 0
+    active = 1
+    inactive = 2
+
+
 STATUS_LABELS = {
     Status.unknown: 'Unknown',
     Status.queued: 'Queued',
