@@ -76,6 +76,13 @@ class Repository(db.Model):
         else:
             return None
 
+    @classmethod
+    def get(cls, id):
+        result = cls.query.filter_by(url=id).first()
+        if result is None and len(id) == 32:
+            result = cls.query.get(id)
+        return result
+
 
 class RepositoryOption(db.Model):
     __tablename__ = 'repositoryoption'

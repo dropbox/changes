@@ -1,4 +1,5 @@
 from changes.constants import Status
+from changes.models import Project
 from changes.testutils import APITestCase
 
 
@@ -7,8 +8,7 @@ class ProjectListTest(APITestCase):
         build = self.create_build(
             self.project, status=Status.finished)
 
-        path = '/api/0/projects/'.format(
-            self.project.id.hex)
+        path = '/api/0/projects/'
 
         resp = self.client.get(path)
         assert resp.status_code == 200
@@ -18,3 +18,29 @@ class ProjectListTest(APITestCase):
         assert data[0]['lastBuild']['id'] == build.id.hex
         assert data[1]['id'] == self.project2.id.hex
         assert data[1]['lastBuild'] is None
+
+
+class ProjectCreateTest(APITestCase):
+    def test_simple(self):
+        path = '/api/0/projects/'
+
+        # without auth
+        resp = self.client.post(path, data={
+            'name': 'Foobar',
+            'repository': 'ssh://example.com/foo',
+        })
+        assert resp.status_code == 401
+
+        self.login_default()
+
+        resp = self.client.post(path, data={
+            'name': 'Foobar',
+            'repository': 'ssh://example.com/foo',
+        })
+        data = self.unserialize(resp)
+        assert data['id']
+        assert data['slug'] == 'foobar'
+
+        assert Project.query.filter(
+            Project.name == 'Foobar',
+        ).first()

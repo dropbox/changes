@@ -13,6 +13,7 @@ define(['app',
         'controllers/projectBuildSearch',
         'controllers/projectCommitDetails',
         'controllers/projectCommitList',
+        'controllers/projectCreate',
         'controllers/projectDetails',
         'controllers/projectLeaderboard',
         'controllers/projectList',
@@ -186,6 +187,10 @@ define(['app',
               return $http.get('/api/0/nodes/' + $route.current.params.node_id + '/jobs/');
             }]
           }
+        })
+        .when('/new/project/', {
+          templateUrl: 'partials/project-create.html',
+          controller: 'projectCreateCtrl'
         })
         .when('/projects/:project_id/', {
           templateUrl: 'partials/project-details.html',
