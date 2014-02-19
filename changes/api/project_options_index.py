@@ -2,6 +2,7 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
+from changes.api.decorators import requires_auth
 from changes.db.utils import create_or_update
 from changes.models import Project, ProjectOption
 
@@ -26,6 +27,7 @@ class ProjectOptionsIndexAPIView(APIView):
             ).get(project_id)
         return project
 
+    @requires_auth
     def post(self, project_id):
         project = self._get_project(project_id)
         if project is None:
