@@ -1,4 +1,4 @@
-(function(){
+require(['angular'], function(angular) {
   'use strict';
 
   angular.module('pagination', [])
@@ -78,4 +78,4 @@
          return input.slice(+start);
        };
     });
-})();
+});

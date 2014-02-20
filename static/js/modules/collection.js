@@ -1,4 +1,4 @@
-(function() {
+require(['angular'], function(angular) {
   'use strict';
 
   angular.module('collection', [])
@@ -96,4 +96,4 @@
 
       return Collection;
     });
-})();
+});

@@ -1,4 +1,4 @@
-(function(console) {
+require(['angular'], function(angular) {
   'use strict';
 
   angular.module('stream', [])
@@ -36,4 +36,4 @@
         };
       };
     }]);
-})(console);
+});
