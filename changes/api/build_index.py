@@ -244,7 +244,10 @@ class BuildIndexAPIView(APIView):
             target = args.target[:128]
 
         if not label:
-            label = args.label or 'A homeless build'
+            if message:
+                label = message.splitlines()[0]
+            if not label:
+                label = 'A homeless build'
         label = label[:128]
 
         if args.patch_file:
