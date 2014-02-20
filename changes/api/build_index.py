@@ -226,10 +226,11 @@ class BuildIndexAPIView(APIView):
         if revision:
             if not author:
                 author = revision.author
-            if not message:
-                message = revision.message
             if not label:
                 label = revision.subject
+            # only default the message if its absolutely not set
+            if message is None:
+                message = revision.message
             sha = revision.sha
         else:
             sha = args.sha
