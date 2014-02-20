@@ -10,6 +10,8 @@ define(['app',
         'controllers/jobPhaseList',
         'controllers/nodeDetails',
         'controllers/testGroupDetails',
+        'controllers/planDetails',
+        'controllers/planList',
         'controllers/projectBuildCreate',
         'controllers/projectBuildSearch',
         'controllers/projectCommitDetails',
@@ -191,6 +193,24 @@ define(['app',
         .when('/new/project/', {
           templateUrl: 'partials/project-create.html',
           controller: 'projectCreateCtrl'
+        })
+        .when('/plans/', {
+          templateUrl: 'partials/plan-list.html',
+          controller: 'planListCtrl',
+          resolve: {
+            initial: ['$http', function($http) {
+              return $http.get('/api/0/plans/');
+            }]
+          }
+        })
+        .when('/plans/:plan_id/', {
+          templateUrl: 'partials/plan-details.html',
+          controller: 'planDetailsCtrl',
+          resolve: {
+            initial: ['$http', '$route', function($http, $route) {
+              return $http.get('/api/0/plans/' + $route.current.params.plan_id + '/');
+            }]
+          }
         })
         .when('/projects/:project_id/', {
           templateUrl: 'partials/project-details.html',

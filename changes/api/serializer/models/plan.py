@@ -10,6 +10,7 @@ class PlanSerializer(Serializer):
             'name': instance.label,
             'steps': list(instance.steps),
             'dateCreated': instance.date_created,
+            'dateModified': instance.date_modified,
         }
 
 

@@ -1,0 +1,19 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2>Plan Details <small>{{plan.name}}</small></h2>
+		</div>
+
+		<h3>Steps</h3>
+		<ul>
+			<li ng-repeat="step in stepList">{{step.name}}</li>
+		</ul>
+
+		<h3>Projects</h3>
+		<ul>
+			<li ng-repeat="project in projectList">
+				<a href="/projects/{{project.slug}}/">{{project.name}}</a>
+			</li>
+		</ul>
+	</div>
+</section>

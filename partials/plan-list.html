@@ -1,0 +1,24 @@
+<section>
+	<div id="overview">
+		<div class="page-header">
+			<h2>Build Plans</h2>
+		</div>
+
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Plan</th>
+					<th style="width:150px;text-align:center">Created</th>
+					<th style="width:150px;text-align:center">Modified</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="plan in plans">
+					<td><a href="/plans/{{plan.id}}/">{{plan.name}}</a></td>
+					<td style="text-align:center" time-since="plan.dateCreated"></td>
+					<td style="text-align:center" time-since="plan.dateModified"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</section>
