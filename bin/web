@@ -39,7 +39,7 @@ def web(addr, profile=None):
 
     print "Listening on http://{0}".format(addr)
 
-    app = create_app(SERVER_NAME=addr)
+    app = create_app(gevent=True, SERVER_NAME=addr)
     # use threadlocals for gevent compatibility
     db.get_engine(app).engine.pool._use_threadlocal = True
 

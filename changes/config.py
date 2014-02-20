@@ -37,7 +37,7 @@ redis = Redis()
 sentry = Sentry(logging=True, level=logging.ERROR)
 
 
-def create_app(_read_config=True, **config):
+def create_app(_read_config=True, gevent=False, **config):
     app = flask.Flask(__name__,
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
@@ -158,6 +158,9 @@ def create_app(_read_config=True, **config):
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     else:
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30
+
+    if gevent and app.config['SENTRY_DSN']:
+        app.config['SENTRY_DSN'] = 'gevent+{0}'.format(app.config['SENTRY_DSN'])
 
     # init sentry first
     sentry.init_app(app)
