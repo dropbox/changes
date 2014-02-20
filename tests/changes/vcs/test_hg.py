@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 
 from datetime import datetime
+from subprocess import check_call
 
 from changes.testutils import TestCase
 from changes.vcs.hg import MercurialVcs
@@ -16,21 +17,21 @@ class MercurialVcsTest(TestCase):
 
     def setUp(self):
         self.reset()
-        self.addCleanup(self.reset)
+        self.addCleanup(check_call, 'rm -rf %s' % (self.root,), shell=True)
 
     def reset(self):
-        os.system('rm -rf %s' % (self.root,))
-        os.system('mkdir -p %s %s' % (self.path, self.remote_path))
-        os.system('hg init %s' % (self.remote_path,))
+        check_call('rm -rf %s' % (self.root,), shell=True)
+        check_call('mkdir -p %s %s' % (self.path, self.remote_path), shell=True)
+        check_call('hg init %s' % (self.remote_path,), shell=True)
         with open(os.path.join(self.remote_path, '.hg/hgrc'), 'w') as fp:
             fp.write('[ui]\n')
             fp.write('username=Foo Bar <foo@example.com>\n')
-        os.system('cd %s && touch FOO && hg add FOO && hg commit -m "test\nlol"' % (
+        check_call('cd %s && touch FOO && hg add FOO && hg commit -m "test\nlol"' % (
             self.remote_path,
-        ))
-        os.system('cd %s && touch BAR && hg add BAR && hg commit -m "biz\nbaz"' % (
+        ), shell=True)
+        check_call('cd %s && touch BAR && hg add BAR && hg commit -m "biz\nbaz"' % (
             self.remote_path,
-        ))
+        ), shell=True)
 
     def get_vcs(self):
         return MercurialVcs(

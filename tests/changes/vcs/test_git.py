@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import os
 
+from subprocess import check_call
+
 from changes.testutils import TestCase
 from changes.vcs.git import GitVcs
 
@@ -14,22 +16,22 @@ class GitVcsTest(TestCase):
 
     def setUp(self):
         self.reset()
-        self.addCleanup(self.reset)
+        self.addCleanup(check_call, 'rm -rf %s' % (self.root,), shell=True)
 
     def reset(self):
-        os.system('rm -rf %s' % (self.root,))
-        os.system('mkdir -p %s %s' % (self.path, self.remote_path))
-        os.system('git init %s' % (self.remote_path,))
+        check_call('rm -rf %s' % (self.root,), shell=True)
+        check_call('mkdir -p %s %s' % (self.path, self.remote_path), shell=True)
+        check_call('git init %s' % (self.remote_path,), shell=True)
         with open(os.path.join(self.remote_path, '.git/config'), 'w') as fp:
             fp.write('[user]\n')
             fp.write('email=foo@example.com\n')
             fp.write('name=Foo Bar\n')
-        os.system('cd %s && touch FOO && git add FOO && git commit -m "test\nlol\n"' % (
+        check_call('cd %s && touch FOO && git add FOO && git commit -m "test\nlol\n"' % (
             self.remote_path,
-        ))
-        os.system('cd %s && touch BAR && git add BAR && git commit -m "biz\nbaz\n"' % (
+        ), shell=True)
+        check_call('cd %s && touch BAR && git add BAR && git commit -m "biz\nbaz\n"' % (
             self.remote_path,
-        ))
+        ), shell=True)
 
     def get_vcs(self):
         return GitVcs(
