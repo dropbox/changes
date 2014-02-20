@@ -34,6 +34,9 @@
           </button>
           {% raw %}
           <div class="project-selector">
+            <a href="{{ url_for('index') }}" title="Dashboard" class="logo">
+              <i class="glyphicon glyphicon-th"></i>
+            </a>
             <a class="dropdown-toggle" data-toggle="dropdown">
               <span ng-if="activeProject">{{activeProject.name}}</span>
               <span ng-if="!activeProject">Projects</span>
@@ -51,7 +54,6 @@
         </div>
         <ul class="nav navbar-nav navbar-right changes-navbar-small">
           <li id="my-builds"><a href="/my/builds/" title="My Builds"><i class="glyphicon glyphicon-user"></i></a></li>
-          <li><a href="{{ url_for('index') }}" title="Dashboard"><i class="glyphicon glyphicon-th"></i></a></li>
           <li><a href="{{ url_for('logout') }}" target="_self" title="Logout"><i class="glyphicon glyphicon-off"></i></a></li>
         </ul>
         <form class="navbar-form navbar-right" role="search" ng-if="activeProject" ng-submit="searchBuilds()">

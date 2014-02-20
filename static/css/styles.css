@@ -131,7 +131,6 @@ dl.flat dt {
   padding: 15px 5px;
 }
 
-
 .project-selector {
   width: auto;
   display: block;
@@ -143,8 +142,19 @@ dl.flat dt {
   display: block;
   height: auto;
 }
-.project-selector > a {
-  padding: 15px;
+
+.project-selector > .logo {
+  position: absolute;
+  left: 0;
+  font-size: 20px;
+  line-height: 20px;
+  padding: 12px 15px;
+  color: #fff;
+}
+
+.project-selector > .dropdown-toggle {
+  margin-left: 45px;
+  padding: 15px 15px 15px 0;
   font-size: 18px;
   line-height: 20px;
   color: inherit;
@@ -158,7 +168,8 @@ dl.flat dt {
   cursor: pointer;
   font-weight: 200;
 }
-.project-selector.open > a.dropdown-toggle {
+.project-selector.open,
+.project-selector.open > a {
   background: #463C68;
 }
 .project-selector .caret {
