@@ -55,7 +55,7 @@ class ProjectIndexAPIView(APIView):
             Project.slug == slug,
         ).first()
         if match:
-            return '{"error": "Project with slug %r already exists"}' % (slug,), 403
+            return '{"error": "Project with slug %r already exists"}' % (slug,), 400
 
         repository = Repository.get(args.repository)
         if repository is None:
