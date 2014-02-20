@@ -6,6 +6,7 @@
     	"G_vmlCanvasManager",
     	"EventSource",
     	"angular",
+        "console",
     	"define",
         "require",
     	"nv",
