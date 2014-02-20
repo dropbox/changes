@@ -10,7 +10,7 @@ from flask.ext.actions import Manager
 from changes.config import create_app
 
 
-app = create_app()
+app = create_app(gevent=True)
 ctx = app.app_context()
 ctx.__enter__()
 
