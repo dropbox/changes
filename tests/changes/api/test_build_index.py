@@ -44,6 +44,32 @@ class BuildCreateTest(APITestCase):
         assert source.repository_id == self.project.repository_id
         assert source.revision_sha == 'a' * 40
 
+    def test_defaults_to_revision(self):
+        revision = self.create_revision(sha='a' * 40)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data['builds']) == 1
+        assert data['builds'][0]['id']
+
+        job = Job.query.filter(
+            Job.build_id == data['builds'][0]['id']
+        ).first()
+        build = job.build
+        source = build.source
+
+        assert build.message == revision.message
+        assert build.author == revision.author
+        assert build.label == revision.subject
+
+        assert job.project == self.project
+
+        assert source.repository_id == self.project.repository_id
+        assert source.revision_sha == 'a' * 40
+
     def test_with_full_params(self):
         resp = self.client.post(self.path, data={
             'project': self.project.slug,

@@ -19,9 +19,33 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
-    ItemOption, Source, ProjectPlan
+    ItemOption, Source, ProjectPlan, Revision
 )
 from changes.utils.http import build_uri
+
+
+def identify_revision(repository, treeish):
+    """
+    Attempt to transform a a commit-like reference into a valid revision.
+    """
+    # try to find it from the database first
+    if len(treeish) == 40:
+        revision = Revision.query.filter(Revision.sha == treeish).first()
+        if revision:
+            return revision
+
+    vcs = repository.get_vcs()
+    if not vcs:
+        return
+
+    try:
+        commit = list(vcs.log(parent=treeish, limit=1))[0]
+    except IndexError:
+        return
+
+    revision, _ = commit.save()
+
+    return revision
 
 
 def create_build(project, label, target, message, author, change=None,
@@ -135,7 +159,7 @@ class BuildIndexAPIView(APIView):
     parser.add_argument('project', type=lambda x: Project.query.filter_by(slug=x).first())
     parser.add_argument('repository', type=lambda x: Repository.query.filter_by(url=x).first())
     parser.add_argument('author', type=AuthorValidator())
-    parser.add_argument('label', type=unicode, default="A homeless build")
+    parser.add_argument('label', type=unicode)
     parser.add_argument('target', type=unicode)
     parser.add_argument('message', type=unicode)
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
@@ -191,15 +215,33 @@ class BuildIndexAPIView(APIView):
         if not projects:
             return self.respond({'builds': []})
 
-        label = args.label[:128]
+        label = args.label
+        author = args.author
+        message = args.message
+
+        revision = identify_revision(repository, args.sha)
+        if revision:
+            if not author:
+                author = revision.author
+            if not message:
+                message = revision.message
+            if not label:
+                label = revision.subject
+            sha = revision.sha
+        else:
+            sha = args.sha
 
         if not args.target:
             if args.patch_label:
                 target = args.patch_label[:128]
             else:
-                target = args.sha[:12]
+                target = sha[:12]
         else:
             target = args.target[:128]
+
+        if not label:
+            label = args.label or 'A homeless build'
+        label = label[:128]
 
         if args.patch_file:
             fp = StringIO()
@@ -250,11 +292,11 @@ class BuildIndexAPIView(APIView):
 
             builds.append(create_build(
                 project=project,
-                sha=args.sha,
+                sha=sha,
                 target=target,
                 label=label,
-                message=args.message,
-                author=args.author,
+                message=message,
+                author=author,
                 patch=patch,
             ))
 
