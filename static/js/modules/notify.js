@@ -1,4 +1,4 @@
-require(['angular', 'notify'], function(angular) {
+define(['angular', 'notify'], function(angular) {
   'use strict';
 
   angular.module('notify', [])

@@ -1,4 +1,4 @@
-require(['jquery', 'angular'], function($) {
+define(['jquery', 'angular'], function($) {
   'use strict';
 
   angular.module('barChart', [])
