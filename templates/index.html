@@ -66,7 +66,8 @@
           <ul class="nav navbar-nav">
             <li ng-class="navPath == 'builds' ? 'active': ''"><a href="{{activeProject.link}}">Builds</a></li>
             <li ng-class="navPath == 'tests' ? 'active': ''"><a href="{{activeProject.link}}tests/">Tests</a></li>
-            <li ng-class="navPath == 'commits' ? 'active': ''"><a href="{{activeProject.link}}commits/">Commits</a></li>
+            <li ng-if="activeProject.repository.backend != 'unknown'"
+                ng-class="navPath == 'commits' ? 'active': ''"><a href="{{activeProject.link}}commits/">Commits</a></li>
             <li ng-class="navPath == 'stats' ? 'active': ''"><a href="{{activeProject.link}}stats/">Stats</a></li>
           </ul>
         </div>
