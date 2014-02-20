@@ -14,8 +14,6 @@ DOWNSTREAM_XML_RE = re.compile(r'<number>(\d+)</number>')
 
 
 class JenkinsFactoryBuilder(JenkinsBuilder):
-    provider = 'jenkins'
-
     def __init__(self, *args, **kwargs):
         self.downstream_job_names = kwargs.pop('downstream_job_names', ())
         super(JenkinsFactoryBuilder, self).__init__(*args, **kwargs)

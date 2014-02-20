@@ -600,6 +600,26 @@ class JenkinsBuilder(BaseBackend):
         step.result = Result.aborted
         db.session.add(step)
 
+    def get_job_parameters(self, job):
+        params = [
+            {'name': 'CHANGES_BID', 'value': job.id.hex},
+        ]
+
+        if job.build.source.revision_sha:
+            params.append(
+                {'name': 'REVISION', 'value': job.build.source.revision_sha},
+            )
+
+        if job.build.source.patch:
+            params.append(
+                {
+                    'name': 'PATCH_URL',
+                    'value': build_uri('/api/0/patches/{0}/?raw=1'.format(
+                        job.build.source.patch.id.hex)),
+                }
+            )
+        return params
+
     def create_job(self, job):
         """
         Creates a job within Jenkins.
@@ -614,42 +634,11 @@ class JenkinsBuilder(BaseBackend):
         if not job_name:
             raise UnrecoverableException('Missing Jenkins project configuration')
 
-        # project = job.project
-        # repository = project.repository
+        params = self.get_job_parameters(job)
 
         json_data = {
-            'parameter': [
-                {'name': 'CHANGES_BID', 'value': job.id.hex},
-                # {'name': 'CHANGES_PID', 'value': project.slug},
-                # {'name': 'REPO_URL', 'value': repository.url},
-            ]
+            'parameter': params
         }
-        if job.build.source.revision_sha:
-            json_data['parameter'].append(
-                {'name': 'REVISION', 'value': job.build.source.revision_sha},
-            )
-
-        # if repository.backend:
-        #     json_data['parameter'].append(
-        #         {'name': 'REPO_VCS', 'value': repository.backend.name},
-        #     )
-
-        if job.build.source.patch:
-            # XXX(dcramer): Jenkins cannot pass file parameters to downstream
-            # builds which prevents us from simply uploading a file
-            # json_data['parameter'].append(
-            #     {'name': 'PATCH', 'file': 'patch'}
-            # )
-            # files = {
-            #     'patch': job.build.source.patch.diff,
-            # }
-            json_data['parameter'].append(
-                {
-                    'name': 'PATCH_URL',
-                    'value': build_uri('/api/0/patches/{0}/?raw=1'.format(
-                        job.build.source.patch.id.hex)),
-                }
-            )
 
         # TODO: Jenkins will return a 302 if it cannot queue the job which I
         # believe implies that there is already a job with the same parameters
