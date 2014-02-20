@@ -46,7 +46,7 @@ def identify_revision(repository, treeish):
         logging.exception('Failed to find commit: %s', treeish)
         return
 
-    revision, _ = commit.save()
+    revision, _ = commit.save(repository)
 
     return revision
 
