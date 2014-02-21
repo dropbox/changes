@@ -68,11 +68,12 @@
           $scope.authenticated = data.authenticated;
           $scope.user = data.user || {};
 
-          notify("Authenticated as " + data.user.email);
+          if (data.user) {
+            notify("Authenticated as " + data.user.email);
 
-          var stream = new Stream($scope, '/api/0/authors/me/builds/');
-          stream.subscribe('build.update', notifyBuild);
-
+            var stream = new Stream($scope, '/api/0/authors/me/builds/');
+            stream.subscribe('build.update', notifyBuild);
+          }
         });
 
       $http.get('/api/0/projects/')
