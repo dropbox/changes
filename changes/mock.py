@@ -189,7 +189,7 @@ def job(build, change=None, **kwargs):
     db.session.add(job)
 
     node, _ = get_or_create(Node, where={
-        'label': get_sentences(1)[0],
+        'label': get_sentences(1)[0][:32],
     })
 
     jobplan = JobPlan(
