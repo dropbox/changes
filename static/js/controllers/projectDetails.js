@@ -93,7 +93,7 @@
         loadBuildList(entrypoint + '?include_patches=' + ($scope.includePatches ? '1' : '0'));
       });
 
-      $scope.$watch("builds", function() {
+      $scope.$watchCollection("builds", function() {
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       });
 
