@@ -46,7 +46,6 @@ def create_new_entry(project):
         patch = mock.patch(project)
     else:
         patch = None
-    print patch
     source = mock.source(
         project.repository, revision_sha=revision.sha, patch=patch)
 
