@@ -68,21 +68,16 @@ define(['angular'], function(angular) {
               attr, result, item;
 
           if (this.length > 0) {
-            result = $.grep(this, function(e){
-              return e.id == item_id;
-            });
-
-            if (result.length > 0) {
-              item = result[0];
-              for (attr in data) {
-                // ignore dateModified as we're updating this frequently and it causes
-                // the dirty checking behavior in angular to respond poorly
-                if (item[attr] != data[attr] && attr != 'dateModified') {
-                  updated = true;
-                  item[attr] = data[attr];
-                }
-                if (updated) {
-                  item.dateModified = data.dateModified;
+            for (var i=0; i<this.length; i++) {
+              if (i.id == item_id) {
+                for (attr in data) {
+                  // ignore dateModified as we're updating this frequently and it causes
+                  // the dirty checking behavior in angular to respond poorly
+                  if (item[attr] != data[attr] && attr != 'dateModified') {
+                    this[i] = item;
+                    updated = true;
+                    break;
+                  }
                 }
               }
             }
