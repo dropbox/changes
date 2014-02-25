@@ -18,10 +18,11 @@ class AuthorBuildIndexAPIView(APIView):
         return Author.query.get(author_id)
 
     def get(self, author_id):
+        if author_id == 'me' and not get_current_user():
+            return '', 401
+
         author = self._get_author(author_id)
         if not author:
-            if author_id == 'me':
-                return '', 401
             return self.respond([])
 
         queryset = Build.query.options(
