@@ -1,18 +1,20 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import session
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
+from changes.api.auth import get_current_user
 from changes.models import Author, Build
 
 
 class AuthorBuildIndexAPIView(APIView):
     def _get_author(self, author_id):
         if author_id == 'me':
-            if not session.get('email'):
+            user = get_current_user()
+            if user is None:
                 return
-            return Author.query.filter_by(email=session['email']).first()
+
+            return Author.query.filter_by(email=user.email).first()
         return Author.query.get(author_id)
 
     def get(self, author_id):

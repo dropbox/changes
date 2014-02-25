@@ -2,7 +2,7 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.api.decorators import requires_auth
+from changes.api.auth import requires_auth
 from changes.db.utils import create_or_update
 from changes.models import Project, ProjectOption
 

@@ -4,7 +4,7 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.base import APIView
-from changes.api.decorators import requires_auth
+from changes.api.auth import requires_auth
 from changes.config import db
 from changes.constants import Status, ProjectStatus
 from changes.models import Project, Repository, Build, Source

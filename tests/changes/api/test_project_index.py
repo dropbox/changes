@@ -37,6 +37,7 @@ class ProjectCreateTest(APITestCase):
             'name': 'Foobar',
             'repository': 'ssh://example.com/foo',
         })
+        assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['id']
         assert data['slug'] == 'foobar'
