@@ -6,6 +6,7 @@ from changes.backends.buildstep import BuildStep
 
 from .builder import JenkinsBuilder
 from .factory_builder import JenkinsFactoryBuilder
+from .generic_builder import JenkinsGenericBuilder
 
 
 class JenkinsBuildStep(BuildStep):
@@ -49,4 +50,15 @@ class JenkinsFactoryBuildStep(JenkinsBuildStep):
             app=app,
             job_name=self.job_name,
             downstream_job_names=self.downstream_job_names,
+        )
+
+
+class JenkinsGenericBuildStep(JenkinsBuildStep):
+    def __init__(self, **config):
+        self.config = config
+
+    def get_builder(self, app=current_app):
+        return JenkinsGenericBuilder(
+            app=app,
+            **self.config
         )
