@@ -7,10 +7,10 @@
       'utils/duration',
       'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('testGroupDetailsCtrl', [
-          '$scope', '$rootScope', 'initialData', '$routeParams',
-          function($scope, $rootScope, initialData, $routeParams) {
+          '$scope', '$rootScope', 'initialData', '$stateParams',
+          function($scope, $rootScope, initialData, $stateParams) {
       var stream,
-          entrypoint = '/api/0/testgroups/' + $routeParams.testgroup_id + '/',
+          entrypoint = '/api/0/testgroups/' + $stateParams.testgroup_id + '/',
           chart_options = {
             tooltipFormatter: function(item) {
               var content = '';

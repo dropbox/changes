@@ -6,6 +6,7 @@ define([
   'angularLoadingBar',
   'angularRoute',
   'angularSanitize',
+  'angularUIRouter',
   'modules/barChart',
   'modules/collection',
   'modules/flash',
@@ -27,6 +28,7 @@ define([
       'notify',
       'pagination',
       'stream',
-      'ui.bootstrap'
+      'ui.bootstrap',
+      'ui.router'
     ]);
 });

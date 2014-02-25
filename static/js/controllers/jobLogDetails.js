@@ -3,15 +3,15 @@
 
   define(['app'], function(app) {
     app.controller('jobLogDetailsCtrl', [
-        '$scope', '$rootScope', 'initialJob', 'initialBuildLog', '$window', '$timeout', '$http', '$routeParams', 'stream', 'flash',
-        function($scope, $rootScope, initialJob, initialBuildLog, $window, $timeout, $http, $routeParams, Stream, flash) {
+        '$scope', '$rootScope', 'initialJob', 'initialBuildLog', '$window', '$timeout', '$http', '$stateParams', 'stream', 'flash',
+        function($scope, $rootScope, initialJob, initialBuildLog, $window, $timeout, $http, $stateParams, Stream, flash) {
       var stream,
           logChunkData = {
             text: '',
             size: 0,
             nextOffset: 0
           },
-          entrypoint = '/api/0/jobs/' + $routeParams.job_id + '/logs/' + $routeParams.source_id + '/';
+          entrypoint = '/api/0/jobs/' + $stateParams.job_id + '/logs/' + $stateParams.source_id + '/';
 
       function updateBuildLog(data) {
         var $el = $('#log-' + data.source.id + ' > .build-log'),

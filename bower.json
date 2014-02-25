@@ -17,10 +17,14 @@
     "angular-raven": "~0.5.4",
     "angular-route": "1.2.9",
     "angular-sanitize": "1.2.9",
+    "angular-ui-router": "0.2.8-bowratic-tedium",
     "bootstrap": "~3.0.0",
     "jquery": "~2.0.3",
     "moment": "~2.1.0",
     "nvd3": "",
     "requirejs": "~2.1.8"
+  },
+  "resolutions": {
+    "angular": "1.2.9"
   }
 }

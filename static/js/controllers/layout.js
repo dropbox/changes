@@ -56,7 +56,7 @@
         return false;
       };
 
-      $scope.$on('$routeChangeSuccess', function(){
+      $scope.$on('$stateChangeSuccess', function(){
         $scope.projectSearchQuery = $location.search();
 
         $rootScope.pageTitle = 'Changes';
@@ -89,8 +89,9 @@
         $scope.navPath = getNavPath();
       });
 
-      $rootScope.$on('$routeChangeError', function(e, current, previous){
+      $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error){
         flash('error', 'There was an error loading the page you requested :(');
+          console.log(error);
       });
 
       $('.navbar .container').show();

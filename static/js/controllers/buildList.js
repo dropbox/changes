@@ -6,7 +6,7 @@
       'utils/parseLinkHeader',
       'utils/sortBuildList'
     ], function(app, parseLinkHeader, sortBuildList) {
-    var buildListCtrl = function(initial, $scope, $http, $routeParams, $location, Stream, Collection) {
+    var buildListCtrl = function(initial, $scope, $http, $stateParams, $location, Stream, Collection) {
       var stream,
           entrypoint = initial.entrypoint;
 
@@ -60,7 +60,7 @@
       });
     };
 
-    app.controller('buildListCtrl', ['initial', '$scope', '$http', '$routeParams', '$location', 'stream', 'collection', buildListCtrl]);
+    app.controller('buildListCtrl', ['initial', '$scope', '$http', '$stateParams', '$location', 'stream', 'collection', buildListCtrl]);
 
     return buildListCtrl;
   });

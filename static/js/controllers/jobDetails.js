@@ -7,11 +7,11 @@
       'utils/duration',
       'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('jobDetailsCtrl', [
-        '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'pagination',
-        function($scope, $rootScope, initialData, $window, $timeout, $http, $routeParams, $filter, Stream, Pagination) {
+        '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$stateParams', '$filter', 'stream', 'pagination',
+        function($scope, $rootScope, initialData, $window, $timeout, $http, $stateParams, $filter, Stream, Pagination) {
 
       var stream, logSources = {},
-          entrypoint = '/api/0/jobs/' + $routeParams.job_id + '/',
+          entrypoint = '/api/0/jobs/' + $stateParams.job_id + '/',
           buffer_size = 10000,
           chart_options = {
             tooltipFormatter: function(item) {

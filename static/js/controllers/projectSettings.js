@@ -5,8 +5,8 @@
       'app',
       'utils/escapeHtml'], function(app, escapeHtml) {
     app.controller('projectSettingsCtrl', [
-        '$scope', '$rootScope', 'initialProject', '$http', '$routeParams',
-        function($scope, $rootScope, initialProject, $http, $routeParams) {
+        '$scope', '$rootScope', 'initialProject', '$http', '$stateParams',
+        function($scope, $rootScope, initialProject, $http, $stateParams) {
 
       var booleans = {
         "build.allow-patches": 1,

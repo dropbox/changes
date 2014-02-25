@@ -5,10 +5,10 @@
       'app',
       'utils/sortBuildList'], function(app, sortBuildList) {
     app.controller('projectCommitDetailsCtrl', [
-        '$scope', '$rootScope', 'initialProject', 'initialCommit', '$http', '$location', '$routeParams', 'stream', 'flash',
-        function($scope, $rootScope, initialProject, initialCommit, $http, $location, $routeParams, Stream, flash) {
+        '$scope', '$rootScope', 'initialProject', 'initialCommit', '$http', '$location', '$stateParams', 'stream', 'flash',
+        function($scope, $rootScope, initialProject, initialCommit, $http, $location, $stateParams, Stream, flash) {
       var stream,
-          entrypoint = '/api/0/projects/' + $routeParams.project_id + '/commits/' + $routeParams.commit_id + '/';
+          entrypoint = '/api/0/projects/' + $stateParams.project_id + '/commits/' + $stateParams.commit_id + '/';
 
       function addBuild(data) {
         $scope.$apply(function() {

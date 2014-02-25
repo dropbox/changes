@@ -2,9 +2,9 @@
   'use strict';
 
   define(['app'], function(app) {
-    app.controller('changeDetailsCtrl', ['$scope', 'initialData', '$http', '$routeParams', 'stream', function($scope, initialData, $http, $routeParams, Stream) {
+    app.controller('changeDetailsCtrl', ['$scope', 'initialData', '$http', '$stateParams', 'stream', function($scope, initialData, $http, $stateParams, Stream) {
       var stream,
-          entrypoint = '/api/0/changes/' + $routeParams.change_id + '/';
+          entrypoint = '/api/0/changes/' + $stateParams.change_id + '/';
 
       $scope.change = initialData.data.change;
 

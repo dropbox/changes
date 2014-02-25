@@ -33,11 +33,14 @@ define(['app',
 
   'use strict';
 
-  app.config(['$routeProvider', '$httpProvider', '$locationProvider',
-            function($routeProvider, $httpProvider, $locationProvider) {
+  app.config(['$urlRouterProvider', '$httpProvider', '$locationProvider', '$stateProvider',
+            function($urlRouterProvider, $httpProvider, $locationProvider, $stateProvider) {
 
     // use html5 location rather than hashes
     $locationProvider.html5Mode(true);
+
+    // send 404s to /
+    $urlRouterProvider.otherwise("/projects/");
 
     // on a 401 (from the API) redirect the user to the login view
     var logInUserOn401 = ['$window', '$q', function($window, $q) {
@@ -61,283 +64,280 @@ define(['app',
     }];
     $httpProvider.responseInterceptors.push(logInUserOn401);
 
-    // configure routes
-    $routeProvider
-        .when('/', {
-          templateUrl: 'partials/project-list.html',
-          controller: 'projectListCtrl',
-          resolve: {
-            initial: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/');
-            }]
-          }
-        })
-        .when('/changes/', {
-          templateUrl: 'partials/change-list.html',
-          controller: 'changeListCtrl',
-          resolve: {
-            initialData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/changes/');
-            }]
-          }
-        })
-        .when('/changes/:change_id/', {
-          templateUrl: 'partials/change-details.html',
-          controller: 'changeDetailsCtrl',
-          resolve: {
-            initialData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/changes/' + $route.current.params.change_id + '/');
-            }]
-          }
-        })
-        .when('/builds/', {
-          templateUrl: 'partials/build-list.html',
-          controller: 'buildListCtrl',
-          resolve: {
-            initial: ['$q', '$route', '$location', '$http', function($q, $route, $location, $http){
-              var deferred = $q.defer(),
-                  filter = $location.search().filter || '',
-                  entrypoint;
+    $stateProvider
+      .state('projects', {
+        url: "/projects/",
+        templateUrl: 'partials/project-list.html',
+        controller: 'projectListCtrl',
+        resolve: {
+          initial: ['$http', function($http) {
+            return $http.get('/api/0/projects/');
+          }]
+        }
+      })
+      .state('builds', {
+        url: "/builds/",
+        templateUrl: 'partials/build-list.html',
+        controller: 'buildListCtrl',
+        resolve: {
+          initial: ['$q', '$location', '$http', function($q, $location, $http){
+            var deferred = $q.defer(),
+                filter = $location.search().filter || '',
+                entrypoint = '/api/0/builds/';
 
-              if ($route.current.params.change_id) {
-                // TODO: handle me filter
-                entrypoint = '/api/0/changes/' + $route.current.params.change_id + '/builds/';
-              } else {
-                if (filter === 'me') {
-                  entrypoint = '/api/0/authors/me/builds/';
-                } else {
-                  entrypoint = '/api/0/builds/';
-                }
-              }
-
-              $http.get(entrypoint)
-                .success(function(data, status, headers){
-                  deferred.resolve({
-                    'data': data,
-                    'status': status,
-                    'headers': headers,
-                    'entrypoint': entrypoint
-                  });
-                })
-                .error(function(){
-                  deferred.reject();
+            $http.get(entrypoint)
+              .success(function(data, status, headers){
+                deferred.resolve({
+                  'data': data,
+                  'status': status,
+                  'headers': headers,
+                  'entrypoint': entrypoint
                 });
+              })
+              .error(function(){
+                deferred.reject();
+              });
 
-              return deferred.promise;
-            }]
-          }
-        })
-        .when('/builds/:build_id/', {
-          templateUrl: 'partials/build-details.html',
-          controller: 'buildDetailsCtrl',
-          resolve: {
-            initialData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/builds/' + $route.current.params.build_id + '/');
-            }]
-          }
-        })
-        .when('/jobs/:job_id/', {
-          templateUrl: 'partials/job-details.html',
-          controller: 'jobDetailsCtrl',
-          resolve: {
-            initialData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/');
-            }]
-          }
-        })
-        .when('/jobs/:job_id/phases/', {
-          templateUrl: 'partials/job-phase-list.html',
-          controller: 'jobPhaseListCtrl',
-          resolve: {
-            initialJob: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/');
-            }],
-            initialPhaseList: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/phases/');
-            }]
-          }
-        })
-        .when('/jobs/:job_id/logs/:source_id/', {
-          templateUrl: 'partials/job-log-details.html',
-          controller: 'jobLogDetailsCtrl',
-          resolve: {
-            initialJob: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/');
-            }],
-            initialBuildLog: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/jobs/' + $route.current.params.job_id + '/logs/' + $route.current.params.source_id + '?limit=0');
-            }]
-          }
-        })
-        .when('/my/builds/', {
-          templateUrl: 'partials/author-build-list.html',
-          controller: 'authorBuildListCtrl',
-          resolve: {
-            initialBuildList: ['$http', function($http) {
-              return $http.get('/api/0/authors/me/builds/');
-            }]
-          }
-        })
-        .when('/nodes/:node_id/', {
-          templateUrl: 'partials/node-details.html',
-          controller: 'nodeDetailsCtrl',
-          resolve: {
-            initialNode: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/nodes/' + $route.current.params.node_id + '/');
-            }],
-            initialJobList: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/nodes/' + $route.current.params.node_id + '/jobs/');
-            }]
-          }
-        })
-        .when('/new/project/', {
-          templateUrl: 'partials/project-create.html',
-          controller: 'projectCreateCtrl'
-        })
-        .when('/plans/', {
-          templateUrl: 'partials/plan-list.html',
-          controller: 'planListCtrl',
-          resolve: {
-            initial: ['$http', function($http) {
-              return $http.get('/api/0/plans/');
-            }]
-          }
-        })
-        .when('/plans/:plan_id/', {
-          templateUrl: 'partials/plan-details.html',
-          controller: 'planDetailsCtrl',
-          resolve: {
-            initial: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/plans/' + $route.current.params.plan_id + '/');
-            }]
-          }
-        })
-        .when('/projects/:project_id/', {
-          templateUrl: 'partials/project-details.html',
-          controller: 'projectDetailsCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialBuildList: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/?include_patches=0');
-            }]
-          }
-        })
-        .when('/projects/:project_id/new/build/', {
-          templateUrl: 'partials/project-build-create.html',
-          controller: 'projectBuildCreateCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }]
-          }
-        })
-        .when('/projects/:project_id/search/', {
-          templateUrl: 'partials/project-build-list.html',
-          controller: 'projectBuildSearchCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialBuildList: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/builds/search/' + $window.location.search);
-            }]
-          }
-        })
-        .when('/projects/:project_id/commits/', {
-          templateUrl: 'partials/project-commit-list.html',
-          controller: 'projectCommitListCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialCommitList: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/commits/' + $window.location.search);
-            }]
-          }
-        })
-        .when('/projects/:project_id/commits/:commit_id/', {
-          templateUrl: 'partials/project-commit-details.html',
-          controller: 'projectCommitDetailsCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialCommit: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/commits/' + $route.current.params.commit_id + '/' + $window.location.search);
-            }]
-          }
-        })
-        .when('/projects/:project_id/settings/', {
-          templateUrl: 'partials/project-settings.html',
-          controller: 'projectSettingsCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }]
-          }
-        })
-        .when('/projects/:project_id/stats/', {
-          templateUrl: 'partials/project-stats.html',
-          controller: 'projectLeaderboardCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialStats: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/stats/' + $window.location.search);
-            }]
-          }
-        })
-        .when('/projects/:project_id/tests/', {
-          templateUrl: 'partials/project-test-list.html',
-          controller: 'projectTestListCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialTests: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/tests/' + $window.location.search);
-            }]
-          }
-        })
-        .when('/projects/:project_id/tests/:test_id/', {
-          templateUrl: 'partials/project-test-details.html',
-          controller: 'projectTestDetailsCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialTest: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/tests/' + $route.current.params.test_id + '/' + $window.location.search);
-            }]
-          }
-        })
-        .when('/projects/:project_id/sources/:source_id/', {
-          templateUrl: 'partials/project-source-details.html',
-          controller: 'projectSourceDetailsCtrl',
-          resolve: {
-            initialProject: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/');
-            }],
-            initialSource: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/sources/' + $route.current.params.source_id + '/');
-            }],
-            initialBuildList: ['$http', '$route', '$window', function($http, $route, $window) {
-              return $http.get('/api/0/projects/' + $route.current.params.project_id + '/sources/' + $route.current.params.source_id + '/builds/');
-            }]
-          }
-        })
-        .when('/testgroups/:testgroup_id/', {
-          templateUrl: 'partials/testgroup-details.html',
-          controller: 'testGroupDetailsCtrl',
-          resolve: {
-            initialData: ['$http', '$route', function($http, $route) {
-              return $http.get('/api/0/testgroups/' + $route.current.params.testgroup_id + '/');
-            }]
-          }
-        })
-        .otherwise({redirectTo: '/'});
+            return deferred.promise;
+          }]
+        }
+      })
+      .state('builds_details', {
+        url: "/builds/:build_id/",
+        templateUrl: 'partials/build-details.html',
+        controller: 'buildDetailsCtrl',
+        resolve: {
+          initialData: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/builds/' + $stateParams.build_id + '/');
+          }]
+        }
+      })
+      .state('builds_details_job', {
+        url: "/jobs/:job_id/",
+        templateUrl: 'partials/job-details.html',
+        controller: 'jobDetailsCtrl',
+        resolve: {
+          initialData: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
+          }]
+        }
+      })
+      .state('builds_details_job_phases', {
+        url: '/jobs/:job_id/phases/',
+        templateUrl: 'partials/job-phase-list.html',
+        controller: 'jobPhaseListCtrl',
+        resolve: {
+          initialJob: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
+          }],
+          initialPhaseList: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/phases/');
+          }]
+        }
+      })
+      .state('builds_details_job_log', {
+        url: '/jobs/:job_id/logs/:source_id/',
+        templateUrl: 'partials/job-log-details.html',
+        controller: 'jobLogDetailsCtrl',
+        resolve: {
+          initialJob: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
+          }],
+          initialBuildLog: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/logs/' + $stateParams.source_id + '?limit=0');
+          }]
+        }
+      })
+      .state('my_builds', {
+        url: '/my/builds/',
+        templateUrl: 'partials/author-build-list.html',
+        controller: 'authorBuildListCtrl',
+        resolve: {
+          initialBuildList: ['$http', function($http) {
+            return $http.get('/api/0/authors/me/builds/');
+          }]
+        }
+      })
+      .state('node', {
+        url: '/nodes/:node_id/',
+        templateUrl: 'partials/node-details.html',
+        controller: 'nodeDetailsCtrl',
+        resolve: {
+          initialNode: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/nodes/' + $stateParams.node_id + '/');
+          }],
+          initialJobList: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/nodes/' + $stateParams.node_id + '/jobs/');
+          }]
+        }
+      })
+      .state('new_project', {
+        url: '/new/project/',
+        templateUrl: 'partials/project-create.html',
+        controller: 'projectCreateCtrl'
+      })
+      .state('plans', {
+        url: '/plans/',
+        templateUrl: 'partials/plan-list.html',
+        controller: 'planListCtrl',
+        resolve: {
+          initial: ['$http', function($http) {
+            return $http.get('/api/0/plans/');
+          }]
+        }
+      })
+      .state('plans_details', {
+        url: '/plans/:plan_id/',
+        templateUrl: 'partials/plan-details.html',
+        controller: 'planDetailsCtrl',
+        resolve: {
+          initial: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/plans/' + $stateParams.plan_id + '/');
+          }]
+        }
+      })
+      .state('projects_details', {
+        url: '/projects/:project_id/',
+        templateUrl: 'partials/project-details.html',
+        controller: 'projectDetailsCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }],
+          initialBuildList: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/builds/?include_patches=0');
+          }]
+        }
+      })
+      .state('project_new_build', {
+        url: '/projects/:project_id/new/build/',
+        templateUrl: 'partials/project-build-create.html',
+        controller: 'projectBuildCreateCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }]
+        }
+      })
+      .state('project_search', {
+        url: '/projects/:project_id/search/',
+        templateUrl: 'partials/project-build-list.html',
+        controller: 'projectBuildSearchCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }],
+          initialBuildList: ['$http', '$stateParams', '$window', function($http, $stateParams, $window) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/builds/search/' + $window.location.search);
+          }]
+        }
+      })
+      .state('project_commits', {
+        url: '/projects/:project_id/commits/',
+        templateUrl: 'partials/project-commit-list.html',
+        controller: 'projectCommitListCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }],
+          initialCommitList: ['$http', '$stateParams', '$window', function($http, $stateParams, $window) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/commits/' + $window.location.search);
+          }]
+        }
+      })
+      .state('project_commit_details', {
+        url: '/projects/:project_id/commits/:commit_id/',
+        templateUrl: 'partials/project-commit-details.html',
+        controller: 'projectCommitDetailsCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }],
+          initialCommit: ['$http', '$stateParams', '$window', function($http, $stateParams, $window) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/commits/' + $stateParams.commit_id + '/' + $window.location.search);
+          }]
+        }
+      })
+      .state('project_settings', {
+        url: '/projects/:project_id/settings/',
+        templateUrl: 'partials/project-settings.html',
+        controller: 'projectSettingsCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }]
+        }
+      })
+      .state('project_tests', {
+        url: '/projects/:project_id/tests/',
+        templateUrl: 'partials/project-test-list.html',
+        controller: 'projectTestListCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }],
+          initialTests: ['$http', '$stateParams', '$window', function($http, $stateParams, $window) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/tests/' + $window.location.search);
+          }]
+        }
+      })
+      .state('project_tests_details', {
+        urls: '/projects/:project_id/tests/:test_id/',
+        templateUrl: 'partials/project-test-details.html',
+        controller: 'projectTestDetailsCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }],
+          initialTest: ['$http', '$stateParams', '$window', function($http, $stateParams, $window) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/tests/' + $stateParams.test_id + '/' + $window.location.search);
+          }]
+        }
+      })
+      .state('project_source', {
+        url: '/projects/:project_id/sources/:source_id/',
+        templateUrl: 'partials/project-source-details.html',
+        controller: 'projectSourceDetailsCtrl',
+        resolve: {
+          initialProject: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/');
+          }],
+          initialSource: ['$http', '$stateParams', '$window', function($http, $stateParams, $window) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/sources/' + $stateParams.source_id + '/');
+          }],
+          initialBuildList: ['$http', '$stateParams', '$window', function($http, $stateParams, $window) {
+            return $http.get('/api/0/projects/' + $stateParams.project_id + '/sources/' + $stateParams.source_id + '/builds/');
+          }]
+        }
+      })
+      .state('testgroup', {
+        url: '/testgroups/:testgroup_id/',
+        templateUrl: 'partials/testgroup-details.html',
+        controller: 'testGroupDetailsCtrl',
+        resolve: {
+          initialData: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/testgroups/' + $stateParams.testgroup_id + '/');
+          }]
+        }
+      });
+      // .when('/changes/', {
+      //   templateUrl: 'partials/change-list.html',
+      //   controller: 'changeListCtrl',
+      //   resolve: {
+      //     initialData: ['$http', '$route', function($http, $route) {
+      //       return $http.get('/api/0/changes/');
+      //     }]
+      //   }
+      // })
+      // .when('/changes/:change_id/', {
+      //   templateUrl: 'partials/change-details.html',
+      //   controller: 'changeDetailsCtrl',
+      //   resolve: {
+      //     initialData: ['$http', '$route', function($http, $route) {
+      //       return $http.get('/api/0/changes/' + $route.current.params.change_id + '/');
+      //     }]
+      //   }
+      // })
+
   }]);
 });

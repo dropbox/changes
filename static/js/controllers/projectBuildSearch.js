@@ -8,8 +8,8 @@
       'utils/parseLinkHeader',
       'utils/sortBuildList'], function(app, duration, escapeHtml, parseLinkHeader, sortBuildList) {
     app.controller('projectBuildSearchCtrl', [
-        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', '$window', 'collection',
-        function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, $window, Collection) {
+        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$stateParams', '$window', 'collection',
+        function($scope, $rootScope, initialProject, initialBuildList, $http, $stateParams, $window, Collection) {
 
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {

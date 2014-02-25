@@ -7,10 +7,10 @@
       'utils/duration',
       'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
     app.controller('buildDetailsCtrl', [
-        '$scope', '$rootScope', 'initialData', '$location', '$timeout', '$http', '$routeParams', '$filter', 'stream', 'flash', 'collection',
-        function($scope, $rootScope, initialData, $location, $timeout, $http, $routeParams, $filter, Stream, flash, Collection) {
+        '$scope', '$rootScope', 'initialData', '$location', '$timeout', '$http', '$stateParams', '$filter', 'stream', 'flash', 'collection',
+        function($scope, $rootScope, initialData, $location, $timeout, $http, $stateParams, $filter, Stream, flash, Collection) {
       var stream,
-          entrypoint = '/api/0/builds/' + $routeParams.build_id + '/',
+          entrypoint = '/api/0/builds/' + $stateParams.build_id + '/',
           chart_options = {
             tooltipFormatter: function(item) {
               var content = '';

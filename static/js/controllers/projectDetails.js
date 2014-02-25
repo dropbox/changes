@@ -9,10 +9,10 @@
       'utils/parseLinkHeader',
       'utils/sortBuildList'], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
     app.controller('projectDetailsCtrl', [
-        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$routeParams', 'stream', 'collection',
-        function($scope, $rootScope, initialProject, initialBuildList, $http, $routeParams, Stream, Collection) {
+        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$stateParams', 'stream', 'collection',
+        function($scope, $rootScope, initialProject, initialBuildList, $http, $stateParams, Stream, Collection) {
       var stream,
-          entrypoint = '/api/0/projects/' + $routeParams.project_id + '/builds/',
+          entrypoint = '/api/0/projects/' + $stateParams.project_id + '/builds/',
           chart_options = {
             tooltipFormatter: function(item) {
               var content = '';
