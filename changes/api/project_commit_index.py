@@ -21,25 +21,28 @@ class ProjectCommitIndexAPIView(APIView):
         if vcs:
             vcs_log = list(vcs.log())
 
-            revisions_qs = list(Revision.query.options(
-                joinedload('author'),
-            ).filter(
-                Revision.repository_id == repo.id,
-                Revision.sha.in_(c.id for c in vcs_log)
-            ))
+            if vcs_log:
+                revisions_qs = list(Revision.query.options(
+                    joinedload('author'),
+                ).filter(
+                    Revision.repository_id == repo.id,
+                    Revision.sha.in_(c.id for c in vcs_log)
+                ))
 
-            revisions_map = dict(
-                (c.sha, d)
-                for c, d in itertools.izip(revisions_qs, self.serialize(revisions_qs))
-            )
+                revisions_map = dict(
+                    (c.sha, d)
+                    for c, d in itertools.izip(revisions_qs, self.serialize(revisions_qs))
+                )
 
-            commits = []
-            for commit in vcs_log:
-                if commit.id in revisions_map:
-                    result = revisions_map[commit.id]
-                else:
-                    result = self.serialize(commit)
-                commits.append(result)
+                commits = []
+                for commit in vcs_log:
+                    if commit.id in revisions_map:
+                        result = revisions_map[commit.id]
+                    else:
+                        result = self.serialize(commit)
+                    commits.append(result)
+            else:
+                commits = []
         else:
             commits = self.serialize(list(
                 Revision.query.options(
