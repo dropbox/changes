@@ -156,7 +156,13 @@ class TracerMiddleware(object):
             self.sqlalchemy_tracer.reset()
 
     def report(self, environ, start_response):
-        start_response('200 OK', [('Content-Type', 'text/html')])
-
         with self.app.request_context(environ):
-            return render_template('trace.html', events=self.tracer.collect())
+            response = render_template('trace.html', events=self.tracer.collect())
+
+        response = response.encode('utf-8')
+
+        start_response('200 OK', [
+            ('Content-Type', 'text/html'),
+            ('Content-Length', str(len(response))),
+        ])
+        return iter([response])
