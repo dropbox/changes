@@ -97,11 +97,16 @@ class XunitHandler(ArtifactHandler):
             if result is None:
                 result = Result.passed
 
+            if attrs.get('time'):
+                duration = float(attrs['time']) * 1000
+            else:
+                duration = None
+
             results.append(TestResult(
                 job=job,
                 name=attrs['name'],
                 package=attrs.get('classname') or None,
-                duration=float(attrs['time']) * 1000,
+                duration=duration,
                 result=result,
                 message=message,
             ))
