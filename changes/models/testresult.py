@@ -253,7 +253,8 @@ class TestResultManager(object):
 
                 #     agg_groups_by_id[leaf.name] = leaf
 
-                g_duration += testcase.duration
+                if testcase.duration:
+                    g_duration += testcase.duration
                 g_total += 1
                 if testcase.result == Result.failed:
                     g_failed += 1
