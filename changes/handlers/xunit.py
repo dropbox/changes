@@ -55,7 +55,7 @@ class XunitHandler(ArtifactHandler):
             results.append(TestResult(
                 job=job,
                 name=attrs['name'],
-                package=attrs['classname'] or None,
+                package=attrs.get('classname') or None,
                 duration=float(attrs['time']) * 1000,
                 result=result,
                 message=message,
