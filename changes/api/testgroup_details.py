@@ -27,17 +27,29 @@ class TestGroupDetailsAPIView(APIView):
                 TestCase.groups.contains(testgroup),
             ).first()
 
-        previous_runs = TestGroup.query.options(
-            joinedload('parent'),
-            contains_eager('job'),
-            contains_eager('job', 'source'),
-        ).join('job').join('job', 'source').filter(
-            TestGroup.name_sha == testgroup.name_sha,
-            TestGroup.id != testgroup.id,
-            Job.date_created < testgroup.job.date_created,
+        job = testgroup.job
+
+        # limit previous runs to last 1000 jobs
+        job_sq = Job.query.filter(
+            Job.project == job.project,
+            Job.date_created < job.date_created,
             Job.status == Status.finished,
-            Source.patch == None,  # NOQA
-        ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
+        ).order_by(Job.date_created.desc()).limit(1000).subquery()
+
+        previous_runs = list(TestGroup.query.options(
+            contains_eager('job', alias=job_sq),
+            contains_eager('job.source'),
+            joinedload('parent'),
+            joinedload('job', 'build'),
+        ).join(
+            job_sq, TestGroup.job_id == job_sq.c.id,
+        ).join(
+            Source, job_sq.c.source_id == Source.id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
+            Source.revision_sha != None,  # NOQA
+            TestGroup.name_sha == testgroup.name_sha,
+        ).order_by(job_sq.c.date_created.desc())[:NUM_PREVIOUS_RUNS])
 
         extended_serializers = {
             TestGroup: TestGroupWithJobSerializer(),
