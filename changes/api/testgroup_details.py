@@ -35,7 +35,7 @@ class TestGroupDetailsAPIView(APIView):
             Job.date_created < job.date_created,
             Job.status == Status.finished,
         ).options(
-            contains_eager('job.source'),
+            contains_eager('source'),
         ).join(
             Source, Job.source_id == Source.id,
         ).filter(
