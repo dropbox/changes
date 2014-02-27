@@ -8,16 +8,6 @@ from changes.testutils import APITestCase
 
 class TestGroupDetailsTest(APITestCase):
     def test_simple(self):
-        previous_source = self.create_source(self.project)
-        previous_build = self.create_build(
-            project=self.project, source=previous_source,
-            date_created=datetime(2013, 9, 19, 22, 15, 22))
-        previous_job = self.create_job(
-            build=previous_build, date_created=datetime(2013, 9, 19, 22, 15, 22),
-            status=Status.finished)
-        previous_testgroup = self.create_testgroup(
-            job=previous_job, name='test.group')
-
         source = self.create_source(self.project)
         build = self.create_build(
             project=self.project, source=source,
@@ -73,4 +63,3 @@ class TestGroupDetailsTest(APITestCase):
         assert data['build']['id'] == build.id.hex
         assert len(data['childTestGroups']) == 1
         assert data['childTestGroups'][0]['id'] == child_testgroup.id.hex
-        assert data['previousRuns'][0]['id'] == previous_testgroup.id.hex
