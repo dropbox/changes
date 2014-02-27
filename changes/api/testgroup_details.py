@@ -34,8 +34,6 @@ class TestGroupDetailsAPIView(APIView):
             Job.project == job.project,
             Job.date_created < job.date_created,
             Job.status == Status.finished,
-        ).options(
-            contains_eager('source'),
         ).join(
             Source, Job.source_id == Source.id,
         ).filter(
@@ -45,7 +43,6 @@ class TestGroupDetailsAPIView(APIView):
 
         previous_runs = list(TestGroup.query.options(
             contains_eager('job', alias=job_sq),
-            contains_eager('job.source'),
             joinedload('parent'),
             joinedload('job', 'build'),
         ).join(
