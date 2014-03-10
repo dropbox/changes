@@ -61,7 +61,7 @@
       $scope.$on('$stateChangeSuccess', function(){
         $scope.projectSearchQuery = $location.search();
 
-        if ($rootScope.activeProject && $stateParams.project_id != $rootScope.activeProject.id) {
+        if ($rootScope.activeProject && $stateParams.project_id && $stateParams.project_id != $rootScope.activeProject.id) {
           $rootScope.activeProject = null;
         }
       });
