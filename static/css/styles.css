@@ -74,57 +74,51 @@ dl.flat dt {
   margin: 0 auto;
 }
 .navbar {
-  background: #58488a;
-  color: #c7c0de;
+  background: #fff;
+  color: #000;
 }
 .navbar .container {
   position: relative;
 }
+.navbar .navbar-form {
+  margin-top: 10px;
+}
 .navbar .navbar-form input[type=text] {
-  color: #eee;
+  color: #333;
   font-size: 12px;
-  background: #63519e;
-  border-color: #63519e;
+  border-radius: 2px;
+  height: 30px;
+  background: #eee;
+  border-color: #eee;
+  box-shadow: none;
+  -webkit-box-shadow: none;
 }
 .navbar .navbar-form .form-control::-webkit-input-placeholder {
-  color: #c7c0de;
+  color: #aaa;
 }
 .navbar .navbar-form .form-control::-moz-placeholder {
-  color: #c7c0de;
-}
-.navbar .navbar-text {
-  color: #c7c0de;
-  font-size: 0.8em;
-}
-.navbar .navbar-text a {
-  color: #fff;
+  color: #aaa;
 }
 .navbar .navbar-brand,
 .navbar .navbar-brand:hover,
 .navbar .navbar-brand:focus {
-  color: #fff;
+  color: #000;
 }
 .navbar .navbar-nav > li > a {
-  color: #c7c0de;
+  color: #ccc;
 }
 .navbar .navbar-nav > li > a:hover,
 .navbar .navbar-nav > li > a:focus {
-  color: #fff;
-}
-.navbar .navbar-nav > li > a > .badge {
-  background: #63519e;
-  color: #c7c0de;
-  font-weight: normal;
+  color: #333;
 }
 .navbar .navbar-nav > li.active > a,
 .navbar .navbar-nav > li.active > a:hover,
 .navbar .navbar-nav > li.active > a:focus {
-  background: #63519e;
-  color: #fff;
+  color: #333;
+  background: inherit;
 }
 .navbar .navbar-nav > li.active > a > .badge {
-  background: #58488a;
-  color: #fff;
+  color: #333;
 }
 
 .changes-navbar-small li a {
@@ -136,7 +130,7 @@ dl.flat dt {
   display: block;
   z-index: 20000;
   max-width: 550px;
-  color: #fff;
+  color: #6e5baa;
   float: left;
   margin-left: -15px;
   display: block;
@@ -145,16 +139,17 @@ dl.flat dt {
 
 .project-selector > .logo {
   position: absolute;
-  left: 0;
+  left: 1px;
+  top: 0;
   font-size: 20px;
   line-height: 20px;
-  padding: 13px 15px;
-  color: #fff;
+  padding: 11px 15px;
+  color: inherit;
+  z-index: 101;
 }
 
 .project-selector > .dropdown-toggle {
-  margin-left: 45px;
-  padding: 15px 15px 15px 0;
+  padding: 15px 15px 14px 50px;
   font-size: 18px;
   line-height: 20px;
   color: inherit;
@@ -167,16 +162,24 @@ dl.flat dt {
   position: relative;
   cursor: pointer;
   font-weight: 200;
+  border: 1px solid #fff;
+  border-width: 0 1px 1px;
+  z-index: 101;
+}
+.project-selector.open > .dropdown-toggle {
+  border-color: #e7e7e7;
+  border-bottom-color: #fff;
 }
 .project-selector.open,
 .project-selector.open > a {
-  background: #463C68;
+  background: #fff;
 }
 .project-selector .caret {
-  border-top-color: #fff;
+  border-top-color: #000;
   margin-left: 8px;
 }
 .project-selector .dropdown-menu {
+  z-index: 100;
   max-height: 400px;
   max-width: 502px;
   overflow: auto;
@@ -185,9 +188,11 @@ dl.flat dt {
   padding: 10px;
   margin: 0;
   left: 0;
+  margin-top: -1px;
   border-top: none;
   color: #fff;
-  background: #463C68;
+  background: #fff;
+  border-top: 1px solid #e7e7e7;
   border-radius: 0 0 6px 6px;
 }
 .project-selector .dropdown-menu ul {
@@ -200,7 +205,7 @@ dl.flat dt {
   display: inline-block;
 }
 .project-selector .dropdown-menu ul li a {
-  color: #c7c0de;
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -209,17 +214,101 @@ dl.flat dt {
 }
 .project-selector .dropdown-menu ul li a:hover,
 .project-selector .dropdown-menu ul li.active a {
-  color: #fff;
+  color: #6e5baa;
 }
 
+.indicator {
+  width: 100px;
+  border-radius: 40px;
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  background: #f7f5fa;
+}
+
+.indicator.active {
+  background: none !important;
+}
 
 .body {
   background: #fff;
   padding: 20px 0;
 }
 
+.section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  position: relative;
+  margin-bottom: 20px;
+}
+.section-header h3 {
+  margin: 0;
+  position: relative;
+  padding-right: 15px;
+}
+.section-header h3,
+.section-header .timing {
+  background: #fff;
+  display: inline-block;
+  z-index: 2;
+}
+.section-header .timing {
+  position: absolute;
+  right: 0;
+  top: 4px;
+  color: #aaa;
+  padding-left: 15px;
+}
+.section-header .line {
+  background: #f7f5fa;
+  height: 1px;
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 14px;
+  right: 0;
+  z-index: 1;
+}
+
 .page-header {
   margin-top: 0;
+  border-bottom: 0;
+  position: relative;
+}
+
+.page-header .crumb {
+  float: left;
+  font-size: 34px;
+  height: 47px;
+  line-height: 47px;
+  font-weight: 300;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.page-header .crumb li {
+  display: inline-block;
+}
+.page-header .crumb li:after {
+  color: #ddd;
+  padding: 0 5px;
+  content: "/\00a0";
+}
+.page-header .crumb li.nodiv:after {
+  content: "";
+}
+.page-header .crumb .indicator {
+  padding: 0 10px;
+}
+.page-header .indicator {
+  border-radius: 3px;
+  width: auto;
+  height: auto;
+  padding: 3px;
+  text-decoration: none;
 }
 
 .build-header,
@@ -228,19 +317,6 @@ dl.flat dt {
 .stage-header,
 .test-header {
   position: relative;
-}
-
-.indicator {
-  width: 100px;
-  border-radius: 40px;
-  width: 40px;
-  height: 40px;
-  display: block;
-  background: #f7f5fa;
-}
-
-.indicator.active {
-  background: none !important;
 }
 
 .result-unknown .indicator,
@@ -297,24 +373,10 @@ dl.flat dt {
 .build-header h2 small {
   font-size: 0.7em;
 }
-.change-header .indicator,
-.change-header .indicator > div,
-.build-header .indicator,
-.build-header .indicator > div {
-  width: 34px;
-  height: 34px;
-}
-.change-header .indicator,
-.build-header .indicator {
-  position: absolute;
-  top: 10px;
-  right: 0;
-  border-radius: 34px;
-}
 
 .build-header .seen-by {
   position: absolute;
-  right: 47px;
+  right: 0;
   top: 5px;
   bottom: 20px;
   max-width: 150px;
@@ -517,6 +579,7 @@ table > tbody > tr.result-skipped > td.result span {
   list-style: none;
   padding-left: 0;
   overflow: hidden;
+  margin-bottom: 20px;
 }
 .phase-list > li {
   border: 0;
@@ -619,6 +682,29 @@ table > tbody > tr.result-skipped > td.result span {
 .nav-pills > li.active.result-failed > a {
   background: #d9322d;
   color: #fff;
+}
+
+.nav-links > li > a {
+  color: #aaa;
+  font-size: 11px;
+  font-weight: normal;
+  text-transform: uppercase;
+  display: inline-block;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+  padding: 0 0 1px;
+  margin: 0 10px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid #fff;
+}
+.nav-links > li > a:hover {
+  background: inherit;
+  color: #6e5baa;
+}
+.nav-links > li.active > a {
+  border-color: #ddd;
+}
+.nav-links > li.active > a:hover {
+  border-color: #6e5baa;
 }
 
 .test-list {
@@ -814,6 +900,16 @@ span {
   margin-left: 5px;
 }
 
+.nav .indicator,
+.nav .indicator > span {
+  width: 16px;
+  height: 16px;
+}
+.nav .indicator {
+  margin-right: 5px;
+  border-radius: 12px;
+}
+
 @-webkit-keyframes loading-bar-spinner {
   0%   { -webkit-transform: rotate(0deg);   transform: rotate(0deg); }
   100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
@@ -941,7 +1037,7 @@ chart {
 }
 
 .build-log {
-  border-radius: 6px;
+  border-radius: 4px;
   height: 300px;
   background: #333;
   color: #ddd;

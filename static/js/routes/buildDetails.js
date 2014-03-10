@@ -1,14 +1,14 @@
-(function(){
+define([
+  'app',
+  'utils/chartHelpers',
+  'utils/duration',
+  'utils/escapeHtml'
+], function(app, chartHelpers, duration, escapeHtml) {
   'use strict';
 
-  define([
-      'app',
-      'utils/chartHelpers',
-      'utils/duration',
-      'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
-    app.controller('buildDetailsCtrl', [
-        '$scope', '$rootScope', 'initialData', '$location', '$timeout', '$http', '$stateParams', '$filter', 'stream', 'flash', 'collection',
-        function($scope, $rootScope, initialData, $location, $timeout, $http, $stateParams, $filter, Stream, flash, Collection) {
+  var controller = [
+    '$scope', '$rootScope', 'initialData', '$location', '$timeout', '$http', '$state', '$stateParams', '$filter', 'stream', 'flash', 'collection',
+    function($scope, $rootScope, initialData, $location, $timeout, $http, $state, $stateParams, $filter, Stream, flash, Collection) {
       var stream,
           entrypoint = '/api/0/builds/' + $stateParams.build_id + '/',
           chart_options = {
@@ -94,24 +94,42 @@
 
       $scope.project = initialData.data.project;
       $scope.build = initialData.data.build;
-      $scope.jobs = new Collection($scope, initialData.data.jobs);
       $scope.previousRuns = initialData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
       $scope.testFailures = initialData.data.testFailures;
       $scope.testChanges = initialData.data.testChanges;
       $scope.seenBy = initialData.data.seenBy.slice(0, 14);
+      $scope.jobList = new Collection($scope, initialData.data.jobs);
+      $scope.phaseList = [
+        {
+          name: "Test",
+          result: $scope.build.result,
+          status: $scope.build.status
+        }
+      ];
+      // show phase list if > 1 phase
+      $scope.showPhaseList = true;
 
       $rootScope.activeProject = $scope.project;
       $rootScope.pageTitle = getPageTitle($scope.build);
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('build.update', updateBuild);
-      stream.subscribe('job.update', function(data) { $scope.jobs.updateItem(data); });
+      stream.subscribe('job.update', function(data) { $scope.jobList.updateItem(data); });
 
       if ($scope.build.status.id == 'finished') {
         $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');
       }
+    }];
 
-    }]);
-  });
-})();
+  return {
+    url: "/builds/:build_id/",
+    templateUrl: 'partials/build-details.html',
+    controller: controller,
+    resolve: {
+      initialData: ['$http', '$stateParams', function($http, $stateParams) {
+        return $http.get('/api/0/builds/' + $stateParams.build_id + '/');
+      }]
+    }
+  };
+});

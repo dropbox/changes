@@ -1,46 +1,49 @@
-define(['app',
-        'controllers/layout',
-        'controllers/authorBuildList',
-        'controllers/changeList',
-        'controllers/changeDetails',
-        'controllers/buildList',
-        'controllers/buildDetails',
-        'controllers/jobDetails',
-        'controllers/jobLogDetails',
-        'controllers/jobPhaseList',
-        'controllers/nodeDetails',
-        'controllers/testGroupDetails',
-        'controllers/planDetails',
-        'controllers/planList',
-        'controllers/projectBuildCreate',
-        'controllers/projectBuildSearch',
-        'controllers/projectCommitDetails',
-        'controllers/projectCommitList',
-        'controllers/projectCreate',
-        'controllers/projectDetails',
-        'controllers/projectList',
-        'controllers/projectSettings',
-        'controllers/projectTestDetails',
-        'controllers/projectTestList',
-        'controllers/projectSourceDetails',
-        'directives/duration',
-        'directives/radialProgressBar',
-        'directives/timeSince',
-        'filters/escape',
-        'filters/truncate',
-        'filters/wordwrap'
-       ], function(app) {
+define([
+  'app',
+  'routes/buildDetails',
+  'routes/jobDetails',
+  'controllers/layout',
+  'controllers/authorBuildList',
+  'controllers/changeList',
+  'controllers/changeDetails',
+  'controllers/buildList',
+  'controllers/jobLogDetails',
+  'controllers/jobPhaseList',
+  'controllers/nodeDetails',
+  'controllers/testGroupDetails',
+  'controllers/planDetails',
+  'controllers/planList',
+  'controllers/projectBuildCreate',
+  'controllers/projectBuildSearch',
+  'controllers/projectCommitDetails',
+  'controllers/projectCommitList',
+  'controllers/projectCreate',
+  'controllers/projectDetails',
+  'controllers/projectList',
+  'controllers/projectSettings',
+  'controllers/projectTestDetails',
+  'controllers/projectTestList',
+  'controllers/projectSourceDetails',
+  'directives/duration',
+  'directives/radialProgressBar',
+  'directives/timeSince',
+  'filters/escape',
+  'filters/truncate',
+  'filters/wordwrap'
+], function(app, BuildDetailsRoute, JobDetailsRoute) {
 
   'use strict';
 
-  app.config(['$urlRouterProvider', '$httpProvider', '$locationProvider', '$stateProvider',
-            function($urlRouterProvider, $httpProvider, $locationProvider, $stateProvider) {
-
+  app.config(['$urlRouterProvider', '$httpProvider', '$locationProvider', '$stateProvider', '$uiViewScrollProvider',
+            function($urlRouterProvider, $httpProvider, $locationProvider, $stateProvider, $uiViewScrollProvider) {
     // use html5 location rather than hashes
     $locationProvider.html5Mode(true);
 
     // send 404s to /
     $urlRouterProvider.otherwise("/projects/");
+
+    // revert to default scrolling behavior as autoscroll is broken
+    $uiViewScrollProvider.useAnchorScroll();
 
     // on a 401 (from the API) redirect the user to the login view
     var logInUserOn401 = ['$window', '$q', function($window, $q) {
@@ -102,23 +105,27 @@ define(['app',
           }]
         }
       })
-      .state('builds_details', {
-        url: "/builds/:build_id/",
-        templateUrl: 'partials/build-details.html',
-        controller: 'buildDetailsCtrl',
+      .state('build_details', BuildDetailsRoute)
+      .state('job_details', JobDetailsRoute)
+      .state('log_details', {
+        url: 'logs/:source_id/',
+        templateUrl: 'partials/job-log-details.html',
+        controller: 'jobLogDetailsCtrl',
+        parent: 'job_details',
         resolve: {
-          initialData: ['$http', '$stateParams', function($http, $stateParams) {
-            return $http.get('/api/0/builds/' + $stateParams.build_id + '/');
+          initialBuildLog: ['$http', '$stateParams', function($http, $stateParams) {
+            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/logs/' + $stateParams.source_id + '?limit=0');
           }]
         }
       })
-      .state('builds_details_job', {
-        url: "/jobs/:job_id/",
-        templateUrl: 'partials/job-details.html',
-        controller: 'jobDetailsCtrl',
+      .state('test_details', {
+        url: 'tests/:testgroup_id/',
+        templateUrl: 'partials/testgroup-details.html',
+        controller: 'testGroupDetailsCtrl',
+        parent: 'job_details',
         resolve: {
           initialData: ['$http', '$stateParams', function($http, $stateParams) {
-            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
+            return $http.get('/api/0/testgroups/' + $stateParams.testgroup_id + '/');
           }]
         }
       })
@@ -132,19 +139,6 @@ define(['app',
           }],
           initialPhaseList: ['$http', '$stateParams', function($http, $stateParams) {
             return $http.get('/api/0/jobs/' + $stateParams.job_id + '/phases/');
-          }]
-        }
-      })
-      .state('builds_details_job_log', {
-        url: '/jobs/:job_id/logs/:source_id/',
-        templateUrl: 'partials/job-log-details.html',
-        controller: 'jobLogDetailsCtrl',
-        resolve: {
-          initialJob: ['$http', '$stateParams', function($http, $stateParams) {
-            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
-          }],
-          initialBuildLog: ['$http', '$stateParams', function($http, $stateParams) {
-            return $http.get('/api/0/jobs/' + $stateParams.job_id + '/logs/' + $stateParams.source_id + '?limit=0');
           }]
         }
       })
@@ -309,35 +303,6 @@ define(['app',
             return $http.get('/api/0/projects/' + $stateParams.project_id + '/sources/' + $stateParams.source_id + '/builds/');
           }]
         }
-      })
-      .state('testgroup', {
-        url: '/testgroups/:testgroup_id/',
-        templateUrl: 'partials/testgroup-details.html',
-        controller: 'testGroupDetailsCtrl',
-        resolve: {
-          initialData: ['$http', '$stateParams', function($http, $stateParams) {
-            return $http.get('/api/0/testgroups/' + $stateParams.testgroup_id + '/');
-          }]
-        }
       });
-      // .when('/changes/', {
-      //   templateUrl: 'partials/change-list.html',
-      //   controller: 'changeListCtrl',
-      //   resolve: {
-      //     initialData: ['$http', '$route', function($http, $route) {
-      //       return $http.get('/api/0/changes/');
-      //     }]
-      //   }
-      // })
-      // .when('/changes/:change_id/', {
-      //   templateUrl: 'partials/change-details.html',
-      //   controller: 'changeDetailsCtrl',
-      //   resolve: {
-      //     initialData: ['$http', '$route', function($http, $route) {
-      //       return $http.get('/api/0/changes/' + $route.current.params.change_id + '/');
-      //     }]
-      //   }
-      // })
-
   }]);
 });

@@ -20,6 +20,9 @@ define(['angular'], function(angular) {
         };
 
         $scope.$on("$destroy", function() {
+          if (!window.streams[url]) {
+            return;
+          }
           console.log('[Stream] Closing connection to ' + url);
           window.streams[url].close();
           delete window.streams[url];

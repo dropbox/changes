@@ -3,8 +3,8 @@
 
   define(['app', 'modules/notify', 'modules/flash'], function(app) {
     app.controller('layoutCtrl', [
-        '$scope', '$rootScope', '$location', '$http', '$document', 'notify', 'flash', 'stream',
-        function($scope, $rootScope, $location, $http, $document, notify, flash, Stream) {
+        '$scope', '$rootScope', '$stateParams', '$location', '$http', '$document', 'notify', 'flash', 'stream',
+        function($scope, $rootScope, $stateParams, $location, $http, $document, notify, flash, Stream) {
 
       function notifyBuild(build) {
         if (build.status.id == 'finished') {
@@ -33,6 +33,8 @@
 
       }
 
+      $rootScope.pageTitle = 'Changes';
+
       $scope.projectList = [];
       $scope.authenticated = null;
       $scope.user = null;
@@ -59,8 +61,9 @@
       $scope.$on('$stateChangeSuccess', function(){
         $scope.projectSearchQuery = $location.search();
 
-        $rootScope.pageTitle = 'Changes';
-        $rootScope.activeProject = null;
+        if ($rootScope.activeProject && $stateParams.project_id != $rootScope.activeProject.id) {
+          $rootScope.activeProject = null;
+        }
       });
 
       $http.get('/api/0/auth/')

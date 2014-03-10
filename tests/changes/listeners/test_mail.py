@@ -128,7 +128,7 @@ class SendNotificationTestCase(TestCase):
         )
         db.session.add(logchunk)
 
-        job_link = 'http://example.com/jobs/%s/' % (job.id.hex,)
+        job_link = 'http://example.com/builds/%s/jobs/%s/' % (build.id.hex, job.id.hex,)
         log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
 
         send_notification(job, recipients=['foo@example.com', 'Bob <bob@example.com>'])
@@ -140,6 +140,8 @@ class SendNotificationTestCase(TestCase):
             job.project.name, job.build.number, job.number, job.build.source.revision_sha)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
+        print msg.body
+
         assert job_link in msg.html
         assert job_link in msg.body
         assert log_link in msg.html

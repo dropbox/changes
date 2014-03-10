@@ -1,29 +1,9 @@
-<section>
-	<div id="overview">
-		<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
-			<div class="indicator" title="{{build.result.name}}">
-				<div data-result="{{build.result.id}}"
-					 data-status="{{build.status.id}}"
-					 data-date-started="{{build.dateStarted}}"
-					 data-estimated-duration="{{build.estimatedDuration}}"
-					 radial-progress-bar>&nbsp;</div>
-			</div>
-
-			<h2>
-				{{build.name}}<br>
-				<small>
-					#{{build.number}}.{{job.number}} {{job.name}} &mdash; <a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
-					<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
-				</small>
-			</h2>
-		</div>
-	</div>
-
+<div ui-view>
 	<ul class="breadcrumb">
-		<li title="{{build.name}}"><a href="{{build.link}}">#{{build.number}}.{{job.number}}</a></li>
+		<li title="{{build.name}}"><a ui-sref="job_details()">#{{build.number}}.{{job.number}}</a></li>
 		<li ng-repeat="parentTestGroup in context"
 			title="{{parentTestGroup.name}}"
-			ng-class="testGroup.id == parentTestGroup.id ? 'active' : ''"><a href="{{parentTestGroup.link}}">{{parentTestGroup.shortName|truncate}}</a></li>
+			ng-class="testGroup.id == parentTestGroup.id ? 'active' : ''"><a ui-sref="test_details({testgroup_id: parentTestGroup.id})">{{parentTestGroup.shortName|truncate}}</a></li>
 	</ul>
 
 	<div ng-if="childTestGroups">
@@ -39,7 +19,7 @@
 			<tbody>
 				<tr ng-repeat="childTestGroup in childTestGroups" class="result-{{childTestGroup.result.id}}">
 					<td class="result"><span></span></td>
-					<td><a href="{{childTestGroup.link}}">{{childTestGroup.shortName}}</a></td>
+					<td><a ui-sref="test_details({testgroup_id: childTestGroup.id})">{{childTestGroup.shortName}}</a></td>
 					<td style="text-align:center" duration="childTestGroup.duration"></td>
 					<td style="text-align:center">{{childTestGroup.numFailures}}</td>
 					<td style="text-align:center">{{childTestGroup.numTests}}</td>

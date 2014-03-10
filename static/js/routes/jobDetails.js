@@ -1,18 +1,19 @@
-(function(){
+define([
+  'app',
+  'utils/chartHelpers',
+  'utils/duration',
+  'utils/escapeHtml'
+], function(app, chartHelpers, duration, escapeHtml) {
   'use strict';
 
-  define([
-      'app',
-      'utils/chartHelpers',
-      'utils/duration',
-      'utils/escapeHtml'], function(app, chartHelpers, duration, escapeHtml) {
-    app.controller('jobDetailsCtrl', [
-        '$scope', '$rootScope', 'initialData', '$window', '$timeout', '$http', '$stateParams', '$filter', 'stream', 'pagination',
-        function($scope, $rootScope, initialData, $window, $timeout, $http, $stateParams, $filter, Stream, Pagination) {
+  var BUFFER_SIZE = 10000;
 
-      var stream, logSources = {},
+  var controller = [
+    '$scope', '$rootScope', '$window', '$http', '$timeout', '$stateParams', '$filter', 'initialData', 'stream', 'pagination',
+    function($scope, $rootScope, $window, $http, $timeout, $stateParams, $filter, initialData, Stream, Pagination) {
+      var stream,
+          logStreams = {},
           entrypoint = '/api/0/jobs/' + $stateParams.job_id + '/',
-          buffer_size = 10000,
           chart_options = {
             tooltipFormatter: function(item) {
               var content = '';
@@ -40,29 +41,8 @@
             }
           };
 
-      function getFormattedBuildMessage(message) {
-        return $filter('linkify')($filter('escape')(message));
-      }
-
-      function getLogSourceEntrypoint(logSourceId) {
-        return '/api/0/jobs/' + $scope.job.id + '/logs/' + logSourceId + '/';
-      }
-
-      function getTestStatus() {
-        if ($scope.job.status.id == "finished") {
-          if ($scope.testGroups.length === 0) {
-            return "no-results";
-          } else {
-            return "has-results";
-          }
-        }
-        return "pending";
-      }
-
-      function updateJob(data){
-        $scope.$apply(function() {
-          $scope.job = data;
-        });
+      function getLogSourceEntrypoint(jobId, logSourceId) {
+        return '/api/0/jobs/' + jobId + '/logs/' + logSourceId + '/';
       }
 
       function updateBuildLog(data) {
@@ -77,22 +57,22 @@
           return;
         }
 
-        if (!logSources[source_id]) {
+        if (!logStreams[source_id]) {
           return;
         }
 
-        item = logSources[source_id];
+        item = logStreams[source_id];
         if (data.offset < item.nextOffset) {
           return;
         }
 
         item.nextOffset = data.offset + data.size;
 
-        if (item.size > buffer_size) {
+        if (item.size > BUFFER_SIZE) {
           $el.empty();
         } else {
           // determine how much space we need to clear up to append data.size
-          chars_to_remove = 0 - (buffer_size - item.size - data.size);
+          chars_to_remove = 0 - (BUFFER_SIZE - item.size - data.size);
 
           if (chars_to_remove > 0) {
             // determine the number of actual lines to remove
@@ -114,7 +94,7 @@
         });
 
 
-        item.text = (item.text + data.text).substr(-buffer_size);
+        item.text = (item.text + data.text).substr(-BUFFER_SIZE);
         item.size = item.text.length;
 
         $el.append(frag);
@@ -123,6 +103,42 @@
           var el = $el.get(0);
           el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
         }
+      }
+
+      $scope.loadLogSource = function(logSource){
+        logStreams[logSource.id] = {
+          text: '',
+          size: 0,
+          nextOffset: 0
+        };
+
+        $http.get(getLogSourceEntrypoint($scope.job.id, logSource.id) + '?limit=' + BUFFER_SIZE)
+          .success(function(data){
+            $.each(data.chunks, function(_, chunk){
+              updateBuildLog(chunk);
+            });
+          });
+      };
+
+      function getFormattedBuildMessage(message) {
+        return $filter('linkify')($filter('escape')(message));
+      }
+
+      function getTestStatus() {
+        if ($scope.job.status.id == "finished") {
+          if ($scope.testGroups.length === 0) {
+            return "no-results";
+          } else {
+            return "has-results";
+          }
+        }
+        return "pending";
+      }
+
+      function updateJob(data){
+        $scope.$apply(function() {
+          $scope.job = data;
+        });
       }
 
       function updateTestGroup(data) {
@@ -196,40 +212,10 @@
           $scope.formattedBuildMessage = null;
         }
       });
-      $scope.$watch("tests", function() {
+      $scope.$watchCollection("tests", function() {
         $scope.testStatus = getTestStatus();
       });
-      $scope.$watch("logSources", function(){
-        $timeout(function(){
-          $('#log_sources a[data-toggle="tab"]').tab();
-          $('#log_sources a[data-toggle="tab"]').on('show.bs.tab', function(e){
-            var source_id = $(e.target).attr("data-source-id"),
-                $el = $($(e.target).attr("href"));
 
-            if (!logSources[source_id]) {
-              logSources[source_id] = {
-                text: '',
-                size: 0,
-                nextOffset: 0
-              };
-
-              $http.get(getLogSourceEntrypoint(source_id) + '?limit=' + buffer_size)
-                .success(function(data){
-                  $.each(data.chunks, function(_, chunk){
-                    updateBuildLog(chunk);
-                  });
-                  $("#log_sources").tab();
-                });
-            } else {
-              $el.tab('show');
-            }
-          });
-          $('#log_sources a[data-toggle="tab"]:first').tab("show");
-        });
-      });
-
-      $scope.project = initialData.data.project;
-      $scope.build = initialData.data.build;
       $scope.job = initialData.data.job;
       $scope.logSources = initialData.data.logs;
       $scope.phases = initialData.data.phases;
@@ -238,7 +224,6 @@
       $scope.previousRuns = initialData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.job, chart_options);
 
-      $rootScope.activeProject = $scope.project;
       $rootScope.pageTitle = getPageTitle($scope.build, $scope.job);
 
       stream = new Stream($scope, entrypoint);
@@ -249,7 +234,17 @@
       if ($scope.build.status.id == 'finished') {
         $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');
       }
+    }];
 
-    }]);
-  });
-})();
+  return {
+    url: "jobs/:job_id/",
+    parent: 'build_details',
+    templateUrl: 'partials/job-details.html',
+    controller: controller,
+    resolve: {
+      initialData: ['$http', '$stateParams', function($http, $stateParams) {
+        return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
+      }]
+    }
+  };
+});

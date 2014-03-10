@@ -108,8 +108,8 @@ def send_notification(job, recipients):
     for testgroup in test_failures:
         testgroup.uri = build_uri('/testgroups/{0}/'.format(testgroup.id.hex))
 
-    job.uri = build_uri('/jobs/{0}/'.format(job.id.hex))
     build.uri = build_uri('/builds/{0}/'.format(build.id.hex))
+    job.uri = build.uri + 'jobs/{0}/'.format(job.id.hex)
 
     context = {
         'job': job,
@@ -122,7 +122,7 @@ def send_notification(job, recipients):
         context['build_log'] = {
             'text': log_clipping,
             'name': primary_log.name,
-            'link': '{0}logs/{1}/'.format(job.uri, primary_log.id.hex),
+            'uri': '{0}logs/{1}/'.format(job.uri, primary_log.id.hex),
         }
 
     msg = Message(subject, recipients=recipients, extra_headers={

@@ -1,20 +1,7 @@
-<section>
-	<div class="page-header build-header">
-		<h2>
-			{{build.name}}<br>
-			<small>
-				#{{build.number}}.{{job.number}} {{job.name}} &mdash; <a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
-				<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
-			</small>
-		</h2>
+<section class="section">
+	<div class="section-header">
+		<h3>{{logSource.name}} <small>Build Log</small></h3>
 	</div>
-
-	<ul class="breadcrumb">
-		<li title="{{job.name}}"><a href="{{job.link}}">#{{build.number}}.{{job.number}}</a></li>
-		<li class="active"><a>{{ logSource.name }}</a></li>
-	</ul>
-
-	<h3>{{logSource.name}} <small>Build Log</small></h3>
 	<div class="build-log-wrapper" id="log-{{logSource.id}}">
 		<div class="build-log expanded"></div>
 	</div>

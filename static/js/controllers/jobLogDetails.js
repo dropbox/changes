@@ -3,8 +3,8 @@
 
   define(['app'], function(app) {
     app.controller('jobLogDetailsCtrl', [
-        '$scope', '$rootScope', 'initialJob', 'initialBuildLog', '$window', '$timeout', '$http', '$stateParams', 'stream', 'flash',
-        function($scope, $rootScope, initialJob, initialBuildLog, $window, $timeout, $http, $stateParams, Stream, flash) {
+        '$scope', '$rootScope', 'initialBuildLog', '$window', '$timeout', '$http', '$stateParams', 'stream', 'flash',
+        function($scope, $rootScope, initialBuildLog, $window, $timeout, $http, $stateParams, Stream, flash) {
       var stream,
           logChunkData = {
             text: '',
@@ -94,12 +94,7 @@
         });
       }
 
-      $scope.project = initialJob.data.project;
-      $scope.build = initialJob.data.build;
-      $scope.job = initialJob.data.job;
       $scope.logSource = initialBuildLog.data.source;
-
-      $rootScope.activeProject = $scope.project;
 
       $timeout(function(){
         $.each(initialBuildLog.data.chunks, function(_, chunk){

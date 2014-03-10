@@ -34,13 +34,13 @@
           </button>
           {% raw %}
           <div class="project-selector">
-            <a href="{{ url_for('index') }}" title="Dashboard" class="logo">
-              <i class="glyphicon glyphicon-th"></i>
-            </a>
             <a class="dropdown-toggle" data-toggle="dropdown">
               <span ng-if="activeProject">{{activeProject.name}}</span>
               <span ng-if="!activeProject">Projects</span>
               <span class="caret"></span>
+            </a>
+            <a href="{{ url_for('index') }}" title="Dashboard" class="logo">
+              <i class="glyphicon glyphicon-th"></i>
             </a>
             <nav class="dropdown-menu">
               <ul>
@@ -78,7 +78,7 @@
 
     <section class="body">
       <div class="row container" data-spy="scroll" data-target="#header-nav">
-        <div ui-view></div>
+        <div ui-view autoscroll="top"></div>
       </div>
     </section>
 

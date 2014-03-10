@@ -17,7 +17,7 @@ Test Failures
 Build Log
 ---------
 
-Full Log: {{ build_log.link }}
+Full Log: {{ build_log.uri }}
 
 {{ build_log.text }}
 {% endif %}

@@ -1,147 +1,99 @@
 <section>
 	<div id="overview">
-		<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
-			<div class="indicator" title="{{build.result.name}}">
-				<div data-result="{{build.result.id}}"
-					 data-status="{{build.status.id}}"
-					 data-date-started="{{build.dateStarted}}"
-					 data-estimated-duration="{{build.estimatedDuration}}"
-					 radial-progress-bar>&nbsp;</div>
-			</div>
-			<div class="seen-by">
-				<ul>
-					<li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
-						<a tooltip="{{seenUser.email}}"
-						   tooltip-placement="bottom">
-							<img src="{{seenUser.avatar}}&amp;s=16">
-						</a>
+		<div ui-view>
+
+			<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
+				<ul class="crumb">
+					<li class="nodiv">
+						<a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
 					</li>
 				</ul>
-			</div>
-			<h2>
-				{{build.name}}<br>
-				<small>
-					<span ng-if="build.number">#{{build.number}} &mdash; </span>
-					<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
-					<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
-				</small>
-			</h2>
-		</div>
-
-		<barchart ng-model="chartData" style="height:130px"></barchart>
-
-		<div class="row">
-			<div class="col-lg-9 col-md-8">
-				<dl class="flat">
-					<dt ng-if="build.number">Build:</dt>
-					<dd ng-if="build.number"><a href="/builds/{{build.id}}/">#{{build.number}}</a></dd>
-					<dt ng-if="build.author">Author:</dt>
-					<dd ng-if="build.author">{{build.author.name}} <span ng-if="build.author.email">(<a href="mailto:{{build.author.email}}">{{build.author.email}}</a>)</span></dd>
-					<dt>Project:</dt>
-					<dd><a href="{{build.project.link}}">{{build.project.name}}</a></dd>
-					<dt ng-if="build.source.revision">Revision:</dt>
-					<dd ng-if="build.source.revision">
-						<a href="/projects/{{project.id}}/commits/{{build.source.revision.sha}}/">{{build.source.revision.sha}}</a>
-					</dd>
-					<dt ng-if="build.source.patch">Patch:</dt>
-					<dd ng-if="build.source.patch"><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
-					<dt>Status:</dt>
-					<dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
-					<dt ng-if="build.dateStarted">Started:</dt>
-					<dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
-					<dt ng-if="build.duration">Duration:</dt>
-					<dd ng-if="build.duration" duration="build.duration"></dd>
-				</dl>
-			</div>
-			<div class="col-lg-3 col-md-4">
-				<div class="panel panel-default">
-					<ul class="nav nav-small">
-						<li><a href="/projects/{{project.id}}/sources/{{build.source.id}}/">
-							<i class="glyphicon glyphicon-search"></i> View Changes</a>
-						</li>
-						<li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">
-							<i class="glyphicon glyphicon-repeat"></i> Restart Build</a>
-						</li>
-						<li ng-if="build.status.id != 'finished'"><a href="javascript:void(0)" ng-click="cancelBuild()">
-							<i class="glyphicon glyphicon-remove"></i> Cancel Build</a>
+				<div class="seen-by">
+					<ul>
+						<li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
+							<a tooltip="{{seenUser.email}}"
+							   tooltip-placement="bottom">
+								<img src="{{seenUser.avatar}}&amp;s=16">
+							</a>
 						</li>
 					</ul>
 				</div>
+				<h2>
+					{{build.name}}<br>
+					<small>
+						<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
+						<span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
+					</small>
+				</h2>
 			</div>
-		</div>
 
-		<pre ng-if="formattedBuildMessage" class="build-message" ng-bind-html="formattedBuildMessage"></pre>
+			<div class="row">
+				<div class="col-lg-9 col-md-8">
+					<dl class="flat">
+						<dt ng-if="build.source.revision">Revision:</dt>
+						<dd ng-if="build.source.revision">
+							<a href="/projects/{{project.id}}/commits/{{build.source.revision.sha}}/">{{build.source.revision.sha}}</a>
+						</dd>
+						<dt ng-if="build.source.patch">Patch:</dt>
+						<dd ng-if="build.source.patch"><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
+						<dt>Status:</dt>
+						<dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
+						<dt ng-if="build.dateStarted">Started:</dt>
+						<dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
+						<dt ng-if="build.duration">Duration:</dt>
+						<dd ng-if="build.duration" duration="build.duration"></dd>
+					</dl>
+				</div>
+				<div class="col-lg-3 col-md-4">
+					<div class="panel panel-default">
+						<ul class="nav nav-small">
+							<li><a href="/projects/{{project.id}}/sources/{{build.source.id}}/">
+								<i class="glyphicon glyphicon-search"></i> View Changes</a>
+							</li>
+							<li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">
+								<i class="glyphicon glyphicon-repeat"></i> Restart Build</a>
+							</li>
+							<li ng-if="build.status.id != 'finished'"><a href="javascript:void(0)" ng-click="cancelBuild()">
+								<i class="glyphicon glyphicon-remove"></i> Cancel Build</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
 
-		<div class="page-header">
-			<h3>Jobs</h3>
-		</div>
-		<table class="job-list table table-striped">
-			<tbody>
-				<tr class="status-{{job.status.id}} result-{{job.result.id}}"
-					ng-repeat="job in jobs">
-					<td>
-						<div class="indicator" title="{{job.result.name}}">
-							<div data-result="{{job.result.id}}"
-								 data-status="{{job.status.id}}"
-								 data-date-started="{{job.dateStarted}}"
-								 data-estimated-duration="{{job.estimatedDuration}}"
-								 radial-progress-bar>&nbsp;</div>
-						</div>
-					</td>
-					<td>
-						<a href="{{job.link}}">#{{build.number}}.{{job.number}} &mdash; {{job.name}}</a>
-						<span class="info">
-							{{getBuildStatus(job)}} &mdash;
-							<span ng-if="!job.duration" time-since="job.dateStarted"></span>
-							<span ng-if="job.duration" duration="job.duration"></span>
-						</span>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+			<pre ng-if="formattedBuildMessage" class="build-message" ng-bind-html="formattedBuildMessage"></pre>
 
-		<div ng-if="testFailures.total">
 			<div class="page-header">
-				<h3>Test Failures <small>{{ testFailures.total }} total</small></h3>
+				<h3>Jobs</h3>
 			</div>
 
-			<table class="table table-striped table-bordered">
-				<thead>
-					<tr>
-						<th colspan="2">&nbsp;</th>
-						<th style="width:110px;text-align:center">Duration</th>
-					</tr>
-				</thead>
+			<table class="job-list table table-striped">
 				<tbody>
-					<tr ng-repeat="testGroup in testFailures.testGroups" class="result-{{testGroup.result.id}}">
-						<td class="result"><span></span></td>
+					<tr class="status-{{job.status.id}} result-{{job.result.id}}"
+						ng-repeat="job in jobList">
 						<td>
-							<a href="{{ testGroup.link }}">{{ testGroup.name }}</a><br>
-							<small>
-								<span ng-if="testGroup.job.number"><a href="/jobs/{{testGroup.job.id}}">#{{build.number}}.{{testGroup.job.number}}</a><span ng-if="testGroup.origin"> &mdash;</span></span>
-								<span ng-if="testGroup.origin">
-									This failure likely originated in <span ng-if="testGroup.origin.id == build.id">this job</span><span ng-if="testGroup.origin.id != build.id"><a href="{{ testGroup.origin.link }}">#{{testGroup.origin.number}} &mdash; {{ testGroup.origin.target }}</a><span ng-if="testGroup.origin.author"> &mdash; {{ testGroup.origin.author.name }}</span></span>
-								</span>
-							</small>
+							<div class="indicator" title="{{job.result.name}}">
+								<div data-result="{{job.result.id}}"
+									 data-status="{{job.status.id}}"
+									 data-date-started="{{job.dateStarted}}"
+									 data-estimated-duration="{{job.estimatedDuration}}"
+									 radial-progress-bar>&nbsp;</div>
+							</div>
 						</td>
-						<td style="text-align:center" duration="testGroup.duration"></td>
+						<td>
+							<a ui-sref="job_details({job_id: job.id})">
+								#{{build.number}}.{{job.number}} &mdash; {{job.name}}
+							</a>
+							<span class="info">
+								{{getBuildStatus(job)}} &mdash;
+								<span ng-if="!job.duration" time-since="job.dateStarted"></span>
+								<span ng-if="job.duration" duration="job.duration"></span>
+							</span>
+						</td>
 					</tr>
 				</tbody>
 			</table>
-		</div>
 
-		<div ng-if="testChanges.total">
-			<div class="page-header">
-				<h3>Changed Tests <small>{{ testChanges.total }} total</small></h3>
-			</div>
-
-			<ul class="test-list">
-				<li ng-repeat="testChange in testChanges.changes" ng-class="{'-': 'test-removed', '+': 'test-added'}[testChange[0]]">
-					<i class="glyphicon" ng-class="{'-': 'glyphicon-minus', '+': 'glyphicon-plus'}[testChange[0]]"></i>
-					{{testChange[1].name}}<br>
-					<small>{{testChange[1].package}}</li>
-				</li>
-			</ul>
 		</div>
 	</div>
 </section>

@@ -1,6 +1,5 @@
 from changes.api.serializer import Serializer, register
 from changes.models import Job
-from changes.utils.http import build_uri
 
 
 @register(Job)
@@ -30,7 +29,6 @@ class JobSerializer(Serializer):
             'project': instance.project,
             'duration': instance.duration,
             'estimatedDuration': avg_build_time,
-            'link': build_uri('/jobs/%s/' % (instance.id.hex,)),
             'external': external,
             'dateCreated': instance.date_created.isoformat(),
             'dateModified': instance.date_modified.isoformat() if instance.date_modified else None,
