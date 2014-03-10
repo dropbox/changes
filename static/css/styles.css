@@ -684,6 +684,9 @@ table > tbody > tr.result-skipped > td.result span {
   color: #fff;
 }
 
+.nav-links > li {
+  display: inline-block;
+}
 .nav-links > li > a {
   color: #aaa;
   font-size: 11px;
