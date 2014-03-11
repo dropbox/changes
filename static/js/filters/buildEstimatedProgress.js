@@ -13,7 +13,7 @@ define(['app'], function(app) {
       }
 
       var ts_now = Math.max(new Date().getTime(), ts_start);
-      return Math.min((ts_now - ts_start) / build.estimatedDuration * 100, 95);
+      return parseInt(Math.min((ts_now - ts_start) / build.estimatedDuration * 100, 95), 10);
     };
   });
 });
