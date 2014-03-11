@@ -303,12 +303,18 @@ dl.flat dt {
 .page-header .crumb .indicator {
   padding: 0 10px;
 }
-.page-header .indicator {
+.page-header .indicator,
+.build-list .indicator {
   border-radius: 3px;
   width: auto;
   height: auto;
   padding: 3px;
   text-decoration: none;
+}
+
+.build-list .indicator {
+  padding: 1px 3px;
+  margin-right: 3px;
 }
 
 .build-header,
@@ -475,6 +481,24 @@ table > tbody > tr.result-skipped > td.result span {
   padding-left: 15px;
 }
 
+.build-list .progress {
+  height: 12px;
+  margin-top: 3px;
+  width: 120px;
+}
+
+.build-list .progress-bar {
+  background: #aaa;
+}
+
+.build-list .progress-bar-passed {
+  background: rgb(114, 194, 114);
+}
+
+.build-list .progress-bar-failed {
+  background: #d9322d;
+}
+
 .job-list td {
   vertical-align: middle;
 }
@@ -490,16 +514,6 @@ table > tbody > tr.result-skipped > td.result span {
 .build-list > tbody > tr > td,
 .job-list > tbody > tr > td {
   border-top: 0;
-  position: relative;
-}
-
-.change-list td .indicator,
-.change-list td .indicator > div,
-.build-list td .indicator,
-.build-list td .indicator > div {
-  width: 32px;
-  height: 32px;
-  border-radius: 32px;
   position: relative;
 }
 
@@ -563,7 +577,7 @@ table > tbody > tr.result-skipped > td.result span {
 .change-list > tbody > tr:nth-child(odd) > td,
 .build-list > tbody > tr:nth-child(odd) > td,
 .job-list > tbody > tr:nth-child(odd) > td {
-  background: #f7f5fa;
+  background: #fdfdfd;
 }
 .well {
   background: #f7f5fa;

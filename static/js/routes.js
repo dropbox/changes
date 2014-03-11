@@ -27,6 +27,7 @@ define([
   'directives/radialProgressBar',
   'directives/timeSince',
   'filters/escape',
+  'filters/buildEstimatedProgress',
   'filters/truncate',
   'filters/wordwrap'
 ], function(
@@ -110,6 +111,6 @@ define([
       .state('project_settings', ProjectSettingsState)
       .state('project_tests', ProjectTestListState)
       .state('project_tests_details', ProjectTestDetailsState)
-      .state('project_source', ProjectSourceDetailsState);
+      .state('project_source_details', ProjectSourceDetailsState);
   });
 });
