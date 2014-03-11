@@ -20,9 +20,9 @@
 				<tbody>
 					<tr ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
 						<td>
+							<a ui-sref="build_details({build_id: build.id})" ng-if="build.number" class="indicator">#{{build.number}}</a>
 							<a ui-sref="build_details({build_id: build.id})">{{build.name}}</a>
 							<small>
-								<span ng-if="build.number" class="indicator">#{{build.number}} </span>
 								<a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
 								<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 							</small>
