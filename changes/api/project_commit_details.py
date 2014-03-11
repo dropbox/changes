@@ -29,11 +29,12 @@ class ProjectCommitDetailsAPIView(APIView):
             Source.patch == None,  # NOQA
         ).order_by(Build.date_created.desc()))[:100]
 
-        context = {
+        context = self.serialize(revision)
+
+        context.update({
             'repository': repo,
-            'commit': revision,
             'builds': build_list,
-        }
+        })
 
         return self.respond(context)
 

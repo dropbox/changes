@@ -113,9 +113,14 @@ class APIView(Resource):
             response.headers['Link'] = ', '.join(link_values)
         return response
 
-    def respond(self, context, status_code=200, serializers=None):
+    def respond(self, context, status_code=200, serialize=True, serializers=None):
+        if serialize:
+            data = self.serialize(context, serializers)
+        else:
+            data = context
+
         return Response(
-            as_json(self.serialize(context, serializers)),
+            as_json(data),
             mimetype='application/json',
             status=status_code)
 

@@ -8,9 +8,11 @@ define([
 
   var BUFFER_SIZE = 10000;
 
-  var controller = [
-    '$scope', '$rootScope', '$window', '$http', '$timeout', '$stateParams', '$filter', 'initialData', 'stream', 'pagination',
-    function($scope, $rootScope, $window, $http, $timeout, $stateParams, $filter, initialData, Stream, Pagination) {
+  return {
+    url: "jobs/:job_id/",
+    parent: 'build_details',
+    templateUrl: 'partials/job-details.html',
+    controller: function($scope, $rootScope, $http, $stateParams, $filter, projectData, buildData, jobData, Stream, Pagination) {
       var stream,
           logStreams = {},
           entrypoint = '/api/0/jobs/' + $stateParams.job_id + '/',
@@ -21,9 +23,9 @@ define([
               content += '<h5>';
               content += escapeHtml(item.name);
               content += '<br><small>';
-              content += escapeHtml($scope.build.target);
-              if ($scope.build.author) {
-                content += ' &mdash; ' + $scope.build.author.name;
+              content += escapeHtml(buildData.data.target);
+              if (buildData.data.author) {
+                content += ' &mdash; ' + buildData.data.author.name;
               }
               content += '</small>';
               content += '</h5>';
@@ -197,9 +199,9 @@ define([
 
       function getPageTitle(build, job) {
         if (build.number) {
-          return 'Job #' + build.number + '.' + job.number +' - ' + $scope.project.name;
+          return 'Job #' + build.number + '.' + job.number +' - ' + projectData.data.name;
         }
-        return 'Job ' + job.id + ' - ' + $scope.project.name;
+        return 'Job ' + job.id + ' - ' + projectData.data.name;
       }
 
       $scope.$watch("job.status", function() {
@@ -216,35 +218,29 @@ define([
         $scope.testStatus = getTestStatus();
       });
 
-      $scope.job = initialData.data.job;
-      $scope.logSources = initialData.data.logs;
-      $scope.phases = initialData.data.phases;
-      $scope.testFailures = initialData.data.testFailures;
-      $scope.testGroups = initialData.data.testGroups;
-      $scope.previousRuns = initialData.data.previousRuns;
+      $scope.job = jobData.data;
+      $scope.logSources = jobData.data.logs;
+      $scope.phases = jobData.data.phases;
+      $scope.testFailures = jobData.data.testFailures;
+      $scope.testGroups = jobData.data.testGroups;
+      $scope.previousRuns = jobData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.job, chart_options);
 
-      $rootScope.pageTitle = getPageTitle($scope.build, $scope.job);
+      $rootScope.pageTitle = getPageTitle(buildData.data, $scope.job);
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('job.update', updateJob);
       stream.subscribe('buildlog.update', updateBuildLog);
       stream.subscribe('testgroup.update', updateTestGroup);
 
-      if ($scope.build.status.id == 'finished') {
-        $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');
+      if (buildData.data.status.id == 'finished') {
+        $http.post('/api/0/builds/' + buildData.data.id + '/mark_seen/');
       }
-    }];
-
-  return {
-    url: "jobs/:job_id/",
-    parent: 'build_details',
-    templateUrl: 'partials/job-details.html',
-    controller: controller,
+    },
     resolve: {
-      initialData: ['$http', '$stateParams', function($http, $stateParams) {
+      jobData: function($http, $stateParams) {
         return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
-      }]
+      }
     }
   };
 });

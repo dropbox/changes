@@ -2,7 +2,7 @@ define(['angular'], function(angular) {
   'use strict';
 
   angular.module('pagination', [])
-    .factory('pagination', function() {
+    .factory('Pagination', function() {
       // TODO(dcramer): we should clean this up so the filters are just handled internally by a results list
       return {
         create: function(results, options) {

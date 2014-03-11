@@ -1,4 +1,4 @@
-<section>
+<section ui-view>
 	<div id="overview">
 		<div class="page-header">
 			<h2>Builds</h2>
@@ -29,7 +29,7 @@
 							</div>
 						</td>
 						<td>
-							<a href="{{build.link}}">{{build.name}}</a>
+							<a ui-sref="build_details({build_id: build.id})">{{build.name}}</a>
 							<small>
 								<span ng-if="build.number">#{{build.number}} &mdash; </span>
 								<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>

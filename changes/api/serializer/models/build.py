@@ -1,6 +1,5 @@
 from changes.api.serializer import Serializer, register
 from changes.models import Build
-from changes.utils.http import build_uri
 
 
 @register(Build)
@@ -29,7 +28,6 @@ class BuildSerializer(Serializer):
             'message': instance.message,
             'duration': instance.duration,
             'estimatedDuration': avg_build_time,
-            'link': build_uri('/builds/%s/' % (instance.id.hex,)),
             'dateCreated': instance.date_created.isoformat(),
             'dateModified': instance.date_modified.isoformat() if instance.date_modified else None,
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,

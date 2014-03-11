@@ -1,21 +1,22 @@
-(function(){
+define([
+  'app',
+  'utils/escapeHtml'
+], function(app, escapeHtml) {
   'use strict';
 
-  define([
-      'app',
-      'utils/escapeHtml'], function(app, escapeHtml) {
-    app.controller('projectSettingsCtrl', [
-        '$scope', '$rootScope', 'initialProject', '$http', '$stateParams',
-        function($scope, $rootScope, initialProject, $http, $stateParams) {
-
+  return {
+    parent: 'project_details',
+    url: 'settings/',
+    templateUrl: 'partials/project-settings.html',
+    controller: function($scope, $http, $stateParams, projectData) {
       var booleans = {
         "build.allow-patches": 1,
         "green-build.notify": 1,
         "mail.notify-author": 1
       }, options = {};
 
-      for (var key in initialProject.data.options) {
-        var value = initialProject.data.options[key];
+      for (var key in projectData.data.options) {
+        var value = projectData.data.options[key];
         if (booleans[key]) {
           value = parseInt(value, 10) == 1;
         }
@@ -33,12 +34,15 @@
         $scope.projectSettingsForm.$setPristine();
       };
 
-      $scope.project = initialProject.data;
-      $scope.repo = initialProject.data.repository;
-      $scope.plans = initialProject.data.plans;
+      $scope.project = projectData.data;
+      $scope.repo = projectData.data.repository;
+      $scope.plans = projectData.data.plans;
       $scope.options = options;
-
-      $rootScope.activeProject = $scope.project;
-    }]);
-  });
-})();
+    },
+    resolve: {
+      projectData: function($http, projectData) {
+        return $http.get('/api/0/projects/' + projectData.data.id + '/');
+      }
+    }
+  };
+});

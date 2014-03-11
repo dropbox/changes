@@ -6,9 +6,11 @@ define([
 ], function(app, chartHelpers, duration, escapeHtml) {
   'use strict';
 
-  var controller = [
-    '$scope', '$rootScope', 'initialData', '$location', '$timeout', '$http', '$state', '$stateParams', '$filter', 'stream', 'flash', 'collection',
-    function($scope, $rootScope, initialData, $location, $timeout, $http, $state, $stateParams, $filter, Stream, flash, Collection) {
+  return {
+    parent: 'project_details',
+    url: "builds/:build_id/",
+    templateUrl: 'partials/build-details.html',
+    controller: function($scope, $rootScope, $http, $stateParams, $filter, projectData, buildData, Stream, flash, Collection) {
       var stream,
           entrypoint = '/api/0/builds/' + $stateParams.build_id + '/',
           chart_options = {
@@ -44,9 +46,9 @@ define([
 
       function getPageTitle(build) {
         if (build.number) {
-          return 'Build #' + build.number + ' - ' + $scope.project.name;
+          return 'Build #' + build.number + ' - ' + projectData.data.name;
         }
-        return 'Build ' + build.id + ' - ' + $scope.project.name;
+        return 'Build ' + build.id + ' - ' + projectData.data.name;
       }
 
       function updateBuild(data){
@@ -92,14 +94,13 @@ define([
         }
       });
 
-      $scope.project = initialData.data.project;
-      $scope.build = initialData.data.build;
-      $scope.previousRuns = initialData.data.previousRuns;
+      $scope.build = buildData.data;
+      $scope.previousRuns = buildData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
-      $scope.testFailures = initialData.data.testFailures;
-      $scope.testChanges = initialData.data.testChanges;
-      $scope.seenBy = initialData.data.seenBy.slice(0, 14);
-      $scope.jobList = new Collection($scope, initialData.data.jobs);
+      $scope.testFailures = buildData.data.testFailures;
+      $scope.testChanges = buildData.data.testChanges;
+      $scope.seenBy = buildData.data.seenBy.slice(0, 14);
+      $scope.jobList = new Collection($scope, buildData.data.jobs);
       $scope.phaseList = [
         {
           name: "Test",
@@ -110,7 +111,6 @@ define([
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
-      $rootScope.activeProject = $scope.project;
       $rootScope.pageTitle = getPageTitle($scope.build);
 
       stream = new Stream($scope, entrypoint);
@@ -120,16 +120,11 @@ define([
       if ($scope.build.status.id == 'finished') {
         $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');
       }
-    }];
-
-  return {
-    url: "/builds/:build_id/",
-    templateUrl: 'partials/build-details.html',
-    controller: controller,
+    },
     resolve: {
-      initialData: ['$http', '$stateParams', function($http, $stateParams) {
+      buildData: function($http, $stateParams) {
         return $http.get('/api/0/builds/' + $stateParams.build_id + '/');
-      }]
+      }
     }
   };
 });

@@ -15,10 +15,9 @@ class BuildRetryTest(APITestCase):
 
         data = self.unserialize(resp)
 
-        assert data['build']['id']
-        assert data['build']['link']
+        assert data['id']
 
-        new_build = Build.query.get(data['build']['id'])
+        new_build = Build.query.get(data['id'])
 
         assert new_build.id != build.id
         assert new_build.project_id == self.project.id

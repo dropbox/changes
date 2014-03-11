@@ -60,7 +60,7 @@
       });
     };
 
-    app.controller('buildListCtrl', ['initial', '$scope', '$http', '$stateParams', '$location', 'stream', 'collection', buildListCtrl]);
+    app.controller('buildListCtrl', buildListCtrl);
 
     return buildListCtrl;
   });

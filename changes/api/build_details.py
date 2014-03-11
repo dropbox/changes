@@ -168,9 +168,8 @@ class BuildDetailsAPIView(APIView):
             TestGroup: TestGroupWithOriginSerializer(),
         }
 
-        context = {
-            'project': build.project,
-            'build': build,
+        context = self.serialize(build)
+        context.update({
             'jobs': jobs,
             'previousRuns': previous_runs,
             'seenBy': seen_by,
@@ -179,7 +178,7 @@ class BuildDetailsAPIView(APIView):
                 'testGroups': self.serialize(test_failures, extended_serializers),
             },
             'testChanges': self.serialize(changed_tests, extended_serializers),
-        }
+        })
 
         return self.respond(context)
 

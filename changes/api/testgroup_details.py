@@ -31,14 +31,12 @@ class TestGroupDetailsAPIView(APIView):
             parent = parent.parent
         context.reverse()
 
-        context = {
-            'project': testgroup.project,
-            'build': testgroup.job.build,
-            'job': testgroup.job,
-            'testGroup': testgroup,
+        data = self.serialize(testgroup)
+
+        data.update(self.serialize({
             'childTestGroups': child_testgroups,
             'context': context,
             'testCase': test_case,
-        }
+        }))
 
-        return self.respond(context)
+        return self.respond(data, serialize=False)

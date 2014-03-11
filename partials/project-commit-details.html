@@ -39,9 +39,9 @@
 					</div>
 				</td>
 				<td>
-					<a href="{{build.link}}">{{build.name}}</a>
+					<a ui-sref="build_details({build_id: build.id})">{{build.name}}</a>
 					<small>
-						<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash; <a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
+						<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
 						<span ng-if="build.author">&mdash; {{build.author.name}}</span>
 					</small>
 					<span class="status">{{getBuildStatus(build)}}</span>

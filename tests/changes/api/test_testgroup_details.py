@@ -58,8 +58,6 @@ class TestGroupDetailsTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['testGroup']['id'] == testgroup.id.hex
-        assert data['job']['id'] == job.id.hex
-        assert data['build']['id'] == build.id.hex
+        assert data['id'] == testgroup.id.hex
         assert len(data['childTestGroups']) == 1
         assert data['childTestGroups'][0]['id'] == child_testgroup.id.hex

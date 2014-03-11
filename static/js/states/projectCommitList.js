@@ -1,11 +1,11 @@
-(function(){
+define(['app'], function(app) {
   'use strict';
 
-  define(['app'], function(app) {
-    app.controller('projectCommitListCtrl', [
-      'initialProject', 'initialCommitList', '$scope', '$rootScope',
-      function(initialProject, initialBuildList, $scope, $rootScope) {
-
+  return {
+    parent: 'project_details',
+    url: 'commits/',
+    templateUrl: 'partials/project-commit-list.html',
+    controller: function($scope, $rootScope, commitList) {
       function fromCommits(commitList) {
         return commitList.map(function(commit){
           if (commit.message) {
@@ -19,9 +19,7 @@
         });
       }
 
-      $scope.project = initialProject.data;
-      $rootScope.activeProject = $scope.project;
-      $scope.commits = fromCommits(initialBuildList.data.commits);
+      $scope.commits = fromCommits(commitList.data);
 
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
@@ -30,7 +28,11 @@
           return build.status.name;
         }
       };
-
-    }]);
-  });
-})();
+    },
+    resolve: {
+      commitList: function($http, projectData) {
+        return $http.get('/api/0/projects/' + projectData.data.id + '/commits/');
+      }
+    }
+  };
+});

@@ -1,15 +1,16 @@
-(function(){
+define([
+  'app',
+  'utils/chartHelpers',
+  'utils/duration',
+  'utils/parseLinkHeader'
+], function(app, chartHelpers, duration, parseLinkHeader) {
   'use strict';
 
-  define([
-      'app',
-      'utils/chartHelpers',
-      'utils/duration',
-      'utils/parseLinkHeader'], function(app, chartHelpers, duration, parseLinkHeader) {
-    app.controller('nodeDetailsCtrl', [
-        '$scope', '$rootScope', '$http', 'initialNode', 'initialJobList', 'collection',
-        function($scope, $rootScope, $http, initialNode, initialJobList, Collection) {
-
+  return {
+    parent: 'layout',
+    url: '/nodes/:node_id/',
+    templateUrl: 'partials/node-details.html',
+    controller: function($scope, $rootScope, $http, nodeData, jobList, Collection) {
       function loadJobList(url) {
         if (!url) {
           return;
@@ -46,12 +47,20 @@
         $scope.previousPage = value.previous || null;
       });
 
-      $scope.pageLinks = parseLinkHeader(initialJobList.headers('Link'));
+      $scope.pageLinks = parseLinkHeader(jobList.headers('Link'));
 
-      $scope.node = initialNode.data;
-      $scope.jobList = new Collection($scope, initialJobList.data);
+      $scope.node = nodeData.data;
+      $scope.jobList = new Collection($scope, jobList.data);
 
       $rootScope.pageTitle = 'Node ' + $scope.node.name;
-    }]);
-  });
-})();
+    },
+    resolve: {
+      nodeData: function($http, $stateParams) {
+        return $http.get('/api/0/nodes/' + $stateParams.node_id + '/');
+      },
+      jobList: function($http, $stateParams) {
+        return $http.get('/api/0/nodes/' + $stateParams.node_id + '/jobs/');
+      }
+    }
+  };
+});

@@ -2,7 +2,7 @@ define(['angular'], function(angular) {
   'use strict';
 
   angular.module('collection', [])
-    .factory('collection', function(){
+    .factory('Collection', function(){
       var defaults = {
         sortFunc: null,
         limit: null

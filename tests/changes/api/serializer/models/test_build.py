@@ -21,7 +21,6 @@ def test_simple():
     )
     result = serialize(build)
     assert result['name'] == 'Hello world'
-    assert result['link'] == 'http://example.com/builds/33846695b2774b29a71795a009e8168a/'
     assert result['id'] == '33846695b2774b29a71795a009e8168a'
     assert result['source']['id'] == build.source.id.hex
     assert result['target'] == 'D1234'

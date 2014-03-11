@@ -22,9 +22,9 @@
 					</div>
 				</td>
 				<td>
-					<a href="{{build.link}}">{{build.name}}</a>
+					<a ui-sref="build_details({project_id: build.project.slug, build_id: build.id})">{{build.name}}</a>
 					<small>
-						<a href="{{build.project.link}}">{{build.project.name}}</a> &mdash;
+						<a ui-sref="project_details({project_id: build.project.slug})">{{build.project.name}}</a> &mdash;
 						<span ng-if="build.number">#{{build.number}} &mdash; </span>
 						<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
 						<span ng-if="build.author">&mdash; {{build.author.name}}</span>

@@ -1,8 +1,13 @@
-(function(){
+define([
+  'app'
+], function(app) {
   'use strict';
 
-  define(['app'], function(app) {
-    app.controller('projectListCtrl', ['initial', '$scope', 'collection', 'stream', function(initial, $scope, Collection, Stream) {
+  return {
+    parent: 'layout',
+    url: "/projects/",
+    templateUrl: 'partials/project-list.html',
+    controller: function(projectList, $scope, Collection, Stream) {
       var entrypoint = '/api/0/projects/',
           stream;
 
@@ -57,11 +62,11 @@
       }
 
       $scope.getProjectClass = getProjectClass;
-      $scope.projects = new Collection($scope, initial.data);
+      $scope.projects = new Collection($scope, projectList.data);
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('project.update', $scope.projects.updateItem);
       stream.subscribe('build.update', addBuild);
-    }]);
-  });
-})();
+    }
+  };
+});

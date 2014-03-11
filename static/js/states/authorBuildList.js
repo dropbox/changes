@@ -1,12 +1,15 @@
-(function(){
+define([
+  'app',
+  'utils/parseLinkHeader',
+  'utils/sortBuildList'
+], function(app, parseLinkHeader, sortBuildList) {
   'use strict';
 
-  define([
-      'app',
-      'utils/parseLinkHeader',
-      'utils/sortBuildList'], function(app, parseLinkHeader, sortBuildList) {
-    var authorBuildListCtrl = function(initialBuildList, $scope, $rootScope, $http, Stream) {
-
+  return {
+    parent: 'layout',
+    url: '/my/builds/',
+    templateUrl: 'partials/author-build-list.html',
+    controller: function($scope, $rootScope, $http, buildList, Stream) {
       var stream,
           entrypoint = '/api/0/authors/me/builds/';
 
@@ -67,9 +70,9 @@
         $scope.previousPage = value.previous || null;
       });
 
-      $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
+      $scope.pageLinks = parseLinkHeader(buildList.headers('Link'));
 
-      $scope.builds = sortBuildList(initialBuildList.data);
+      $scope.builds = sortBuildList(buildList.data);
       $rootScope.pageTitle = 'My Builds';
 
       $scope.getBuildStatus = function(build) {
@@ -82,11 +85,11 @@
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('build.update', addBuild);
-
-    };
-
-    app.controller('authorBuildListCtrl', ['initialBuildList', '$scope', '$rootScope', '$http', 'stream', authorBuildListCtrl]);
-
-    return authorBuildListCtrl;
-  });
-})();
+    },
+    resolve: {
+      buildList: function($http) {
+        return $http.get('/api/0/authors/me/builds/');
+      }
+    }
+  };
+});

@@ -18,7 +18,7 @@ class JobDetailsTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['job']['id'] == job.id.hex
+        assert data['id'] == job.id.hex
         assert len(data['logs']) == 2
         assert data['logs'][0]['id'] == ls1.id.hex
         assert data['logs'][1]['id'] == ls2.id.hex

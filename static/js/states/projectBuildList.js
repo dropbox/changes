@@ -1,19 +1,24 @@
-(function(){
+define([
+  'app',
+  'utils/chartHelpers',
+  'utils/duration',
+  'utils/escapeHtml',
+  'utils/parseLinkHeader',
+  'utils/sortBuildList'
+], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
   'use strict';
 
-  define([
-      'app',
-      'utils/chartHelpers',
-      'utils/duration',
-      'utils/escapeHtml',
-      'utils/parseLinkHeader',
-      'utils/sortBuildList'], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
-    app.controller('projectDetailsCtrl', [
-        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$stateParams', 'stream', 'collection',
-        function($scope, $rootScope, initialProject, initialBuildList, $http, $stateParams, Stream, Collection) {
+  return {
+    parent: 'project_details',
+    url: '',
+    templateUrl: 'partials/project-build-list.html',
+    controller: function($scope, $rootScope, $http, $state, $stateParams, projectData, buildList, Stream, Collection) {
       var stream,
-          entrypoint = '/api/0/projects/' + $stateParams.project_id + '/builds/',
+          entrypoint = '/api/0/projects/' + projectData.data.id + '/builds/',
           chart_options = {
+            linkFormatter: function(item) {
+              return $state.href('build_details', {build_id: item.id});
+            },
             tooltipFormatter: function(item) {
               var content = '';
 
@@ -77,21 +82,16 @@
         $scope.previousPage = value.previous || null;
       });
 
-      $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
+      $scope.pageLinks = parseLinkHeader(buildList.headers('Link'));
 
-      $scope.project = initialProject.data;
-      $scope.builds = new Collection($scope, initialBuildList.data, {
+      $scope.builds = new Collection($scope, buildList.data, {
         sortFunc: sortBuildList,
         limit: 100
       });
       $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       $scope.includePatches = false;
-      $rootScope.activeProject = $scope.project;
-      $rootScope.pageTitle = $scope.project.name + ' Builds';
 
-      $scope.$watch("includePatches", function() {
-        loadBuildList(entrypoint + '?include_patches=' + ($scope.includePatches ? '1' : '0'));
-      });
+      $rootScope.pageTitle = projectData.data.name + ' Builds';
 
       $scope.$watchCollection("builds", function() {
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
@@ -104,6 +104,11 @@
         }
         $scope.builds.updateItem(data);
       });
-    }]);
-  });
-})();
+    },
+    resolve: {
+      buildList: function($http, projectData) {
+        return $http.get('/api/0/projects/' + projectData.data.id + '/builds/?include_patches=0');
+      }
+    }
+  };
+});

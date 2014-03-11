@@ -57,10 +57,8 @@ class JobDetailsAPIView(APIView):
             LogSource.job_id == job.id,
         ).order_by(LogSource.date_created.asc()))
 
-        context = {
-            'build': job.build,
-            'project': job.project,
-            'job': job,
+        context = self.serialize(job)
+        context.update({
             'phases': job.phases,
             'testFailures': {
                 'total': num_test_failures,
@@ -69,7 +67,7 @@ class JobDetailsAPIView(APIView):
             'logs': log_sources,
             'testGroups': test_groups,
             'previousRuns': previous_runs,
-        }
+        })
 
         return self.respond(context)
 

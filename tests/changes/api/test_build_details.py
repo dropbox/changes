@@ -64,8 +64,7 @@ class BuildDetailsTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['build']['id'] == build.id.hex
-        assert data['project']['id'] == self.project.id.hex
+        assert data['id'] == build.id.hex
         assert len(data['jobs']) == 2
         assert data['jobs'][0]['id'] == job1.id.hex
         assert data['jobs'][1]['id'] == job2.id.hex

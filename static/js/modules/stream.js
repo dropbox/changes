@@ -2,7 +2,7 @@ define(['angular'], function(angular) {
   'use strict';
 
   angular.module('stream', [])
-    .factory('stream', ['$window', function(window){
+    .factory('Stream', ['$window', function(window){
       if (window.streams === undefined) {
         window.streams = {};
       }

@@ -1,11 +1,12 @@
-(function(){
+define([
+  'app'
+], function(app) {
   'use strict';
 
-  define(['app', 'modules/notify', 'modules/flash'], function(app) {
-    app.controller('layoutCtrl', [
-        '$scope', '$rootScope', '$stateParams', '$location', '$http', '$document', 'notify', 'flash', 'stream',
-        function($scope, $rootScope, $stateParams, $location, $http, $document, notify, flash, Stream) {
-
+  return {
+    abstract: true,
+    templateUrl: 'partials/layout.html',
+    controller: function($scope, $rootScope, $location, $http, $document, projectList, notify, flash, Stream) {
       function notifyBuild(build) {
         if (build.status.id == 'finished') {
           var msg = 'Build <a href="/builds/' + build.id + '/">#' + build.number + '</a> (' + build.project.name + ') ' + build.result.name + ' &mdash; ' + build.target;
@@ -35,7 +36,7 @@
 
       $rootScope.pageTitle = 'Changes';
 
-      $scope.projectList = [];
+      $scope.projectList = projectList.data;
       $scope.authenticated = null;
       $scope.user = null;
       $scope.navPath = null;
@@ -58,10 +59,13 @@
         return false;
       };
 
-      $scope.$on('$stateChangeSuccess', function(){
+      // TODO: this should be replaced w/ project inheritance
+      $scope.$on('$stateChangeSuccess', function(_u1, _u2, $stateParams){
         $scope.projectSearchQuery = $location.search();
 
-        if ($rootScope.activeProject && $stateParams.project_id && $stateParams.project_id != $rootScope.activeProject.id) {
+        if (!$stateParams.project_id) {
+          $rootScope.activeProject = null;
+        } else if ($rootScope.activeProject && $stateParams.project_id != $rootScope.activeProject.slug) {
           $rootScope.activeProject = null;
         }
       });
@@ -79,11 +83,6 @@
           }
         });
 
-      $http.get('/api/0/projects/')
-        .success(function(data){
-          $scope.projectList = data;
-        });
-
       $rootScope.$watch('pageTitle', function(value) {
         $document.title = value;
       });
@@ -98,6 +97,11 @@
       });
 
       $('.navbar .container').show();
-    }]);
-  });
-})();
+    },
+    resolve: {
+      projectList: function($http) {
+        return $http.get('/api/0/projects/');
+      }
+    }
+  };
+});

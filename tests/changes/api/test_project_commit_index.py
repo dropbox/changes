@@ -30,11 +30,11 @@ class ProjectCommitIndexTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['commits']) == 2
-        assert data['commits'][0]['id'] == revision2.sha
-        assert data['commits'][0]['build'] is None
-        assert data['commits'][1]['id'] == revision1.sha
-        assert data['commits'][1]['build']['id'] == build.id.hex
+        assert len(data) == 2
+        assert data[0]['id'] == revision2.sha
+        assert data[0]['build'] is None
+        assert data[1]['id'] == revision1.sha
+        assert data[1]['build']['id'] == build.id.hex
 
     @mock.patch('changes.models.Repository.get_vcs')
     def test_with_vcs(self, get_vcs):
@@ -67,8 +67,8 @@ class ProjectCommitIndexTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['commits']) == 2
-        assert data['commits'][0]['id'] == 'a' * 40
-        assert data['commits'][0]['build'] is None
-        assert data['commits'][1]['id'] == 'b' * 40
-        assert data['commits'][1]['build']['id'] == build.id.hex
+        assert len(data) == 2
+        assert data[0]['id'] == 'a' * 40
+        assert data[0]['build'] is None
+        assert data[1]['id'] == 'b' * 40
+        assert data[1]['build']['id'] == build.id.hex

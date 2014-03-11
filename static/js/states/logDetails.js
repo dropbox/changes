@@ -1,17 +1,20 @@
-(function(){
+define([
+  'app'
+], function(app) {
   'use strict';
 
-  define(['app'], function(app) {
-    app.controller('jobLogDetailsCtrl', [
-        '$scope', '$rootScope', 'initialBuildLog', '$window', '$timeout', '$http', '$stateParams', 'stream', 'flash',
-        function($scope, $rootScope, initialBuildLog, $window, $timeout, $http, $stateParams, Stream, flash) {
+  return {
+    parent: 'job_details',
+    url: 'logs/:source_id/',
+    templateUrl: 'partials/job-log-details.html',
+    controller: function($scope, $timeout, $http, $stateParams, jobData, logData, Stream, flash) {
       var stream,
           logChunkData = {
             text: '',
             size: 0,
             nextOffset: 0
           },
-          entrypoint = '/api/0/jobs/' + $stateParams.job_id + '/logs/' + $stateParams.source_id + '/';
+          entrypoint = '/api/0/jobs/' + jobData.data.id + '/logs/' + $stateParams.source_id + '/';
 
       function updateBuildLog(data) {
         var $el = $('#log-' + data.source.id + ' > .build-log'),
@@ -94,16 +97,21 @@
         });
       }
 
-      $scope.logSource = initialBuildLog.data.source;
+      $scope.logSource = logData.data.source;
 
       $timeout(function(){
-        $.each(initialBuildLog.data.chunks, function(_, chunk){
+        $.each(logData.data.chunks, function(_, chunk){
           updateBuildLog(chunk);
         });
       });
 
       stream = new Stream($scope, entrypoint);
       stream.subscribe('buildlog.update', updateBuildLog);
-    }]);
-  });
-})();
+    },
+    resolve: {
+      logData: function($http, $stateParams, jobData) {
+        return $http.get('/api/0/jobs/' + jobData.data.id + '/logs/' + $stateParams.source_id + '?limit=0');
+      }
+    }
+  };
+});

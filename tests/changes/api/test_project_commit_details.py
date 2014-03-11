@@ -27,6 +27,6 @@ class ProjectCommitIndexTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['commit']['id'] == revision.sha
+        assert data['id'] == revision.sha
         assert len(data['builds']) == 1
         assert data['builds'][0]['id'] == build.id.hex

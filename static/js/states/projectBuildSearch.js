@@ -1,16 +1,17 @@
-(function(){
+define([
+  'app',
+  'utils/duration',
+  'utils/escapeHtml',
+  'utils/parseLinkHeader',
+  'utils/sortBuildList'
+], function(app, duration, escapeHtml, parseLinkHeader, sortBuildList) {
   'use strict';
 
-  define([
-      'app',
-      'utils/duration',
-      'utils/escapeHtml',
-      'utils/parseLinkHeader',
-      'utils/sortBuildList'], function(app, duration, escapeHtml, parseLinkHeader, sortBuildList) {
-    app.controller('projectBuildSearchCtrl', [
-        '$scope', '$rootScope', 'initialProject', 'initialBuildList', '$http', '$stateParams', '$window', 'collection',
-        function($scope, $rootScope, initialProject, initialBuildList, $http, $stateParams, $window, Collection) {
-
+  return {
+    parent: 'project_details',
+    url: 'search/',
+    templateUrl: 'partials/project-build-list.html',
+    controller: function($scope, $http, $stateParams, buildList, Collection) {
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
           return build.result.name;
@@ -48,15 +49,17 @@
         $scope.previousPage = value.previous || null;
       });
 
-      $scope.pageLinks = parseLinkHeader(initialBuildList.headers('Link'));
+      $scope.pageLinks = parseLinkHeader(buildList.headers('Link'));
 
-      $scope.project = initialProject.data;
-      $scope.builds = new Collection($scope, initialBuildList.data, {
+      $scope.builds = new Collection($scope, buildList.data, {
         sortFunc: sortBuildList,
         limit: 100
       });
-      $rootScope.activeProject = $scope.project;
-      $rootScope.pageTitle = $scope.project.name + ' Builds';
-    }]);
-  });
-})();
+    },
+    resolve: {
+      buildList: function($http, $window, projectData) {
+        return $http.get('/api/0/projects/' + projectData.data.id + '/builds/search/' + $window.location.search);
+      }
+    }
+  };
+});

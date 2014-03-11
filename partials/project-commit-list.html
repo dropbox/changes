@@ -1,4 +1,4 @@
-<section>
+<section ui-view>
 	<div id="overview">
 		<div class="page-header">
 			<h2>Commit Log</h2>
@@ -17,9 +17,9 @@
 						</div>
 					</td>
 					<td>
-						<a href="{{commit.build.link}}">{{commit.subject}}</a>
+						<a ui-sref="build_details({build_id: commit.build.id})">{{commit.subject}}</a>
 						<small>
-							<a href="{{project.link}}commits/{{commit.id}}/">{{commit.id.substr(0, 12)}}</a>
+							<a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>
 							<span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
 						</small>
 						<span ng-if="commit.build">

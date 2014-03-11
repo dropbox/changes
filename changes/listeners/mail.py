@@ -105,11 +105,11 @@ def send_notification(job, recipients):
         project=job.project.name,
     )
 
-    for testgroup in test_failures:
-        testgroup.uri = build_uri('/testgroups/{0}/'.format(testgroup.id.hex))
-
     build.uri = build_uri('/builds/{0}/'.format(build.id.hex))
     job.uri = build.uri + 'jobs/{0}/'.format(job.id.hex)
+
+    for testgroup in test_failures:
+        testgroup.uri = job.uri + 'testgroups/{0}/'.format(testgroup.id.hex)
 
     context = {
         'job': job,

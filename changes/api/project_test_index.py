@@ -50,8 +50,6 @@ class ProjectTestIndexAPIView(APIView):
         else:
             results = []
 
-        context = {
-            'tests': results,
-        }
+        context = results
 
         return self.respond(context)

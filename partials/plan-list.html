@@ -1,4 +1,4 @@
-<section>
+<section ui-view>
 	<div id="overview">
 		<div class="page-header">
 			<h2>Build Plans</h2>
@@ -14,7 +14,7 @@
 			</thead>
 			<tbody>
 				<tr ng-repeat="plan in plans">
-					<td><a href="/plans/{{plan.id}}/">{{plan.name}}</a></td>
+					<td><a ui-sref="plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
 					<td style="text-align:center" time-since="plan.dateCreated"></td>
 					<td style="text-align:center" time-since="plan.dateModified"></td>
 				</tr>

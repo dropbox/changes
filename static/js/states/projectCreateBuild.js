@@ -1,14 +1,17 @@
-define(['app'], function(app) {
+define([
+  'app'
+], function(app) {
   'use strict';
 
-  app.controller('projectBuildCreateCtrl', [
-      '$scope', '$rootScope', '$http', '$location', 'initialProject', 'flash',
-      function($scope, $rootScope, $http, $location, initialProject, flash) {
-
+  return {
+    parent: 'project_details',
+    url: "new/build/",
+    templateUrl: 'partials/project-build-create.html',
+    controller: function($scope, $rootScope, $http, $location, flash, projectData) {
       $scope.createBuild = function() {
         var data = angular.copy($scope.build);
 
-        data.project = $scope.project.slug;
+        data.project = projectData.data.slug;
 
         $http.post('/api/0/builds/', data)
           .success(function(data){
@@ -18,7 +21,7 @@ define(['app'], function(app) {
               flash('error', 'Unable to create a new build.');
             } else if (builds.length > 1) {
               flash('success', builds.length + ' new builds created.');
-              return $location.path('/projects/' + $scope.project.slug + '/');
+              return $location.path('/projects/' + data.project + '/');
             } else {
               return $location.path('/builds/' + builds[0].id + '/');
             }
@@ -28,8 +31,7 @@ define(['app'], function(app) {
           });
       };
 
-      $rootScope.activeProject = initialProject.data;
-      $scope.project = initialProject.data;
       $scope.build = {};
-  }]);
+    }
+  };
 });
