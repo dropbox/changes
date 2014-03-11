@@ -709,6 +709,9 @@ table > tbody > tr.result-skipped > td.result span {
 .nav-links > li.active > a:hover {
   border-color: #6e5baa;
 }
+.nav-links > li.result-failed > a {
+  color: #d9322d;
+}
 
 .test-list {
   list-style: none;
