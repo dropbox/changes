@@ -10,7 +10,7 @@ define(['angular'], function(angular) {
       return function($scope, url, callback) {
         if ($window.streams[url]) {
           $log.info('[Stream] Closing connection to ' + url);
-          window.streams[url].close();
+          $window.streams[url].close();
         }
         $log.info('[Stream] Initiating connection to ' + url);
 
@@ -25,7 +25,7 @@ define(['angular'], function(angular) {
           }
           $log.info('[Stream] Closing connection to ' + url);
           $window.streams[url].close();
-          delete window.streams[url];
+          delete $window.streams[url];
         });
 
         return {
