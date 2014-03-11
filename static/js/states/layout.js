@@ -78,8 +78,9 @@ define([
           if (data.user) {
             notify("Authenticated as " + data.user.email);
 
-            var stream = new Stream($scope, '/api/0/authors/me/builds/');
-            stream.subscribe('build.update', notifyBuild);
+            // TODO(dcramer): enable this once we solve concurrent subscriptions
+            // var stream = new Stream($scope, '/api/0/authors/me/builds/');
+            // stream.subscribe('build.update', notifyBuild);
           }
         });
 
