@@ -6,7 +6,7 @@ define([
   return {
     abstract: true,
     templateUrl: 'partials/layout.html',
-    controller: function($scope, $rootScope, $location, $http, $document, projectList, notify, flash, Stream) {
+    controller: function($scope, $rootScope, $location, $http, $document, projectList, notify, flash, stream) {
       function notifyBuild(build) {
         if (build.status.id == 'finished') {
           var msg = 'Build <a href="/builds/' + build.id + '/">#' + build.number + '</a> (' + build.project.name + ') ' + build.result.name + ' &mdash; ' + build.target;

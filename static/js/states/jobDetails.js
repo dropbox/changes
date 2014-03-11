@@ -12,10 +12,8 @@ define([
     url: "jobs/:job_id/",
     parent: 'build_details',
     templateUrl: 'partials/job-details.html',
-    controller: function($scope, $rootScope, $http, $stateParams, $filter, projectData, buildData, jobData, Stream, Pagination) {
-      var stream,
-          logStreams = {},
-          entrypoint = '/api/0/jobs/' + $stateParams.job_id + '/',
+    controller: function($scope, $rootScope, $http, $filter, projectData, buildData, jobData, stream, Pagination) {
+      var logStreams = {},
           chart_options = {
             tooltipFormatter: function(item) {
               var content = '';
@@ -228,10 +226,14 @@ define([
 
       $rootScope.pageTitle = getPageTitle(buildData.data, $scope.job);
 
-      stream = new Stream($scope, entrypoint);
-      stream.subscribe('job.update', updateJob);
-      stream.subscribe('buildlog.update', updateBuildLog);
-      stream.subscribe('testgroup.update', updateTestGroup);
+      stream.addScopedChannels($scope, [
+        'jobs:' + $scope.job.id,
+        'testgroups:' + $scope.job.id + ':*',
+        'logsources:' + $scope.job.id + ':*'
+      ]);
+      stream.addScopedSubscriber($scope, 'job.update', updateJob);
+      stream.addScopedSubscriber($scope, 'buildlog.update', updateBuildLog);
+      stream.addScopedSubscriber($scope, 'testgroup.update', updateTestGroup);
 
       if (buildData.data.status.id == 'finished') {
         $http.post('/api/0/builds/' + buildData.data.id + '/mark_seen/');

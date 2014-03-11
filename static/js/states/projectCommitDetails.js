@@ -8,10 +8,7 @@ define([
     parent: 'project_commits',
     url: ':commit_id/',
     templateUrl: 'partials/project-commit-details.html',
-    controller: function($scope, $rootScope, $http, $state, projectData, commitData, Stream, flash) {
-      var stream,
-          entrypoint = '/api/0/projects/' + projectData.data.id + '/commits/' + commitData.data.id + '/';
-
+    controller: function($scope, $rootScope, $http, $state, projectData, commitData, flash) {
       function addBuild(data) {
         $scope.$apply(function() {
           var updated = false,
@@ -69,9 +66,6 @@ define([
       $scope.commit = commitData.data;
       $scope.repository = commitData.data.repository;
       $scope.builds = sortBuildList(commitData.data.builds);
-
-      stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', addBuild);
     },
     resolve: {
       commitData: function($http, $stateParams, projectData) {

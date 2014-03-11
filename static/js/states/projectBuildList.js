@@ -12,9 +12,8 @@ define([
     parent: 'project_details',
     url: '',
     templateUrl: 'partials/project-build-list.html',
-    controller: function($scope, $rootScope, $http, $state, $stateParams, projectData, buildList, Stream, Collection) {
-      var stream,
-          entrypoint = '/api/0/projects/' + projectData.data.id + '/builds/',
+    controller: function($scope, $rootScope, $http, $state, projectData, buildList, stream, Collection) {
+      var entrypoint = '/api/0/projects/' + projectData.data.id + '/builds/',
           chart_options = {
             linkFormatter: function(item) {
               return $state.href('build_details', {build_id: item.id});
@@ -97,8 +96,10 @@ define([
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       });
 
-      stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', function(data){
+      stream.addScopedChannels($scope, [
+        'projects:' + $scope.project.id + ':builds'
+      ]);
+      stream.addScopedSubscriber($scope, 'build.update', function(data){
         if (data.source.patch && !$scope.includePatches) {
           return;
         }

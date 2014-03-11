@@ -10,10 +10,8 @@ define([
     parent: 'project_details',
     url: "builds/:build_id/",
     templateUrl: 'partials/build-details.html',
-    controller: function($scope, $rootScope, $http, $stateParams, $filter, projectData, buildData, Stream, flash, Collection) {
-      var stream,
-          entrypoint = '/api/0/builds/' + $stateParams.build_id + '/',
-          chart_options = {
+    controller: function($scope, $rootScope, $http, $filter, projectData, buildData, stream, flash, Collection) {
+      var chart_options = {
             tooltipFormatter: function(item) {
               var content = '';
 
@@ -113,9 +111,12 @@ define([
 
       $rootScope.pageTitle = getPageTitle($scope.build);
 
-      stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', updateBuild);
-      stream.subscribe('job.update', function(data) { $scope.jobList.updateItem(data); });
+      stream.addScopedChannels($scope, [
+        'builds:' + $scope.build.id,
+        'builds:' + $scope.build.id + ':jobs'
+      ]);
+      stream.addScopedSubscriber($scope, 'build.update', updateBuild);
+      stream.addScopedSubscriber($scope, 'job.update', function(data) { $scope.jobList.updateItem(data); });
 
       if ($scope.build.status.id == 'finished') {
         $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');

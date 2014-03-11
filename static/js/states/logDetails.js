@@ -7,14 +7,12 @@ define([
     parent: 'job_details',
     url: 'logs/:source_id/',
     templateUrl: 'partials/job-log-details.html',
-    controller: function($scope, $timeout, $http, $stateParams, jobData, logData, Stream, flash) {
-      var stream,
-          logChunkData = {
+    controller: function($scope, $timeout, $http, $stateParams, jobData, logData, stream, flash) {
+      var logChunkData = {
             text: '',
             size: 0,
             nextOffset: 0
-          },
-          entrypoint = '/api/0/jobs/' + jobData.data.id + '/logs/' + $stateParams.source_id + '/';
+          };
 
       function updateBuildLog(data) {
         var $el = $('#log-' + data.source.id + ' > .build-log'),
@@ -105,8 +103,10 @@ define([
         });
       });
 
-      stream = new Stream($scope, entrypoint);
-      stream.subscribe('buildlog.update', updateBuildLog);
+      stream.addScopedChannels($scope, [
+        'logsources:' + $scope.job.id + ':' + $scope.logSource.id
+      ]);
+      stream.addScopedSubscriber($scope, 'buildlog.update', updateBuildLog);
     },
     resolve: {
       logData: function($http, $stateParams, jobData) {

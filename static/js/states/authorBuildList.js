@@ -9,10 +9,7 @@ define([
     parent: 'layout',
     url: '/my/builds/',
     templateUrl: 'partials/author-build-list.html',
-    controller: function($scope, $rootScope, $http, buildList, Stream) {
-      var stream,
-          entrypoint = '/api/0/authors/me/builds/';
-
+    controller: function($scope, $rootScope, $http, buildList, stream) {
       function addBuild(data) {
         $scope.$apply(function() {
           var updated = false,
@@ -82,9 +79,6 @@ define([
           return build.status.name;
         }
       };
-
-      stream = new Stream($scope, entrypoint);
-      stream.subscribe('build.update', addBuild);
     },
     resolve: {
       buildList: function($http) {

@@ -7,10 +7,7 @@ define([
     parent: 'layout',
     url: "/projects/",
     templateUrl: 'partials/project-list.html',
-    controller: function(projectList, $scope, Collection, Stream) {
-      var entrypoint = '/api/0/projects/',
-          stream;
-
+    controller: function(projectList, $scope, Collection, stream) {
       function sortByDateCreated(a, b){
         if (a.dateCreated < b.dateCreated) {
           return 1;
@@ -64,9 +61,9 @@ define([
       $scope.getProjectClass = getProjectClass;
       $scope.projects = new Collection($scope, projectList.data);
 
-      stream = new Stream($scope, entrypoint);
-      stream.subscribe('project.update', $scope.projects.updateItem);
-      stream.subscribe('build.update', addBuild);
+      stream.addScopedChannels($scope, ['projects:*']);
+      stream.addScopedSubscriber($scope, 'project.update', $scope.projects.updateItem);
+      stream.addScopedSubscriber($scope, 'build.update', addBuild);
     }
   };
 });
