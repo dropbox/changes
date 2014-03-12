@@ -44,6 +44,14 @@ define([
             }
           };
 
+      function updatePageLinks(links) {
+        var value = parseLinkHeader(links);
+
+        $scope.pageLinks = value;
+        $scope.nextPage = value.next || null;
+        $scope.previousPage = value.previous || null;
+      }
+
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
           return build.result.name;
@@ -62,7 +70,7 @@ define([
               sortFunc: sortBuildList,
               limit: 100
             });
-            $scope.pageLinks = parseLinkHeader(headers('Link'));
+            updatePageLinks(headers('Link'));
           });
       }
 
@@ -76,12 +84,7 @@ define([
         loadBuildList($scope.pageLinks.next);
       };
 
-      $scope.$watch("pageLinks", function(value) {
-        $scope.nextPage = value.next || null;
-        $scope.previousPage = value.previous || null;
-      });
-
-      $scope.pageLinks = parseLinkHeader(buildList.headers('Link'));
+      updatePageLinks(buildList.headers('Link'));
 
       $scope.builds = new Collection($scope, buildList.data, {
         sortFunc: sortBuildList,
