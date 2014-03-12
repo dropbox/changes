@@ -2,7 +2,7 @@
 	<ul class="project-list">
 		<li ng-repeat="project in projects" class="{{getProjectClass(project)}}">
 			<a ui-sref="project_builds({project_id: project.slug})">
-				<h4>{{project.name}}</h4>
+				<h4 bind-once>{{project.name}}</h4>
 				<div ng-if="project.lastBuild">
 					<small>{{project.lastBuild.target}}<span ng-if="project.lastBuild.author"> &mdash; {{project.lastBuild.author.name}}</span></small>
 				</div>
