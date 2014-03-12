@@ -50,6 +50,9 @@ define([
       }
 
       function updateBuild(data){
+        if (data.id !== $scope.build.id) {
+          return;
+        }
         $scope.$apply(function() {
           $scope.build = data;
         });
@@ -116,7 +119,11 @@ define([
         'builds:' + $scope.build.id + ':jobs'
       ]);
       stream.addScopedSubscriber($scope, 'build.update', updateBuild);
-      stream.addScopedSubscriber($scope, 'job.update', function(data) { $scope.jobList.updateItem(data); });
+      stream.addScopedSubscriber($scope, 'job.update', function(data) {
+        if (data.build.id == $scope.build.id) {
+          $scope.jobList.updateItem(data);
+        }
+      });
 
       if ($scope.build.status.id == 'finished') {
         $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');

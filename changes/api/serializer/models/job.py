@@ -20,7 +20,7 @@ class JobSerializer(Serializer):
         else:
             external = None
 
-        return {
+        data = {
             'id': instance.id.hex,
             'number': instance.number,
             'name': instance.label,
@@ -35,6 +35,9 @@ class JobSerializer(Serializer):
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
             'dateFinished': instance.date_finished.isoformat() if instance.date_finished else None,
         }
+        if instance.build_id:
+            data['build'] = {'id': instance.build_id.hex}
+        return data
 
 
 class JobWithBuildSerializer(JobSerializer):

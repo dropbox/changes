@@ -136,12 +136,20 @@ define([
       }
 
       function updateJob(data){
+        if (data.id !== $scope.job.id) {
+          return;
+        }
+
         $scope.$apply(function() {
           $scope.job = data;
         });
       }
 
       function updateTestGroup(data) {
+        if (data.job.id !== $scope.job.id) {
+          return;
+        }
+
         $scope.$apply(function() {
           var updated = false,
               item_id = data.id,
