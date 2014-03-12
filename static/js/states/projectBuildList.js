@@ -100,6 +100,9 @@ define([
         'projects:' + $scope.project.id + ':builds'
       ]);
       stream.addScopedSubscriber($scope, 'build.update', function(data){
+        if (data.project.id != $scope.project.id) {
+          return;
+        }
         if (data.source.patch && !$scope.includePatches) {
           return;
         }

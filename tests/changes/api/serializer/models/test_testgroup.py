@@ -10,7 +10,11 @@ def test_simple():
         id=UUID(hex='33846695b2774b29a71795a009e8168a'),
         name='test.group.ClassName',
         job=Job(id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50')),
-        project=Project(slug='test', name='test'),
+        job_id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50'),
+        project=Project(
+            slug='test', name='test', id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50'),
+        ),
+        project_id=UUID(hex='1e7958a368f44b0eb5a57372a9910d50'),
         duration=134,
         num_tests=5,
         num_failed=2,

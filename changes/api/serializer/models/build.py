@@ -16,6 +16,7 @@ class BuildSerializer(Serializer):
 
         return {
             'id': instance.id.hex,
+            'project': {'id': instance.project_id.hex},
             'number': instance.number,
             'name': instance.label,
             'target': target,

@@ -14,6 +14,8 @@ class TestGroupSerializer(Serializer):
 
         data = {
             'id': instance.id.hex,
+            'job': {'id': instance.job_id.hex},
+            'project': {'id': instance.project_id.hex},
             'name': instance.name,
             'shortName': short_name,
             'duration': instance.duration or 0,
@@ -23,8 +25,6 @@ class TestGroupSerializer(Serializer):
             'link': build_uri('/testgroups/%s/' % (instance.id.hex,)),
             'dateCreated': instance.date_created,
         }
-        if instance.job_id:
-            data['job'] = {'id': instance.job_id.hex}
         return data
 
 

@@ -11,7 +11,10 @@ def test_simple():
         label='Hello world',
         target='D1234',
         message='Foo bar',
-        project=Project(slug='test', name='test'),
+        project=Project(
+            slug='test', name='test', id=UUID('1e7958a368f44b0eb5a57372a9910d50'),
+        ),
+        project_id=UUID('1e7958a368f44b0eb5a57372a9910d50'),
         source=Source(
             revision_sha='1e7958a368f44b0eb5a57372a9910d50',
         ),
