@@ -586,7 +586,7 @@ table > tbody > tr.result-skipped > td.result span {
 .change-list > tbody > tr:nth-child(odd) > td,
 .build-list > tbody > tr:nth-child(odd) > td,
 .job-list > tbody > tr:nth-child(odd) > td {
-  background: #fdfdfd;
+  background: #fafafa;
 }
 .well {
   background: #f7f5fa;
