@@ -60,4 +60,4 @@ def test_simple(get_options):
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == 'https://foo.example.com/'
-        assert responses.calls[0].request.body == 'project=server&build_server=changes&build_url=http%3A%2F%2Flocalhost%2Fbuilds%2Fcccccccccccccccccccccccccccccccc%2F&id=134%3Aasdadfadf'
+        assert responses.calls[0].request.body == 'project=server&build_server=changes&build_url=http%3A%2F%2Flocalhost%2Fprojects%2Fserver%2Fbuilds%2Fcccccccccccccccccccccccccccccccc%2F&id=134%3Aasdadfadf'

@@ -75,7 +75,8 @@ def build_finished_handler(build, **kwargs):
         result=unicode(build.result),
         target=build.target or build.source.revision_sha or 'Unknown',
         project=build.project.name,
-        link=build_uri('/builds/{0}/'.format(build.id.hex))
+        link=build_uri('/projects/{0}/builds/{1}/'.format(
+            build.project.slug, build.id.hex))
     )
     if build.author:
         message += ' - {author}'.format(

@@ -65,6 +65,7 @@ def build_finished_handler(build, **kwargs):
     requests.post(url, auth=auth, data={
         'project': project,
         'id': release_id,
-        'build_url': build_uri('/builds/{0}/'.format(build.id.hex)),
+        'build_url': build_uri('/projects/{0}/builds/{1}/'.format(
+            build.project.slug, build.id.hex)),
         'build_server': 'changes',
     })
