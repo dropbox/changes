@@ -1,14 +1,12 @@
 define([
   'app',
-  'utils/chartHelpers',
-  'utils/duration',
   'utils/parseLinkHeader'
-], function(app, chartHelpers, duration, parseLinkHeader) {
+], function(app, parseLinkHeader) {
   'use strict';
 
   return {
-    parent: 'layout',
-    url: '/nodes/:node_id/',
+    parent: 'nodes',
+    url: ':node_id/',
     templateUrl: 'partials/node-details.html',
     controller: function($scope, $rootScope, $http, nodeData, jobList, Collection) {
       function loadJobList(url) {

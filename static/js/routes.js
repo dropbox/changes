@@ -7,6 +7,7 @@ define([
   'states/layout',
   'states/logDetails',
   'states/nodeDetails',
+  'states/nodeList',
   'states/planDetails',
   'states/planList',
   'states/projectBuildList',
@@ -40,6 +41,7 @@ define([
   LayoutState,
   LogDetailsState,
   NodeDetailsState,
+  NodeListState,
   PlanDetailsState,
   PlanListState,
   ProjectBuildListState,
@@ -98,7 +100,8 @@ define([
       .state('log_details', LogDetailsState)
       .state('test_details', TestGroupDetailsState)
       .state('my_builds', AuthorBuildListState)
-      .state('node', NodeDetailsState)
+      .state('nodes', NodeListState)
+      .state('node_details', NodeDetailsState)
       .state('new_project', ProjectCreateState)
       .state('plans', PlanListState)
       .state('plan_details', PlanDetailsState)

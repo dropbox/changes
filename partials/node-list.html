@@ -1,0 +1,40 @@
+<section ui-view>
+	<div class="page-header">
+		<h2>Nodes</h2>
+	</div>
+
+	<p><small>Note: Only nodes which have been seen in the last seven days are visible.</small></p>
+
+	<ul class="pager">
+		<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+			<a ng-click="loadPreviousPage()">&larr; Previous</a>
+		</li>
+		<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+			<a ng-click="loadNextPage()">Next &rarr;</a>
+		</li>
+	</ul>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Node</th>
+				<th style="width:150px;">First Seen</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="node in nodeList">
+				<td bind-once><a ui-sref="node_details({node_id: node.id})">{{node.name}}</a></td>
+				<td time-since="node.dateCreated" bind-once></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<ul class="pager">
+		<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+			<a ng-click="loadPreviousPage()">&larr; Previous</a>
+		</li>
+		<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+			<a ng-click="loadNextPage()">Next &rarr;</a>
+		</li>
+	</ul>
+
+</section>
