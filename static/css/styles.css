@@ -594,6 +594,16 @@ table > tbody > tr.result-skipped > td.result span {
   box-shadow: none;
 }
 
+.progress {
+  border-radius: 1px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+.progress-bar {
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
 .build-message {
   margin-bottom: 20px;
 }
