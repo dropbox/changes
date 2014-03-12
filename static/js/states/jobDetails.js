@@ -120,10 +120,6 @@ define([
           });
       };
 
-      function getFormattedBuildMessage(message) {
-        return $filter('linkify')($filter('escape')(message));
-      }
-
       function getTestStatus() {
         if ($scope.job.status.id == "finished") {
           if ($scope.testGroups.length === 0) {
@@ -142,6 +138,7 @@ define([
 
         $scope.$apply(function() {
           $scope.job = data;
+          $scope.testStatus = getTestStatus();
         });
       }
 
@@ -210,16 +207,6 @@ define([
         return 'Job ' + job.id + ' - ' + projectData.data.name;
       }
 
-      $scope.$watch("job.status", function() {
-        $scope.testStatus = getTestStatus();
-      });
-      $scope.$watch("build.message", function(value) {
-        if (value) {
-          $scope.formattedBuildMessage = getFormattedBuildMessage(value);
-        } else {
-          $scope.formattedBuildMessage = null;
-        }
-      });
       $scope.$watchCollection("tests", function() {
         $scope.testStatus = getTestStatus();
       });
@@ -231,6 +218,7 @@ define([
       $scope.testGroups = jobData.data.testGroups;
       $scope.previousRuns = jobData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.job, chart_options);
+      $scope.testStatus = getTestStatus();
 
       $rootScope.pageTitle = getPageTitle(buildData.data, $scope.job);
 

@@ -23,6 +23,7 @@ define([
   'states/projectTestList',
   'states/testGroupDetails',
 
+  'directives/bindOnce',
   'directives/duration',
   'directives/radialProgressBar',
   'directives/timeSince',

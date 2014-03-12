@@ -87,15 +87,13 @@ define([
         }
       };
 
-      $scope.$watch("build.message", function(value) {
-        if (value) {
-          $scope.formattedBuildMessage = getFormattedBuildMessage(value);
-        } else {
-          $scope.formattedBuildMessage = null;
-        }
-      });
-
       $scope.build = buildData.data;
+      if ($scope.build.message) {
+        $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build.message);
+      } else {
+        $scope.formattedBuildMessage = null;
+      }
+
       $scope.previousRuns = buildData.data.previousRuns;
       $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
       $scope.testFailures = buildData.data.testFailures;

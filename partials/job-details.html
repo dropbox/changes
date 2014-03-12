@@ -1,10 +1,10 @@
 <div class="page-header build-header status-{{build.status.id}} result-{{job.result.id}}">
 	<ul class="crumb">
 		<li class="status-{{build.status.id}} result-{{build.result.id}}">
-			<a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
+			<a ui-sref="build_details()" class="indicator" bind-once>#{{build.number}}</a>
 		</li>
 	</ul>
-	<div class="seen-by">
+	<div class="seen-by" bind-once>
 		<ul>
 			<li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
 				<a tooltip="{{seenUser.email}}"
@@ -14,11 +14,11 @@
 			</li>
 		</ul>
 	</div>
-	<h2>
+	<h2 bind-once>
 		{{build.name}}<br>
 		<small>
 			<span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name|truncate:20}} &mdash;
-			<a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
+			<a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
 			<span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
 		</small>
 	</h2>
@@ -42,13 +42,13 @@
 			<tbody>
 				<tr ng-repeat="testGroup in testFailures.testGroups" class="result-{{testGroup.result.id}}">
 					<td class="result"><span></span></td>
-					<td>
+					<td bind-once>
 						<a ui-sref="test_details({testgroup_id: testGroup.id})">{{ testGroup.name }}</a><br>
 						<small ng-if="testGroup.origin">
 							This failure likely originated in <span ng-if="testGroup.origin.id == job.id">this job</span><span ng-if="testGroup.origin.id != job.id"><a href="{{ testGroup.origin.link }}">{{ testGroup.origin.target }}</a><span ng-if="testGroup.origin.author"> &mdash; {{ testGroup.origin.author.name }}</span></span>
 						</small>
 					</td>
-					<td style="text-align:center" duration="testGroup.duration"></td>
+					<td style="text-align:center" duration="testGroup.duration" bind-once></td>
 				</tr>
 			</tbody>
 		</table>
@@ -67,7 +67,7 @@
 					 heading="{{logSource.name}}"
 					 select="loadLogSource(logSource)">
 
-					<div class="build-log-wrapper" id="log-{{logSource.id}}">
+					<div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
 						<div class="build-log"></div>
 						<a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
 					</div>
@@ -101,10 +101,10 @@
 					<tbody>
 						<tr ng-repeat="testGroup in testGroups" class="result-{{testGroup.result.id}}">
 							<td class="result"><span></span></td>
-							<td><a ui-sref="test_details({testgroup_id: testGroup.id})">{{ testGroup.name }}</a></td>
-							<td style="text-align:center">{{ testGroup.numFailures }}</td>
-							<td style="text-align:center">{{ testGroup.numTests }}</td>
-							<td style="text-align:center" duration="testGroup.duration"></td>
+							<td><a ui-sref="test_details({testgroup_id: testGroup.id})" bind-once>{{testGroup.name}}</a></td>
+							<td style="text-align:center" bind-once>{{testGroup.numFailures}}</td>
+							<td style="text-align:center" bind-once>{{testGroup.numTests}}</td>
+							<td style="text-align:center" duration="testGroup.duration" bind-once></td>
 						</tr>
 					</tbody>
 				</table>
