@@ -1,44 +1,46 @@
 <div ui-view>
-	<ul class="breadcrumb">
-		<li title="{{build.name}}"><a ui-sref="job_details()">#{{build.number}}.{{job.number}}</a></li>
-		<li ng-repeat="parentTestGroup in context"
-			title="{{parentTestGroup.name}}"
-			ng-class="testGroup.id == parentTestGroup.id ? 'active' : ''"><a ui-sref="test_details({testgroup_id: parentTestGroup.id})">{{parentTestGroup.shortName|truncate}}</a></li>
-	</ul>
+	<section bind-once>
+		<ul class="breadcrumb">
+			<li title="{{build.name}}"><a ui-sref="job_details()">#{{build.number}}.{{job.number}}</a></li>
+			<li ng-repeat="parentTestGroup in context"
+				title="{{parentTestGroup.name}}"
+				ng-class="testGroup.id == parentTestGroup.id ? 'active' : ''"><a ui-sref="test_details({testgroup_id: parentTestGroup.id})">{{parentTestGroup.shortName|truncate}}</a></li>
+		</ul>
 
-	<div ng-if="childTestGroups">
-		<table class="table table-striped">
-			<thead>
-				<tr>
-					<th colspan="2">&nbsp;</th>
-					<th style="width:110px;text-align:center">Duration</th>
-					<th style="width:80px;text-align:center">Failures</th>
-					<th style="width:80px;text-align:center">Total</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr ng-repeat="childTestGroup in childTestGroups" class="result-{{childTestGroup.result.id}}">
-					<td class="result"><span></span></td>
-					<td><a ui-sref="test_details({testgroup_id: childTestGroup.id})">{{childTestGroup.shortName}}</a></td>
-					<td style="text-align:center" duration="childTestGroup.duration"></td>
-					<td style="text-align:center">{{childTestGroup.numFailures}}</td>
-					<td style="text-align:center">{{childTestGroup.numTests}}</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-
-	<div ng-if="testCase">
-		<div ng-switch="testCase.result.id" class="alert" ng-class="{'passed': 'alert-success', 'failed': 'alert-error', 'skipped': 'alert-warning'}[testCase.result.id]">
-			<p ng-switch-when="passed">This test passed successfully!</p>
-			<p ng-switch-when="failed">This test failed. Check the console log or test result for more information.</p>
-			<p ng-switch-when="skipped">This test was not run (conditions for skipping were met).</p>
-			<p ng-switch-default>The result of this test was {{testCase.result.name}}.</p>
+		<div ng-if="childTestGroups">
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th colspan="2">&nbsp;</th>
+						<th style="width:110px;text-align:center">Duration</th>
+						<th style="width:80px;text-align:center">Failures</th>
+						<th style="width:80px;text-align:center">Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="childTestGroup in childTestGroups" class="result-{{childTestGroup.result.id}}">
+						<td class="result"><span></span></td>
+						<td><a ui-sref="test_details({testgroup_id: childTestGroup.id})">{{childTestGroup.shortName}}</a></td>
+						<td style="text-align:center" duration="childTestGroup.duration"></td>
+						<td style="text-align:center">{{childTestGroup.numFailures}}</td>
+						<td style="text-align:center">{{childTestGroup.numTests}}</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 
-		<div ng-if="testCase.message">
-			<h4>Message</h4>
-			<pre class="build-message">{{testCase.message}}</pre>
+		<div ng-if="testCase">
+			<div ng-switch="testCase.result.id" class="alert" ng-class="{'passed': 'alert-success', 'failed': 'alert-error', 'skipped': 'alert-warning'}[testCase.result.id]">
+				<p ng-switch-when="passed">This test passed successfully!</p>
+				<p ng-switch-when="failed">This test failed. Check the console log or test result for more information.</p>
+				<p ng-switch-when="skipped">This test was not run (conditions for skipping were met).</p>
+				<p ng-switch-default>The result of this test was {{testCase.result.name}}.</p>
+			</div>
+
+			<div ng-if="testCase.message">
+				<h4>Message</h4>
+				<pre class="build-message">{{testCase.message}}</pre>
+			</div>
 		</div>
-	</div>
-</section>
+	</section>
+</div>
