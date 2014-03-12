@@ -45,7 +45,7 @@ define([
     },
     resolve: {
       nodeList: function($http, $stateParams) {
-        return $http.get('/api/0/nodes/');
+        return $http.get('/api/0/nodes/?since=7');
       }
     }
   };
