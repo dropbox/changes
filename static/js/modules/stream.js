@@ -51,6 +51,10 @@ define(['angular'], function(angular) {
                 self.es.removeEventListener(event, listener, false);
               }
             });
+
+            if (self.es) {
+              self.es.addEventListener(event, listener, false);
+            }
           },
           addScopedChannels: function($scope, channels) {
             var reconnect = this.reconnect;
