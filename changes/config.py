@@ -223,6 +223,7 @@ def configure_api_routes(app):
     from changes.api.job_log_details import JobLogDetailsAPIView
     from changes.api.jobphase_index import JobPhaseIndexAPIView
     from changes.api.node_details import NodeDetailsAPIView
+    from changes.api.node_index import NodeIndexAPIView
     from changes.api.node_job_index import NodeJobIndexAPIView
     from changes.api.patch_details import PatchDetailsAPIView
     from changes.api.plan_details import PlanDetailsAPIView
@@ -257,6 +258,7 @@ def configure_api_routes(app):
     api.add_resource(ChangeIndexAPIView, '/changes/')
     api.add_resource(ChangeDetailsAPIView, '/changes/<change_id>/')
     api.add_resource(NodeDetailsAPIView, '/nodes/<node_id>/')
+    api.add_resource(NodeIndexAPIView, '/nodes/')
     api.add_resource(NodeJobIndexAPIView, '/nodes/<node_id>/jobs/')
     api.add_resource(PatchDetailsAPIView, '/patches/<patch_id>/')
     api.add_resource(PlanIndexAPIView, '/plans/')
