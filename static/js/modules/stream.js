@@ -75,7 +75,7 @@ define(['angular'], function(angular) {
               $.each(channels, function(_, channel){
                 arrPop(self.channels[channel], $scope);
                 if (self.channels[channel].length === 0) {
-                  arrPop(self.channels, channel);
+                  delete self.channels[channel];
                   changed = true;
                 }
               });
