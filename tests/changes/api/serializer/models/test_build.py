@@ -32,3 +32,4 @@ def test_simple():
     assert result['dateStarted'] == '2013-09-19T22:15:23'
     assert result['dateFinished'] == '2013-09-19T22:15:33'
     assert result['duration'] == 10000
+    assert result['link'] == 'http://example.com/projects/test/builds/{0}/'.format(build.id.hex)

@@ -1,5 +1,6 @@
 from changes.api.serializer import Serializer, register
 from changes.models import Build
+from changes.utils.http import build_uri
 
 
 @register(Build)
@@ -33,4 +34,6 @@ class BuildSerializer(Serializer):
             'dateModified': instance.date_modified.isoformat() if instance.date_modified else None,
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
             'dateFinished': instance.date_finished.isoformat() if instance.date_finished else None,
+            'link': build_uri('/projects/{0}/builds/{1}/'.format(
+                instance.project.slug, instance.id.hex)),
         }
