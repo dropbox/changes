@@ -18,7 +18,7 @@ from changes.models import (
     TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan, Source,
     Patch
 )
-from changes.testutils.cases import SAMPLE_DIFF
+from changes.testutils.fixtures import SAMPLE_DIFF
 
 
 TEST_PACKAGES = itertools.cycle([
