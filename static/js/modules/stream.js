@@ -44,7 +44,7 @@ define(['angular'], function(angular) {
             $scope.$on('$destroy', function(){
               arrPop(self.subscribers[event], [$scope, listener]);
               if (self.subscribers[event].length === 0) {
-                arrPop(self.subscribers, event);
+                delete self.subscribers[event];
               }
 
               if (self.es) {
