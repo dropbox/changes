@@ -1,9 +1,6 @@
 define([
-  'app',
-  'utils/chartHelpers',
-  'utils/duration',
-  'utils/escapeHtml'
-], function(app, chartHelpers, duration, escapeHtml) {
+  'app'
+], function(app) {
   'use strict';
 
   return {
@@ -11,33 +8,6 @@ define([
     url: "builds/:build_id/",
     templateUrl: 'partials/build-details.html',
     controller: function($scope, $rootScope, $http, $filter, projectData, buildData, stream, flash, Collection) {
-      var chart_options = {
-            tooltipFormatter: function(item) {
-              var content = '';
-
-              content += '<h5>';
-              content += escapeHtml(item.name);
-              content += '<br><small>';
-              content += escapeHtml(item.target);
-              if (item.author) {
-                content += ' &mdash; ' + item.author.name;
-              }
-              content += '</small>';
-              content += '</h5>';
-              if (item.status.id == 'finished') {
-                content += '<p>Build ' + item.result.name;
-                if (item.duration) {
-                  content += ' in ' + duration(item.duration);
-                }
-                content += '</p>';
-              } else {
-                content += '<p>' + item.status.name + '</p>';
-              }
-
-              return content;
-            }
-          };
-
       function getFormattedBuildMessage(message) {
         return $filter('linkify')($filter('escape')(message));
       }
@@ -95,7 +65,6 @@ define([
       }
 
       $scope.previousRuns = buildData.data.previousRuns;
-      $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.build, chart_options);
       $scope.testFailures = buildData.data.testFailures;
       $scope.testChanges = buildData.data.testChanges;
       $scope.seenBy = buildData.data.seenBy.slice(0, 14);
