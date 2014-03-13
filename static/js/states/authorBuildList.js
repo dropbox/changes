@@ -9,7 +9,7 @@ define([
     parent: 'layout',
     url: '/my/builds/',
     templateUrl: 'partials/author-build-list.html',
-    controller: function($scope, $rootScope, $http, buildList, stream) {
+    controller: function($scope, $rootScope, $http, buildList, Collection, stream) {
       function addBuild(data) {
         $scope.$apply(function() {
           var updated = false,
@@ -69,16 +69,11 @@ define([
 
       $scope.pageLinks = parseLinkHeader(buildList.headers('Link'));
 
-      $scope.builds = sortBuildList(buildList.data);
+      $scope.builds = new Collection($scope, buildList.data, {
+        sortFunc: sortBuildList,
+        limit: 100
+      });
       $rootScope.pageTitle = 'My Builds';
-
-      $scope.getBuildStatus = function(build) {
-        if (build.status.id == 'finished') {
-          return build.result.name;
-        } else {
-          return build.status.name;
-        }
-      };
     },
     resolve: {
       buildList: function($http) {
