@@ -20,14 +20,6 @@ define(['app'], function(app) {
       }
 
       $scope.commits = fromCommits(commitList.data);
-
-      $scope.getBuildStatus = function(build) {
-        if (build.status.id == 'finished') {
-          return build.result.name;
-        } else {
-          return build.status.name;
-        }
-      };
     },
     resolve: {
       commitList: function($http, projectData) {
