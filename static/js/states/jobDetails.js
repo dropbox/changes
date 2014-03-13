@@ -1,9 +1,6 @@
 define([
-  'app',
-  'utils/chartHelpers',
-  'utils/duration',
-  'utils/escapeHtml'
-], function(app, chartHelpers, duration, escapeHtml) {
+  'app'
+], function(app) {
   'use strict';
 
   var BUFFER_SIZE = 10000;
@@ -13,33 +10,7 @@ define([
     parent: 'build_details',
     templateUrl: 'partials/job-details.html',
     controller: function($scope, $rootScope, $http, $filter, projectData, buildData, jobData, stream, Pagination) {
-      var logStreams = {},
-          chart_options = {
-            tooltipFormatter: function(item) {
-              var content = '';
-
-              content += '<h5>';
-              content += escapeHtml(item.name);
-              content += '<br><small>';
-              content += escapeHtml(buildData.data.target);
-              if (buildData.data.author) {
-                content += ' &mdash; ' + buildData.data.author.name;
-              }
-              content += '</small>';
-              content += '</h5>';
-              if (item.status.id == 'finished') {
-                content += '<p>Job ' + item.result.name;
-                if (item.duration) {
-                  content += ' in ' + duration(item.duration);
-                }
-                content += '</p>';
-              } else {
-                content += '<p>' + item.status.name + '</p>';
-              }
-
-              return content;
-            }
-          };
+      var logStreams = {};
 
       function getLogSourceEntrypoint(jobId, logSourceId) {
         return '/api/0/jobs/' + jobId + '/logs/' + logSourceId + '/';
@@ -217,7 +188,6 @@ define([
       $scope.testFailures = jobData.data.testFailures;
       $scope.testGroups = jobData.data.testGroups;
       $scope.previousRuns = jobData.data.previousRuns;
-      $scope.chartData = chartHelpers.getChartData($scope.previousRuns, $scope.job, chart_options);
       $scope.testStatus = getTestStatus();
 
       $rootScope.pageTitle = getPageTitle(buildData.data, $scope.job);
