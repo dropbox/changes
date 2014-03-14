@@ -11,12 +11,12 @@ class BuildSerializer(Serializer):
         )
         stats_by_item = {}
         for stat in stat_list:
-            stats_by_item.setdefault(stat.item_id, [])
-            stats_by_item[stat.item_id].append((stat.name, stat.value))
+            stats_by_item.setdefault(stat.item_id, {})
+            stats_by_item[stat.item_id][stat.name] = stat.value
 
         result = {}
         for item in item_list:
-            result[item] = {'stats': stats_by_item.get(item.id, ())}
+            result[item] = {'stats': stats_by_item.get(item.id, {})}
 
         return result
 
