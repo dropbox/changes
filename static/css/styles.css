@@ -217,19 +217,6 @@ dl.flat dt {
   color: #6e5baa;
 }
 
-.indicator {
-  width: 100px;
-  border-radius: 40px;
-  width: 40px;
-  height: 40px;
-  display: inline-block;
-  background: #f7f5fa;
-}
-
-.indicator.active {
-  background: none !important;
-}
-
 .body {
   background: #fff;
   padding: 20px 0;
@@ -281,8 +268,8 @@ dl.flat dt {
 .page-header .crumb {
   float: left;
   font-size: 34px;
-  height: 47px;
-  line-height: 47px;
+  height: 48px;
+  line-height: 48px;
   font-weight: 300;
   list-style: none;
   margin: 0;
@@ -303,24 +290,10 @@ dl.flat dt {
 .page-header .crumb .indicator {
   padding: 0 10px;
 }
-.page-header .indicator,
-.build-list .indicator {
-  border-radius: 3px;
-  width: auto;
-  height: auto;
-  padding: 3px;
-  text-decoration: none;
+.page-header .indicator {
+  padding: 0 3px;
 }
 
-.build-list .indicator {
-  float: left;
-  font-size: 18px;
-  height: 34px;
-  line-height: 34px;
-  padding: 0 5px;
-  margin-top: 4px;
-  margin-right: 10px;
-}
 
 .build-header,
 .page-header,
@@ -330,22 +303,38 @@ dl.flat dt {
   position: relative;
 }
 
-.result-unknown .indicator,
+.indicator {
+  font-weight: 300;
+  color: #aaa;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  width: auto;
+  height: auto;
+}
+a.indicator {
+  text-decoration: none;
+}
+
 .result-aborted .indicator {
   color: #fff;
   background: #aaa;
-}
-.result-skipped .indicator {
-  color: #fff;
-  background: gold;
+  border-color: #aaa;
 }
 .result-passed .indicator {
   color: #fff;
   background: rgb(114, 194, 114);
+  border-color: rgb(114, 194, 114);
 }
 .result-failed .indicator {
   color: #fff;
   background: #d9322d;
+  border-color: #d9322d;
+}
+.result-unknown .indicator {
+  color: #aaa;
+  background: #fff;
+  border: 1px solid #ccc;
 }
 
 .seen-by ul {
@@ -372,14 +361,14 @@ dl.flat dt {
   -webkit-border-radius: 22px;
 }
 
-.change-header h2,
 .build-header h2 {
   font-size: 1.4em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   padding-right: 44px;
-  min-height: 42px;
+  min-height: 48px;
+  margin-bottom: 0;
 }
 .build-header h2 small {
   font-size: 0.7em;
@@ -476,118 +465,144 @@ table > tbody > tr.result-skipped > td.result span {
 }
 
 .build-list,
-.change-list,
 .job-list {
   list-style: none;
   padding-left: 0;
+  position: relative;
 }
 
-.change-list td:first-child,
-.build-list td:first-child {
-  width: 32px;
-  vertical-align: middle;
-  padding-top: 10px;
-  padding-left: 15px;
+.build-list > li,
+.job-list > li {
+  position: relative;
+  border-bottom: 1px solid #eee;
+  padding-right: 230px;
+}
+.build-list > li {
+  min-height: 52px;
+  padding-right: 350px;
+}
+
+@media (max-width: 767px) {
+  .build-list > li {
+    padding-right: 0;
+  }
+  .build-list .duration,
+  .build-list .tests,
+  .build-list .date {
+    display: none;
+  }
+  .build-list > li.build-list-header {
+    display: none;
+  }
+}
+
+.build-list > li.build-list-header {
+  min-height: 30px;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #aaa;
+}
+.build-list > li.build-list-header .duration,
+.build-list > li.build-list-header .tests,
+.build-list > li.build-list-header .date {
+  margin-top: 0;
+}
+
+.build-list .indicator,
+.job-list .indicator {
+  float: left;
+  margin-right: 10px;
+}
+
+.job-list .indicator {
+  font-size: 16px;
+  height: 24px;
+  line-height: 24px;
+  padding: 0 5px;
+}
+
+.build-list .indicator {
+  font-size: 18px;
+  height: 34px;
+  line-height: 34px;
+  padding: 0 8px;
+  margin-top: 2px;
+}
+
+.build-list h5 {
+  margin-bottom: 7px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.job-list h5 {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 24px;
+}
+
+.build-list .info {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #999;
+  font-weight: 300;
+  font-size: 0.8em;
+}
+
+.build-list .duration,
+.build-list .tests,
+.build-list .date,
+.job-list .duration {
+  position: absolute;
+  top: 0;
+  margin: 10px 0 0 20px;
+  text-align: right;
+  font-weight: 300;
+}
+.build-list .duration {
+  width: 120px;
+  right: 190px;
+}
+.job-list .duration {
+  width: 120px;
+  right: 0;
+}
+.build-list .tests {
+  width: 70px;
+  right: 110px;
+}
+.build-list .date {
+  width: 100px;
+  right: 0;
 }
 
 .build-list .progress {
-  height: 12px;
   margin-top: 3px;
+}
+.build-list .progress,
+.job-list .progress {
+  height: 12px;
   width: 120px;
 }
 
-.build-list .progress-bar {
+.progress-bar,
+.progress-bar {
   background: #aaa;
 }
 
-.build-list .progress-bar-passed {
+.progress-bar-passed {
   background: rgb(114, 194, 114);
 }
 
-.build-list .progress-bar-failed {
+.progress-bar-failed {
   background: #d9322d;
 }
 
-.job-list td {
-  vertical-align: middle;
-}
-
-.job-list td:first-child {
-  width: 16px;
-  padding: 0 10px;
-  line-height: 16px;
-  vertical-align: middle;
-}
-
-.change-list > tbody > tr > td,
-.build-list > tbody > tr > td,
-.job-list > tbody > tr > td {
-  border-top: 0;
-  position: relative;
-}
-
-.job-list td .indicator,
-.job-list td .indicator > div {
-  width: 16px;
-  height: 16px;
-  border-radius: 16px;
-  position: relative;
-}
-
-.change-list td > a,
-.build-list td > a,
-.job-list td > a {
-  font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-  max-width: 600px;
-  margin: 0;
-}
-.change-list td small,
-.build-list td small,
-.change-list td .date,
-.build-list td .date,
-.change-list td .status,
-.build-list td .status {
-  color: #999;
-  font-weight: 300;
-}
-.change-list td .date,
-.build-list td .date,
-.change-list td .status,
-.build-list td .status {
-  background: inherit;
-  position: absolute;
-  font-size: 0.7em;
-  right: 15px;
-}
-.change-list td .date,
-.build-list td .date {
-  bottom: 10px;
-}
-
-.change-list td .status,
-.build-list td .status {
-  top: 10px;
-}
-
-.job-list td .info {
-  position: absolute;
-  top: 12px;
-  right: 15px;
-  background: inherit;
-  font-size: 0.7em;
-  color: #999;
-  font-weight: 300;
-}
-
-.change-list > tbody > tr:nth-child(odd) > td,
-.build-list > tbody > tr:nth-child(odd) > td,
-.job-list > tbody > tr:nth-child(odd) > td {
-  background: #fafafa;
-}
 .well {
   background: #f7f5fa;
   border: 0;

@@ -4,7 +4,7 @@ from changes.models import Plan, Step
 
 @register(Plan)
 class PlanSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'name': instance.label,
@@ -16,7 +16,7 @@ class PlanSerializer(Serializer):
 
 @register(Step)
 class StepSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'name': instance.get_implementation().get_label(),

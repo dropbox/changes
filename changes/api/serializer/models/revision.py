@@ -4,7 +4,7 @@ from changes.models.revision import Revision
 
 @register(Revision)
 class RevisionSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.sha,
             'message': instance.message,

@@ -10,4 +10,4 @@ class ChangeDetailsTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['change']['id'] == change.id.hex
+        assert data['id'] == change.id.hex

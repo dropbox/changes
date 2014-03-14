@@ -1,34 +1,44 @@
 <section ui-view>
-    <div id="overview">
-        <div class="page-header">
-            <h2>Commit Log</h2>
-        </div>
-
-        <table class="build-list table table-striped">
-            <tbody>
-                <tr ng-repeat="commit in commits" class="status-{{commit.build.status.id}} result-{{commit.build.result.id}}">
-                    <td>
-                        <a ui-sref="build_details({build_id: commit.build.id})" ng-if="commit.build" class="indicator" bind-once>#{{commit.build.number}}</a>
-                        <a ui-sref="build_details({build_id: commit.build.id})" bind-once>{{commit.subject}}</a>
-                        <small>
-                            <a ui-sref="project_commit_details({commit_id: commit.id})" bind-once>{{commit.id.substr(0, 12)}}</a>
-                            <span ng-if="commit.author" bind-once>&mdash; {{commit.author.name}}</span>
-                        </small>
-                        <span ng-if="commit.build">
-                            <span class="status">
-                                <div type="{{commit.build.result.id}}"
-                                     value="build|buildEstimatedProgress"
-                                     progressbar>&nbsp;</div>
-                            </span>
-                            <span class="date" ng-if="commit.build.dateFinished">
-                                <span time-since="commit.build.dateStarted"></span>
-                                <span ng-if="commit.build.duration"> &mdash; <span duration="commit.build.duration"></span></span>
-                            </span>
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
+    <div class="page-header">
+        <h2>Commit Log</h2>
     </div>
+
+    <ul class="build-list">
+        <li class="build-list-header">
+            Build
+            <div class="date">Date</div>
+            <div class="tests">Tests</div>
+            <div class="duration">Duration</div>
+        </li>
+        <li ng-repeat="commit in commits" class="status-{{commit.build.status.id}} result-{{commit.build.result.id}}">
+            <div ng-if="commit.build" bind-once>
+                <a ui-sref="build_details({build_id: commit.build.id})" class="indicator" bind-once>#{{commit.build.number}}</a>
+                <h5 bind-once><a ui-sref="build_details({build_id: commit.build.id})">{{commit.subject}}</a></h5>
+                <div class="info">
+                    <a ui-sref="project_commit_details({commit_id: commit.id})" bind-once>{{commit.id.substr(0, 12)}}</a>
+                    <span ng-if="commit.author" bind-once>&mdash; {{commit.author.name}}</span>
+                </div>
+                <div class="date" time-since="commit.dateCreated" bind-once></div>
+                <div class="tests">
+                    {{commit.build.stats.test_count}}
+                </div>
+                <div class="duration">
+                    <span ng-if="commit.build.duration && commit.build.dateFinished" duration="commit.build.duration"></span>
+                    <span ng-if="!commit.build.dateFinished"
+                          type="{{commit.build.result.id}}"
+                          value="commit.build|buildEstimatedProgress"
+                          progressbar>&nbsp;</span>
+                </div>
+            </div>
+            <div ng-if="!commit.build">
+                <h5 bind-once>{{commit.subject}}</h5>
+                <div class="info">
+                    <a ui-sref="project_commit_details({commit_id: commit.id})" bind-once>{{commit.id.substr(0, 12)}}</a>
+                    <span ng-if="commit.author" bind-once>&mdash; {{commit.author.name}}</span>
+                </div>
+                <div class="date" time-since="commit.dateCreated" bind-once></div>
+            </div>
+        </li>
+    </ul>
+
 </section>

@@ -54,6 +54,7 @@ class JobLogDetailsAPIView(APIView):
         else:
             next_offset = 0
 
+        # TODO: source should be top level
         return self.respond({
             'source': source,
             'chunks': logchunks,

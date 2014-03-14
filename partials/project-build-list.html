@@ -1,54 +1,47 @@
 <section ui-view>
-    <div id="overview">
-        <div class="page-header">
-            <h2>Builds</h2>
-        </div>
+    <div class="page-header">
+        <h2>Builds</h2>
+    </div>
 
-        <barchart ng-if="chartData" ng-model="chartData" style="height:130px"></barchart>
+    <barchart ng-if="chartData" ng-model="chartData" style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
 
-        <div ng-if="builds.length">
-            <ul class="pager">
-                <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
-                    <a ng-click="loadNextPage()">&larr; Older</a>
-                </li>
-                <li class="next" ng-class="previousPage === null ? 'disabled' : ''">
-                    <a ng-click="loadPreviousPage()">Newer &rarr;</a>
-                </li>
-            </ul>
+    <div ng-if="builds.length">
+        <ul class="build-list">
+            <li class="build-list-header">
+                Build
+                <div class="date">Date</div>
+                <div class="tests">Tests</div>
+                <div class="duration">Duration</div>
+            </li>
+            <li ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
+                <a ui-sref="build_details({build_id: build.id})" class="indicator" bind-once>#{{build.number}}</a>
+                <h5 bind-once><a ui-sref="build_details({build_id: build.id})">{{build.name}}</a></h5>
+                <div class="info">
+                    <a ui-sref="project_source_details({source_id: build.source.id})" bind-once>{{build.target}}</a>
+                    <span ng-if="build.author" bind-once>&mdash; {{build.author.name}}</span>
+                </div>
+                <div class="date" time-since="build.dateCreated"></div>
+                <div class="tests">
+                    {{build.stats.test_count}}
+                </div>
+                <div class="duration">
+                    <span ng-if="build.duration && build.dateFinished" duration="build.duration"></span>
+                    <span ng-if="!build.dateFinished"
+                          type="{{build.result.id}}"
+                          value="build|buildEstimatedProgress"
+                          progressbar>&nbsp;</span>
+                </div>
+            </li>
+        </ul>
 
-            <table class="build-list table table-striped">
-                <tbody>
-                    <tr ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
-                        <td>
-                            <a ui-sref="build_details({build_id: build.id})" class="indicator" bind-once>#{{build.number}}</a>
-                            <a ui-sref="build_details({build_id: build.id})" bind-once>{{build.name}}</a>
-                            <small>
-                                <a ui-sref="project_source_details({source_id: build.source.id})" bind-once>{{build.target}}</a>
-                                <span ng-if="build.author" bind-once>&mdash; {{build.author.name}}</span>
-                            </small>
-                            <span class="status">
-                                <div type="{{build.result.id}}"
-                                     value="build|buildEstimatedProgress"
-                                     progressbar>&nbsp;</div>
-                            </span>
-                            <span class="date" ng-if="build.dateFinished">
-                                <span time-since="build.dateStarted"></span>
-                                <span ng-if="build.duration"> &mdash; <span duration="build.duration"></span></span>
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <ul class="pager">
-                <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
-                    <a ng-click="loadNextPage()">&larr; Older</a>
-                </li>
-                <li class="next" ng-class="previousPage === null ? 'disabled' : ''">
-                    <a ng-click="loadPreviousPage()">Newer &rarr;</a>
-                </li>
-            </ul>
-        </div>
+        <ul class="pager">
+            <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
+                <a ng-click="loadNextPage()">&larr; Older</a>
+            </li>
+            <li class="next" ng-class="previousPage === null ? 'disabled' : ''">
+                <a ng-click="loadPreviousPage()">Newer &rarr;</a>
+            </li>
+        </ul>
     </div>
     <div ng-if="!builds.length">
         <p>There are no builds to show here.</p>

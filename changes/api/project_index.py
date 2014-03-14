@@ -27,6 +27,7 @@ class ProjectIndexAPIView(APIView):
 
         for project in project_list:
             data = self.serialize(project)
+            # TODO(dcramer): build serializer is O(N) for stats
             data['lastBuild'] = Build.query.options(
                 joinedload('project', innerjoin=True),
                 joinedload('author'),

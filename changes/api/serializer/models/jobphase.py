@@ -4,7 +4,7 @@ from changes.models import JobPhase
 
 @register(JobPhase)
 class JobPhaseSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'name': instance.label,
@@ -18,7 +18,7 @@ class JobPhaseSerializer(Serializer):
 
 
 class JobPhaseWithStepsSerializer(JobPhaseSerializer):
-    def serialize(self, instance):
-        data = super(JobPhaseWithStepsSerializer, self).serialize(instance)
+    def serialize(self, instance, attrs):
+        data = super(JobPhaseWithStepsSerializer, self).serialize(instance, attrs)
         data['steps'] = list(instance.steps)
         return data

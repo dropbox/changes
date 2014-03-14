@@ -73,6 +73,4 @@ class ProjectCommitIndexAPIView(APIView):
             result['build'] = builds_map.get(result['id'])
             results.append(result)
 
-        context = results
-
-        return self.respond(context)
+        return self.respond(results)

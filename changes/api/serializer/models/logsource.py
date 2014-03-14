@@ -4,7 +4,7 @@ from changes.models.log import LogSource
 
 @register(LogSource)
 class LogSourceSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'job': {

@@ -6,7 +6,7 @@ from changes.models.log import LogChunk
 
 @register(LogChunk)
 class LogChunkSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         conv = Ansi2HTMLConverter()
         formatted_text = conv.convert(instance.text, full=False)
 

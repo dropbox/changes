@@ -4,7 +4,7 @@ from changes.models import Source
 
 @register(Source)
 class SourceSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         if instance.patch_id:
             patch = {
                 'id': instance.patch_id.hex,

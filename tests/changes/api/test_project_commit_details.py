@@ -3,7 +3,7 @@ from uuid import uuid4
 from changes.testutils import APITestCase
 
 
-class ProjectCommitIndexTest(APITestCase):
+class ProjectCommitDetailsTest(APITestCase):
     def test_simple(self):
         fake_commit_id = uuid4()
 

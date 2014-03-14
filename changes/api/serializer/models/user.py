@@ -22,7 +22,7 @@ def get_gravatar_url(email, size=None, default='mm'):
 
 @register(User)
 class UserSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'email': instance.email,

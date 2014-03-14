@@ -5,7 +5,7 @@ from changes.utils.http import build_uri
 
 @register(Change)
 class ChangeSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         result = {
             'id': instance.id.hex,
             'name': instance.label,

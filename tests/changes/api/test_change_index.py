@@ -10,9 +10,9 @@ class ChangeListTest(APITestCase):
         resp = self.client.get('/api/0/changes/')
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['changes']) == 2
-        assert data['changes'][0]['id'] == change2.id.hex
-        assert data['changes'][1]['id'] == change.id.hex
+        assert len(data) == 2
+        assert data[0]['id'] == change2.id.hex
+        assert data[1]['id'] == change.id.hex
 
 
 class ChangeCreateTest(APITestCase):
@@ -26,8 +26,8 @@ class ChangeCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert data['change']['id']
-        change = Change.query.get(data['change']['id'])
+        assert data['id']
+        change = Change.query.get(data['id'])
         assert change.project == self.project
         assert change.label == 'D1234'
         assert change.author.name == 'David Cramer'

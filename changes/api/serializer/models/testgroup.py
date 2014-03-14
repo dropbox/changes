@@ -5,7 +5,7 @@ from changes.models.test import TestGroup
 
 @register(TestGroup)
 class TestGroupSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         if instance.parent:
             short_name = instance.name[len(instance.parent.name) + 1:]
         else:
@@ -27,14 +27,14 @@ class TestGroupSerializer(Serializer):
 
 
 class TestGroupWithJobSerializer(TestGroupSerializer):
-    def serialize(self, instance):
-        data = super(TestGroupWithJobSerializer, self).serialize(instance)
+    def serialize(self, instance, attrs):
+        data = super(TestGroupWithJobSerializer, self).serialize(instance, attrs)
         data['job'] = instance.job
         return data
 
 
 class TestGroupWithOriginSerializer(TestGroupWithJobSerializer):
-    def serialize(self, instance):
-        data = super(TestGroupWithOriginSerializer, self).serialize(instance)
+    def serialize(self, instance, attrs):
+        data = super(TestGroupWithOriginSerializer, self).serialize(instance, attrs)
         data['origin'] = getattr(instance, 'origin', None)
         return data

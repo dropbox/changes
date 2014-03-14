@@ -11,11 +11,7 @@ class ChangeDetailsAPIView(APIView):
             joinedload(Change.author),
         ).get(change_id)
 
-        context = {
-            'change': change,
-        }
-
-        return self.respond(context)
+        return self.respond(change)
 
     def get_stream_channels(self, change_id):
         return ['changes:{0}'.format(change_id)]

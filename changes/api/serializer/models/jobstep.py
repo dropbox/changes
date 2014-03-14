@@ -4,7 +4,7 @@ from changes.models import JobStep
 
 @register(JobStep)
 class JobStepSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'name': instance.label,

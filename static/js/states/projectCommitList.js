@@ -5,7 +5,7 @@ define(['app'], function(app) {
     parent: 'project_details',
     url: 'commits/',
     templateUrl: 'partials/project-commit-list.html',
-    controller: function($scope, $rootScope, commitList) {
+    controller: function($scope, commitList) {
       function fromCommits(commitList) {
         return commitList.map(function(commit){
           if (commit.message) {

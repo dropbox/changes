@@ -4,7 +4,7 @@ from changes.models import Job
 
 @register(Job)
 class JobSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         if instance.project_id:
             avg_build_time = instance.project.avg_build_time
         else:
@@ -41,7 +41,8 @@ class JobSerializer(Serializer):
 
 
 class JobWithBuildSerializer(JobSerializer):
-    def serialize(self, instance):
-        data = super(JobWithBuildSerializer, self).serialize(instance)
+    def serialize(self, instance, attrs):
+        data = super(JobWithBuildSerializer, self).serialize(instance, attrs)
+        # TODO(dcramer): this is O(N) queries due to the attach helpers
         data['build'] = instance.build
         return data

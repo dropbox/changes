@@ -4,7 +4,7 @@ from changes.models import Comment
 
 @register(Comment)
 class CommentSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'user': instance.user,

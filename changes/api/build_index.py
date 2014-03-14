@@ -21,7 +21,6 @@ from changes.models import (
     Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
     ItemOption, Source, ProjectPlan, Revision
 )
-from changes.utils.http import build_uri
 
 
 def identify_revision(repository, treeish):
@@ -216,7 +215,7 @@ class BuildIndexAPIView(APIView):
             ]
 
         if not projects:
-            return self.respond({'builds': []})
+            return self.respond([])
 
         label = args.label
         author = args.author
@@ -307,17 +306,7 @@ class BuildIndexAPIView(APIView):
                 patch=patch,
             ))
 
-        context = {
-            'builds': [
-                {
-                    'id': b.id.hex,
-                    'project': b.project,
-                    'link': build_uri('/builds/{0}/'.format(b.id.hex)),
-                } for b in builds
-            ],
-        }
-
-        return self.respond(context)
+        return self.respond(builds)
 
     def get_stream_channels(self):
         return ['builds:*']

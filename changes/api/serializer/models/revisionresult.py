@@ -4,7 +4,7 @@ from changes.vcs.base import RevisionResult
 
 @register(RevisionResult)
 class RevisionSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         return {
             'id': instance.id,
             'message': instance.message,

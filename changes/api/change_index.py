@@ -29,11 +29,7 @@ class ChangeIndexAPIView(APIView):
             except IndexError:
                 change.last_job = None
 
-        context = {
-            'changes': change_list,
-        }
-
-        return self.respond(context)
+        return self.paginate(change_list)
 
     @param('project', lambda x: Project.query.filter_by(slug=x)[0])
     @param('label')
@@ -54,13 +50,7 @@ class ChangeIndexAPIView(APIView):
         )
         db.session.add(change)
 
-        context = {
-            'change': {
-                'id': change.id.hex,
-            },
-        }
-
-        return self.respond(context)
+        return self.respond(change)
 
     def get_stream_channels(self):
         return ['changes:*']

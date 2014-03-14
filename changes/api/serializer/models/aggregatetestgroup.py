@@ -5,7 +5,7 @@ from changes.utils.http import build_uri
 
 @register(AggregateTestGroup)
 class AggregateTestGroupSerializer(Serializer):
-    def serialize(self, instance):
+    def serialize(self, instance, attrs):
         if instance.parent:
             short_name = instance.name[len(instance.parent.name) + 1:]
         else:
@@ -28,8 +28,8 @@ class AggregateTestGroupSerializer(Serializer):
 
 
 class AggregateTestGroupWithJobSerializer(AggregateTestGroupSerializer):
-    def serialize(self, instance):
-        data = super(AggregateTestGroupWithJobSerializer, self).serialize(instance)
+    def serialize(self, instance, attrs):
+        data = super(AggregateTestGroupWithJobSerializer, self).serialize(instance, attrs)
         data.update({
             'firstBuild': instance.first_job,
             'lastBuild': instance.last_job,

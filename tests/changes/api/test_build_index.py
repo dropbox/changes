@@ -30,11 +30,11 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['builds']) == 1
-        assert data['builds'][0]['id']
+        assert len(data) == 1
+        assert data[0]['id']
 
         job = Job.query.filter(
-            Job.build_id == data['builds'][0]['id']
+            Job.build_id == data[0]['id']
         ).first()
         build = job.build
         source = build.source
@@ -52,11 +52,11 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['builds']) == 1
-        assert data['builds'][0]['id']
+        assert len(data) == 1
+        assert data[0]['id']
 
         job = Job.query.filter(
-            Job.build_id == data['builds'][0]['id']
+            Job.build_id == data[0]['id']
         ).first()
         build = job.build
         source = build.source
@@ -84,11 +84,11 @@ class BuildCreateTest(APITestCase):
         assert resp.status_code == 200, resp.data
 
         data = self.unserialize(resp)
-        assert len(data['builds']) == 1
-        assert data['builds'][0]['id']
+        assert len(data) == 1
+        assert data[0]['id']
 
         job = Job.query.filter(
-            Job.build_id == data['builds'][0]['id']
+            Job.build_id == data[0]['id']
         ).first()
         build = job.build
         source = build.source
@@ -133,7 +133,7 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['builds']) == 2
+        assert len(data) == 2
 
     def test_with_patch_without_diffs_enabled(self):
         po = ProjectOption(
@@ -151,4 +151,4 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
-        assert len(data['builds']) == 0
+        assert len(data) == 0
