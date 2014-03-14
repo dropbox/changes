@@ -6,7 +6,7 @@ from datetime import datetime
 
 from changes.constants import Status, Result
 from changes.config import db
-from changes.models import Build
+from changes.models import Build, ItemStat
 from changes.jobs.sync_build import sync_build
 from changes.testutils import TestCase
 
@@ -61,6 +61,9 @@ class SyncBuildTest(TestCase):
         job_b.status = Status.finished
         db.session.add(job_b)
 
+        db.session.add(ItemStat(item_id=job_a.id, name='test_count', value=1))
+        db.session.add(ItemStat(item_id=job_b.id, name='test_count', value=2))
+
         sync_build(build_id=build.id.hex, task_id=build.id.hex)
 
         build = Build.query.get(build.id)
@@ -70,6 +73,12 @@ class SyncBuildTest(TestCase):
         assert build.duration == 4000
         assert build.date_started == datetime(2013, 9, 19, 22, 15, 22)
         assert build.date_finished == datetime(2013, 9, 19, 22, 15, 26)
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == build.id,
+        )[0]
+        assert teststat.value == 3
 
         queue_delay.assert_any_call('update_project_stats', kwargs={
             'project_id': self.project.id.hex,

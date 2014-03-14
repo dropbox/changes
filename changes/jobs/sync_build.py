@@ -1,7 +1,9 @@
+from sqlalchemy.sql import func
+
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.events import publish_build_update
-from changes.models import Build, Job
+from changes.models import Build, Job, ItemStat
 from changes.utils.agg import safe_agg
 from changes.queue.task import tracked_task
 
@@ -66,6 +68,22 @@ def sync_build(build_id):
 
     if not is_finished:
         raise sync_build.NotFinished
+
+    # TODO(dcramer): this would make more sense as part of the xunit handler
+    num_tests = db.session.query(
+        func.sum(ItemStat.value)
+    ).filter(
+        ItemStat.name == 'test_count',
+        ItemStat.item_id.in_(j.id for j in all_jobs),
+    ).scalar() or 0
+
+    teststat = ItemStat(
+        item_id=build.id,
+        name='test_count',
+        value=num_tests,
+    )
+    db.session.add(teststat)
+    db.session.commit()
 
     queue.delay('notify_build_finished', kwargs={
         'build_id': build.id.hex,

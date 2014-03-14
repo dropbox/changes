@@ -4,7 +4,7 @@ import mock
 
 from changes.constants import Status
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, Step, Task
+from changes.models import Job, Step, Task, ItemStat
 from changes.testutils import TestCase
 
 
@@ -91,6 +91,8 @@ class SyncJobTest(TestCase):
             parent_id=job.id,
             status=Status.finished,
         )
+        self.create_test(job)
+        self.create_test(job)
 
         sync_job(
             job_id=job.id.hex,
@@ -116,3 +118,9 @@ class SyncJobTest(TestCase):
         task = Task.query.get(task.id)
 
         assert task.status == Status.finished
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == job.id,
+        )[0]
+        assert teststat.value == 2
