@@ -530,11 +530,8 @@ table > tbody > tr.result-skipped > td.result span {
 }
 
 .build-list h5 {
-<<<<<<< Updated upstream
-  margin-bottom: 7px;
-=======
-  margin-bottom: 5px;
->>>>>>> Stashed changes
+  margin-bottom: 0;
+  line-height: 1.42;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
