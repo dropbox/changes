@@ -27,7 +27,7 @@ class BuildSerializer(Serializer):
             avg_build_time = None
 
         target = item.target
-        if target is None and item.source.revision_sha:
+        if target is None and item.source and item.source.revision_sha:
             target = item.source.revision_sha[:12]
 
         return {
