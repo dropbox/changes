@@ -38,7 +38,7 @@ class XunitHandler(ArtifactHandler):
             # AFAIK the spec says only one tag can be present
             # http://windyroad.com.au/dl/Open%20Source/JUnit.xsd
             if attrs['status'] == 'success':
-                result = Result.failed
+                result = Result.passed
             elif attrs['status'] == 'skipped':
                 result = Result.skipped
             elif attrs['status'] in ('error', 'failure'):
