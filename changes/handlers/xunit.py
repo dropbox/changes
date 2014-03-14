@@ -22,7 +22,7 @@ class XunitHandler(ArtifactHandler):
     def get_tests(self, fp):
         # TODO(dcramer): needs to handle TestSuite's
         root = etree.fromstring(fp.read())
-        if root.tag == 'unitest-results':
+        if root.tag == 'unittest-results':
             return self.get_bitten_tests(root)
         return self.get_xunit_tests(root)
 
