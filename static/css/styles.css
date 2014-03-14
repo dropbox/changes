@@ -530,7 +530,11 @@ table > tbody > tr.result-skipped > td.result span {
 }
 
 .build-list h5 {
+<<<<<<< Updated upstream
   margin-bottom: 7px;
+=======
+  margin-bottom: 5px;
+>>>>>>> Stashed changes
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -566,7 +570,7 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .build-list .duration {
   width: 120px;
-  right: 190px;
+  right: 210px;
 }
 .job-list .duration {
   width: 120px;
@@ -574,10 +578,10 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .build-list .tests {
   width: 70px;
-  right: 110px;
+  right: 130px;
 }
 .build-list .date {
-  width: 100px;
+  width: 120px;
   right: 0;
 }
 
