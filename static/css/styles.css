@@ -567,7 +567,7 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .build-list .duration {
   width: 120px;
-  right: 210px;
+  right: 240px;
 }
 .job-list .duration {
   width: 120px;
@@ -575,10 +575,10 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .build-list .tests {
   width: 70px;
-  right: 130px;
+  right: 160px;
 }
 .build-list .date {
-  width: 120px;
+  width: 150px;
   right: 0;
 }
 
