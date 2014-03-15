@@ -5,6 +5,7 @@ from sqlalchemy.orm import subqueryload_all
 from changes.backends.base import UnrecoverableException
 from changes.config import db, queue
 from changes.constants import Status, Result
+from changes.db.utils import create_or_update
 from changes.events import publish_job_update
 from changes.models import Job, JobPlan, Plan, ItemStat, TestCase
 from changes.queue.task import tracked_task
@@ -91,14 +92,14 @@ def sync_job(job_id):
         raise sync_job.NotFinished
 
     # TODO(dcramer): this would make more sense as part of the xunit handler
-    teststat = ItemStat(
-        item_id=job.id,
-        name='test_count',
-        value=TestCase.query.filter(
+    create_or_update(ItemStat, where={
+        'item_id': job.id,
+        'name': 'test_count',
+    }, values={
+        'value': TestCase.query.filter(
             TestCase.job_id == job.id,
         ).count(),
-    )
-    db.session.add(teststat)
+    })
     db.session.commit()
 
     queue.delay('notify_job_finished', kwargs={

@@ -2,6 +2,7 @@ from sqlalchemy.sql import func
 
 from changes.config import db, queue
 from changes.constants import Result, Status
+from changes.db.utils import create_or_update
 from changes.events import publish_build_update
 from changes.models import Build, Job, ItemStat
 from changes.utils.agg import safe_agg
@@ -77,12 +78,12 @@ def sync_build(build_id):
         ItemStat.item_id.in_(j.id for j in all_jobs),
     ).scalar() or 0
 
-    teststat = ItemStat(
-        item_id=build.id,
-        name='test_count',
-        value=num_tests,
-    )
-    db.session.add(teststat)
+    create_or_update(ItemStat, where={
+        'item_id': build.id,
+        'name': 'test_count',
+    }, values={
+        'value': num_tests,
+    })
     db.session.commit()
 
     queue.delay('notify_build_finished', kwargs={
