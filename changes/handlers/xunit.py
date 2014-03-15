@@ -59,7 +59,7 @@ class XunitHandler(ArtifactHandler):
                 job=job,
                 name=attrs['name'],
                 package=attrs.get('fixture') or None,
-                duration=float(attrs['duration']) * 1000 * 1000,
+                duration=float(attrs['duration']) * 1000,
                 result=result,
                 message=message,
             ))
