@@ -52,21 +52,24 @@ class ProjectCommitIndexAPIView(APIView):
                 ).order_by(Revision.date_created.desc())[:100]
             ))
 
-        builds_qs = list(Build.query.options(
-            joinedload('author'),
-            joinedload('source'),
-        ).filter(
-            Build.source_id == Source.id,
-            Build.project_id == project.id,
-            Build.status.in_([Status.finished, Status.in_progress, Status.queued]),
-            Source.revision_sha.in_(c['id'] for c in commits),
-            Source.patch == None,  # NOQA
-        ).order_by(Build.date_created.asc()))
+        if commits:
+            builds_qs = list(Build.query.options(
+                joinedload('author'),
+                joinedload('source'),
+            ).filter(
+                Build.source_id == Source.id,
+                Build.project_id == project.id,
+                Build.status.in_([Status.finished, Status.in_progress, Status.queued]),
+                Source.revision_sha.in_(c['id'] for c in commits),
+                Source.patch == None,  # NOQA
+            ).order_by(Build.date_created.asc()))
 
-        builds_map = dict(
-            (b.source.revision_sha, d)
-            for b, d in itertools.izip(builds_qs, self.serialize(builds_qs))
-        )
+            builds_map = dict(
+                (b.source.revision_sha, d)
+                for b, d in itertools.izip(builds_qs, self.serialize(builds_qs))
+            )
+        else:
+            builds_map = {}
 
         results = []
         for result in commits:
