@@ -96,7 +96,8 @@ define([
         $http.post('/api/0/builds/' + buildData.id + '/mark_seen/');
       }
 
-      $scope.isSingleJob = buildData.jobs.length === 1 && buildData.status.id == 'finished';
+      // TODO(dcramer): we should actually find out if there could be > 1 job ever for this
+      $scope.isSingleJob = buildData.jobs.length === 1;
 
       $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
         if (toState.name !== 'build_details') {
