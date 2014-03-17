@@ -1,5 +1,6 @@
 define([
   'angular',
+  'angularAnimate',
   'angularBootstrap',
   'angularHighlightjs',
   'angularLinkify',
@@ -23,6 +24,7 @@ define([
       'flash',
       'hljs',
       'linkify',
+      'ngAnimate',
       'ngRoute',
       'ngSanitize',
       'notify',

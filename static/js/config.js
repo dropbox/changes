@@ -1,6 +1,7 @@
 requirejs.config({
   paths: {
     'angular': '../vendor/angular/angular',
+    'angularAnimate': '../vendor/angular-animate/angular-animate',
     'angularBootstrap': '../vendor/angular-bootstrap/ui-bootstrap-tpls',
     'angularHighlightjs': '../vendor/angular-highlightjs/angular-highlightjs',
     'angularLinkify': '../vendor/angular-linkify/angular-linkify',
@@ -23,6 +24,7 @@ requirejs.config({
         exports: 'angular',
         deps: ['jquery']
     },
+    'angularAnimate': ['angular'],
     'angularBootstrap': {
         deps: ['angular', 'bootstrap']
     },

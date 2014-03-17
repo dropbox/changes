@@ -1237,3 +1237,26 @@ label.btn input[type=checkbox] {
   background: #E78987;
   border-color: #E78987;
 }
+
+
+/* ngAnimate */
+[ui-view].ng-enter, [ui-view].ng-leave {
+  -webkit-transition: .35s; /* Chrome */
+  transition: .35s;
+}
+
+[ui-view].ng-enter {
+  opacity: 0;
+}
+
+[ui-view].ng-enter-active {
+  opacity: 1;
+}
+
+[ui-view].ng-leave {
+  opacity: 1;
+}
+
+[ui-view].ng-leave-active {
+  opacity: 0;
+}
