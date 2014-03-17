@@ -944,6 +944,8 @@ span {
   width: 14px;
   height: 14px;
 
+  margin: 0 auto;
+
   border:  solid 2px transparent;
   border-top-color:  #c7c0de;
   border-left-color: #c7c0de;
@@ -954,6 +956,12 @@ span {
   -ms-animation:     loading-bar-spinner 600ms linear infinite;
   -o-animation:      loading-bar-spinner 600ms linear infinite;
   animation:         loading-bar-spinner 600ms linear infinite;
+}
+
+.spinner-large {
+  width: 64px;
+  height: 64px;
+  border-radius: 60px;
 }
 
 .nav .spinner-icon {
@@ -1249,6 +1257,11 @@ label.btn input[type=checkbox] {
   border-color: #E78987;
 }
 
+.loading {
+  margin: 0 auto;
+  text-align: center;
+  padding: 20px;
+}
 
 /* ngAnimate */
 [ui-view].ng-enter, [ui-view].ng-leave {
@@ -1271,3 +1284,4 @@ label.btn input[type=checkbox] {
 [ui-view].ng-leave-active {
   opacity: 0;
 }
+
