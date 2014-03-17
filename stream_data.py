@@ -62,7 +62,7 @@ def create_new_entry(project):
     )
     publish_build_update(build)
 
-    for x in xrange(3):
+    for x in xrange(0, random.randint(1, 3)):
         job = mock.job(
             build=build,
             change=change,
@@ -121,7 +121,7 @@ def update_existing_entry(project):
 
 
 def gen(project):
-    if random.randint(0, 3) == 1:
+    if random.randint(0, 5) == 1:
         build = create_new_entry(project)
     else:
         build = update_existing_entry(project)
