@@ -6,40 +6,12 @@ define([
   return {
     abstract: true,
     templateUrl: 'partials/layout.html',
-    controller: function($scope, $rootScope, $location, $http, $document, projectList, notify, flash, stream) {
-      function notifyBuild(build) {
-        if (build.status.id == 'finished') {
-          var msg = 'Build <a href="/builds/' + build.id + '/">#' + build.number + '</a> (' + build.project.name + ') ' + build.result.name + ' &mdash; ' + build.target;
-          notify(msg, build.result.id == 'failed' ? 'error' : 'success');
-        }
-      }
-
-      function getNavPath() {
-        if (!$rootScope.activeProject) {
-          return;
-        }
-
-        var urlBase = '/projects/' + $rootScope.activeProject.slug + '/';
-        switch ($location.path()) {
-          case urlBase:
-          case urlBase + 'search/':
-            return 'builds';
-          case urlBase + 'commits/':
-            return 'commits';
-          case urlBase + 'tests/':
-            return 'tests';
-          case urlBase + 'stats/':
-            return 'stats';
-        }
-
-      }
-
+    controller: function($scope, $rootScope, $location, $document, authData, projectList, flash, notify) {
       $rootScope.pageTitle = 'Changes';
 
       $scope.projectList = projectList.data;
-      $scope.authenticated = null;
-      $scope.user = null;
-      $scope.navPath = null;
+      $scope.user = authData.user;
+      $scope.authenticated = authData.authenticated;
       $scope.projectSearchQuery = {
         query: null,
         source: null
@@ -70,26 +42,8 @@ define([
         }
       });
 
-      $http.get('/api/0/auth/')
-        .success(function(data){
-          $scope.authenticated = data.authenticated;
-          $scope.user = data.user || {};
-
-          if (data.user) {
-            notify("Authenticated as " + data.user.email);
-
-            // TODO(dcramer): enable this once we solve concurrent subscriptions
-            // var stream = new Stream($scope, '/api/0/authors/me/builds/');
-            // stream.subscribe('build.update', notifyBuild);
-          }
-        });
-
       $rootScope.$watch('pageTitle', function(value) {
         $document.title = value;
-      });
-
-      $rootScope.$watch('activeProject', function(){
-        $scope.navPath = getNavPath();
       });
 
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error){
@@ -102,6 +56,12 @@ define([
     resolve: {
       projectList: function($http) {
         return $http.get('/api/0/projects/');
+      },
+      // TODO: move auth into service
+      authData: function($http) {
+        return $http.get('/api/0/auth/').then(function(response){
+          return response.data;
+        });
       }
     }
   };

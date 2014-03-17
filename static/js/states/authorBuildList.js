@@ -9,7 +9,7 @@ define([
     parent: 'layout',
     url: '/my/builds/',
     templateUrl: 'partials/author-build-list.html',
-    controller: function($scope, $rootScope, $http, buildList, Collection, stream) {
+    controller: function($scope, $rootScope, $http, buildList, authData, Collection, stream) {
       function addBuild(data) {
         $scope.$apply(function() {
           var updated = false,
@@ -74,6 +74,18 @@ define([
         limit: 100
       });
       $rootScope.pageTitle = 'My Builds';
+
+      if (authData.authenticated) {
+        stream.addScopedChannels($scope, [
+          'authors:me:builds'
+        ]);
+        stream.addScopedSubscriber($scope, 'build.update', function(data){
+          if (data.author.email != authData.user.email) {
+            return;
+          }
+          $scope.builds.updateItem(data);
+        });
+      }
     },
     resolve: {
       buildList: function($http) {
