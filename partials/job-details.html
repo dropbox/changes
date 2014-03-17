@@ -1,28 +1,30 @@
 <!-- Job header (only for matrix builds) -->
-<div ng-if="!isSingleJob" class="page-header build-header status-{{job.status.id}} result-{{job.result.id}}">
-    <ul class="crumb">
-        <li class="status-{{build.status.id}} result-{{build.result.id}}">
-            <a ui-sref="build_details()" class="indicator" bind-once>#{{build.number}}</a>
-        </li>
-    </ul>
-    <div class="seen-by" bind-once>
-        <ul>
-            <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
-                <a tooltip="{{seenUser.email}}"
-                   tooltip-placement="bottom">
-                    <img src="{{seenUser.avatar}}&amp;s=16">
-                </a>
+<div ng-if="!isSingleJob" bind-once>
+    <div class="page-header build-header status-{{job.status.id}} result-{{job.result.id}}">
+        <ul class="crumb">
+            <li class="status-{{build.status.id}} result-{{build.result.id}}">
+                <a ui-sref="build_details()" class="indicator" bind-once>#{{build.number}}</a>
             </li>
         </ul>
+        <div class="seen-by" bind-once>
+            <ul>
+                <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
+                    <a tooltip="{{seenUser.email}}"
+                       tooltip-placement="bottom">
+                        <img src="{{seenUser.avatar}}&amp;s=16">
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <h2 bind-once>
+            {{build.name}}<br>
+            <small>
+                <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name|truncate:20}} &mdash;
+                <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
+                <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
+            </small>
+        </h2>
     </div>
-    <h2 bind-once>
-        {{build.name}}<br>
-        <small>
-            <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name|truncate:20}} &mdash;
-            <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
-            <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
-        </small>
-    </h2>
 </div>
 
 <!--
@@ -32,7 +34,7 @@
     </li>
 </ul> -->
 <div ui-view>
-    <section class="section" ng-if="isSingleJob">
+    <section class="section" ng-if="isSingleJob" bind-once>
         <div class="row">
             <div class="col-lg-9 col-md-8">
                 <dl class="flat">
