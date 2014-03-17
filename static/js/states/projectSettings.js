@@ -15,8 +15,8 @@ define([
         "mail.notify-author": 1
       }, options = {};
 
-      for (var key in projectData.data.options) {
-        var value = projectData.data.options[key];
+      for (var key in projectData.options) {
+        var value = projectData.options[key];
         if (booleans[key]) {
           value = parseInt(value, 10) == 1;
         }
@@ -34,14 +34,16 @@ define([
         $scope.projectSettingsForm.$setPristine();
       };
 
-      $scope.project = projectData.data;
-      $scope.repo = projectData.data.repository;
-      $scope.plans = projectData.data.plans;
+      $scope.project = projectData;
+      $scope.repo = projectData.repository;
+      $scope.plans = projectData.plans;
       $scope.options = options;
     },
     resolve: {
       projectData: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/');
+        return $http.get('/api/0/projects/' + projectData.id + '/').then(function(response){
+          return response.data;
+        });
       }
     }
   };

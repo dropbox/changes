@@ -10,7 +10,7 @@ define(['app'], function(app) {
     },
     resolve: {
       testList: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/tests/');
+        return $http.get('/api/0/projects/' + projectData.id + '/tests/');
       }
     }
   };

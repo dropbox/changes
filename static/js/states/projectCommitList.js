@@ -23,7 +23,7 @@ define(['app'], function(app) {
     },
     resolve: {
       commitList: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/commits/');
+        return $http.get('/api/0/projects/' + projectData.id + '/commits/');
       }
     }
   };

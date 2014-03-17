@@ -173,9 +173,9 @@ define([
 
       function getPageTitle(build, job) {
         if (build.number) {
-          return 'Job #' + build.number + '.' + job.number +' - ' + projectData.data.name;
+          return 'Job #' + build.number + '.' + job.number +' - ' + projectData.name;
         }
-        return 'Job ' + job.id + ' - ' + projectData.data.name;
+        return 'Job ' + job.id + ' - ' + projectData.name;
       }
 
       $scope.$watchCollection("tests", function() {
@@ -190,7 +190,7 @@ define([
       $scope.previousRuns = jobData.data.previousRuns;
       $scope.testStatus = getTestStatus();
 
-      $rootScope.pageTitle = getPageTitle(buildData.data, $scope.job);
+      $rootScope.pageTitle = getPageTitle(buildData, $scope.job);
 
       stream.addScopedChannels($scope, [
         'jobs:' + $scope.job.id,
@@ -200,10 +200,6 @@ define([
       stream.addScopedSubscriber($scope, 'job.update', updateJob);
       stream.addScopedSubscriber($scope, 'buildlog.update', updateBuildLog);
       stream.addScopedSubscriber($scope, 'testgroup.update', updateTestGroup);
-
-      if (buildData.data.status.id == 'finished') {
-        $http.post('/api/0/builds/' + buildData.data.id + '/mark_seen/');
-      }
     },
     resolve: {
       jobData: function($http, $stateParams) {

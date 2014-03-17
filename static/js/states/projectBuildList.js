@@ -13,7 +13,7 @@ define([
     url: '',
     templateUrl: 'partials/project-build-list.html',
     controller: function($scope, $rootScope, $http, $state, projectData, buildList, stream, Collection) {
-      var entrypoint = '/api/0/projects/' + projectData.data.id + '/builds/',
+      var entrypoint = '/api/0/projects/' + projectData.id + '/builds/',
           chart_options = {
             linkFormatter: function(item) {
               return $state.href('build_details', {build_id: item.id});
@@ -93,7 +93,7 @@ define([
       $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       $scope.includePatches = false;
 
-      $rootScope.pageTitle = projectData.data.name + ' Builds';
+      $rootScope.pageTitle = projectData.name + ' Builds';
 
       $scope.$watchCollection("builds", function() {
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
@@ -114,7 +114,7 @@ define([
     },
     resolve: {
       buildList: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/builds/?include_patches=0');
+        return $http.get('/api/0/projects/' + projectData.id + '/builds/?include_patches=0');
       }
     }
   };

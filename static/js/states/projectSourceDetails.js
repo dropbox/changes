@@ -17,10 +17,10 @@ define([
     },
     resolve: {
       sourceData: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/sources/' + $stateParams.source_id + '/');
+        return $http.get('/api/0/projects/' + projectData.id + '/sources/' + $stateParams.source_id + '/');
       },
       buildList: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/sources/' + $stateParams.source_id + '/builds/');
+        return $http.get('/api/0/projects/' + projectData.id + '/sources/' + $stateParams.source_id + '/builds/');
       }
     }
   };

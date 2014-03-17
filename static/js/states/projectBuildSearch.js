@@ -58,7 +58,7 @@ define([
     },
     resolve: {
       buildList: function($http, $window, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/builds/search/' + $window.location.search);
+        return $http.get('/api/0/projects/' + projectData.id + '/builds/search/' + $window.location.search);
       }
     }
   };

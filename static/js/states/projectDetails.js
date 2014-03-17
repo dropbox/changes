@@ -9,7 +9,7 @@ define([
     url: ':project_id/',
     templateUrl: 'partials/project-details.html',
     controller: function($scope, $rootScope, projectData) {
-      $scope.project = projectData.data;
+      $scope.project = projectData;
 
       $rootScope.activeProject = $scope.project;
       $rootScope.pageTitle = $scope.project.name;
@@ -29,7 +29,7 @@ define([
               $http.get('/api/0/projects/' + selected.id + '/')
                   .success(function(data){
                       angular.extend(selected, data);
-                      deferred.resolve({data: data});
+                      deferred.resolve(data);
                   })
                   .error(function(){
                       // TODO(dcramer): show error message

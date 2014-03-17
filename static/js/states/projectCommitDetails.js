@@ -33,7 +33,7 @@ define([
     },
     resolve: {
       commitData: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.data.id + '/commits/' + $stateParams.commit_id + '/');
+        return $http.get('/api/0/projects/' + projectData.id + '/commits/' + $stateParams.commit_id + '/');
       }
     }
   };

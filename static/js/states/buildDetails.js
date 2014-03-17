@@ -14,9 +14,9 @@ define([
 
       function getPageTitle(build) {
         if (build.number) {
-          return 'Build #' + build.number + ' - ' + projectData.data.name;
+          return 'Build #' + build.number + ' - ' + projectData.name;
         }
-        return 'Build ' + build.id + ' - ' + projectData.data.name;
+        return 'Build ' + build.id + ' - ' + projectData.name;
       }
 
       function updateBuild(data){
@@ -57,18 +57,18 @@ define([
         }
       };
 
-      $scope.build = buildData.data;
+      $scope.build = buildData;
       if ($scope.build.message) {
         $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build.message);
       } else {
         $scope.formattedBuildMessage = null;
       }
 
-      $scope.previousRuns = buildData.data.previousRuns;
-      $scope.testFailures = buildData.data.testFailures;
-      $scope.testChanges = buildData.data.testChanges;
-      $scope.seenBy = buildData.data.seenBy.slice(0, 14);
-      $scope.jobList = new Collection($scope, buildData.data.jobs);
+      $scope.previousRuns = buildData.previousRuns;
+      $scope.testFailures = buildData.testFailures;
+      $scope.testChanges = buildData.testChanges;
+      $scope.seenBy = buildData.seenBy.slice(0, 14);
+      $scope.jobList = new Collection($scope, buildData.jobs);
       $scope.phaseList = [
         {
           name: "Test",
@@ -92,13 +92,15 @@ define([
         }
       });
 
-      if ($scope.build.status.id == 'finished') {
-        $http.post('/api/0/builds/' + $scope.build.id + '/mark_seen/');
+      if (buildData.status.id === 'finished') {
+        $http.post('/api/0/builds/' + buildData.id + '/mark_seen/');
       }
     },
     resolve: {
       buildData: function($http, $stateParams) {
-        return $http.get('/api/0/builds/' + $stateParams.build_id + '/');
+        return $http.get('/api/0/builds/' + $stateParams.build_id + '/').then(function(response){
+          return response.data;
+        });
       }
     }
   };

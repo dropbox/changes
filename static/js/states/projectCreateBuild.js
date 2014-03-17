@@ -11,7 +11,7 @@ define([
       $scope.createBuild = function() {
         var data = angular.copy($scope.build);
 
-        data.project = projectData.data.slug;
+        data.project = projectData.slug;
 
         $http.post('/api/0/builds/', data)
           .success(function(data){
