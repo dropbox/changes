@@ -573,6 +573,9 @@ table > tbody > tr.result-skipped > td.result span {
   text-align: right;
   font-weight: 300;
 }
+.job-list .duration {
+  margin-top: 0;
+}
 .build-list .duration {
   width: 120px;
   right: 240px;
