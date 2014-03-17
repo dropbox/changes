@@ -67,6 +67,10 @@ define(['angular'], function(angular) {
             $scope.messages = messages;
             done();
           });
+
+          $rootScope.$on('$stateChangeSuccess', function(_u1, _u2, $stateParams){
+            $scope.messages = [];
+          });
         }
       };
     });
