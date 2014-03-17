@@ -1,111 +1,138 @@
-<section ui-view>
-    <div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
-        <ul class="crumb" bind-once>
-            <li class="nodiv">
-                <a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
+<!-- Build header -->
+<div ng-if="isSingleJob" class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
+    <ul class="crumb" bind-once>
+        <li class="nodiv">
+            <a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
+        </li>
+    </ul>
+    <div class="seen-by" bind-once>
+        <ul>
+            <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
+                <a tooltip="{{seenUser.email}}"
+                   tooltip-placement="bottom">
+                    <img src="{{seenUser.avatar}}&amp;s=16">
+                </a>
             </li>
         </ul>
-        <div class="seen-by" bind-once>
-            <ul>
-                <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
-                    <a tooltip="{{seenUser.email}}"
-                       tooltip-placement="bottom">
-                        <img src="{{seenUser.avatar}}&amp;s=16">
-                    </a>
+    </div>
+    <h2 bind-once>
+        {{build.name}}<br>
+        <small>
+            <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
+            <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
+        </small>
+    </h2>
+</div>
+
+<section ui-view>
+    <div ng-if="!isSingleJob">
+        <div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
+            <ul class="crumb" bind-once>
+                <li class="nodiv">
+                    <a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
                 </li>
             </ul>
-        </div>
-        <h2 bind-once>
-            {{build.name}}<br>
-            <small>
-                <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
-                <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
-            </small>
-        </h2>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-9 col-md-8">
-            <dl class="flat">
-                <dt ng-if="build.source.revision" bind-once>Revision:</dt>
-                <dd ng-if="build.source.revision" bind-once>
-                    <a ui-sref="project_commit_details({commit_id: build.source.revision.sha})">{{build.source.revision.sha}}</a>
-                </dd>
-                <dt ng-if="build.source.patch" bind-once>Patch:</dt>
-                <dd ng-if="build.source.patch" bind-once><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
-                <dt>Status:</dt>
-                <dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
-                <dt ng-if="build.dateStarted">Started:</dt>
-                <dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
-                <dt ng-if="build.duration">Duration:</dt>
-                <dd ng-if="build.duration" duration="build.duration"></dd>
-            </dl>
-        </div>
-        <div class="col-lg-3 col-md-4">
-            <div class="panel panel-default">
-                <ul class="nav nav-small">
-                    <li bind-once><a ui-sref="project_source_details({source_id: build.source.id})">
-                        <i class="glyphicon glyphicon-search"></i> View Changes</a>
-                    </li>
-                    <li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">
-                        <i class="glyphicon glyphicon-repeat"></i> Restart Build</a>
-                    </li>
-                    <li ng-if="build.status.id != 'finished'"><a href="javascript:void(0)" ng-click="cancelBuild()">
-                        <i class="glyphicon glyphicon-remove"></i> Cancel Build</a>
+            <div class="seen-by" bind-once>
+                <ul>
+                    <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
+                        <a tooltip="{{seenUser.email}}"
+                           tooltip-placement="bottom">
+                            <img src="{{seenUser.avatar}}&amp;s=16">
+                        </a>
                     </li>
                 </ul>
             </div>
+            <h2 bind-once>
+                {{build.name}}<br>
+                <small>
+                    <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
+                    <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
+                </small>
+            </h2>
         </div>
-    </div>
 
-    <pre ng-if="formattedBuildMessage" class="build-message"
-         ng-bind-html="formattedBuildMessage" bind-once></pre>
-
-    <section class="section">
-        <ul class="job-list">
-            <li class="job-list-header">
-                Job
-                <div class="duration">Duration</div>
-            </li>
-            <li class="status-{{job.status.id}} result-{{job.result.id}}"
-                ng-repeat="job in jobList">
-                <a ui-sref="job_details({job_id: job.id})" class="indicator" bind-once>#{{build.number}}.{{job.number}}</a>
-                <h5 bind-once><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
-                <div class="duration">
-                    <span ng-if="job.duration && job.dateFinished" duration="job.duration"></span>
-                    <span ng-if="!job.dateFinished"
-                          type="{{job.result.id}}"
-                          value="job|buildEstimatedProgress"
-                          progressbar>&nbsp;</span>
+        <div class="row">
+            <div class="col-lg-9 col-md-8">
+                <dl class="flat">
+                    <dt ng-if="build.source.revision" bind-once>Revision:</dt>
+                    <dd ng-if="build.source.revision" bind-once>
+                        <a ui-sref="project_commit_details({commit_id: build.source.revision.sha})">{{build.source.revision.sha}}</a>
+                    </dd>
+                    <dt ng-if="build.source.patch" bind-once>Patch:</dt>
+                    <dd ng-if="build.source.patch" bind-once><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
+                    <dt>Status:</dt>
+                    <dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
+                    <dt ng-if="build.dateStarted">Started:</dt>
+                    <dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
+                    <dt ng-if="build.duration">Duration:</dt>
+                    <dd ng-if="build.duration" duration="build.duration"></dd>
+                </dl>
+            </div>
+            <div class="col-lg-3 col-md-4">
+                <div class="panel panel-default">
+                    <ul class="nav nav-small">
+                        <li bind-once><a ui-sref="project_source_details({source_id: build.source.id})">
+                            <i class="glyphicon glyphicon-search"></i> View Changes</a>
+                        </li>
+                        <li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">
+                            <i class="glyphicon glyphicon-repeat"></i> Restart Build</a>
+                        </li>
+                        <li ng-if="build.status.id != 'finished'"><a href="javascript:void(0)" ng-click="cancelBuild()">
+                            <i class="glyphicon glyphicon-remove"></i> Cancel Build</a>
+                        </li>
+                    </ul>
                 </div>
-            </li>
-        </ul>
-    </section>
-
-    <section class="section" ng-if="testFailures.total">
-        <div class="section-header">
-            <h3>Failing Tests <small>{{ testFailures.total }} total</small></h3>
+            </div>
         </div>
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <th colspan="2">&nbsp;</th>
-                    <th style="width:110px;text-align:center">Duration</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="testGroup in testFailures.testGroups" class="result-{{testGroup.result.id}}">
-                    <td class="result" bind-once><span title="{{testGroup.result.name}}"></span></td>
-                    <td bind-once>
-                        <a ui-sref="test_details({testgroup_id: testGroup.id})">{{testGroup.name}}</a><br>
-                        <small ng-if="testGroup.origin">
-                            This failure likely originated in <a href="{{testGroup.origin.link}}">{{testGroup.origin.target}}</a><span ng-if="testGroup.origin.author"> &mdash; {{testGroup.origin.author.name}}</span>
-                        </small>
-                    </td>
-                    <td style="text-align:center" duration="testGroup.duration" bind-once></td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
 
+        <pre ng-if="formattedBuildMessage" class="build-message"
+             ng-bind-html="formattedBuildMessage" bind-once></pre>
+
+        <section class="section">
+            <ul class="job-list">
+                <li class="job-list-header">
+                    Job
+                    <div class="duration">Duration</div>
+                </li>
+                <li class="status-{{job.status.id}} result-{{job.result.id}}"
+                    ng-repeat="job in jobList">
+                    <a ui-sref="job_details({job_id: job.id})" class="indicator" bind-once>#{{build.number}}.{{job.number}}</a>
+                    <h5 bind-once><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
+                    <div class="duration">
+                        <span ng-if="job.duration && job.dateFinished" duration="job.duration"></span>
+                        <span ng-if="!job.dateFinished"
+                              type="{{job.result.id}}"
+                              value="job|buildEstimatedProgress"
+                              progressbar>&nbsp;</span>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <section class="section" ng-if="testFailures.total">
+            <div class="section-header">
+                <h3>Failing Tests <small>{{ testFailures.total }} total</small></h3>
+            </div>
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th colspan="2">&nbsp;</th>
+                        <th style="width:110px;text-align:center">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="testGroup in testFailures.testGroups" class="result-{{testGroup.result.id}}">
+                        <td class="result" bind-once><span title="{{testGroup.result.name}}"></span></td>
+                        <td bind-once>
+                            <a ui-sref="test_details({testgroup_id: testGroup.id})">{{testGroup.name}}</a><br>
+                            <small ng-if="testGroup.origin">
+                                This failure likely originated in <a href="{{testGroup.origin.link}}">{{testGroup.origin.target}}</a><span ng-if="testGroup.origin.author"> &mdash; {{testGroup.origin.author.name}}</span>
+                            </small>
+                        </td>
+                        <td style="text-align:center" duration="testGroup.duration" bind-once></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
 </section>

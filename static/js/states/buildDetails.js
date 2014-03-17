@@ -7,7 +7,7 @@ define([
     parent: 'project_details',
     url: "builds/:build_id/",
     templateUrl: 'partials/build-details.html',
-    controller: function($scope, $rootScope, $http, $filter, projectData, buildData, stream, flash, Collection) {
+    controller: function($scope, $state, $rootScope, $http, $filter, projectData, buildData, stream, flash, Collection) {
       function getFormattedBuildMessage(message) {
         return $filter('linkify')($filter('escape')(message));
       }
@@ -95,6 +95,18 @@ define([
       if (buildData.status.id === 'finished') {
         $http.post('/api/0/builds/' + buildData.id + '/mark_seen/');
       }
+
+      $scope.isSingleJob = buildData.jobs.length === 1 && buildData.status.id == 'finished';
+
+      $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
+        if (toState.name !== 'build_details') {
+          return;
+        }
+
+        if ($scope.isSingleJob) {
+          $state.go('job_details', {job_id: buildData.jobs[0].id}, {location: false});
+        }
+      });
     },
     resolve: {
       buildData: function($http, $stateParams) {

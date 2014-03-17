@@ -1,4 +1,5 @@
-<div class="page-header build-header status-{{job.status.id}} result-{{job.result.id}}">
+<!-- Job header (only for matrix builds) -->
+<div ng-if="!isSingleJob" class="page-header build-header status-{{job.status.id}} result-{{job.result.id}}">
     <ul class="crumb">
         <li class="status-{{build.status.id}} result-{{build.result.id}}">
             <a ui-sref="build_details()" class="indicator" bind-once>#{{build.number}}</a>
@@ -23,6 +24,7 @@
         </small>
     </h2>
 </div>
+
 <!--
 <ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
     <li ng-repeat="phase in phases" class="status-{{phase.status.id}} result-{{phase.result.id}}">
@@ -30,6 +32,47 @@
     </li>
 </ul> -->
 <div ui-view>
+    <section class="section" ng-if="isSingleJob">
+        <div class="row">
+            <div class="col-lg-9 col-md-8">
+                <dl class="flat">
+                    <dt ng-if="build.source.revision" bind-once>Revision:</dt>
+                    <dd ng-if="build.source.revision" bind-once>
+                        <a ui-sref="project_commit_details({commit_id: build.source.revision.sha})">{{build.source.revision.sha}}</a>
+                    </dd>
+                    <dt ng-if="build.source.patch" bind-once>Patch:</dt>
+                    <dd ng-if="build.source.patch" bind-once><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
+                    <dt>Status:</dt>
+                    <dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
+                    <dt ng-if="build.dateStarted">Started:</dt>
+                    <dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
+                    <dt ng-if="build.duration">Duration:</dt>
+                    <dd ng-if="build.duration" duration="build.duration"></dd>
+                </dl>
+            </div>
+            <div class="col-lg-3 col-md-4">
+                <div class="panel panel-default">
+                    <ul class="nav nav-small">
+                        <li bind-once><a ui-sref="project_source_details({source_id: build.source.id})">
+                            <i class="glyphicon glyphicon-search"></i> View Changes</a>
+                        </li>
+                        <li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">
+                            <i class="glyphicon glyphicon-repeat"></i> Restart Build</a>
+                        </li>
+                        <li ng-if="build.status.id != 'finished'"><a href="javascript:void(0)" ng-click="cancelBuild()">
+                            <i class="glyphicon glyphicon-remove"></i> Cancel Build</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <pre ng-if="formattedBuildMessage" class="build-message"
+             ng-bind-html="formattedBuildMessage" bind-once></pre>
+
+    </section>
+
     <section class="section" ng-if="testFailures.total">
         <div class="section-header">
             <h4>Failing Tests <small>{{ testFailures.total }} total</small></h4>
