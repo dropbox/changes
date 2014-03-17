@@ -22,7 +22,11 @@
     <link href="{{ url_for('static', filename='css/ansi.css') }}?1" rel="stylesheet" media="screen">
   </head>
   <body>
-    <section ui-view></section>
+    <section ui-view>
+      <div class="loading">
+        <div class="spinner-icon spinner-large"></div>
+      </div>
+    </section>
 
     <script data-main="{{ url_for('static', filename='js/main') }}" src="{{ url_for('static', filename='vendor/requirejs/require.js') }}"></script>
     <script>
