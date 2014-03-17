@@ -93,8 +93,8 @@ define([
       });
 
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error){
+        console.log(error);
         flash('error', 'There was an error loading the page you requested :(');
-          console.log(error);
       });
 
       $('.navbar .container').show();
