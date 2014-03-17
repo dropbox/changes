@@ -1285,3 +1285,19 @@ label.btn input[type=checkbox] {
   opacity: 0;
 }
 
+.build-list > li.ng-enter, .build-list > li.ng-leave {
+  -webkit-transition: 1s; /* Chrome */
+  transition: 1s;
+}
+.build-list > li.ng-enter {
+  opacity: 0;
+}
+.build-list > li.ng-leave-active {
+  opacity: 0;
+}
+.build-list > li.ng-leave {
+  opacity: 1;
+}
+.build-list > li.ng-enter-active {
+  opacity: 1;
+}
