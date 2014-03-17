@@ -475,11 +475,13 @@ table > tbody > tr.result-skipped > td.result span {
 .job-list > li {
   position: relative;
   border-bottom: 1px solid #eee;
-  padding-right: 230px;
+}
+.job-list > li {
+  padding-right: 140px;
 }
 .build-list > li {
   min-height: 52px;
-  padding-right: 350px;
+  padding-right: 370px;
 }
 
 @media (max-width: 767px) {
