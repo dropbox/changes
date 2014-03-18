@@ -182,7 +182,7 @@ class BuildIndexAPIView(APIView):
         assert args.project or args.repository
 
         if args.patch_file and not args.patch_label:
-            raise ValueError('patch_label')
+            return '{"error": "Missing patch label"}', 400
 
         if args.project:
             projects = [args.project]
@@ -215,7 +215,7 @@ class BuildIndexAPIView(APIView):
             ]
 
         if not projects:
-            return self.respond([])
+            return '{"error": "Unable to find project(s)."}', 400
 
         label = args.label
         author = args.author
