@@ -23,9 +23,9 @@ class MercurialVcs(Vcs):
             parsed = urlparse(self.url)
             url = '%s://%s@%s/%s' % (
                 parsed.scheme,
-                parsed.username or self.username or 'git',
+                parsed.username or self.username or 'hg',
                 parsed.hostname + (':%s' % (parsed.port,) if parsed.port else ''),
-                parsed.path,
+                parsed.path.lstrip('/'),
             )
         else:
             url = self.url

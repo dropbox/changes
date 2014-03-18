@@ -25,7 +25,7 @@ class GitVcs(Vcs):
                 parsed.scheme,
                 parsed.username or self.username or 'git',
                 parsed.hostname + (':%s' % (parsed.port,) if parsed.port else ''),
-                parsed.path,
+                parsed.path.lstrip('/'),
             )
         else:
             url = self.url
