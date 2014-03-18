@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 from datetime import datetime
 from rfc822 import parsedate_tz, mktime_tz
+from urlparse import urlparse
 
 from .base import Vcs, RevisionResult, BufferParser
 
@@ -16,6 +17,20 @@ class MercurialVcs(Vcs):
             'HGPLAIN': '1',
         }
 
+    @property
+    def remote_url(self):
+        if self.url.startswith(('ssh:', 'http:', 'https:')):
+            parsed = urlparse(self.url)
+            url = '%s://%s@%s/%s' % (
+                parsed.scheme,
+                parsed.username or self.username or 'git',
+                parsed.hostname + (':%s' % (parsed.port,) if parsed.port else ''),
+                parsed.path,
+            )
+        else:
+            url = self.url
+        return url
+
     def run(self, cmd, **kwargs):
         cmd = [
             self.binary_path,
@@ -25,7 +40,7 @@ class MercurialVcs(Vcs):
         return super(MercurialVcs, self).run(cmd, **kwargs)
 
     def clone(self):
-        self.run(['clone', '--uncompressed', self.url, self.path])
+        self.run(['clone', '--uncompressed', self.remote_url, self.path])
 
     def update(self):
         self.run(['pull'])

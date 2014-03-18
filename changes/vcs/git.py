@@ -17,23 +17,26 @@ class GitVcs(Vcs):
             'GIT_SSH': self.ssh_connect_path,
         }
 
-    def run(self, cmd, **kwargs):
-        cmd = [self.binary_path] + cmd
-        return super(GitVcs, self).run(cmd, **kwargs)
-
-    def clone(self):
-        if self.username:
+    @property
+    def remote_url(self):
+        if self.url.startswith(('ssh:', 'http:', 'https:')):
             parsed = urlparse(self.url)
             url = '%s://%s@%s/%s' % (
                 parsed.scheme,
-                self.username,
+                parsed.username or self.username or 'git',
                 parsed.hostname + (':%s' % (parsed.port,) if parsed.port else ''),
                 parsed.path,
             )
         else:
             url = self.url
+        return url
 
-        self.run(['clone', url, self.path])
+    def run(self, cmd, **kwargs):
+        cmd = [self.binary_path] + cmd
+        return super(GitVcs, self).run(cmd, **kwargs)
+
+    def clone(self):
+        self.run(['clone', self.remote_url, self.path])
 
     def update(self):
         self.run(['fetch', '--all'])
