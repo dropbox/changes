@@ -40,8 +40,8 @@ define([
       $scope.options = options;
     },
     resolve: {
-      projectData: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/').then(function(response){
+      projectData: function($http, $stateParams) {
+        return $http.get('/api/0/projects/' + $stateParams.project_id + '/').then(function(response){
           return response.data;
         });
       }

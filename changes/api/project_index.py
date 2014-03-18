@@ -71,6 +71,7 @@ class ProjectIndexAPIView(APIView):
             repository=repository,
         )
         db.session.add(project)
+        db.session.commit()
 
         return self.respond(project)
 

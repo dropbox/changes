@@ -10,34 +10,16 @@ define([
     templateUrl: 'partials/project-details.html',
     controller: function($scope, $rootScope, projectData) {
       $scope.project = projectData;
-
       $rootScope.activeProject = $scope.project;
-      $rootScope.pageTitle = $scope.project.name;
+      $rootScope.pageTitle = projectData.name;
     },
     resolve: {
-      projectData: function(projectList, $http, $q, $location, $stateParams) {
-          var deferred = $q.defer();
-          var selected = $.grep(projectList.data, function(node){
-              return node.slug == $stateParams.project_id;
-          })[0];
-          if (!selected) {
-              // TODO(dcramer): show error message
-              deferred.reject();
-              $location.path('/');
-          } else {
-              // refresh the data to attempt correctness
-              $http.get('/api/0/projects/' + selected.id + '/')
-                  .success(function(data){
-                      angular.extend(selected, data);
-                      deferred.resolve(data);
-                  })
-                  .error(function(){
-                      // TODO(dcramer): show error message
-                      deferred.reject();
-                      $location.path('/');
-                  });
-          }
-          return deferred.promise;
+      projectData: function($http, $location, $stateParams) {
+        return $http.get('/api/0/projects/' + $stateParams.project_id + '/').error(function(){
+          $location.path('/');
+        }).then(function(response){
+          return response.data;
+        });
       }
     }
   };
