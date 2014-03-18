@@ -9,21 +9,19 @@ define([
     templateUrl: 'partials/project-build-create.html',
     controller: function($scope, $rootScope, $http, $location, flash, projectData) {
       $scope.createBuild = function() {
-        var data = angular.copy($scope.build);
+        var buildData = angular.copy($scope.build);
 
-        data.project = projectData.slug;
+        buildData.project = projectData.slug;
 
-        $http.post('/api/0/builds/', data)
+        $http.post('/api/0/builds/', buildData)
           .success(function(data){
-            var builds = data.builds;
-
-            if (builds.length === 0) {
+            if (data.length === 0) {
               flash('error', 'Unable to create a new build.');
-            } else if (builds.length > 1) {
-              flash('success', builds.length + ' new builds created.');
-              return $location.path('/projects/' + data.project + '/');
+            } else if (data.length > 1) {
+              flash('success', data.length + ' new builds created.');
+              return $location.path('/projects/' + buildData.project + '/');
             } else {
-              return $location.path('/builds/' + builds[0].id + '/');
+              return $location.path('/builds/' + data[0].id + '/');
             }
           })
           .error(function(){
