@@ -158,7 +158,10 @@ def execute_build(build):
 class BuildIndexAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('sha', type=str, required=True)
-    parser.add_argument('project', type=lambda x: Project.query.filter_by(slug=x).first())
+    parser.add_argument('project', type=lambda x: Project.query.filter(
+        Project.slug == x,
+        Project.status == ProjectStatus.active,
+    ).first())
     parser.add_argument('repository', type=lambda x: Repository.query.filter_by(url=x).first())
     parser.add_argument('author', type=AuthorValidator())
     parser.add_argument('label', type=unicode)
