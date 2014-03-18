@@ -47,8 +47,9 @@ define([
       });
 
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error){
-        console.log(error);
         flash('error', 'There was an error loading the page you requested :(');
+        // this should really be default behavior
+        throw error;
       });
 
       $('.navbar .container').show();
