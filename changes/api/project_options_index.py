@@ -16,6 +16,8 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('mail.notify-addresses')
     parser.add_argument('mail.notify-addresses-revisions')
     parser.add_argument('build.allow-patches')
+    parser.add_argument('hipchat.notify')
+    parser.add_argument('hipchat.room')
 
     def _get_project(self, project_id):
         project = Project.query.options(

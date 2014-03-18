@@ -20,7 +20,7 @@
 
 			<fieldset>
 
-				<legend>Notifications</legend>
+				<legend>Mail</legend>
 
 				<div class="form-group checkbox">
 					<label>
@@ -37,6 +37,25 @@
 				<div class="form-group">
 					<label>Addresses to notify of failures from commits (not patches)</label>
 					<input type="text" class="form-control" ng-model="options['mail.notify-addresses-revisions']">
+				</div>
+
+			</fieldset>
+
+
+			<fieldset>
+
+				<legend>HipChat</legend>
+
+				<div class="form-group checkbox">
+					<label>
+						<input type="checkbox" value="1" ng-model="options['hipchat.notify']">
+						Notify of notable builds.
+					</label>
+				</div>
+
+				<div class="form-group">
+					<label>Room ID</label>
+					<input type="text" class="form-control" ng-model="options['hipchat.room']">
 				</div>
 
 			</fieldset>
