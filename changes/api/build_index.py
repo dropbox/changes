@@ -196,6 +196,9 @@ class BuildIndexAPIView(APIView):
                 Project.repository_id == repository.id,
             ))
 
+        if not projects:
+            return '{"error": "Unable to find project(s)."}', 400
+
         if args.patch_file:
             # eliminate projects without diff builds
             options = dict(
@@ -215,7 +218,7 @@ class BuildIndexAPIView(APIView):
             ]
 
         if not projects:
-            return '{"error": "Unable to find project(s)."}', 400
+            return '[]', 200
 
         label = args.label
         author = args.author
