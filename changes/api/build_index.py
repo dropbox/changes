@@ -217,8 +217,8 @@ class BuildIndexAPIView(APIView):
                 if options.get(p.id, '1') == '1'
             ]
 
-        if not projects:
-            return '[]', 200
+            if not projects:
+                return self.respond([])
 
         label = args.label
         author = args.author
