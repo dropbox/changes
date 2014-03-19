@@ -40,12 +40,10 @@ class GitVcs(Vcs):
         return super(GitVcs, self).run(cmd, **kwargs)
 
     def clone(self):
-        self.run(['clone', self.remote_url, self.path])
+        self.run(['clone', '--mirror', self.remote_url, self.path])
 
     def update(self):
         self.run(['fetch', '--all'])
-        self.run(['remote', 'prune', 'origin'])
-        self.run(['reset', '--hard', 'origin/master'])
 
     def log(self, parent=None, limit=100):
         # TODO(dcramer): we should make this streaming
