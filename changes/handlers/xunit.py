@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division
 
+import logging
+
 from lxml import etree
 
 from changes.config import db
@@ -10,6 +12,8 @@ from .base import ArtifactHandler
 
 
 class XunitHandler(ArtifactHandler):
+    logger = logging.getLogger('xunit')
+
     def process(self, fp):
         test_list = self.get_tests(fp)
 
@@ -21,7 +25,12 @@ class XunitHandler(ArtifactHandler):
 
     def get_tests(self, fp):
         # TODO(dcramer): needs to handle TestSuite's
-        root = etree.fromstring(fp.read())
+        try:
+            root = etree.fromstring(fp.read())
+        except Exception:
+            self.logger.exception('Failed to parse XML')
+            return []
+
         if root.tag == 'unittest-results':
             return self.get_bitten_tests(root)
         return self.get_xunit_tests(root)
