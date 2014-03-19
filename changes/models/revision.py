@@ -16,6 +16,7 @@ class Revision(db.Model):
     committer_id = Column(GUID, ForeignKey('author.id'))
     message = Column(Text)
     parents = Column(ARRAY(String(40)))
+    branches = Column(ARRAY(String(128)))
     date_created = Column(DateTime, default=datetime.utcnow)
     date_committed = Column(DateTime, default=datetime.utcnow)
 

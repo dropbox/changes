@@ -9,5 +9,7 @@ class RevisionSerializer(Serializer):
             'id': instance.sha,
             'message': instance.message,
             'author': instance.author,
+            'parents': instance.parents,
+            'branches': instance.branches,
             'dateCreated': instance.date_created,
         }

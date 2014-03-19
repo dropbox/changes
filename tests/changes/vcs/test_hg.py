@@ -57,12 +57,14 @@ class MercurialVcsTest(TestCase):
         assert revisions[0].parents == [revisions[1].id]
         assert type(revisions[0].author_date) is datetime
         assert revisions[0].author_date == revisions[0].committer_date is not None
+        assert revisions[0].branches == ['default']
         assert revisions[1].subject == 'test'
         assert revisions[1].message == 'test\nlol'
         assert revisions[1].author == 'Foo Bar <foo@example.com>'
         assert revisions[1].committer == 'Foo Bar <foo@example.com>'
         assert revisions[1].parents == []
         assert revisions[1].author_date == revisions[1].committer_date is not None
+        assert revisions[1].branches == ['default']
         diff = vcs.export(revisions[0].id)
         assert diff == """diff --git a/BAR b/BAR
 new file mode 100644

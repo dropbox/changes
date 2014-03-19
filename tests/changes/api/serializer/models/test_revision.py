@@ -12,6 +12,8 @@ def test_simple():
             name='Foo Bar',
             email='foo@example.com',
         ),
+        parents=['a' * 40],
+        branches=['master'],
         message='hello world',
         date_created=datetime(2013, 9, 19, 22, 15, 22),
     )
@@ -21,3 +23,5 @@ def test_simple():
     assert result['author']['email'] == 'foo@example.com'
     assert result['message'] == 'hello world'
     assert result['dateCreated'] == '2013-09-19T22:15:22'
+    assert result['parents'] == ['a' * 40]
+    assert result['branches'] == ['master']

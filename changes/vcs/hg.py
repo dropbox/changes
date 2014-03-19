@@ -6,7 +6,7 @@ from urlparse import urlparse
 
 from .base import Vcs, RevisionResult, BufferParser
 
-LOG_FORMAT = '{node}\x01{author}\x01{date|rfc822date}\x01{p1node} {p2node}\x01{desc}\x02'
+LOG_FORMAT = '{node}\x01{author}\x01{date|rfc822date}\x01{p1node} {p2node}\x01{branches}\x01{desc}\x02'
 
 
 class MercurialVcs(Vcs):
@@ -55,8 +55,9 @@ class MercurialVcs(Vcs):
         result = self.run(cmd)
 
         for chunk in BufferParser(result, '\x02'):
-            (sha, author, author_date, parents, message) = chunk.split('\x01')
+            (sha, author, author_date, parents, branches, message) = chunk.split('\x01')
 
+            branches = filter(bool, branches.split(' ')) or ['default']
             parents = filter(lambda x: x and x != '0' * 40, parents.split(' '))
 
             author_date = datetime.utcfromtimestamp(
@@ -68,6 +69,7 @@ class MercurialVcs(Vcs):
                 author_date=author_date,
                 message=message,
                 parents=parents,
+                branches=branches,
             )
 
     def export(self, id):

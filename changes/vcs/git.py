@@ -31,6 +31,10 @@ class GitVcs(Vcs):
             url = self.url
         return url
 
+    def branches_for_commit(self, id):
+        results = self.run(['branch', '--contains', id])
+        return [r[2:].strip() for r in results.splitlines()]
+
     def run(self, cmd, **kwargs):
         cmd = [self.binary_path] + cmd
         return super(GitVcs, self).run(cmd, **kwargs)
@@ -71,6 +75,7 @@ class GitVcs(Vcs):
                 author_date=author_date,
                 committer_date=committer_date,
                 parents=parents,
+                branches=self.branches_for_commit(sha),
                 message=message,
             )
 

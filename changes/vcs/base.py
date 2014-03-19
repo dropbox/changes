@@ -108,7 +108,7 @@ class Vcs(object):
 
 class RevisionResult(object):
     def __init__(self, id, message, author, author_date, committer=None,
-                 committer_date=None, parents=None):
+                 committer_date=None, parents=None, branches=None):
         self.id = id
         self.message = message
         self.author = author
@@ -116,6 +116,7 @@ class RevisionResult(object):
         self.committer = committer or author
         self.committer_date = committer_date or author_date
         self.parents = parents
+        self.branches = branches
 
     def __repr__(self):
         return '<%s: id=%r author=%r subject=%r>' % (
@@ -158,6 +159,7 @@ class RevisionResult(object):
             'committer': committer,
             'message': self.message,
             'parents': self.parents,
+            'branches': self.branches,
             'date_created': self.author_date,
             'date_committed': self.committer_date,
         })
