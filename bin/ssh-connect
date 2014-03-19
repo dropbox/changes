@@ -51,8 +51,7 @@ command = [
     # '-o UserAuthorizedKeysFile=/dev/null',
     '-o LogLevel=ERROR',
     '-o StrictHostKeyChecking=no',
-    '-o',
-    'UserKnownHostsFile=/dev/null',
+    '-o UserKnownHostsFile=/dev/null',
 ]
 if options.get('auth.private-key'):
     f = NamedTemporaryFile()
@@ -68,4 +67,9 @@ command.extend(sys.argv[1:])
 
 command = ' '.join(command)
 
-sys.exit(subprocess.call(command, shell=True))
+sys.exit(subprocess.call(
+    command,
+    env=os.environ,
+    stdout=sys.stdout,
+    stderr=sys.stderr,
+))
