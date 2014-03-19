@@ -51,6 +51,8 @@ command = [
     # '-o UserAuthorizedKeysFile=/dev/null',
     '-o LogLevel=ERROR',
     '-o StrictHostKeyChecking=no',
+    '-o',
+    'UserKnownHostsFile=/dev/null',
 ]
 if options.get('auth.private-key'):
     f = NamedTemporaryFile()
