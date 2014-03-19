@@ -87,6 +87,9 @@ class TrackedTask(local):
         with self.lock:
             self._run(kwargs)
 
+    def __repr__(self):
+        return '<%s: task_name=%s>' % (type(self), self.task_name)
+
     def _run(self, kwargs):
         self.task_id = kwargs.pop('task_id', None)
         if not self.task_id:
