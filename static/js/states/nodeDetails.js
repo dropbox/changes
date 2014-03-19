@@ -8,7 +8,7 @@ define([
     parent: 'nodes',
     url: ':node_id/',
     templateUrl: 'partials/node-details.html',
-    controller: function($scope, $rootScope, $http, nodeData, jobList, Collection) {
+    controller: function($scope, $http, nodeData, jobList, Collection, PageTitle) {
       function loadJobList(url) {
         if (!url) {
           return;
@@ -50,7 +50,7 @@ define([
       $scope.node = nodeData.data;
       $scope.jobList = new Collection($scope, jobList.data);
 
-      $rootScope.pageTitle = 'Node ' + $scope.node.name;
+      PageTitle.set('Node ' + $scope.node.name);
     },
     resolve: {
       nodeData: function($http, $stateParams) {

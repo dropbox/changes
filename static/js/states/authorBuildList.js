@@ -9,7 +9,9 @@ define([
     parent: 'layout',
     url: '/my/builds/',
     templateUrl: 'partials/author-build-list.html',
-    controller: function($scope, $rootScope, $http, buildList, authData, Collection, stream) {
+    controller: function($scope, $http, buildList, authData, Collection, stream, PageTitle) {
+      PageTitle.set('My Builds');
+
       function addBuild(data) {
         $scope.$apply(function() {
           var updated = false,
@@ -73,7 +75,6 @@ define([
         sortFunc: sortBuildList,
         limit: 100
       });
-      $rootScope.pageTitle = 'My Builds';
 
       if (authData.authenticated) {
         stream.addScopedChannels($scope, [

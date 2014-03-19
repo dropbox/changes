@@ -9,7 +9,7 @@ define([
     url: "jobs/:job_id/",
     parent: 'build_details',
     templateUrl: 'partials/job-details.html',
-    controller: function($scope, $rootScope, $http, $filter, projectData, buildData, jobData, stream, Pagination) {
+    controller: function($scope, $http, $filter, projectData, buildData, jobData, stream, PageTitle, Pagination) {
       var logStreams = {};
 
       function getLogSourceEntrypoint(jobId, logSourceId) {
@@ -190,7 +190,7 @@ define([
         $scope.testStatus = getTestStatus();
       });
 
-      $rootScope.pageTitle = getPageTitle(buildData, $scope.job);
+      PageTitle.set(getPageTitle(buildData, $scope.job));
 
       stream.addScopedChannels($scope, [
         'jobs:' + $scope.job.id,

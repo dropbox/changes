@@ -7,7 +7,7 @@ define([
     parent: 'project_details',
     url: "builds/:build_id/",
     templateUrl: 'partials/build-details.html',
-    controller: function($scope, $state, $rootScope, $http, $filter, projectData, buildData, stream, flash, Collection) {
+    controller: function($document, $scope, $state, $http, $filter, projectData, buildData, stream, flash, Collection, PageTitle) {
       function getFormattedBuildMessage(message) {
         return $filter('linkify')($filter('escape')(message));
       }
@@ -79,7 +79,7 @@ define([
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
-      $rootScope.pageTitle = getPageTitle($scope.build);
+      PageTitle.set(getPageTitle($scope.build));
 
       stream.addScopedChannels($scope, [
         'builds:' + $scope.build.id,

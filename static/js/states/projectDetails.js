@@ -8,10 +8,10 @@ define([
     parent: 'projects',
     url: ':project_id/',
     templateUrl: 'partials/project-details.html',
-    controller: function($scope, $rootScope, projectData) {
+    controller: function($document, $scope, $rootScope, projectData, PageTitle) {
       $scope.project = projectData;
       $rootScope.activeProject = $scope.project;
-      $rootScope.pageTitle = projectData.name;
+      PageTitle.set(projectData.name);
     },
     resolve: {
       projectData: function($http, $location, $stateParams) {

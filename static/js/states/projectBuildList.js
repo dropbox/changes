@@ -12,7 +12,7 @@ define([
     parent: 'project_details',
     url: '',
     templateUrl: 'partials/project-build-list.html',
-    controller: function($scope, $rootScope, $http, $state, projectData, buildList, stream, Collection) {
+    controller: function($scope, $http, $state, projectData, buildList, stream, Collection, PageTitle) {
       var entrypoint = '/api/0/projects/' + projectData.id + '/builds/',
           chart_options = {
             linkFormatter: function(item) {
@@ -93,7 +93,7 @@ define([
       $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       $scope.includePatches = false;
 
-      $rootScope.pageTitle = projectData.name + ' Builds';
+      PageTitle.set(projectData.name + ' Builds');
 
       $scope.$watchCollection("builds", function() {
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);

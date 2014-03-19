@@ -12,6 +12,7 @@ define([
   'modules/collection',
   'modules/flash',
   'modules/notify',
+  'modules/pageTitle',
   'modules/pagination',
   'modules/stream'
   ], function (angular) {
@@ -19,6 +20,7 @@ define([
 
     return angular.module('app', [
       'barChart',
+      'changes.pageTitle',
       'chieffancypants.loadingBar',
       'collection',
       'flash',

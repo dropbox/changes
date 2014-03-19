@@ -6,8 +6,8 @@ define([
   return {
     abstract: true,
     templateUrl: 'partials/layout.html',
-    controller: function($scope, $rootScope, $location, $document, authData, projectList, flash, notify) {
-      $rootScope.pageTitle = 'Changes';
+    controller: function($scope, $rootScope, $location, $window, authData, projectList, flash, notify, PageTitle) {
+      PageTitle.set('Changes');
 
       $scope.projectList = projectList.data;
       $scope.user = authData.user;
@@ -40,10 +40,6 @@ define([
         } else if ($rootScope.activeProject && $stateParams.project_id != $rootScope.activeProject.slug) {
           $rootScope.activeProject = null;
         }
-      });
-
-      $rootScope.$watch('pageTitle', function(value) {
-        $document.title = value;
       });
 
       $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error){

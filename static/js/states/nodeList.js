@@ -8,7 +8,7 @@ define([
     parent: 'layout',
     url: '/nodes/',
     templateUrl: 'partials/node-list.html',
-    controller: function($scope, $rootScope, $http, nodeList, Collection) {
+    controller: function($scope, $http, nodeList, Collection, PageTitle) {
       function loadNodeList(url) {
         if (!url) {
           return;
@@ -41,7 +41,7 @@ define([
 
       $scope.nodeList = new Collection($scope, nodeList.data);
 
-      $rootScope.pageTitle = 'Nodes';
+      PageTitle.set('Nodes');
     },
     resolve: {
       nodeList: function($http, $stateParams) {
