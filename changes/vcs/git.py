@@ -47,7 +47,7 @@ class GitVcs(Vcs):
 
     def log(self, parent=None, limit=100):
         # TODO(dcramer): we should make this streaming
-        cmd = ['log', '--pretty=format:%s' % (LOG_FORMAT,)]
+        cmd = ['log', '--all', '--pretty=format:%s' % (LOG_FORMAT,)]
         if parent:
             cmd.append(parent)
         if limit:
