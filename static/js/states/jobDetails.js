@@ -184,19 +184,7 @@ define([
       $scope.testFailures = jobData.data.testFailures;
       $scope.previousRuns = jobData.data.previousRuns;
       $scope.testGroups = jobData.data.testGroups;
-      $scope.visibleTestGroups = $scope.testGroups.slice(0, 100);
       $scope.testStatus = getTestStatus();
-
-      $scope.loadMoreTestGroups = function() {
-        var start = $scope.visibleTestGroups.length;
-        var end = start + 100;
-        if (end > $scope.testGroups.length - 1) {
-          end = $scope.testGroups.length - 1;
-        }
-        for (var i = start; i < end; i++) {
-          $scope.visibleTestGroups.push($scope.testGroups[i]);
-        }
-      };
 
       $scope.$watchCollection("testGroups", function() {
         $scope.testStatus = getTestStatus();

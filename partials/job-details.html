@@ -145,7 +145,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="testGroup in visibleTestGroups"
+                    <tr ng-repeat="testGroup in testGroups"
                         infinite-scroll="loadMoreTestGroups()"
                         infinite-scroll-distance="2"
                         class="result-{{testGroup.result.id}}">
