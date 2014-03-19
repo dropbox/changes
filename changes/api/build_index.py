@@ -5,14 +5,12 @@ import logging
 from cStringIO import StringIO
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, subqueryload_all
-from sqlalchemy.sql import func
 from werkzeug.datastructures import FileStorage
 
 from changes.api.base import APIView
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
 from changes.constants import Status, ProjectStatus
-from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
 from changes.jobs.create_job import create_job
@@ -63,15 +61,7 @@ def create_build(project, label, target, message, author, change=None,
             'revision_sha': sha,
         })
 
-    # TODO(dcramer): find a way to abstract this
-    cur_no_query = db.session.query(
-        coalesce(func.max(Build.number), 0)
-    ).filter(
-        Build.project_id == project.id,
-    ).scalar()
-
     build = Build(
-        number=cur_no_query + 1,
         project=project,
         project_id=project.id,
         source=source,
@@ -102,16 +92,9 @@ def execute_build(build):
 
     jobs = []
     for plan in project.plans:
-        cur_no_query = db.session.query(
-            coalesce(func.max(Job.number), 0)
-        ).filter(
-            Job.build_id == build.id,
-        ).scalar()
-
         job = Job(
             build=build,
             build_id=build.id,
-            number=cur_no_query + 1,
             project=project,
             project_id=project.id,
             source=build.source,

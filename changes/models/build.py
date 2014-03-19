@@ -6,9 +6,11 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
+from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Status, Result, Cause
+from changes.db.funcs import coalesce
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
@@ -76,3 +78,10 @@ class Build(db.Model):
             self.date_modified = self.date_created
         if self.date_started and self.date_finished and not self.duration:
             self.duration = (self.date_finished - self.date_started).total_seconds() * 1000
+        if self.number is None and self.project:
+            cur_no_query = db.session.query(
+                coalesce(func.max(Build.number), 0)
+            ).filter(
+                Build.project_id == self.project.id,
+            ).scalar()
+            self.number = cur_no_query + 1

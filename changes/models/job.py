@@ -4,9 +4,11 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Integer
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.schema import Index, UniqueConstraint
+from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Status, Result
+from changes.db.funcs import coalesce
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
@@ -64,3 +66,10 @@ class Job(db.Model):
             self.date_modified = self.date_created
         if self.date_started and self.date_finished and not self.duration:
             self.duration = (self.date_finished - self.date_started).total_seconds() * 1000
+        if self.number is None and self.build:
+            cur_no_query = db.session.query(
+                coalesce(func.max(Job.number), 0)
+            ).filter(
+                Job.build_id == self.build.id,
+            ).scalar()
+            self.number = cur_no_query + 1

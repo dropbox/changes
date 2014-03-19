@@ -6,12 +6,10 @@ import random
 from hashlib import sha1
 from loremipsum import get_paragraphs, get_sentences
 from slugify import slugify
-from sqlalchemy.sql import func
 from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.db.funcs import coalesce
 from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
@@ -126,19 +124,12 @@ def build(project, **kwargs):
     kwargs.setdefault('duration', random.randint(10000, 100000))
     kwargs.setdefault('target', uuid4().hex)
 
-    cur_no_query = db.session.query(
-        coalesce(func.max(Build.number), 0)
-    ).filter(
-        Build.project_id == project.id,
-    ).scalar()
-
     kwargs['project'] = project
     kwargs['repository_id'] = kwargs['repository'].id
     kwargs['project_id'] = kwargs['project'].id
     kwargs['author_id'] = kwargs['author'].id
 
     build = Build(
-        number=cur_no_query + 1,
         **kwargs
     )
     db.session.add(build)
@@ -174,14 +165,7 @@ def job(build, change=None, **kwargs):
     if change:
         kwargs['change_id'] = change.id
 
-    cur_no_query = db.session.query(
-        coalesce(func.max(Job.number), 0)
-    ).filter(
-        Job.build_id == build.id,
-    ).scalar()
-
     job = Job(
-        number=cur_no_query + 1,
         build=build,
         change=change,
         **kwargs

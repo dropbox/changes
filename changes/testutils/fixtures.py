@@ -2,15 +2,15 @@ from __future__ import absolute_import
 
 __all__ = ('Fixtures', 'SAMPLE_DIFF', 'SAMPLE_XUNIT')
 
-from sqlalchemy.sql import func
+from loremipsum import get_paragraphs, get_sentences
+from slugify import slugify
 from uuid import uuid4
 
 from changes.config import db
-from changes.db.funcs import coalesce
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
-    Artifact, TestCase
+    Artifact, TestCase, LogChunk
 )
 
 
@@ -114,16 +114,9 @@ class Fixtures(object):
         if kwargs.get('change', False) is False:
             kwargs['change'] = self.create_change(project)
 
-        cur_no_query = db.session.query(
-            coalesce(func.max(Job.number), 0)
-        ).filter(
-            Job.build_id == build.id,
-        ).scalar()
-
         job = Job(
             build=build,
             build_id=build.id,
-            number=cur_no_query + 1,
             project=project,
             project_id=project.id,
             **kwargs
@@ -162,14 +155,7 @@ class Fixtures(object):
 
         kwargs.setdefault('label', 'Sample')
 
-        cur_no_query = db.session.query(
-            coalesce(func.max(Build.number), 0)
-        ).filter(
-            Build.project_id == project.id,
-        ).scalar()
-
         build = Build(
-            number=cur_no_query + 1,
             repository_id=project.repository_id,
             repository=project.repository,
             project_id=project.id,
@@ -206,7 +192,10 @@ class Fixtures(object):
         if not kwargs.get('author'):
             kwargs['author'] = self.create_author()
 
-        kwargs.setdefault('message', 'Test message')
+        if not kwargs.get('message'):
+            message = get_sentences(1)[0][:128] + '\n'
+            message += '\n\n'.join(get_paragraphs(2))
+            kwargs['message'] = message
 
         revision = Revision(**kwargs)
         db.session.add(revision)
@@ -214,8 +203,13 @@ class Fixtures(object):
         return revision
 
     def create_author(self, email=None, **kwargs):
+        if not kwargs.get('name'):
+            kwargs['name'] = ' '.join(get_sentences(1)[0].split(' ')[0:2])
+
         if not email:
-            email = uuid4().hex + '@example.com'
+            email = '{0}-{1}@example.com'.format(
+                slugify(kwargs['name']), uuid4().hex)
+
         kwargs.setdefault('name', 'Test Case')
 
         author = Author(email=email, **kwargs)
@@ -281,3 +275,20 @@ class Fixtures(object):
         db.session.add(artifact)
 
         return artifact
+
+    def create_logchunk(self, source, **kwargs):
+        # TODO(dcramer): we should default offset to previosu entry in LogSource
+        kwargs.setdefault('offset', 0)
+
+        text = kwargs.pop('text', None) or '\n'.join(get_sentences(4))
+
+        logchunk = LogChunk(
+            source=source,
+            job=source.job,
+            project=source.project,
+            text=text,
+            size=len(text),
+            **kwargs
+        )
+        db.session.add(logchunk)
+        return logchunk

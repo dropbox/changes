@@ -30,7 +30,7 @@ class BuildHandlerTestCase(TestCase):
 
         # notify author
         send_notifications.assert_called_once_with(
-            job, ['Test Case <foo@example.com>']
+            job, ['{0} <foo@example.com>'.format(author.name)]
         )
 
     @mock.patch('changes.listeners.mail.send_notification')
@@ -60,7 +60,7 @@ class BuildHandlerTestCase(TestCase):
         job_finished_handler(job)
 
         send_notifications.assert_called_once_with(
-            job, ['Test Case <foo@example.com>', 'test@example.com', 'bar@example.com']
+            job, ['{0} <foo@example.com>'.format(author.name), 'test@example.com', 'bar@example.com']
         )
 
     @mock.patch('changes.listeners.mail.send_notification')
@@ -88,7 +88,7 @@ class BuildHandlerTestCase(TestCase):
         job_finished_handler(job)
 
         send_notifications.assert_called_once_with(
-            job, ['Test Case <foo@example.com>']
+            job, ['{0} <foo@example.com>'.format(author.name)]
         )
 
         send_notifications.reset_mock()
@@ -103,7 +103,7 @@ class BuildHandlerTestCase(TestCase):
         job_finished_handler(job)
 
         send_notifications.assert_called_once_with(
-            job, ['Test Case <foo@example.com>', 'test@example.com', 'bar@example.com']
+            job, ['{0} <foo@example.com>'.format(author.name), 'test@example.com', 'bar@example.com']
         )
 
 
