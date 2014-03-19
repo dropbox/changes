@@ -178,17 +178,29 @@ define([
         return 'Job ' + job.id + ' - ' + projectData.name;
       }
 
-      $scope.$watchCollection("tests", function() {
-        $scope.testStatus = getTestStatus();
-      });
-
       $scope.job = jobData.data;
       $scope.logSources = jobData.data.logs;
       $scope.phases = jobData.data.phases;
       $scope.testFailures = jobData.data.testFailures;
-      $scope.testGroups = jobData.data.testGroups;
       $scope.previousRuns = jobData.data.previousRuns;
+      $scope.testGroups = jobData.data.testGroups;
+      $scope.visibleTestGroups = $scope.testGroups.slice(0, 100);
       $scope.testStatus = getTestStatus();
+
+      $scope.loadMoreTestGroups = function() {
+        var start = $scope.visibleTestGroups.length - 1;
+        var end = start + 100;
+        if (end > $scope.testGroups.length - 1) {
+          end = $scope.testGroups.length - 1;
+        }
+        for (var i = start; i < end; i++) {
+          $scope.visibleTestGroups.push($scope.testGroups[i]);
+        }
+      };
+
+      $scope.$watchCollection("testGroups", function() {
+        $scope.testStatus = getTestStatus();
+      });
 
       $rootScope.pageTitle = getPageTitle(buildData, $scope.job);
 

@@ -135,7 +135,9 @@
                 <h3>Test Results</h3>
             </div>
 
-            <table class="table table-striped table-bordered" ng-if="testGroups">
+            <pager total-items="totalItems" page="currentPage"></pager>
+
+            <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
                         <th colspan="2">&nbsp;</th>
@@ -145,7 +147,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="testGroup in testGroups" class="result-{{testGroup.result.id}}">
+                    <tr ng-repeat="testGroup in visibleTestGroups"
+                        infinite-scroll="loadMoreTestGroups()"
+                        infinite-scroll-distance="3"
+                        class="result-{{testGroup.result.id}}">
                         <td class="result"><span></span></td>
                         <td><a ui-sref="test_details({testgroup_id: testGroup.id})" bind-once>{{testGroup.name}}</a></td>
                         <td style="text-align:center" bind-once>{{testGroup.numFailures}}</td>

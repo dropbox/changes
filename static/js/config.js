@@ -15,6 +15,7 @@ requirejs.config({
     'jquery': '../vendor/jquery/jquery',
     'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
+    'ngInfiniteScroll': '../vendor/ngInfiniteScroll/ng-infinite-scroll',
     'nvd3': '../vendor/nvd3/nv.d3',
     'notify': 'lib/notify',
     'requirejs': '../vendor/requirejs/requirejs'
@@ -41,6 +42,7 @@ requirejs.config({
     'modules/flash': ['angular'],
     'modules/pagination': ['angular'],
     'modules/stream': ['angular'],
+    'ngInfiniteScroll': ['angular'],
     'jquery': {
         exports: 'jquery'
     },
