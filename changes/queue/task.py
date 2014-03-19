@@ -18,6 +18,8 @@ CONTINUE_COUNTDOWN = 5
 RUN_TIMEOUT = timedelta(minutes=5)
 EXPIRE_TIMEOUT = timedelta(minutes=30)
 
+MAX_RETRIES = 10
+
 
 def needs_requeued(task):
     current_datetime = datetime.utcnow()
@@ -32,6 +34,10 @@ def needs_expired(task):
 
 
 class NotFinished(Exception):
+    pass
+
+
+class TooManyRetries(Exception):
     pass
 
 
@@ -168,6 +174,23 @@ class TrackedTask(local):
         """
         # TODO(dcramer): this needs to handle too-many-retries itself
         assert self.task_id
+
+        task = Task.query.filter(
+            Task.task_name == self.task_name,
+            Task.parent_id == self.parent_id,
+            Task.task_id == self.task_id,
+        ).first()
+        if task.num_retries > MAX_RETRIES:
+            date_finished = datetime.utcnow()
+            self._update({
+                Task.date_finished: date_finished,
+                Task.date_modified: date_finished,
+                Task.status: Status.finished,
+                Task.result: Result.failed,
+            })
+            db.session.commit()
+
+            raise TooManyRetries
 
         self._update({
             Task.date_modified: datetime.utcnow(),
