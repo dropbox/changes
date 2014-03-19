@@ -17,6 +17,7 @@ CONTINUE_COUNTDOWN = 5
 
 RUN_TIMEOUT = timedelta(minutes=5)
 EXPIRE_TIMEOUT = timedelta(minutes=30)
+HARD_TIMEOUT = timedelta(hours=12)
 
 MAX_RETRIES = 10
 
@@ -26,6 +27,11 @@ def needs_requeued(task):
         return False
 
     current_datetime = datetime.utcnow()
+
+    timeout_datetime = current_datetime - HARD_TIMEOUT
+    if task.date_created < timeout_datetime:
+        return False
+
     run_datetime = current_datetime - RUN_TIMEOUT
     return task.date_modified < run_datetime
 
@@ -35,6 +41,11 @@ def needs_expired(task):
         return True
 
     current_datetime = datetime.utcnow()
+
+    timeout_datetime = current_datetime - HARD_TIMEOUT
+    if task.date_created < timeout_datetime:
+        return True
+
     expire_datetime = current_datetime - EXPIRE_TIMEOUT
     if task.date_modified < expire_datetime:
         return True
