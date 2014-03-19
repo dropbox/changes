@@ -40,7 +40,7 @@ class GitVcs(Vcs):
         return super(GitVcs, self).run(cmd, **kwargs)
 
     def clone(self):
-        self.run(['clone', self.remote_url, self.path])
+        self.run(['clone', '--mirror', self.remote_url, self.path])
 
     def update(self):
         self.run(['fetch', '--all'])
