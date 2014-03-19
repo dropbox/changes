@@ -188,7 +188,7 @@ define([
       $scope.testStatus = getTestStatus();
 
       $scope.loadMoreTestGroups = function() {
-        var start = $scope.visibleTestGroups.length - 1;
+        var start = $scope.visibleTestGroups.length;
         var end = start + 100;
         if (end > $scope.testGroups.length - 1) {
           end = $scope.testGroups.length - 1;
