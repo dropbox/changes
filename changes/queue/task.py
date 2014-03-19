@@ -30,7 +30,13 @@ def needs_requeued(task):
 def needs_expired(task):
     current_datetime = datetime.utcnow()
     expire_datetime = current_datetime - EXPIRE_TIMEOUT
-    return task.date_modified < expire_datetime
+    if task.date_modified < expire_datetime:
+        return True
+
+    if task.num_retries >= MAX_RETRIES:
+        return True
+
+    return False
 
 
 class NotFinished(Exception):
