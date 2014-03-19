@@ -11,6 +11,8 @@
                 <dd>{{repository.url}}</dd>
                 <dt>Date:</dt>
                 <dd time-since="commit.dateCreated"></dd>
+                <dd>Branch:</dd>
+                <dt><span ng-repeat="branch in commit.branches">{{branch}}</span></dt>
             </dl>
         </div>
         <div class="col-lg-3 col-md-4">
