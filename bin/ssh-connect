@@ -15,7 +15,7 @@ app_context.push()
 
 
 def get_repo(id_):
-    if len(id_) == 40:
+    if len(id_) in (32, 36):
         # assume its a uuid
         repo = Repository.query.get(id_)
     else:
