@@ -13,10 +13,10 @@
         <li ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
             <a ui-sref="build_details({project_id: build.project.id, build_id: build.id})" class="indicator" bind-once>#{{build.number}}</a>
             <h5 bind-once><a ui-sref="build_details({project_id: build.project.id, build_id: build.id})">{{build.name}}</a></h5>
-            <div class="info">
-                <a ui-sref="project_builds({project_id: build.project.id})" bind-once>{{build.project.name}}</a> &mdash;
-                <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})" bind-once>{{build.target}}</a>
-                <span ng-if="build.author" bind-once>&mdash; {{build.author.name}}</span>
+            <div class="info" bind-once>
+                <a ui-sref="project_builds({project_id: build.project.id})">{{build.project.name}}</a> &mdash;
+                <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.target}}</a>
+                <span ng-if="build.author">&mdash; {{build.author.name}}</span>
             </div>
             <div class="date" time-since="build.dateCreated"></div>
             <div class="tests">
