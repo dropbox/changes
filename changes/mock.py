@@ -240,6 +240,7 @@ def revision(repository, author):
     result = Revision(
         repository=repository, sha=uuid4().hex, author=author,
         message='\n\n'.join(get_paragraphs(2)),
+        branches=['default', 'foobar'],
     )
     db.session.add(result)
 
@@ -261,7 +262,8 @@ def patch(project, **kwargs):
 
 
 def source(repository, **kwargs):
-    kwargs.setdefault('revision_sha', uuid4().hex)
+    if not kwargs.get('revision_sha'):
+        kwargs['revision_sha'] = revision(repository, author())
 
     source = Source(repository=repository, **kwargs)
     db.session.add(source)
