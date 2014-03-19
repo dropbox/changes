@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView
 from changes.models import Build, Project, Revision, Source
@@ -22,7 +22,9 @@ class ProjectCommitDetailsAPIView(APIView):
 
         build_list = list(Build.query.options(
             joinedload('author'),
-            joinedload('source'),
+            contains_eager('source'),
+        ).join(
+            Source, Build.source_id == Source.id,
         ).filter(
             Build.project_id == project.id,
             Source.revision_sha == revision.sha,
