@@ -149,7 +149,7 @@
                 <tbody>
                     <tr ng-repeat="testGroup in visibleTestGroups"
                         infinite-scroll="loadMoreTestGroups()"
-                        infinite-scroll-distance="3"
+                        infinite-scroll-distance="2"
                         class="result-{{testGroup.result.id}}">
                         <td class="result"><span></span></td>
                         <td><a ui-sref="test_details({testgroup_id: testGroup.id})" bind-once>{{testGroup.name}}</a></td>
