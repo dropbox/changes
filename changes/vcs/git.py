@@ -36,7 +36,9 @@ class GitVcs(Vcs):
         output = self.run(['branch', '-a', '--contains', id])
         for result in output.splitlines():
             # HACK(dcramer): is there a better way around removing the prefix?
-            result = result[2:].strip().lstrip('remotes/origin/')
+            result = result[2:].strip()
+            if result.startswith('remotes/origin/'):
+                result = result.lstrip('remotes/origin/')
             results.append(result)
         return results
 
