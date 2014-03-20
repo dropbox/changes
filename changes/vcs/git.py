@@ -32,8 +32,13 @@ class GitVcs(Vcs):
         return url
 
     def branches_for_commit(self, id):
-        results = self.run(['branch', '-a', '--contains', id])
-        return [r[2:].strip() for r in results.splitlines()]
+        results = []
+        output = self.run(['branch', '-a', '--contains', id])
+        for result in output.splitlines():
+            # HACK(dcramer): is there a better way around removing the prefix?
+            result = result[2:].strip().lstrip('remotes/origin/')
+            results.append(result)
+        return results
 
     def run(self, cmd, **kwargs):
         cmd = [self.binary_path] + cmd
