@@ -33,9 +33,10 @@
             </div>
             <div ng-if="!commit.build">
                 <h5 bind-once>{{commit.subject}}</h5>
-                <div class="info">
-                    <a ui-sref="project_commit_details({commit_id: commit.id})" bind-once>{{commit.id.substr(0, 12)}}</a>
-                    <span ng-if="commit.author" bind-once>&mdash; {{commit.author.name}}</span>
+                <div class="info" bind-once>
+                    <span class="branch" ng-repeat="branch in commit.branches">{{branch}}</span>
+                    <a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>
+                    <span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
                 </div>
                 <div class="date" time-since="commit.dateCreated" bind-once></div>
             </div>
