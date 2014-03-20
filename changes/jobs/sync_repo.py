@@ -45,7 +45,7 @@ def sync_repo(repo_id, continuous=True):
 
             queue.delay('notify_revision_created', kwargs={
                 'repository_id': repo.id.hex,
-                'revision_sha': revision.sha.hex,
+                'revision_sha': revision.sha,
             })
 
     Repository.query.filter(
