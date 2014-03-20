@@ -16,10 +16,10 @@
 			</thead>
 			<tbody>
 				<tr ng-repeat="test in tests">
-					<td><a href="{{ test.link }}">{{ test.name }}</a></td>
+					<td><a ui-sref="project_test_details({test_id: test.id})">{{test.name}}</a></td>
 					<td style="text-align:center">{{test.lastTest.numTests}}</td>
 					<td style="text-align:center"><span duration="test.lastTest.duration"></span></td>
-					<td style="text-align:center"><a href="{{ test.firstBuild.link }}">{{ test.firstBuild.target }}</a></td>
+					<td style="text-align:center"><a ui-sref="build_details({build_id: test.firstBuild.id})">{{test.firstBuild.target}}</a></td>
 					<!-- <td style="text-align:center"><a href="{{ test.lastBuild.link }}">{{ test.lastBuild.target }}</a></td> -->
 				</tr>
 			</tbody>

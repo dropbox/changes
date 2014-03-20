@@ -114,7 +114,7 @@ define([
       .state('project_commit_details', ProjectCommitDetailsState)
       .state('project_settings', ProjectSettingsState)
       .state('project_tests', ProjectTestListState)
-      .state('project_tests_details', ProjectTestDetailsState)
+      .state('project_test_details', ProjectTestDetailsState)
       .state('project_source_details', ProjectSourceDetailsState);
   });
 });
