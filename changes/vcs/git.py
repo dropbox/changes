@@ -39,6 +39,8 @@ class GitVcs(Vcs):
             result = result[2:].strip()
             if result.startswith('remotes/origin/'):
                 result = result.lstrip('remotes/origin/')
+            if result == 'HEAD':
+                continue
             results.append(result)
         return results
 
