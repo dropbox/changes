@@ -67,6 +67,7 @@ command.extend(sys.argv[1:])
 
 sys.exit(subprocess.call(
     command,
+    cwd=os.getcwd(),
     env=os.environ,
     stdout=sys.stdout,
     stderr=sys.stderr,
