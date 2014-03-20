@@ -15,8 +15,6 @@ class SourceSerializer(Serializer):
         return {
             'id': instance.id.hex,
             'patch': patch,
-            'revision': {
-                'sha': instance.revision_sha
-            },
+            'revision': instance.revision,
             'dateCreated': instance.date_created,
         }

@@ -56,9 +56,9 @@ class Build(db.Model):
     date_modified = Column(DateTime, default=datetime.utcnow)
     data = Column(JSONEncodedDict)
 
-    project = relationship('Project')
+    project = relationship('Project', innerjoin=True)
     repository = relationship('Repository')
-    source = relationship('Source')
+    source = relationship('Source', innerjoin=True)
     patch = relationship('Patch')
     author = relationship('Author')
 

@@ -137,7 +137,9 @@ class Fixtures(object):
         return job_plan
 
     def create_source(self, project, **kwargs):
-        kwargs.setdefault('revision_sha', uuid4().hex)
+        if 'revision_sha' not in kwargs:
+            revision = self.create_revision(repository=project.repository)
+            kwargs['revision_sha'] = revision.sha
 
         source = Source(
             repository_id=project.repository_id,
@@ -188,9 +190,11 @@ class Fixtures(object):
         kwargs.setdefault('sha', uuid4().hex)
         if not kwargs.get('repository'):
             kwargs['repository'] = self.create_repo()
+        kwargs['repository_id'] = kwargs['repository'].id
 
         if not kwargs.get('author'):
             kwargs['author'] = self.create_author()
+        kwargs['author_id'] = kwargs['author'].id
 
         if not kwargs.get('message'):
             message = get_sentences(1)[0][:128] + '\n'

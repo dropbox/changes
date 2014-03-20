@@ -2,7 +2,7 @@
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.schema import UniqueConstraint, ForeignKeyConstraint
 from uuid import uuid4
 
 from changes.config import db
@@ -25,9 +25,16 @@ class Source(db.Model):
 
     repository = relationship('Repository')
     patch = relationship('Patch')
+    revision = relationship('Revision',
+                            foreign_keys=[repository_id, revision_sha],
+                            innerjoin=True)
 
     __tablename__ = 'source'
     __table_args__ = (
+        ForeignKeyConstraint(
+          ('repository_id', 'revision_sha'),
+          ('revision.repository_id', 'revision.sha')),
+
         UniqueConstraint(
             'repository_id', 'revision_sha', name='unq_source_revision',
             postgresql_where=(patch_id == None)),  # NOQA

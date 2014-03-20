@@ -40,7 +40,7 @@
                 <dl class="flat">
                     <dt ng-if="build.source.revision" bind-once>Revision:</dt>
                     <dd ng-if="build.source.revision" bind-once>
-                        <a ui-sref="project_commit_details({commit_id: build.source.revision.sha})">{{build.source.revision.sha}}</a>
+                        <a ui-sref="project_commit_details({commit_id: build.source.revision.id})">{{build.source.revision.id}}</a>
                     </dd>
                     <dt ng-if="build.source.patch" bind-once>Patch:</dt>
                     <dd ng-if="build.source.patch" bind-once><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>

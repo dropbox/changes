@@ -5,7 +5,7 @@
 
     <dl class="flat">
         <dt>Sha:</dt>
-        <dd>{{source.revision.sha}}</dd>
+        <dd>{{source.revision.id}}</dd>
         <dt>Patch:</dt>
         <dd ng-if="source.patch"><a href="/api/0/patches/{{source.patch.id}}/?raw=1" target="_self">{{source.patch.id}}</a></dd>
         <dd ng-if="!source.patch">&mdash;</dd>

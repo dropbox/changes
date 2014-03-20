@@ -62,7 +62,6 @@ def serialize(data, extended_registry=None):
     serializer = get_serializer(data, extended_registry)
 
     if serializer is None:
-        print 'no serializer', data
         return data
 
     attrs = serializer.get_attrs([data])

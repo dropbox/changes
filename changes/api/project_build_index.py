@@ -16,9 +16,9 @@ class ProjectBuildIndexAPIView(APIView):
         include_patches = request.args.get('include_patches') or '1'
 
         queryset = Build.query.options(
-            joinedload('project', innerjoin=True),
+            joinedload('project'),
             joinedload('author'),
-            joinedload('source'),
+            joinedload('source').joinedload('revision'),
         ).filter(
             Build.project_id == project.id,
         ).order_by(Build.date_created.desc())

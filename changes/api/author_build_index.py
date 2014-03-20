@@ -26,9 +26,9 @@ class AuthorBuildIndexAPIView(APIView):
             return self.respond([])
 
         queryset = Build.query.options(
-            joinedload('project', innerjoin=True),
+            joinedload('project'),
             joinedload('author'),
-            joinedload('source'),
+            joinedload('source').joinedload('revision'),
         ).filter(
             Build.author_id == author.id,
         ).order_by(Build.date_created.desc(), Build.date_started.desc())
