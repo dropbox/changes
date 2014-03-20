@@ -43,7 +43,7 @@ class GitVcs(Vcs):
             if result == 'HEAD':
                 continue
             results.append(result)
-        return results
+        return list(set(results))
 
     def run(self, cmd, **kwargs):
         cmd = [self.binary_path] + cmd
