@@ -26,7 +26,6 @@ define([
 
   'directives/bindOnce',
   'directives/duration',
-  'directives/radialProgressBar',
   'directives/timeSince',
   'filters/escape',
   'filters/buildEstimatedProgress',

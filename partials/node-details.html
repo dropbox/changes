@@ -1,42 +1,28 @@
-<section>
+<section class="section">
 	<div class="page-header">
 		<h2>{{node.name}}</h2>
 	</div>
 
 	<h2>Jobs</h2>
 
-	<ul class="pager">
-		<li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
-			<a ng-click="loadNextPage()">&larr; Older</a>
-		</li>
-		<li class="next" ng-class="previousPage === null ? 'disabled' : ''">
-			<a ng-click="loadPreviousPage()">Newer &rarr;</a>
-		</li>
-	</ul>
-	<table class="job-list table table-striped">
-		<tbody>
-			<tr class="status-{{job.status.id}} result-{{job.result.id}}"
-				ng-repeat="job in jobList">
-				<td>
-					<div class="indicator" title="{{job.result.name}}">
-						<div data-result="{{job.result.id}}"
-							 data-status="{{job.status.id}}"
-							 data-date-started="{{job.dateStarted}}"
-							 data-estimated-duration="{{job.estimatedDuration}}"
-							 radial-progress-bar>&nbsp;</div>
-					</div>
-				</td>
-				<td>
-					<a href="{{job.link}}">#{{job.build.number}}.{{job.number}} &mdash; {{job.name}}</a>
-					<span class="info">
-						{{getBuildStatus(job)}} &mdash;
-						<span ng-if="!job.duration" time-since="job.dateStarted"></span>
-						<span ng-if="job.duration" duration="job.duration"></span>
-					</span>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+    <ul class="job-list">
+        <li class="job-list-header">
+            Job
+            <div class="duration">Duration</div>
+        </li>
+        <li class="status-{{job.status.id}} result-{{job.result.id}}"
+            ng-repeat="job in jobList">
+            <a ui-sref="job_details({job_id: job.id})" class="indicator" bind-once>#{{build.number}}.{{job.number}}</a>
+            <h5 bind-once><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
+            <div class="duration">
+                <span ng-if="job.duration && job.dateFinished" duration="job.duration"></span>
+                <span ng-if="!job.dateFinished"
+                      type="{{job.result.id}}"
+                      value="job|buildEstimatedProgress"
+                      progressbar>&nbsp;</span>
+            </div>
+        </li>
+    </ul>
 
 	<ul class="pager">
 		<li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
