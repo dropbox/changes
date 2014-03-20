@@ -23,8 +23,8 @@
                 {{build.stats.test_count}}
             </div>
             <div class="duration">
-                <span ng-if="build.duration && build.dateFinished" duration="build.duration"></span>
-                <span ng-if="!build.dateFinished"
+                <span ng-if="build.duration && build.status.id == 'finished'" duration="build.duration"></span>
+                <span ng-if="build.status.id != 'finished'"
                       type="{{build.result.id}}"
                       value="build|buildEstimatedProgress"
                       progressbar>&nbsp;</span>
