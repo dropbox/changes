@@ -32,7 +32,7 @@ class GitVcs(Vcs):
         return url
 
     def branches_for_commit(self, id):
-        results = self.run(['branch', '--contains', id])
+        results = self.run(['branch', '-a', '--contains', id])
         return [r[2:].strip() for r in results.splitlines()]
 
     def run(self, cmd, **kwargs):
