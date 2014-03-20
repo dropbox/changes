@@ -203,7 +203,7 @@ class TrackedTask(local):
             Task.parent_id == self.parent_id,
             Task.task_id == self.task_id,
         ).first()
-        if task.num_retries > MAX_RETRIES:
+        if task and task.num_retries > MAX_RETRIES:
             date_finished = datetime.utcnow()
             self._update({
                 Task.date_finished: date_finished,
