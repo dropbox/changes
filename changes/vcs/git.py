@@ -5,8 +5,9 @@ from urlparse import urlparse
 
 from .base import Vcs, RevisionResult, BufferParser
 
-
 LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
+
+ORIGIN_PREFIX = 'remotes/origin/'
 
 
 class GitVcs(Vcs):
@@ -37,8 +38,8 @@ class GitVcs(Vcs):
         for result in output.splitlines():
             # HACK(dcramer): is there a better way around removing the prefix?
             result = result[2:].strip()
-            if result.startswith('remotes/origin/'):
-                result = result.lstrip('remotes/origin/')
+            if result.startswith(ORIGIN_PREFIX):
+                result = result[len(ORIGIN_PREFIX):]
             if result == 'HEAD':
                 continue
             results.append(result)
