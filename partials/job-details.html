@@ -110,18 +110,26 @@
         </div>
 
         <section ng-repeat="phase in phases" class="section">
-            <tabset type="'links'">
-                <tab ng-repeat="logSource in logSourcesByPhase[phase.id]" class="result-{{logSource.step.result.id}}"
-                     heading="{{logSource.name}}"
-                     select="loadLogSource(logSource)">
+            <div class="section-header">
+                <h4>{{phase.name}} <span ng-if="phase.status.id != 'finished'"><span class="spinner-icon"></span></span></h4>
+            </div>
+            <div ng-if="logSourcesByPhase[phase.id]">
+                <tabset type="'links'">
+                    <tab ng-repeat="logSource in logSourcesByPhase[phase.id]" class="result-{{logSource.step.result.id}}"
+                         heading="{{logSource.name}}"
+                         select="loadLogSource(logSource)">
 
-                    <div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
-                        <div class="build-log"></div>
-                        <a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
-                    </div>
+                        <div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
+                            <div class="build-log"></div>
+                            <a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
+                        </div>
 
-                </tab>
-            </tabset>
+                    </tab>
+                </tabset>
+            </div>
+            <div ng-if="!logSourcesByPhase[phase.id]">
+                <p>No logs have been captured.</p>
+            </div>
         </section>
     </section>
 
