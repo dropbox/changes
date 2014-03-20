@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 import itertools
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView
 from changes.constants import Status
@@ -55,7 +55,9 @@ class ProjectCommitIndexAPIView(APIView):
         if commits:
             builds_qs = list(Build.query.options(
                 joinedload('author'),
-                joinedload('source'),
+                contains_eager('source'),
+            ).join(
+                Source, Source.id == Build.source_id,
             ).filter(
                 Build.source_id == Source.id,
                 Build.project_id == project.id,
