@@ -125,6 +125,29 @@ dl.flat dt {
   padding: 15px 5px;
 }
 
+.branch {
+  margin-top: 0;
+  border-radius: 2px;
+  background: #eee;
+  color: #333;
+  padding: 0 3px;
+  text-transform: uppercase;
+  margin-right: 3px;
+  vertical-align: text-top;
+}
+.branch:nth-child(2) {
+  background: #d3d1ff;
+}
+.branch:nth-child(3) {
+  background: #d1fbff;
+}
+.branch:nth-child(4) {
+  background: #d1ffdb;
+}
+.branch:nth-child(5) {
+  background: #ffd1ed;
+}
+
 .project-selector {
   width: auto;
   display: block;
@@ -293,7 +316,10 @@ dl.flat dt {
 .page-header .indicator {
   padding: 0 3px;
 }
-
+.page-header .branch {
+  font-size: 0.7em;
+  line-height: 22px;
+}
 
 .build-header,
 .page-header,
@@ -564,25 +590,7 @@ table > tbody > tr.result-skipped > td.result span {
   line-height: 17px;
 }
 .build-list .info .branch {
-  display: inline;
-  border-radius: 2px;
-  background: #eee;
-  padding: 2px 3px;
-  text-transform: uppercase;
   font-size: 9px;
-  margin-right: 3px;
-}
-.build-list .info .branch:nth-child(2) {
-  background: #d3d1ff;
-}
-.build-list .info .branch:nth-child(3) {
-  background: #d1fbff;
-}
-.build-list .info .branch:nth-child(4) {
-  background: #d1ffdb;
-}
-.build-list .info .branch:nth-child(5) {
-  background: #ffd1ed;
 }
 
 .build-list .duration,

@@ -20,6 +20,7 @@
             {{build.name}}<br>
             <small>
                 <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name|truncate:20}} &mdash;
+                <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
                 <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
                 <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
             </small>
