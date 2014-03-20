@@ -1,7 +1,7 @@
 <section bind-once>
 	<div id="overview">
 		<div class="page-header">
-			<h2>{{ test.name }}</h2>
+			<h2>{{test.name}}</h2>
 		</div>
 	</div>
 
@@ -10,7 +10,7 @@
 	<dl class="flat">
 		<dt>First Seen:</dt>
 		<dd>
-			<a href="{{test.firstBuild.link}}">{{test.firstBuild.target}}</a><br>
+			<a ui-sref="build_details({build_id: test.firstBuild.id })">{{test.firstBuild.target}}</a><br>
 			<span ng-if="test.firstBuild.author">{{test.firstBuild.author.name}} &mdash; </span><span time-since="test.firstBuild.dateCreated"></span>
 		</dd>
 <!-- 		<dt>Last Seen:</dt>
@@ -44,8 +44,8 @@
 					<td><a href="{{childTest.link}}">{{childTest.shortName}}</a></td>
 					<td style="text-align:center">{{childTest.lastTest.numTests}}</td>
 					<td style="text-align:center" duration="childTest.lastTest.duration"></td>
-					<td style="text-align:center"><a href="{{ childTest.firstBuild.link }}">{{ childTest.firstBuild.target }}</a></td>
-					<td style="text-align:center"><a href="{{ childTest.lastBuild.link }}">{{ childTest.lastBuild.target }}</a></td>
+					<td style="text-align:center"><a ui-sref="build_details({build_id: childTest.firstBuild.id })">{{ childTest.firstBuild.target }}</a></td>
+					<td style="text-align:center"><a ui-sref="build_details({build_id: childTest.lastBuild.id })">{{ childTest.lastBuild.target }}</a></td>
 				</tr>
 			</tbody>
 		</table>
