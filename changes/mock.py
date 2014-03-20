@@ -204,6 +204,20 @@ def job(build, change=None, **kwargs):
 
     step = JobStep(
         project=job.project, job=job,
+        phase=phase1_setup, status=phase1_setup.status, result=phase1_setup.result,
+        label='Setup', node=node,
+    )
+    db.session.add(step)
+
+    step = JobStep(
+        project=job.project, job=job,
+        phase=phase1_compile, status=phase1_compile.status, result=phase1_compile.result,
+        label='Compile', node=node,
+    )
+    db.session.add(step)
+
+    step = JobStep(
+        project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(), node=node,
     )

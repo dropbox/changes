@@ -8,6 +8,9 @@ class JobStepSerializer(Serializer):
         return {
             'id': instance.id.hex,
             'name': instance.label,
+            'phase': {
+                'id': instance.phase_id.hex,
+            },
             'result': instance.result,
             'status': instance.status,
             'node': instance.node,

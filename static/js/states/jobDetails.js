@@ -178,13 +178,30 @@ define([
         return 'Job ' + job.id + ' - ' + projectData.name;
       }
 
+      function organizeLogSources(logSources) {
+        var result = {};
+        $.each(logSources, function(_, source){
+          if (!source.step.phase) {
+            // legacy, incompatible
+            return;
+          }
+          var phaseId = source.step.phase.id;
+          if (result[phaseId] === undefined) {
+            result[phaseId] = [source];
+          } else {
+            result[phaseId].push(source);
+          }
+        });
+        return result;
+      }
+
       $scope.job = jobData.data;
-      $scope.logSources = jobData.data.logs;
       $scope.phases = jobData.data.phases;
       $scope.testFailures = jobData.data.testFailures;
       $scope.previousRuns = jobData.data.previousRuns;
       $scope.testGroups = jobData.data.testGroups;
       $scope.testStatus = getTestStatus();
+      $scope.logSourcesByPhase = organizeLogSources(jobData.data.logs);
 
       $scope.$watchCollection("testGroups", function() {
         $scope.testStatus = getTestStatus();

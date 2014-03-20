@@ -102,25 +102,27 @@
         </table>
     </section>
 
-    <section class="section" ng-if="logSources">
+    <section class="section">
         <div class="section-header">
             <div class="line"></div>
             <h3>Test</h3>
             <div class="timing" duration="job.duration"></div>
         </div>
 
-        <tabset type="'links'">
-            <tab ng-repeat="logSource in logSources" class="result-{{logSource.step.result.id}}"
-                 heading="{{logSource.name}}"
-                 select="loadLogSource(logSource)">
+        <section ng-repeat="phase in phases" class="section">
+            <tabset type="'links'">
+                <tab ng-repeat="logSource in logSourcesByPhase[phase.id]" class="result-{{logSource.step.result.id}}"
+                     heading="{{logSource.name}}"
+                     select="loadLogSource(logSource)">
 
-                <div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
-                    <div class="build-log"></div>
-                    <a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
-                </div>
+                    <div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
+                        <div class="build-log"></div>
+                        <a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
+                    </div>
 
-            </tab>
-        </tabset>
+                </tab>
+            </tabset>
+        </section>
     </section>
 
     <section ng-switch="testStatus" class="section">

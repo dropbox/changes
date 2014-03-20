@@ -10,7 +10,9 @@ from changes.config import db, create_app
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.events import publish_build_update, publish_job_update
-from changes.models import Change, Job, LogSource, TestResultManager, ProjectPlan
+from changes.models import (
+    Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan
+)
 
 app = create_app()
 app_context = app.app_context()
@@ -70,19 +72,21 @@ def create_new_entry(project):
         )
         publish_job_update(job)
 
-        logsource = LogSource(
-            job=job,
-            project=job.project,
-            name='console',
-        )
-        db.session.add(logsource)
-        db.session.commit()
-
-        offset = 0
-        for x in xrange(30):
-            lc = mock.logchunk(source=logsource, offset=offset)
+        for step in JobStep.query.filter(JobStep.job == job):
+            logsource = LogSource(
+                job=job,
+                project=job.project,
+                step=step,
+                name=step.label,
+            )
+            db.session.add(logsource)
             db.session.commit()
-            offset += lc.size
+
+            offset = 0
+            for x in xrange(30):
+                lc = mock.logchunk(source=logsource, offset=offset)
+                db.session.commit()
+                offset += lc.size
 
     return build
 
