@@ -20,8 +20,11 @@ def notify_build_finished(build_id):
     signal.send_robust(build)
 
 
-def notify_revision_created(revision_id):
-    revision = Revision.query.get(revision_id)
+def notify_revision_created(repository_id, revision_sha):
+    revision = Revision.query.filter(
+        Revision.repository_id == repository_id,
+        Revision.revision_sha == revision_sha,
+    ).first()
     if revision is None:
         return
 

@@ -9,10 +9,12 @@ from changes.queue.task import tracked_task
 def sync_repo(repo_id, continuous=True):
     repo = Repository.query.get(repo_id)
     if not repo:
+        print 'Repository not found'
         return
 
     vcs = repo.get_vcs()
     if vcs is None:
+        print 'No VCS backend available'
         return
 
     Repository.query.filter(
