@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from changes.config import db
+from changes.config import db, queue
 from changes.models import Repository
 from changes.queue.task import tracked_task
 
@@ -15,8 +15,11 @@ def sync_repo(repo_id, continuous=True):
     if vcs is None:
         return
 
-    repo.last_update_attempt = datetime.utcnow()
-    db.session.add(repo)
+    Repository.query.filter(
+        Repository.id == repo.id,
+    ).update({
+        'last_update_attempt': datetime.utcnow(),
+    }, synchronize_session=False)
     db.session.commit()
 
     if vcs.exists():
@@ -27,6 +30,7 @@ def sync_repo(repo_id, continuous=True):
     # TODO(dcramer): this doesnt scrape everything, and really we wouldn't
     # want to do this all in a single job so we should split this into a
     # backfill task
+    # TODO(dcramer): this doesn't collect commits in non-default branches
     might_have_more = True
     parent = None
     while might_have_more:
@@ -39,9 +43,15 @@ def sync_repo(repo_id, continuous=True):
             might_have_more = True
             parent = commit.id
 
-    repo.last_update = datetime.utcnow()
+            queue.delay('notify_revision_created', kwargs={
+                'revision_id': revision.id.hex,
+            })
 
-    db.session.add(repo)
+    Repository.query.filter(
+        Repository.id == repo.id,
+    ).update({
+        'last_update': datetime.utcnow(),
+    }, synchronize_session=False)
     db.session.commit()
 
     if continuous:

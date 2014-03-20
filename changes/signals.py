@@ -19,10 +19,12 @@ class RobustSignal(Signal):
 
 job_finished = RobustSignal('job.finished')
 build_finished = RobustSignal('build.finished')
+revision_created = RobustSignal('revision.created')
 
 SIGNAL_MAP = {
     'job.finished': job_finished,
     'build.finished': build_finished,
+    'revision.created': revision_created,
 }
 
 

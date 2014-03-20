@@ -322,7 +322,8 @@ def configure_jobs(app):
     from changes.jobs.cleanup_builds import cleanup_builds
     from changes.jobs.create_job import create_job
     from changes.jobs.notify_listeners import (
-        notify_build_finished, notify_job_finished)
+        notify_build_finished, notify_job_finished, notify_revision_created
+    )
     from changes.jobs.sync_artifact import sync_artifact
     from changes.jobs.sync_build import sync_build
     from changes.jobs.sync_job import sync_job
@@ -336,6 +337,7 @@ def configure_jobs(app):
     queue.register('create_job', create_job)
     queue.register('notify_build_finished', notify_build_finished)
     queue.register('notify_job_finished', notify_job_finished)
+    queue.register('notify_revision_created', notify_revision_created)
     queue.register('sync_artifact', sync_artifact)
     queue.register('sync_build', sync_build)
     queue.register('sync_job', sync_job)
