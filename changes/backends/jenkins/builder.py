@@ -515,6 +515,7 @@ class JenkinsBuilder(BaseBackend):
                 'job': step.job,
                 'data': artifact,
             })
+            db.session.commit()
             sync_artifact.delay_if_needed(
                 artifact_id=artifact.id.hex,
                 task_id=artifact.id.hex,
