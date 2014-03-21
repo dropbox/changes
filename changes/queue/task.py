@@ -119,6 +119,9 @@ class TrackedTask(local):
         try:
             self.func(**kwargs)
 
+            if self.verify_all_children() != Status.finished:
+                raise NotFinished
+
         except NotFinished:
             self.logger.info(
                 'Task marked as not finished: %s %s', self.task_name, self.task_id)
