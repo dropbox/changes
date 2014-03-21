@@ -66,7 +66,7 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 sync_job_step.delay_if_needed(
                     step_id=downstream_step.id.hex,
                     task_id=downstream_step.id.hex,
-                    parent_task_id=step.job.id.hex,
+                    parent_task_id=step.id.hex,
                 )
 
         return super(JenkinsFactoryBuilder, self).sync_step(step)
