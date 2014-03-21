@@ -43,7 +43,7 @@ define([
           .success(function(data){
             $scope.jobList = new Collection($scope, []);
             $scope.build = data;
-            $scope.testFailures = {}
+            $scope.testFailures = {};
             $scope.testChanges = [];
           })
           .error(function(){
