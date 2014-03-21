@@ -41,7 +41,10 @@ define([
       $scope.restartBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/restart/')
           .success(function(data){
+            $scope.jobList = new Collection($scope, []);
             $scope.build = data;
+            $scope.testFailures = {}
+            $scope.testChanges = [];
           })
           .error(function(){
             flash('error', 'There was an error restarting this build.');
