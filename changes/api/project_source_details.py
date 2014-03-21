@@ -25,7 +25,10 @@ class ProjectSourceDetailsAPIView(APIView):
         else:
             vcs = repo.get_vcs()
             if vcs:
-                context['diff'] = vcs.export(source.revision_sha)
+                try:
+                    context['diff'] = vcs.export(source.revision_sha)
+                except Exception:
+                    context['diff'] = None
             else:
                 context['diff'] = None
 
