@@ -11,11 +11,11 @@ from uuid import UUID
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Artifact, TestCase, Patch, LogSource, LogChunk, Job
+    Artifact, TestCase, Patch, LogSource, LogChunk, Job, FileCoverage
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import (
-    BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT
+    BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT, SAMPLE_COVERAGE
 )
 
 
@@ -607,6 +607,40 @@ class SyncBuildTest(BaseTestCase):
         ))
 
         assert len(test_list) == 2
+
+    @responses.activate
+    def test_sync_artifact_as_coverage(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/coverage.xml',
+            body=SAMPLE_COVERAGE,
+            stream=True)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
+
+        builder = self.get_builder()
+        builder.sync_artifact(step, {
+            "displayPath": "coverage.xml",
+            "fileName": "coverage.xml",
+            "relativePath": "artifacts/coverage.xml"
+        })
+
+        cover_list = list(FileCoverage.query.filter(
+            FileCoverage.job_id == job.id
+        ))
+
+        assert len(cover_list) == 2
 
 
 class ChunkedTest(BaseTestCase):

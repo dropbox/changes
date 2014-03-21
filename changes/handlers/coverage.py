@@ -12,16 +12,15 @@ class CoverageHandler(ArtifactHandler):
     def process(self, fp):
         results = self.get_coverage(fp)
 
-        with db.get_session() as session:
-            for result in results:
-                # TODO(cramer): this has a race condition
-                constraints = {
-                    'job_id': result.job_id,
-                    'project_id': result.project_id,
-                    'filename': result.filename,
-                }
-                if not FileCoverage.query.filter_by(**constraints).first():
-                    session.add(result)
+        for result in results:
+            # TODO(cramer): this has a race condition
+            constraints = {
+                'job_id': result.job_id,
+                'project_id': result.project_id,
+                'filename': result.filename,
+            }
+            if not FileCoverage.query.filter_by(**constraints).first():
+                db.session.add(result)
 
         return results
 

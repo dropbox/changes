@@ -22,6 +22,7 @@ from changes.models import (
     AggregateTestSuite, Artifact, TestResult, TestResultManager, TestSuite,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
+from changes.handlers.coverage import CoverageHandler
 from changes.handlers.xunit import XunitHandler
 from changes.utils.agg import safe_agg
 from changes.utils.http import build_uri
@@ -40,6 +41,7 @@ QUEUE_ID_XPATH = '/queue/item[action/parameter/name="CHANGES_BID" and action/par
 BUILD_ID_XPATH = '/freeStyleProject/build[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/number'
 
 XUNIT_FILENAMES = ('junit.xml', 'xunit.xml', 'nosetests.xml')
+COVERAGE_FILENAMES = ('coverage.xml',)
 
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
 NUMBER_XML_RE = re.compile(r'<number>(\d+)</number>')
@@ -83,6 +85,7 @@ class JenkinsBuilder(BaseBackend):
         # disabled by default as it's expensive
         self.sync_log_artifacts = self.app.config.get('JENKINS_SYNC_LOG_ARTIFACTS', False)
         self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
+        self.sync_coverage_artifacts = self.app.config.get('JENKINS_SYNC_COVERAGE_ARTIFACTS', True)
 
     def _get_raw_response(self, path, method='GET', params=None, **kwargs):
         url = '{}/{}'.format(self.base_url, path.lstrip('/'))
@@ -160,6 +163,19 @@ class JenkinsBuilder(BaseBackend):
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
         handler = XunitHandler(jobstep.job)
+        handler.process(StringIO(resp.content))
+
+    def _sync_artifact_as_coverage(self, jobstep, job_name, build_no, artifact):
+        url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
+            base=self.base_url, job=job_name,
+            build=build_no, artifact=artifact['relativePath'],
+        )
+
+        resp = requests.get(url, stream=True, timeout=15)
+
+        # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
+        # API, so we're stuffing it into StringIO
+        handler = CoverageHandler(jobstep.job)
         handler.process(StringIO(resp.content))
 
     def _sync_artifact_as_log(self, jobstep, job_name, build_no, artifact):
@@ -575,6 +591,8 @@ class JenkinsBuilder(BaseBackend):
             self._sync_artifact_as_log(step, job_name, build_no, artifact)
         if self.sync_xunit_artifacts and artifact['fileName'].endswith(XUNIT_FILENAMES):
             self._sync_artifact_as_xunit(step, job_name, build_no, artifact)
+        if self.sync_coverage_artifacts and artifact['fileName'].endswith(COVERAGE_FILENAMES):
+            self._sync_artifact_as_coverage(step, job_name, build_no, artifact)
 
     def cancel_job(self, job):
         active_steps = JobStep.query.filter(

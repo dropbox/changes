@@ -3,8 +3,8 @@ from __future__ import absolute_import, division
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
-# from sqlalchemy.orm import relationship
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import relationship
 
 from changes.config import db
 from changes.db.types.guid import GUID
@@ -17,12 +17,11 @@ class FileCoverage(db.Model):
     job_id = Column(GUID, ForeignKey('job.id'), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id'), nullable=False)
     filename = Column(String(256), nullable=False, primary_key=True)
-    project_id = Column(Integer, nullable=False)
     data = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    # build = relationship('Job')
-    # project = relationship('Project')
+    job = relationship('Job')
+    project = relationship('Project')
 
     def __init__(self, **kwargs):
         super(FileCoverage, self).__init__(**kwargs)
