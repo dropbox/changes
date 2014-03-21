@@ -22,6 +22,7 @@ define([
   'states/projectSourceDetails',
   'states/projectTestDetails',
   'states/projectTestList',
+  'states/taskDetails',
   'states/testGroupDetails',
 
   'directives/bindOnce',
@@ -55,6 +56,7 @@ define([
   ProjectSourceDetailsState,
   ProjectTestDetailsState,
   ProjectTestListState,
+  TaskDetailsState,
   TestGroupDetailsState
 ) {
 
@@ -97,7 +99,6 @@ define([
       .state('build_details', BuildDetailsState)
       .state('job_details', JobDetailsState)
       .state('log_details', LogDetailsState)
-      .state('test_details', TestGroupDetailsState)
       .state('my_builds', AuthorBuildListState)
       .state('nodes', NodeListState)
       .state('node_details', NodeDetailsState)
@@ -114,6 +115,8 @@ define([
       .state('project_settings', ProjectSettingsState)
       .state('project_tests', ProjectTestListState)
       .state('project_test_details', ProjectTestDetailsState)
-      .state('project_source_details', ProjectSourceDetailsState);
+      .state('project_source_details', ProjectSourceDetailsState)
+      .state('test_details', TestGroupDetailsState)
+      .state('task_details', TaskDetailsState);
   });
 });

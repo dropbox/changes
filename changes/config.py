@@ -240,6 +240,7 @@ def configure_api_routes(app):
     from changes.api.project_source_details import ProjectSourceDetailsAPIView
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.stream_index import StreamIndexAPIView
+    from changes.api.task_details import TaskDetailsAPIView
     from changes.api.testgroup_details import TestGroupDetailsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
@@ -276,6 +277,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(StreamIndexAPIView, '/stream/')
     api.add_resource(TestGroupDetailsAPIView, '/testgroups/<testgroup_id>/')
+    api.add_resource(TaskDetailsAPIView, '/tasks/<task_id>/')
 
 
 def configure_web_routes(app):
