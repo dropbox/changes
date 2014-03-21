@@ -25,18 +25,6 @@ class SyncArtifactTest(TestCase):
         self.jobplan = self.create_job_plan(self.job, self.plan)
 
     @mock.patch.object(Step, 'get_implementation')
-    def test_legacy(self, get_implementation):
-        implementation = mock.Mock()
-        get_implementation.return_value = implementation
-
-        sync_artifact(step_id=self.jobstep.id.hex, artifact=self.artifact.data)
-
-        implementation.fetch_artifact.assert_called_once_with(
-            step=self.jobstep,
-            artifact=self.artifact.data,
-        )
-
-    @mock.patch.object(Step, 'get_implementation')
     def test_simple(self, get_implementation):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
