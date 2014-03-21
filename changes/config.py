@@ -121,6 +121,7 @@ def create_app(_read_config=True, gevent=False, **config):
 
     app.config['SENTRY_DSN'] = None
 
+    app.config['JENKINS_AUTH'] = None
     app.config['JENKINS_URL'] = None
     app.config['JENKINS_TOKEN'] = None
 

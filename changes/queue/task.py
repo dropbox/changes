@@ -169,7 +169,6 @@ class TrackedTask(local):
 
         Task.query.filter(
             Task.task_name == self.task_name,
-            Task.parent_id == self.parent_id,
             Task.task_id == self.task_id,
         ).update(kwargs, synchronize_session=False)
 
@@ -201,7 +200,6 @@ class TrackedTask(local):
 
         task = Task.query.filter(
             Task.task_name == self.task_name,
-            Task.parent_id == self.parent_id,
             Task.task_id == self.task_id,
         ).first()
         if task and task.num_retries > MAX_RETRIES:
@@ -253,9 +251,9 @@ class TrackedTask(local):
 
         task, created = get_or_create(Task, where={
             'task_name': self.task_name,
-            'parent_id': kwargs.get('parent_task_id'),
             'task_id': kwargs['task_id'],
         }, defaults={
+            'parent_id': kwargs.get('parent_task_id'),
             'data': {
                 'kwargs': fn_kwargs,
             },

@@ -72,10 +72,12 @@ class NotFound(Exception):
 class JenkinsBuilder(BaseBackend):
     provider = 'jenkins'
 
-    def __init__(self, base_url=None, job_name=None, token=None, *args, **kwargs):
+    def __init__(self, base_url=None, job_name=None, token=None, auth=None,
+                 *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['JENKINS_URL']
         self.token = token or self.app.config['JENKINS_TOKEN']
+        self.auth = auth or self.app.config['JENKINS_AUTH']
         self.logger = logging.getLogger('jenkins')
         self.job_name = job_name
         # disabled by default as it's expensive
@@ -87,6 +89,7 @@ class JenkinsBuilder(BaseBackend):
 
         kwargs.setdefault('allow_redirects', False)
         kwargs.setdefault('timeout', 5)
+        kwargs.setdefault('auth', self.auth)
 
         if params is None:
             params = {}
