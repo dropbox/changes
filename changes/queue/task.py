@@ -145,6 +145,7 @@ class TrackedTask(local):
                     Task.date_finished: date_finished,
                     Task.date_modified: date_finished,
                     Task.status: Status.finished,
+                    Task.result: Result.passed,
                 })
             except Exception as exc:
                 self.logger.exception(unicode(exc))
