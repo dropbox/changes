@@ -3,7 +3,7 @@ from flask import current_app
 from sqlalchemy.orm import subqueryload_all
 
 from changes.backends.base import UnrecoverableException
-from changes.models import Artifact, JobStep, JobPlan, Plan
+from changes.models import Artifact, JobPlan, Plan
 from changes.queue.task import tracked_task
 
 
@@ -26,20 +26,15 @@ def get_build_step(job_id):
 
 
 @tracked_task
-def sync_artifact(step_id=None, artifact=None, artifact_id=None):
+def sync_artifact(artifact_id=None):
     if artifact_id:
         artifact = Artifact.query.get(artifact_id)
-        if artifact is None:
-            return
-        step = artifact.step
-        data = artifact.data
 
-    # TODO(dcramer): remove after version transition
-    else:
-        step = JobStep.query.get(step_id)
-        if not step:
-            return
-        data = artifact
+    if artifact is None:
+        return
+
+    step = artifact.step
+    data = artifact.data
 
     try:
         implementation = get_build_step(step.job_id)
