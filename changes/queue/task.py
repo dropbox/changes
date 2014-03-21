@@ -335,6 +335,7 @@ class TrackedTask(local):
                 Task.id.in_([n.id for n in need_expire]),
             ).update({
                 Task.date_modified: current_datetime,
+                Task.date_finished: current_datetime,
                 Task.status: Status.finished,
                 Task.result: Result.aborted,
             }, synchronize_session=False)
