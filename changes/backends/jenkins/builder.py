@@ -696,8 +696,11 @@ class JenkinsBuilder(BaseBackend):
             'status': Status.in_progress,
         })
 
+        if not created:
+            return
+
         # TODO(dcramer): due to no unique constraints this section of code
-        # presents a race condition
+        # presents a race condition when run concurrently
         step = self._create_job_step(
             phase=phase,
             status=Status.in_progress,
