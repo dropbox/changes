@@ -8,9 +8,8 @@ from hashlib import sha1
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import get_or_create
-from changes.models.aggregatetest import AggregateTestGroup
-from changes.models.test import TestGroup, TestCase
+from changes.db.utils import get_or_create, create_or_update, try_create
+from changes.models import AggregateTestGroup, ItemStat, TestGroup, TestCase
 
 
 class TestResult(object):
@@ -271,3 +270,28 @@ class TestResultManager(object):
             branch.num_tests = g_total
 
             db.session.add(branch)
+
+        test_count = TestCase.query.filter(
+            TestCase.job_id == job.id,
+        ).count()
+
+        create_or_update(ItemStat, where={
+            'item_id': job.id,
+            'name': 'test_count',
+        }, values={
+            'value': test_count,
+        })
+
+        instance = try_create(ItemStat, where={
+            'item_id': job.build_id,
+            'name': 'test_count',
+        }, defaults={
+            'value': test_count
+        })
+        if not instance:
+            ItemStat.query.filter(
+                ItemStat.item_id == job.build_id,
+                ItemStat.name == 'test_count',
+            ).update({
+                'value': ItemStat.value + test_count
+            })

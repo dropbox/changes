@@ -1,6 +1,6 @@
 from changes.config import db
 from changes.constants import Result
-from changes.models import TestSuite
+from changes.models import ItemStat, TestSuite
 from changes.models.testresult import TestResult, TestResultManager
 from changes.testutils.cases import TestCase
 
@@ -105,6 +105,18 @@ class TestResultManagerTestCase(TestCase):
         assert group_list[3].num_leaves == 0
 
         assert list(group_list[3].testcases) == [testcase_list[1]]
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == build.id,
+        )[0]
+        assert teststat.value == 2
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == job.id,
+        )[0]
+        assert teststat.value == 2
 
         # agg_groups = sorted(AggregateTestGroup.query.all(), key=lambda x: x.name)
 
