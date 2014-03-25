@@ -26,9 +26,7 @@ requirejs.config({
         deps: ['jquery']
     },
     'angularAnimate': ['angular'],
-    'angularBootstrap': {
-        deps: ['angular', 'bootstrap']
-    },
+    'angularBootstrap': ['angular'],
     'angularHighlightjs': {
         deps: ['angular', 'highlightjs']
     },
