@@ -304,4 +304,4 @@ class TestResultManager(object):
                         Job.build_id == job.build_id,
                     ))
                 )
-            })
+            }, synchronize_session=False)
