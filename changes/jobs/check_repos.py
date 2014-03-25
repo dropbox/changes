@@ -15,8 +15,6 @@ def check_repos():
     repo_list = list(Repository.query.filter(
         Repository.backend != RepositoryBackend.unknown,
     ))
-    if not repo_list:
-        return
 
     for repo in repo_list:
         sync_repo.delay_if_needed(
