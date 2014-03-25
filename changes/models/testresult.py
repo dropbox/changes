@@ -5,11 +5,14 @@ import re
 from collections import defaultdict
 from datetime import datetime
 from hashlib import sha1
+from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import get_or_create, create_or_update, try_create
-from changes.models import AggregateTestGroup, ItemStat, TestGroup, TestCase
+from changes.models import (
+    AggregateTestGroup, ItemStat, Job, TestGroup, TestCase
+)
 
 
 class TestResult(object):
@@ -293,5 +296,12 @@ class TestResultManager(object):
                 ItemStat.item_id == job.build_id,
                 ItemStat.name == 'test_count',
             ).update({
-                'value': ItemStat.value + test_count
+                'value': db.session.query(
+                    func.sum(ItemStat.value)
+                ).filter(
+                    ItemStat.name == 'test_count',
+                    ItemStat.item_id.in_(db.session.query(Job.id).filter(
+                        Job.build_id == job.build_id,
+                    ))
+                )
             })
