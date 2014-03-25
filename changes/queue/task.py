@@ -4,6 +4,7 @@ import logging
 
 from datetime import datetime, timedelta
 from threading import local, Lock
+from uuid import uuid4
 
 from changes.config import db, queue
 from changes.constants import Result, Status
@@ -106,10 +107,8 @@ class TrackedTask(local):
 
     def _run(self, kwargs):
         self.task_id = kwargs.pop('task_id', None)
-        if not self.task_id:
-            self.logger.warning('Missing task_id for job: %r', kwargs)
-            self.func(**kwargs)
-            return
+        if self.task_id is None:
+            self.task_id = uuid4().hex
 
         self.parent_id = kwargs.pop('parent_task_id', None)
         self.kwargs = kwargs
