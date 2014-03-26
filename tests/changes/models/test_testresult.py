@@ -131,3 +131,29 @@ class TestResultManagerTestCase(TestCase):
         # assert agg_groups[1].name == 'tests.changes.handlers.test_coverage.test_foo'
         # assert agg_groups[2].name == 'tests.changes.handlers.test_xunit'
         # assert agg_groups[3].name == 'tests.changes.handlers.test_xunit.test_bar'
+
+        job2 = self.create_job(build)
+        results2 = [
+            TestResult(
+                job=job2,
+                name='test_bar',
+                package='tests.changes.handlers.test_bar',
+                result=Result.failed,
+                message='collection failed',
+                duration=156,
+            ),
+        ]
+        manager = TestResultManager(job2)
+        manager.save(results2)
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == build.id,
+        )[0]
+        assert teststat.value == 3
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == job2.id,
+        )[0]
+        assert teststat.value == 1

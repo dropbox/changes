@@ -292,16 +292,19 @@ class TestResultManager(object):
             'value': test_count
         })
         if not instance:
+            # TODO(dcramer): this should use a subquery
+            test_count_subq = db.session.query(
+                func.sum(ItemStat.value)
+            ).filter(
+                ItemStat.name == 'test_count',
+                ItemStat.item_id.in_(db.session.query(Job.id).filter(
+                    Job.build_id == job.build_id,
+                ))
+            ).scalar()
+
             ItemStat.query.filter(
                 ItemStat.item_id == job.build_id,
                 ItemStat.name == 'test_count',
             ).update({
-                'value': db.session.query(
-                    func.sum(ItemStat.value)
-                ).filter(
-                    ItemStat.name == 'test_count',
-                    ItemStat.item_id.in_(db.session.query(Job.id).filter(
-                        Job.build_id == job.build_id,
-                    ))
-                )
+                'value': test_count_subq
             }, synchronize_session=False)
