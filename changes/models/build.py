@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, select
 
 from changes.config import db
 from changes.constants import Status, Result, Cause
@@ -79,9 +79,6 @@ class Build(db.Model):
         if self.date_started and self.date_finished and not self.duration:
             self.duration = (self.date_finished - self.date_started).total_seconds() * 1000
         if self.number is None and self.project:
-            cur_no_query = db.session.query(
-                coalesce(func.max(Build.number), 0)
-            ).filter(
+            self.number = select([coalesce(func.max(Build.number), 0) + 1]).where(
                 Build.project_id == self.project.id,
-            ).scalar()
-            self.number = cur_no_query + 1
+            )

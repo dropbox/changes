@@ -154,6 +154,8 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(job)
+        db.session.commit()
+        db.session.refresh(job)
 
         return job
 
@@ -197,6 +199,8 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(build)
+        db.session.commit()
+        db.session.refresh(build)
 
         return build
 
