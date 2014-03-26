@@ -79,6 +79,7 @@ def create_build(project, label, target, message, author, change=None,
     )
 
     db.session.add(build)
+    db.session.commit()
 
     execute_build(build=build)
 
