@@ -5,7 +5,8 @@ import re
 from collections import defaultdict
 from datetime import datetime
 from hashlib import sha1
-from sqlalchemy.sql import func
+from sqlalchemy import and_
+from sqlalchemy.sql import func, select
 
 from changes.config import db
 from changes.constants import Result
@@ -292,19 +293,16 @@ class TestResultManager(object):
             'value': test_count
         })
         if not instance:
-            # TODO(dcramer): this should use a subquery
-            test_count_subq = db.session.query(
-                func.sum(ItemStat.value)
-            ).filter(
-                ItemStat.name == 'test_count',
-                ItemStat.item_id.in_(db.session.query(Job.id).filter(
-                    Job.build_id == job.build_id,
-                ))
-            ).scalar()
-
             ItemStat.query.filter(
                 ItemStat.item_id == job.build_id,
                 ItemStat.name == 'test_count',
             ).update({
-                'value': test_count_subq
+                'value': select([func.sum(ItemStat.value)]).where(
+                    and_(
+                        ItemStat.name == 'test_count',
+                        ItemStat.item_id.in_(select([Job.id]).where(
+                            Job.build_id == job.build_id,
+                        ))
+                    )
+                ),
             }, synchronize_session=False)
