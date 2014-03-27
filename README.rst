@@ -7,8 +7,10 @@ Changes is a dashboard to view information about your code. Specifically, it foc
 
 Supported build platforms include:
 
-- `Koality <http://koalitycode.com>`_
 - `Jenkins <http://jenkins-ci.org>`_
+- `Koality <http://koalitycode.com>`_
+
+.. image:: https://github.com/dropbox/changes/raw/master/docs/images/example.png
 
 Requirements
 ============
