@@ -69,7 +69,6 @@ class TestGroup(db.Model):
     __tablename__ = 'testgroup'
     __table_args__ = (
         UniqueConstraint('job_id', 'suite_id', 'name_sha', name='_group_key'),
-        Index('idx_testgroup_project_id', 'project_id'),
         Index('idx_testgroup_suite_id', 'suite_id'),
         Index('idx_testgroup_parent_id', 'parent_id'),
         Index('idx_testgroup_project_date', 'project_id', 'date_created'),
