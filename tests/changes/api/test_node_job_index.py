@@ -22,6 +22,7 @@ class NodeJobIndexTest(APITestCase):
             label='test',
         )
         db.session.add(jobstep)
+        db.session.commit()
 
         path = '/api/0/nodes/{0}/jobs/'.format(node.id.hex)
 

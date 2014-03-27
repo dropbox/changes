@@ -74,6 +74,7 @@ class JobPhaseIndexTest(APITestCase):
             date_finished=datetime(2013, 9, 19, 22, 15, 26),
         )
         db.session.add(step_2_b)
+        db.session.commit()
 
         path = '/api/0/jobs/{0}/phases/'.format(job.id.hex)
 

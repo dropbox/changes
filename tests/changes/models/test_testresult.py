@@ -14,6 +14,7 @@ class TestResultManagerTestCase(TestCase):
         suite = TestSuite(name='foobar', job=job, project=self.project)
 
         db.session.add(suite)
+        db.session.commit()
 
         results = [
             TestResult(

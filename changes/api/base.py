@@ -8,6 +8,7 @@ from flask.ext.restful import Resource
 
 from changes.api.serializer import serialize as serialize_func
 from changes.api.stream import EventStream
+from changes.config import db
 
 LINK_HEADER = '<{uri}&page={page}>; rel="{name}"'
 
@@ -71,7 +72,9 @@ class APIView(Resource):
                 return Response(status=404)
             return self.stream_response(channels)
 
-        return super(APIView, self).dispatch_request(*args, **kwargs)
+        response = super(APIView, self).dispatch_request(*args, **kwargs)
+        db.session.commit()
+        return response
 
     def paginate(self, queryset, **kwargs):
         page = int(request.args.get('page', 1))

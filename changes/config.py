@@ -26,9 +26,7 @@ from changes.utils.trace import TracerMiddleware
 from sqlalchemy.exc import SAWarning
 warnings.simplefilter('error', SAWarning)
 
-db = SQLAlchemy(session_options={
-    'autoflush': True,
-})
+db = SQLAlchemy(session_options={})
 api = APIController(prefix='/api/0')
 mail = Mail()
 pubsub = PubSub()

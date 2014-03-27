@@ -72,6 +72,7 @@ class Fixtures(object):
 
         repo = Repository(**kwargs)
         db.session.add(repo)
+        db.session.commit()
 
         return repo
 
@@ -80,6 +81,7 @@ class Fixtures(object):
 
         node = Node(**kwargs)
         db.session.add(node)
+        db.session.commit()
 
         return node
 
@@ -92,6 +94,7 @@ class Fixtures(object):
 
         project = Project(**kwargs)
         db.session.add(project)
+        db.session.commit()
 
         return project
 
@@ -105,6 +108,7 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(change)
+        db.session.commit()
 
         return change
 
@@ -117,6 +121,7 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(case)
+        db.session.commit()
 
         return case
 
@@ -129,6 +134,7 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(group)
+        db.session.commit()
 
         return group
 
@@ -155,7 +161,6 @@ class Fixtures(object):
         )
         db.session.add(job)
         db.session.commit()
-        db.session.refresh(job)
 
         return job
 
@@ -167,6 +172,7 @@ class Fixtures(object):
             job_id=job.id,
         )
         db.session.add(job_plan)
+        db.session.commit()
 
         return job_plan
 
@@ -180,6 +186,7 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(source)
+        db.session.commit()
 
         return source
 
@@ -200,7 +207,6 @@ class Fixtures(object):
         )
         db.session.add(build)
         db.session.commit()
-        db.session.refresh(build)
 
         return build
 
@@ -219,6 +225,7 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(patch)
+        db.session.commit()
 
         return patch
 
@@ -239,6 +246,7 @@ class Fixtures(object):
 
         revision = Revision(**kwargs)
         db.session.add(revision)
+        db.session.commit()
 
         return revision
 
@@ -254,6 +262,7 @@ class Fixtures(object):
 
         author = Author(email=email, **kwargs)
         db.session.add(author)
+        db.session.commit()
 
         return author
 
@@ -262,6 +271,7 @@ class Fixtures(object):
 
         plan = Plan(**kwargs)
         db.session.add(plan)
+        db.session.commit()
 
         return plan
 
@@ -271,6 +281,7 @@ class Fixtures(object):
 
         step = Step(plan=plan, **kwargs)
         db.session.add(step)
+        db.session.commit()
 
         return step
 
@@ -283,6 +294,7 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(phase)
+        db.session.commit()
 
         return phase
 
@@ -296,12 +308,14 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(step)
+        db.session.commit()
 
         return step
 
     def create_task(self, **kwargs):
         task = Task(**kwargs)
         db.session.add(task)
+        db.session.commit()
 
         return task
 
@@ -313,6 +327,7 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(artifact)
+        db.session.commit()
 
         return artifact
 
@@ -331,4 +346,5 @@ class Fixtures(object):
             **kwargs
         )
         db.session.add(logchunk)
+        db.session.commit()
         return logchunk

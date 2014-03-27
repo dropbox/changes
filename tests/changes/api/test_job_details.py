@@ -12,6 +12,7 @@ class JobDetailsTest(APITestCase):
         db.session.add(ls1)
         ls2 = LogSource(job=job, project=self.project, name='test2')
         db.session.add(ls2)
+        db.session.commit()
 
         path = '/api/0/jobs/{0}/'.format(job.id.hex)
 

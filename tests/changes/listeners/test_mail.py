@@ -40,6 +40,7 @@ class BuildHandlerTestCase(TestCase):
         author = self.create_author('foo@example.com')
         build = self.create_build(self.project, result=Result.failed, author=author)
         job = self.create_job(build)
+        db.session.commit()
 
         job_finished_handler(job)
 
@@ -56,6 +57,7 @@ class BuildHandlerTestCase(TestCase):
         author = self.create_author('foo@example.com')
         build = self.create_build(self.project, result=Result.failed, author=author)
         job = self.create_job(build)
+        db.session.commit()
 
         job_finished_handler(job)
 
@@ -84,6 +86,7 @@ class BuildHandlerTestCase(TestCase):
             result=Result.failed,
         )
         job = self.create_job(build=build)
+        db.session.commit()
 
         job_finished_handler(job)
 
@@ -130,6 +133,7 @@ class SendNotificationTestCase(TestCase):
 
         job_link = 'http://example.com/projects/test/builds/%s/jobs/%s/' % (build.id.hex, job.id.hex,)
         log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
+        db.session.commit()
 
         send_notification(job, recipients=['foo@example.com', 'Bob <bob@example.com>'])
 
@@ -180,6 +184,7 @@ class GetLogClippingTestCase(TestCase):
             text='hello\nworld\n',
         )
         db.session.add(logchunk)
+        db.session.commit()
 
         result = get_log_clipping(logsource, max_size=200, max_lines=3)
         assert result == "world\r\nhello\r\nworld"
@@ -217,6 +222,7 @@ class GetJobOptionsTestCase(TestCase):
             name='mail.notify-addresses',
             value='foo@example.com',
         ))
+        db.session.commit()
 
         assert get_job_options(job) == {
             'mail.notify-addresses': 'foo@example.com',

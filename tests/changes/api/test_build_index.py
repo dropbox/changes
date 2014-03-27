@@ -126,6 +126,7 @@ class BuildCreateTest(APITestCase):
         project2 = self.create_project(repository=repo)
         plan.projects.append(project1)
         plan.projects.append(project2)
+        db.session.commit()
 
         resp = self.client.post(self.path, data={
             'repository': repo.url,
@@ -142,6 +143,7 @@ class BuildCreateTest(APITestCase):
             value='0',
         )
         db.session.add(po)
+        db.session.commit()
 
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,

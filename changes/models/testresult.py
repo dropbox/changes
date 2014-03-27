@@ -275,6 +275,8 @@ class TestResultManager(object):
 
             db.session.add(branch)
 
+        db.session.commit()
+
         test_count = TestCase.query.filter(
             TestCase.job_id == job.id,
         ).count()

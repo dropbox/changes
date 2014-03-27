@@ -19,6 +19,7 @@ class AuthMixin(object):
             email='foo@example.com',
         )
         db.session.add(user)
+        db.session.commit()
 
         return user
 
@@ -49,6 +50,7 @@ class TestCase(Exam, unittest2.TestCase, Fixtures, AuthMixin):
 
         self.plan = self.create_plan()
         self.plan.projects.append(self.project)
+        db.session.commit()
 
         # mock out mail
         mail_context = mail.record_messages()

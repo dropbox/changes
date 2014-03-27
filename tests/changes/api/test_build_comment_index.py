@@ -13,6 +13,7 @@ class BuildCommentIndexTest(APITestCase):
             text='Hello world!',
         )
         db.session.add(comment)
+        db.session.commit()
 
         path = '/api/0/builds/{0}/comments/'.format(build.id.hex)
         resp = self.client.get(path)

@@ -20,6 +20,7 @@ class JobLogDetailsTest(APITestCase):
             offset=100, size=100, text='b' * 100,
         )
         db.session.add(lc2)
+        db.session.commit()
 
         path = '/api/0/jobs/{0}/logs/{1}/'.format(
             job.id.hex, source.id.hex)

@@ -4,7 +4,6 @@ import logging
 
 from lxml import etree
 
-from changes.config import db
 from changes.constants import Result
 from changes.models import TestResult, TestResultManager
 
@@ -18,8 +17,7 @@ class XunitHandler(ArtifactHandler):
         test_list = self.get_tests(fp)
 
         manager = TestResultManager(self.job)
-        with db.session.begin_nested():
-            manager.save(test_list)
+        manager.save(test_list)
 
         return test_list
 

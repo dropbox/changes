@@ -39,6 +39,8 @@ class FindChangedTestsTest(BaseTestCase):
             project=current_job.project,
             name='unchanged test',
         ))
+        db.session.commit()
+
         results = find_changed_tests(current_build, previous_build)
 
         assert results['total'] == 2

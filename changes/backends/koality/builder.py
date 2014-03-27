@@ -260,6 +260,8 @@ class KoalityBuilder(BaseBackend):
             for stage in stage_list:
                 self._sync_step(job, phase, stage)
 
+        db.session.commit()
+
         return job
 
     def create_job(self, job):

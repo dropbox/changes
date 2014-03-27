@@ -356,8 +356,7 @@ class JenkinsBuilder(BaseBackend):
         test_list = self._process_test_report(step.job, test_report)
 
         manager = TestResultManager(step.job)
-        with db.session.begin_nested():
-            manager.save(test_list)
+        manager.save(test_list)
 
     def _find_job(self, job_name, job_id):
         """
@@ -593,6 +592,7 @@ class JenkinsBuilder(BaseBackend):
             self._sync_artifact_as_xunit(step, job_name, build_no, artifact)
         if self.sync_coverage_artifacts and artifact['fileName'].endswith(COVERAGE_FILENAMES):
             self._sync_artifact_as_coverage(step, job_name, build_no, artifact)
+        db.session.commit()
 
     def cancel_job(self, job):
         active_steps = JobStep.query.filter(
