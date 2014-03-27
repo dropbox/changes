@@ -21,11 +21,17 @@ Requirements
 ============
 
 - Node.js
+
   - Bower (npm install -g bower)
+
 - Postgresql
+
 - Python 2.7
+
   - virtualenv
+
   - pip
+
 
 Setup
 =====
