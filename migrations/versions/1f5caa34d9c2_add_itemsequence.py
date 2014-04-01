@@ -39,6 +39,16 @@ END;
 $$ LANGUAGE plpgsql
 """
 
+ADD_BUILD_SEQUENCES = """
+INSERT INTO itemsequence (parent_id, value)
+SELECT project_id, max(number) FROM build GROUP BY project_id
+"""
+
+ADD_JOB_SEQUENCES = """
+INSERT INTO itemsequence (parent_id, value)
+SELECT build_id, max(number) FROM job GROUP BY build_id
+"""
+
 
 def upgrade():
     op.create_table('itemsequence',
@@ -47,6 +57,8 @@ def upgrade():
         sa.PrimaryKeyConstraint('parent_id', 'value')
     )
     op.execute(NEXT_ITEM_VALUE_FUNCTION)
+    op.execute(ADD_BUILD_SEQUENCES)
+    op.execute(ADD_JOB_SEQUENCES)
 
 
 def downgrade():
