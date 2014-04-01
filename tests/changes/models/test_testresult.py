@@ -34,7 +34,7 @@ class TestResultManagerTestCase(TestCase):
                 result=Result.passed,
                 message='foobar failed',
                 duration=12,
-                reruns='1'
+                reruns=1,
             ),
         ]
         manager = TestResultManager(job)
