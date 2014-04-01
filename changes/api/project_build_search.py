@@ -1,32 +1,41 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import request
+from flask.ext.restful import reqparse
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
+from changes.constants import Result
 from changes.models import Project, Build
 
 
 class ProjectBuildSearchAPIView(APIView):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('query', type=unicode, location='args')
+    get_parser.add_argument('source', type=unicode, location='args')
+    get_parser.add_argument('result', type=unicode, location='args',
+                            choices=('failed', 'passed', 'aborted', 'unknown'))
+
     def get(self, project_id):
         project = Project.get(project_id)
         if not project:
             return '', 404
 
-        query = request.args.get('q', request.args.get('query'))
-        source = request.args.get('source')
+        args = self.get_parser.parse_args()
 
         filters = []
 
-        if source:
-            filters.append(Build.target.startswith(source))
+        if args.source:
+            filters.append(Build.target.startswith(args.source))
 
-        if query:
+        if args.query:
             filters.append(or_(
-                Build.label.contains(query),
-                Build.target.startswith(query),
+                Build.label.contains(args.query),
+                Build.target.startswith(args.query),
             ))
+
+        if args.result:
+            filters.append(Build.result == Result[args.result])
 
         queryset = Build.query.options(
             joinedload('project', innerjoin=True),
