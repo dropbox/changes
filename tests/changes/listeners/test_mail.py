@@ -2,39 +2,23 @@ import mock
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import (
-    ProjectOption, Patch, LogSource, LogChunk, ItemOption
-)
-from changes.listeners.mail import (
-    job_finished_handler, send_notification, get_log_clipping, get_job_options
-)
+from changes.models import ProjectOption, Patch, LogSource, LogChunk, ItemOption
+from changes.listeners.mail import job_finished_handler, MailNotificationHandler
 from changes.testutils.cases import TestCase
 
 
-class BuildHandlerTestCase(TestCase):
-    @mock.patch('changes.listeners.mail.send_notification')
-    def test_default_options(self, send_notifications):
+class GetRecipientsTestCase(TestCase):
+    def test_default_options(self):
         author = self.create_author('foo@example.com')
         build = self.create_build(self.project, result=Result.passed, author=author)
         job = self.create_job(build)
 
-        job_finished_handler(job)
+        handler = MailNotificationHandler()
+        recipients = handler.get_recipients(job)
 
-        # not failing
-        assert not send_notifications.called
+        assert recipients == ['{0} <foo@example.com>'.format(author.name)]
 
-        build = self.create_build(self.project, result=Result.failed, author=author)
-        job = self.create_job(build)
-
-        job_finished_handler(job)
-
-        # notify author
-        send_notifications.assert_called_once_with(
-            job, ['{0} <foo@example.com>'.format(author.name)]
-        )
-
-    @mock.patch('changes.listeners.mail.send_notification')
-    def test_without_author_option(self, send_notifications):
+    def test_without_author_option(self):
         db.session.add(ProjectOption(
             project=self.project, name='mail.notify-author', value='0'))
         author = self.create_author('foo@example.com')
@@ -42,12 +26,12 @@ class BuildHandlerTestCase(TestCase):
         job = self.create_job(build)
         db.session.commit()
 
-        job_finished_handler(job)
+        handler = MailNotificationHandler()
+        recipients = handler.get_recipients(job)
 
-        assert not send_notifications.called
+        assert recipients == []
 
-    @mock.patch('changes.listeners.mail.send_notification')
-    def test_with_addressees(self, send_notifications):
+    def test_with_addressees(self):
         db.session.add(ProjectOption(
             project=self.project, name='mail.notify-author', value='1'))
         db.session.add(ProjectOption(
@@ -59,14 +43,16 @@ class BuildHandlerTestCase(TestCase):
         job = self.create_job(build)
         db.session.commit()
 
-        job_finished_handler(job)
+        handler = MailNotificationHandler()
+        recipients = handler.get_recipients(job)
 
-        send_notifications.assert_called_once_with(
-            job, ['{0} <foo@example.com>'.format(author.name), 'test@example.com', 'bar@example.com']
-        )
+        assert recipients == [
+            '{0} <foo@example.com>'.format(author.name),
+            'test@example.com',
+            'bar@example.com',
+        ]
 
-    @mock.patch('changes.listeners.mail.send_notification')
-    def test_with_revision_addressees(self, send_notifications):
+    def test_with_revision_addressees(self):
         db.session.add(ProjectOption(
             project=self.project, name='mail.notify-author', value='1'))
         db.session.add(ProjectOption(
@@ -88,13 +74,10 @@ class BuildHandlerTestCase(TestCase):
         job = self.create_job(build=build)
         db.session.commit()
 
-        job_finished_handler(job)
+        handler = MailNotificationHandler()
+        recipients = handler.get_recipients(job)
 
-        send_notifications.assert_called_once_with(
-            job, ['{0} <foo@example.com>'.format(author.name)]
-        )
-
-        send_notifications.reset_mock()
+        assert recipients == ['{0} <foo@example.com>'.format(author.name)]
 
         build = self.create_build(
             project=self.project,
@@ -105,13 +88,19 @@ class BuildHandlerTestCase(TestCase):
 
         job_finished_handler(job)
 
-        send_notifications.assert_called_once_with(
-            job, ['{0} <foo@example.com>'.format(author.name), 'test@example.com', 'bar@example.com']
-        )
+        handler = MailNotificationHandler()
+        recipients = handler.get_recipients(job)
+
+        assert recipients == [
+            '{0} <foo@example.com>'.format(author.name),
+            'test@example.com',
+            'bar@example.com',
+        ]
 
 
-class SendNotificationTestCase(TestCase):
-    def test_simple(self):
+class SendTestCase(TestCase):
+    @mock.patch.object(MailNotificationHandler, 'get_recipients')
+    def test_simple(self, get_recipients):
         build = self.create_build(self.project)
         job = self.create_job(build=build, result=Result.failed)
         logsource = LogSource(
@@ -135,7 +124,10 @@ class SendNotificationTestCase(TestCase):
         log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
         db.session.commit()
 
-        send_notification(job, recipients=['foo@example.com', 'Bob <bob@example.com>'])
+        get_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+
+        handler = MailNotificationHandler()
+        handler.send(job, None)
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
@@ -152,48 +144,6 @@ class SendNotificationTestCase(TestCase):
         assert log_link in msg.body
 
         assert msg.as_string()
-
-
-class GetLogClippingTestCase(TestCase):
-    def test_simple(self):
-        build = self.create_build(self.project)
-        job = self.create_job(build)
-
-        logsource = LogSource(
-            project=self.project,
-            job=job,
-            name='console',
-        )
-        db.session.add(logsource)
-
-        logchunk = LogChunk(
-            project=self.project,
-            job=job,
-            source=logsource,
-            offset=0,
-            size=11,
-            text='hello\nworld\n',
-        )
-        db.session.add(logchunk)
-        logchunk = LogChunk(
-            project=self.project,
-            job=job,
-            source=logsource,
-            offset=11,
-            size=11,
-            text='hello\nworld\n',
-        )
-        db.session.add(logchunk)
-        db.session.commit()
-
-        result = get_log_clipping(logsource, max_size=200, max_lines=3)
-        assert result == "world\r\nhello\r\nworld"
-
-        result = get_log_clipping(logsource, max_size=200, max_lines=1)
-        assert result == "world"
-
-        result = get_log_clipping(logsource, max_size=5, max_lines=3)
-        assert result == "world"
 
 
 class GetJobOptionsTestCase(TestCase):
@@ -224,7 +174,8 @@ class GetJobOptionsTestCase(TestCase):
         ))
         db.session.commit()
 
-        assert get_job_options(job) == {
+        handler = MailNotificationHandler()
+        assert handler.get_job_options(job) == {
             'mail.notify-addresses': 'foo@example.com',
             'mail.notify-author': '0',
         }
