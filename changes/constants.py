@@ -92,8 +92,3 @@ CAUSE_LABELS = {
     Cause.push: 'Code Push',
     Cause.retry: 'Retry',
 }
-
-
-class Lock(Enum):
-    build_number = 1
-    job_number = 2
