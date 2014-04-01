@@ -15,25 +15,27 @@ import sqlalchemy as sa
 
 
 NEXT_ITEM_VALUE_FUNCTION = """
-CREATE OR REPLACE FUNCTION next_item_value(uuid) RETURNS bigint AS $$
+CREATE OR REPLACE FUNCTION next_item_value(uuid) RETURNS int AS $$
 DECLARE
-    cur_parent_id ALIAS FOR $1;
-    next_value int;
+  cur_parent_id ALIAS FOR $1;
+  next_value int;
 BEGIN
-    next_value := value FROM itemsequence WHERE parent_id = cur_parent_id FOR UPDATE;
-    IF next_value IS NULL THEN
-        next_value := 0;
-        BEGIN
-            INSERT INTO itemsequence (parent_id, value) VALUES (cur_parent_id, next_value + 1);
-            RETURN next_value + 1;
-        EXCEPTION WHEN unique_violation THEN
-            next_value := value FROM itemsequence WHERE parent_id = cur_parent_id FOR UPDATE;
-        END;
+  LOOP
+    UPDATE itemsequence SET value = value + 1 WHERE parent_id = cur_parent_id
+    RETURNING value INTO next_value;
+    IF FOUND THEN
+      RETURN next_value;
     END IF;
 
-    UPDATE itemsequence SET value = value + 1 WHERE parent_id = cur_parent_id;
-    RETURN next_value + 1;
-END
+    BEGIN
+        INSERT INTO itemsequence (parent_id, value) VALUES (cur_parent_id, 1)
+        RETURNING value INTO next_value;
+        RETURN next_value;
+    EXCEPTION WHEN unique_violation THEN
+        -- do nothing
+    END;
+  END LOOP;
+END;
 $$ LANGUAGE plpgsql
 """
 
