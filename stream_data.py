@@ -62,6 +62,7 @@ def create_new_entry(project):
         status=Status.in_progress,
         date_started=date_started,
     )
+    db.session.commit()
     publish_build_update(build)
 
     for x in xrange(0, random.randint(1, 3)):
@@ -70,6 +71,7 @@ def create_new_entry(project):
             change=change,
             status=Status.in_progress,
         )
+        db.session.commit()
         publish_job_update(job)
 
         for step in JobStep.query.filter(JobStep.job == job):
