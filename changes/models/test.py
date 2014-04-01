@@ -137,6 +137,7 @@ class TestCase(db.Model):
     duration = Column(Integer, default=0)
     message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
+    reruns = Column(Integer)
 
     job = relationship('Job')
     project = relationship('Project')

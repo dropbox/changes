@@ -34,6 +34,7 @@ class TestResultManagerTestCase(TestCase):
                 result=Result.passed,
                 message='foobar failed',
                 duration=12,
+                reruns='1'
             ),
         ]
         manager = TestResultManager(job)
@@ -53,6 +54,7 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[0].result == Result.passed
         assert testcase_list[0].message == 'foobar failed'
         assert testcase_list[0].duration == 12
+        assert testcase_list[0].reruns == 1
 
         assert len(testcase_list[0].groups) == 1
 
@@ -61,6 +63,7 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[1].result == Result.failed
         assert testcase_list[1].message == 'collection failed'
         assert testcase_list[1].duration == 156
+        assert testcase_list[1].reruns is None
 
         group_list = sorted(TestGroup.query.all(), key=lambda x: x.name)
 

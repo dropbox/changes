@@ -22,7 +22,7 @@ class TestResult(object):
     managed correctly when TestCase's are created.
     """
     def __init__(self, job, name, message=None, package=None,
-                 result=None, duration=None, date_created=None, suite=None):
+                 result=None, duration=None, date_created=None, suite=None, reruns=None):
         self.job = job
         self.name = name
         self.package = package
@@ -31,6 +31,7 @@ class TestResult(object):
         self.duration = duration  # ms
         self.date_created = date_created or datetime.utcnow()
         self.suite = suite
+        self.reruns = reruns
 
     @property
     def id(self):
@@ -191,6 +192,7 @@ class TestResultManager(object):
                 message=test.message,
                 result=test.result,
                 date_created=test.date_created,
+                reruns=test.reruns
             )
             db.session.add(testcase)
 
