@@ -46,7 +46,7 @@ SELECT project_id, max(number) FROM build GROUP BY project_id
 
 ADD_JOB_SEQUENCES = """
 INSERT INTO itemsequence (parent_id, value)
-SELECT build_id, coalesce(max(number), 0) FROM job WHERE build_id IS NOT NULL GROUP BY build_id
+SELECT build_id, count(*) FROM job WHERE build_id IS NOT NULL GROUP BY build_id
 """
 
 
