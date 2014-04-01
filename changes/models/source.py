@@ -32,15 +32,17 @@ class Source(db.Model):
     __tablename__ = 'source'
     __table_args__ = (
         ForeignKeyConstraint(
-          ('repository_id', 'revision_sha'),
-          ('revision.repository_id', 'revision.sha')),
-
+            ('repository_id', 'revision_sha'),
+            ('revision.repository_id', 'revision.sha')
+        ),
         UniqueConstraint(
             'repository_id', 'revision_sha', name='unq_source_revision',
-            postgresql_where=(patch_id == None)),  # NOQA
+            # postgresql_where=(patch_id == None)
+        ),
         UniqueConstraint(
             'patch_id', name='unq_source_patch_id',
-            postgresql_where=(patch_id != None)),  # NOQA
+            # postgresql_where=(patch_id != None),
+        ),
     )
 
     def __init__(self, **kwargs):

@@ -31,7 +31,7 @@ tests_require = [
 ]
 
 install_requires = [
-    'alembic>=0.6.0,<0.7.0',
+    'alembic>=0.6.4,<0.7.0',
     'ansi2html>=1.0.5,<1.1.0',
     'argparse>=1.2.1,<1.3.0',
     'blinker>=1.3,<1.4',
@@ -55,8 +55,7 @@ install_requires = [
     'pynliner>=0.5.0,<0.6.0',
     'python-dateutil>=2.1,<2.2',
     'simplejson>=3.3.0,<3.4.0',
-    # sqlalchemy 0.9.2 breaks postgres_where
-    'sqlalchemy==0.9.1',
+    'sqlalchemy==0.9.4',
     'statprof',
     'unicode-slugify>=0.1.1,<0.2.0',
 ]
