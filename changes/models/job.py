@@ -7,8 +7,7 @@ from sqlalchemy.schema import Index, UniqueConstraint
 from sqlalchemy.sql import func, select
 
 from changes.config import db
-from changes.constants import Lock, Status, Result
-from changes.db.funcs import coalesce
+from changes.constants import Status, Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
@@ -67,12 +66,4 @@ class Job(db.Model):
         if self.date_started and self.date_finished and not self.duration:
             self.duration = (self.date_finished - self.date_started).total_seconds() * 1000
         if self.number is None and self.build:
-            # This translates to something like:
-            # SELECT number FROM (select pg_advisory_xact_lock(1), ...) as bn
-            subquery = select([
-                (coalesce(func.max(Job.number), 0) + 1).label('number'),
-                func.pg_advisory_xact_lock(Lock.job_number.value)
-            ]).where(
-                Job.build_id == self.build.id,
-            ).alias('bn')
-            self.number = select([subquery.c.number])
+            self.number = select([func.next_item_value(self.build.id.hex)])
