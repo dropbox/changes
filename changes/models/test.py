@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division
 
+import re
 import uuid
 
 from datetime import datetime
@@ -163,6 +164,16 @@ class TestCase(db.Model):
         else:
             raise ValueError
         return new_sha
+
+    @property
+    def sep(self):
+        name = (self.package or self.name)
+        # handle the case where it might begin with some special character
+        if not re.match(r'^[a-zA-Z0-9]', name):
+            return '/'
+        elif '/' in name:
+            return '/'
+        return '.'
 
 
 def test_name_sha_func(attr):
