@@ -492,6 +492,7 @@ class JenkinsBuilder(BaseBackend):
         #     }
         # })
         db.session.add(step)
+        db.session.commit()
 
         # TODO(dcramer): we shoudl abstract this into a sync_phase
         phase = step.phase
