@@ -87,10 +87,10 @@ def sync_job(job_id):
     else:
         job.status = Status.queued
 
-    db.session.add(job)
-    db.session.commit()
-
-    publish_job_update(job)
+    if db.session.is_modified(job):
+        db.session.add(job)
+        db.session.commit()
+        publish_job_update(job)
 
     if not is_finished:
         raise sync_job.NotFinished

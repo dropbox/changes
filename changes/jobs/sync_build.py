@@ -59,10 +59,10 @@ def sync_build(build_id):
     else:
         build.status = Status.queued
 
-    db.session.add(build)
-    db.session.commit()
-
-    publish_build_update(build)
+    if db.session.is_modified(build):
+        db.session.add(build)
+        db.session.commit()
+        publish_build_update(build)
 
     if not is_finished:
         raise sync_build.NotFinished
