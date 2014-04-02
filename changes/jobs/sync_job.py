@@ -43,10 +43,6 @@ def sync_job(job_id):
         job.result = Result.aborted
         current_app.logger.exception('Unrecoverable exception syncing %s', job.id)
 
-    current_datetime = datetime.utcnow()
-
-    job.date_modified = current_datetime
-
     is_finished = sync_job.verify_all_children() == Status.finished
     if is_finished:
         job.status = Status.finished
@@ -88,6 +84,8 @@ def sync_job(job_id):
         job.status = Status.queued
 
     if db.session.is_modified(job):
+        job.date_modified = datetime.utcnow()
+
         db.session.add(job)
         db.session.commit()
         publish_job_update(job)
