@@ -40,7 +40,7 @@ class TestResultManagerTestCase(TestCase):
         manager = TestResultManager(job)
         manager.save(results)
 
-        testcase_list = sorted(TestCase.query.all(), key=lambda x: x.package)
+        testcase_list = sorted(TestCase.query.all(), key=lambda x: x.name)
 
         assert len(testcase_list) == 2
 
@@ -49,8 +49,7 @@ class TestResultManagerTestCase(TestCase):
             assert test.project_id == self.project.id
             assert test.suite_id == suite.id
 
-        assert testcase_list[0].name == 'test_foo'
-        assert testcase_list[0].package == 'tests.changes.handlers.test_coverage'
+        assert testcase_list[0].name == 'tests.changes.handlers.test_coverage.test_foo'
         assert testcase_list[0].result == Result.passed
         assert testcase_list[0].message == 'foobar failed'
         assert testcase_list[0].duration == 12
@@ -58,8 +57,7 @@ class TestResultManagerTestCase(TestCase):
 
         assert len(testcase_list[0].groups) == 1
 
-        assert testcase_list[1].name == 'test_bar'
-        assert testcase_list[1].package == 'tests.changes.handlers.test_xunit'
+        assert testcase_list[1].name == 'tests.changes.handlers.test_xunit.test_bar'
         assert testcase_list[1].result == Result.failed
         assert testcase_list[1].message == 'collection failed'
         assert testcase_list[1].duration == 156

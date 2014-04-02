@@ -24,7 +24,6 @@ def test_result_generation():
     r1 = results[0]
     assert type(r1) == TestResult
     assert r1.job == job
-    assert r1.package is None
     assert r1.name == 'tests.test_report'
     assert r1.duration == 0.0
     assert r1.result == Result.failed
@@ -34,8 +33,7 @@ E   ImportError: No module named mock"""
     r2 = results[1]
     assert type(r2) == TestResult
     assert r2.job == job
-    assert r2.package == 'tests.test_report.ParseTestResultsTest'
-    assert r2.name == 'test_simple'
+    assert r2.name == 'tests.test_report.ParseTestResultsTest.test_simple'
     assert r2.duration == 1.65796279907
     assert r2.result == Result.passed
     assert r2.message == ''

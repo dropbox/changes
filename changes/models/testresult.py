@@ -22,10 +22,11 @@ class TestResult(object):
     managed correctly when TestCase's are created.
     """
     def __init__(self, job, name, message=None, package=None,
-                 result=None, duration=None, date_created=None, suite=None, reruns=None):
+                 result=None, duration=None, date_created=None, suite=None,
+                 reruns=None):
         self.job = job
-        self.name = name
-        self.package = package
+        self._name = name
+        self._package = package
         self.message = message
         self.result = result or Result.unknown
         self.duration = duration  # ms
@@ -34,14 +35,8 @@ class TestResult(object):
         self.reruns = reruns
 
     @property
-    def id(self):
-        if self.package:
-            return '%s.%s' % (self.package, self.name)
-        return self.name
-
-    @property
     def sep(self):
-        name = (self.package or self.name)
+        name = (self._package or self._name)
         # handle the case where it might begin with some special character
         if not re.match(r'^[a-zA-Z0-9]', name):
             return '/'
@@ -51,7 +46,18 @@ class TestResult(object):
 
     @property
     def name_sha(self):
-        return TestCase.calculate_name_sha(self.package, self.name)
+        return TestCase.calculate_name_sha(self._package, self._name)
+
+    @property
+    def package(self):
+        return None
+
+    @property
+    def name(self):
+        if self._package:
+            return "%s%s%s" % (self._package, self.sep, self._name)
+        return self._name
+    id = name
 
 
 class TestResultManager(object):
@@ -63,7 +69,7 @@ class TestResultManager(object):
 
         for test in test_list:
             sep = test.sep
-            parts = test.id.split(sep)
+            parts = test.name.split(sep)
 
             key = []
             for part in parts[:-1]:
@@ -76,11 +82,11 @@ class TestResultManager(object):
         # test.name: set(leaves)
         leaves = defaultdict(set)
         for test in test_list:
-            t_id, t_sep = test.id, test.sep
+            t_name, t_sep = test.name, test.sep
 
-            leaves[t_id].add(t_id)
-            parent = t_id.rsplit(t_sep, 1)[0]
-            leaves[parent].add(t_id)
+            leaves[t_name].add(t_name)
+            parent = t_name.rsplit(t_sep, 1)[0]
+            leaves[parent].add(t_name)
 
             while len(leaves[parent]) > 1 and t_sep in parent:
                 parent = parent.rsplit(t_sep, 1)[0]
@@ -108,7 +114,7 @@ class TestResultManager(object):
         group = TestGroup(
             job=job,
             name_sha=name_sha,
-            name=test.id,
+            name=test.name,
             suite=test.suite,
             project=project,
             duration=test.duration,
@@ -134,7 +140,7 @@ class TestResultManager(object):
             'name_sha': name_sha,
             'suite_id': None,  # TODO
         }, defaults={
-            'name': test.id,
+            'name': test.name,
             'parent': parent,
             'first_job_id': job.id,
             'last_job_id': job.id,
@@ -187,7 +193,6 @@ class TestResultManager(object):
                 project=project,
                 suite=test.suite,
                 name=test.name,
-                package=test.package,
                 duration=test.duration,
                 message=test.message,
                 result=test.result,
@@ -196,7 +201,7 @@ class TestResultManager(object):
             )
             db.session.add(testcase)
 
-            tests_by_id[test.id] = testcase
+            tests_by_id[test.name] = testcase
 
         # Create branches
         for (name, sep), _ in grouped_tests:

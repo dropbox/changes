@@ -403,14 +403,12 @@ class SyncBuildTest(BaseTestCase):
         test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
 
         assert len(test_list) == 2
-        assert test_list[0].name == 'Test'
-        assert test_list[0].package == 'tests.changes.handlers.test_xunit'
+        assert test_list[0].name == 'tests.changes.handlers.test_xunit.Test'
         assert test_list[0].result == Result.skipped
         assert test_list[0].message == 'collection skipped'
         assert test_list[0].duration == 0
 
-        assert test_list[1].name == 'test_simple'
-        assert test_list[1].package == 'tests.changes.api.test_build_details.BuildDetailsTest'
+        assert test_list[1].name == 'tests.changes.api.test_build_details.BuildDetailsTest.test_simple'
         assert test_list[1].result == Result.passed
         assert test_list[1].message == ''
         assert test_list[1].duration == 155
@@ -777,14 +775,12 @@ class JenkinsIntegrationTest(BaseTestCase):
         test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
 
         assert len(test_list) == 2
-        assert test_list[0].name == 'Test'
-        assert test_list[0].package == 'tests.changes.handlers.test_xunit'
+        assert test_list[0].name == 'tests.changes.handlers.test_xunit.Test'
         assert test_list[0].result == Result.skipped
         assert test_list[0].message == 'collection skipped'
         assert test_list[0].duration == 0
 
-        assert test_list[1].name == 'test_simple'
-        assert test_list[1].package == 'tests.changes.api.test_build_details.BuildDetailsTest'
+        assert test_list[1].name == 'tests.changes.api.test_build_details.BuildDetailsTest.test_simple'
         assert test_list[1].result == Result.passed
         assert test_list[1].message == ''
         assert test_list[1].duration == 155
