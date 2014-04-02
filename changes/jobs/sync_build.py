@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.events import publish_build_update
@@ -60,6 +62,7 @@ def sync_build(build_id):
         build.status = Status.queued
 
     if db.session.is_modified(build):
+        build.date_modified = datetime.utcnow()
         db.session.add(build)
         db.session.commit()
         publish_build_update(build)
