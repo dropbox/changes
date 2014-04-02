@@ -6,7 +6,7 @@ from changes.backends.base import UnrecoverableException
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.events import publish_job_update
-from changes.models import Job, JobPlan, Plan
+from changes.models import Job, JobPlan, Plan, TestCase
 from changes.queue.task import tracked_task
 from changes.utils.agg import safe_agg
 
@@ -67,8 +67,13 @@ def sync_job(job_id):
     else:
         job.duration = None
 
+    # if any phases are marked as failing, fail the build
     if any(j.result is Result.failed for j in all_phases):
         job.result = Result.failed
+    # if any test cases were marked as failing, fail the build
+    elif TestCase.query.filter(TestCase.result == Result.failed, TestCase.job_id == job.id).first():
+        job.result = Result.failed
+    # if we've finished all phases, use the best result available
     elif is_finished:
         job.result = safe_agg(
             max, (j.result for j in all_phases), Result.unknown)
