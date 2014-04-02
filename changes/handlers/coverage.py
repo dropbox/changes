@@ -38,7 +38,7 @@ class CoverageHandler(ArtifactHandler):
         - U: uncovered
         - C: covered
         """
-        job = self.job
+        job = self.step.job
 
         root = etree.fromstring(fp.read())
 

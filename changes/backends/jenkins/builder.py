@@ -162,7 +162,7 @@ class JenkinsBuilder(BaseBackend):
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
-        handler = XunitHandler(jobstep.job)
+        handler = XunitHandler(jobstep)
         handler.process(StringIO(resp.content))
 
     def _sync_artifact_as_coverage(self, jobstep, job_name, build_no, artifact):
@@ -175,7 +175,7 @@ class JenkinsBuilder(BaseBackend):
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
-        handler = CoverageHandler(jobstep.job)
+        handler = CoverageHandler(jobstep)
         handler.process(StringIO(resp.content))
 
     def _sync_artifact_as_log(self, jobstep, job_name, build_no, artifact):
@@ -279,7 +279,7 @@ class JenkinsBuilder(BaseBackend):
         # yet to complete
         return True if resp.headers.get('X-More-Data') == 'true' else None
 
-    def _process_test_report(self, job, test_report):
+    def _process_test_report(self, step, test_report):
         test_list = []
 
         if not test_report:
@@ -291,19 +291,19 @@ class JenkinsBuilder(BaseBackend):
             # TODO(dcramer): this is not specific to Jenkins and should be
             # abstracted
             suite, _ = get_or_create(TestSuite, where={
-                'job': job,
+                'job': step.job,
                 'name_sha': sha1(suite_name).hexdigest(),
             }, defaults={
                 'name': suite_name,
-                'project': job.project,
+                'project': step.job.project,
             })
 
             agg, created = get_or_create(AggregateTestSuite, where={
-                'project': job.project,
+                'project': step.job.project,
                 'name_sha': suite.name_sha,
             }, defaults={
                 'name': suite.name,
-                'first_job_id': job.id,
+                'first_job_id': step.job.id,
             })
 
             # if not created:
@@ -335,7 +335,7 @@ class JenkinsBuilder(BaseBackend):
                     raise ValueError('Invalid test result: %s' % (case['status'],))
 
                 test_result = TestResult(
-                    job=job,
+                    step=step,
                     suite=suite,
                     name=case['name'],
                     package=case['className'] or None,
@@ -353,9 +353,9 @@ class JenkinsBuilder(BaseBackend):
         except NotFound:
             return
 
-        test_list = self._process_test_report(step.job, test_report)
+        test_list = self._process_test_report(step, test_report)
 
-        manager = TestResultManager(step.job)
+        manager = TestResultManager(step)
         manager.save(test_list)
 
     def _find_job(self, job_name, job_id):

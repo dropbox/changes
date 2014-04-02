@@ -1,3 +1,3 @@
 class ArtifactHandler(object):
-    def __init__(self, job):
-        self.job = job
+    def __init__(self, step):
+        self.step = step

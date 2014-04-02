@@ -16,7 +16,7 @@ class XunitHandler(ArtifactHandler):
     def process(self, fp):
         test_list = self.get_tests(fp)
 
-        manager = TestResultManager(self.job)
+        manager = TestResultManager(self.step)
         manager.save(test_list)
 
         return test_list
@@ -34,7 +34,7 @@ class XunitHandler(ArtifactHandler):
         return self.get_xunit_tests(root)
 
     def get_bitten_tests(self, root):
-        job = self.job
+        step = self.step
 
         results = []
 
@@ -63,7 +63,7 @@ class XunitHandler(ArtifactHandler):
                 result = Result.passed
 
             results.append(TestResult(
-                job=job,
+                step=step,
                 name=attrs['name'],
                 package=attrs.get('fixture') or None,
                 duration=float(attrs['duration']) * 1000,
@@ -74,7 +74,7 @@ class XunitHandler(ArtifactHandler):
         return results
 
     def get_xunit_tests(self, root):
-        job = self.job
+        step = self.step
 
         results = []
         for node in root.iter('testcase'):
@@ -110,7 +110,7 @@ class XunitHandler(ArtifactHandler):
                 duration = None
 
             results.append(TestResult(
-                job=job,
+                step=step,
                 name=attrs['name'],
                 package=attrs.get('classname') or None,
                 duration=duration,

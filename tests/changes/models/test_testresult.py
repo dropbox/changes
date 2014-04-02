@@ -11,6 +11,8 @@ class TestResultManagerTestCase(TestCase):
 
         build = self.create_build(self.project)
         job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
         suite = TestSuite(name='foobar', job=job, project=self.project)
 
         db.session.add(suite)
@@ -18,7 +20,7 @@ class TestResultManagerTestCase(TestCase):
 
         results = [
             TestResult(
-                job=job,
+                step=jobstep,
                 suite=suite,
                 name='test_bar',
                 package='tests.changes.handlers.test_xunit',
@@ -27,7 +29,7 @@ class TestResultManagerTestCase(TestCase):
                 duration=156,
             ),
             TestResult(
-                job=job,
+                step=jobstep,
                 suite=suite,
                 name='test_foo',
                 package='tests.changes.handlers.test_coverage',
@@ -37,7 +39,7 @@ class TestResultManagerTestCase(TestCase):
                 reruns=1,
             ),
         ]
-        manager = TestResultManager(job)
+        manager = TestResultManager(jobstep)
         manager.save(results)
 
         testcase_list = sorted(TestCase.query.all(), key=lambda x: x.name)
@@ -46,6 +48,7 @@ class TestResultManagerTestCase(TestCase):
 
         for test in testcase_list:
             assert test.job_id == job.id
+            assert test.step_id == jobstep.id
             assert test.project_id == self.project.id
             assert test.suite_id == suite.id
 
@@ -135,9 +138,12 @@ class TestResultManagerTestCase(TestCase):
         # assert agg_groups[3].name == 'tests.changes.handlers.test_xunit.test_bar'
 
         job2 = self.create_job(build)
+        jobphase2 = self.create_jobphase(job2)
+        jobstep2 = self.create_jobstep(jobphase2)
+
         results2 = [
             TestResult(
-                job=job2,
+                step=jobstep2,
                 name='test_bar',
                 package='tests.changes.handlers.test_bar',
                 result=Result.failed,
@@ -145,7 +151,7 @@ class TestResultManagerTestCase(TestCase):
                 duration=156,
             ),
         ]
-        manager = TestResultManager(job2)
+        manager = TestResultManager(jobstep2)
         manager.save(results2)
 
         teststat = ItemStat.query.filter(

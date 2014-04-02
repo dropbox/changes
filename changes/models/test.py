@@ -130,6 +130,7 @@ class TestCase(db.Model):
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"))
     suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
     name_sha = Column('label_sha', String(40), nullable=False)
     name = Column(Text, nullable=False)
@@ -141,6 +142,7 @@ class TestCase(db.Model):
     reruns = Column(Integer)
 
     job = relationship('Job')
+    step = relationship('JobStep')
     project = relationship('Project')
     suite = relationship('TestSuite')
 

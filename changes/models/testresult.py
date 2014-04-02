@@ -21,10 +21,10 @@ class TestResult(object):
     A helper class which ensures that TestGroup and TestSuite instances are
     managed correctly when TestCase's are created.
     """
-    def __init__(self, job, name, message=None, package=None,
+    def __init__(self, step, name, message=None, package=None,
                  result=None, duration=None, date_created=None, suite=None,
                  reruns=None):
-        self.job = job
+        self.step = step
         self._name = name
         self._package = package
         self.message = message
@@ -61,8 +61,8 @@ class TestResult(object):
 
 
 class TestResultManager(object):
-    def __init__(self, job):
-        self.job = job
+    def __init__(self, step):
+        self.step = step
 
     def regroup_tests(self, test_list):
         grouped = defaultdict(list)
@@ -107,7 +107,7 @@ class TestResultManager(object):
         return None
 
     def create_test_leaf(self, test, parent, testcase):
-        job = self.job
+        job = self.step.job
         project = job.project
         name_sha = test.name_sha
 
@@ -131,7 +131,7 @@ class TestResultManager(object):
         return group
 
     def create_aggregate_test_leaf(self, test, parent):
-        job = self.job
+        job = self.step.job
         project = job.project
         name_sha = test.name_sha
 
@@ -160,15 +160,12 @@ class TestResultManager(object):
         Removes all existing test data from this job.
         """
         TestCase.query.filter(
-            TestCase.job_id == self.job.id,
-        ).delete(synchronize_session=False)
-
-        TestGroup.query.filter(
-            TestGroup.job_id == self.job.id,
+            TestCase.step_id == self.step.id,
         ).delete(synchronize_session=False)
 
     def save(self, test_list):
-        job = self.job
+        step = self.step
+        job = step.job
         project = job.project
         groups_by_id = {}
         tests_by_id = {}
@@ -189,6 +186,7 @@ class TestResultManager(object):
         for test in test_list:
             testcase = TestCase(
                 job=job,
+                step=step,
                 name_sha=test.name_sha,
                 project=project,
                 suite=test.suite,
@@ -207,16 +205,16 @@ class TestResultManager(object):
         for (name, sep), _ in grouped_tests:
             parent = self.find_parent(name, sep, groups_by_id)
 
-            group = TestGroup(
-                job=job,
-                name_sha=sha1(name).hexdigest(),
-                suite=test.suite,
-                name=name,
-                project=project,
-                num_leaves=leaf_counts.get(name),
-                parent=parent,
-            )
-            db.session.add(group)
+            group, _ = create_or_update(TestGroup, where={
+                'job': job,
+                'name_sha': sha1(name).hexdigest(),
+                'suite': test.suite,
+            }, values={
+                'name': name,
+                'project': project,
+                'num_leaves': leaf_counts.get(name),
+                'parent': parent,
+            })
 
             groups_by_id[name] = group
 
