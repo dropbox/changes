@@ -125,6 +125,7 @@ class TestCase(db.Model):
         UniqueConstraint('job_id', 'suite_id', 'label_sha', name='unq_test_key'),
         Index('idx_test_project_id', 'project_id'),
         Index('idx_test_suite_id', 'suite_id'),
+        Index('idx_test_step_id', 'step_id'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

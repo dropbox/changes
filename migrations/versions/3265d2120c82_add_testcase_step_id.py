@@ -17,6 +17,7 @@ import sqlalchemy as sa
 def upgrade():
     op.add_column('test', sa.Column('step_id', sa.GUID(), nullable=True))
     op.create_foreign_key('test_step_id_fkey', 'test', 'jobstep', ['step_id'], ['id'], ondelete='CASCADE')
+    op.create_index('idx_test_step_id', 'test', ['step_id'])
 
 
 def downgrade():
