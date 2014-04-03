@@ -131,6 +131,16 @@ class TrackedTask(local):
 
             try:
                 self._retry()
+            except TooManyRetries as exc:
+                date_finished = datetime.utcnow()
+
+                self._update({
+                    Task.date_finished: date_finished,
+                    Task.date_modified: date_finished,
+                    Task.status: Status.finished,
+                    Task.result: Result.failed,
+                })
+                self.logger.exception(unicode(exc))
             except Exception as exc:
                 self.logger.exception(unicode(exc))
                 raise
