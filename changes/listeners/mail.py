@@ -2,6 +2,8 @@ from __future__ import absolute_import, print_function
 
 from flask import render_template
 from flask_mail import Message, sanitize_address
+from jinja2 import Markup
+from pynliner import Pynliner
 
 from changes.config import db, mail
 from changes.constants import Result
@@ -73,7 +75,9 @@ class MailNotificationHandler(NotificationHandler):
             'Reply-To': ', '.join(sanitize_address(r) for r in recipients),
         })
         msg.body = render_template('listeners/mail/notification.txt', **context)
-        msg.html = render_template('listeners/mail/notification.html', **context)
+        msg.html = Markup(Pynliner().from_string(
+            render_template('listeners/mail/notification.html', **context)
+        ).run())
 
         mail.send(msg)
 
