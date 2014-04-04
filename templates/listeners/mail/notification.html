@@ -1,39 +1,259 @@
 <html lang="en">
-<head><title>#{{ build.number }}.{{ job.number }} {{ result_label }}</title></head>
-<body><div style="line-height: 1.5em;">
+<head>
+    <title>{{ title }}</title>
+    <style type="text/css">
+    body {
+      font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+      font-size: 15px;
+      background: #f7f5fa;
+    }
 
-<h2 style="font-weight:normal">
-    {{ build.label }} <small style="color:#999">{{ build.target or build.source.revision_sha }}</small><br>
-    <small style="color:#999">#{{ build.number }}.{{ job.number }} &mdash; {{ job.label }}</small>
-</h2>
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 300;
+      font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+    }
+    h1 small,
+    h2 small,
+    h3 small,
+    h4 small {
+      font-weight: 300;
+    }
 
-<dl>
-    <dt style="font-weight:bold;float:left;width:60px;">Build:</dt>
-    <dd><a href="{{ build.uri }}">{{ build.label }}</a></dd>
-    <dt style="font-weight:bold;float:left;width:60px;">Job:</dt>
-    <dd><a href="{{ job.uri }}">{{ job.label }}</a></dd>
-    {% if build.author %}
-        <dt style="font-weight:bold;float:left;width:60px;">Author:</dt>
-        <dd>{{ build.author.name }}</dd>
-    {% endif %}
-</dl>
+    h3 {
+      line-height: 22px;
+      font-size: 20px;
+    }
+
+    h3 small,
+    h3 .pull-right {
+      color: #999;
+      font-weight: 300;
+      font-size: 13px;
+    }
+
+    h2 {
+      font-size: 1.6em;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    a, a:hover, a:active, a:focus {
+      color: #6e5baa;
+    }
+
+    pre {
+      border: 0;
+      color: #333;
+      background: #f7f5fa;
+      white-space: pre-wrap;
+    }
+
+    .pull-right {
+      float: right;
+    }
+
+    .container {
+        width: 600px;
+    }
+
+    .page-header {
+      margin-top: 0;
+      border-bottom: 0;
+      position: relative;
+    }
+
+    .page-header .crumb {
+      float: left;
+      font-size: 34px;
+      height: 48px;
+      line-height: 48px;
+      font-weight: 300;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .page-header .crumb li {
+      display: inline-block;
+    }
+    .page-header .crumb li:after {
+      color: #ddd;
+      padding: 0 5px;
+      content: "/\00a0";
+    }
+    .page-header .crumb li.nodiv:after {
+      content: "";
+    }
+    .page-header .crumb .indicator {
+      padding: 0 10px;
+    }
+    .page-header .indicator {
+      padding: 0 3px;
+    }
+    .page-header .branch {
+      font-size: 0.7em;
+      line-height: 22px;
+    }
+    .indicator {
+      font-weight: 300;
+      color: #aaa;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      width: auto;
+      height: auto;
+    }
+    a.indicator {
+      text-decoration: none;
+    }
+    .result-aborted .indicator {
+      color: #fff;
+      background: #aaa;
+      border-color: #aaa;
+    }
+    .result-passed .indicator {
+      color: #fff;
+      background: rgb(114, 194, 114);
+      border-color: rgb(114, 194, 114);
+    }
+    .result-failed .indicator {
+      color: #fff;
+      background: #d9322d;
+      border-color: #d9322d;
+    }
+    .result-unknown .indicator {
+      color: #aaa;
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+    .build-header h2 {
+      font-size: 1.4em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 44px;
+      min-height: 48px;
+      margin-bottom: 0;
+    }
+    .build-header h2 small {
+      font-size: 0.7em;
+    }
+    .branch {
+      margin-top: 0;
+      border-radius: 2px;
+      background: #eee;
+      color: #333;
+      padding: 0 3px;
+      text-transform: uppercase;
+      margin-right: 3px;
+      vertical-align: text-top;
+    }
+    .build-log {
+      border-radius: 4px;
+      background: #333;
+      color: #ddd;
+      padding: 9.5px;
+      font-size: 12px;
+      font-weight: 300;
+      min-height: 50px;
+    }
+    .test-list {
+      list-style: none;
+      margin-left: 0;
+      padding-left: 0;
+    }
+    .test-list li {
+      position: relative;
+      margin-bottom: 5px;
+    }
+    .test-list li a {
+      color: inherit;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      display: block;
+    }
+
+    .btn {
+      border: 1px solid #c7c0de;
+      color: #58488a;
+      text-decoration: none;
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 10px;
+      line-height: 1.5;
+      border-radius: 3px;
+      margin-bottom: 0;
+      font-weight: normal;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      text-transform: uppercase;
+      -webkit-user-select: none;
+         -moz-user-select: none;
+          -ms-user-select: none;
+           -o-user-select: none;
+              user-select: none;
+    }
+    </style>
+</head>
+<body><div class="container">
+<div class="page-header build-header status-{{ job.status.name }} result-{{ job.result.name }}">
+    <ul class="crumb">
+        <li class="status-{{ build.status.name }} result-{{ build.result.name }}">
+            <a href="{{ build.uri }}" class="indicator">#{{ build.number }}</a>
+        </li>
+    </ul>
+    <h2>
+        {{ build.label }}<br>
+        <small>
+            <a href="{{ job.uri }}" class="indicator">#{{ build.number }}.{{ job.number }}</a></span> {{ job.label|truncate(20) }} &mdash;
+            {% if build.source.revision.branches %}
+                {% for branch in build.source.revision.branches %}
+                    <span class="branch">{{ branch }}</span>
+                {% endfor %}
+            {% endif %}
+            <a>{{ build.target }}</a>
+            {% if build.author %}
+                &mdash; {{ build.author.name }}
+                {% if build.author.email %}
+                    ({{ build.author.email }})
+                {% endif %}
+            {% endif %}
+        </small>
+    </h2>
+</div>
+
+{% if build.message %}
+  <pre class="build-message">{{ build.message|truncate(300) }}</pre>
+{% endif %}
+
+{% if build.result.name == 'passed' %}
+    <p><strong>Congraulations, your build pased!</strong></p>
+{% endif %}
 
 {% if test_failures %}
-    <h3>Test Failures <small style="color:#999">{{ total_test_failures }} total</small></h3>
+    <h3>Test Failures <small>{{ total_test_failures }} total</small></h3>
 
-    <ul>
+    <ul class="test-list">
         {% for test in test_failures %}
-            <li><a href="{{ test.uri }}">{{ test.name }}</a></li>
+            <li>
+              <a href="{{ test.uri }}">{{ test.name }}</a>
+            </li>
         {% endfor %}
     </ul>
 {% endif %}
 
 {% if build_log %}
-    <h3>Build Log <small style="color:#999">{{ build_log.name }}</small></h3>
+    <h3>
+      <span class="pull-right">
+        <a href="{{ build_log.uri }}" class="btn">view full log</a>
+      </span>
+      Build Log <small>{{ build_log.name }}</small>
+    </h3>
 
-    <pre style="font-size:0.85em">{{ build_log.text }}</pre>
-
-    <p><a href="{{ build_log.uri }}">View full log</a></p>
+    <pre class="build-log">{{ build_log.text }}</pre>
 {% endif %}
 
 </div></body></html>

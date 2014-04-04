@@ -6,17 +6,12 @@ from changes.models.test import TestGroup
 @register(TestGroup)
 class TestGroupSerializer(Serializer):
     def serialize(self, instance, attrs):
-        if instance.parent:
-            short_name = instance.name[len(instance.parent.name) + 1:]
-        else:
-            short_name = instance.name
-
         data = {
             'id': instance.id.hex,
             'job': {'id': instance.job_id.hex},
             'project': {'id': instance.project_id.hex},
             'name': instance.name,
-            'shortName': short_name,
+            'shortName': instance.short_name,
             'duration': instance.duration or 0,
             'result': instance.result or Result.unknown,
             'numTests': instance.num_tests or 0,

@@ -46,7 +46,7 @@ class TestResult(object):
 
     @property
     def name_sha(self):
-        return TestCase.calculate_name_sha(self._package, self._name)
+        return TestCase.calculate_name_sha(self.name)
 
     @property
     def package(self):

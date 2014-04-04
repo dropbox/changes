@@ -11,12 +11,7 @@ from changes.utils.http import build_uri
 
 
 class MailNotificationHandler(NotificationHandler):
-    def send(self, job, parent=None):
-        # TODO(dcramer): we should send a clipping of a relevant job log
-        recipients = self.get_recipients(job)
-        if not recipients:
-            return
-
+    def get_context(self, job, parent=None):
         test_failures = self.get_test_failures(job)
         num_test_failures = test_failures.count()
         test_failures = test_failures[:25]
@@ -42,6 +37,7 @@ class MailNotificationHandler(NotificationHandler):
         is_failure = job.result == Result.failed
 
         context = {
+            'title': subject,
             'job': job,
             'build': job.build,
             'is_failure': is_failure,
@@ -63,7 +59,17 @@ class MailNotificationHandler(NotificationHandler):
                     'uri': '{0}logs/{1}/'.format(job.uri, primary_log.id.hex),
                 }
 
-        msg = Message(subject, recipients=recipients, extra_headers={
+        return context
+
+    def send(self, job, parent=None):
+        # TODO(dcramer): we should send a clipping of a relevant job log
+        recipients = self.get_recipients(job)
+        if not recipients:
+            return
+
+        context = self.get_context(job, parent)
+
+        msg = Message(context['title'], recipients=recipients, extra_headers={
             'Reply-To': ', '.join(sanitize_address(r) for r in recipients),
         })
         msg.body = render_template('listeners/mail/notification.txt', **context)

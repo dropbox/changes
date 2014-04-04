@@ -314,9 +314,12 @@ def configure_web_routes(app):
 
 def configure_debug_routes(app):
     from changes.debug.reports.build import BuildReportMailView
+    from changes.debug.mail.job_result import JobResultMailView
 
     app.add_url_rule(
         '/debug/mail/report/build/', view_func=BuildReportMailView.as_view('debug-build-report'))
+    app.add_url_rule(
+        '/debug/mail/result/job/<job_id>/', view_func=JobResultMailView.as_view('debug-build-result'))
 
 
 def configure_jobs(app):

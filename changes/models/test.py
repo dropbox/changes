@@ -115,6 +115,19 @@ class TestGroup(db.Model):
         if self.num_leaves is None:
             self.num_leaves = 0
 
+    @property
+    def package(self):
+        if self.parent:
+            return self.parent.name
+        return None
+
+    @property
+    def short_name(self):
+        package = self.package
+        if package:
+            return self.name[len(package) + 1:]
+        return self.name
+
 
 class TestCase(db.Model):
     """
@@ -135,7 +148,7 @@ class TestCase(db.Model):
     suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
     name_sha = Column('label_sha', String(40), nullable=False)
     name = Column(Text, nullable=False)
-    package = Column(Text, nullable=True)
+    _package = Column('package', Text, nullable=True)
     result = Column(Enum(Result), default=Result.unknown, nullable=False)
     duration = Column(Integer, default=0)
     message = Column(Text)
@@ -147,7 +160,7 @@ class TestCase(db.Model):
     project = relationship('Project')
     suite = relationship('TestSuite')
 
-    __repr__ = model_repr('name', 'package', 'result')
+    __repr__ = model_repr('name', '_package', 'result')
 
     def __init__(self, **kwargs):
         super(TestCase, self).__init__(**kwargs)
@@ -159,18 +172,14 @@ class TestCase(db.Model):
             self.date_created = datetime.utcnow()
 
     @classmethod
-    def calculate_name_sha(self, package, name):
-        if package and name:
-            new_sha = sha1('{0}.{1}'.format(package, name)).hexdigest()
-        elif name:
-            new_sha = sha1(name).hexdigest()
-        else:
-            raise ValueError
-        return new_sha
+    def calculate_name_sha(self, name):
+        if name:
+            return sha1(name).hexdigest()
+        raise ValueError
 
     @property
     def sep(self):
-        name = (self.package or self.name)
+        name = (self._package or self.name)
         # handle the case where it might begin with some special character
         if not re.match(r'^[a-zA-Z0-9]', name):
             return '/'
@@ -178,24 +187,27 @@ class TestCase(db.Model):
             return '/'
         return '.'
 
-
-def test_name_sha_func(attr):
-    def set_name_sha(target, value, oldvalue, initiator):
-        if attr == 'package':
-            package = value
+    def _get_package(self):
+        if not self._package:
+            try:
+                package, _ = self.name.rsplit(self.sep, 1)
+            except ValueError:
+                package, _ = None, self.name
         else:
-            package = target.package
-        if attr == 'name':
-            name = value
-        else:
-            name = target.name
+            package = self._package
+        return package
 
-        new_sha = TestCase.calculate_name_sha(package, name)
+    def _set_package(self, value):
+        self._package = value
 
-        if new_sha != target.name_sha:
-            target.name_sha = new_sha
-        return value
-    return set_name_sha
+    package = property(_get_package, _set_package)
+
+    @property
+    def short_name(self):
+        package = self.package
+        if package and self.name.startswith(package):
+            return self.name[len(package) + 1:]
+        return self.name
 
 
 def set_name_sha(target, value, oldvalue, initiator):
@@ -208,7 +220,6 @@ def set_name_sha(target, value, oldvalue, initiator):
     return value
 
 
-listen(TestCase.package, 'set', test_name_sha_func('package'), retval=False)
-listen(TestCase.name, 'set', test_name_sha_func('name'), retval=False)
+listen(TestCase.name, 'set', set_name_sha, retval=False)
 listen(TestSuite.name, 'set', set_name_sha, retval=False)
 listen(TestGroup.name, 'set', set_name_sha, retval=False)
