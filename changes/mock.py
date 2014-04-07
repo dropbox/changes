@@ -5,7 +5,6 @@ import random
 
 from hashlib import sha1
 from loremipsum import get_paragraphs, get_sentences
-from slugify import slugify
 from uuid import uuid4
 
 from changes.config import db
@@ -17,6 +16,7 @@ from changes.models import (
     Patch
 )
 from changes.testutils.fixtures import SAMPLE_DIFF
+from changes.utils.slugs import slugify
 
 
 TEST_PACKAGES = itertools.cycle([

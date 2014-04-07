@@ -3,7 +3,6 @@ from __future__ import absolute_import
 __all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT')
 
 from loremipsum import get_paragraphs, get_sentences
-from slugify import slugify
 from uuid import uuid4
 
 from changes.config import db
@@ -12,6 +11,7 @@ from changes.models import (
     TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk
 )
+from changes.utils.slugs import slugify
 
 
 SAMPLE_COVERAGE = """<?xml version="1.0" ?>

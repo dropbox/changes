@@ -1,5 +1,4 @@
 from datetime import datetime
-from slugify import slugify
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, relationship, joinedload
@@ -10,6 +9,7 @@ from changes.config import db
 from changes.constants import ProjectStatus
 from changes.db.types.guid import GUID
 from changes.db.types.enum import Enum
+from changes.utils.slugs import slugify
 
 
 class Project(db.Model):

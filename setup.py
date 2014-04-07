@@ -57,7 +57,6 @@ install_requires = [
     'simplejson>=3.3.0,<3.4.0',
     'sqlalchemy==0.9.4',
     'statprof',
-    'unicode-slugify>=0.1.1,<0.2.0',
 ]
 
 
