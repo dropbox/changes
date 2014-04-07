@@ -9,8 +9,8 @@
     "tests"
   ],
   "devDependencies": {
-    "angular": "~1.2.14",
-    "angular-animate": "~1.2.14",
+    "angular": "1.2.14",
+    "angular-animate": "1.2.14",
     "angular-bootstrap": "~0.10.0",
     "angular-loading-bar": "~0.0.5",
     "angular-linkify": "~0.3.0",
