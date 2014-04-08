@@ -62,7 +62,7 @@ SAMPLE_XUNIT = """<?xml version="1.0" encoding="utf-8"?>
 &gt;   import mock
 E   ImportError: No module named mock</failure>
     </testcase>
-    <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907"/>
+    <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
 </testsuite>"""
 
 

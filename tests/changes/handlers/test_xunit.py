@@ -40,3 +40,4 @@ E   ImportError: No module named mock"""
     assert r2.duration == 1.65796279907
     assert r2.result == Result.passed
     assert r2.message == ''
+    assert r2.reruns == 1

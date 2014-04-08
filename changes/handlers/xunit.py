@@ -116,7 +116,7 @@ class XunitHandler(ArtifactHandler):
                 duration=duration,
                 result=result,
                 message=message,
-                reruns=int(attrs.get('reruns')) if attrs.get('reruns') else None
+                reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None
             ))
 
         return results
