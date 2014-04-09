@@ -38,7 +38,15 @@ def identify_revision(repository, treeish):
     try:
         commit = list(vcs.log(parent=treeish, limit=1))[0]
     except IndexError:
-        return
+        # fall back to HEAD/tip when a matching revision isn't found
+        # this case happens frequently with gateways like hg-git
+        # TODO(dcramer): it's possible to DOS the endpoint by passing invalid
+        # commits so we should really cache the failed lookups
+        try:
+            commit = list(vcs.log(limit=1))[0]
+        except Exception:
+            logging.exception('Failed to find commit: %s', treeish)
+            return
     except Exception:
         logging.exception('Failed to find commit: %s', treeish)
         return
