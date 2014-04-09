@@ -5,7 +5,7 @@
     body {
       font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
       font-size: 15px;
-      background: #f7f5fa;
+      background: #fff;
     }
 
     h1, h2, h3, h4, h5, h6 {
@@ -42,9 +42,14 @@
 
     pre {
       border: 0;
+      padding: 5px;
       color: #333;
       background: #f7f5fa;
+      font-family: monospace;
       white-space: pre-wrap;
+      font-size: 12px;
+      line-height: 16px;
+      border-radius: 4px;
     }
 
     .pull-right {
@@ -58,7 +63,13 @@
     .page-header {
       margin-top: 0;
       border-bottom: 0;
+      height: 48px;
       position: relative;
+    }
+
+    .page-header h2 {
+      font-size: 22px;
+      line-height: 24px;
     }
 
     .page-header .crumb {
@@ -74,14 +85,11 @@
     }
     .page-header .crumb li {
       display: inline-block;
+      margin-left: 0;
     }
-    .page-header .crumb li:after {
+    .page-header .crumb li.sep {
       color: #ddd;
-      padding: 0 5px;
-      content: "/\00a0";
-    }
-    .page-header .crumb li.nodiv:after {
-      content: "";
+      margin-right: 10px;
     }
     .page-header .crumb .indicator {
       padding: 0 10px;
@@ -112,8 +120,8 @@
     }
     .result-passed .indicator {
       color: #fff;
-      background: rgb(114, 194, 114);
-      border-color: rgb(114, 194, 114);
+      background: #72c272;
+      border-color: #72c272;
     }
     .result-failed .indicator {
       color: #fff;
@@ -148,18 +156,15 @@
       vertical-align: text-top;
     }
     .build-log {
-      border-radius: 4px;
       background: #333;
       color: #ddd;
       padding: 9.5px;
-      font-size: 12px;
-      font-weight: 300;
       min-height: 50px;
     }
     .test-list {
-      list-style: none;
-      margin-left: 0;
+      margin-left: 30px;
       padding-left: 0;
+      list-style: square;
     }
     .test-list li {
       position: relative;
@@ -168,10 +173,9 @@
     .test-list li a {
       color: inherit;
       text-decoration: none;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
       display: block;
+      font-size: 12px;
+      font-family: monospace;
     }
 
     .btn {
@@ -204,24 +208,12 @@
         <li class="status-{{ build.status.name }} result-{{ build.result.name }}">
             <a href="{{ build.uri }}" class="indicator">#{{ build.number }}</a>
         </li>
+        <li class="sep">/</li>
     </ul>
     <h2>
         {{ build.label }}<br>
         <small>
-            <a href="{{ job.uri }}" class="indicator">#{{ build.number }}.{{ job.number }}</a></span> {{ job.label|truncate(20) }} &mdash;
-            {% if build.source.revision.branches %}
-                {% for branch in build.source.revision.branches %}
-                    <span class="branch">{{ branch }}</span>
-                {% endfor %}
-            {% endif %}
-            <a>{{ build.target }}</a>
-            {% if build.author %}
-                &mdash; {{ build.author.name }}
-                {% if build.author.email %}
-                    ({{ build.author.email }})
-                {% endif %}
-            {% endif %}
-        </small>
+            <a href="{{ job.uri }}" class="indicator">#{{ build.number }}.{{ job.number }}</a></span> {{ job.label|truncate(60, True) }}</small>
     </h2>
 </div>
 
@@ -239,7 +231,7 @@
     <ul class="test-list">
         {% for test in test_failures %}
             <li>
-              <a href="{{ test.uri }}">{{ test.name }}</a>
+              <a href="{{ test.uri }}">{{ test.name|truncate(75, True) }}</a>
             </li>
         {% endfor %}
     </ul>
