@@ -7,8 +7,9 @@ from pynliner import Pynliner
 
 from changes.config import db, mail
 from changes.constants import Result
+from changes.db.utils import try_create
 from changes.listeners.notification_base import NotificationHandler
-from changes.models import JobPlan, ProjectOption, ItemOption
+from changes.models import Event, EventType, JobPlan, ProjectOption, ItemOption
 from changes.utils.http import build_uri
 
 
@@ -67,6 +68,17 @@ class MailNotificationHandler(NotificationHandler):
         # TODO(dcramer): we should send a clipping of a relevant job log
         recipients = self.get_recipients(job)
         if not recipients:
+            return
+
+        event = try_create(Event, where={
+            'type': EventType.email,
+            'item_id': job.build_id,
+            'data': {
+                'recipients': recipients,
+            }
+        })
+        if not event:
+            # We've already sent out notifications for this build
             return
 
         context = self.get_context(job, parent)
