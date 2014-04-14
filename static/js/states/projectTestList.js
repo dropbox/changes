@@ -8,7 +8,7 @@ define([
     parent: 'project_details',
     url: 'tests/',
     templateUrl: 'partials/project-test-list.html',
-    controller: function($scope, testList) {
+    controller: function($http, $scope, testList) {
       function loadTestList(url) {
         if (!url) {
           return;
