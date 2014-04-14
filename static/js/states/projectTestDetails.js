@@ -7,8 +7,8 @@ define([
   'use strict';
 
   return {
-    parent: 'project_tests',
-    urls: ':test_id/',
+    parent: 'project_details',
+    url: 'tests/:test_id/',
     templateUrl: 'partials/project-test-details.html',
     controller: function($scope, testData) {
       var chart_options = {
@@ -35,15 +35,15 @@ define([
           }
         };
 
-      $scope.test = testData.data;
-      $scope.childTests = testData.data.childTests;
-      $scope.context = testData.data.context;
-      $scope.previousRuns = testData.data.previousRuns;
-      $scope.chartData = chartHelpers.getChartData($scope.previousRuns, null, chart_options);
+      $scope.test = testData;
+      $scope.results = testData.results;
+      $scope.chartData = chartHelpers.getChartData($scope.results, null, chart_options);
     },
     resolve: {
-      initialTest: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/');
+      testData: function($http, $stateParams, projectData) {
+        return $http.get('/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/').then(function(response){
+          return response.data;
+        });
       }
     }
   };

@@ -74,5 +74,5 @@ class BuildDetailsTest(APITestCase):
         assert data['previousRuns'][0]['id'] == previous_build.id.hex
         assert data['seenBy'] == []
         assert data['testFailures']['total'] == 0
-        assert data['testFailures']['testGroups'] == []
+        assert data['testFailures']['tests'] == []
         assert data['testChanges'] == []

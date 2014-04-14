@@ -1,8 +1,6 @@
 from uuid import uuid4
 
-from changes.config import db
 from changes.constants import Result, Status
-from changes.models import TestGroup, AggregateTestGroup
 from changes.testutils import APITestCase
 
 
@@ -17,23 +15,7 @@ class ProjectTestIndexTest(APITestCase):
         build = self.create_build(project)
         job = self.create_job(
             build, status=Status.finished, result=Result.passed)
-
-        agg_group = AggregateTestGroup(
-            project=project,
-            name='foo',
-            name_sha='a' * 40,
-            first_job=job,
-            last_job=job,
-        )
-        db.session.add(agg_group)
-
-        group = TestGroup(
-            job=job,
-            project=project,
-            name='foo',
-            name_sha='a' * 40,
-        )
-        db.session.add(group)
+        test = self.create_test(job=job)
 
         path = '/api/0/projects/{0}/tests/'.format(fake_project_id.hex)
 
@@ -46,5 +28,5 @@ class ProjectTestIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == agg_group.id.hex
-        assert data[0]['lastTest']['id'] == group.id.hex
+        assert data[0]['hash'] == test.name_sha
+        assert data[0]['project']['id'] == project.id.hex

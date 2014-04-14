@@ -5,10 +5,10 @@ from sqlalchemy.orm import joinedload
 from uuid import UUID
 
 from changes.api.base import APIView
-from changes.api.serializer.models.testgroup import TestGroupWithOriginSerializer
+from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
 from changes.config import db
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, Job, TestCase, TestGroup, BuildSeen, User
+from changes.models import Build, Job, TestCase, BuildSeen, User
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -132,14 +132,12 @@ class BuildDetailsAPIView(APIView):
         ))
 
         # identify failures
-        test_failures = TestGroup.query.options(
-            joinedload('parent'),
+        test_failures = TestCase.query.options(
             joinedload('job', innerjoin=True),
         ).filter(
-            TestGroup.job_id.in_([j.id for j in jobs]),
-            TestGroup.result == Result.failed,
-            TestGroup.num_leaves == 0,
-        ).order_by(TestGroup.name.asc())
+            TestCase.job_id.in_([j.id for j in jobs]),
+            TestCase.result == Result.failed,
+        ).order_by(TestCase.name.asc())
         num_test_failures = test_failures.count()
         test_failures = test_failures[:25]
 
@@ -165,7 +163,7 @@ class BuildDetailsAPIView(APIView):
         ))
 
         extended_serializers = {
-            TestGroup: TestGroupWithOriginSerializer(),
+            TestCase: TestCaseWithOriginSerializer(),
         }
 
         context = self.serialize(build)
@@ -175,7 +173,7 @@ class BuildDetailsAPIView(APIView):
             'seenBy': seen_by,
             'testFailures': {
                 'total': num_test_failures,
-                'testGroups': self.serialize(test_failures, extended_serializers),
+                'tests': self.serialize(test_failures, extended_serializers),
             },
             'testChanges': self.serialize(changed_tests, extended_serializers),
         })

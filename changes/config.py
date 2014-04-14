@@ -241,7 +241,7 @@ def configure_api_routes(app):
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.stream_index import StreamIndexAPIView
     from changes.api.task_details import TaskDetailsAPIView
-    from changes.api.testgroup_details import TestGroupDetailsAPIView
+    from changes.api.testcase_details import TestCaseDetailsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
@@ -272,11 +272,11 @@ def configure_api_routes(app):
     api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')
     api.add_resource(ProjectOptionsIndexAPIView, '/projects/<project_id>/options/')
     api.add_resource(ProjectTestIndexAPIView, '/projects/<project_id>/tests/')
-    api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_id>/')
+    api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_hash>/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(StreamIndexAPIView, '/stream/')
-    api.add_resource(TestGroupDetailsAPIView, '/testgroups/<testgroup_id>/')
+    api.add_resource(TestCaseDetailsAPIView, '/tests/<test_id>/')
     api.add_resource(TaskDetailsAPIView, '/tasks/<task_id>/')
 
 

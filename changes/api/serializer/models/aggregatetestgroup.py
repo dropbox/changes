@@ -22,8 +22,8 @@ class AggregateTestGroupSerializer(Serializer):
             'dateCreated': instance.date_created,
         }
 
-        if hasattr(instance, 'last_testgroup'):
-            data['lastTest'] = instance.last_testgroup
+        if hasattr(instance, 'last_testcase'):
+            data['lastTest'] = instance.last_testcase
         return data
 
 

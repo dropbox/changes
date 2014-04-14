@@ -2,13 +2,11 @@ from __future__ import absolute_import, division
 
 from collections import defaultdict
 from datetime import datetime, timedelta
-
-from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Build, TestGroup, Source
+from changes.models import Build, TestCase, Source
 from changes.utils.http import build_uri
 
 
@@ -145,8 +143,6 @@ class BuildReport(object):
         return slow_tests[:10]
 
     def get_slow_tests_for_project(self, project, start_period, end_period):
-        parent_alias = aliased(TestGroup, name='testparent')
-
         latest_build = Build.query.filter(
             Build.project == project,
             Build.status == Status.finished,
@@ -165,28 +161,22 @@ class BuildReport(object):
             return []
 
         queryset = db.session.query(
-            TestGroup.name, parent_alias.name, TestGroup.duration,
-        ).outerjoin(
-            parent_alias, parent_alias.id == TestGroup.parent_id,
+            TestCase.name, TestCase.duration,
         ).filter(
-            TestGroup.job_id.in_(j.id for j in job_list),
-            TestGroup.num_leaves == 0,
-            TestGroup.result == Result.passed,
-            TestGroup.date_created > start_period,
-            TestGroup.date_created <= end_period,
+            TestCase.job_id.in_(j.id for j in job_list),
+            TestCase.result == Result.passed,
+            TestCase.date_created > start_period,
+            TestCase.date_created <= end_period,
         ).group_by(
-            TestGroup.name, parent_alias.name, TestGroup.duration,
-        ).order_by(TestGroup.duration.desc())
+            TestCase.name, TestCase.duration,
+        ).order_by(TestCase.duration.desc())
 
         slow_list = []
-        for name, parent_name, duration in queryset[:10]:
-            if parent_name:
-                name = name[len(parent_name) + 1:]
-
+        for name, duration in queryset[:10]:
             slow_list.append({
                 'project': project,
                 'name': name,
-                'package': parent_name,
+                'package': '',  # TODO
                 'duration': '%.2f s' % (duration / 1000.0,),
                 'duration_raw': duration,
                 # 'link': build_uri('/projects/{0}/tests/{1}/'.format(
@@ -199,35 +189,29 @@ class BuildReport(object):
         projects_by_id = dict((p.id, p) for p in self.projects)
         project_ids = projects_by_id.keys()
 
-        parent_alias = aliased(TestGroup, name='testparent')
-
         queryset = db.session.query(
-            TestGroup.name,
-            parent_alias.name,
-            TestGroup.project_id,
-            TestGroup.result,
-            func.count(TestGroup.id).label('num'),
-        ).outerjoin(
-            parent_alias, parent_alias.id == TestGroup.parent_id,
+            TestCase.name,
+            TestCase.project_id,
+            TestCase.result,
+            func.count(TestCase.id).label('num'),
         ).filter(
-            TestGroup.project_id.in_(project_ids),
-            TestGroup.num_leaves == 0,
-            TestGroup.result.in_([Result.passed, Result.failed]),
-            TestGroup.date_created > start_period,
-            TestGroup.date_created <= end_period,
+            TestCase.project_id.in_(project_ids),
+            TestCase.result.in_([Result.passed, Result.failed]),
+            TestCase.date_created > start_period,
+            TestCase.date_created <= end_period,
         ).group_by(
-            TestGroup.name,
-            parent_alias.name,
-            TestGroup.project_id,
-            TestGroup.result,
+            TestCase.name,
+            TestCase.project_id,
+            TestCase.result,
         )
 
         test_results = defaultdict(lambda: {
             'passed': 0,
             'failed': 0,
         })
-        for name, parent_name, project_id, result, count in queryset:
-            test_results[(name, parent_name, project_id)][result.name] += count
+        for name, project_id, result, count in queryset:
+            # TODO: parent name
+            test_results[(name, '', project_id)][result.name] += count
 
         if not test_results:
             return []

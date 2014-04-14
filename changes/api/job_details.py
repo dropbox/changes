@@ -3,9 +3,9 @@ from __future__ import absolute_import
 from sqlalchemy.orm import joinedload, subqueryload_all
 
 from changes.api.base import APIView
-from changes.api.serializer.models.testgroup import TestGroupWithOriginSerializer
+from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Job, TestGroup, LogSource
+from changes.models import Job, TestCase, LogSource
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -25,19 +25,10 @@ class JobDetailsAPIView(APIView):
             Job.id != job.id,
         ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
-        # find all parent groups (root trees)
-        test_groups = sorted(TestGroup.query.filter(
-            TestGroup.job_id == job.id,
-            TestGroup.parent_id == None,  # NOQA: we have to use == here
-        ), key=lambda x: x.name)
-
-        test_failures = TestGroup.query.options(
-            joinedload('parent'),
-        ).filter(
-            TestGroup.job_id == job.id,
-            TestGroup.result == Result.failed,
-            TestGroup.num_leaves == 0,
-        ).order_by(TestGroup.name.asc())
+        test_failures = TestCase.query.filter(
+            TestCase.job_id == job.id,
+            TestCase.result == Result.failed,
+        ).order_by(TestCase.name.asc())
         num_test_failures = test_failures.count()
         test_failures = test_failures[:25]
 
@@ -48,7 +39,7 @@ class JobDetailsAPIView(APIView):
                 test_failure.origin = failure_origins.get(test_failure)
 
         extended_serializers = {
-            TestGroup: TestGroupWithOriginSerializer(),
+            TestCase: TestCaseWithOriginSerializer(),
         }
 
         log_sources = list(LogSource.query.options(
@@ -62,10 +53,9 @@ class JobDetailsAPIView(APIView):
             'phases': job.phases,
             'testFailures': {
                 'total': num_test_failures,
-                'testGroups': self.serialize(test_failures, extended_serializers),
+                'tests': self.serialize(test_failures, extended_serializers),
             },
             'logs': log_sources,
-            'testGroups': test_groups,
             'previousRuns': previous_runs,
         })
 

@@ -1,0 +1,35 @@
+<div ng-if="!isSingleJob" ng-include="'partials/includes/build-header.html'"></div>
+
+<section class="section">
+    <div class="section-header">
+        <h3>Test Results</h3>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th colspan="2">&nbsp;</th>
+                <th style="width:110px;text-align:center"># Retries</th>
+                <th style="width:110px;text-align:center">Duration</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="testCase in testList"
+                class="result-{{testCase.result.id}}">
+                <td class="result"><span></span></td>
+                <td><a ui-sref="test_details({test_id: testCase.id})">{{testCase.name}}</a></td>
+                <td style="text-align:center">{{testCase.numRetries}}</td>
+                <td style="text-align:center" duration="testCase.duration"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul class="pager">
+        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        </li>
+        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">Next &rarr;</a>
+        </li>
+    </ul>
+</section>

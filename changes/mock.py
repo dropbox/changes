@@ -160,6 +160,10 @@ def job(build, change=None, **kwargs):
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('duration', random.randint(10000, 100000))
 
+    if 'source' not in kwargs:
+        kwargs['source'] = source(build.repository)
+
+    kwargs['source_id'] = kwargs['source'].id
     kwargs['project_id'] = kwargs['project'].id
     kwargs['build_id'] = build.id
     if change:
@@ -277,7 +281,7 @@ def patch(project, **kwargs):
 
 def source(repository, **kwargs):
     if not kwargs.get('revision_sha'):
-        kwargs['revision_sha'] = revision(repository, author())
+        kwargs['revision_sha'] = revision(repository, author()).sha
 
     source = Source(repository=repository, **kwargs)
     db.session.add(source)
@@ -296,7 +300,7 @@ def test_suite(job, name='default'):
     return suite
 
 
-def test_result(job, **kwargs):
+def test_result(jobstep, **kwargs):
     if 'package' not in kwargs:
         kwargs['package'] = TEST_PACKAGES.next()
 
@@ -304,13 +308,13 @@ def test_result(job, **kwargs):
         kwargs['name'] = TEST_NAMES.next() + '_' + uuid4().hex
 
     if 'suite' not in kwargs:
-        kwargs['suite'] = test_suite(job)
+        kwargs['suite'] = test_suite(jobstep.job)
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)
 
     kwargs.setdefault('result', Result.passed)
 
-    result = TestResult(job=job, **kwargs)
+    result = TestResult(step=jobstep, **kwargs)
 
     return result

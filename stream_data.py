@@ -107,14 +107,16 @@ def update_existing_entry(project):
     db.session.add(job)
     publish_job_update(job)
 
-    test_results = []
-    for _ in xrange(50):
-        if job.result == Result.failed:
-            result = Result.failed if random.randint(0, 3) == 1 else Result.passed
-        else:
-            result = Result.passed
-        test_results.append(mock.test_result(job, result=result))
-    TestResultManager(job).save(test_results)
+    jobstep = JobStep.query.filter(JobStep.job == job).first()
+    if jobstep:
+        test_results = []
+        for _ in xrange(50):
+            if job.result == Result.failed:
+                result = Result.failed if random.randint(0, 3) == 1 else Result.passed
+            else:
+                result = Result.passed
+            test_results.append(mock.test_result(jobstep, result=result))
+        TestResultManager(jobstep).save(test_results)
 
     if job.status == Status.finished:
         job.build.status = job.status

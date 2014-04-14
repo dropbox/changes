@@ -2,23 +2,19 @@ from __future__ import absolute_import, division
 
 import re
 
-from collections import defaultdict
 from datetime import datetime
-from hashlib import sha1
 from sqlalchemy import and_
 from sqlalchemy.sql import func, select
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import get_or_create, create_or_update, try_create
-from changes.models import (
-    AggregateTestGroup, ItemStat, Job, TestGroup, TestCase
-)
+from changes.db.utils import create_or_update, try_create
+from changes.models import ItemStat, Job, TestCase
 
 
 class TestResult(object):
     """
-    A helper class which ensures that TestGroup and TestSuite instances are
+    A helper class which ensures that TestSuite instances are
     managed correctly when TestCase's are created.
     """
     def __init__(self, step, name, message=None, package=None,
@@ -64,97 +60,6 @@ class TestResultManager(object):
     def __init__(self, step):
         self.step = step
 
-    def regroup_tests(self, test_list):
-        grouped = defaultdict(list)
-
-        for test in test_list:
-            sep = test.sep
-            parts = test.name.split(sep)
-
-            key = []
-            for part in parts[:-1]:
-                key.append(part)
-                grouped[(sep.join(key), sep)].append(test)
-
-        return sorted(grouped.iteritems(), key=lambda x: x[0])
-
-    def count_leaves_with_tests(self, test_list):
-        # test.name: set(leaves)
-        leaves = defaultdict(set)
-        for test in test_list:
-            t_name, t_sep = test.name, test.sep
-
-            leaves[t_name].add(t_name)
-            parent = t_name.rsplit(t_sep, 1)[0]
-            leaves[parent].add(t_name)
-
-            while len(leaves[parent]) > 1 and t_sep in parent:
-                parent = parent.rsplit(t_sep, 1)[0]
-                leaves[parent].add(parent)
-
-        return dict((k, len(v)) for k, v in leaves.iteritems())
-
-    def find_parent(self, name, sep, groups_by_id):
-        if sep not in name:
-            return None
-
-        key = name.rsplit(sep, 1)[:-1]
-        while key:
-            path = sep.join(key)
-            if path in groups_by_id:
-                return groups_by_id[path]
-            key.pop()
-        return None
-
-    def create_test_leaf(self, test, parent, testcase):
-        job = self.step.job
-        project = job.project
-        name_sha = test.name_sha
-
-        group = TestGroup(
-            job=job,
-            name_sha=name_sha,
-            name=test.name,
-            suite=test.suite,
-            project=project,
-            duration=test.duration,
-            result=test.result,
-            num_failed=1 if test.result == Result.failed else 0,
-            num_tests=1,
-            num_leaves=0,
-            parent=parent,
-        )
-        db.session.add(group)
-
-        group.testcases.append(testcase)
-
-        return group
-
-    def create_aggregate_test_leaf(self, test, parent):
-        job = self.step.job
-        project = job.project
-        name_sha = test.name_sha
-
-        agg, created = get_or_create(AggregateTestGroup, where={
-            'project': project,
-            'name_sha': name_sha,
-            'suite_id': None,  # TODO
-        }, defaults={
-            'name': test.name,
-            'parent': parent,
-            'first_job_id': job.id,
-            'last_job_id': job.id,
-        })
-        # if not created:
-        #     db.session.query(AggregateTestGroup).filter(
-        #         AggregateTestGroup.id == agg.id,
-        #         AggregateTestGroup.last_job_id == agg.last_job_id,
-        #     ).update({
-        #         AggregateTestGroup.last_job_id: job.id,
-        #     }, synchronize_session=False)
-
-        return agg
-
     def clear(self):
         """
         Removes all existing test data from this job.
@@ -167,20 +72,7 @@ class TestResultManager(object):
         step = self.step
         job = step.job
         project = job.project
-        groups_by_id = {}
-        tests_by_id = {}
         # agg_groups_by_id = {}
-
-        # Eliminate useless parents (parents which only have a single child)
-        leaf_counts = self.count_leaves_with_tests(test_list)
-
-        # collect all test groups
-        grouped_tests = self.regroup_tests(test_list)
-        grouped_tests = [
-            (k, t)
-            for k, t in grouped_tests
-            if leaf_counts.get(k[0], 0) >= 1
-        ]
 
         # create all test cases
         for test in test_list:
@@ -198,87 +90,6 @@ class TestResultManager(object):
                 reruns=test.reruns
             )
             db.session.add(testcase)
-
-            tests_by_id[test.name] = testcase
-
-        # Create branches
-        for (name, sep), _ in grouped_tests:
-            parent = self.find_parent(name, sep, groups_by_id)
-
-            group, _ = create_or_update(TestGroup, where={
-                'job': job,
-                'name_sha': sha1(name).hexdigest(),
-                'suite': test.suite,
-            }, values={
-                'name': name,
-                'project': project,
-                'num_leaves': leaf_counts.get(name),
-                'parent': parent,
-            })
-
-            groups_by_id[name] = group
-
-            # agg, created = get_or_create(AggregateTestGroup, where={
-            #     'project': project,
-            #     'name_sha': group.name_sha,
-            #     'suite_id': None,  # TODO
-            # }, defaults={
-            #     'name': name,
-            #     'parent': self.find_parent(name, sep, agg_groups_by_id),
-            #     'first_job_id': job.id,
-            #     'last_job_id': job.id,
-            # })
-
-            # if not created:
-            #     db.session.query(AggregateTestGroup).filter(
-            #         AggregateTestGroup.id == agg.id,
-            #         AggregateTestGroup.last_job_id == agg.last_job_id,
-            #     ).update({
-            #         AggregateTestGroup.last_job_id: job.id,
-            #     }, synchronize_session=False)
-
-            # agg_groups_by_id[name] = agg
-
-        for (name, sep), tests in reversed(grouped_tests):
-            branch = groups_by_id[name]
-            # agg_branch = agg_groups_by_id[name]
-
-            g_duration = 0
-            g_failed = 0
-            g_total = 0
-
-            # Create any leaves which do not exist yet
-            for test in tests:
-                testcase = tests_by_id[test.id]
-
-                if test.id not in groups_by_id:
-                    leaf = self.create_test_leaf(test, branch, testcase)
-
-                    groups_by_id[leaf.name] = leaf
-
-                # if test.id not in agg_groups_by_id:
-                #     leaf = self.create_aggregate_test_leaf(test, agg_branch)
-
-                #     agg_groups_by_id[leaf.name] = leaf
-
-                if testcase.duration:
-                    g_duration += testcase.duration
-                g_total += 1
-                if testcase.result == Result.failed:
-                    g_failed += 1
-
-                if branch.result:
-                    branch.result = max(branch.result, testcase.result)
-                elif testcase.result:
-                    branch.result = testcase.result
-                else:
-                    branch.result = Result.unknown
-
-            branch.duration = g_duration
-            branch.num_failed = g_failed
-            branch.num_tests = g_total
-
-            db.session.add(branch)
 
         db.session.commit()
 

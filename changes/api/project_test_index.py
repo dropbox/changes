@@ -1,12 +1,9 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy import and_
-from sqlalchemy.orm import subqueryload
-
 from changes.api.base import APIView
-from changes.config import db
+from changes.api.serializer.models.testcase import GeneralizedTestCase
 from changes.constants import Result, Status
-from changes.models import Project, AggregateTestGroup, TestGroup, Job, Source
+from changes.models import Project, TestCase, Job, Source
 
 
 class ProjectTestIndexAPIView(APIView):
@@ -15,41 +12,26 @@ class ProjectTestIndexAPIView(APIView):
         if not project:
             return '', 404
 
-        latest_job = Job.query.options(
-            subqueryload(Job.project),
-        ).join(
+        latest_job = Job.query.join(
             Source, Source.id == Job.source_id,
         ).filter(
             Source.patch_id == None,  # NOQA
-            Job.project == project,
+            Job.project_id == project.id,
             Job.result == Result.passed,
             Job.status == Status.finished,
         ).order_by(
             Job.date_created.desc(),
         ).limit(1).first()
 
-        if latest_job:
-            test_list = db.session.query(AggregateTestGroup, TestGroup).options(
-                subqueryload(AggregateTestGroup.first_job),
-                subqueryload(AggregateTestGroup.parent),
-                subqueryload(TestGroup.parent),
-            ).join(
-                TestGroup, and_(
-                    TestGroup.job_id == latest_job.id,
-                    TestGroup.name_sha == AggregateTestGroup.name_sha,
-                )
-            ).filter(
-                AggregateTestGroup.parent_id == None,  # NOQA: we have to use == here
-                AggregateTestGroup.project_id == project.id,
-            ).order_by(TestGroup.duration.desc())
+        if not latest_job:
+            return self.respond([])
 
-            results = []
-            for agg, group in test_list:
-                agg.last_testgroup = group
-                results.append(agg)
-        else:
-            results = []
+        # use the most recent test
+        results = TestCase.query.filter(
+            TestCase.project_id == project_id,
+            TestCase.job_id == latest_job.id,
+        ).order_by(TestCase.duration.desc())
 
-        context = results
-
-        return self.respond(context)
+        return self.paginate(results, serializers={
+            TestCase: GeneralizedTestCase(),
+        })

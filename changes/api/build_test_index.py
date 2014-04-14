@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import subqueryload, contains_eager
+from sqlalchemy.orm import contains_eager
 
 from changes.api.base import APIView
-from changes.models import Build, TestGroup, Job
+from changes.models import Build, TestCase, Job
 
 
 class BuildTestIndexAPIView(APIView):
@@ -12,14 +12,12 @@ class BuildTestIndexAPIView(APIView):
         if build is None:
             return '', 404
 
-        test_list = list(TestGroup.query.options(
-            subqueryload('parent'),
+        test_list = list(TestCase.query.options(
             contains_eager('job')
         ).join(
-            Job, TestGroup.job_id == Job.id,
+            Job, TestCase.job_id == Job.id,
         ).filter(
             Job.build_id == build.id,
-            TestGroup.num_leaves == 0,  # NOQA
-        ).order_by(TestGroup.duration.desc()))
+        ).order_by(TestCase.duration.desc()))
 
-        return self.respond(test_list)
+        return self.paginate(test_list)

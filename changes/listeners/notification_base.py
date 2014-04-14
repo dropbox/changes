@@ -1,18 +1,17 @@
 from __future__ import absolute_import, print_function
 
 from changes.constants import Result, Status
-from changes.models import Job, JobStep, TestGroup, LogSource, LogChunk, Source
+from changes.models import Job, JobStep, TestCase, LogSource, LogChunk, Source
 
 UNSET = object()
 
 
 class NotificationHandler(object):
     def get_test_failures(self, job):
-        return TestGroup.query.filter(
-            TestGroup.job_id == job.id,
-            TestGroup.result == Result.failed,
-            TestGroup.num_leaves == 0,
-        ).order_by(TestGroup.name.asc())
+        return TestCase.query.filter(
+            TestCase.job_id == job.id,
+            TestCase.result == Result.failed,
+        ).order_by(TestCase.name.asc())
 
     def get_parent(self, job):
         return Job.query.join(

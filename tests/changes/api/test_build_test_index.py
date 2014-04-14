@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Status
-from changes.models import TestGroup
+from changes.models import TestCase
 from changes.testutils import APITestCase
 
 
@@ -13,7 +13,7 @@ class BuildTestIndexTest(APITestCase):
         build = self.create_build(self.project)
         job = self.create_job(build, status=Status.finished)
 
-        group = TestGroup(
+        group = TestCase(
             job=job,
             project=self.project,
             name='foo',

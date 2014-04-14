@@ -3,6 +3,7 @@ define([
 
   'states/authorBuildList',
   'states/buildDetails',
+  'states/buildTestList',
   'states/jobDetails',
   'states/layout',
   'states/logDetails',
@@ -23,7 +24,7 @@ define([
   'states/projectTestDetails',
   'states/projectTestList',
   'states/taskDetails',
-  'states/testGroupDetails',
+  'states/testCaseDetails',
 
   'directives/bindOnce',
   'directives/duration',
@@ -37,6 +38,7 @@ define([
 
   AuthorBuildListState,
   BuildDetailsState,
+  BuildTestListState,
   JobDetailsState,
   LayoutState,
   LogDetailsState,
@@ -57,7 +59,7 @@ define([
   ProjectTestDetailsState,
   ProjectTestListState,
   TaskDetailsState,
-  TestGroupDetailsState
+  TestCaseDetailsState
 ) {
 
   'use strict';
@@ -97,6 +99,7 @@ define([
     $stateProvider
       .state('layout', LayoutState)
       .state('build_details', BuildDetailsState)
+      .state('build_test_list', BuildTestListState)
       .state('job_details', JobDetailsState)
       .state('log_details', LogDetailsState)
       .state('my_builds', AuthorBuildListState)
@@ -116,7 +119,7 @@ define([
       .state('project_tests', ProjectTestListState)
       .state('project_test_details', ProjectTestDetailsState)
       .state('project_source_details', ProjectSourceDetailsState)
-      .state('test_details', TestGroupDetailsState)
+      .state('test_details', TestCaseDetailsState)
       .state('task_details', TaskDetailsState);
   });
 });

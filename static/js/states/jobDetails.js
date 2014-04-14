@@ -91,17 +91,6 @@ define([
           });
       };
 
-      function getTestStatus() {
-        if ($scope.job.status.id == "finished") {
-          if ($scope.testGroups.length === 0) {
-            return "no-results";
-          } else {
-            return "has-results";
-          }
-        }
-        return "pending";
-      }
-
       function updateJob(data){
         if (data.id !== $scope.job.id) {
           return;
@@ -109,65 +98,6 @@ define([
 
         $scope.$apply(function() {
           $scope.job = data;
-          $scope.testStatus = getTestStatus();
-        });
-      }
-
-      function updateTestGroup(data) {
-        if (data.job.id !== $scope.job.id) {
-          return;
-        }
-
-        $scope.$apply(function() {
-          var updated = false,
-              item_id = data.id,
-              attr, result, item;
-
-          // TODO(dcramer); we need to refactor all of this logic as its repeated in nealry
-          // every stream
-          if ($scope.testGroups.length > 0) {
-            result = $.grep($scope.testGroups, function(e){ return e.id == item_id; });
-            if (result.length > 0) {
-              item = result[0];
-              for (attr in data) {
-                // ignore dateModified as we're updating this frequently and it causes
-                // the dirty checking behavior in angular to respond poorly
-                if (item[attr] != data[attr] && attr != 'dateModified') {
-                  updated = true;
-                  item[attr] = data[attr];
-                }
-                if (updated) {
-                  item.dateModified = data.dateModified;
-                }
-              }
-            }
-          }
-          if (!updated) {
-            $scope.testGroups.unshift(data);
-          }
-
-          if (data.result.id == 'failed') {
-            if ($scope.testFailures.length > 0) {
-              result = $.grep($scope.testFailures, function(e){ return e.id == item_id; });
-              if (result.length > 0) {
-                item = result[0];
-                for (attr in data) {
-                  // ignore dateModified as we're updating this frequently and it causes
-                  // the dirty checking behavior in angular to respond poorly
-                  if (item[attr] != data[attr] && attr != 'dateModified') {
-                    updated = true;
-                    item[attr] = data[attr];
-                  }
-                  if (updated) {
-                    item.dateModified = data.dateModified;
-                  }
-                }
-              }
-            }
-            if (!updated) {
-              $scope.testFailures.unshift(data);
-            }
-          }
         });
       }
 
@@ -199,24 +129,16 @@ define([
       $scope.phases = jobData.data.phases;
       $scope.testFailures = jobData.data.testFailures;
       $scope.previousRuns = jobData.data.previousRuns;
-      $scope.testGroups = jobData.data.testGroups;
-      $scope.testStatus = getTestStatus();
       $scope.logSourcesByPhase = organizeLogSources(jobData.data.logs);
-
-      $scope.$watchCollection("testGroups", function() {
-        $scope.testStatus = getTestStatus();
-      });
 
       PageTitle.set(getPageTitle(buildData, $scope.job));
 
       stream.addScopedChannels($scope, [
         'jobs:' + $scope.job.id,
-        'testgroups:' + $scope.job.id + ':*',
         'logsources:' + $scope.job.id + ':*'
       ]);
       stream.addScopedSubscriber($scope, 'job.update', updateJob);
       stream.addScopedSubscriber($scope, 'buildlog.update', updateBuildLog);
-      stream.addScopedSubscriber($scope, 'testgroup.update', updateTestGroup);
     },
     resolve: {
       jobData: function($http, $stateParams) {

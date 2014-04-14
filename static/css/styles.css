@@ -1331,3 +1331,7 @@ label.btn input[type=checkbox] {
 .build-list > li.ng-enter-active {
   opacity: 1;
 }
+
+.nav a .glyphicon {
+  margin-right: 10px;
+}

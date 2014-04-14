@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build, Job, TestGroup, Source
+from changes.models import Build, Job, TestCase, Source
 
 
 def first(key, iterable):
@@ -18,7 +18,7 @@ def find_failure_origins(build, test_failures):
     """
     Attempt to find originating causes of failures.
 
-    Returns a mapping of {TestGroup.name_sha: Job}.
+    Returns a mapping of {TestCase.name_sha: Job}.
     """
     project = build.project
 
@@ -62,18 +62,17 @@ def find_failure_origins(build, test_failures):
     # we now have a list of previous_runs so let's find all test failures in
     # these runs
     queryset = db.session.query(
-        TestGroup.name_sha, Job.build_id,
+        TestCase.name_sha, Job.build_id,
     ).join(
-        Job, Job.id == TestGroup.job_id,
+        Job, Job.id == TestCase.job_id,
     ).filter(
         Job.build_id.in_(b.id for b in previous_runs),
         Job.status == Status.finished,
         Job.result == Result.failed,
-        TestGroup.result == Result.failed,
-        TestGroup.num_leaves == 0,
-        TestGroup.name_sha.in_(t.name_sha for t in test_failures),
+        TestCase.result == Result.failed,
+        TestCase.name_sha.in_(t.name_sha for t in test_failures),
     ).group_by(
-        TestGroup.name_sha, Job.build_id
+        TestCase.name_sha, Job.build_id
     )
 
     previous_test_failures = defaultdict(set)

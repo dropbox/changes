@@ -118,6 +118,8 @@ class Fixtures(object):
         case = TestCase(
             job=job,
             project=job.project,
+            project_id=job.project_id,
+            job_id=job.id,
             **kwargs
         )
         db.session.add(case)
