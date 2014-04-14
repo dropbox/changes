@@ -139,6 +139,7 @@ class TestCase(db.Model):
         Index('idx_test_project_id', 'project_id'),
         Index('idx_test_suite_id', 'suite_id'),
         Index('idx_test_step_id', 'step_id'),
+        Index('idx_test_project_key', 'project_id', 'label_sha'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
