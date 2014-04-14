@@ -13,7 +13,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr ng-repeat="test in tests">
+			<tr ng-repeat="test in testList">
 				<td><a ui-sref="project_test_details({test_id: test.hash})">{{test.name}}</a></td>
 				<td style="text-align:center"><span duration="test.duration"></span></td>
 				<!-- <td style="text-align:center"><a ui-sref="build_details({build_id: test.firstBuild.id})">{{test.firstBuild.target}}</a></td> -->
@@ -21,4 +21,13 @@
 			</tr>
 		</tbody>
 	</table>
+
+    <ul class="pager">
+        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        </li>
+        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">Next &rarr;</a>
+        </li>
+    </ul>
 </section>
