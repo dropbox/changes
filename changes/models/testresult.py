@@ -95,6 +95,7 @@ class TestResultManager(object):
 
         self._record_test_counts(test_list)
         self._record_test_duration(test_list)
+        self._record_test_rerun_counts(test_list)
 
     def _record_test_counts(self, test_list):
         job = self.step.job
@@ -155,6 +156,39 @@ class TestResultManager(object):
                 'value': select([func.sum(ItemStat.value)]).where(
                     and_(
                         ItemStat.name == 'test_duration',
+                        ItemStat.item_id.in_(select([Job.id]).where(
+                            Job.build_id == job.build_id,
+                        ))
+                    )
+                ),
+            }, synchronize_session=False)
+
+    def _record_test_rerun_counts(self, test_list):
+        job = self.step.job
+
+        rerun_count = sum(1 for t in test_list if t.reruns > 0)
+
+        create_or_update(ItemStat, where={
+            'item_id': job.id,
+            'name': 'test_rerun_count',
+        }, values={
+            'value': rerun_count,
+        })
+
+        instance = try_create(ItemStat, where={
+            'item_id': job.build_id,
+            'name': 'test_rerun_count',
+        }, defaults={
+            'value': rerun_count
+        })
+        if not instance:
+            ItemStat.query.filter(
+                ItemStat.item_id == job.build_id,
+                ItemStat.name == 'test_rerun_count',
+            ).update({
+                'value': select([func.sum(ItemStat.value)]).where(
+                    and_(
+                        ItemStat.name == 'test_rerun_count',
                         ItemStat.item_id.in_(select([Job.id]).where(
                             Job.build_id == job.build_id,
                         ))
