@@ -41,6 +41,6 @@ class BuildTestIndexAPIView(APIView):
         elif args.sort == 'retries':
             sort_by = TestCase.reruns.desc()
 
-        test_list = list(test_list.order_by(sort_by))
+        test_list = test_list.order_by(sort_by)
 
         return self.paginate(test_list)
