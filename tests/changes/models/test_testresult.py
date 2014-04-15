@@ -76,6 +76,18 @@ class TestResultManagerTestCase(TestCase):
         )[0]
         assert teststat.value == 2
 
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_duration',
+            ItemStat.item_id == build.id,
+        )[0]
+        assert teststat.value == 168
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_duration',
+            ItemStat.item_id == job.id,
+        )[0]
+        assert teststat.value == 168
+
         job2 = self.create_job(build)
         jobphase2 = self.create_jobphase(job2)
         jobstep2 = self.create_jobstep(jobphase2)
@@ -104,3 +116,15 @@ class TestResultManagerTestCase(TestCase):
             ItemStat.item_id == job2.id,
         )[0]
         assert teststat.value == 1
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_duration',
+            ItemStat.item_id == build.id,
+        )[0]
+        assert teststat.value == 324
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_duration',
+            ItemStat.item_id == job2.id,
+        )[0]
+        assert teststat.value == 156

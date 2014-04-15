@@ -93,9 +93,13 @@ class TestResultManager(object):
 
         db.session.commit()
 
-        test_count = TestCase.query.filter(
-            TestCase.job_id == job.id,
-        ).count()
+        self._record_test_counts(test_list)
+        self._record_test_duration(test_list)
+
+    def _record_test_counts(self, test_list):
+        job = self.step.job
+
+        test_count = len(test_list)
 
         create_or_update(ItemStat, where={
             'item_id': job.id,
@@ -118,6 +122,39 @@ class TestResultManager(object):
                 'value': select([func.sum(ItemStat.value)]).where(
                     and_(
                         ItemStat.name == 'test_count',
+                        ItemStat.item_id.in_(select([Job.id]).where(
+                            Job.build_id == job.build_id,
+                        ))
+                    )
+                ),
+            }, synchronize_session=False)
+
+    def _record_test_duration(self, test_list):
+        job = self.step.job
+
+        test_duration = sum(t.duration for t in test_list if t.duration > 0)
+
+        create_or_update(ItemStat, where={
+            'item_id': job.id,
+            'name': 'test_duration',
+        }, values={
+            'value': test_duration,
+        })
+
+        instance = try_create(ItemStat, where={
+            'item_id': job.build_id,
+            'name': 'test_duration',
+        }, defaults={
+            'value': test_duration
+        })
+        if not instance:
+            ItemStat.query.filter(
+                ItemStat.item_id == job.build_id,
+                ItemStat.name == 'test_duration',
+            ).update({
+                'value': select([func.sum(ItemStat.value)]).where(
+                    and_(
+                        ItemStat.name == 'test_duration',
                         ItemStat.item_id.in_(select([Job.id]).where(
                             Job.build_id == job.build_id,
                         ))
