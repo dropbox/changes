@@ -26,7 +26,24 @@ class BuildTestIndexTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 404
 
-        path = '/api/0/builds/{0}/tests/'.format(build.id.hex)
+        # test each sort option just to ensure it doesnt straight up fail
+        path = '/api/0/builds/{0}/tests/?sort=duration'.format(build.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == group.id.hex
+
+        path = '/api/0/builds/{0}/tests/?sort=name'.format(build.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == group.id.hex
+
+        path = '/api/0/builds/{0}/tests/?sort=retries'.format(build.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
