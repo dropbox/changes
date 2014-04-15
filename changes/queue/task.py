@@ -13,7 +13,7 @@ from changes.models import Task
 from changes.utils.locking import lock
 
 
-RETRY_COUNTDOWN = 60
+BASE_RETRY_COUNTDOWN = 60
 CONTINUE_COUNTDOWN = 5
 
 RUN_TIMEOUT = timedelta(minutes=5)
@@ -235,10 +235,15 @@ class TrackedTask(local):
         kwargs['task_id'] = self.task_id
         kwargs['parent_task_id'] = self.parent_id
 
+        retry_number = db.session.query(Task.num_retries).filter(
+            Task.task_name == self.task_name,
+            Task.task_id == self.task_id,
+        ).scalar()
+
         queue.delay(
             self.task_name,
             kwargs=kwargs,
-            countdown=RETRY_COUNTDOWN,
+            countdown=BASE_RETRY_COUNTDOWN + (retry_number ** 3)
         )
 
     def delay_if_needed(self, **kwargs):

@@ -339,5 +339,5 @@ class RunTest(TestCase):
                 'task_id': task_id.hex,
                 'parent_task_id': parent_task_id.hex,
             },
-            countdown=60,
+            countdown=61,
         )
