@@ -4,52 +4,44 @@ import mock
 import responses
 
 from changes.constants import Result
-from changes.models import Build, RepositoryBackend
-from flask import Flask
-from uuid import UUID
-
 from changes.listeners.green_build import build_finished_handler
+from changes.models import Event, EventType, RepositoryBackend
+from changes.testutils import TestCase
 
 
-app = Flask(__name__)
-app.config['BASE_URI'] = 'http://localhost'
-app.config['GREEN_BUILD_URL'] = 'https://foo.example.com'
-app.config['GREEN_BUILD_AUTH'] = ('username', 'password')
-
-
-@responses.activate
-@mock.patch('changes.listeners.green_build.get_options')
-def test_simple(get_options):
-    with app.test_request_context():
-        release_id = '134:asdadfadf'
-
+class GreenBuildTest(TestCase):
+    @responses.activate
+    @mock.patch('changes.listeners.green_build.get_options')
+    @mock.patch('changes.models.Repository.get_vcs')
+    def test_simple(self, vcs, get_options):
         responses.add(responses.POST, 'https://foo.example.com')
+
+        repository = self.create_repo(
+            backend=RepositoryBackend.hg,
+        )
+
+        build = self.create_build(
+            project=self.create_project(repository=repository),
+            revision_sha='a' * 40,
+        )
+
         get_options.return_value = {
             'green-build.notify': '1',
         }
-
-        build = mock.Mock(spec=Build())
-        build.patch_id = None
-        build.project.slug = 'server'
-        build.id = UUID(hex='c' * 32)
-        build.project_id = UUID(hex='b' * 32)
-        build.revision_sha = 'a' * 40
-        build.repository.backend = RepositoryBackend.hg
-
         vcs = build.repository.get_vcs.return_value
-        vcs.run.return_value = release_id
+        vcs.run.return_value = '134:asdadfadf'
 
         # test with failing build
         build.result = Result.failed
 
-        build_finished_handler(build)
+        build_finished_handler(build=build)
 
         assert len(responses.calls) == 0
 
         # test with passing build
         build.result = Result.passed
 
-        build_finished_handler(build)
+        build_finished_handler(build=build)
 
         vcs.run.assert_called_once_with([
             'log', '-r aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--limit=1',
@@ -60,4 +52,13 @@ def test_simple(get_options):
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == 'https://foo.example.com/'
-        assert responses.calls[0].request.body == 'project=server&build_server=changes&build_url=http%3A%2F%2Flocalhost%2Fprojects%2Fserver%2Fbuilds%2Fcccccccccccccccccccccccccccccccc%2F&id=134%3Aasdadfadf'
+        assert responses.calls[0].request.body == 'project={project_slug}&build_server=changes&build_url=http%3A%2F%2Fexample.com%2Fprojects%2F{project_slug}%2Fbuilds%2F{build_id}%2F&id=134%3Aasdadfadf'.format(
+            project_slug=build.project.slug,
+            build_id=build.id.hex,
+        )
+
+        event = Event.query.filter(
+            Event.type == EventType.green_build,
+        ).first()
+        assert event
+        assert event.item_id == build.source_id

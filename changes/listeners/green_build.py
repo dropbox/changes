@@ -5,8 +5,12 @@ from flask import current_app
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import ProjectOption, RepositoryBackend
+from changes.db.utils import try_create
+from changes.models import (
+    Event, EventType, ProjectOption, RepositoryBackend
+)
 from changes.utils.http import build_uri
+from changes.utils.locking import lock
 
 logger = logging.getLogger('green_build')
 
@@ -24,6 +28,7 @@ def get_options(project_id):
     )
 
 
+@lock
 def build_finished_handler(build, **kwargs):
     if build.result != Result.passed:
         return
@@ -71,4 +76,12 @@ def build_finished_handler(build, **kwargs):
         'build_url': build_uri('/projects/{0}/builds/{1}/'.format(
             build.project.slug, build.id.hex)),
         'build_server': 'changes',
+    })
+
+    try_create(Event, where={
+        'type': EventType.green_build,
+        'item_id': build.source_id,
+        'data': {
+            'build': build.id.hex,
+        }
     })

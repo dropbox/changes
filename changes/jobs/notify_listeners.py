@@ -10,7 +10,7 @@ def notify_job_finished(job_id):
         return
 
     signal = SIGNAL_MAP['job.finished']
-    signal.send_robust(job)
+    signal.send_robust(job=job)
 
 
 @tracked_task
@@ -20,7 +20,7 @@ def notify_build_finished(build_id):
         return
 
     signal = SIGNAL_MAP['build.finished']
-    signal.send_robust(build)
+    signal.send_robust(build=build)
 
 
 @tracked_task
@@ -33,4 +33,4 @@ def notify_revision_created(repository_id, revision_sha):
         return
 
     signal = SIGNAL_MAP['revision.created']
-    signal.send_robust(revision)
+    signal.send_robust(revision=revision)

@@ -1,5 +1,6 @@
 from flask import current_app
 from functools import wraps
+from hashlib import md5
 
 from changes.ext.redis import UnableToGetLock
 from changes.config import redis
@@ -10,8 +11,10 @@ def lock(func):
     def wrapped(**kwargs):
         key = '{0}:{1}'.format(
             func.__name__,
-            '&'.join('{0}={1}'.format(k, v)
-            for k, v in sorted(kwargs.iteritems()))
+            md5(
+                '&'.join('{0}={1}'.format(k, repr(v))
+                for k, v in sorted(kwargs.iteritems()))
+            ).hexdigest()
         )
         try:
             with redis.lock(key, timeout=1, expire=300, nowait=True):

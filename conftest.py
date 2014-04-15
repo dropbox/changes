@@ -25,6 +25,8 @@ def app(request):
         REDIS_URL='redis://localhost/9',
         BASE_URI='http://example.com',
         REPO_ROOT='/tmp',
+        GREEN_BUILD_URL='https://foo.example.com',
+        GREEN_BUILD_AUTH=('username', 'password'),
         JENKINS_URL='http://jenkins.example.com',
         JENKINS_SYNC_LOG_ARTIFACTS=True,
         GOOGLE_CLIENT_ID='a' * 12,

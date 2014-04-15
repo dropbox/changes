@@ -25,4 +25,4 @@ class NotifyRevisionCreatedTest(TestCase):
         finally:
             revision_created.disconnect(dummy_listener)
 
-        dummy_listener.assert_called_once_with(revision)
+        dummy_listener.assert_called_once_with(revision=revision)
