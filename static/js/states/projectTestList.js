@@ -79,7 +79,7 @@ define([
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;
         $scope.chartData = chartHelpers.getChartData(buildList, null, chart_options);
-      }
+      };
       $scope.selectChart('count');
 
     },
