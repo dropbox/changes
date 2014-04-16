@@ -76,20 +76,25 @@ class APIView(Resource):
         db.session.commit()
         return response
 
-    def paginate(self, queryset, **kwargs):
+    def paginate(self, queryset, max_per_page=100, **kwargs):
         page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 50))
-        assert per_page <= 100
+        per_page = int(request.args.get('per_page', 50) or 0)
+        if max_per_page:
+            assert per_page <= max_per_page
         assert page > 0
 
-        offset = (page - 1) * per_page
-
-        result = list(queryset[offset:offset + per_page + 1])
+        if per_page:
+            offset = (page - 1) * per_page
+            result = list(queryset[offset:offset + per_page + 1])
+        else:
+            offset = 0
+            page = 1
+            result = list(queryset)
 
         links = []
         if page > 1:
             links.append(('previous', page - 1))
-        if len(result) > per_page:
+        if per_page and len(result) > per_page:
             links.append(('next', page + 1))
             result = result[:per_page]
 

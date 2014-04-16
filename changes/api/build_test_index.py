@@ -43,4 +43,4 @@ class BuildTestIndexAPIView(APIView):
 
         test_list = test_list.order_by(sort_by)
 
-        return self.paginate(test_list)
+        return self.paginate(test_list, max_per_page=None)
