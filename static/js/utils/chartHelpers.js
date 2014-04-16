@@ -6,6 +6,9 @@
       limit: 50,
       linkFormatter: function(item) {
         return item.link;
+      },
+      value: function(item) {
+        return item.duration || 50;
       }
     };
 
@@ -26,7 +29,7 @@
 
         for (i = 0, y = options.limit; (item = items[i]) && y > 0; i++, y--) {
           result.push({
-            value: item.duration || 50,
+            value: options.value(item),
             className: 'result-' + item.result.id,
             id: item.id,
             data: item,

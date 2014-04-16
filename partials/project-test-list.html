@@ -1,7 +1,19 @@
 <section>
-	<div class="page-header">
-		<h2>Test Cases</h2>
-	</div>
+	<h2>Test Cases</h2>
+
+	<ul class="nav nav-links nav-links-sm">
+		<li class="nav-header"><h6>Graph by:</h6></li>
+		<li ng-class="selectedChart == 'count' ? 'active' : ''">
+			<a ng-click="selectChart('count')">Count</a>
+		</li>
+		<li ng-class="selectedChart == 'duration' ? 'active' : ''">
+			<a ng-click="selectChart('duration')">Duration</a>
+		</li>
+		<li ng-class="selectedChart == 'retries' ? 'active' : ''">
+			<a ng-click="selectChart('retries')">Retries</a>
+		</li>
+	</ul>
+	<barchart ng-model="chartData" style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
 
 	<table class="table table-striped table-bordered">
 		<thead>
@@ -22,12 +34,12 @@
 		</tbody>
 	</table>
 
-    <ul class="pager">
-        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-            <a ng-click="loadPreviousPage()">&larr; Previous</a>
-        </li>
-        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-            <a ng-click="loadNextPage()">Next &rarr;</a>
-        </li>
-    </ul>
+	<ul class="pager">
+		<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+			<a ng-click="loadPreviousPage()">&larr; Previous</a>
+		</li>
+		<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+			<a ng-click="loadNextPage()">Next &rarr;</a>
+		</li>
+	</ul>
 </section>

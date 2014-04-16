@@ -1,14 +1,53 @@
 define([
   'app',
+  'utils/chartHelpers',
+  'utils/duration',
+  'utils/escapeHtml',
   'utils/parseLinkHeader'
-], function(app, parseLinkHeader) {
+], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader) {
   'use strict';
 
   return {
     parent: 'project_details',
     url: 'tests/',
     templateUrl: 'partials/project-test-list.html',
-    controller: function($http, $scope, testList) {
+    controller: function($http, $scope, $state, buildList, testList) {
+      var chart_options = {
+            linkFormatter: function(item) {
+              return $state.href('build_details', {build_id: item.id});
+            },
+            value: function(item) {
+              if ($scope.selectedChart == 'count') {
+                return item.stats.test_count;
+              } else if ($scope.selectedChart == 'duration') {
+                return item.stats.test_duration / item.stats.test_count;
+              } else if ($scope.selectedChart == 'retries') {
+                return item.stats.test_rerun_count;
+              }
+            },
+            tooltipFormatter: function(item) {
+              var content = '';
+
+              content += '<h5>';
+              content += escapeHtml(item.name);
+              content += '<br><small>';
+              content += escapeHtml(item.target);
+              if (item.author) {
+                content += ' &mdash; ' + item.author.name;
+              }
+              content += '</small>';
+              content += '</h5>';
+              if ($scope.selectedChart == 'count') {
+                content += '<p>' + (item.stats.test_count || 0) + ' tests recorded';
+              } else if ($scope.selectedChart == 'duration') {
+                content += '<p>' + (item.stats.test_count || 0) + ' avg test duration';
+              } else if ($scope.selectedChart == 'retries') {
+                content += '<p>' + (item.stats.test_rerun_count || 0) + ' total retries';
+              }
+              return content;
+            }
+          };
+
       function loadTestList(url) {
         if (!url) {
           return;
@@ -37,10 +76,21 @@ define([
 
       $scope.pageLinks = parseLinkHeader(testList.headers('Link'));
       $scope.testList = testList.data;
+      $scope.selectChart = function(chart) {
+        $scope.selectedChart = chart;
+        $scope.chartData = chartHelpers.getChartData(buildList, null, chart_options);
+      }
+      $scope.selectChart('count');
+
     },
     resolve: {
       testList: function($http, projectData) {
         return $http.get('/api/0/projects/' + projectData.id + '/tests/');
+      },
+      buildList: function($http, projectData) {
+        return $http.get('/api/0/projects/' + projectData.id + '/builds/?include_patches=0').then(function(response){
+          return response.data;
+        });
       }
     }
   };
