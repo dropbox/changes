@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import JobPhase, JobStep
+from changes.models import JobPhase, JobStep, LogSource
 from changes.testutils import APITestCase
 
 
@@ -83,6 +83,16 @@ class JobPhaseIndexTest(APITestCase):
         db.session.add(step_2_b)
         db.session.commit()
 
+        logsource_1 = LogSource(
+            job_id=job.id,
+            step_id=step_1.id,
+            project_id=job.project_id,
+            name='test_bar.py',
+            date_created=datetime(2013, 9, 19, 22, 15, 24),
+        )
+        db.session.add(logsource_1)
+        db.session.commit()
+
         path = '/api/0/jobs/{0}/phases/'.format(job.id.hex)
 
         resp = self.client.get(path)
@@ -92,7 +102,11 @@ class JobPhaseIndexTest(APITestCase):
         assert data[0]['id'] == phase_1.id.hex
         assert len(data[0]['steps']) == 1
         assert data[0]['steps'][0]['id'] == step_1.id.hex
+        assert len(data[0]['steps'][0]['logSources']) == 1
+        assert data[0]['steps'][0]['logSources'][0]['id'] == logsource_1.id.hex
         assert data[1]['id'] == phase_2.id.hex
         assert len(data[1]['steps']) == 2
         assert data[1]['steps'][0]['id'] == step_2_a.id.hex
+        assert len(data[1]['steps'][0]['logSources']) == 0
         assert data[1]['steps'][1]['id'] == step_2_b.id.hex
+        assert len(data[1]['steps'][1]['logSources']) == 0

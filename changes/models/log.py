@@ -2,7 +2,7 @@ import uuid
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
@@ -28,7 +28,7 @@ class LogSource(db.Model):
 
     job = relationship('Job')
     project = relationship('Project')
-    step = relationship('JobStep')
+    step = relationship('JobStep', backref=backref('logsources', order_by='LogSource.date_created'))
 
     def __init__(self, **kwargs):
         super(LogSource, self).__init__(**kwargs)
