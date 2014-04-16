@@ -23,10 +23,10 @@ class MailNotificationHandler(NotificationHandler):
 
         result_label = self.get_result_label(job, parent)
 
-        subject = u"Build {result} - {project} #{number} ({target})".format(
+        subject = u"{target} {result} - {project} #{number}".format(
             number='{0}.{1}'.format(job.build.number, job.number),
             result=result_label,
-            target=build.target or build.source.revision_sha or 'Unknown',
+            target=build.target or build.source.revision_sha or 'Build',
             project=job.project.name,
         )
 
@@ -51,16 +51,23 @@ class MailNotificationHandler(NotificationHandler):
 
         if is_failure:
             # try to find the last failing log
-            primary_log = self.get_primary_log_source(job)
-            if primary_log:
+            log_sources = self.get_failing_log_sources(job)
+            if len(log_sources) == 1:
                 log_clipping = self.get_log_clipping(
-                    primary_log, max_size=5000, max_lines=25)
+                    log_sources[0], max_size=5000, max_lines=25)
 
                 context['build_log'] = {
                     'text': log_clipping,
-                    'name': primary_log.name,
-                    'uri': '{0}logs/{1}/'.format(job.uri, primary_log.id.hex),
+                    'name': log_sources[0].name,
+                    'uri': '{0}logs/{1}/'.format(job.uri, log_sources[0].id.hex),
                 }
+            elif log_sources:
+                context['relevant_logs'] = [
+                    {
+                        'name': source.name,
+                        'uri': '{0}logs/{1}/'.format(job.uri, source.id.hex),
+                    } for source in log_sources
+                ]
 
         return context
 

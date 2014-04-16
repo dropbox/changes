@@ -9,7 +9,7 @@ from changes.config import db
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
-    Artifact, TestCase, LogChunk
+    Artifact, TestCase, LogChunk, LogSource
 )
 from changes.utils.slugs import slugify
 
@@ -289,6 +289,8 @@ class Fixtures(object):
 
     def create_jobphase(self, job, **kwargs):
         kwargs.setdefault('label', 'test')
+        kwargs.setdefault('result', job.result)
+        kwargs.setdefault('status', job.status)
 
         phase = JobPhase(
             job=job,
@@ -301,7 +303,9 @@ class Fixtures(object):
         return phase
 
     def create_jobstep(self, phase, **kwargs):
-        kwargs.setdefault('label', 'test')
+        kwargs.setdefault('label', phase.label)
+        kwargs.setdefault('result', phase.result)
+        kwargs.setdefault('status', phase.status)
 
         step = JobStep(
             job=phase.job,
@@ -333,20 +337,36 @@ class Fixtures(object):
 
         return artifact
 
-    def create_logchunk(self, source, **kwargs):
+    def create_logsource(self, step=None, **kwargs):
+        if step:
+            kwargs['job'] = step.job
+        kwargs['project'] = kwargs['job'].project
+
+        logsource = LogSource(
+            step=step,
+            **kwargs
+        )
+        db.session.add(logsource)
+        db.session.commit()
+
+        return logsource
+
+    def create_logchunk(self, source, text=None, **kwargs):
         # TODO(dcramer): we should default offset to previosu entry in LogSource
         kwargs.setdefault('offset', 0)
+        kwargs['job'] = source.job
+        kwargs['project'] = source.project
 
-        text = kwargs.pop('text', None) or '\n'.join(get_sentences(4))
+        if text is None:
+            text = '\n'.join(get_sentences(4))
 
         logchunk = LogChunk(
             source=source,
-            job=source.job,
-            project=source.project,
             text=text,
             size=len(text),
             **kwargs
         )
         db.session.add(logchunk)
         db.session.commit()
+
         return logchunk

@@ -13,7 +13,12 @@ Test Failures
 {% for test in test_failures %}
 * {{ test.label }} - {{ test.uri }}{% endfor %}
 
-{% endif %}{% if build_log %}
+{% endif %}{% if relevant_logs %}
+Relevant Logs
+-------------
+{% for source in relevant_logs %}
+* {{ source.name }} - {{ source.uri }}{% endfor %}
+{% elif build_log %}
 Build Log
 ---------
 

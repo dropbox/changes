@@ -237,7 +237,14 @@
     </ul>
 {% endif %}
 
-{% if build_log %}
+{% if relevant_logs %}
+    <h3>Relevant Logs <small>{{ relevant_logs|length }} logs containing failures</small>
+    <ul class="log-list">
+        {% for source in relevant_logs %}
+            <li><a href="{{ source.uri }}" class="btn">{{ source.name }}</a></li>
+        {% endfor %}
+    </ul>
+{% elif build_log %}
     <h3>
       <span class="pull-right">
         <a href="{{ build_log.uri }}" class="btn">view full log</a>

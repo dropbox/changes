@@ -25,22 +25,14 @@ class NotificationHandler(object):
             Job.result.in_([Result.passed, Result.failed]),
         ).order_by(Job.date_created.desc()).first()
 
-    def get_primary_log_source(self, job):
-        primary_log = LogSource.query.filter(
+    def get_failing_log_sources(self, job):
+        return list(LogSource.query.filter(
             LogSource.job_id == job.id,
         ).join(
             JobStep, LogSource.step_id == JobStep.id,
         ).filter(
             JobStep.result == Result.failed,
-        ).order_by(JobStep.date_finished).first()
-        if primary_log:
-            return primary_log
-
-        primary_log = LogSource.query.filter(
-            LogSource.job_id == job.id,
-        ).order_by(LogSource.date_created.asc()).first()
-
-        return primary_log
+        ).order_by(JobStep.date_created))
 
     def should_notify(self, job, parent=UNSET):
         """
