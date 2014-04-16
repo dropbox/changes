@@ -5,6 +5,7 @@ define([
   'states/buildDetails',
   'states/buildTestList',
   'states/jobDetails',
+  'states/jobPhaseList',
   'states/layout',
   'states/logDetails',
   'states/nodeDetails',
@@ -40,6 +41,7 @@ define([
   BuildDetailsState,
   BuildTestListState,
   JobDetailsState,
+  JobPhaseListState,
   LayoutState,
   LogDetailsState,
   NodeDetailsState,
@@ -101,6 +103,7 @@ define([
       .state('build_details', BuildDetailsState)
       .state('build_test_list', BuildTestListState)
       .state('job_details', JobDetailsState)
+      .state('job_phase_list', JobPhaseListState)
       .state('log_details', LogDetailsState)
       .state('my_builds', AuthorBuildListState)
       .state('nodes', NodeListState)

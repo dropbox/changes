@@ -1,33 +1,27 @@
-<section>
-	<div class="page-header build-header">
-		<h2>
-			{{build.name}}<br>
-			<small>
-				#{{build.number}}.{{job.number}} {{job.name}} &mdash; <a href="/projects/{{build.project.slug}}/sources/{{build.source.id}}/">{{build.target}}</a>
-				<span ng-if="build.author"> &mdash; {{build.author.name}}</span>
-			</small>
-		</h2>
+<section ui-view>
+    <div class="section-header">
+		<h3>Phase Breakdown</h3>
 	</div>
-
-	<h3>Phase Breakdown</h3>
 	<ol class="phase-list">
 		<li ng-repeat="phase in phaseList">
 			<h4>{{phase.name}} <small duration="phase.duration"></small></h4>
 			<table class="table">
-				<tr ng-repeat="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
-					<td style="width:20px">
-						<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;">
-							<div data-result="{{step.result.id}}"
-								 data-status="{{step.status.id}}"
-								 data-date-started="{{step.dateStarted}}"
-								 data-estimated-duration="{{step.duration}}"
-								 radial-progress-bar>&nbsp;</div>
-						</div>
-					</td>
-					<td style="width:80px;" duration="step.duration"></td>
-					<td>{{step.name}}</td>
-					<td><a href="/nodes/{{step.node.id}}/">{{step.node.name || step.node.id}}</a></td>
-				</tr>
+				<colgroup>
+					<col style="width:20px">
+					<col style="width:80px">
+					<col>
+					<col style="width:300px">
+				</colgroup>
+				<tbody>
+					<tr ng-repeat="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
+						<td>
+							<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;"></div>
+						</td>
+						<td duration="step.duration"></td>
+						<td>{{step.name}}</td>
+						<td><a href="/nodes/{{step.node.id}}/">{{(step.node.name || step.node.id)|truncate:40}}</a></td>
+					</tr>
+				</tbody>
 			</table>
 		</li>
 	</ol>
