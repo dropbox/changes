@@ -27,7 +27,16 @@ def get_build_step(job_id):
     return implementation
 
 
-@tracked_task
+def abort_step(task):
+    step = JobStep.query.get(task.kwargs['step_id'])
+    step.status = Status.finished
+    step.result = Result.aborted
+    db.session.add(step)
+    db.session.commit()
+    current_app.logger.exception('Unrecoverable exception syncing step %s', step.id)
+
+
+@tracked_task(on_abort=abort_step)
 def sync_job_step(step_id):
     step = JobStep.query.get(step_id)
     if not step:
@@ -36,17 +45,8 @@ def sync_job_step(step_id):
     if step.status == Status.finished:
         return
 
-    try:
-        implementation = get_build_step(step.job_id)
-        implementation.update_step(step=step)
-
-    except UnrecoverableException:
-        step.status = Status.finished
-        step.result = Result.aborted
-        current_app.logger.exception('Unrecoverable exception syncing step %s', step.id)
-
-    db.session.add(step)
-    db.session.commit()
+    implementation = get_build_step(step.job_id)
+    implementation.update_step(step=step)
 
     if step.status != Status.finished:
         is_finished = False

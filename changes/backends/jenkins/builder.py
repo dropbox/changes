@@ -694,7 +694,7 @@ class JenkinsBuilder(BaseBackend):
             'label': job_data['job_name'],
             'project': job.project,
         }, defaults={
-            'status': Status.in_progress,
+            'status': job.status,
         })
 
         if not created:
@@ -704,7 +704,7 @@ class JenkinsBuilder(BaseBackend):
         # presents a race condition when run concurrently
         step = self._create_job_step(
             phase=phase,
-            status=Status.in_progress,
+            status=job.status,
             data=job_data,
         )
         db.session.commit()

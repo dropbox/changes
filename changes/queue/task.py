@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import logging
 
 from datetime import datetime, timedelta
+from functools import wraps
 from threading import local, Lock
 from uuid import uuid4
 
@@ -80,18 +81,19 @@ class TrackedTask(local):
     >>>
     >>>    # finish normally to update Status
     >>>    print "func", foo
-
     >>> foo.delay(foo='bar', task_id='bar')
     """
     NotFinished = NotFinished
 
-    def __init__(self, func):
+    def __init__(self, func, on_abort=None):
         self.func = lock(func)
         self.task_name = func.__name__
         self.parent_id = None
         self.task_id = None
         self.lock = Lock()
         self.logger = logging.getLogger('jobs.{0}'.format(self.task_name))
+
+        self.on_abort = on_abort
 
         self.__name__ = func.__name__
         self.__doc__ = func.__doc__
@@ -141,6 +143,9 @@ class TrackedTask(local):
                     Task.result: Result.failed,
                 })
                 self.logger.exception(unicode(exc))
+
+                if self.on_abort:
+                    self.on_abort(self)
             except Exception as exc:
                 self.logger.exception(unicode(exc))
                 raise
@@ -377,4 +382,10 @@ class TrackedTask(local):
 
 
 # bind to a decorator-like naming scheme
-tracked_task = TrackedTask
+def tracked_task(func=None, **kwargs):
+    def wrapped(func):
+        return wraps(func)(TrackedTask(func, **kwargs))
+
+    if func:
+        return wraps(func)(wrapped(func))
+    return wrapped
