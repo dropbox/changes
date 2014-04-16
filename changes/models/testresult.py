@@ -100,7 +100,9 @@ class TestResultManager(object):
     def _record_test_counts(self, test_list):
         job = self.step.job
 
-        test_count = len(test_list)
+        test_count = db.session.query(func.count(TestCase.id)).filter(
+            TestCase.job_id == job.id,
+        ).as_scalar()
 
         create_or_update(ItemStat, where={
             'item_id': job.id,
@@ -133,7 +135,9 @@ class TestResultManager(object):
     def _record_test_duration(self, test_list):
         job = self.step.job
 
-        test_duration = sum(t.duration for t in test_list if t.duration > 0)
+        test_duration = db.session.query(func.sum(TestCase.duration)).filter(
+            TestCase.job_id == job.id,
+        ).as_scalar()
 
         create_or_update(ItemStat, where={
             'item_id': job.id,
@@ -166,7 +170,10 @@ class TestResultManager(object):
     def _record_test_rerun_counts(self, test_list):
         job = self.step.job
 
-        rerun_count = sum(1 for t in test_list if t.reruns > 0)
+        rerun_count = db.session.query(func.count(TestCase.id)).filter(
+            TestCase.job_id == job.id,
+            TestCase.reruns > 0,
+        ).as_scalar()
 
         create_or_update(ItemStat, where={
             'item_id': job.id,
