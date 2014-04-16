@@ -40,7 +40,7 @@ define([
               if ($scope.selectedChart == 'count') {
                 content += '<p>' + (item.stats.test_count || 0) + ' tests recorded';
               } else if ($scope.selectedChart == 'duration') {
-                content += '<p>' + (item.stats.test_duration / item.stats.test_count || 0) + 's avg test duration';
+                content += '<p>' + parseInt(item.stats.test_duration / item.stats.test_count || 0, 10) + 's avg test duration';
               } else if ($scope.selectedChart == 'retries') {
                 content += '<p>' + (item.stats.test_rerun_count || 0) + ' total retries';
               }
