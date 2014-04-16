@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Result, Status
@@ -7,6 +8,12 @@ from changes.testutils import APITestCase
 
 
 class JobPhaseIndexTest(APITestCase):
+    def test_invalid_job_id(self):
+        path = '/api/0/jobs/{0}/phases/'.format(uuid4().hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 404
+
     def test_simple(self):
         project = self.project
         build = self.create_build(project)
