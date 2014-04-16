@@ -22,7 +22,16 @@ class ProjectTestIndexTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 404
 
-        path = '/api/0/projects/{0}/tests/'.format(project.id.hex)
+        path = '/api/0/projects/{0}/tests/?sort=duration'.format(project.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['hash'] == test.name_sha
+        assert data[0]['project']['id'] == project.id.hex
+
+        path = '/api/0/projects/{0}/tests/?sort=name'.format(project.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200

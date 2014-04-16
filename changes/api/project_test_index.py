@@ -1,16 +1,30 @@
 from __future__ import absolute_import, division, unicode_literals
 
+from flask.ext.restful import reqparse
+
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import GeneralizedTestCase
 from changes.constants import Result, Status
 from changes.models import Project, TestCase, Job, Source
 
 
+SORT_CHOICES = (
+    'duration',
+    'name',
+)
+
+
 class ProjectTestIndexAPIView(APIView):
+    parser = reqparse.RequestParser()
+    parser.add_argument('sort', type=unicode, location='args',
+                        choices=SORT_CHOICES, default='duration')
+
     def get(self, project_id):
         project = Project.get(project_id)
         if not project:
             return '', 404
+
+        args = self.parser.parse_args()
 
         latest_job = Job.query.join(
             Source, Source.id == Job.source_id,
@@ -27,11 +41,18 @@ class ProjectTestIndexAPIView(APIView):
             return self.respond([])
 
         # use the most recent test
-        results = TestCase.query.filter(
+        test_list = TestCase.query.filter(
             TestCase.project_id == project_id,
             TestCase.job_id == latest_job.id,
-        ).order_by(TestCase.duration.desc())
+        )
 
-        return self.paginate(results, serializers={
+        if args.sort == 'duration':
+            sort_by = TestCase.duration.desc()
+        elif args.sort == 'name':
+            sort_by = TestCase.name.asc()
+
+        test_list = test_list.order_by(sort_by)
+
+        return self.paginate(test_list, serializers={
             TestCase: GeneralizedTestCase(),
         })
