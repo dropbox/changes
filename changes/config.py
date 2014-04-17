@@ -235,6 +235,7 @@ def configure_api_routes(app):
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_options_index import ProjectOptionsIndexAPIView
     from changes.api.project_test_details import ProjectTestDetailsAPIView
+    from changes.api.project_test_group_index import ProjectTestGroupIndexAPIView
     from changes.api.project_test_index import ProjectTestIndexAPIView
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.project_source_details import ProjectSourceDetailsAPIView
@@ -272,6 +273,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')
     api.add_resource(ProjectOptionsIndexAPIView, '/projects/<project_id>/options/')
     api.add_resource(ProjectTestIndexAPIView, '/projects/<project_id>/tests/')
+    api.add_resource(ProjectTestGroupIndexAPIView, '/projects/<project_id>/testgroups/')
     api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_hash>/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')

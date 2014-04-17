@@ -24,6 +24,7 @@ define([
   'states/projectSourceDetails',
   'states/projectTestDetails',
   'states/projectTestList',
+  'states/projectTestSearch',
   'states/taskDetails',
   'states/testCaseDetails',
 
@@ -60,6 +61,7 @@ define([
   ProjectSourceDetailsState,
   ProjectTestDetailsState,
   ProjectTestListState,
+  ProjectTestSearchState,
   TaskDetailsState,
   TestCaseDetailsState
 ) {
@@ -121,6 +123,7 @@ define([
       .state('project_settings', ProjectSettingsState)
       .state('project_tests', ProjectTestListState)
       .state('project_test_details', ProjectTestDetailsState)
+      .state('project_test_search', ProjectTestSearchState)
       .state('project_source_details', ProjectSourceDetailsState)
       .state('test_details', TestCaseDetailsState)
       .state('task_details', TaskDetailsState);

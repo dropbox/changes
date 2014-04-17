@@ -1,0 +1,29 @@
+<section>
+    <div class="page-header">
+		<h2>Test Cases</h2>
+	</div>
+
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th>Test</th>
+				<th style="width:100px;text-align:center">Duration <span class="help" title="duration from last build">?</span></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="test in testList">
+				<td><a ui-sref="project_test_details({test_id: test.hash})">{{test.name}}</a></td>
+				<td style="text-align:center"><span duration="test.duration"></span></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<ul class="pager">
+		<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+			<a ng-click="loadPreviousPage()">&larr; Previous</a>
+		</li>
+		<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+			<a ng-click="loadNextPage()">Next &rarr;</a>
+		</li>
+	</ul>
+</section>
