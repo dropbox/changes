@@ -1,3 +1,4 @@
+from changes.config import db
 from changes.models import ProjectOption
 from changes.testutils import APITestCase
 
@@ -9,6 +10,7 @@ class BuildListTest(APITestCase):
         resp = self.client.post(path, data={
             'mail.notify-author': '0',
             'build.allow-patches': '1',
+            'build.expect-tests': '1',
         })
         assert resp.status_code == 401
 
@@ -17,19 +19,16 @@ class BuildListTest(APITestCase):
         resp = self.client.post(path, data={
             'mail.notify-author': '0',
             'build.allow-patches': '1',
+            'build.expect-tests': '1',
         })
         assert resp.status_code == 200
 
-        option = ProjectOption.query.filter(
+        options = dict(db.session.query(
+            ProjectOption.name, ProjectOption.value
+        ).filter(
             ProjectOption.project == self.project,
-            ProjectOption.name == 'mail.notify-author',
-        ).first()
+        ))
 
-        assert option.value == '0'
-
-        option = ProjectOption.query.filter(
-            ProjectOption.project == self.project,
-            ProjectOption.name == 'build.allow-patches',
-        ).first()
-
-        assert option.value == '1'
+        assert options.get('mail.notify-author') == '0'
+        assert options.get('build.allow-patches') == '1'
+        assert options.get('build.expect-tests') == '1'

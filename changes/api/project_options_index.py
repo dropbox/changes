@@ -16,6 +16,7 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('mail.notify-addresses')
     parser.add_argument('mail.notify-addresses-revisions')
     parser.add_argument('build.allow-patches')
+    parser.add_argument('build.expect-tests')
     parser.add_argument('hipchat.notify')
     parser.add_argument('hipchat.room')
 

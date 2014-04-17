@@ -3,9 +3,9 @@ from __future__ import absolute_import
 import mock
 
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import JobStep, Step, Task
+from changes.models import JobStep, ProjectOption, Step, Task
 from changes.testutils import TestCase
 
 
@@ -73,6 +73,7 @@ class SyncJobStepTest(TestCase):
 
         def mark_finished(step):
             step.status = Status.finished
+            step.result = Result.passed
 
         implementation.update_step.side_effect = mark_finished
 
@@ -116,3 +117,45 @@ class SyncJobStepTest(TestCase):
         assert task.status == Status.finished
 
         assert len(queue_delay.mock_calls) == 0
+
+    @mock.patch('changes.config.queue.delay')
+    @mock.patch.object(Step, 'get_implementation')
+    def test_missing_test_results_and_expected(self, get_implementation, queue_delay):
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+
+        def mark_finished(step):
+            step.status = Status.finished
+            step.result = Result.passed
+
+        implementation.update_step.side_effect = mark_finished
+
+        build = self.create_build(project=self.project)
+        job = self.create_job(build=build)
+
+        plan = self.create_plan()
+        self.create_step(plan, implementation='test', order=0)
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase)
+
+        db.session.add(ProjectOption(
+            project_id=self.project.id,
+            name='build.expect-tests',
+            value='1'
+        ))
+        db.session.commit()
+
+        sync_job_step(
+            step_id=step.id.hex,
+            task_id=step.id.hex,
+            parent_task_id=job.id.hex,
+        )
+
+        db.session.expire(step)
+
+        step = JobStep.query.get(step.id)
+
+        assert step.status == Status.finished
+        assert step.result == Result.failed

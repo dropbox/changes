@@ -5,7 +5,7 @@ from sqlalchemy.orm import subqueryload_all
 from changes.backends.base import UnrecoverableException
 from changes.constants import Status, Result
 from changes.config import db
-from changes.models import JobStep, JobPlan, Plan
+from changes.models import JobStep, JobPlan, Plan, ProjectOption, TestCase
 from changes.queue.task import tracked_task
 
 
@@ -36,13 +36,26 @@ def abort_step(task):
     current_app.logger.exception('Unrecoverable exception syncing step %s', step.id)
 
 
+def is_missing_tests(step):
+    query = ProjectOption.query.filter(
+        ProjectOption.project_id == step.project_id,
+        ProjectOption.name == 'build.expect-tests',
+        ProjectOption.value == '1',
+    )
+    if not db.session.query(query.exists()).scalar():
+        return False
+
+    has_tests = db.session.query(TestCase.query.filter(
+        TestCase.step_id == step.id,
+    ).exists()).scalar()
+
+    return not has_tests
+
+
 @tracked_task(on_abort=abort_step)
 def sync_job_step(step_id):
     step = JobStep.query.get(step_id)
     if not step:
-        return
-
-    if step.status == Status.finished:
         return
 
     implementation = get_build_step(step.job_id)
@@ -55,3 +68,8 @@ def sync_job_step(step_id):
 
     if not is_finished:
         raise sync_job_step.NotFinished
+
+    if step.result == Result.passed and is_missing_tests(step):
+        step.result = Result.failed
+        db.session.add(step)
+        db.session.commit()
