@@ -18,7 +18,12 @@
 							<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;"></div>
 						</td>
 						<td duration="step.duration"></td>
-						<td>{{step.name}}</td>
+						<td>
+							<a ng-repeat="logSource in step.logSources"
+							   ui-sref="log_details({source_id: logSource.id})"
+							   tooltip="Log: {{logSource.name}}"><span class="glyphicon glyphicon-unchecked"></span></a>
+							{{step.name}}
+						</td>
 						<td><a href="/nodes/{{step.node.id}}/">{{(step.node.name || step.node.id)|truncate:50}}</a></td>
 					</tr>
 				</tbody>
