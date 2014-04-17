@@ -74,6 +74,8 @@ def create_app(_read_config=True, gevent=False, **config):
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///changes'
     app.config['SQLALCHEMY_POOL_SIZE'] = 60
     app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
+    # required for flask-debugtoolbar
+    app.config['SQLALCHEMY_RECORD_QUERIES'] = True
 
     app.config['REDIS_URL'] = 'redis://localhost/0'
     app.config['DEBUG'] = True
