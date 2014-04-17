@@ -19,7 +19,7 @@ from changes.events import publish_logchunk_update
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
-    AggregateTestSuite, Artifact, TestResult, TestResultManager, TestSuite,
+    Artifact, TestResult, TestResultManager, TestSuite,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 from changes.handlers.coverage import CoverageHandler
@@ -297,22 +297,6 @@ class JenkinsBuilder(BaseBackend):
                 'name': suite_name,
                 'project': step.job.project,
             })
-
-            agg, created = get_or_create(AggregateTestSuite, where={
-                'project': step.job.project,
-                'name_sha': suite.name_sha,
-            }, defaults={
-                'name': suite.name,
-                'first_job_id': step.job.id,
-            })
-
-            # if not created:
-            #     db.session.query(AggregateTestSuite).filter(
-            #         AggregateTestSuite.id == agg.id,
-            #         AggregateTestSuite.last_job_id == agg.last_job_id,
-            #     ).update({
-            #         AggregateTestSuite.last_job_id: build.id,
-            #     }, synchronize_session=False)
 
             for case in suite_data['cases']:
                 message = []

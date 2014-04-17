@@ -5,7 +5,7 @@ import uuid
 
 from datetime import datetime
 from hashlib import sha1
-from sqlalchemy import Table, Column, DateTime, ForeignKey, String, Text, Integer
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.event import listen
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint, Index
@@ -14,16 +14,7 @@ from changes.config import db
 from changes.constants import Result
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
-from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
-
-
-test_group_m2m_table = Table(
-    'testgroup_test',
-    db.Model.metadata,
-    Column('group_id', GUID, ForeignKey('testgroup.id', ondelete="CASCADE"), nullable=False, primary_key=True),
-    Column('test_id', GUID, ForeignKey('test.id', ondelete="CASCADE"), nullable=False, primary_key=True)
-)
 
 
 class TestSuite(db.Model):
@@ -58,75 +49,6 @@ class TestSuite(db.Model):
             self.date_created = datetime.utcnow()
         if self.name is None:
             self.name = 'default'
-
-
-class TestGroup(db.Model):
-    """
-    A TestGroup represents an aggregate tree of all leaves under it.
-
-    e.g. if you have the test leaf "foo.bar.TestCase.test_foo" it might create
-    a tree for "foo.bar.TestCase", "foo.bar" and "foo".
-    """
-    __tablename__ = 'testgroup'
-    __table_args__ = (
-        UniqueConstraint('job_id', 'suite_id', 'name_sha', name='_group_key'),
-        Index('idx_testgroup_suite_id', 'suite_id'),
-        Index('idx_testgroup_parent_id', 'parent_id'),
-        Index('idx_testgroup_project_date', 'project_id', 'date_created'),
-    )
-
-    id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
-    suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
-    parent_id = Column(GUID, ForeignKey('testgroup.id', ondelete="CASCADE"))
-    name_sha = Column(String(40), nullable=False)
-    name = Column(Text, nullable=False)
-    duration = Column(Integer, default=0)
-    result = Column(Enum(Result), default=Result.unknown, nullable=False)
-    num_tests = Column(Integer, default=0, nullable=False)
-    num_failed = Column(Integer, default=0, nullable=False)
-    # the number of direct leaves -- this is useful to "find all trees which
-    # terminate"
-    num_leaves = Column(Integer, default=0, nullable=False)
-    data = Column(JSONEncodedDict)
-    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
-
-    job = relationship('Job')
-    project = relationship('Project')
-    testcases = relationship('TestCase', secondary=test_group_m2m_table, backref="groups")
-    parent = relationship('TestGroup', remote_side=[id])
-    suite = relationship('TestSuite')
-
-    __repr__ = model_repr('name', 'result')
-
-    def __init__(self, **kwargs):
-        super(TestGroup, self).__init__(**kwargs)
-        if self.id is None:
-            self.id = uuid.uuid4()
-        if self.date_created is None:
-            self.date_created = datetime.utcnow()
-        if self.duration is None:
-            self.duration = 0
-        if self.num_tests is None:
-            self.num_tests = 0
-        if self.num_failed is None:
-            self.num_failed = 0
-        if self.num_leaves is None:
-            self.num_leaves = 0
-
-    @property
-    def package(self):
-        if self.parent:
-            return self.parent.name
-        return None
-
-    @property
-    def short_name(self):
-        package = self.package
-        if package:
-            return self.name[len(package) + 1:]
-        return self.name
 
 
 class TestCase(db.Model):
@@ -223,4 +145,3 @@ def set_name_sha(target, value, oldvalue, initiator):
 
 listen(TestCase.name, 'set', set_name_sha, retval=False)
 listen(TestSuite.name, 'set', set_name_sha, retval=False)
-listen(TestGroup.name, 'set', set_name_sha, retval=False)

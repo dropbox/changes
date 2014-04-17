@@ -8,7 +8,7 @@ from uuid import uuid4
 from changes.config import db
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
-    TestGroup, Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
+    Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource
 )
 from changes.utils.slugs import slugify
@@ -126,19 +126,6 @@ class Fixtures(object):
         db.session.commit()
 
         return case
-
-    def create_testgroup(self, job, **kwargs):
-        kwargs.setdefault('name', uuid4().hex)
-
-        group = TestGroup(
-            job=job,
-            project=job.project,
-            **kwargs
-        )
-        db.session.add(group)
-        db.session.commit()
-
-        return group
 
     def create_job(self, build, **kwargs):
         project = build.project
