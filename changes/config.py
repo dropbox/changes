@@ -7,8 +7,9 @@ import warnings
 
 from celery.signals import task_postrun
 from datetime import timedelta
-from flask import session
+from flask import request, session
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
 from kombu import Queue
 from raven.contrib.flask import Sentry
@@ -20,11 +21,34 @@ from changes.api.controller import APIController
 from changes.ext.celery import Celery
 from changes.ext.pubsub import PubSub
 from changes.ext.redis import Redis
-from changes.utils.trace import TracerMiddleware
 
 # because foo.in_([]) ever executing is a bad idea
 from sqlalchemy.exc import SAWarning
 warnings.simplefilter('error', SAWarning)
+
+
+class ChangesDebugToolbarExtension(DebugToolbarExtension):
+    def _show_toolbar(self):
+        if '__trace__' in request.args:
+            return True
+        return super(ChangesDebugToolbarExtension, self)._show_toolbar()
+
+    def process_response(self, response):
+        real_request = request._get_current_object()
+
+        # If the http response code is 200 then we process to add the
+        # toolbar to the returned html response.
+        if '__trace__' in real_request.args:
+            for panel in self.debug_toolbars[real_request].panels:
+                panel.process_response(real_request, response)
+
+            if response.is_sequence:
+                toolbar_html = self.debug_toolbars[real_request].render_toolbar()
+                response.headers['content-type'] = 'text/html'
+                response.response = [toolbar_html]
+                response.content_length = len(toolbar_html)
+
+        return response
 
 db = SQLAlchemy(session_options={})
 api = APIController(prefix='/api/0')
@@ -41,7 +65,7 @@ def create_app(_read_config=True, gevent=False, **config):
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
 
     app.wsgi_app = ProxyFix(app.wsgi_app)
-    app.wsgi_app = TracerMiddleware(app.wsgi_app, app)
+    # app.wsgi_app = TracerMiddleware(app.wsgi_app, app)
 
     # This key is insecure and you should override it on the server
     app.config['SECRET_KEY'] = 't\xad\xe7\xff%\xd2.\xfe\x03\x02=\xec\xaf\\2+\xb8=\xf7\x8a\x9aLD\xb1'
@@ -179,6 +203,7 @@ def create_app(_read_config=True, gevent=False, **config):
     pubsub.init_app(app)
     queue.init_app(app)
     redis.init_app(app)
+    configure_debug_toolbar(app)
 
     from raven.contrib.celery import register_signal, register_logger_signal
     register_signal(sentry.client)
@@ -198,6 +223,11 @@ def create_app(_read_config=True, gevent=False, **config):
     configure_jobs(app)
 
     return app
+
+
+def configure_debug_toolbar(app):
+    toolbar = ChangesDebugToolbarExtension(app)
+    return toolbar
 
 
 def configure_templates(app):
