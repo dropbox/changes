@@ -128,6 +128,8 @@ def create_app(_read_config=True, gevent=False, **config):
         ('changes.listeners.build_revision.revision_created_handler', 'revision.created'),
     )
 
+    app.config['DEBUG_TB_ENABLED'] = True
+
     # celerybeat must be running for our cleanup tasks to execute
     # e.g. celery worker -B
     app.config['CELERYBEAT_SCHEDULE'] = {
