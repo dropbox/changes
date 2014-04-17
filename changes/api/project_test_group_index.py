@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
+from changes.config import db
 from changes.constants import Result, Status
 from changes.models import Project, TestCase, Job, Source
 from changes.utils.trees import find_trees
@@ -34,7 +35,9 @@ class ProjectTestGroupIndexAPIView(APIView):
             return self.respond([])
 
         # use the most recent test
-        test_list = TestCase.query.filter(
+        test_list = db.session.query(
+            TestCase.name, TestCase.duration
+        ).filter(
             TestCase.project_id == project_id,
             TestCase.job_id == latest_job.id,
         )
@@ -45,10 +48,10 @@ class ProjectTestGroupIndexAPIView(APIView):
         test_list = list(test_list)
 
         if test_list:
-            sep = test_list[0].sep
+            sep = TestCase(name=test_list[0][0]).sep
 
             groups = find_trees(
-                [t.name for t in test_list],
+                [t[0] for t in test_list],
                 sep=sep,
                 min_leaves=2,
                 parent=args.parent,
@@ -58,7 +61,7 @@ class ProjectTestGroupIndexAPIView(APIView):
             # TODO(dcramer): it's likely there's a much better way to do this
             while not args.parent and len(groups) == 1:
                 try_groups = find_trees(
-                    [t.name for t in test_list],
+                    [t[0] for t in test_list],
                     sep=sep,
                     min_leaves=2,
                     parent=groups[0][0],
@@ -71,10 +74,10 @@ class ProjectTestGroupIndexAPIView(APIView):
             for group, count in groups:
                 num_tests = 0
                 total_duration = 0
-                for test in test_list:
-                    if test.name == group or test.name.startswith(group + sep):
+                for name, duration in test_list:
+                    if name == group or name.startswith(group + sep):
                         num_tests += 1
-                        total_duration += test.duration
+                        total_duration += duration
 
                 if args.parent:
                     name = group[len(args.parent) + len(sep):]
