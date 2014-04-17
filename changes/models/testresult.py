@@ -105,6 +105,13 @@ class TestResultManager(object):
         ).as_scalar()
 
         create_or_update(ItemStat, where={
+            'item_id': self.step.id,
+            'name': 'test_count',
+        }, values={
+            'value': len(test_list),
+        })
+
+        create_or_update(ItemStat, where={
             'item_id': job.id,
             'name': 'test_count',
         }, values={
@@ -138,6 +145,13 @@ class TestResultManager(object):
         test_duration = db.session.query(func.sum(TestCase.duration)).filter(
             TestCase.job_id == job.id,
         ).as_scalar()
+
+        create_or_update(ItemStat, where={
+            'item_id': self.step.id,
+            'name': 'test_duration',
+        }, values={
+            'value': sum(t.duration for t in test_list),
+        })
 
         create_or_update(ItemStat, where={
             'item_id': job.id,
@@ -174,6 +188,13 @@ class TestResultManager(object):
             TestCase.job_id == job.id,
             TestCase.reruns > 0,
         ).as_scalar()
+
+        create_or_update(ItemStat, where={
+            'item_id': self.step.id,
+            'name': 'test_rerun_count',
+        }, values={
+            'value': sum(1 for t in test_list if t.reruns),
+        })
 
         create_or_update(ItemStat, where={
             'item_id': job.id,

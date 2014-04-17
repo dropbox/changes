@@ -77,6 +77,12 @@ class TestResultManagerTestCase(TestCase):
         assert teststat.value == 2
 
         teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == jobstep.id,
+        )[0]
+        assert teststat.value == 2
+
+        teststat = ItemStat.query.filter(
             ItemStat.name == 'test_duration',
             ItemStat.item_id == build.id,
         )[0]
@@ -85,6 +91,12 @@ class TestResultManagerTestCase(TestCase):
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_duration',
             ItemStat.item_id == job.id,
+        )[0]
+        assert teststat.value == 168
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_duration',
+            ItemStat.item_id == jobstep.id,
         )[0]
         assert teststat.value == 168
 
@@ -97,6 +109,12 @@ class TestResultManagerTestCase(TestCase):
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_rerun_count',
             ItemStat.item_id == job.id,
+        )[0]
+        assert teststat.value == 1
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_rerun_count',
+            ItemStat.item_id == jobstep.id,
         )[0]
         assert teststat.value == 1
 
