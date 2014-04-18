@@ -2,7 +2,7 @@ import mock
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build
+from changes.models import Build, Job, JobStep, ItemStat
 from changes.testutils import APITestCase
 
 
@@ -11,6 +11,14 @@ class BuildRestartTest(APITestCase):
     def test_simple(self, execute_build):
         build = self.create_build(
             project=self.project, status=Status.in_progress)
+        job = self.create_job(build=build)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+
+        db.session.add(ItemStat(item_id=build.id.hex, name='test', value=1))
+        db.session.add(ItemStat(item_id=job.id.hex, name='test', value=1))
+        db.session.add(ItemStat(item_id=step.id.hex, name='test', value=1))
+        db.session.commit()
 
         path = '/api/0/builds/{0}/restart/'.format(build.id.hex)
 
@@ -36,3 +44,9 @@ class BuildRestartTest(APITestCase):
         assert build.result == Result.unknown
         assert build.date_finished is None
         assert build.duration is None
+
+        assert not Job.query.filter(Job.id == job.id).first()
+        assert not JobStep.query.filter(JobStep.id == step.id).first()
+        assert not ItemStat.query.filter(ItemStat.item_id.in_([
+            build.id, job.id, step.id
+        ])).first()
