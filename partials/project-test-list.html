@@ -16,6 +16,9 @@
 	<li ng-class="selectedChart == 'retries' ? 'active' : ''">
 		<a ng-click="selectChart('retries')">Retries</a>
 	</li>
+	<li ng-class="selectedChart == 'missing' ? 'active' : ''">
+		<a ng-click="selectChart('missing')">Missing</a>
+	</li>
 </ul>
 
 <barchart ng-model="chartData" style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>

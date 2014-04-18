@@ -10,7 +10,7 @@ define([
     parent: 'project_details',
     url: 'tests/?parent',
     templateUrl: 'partials/project-test-list.html',
-    controller: function($http, $scope, $state, buildList, projectData, testGroupData) {
+    controller: function($http, $scope, $state, $stateParams, buildList, projectData, testGroupData) {
       var chart_options = {
             linkFormatter: function(item) {
               return $state.href('build_details', {build_id: item.id});
@@ -22,6 +22,8 @@ define([
                 return item.stats.test_duration / item.stats.test_count;
               } else if ($scope.selectedChart == 'retries') {
                 return item.stats.test_rerun_count;
+              } else if ($scope.selectedChart == 'missing') {
+                return item.stats.tests_missing;
               }
             },
             tooltipFormatter: function(item) {
@@ -42,6 +44,8 @@ define([
                 content += '<p>' + parseInt(item.stats.test_duration / item.stats.test_count || 0, 10) + 'ms avg test duration';
               } else if ($scope.selectedChart == 'retries') {
                 content += '<p>' + (item.stats.test_rerun_count || 0) + ' total retries';
+              } else if ($scope.selectedChart == 'missing') {
+                content += '<p>' + (item.stats.tests_missing || 0) + ' job steps missing tests';
               }
               return content;
             }
