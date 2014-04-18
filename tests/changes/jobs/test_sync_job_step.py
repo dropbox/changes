@@ -5,7 +5,7 @@ import mock
 from changes.config import db
 from changes.constants import Result, Status
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import JobStep, ProjectOption, Step, Task
+from changes.models import ItemStat, JobStep, ProjectOption, Step, Task
 from changes.testutils import TestCase
 
 
@@ -33,6 +33,9 @@ class SyncJobStepTest(TestCase):
             task_id=step.id,
             task_name='sync_job_step',
         )
+
+        db.session.add(ItemStat(item_id=job.id, name='tests_missing', value=1))
+        db.session.commit()
 
         implementation.update_step.side_effect = mark_in_progress
 
@@ -118,6 +121,12 @@ class SyncJobStepTest(TestCase):
 
         assert len(queue_delay.mock_calls) == 0
 
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == step.id,
+            ItemStat.name == 'tests_missing',
+        ).first()
+        assert stat.value == 0
+
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
     def test_missing_test_results_and_expected(self, get_implementation, queue_delay):
@@ -159,3 +168,9 @@ class SyncJobStepTest(TestCase):
 
         assert step.status == Status.finished
         assert step.result == Result.failed
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == step.id,
+            ItemStat.name == 'tests_missing',
+        ).first()
+        assert stat.value == 1

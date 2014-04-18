@@ -5,7 +5,10 @@ from sqlalchemy.orm import subqueryload_all
 from changes.backends.base import UnrecoverableException
 from changes.constants import Status, Result
 from changes.config import db
-from changes.models import JobStep, JobPlan, Plan, ProjectOption, TestCase
+from changes.db.utils import try_create
+from changes.models import (
+    JobStep, JobPlan, Plan, ProjectOption, TestCase, ItemStat
+)
 from changes.queue.task import tracked_task
 
 
@@ -69,7 +72,16 @@ def sync_job_step(step_id):
     if not is_finished:
         raise sync_job_step.NotFinished
 
-    if step.result == Result.passed and is_missing_tests(step):
+    missing_tests = is_missing_tests(step)
+
+    try_create(ItemStat, where={
+        'item_id': step.id,
+        'name': 'tests_missing',
+    }, defaults={
+        'value': int(missing_tests)
+    })
+
+    if step.result == Result.passed and missing_tests:
         step.result = Result.failed
         db.session.add(step)
         db.session.commit()

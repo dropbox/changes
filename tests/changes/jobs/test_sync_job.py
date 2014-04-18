@@ -3,8 +3,9 @@ from __future__ import absolute_import
 import mock
 
 from changes.constants import Status
+from changes.config import db
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, Step, Task
+from changes.models import ItemStat, Job, Step, Task
 from changes.testutils import TestCase
 
 
@@ -85,14 +86,19 @@ class SyncJobTest(TestCase):
 
         build, job, task = self.build, self.job, self.task
 
+        step = job.phases[0].steps[0]
+
         self.create_task(
             task_name='sync_job_step',
-            task_id=job.phases[0].steps[0].id,
+            task_id=step.id,
             parent_id=job.id,
             status=Status.finished,
         )
         self.create_test(job)
         self.create_test(job)
+
+        db.session.add(ItemStat(item_id=step.id, name='tests_missing', value=1))
+        db.session.commit()
 
         sync_job(
             job_id=job.id.hex,
@@ -118,3 +124,9 @@ class SyncJobTest(TestCase):
         task = Task.query.get(task.id)
 
         assert task.status == Status.finished
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == job.id,
+            ItemStat.name == 'tests_missing',
+        ).first()
+        assert stat.value == 1

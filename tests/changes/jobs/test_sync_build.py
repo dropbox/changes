@@ -6,7 +6,7 @@ from datetime import datetime
 
 from changes.constants import Status, Result
 from changes.config import db
-from changes.models import Build
+from changes.models import Build, ItemStat
 from changes.jobs.sync_build import sync_build
 from changes.testutils import TestCase
 
@@ -49,6 +49,10 @@ class SyncBuildTest(TestCase):
             status=Status.in_progress,
         )
 
+        db.session.add(ItemStat(item_id=job_a.id, name='tests_missing', value=1))
+        db.session.add(ItemStat(item_id=job_b.id, name='tests_missing', value=0))
+        db.session.commit()
+
         sync_build(build_id=build.id.hex, task_id=build.id.hex)
 
         build = Build.query.get(build.id)
@@ -74,3 +78,9 @@ class SyncBuildTest(TestCase):
         queue_delay.assert_any_call('update_project_stats', kwargs={
             'project_id': self.project.id.hex,
         }, countdown=1)
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == build.id,
+            ItemStat.name == 'tests_missing',
+        ).first()
+        assert stat.value == 1

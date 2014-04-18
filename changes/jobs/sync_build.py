@@ -1,11 +1,33 @@
 from datetime import datetime
+from sqlalchemy.sql import func
 
 from changes.config import db, queue
 from changes.constants import Result, Status
+from changes.db.utils import try_create
 from changes.events import publish_build_update
-from changes.models import Build, Job
+from changes.models import Build, ItemStat, Job
 from changes.utils.agg import safe_agg
 from changes.queue.task import tracked_task
+
+
+def _record_tests_missing(build):
+    tests_missing_count = db.session.query(
+        func.sum(ItemStat.value),
+    ).filter(
+        ItemStat.item_id.in_(
+            db.session.query(Job.id).filter(
+                Job.build_id == build.id,
+            )
+        ),
+        ItemStat.name == 'tests_missing',
+    ).as_scalar()
+
+    try_create(ItemStat, where={
+        'item_id': build.id,
+        'name': 'tests_missing',
+    }, defaults={
+        'value': tests_missing_count
+    })
 
 
 @tracked_task
@@ -69,6 +91,8 @@ def sync_build(build_id):
 
     if not is_finished:
         raise sync_build.NotFinished
+
+    _record_tests_missing(build)
 
     queue.delay('notify_build_finished', kwargs={
         'build_id': build.id.hex,
