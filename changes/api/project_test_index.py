@@ -16,6 +16,7 @@ SORT_CHOICES = (
 
 class ProjectTestIndexAPIView(APIView):
     parser = reqparse.RequestParser()
+    parser.add_argument('query', type=unicode, location='args')
     parser.add_argument('sort', type=unicode, location='args',
                         choices=SORT_CHOICES, default='duration')
 
@@ -45,6 +46,11 @@ class ProjectTestIndexAPIView(APIView):
             TestCase.project_id == project_id,
             TestCase.job_id == latest_job.id,
         )
+
+        if args.query:
+            test_list = test_list.filter(
+                TestCase.name.startswith(args.query),
+            )
 
         if args.sort == 'duration':
             sort_by = TestCase.duration.desc()
