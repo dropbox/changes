@@ -56,7 +56,7 @@ install_requires = [
     'simplejson>=3.3.0,<3.4.0',
     'sqlalchemy==0.9.4',
     'statprof',
-    'toronado==0.0.3',
+    'toronado==0.0.4',
 ]
 
 
