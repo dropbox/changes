@@ -132,7 +132,12 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _create_job_step(self, phase, job_name=None, build_no=None, **kwargs):
+    def _create_job_step(self, phase, job_name=None, build_no=None,
+                         label=None, **kwargs):
+        # TODO(dcramer): we make an assumption that the job step label is unique
+        # but its not guaranteed to be the case. We can ignore this assumption
+        # by guaranteeing that the JobStep.id value is used for builds instead
+        # of the Job.id value.
         defaults = {
             'data': {
                 'job_name': job_name,
@@ -141,44 +146,47 @@ class JenkinsBuilder(BaseBackend):
         }
         defaults.update(kwargs)
 
+        data = defaults['data']
+        if data['job_name'] and not label:
+            label = '{0} #{1}'.format(data['job_name'], data['build_no'] or data['item_id'])
+
+        assert label
+
         step, created = get_or_create(JobStep, where={
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
-            'label': '{0} #{1}'.format(job_name, build_no),
+            'label': label,
         }, defaults=defaults)
-        if not created:
-            db.session.add(step)
 
         return step
 
-    def _sync_artifact_as_xunit(self, jobstep, job_name, build_no, artifact):
+    def fetch_artifact(self, jobstep, artifact):
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url, job=job_name,
-            build=build_no, artifact=artifact['relativePath'],
+            base=self.base_url,
+            job=jobstep.data['job_name'],
+            build=jobstep.data['build_no'],
+            artifact=artifact['relativePath'],
         )
+        return requests.get(url, stream=True, timeout=15)
 
-        resp = requests.get(url, stream=True, timeout=15)
+    def _sync_artifact_as_xunit(self, jobstep, artifact):
+        resp = self.fetch_artifact(jobstep, artifact)
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
         handler = XunitHandler(jobstep)
         handler.process(StringIO(resp.content))
 
-    def _sync_artifact_as_coverage(self, jobstep, job_name, build_no, artifact):
-        url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url, job=job_name,
-            build=build_no, artifact=artifact['relativePath'],
-        )
-
-        resp = requests.get(url, stream=True, timeout=15)
+    def _sync_artifact_as_coverage(self, jobstep, artifact):
+        resp = self.fetch_artifact(jobstep, artifact)
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
         handler = CoverageHandler(jobstep)
         handler.process(StringIO(resp.content))
 
-    def _sync_artifact_as_log(self, jobstep, job_name, build_no, artifact):
+    def _sync_artifact_as_log(self, jobstep, artifact):
         job = jobstep.job
         logsource, created = get_or_create(LogSource, where={
             'name': artifact['displayPath'],
@@ -188,6 +196,9 @@ class JenkinsBuilder(BaseBackend):
             'project': job.project,
             'date_created': job.date_started,
         })
+
+        job_name = jobstep.data['job_name']
+        build_no = jobstep.data['build_no']
 
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
             base=self.base_url, job=job_name,
@@ -569,14 +580,12 @@ class JenkinsBuilder(BaseBackend):
             self._sync_step_from_active(step)
 
     def sync_artifact(self, step, artifact):
-        job_name = step.data['job_name']
-        build_no = step.data['build_no']
         if self.sync_log_artifacts and artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(step, job_name, build_no, artifact)
+            self._sync_artifact_as_log(step, artifact)
         if self.sync_xunit_artifacts and artifact['fileName'].endswith(XUNIT_FILENAMES):
-            self._sync_artifact_as_xunit(step, job_name, build_no, artifact)
+            self._sync_artifact_as_xunit(step, artifact)
         if self.sync_coverage_artifacts and artifact['fileName'].endswith(COVERAGE_FILENAMES):
-            self._sync_artifact_as_coverage(step, job_name, build_no, artifact)
+            self._sync_artifact_as_coverage(step, artifact)
         db.session.commit()
 
     def cancel_job(self, job):
@@ -627,21 +636,12 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def create_job(self, job):
-        """
-        Creates a job within Jenkins.
+    def create_job_from_params(self, job_id, params, job_name=None):
+        if job_name is None:
+            job_name = self.job_name
 
-        Due to the way the API works, this consists of two steps:
-
-        - Submitting the job
-        - Polling for the newly created job to associate either a queue ID
-          or a finalized build number.
-        """
-        job_name = self.job_name
         if not job_name:
             raise UnrecoverableException('Missing Jenkins project configuration')
-
-        params = self.get_job_parameters(job)
 
         json_data = {
             'parameter': params
@@ -659,13 +659,31 @@ class JenkinsBuilder(BaseBackend):
         t = time.time() + 5
         job_data = None
         while time.time() < t:
-            job_data = self._find_job(job_name, job.id.hex)
+            job_data = self._find_job(job_name, job_id)
             if job_data:
                 break
             time.sleep(0.3)
 
         if job_data is None:
             raise Exception('Unable to find matching job after creation. GLHF')
+
+        return job_data
+
+    def create_job(self, job):
+        """
+        Creates a job within Jenkins.
+
+        Due to the way the API works, this consists of two steps:
+
+        - Submitting the job
+        - Polling for the newly created job to associate either a queue ID
+          or a finalized build number.
+        """
+        params = self.get_job_parameters(job)
+        job_data = self.create_job_from_params(
+            job_id=job.id.hex,
+            params=params,
+        )
 
         if job_data['queued']:
             job.status = Status.queued

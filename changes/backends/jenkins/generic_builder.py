@@ -6,8 +6,11 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         self.script = kwargs.pop('script')
         super(JenkinsGenericBuilder, self).__init__(*args, **kwargs)
 
-    def get_job_parameters(self, job):
+    def get_job_parameters(self, job, script=None):
         params = super(JenkinsGenericBuilder, self).get_job_parameters(job)
+
+        if script is None:
+            script = self.script
 
         project = job.project
         repository = project.repository
@@ -21,7 +24,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         params.extend([
             {'name': 'CHANGES_PID', 'value': project.slug},
             {'name': 'REPO_URL', 'value': repo_url},
-            {'name': 'SCRIPT', 'value': self.script},
+            {'name': 'SCRIPT', 'value': script},
             {'name': 'REPO_VCS', 'value': repository.backend.name},
         ])
 
