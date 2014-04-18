@@ -22,14 +22,21 @@ class BuildRestartAPIView(APIView):
         if build.status != Status.finished:
             return '', 400
 
-        # remove any existing job data
-        # TODO(dcramer): this is potentially fairly slow with cascades
-        Job.query.filter(
-            Job.build == build
+        # ItemStat doesnt cascade
+        ItemStat.query.filter(
+            ItemStat.item_id == build.id
         ).delete()
 
         ItemStat.query.filter(
-            ItemStat.item_id == build.id
+            ItemStat.item_id.in_(Job.query.filter(
+                Job.build_id == build.id,
+            )),
+        ).delete()
+
+        # remove any existing job data
+        # TODO(dcramer): this is potentially fairly slow with cascades
+        Job.query.filter(
+            Job.build_id == build.id
         ).delete()
 
         build.date_started = datetime.utcnow()
