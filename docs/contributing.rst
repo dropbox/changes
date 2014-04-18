@@ -1,7 +1,7 @@
 Contributing to Changes
 =======================
 
-To get started, either get a job at Dropbox, or sign our Dropbox's CLA:
+To get started, either get a job at Dropbox, or sign our CLA:
 
 https://opensource.dropbox.com/cla/
 
