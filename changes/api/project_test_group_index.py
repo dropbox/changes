@@ -57,19 +57,6 @@ class ProjectTestGroupIndexAPIView(APIView):
                 parent=args.parent,
             )
 
-            # try to drill in to avoid a useless singular root folder
-            # TODO(dcramer): it's likely there's a much better way to do this
-            # while not args.parent and len(groups) == 1:
-            #     try_groups = find_trees(
-            #         [t[0] for t in test_list],
-            #         sep=sep,
-            #         min_leaves=2,
-            #         parent=groups[0][0],
-            #     )
-            #     if not try_groups:
-            #         break
-            #     groups = try_groups
-
             results = []
             for group in groups:
                 num_tests = 0
