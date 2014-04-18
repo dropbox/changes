@@ -52,11 +52,11 @@ install_requires = [
     'oauth2client>=1.2,<1.3',
     'phabricator>=0.3.0,<0.4.0',
     'psycopg2>=2.5.1,<2.6.0',
-    'pynliner>=0.5.0,<0.6.0',
     'python-dateutil>=2.1,<2.2',
     'simplejson>=3.3.0,<3.4.0',
     'sqlalchemy==0.9.4',
     'statprof',
+    'toronado==0.0.3',
 ]
 
 

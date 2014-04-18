@@ -2,10 +2,10 @@
 
 import argparse
 import sys
+import toronado
 
 from flask import render_template
 from flask_mail import Message
-from pynliner import Pynliner
 
 from changes.config import create_app, mail
 from changes.models import Project
@@ -57,9 +57,9 @@ if args.command == 'send':
 
     context = report.generate(days=args.days)
 
-    html_content = Pynliner().from_string(
+    html_content = toronado.from_string(
         render_template('email/build_report.html', **context)
-    ).run()
+    )
 
     msg = Message(context['title'], recipients=args.emails)
     msg.body = 'HTML only, #dealwithit'

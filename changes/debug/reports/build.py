@@ -1,11 +1,11 @@
+import toronado
+
 from flask import render_template
 from flask.views import MethodView
 from jinja2 import Markup
 
 from changes.models import Project
 from changes.reports.build import BuildReport
-
-from pynliner import Pynliner
 
 
 class BuildReportMailView(MethodView):
@@ -16,8 +16,8 @@ class BuildReportMailView(MethodView):
 
         context = report.generate()
 
-        html_content = Markup(Pynliner().from_string(
+        html_content = Markup(toronado.from_string(
             render_template('email/build_report.html', **context)
-        ).run())
+        ))
 
         return render_template('debug/email.html', html_content=html_content)
