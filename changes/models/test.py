@@ -7,7 +7,7 @@ from datetime import datetime
 from hashlib import sha1
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.event import listen
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.schema import UniqueConstraint, Index
 
 from changes.config import db
@@ -74,7 +74,7 @@ class TestCase(db.Model):
     _package = Column('package', Text, nullable=True)
     result = Column(Enum(Result), default=Result.unknown, nullable=False)
     duration = Column(Integer, default=0)
-    message = Column(Text)
+    message = deferred(Column(Text))
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     reruns = Column(Integer)
 
