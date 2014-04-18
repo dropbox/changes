@@ -28,7 +28,7 @@ class TestResult(object):
         self.duration = duration  # ms
         self.date_created = date_created or datetime.utcnow()
         self.suite = suite
-        self.reruns = reruns
+        self.reruns = reruns or 0
 
     @property
     def sep(self):
