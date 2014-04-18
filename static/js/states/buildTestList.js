@@ -4,11 +4,27 @@ define([
 ], function(app, parseLinkHeader) {
   'use strict';
 
+  var defaults = {
+    per_page: 100,
+    sort: 'duration',
+    query: ''
+  };
+
+  var buildTestListUrl = function(build_id, params) {
+    var query = $.param({
+      query: params.query,
+      sort: params.sort,
+      per_page: params.per_page
+    });
+
+    return '/api/0/builds/' + build_id + '/tests/?' + query;
+  };
+
   return {
     parent: 'build_details',
-    url: 'tests/',
+    url: 'tests/?sort&query&per_page',
     templateUrl: 'partials/build-test-list.html',
-    controller: function($http, $scope, testList) {
+    controller: function($http, $scope, $state, $stateParams, testList) {
       function loadTestList(url) {
         if (!url) {
           return;
@@ -35,12 +51,26 @@ define([
         $scope.previousPage = value.previous || null;
       });
 
+      $scope.searchTests = function() {
+        $state.go('build_test_list', $scope.searchParams);
+      };
+
+      $scope.searchParams = {
+        sort: $stateParams.duration,
+        query: $stateParams.query,
+        per_page: $stateParams.per_page
+      };
+
       $scope.pageLinks = parseLinkHeader(testList.headers('Link'));
       $scope.testList = testList.data;
     },
     resolve: {
-      testList: function($http, buildData) {
-        return $http.get('/api/0/builds/' + buildData.id + '/tests/?per_page=100');
+      testList: function($http, $stateParams, buildData) {
+        if (!$stateParams.sort) $stateParams.sort = defaults.sort;
+        if (!$stateParams.query) $stateParams.query = defaults.query;
+        if (!$stateParams.per_page) $stateParams.per_page = defaults.per_page;
+
+        return $http.get(buildTestListUrl(buildData.id, $stateParams));
       }
     }
   };

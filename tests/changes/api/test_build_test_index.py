@@ -13,13 +13,13 @@ class BuildTestIndexTest(APITestCase):
         build = self.create_build(self.project)
         job = self.create_job(build, status=Status.finished)
 
-        group = TestCase(
+        test = TestCase(
             job=job,
             project=self.project,
             name='foo',
             name_sha='a' * 40,
         )
-        db.session.add(group)
+        db.session.add(test)
 
         path = '/api/0/builds/{0}/tests/'.format(fake_id.hex)
 
@@ -33,7 +33,7 @@ class BuildTestIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == group.id.hex
+        assert data[0]['id'] == test.id.hex
 
         path = '/api/0/builds/{0}/tests/?sort=name'.format(build.id.hex)
 
@@ -41,7 +41,7 @@ class BuildTestIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == group.id.hex
+        assert data[0]['id'] == test.id.hex
 
         path = '/api/0/builds/{0}/tests/?sort=retries'.format(build.id.hex)
 
@@ -49,7 +49,7 @@ class BuildTestIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == group.id.hex
+        assert data[0]['id'] == test.id.hex
 
         path = '/api/0/builds/{0}/tests/?per_page='.format(build.id.hex)
 
@@ -57,4 +57,19 @@ class BuildTestIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == group.id.hex
+        assert data[0]['id'] == test.id.hex
+
+        path = '/api/0/builds/{0}/tests/?query=foo'.format(build.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == test.id.hex
+
+        path = '/api/0/builds/{0}/tests/?query=bar'.format(build.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 0
