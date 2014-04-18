@@ -5,6 +5,90 @@ To get started, either get a job at Dropbox, or sign our Dropbox's CLA:
 
 https://opensource.dropbox.com/cla/
 
+Setting up an Environment
+-------------------------
+
+You'll need to ensure you have a few dependencies:
+
+- Node.js
+
+  - Bower (npm install -g bower)
+
+- Postgresql
+
+- Redis
+
+- Python 2.7
+
+  - virtualenv
+
+  - pip
+
+
+Bootstrapping
+~~~~~~~~~~~~~
+
+Create the database:
+
+::
+
+    $ createdb -E utf-8 changes
+
+Setup the default configuration:
+
+::
+
+    # this should live in ~/.changes/changes.conf.py
+    BASE_URI = 'http://localhost:5000'
+    SERVER_NAME = 'localhost:5000'
+
+    REPO_ROOT = '/tmp'
+
+    # Changes only supports Google Auth, so you'll need to obtain tokens
+    GOOGLE_CLIENT_ID = None
+    GOOGLE_CLIENT_SECRET = None
+
+
+Create a Python environment:
+
+::
+
+    $ mkvirtualenv changes
+
+Bootstrap your environment:
+
+::
+
+    $ make upgrade
+
+
+.. note:: You can run ``make resetdb`` to drop and re-create a clean database.
+
+
+Webserver
+~~~~~~~~~
+
+Run the webserver:
+
+::
+
+    bin/web
+
+.. note:: The server doesn't automatically reload when you make changes to the Python code.
+
+
+Background Workers
+~~~~~~~~~~~~~~~~~~
+
+While it's likely you won't need to actually run the workers, they're managed via Celery:
+
+::
+
+    bin/worker -B
+
+.. note:: In development you can set ``CELERY_ALWAYS_EAGER`` to run the queue in-process. You likely don't want this if you're synchronizing builds as it can cause recursion errors.
+
+
 Directory Layout
 ----------------
 
