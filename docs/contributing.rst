@@ -5,6 +5,16 @@ To get started, either get a job at Dropbox, or sign our CLA:
 
 https://opensource.dropbox.com/cla/
 
+Getting the Source Code
+-----------------------
+
+Use the git, Luke!
+
+::
+
+    git clone https://github.com/dropbox/changes.git
+
+
 Setting up an Environment
 -------------------------
 
