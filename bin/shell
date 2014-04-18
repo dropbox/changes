@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+from __future__ import absolute_import
+
+from changes.config import create_app
+from werkzeug import script
+
+app = create_app()
+app_context = app.app_context()
+app_context.push()
+
+script.make_shell(lambda: {"app": app})()
