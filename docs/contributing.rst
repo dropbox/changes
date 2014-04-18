@@ -5,6 +5,42 @@ To get started, either get a job at Dropbox, or sign our Dropbox's CLA:
 
 https://opensource.dropbox.com/cla/
 
+Directory Layout
+----------------
+
+::
+
+    # command line scripts
+    ├── bin
+
+    # python code
+    ├── changes
+
+    # python test bootstrap code
+    ├── conftest.py
+
+    # docs, like what you're reading right now
+    ├── docs
+
+    # database migrations (via Alembic)
+    ├── migrations
+
+    # client-side templates
+    ├── partials
+
+    # static media (such as the frontend code, as well as vendored code within)
+    ├── static
+    │   ├── css
+    │   ├── js
+    │   └── vendor
+
+    # server-side templates
+    ├── templates
+
+    # all tests (only python currently)
+    └── tests
+
+
 Understanding the Frontend
 --------------------------
 
@@ -171,3 +207,13 @@ And of course, we absolutely require integration tests for every endpoint:
 
 
 A ``client`` attribute exists on the test instance, as well as a number of helpers in ``changes.testutils.fixtures`` for creating mock data. This is a real database transaction so you can do just about everything, and we'll safely ensure things are cleaned up and fast.
+
+
+Loading in Mock Data
+--------------------
+
+If you're changing the frontend, it's likely you're going to want some data to work with. We've provided a helper script which will create some sample data, as well as stream in continuous updates. It's not quite the same as production, but it should be enough to work with:
+
+::
+
+    python stream_data.py
