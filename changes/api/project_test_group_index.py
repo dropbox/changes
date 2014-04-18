@@ -6,7 +6,7 @@ from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import Project, TestCase, Job, Source
-from changes.utils.trees import find_trees
+from changes.utils.trees import build_tree
 
 
 class ProjectTestGroupIndexAPIView(APIView):
@@ -50,28 +50,28 @@ class ProjectTestGroupIndexAPIView(APIView):
         if test_list:
             sep = TestCase(name=test_list[0][0]).sep
 
-            groups = find_trees(
+            groups = build_tree(
                 [t[0] for t in test_list],
                 sep=sep,
-                min_leaves=2,
+                min_children=2,
                 parent=args.parent,
             )
 
             # try to drill in to avoid a useless singular root folder
             # TODO(dcramer): it's likely there's a much better way to do this
-            while not args.parent and len(groups) == 1:
-                try_groups = find_trees(
-                    [t[0] for t in test_list],
-                    sep=sep,
-                    min_leaves=2,
-                    parent=groups[0][0],
-                )
-                if not try_groups:
-                    break
-                groups = try_groups
+            # while not args.parent and len(groups) == 1:
+            #     try_groups = find_trees(
+            #         [t[0] for t in test_list],
+            #         sep=sep,
+            #         min_leaves=2,
+            #         parent=groups[0][0],
+            #     )
+            #     if not try_groups:
+            #         break
+            #     groups = try_groups
 
             results = []
-            for group, count in groups:
+            for group in groups:
                 num_tests = 0
                 total_duration = 0
                 for name, duration in test_list:
