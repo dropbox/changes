@@ -31,7 +31,7 @@ define([
       $scope.cancelBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/cancel/')
           .success(function(data){
-            $scope.build = data;
+            $state.reload();
           })
           .error(function(){
             flash('error', 'There was an error cancelling this build.');
@@ -41,10 +41,7 @@ define([
       $scope.restartBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/restart/')
           .success(function(data){
-            $scope.jobList = new Collection($scope, []);
-            $scope.build = data;
-            $scope.testFailures = {};
-            $scope.testChanges = [];
+            $state.reload();
           })
           .error(function(){
             flash('error', 'There was an error restarting this build.');
