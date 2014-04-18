@@ -9,6 +9,7 @@ Contents:
    userguide
    integrations/jenkins
    integrations/phabricator
+   contributing
 
 
 
