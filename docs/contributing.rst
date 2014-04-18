@@ -136,7 +136,7 @@ A state in it's simplest form, looks something like this:
 
 ::
 
-    // states/planList.js
+    // static/js/states/planList.js
     define(['app'], function(app) {
       'use strict';
 
@@ -175,12 +175,14 @@ Then within routes.js, we register this under the 'plan_list' namespace:
 
 ::
 
+    // static/js/routes.js
     .route('plan_list', PlanListState)
 
 Digging into the template a little bit:
 
 ::
 
+    <!-- partials/plan-list.html -->
     <section ui-view>
         <div id="overview">
             <div class="page-header">
@@ -248,6 +250,7 @@ Let's take a look at the API controller for our ``plan_list`` state:
 
 ::
 
+    # changes/api/plan_index.py
     from __future__ import absolute_import, division, unicode_literals
 
     from changes.api.base import APIView
