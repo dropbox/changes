@@ -220,7 +220,7 @@
   <pre class="build-message">{{ build.message|truncate(300) }}</pre>
 {% endif %}
 
-{% if build.result.name == 'passed' %}
+{% if is_passing %}
     <p><strong>Congraulations, your build pased!</strong></p>
 {% endif %}
 

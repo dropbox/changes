@@ -45,6 +45,7 @@ class MailNotificationHandler(NotificationHandler):
             'job': job,
             'build': job.build,
             'is_failure': is_failure,
+            'is_passing': job.result == Result.passed,
             'result_label': result_label,
             'total_test_failures': num_test_failures,
             'test_failures': test_failures,
