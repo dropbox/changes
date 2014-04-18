@@ -101,6 +101,13 @@ NGINX Configuration
 
 ::
 
+        location ^~ /static/[^/]/ {
+            alias /srv/changes/changes/static-built/;
+        }
+        location ^~ /partials/ {
+            alias /srv/changes/changes/partials/;
+        }
+
         location / {
             proxy_pass              http://changes_server;
             proxy_set_header        Host $host;
