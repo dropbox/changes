@@ -29,7 +29,10 @@
             <tr ng-repeat="testCase in testList"
                 class="result-{{testCase.result.id}}">
                 <td class="result"><span></span></td>
-                <td><a ui-sref="test_details({test_id: testCase.id})">{{testCase.name}}</a></td>
+                <td>
+                    <a ui-sref="test_details({test_id: testCase.id})">{{testCase.shortName}}</a><br>
+                    <small ng-if="testCase.package">{{testCase.package}}</small>
+                </td>
                 <td style="text-align:center">{{testCase.numRetries}}</td>
                 <td style="text-align:center" duration="testCase.duration"></td>
             </tr>
