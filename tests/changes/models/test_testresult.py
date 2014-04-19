@@ -62,7 +62,7 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[1].result == Result.failed
         assert testcase_list[1].message == 'collection failed'
         assert testcase_list[1].duration == 156
-        assert testcase_list[1].reruns is None
+        assert testcase_list[1].reruns is 0
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_count',
