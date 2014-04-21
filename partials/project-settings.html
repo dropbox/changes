@@ -82,6 +82,12 @@
 
 				<legend>Builds</legend>
 
+				<div class="form-group">
+					<label>Branches</label>
+					<input type="text" class="form-control" ng-model="options['build.branch-names']">
+					<div class="help-block">Automatically build commits from the following branches</div>
+				</div>
+
 				<div class="form-group checkbox">
 					<label>
 						<input type="checkbox" value="1" ng-model="options['build.allow-patches']">

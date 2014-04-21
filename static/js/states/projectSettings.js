@@ -15,7 +15,9 @@ define([
         "green-build.notify": 1,
         "mail.notify-author": 1,
         "hipchat.notify": 1
-      }, options = {};
+      }, options = {
+        "build.branch-names": "*"
+      };
 
       for (var key in projectData.options) {
         var value = projectData.options[key];
