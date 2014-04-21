@@ -54,13 +54,15 @@ class JenkinsFactoryBuildStep(JenkinsBuildStep):
 
 
 class JenkinsGenericBuildStep(JenkinsBuildStep):
-    def __init__(self, job_name, script):
+    def __init__(self, job_name, script, cluster):
         self.job_name = job_name
         self.script = script
+        self.cluster = cluster
 
     def get_builder(self, app=current_app):
         return JenkinsGenericBuilder(
             app=app,
             job_name=self.job_name,
             script=self.script,
+            cluster=self.cluster,
         )

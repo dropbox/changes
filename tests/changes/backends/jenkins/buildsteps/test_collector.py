@@ -15,6 +15,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
         return JenkinsCollectorBuildStep(
             job_name='foo-bar',
             script='exit 0',
+            cluster='default',
         )
 
     def get_mock_builder(self):

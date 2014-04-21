@@ -43,15 +43,17 @@ class JenkinsCollectorBuildStep(JenkinsBuildStep):
     # actually executes a different BuildStep (e.g. of order + 1), but at the
     # time of writing the system only supports a single build step.
 
-    def __init__(self, job_name=None, script=None):
+    def __init__(self, job_name=None, script=None, cluster=None):
         self.job_name = job_name
         self.script = script
+        self.cluster = cluster
 
     def get_builder(self, app=current_app):
         return JenkinsGenericBuilder(
             app=app,
             job_name=self.job_name,
             script=self.script,
+            cluster=self.cluster,
         )
 
     def fetch_artifact(self, step, artifact):
