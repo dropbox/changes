@@ -10,6 +10,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         'base_url': 'http://jenkins.example.com',
         'job_name': 'server',
         'script': 'py.test',
+        'cluster': 'default',
     }
 
     def test_get_job_parameters(self):
@@ -25,4 +26,5 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'REPO_VCS', 'value': job.project.repository.backend.name} in result
         assert {'name': 'REVISION', 'value': job.source.revision_sha} in result
         assert {'name': 'SCRIPT', 'value': self.builder_options['script']} in result
-        assert len(result) == 6
+        assert {'name': 'CLUSTER', 'value': self.builder_options['cluster']} in result
+        assert len(result) == 7

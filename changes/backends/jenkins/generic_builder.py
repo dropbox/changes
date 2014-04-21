@@ -4,6 +4,7 @@ from .builder import JenkinsBuilder
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, *args, **kwargs):
         self.script = kwargs.pop('script')
+        self.cluster = kwargs.pop('cluster', 'server-precise')
         super(JenkinsGenericBuilder, self).__init__(*args, **kwargs)
 
     def get_job_parameters(self, job, script=None):
@@ -26,6 +27,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             {'name': 'REPO_URL', 'value': repo_url},
             {'name': 'SCRIPT', 'value': script},
             {'name': 'REPO_VCS', 'value': repository.backend.name},
+            {'name': 'CLUSTER', 'value': self.cluster},
         ])
 
         return params
