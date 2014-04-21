@@ -33,7 +33,7 @@ def revision_created_handler(revision, **kwargs):
         )
     )
 
-    if not should_build_branch(revision, options.get('build.branch-names', '*')):
+    if not should_build_branch(revision, options.get('build.branch-names', '*').split(' ')):
         return
 
     data = {
