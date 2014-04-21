@@ -4,7 +4,7 @@ from .builder import JenkinsBuilder
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, *args, **kwargs):
         self.script = kwargs.pop('script')
-        self.cluster = kwargs.pop('cluster', 'server-precise')
+        self.cluster = kwargs.pop('cluster')
         super(JenkinsGenericBuilder, self).__init__(*args, **kwargs)
 
     def get_job_parameters(self, job, script=None):
