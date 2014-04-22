@@ -49,8 +49,12 @@ def revision_created_handler(revision, **kwargs):
             'project': project.slug,
         }
         with current_app.test_request_context('/api/0/builds/', method='POST', data=data):
-            response = BuildIndexAPIView().post()
-            if isinstance(response, (list, tuple)):
-                response, status = response
-                if status != 200:
-                    logger.error('Failed to create builds: %s' % (response,))
+            try:
+                response = BuildIndexAPIView().post()
+            except Exception:
+                logger.exception('Failed to create build: %s' % (response,))
+            else:
+                if isinstance(response, (list, tuple)):
+                    response, status = response
+                    if status != 200:
+                        logger.error('Failed to create build: %s' % (response,))
