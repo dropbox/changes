@@ -18,6 +18,19 @@ define([
             linkFormatter: function(item) {
               return $state.href('build_details', {build_id: item.id});
             },
+            value: function(item) {
+              if ($scope.selectedChart == 'test_count') {
+                return item.stats.test_count;
+              } else if ($scope.selectedChart == 'duration') {
+                return item.duration;
+              } else if ($scope.selectedChart == 'test_duration') {
+                return item.stats.test_duration / item.stats.test_count;
+              } else if ($scope.selectedChart == 'test_rerun_count') {
+                return item.stats.test_rerun_count;
+              } else if ($scope.selectedChart == 'tests_missing') {
+                return item.stats.tests_missing;
+              }
+            },
             tooltipFormatter: function(item) {
               var content = '';
 
@@ -30,14 +43,17 @@ define([
               }
               content += '</small>';
               content += '</h5>';
-              if (item.status.id == 'finished') {
-                content += '<p>Build ' + item.result.name;
-                if (item.duration) {
-                  content += ' in ' + duration(item.duration);
-                }
-                content += '</p>';
-              } else {
-                content += '<p>' + item.status.name + '</p>';
+
+              if ($scope.selectedChart == 'test_count') {
+                content += '<p>' + (item.stats.test_count || 0) + ' tests recorded';
+              } else if ($scope.selectedChart == 'test_duration') {
+                content += '<p>' + parseInt(item.stats.test_duration / item.stats.test_count || 0, 10) + 'ms avg test duration';
+              } else if ($scope.selectedChart == 'duration') {
+                content += '<p>' + duration(item.duration) + ' build time';
+              } else if ($scope.selectedChart == 'test_rerun_count') {
+                content += '<p>' + (item.stats.test_rerun_count || 0) + ' total retries';
+              } else if ($scope.selectedChart == 'tests_missing') {
+                content += '<p>' + (item.stats.tests_missing || 0) + ' job steps missing tests';
               }
 
               return content;
@@ -90,7 +106,13 @@ define([
         sortFunc: sortBuildList,
         limit: 100
       });
-      $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
+
+      $scope.selectChart = function(chart) {
+        $scope.selectedChart = chart;
+        $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
+      };
+      $scope.selectChart('duration');
+
       $scope.includePatches = false;
 
       PageTitle.set(projectData.name + ' Builds');

@@ -7,7 +7,25 @@
         <h2>Builds</h2>
     </div>
 
-    <barchart ng-if="chartData" ng-model="chartData" style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
+    <div ng-if="chartData">
+        <ul class="nav nav-links nav-links-sm">
+            <li class="nav-header"><h6>Graph by:</h6></li>
+            <li ng-class="selectedChart == 'duration' ? 'active' : ''">
+                <a ng-click="selectChart('duration')">Build Duration</a>
+            </li>
+            <li ng-class="selectedChart == 'test_count' ? 'active' : ''">
+                <a ng-click="selectChart('test_count')">Test Count</a>
+            </li>
+            <li ng-class="selectedChart == 'test_reruns_count' ? 'active' : ''">
+                <a ng-click="selectChart('test_reruns_count')">Test Retries</a>
+            </li>
+            <li ng-class="selectedChart == 'tests_missing' ? 'active' : ''">
+                <a ng-click="selectChart('tests_missing')">Missing Tests</a>
+            </li>
+        </ul>
+
+        <barchart ng-model="chartData" style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
+    </div>
 
     <div ng-if="builds.length">
         <ul class="build-list">
