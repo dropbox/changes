@@ -174,7 +174,8 @@ class BuildIndexAPIView(APIView):
     def post(self):
         args = self.parser.parse_args()
 
-        assert args.project or args.repository
+        if not (args.project or args.repository):
+            return '{"error": "Need project or repository"}', 400
 
         if args.patch_file and not args.patch_label:
             return '{"error": "Missing patch label"}', 400
