@@ -35,7 +35,7 @@ define([
         $http.get('/api/0/projects/' + projectData.id + '/stats/?resolution=1w&points=52&stat=' + chart).success(function(data){
           var chartData = [];
           $.each(data, function(_, node){
-            chartData.push([node.time / 1000, node.value]);
+            chartData.push(node);
           });
           $scope.chartData = chartData;
         });

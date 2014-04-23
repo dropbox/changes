@@ -10,52 +10,65 @@ define([
     var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 760,
       height = 120,
+      chartHeight = height - margin.top - margin.bottom,
+      chartWidth = width - margin.left - margin.right,
+      barWidth,
+      timeFormat = d3.time.format("%b %d"),
+      xDomain,
+      yDomain,
       xValue = function(d) { return d[0]; },
       yValue = function(d) { return d[1]; },
       xScale = d3.time.scale(),
       yScale = d3.scale.linear(),
-      yAxis = d3.svg.axis().scale(yScale).orient("left"),
-      xAxis = d3.svg.axis().scale(xScale).orient("bottom").tickSize(0, 0);
+      yAxis = d3.svg.axis().scale(yScale)
+        .orient("left"),
+      xAxis = d3.svg.axis().scale(xScale)
+        .orient("bottom")
+        .ticks(d3.time.month, 1)
+        .tickFormat(timeFormat);
 
     function chart(selection) {
       selection.each(function(data) {
-
-        $(this).height(height);
-        $(this).width(width);
-
-        width = $(this).width();
-        height = $(this).height();
-
         // Convert data to standard representation greedily;
         // this is needed for nondeterministic accessors.
         data = data.map(function(d, i) {
           return [xValue.call(data, d, i), yValue.call(data, d, i)];
         });
 
-        var max_y = d3.max(data, function(d) { return d[1]; });
+        $(this).height(height);
+        $(this).width(width);
+
+        width = $(this).width();
+        height = $(this).height();
+        chartHeight = height - margin.top - margin.bottom;
+        chartWidth = width - margin.left - margin.right;
+        barWidth = (width - data.length) / data.length;
+
+        xDomain = d3.extent(data, function(d) { return d[0]; });
+        yDomain = [0, d3.max(data, function(d) { return d[1]; })];
 
         // Update the x-scale.
         xScale
-          // .domain(data.map(function(d) { return d[0]; }))
-          .domain([data[0][0], data[data.length - 1][0]])
-          .rangeRound([0, width - margin.left - margin.right]);
+          .domain(xDomain)
+          .range([0, chartWidth - barWidth]);
 
         // Update the y-scale
         yScale
-          .domain([0, max_y])
-          .range([height - margin.top - margin.bottom, 0]);
+          .domain(yDomain)
+          .range([chartHeight, 0]);
 
-
-        yAxis.tickValues([0, max_y]);
+        yAxis
+          .ticks(2);
 
         var tip = d3tip()
           .attr('class', 'd3-tip')
           .offset([-10, 0])
           .html(function(d) {
-              return d[1] + '<br><small>' + d[0] + '</small>';
+            return '<small>' + timeFormat(d[0]) + '</small><br>' +
+              d[1];
           });
 
-        var svg = d3.select(this).append("svg")
+        var svg = d3.select(this).append("svg:svg")
           .attr("width", width)
           .attr("height", height)
         .append("g")
@@ -63,17 +76,13 @@ define([
 
         svg.call(tip);
 
-        // svg.append("g")
-        //     .attr("class", "y axis")
-        //     .call(yAxis)
-
         svg.selectAll(".bar")
           .data(data)
         .enter().append("rect")
           .attr("class", "bar")
           .attr("x", X)
           .attr("y", Y)
-          .attr("width", function(d) { return (width / (data.length + 1)) - 1; })
+          .attr("width", function(d) { return barWidth; })
           .attr("height", function(d) { return height - yScale(d[1]); })
           .on('mouseover', tip.show)
           .on('mouseout', tip.hide);
@@ -81,7 +90,7 @@ define([
     }
 
     // The x-accessor for the path generator; xScale ∘ xValue.
-    function X(d) {
+    function X(d, i) {
       return xScale(d[0]);
     }
 
@@ -141,8 +150,8 @@ define([
         self.options = $.extend({}, defaultOptions, options || {});
 
         self.chart = timeSeriesChart()
-            .x(function(d) { return new Date(d[0] * 1000); })
-            .y(function(d) { return d[1]; })
+            .x(function(d) { return new Date(d.time); })
+            .y(function(d) { return d.value; })
             .width(self.options.width)
             .height(self.options.height);
 
