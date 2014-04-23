@@ -4,10 +4,10 @@ define(['jquery', 'angular'], function($) {
   angular.module('barChart', [])
     .directive('barchart', ['$window', function($window) {
       var default_options = {
-        tooltipFormatter: function(item) {
-          return null;
+        tooltipFormatter: function(data, item) {
+          return item.value;
         },
-        linkFormatter: function(item) {
+        linkFormatter: function(data, item) {
           return null;
         },
         limit: 50
@@ -17,7 +17,7 @@ define(['jquery', 'angular'], function($) {
         var content = '';
 
         content += '<div class="barchart-tip">';
-        content += barchart.options.tooltipFormatter(item.data);
+        content += barchart.options.tooltipFormatter(item.data, item);
         content += '</div>';
 
         return content;
@@ -79,7 +79,7 @@ define(['jquery', 'angular'], function($) {
           '<span class="count" style="height:' + percent + '%">' + item.value + '</span>' +
         '</a>');
 
-        link = this.options.linkFormatter(item.data);
+        link = this.options.linkFormatter(item.data, item);
         if (link) {
           innerNode.attr({
             href: link
@@ -111,7 +111,11 @@ define(['jquery', 'angular'], function($) {
           }
 
           scope.$watch(attrs.ngModel, function(value) {
-            render(value.data, value.options);
+            if (value) {
+              render(value.data, value.options);
+            } else {
+              render([], {});
+            }
           });
         }
       };

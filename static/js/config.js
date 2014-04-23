@@ -11,12 +11,12 @@ requirejs.config({
     'angularLoadingBar': '../vendor/angular-loading-bar/build/loading-bar.min',
     'angularUIRouter': '../vendor/angular-ui-router/release/angular-ui-router.min',
     'bootstrap': '../vendor/bootstrap/dist/js/bootstrap.min',
-    'd3': '../vendor/d3/d3',
+    'd3': '../vendor/d3/d3.min',
+    'd3-tip': '../vendor/d3-tip/index',
     'jquery': '../vendor/jquery/jquery',
     'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
     'ngInfiniteScroll': '../vendor/ngInfiniteScroll/ng-infinite-scroll',
-    'nvd3': '../vendor/nvd3/nv.d3',
     'notify': 'lib/notify',
     'requirejs': '../vendor/requirejs/requirejs'
   },
@@ -49,10 +49,6 @@ requirejs.config({
     },
     'notify': {
         deps: ['bootstrap']
-    },
-    'nvd3': {
-        exports: 'nvd3',
-        deps: ['d3']
     }
   }
 });

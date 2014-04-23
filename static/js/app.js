@@ -10,6 +10,7 @@ define([
   'angularUIRouter',
   'modules/barChart',
   'modules/collection',
+  'modules/d3BarChart',
   'modules/flash',
   'modules/notify',
   'modules/pageTitle',
@@ -20,6 +21,7 @@ define([
 
     return angular.module('app', [
       'barChart',
+      'changes.barchart',
       'changes.pageTitle',
       'chieffancypants.loadingBar',
       'collection',

@@ -1,55 +1,23 @@
 define([
   'app',
-  'utils/chartHelpers',
-  'utils/duration',
-  'utils/escapeHtml'
-], function(app, chartHelpers, duration, escapeHtml) {
+  'moment',
+  'utils/duration'
+], function(app, moment, duration) {
   'use strict';
 
   return {
     parent: 'project_details',
     url: 'tests/?parent',
     templateUrl: 'partials/project-test-list.html',
-    controller: function($http, $scope, $state, $stateParams, buildList, projectData, testGroupData) {
+    controller: function($http, $scope, $state, $stateParams, projectData, testGroupData) {
       var chart_options = {
-            linkFormatter: function(item) {
-              return $state.href('build_details', {build_id: item.id});
-            },
-            value: function(item) {
-              if ($scope.selectedChart == 'count') {
-                return item.stats.test_count;
-              } else if ($scope.selectedChart == 'duration') {
-                return item.stats.test_duration / item.stats.test_count;
-              } else if ($scope.selectedChart == 'retries') {
-                return item.stats.test_rerun_count;
-              } else if ($scope.selectedChart == 'missing') {
-                return item.stats.tests_missing;
-              }
-            },
-            tooltipFormatter: function(item) {
-              var content = '';
-
-              content += '<h5>';
-              content += escapeHtml(item.name);
-              content += '<br><small>';
-              content += escapeHtml(item.target);
-              if (item.author) {
-                content += ' &mdash; ' + item.author.name;
-              }
-              content += '</small>';
-              content += '</h5>';
-              if ($scope.selectedChart == 'count') {
-                content += '<p>' + (item.stats.test_count || 0) + ' tests recorded';
-              } else if ($scope.selectedChart == 'duration') {
-                content += '<p>' + parseInt(item.stats.test_duration / item.stats.test_count || 0, 10) + 'ms avg test duration';
-              } else if ($scope.selectedChart == 'retries') {
-                content += '<p>' + (item.stats.test_rerun_count || 0) + ' total retries';
-              } else if ($scope.selectedChart == 'missing') {
-                content += '<p>' + (item.stats.tests_missing || 0) + ' job steps missing tests';
-              }
-              return content;
-            }
-          };
+        tooltipFormatter: function(data, item) {
+          return '<div style="width:80px;text-align:center">' +
+              item.value + '<br>' +
+              '<small>' + moment(item.time).format('l') + '</small>' +
+            '</div>';
+        }
+      };
 
       function loadTestList(url) {
         if (!url) {
@@ -64,22 +32,24 @@ define([
 
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;
-        $scope.chartData = chartHelpers.getChartData(buildList, null, chart_options);
+        $http.get('/api/0/projects/' + projectData.id + '/stats/?resolution=1w&points=52&stat=' + chart).success(function(data){
+          var chartData = [];
+          $.each(data, function(_, node){
+            chartData.push([node.time / 1000, node.value]);
+          });
+          $scope.chartData = chartData;
+        });
       };
 
-      $scope.selectChart('count');
+      $scope.selectChart('test_count');
 
+      $scope.chartData = null;
       $scope.testGroupList = testGroupData.data.groups;
       $scope.trail = testGroupData.data.trail;
     },
     resolve: {
       testGroupData: function($http, $stateParams, projectData) {
         return $http.get('/api/0/projects/' + projectData.id + '/testgroups/?parent=' + ($stateParams.parent || ''));
-      },
-      buildList: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/builds/?include_patches=0').then(function(response){
-          return response.data;
-        });
       }
     }
   };
