@@ -108,6 +108,7 @@ class ProjectStatsAPIView(APIView):
         ).filter(
             ItemStat.item_id == Build.id,
             ItemStat.name == args.stat,
+            Build.project_id == project.id,
             Build.date_created >= date_begin,
             Build.date_created < date_end,
         ).group_by('grouper'))
