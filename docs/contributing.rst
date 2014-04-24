@@ -10,7 +10,7 @@ Getting the Source Code
 
 Use the git, Luke!
 
-::
+.. code-block:: bash
 
     git clone https://github.com/dropbox/changes.git
 
@@ -38,17 +38,17 @@ You'll need to ensure you have a few dependencies:
 Bootstrapping
 ~~~~~~~~~~~~~
 
-Create the database:
+Create the database in Postgres:
 
-::
+.. code-block:: bash
 
-    $ createdb -E utf-8 changes
+    createdb -E utf-8 changes
 
 Setup the default configuration:
 
-::
+.. code-block:: python
 
-    # this should live in ~/.changes/changes.conf.py
+    # ~/.changes/changes.conf.py
     BASE_URI = 'http://localhost:5000'
     SERVER_NAME = 'localhost:5000'
 
@@ -62,19 +62,19 @@ Setup the default configuration:
 
 Create a Python environment:
 
-::
+.. code-block:: bash
 
-    $ mkvirtualenv changes
+    mkvirtualenv changes
 
 Bootstrap your environment:
 
-::
+.. code-block:: bash
 
     # install basic dependencies (npm, bower, python)
-    $ make develop
+    make develop
 
     # perform any data migrations
-    $ make upgrade
+    make upgrade
 
 
 .. note:: You can run ``make resetdb`` to drop and re-create a clean database.
@@ -85,7 +85,7 @@ Webserver
 
 Run the webserver:
 
-::
+.. code-block:: bash
 
     bin/web
 
@@ -97,7 +97,7 @@ Background Workers
 
 While it's likely you won't need to actually run the workers, they're managed via `Celery <http://www.celeryproject.org/>`_.
 
-::
+.. code-block:: bash
 
     # Start a generic worker process
     # the -B flag indicates to also start "celerybeat" which
@@ -176,7 +176,7 @@ States are registered into routes.js (they get required and then registered to a
 
 A state in it's simplest form, looks something like this:
 
-::
+.. code-block:: javascript
 
     // static/js/states/planList.js
     define(['app'], function(app) {
@@ -217,7 +217,7 @@ A state in it's simplest form, looks something like this:
 Then within `routes.js <https://github.com/dropbox/changes/blob/master/static/js/routes.js>`_,
 we register this under the 'plan_list' namespace:
 
-::
+.. code-block:: javascript
 
     // static/js/routes.js
     define([
@@ -241,7 +241,7 @@ we register this under the 'plan_list' namespace:
 
 Let's take a look at the template, `plan-list.html <https://github.com/dropbox/changes/blob/master/partials/plan-list.html>`_:
 
-::
+.. code-block:: html
 
     <!-- partials/plan-list.html -->
     <section ui-view>
@@ -272,7 +272,7 @@ Let's take a look at the template, `plan-list.html <https://github.com/dropbox/c
 
 There's a few key things to understand in this simple example:
 
-::
+.. code-block:: html
 
     <section ui-view>
 
@@ -281,7 +281,7 @@ The ui-view attribute here is what Angular calls a directive. In this case, it a
 
 Jumping down to actual rendering:
 
-::
+.. code-block:: html
 
     <tr ng-repeat="plan in plans">
 
@@ -290,7 +290,7 @@ This is another built-in directive, and it says "expand 'plans', and assign the 
 
 We can then reference it:
 
-::
+.. code-block:: html
 
         <td><a ui-sref="plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
 
@@ -308,7 +308,7 @@ Two things are happening here:
 
 There's also a couple uses of our `timeSince.js <https://github.com/dropbox/changes/blob/master/static/js/directives/timeSince.js>`_ directive:
 
-::
+.. code-block:: html
 
         <td style="text-align:center" time-since="plan.dateCreated"></td>
 
@@ -328,7 +328,7 @@ To start with, the entry point for URLs currently lives in ``config.py``, under 
 Let's take a look at the API controller for our ``plan_list`` state, contained in
 `plan_index.py <https://github.com/dropbox/changes/blob/master/changes/api/plan_index.py>`_:
 
-::
+.. code-block:: python
 
     # changes/api/plan_index.py
     from __future__ import absolute_import, division, unicode_literals
@@ -361,7 +361,7 @@ There are two things happening here:
 And of course, we absolutely require integration tests for every endpoint, which live
 in `test_plan_index.py <https://github.com/dropbox/changes/blob/master/tests/changes/api/test_plan_index.py>`_:
 
-::
+.. code-block:: python
 
     from changes.testutils import APITestCase
 
@@ -389,6 +389,6 @@ Loading in Mock Data
 
 If you're changing the frontend, it's likely you're going to want some data to work with. We've provided a helper script which will create some sample data, as well as stream in continuous updates. It's not quite the same as production, but it should be enough to work with:
 
-::
+.. code-block:: bash
 
     python stream_data.py
