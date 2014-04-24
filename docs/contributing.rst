@@ -110,6 +110,8 @@ While it's likely you won't need to actually run the workers, they're managed vi
 Directory Layout
 ----------------
 
+While there are a significant and growing number of paths, this is an attempt to outline some of the more common and important code paths.
+
 ::
 
     # command line scripts
@@ -117,6 +119,28 @@ Directory Layout
 
     # python code
     ├── changes
+
+    # the core of url registration and app configuration
+    │   ├── config.py
+
+    # api controllers and serializers
+    │   ├── api
+
+    # various integration code (primarily for communicating with Jenkins)
+    │   ├── backends
+
+    # database utilities
+    │   ├── db
+
+    # tasks executed asynchronously via Celery workers
+    │   ├── jobs
+
+    # our sqlalchemy model definitions
+    │   ├── models
+
+    # integration code for mercurial/git
+    │   └── vcs
+
 
     # python test bootstrap code
     ├── conftest.py
