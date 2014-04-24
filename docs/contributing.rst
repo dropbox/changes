@@ -230,7 +230,7 @@ we register this under the 'plan_list' namespace:
       // the order of dependencies must match above
       app,
       // ...
-      ProjectListState
+      PlanListState
     ) {
       // this has been simplified for illustration purposes
       app.config(function($stateProvider) {
