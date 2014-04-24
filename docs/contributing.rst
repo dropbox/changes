@@ -113,7 +113,7 @@ Directory Layout
 
 While there are a significant and growing number of paths, this is an attempt to outline some of the more common and important code paths.
 
-::
+.. code-block:: bash
 
     # command line scripts
     ├── bin
