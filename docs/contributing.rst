@@ -77,7 +77,8 @@ Bootstrap your environment:
     $ make upgrade
 
 
-.. note:: You can run ``make resetdb`` to drop and re-create a clean database.
+Take a glance at the `Makefile <https://github.com/dropbox/changes/blob/master/Makefile>`_ for
+more details on what commands are available, and what actually gets executed.
 
 
 Webserver
