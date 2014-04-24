@@ -224,11 +224,13 @@ we register this under the 'plan_list' namespace:
     // static/js/routes.js
     define([
       'app',
+      'states/layout',
       // ...
       'states/planList'
     ], function(
       // the order of dependencies must match above
       app,
+      LayoutState,
       // ...
       PlanListState
     ) {
