@@ -30,6 +30,11 @@ class AuthorBuildListTest(APITestCase):
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
 
+        path = '/api/0/authors/me/builds/'
+
+        resp = self.client.get(path)
+        assert resp.status_code == 401
+
         self.login(self.default_user)
 
         path = '/api/0/authors/me/builds/'
