@@ -12,7 +12,7 @@ Use the git, Luke!
 
 .. code-block:: bash
 
-    git clone https://github.com/dropbox/changes.git
+    $ git clone https://github.com/dropbox/changes.git
 
 
 Setting up an Environment
