@@ -195,10 +195,10 @@ a fairly simple state:
         // all templates exist in partials/
         templateUrl: 'partials/plan-list.html',
 
-        // $scope, planList, and Collection are all dependencies, implicitly parsed
-        // by angular and included in the function's scope
+        // $scope, planList, and Collection are all dependencies, implicitly
+        // parsed by angular and included in the function's scope
         controller: function($scope, planList, Collection) {
-          // binding to $scope means it's available via reference in the template
+          // binding to $scope adds it to the template context
           $scope.plans = new Collection($scope, planList);
         },
 
