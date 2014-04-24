@@ -25,7 +25,7 @@
                 class="result-{{testCase.result.id}}">
                 <td class="result"><span></span></td>
                 <td>
-                    <a ui-sref="project_test_details({test_id: test.hash})">{{testCase.shortName}}</a><br>
+                    <a ui-sref="project_test_details({test_id: testCase.hash})">{{testCase.shortName}}</a><br>
                     <small ng-if="testCase.package">{{testCase.package}}</small>
                 </td>
                 <td style="text-align:center" duration="testCase.duration"></td>
