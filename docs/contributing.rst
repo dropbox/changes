@@ -385,7 +385,7 @@ in `test_plan_index.py <https://github.com/dropbox/changes/blob/master/tests/cha
             assert data[1]['id'] == plan1.id.hex
 
 
-A ``client`` attribute exists on the test instance, as well as a number of helpers in ``changes.testutils.fixtures`` for creating mock data. This is a real database transaction so you can do just about everything, and we'll safely ensure things are cleaned up and fast.
+A ``client`` attribute exists on the test instance, as well as a number of helpers in `changes.testutils.fixtures <https://github.com/dropbox/changes/blob/master/changes/testutils/fixtures.py>`_ for creating mock data. This is a real database transaction so you can do just about everything, and we'll safely ensure things are cleaned up and fast.
 
 
 Loading in Mock Data
