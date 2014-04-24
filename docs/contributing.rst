@@ -54,7 +54,8 @@ Setup the default configuration:
 
     REPO_ROOT = '/tmp'
 
-    # Changes only supports Google Auth, so you'll need to obtain tokens
+    # You can obtain these values via the Google Developers Console:
+    # https://console.developers.google.com/
     GOOGLE_CLIENT_ID = None
     GOOGLE_CLIENT_SECRET = None
 
@@ -94,13 +95,16 @@ Run the webserver:
 Background Workers
 ~~~~~~~~~~~~~~~~~~
 
-While it's likely you won't need to actually run the workers, they're managed via Celery:
+While it's likely you won't need to actually run the workers, they're managed via `Celery <http://www.celeryproject.org/>`_.
 
 ::
 
+    # Start a generic worker process
+    # the -B flag indicates to also start "celerybeat" which
+    # is utilized for periodic tasks.
     bin/worker -B
 
-.. note:: In development you can set ``CELERY_ALWAYS_EAGER`` to run the queue in-process. You likely don't want this if you're synchronizing builds as it can cause recursion errors.
+.. note:: In development you can set ``CELERY_ALWAYS_EAGER=True`` to run the queue tasks synchronously in-process. Generally we prefer to test throughs through automated integration tests, but this is useful if you want to QA and don't want to run several processes.
 
 
 Directory Layout
@@ -168,7 +172,7 @@ A state in it's simplest form, looks something like this:
         // $scope, planList, and Collection are all dependencies, implicitly parsed
         // by angular and included in the function's scope
         controller: function($scope, planList, Collection) {
-          // binding to $scope means its available via reference in the template
+          // binding to $scope means it's available via reference in the template
           $scope.plans = new Collection($scope, planList);
         },
 
@@ -185,14 +189,33 @@ A state in it's simplest form, looks something like this:
       };
     });
 
-Then within routes.js, we register this under the 'plan_list' namespace:
+
+Then within `routes.js <https://github.com/dropbox/changes/blob/master/static/js/routes.js>`_,
+we register this under the 'plan_list' namespace:
 
 ::
 
     // static/js/routes.js
-    .route('plan_list', PlanListState)
+    define([
+      'app',
+      // ...
+      'states/planList'
+    ], function(
+      // the order of dependencies must match above
+      app,
+      // ...
+      ProjectListState
+    ) {
+      // this has been simplified for illustration purposes
+      app.config(function($stateProvider) {
+      $stateProvider
+        .state('layout', LayoutState)
+        // ...
+        .state('plan_list', PlanListState);
+    });
 
-Digging into the template a little bit:
+
+Let's take a look at the template, `plan-list.html <https://github.com/dropbox/changes/blob/master/partials/plan-list.html>`_:
 
 ::
 
@@ -222,19 +245,22 @@ Digging into the template a little bit:
         </div>
     </section>
 
+
 There's a few key things to understand in this simple example:
 
 ::
 
     <section ui-view>
 
-The ui-view attribute here is what Angular calls a directive. In this case, it actually maps to the library we use (ui-router) and says "content within this can be replaced by the child template". That's not precisely the meaning, but for our examples its close enough.
+
+The ui-view attribute here is what Angular calls a directive. In this case, it actually maps to the library we use (ui-router) and says "content within this can be replaced by the child template". That's not precisely the meaning, but for our examples it's close enough.
 
 Jumping down to actual rendering:
 
 ::
 
     <tr ng-repeat="plan in plans">
+
 
 This is another built-in directive, and it says "expand 'plans', and assign the item at the current index to 'plan'".
 
@@ -244,12 +270,27 @@ We can then reference it:
 
         <td><a ui-sref="plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
 
+
 Two things are happening here:
 
 - We're specifying ui-sref, which is saying "find the named url with these parameters". Parameters are always inherited, so you only need to pass in the changed values.
 
+  - In our specific example, we're referring to the ``plan_details`` state, which might be a child page of ``plan_list``. This is the same name you would define in the ``.state()`` registration.
+
+  - We also need to pass the ``plan_id`` parameter, which is used by the state's url matcher, and then made available via ``$stateParams`` within it's controller.
+
 - Render the ``name`` attribute of this plan.
 
+
+There's also a couple uses of our `timeSince.js <https://github.com/dropbox/changes/blob/master/static/js/directives/timeSince.js>`_ directive:
+
+::
+
+        <td style="text-align:center" time-since="plan.dateCreated"></td>
+
+
+In most uses of directives, you'll notice that we don't surround the value with ``{{ }}``. This is because the
+directive itself is choosing to evaluate the value as part of the scope.
 
 Understanding the Backend
 -------------------------
@@ -260,7 +301,8 @@ We're not going to explain the workers as they contain a very large amount of co
 
 To start with, the entry point for URLs currently lives in ``config.py``, under ``configure_api_routes``. You'll see that each API controller lives in a separate module space and is registered into the routing here.
 
-Let's take a look at the API controller for our ``plan_list`` state:
+Let's take a look at the API controller for our ``plan_list`` state, contained in
+`plan_index.py <https://github.com/dropbox/changes/blob/master/changes/api/plan_index.py>`_:
 
 ::
 
@@ -273,19 +315,27 @@ Let's take a look at the API controller for our ``plan_list`` state:
 
     class PlanIndexAPIView(APIView):
         def get(self):
-            queryset = Plan.query.order_by(Plan.label.asc())
-            return self.paginate(queryset)
+            results = Plan.query.order_by(Plan.label.asc())[:10]
+
+            # while respond() can serialize for you, we use this for illustration
+            # purposes
+            data = self.serialize(results)
+
+            return self.respond(data, serialize=False)
 
 
-There's no real surprises here if you've ever written Python. We're using SQLAlchemy to query the ``Plan`` table, and we're returning a paginated response.
+There's no real surprises here if you've ever written Python. We're using SQLAlchemy to query the ``Plan`` table, and we're returning a simple result of ten plans.
 
-There are a couple of things happening under the hood here:
+There are two things happening here:
 
-- ``paginate`` is actually aware that we're passing it a queryset and its returning a ``Link`` header with any applicable paging data. Of note, our plan list example above isn't actually handling pagination correctly.
+- We're serializing the list of Plans using the default registered serializer (dig
+  into the `serializer https://github.com/dropbox/changes/blob/master/changes/api/serializer/models/plan.py>`_ to see what this does.)
 
-- ``paginate`` actually calls out to ``respond`` eventually, which will then call out to our default serializers. Serializers exist to automatically transform certain types into native Python objects, which then eventually get coerced to JSON.
+- ``respond()`` is then going to return an HTTP response object, with a 200 status code
+  any required headers, as well as eventually encode our Python object into JSON.
 
-And of course, we absolutely require integration tests for every endpoint:
+And of course, we absolutely require integration tests for every endpoint, which live
+in `test_plan_index.py <https://github.com/dropbox/changes/blob/master/tests/changes/api/test_plan_index.py>`_:
 
 ::
 
