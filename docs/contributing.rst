@@ -173,9 +173,10 @@ Understanding the Frontend
 
 Everything is bundled into a "state". A state is a combination of a router and a controller, and it contains nearly all of the logic for rendering an individual page.
 
-States are registered into routes.js (they get required and then registered to a unique name).
+States are registered into `routes.js <https://github.com/dropbox/changes/blob/master/static/js/routes.js>`_ (they get required and then registered to a unique name).
 
-A state in it's simplest form, looks something like this:
+As an example, let's take a look at `planList.js <https://github.com/dropbox/changes/blob/master/static/js/states/planList.js>`_,
+a fairly simple state:
 
 .. code-block:: javascript
 
