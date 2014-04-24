@@ -69,6 +69,10 @@ Bootstrap your environment:
 
 ::
 
+    # install basic dependencies (npm, bower, python)
+    $ make develop
+
+    # perform any data migrations
     $ make upgrade
 
 
