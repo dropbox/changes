@@ -1,4 +1,10 @@
+import json
+
 from flask import current_app
+
+
+class APIError(Exception):
+    pass
 
 
 class APIClient(object):
@@ -7,7 +13,7 @@ class APIClient(object):
 
     >>> client = APIClient(version=0)
     >>> response = client.get('/projects/')
-    >>> print response.data
+    >>> print response
     """
     def __init__(self, version):
         self.version = version
@@ -15,7 +21,13 @@ class APIClient(object):
     def dispatch(self, url, method, data=None):
         url = '/api/%d/%s' % (self.version, url.lstrip('/'))
         client = current_app.test_client()
-        return client.open(url, method, data)
+        response = client.open(url, method, data)
+        if response.status_code != 200:
+            raise APIError('Request returned invalid status code: %d' % (response.status_code,))
+        if response.headers['Content-Type'] != 'application/json':
+            raise APIError('Request returned invalid content type: %s' % (response.headers['Content-Type'],))
+        # TODO(dcramer): ideally we wouldn't encode + decode this
+        return json.loads(response.data)
 
     def delete(self, *args, **kwargs):
         return self.dispatch(method='DELETE', *args, **kwargs)
