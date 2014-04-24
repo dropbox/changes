@@ -42,7 +42,7 @@ Create the database in Postgres:
 
 .. code-block:: bash
 
-    createdb -E utf-8 changes
+    $ createdb -E utf-8 changes
 
 Setup the default configuration:
 
@@ -64,17 +64,17 @@ Create a Python environment:
 
 .. code-block:: bash
 
-    mkvirtualenv changes
+    $ mkvirtualenv changes
 
 Bootstrap your environment:
 
 .. code-block:: bash
 
     # install basic dependencies (npm, bower, python)
-    make develop
+    $ make develop
 
     # perform any data migrations
-    make upgrade
+    $ make upgrade
 
 
 .. note:: You can run ``make resetdb`` to drop and re-create a clean database.
@@ -87,7 +87,7 @@ Run the webserver:
 
 .. code-block:: bash
 
-    bin/web
+    $ bin/web
 
 .. note:: The server doesn't automatically reload when you make changes to the Python code.
 
@@ -102,7 +102,7 @@ While it's likely you won't need to actually run the workers, they're managed vi
     # Start a generic worker process
     # the -B flag indicates to also start "celerybeat" which
     # is utilized for periodic tasks.
-    bin/worker -B
+    $ bin/worker -B
 
 .. note:: In development you can set ``CELERY_ALWAYS_EAGER=True`` to run the queue tasks synchronously in-process. Generally we prefer to test throughs through automated integration tests, but this is useful if you want to QA and don't want to run several processes.
 
@@ -391,4 +391,4 @@ If you're changing the frontend, it's likely you're going to want some data to w
 
 .. code-block:: bash
 
-    python stream_data.py
+    $ python stream_data.py
