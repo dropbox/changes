@@ -1,29 +1,44 @@
-<section>
-    <div class="page-header">
-		<h2>Test Cases</h2>
-	</div>
+<section class="section">
+    <div class="section-header">
+        <form class="pull-right form-inline" ng-submit="searchTests()" style="width:400px">
+            <input type="text"
+                   ng-model="searchParams.query"
+                   placeholder="search"
+                   class="form-control">
+        </form>
+        <h3>Test Cases</h3>
+    </div>
 
-	<table class="table table-striped table-bordered">
-		<thead>
-			<tr>
-				<th>Test</th>
-				<th style="width:100px;text-align:center">Duration <span class="help" title="duration from last build">?</span></th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr ng-repeat="test in testList">
-				<td><a ui-sref="project_test_details({test_id: test.hash})">{{test.name}}</a></td>
-				<td style="text-align:center"><span duration="test.duration"></span></td>
-			</tr>
-		</tbody>
-	</table>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th colspan="2">
+                    <a ui-sref="project_test_search({sort: 'name'})">Test</a>
+                </th>
+                <th style="width:110px;text-align:center">
+                    <a ui-sref="project_test_search({sort: 'duration'})">Duration</a>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="testCase in testList"
+                class="result-{{testCase.result.id}}">
+                <td class="result"><span></span></td>
+                <td>
+                    <a ui-sref="project_test_details({test_id: test.hash})">{{testCase.shortName}}</a><br>
+                    <small ng-if="testCase.package">{{testCase.package}}</small>
+                </td>
+                <td style="text-align:center" duration="testCase.duration"></td>
+            </tr>
+        </tbody>
+    </table>
 
-	<ul class="pager">
-		<li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-			<a ng-click="loadPreviousPage()">&larr; Previous</a>
-		</li>
-		<li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-			<a ng-click="loadNextPage()">Next &rarr;</a>
-		</li>
-	</ul>
+    <ul class="pager">
+        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        </li>
+        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">Next &rarr;</a>
+        </li>
+    </ul>
 </section>
