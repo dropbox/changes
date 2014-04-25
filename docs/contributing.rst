@@ -22,7 +22,19 @@ We're going to assume you're running OS X, otherwise you're on your own.
 
 .. code-block:: bash
 
-    $ brew install node postgresql redis libev libxml2 libxslt python
+    $ brew install node libev libxml2 libxslt python
+
+Install Postgres (ensure you follow whatever instructions are given post-install):
+
+.. code-block:: bash
+
+    $ brew install postgresql
+
+Install Redis (ensure you follow whatever instructions are given post-install):
+
+.. code-block:: bash
+
+    $ brew install redis
 
 Next up, we need Bower for JavaScript dependencies:
 
@@ -75,6 +87,9 @@ Create a Python environment:
 Bootstrap your environment:
 
 .. code-block:: bash
+
+    # fix for Xcode 5.1
+    $ export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future
 
     # install basic dependencies (npm, bower, python)
     $ make develop
