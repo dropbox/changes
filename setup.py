@@ -31,8 +31,10 @@ tests_require = [
 ]
 
 install_requires = [
+    'amqp>=1.3.3,<1.4.0',
     'alembic>=0.6.4,<0.7.0',
     'ansi2html>=1.0.5,<1.1.0',
+    'anyjson>=0.3.3,<0.4.0',
     'argparse>=1.2.1,<1.3.0',
     'blinker>=1.3,<1.4',
     # celery 3.1.9 breaks TrackedTask (wraps is incorrect)
