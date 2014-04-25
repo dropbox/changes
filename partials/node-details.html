@@ -12,8 +12,8 @@
         </li>
         <li class="status-{{job.status.id}} result-{{job.result.id}}"
             ng-repeat="job in jobList">
-            <a ui-sref="job_details({job_id: job.id})" class="indicator" bind-once>#{{build.number}}.{{job.number}}</a>
-            <h5 bind-once><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
+            <a ui-sref="job_details({build_id: job.build.id, job_id: job.id})" class="indicator" bind-once>#{{job.build.number}}.{{job.number}}</a>
+            <h5 bind-once><a ui-sref="job_details({build_id: job.build.id, job_id: job.id})">{{job.name}}</a></h5>
             <div class="duration">
                 <span ng-if="job.duration && job.dateFinished" duration="job.duration"></span>
                 <span ng-if="!job.dateFinished"
