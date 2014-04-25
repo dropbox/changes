@@ -163,7 +163,6 @@ While there are a significant and growing number of paths, this is an attempt to
     # integration code for mercurial/git
     │   └── vcs
 
-
     # python test bootstrap code
     ├── conftest.py
 
