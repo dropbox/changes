@@ -392,7 +392,10 @@ class JenkinsBuilder(BaseBackend):
 
         # it's possible that we managed to create multiple jobs in certain
         # situations, so let's just get the newest one
-        match = etree.fromstring(response).iter('id').next()
+        try:
+            match = etree.fromstring(response).iter('id').next()
+        except StopIteration:
+            return
         item_id = match.text
 
         # TODO: it's possible this isnt queued when this gets run
@@ -420,7 +423,10 @@ class JenkinsBuilder(BaseBackend):
 
         # it's possible that we managed to create multiple jobs in certain
         # situations, so let's just get the newest one
-        match = etree.fromstring(response).iter('number').next()
+        try:
+            match = etree.fromstring(response).iter('number').next()
+        except StopIteration:
+            return
         build_no = match.text
 
         return {
