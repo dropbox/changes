@@ -385,15 +385,21 @@ class JenkinsBuilder(BaseBackend):
         try:
             response = self._get_raw_response('/queue/api/xml/', params={
                 'xpath': xpath,
+                'wrapper': 'x',
             })
         except NotFound:
             return
+
+        # it's possible that we managed to create multiple jobs in certain
+        # situations, so let's just get the newest one
+        match = etree.fromstring(response).iter('id').next()
+        item_id = match.text
 
         # TODO: it's possible this isnt queued when this gets run
         return {
             'job_name': job_name,
             'queued': True,
-            'item_id': ID_XML_RE.search(response).group(1),
+            'item_id': item_id,
             'build_no': None,
         }
 

@@ -52,7 +52,7 @@ class CreateBuildTest(BaseTestCase):
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid',
+            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid&wrapper=x',
             body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
             match_querystring=True)
 
@@ -86,7 +86,7 @@ class CreateBuildTest(BaseTestCase):
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid',
+            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid&wrapper=x',
             status=404,
             match_querystring=True)
 
