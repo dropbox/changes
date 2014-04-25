@@ -22,7 +22,7 @@ We're going to assume you're running OS X, otherwise you're on your own.
 
 ..code-block:: bash
 
-    $ brew install node postgresql redis libev python
+    $ brew install node postgresql redis libev libxml2 python
 
 Next up, we need Bower for JavaScript dependencies:
 
