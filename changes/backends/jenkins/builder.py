@@ -10,6 +10,7 @@ from cStringIO import StringIO
 from datetime import datetime
 from hashlib import sha1
 from flask import current_app
+from lxml import etree
 
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
@@ -44,7 +45,6 @@ XUNIT_FILENAMES = ('junit.xml', 'xunit.xml', 'nosetests.xml')
 COVERAGE_FILENAMES = ('coverage.xml',)
 
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
-NUMBER_XML_RE = re.compile(r'<number>(\d+)</number>')
 
 
 def chunked(iterator, chunk_size):
@@ -407,15 +407,21 @@ class JenkinsBuilder(BaseBackend):
             ), params={
                 'depth': 1,
                 'xpath': xpath,
+                'wrapper': 'x',
             })
         except NotFound:
             return
+
+        # it's possible that we managed to create multiple jobs in certain
+        # situations, so let's just get the newest one
+        match = etree.fromstring(response).iter('number').next()
+        build_no = match.text
 
         return {
             'job_name': job_name,
             'queued': False,
             'item_id': None,
-            'build_no': NUMBER_XML_RE.search(response).group(1),
+            'build_no': build_no,
         }
 
     def _sync_step_from_queue(self, step):
