@@ -15,8 +15,8 @@ Use the git, Luke!
     $ git clone https://github.com/dropbox/changes.git
 
 
-Setting up an Environment
--------------------------
+Installing Dependencies
+-----------------------
 
 We're going to assume you're running OS X, otherwise you're on your own.
 
@@ -49,8 +49,8 @@ And finally let's make sure we have virtualenv for our Python environment:
     $ pip install --upgrade virtualenv
 
 
-Bootstrapping
-~~~~~~~~~~~~~
+Configure the Environment
+-------------------------
 
 Create the database in Postgres:
 
