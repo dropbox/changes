@@ -215,10 +215,12 @@ class TrackedTask(local):
             Task.task_id == self.task_id,
         ).scalar()
 
+        retry_countdown = min(BASE_RETRY_COUNTDOWN + (retry_number ** 3), 3600)
+
         queue.delay(
             self.task_name,
             kwargs=kwargs,
-            countdown=BASE_RETRY_COUNTDOWN + (retry_number ** 3)
+            countdown=retry_countdown,
         )
 
     def needs_requeued(self, task):
