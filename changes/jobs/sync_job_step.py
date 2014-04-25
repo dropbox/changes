@@ -55,7 +55,7 @@ def is_missing_tests(step):
     return not has_tests
 
 
-@tracked_task(on_abort=abort_step)
+@tracked_task(on_abort=abort_step, max_retries=None)
 def sync_job_step(step_id):
     step = JobStep.query.get(step_id)
     if not step:
