@@ -20,7 +20,7 @@ Setting up an Environment
 
 We're going to assume you're running OS X, otherwise you're on your own.
 
-..code-block:: bash
+.. code-block:: bash
 
     $ brew install node postgresql redis libev libxml2 python
 
