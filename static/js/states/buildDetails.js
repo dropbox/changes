@@ -31,7 +31,7 @@ define([
       $scope.cancelBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/cancel/')
           .success(function(data){
-            $state.reload();
+            $state.go('build_details', {build_id: $scope.build.id});
           })
           .error(function(){
             flash('error', 'There was an error cancelling this build.');
@@ -41,7 +41,7 @@ define([
       $scope.restartBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/restart/')
           .success(function(data){
-            $state.reload();
+            $state.go('build_details', {build_id: $scope.build.id});
           })
           .error(function(){
             flash('error', 'There was an error restarting this build.');
