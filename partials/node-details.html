@@ -5,15 +5,21 @@
 
 	<h2>Jobs</h2>
 
-    <ul class="job-list">
-        <li class="job-list-header">
+    <ul class="build-list">
+        <li class="build-list-header">
             Job
+            <div class="date">When</div>
             <div class="duration">Duration</div>
         </li>
         <li class="status-{{job.status.id}} result-{{job.result.id}}"
             ng-repeat="job in jobList">
-            <a ui-sref="job_details({build_id: job.build.id, job_id: job.id})" class="indicator" bind-once>#{{job.build.number}}.{{job.number}}</a>
-            <h5 bind-once><a ui-sref="job_details({build_id: job.build.id, job_id: job.id})">{{job.name}}</a></h5>
+            <a ui-sref="job_details({project_id: job.project.slug, build_id: job.build.id, job_id: job.id})" class="indicator" bind-once>#{{job.build.number}}.{{job.number}}</a>
+            <h5 bind-once><a ui-sref="job_details({project_id: job.project.slug, build_id: job.build.id, job_id: job.id})">{{job.build.name}}</a></h5>
+            <div class="info" bind-once>
+                <a ui-sref="project_builds({project_id: job.project.slug})">{{job.project.name}}</a> &mdash;
+                {{job.build.target}}
+            </div>
+            <div class="date" time-since="job.dateCreated"></div>
             <div class="duration">
                 <span ng-if="job.duration && job.dateFinished" duration="job.duration"></span>
                 <span ng-if="!job.dateFinished"
