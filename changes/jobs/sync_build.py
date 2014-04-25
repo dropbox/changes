@@ -30,7 +30,7 @@ def _record_tests_missing(build):
     })
 
 
-@tracked_task
+@tracked_task(max_retries=None)
 def sync_build(build_id):
     """
     Synchronizing the build happens continuously until all jobs have reported in

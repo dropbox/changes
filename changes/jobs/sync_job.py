@@ -33,7 +33,7 @@ def _record_tests_missing(job):
     })
 
 
-@tracked_task
+@tracked_task(max_retries=None)
 def sync_job(job_id):
     job = Job.query.get(job_id)
     if not job:

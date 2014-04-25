@@ -8,7 +8,7 @@ from changes.models import Job, JobPlan, Plan
 from changes.queue.task import tracked_task
 
 
-@tracked_task
+@tracked_task(max_retries=None)
 def create_job(job_id):
     job = Job.query.get(job_id)
     if not job:

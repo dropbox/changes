@@ -5,7 +5,7 @@ from changes.models import Repository
 from changes.queue.task import tracked_task
 
 
-@tracked_task
+@tracked_task(max_retries=None)
 def sync_repo(repo_id, continuous=True):
     repo = Repository.query.get(repo_id)
     if not repo:

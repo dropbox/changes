@@ -85,7 +85,7 @@ class DelayIfNeededTest(TestCase):
             'kwargs': {'foo': 'bar'},
         }
 
-    @mock.patch('changes.queue.task.needs_requeued', mock.Mock(return_value=False))
+    @mock.patch('changes.queue.task.TrackedTask.needs_requeued', mock.Mock(return_value=False))
     @mock.patch('changes.config.queue.delay')
     def test_task_does_exist_but_not_outdated(self, queue_delay):
         task_id = UUID('33846695b2774b29a71795a009e8168a')
@@ -106,7 +106,7 @@ class DelayIfNeededTest(TestCase):
 
         assert queue_delay.called is False
 
-    @mock.patch('changes.queue.task.needs_requeued', mock.Mock(return_value=True))
+    @mock.patch('changes.queue.task.TrackedTask.needs_requeued', mock.Mock(return_value=True))
     @mock.patch('changes.config.queue.delay')
     def test_task_does_exist_and_needs_run(self, queue_delay):
         task_id = UUID('33846695b2774b29a71795a009e8168a')
@@ -171,7 +171,7 @@ class VerifyAllChildrenTest(TestCase):
         result = success_task.verify_all_children()
         assert result == Status.finished
 
-    @mock.patch('changes.queue.task.needs_requeued')
+    @mock.patch('changes.queue.task.TrackedTask.needs_requeued')
     @mock.patch('changes.config.queue.delay')
     def test_child_needs_run(self, queue_delay, needs_requeued):
         child_id = UUID('33846695b2774b29a71795a009e8168a')
@@ -204,7 +204,7 @@ class VerifyAllChildrenTest(TestCase):
             },
         )
 
-    @mock.patch('changes.queue.task.needs_expired')
+    @mock.patch('changes.queue.task.TrackedTask.needs_expired')
     @mock.patch('changes.config.queue.delay')
     def test_child_is_expired(self, queue_delay, needs_expired):
         child_id = UUID('33846695b2774b29a71795a009e8168a')

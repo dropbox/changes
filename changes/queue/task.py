@@ -24,37 +24,6 @@ HARD_TIMEOUT = timedelta(hours=12)
 MAX_RETRIES = 10
 
 
-def needs_requeued(task):
-    if task.num_retries >= MAX_RETRIES:
-        return False
-
-    current_datetime = datetime.utcnow()
-
-    timeout_datetime = current_datetime - HARD_TIMEOUT
-    if task.date_created < timeout_datetime:
-        return False
-
-    run_datetime = current_datetime - RUN_TIMEOUT
-    return task.date_modified < run_datetime
-
-
-def needs_expired(task):
-    if task.num_retries >= MAX_RETRIES:
-        return True
-
-    current_datetime = datetime.utcnow()
-
-    timeout_datetime = current_datetime - HARD_TIMEOUT
-    if task.date_created < timeout_datetime:
-        return True
-
-    expire_datetime = current_datetime - EXPIRE_TIMEOUT
-    if task.date_modified < expire_datetime:
-        return True
-
-    return False
-
-
 class NotFinished(Exception):
     pass
 
@@ -85,7 +54,7 @@ class TrackedTask(local):
     """
     NotFinished = NotFinished
 
-    def __init__(self, func, on_abort=None):
+    def __init__(self, func, max_retries=MAX_RETRIES, on_abort=None):
         self.func = lock(func)
         self.task_name = func.__name__
         self.parent_id = None
@@ -93,6 +62,7 @@ class TrackedTask(local):
         self.lock = Lock()
         self.logger = logging.getLogger('jobs.{0}'.format(self.task_name))
 
+        self.max_retries = max_retries
         self.on_abort = on_abort
 
         self.__name__ = func.__name__
@@ -216,7 +186,7 @@ class TrackedTask(local):
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
         ).first()
-        if task and task.num_retries > MAX_RETRIES:
+        if task and self.max_retries and task.num_retries > self.max_retries:
             date_finished = datetime.utcnow()
             self._update({
                 Task.date_finished: date_finished,
@@ -251,6 +221,35 @@ class TrackedTask(local):
             countdown=BASE_RETRY_COUNTDOWN + (retry_number ** 3)
         )
 
+    def needs_requeued(self, task):
+        if self.max_retries and task.num_retries >= self.max_retries:
+            return False
+
+        current_datetime = datetime.utcnow()
+
+        timeout_datetime = current_datetime - HARD_TIMEOUT
+        if task.date_created < timeout_datetime:
+            return False
+
+        run_datetime = current_datetime - RUN_TIMEOUT
+        return task.date_modified < run_datetime
+
+    def needs_expired(self, task):
+        if self.max_retries and task.num_retries >= self.max_retries:
+            return True
+
+        current_datetime = datetime.utcnow()
+
+        timeout_datetime = current_datetime - HARD_TIMEOUT
+        if task.date_created < timeout_datetime:
+            return True
+
+        expire_datetime = current_datetime - EXPIRE_TIMEOUT
+        if task.date_modified < expire_datetime:
+            return True
+
+        return False
+
     def delay_if_needed(self, **kwargs):
         """
         Enqueue this task if it's new or hasn't checked in in a reasonable
@@ -279,7 +278,7 @@ class TrackedTask(local):
             'status': Status.queued,
         })
 
-        if created or needs_requeued(task):
+        if created or self.needs_requeued(task):
             db.session.commit()
 
             queue.delay(
@@ -338,13 +337,13 @@ class TrackedTask(local):
             if task.status == Status.finished:
                 continue
 
-            if needs_expired(task):
+            if self.needs_expired(task):
                 need_expire.add(task)
                 continue
 
             has_pending = True
 
-            if needs_requeued(task) and 'kwargs' in task.data:
+            if self.needs_requeued(task) and 'kwargs' in task.data:
                 need_run.add(task)
 
         if need_expire:
