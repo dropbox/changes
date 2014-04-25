@@ -18,21 +18,23 @@ Use the git, Luke!
 Setting up an Environment
 -------------------------
 
-You'll need to ensure you have a few dependencies:
+We're going to assume you're running OS X, otherwise you're on your own.
 
-- Node.js
+..code-block:: bash
 
-  - Bower (npm install -g bower)
+    $ brew install node postgresql redis libev python
 
-- Postgresql
+Next up, we need Bower for JavaScript dependencies:
 
-- Redis
+.. code-block:: bash
 
-- Python 2.7
+    $ npm install -g bower
 
-  - virtualenv
+And finally let's make sure we have virtualenv for our Python environment:
 
-  - pip
+.. code-block:: bash
+
+    $ pip install --upgrade virtualenv
 
 
 Bootstrapping
@@ -64,7 +66,11 @@ Create a Python environment:
 
 .. code-block:: bash
 
-    $ mkvirtualenv changes
+    # create a base environment
+    $ virtualenv env
+
+    # "active" the environment, so python becomes localized
+    $ source env/bin/activate
 
 Bootstrap your environment:
 
