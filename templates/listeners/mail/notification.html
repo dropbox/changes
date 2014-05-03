@@ -240,7 +240,7 @@
     <h3>Relevant Logs <small>{{ relevant_logs|length }} logs containing failures</small>
     <ul class="log-list">
         {% for source in relevant_logs %}
-            <li><a href="{{ source.uri }}" class="btn">{{ source.name }}</a></li>
+            <li><a href="{{ source.uri }}">{{ source.name }}</a></li>
         {% endfor %}
     </ul>
 {% elif build_log %}
