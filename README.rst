@@ -18,4 +18,4 @@ Screenshot
 Getting Started
 ===============
 
-While still fairly rough, you'll want to refer to our `documentation <http://changes-dropbox.readthedocs.org/en/latest/>_`.
+While still fairly rough, you'll want to refer to our `documentation <http://changes-dropbox.readthedocs.org/en/latest/>`_.
