@@ -78,6 +78,9 @@ Create a Python environment:
 
 .. code-block:: bash
 
+    # set cwd to repo root
+    $ cd /path/to/changes
+
     # create a base environment
     $ virtualenv env
 
