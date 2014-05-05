@@ -22,4 +22,32 @@
 		<dd duration="test.duration"></dd>
 	</dl>
 
+	<hr>
+	<h3>History</h3>
+
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th class="date">Name</th>
+				<th class="date">Time</th>
+				<th class="duration">Duration</th>
+				<th class="duration">Num retries</th>
+				<th class="duration">Build</th>
+			</tr>
+		</thead>
+		<tr ng-repeat="result in results">
+			<td>
+				{{ result.result.name}}
+			</td>
+			<td class="date" time-since="result.job.build.dateCreated"></td>
+			<td duration="result.duration">
+			</td>
+			<td>
+				{{ result.numRetries}}
+			</td>
+			<td>
+				<a ui-sref="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})" class="indicator" bind-once>#{{result.job.build.number}}</a>
+			</td>
+		</tr>
+	</table>
 </section>

@@ -1,6 +1,7 @@
 <section bind-once>
 	<div class="section-header">
 		<h2>{{testCase.shortName}}<br><small>{{testCase.package}}</small></h2>
+		<a ui-sref="project_test_details({test_id: testCase.hash})">history</a><br>
 	</div>
 
 	<div ng-switch="testCase.result.id" class="alert" ng-class="{'passed': 'alert-success', 'failed': 'alert-danger', 'skipped': 'alert-warning'}[testCase.result.id]">
