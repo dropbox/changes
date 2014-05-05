@@ -41,7 +41,12 @@ define([
           });
       }
 
-      $scope.searchTests = function() {
+      $scope.searchTests = function(params) {
+        if (params !== undefined) {
+          $.each(params, function(key, value){
+            $scope.searchParams[key] = value;
+          });
+        }
         $state.go('project_test_search', $scope.searchParams);
       };
 

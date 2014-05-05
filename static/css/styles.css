@@ -1383,3 +1383,28 @@ label.btn input[type=checkbox] {
 .nav a .glyphicon {
   margin-right: 10px;
 }
+
+
+.alert a {
+  color: inherit;
+  font-weight: bold;
+}
+
+.alert {
+  border: 0;
+}
+
+.alert-icon {
+  position: relative;
+  height: 20px;
+  width: 30px;
+  margin-right: 10px;
+  display: block;
+  float: left;
+}
+.alert-icon i {
+  font-size: 2em;
+  position: absolute;
+  left: 0;
+  top: -8px;
+}

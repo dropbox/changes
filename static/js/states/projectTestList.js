@@ -46,6 +46,7 @@ define([
       $scope.chartData = null;
       $scope.testGroupList = testGroupData.data.groups;
       $scope.trail = testGroupData.data.trail;
+      $scope.overThreshold = testGroupData.data.overThreshold;
     },
     resolve: {
       testGroupData: function($http, $stateParams, projectData) {

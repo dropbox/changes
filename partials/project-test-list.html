@@ -23,6 +23,11 @@
 
 <d3barchart ng-model="chartData" height="130" style="margin-bottom:20px;" class="hidden-xs"></d3barchart>
 
+<div class="alert alert-block alert-warning" ng-if="overThreshold.count > 0">
+	<span class="alert-icon"><i class="glyphicon glyphicon-exclamation-sign"></i></span>
+	<a ui-sref="project_test_search({min_duration: overThreshold.duration})">{{overThreshold.count}} tests</a> are exceeding the duration threshold of <span duration="overThreshold.duration"></span>
+</div>
+
 <ul class="breadcrumb" ng-if="trail">
 	<li ng-repeat="piece in trail"><a ui-sref="project_tests({parent: piece.path})">{{piece.name}}</a></li>
 </ul>

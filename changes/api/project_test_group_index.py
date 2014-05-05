@@ -5,7 +5,7 @@ from flask.ext.restful import reqparse
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Project, TestCase, Job, Source
+from changes.models import Project, ProjectOption, TestCase, Job, Source
 from changes.utils.trees import build_tree
 
 
@@ -92,9 +92,30 @@ class ProjectTestGroupIndexAPIView(APIView):
             results = []
             trail = []
 
+        options = dict(
+            (o.name, o.value) for o in ProjectOption.query.filter(
+                ProjectOption.project_id == project.id,
+                ProjectOption.name == 'build.test-duration-warning',
+            )
+        )
+
+        over_threshold_duration = options.get('build.test-duration-warning')
+        if over_threshold_duration:
+            over_threshold_count = TestCase.query.filter(
+                TestCase.project_id == project_id,
+                TestCase.job_id == latest_job.id,
+                TestCase.duration >= over_threshold_duration,
+            ).count()
+        else:
+            over_threshold_count = 0
+
         data = {
             'groups': results,
             'trail': trail,
+            'overThreshold': {
+                'count': over_threshold_count,
+                'duration': over_threshold_duration,
+            }
         }
 
         return self.respond(data, serialize=False)

@@ -95,6 +95,16 @@
 					</label>
 				</div>
 
+			<fieldset>
+
+				<legend>Tests</legend>
+
+				<div class="form-group">
+					<label>Maximum Duration (per test)</label>
+					<input type="text" class="form-control" ng-model="options['build.test-duration-warning']">
+					<div class="help-block">Tests exceeding this duration (in ms) will show up as warnings.</div>
+				</div>
+
 				<div class="form-group checkbox">
 					<label>
 						<input type="checkbox" value="1" ng-model="options['build.expect-tests']">
