@@ -30,7 +30,7 @@
                 class="result-{{testCase.result.id}}">
                 <td class="result"><span></span></td>
                 <td>
-                    <a ui-sref="test_details({test_id: testCase.id})">{{testCase.shortName}}</a><br>
+                    <a ui-sref="test_details({job_id: testCase.job.id, test_id: testCase.id})">{{testCase.shortName}}</a><br>
                     <small ng-if="testCase.package">{{testCase.package}}</small>
                 </td>
                 <td style="text-align:center">{{testCase.numRetries}}</td>
