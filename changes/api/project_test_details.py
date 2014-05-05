@@ -41,6 +41,7 @@ class ProjectTestDetailsAPIView(APIView):
         ).join(
             Source, job_sq.c.source_id == Source.id,
         ).filter(
+            Source.repository_id == project.repository_id,
             Source.patch_id == None,  # NOQA
             Source.revision_sha != None,  # NOQA
             TestCase.name_sha == test.name_sha,
