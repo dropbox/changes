@@ -124,6 +124,9 @@ def build(project, **kwargs):
     kwargs.setdefault('duration', random.randint(10000, 100000))
     kwargs.setdefault('target', uuid4().hex)
 
+    if 'source' not in kwargs:
+        kwargs['source'] = source(project.repository)
+
     kwargs['project'] = project
     kwargs['repository_id'] = kwargs['repository'].id
     kwargs['project_id'] = kwargs['project'].id
@@ -159,9 +162,7 @@ def job(build, change=None, **kwargs):
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
     kwargs.setdefault('duration', random.randint(10000, 100000))
-
-    if 'source' not in kwargs:
-        kwargs['source'] = source(build.repository)
+    kwargs['source'] = build.source
 
     kwargs['source_id'] = kwargs['source'].id
     kwargs['project_id'] = kwargs['project'].id
