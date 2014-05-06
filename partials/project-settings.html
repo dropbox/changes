@@ -120,10 +120,10 @@
 
 				<ul>
 					<li ng-repeat="plan in plans">
-						<strong>{{ plan.name }}</strong>
+						<h4><a ui-sref="plan_details({plan_id: plan.id})">{{ plan.name }}</a></h4>
 						<ol>
 							<li ng-repeat="step in plan.steps">
-								{{ step.name }}
+								<a ui-sref="step_details({step_id: step.id})">{{step.name}}</a>
 							</li>
 						</ol>
 					</li>

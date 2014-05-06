@@ -1,4 +1,4 @@
-<section>
+<section ui-view>
 	<div id="overview">
 		<div class="page-header">
 			<h2>Plan Details <small>{{plan.name}}</small></h2>
@@ -6,7 +6,9 @@
 
 		<h3>Steps</h3>
 		<ul>
-			<li ng-repeat="step in stepList">{{step.name}}</li>
+			<li ng-repeat="step in stepList">
+				<a ui-sref="step_details({step_id: step.id})">{{step.name}}</a>
+			</li>
 		</ul>
 
 		<h3>Projects</h3>

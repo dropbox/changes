@@ -25,6 +25,7 @@ define([
   'states/projectTestDetails',
   'states/projectTestList',
   'states/projectTestSearch',
+  'states/stepDetails',
   'states/taskDetails',
   'states/testCaseDetails',
 
@@ -62,6 +63,7 @@ define([
   ProjectTestDetailsState,
   ProjectTestListState,
   ProjectTestSearchState,
+  StepDetailsState,
   TaskDetailsState,
   TestCaseDetailsState
 ) {
@@ -113,6 +115,7 @@ define([
       .state('new_project', ProjectCreateState)
       .state('plans', PlanListState)
       .state('plan_details', PlanDetailsState)
+      .state('step_details', StepDetailsState)
       .state('projects', ProjectListState)
       .state('project_builds', ProjectBuildListState)
       .state('project_details', ProjectDetailsState)
