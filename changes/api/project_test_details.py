@@ -35,6 +35,7 @@ class ProjectTestDetailsAPIView(APIView):
             joinedload('job.build'),
             joinedload('job.build.author'),
             joinedload('job.build.source'),
+            joinedload('job.build.source.revision'),
         ).join(
             job_sq, TestCase.job_id == job_sq.c.id,
         ).join(
