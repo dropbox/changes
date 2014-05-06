@@ -14,6 +14,31 @@ define([
         sortFunc: sortBuildList,
         limit: 100
       });
+
+      var diff = sourceData.data.diff;
+      if (diff) {
+        // If we have diff information, render coverage after the DOM loads.
+        var coverage_list = sourceData.data.coverageForAddedLines;
+
+        // The use of setTimeout here is a bit hacky, but it's pretty localized.
+        setTimeout(function() {
+          $("pre code .addition").each(function(index) {
+            var coverage_type = null;
+
+            if (coverage_list[index] == 'U') {
+              coverage_type = 'negative-coverage';
+            } else if (coverage_list[index] == 'C') {
+              coverage_type = 'positive-coverage';
+            } else if (coverage_list[index] == 'N') {
+              coverage_type = 'unknown-coverage';
+            } else {
+              throw new Error("Unknown coverage type: " + coverage_type[index]);
+            }
+
+            $(this).prepend("<span class='coverage-info'> </span>").addClass(coverage_type)
+          });
+        });
+      }
     },
     resolve: {
       sourceData: function($http, $stateParams, projectData) {

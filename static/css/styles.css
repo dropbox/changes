@@ -1408,3 +1408,29 @@ label.btn input[type=checkbox] {
   left: 0;
   top: -8px;
 }
+
+.unknown-coverage .coverage-info {
+  background-color: grey;
+}
+
+.negative-coverage .coverage-info {
+  background-color: #C40233;
+}
+
+.positive-coverage .coverage-info {
+  background-color: #009F6B;
+}
+
+.coverage-info {
+  margin-left: -16px;
+  margin-right: 6px;
+  width: 10px;
+}
+
+.addition {
+  color: chartreuse;
+}
+
+.deletion {
+  color: red;
+}

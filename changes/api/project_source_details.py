@@ -36,24 +36,86 @@ class ProjectSourceDetailsAPIView(APIView):
         if diff:
             files = self._get_files_from_raw_diff(diff)
             coverage = self._get_coverage_by_source_id(source_id, files)
+            coverage_for_added_lines = self._filter_coverage_for_added_lines(diff, coverage)
         else:
             coverage = None
+            coverage_for_added_lines = None
 
         context['diff'] = diff
         context['coverage'] = coverage
+        context['coverageForAddedLines'] = coverage_for_added_lines
 
         return self.respond(context)
 
+    def _filter_coverage_for_added_lines(self, diff, coverage):
+        """
+        This function takes a diff (text based) and a map of file names to the coverage for those files and
+        returns an ordered list of the coverage for each "addition" line in the diff.
+
+        If we don't have coverage for a specific file, we just mark the lines in those files as unknown or 'N'.
+        """
+        if not diff:
+            return None
+
+        diff_lines = diff.splitlines()
+
+        current_file = None
+        line_number = None
+        coverage_by_added_line = []
+
+        for line in diff_lines:
+            if line.startswith('diff'):
+                # We're about to start a new file.
+                current_file = None
+                line_number = None
+            elif current_file is None and line_number is None and (line.startswith('+++') or line.startswith('---')):
+                # We're starting a new file
+                if line.startswith('+++ b/'):
+                    line = line.split('\t')[0]
+                    current_file = unicode(line[6:])
+            elif line.startswith('@@'):
+                # Jump to new lines within the file
+                line_num_info = line.split('+')[1]
+                line_number = int(line_num_info.split(',')[0]) - 1
+            elif current_file is not None and line_number is not None:
+                # Iterate through the file.
+                if line.startswith('+'):
+                    # Make sure we have coverage for this line.  Else just tag it as unknown.
+                    cov = coverage[current_file][line_number] if current_file in coverage else 'N'
+
+                    coverage_by_added_line.append(
+                        coverage[current_file][line_number] if current_file in coverage else 'N'
+                    )
+
+                if not line.startswith('-'):
+                    # Up the line count (assuming we aren't at a remove line)
+                    line_number += 1
+
+        return coverage_by_added_line
+
     def _get_files_from_raw_diff(self, diff):
+        """
+        Returns a list of filenames from a diff.
+        """
         files = []
         diff_lines = diff.split('\n')
         for line in diff_lines:
             if line.startswith('+++ b/'):
+                line = line.split('\t')[0]
                 files += [unicode(line[6:])]
 
         return files
 
     def _get_coverage_by_source_id(self, source_id, files):
+        """
+        Takes a source_id and a list of file names and returns a dictionary of coverage for those
+        files and source_id.  The coverage is generated for the most recent finished job.
+
+        The dictionary maps file names to a string of the form 'UNCCCNCU', where U means
+        'uncovered', C means 'covered' and 'N' means 'no coverage info'.
+
+        If we don't have coverage info for a listed file, we leave it out of the dict.
+        """
         # Grab the newest, finished job_id from the source
         newest_completed_job = Job.query.filter(
             Job.source_id == source_id,
@@ -66,10 +128,7 @@ class ProjectSourceDetailsAPIView(APIView):
             FileCoverage.filename.in_(files),
         ).all()
 
-        coverage_dict = {}
-        for coverage in all_file_coverages:
-            coverage_dict[coverage.filename] = coverage.data
-
+        coverage_dict = {coverage.filename: coverage.data for coverage in all_file_coverages}
         missed_files = {file for file in files if file not in coverage_dict}
 
         for file in missed_files:
