@@ -44,10 +44,16 @@ class Step(db.Model):
         if self.date_modified is None:
             self.date_modified = self.date_created
 
-    def get_implementation(self):
+    def get_implementation(self, load=True):
         try:
             cls = import_string(self.implementation)
         except Exception:
             return None
 
-        return cls(**self.data)
+        if not load:
+            return cls
+
+        try:
+            return cls(**self.data)
+        except Exception:
+            return None

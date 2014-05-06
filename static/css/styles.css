@@ -1261,14 +1261,13 @@ d3barchart {
 
 .btn-primary {
   background: #58488a;
-  color: #c7c0de;
+  color: #fff;
   border-color: #58488a;
 }
 .btn-primary:hover,
 .btn-primary:focus,
 .btn-primary:active {
   background: #58488a;
-  color: #fff;
   border-color: #58488a;
 
 }

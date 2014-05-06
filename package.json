@@ -17,7 +17,7 @@
   "readmeFilename": "README.rst",
   "devDependencies": {
     "bower": "~1.2.8",
-    "jshint": "0.9.x",
+    "jshint": "~2.5.0",
     "requirejs": "2.1.x",
     "grunt-contrib-requirejs": "~0.4.1",
     "grunt": "~0.4.2",

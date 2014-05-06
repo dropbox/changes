@@ -1,3 +1,5 @@
+import json
+
 from changes.api.serializer import Serializer, register
 from changes.models import Plan, Step
 
@@ -21,6 +23,9 @@ class StepSerializer(Serializer):
 
         return {
             'id': instance.id.hex,
+            'implementation': instance.implementation,
+            'order': instance.order,
             'name': implementation.get_label() if implementation else '',
+            'data': json.dumps(dict(instance.data)),
             'dateCreated': instance.date_created,
         }

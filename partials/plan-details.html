@@ -1,16 +1,52 @@
 <section ui-view>
 	<div id="overview">
 		<div class="page-header">
-			<h2>Plan Details <small>{{plan.name}}</small></h2>
+			<h2>Plan Details</h2>
 		</div>
+
+		<dl class="flat">
+			<dt>Name:</dt>
+			<dd>{{plan.name}}</dd>
+			<dt>Created:</dt>
+			<dd time-since="plan.dateCreated"></dd>
+			<dt>Modified:</dt>
+			<dd time-since="plan.dateModified"></dd>
+		</dl>
 
 		<section class="section">
 			<div class="section-header">
 				<h3>Steps</h3>
 			</div>
-			<ul>
-				<li ng-repeat="step in stepList">
-					<a ui-sref="step_details({step_id: step.id})">{{step.name}}</a>
+			<ul class="list-group">
+				<li class="list-group-item" ng-repeat="step in stepList">
+					<span class="pull-right" style="margin-top:5px;">
+						<a class="btn btn-primary btn-sm" ng-click="step.showForm = !step.showForm">Edit</a>
+						<a class="btn btn-danger btn-sm" ng-click="removeStep(step)">Remove</a>
+					</span>
+					<h4>{{step.order}}. {{step.name}}</h4>
+
+					<form ng-show="step.showForm">
+						<div class="form-group">
+							<label>Implementation</label>
+							<select class="form-control" ng-model="step.implementation">
+								<option value="changes.backends.jenkins.buildstep.JenkinsBuildStep">JenkinsBuildStep</option>
+								<option value="changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep">JenkinsFactoryBuildStep</option>
+								<option value="changes.backends.jenkins.buildstep.JenkinsGenericBuildStep">JenkinsGenericBuildStep</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label>Config</label>
+							<textarea class="form-control" rows="3" ng-model="step.data"></textarea>
+						</div>
+						<div class="form-group">
+							<label>Order</label>
+							<input class="form-control" type="number" ng-model="step.order">
+						</div>
+
+						<div style="text-align:right">
+							<button ng-disabled="step.saving" ng-click="saveStep(step)" class="btn btn-sm btn-primary">Save Changes</button>
+						</div>
+					</form>
 				</li>
 			</ul>
 		</section>
@@ -19,9 +55,12 @@
 			<div class="section-header">
 				<h3>Projects</h3>
 			</div>
-			<ul>
-				<li ng-repeat="project in projectList">
-					<a href="/projects/{{project.slug}}/">{{project.name}}</a>
+			<ul class="list-group">
+				<li class="list-group-item" ng-repeat="project in projectList">
+					<span class="pull-right" style="margin-top:5px;">
+						<a class="btn btn-danger btn-sm" ng-click="removeProject(project)">Remove</a>
+					</span>
+					<h4><a href="/projects/{{project.slug}}/">{{project.name}}</a></h4>
 				</li>
 			</ul>
 		</section>
