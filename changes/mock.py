@@ -266,14 +266,63 @@ def revision(repository, author):
     return result
 
 
-def file_coverage(project, job):
-    file_coverage = FileCoverage(
-        project_id=project.id,
-        job_id=job.id,
-        filename='README.rst',
-        data='NNUUC',
-    )
-    db.session.add(file_coverage)
+def _generate_random_coverage_string(num_lines):
+    cov_str = ''
+    for i in range(num_lines):
+        rand_int = random.randint(0, 2)
+        if rand_int == 0:
+            cov_str += 'U'
+        elif rand_int == 1:
+            cov_str += 'N'
+        elif rand_int == 2:
+            cov_str += 'C'
+
+    return cov_str
+
+
+def _generate_sample_coverage_data(diff):
+    diff_lines = diff.splitlines()
+
+    cov_data = {}
+    current_file = None
+    line_number = None
+    max_line_for_current_file = 0
+
+    for line in diff_lines:
+        if line.startswith('diff'):
+            if current_file is not None:
+                cov_data[current_file] = _generate_random_coverage_string(max_line_for_current_file)
+            max_line_for_current_file = 0
+            current_file = None
+            line_number = None
+        elif current_file is None and line_number is None and (line.startswith('+++') or line.startswith('---')):
+            if line.startswith('+++ b/'):
+                line = line.split('\t')[0]
+                current_file = unicode(line[6:])
+        elif line.startswith('@@'):
+            line_num_info = line.split('+')[1]
+            line_number = int(line_num_info.split(',')[0])
+            additional_lines = int(line_num_info.split(',')[1].split(' ')[0])
+            max_line_for_current_file = line_number + additional_lines
+        else:
+            # Just keep truckin...
+            pass
+
+    cov_data[current_file] = _generate_random_coverage_string(max_line_for_current_file)
+    return cov_data
+
+
+def file_coverage(project, job, patch):
+    file_cov = _generate_sample_coverage_data(patch.diff)
+
+    for file, coverage in file_cov.iteritems():
+        file_coverage = FileCoverage(
+            project_id=project.id,
+            job_id=job.id,
+            filename=file,
+            data=coverage,
+        )
+        db.session.add(file_coverage)
 
     return file_coverage
 

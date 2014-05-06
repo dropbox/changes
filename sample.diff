@@ -1,0 +1,85 @@
+diff -r 3142efbcdcdb -r 28720876f4a2 ci/run_with_retries.py
+--- a/ci/run_with_retries.py	Sun May 04 19:51:19 2014 -0700
++++ b/ci/run_with_retries.py	Mon May 05 22:27:56 2014 +0000
+@@ -1,4 +1,5 @@
+ #!/usr/bin/env python
++import argparse
+ import os
+ import sys
+ import subprocess
+@@ -41,7 +42,7 @@
+     return [testcase for testcase in root if testcase_status(testcase) in ('failure', 'error')]
+ 
+ 
+-def run(files):
++def run(files, cwd):
+     cmd = COVERAGE_COMMAND_LINE % PYTEST_COMMAND_LINE
+     cmd = "%s %s" % (cmd % FINAL_JUNIT_XML_FILE, files)
+     write_out("Running command: %s" % cmd)
+@@ -49,6 +50,16 @@
+     write_out("Generating coverage.xml")
+     run_streaming_out(COVERAGE_XML_COMMAND_LINE)
+ 
++    new_file_text = ""
++    if os.path.isfile('%s/coverage.xml' % os.getcwd()):
++        write_out("Replacing all paths in coverage.xml with repo paths.")
++        with open('%s/coverage.xml' % os.getcwd(), 'r') as f:
++            file_text = f.read()
++            new_file_text = file_text.replace("filename='", "filename='%s" % cwd)
++
++        with open('%s/coverage.xml' % os.getcwd(), 'w') as f:
++            f.write(new_file_text)
++
+     if junit_xml is None:
+         # rerun original command, hence rerunning all tests.
+         # this may be caused by a timeout.
+@@ -171,5 +182,10 @@
+     if os.path.isfile(test_file):
+         subprocess.Popen("rm %s" % test_file, shell=True)
+ 
+-    files_args = ' '.join(sys.argv[1:])
+-    run(files_args)
++    parser = argparse.ArgumentParser(description='Run the tests with retries')
++    parser.add_argument('filenames', metavar='filename', nargs='*', help="Files to run on")
++    parser.add_argument('--cwd', dest='cwd', help="path inside the repo to the cwd")
++
++    args = parser.parse_args()
++    files_args = ' '.join(args.filenames)
++    run(files_args, args.cwd)
+diff -r 3142efbcdcdb -r 28720876f4a2 ci/server-collect
+--- a/ci/server-collect	Sun May 04 19:51:19 2014 -0700
++++ b/ci/server-collect	Mon May 05 22:27:56 2014 +0000
+@@ -21,14 +21,14 @@
+         'name': 'blockserver',
+         'cwd': 'blockserver',
+         'path': 'blockserver',
+-        'exec': pytest_command_line,
++        'exec': pytest_command_line + ' --cwd blockserver/',
+         'xunit': 'tests.xml',
+     },
+     'metaserver': {
+         'name': 'metaserver',
+         'cwd': 'metaserver',
+         'path': 'metaserver',
+-        'exec': pytest_command_line,
++        'exec': pytest_command_line + ' --cwd metaserver/',
+         'xunit': 'tests.xml',
+     },
+     'dropbox': {
+@@ -36,14 +36,14 @@
+         'cwd': 'dropbox_tests',
+         'path': 'dropbox/tests',
+         'keep_path': 1,
+-        'exec': pytest_command_line,
++        'exec': pytest_command_line + ' --cwd dropbox/',
+         'xunit': 'tests.xml',
+     },
+     'shortserver': {
+         'name': 'shortserver',
+         'cwd': 'shortserver',
+         'path': 'shortserver',
+-        'exec': pytest_command_line,
++        'exec': pytest_command_line + ' --cwd shortserver/',
+         'xunit': 'tests.xml',
+     },
+ }

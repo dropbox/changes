@@ -46,14 +46,8 @@ SAMPLE_COVERAGE = """<?xml version="1.0" ?>
     </packages>
 </coverage>"""
 
-SAMPLE_DIFF = """diff --git a/README.rst b/README.rst
-index 2ef2938..ed80350 100644
---- a/README.rst
-+++ b/README.rst
-@@ -1,5 +1,5 @@
- Setup
-------
-+====="""
+with open('sample.diff', 'r') as f:
+    SAMPLE_DIFF = f.read()
 
 SAMPLE_XUNIT = """<?xml version="1.0" encoding="utf-8"?>
 <testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.077">

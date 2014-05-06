@@ -74,7 +74,7 @@ def create_new_entry(project):
         db.session.commit()
         publish_job_update(job)
         if patch:
-            mock.file_coverage(project, job)
+            mock.file_coverage(project, job, patch)
 
         for step in JobStep.query.filter(JobStep.job == job):
             logsource = LogSource(
