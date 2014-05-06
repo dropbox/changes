@@ -43,7 +43,9 @@ class Job(db.Model):
     data = Column(JSONEncodedDict)
 
     change = relationship('Change')
-    build = relationship('Build', backref=backref('jobs', order_by='Job.number'))
+    build = relationship('Build',
+                         backref=backref('jobs', order_by='Job.number'),
+                         innerjoin=True)
     project = relationship('Project')
     source = relationship('Source')
 
