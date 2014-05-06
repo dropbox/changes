@@ -7,7 +7,7 @@ from changes.models import Plan
 class PlanDetailsAPIView(APIView):
     def get(self, plan_id):
         plan = Plan.query.get(plan_id)
-        if plan_id is None:
+        if plan is None:
             return '', 404
 
         context = self.serialize(plan)
