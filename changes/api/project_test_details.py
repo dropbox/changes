@@ -1,12 +1,9 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, subqueryload
 
 from changes.api.base import APIView
-from changes.api.serializer.models.job import JobWithBuildSerializer
-from changes.api.serializer.models.testcase import (
-    TestCaseWithJobSerializer, GeneralizedTestCase
-)
+from changes.api.serializer.models.testcase import GeneralizedTestCase
 from changes.constants import Status
 from changes.models import Build, Project, TestCase, Job, Source
 
@@ -35,7 +32,7 @@ class ProjectTestDetailsAPIView(APIView):
         recent_runs = list(TestCase.query.options(
             contains_eager('job', alias=job_sq),
             contains_eager('job.source'),
-            joinedload('job', 'build'),
+            subqueryload('job', 'build', 'source'),
         ).join(
             job_sq, TestCase.job_id == job_sq.c.id,
         ).join(
@@ -56,16 +53,23 @@ class ProjectTestDetailsAPIView(APIView):
             TestCase.name_sha == test_hash,
         ).order_by(TestCase.date_created.asc()).limit(1).first()
 
-        extended_serializers = {
-            TestCase: TestCaseWithJobSerializer(),
-            Job: JobWithBuildSerializer(),
-        }
+        jobs = set(r.job for r in recent_runs)
+        builds = set(j.build for j in jobs)
+
+        serialized_jobs = dict(zip(jobs, self.serialize(jobs)))
+        serialized_builds = dict(zip(builds, self.serialize(builds)))
+
+        results = []
+        for recent_run, s_recent_run in zip(recent_runs, self.serialize(recent_runs)):
+            s_recent_run['job'] = serialized_jobs[recent_run.job]
+            s_recent_run['job']['build'] = serialized_builds[recent_run.job.build]
+            results.append(s_recent_run)
 
         context = self.serialize(test, {
             TestCase: GeneralizedTestCase(),
         })
         context.update({
-            'results': self.serialize(recent_runs, extended_serializers),
+            'results': recent_runs,
             'firstBuild': first_build,
         })
 
