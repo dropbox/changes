@@ -4,18 +4,26 @@
 			<h2>Plan Details <small>{{plan.name}}</small></h2>
 		</div>
 
-		<h3>Steps</h3>
-		<ul>
-			<li ng-repeat="step in stepList">
-				<a ui-sref="step_details({step_id: step.id})">{{step.name}}</a>
-			</li>
-		</ul>
+		<section class="section">
+			<div class="section-header">
+				<h3>Steps</h3>
+			</div>
+			<ul>
+				<li ng-repeat="step in stepList">
+					<a ui-sref="step_details({step_id: step.id})">{{step.name}}</a>
+				</li>
+			</ul>
+		</section>
 
-		<h3>Projects</h3>
-		<ul>
-			<li ng-repeat="project in projectList">
-				<a href="/projects/{{project.slug}}/">{{project.name}}</a>
-			</li>
-		</ul>
+		<section class="section">
+			<div class="section-header">
+				<h3>Projects</h3>
+			</div>
+			<ul>
+				<li ng-repeat="project in projectList">
+					<a href="/projects/{{project.slug}}/">{{project.name}}</a>
+				</li>
+			</ul>
+		</section>
 	</div>
 </section>
