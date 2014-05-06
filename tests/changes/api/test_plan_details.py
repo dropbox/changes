@@ -1,7 +1,7 @@
 from changes.testutils import APITestCase
 
 
-class PlanIndexTest(APITestCase):
+class PlanDetailsTest(APITestCase):
     def test_simple(self):
         project1 = self.create_project()
         project2 = self.create_project()
