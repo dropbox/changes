@@ -122,6 +122,9 @@ class ProjectSourceDetailsAPIView(APIView):
             Job.status == Status.finished,
         ).order_by(Job.date_created.desc()).first()
 
+        if not newest_completed_job:
+            return {}
+
         # grab the filecoverage for that job and filenames
         all_file_coverages = FileCoverage.query.filter(
             FileCoverage.job_id == newest_completed_job.id,
