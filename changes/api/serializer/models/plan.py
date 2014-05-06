@@ -17,8 +17,10 @@ class PlanSerializer(Serializer):
 @register(Step)
 class StepSerializer(Serializer):
     def serialize(self, instance, attrs):
+        implementation = instance.get_implementation()
+
         return {
             'id': instance.id.hex,
-            'name': instance.get_implementation().get_label(),
+            'name': implementation.get_label() if implementation else '',
             'dateCreated': instance.date_created,
         }
