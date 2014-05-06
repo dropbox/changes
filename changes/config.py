@@ -74,6 +74,8 @@ def create_app(_read_config=True, gevent=False, **config):
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///changes'
     app.config['SQLALCHEMY_POOL_SIZE'] = 60
     app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
+    # required for flask-debugtoolbar
+    app.config['SQLALCHEMY_RECORD_QUERIES'] = True
 
     app.config['REDIS_URL'] = 'redis://localhost/0'
     app.config['DEBUG'] = True
@@ -128,7 +130,7 @@ def create_app(_read_config=True, gevent=False, **config):
         ('changes.listeners.build_revision.revision_created_handler', 'revision.created'),
     )
 
-    app.config['DEBUG_TB_ENABLED'] = False
+    app.config['DEBUG_TB_ENABLED'] = True
 
     # celerybeat must be running for our cleanup tasks to execute
     # e.g. celery worker -B
@@ -188,9 +190,6 @@ def create_app(_read_config=True, gevent=False, **config):
     if gevent and app.config['SENTRY_DSN']:
         app.config['SENTRY_DSN'] = 'gevent+{0}'.format(app.config['SENTRY_DSN'])
 
-    # required for flask-debugtoolbar
-    app.config['SQLALCHEMY_RECORD_QUERIES'] = app.config['DEBUG_TB_ENABLED']
-
     # init sentry first
     sentry.init_app(app)
 
@@ -231,8 +230,6 @@ def create_app(_read_config=True, gevent=False, **config):
 
 
 def configure_debug_toolbar(app):
-    if not app.config['DEBUG_TB_ENABLED']:
-        return
     toolbar = ChangesDebugToolbarExtension(app)
     return toolbar
 
