@@ -13,7 +13,7 @@ from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
     TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan, Source,
-    Patch
+    Patch, FileCoverage
 )
 from changes.testutils.fixtures import SAMPLE_DIFF
 from changes.utils.slugs import slugify
@@ -264,6 +264,18 @@ def revision(repository, author):
     db.session.add(result)
 
     return result
+
+
+def file_coverage(project, job):
+    file_coverage = FileCoverage(
+        project_id=project.id,
+        job_id=job.id,
+        filename='README.rst',
+        data='NNUUC',
+    )
+    db.session.add(file_coverage)
+
+    return file_coverage
 
 
 def patch(project, **kwargs):
