@@ -35,7 +35,7 @@ define([
               throw new Error("Unknown coverage type: " + coverage_type[index]);
             }
 
-            $(this).prepend("<span class='coverage-info'> </span>").addClass(coverage_type)
+            $(this).addClass(coverage_type).prepend("<span class='coverage-info'> </span>");
           });
         });
       }
