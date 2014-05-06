@@ -259,7 +259,7 @@ class Fixtures(object):
         return plan
 
     def create_step(self, plan, **kwargs):
-        kwargs.setdefault('implementation', 'test')
+        kwargs.setdefault('implementation', 'changes.backends.buildstep.BuildStep')
         kwargs.setdefault('order', 0)
 
         step = Step(plan=plan, **kwargs)

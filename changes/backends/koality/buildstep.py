@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from flask import current_app
 
-from changes.backends.buildstep import BuildStep
+from changes.buildsteps.base import BuildStep
 
 from .builder import KoalityBuilder
 
