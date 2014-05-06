@@ -39,8 +39,6 @@ def web(addr, profile=None):
     port = int(port)
     addr = '{0}:{1}'.format(host, port)
 
-    print "Listening on http://{0}".format(addr)
-
     app = create_app(gevent=True, SERVER_NAME=addr)
 
     # use threadlocals for gevent compatibility
@@ -49,7 +47,9 @@ def web(addr, profile=None):
     if profile:
         statprof.start()
 
-    run_webserver = lambda: pywsgi.WSGIServer((host, port), app).serve_forever()
+    def run_webserver():
+        print "Listening on http://{0}".format(addr)
+        return pywsgi.WSGIServer((host, port), app).serve_forever()
 
     try:
         if app.debug:
