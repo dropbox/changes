@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import contains_eager, subqueryload
+from sqlalchemy.orm import contains_eager, joinedload, subqueryload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import GeneralizedTestCase
@@ -32,7 +32,8 @@ class ProjectTestDetailsAPIView(APIView):
         recent_runs = list(TestCase.query.options(
             contains_eager('job', alias=job_sq),
             contains_eager('job.source'),
-            subqueryload('job', 'build', 'source'),
+            subqueryload('job.build.author'),
+            subqueryload('job.build.source'),
         ).join(
             job_sq, TestCase.job_id == job_sq.c.id,
         ).join(
@@ -44,7 +45,10 @@ class ProjectTestDetailsAPIView(APIView):
             TestCase.name_sha == test.name_sha,
         ).order_by(job_sq.c.date_created.desc())[:25])
 
-        first_build = Build.query.join(
+        first_build = Build.query.options(
+            joinedload('author'),
+            joinedload('source'),
+        ).join(
             Job, Job.build_id == Build.id,
         ).join(
             TestCase, TestCase.job_id == Job.id,
@@ -69,7 +73,7 @@ class ProjectTestDetailsAPIView(APIView):
             TestCase: GeneralizedTestCase(),
         })
         context.update({
-            'results': recent_runs,
+            'results': results,
             'firstBuild': first_build,
         })
 
