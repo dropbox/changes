@@ -81,8 +81,6 @@ class ProjectSourceDetailsAPIView(APIView):
                 # Iterate through the file.
                 if line.startswith('+'):
                     # Make sure we have coverage for this line.  Else just tag it as unknown.
-                    cov = coverage[current_file][line_number] if current_file in coverage else 'N'
-
                     coverage_by_added_line.append(
                         coverage[current_file][line_number] if current_file in coverage else 'N'
                     )
@@ -131,10 +129,4 @@ class ProjectSourceDetailsAPIView(APIView):
             FileCoverage.filename.in_(files),
         ).all()
 
-        coverage_dict = {coverage.filename: coverage.data for coverage in all_file_coverages}
-        missed_files = {file for file in files if file not in coverage_dict}
-
-        for file in missed_files:
-            coverage_dict[file] = None
-
-        return coverage_dict
+        return {coverage.filename: coverage.data for coverage in all_file_coverages}
