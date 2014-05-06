@@ -57,7 +57,8 @@ class ProjectSourceDetailsAPIView(APIView):
         if not diff:
             return None
 
-        diff_lines = diff.splitlines()
+        # Let's just encode it as utf-8 just in case
+        diff_lines = diff.encode('utf-8').splitlines()
 
         current_file = None
         line_number = None
@@ -96,7 +97,7 @@ class ProjectSourceDetailsAPIView(APIView):
         Returns a list of filenames from a diff.
         """
         files = []
-        diff_lines = diff.split('\n')
+        diff_lines = diff.encode('utf-8').split('\n')
         for line in diff_lines:
             if line.startswith('+++ b/'):
                 line = line.split('\t')[0]
