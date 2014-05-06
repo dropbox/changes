@@ -15,6 +15,8 @@ import argparse
 import statprof
 import sys
 
+from werkzeug.serving import run_with_reloader
+
 
 def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser(description='Manage builds')
@@ -40,13 +42,20 @@ def web(addr, profile=None):
     print "Listening on http://{0}".format(addr)
 
     app = create_app(gevent=True, SERVER_NAME=addr)
+
     # use threadlocals for gevent compatibility
     db.get_engine(app).engine.pool._use_threadlocal = True
 
     if profile:
         statprof.start()
+
+    run_webserver = lambda: pywsgi.WSGIServer((host, port), app).serve_forever()
+
     try:
-        pywsgi.WSGIServer((host, port), app).serve_forever()
+        if app.debug:
+            run_with_reloader(run_webserver)()
+        else:
+            run_webserver()
     finally:
         if profile:
             statprof.stop()
