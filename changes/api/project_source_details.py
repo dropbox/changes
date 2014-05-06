@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from changes.api.base import APIView
 from changes.constants import Status
 from changes.models import FileCoverage, Job, Project, Source
+import logging
 
 
 class ProjectSourceDetailsAPIView(APIView):
@@ -82,9 +83,15 @@ class ProjectSourceDetailsAPIView(APIView):
                 # Iterate through the file.
                 if line.startswith('+'):
                     # Make sure we have coverage for this line.  Else just tag it as unknown.
-                    coverage_by_added_line.append(
-                        coverage[current_file][line_number] if current_file in coverage else 'N'
-                    )
+                    cov = 'N'
+                    if current_file in coverage:
+                        try:
+                            cov = coverage[current_file][line_number]
+                        except IndexError:
+                            logger = logging.getLogger('coverage')
+                            logger.info('Missing code coverage for line %d of file %s' % (line_number, current_file))
+
+                    coverage_by_added_line.append(cov)
 
                 if not line.startswith('-'):
                     # Up the line count (assuming we aren't at a remove line)
