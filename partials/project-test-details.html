@@ -28,7 +28,8 @@
 	<table class="table table-striped table-bordered">
 		<thead>
 			<tr>
-				<th class="date">Name</th>
+				<th class="date">Test status</th>
+				<th class="date">Author</th>
 				<th class="date">Time</th>
 				<th class="duration">Duration</th>
 				<th class="duration">Num retries</th>
@@ -36,8 +37,12 @@
 			</tr>
 		</thead>
 		<tr ng-repeat="result in results">
+			<td class="result-{{result.result.id}}">
+				<div class="indicator">
+					{{result.result.id}}
+				</div>
 			<td>
-				{{ result.result.name}}
+				{{ result.job.build.author.email }}
 			</td>
 			<td class="date" time-since="result.job.build.dateCreated"></td>
 			<td duration="result.duration">
