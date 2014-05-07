@@ -22,7 +22,7 @@ class APIClient(object):
         url = '/api/%d/%s' % (self.version, url.lstrip('/'))
         client = current_app.test_client()
         response = client.open(url, method, data)
-        if response.status_code != 200:
+        if not (200 <= response.status_code < 300):
             raise APIError('Request returned invalid status code: %d' % (response.status_code,))
         if response.headers['Content-Type'] != 'application/json':
             raise APIError('Request returned invalid content type: %s' % (response.headers['Content-Type'],))
