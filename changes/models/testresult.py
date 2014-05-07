@@ -150,7 +150,7 @@ class TestResultManager(object):
             'item_id': self.step.id,
             'name': 'test_duration',
         }, values={
-            'value': sum(t.duration for t in test_list),
+            'value': sum(t.duration or 0 for t in test_list),
         })
 
         create_or_update(ItemStat, where={
