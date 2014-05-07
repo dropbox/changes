@@ -45,7 +45,6 @@ class ProjectSourceDetailsAPIView(APIView):
         context['diff'] = diff
         context['coverage'] = coverage
         context['coverageForAddedLines'] = coverage_for_added_lines
-        context['tails_data'] = dict(source.data)
 
         return self.respond(context)
 

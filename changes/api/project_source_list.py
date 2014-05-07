@@ -16,5 +16,5 @@ class ProjectSourceListAPIView(APIView):
             Source.date_created > datetime.today() - timedelta(days=1),
         ).order_by(Source.date_created.desc())
 
-        response = self.serialize([source.id for source in sources])
+        response = self.serialize({source.id: dict(source.data) for source in sources})
         return self.respond(response)
