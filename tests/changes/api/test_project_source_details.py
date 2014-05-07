@@ -18,8 +18,9 @@ class ProjectSourceDetailsTest(APITestCase):
         view = ProjectSourceDetailsAPIView()
         diff = open('sample.diff').read()
         coverage = ['N'] * 150
-        for i in range(50, 55):
-            coverage[i] = 'C'
+        coverage[52] = 'C'
+        coverage[53] = 'C'
+        coverage[54] = 'C'
         coverage_dict = {'ci/run_with_retries.py': coverage}
         result = view._filter_coverage_for_added_lines(diff, coverage_dict)
         assert len(result) == 23  # 23 additions
