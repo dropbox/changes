@@ -25,6 +25,7 @@ class UserSerializer(Serializer):
     def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
+            'isAdmin': instance.is_admin,
             'email': instance.email,
             'avatar': get_gravatar_url(instance.email),
             'dateCreated': instance.date_created,
