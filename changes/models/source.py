@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.db.types.guid import GUID
+from changes.db.types.json import JSONEncodedDict
 
 
 class Source(db.Model):
@@ -22,6 +23,7 @@ class Source(db.Model):
     patch_id = Column(GUID, ForeignKey('patch.id'))
     revision_sha = Column(String(40))
     date_created = Column(DateTime, default=datetime.utcnow)
+    data = Column(JSONEncodedDict)
 
     repository = relationship('Repository')
     patch = relationship('Patch')
