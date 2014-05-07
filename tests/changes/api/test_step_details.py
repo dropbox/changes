@@ -27,7 +27,7 @@ class UpdateStepDetailsTest(APITestCase):
         assert resp.status_code == 401
 
     def test_simple(self):
-        self.login_default()
+        self.login_default_admin()
 
         plan = self.create_plan(label='Foo')
         step = self.create_step(plan=plan)

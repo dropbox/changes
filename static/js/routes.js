@@ -10,6 +10,7 @@ define([
   'states/logDetails',
   'states/nodeDetails',
   'states/nodeList',
+  'states/planCreate',
   'states/planDetails',
   'states/planList',
   'states/projectBuildList',
@@ -47,6 +48,7 @@ define([
   LogDetailsState,
   NodeDetailsState,
   NodeListState,
+  PlanCreateState,
   PlanDetailsState,
   PlanListState,
   ProjectBuildListState,
@@ -110,6 +112,7 @@ define([
       .state('my_builds', AuthorBuildListState)
       .state('nodes', NodeListState)
       .state('node_details', NodeDetailsState)
+      .state('new_plan', PlanCreateState)
       .state('new_project', ProjectCreateState)
       .state('plans', PlanListState)
       .state('plan_details', PlanDetailsState)
