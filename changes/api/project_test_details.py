@@ -47,17 +47,16 @@ class ProjectTestDetailsAPIView(APIView):
             TestCase.name_sha == test.name_sha,
         ).order_by(job_sq.c.date_created.desc())[:25])
 
-        first_build = Build.query.options(
-            joinedload('author'),
-            joinedload('source'),
-        ).join(
-            Job, Job.build_id == Build.id,
-        ).join(
-            TestCase, TestCase.job_id == Job.id,
-        ).filter(
+        first_test = TestCase.query.filter(
             TestCase.project_id == project_id,
             TestCase.name_sha == test_hash,
         ).order_by(TestCase.date_created.asc()).limit(1).first()
+        first_build = Build.query.options(
+            joinedload('author'),
+            joinedload('source'),
+        ).filter(
+            Build.id == first_test.job.build_id,
+        ).first()
 
         jobs = set(r.job for r in recent_runs)
         builds = set(j.build for j in jobs)
