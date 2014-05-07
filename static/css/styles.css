@@ -1417,11 +1417,11 @@ label.btn input[type=checkbox] {
 }
 
 .negative-coverage .coverage-info {
-  background-color: #C40233;
+  background-color: #da4f49;
 }
 
 .positive-coverage .coverage-info {
-  background-color: #009F6B;
+  background-color: #5bb75b;
 }
 
 .coverage-info {
