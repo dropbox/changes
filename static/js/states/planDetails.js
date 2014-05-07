@@ -52,8 +52,34 @@ define(['app'], function(app) {
         });
       };
 
+      $scope.addProject = function() {
+        var data = {
+          id: window.prompt('Enter the project ID or slug')
+        };
+        if (!data.id) {
+          return;
+        }
+
+        $http.post('/api/0/plans/' + planData.id + '/projects/', data).success(function(data){
+          $scope.projectList.push(data);
+        }).error(function(data){
+          alert('An error ocurred, and we have yet to implement a way to tell you about it.');
+        });
+      };
+
       $scope.removeProject = function(project) {
-        console.log('Coming soon!');
+        if (project.saving === true) {
+          return;
+        }
+
+        project.saving = true;
+        $http.delete('/api/0/plans/' + planData.id + '/projects/?id=' + project.id).success(function(data){
+          $scope.projectList.popItem(project);
+        }).error(function(data){
+          alert('An error ocurred, and we have yet to implement a way to tell you about it.');
+        }).finally(function(){
+          project.saving = false;
+        });
       };
 
     },

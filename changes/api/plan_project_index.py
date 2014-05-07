@@ -28,9 +28,11 @@ class PlanProjectIndexAPIView(APIView):
 
         args = self.parser.parse_args()
 
-        project = Project.query.get(args.id)
+        project = Project.query.filter(Project.slug == args.id).first()
         if project is None:
-            return '', 400
+            project = Project.query.get(args.id)
+            if project is None:
+                return '', 400
 
         plan.projects.append(project)
 
@@ -39,7 +41,7 @@ class PlanProjectIndexAPIView(APIView):
 
         db.session.commit()
 
-        return '', 200
+        return self.respond(project)
 
     @requires_admin
     def delete(self, plan_id):
@@ -49,9 +51,11 @@ class PlanProjectIndexAPIView(APIView):
 
         args = self.parser.parse_args()
 
-        project = Project.query.get(args.id)
+        project = Project.query.filter(Project.slug == args.id).first()
         if project is None:
-            return '', 400
+            project = Project.query.get(args.id)
+            if project is None:
+                return '', 400
 
         plan.projects.remove(project)
 
