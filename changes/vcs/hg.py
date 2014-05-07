@@ -75,5 +75,4 @@ class MercurialVcs(Vcs):
     def export(self, id):
         cmd = ['diff', '-g', '-c %s' % (id,)]
         result = self.run(cmd)
-        print (cmd, result)
         return result
