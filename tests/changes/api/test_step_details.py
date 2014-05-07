@@ -53,3 +53,34 @@ class UpdateStepDetailsTest(APITestCase):
         assert step.data == {}
         assert step.order == 1
         assert step.implementation == 'changes.buildsteps.dummy.DummyBuildStep'
+
+
+class DeleteStepDetailsTest(APITestCase):
+    def requires_auth(self):
+        plan = self.create_plan(label='Foo')
+        step = self.create_step(plan=plan)
+
+        path = '/api/0/steps/{0}/'.format(step.id.hex)
+
+        resp = self.client.delete(path)
+        assert resp.status_code == 401
+
+    def test_simple(self):
+        self.login_default()
+
+        plan = self.create_plan(label='Foo')
+        step = self.create_step(plan=plan)
+
+        self.login_default_admin()
+
+        path = '/api/0/steps/{0}/'.format(step.id.hex)
+
+        step_id = step.id
+
+        resp = self.client.delete(path)
+        assert resp.status_code == 200
+
+        db.session.expire_all()
+
+        step = Step.query.get(step_id)
+        assert step is None

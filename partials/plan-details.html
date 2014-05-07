@@ -15,7 +15,7 @@
 
 		<section class="section">
 			<div class="section-header">
-				<h3>Steps</h3>
+				<h3>Steps <button ng-disabled="stepListl.length >= 1" ng-click="addStep()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
 			</div>
 			<ul class="list-group">
 				<li class="list-group-item" ng-repeat="step in stepList">
@@ -38,17 +38,19 @@
 							<label>Config</label>
 							<textarea class="form-control" rows="3" ng-model="step.data"></textarea>
 						</div>
-						<div class="form-group">
+<!-- 						<div class="form-group">
 							<label>Order</label>
 							<input class="form-control" type="number" ng-model="step.order">
 						</div>
-
+ -->
 						<div style="text-align:right">
 							<button ng-disabled="step.saving" ng-click="saveStep(step)" class="btn btn-sm btn-primary">Save Changes</button>
 						</div>
 					</form>
 				</li>
 			</ul>
+
+
 		</section>
 
 		<section class="section">

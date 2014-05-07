@@ -1269,13 +1269,17 @@ d3barchart {
 .btn-primary:active {
   background: #58488a;
   border-color: #58488a;
-
 }
 .btn-primary.active {
   background: #63519e;
   color: #fff;
   border-color: #63519e;
 }
+.btn-primary.disabled, .btn-primary[disabled], fieldset[disabled] .btn-primary, .btn-primary.disabled:hover, .btn-primary[disabled]:hover, fieldset[disabled] .btn-primary:hover, .btn-primary.disabled:focus, .btn-primary[disabled]:focus, fieldset[disabled] .btn-primary:focus, .btn-primary.disabled:active, .btn-primary[disabled]:active, fieldset[disabled] .btn-primary:active, .btn-primary.disabled.active, .btn-primary[disabled].active, fieldset[disabled] .btn-primary.active {
+  background: #999;
+  border-color: #999;
+}
+
 
 .fixed-form-submit {
   position: fixed;

@@ -62,3 +62,18 @@ class StepDetailsAPIView(APIView):
         db.session.commit()
 
         return self.serialize(step), 200
+
+    @requires_admin
+    def delete(self, step_id):
+        step = Step.query.get(step_id)
+        if step is None:
+            return '', 404
+
+        Step.query.filter(
+            Step.id == step.id,
+        ).delete(
+            synchronize_session=False,
+        )
+        db.session.commit()
+
+        return '', 200

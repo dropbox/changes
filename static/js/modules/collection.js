@@ -61,6 +61,15 @@ define(['angular'], function(angular) {
         }
       };
 
+      Collection.prototype.popItem = function remove(data) {
+        for (var i = 0; i < this.length; i++) {
+          if (this[i].id == data.id) {
+            this.splice(i, i + 1);
+            return;
+          }
+        }
+      };
+
       Collection.prototype.updateItem = function updateItem(data) {
         this.$scope.$apply(function() {
           for (var i = 0; i < this.length; i++) {
