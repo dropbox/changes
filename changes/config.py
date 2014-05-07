@@ -317,7 +317,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_hash>/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
-    api.add_resource(ProjectSourceListAPIView, '/projects/<project_id>/sources/list/')
+    api.add_resource(ProjectSourceListAPIView, '/projects/<project_id>/sources/')
     api.add_resource(StepDetailsAPIView, '/steps/<step_id>/')
     api.add_resource(StreamIndexAPIView, '/stream/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<test_id>/')
