@@ -58,6 +58,7 @@
                         <small ng-if="testCase.origin">
                             This failure likely originated in <span ng-if="testCase.origin.id == job.id">this job</span><span ng-if="testCase.origin.id != job.id"><a href="{{testCase.origin.link}}">{{testCase.origin.target}}</a><span ng-if="testCase.origin.author"> &mdash; {{testCase.origin.author.name}}</span></span>
                         </small>
+                        (<a ui-sref="project_test_details({test_id: testCase.hash})">history</a>)
                     </td>
                     <td style="text-align:center" duration="testCase.duration" bind-once></td>
                 </tr>
