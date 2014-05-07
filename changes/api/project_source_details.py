@@ -38,13 +38,16 @@ class ProjectSourceDetailsAPIView(APIView):
             files = self._get_files_from_raw_diff(diff)
             coverage = self._get_coverage_by_source_id(source_id, files)
             coverage_for_added_lines = self._filter_coverage_for_added_lines(diff, coverage)
+            tails_info = dict(source.data)
         else:
             coverage = None
             coverage_for_added_lines = None
+            tails_info = None
 
         context['diff'] = diff
         context['coverage'] = coverage
         context['coverageForAddedLines'] = coverage_for_added_lines
+        context['tailsInfo'] = tails_info
 
         return self.respond(context)
 
