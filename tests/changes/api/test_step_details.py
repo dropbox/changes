@@ -32,6 +32,8 @@ class UpdateStepDetailsTest(APITestCase):
         plan = self.create_plan(label='Foo')
         step = self.create_step(plan=plan)
 
+        self.login_default_admin()
+
         path = '/api/0/steps/{0}/'.format(step.id.hex)
 
         resp = self.client.post(path, data={

@@ -23,6 +23,17 @@ class AuthMixin(object):
 
         return user
 
+    @fixture
+    def default_admin(self):
+        user = User(
+            email='bar@example.com',
+            is_admin=True,
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        return user
+
     def login(self, user):
         with self.client.session_transaction() as session:
             session['uid'] = user.id.hex
@@ -30,6 +41,9 @@ class AuthMixin(object):
 
     def login_default(self):
         return self.login(self.default_user)
+
+    def login_default_admin(self):
+        return self.login(self.default_admin)
 
 
 class TestCase(Exam, unittest2.TestCase, Fixtures, AuthMixin):

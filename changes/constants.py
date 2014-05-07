@@ -92,3 +92,10 @@ CAUSE_LABELS = {
     Cause.push: 'Code Push',
     Cause.retry: 'Retry',
 }
+
+IMPLEMENTATION_CHOICES = (
+    'changes.buildsteps.dummy.DummyBuildStep',
+    'changes.backends.jenkins.buildstep.JenkinsBuildStep',
+    'changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep',
+    'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
+)

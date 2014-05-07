@@ -6,16 +6,10 @@ from datetime import datetime
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
-from changes.api.auth import requires_auth
+from changes.api.auth import requires_admin
 from changes.config import db
+from changes.constants import IMPLEMENTATION_CHOICES
 from changes.models import Step
-
-IMPLEMENTATION_CHOICES = (
-    'changes.buildsteps.dummy.DummyBuildStep',
-    'changes.backends.jenkins.buildstep.JenkinsBuildStep',
-    'changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep',
-    'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
-)
 
 
 class StepDetailsAPIView(APIView):
@@ -31,7 +25,7 @@ class StepDetailsAPIView(APIView):
 
         return self.respond(step)
 
-    @requires_auth
+    @requires_admin
     def post(self, step_id):
         step = Step.query.get(step_id)
         if step is None:
@@ -58,10 +52,11 @@ class StepDetailsAPIView(APIView):
         if args.order is not None:
             step.order = args.order
 
+        step.date_modified = datetime.utcnow()
         db.session.add(step)
 
         plan = step.plan
-        plan.date_modified = datetime.utcnow()
+        plan.date_modified = step.date_modified
         db.session.add(plan)
 
         db.session.commit()

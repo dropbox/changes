@@ -5,15 +5,10 @@ import json
 import sys
 
 from changes.config import create_app, db
+from changes.constants import IMPLEMENTATION_CHOICES
 from changes.db.utils import try_create
 from changes.models import Plan, Project, ProjectPlan, Step
 
-IMPL_CHOICES = (
-    'changes.backends.jenkins.buildstep.JenkinsBuildStep',
-    'changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep',
-    'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
-    'changes.backends.koality.buildstep.KoalityBuildStep',
-)
 
 app = create_app()
 app_context = app.app_context()
@@ -55,7 +50,7 @@ parser_steps_add = options_subparsers.add_parser('add', help='add plan step')
 parser_steps_add.add_argument('id', help='step ID')
 parser_steps_add.add_argument(
     '--implementation', dest='implementation', help='step implementation',
-    required=True, choices=IMPL_CHOICES)
+    required=True, choices=IMPLEMENTATION_CHOICES)
 parser_steps_add.add_argument(
     '--order', dest='order', help='step order',
     required=True, type=int)
