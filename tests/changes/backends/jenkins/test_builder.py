@@ -132,7 +132,6 @@ class CreateBuildTest(BaseTestCase):
             repository=self.repo,
             project=self.project,
             parent_revision_sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
-            label='D1345',
             diff=SAMPLE_DIFF,
         )
         db.session.add(patch)

@@ -206,7 +206,6 @@ class CreateBuildTest(KoalityBuilderTestCase):
             repository=self.repo,
             project=self.project,
             parent_revision_sha=revision,
-            label='D1345',
             diff=SAMPLE_DIFF,
         )
         db.session.add(patch)

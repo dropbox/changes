@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
+import json
 import logging
 
 from cStringIO import StringIO
@@ -57,7 +58,8 @@ def identify_revision(repository, treeish):
 
 
 def create_build(project, label, target, message, author, change=None,
-                 patch=None, cause=None, source=None, sha=None):
+                 patch=None, cause=None, source=None, sha=None,
+                 source_data=None):
     assert sha or source
 
     repository = project.repository
@@ -67,6 +69,7 @@ def create_build(project, label, target, message, author, change=None,
             'repository': repository,
             'patch': patch,
             'revision_sha': sha,
+            'data': source_data or {},
         })
 
     build = Build(
@@ -160,7 +163,7 @@ class BuildIndexAPIView(APIView):
     parser.add_argument('target', type=unicode)
     parser.add_argument('message', type=unicode)
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
-    parser.add_argument('patch[label]', type=unicode, dest='patch_label')
+    parser.add_argument('patch[data]', type=unicode, dest='patch_data')
 
     def get(self):
         queryset = Build.query.options(
@@ -177,8 +180,16 @@ class BuildIndexAPIView(APIView):
         if not (args.project or args.repository):
             return '{"error": "Need project or repository"}', 400
 
-        if args.patch_file and not args.patch_label:
-            return '{"error": "Missing patch label"}', 400
+        if args.patch_data:
+            try:
+                patch_data = json.loads(args.patch_data)
+            except Exception:
+                return '{"error": "Invalid patch data (must be JSON dict)"}', 400
+
+            if not isinstance(patch_data, dict):
+                return '{"error": "Invalid patch data (must be JSON dict)"}', 400
+        else:
+            patch_data = None
 
         if args.project:
             projects = [args.project]
@@ -234,10 +245,7 @@ class BuildIndexAPIView(APIView):
             sha = args.sha
 
         if not args.target:
-            if args.patch_label:
-                target = args.patch_label[:128]
-            else:
-                target = sha[:12]
+            target = sha[:12]
         else:
             target = args.target[:128]
 
@@ -288,7 +296,6 @@ class BuildIndexAPIView(APIView):
                     repository=repository,
                     project=project,
                     parent_revision_sha=args.sha,
-                    label=args.patch_label,
                     diff=patch_file.getvalue(),
                 )
                 db.session.add(patch)
@@ -303,6 +310,7 @@ class BuildIndexAPIView(APIView):
                 message=message,
                 author=author,
                 patch=patch,
+                source_data=patch_data,
             ))
 
         return self.respond(builds)

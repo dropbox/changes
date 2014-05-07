@@ -2,7 +2,7 @@ import mock
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import ProjectOption, Patch, ItemOption
+from changes.models import ProjectOption, ItemOption
 from changes.listeners.mail import job_finished_handler, MailNotificationHandler
 from changes.testutils.cases import TestCase
 
@@ -60,10 +60,7 @@ class GetRecipientsTestCase(TestCase):
             value='test@example.com, bar@example.com'))
 
         author = self.create_author('foo@example.com')
-        patch = Patch(
-            repository=self.repo, project=self.project, label='foo',
-            diff='',
-        )
+        patch = self.create_patch(project=self.project)
         source = self.create_source(self.project, patch=patch)
         build = self.create_build(
             project=self.project,

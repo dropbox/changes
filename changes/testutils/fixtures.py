@@ -194,8 +194,6 @@ class Fixtures(object):
         return build
 
     def create_patch(self, project, **kwargs):
-        kwargs.setdefault('label', 'Test Patch')
-        kwargs.setdefault('message', 'Hello world!')
         kwargs.setdefault('diff', SAMPLE_DIFF)
         kwargs.setdefault('parent_revision_sha', uuid4().hex)
         if not kwargs.get('repository'):

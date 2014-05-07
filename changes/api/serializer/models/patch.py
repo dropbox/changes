@@ -8,8 +8,6 @@ class PatchSerializer(Serializer):
     def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
-            'name': instance.label,
-            'message': instance.message,
             'diff': instance.diff,
             'link': build_uri('/patches/{0}/'.format(instance.id.hex)),
             'parentRevision': {

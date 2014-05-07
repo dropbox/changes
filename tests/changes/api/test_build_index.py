@@ -79,7 +79,7 @@ class BuildCreateTest(APITestCase):
             'message': 'Hello world!',
             'author': 'David Cramer <dcramer@example.com>',
             'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'patch[label]': 'My patch',
+            'patch[data]': '{"foo": "bar"}',
         })
         assert resp.status_code == 200, resp.data
 
@@ -97,16 +97,17 @@ class BuildCreateTest(APITestCase):
         assert build.author.email == 'dcramer@example.com'
         assert build.message == 'Hello world!'
         assert build.label == 'Foo Bar'
+        assert build.target == 'D1234'
 
         assert job.project == self.project
         assert job.label == self.plan.label
 
         assert source.repository_id == self.project.repository_id
         assert source.revision_sha == 'a' * 40
+        assert source.data == {'foo': 'bar'}
 
         patch = source.patch
         assert patch.diff == SAMPLE_DIFF
-        assert patch.label == 'My patch'
         assert patch.parent_revision_sha == 'a' * 40
 
         jobplans = list(JobPlan.query.filter(

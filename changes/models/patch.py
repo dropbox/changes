@@ -20,9 +20,7 @@ class Patch(db.Model):
     repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     parent_revision_sha = Column(String(40))
-    label = Column(String(64), nullable=False)
     diff = Column(Text)
-    message = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
     change = relationship('Change')

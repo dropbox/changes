@@ -329,7 +329,6 @@ def file_coverage(project, job, patch):
 
 def patch(project, **kwargs):
     kwargs.setdefault('diff', SAMPLE_DIFF)
-    kwargs.setdefault('label', 'D1234')
 
     patch = Patch(
         repository=project.repository,
