@@ -34,6 +34,7 @@
 				<th class="duration">Duration</th>
 				<th class="duration">Num retries</th>
 				<th class="duration">Build</th>
+				<th class="duration">Source</th>
 			</tr>
 		</thead>
 		<tr ng-repeat="result in results">
@@ -52,6 +53,9 @@
 			</td>
 			<td>
 				<a ui-sref="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})" class="indicator" bind-once>#{{result.job.build.number}}</a>
+			</td>
+			<td>
+				<a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.target}}</a>
 			</td>
 		</tr>
 	</table>
