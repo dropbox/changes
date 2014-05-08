@@ -21,6 +21,7 @@ from changes.api.controller import APIController
 from changes.ext.celery import Celery
 from changes.ext.pubsub import PubSub
 from changes.ext.redis import Redis
+from changes.url_converters.uuid import UUIDConverter
 
 # because foo.in_([]) ever executing is a bad idea
 from sqlalchemy.exc import SAWarning
@@ -190,6 +191,8 @@ def create_app(_read_config=True, gevent=False, **config):
     if gevent and app.config['SENTRY_DSN']:
         app.config['SENTRY_DSN'] = 'gevent+{0}'.format(app.config['SENTRY_DSN'])
 
+    app.url_map.converters['uuid'] = UUIDConverter
+
     # init sentry first
     sentry.init_app(app)
 
@@ -286,27 +289,27 @@ def configure_api_routes(app):
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
     api.add_resource(AuthorBuildIndexAPIView, '/authors/<author_id>/builds/')
-    api.add_resource(BuildCommentIndexAPIView, '/builds/<build_id>/comments/')
-    api.add_resource(BuildDetailsAPIView, '/builds/<build_id>/')
-    api.add_resource(BuildMarkSeenAPIView, '/builds/<build_id>/mark_seen/')
-    api.add_resource(BuildCancelAPIView, '/builds/<build_id>/cancel/')
-    api.add_resource(BuildRestartAPIView, '/builds/<build_id>/restart/')
-    api.add_resource(BuildRetryAPIView, '/builds/<build_id>/retry/')
-    api.add_resource(BuildTestIndexAPIView, '/builds/<build_id>/tests/')
-    api.add_resource(BuildTestCoverageAPIView, '/builds/<build_id>/coverage/')
-    api.add_resource(JobDetailsAPIView, '/jobs/<job_id>/')
-    api.add_resource(JobLogDetailsAPIView, '/jobs/<job_id>/logs/<source_id>/')
-    api.add_resource(JobPhaseIndexAPIView, '/jobs/<job_id>/phases/')
+    api.add_resource(BuildCommentIndexAPIView, '/builds/<uuid:build_id>/comments/')
+    api.add_resource(BuildDetailsAPIView, '/builds/<uuid:build_id>/')
+    api.add_resource(BuildMarkSeenAPIView, '/builds/<uuid:build_id>/mark_seen/')
+    api.add_resource(BuildCancelAPIView, '/builds/<uuid:build_id>/cancel/')
+    api.add_resource(BuildRestartAPIView, '/builds/<uuid:build_id>/restart/')
+    api.add_resource(BuildRetryAPIView, '/builds/<uuid:build_id>/retry/')
+    api.add_resource(BuildTestIndexAPIView, '/builds/<uuid:build_id>/tests/')
+    api.add_resource(BuildTestCoverageAPIView, '/builds/<uuid:build_id>/coverage/')
+    api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
+    api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
+    api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')
     api.add_resource(ChangeIndexAPIView, '/changes/')
-    api.add_resource(ChangeDetailsAPIView, '/changes/<change_id>/')
-    api.add_resource(NodeDetailsAPIView, '/nodes/<node_id>/')
+    api.add_resource(ChangeDetailsAPIView, '/changes/<uuid:change_id>/')
+    api.add_resource(NodeDetailsAPIView, '/nodes/<uuid:node_id>/')
     api.add_resource(NodeIndexAPIView, '/nodes/')
-    api.add_resource(NodeJobIndexAPIView, '/nodes/<node_id>/jobs/')
-    api.add_resource(PatchDetailsAPIView, '/patches/<patch_id>/')
+    api.add_resource(NodeJobIndexAPIView, '/nodes/<uuid:node_id>/jobs/')
+    api.add_resource(PatchDetailsAPIView, '/patches/<uuid:patch_id>/')
     api.add_resource(PlanIndexAPIView, '/plans/')
-    api.add_resource(PlanDetailsAPIView, '/plans/<plan_id>/')
-    api.add_resource(PlanProjectIndexAPIView, '/plans/<plan_id>/projects/')
-    api.add_resource(PlanStepIndexAPIView, '/plans/<plan_id>/steps/')
+    api.add_resource(PlanDetailsAPIView, '/plans/<uuid:plan_id>/')
+    api.add_resource(PlanProjectIndexAPIView, '/plans/<uuid:plan_id>/projects/')
+    api.add_resource(PlanStepIndexAPIView, '/plans/<uuid:plan_id>/steps/')
     api.add_resource(ProjectIndexAPIView, '/projects/')
     api.add_resource(ProjectDetailsAPIView, '/projects/<project_id>/')
     api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/')
@@ -320,10 +323,10 @@ def configure_api_routes(app):
     api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_hash>/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
-    api.add_resource(StepDetailsAPIView, '/steps/<step_id>/')
+    api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(StreamIndexAPIView, '/stream/')
-    api.add_resource(TestCaseDetailsAPIView, '/tests/<test_id>/')
-    api.add_resource(TaskDetailsAPIView, '/tasks/<task_id>/')
+    api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')
+    api.add_resource(TaskDetailsAPIView, '/tasks/<uuid:task_id>/')
 
 
 def configure_web_routes(app):
