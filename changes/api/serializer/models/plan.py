@@ -26,6 +26,6 @@ class StepSerializer(Serializer):
             'implementation': instance.implementation,
             'order': instance.order,
             'name': implementation.get_label() if implementation else '',
-            'data': json.dumps(dict(instance.data)),
+            'data': json.dumps(dict(instance.data or {})),
             'dateCreated': instance.date_created,
         }
