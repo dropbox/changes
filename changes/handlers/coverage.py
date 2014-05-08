@@ -38,6 +38,7 @@ class CoverageHandler(ArtifactHandler):
         - U: uncovered
         - C: covered
         """
+        step = self.step
         job = self.step.job
 
         root = etree.fromstring(fp.read())
@@ -58,6 +59,7 @@ class CoverageHandler(ArtifactHandler):
                         file_coverage.append('U')
                     lineno = number
             results.append(FileCoverage(
+                step_id=step.id,
                 job_id=job.id,
                 project_id=job.project_id,
                 filename=node.get('filename'),

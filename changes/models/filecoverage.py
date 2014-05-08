@@ -19,12 +19,14 @@ class FileCoverage(db.Model):
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
+    step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"))
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     filename = Column(String(256), nullable=False, primary_key=True)
     data = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
+    step = relationship('JobStep')
     job = relationship('Job')
     project = relationship('Project')
 
