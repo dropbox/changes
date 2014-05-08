@@ -24,7 +24,7 @@ def session_config(request):
     return {
         'db_name': db_name,
         # TODO(dcramer): redis db is shared
-        'redis_db': 9,
+        'redis_db': '9',
     }
 
 
