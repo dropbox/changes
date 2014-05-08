@@ -142,6 +142,11 @@ class TestResultManager(object):
     def _record_test_duration(self, test_list):
         job = self.step.job
 
+        if test_list:
+            local_test_duration = sum(t.duration or 0 for t in test_list)
+        else:
+            local_test_duration = 0
+
         test_duration = db.session.query(func.sum(TestCase.duration)).filter(
             TestCase.job_id == job.id,
         ).as_scalar()
@@ -150,7 +155,7 @@ class TestResultManager(object):
             'item_id': self.step.id,
             'name': 'test_duration',
         }, values={
-            'value': sum(t.duration or 0 for t in test_list),
+            'value': local_test_duration,
         })
 
         create_or_update(ItemStat, where={
