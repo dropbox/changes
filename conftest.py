@@ -1,7 +1,6 @@
 import os
 import pytest
 import sys
-from uuid import uuid1
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 if root not in sys.path:
@@ -19,7 +18,7 @@ from changes.config import create_app, db
 
 @pytest.fixture(scope='session')
 def session_config(request):
-    db_name = 'test_changes_' + uuid1().hex
+    db_name = 'test_changes'
 
     return {
         'db_name': db_name,
@@ -46,7 +45,11 @@ def app(request, session_config):
         HIPCHAT_TOKEN='abc',
     )
     app_context = app.test_request_context()
-    app_context.push()
+    context = app_context.push()
+
+    print context
+
+    # request.addfinalizer(app_context.pop)
     return app
 
 
@@ -65,10 +68,11 @@ def setup_db(request, app, session_config):
         if transaction.nested and not transaction._parent.nested:
             session.begin_nested()
 
-    def teardown():
-        os.system('dropdb %s' % db_name)
+    # TODO: find a way to kill db connections so we can dropdob
+    # def teardown():
+    #     os.system('dropdb %s' % db_name)
 
-    request.addfinalizer(teardown)
+    # request.addfinalizer(teardown)
 
 
 @pytest.fixture(autouse=True)
