@@ -116,6 +116,7 @@ class TestResultManager(object):
         }, values={
             'value': len(test_list),
         })
+        db.session.commit()
 
         create_or_update(ItemStat, where={
             'item_id': job.id,
@@ -123,6 +124,7 @@ class TestResultManager(object):
         }, values={
             'value': test_count,
         })
+        db.session.commit()
 
         instance = try_create(ItemStat, where={
             'item_id': job.build_id,
