@@ -17,7 +17,7 @@
     <table class="table table-striped table-bordered">
         <thead>
             <tr>
-                <th colspan="2">
+                <th>
                     <a ui-sref="project_test_search({sort: 'name'})">Test</a>
                 </th>
                 <th style="width:110px;text-align:center">
@@ -26,9 +26,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="testCase in testList"
-                class="result-{{testCase.result.id}}">
-                <td class="result"><span></span></td>
+            <tr ng-repeat="testCase in testList">
                 <td>
                     <a ui-sref="project_test_details({test_id: testCase.hash})">{{testCase.shortName}}</a><br>
                     <small ng-if="testCase.package">{{testCase.package}}</small>
