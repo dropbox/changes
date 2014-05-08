@@ -14,7 +14,7 @@ class AuthorBuildListTest(APITestCase):
         path = '/api/0/authors/{0}/builds/'.format(fake_author_id.hex)
 
         resp = self.client.get(path)
-        assert resp.status_code == 200
+        assert resp.status_code == 404
         data = self.unserialize(resp)
         assert len(data) == 0
 
