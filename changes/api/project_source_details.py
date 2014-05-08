@@ -22,17 +22,7 @@ class ProjectSourceDetailsAPIView(APIView):
 
         context = self.serialize(source)
 
-        if source.patch:
-            diff = source.patch.diff
-        else:
-            vcs = repo.get_vcs()
-            if vcs:
-                try:
-                    diff = vcs.export(source.revision_sha)
-                except Exception:
-                    diff = None
-            else:
-                diff = None
+        diff = source.generate_diff()
 
         if diff:
             files = self._get_files_from_raw_diff(diff)

@@ -53,3 +53,16 @@ class Source(db.Model):
             self.id = uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+
+    def generate_diff(self):
+        if self.patch:
+            return self.patch.diff
+
+        vcs = self.repository.get_vcs()
+        if vcs:
+            try:
+                return vcs.export(self.revision_sha)
+            except Exception:
+                pass
+
+        return None
