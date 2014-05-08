@@ -248,6 +248,7 @@ def configure_api_routes(app):
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.build_mark_seen import BuildMarkSeenAPIView
     from changes.api.build_cancel import BuildCancelAPIView
+    from changes.api.build_coverage import BuildTestCoverageAPIView
     from changes.api.build_restart import BuildRestartAPIView
     from changes.api.build_retry import BuildRetryAPIView
     from changes.api.build_test_index import BuildTestIndexAPIView
@@ -275,7 +276,6 @@ def configure_api_routes(app):
     from changes.api.project_test_group_index import ProjectTestGroupIndexAPIView
     from changes.api.project_test_index import ProjectTestIndexAPIView
     from changes.api.project_details import ProjectDetailsAPIView
-    from changes.api.project_source_list import ProjectSourceListAPIView
     from changes.api.project_source_details import ProjectSourceDetailsAPIView
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.step_details import StepDetailsAPIView
@@ -293,6 +293,7 @@ def configure_api_routes(app):
     api.add_resource(BuildRestartAPIView, '/builds/<build_id>/restart/')
     api.add_resource(BuildRetryAPIView, '/builds/<build_id>/retry/')
     api.add_resource(BuildTestIndexAPIView, '/builds/<build_id>/tests/')
+    api.add_resource(BuildTestCoverageAPIView, '/builds/<build_id>/coverage/')
     api.add_resource(JobDetailsAPIView, '/jobs/<job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<job_id>/logs/<source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<job_id>/phases/')
@@ -319,7 +320,6 @@ def configure_api_routes(app):
     api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_hash>/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
-    api.add_resource(ProjectSourceListAPIView, '/projects/<project_id>/sources/')
     api.add_resource(StepDetailsAPIView, '/steps/<step_id>/')
     api.add_resource(StreamIndexAPIView, '/stream/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<test_id>/')
