@@ -115,6 +115,9 @@ class ProjectSourceDetailsAPIView(APIView):
 
         If we don't have coverage info for a listed file, we leave it out of the dict.
         """
+        if len(files) == 0:
+            return {}
+
         # Grab the newest, finished job_id from the source
         newest_completed_job = Job.query.filter(
             Job.source_id == source_id,
