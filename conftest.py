@@ -1,6 +1,7 @@
 import os
 import pytest
 import sys
+from uuid import uuid1
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 if root not in sys.path:
@@ -17,12 +18,23 @@ from changes.config import create_app, db
 
 
 @pytest.fixture(scope='session')
-def app(request):
+def session_config(request):
+    db_name = 'test_changes_' + uuid1().hex
+
+    return {
+        'db_name': db_name,
+        # TODO(dcramer): redis db is shared
+        'redis_db': 9,
+    }
+
+
+@pytest.fixture(scope='session')
+def app(request, session_config):
     app = create_app(
         _read_config=False,
         TESTING=True,
-        SQLALCHEMY_DATABASE_URI='postgresql:///test_changes',
-        REDIS_URL='redis://localhost/9',
+        SQLALCHEMY_DATABASE_URI='postgresql:///' + session_config['db_name'],
+        REDIS_URL='redis://localhost/' + session_config['redis_db'],
         BASE_URI='http://example.com',
         REPO_ROOT='/tmp',
         GREEN_BUILD_URL='https://foo.example.com',
@@ -39,11 +51,12 @@ def app(request):
 
 
 @pytest.fixture(scope='session', autouse=True)
-def setup_db(request, app):
+def setup_db(request, app, session_config):
+    db_name = session_config['db_name']
     # 9.1 does not support --if-exists
-    if os.system("psql -l | grep 'test_changes'") == 0:
-        assert not os.system('dropdb test_changes')
-    assert not os.system('createdb -E utf-8 test_changes')
+    if os.system("psql -l | grep '%s'" % db_name) == 0:
+        assert not os.system('dropdb %s' % db_name)
+    assert not os.system('createdb -E utf-8 %s' % db_name)
 
     command.upgrade(alembic_cfg, 'head')
 
@@ -51,6 +64,11 @@ def setup_db(request, app):
     def restart_savepoint(session, transaction):
         if transaction.nested and not transaction._parent.nested:
             session.begin_nested()
+
+    def teardown():
+        os.system('dropdb %s' % db_name)
+
+    request.addfinalizer(teardown)
 
 
 @pytest.fixture(autouse=True)
