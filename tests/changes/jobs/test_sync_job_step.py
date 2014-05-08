@@ -5,7 +5,9 @@ import mock
 from changes.config import db
 from changes.constants import Result, Status
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import ItemStat, JobStep, ProjectOption, Step, Task
+from changes.models import (
+    ItemStat, JobStep, ProjectOption, Step, Task, FileCoverage
+)
 from changes.testutils import TestCase
 
 
@@ -96,6 +98,11 @@ class SyncJobStepTest(TestCase):
             status=Status.finished,
         )
 
+        db.session.add(FileCoverage(
+            job=job, step=step, project=job.project,
+            filename='foo.py', data='CCCUUUCCCUUNNN'))
+        db.session.commit()
+
         sync_job_step(
             step_id=step.id.hex,
             task_id=step.id.hex,
@@ -126,6 +133,18 @@ class SyncJobStepTest(TestCase):
             ItemStat.name == 'tests_missing',
         ).first()
         assert stat.value == 0
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == step.id,
+            ItemStat.name == 'lines_covered',
+        ).first()
+        assert stat.value == 6
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == step.id,
+            ItemStat.name == 'lines_uncovered',
+        ).first()
+        assert stat.value == 5
 
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(Step, 'get_implementation')

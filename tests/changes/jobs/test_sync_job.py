@@ -98,6 +98,8 @@ class SyncJobTest(TestCase):
         self.create_test(job)
 
         db.session.add(ItemStat(item_id=step.id, name='tests_missing', value=1))
+        db.session.add(ItemStat(item_id=step.id, name='lines_covered', value=10))
+        db.session.add(ItemStat(item_id=step.id, name='lines_uncovered', value=25))
         db.session.commit()
 
         sync_job(
@@ -130,3 +132,15 @@ class SyncJobTest(TestCase):
             ItemStat.name == 'tests_missing',
         ).first()
         assert stat.value == 1
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == job.id,
+            ItemStat.name == 'lines_covered',
+        ).first()
+        assert stat.value == 10
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == job.id,
+            ItemStat.name == 'lines_uncovered',
+        ).first()
+        assert stat.value == 25

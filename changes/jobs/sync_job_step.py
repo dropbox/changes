@@ -7,7 +7,7 @@ from changes.constants import Status, Result
 from changes.config import db
 from changes.db.utils import try_create
 from changes.models import (
-    JobStep, JobPlan, Plan, ProjectOption, TestCase, ItemStat
+    JobStep, JobPlan, Plan, ProjectOption, TestCase, ItemStat, FileCoverage
 )
 from changes.queue.task import tracked_task
 
@@ -55,6 +55,36 @@ def is_missing_tests(step):
     return not has_tests
 
 
+def record_coverage_stats(step):
+    # calculate lines_covered, lines_uncovered
+    coverage_data = dict(db.session.query(
+        FileCoverage.filename,
+        FileCoverage.data,
+    ).filter(
+        FileCoverage.step_id == step.id,
+    ))
+
+    # TODO(dcramer): record diff coverage
+    lines_covered = 0
+    lines_uncovered = 0
+    for filename, data in coverage_data.iteritems():
+        lines_covered += data.count('C')
+        lines_uncovered += data.count('U')
+
+    try_create(ItemStat, where={
+        'item_id': step.id,
+        'name': 'lines_covered',
+    }, defaults={
+        'value': lines_covered
+    })
+    try_create(ItemStat, where={
+        'item_id': step.id,
+        'name': 'lines_uncovered',
+    }, defaults={
+        'value': lines_uncovered
+    })
+
+
 @tracked_task(on_abort=abort_step, max_retries=None)
 def sync_job_step(step_id):
     step = JobStep.query.get(step_id)
@@ -80,6 +110,8 @@ def sync_job_step(step_id):
     }, defaults={
         'value': int(missing_tests)
     })
+
+    record_coverage_stats(step)
 
     if step.result == Result.passed and missing_tests:
         step.result = Result.failed

@@ -8,28 +8,30 @@ from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.db.utils import try_create
 from changes.events import publish_job_update
-from changes.models import ItemStat, Job, JobStep, JobPlan, Plan, TestCase
+from changes.models import (
+    ItemStat, Job, JobStep, JobPlan, Plan, TestCase
+)
 from changes.queue.task import tracked_task
 from changes.utils.agg import safe_agg
 
 
-def _record_tests_missing(job):
-    tests_missing_count = db.session.query(
-        func.sum(ItemStat.value),
+def aggregate_job_stat(job, name, func_=func.sum):
+    value = db.session.query(
+        func_(ItemStat.value),
     ).filter(
         ItemStat.item_id.in_(
             db.session.query(JobStep.id).filter(
                 JobStep.job_id == job.id,
             )
         ),
-        ItemStat.name == 'tests_missing',
+        ItemStat.name == name,
     ).as_scalar()
 
     try_create(ItemStat, where={
         'item_id': job.id,
-        'name': 'tests_missing',
+        'name': name,
     }, defaults={
-        'value': tests_missing_count
+        'value': value
     })
 
 
@@ -115,7 +117,9 @@ def sync_job(job_id):
     if not is_finished:
         raise sync_job.NotFinished
 
-    _record_tests_missing(job)
+    aggregate_job_stat(job, 'tests_missing')
+    aggregate_job_stat(job, 'lines_covered')
+    aggregate_job_stat(job, 'lines_uncovered')
 
     queue.delay('notify_job_finished', kwargs={
         'job_id': job.id.hex,

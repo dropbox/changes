@@ -10,23 +10,23 @@ from changes.utils.agg import safe_agg
 from changes.queue.task import tracked_task
 
 
-def _record_tests_missing(build):
-    tests_missing_count = db.session.query(
-        func.sum(ItemStat.value),
+def aggregate_build_stat(build, name, func_=func.sum):
+    value = db.session.query(
+        func_(ItemStat.value),
     ).filter(
         ItemStat.item_id.in_(
             db.session.query(Job.id).filter(
                 Job.build_id == build.id,
             )
         ),
-        ItemStat.name == 'tests_missing',
+        ItemStat.name == name,
     ).as_scalar()
 
     try_create(ItemStat, where={
         'item_id': build.id,
-        'name': 'tests_missing',
+        'name': name,
     }, defaults={
-        'value': tests_missing_count
+        'value': value
     })
 
 
@@ -92,7 +92,9 @@ def sync_build(build_id):
     if not is_finished:
         raise sync_build.NotFinished
 
-    _record_tests_missing(build)
+    aggregate_build_stat(build, 'tests_missing')
+    aggregate_build_stat(build, 'lines_covered')
+    aggregate_build_stat(build, 'lines_uncovered')
 
     queue.delay('notify_build_finished', kwargs={
         'build_id': build.id.hex,
