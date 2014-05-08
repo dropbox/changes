@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from sqlalchemy.orm import joinedload
+from uuid import UUID
 
 from changes.api.base import APIView
 from changes.api.auth import get_current_user
@@ -12,9 +13,13 @@ class AuthorBuildIndexAPIView(APIView):
         if author_id == 'me':
             user = get_current_user()
             if user is None:
-                return
+                return None
 
             return Author.query.filter_by(email=user.email).first()
+        try:
+            author_id = UUID(author_id)
+        except ValueError:
+            return None
         return Author.query.get(author_id)
 
     def get(self, author_id):
@@ -23,7 +28,7 @@ class AuthorBuildIndexAPIView(APIView):
 
         author = self._get_author(author_id)
         if not author:
-            return self.respond([])
+            return '', 404
 
         queryset = Build.query.options(
             joinedload('project'),
