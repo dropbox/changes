@@ -72,6 +72,9 @@ class TestResultManager(object):
         ).delete(synchronize_session=False)
 
     def save(self, test_list):
+        if not test_list:
+            return
+
         step = self.step
         job = step.job
         project = job.project
