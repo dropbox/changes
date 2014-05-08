@@ -17,4 +17,5 @@ class SourceSerializer(Serializer):
             'patch': patch,
             'revision': instance.revision,
             'dateCreated': instance.date_created,
+            'tails_data': dict(instance.data),
         }
