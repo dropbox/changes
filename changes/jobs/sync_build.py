@@ -1,4 +1,5 @@
 from datetime import datetime
+from flask import current_app
 from sqlalchemy.sql import func
 
 from changes.config import db, queue
@@ -92,9 +93,12 @@ def sync_build(build_id):
     if not is_finished:
         raise sync_build.NotFinished
 
-    aggregate_build_stat(build, 'tests_missing')
-    aggregate_build_stat(build, 'lines_covered')
-    aggregate_build_stat(build, 'lines_uncovered')
+    try:
+        aggregate_build_stat(build, 'tests_missing')
+        aggregate_build_stat(build, 'lines_covered')
+        aggregate_build_stat(build, 'lines_uncovered')
+    except Exception:
+        current_app.logger.exception('Failing recording aggregate stats for build %s', build.id)
 
     queue.delay('notify_build_finished', kwargs={
         'build_id': build.id.hex,

@@ -117,9 +117,12 @@ def sync_job(job_id):
     if not is_finished:
         raise sync_job.NotFinished
 
-    aggregate_job_stat(job, 'tests_missing')
-    aggregate_job_stat(job, 'lines_covered')
-    aggregate_job_stat(job, 'lines_uncovered')
+    try:
+        aggregate_job_stat(job, 'tests_missing')
+        aggregate_job_stat(job, 'lines_covered')
+        aggregate_job_stat(job, 'lines_uncovered')
+    except Exception:
+        current_app.logger.exception('Failing recording aggregate stats for job %s', job.id)
 
     queue.delay('notify_job_finished', kwargs={
         'job_id': job.id.hex,

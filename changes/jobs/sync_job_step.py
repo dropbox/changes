@@ -111,7 +111,10 @@ def sync_job_step(step_id):
         'value': int(missing_tests)
     })
 
-    record_coverage_stats(step)
+    try:
+        record_coverage_stats(step)
+    except Exception:
+        current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
 
     if step.result == Result.passed and missing_tests:
         step.result = Result.failed
