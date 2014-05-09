@@ -84,7 +84,7 @@ def record_coverage_stats(step):
     })
 
 
-@tracked_task(on_abort=abort_step, max_retries=None)
+@tracked_task(on_abort=abort_step, max_retries=100)
 def sync_job_step(step_id):
     step = JobStep.query.get(step_id)
     if not step:
