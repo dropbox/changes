@@ -626,7 +626,11 @@ class JenkinsBuilder(BaseBackend):
             JobStep.status != Status.finished,
         )
         for step in active_steps:
-            self.cancel_step(step)
+            try:
+                self.cancel_step(step)
+            except UnrecoverableException:
+                # assume the job no longer exists
+                pass
 
         job.status = Status.finished
         job.result = Result.aborted
