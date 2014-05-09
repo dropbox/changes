@@ -25,7 +25,7 @@ def get_coverage_by_source_id(source_id):
                 Build.project_id == project.id,
                 Build.source_id == source_id,
                 Build.status == Status.finished
-        ).order_by(Build.date_created.desc()).first())
+        ).order_by(Build.date_created.desc()).first()[0])
 
     return get_coverage_by_build_ids(newest_build_ids)
 
