@@ -43,7 +43,7 @@ def get_coverage_by_build_ids(build_ids):
     The dictionary maps file names to a string of the form 'UNCCCNCU', where U means
     'uncovered', C means 'covered' and 'N' means 'no coverage info'.
     """
-    if build_ids:
+    if not build_ids:
         return {}
 
     all_job_ids = db.session.query(Job.id).filter(
@@ -60,7 +60,7 @@ def get_coverage_by_job_ids(job_ids):
     The dictionary maps file names to a string of the form 'UNCCCNCU', where U means
     'uncovered', C means 'covered' and 'N' means 'no coverage info'.
     """
-    if job_ids:
+    if not job_ids:
         return {}
 
     all_coverages = FileCoverage.query.filter(
