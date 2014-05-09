@@ -255,6 +255,7 @@ def configure_api_routes(app):
     from changes.api.build_restart import BuildRestartAPIView
     from changes.api.build_retry import BuildRetryAPIView
     from changes.api.build_test_index import BuildTestIndexAPIView
+    from changes.api.build_test_index_all import BuildTestIndexAllAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
     from changes.api.job_details import JobDetailsAPIView
@@ -296,6 +297,7 @@ def configure_api_routes(app):
     api.add_resource(BuildRestartAPIView, '/builds/<uuid:build_id>/restart/')
     api.add_resource(BuildRetryAPIView, '/builds/<uuid:build_id>/retry/')
     api.add_resource(BuildTestIndexAPIView, '/builds/<uuid:build_id>/tests/')
+    api.add_resource(BuildTestIndexAllAPIView, '/builds/<uuid:build_id>/tests/all')
     api.add_resource(BuildTestCoverageAPIView, '/builds/<uuid:build_id>/coverage/')
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
