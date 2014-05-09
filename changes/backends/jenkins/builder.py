@@ -175,16 +175,30 @@ class JenkinsBuilder(BaseBackend):
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
-        handler = XunitHandler(jobstep)
-        handler.process(StringIO(resp.content))
+        try:
+            handler = XunitHandler(jobstep)
+            handler.process(StringIO(resp.content))
+        except Exception:
+            db.session.rollback()
+            self.logger.exception(
+                'Failed to sync test results for job step', jobstep.id)
+        else:
+            db.session.commit()
 
     def _sync_artifact_as_coverage(self, jobstep, artifact):
         resp = self.fetch_artifact(jobstep, artifact)
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
-        handler = CoverageHandler(jobstep)
-        handler.process(StringIO(resp.content))
+        try:
+            handler = CoverageHandler(jobstep)
+            handler.process(StringIO(resp.content))
+        except Exception:
+            db.session.rollback()
+            self.logger.exception(
+                'Failed to sync test results for job step', jobstep.id)
+        else:
+            db.session.commit()
 
     def _sync_artifact_as_log(self, jobstep, artifact):
         job = jobstep.job
@@ -556,13 +570,13 @@ class JenkinsBuilder(BaseBackend):
 
         # sync test results
         try:
-            with db.session.begin_nested():
-                self._sync_test_results(
-                    step=step,
-                    job_name=job_name,
-                    build_no=build_no,
-                )
+            self._sync_test_results(
+                step=step,
+                job_name=job_name,
+                build_no=build_no,
+            )
         except Exception:
+            db.session.rollback()
             self.logger.exception(
                 'Failed to sync test results for %s #%s', job_name, build_no)
         else:
