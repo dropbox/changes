@@ -28,6 +28,7 @@ class CoverageHandler(ArtifactHandler):
                         db.session.add(result)
                 except IntegrityError:
                     result = self.merge_coverage(result)
+            db.session.commit()
 
         return results
 
