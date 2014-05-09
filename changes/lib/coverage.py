@@ -22,9 +22,9 @@ def get_coverage_by_source_id(source_id):
     newest_build_ids = set()
     for project in projects:
         b_id = db.session.query(Build.id).filter(
-                Build.project_id == project.id,
-                Build.source_id == source_id,
-                Build.status == Status.finished
+            Build.project_id == project.id,
+            Build.source_id == source_id,
+            Build.status == Status.finished
         ).order_by(Build.date_created.desc()).first()
         if b_id:
             newest_build_ids.add(b_id[0])

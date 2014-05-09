@@ -38,7 +38,8 @@ def test_result_generation():
 
 class CoverageHandlerTest(TestCase):
     @patch.object(CoverageHandler, 'get_coverage')
-    def test_simple(self, get_coverage):
+    @patch.object(CoverageHandler, 'process_diff')
+    def test_simple(self, process_diff, get_coverage):
         project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build)
@@ -46,6 +47,10 @@ class CoverageHandlerTest(TestCase):
         jobstep = self.create_jobstep(jobphase)
 
         handler = CoverageHandler(jobstep)
+
+        process_diff.return_value = {
+            'setup.py': set([1, 2, 3, 4, 5]),
+        }
 
         # now try with some duplicate coverage
         get_coverage.return_value = [FileCoverage(
@@ -67,7 +72,7 @@ class CoverageHandlerTest(TestCase):
             step_id=jobstep.id,
             project_id=project.id,
             filename='setup.py',
-            data='NUNNNNNNNNNUCCNU'
+            data='NUUNNNNNNNNUCCNU'
         )]
 
         fp = StringIO()
@@ -79,4 +84,8 @@ class CoverageHandlerTest(TestCase):
         ))
         assert len(file_cov) == 1
         assert file_cov[0].filename == 'setup.py'
-        assert file_cov[0].data == 'CUNNNNCCNNNUCCNUUUUUU'
+        assert file_cov[0].data == 'CUUNNNCCNNNUCCNUUUUUU'
+        assert file_cov[0].lines_covered == 5
+        assert file_cov[0].lines_uncovered == 9
+        assert file_cov[0].diff_lines_covered == 1
+        assert file_cov[0].diff_lines_uncovered == 2

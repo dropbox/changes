@@ -3,7 +3,7 @@ from __future__ import absolute_import, division
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
 
@@ -26,6 +26,11 @@ class FileCoverage(db.Model):
     filename = Column(String(256), nullable=False, primary_key=True)
     data = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
+
+    lines_covered = Column(Integer)
+    lines_uncovered = Column(Integer)
+    diff_lines_covered = Column(Integer)
+    diff_lines_uncovered = Column(Integer)
 
     step = relationship('JobStep')
     job = relationship('Job')
