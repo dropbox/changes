@@ -252,6 +252,7 @@ def configure_api_routes(app):
     from changes.api.build_mark_seen import BuildMarkSeenAPIView
     from changes.api.build_cancel import BuildCancelAPIView
     from changes.api.build_coverage import BuildTestCoverageAPIView
+    from changes.api.build_coverage_stats import BuildTestCoverageStatsAPIView
     from changes.api.build_restart import BuildRestartAPIView
     from changes.api.build_retry import BuildRetryAPIView
     from changes.api.build_test_index import BuildTestIndexAPIView
@@ -301,6 +302,7 @@ def configure_api_routes(app):
     api.add_resource(BuildTestIndexFailuresAPIView, '/builds/<uuid:build_id>/tests/failures')
     api.add_resource(BuildTestIndexCountsAPIView, '/builds/<uuid:build_id>/tests/counts')
     api.add_resource(BuildTestCoverageAPIView, '/builds/<uuid:build_id>/coverage/')
+    api.add_resource(BuildTestCoverageStatsAPIView, '/builds/<uuid:build_id>/stats/coverage/')
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')

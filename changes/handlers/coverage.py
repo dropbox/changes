@@ -80,7 +80,10 @@ class CoverageHandler(ArtifactHandler):
 
         for file_diff in parsed_diff:
             for diff_chunk in file_diff['chunks']:
-                lines_by_file[file_diff['new_filename']].update(
+                if not file_diff['new_filename']:
+                    continue
+
+                lines_by_file[file_diff['new_filename'][2:]].update(
                     d['new_lineno'] for d in diff_chunk
                 )
         return lines_by_file
