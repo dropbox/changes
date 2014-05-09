@@ -15,7 +15,6 @@ requirejs.config({
     'jquery': '../vendor/jquery/jquery',
     'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
-    'ngInfiniteScroll': '../vendor/ngInfiniteScroll/ng-infinite-scroll',
     'requirejs': '../vendor/requirejs/require'
   },
   shim: {
@@ -39,7 +38,6 @@ requirejs.config({
     'modules/pagination': ['angular'],
     'modules/stream': ['angular'],
     'modules/scalyr': ['angular'],
-    'ngInfiniteScroll': ['angular'],
     'jquery': {
         exports: 'jquery'
     }

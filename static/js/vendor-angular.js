@@ -8,6 +8,5 @@ define([
   'angularLoadingBar',
   'angularRoute',
   'angularSanitize',
-  'angularUIRouter',
-  'ngInfiniteScroll'
+  'angularUIRouter'
 ], function() { });
