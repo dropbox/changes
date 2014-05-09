@@ -1,11 +1,10 @@
 from __future__ import absolute_import, division
 
 from collections import defaultdict
-from hashlib import md5
 from lxml import etree
 from sqlalchemy.exc import IntegrityError
 
-from changes.config import db, redis
+from changes.config import db
 from changes.models.filecoverage import FileCoverage
 from changes.utils.diff_parser import DiffParser
 
@@ -17,17 +16,11 @@ class CoverageHandler(ArtifactHandler):
         results = self.get_coverage(fp)
 
         for result in results:
-            lock_key = 'coverage:{job_id}:{file_hash}'.format(
-                job_id=result.job_id.hex,
-                file_hash=md5(result.filename).hexdigest(),
-            )
-
-            with redis.lock(lock_key):
-                try:
-                    with db.session.begin_nested():
-                        db.session.add(result)
-                except IntegrityError:
-                    result = self.merge_coverage(result)
+            try:
+                with db.session.begin_nested():
+                    db.session.add(result)
+            except IntegrityError:
+                result = self.merge_coverage(result)
             db.session.commit()
 
         return results
