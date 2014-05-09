@@ -39,7 +39,7 @@ define([
       };
 
       $scope.restartBuild = function() {
-        $http.post('/api/0/builds/' + $scope.build.id + '/restart/')
+        $http.post('/api/0/builds/' + $scope.build.id + '/retry/')
           .success(function(data){
             $state.go('build_details', {build_id: $scope.build.id});
           })

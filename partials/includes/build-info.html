@@ -25,7 +25,7 @@
                     <i class="glyphicon glyphicon-list-alt"></i> View Test Report</a>
                 </li>
                 <li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">
-                    <i class="glyphicon glyphicon-repeat"></i> Restart Build</a>
+                    <i class="glyphicon glyphicon-repeat"></i> Recreate Build</a>
                 </li>
                 <li ng-if="build.status.id != 'finished'"><a href="javascript:void(0)" ng-click="cancelBuild()">
                     <i class="glyphicon glyphicon-remove"></i> Cancel Build</a>
