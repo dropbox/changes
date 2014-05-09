@@ -40,6 +40,7 @@ requirejs.config({
     'modules/flash': ['angular'],
     'modules/pagination': ['angular'],
     'modules/stream': ['angular'],
+    'modules/scalyr': ['angular'],
     'ngInfiniteScroll': ['angular'],
     'jquery': {
         exports: 'jquery'

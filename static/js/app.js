@@ -15,6 +15,7 @@ define([
   'modules/notify',
   'modules/pageTitle',
   'modules/pagination',
+  'modules/scalyr',
   'modules/stream'
   ], function (angular) {
     'use strict';
@@ -33,6 +34,7 @@ define([
       'ngSanitize',
       'notify',
       'pagination',
+      'sly',
       'stream',
       'ui.bootstrap',
       'ui.router'

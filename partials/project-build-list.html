@@ -35,7 +35,7 @@
                 <div class="tests">Tests</div>
                 <div class="duration">Duration</div>
             </li>
-            <li ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
+            <li ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}" slyEvaluateOnlyWhen="build.dateModified">
                 <a ui-sref="build_details({build_id: build.id})" class="indicator" bind-once>#{{build.number}}</a>
                 <h5 bind-once><a ui-sref="build_details({build_id: build.id})">{{build.name}}</a></h5>
                 <div class="info" bind-once>
