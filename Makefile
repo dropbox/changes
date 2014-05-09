@@ -4,7 +4,7 @@ develop: install-requirements install-test-requirements setup-git
 
 upgrade: develop
 	alembic upgrade head
-	node_modules/.bin/grunt requirejs
+	make static
 
 setup-git:
 	git config branch.autosetuprebase always
@@ -48,4 +48,4 @@ resetdb:
 	alembic upgrade head
 
 static:
-	r.js -o build.js
+	node_modules/.bin/grunt requirejs

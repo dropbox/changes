@@ -24,7 +24,7 @@
     "d3-tip": "https://github.com/deciob/d3-tip.git#amd",
     "jquery": "~2.0.3",
     "moment": "~2.1.0",
-    "requirejs": "~2.1.8",
+    "requirejs": "~2.1.11",
     "ngInfiniteScroll": "~1.0.0"
   },
   "resolutions": {
