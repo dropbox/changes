@@ -321,6 +321,10 @@ def file_coverage(project, job, patch):
             job_id=job.id,
             filename=file,
             data=coverage,
+            lines_covered=5,
+            lines_uncovered=8,
+            diff_lines_covered=3,
+            diff_lines_uncovered=5,
         )
         db.session.add(file_coverage)
 

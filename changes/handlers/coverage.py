@@ -1,10 +1,12 @@
 from __future__ import absolute_import, division
 
+from collections import defaultdict
 from lxml import etree
 from sqlalchemy.exc import IntegrityError
 
 from changes.config import db
 from changes.models.filecoverage import FileCoverage
+from changes.utils.diff_parser import DiffParser
 
 from .base import ArtifactHandler
 
@@ -49,7 +51,61 @@ class CoverageHandler(ArtifactHandler):
 
         existing.data = ''.join(cov_data)
 
+        self.add_file_stats(existing)
+
         return existing
+
+    def process_diff(self):
+        lines_by_file = defaultdict(set)
+        try:
+            source = self.step.job.build.source
+        except AttributeError:
+            return lines_by_file
+
+        diff = source.generate_diff()
+
+        if not diff:
+            return lines_by_file
+
+        diff_parser = DiffParser(diff)
+        parsed_diff = diff_parser.parse(diff)
+
+        for file_diff in parsed_diff:
+            for diff_chunk in file_diff['chunks']:
+                lines_by_file[file_diff['new_filename']].update(
+                    d['new_lineno'] for d in diff_chunk
+                )
+        return lines_by_file
+
+    def get_processed_diff(self):
+        if not hasattr(self, '_processed_diff'):
+            self._processed_diff = self.process_diff()
+        return self._processed_diff
+
+    def add_file_stats(self, result):
+        diff_lines = self.get_processed_diff()[result.filename]
+
+        lines_covered = 0
+        lines_uncovered = 0
+        diff_lines_covered = 0
+        diff_lines_uncovered = 0
+
+        for lineno, code in enumerate(result.data):
+            # lineno is 1-based in diff
+            line_in_diff = bool((lineno + 1) in diff_lines)
+            if code == 'C':
+                lines_covered += 1
+                if line_in_diff:
+                    diff_lines_covered += 1
+            elif code == 'U':
+                lines_uncovered += 1
+                if line_in_diff:
+                    diff_lines_uncovered += 1
+
+        result.lines_covered = lines_covered
+        result.lines_uncovered = lines_uncovered
+        result.diff_lines_covered = diff_lines_covered
+        result.diff_lines_uncovered = diff_lines_uncovered
 
     def get_coverage(self, fp):
         """
@@ -72,6 +128,7 @@ class CoverageHandler(ArtifactHandler):
 
         results = []
         for node in root.iter('class'):
+            filename = node.get('filename')
             file_coverage = []
             for lineset in node.iterchildren('lines'):
                 lineno = 0
@@ -85,12 +142,16 @@ class CoverageHandler(ArtifactHandler):
                     else:
                         file_coverage.append('U')
                     lineno = number
-            results.append(FileCoverage(
+
+            result = FileCoverage(
                 step_id=step.id,
                 job_id=job.id,
                 project_id=job.project_id,
-                filename=node.get('filename'),
+                filename=filename,
                 data=''.join(file_coverage),
-            ))
+            )
+            self.add_file_stats(result)
+
+            results.append(result)
 
         return results

@@ -1,5 +1,4 @@
 from flask import current_app
-
 from sqlalchemy.orm import subqueryload_all
 
 from changes.backends.base import UnrecoverableException
