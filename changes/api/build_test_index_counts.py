@@ -5,7 +5,7 @@ from changes.constants import Result
 from changes.models import Build, TestCase, Job
 
 
-class BuildTestIndexAllAPIView(APIView):
+class BuildTestIndexCountsAPIView(APIView):
 
     def get(self, build_id):
         build = Build.query.get(build_id)
@@ -20,16 +20,9 @@ class BuildTestIndexAllAPIView(APIView):
             Job.build_id == build.id,
         )
 
-        result_list = []
-        result_counts = {result.name: 0 for result in Result}
-        print result_counts
+        count_dict = {result.name: 0 for result in Result}
 
         for test in test_list:
-            test_info = dict()
-            test_info['name'] = test.name
-            test_info['result'] = test.result.name
+            count_dict[test.result.name] += 1
 
-            result_list.append(test_info)
-            result_counts[test.result.name] += 1
-
-        return self.respond({'result_list': result_list, 'result_counts': result_counts})
+        return self.respond(count_dict)
