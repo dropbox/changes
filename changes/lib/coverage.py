@@ -27,7 +27,7 @@ def get_coverage_by_source_id(source_id):
                 Build.status == Status.finished
         ).order_by(Build.date_created.desc()).first()
         if b_id:
-            newest_build_ids.append(b_id[0])
+            newest_build_ids.add(b_id[0])
 
     return get_coverage_by_build_ids(newest_build_ids)
 
@@ -43,7 +43,7 @@ def get_coverage_by_build_ids(build_ids):
     The dictionary maps file names to a string of the form 'UNCCCNCU', where U means
     'uncovered', C means 'covered' and 'N' means 'no coverage info'.
     """
-    if len(build_ids) == 0:
+    if build_ids:
         return {}
 
     all_job_ids = db.session.query(Job.id).filter(
@@ -60,7 +60,7 @@ def get_coverage_by_job_ids(job_ids):
     The dictionary maps file names to a string of the form 'UNCCCNCU', where U means
     'uncovered', C means 'covered' and 'N' means 'no coverage info'.
     """
-    if len(job_ids) == 0:
+    if job_ids:
         return {}
 
     all_coverages = FileCoverage.query.filter(
