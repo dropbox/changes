@@ -10,16 +10,18 @@
             <div class="tests">Tests</div>
             <div class="duration">Duration</div>
         </li>
-        <li ng-repeat="commit in commits" class="status-{{commit.build.status.id}} result-{{commit.build.result.id}}">
-            <div ng-if="commit.build" bind-once>
-                <a ui-sref="build_details({build_id: commit.build.id})" class="indicator" bind-once>#{{commit.build.number}}</a>
-                <h5 bind-once><a ui-sref="build_details({build_id: commit.build.id})">{{commit.subject}}</a></h5>
-                <div class="info" bind-once>
+        <li ng-repeat="commit in commits"
+            class="status-{{commit.build.status.id}} result-{{commit.build.result.id}}"
+            slyEvaluateOnlyWhen="commit.build.dateModified">
+            <div ng-if="commit.build">
+                <a ui-sref="build_details({build_id: commit.build.id})" class="indicator">#{{commit.build.number}}</a>
+                <h5><a ui-sref="build_details({build_id: commit.build.id})">{{commit.subject}}</a></h5>
+                <div class="info">
                     <span class="branch" ng-repeat="branch in commit.branches">{{branch}}</span>
                     <a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>
                     <span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
                 </div>
-                <div class="date" time-since="commit.dateCreated" bind-once></div>
+                <div class="date" time-since="commit.dateCreated"></div>
                 <div class="tests">
                     {{commit.build.stats.test_count}}
                 </div>
@@ -32,13 +34,13 @@
                 </div>
             </div>
             <div ng-if="!commit.build">
-                <h5 bind-once>{{commit.subject}}</h5>
+                <h5>{{commit.subject}}</h5>
                 <div class="info" bind-once>
                     <span class="branch" ng-repeat="branch in commit.branches">{{branch}}</span>
                     <a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>
                     <span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
                 </div>
-                <div class="date" time-since="commit.dateCreated" bind-once></div>
+                <div class="date" time-since="commit.dateCreated"></div>
             </div>
         </li>
     </ul>
