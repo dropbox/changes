@@ -21,11 +21,13 @@ def get_coverage_by_source_id(source_id):
 
     newest_build_ids = set()
     for project in projects:
-        newest_build_ids.add(db.session.query(Build.id).filter(
+        b_id = db.session.query(Build.id).filter(
                 Build.project_id == project.id,
                 Build.source_id == source_id,
                 Build.status == Status.finished
-        ).order_by(Build.date_created.desc()).first()[0])
+        ).order_by(Build.date_created.desc()).first()
+        if b_id:
+            newest_build_ids.append(b_id[0])
 
     return get_coverage_by_build_ids(newest_build_ids)
 
@@ -41,6 +43,9 @@ def get_coverage_by_build_ids(build_ids):
     The dictionary maps file names to a string of the form 'UNCCCNCU', where U means
     'uncovered', C means 'covered' and 'N' means 'no coverage info'.
     """
+    if len(build_ids) == 0:
+        return {}
+
     all_job_ids = db.session.query(Job.id).filter(
         Job.build_id.in_(build_ids)
     )
@@ -55,6 +60,9 @@ def get_coverage_by_job_ids(job_ids):
     The dictionary maps file names to a string of the form 'UNCCCNCU', where U means
     'uncovered', C means 'covered' and 'N' means 'no coverage info'.
     """
+    if len(job_ids) == 0:
+        return {}
+
     all_coverages = FileCoverage.query.filter(
         FileCoverage.job_id.in_(job_ids)
     )
