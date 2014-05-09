@@ -12,9 +12,9 @@ define([
   'modules/collection',
   'modules/d3BarChart',
   'modules/flash',
-  'modules/notify',
   'modules/pageTitle',
   'modules/pagination',
+  'modules/scalyr',
   'modules/stream'
   ], function (angular) {
     'use strict';
@@ -31,8 +31,8 @@ define([
       'ngAnimate',
       'ngRoute',
       'ngSanitize',
-      'notify',
       'pagination',
+      'sly',
       'stream',
       'ui.bootstrap',
       'ui.router'

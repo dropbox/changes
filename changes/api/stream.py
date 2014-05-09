@@ -29,7 +29,7 @@ class EventStream(object):
                     yield "data: {}\n".format(line)
                 yield "\n"
                 gevent.sleep(0)
-            gevent.sleep(0.3)
+            gevent.sleep(1)
 
     def __del__(self):
         self.close()

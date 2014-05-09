@@ -1,10 +1,11 @@
-<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}">
-    <ul class="crumb" bind-once>
+<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}"
+     slyEvaluateOnlyWhen="build.dateModified">
+    <ul class="crumb">
         <li class="nodiv">
             <a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
         </li>
     </ul>
-    <div class="seen-by" bind-once>
+    <div class="seen-by">
         <ul>
             <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
                 <a tooltip="{{seenUser.email}}"
@@ -14,7 +15,7 @@
             </li>
         </ul>
     </div>
-    <h2 bind-once>
+    <h2>
         {{build.name}}<br>
         <small>
             <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>

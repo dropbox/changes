@@ -32,6 +32,7 @@
     requirejs.config({
       baseUrl: '{{ url_for('static', filename='js/') }}'
     });
+    window.APP_VERSION = '{{ VERSION }}';
     </script>
   </body>
 </html>

@@ -6,9 +6,10 @@ define([
   return {
     abstract: true,
     templateUrl: 'partials/layout.html',
-    controller: function($scope, $rootScope, $location, $window, authData, projectList, flash, notify, PageTitle) {
+    controller: function($scope, $rootScope, $location, $window, authData, projectList, flash, PageTitle) {
       PageTitle.set('Changes');
 
+      $scope.appVersion = $window.APP_VERSION;
       $scope.projectList = projectList.data;
       $scope.user = authData.user;
       $scope.authenticated = authData.authenticated;

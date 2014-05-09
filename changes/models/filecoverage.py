@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Index
+from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
 from changes.db.types.guid import GUID
@@ -16,6 +16,7 @@ class FileCoverage(db.Model):
     __table_args__ = (
         Index('idx_filecoverage_job_id', 'job_id'),
         Index('idx_filecoverage_project_id', 'project_id'),
+        UniqueConstraint('job_id', 'filename', name='unq_job_filname'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

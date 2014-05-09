@@ -14,9 +14,10 @@
                     <div class="duration">Duration</div>
                 </li>
                 <li class="status-{{job.status.id}} result-{{job.result.id}}"
-                    ng-repeat="job in jobList">
-                    <a ui-sref="job_details({job_id: job.id})" class="indicator" bind-once>#{{build.number}}.{{job.number}}</a>
-                    <h5 bind-once><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
+                    ng-repeat="job in jobList"
+                    slyEvaluateOnlyWhen="job.dateModified">
+                    <a ui-sref="job_details({job_id: job.id})" class="indicator">#{{build.number}}.{{job.number}}</a>
+                    <h5><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
                     <div class="duration">
                         <span ng-if="job.duration && job.dateFinished" duration="job.duration"></span>
                         <span ng-if="!job.dateFinished"
@@ -32,7 +33,8 @@
             <div class="section-header">
                 <h3>Failing Tests <small>{{ testFailures.total }} total</small></h3>
             </div>
-            <table class="table table-striped table-bordered">
+            <table class="table table-striped table-bordered"
+                   slyEvaluateOnlyWhen="testFailures.tests.length">
                 <thead>
                     <tr>
                         <th colspan="2">&nbsp;</th>
@@ -40,7 +42,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="test in testFailures.tests" class="result-{{test.result.id}}">
+                    <tr ng-repeat="test in testFailures.tests"
+                        class="result-{{test.result.id}}">
                         <td class="result" bind-once><span title="{{test.result.name}}"></span></td>
                         <td bind-once>
                             <a ui-sref="test_details({job_id: test.job.id, test_id: test.id})">{{test.name}}</a><br>
