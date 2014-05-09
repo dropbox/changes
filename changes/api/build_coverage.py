@@ -11,4 +11,9 @@ class BuildTestCoverageAPIView(APIView):
         if build is None:
             return '', 404
 
-        return self.respond(get_coverage_by_build_id(build.id))
+        coverage = {
+            c.filename: c.data
+            for c in get_coverage_by_build_id(build.id)
+        }
+
+        return self.respond(coverage)

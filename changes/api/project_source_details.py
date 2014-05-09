@@ -27,8 +27,11 @@ class ProjectSourceDetailsAPIView(APIView):
         if diff:
             files = self._get_files_from_raw_diff(diff)
 
-            coverage = get_coverage_by_source_id(source_id)
-            coverage = {name: data for name, data in coverage.iteritems() if name in files}
+            coverage = {
+                c.filename: c.data
+                for c in get_coverage_by_source_id(source_id)
+                if c.filename in files
+            }
 
             coverage_for_added_lines = self._filter_coverage_for_added_lines(diff, coverage)
 
@@ -100,11 +103,11 @@ class ProjectSourceDetailsAPIView(APIView):
         """
         Returns a list of filenames from a diff.
         """
-        files = []
+        files = set()
         diff_lines = diff.encode('utf-8').split('\n')
         for line in diff_lines:
             if line.startswith('+++ b/'):
                 line = line.split('\t')[0]
-                files += [unicode(line[6:])]
+                files.add(unicode(line[6:]))
 
         return files

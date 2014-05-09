@@ -63,13 +63,6 @@ def get_coverage_by_job_ids(job_ids):
     if not job_ids:
         return {}
 
-    all_coverages = FileCoverage.query.filter(
+    return FileCoverage.query.filter(
         FileCoverage.job_id.in_(job_ids)
     )
-
-    combined_file_coverage = dict()
-
-    for coverage in all_coverages:
-        combined_file_coverage[coverage.filename] = coverage.data
-
-    return combined_file_coverage
