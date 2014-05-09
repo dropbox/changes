@@ -153,7 +153,7 @@ def loop():
     while True:
         build = gen(project)
         print 'Pushed build {0} on {1}'.format(build.id, project.slug)
-        time.sleep(1)
+        time.sleep(0.1)
 
 
 if __name__ == '__main__':
