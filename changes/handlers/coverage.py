@@ -75,7 +75,7 @@ class CoverageHandler(ArtifactHandler):
             return lines_by_file
 
         diff_parser = DiffParser(diff)
-        parsed_diff = diff_parser.parse(diff)
+        parsed_diff = diff_parser.parse()
 
         for file_diff in parsed_diff:
             for diff_chunk in file_diff['chunks']:
