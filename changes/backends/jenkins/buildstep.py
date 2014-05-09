@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 
+from datetime import datetime, timedelta
 from flask import current_app
 
+from changes.backends.base import UnrecoverableException
 from changes.buildsteps.base import BuildStep
 
 from .builder import JenkinsBuilder
@@ -29,7 +31,14 @@ class JenkinsBuildStep(BuildStep):
 
     def update_step(self, step):
         builder = self.get_builder()
-        builder.sync_step(step)
+        try:
+            builder.sync_step(step)
+        except UnrecoverableException:
+            # bail if the step has been pending for too long as its likely
+            # Jenkins fell over
+            if step.date_created < datetime.utcnow() - timedelta(minutes=5):
+                return
+            raise
 
     def cancel(self, job):
         builder = self.get_builder()
