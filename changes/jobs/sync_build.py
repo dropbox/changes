@@ -79,7 +79,7 @@ def sync_build(build_id):
 
     if is_finished:
         build.status = Status.finished
-    elif any(j.status is Status.in_progress for j in all_jobs):
+    elif any(j.status is not Status.queued for j in all_jobs):
         build.status = Status.in_progress
     else:
         build.status = Status.queued
