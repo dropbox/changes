@@ -9,6 +9,7 @@
 				<colgroup>
 					<col style="width:20px">
 					<col style="width:80px">
+					<col style="width:80px">
 					<col>
 					<col style="width:400px">
 				</colgroup>
@@ -18,6 +19,7 @@
 							<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;"></div>
 						</td>
 						<td duration="step.duration"></td>
+						<td>{{step.status.name}}</td>
 						<td>
 							<a ng-repeat="logSource in step.logSources"
 							   ui-sref="log_details({source_id: logSource.id})"
