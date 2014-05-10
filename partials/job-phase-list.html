@@ -9,8 +9,8 @@
 				<colgroup>
 					<col style="width:20px">
 					<col style="width:80px">
-					<col style="width:80px">
 					<col>
+					<col style="width:100px">
 					<col style="width:400px">
 				</colgroup>
 				<tbody>
@@ -19,13 +19,13 @@
 							<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;"></div>
 						</td>
 						<td duration="step.duration"></td>
-						<td>{{step.status.name}}</td>
 						<td>
 							<a ng-repeat="logSource in step.logSources"
 							   ui-sref="log_details({source_id: logSource.id})"
 							   tooltip="Log: {{logSource.name}}"><span class="glyphicon glyphicon-unchecked"></span></a>
 							{{step.name}}
 						</td>
+						<td>{{step.status.name}}</td>
 						<td><a href="/nodes/{{step.node.id}}/">{{(step.node.name || step.node.id)|truncate:50}}</a></td>
 					</tr>
 				</tbody>
