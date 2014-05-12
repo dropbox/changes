@@ -98,6 +98,6 @@ IMPLEMENTATION_CHOICES = (
     'changes.backends.jenkins.buildstep.JenkinsBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
-    'changes.backends.jenkins.buildstep.collector.JenkinsCollectorBuildStep',
-    'changes.backends.jenkins.buildstep.test_collector.JenkinsTestCollectorBuildStep',
+    'changes.backends.jenkins.buildsteps.collector.JenkinsCollectorBuildStep',
+    'changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep',
 )
