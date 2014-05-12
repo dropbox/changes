@@ -21,7 +21,7 @@ class TestResult(object):
     managed correctly when TestCase's are created.
     """
     def __init__(self, step, name, message=None, package=None,
-                 result=None, duration=None, date_created=None, suite=None,
+                 result=None, duration=None, date_created=None,
                  reruns=None):
         self.step = step
         self._name = name
@@ -30,7 +30,6 @@ class TestResult(object):
         self.result = result or Result.unknown
         self.duration = duration  # ms
         self.date_created = date_created or datetime.utcnow()
-        self.suite = suite
         self.reruns = reruns or 0
 
     @property
@@ -87,7 +86,6 @@ class TestResultManager(object):
                 step=step,
                 name_sha=test.name_sha,
                 project=project,
-                suite=test.suite,
                 name=test.name,
                 duration=test.duration,
                 message=test.message,

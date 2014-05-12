@@ -12,7 +12,7 @@ from changes.constants import Status, Result
 from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
-    TestResult, Change, LogChunk, TestSuite, Build, JobPlan, Plan, Source,
+    TestResult, Change, LogChunk, Build, JobPlan, Plan, Source,
     Patch, FileCoverage
 )
 from changes.testutils.fixtures import SAMPLE_DIFF
@@ -354,26 +354,12 @@ def source(repository, **kwargs):
     return source
 
 
-def test_suite(job, name='default'):
-    suite, _ = get_or_create(TestSuite, where={
-        'job': job,
-        'name': name,
-    }, defaults={
-        'project': job.project,
-    })
-
-    return suite
-
-
 def test_result(jobstep, **kwargs):
     if 'package' not in kwargs:
         kwargs['package'] = TEST_PACKAGES.next()
 
     if 'name' not in kwargs:
         kwargs['name'] = TEST_NAMES.next() + '_' + uuid4().hex
-
-    if 'suite' not in kwargs:
-        kwargs['suite'] = test_suite(jobstep.job)
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)

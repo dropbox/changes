@@ -1,6 +1,5 @@
-from changes.config import db
 from changes.constants import Result
-from changes.models import ItemStat, TestSuite
+from changes.models import ItemStat
 from changes.models.testresult import TestResult, TestResultManager
 from changes.testutils.cases import TestCase
 
@@ -13,15 +12,10 @@ class TestResultManagerTestCase(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
-        suite = TestSuite(name='foobar', job=job, project=self.project)
-
-        db.session.add(suite)
-        db.session.commit()
 
         results = [
             TestResult(
                 step=jobstep,
-                suite=suite,
                 name='test_bar',
                 package='tests.changes.handlers.test_xunit',
                 result=Result.failed,
@@ -30,7 +24,6 @@ class TestResultManagerTestCase(TestCase):
             ),
             TestResult(
                 step=jobstep,
-                suite=suite,
                 name='test_foo',
                 package='tests.changes.handlers.test_coverage',
                 result=Result.passed,
@@ -50,7 +43,6 @@ class TestResultManagerTestCase(TestCase):
             assert test.job_id == job.id
             assert test.step_id == jobstep.id
             assert test.project_id == self.project.id
-            assert test.suite_id == suite.id
 
         assert testcase_list[0].name == 'tests.changes.handlers.test_coverage.test_foo'
         assert testcase_list[0].result == Result.passed

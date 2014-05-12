@@ -17,49 +17,13 @@ from changes.db.types.guid import GUID
 from changes.db.utils import model_repr
 
 
-class TestSuite(db.Model):
-    """
-    A test suite is usually representive of the tooling running the tests.
-
-    Tests are unique per test suite.
-    """
-    __tablename__ = 'testsuite'
-    __table_args__ = (
-        UniqueConstraint('job_id', 'name_sha', name='_suite_key'),
-        Index('idx_testsuite_project_id', 'project_id'),
-    )
-
-    id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
-    job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
-    name_sha = Column(String(40), nullable=False, default=sha1('default').hexdigest())
-    name = Column(Text, nullable=False, default='default')
-    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
-
-    job = relationship('Job')
-    project = relationship('Project')
-
-    __repr__ = model_repr('name')
-
-    def __init__(self, **kwargs):
-        super(TestSuite, self).__init__(**kwargs)
-        if self.id is None:
-            self.id = uuid.uuid4()
-        if self.date_created is None:
-            self.date_created = datetime.utcnow()
-        if self.name is None:
-            self.name = 'default'
-
-
 class TestCase(db.Model):
     """
     An individual test result.
     """
     __tablename__ = 'test'
     __table_args__ = (
-        UniqueConstraint('job_id', 'suite_id', 'label_sha', name='unq_test_key'),
-        Index('idx_test_project_id', 'project_id'),
-        Index('idx_test_suite_id', 'suite_id'),
+        UniqueConstraint('job_id', 'label_sha', name='unq_test_name'),
         Index('idx_test_step_id', 'step_id'),
         Index('idx_test_project_key', 'project_id', 'label_sha'),
     )
@@ -68,7 +32,6 @@ class TestCase(db.Model):
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"))
-    suite_id = Column(GUID, ForeignKey('testsuite.id', ondelete="CASCADE"))
     name_sha = Column('label_sha', String(40), nullable=False)
     name = Column(Text, nullable=False)
     _package = Column('package', Text, nullable=True)
@@ -81,7 +44,6 @@ class TestCase(db.Model):
     job = relationship('Job')
     step = relationship('JobStep')
     project = relationship('Project')
-    suite = relationship('TestSuite')
 
     __repr__ = model_repr('name', '_package', 'result')
 
@@ -144,4 +106,3 @@ def set_name_sha(target, value, oldvalue, initiator):
 
 
 listen(TestCase.name, 'set', set_name_sha, retval=False)
-listen(TestSuite.name, 'set', set_name_sha, retval=False)

@@ -22,7 +22,6 @@ class XunitHandler(ArtifactHandler):
         return test_list
 
     def get_tests(self, fp):
-        # TODO(dcramer): needs to handle TestSuite's
         try:
             root = etree.fromstring(fp.read())
         except Exception:

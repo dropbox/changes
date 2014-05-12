@@ -8,7 +8,6 @@ import time
 
 from cStringIO import StringIO
 from datetime import datetime
-from hashlib import sha1
 from flask import current_app
 from lxml import etree
 
@@ -20,7 +19,7 @@ from changes.events import publish_logchunk_update
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
-    Artifact, TestResult, TestResultManager, TestSuite,
+    Artifact, TestResult, TestResultManager,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 from changes.handlers.coverage import CoverageHandler
@@ -311,18 +310,6 @@ class JenkinsBuilder(BaseBackend):
             return test_list
 
         for suite_data in test_report['suites']:
-            suite_name = suite_data.get('name', 'default')
-
-            # TODO(dcramer): this is not specific to Jenkins and should be
-            # abstracted
-            suite, _ = get_or_create(TestSuite, where={
-                'job': step.job,
-                'name_sha': sha1(suite_name).hexdigest(),
-            }, defaults={
-                'name': suite_name,
-                'project': step.job.project,
-            })
-
             for case in suite_data['cases']:
                 message = []
                 if case['errorDetails']:
@@ -345,7 +332,6 @@ class JenkinsBuilder(BaseBackend):
 
                 test_result = TestResult(
                     step=step,
-                    suite=suite,
                     name=case['name'],
                     package=case['className'] or None,
                     duration=int(case['duration'] * 1000),
