@@ -41,14 +41,14 @@ class PlanStepIndexAPIView(APIView):
 
         data = json.loads(args.data)
         if not isinstance(data, dict):
-            return '', 400
+            return '{"error": "data must be a JSON mapping"}', 400
 
         impl_cls = step.get_implementation(load=False)
 
         try:
             impl_cls(**data)
         except Exception:
-            return '', 400
+            return '{"error": "unable to create build step mapping with data"}', 400
 
         step.data = data
         step.order = args.order
