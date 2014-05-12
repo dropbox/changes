@@ -21,7 +21,7 @@ class PlanStepIndexAPIView(APIView):
     def get(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:
-            return '', 404
+            return {"message": "plan not found"}, 404
 
         return self.respond(list(plan.steps))
 
@@ -29,7 +29,7 @@ class PlanStepIndexAPIView(APIView):
     def post(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:
-            return '', 404
+            return {"message": "plan not found"}, 404
 
         args = self.parser.parse_args()
 
@@ -41,14 +41,16 @@ class PlanStepIndexAPIView(APIView):
 
         data = json.loads(args.data)
         if not isinstance(data, dict):
-            return '{"error": "data must be a JSON mapping"}', 400
+            return {"message": "data must be a JSON mapping"}, 400
 
         impl_cls = step.get_implementation(load=False)
+        if impl_cls is None:
+            return {"message": "unable to load build step implementation"}, 400
 
         try:
             impl_cls(**data)
         except Exception:
-            return '{"error": "unable to create build step mapping with data"}', 400
+            return {"message": "unable to create build step provided data"}, 400
 
         step.data = data
         step.order = args.order

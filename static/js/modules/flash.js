@@ -4,7 +4,8 @@ define(['angular'], function(angular) {
   angular.module('flash', [])
     .factory('flash', ['$rootScope', '$timeout', function($rootScope, $timeout){
       var messages = [],
-          reset;
+          reset,
+          default_message = 'something happened, but we are not sure what';
 
       var cleanup = function() {
         $timeout.cancel(reset);
@@ -20,13 +21,13 @@ define(['angular'], function(angular) {
       $rootScope.$on('$routeChangeSuccess', emit);
 
       var asMessage = function(level, text) {
-        if (!text) {
+        if (text === undefined) {
           text = level;
           level = 'success';
         }
         return {
           level: level,
-          text: text
+          text: text || default_message
         };
       };
 
@@ -34,7 +35,7 @@ define(['angular'], function(angular) {
         if (level instanceof Array) return level.map(function(message) {
           return message.text ? message : asMessage(message);
         });
-        return text ? [{ level: level, text: text }] : [asMessage(level)];
+        return text !== undefined ? [{ level: level, text: text || default_message }] : [asMessage(level)];
       };
 
       return function(level, text) {

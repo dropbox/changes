@@ -7,7 +7,7 @@ define(['app'], function(app) {
     parent: 'plans',
     url: ':plan_id/',
     templateUrl: 'partials/plan-details.html',
-    controller: function($http, $scope, planData, Collection) {
+    controller: function($http, $scope, planData, Collection, flash) {
       $scope.plan = planData;
       $scope.projectList = new Collection($scope, planData.projects);
       $scope.stepList = new Collection($scope, planData.steps);
@@ -28,7 +28,8 @@ define(['app'], function(app) {
           step.showForm = false;
           angular.extend(step, data);
         }).error(function(data){
-          alert('An error ocurred, and we have yet to implement a way to tell you about it.');
+          console.log(data);
+          flash('error', data.message);
         }).finally(function(){
           step.saving = false;
         });
@@ -46,7 +47,7 @@ define(['app'], function(app) {
         $http.delete('/api/0/steps/' + step.id + '/').success(function(data){
           $scope.stepList.popItem(step);
         }).error(function(data){
-          alert('An error ocurred, and we have yet to implement a way to tell you about it.');
+          flash('error', data.message);
         }).finally(function(){
           step.saving = false;
         });
@@ -63,7 +64,7 @@ define(['app'], function(app) {
         $http.post('/api/0/plans/' + planData.id + '/projects/', data).success(function(data){
           $scope.projectList.push(data);
         }).error(function(data){
-          alert('An error ocurred, and we have yet to implement a way to tell you about it.');
+          flash('error', data.message);
         });
       };
 
@@ -76,7 +77,7 @@ define(['app'], function(app) {
         $http.delete('/api/0/plans/' + planData.id + '/projects/?id=' + project.id).success(function(data){
           $scope.projectList.popItem(project);
         }).error(function(data){
-          alert('An error ocurred, and we have yet to implement a way to tell you about it.');
+          flash('error', data.message);
         }).finally(function(){
           project.saving = false;
         });

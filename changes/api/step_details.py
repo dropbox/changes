@@ -21,7 +21,7 @@ class StepDetailsAPIView(APIView):
     def get(self, step_id):
         step = Step.query.get(step_id)
         if step is None:
-            return '', 404
+            return {"message": "step not found"}, 404
 
         return self.respond(step)
 
@@ -29,7 +29,7 @@ class StepDetailsAPIView(APIView):
     def post(self, step_id):
         step = Step.query.get(step_id)
         if step is None:
-            return '', 404
+            return {"message": "step not found"}, 404
 
         args = self.parser.parse_args()
 
@@ -39,14 +39,16 @@ class StepDetailsAPIView(APIView):
         if args.data is not None:
             data = json.loads(args.data)
             if not isinstance(data, dict):
-                return '', 400
+                return {"message": "data must be a JSON mapping"}, 400
 
             impl_cls = step.get_implementation(load=False)
+            if impl_cls is None:
+                return {"message": "unable to load build step implementation"}, 400
 
             try:
                 impl_cls(**data)
             except Exception:
-                return '', 400
+                return {"message": "unable to create build step mapping provided data"}, 400
             step.data = data
 
         if args.order is not None:
