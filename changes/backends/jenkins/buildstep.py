@@ -19,7 +19,7 @@ class JenkinsBuildStep(BuildStep):
         return JenkinsBuilder(app=app, job_name=self.job_name)
 
     def get_label(self):
-        return 'Execute job {0} on Jenkins'.format(self.job_name)
+        return 'Execute job "{0}" on Jenkins'.format(self.job_name)
 
     def execute(self, job):
         builder = self.get_builder()

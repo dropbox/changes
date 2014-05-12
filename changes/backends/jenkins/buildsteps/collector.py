@@ -48,6 +48,9 @@ class JenkinsCollectorBuildStep(JenkinsBuildStep):
         self.script = script
         self.cluster = cluster
 
+    def get_label(self):
+        return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
+
     def get_builder(self, app=current_app):
         return JenkinsGenericBuilder(
             app=app,
