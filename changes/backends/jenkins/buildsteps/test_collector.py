@@ -153,7 +153,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             builder = self.get_builder()
             params = builder.get_job_parameters(
                 step.job, script=step.data['cmd'].format(
-                    test_names=step.data['tests'],
+                    test_names=' '.join(step.data['tests']),
                 ))
 
             job_data = builder.create_job_from_params(
