@@ -35,7 +35,6 @@ requirejs.config({
     'angularSanitize': ['angular'],
     'angularUIRouter': ['angular'],
     'bootstrap': ['jquery'],
-    'modules/barChart': ['bootstrap'],
     'modules/collection': ['angular'],
     'modules/flash': ['angular'],
     'modules/pagination': ['angular'],
