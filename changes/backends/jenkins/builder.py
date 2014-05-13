@@ -691,6 +691,9 @@ class JenkinsBuilder(BaseBackend):
 
         return job_data
 
+    def get_default_job_phase_label(self, job, job_data):
+        return job_data['job_name']
+
     def create_job(self, job):
         """
         Creates a job within Jenkins.
@@ -715,7 +718,7 @@ class JenkinsBuilder(BaseBackend):
 
         phase, created = get_or_create(JobPhase, where={
             'job': job,
-            'label': job_data['job_name'],
+            'label': self.get_default_job_phase_label(job, job_data),
             'project': job.project,
         }, defaults={
             'status': job.status,
