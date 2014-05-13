@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hudson.plugins.swarm.SwarmSlave plugin="swarm@1.10">
+  <name>server-ubuntu-10.04 (ami-746cf244) (i-836023b7)</name>
+  <description>Swarm slave from 127.0.0.1 : null</description>
+  <remoteFS>/home/ubuntu</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$1">
+    <DESCRIPTOR>
+      <outer-class reference="../.."/>
+    </DESCRIPTOR>
+  </retentionStrategy>
+  <launcher class="hudson.plugins.swarm.SwarmSlave$1"/>
+  <label>swarm server-runner</label>
+  <nodeProperties/>
+  <userId>jenkins-slave</userId>
+</hudson.plugins.swarm.SwarmSlave>

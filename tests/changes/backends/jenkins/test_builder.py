@@ -283,6 +283,9 @@ class SyncBuildTest(BaseTestCase):
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -306,12 +309,14 @@ class SyncBuildTest(BaseTestCase):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_success.json'))
-
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -345,6 +350,9 @@ class SyncBuildTest(BaseTestCase):
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -381,6 +389,9 @@ class SyncBuildTest(BaseTestCase):
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -425,6 +436,9 @@ class SyncBuildTest(BaseTestCase):
             match_querystring=True,
             adding_headers={'X-Text-Size': '7'},
             body='Foo bar')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -475,6 +489,9 @@ class SyncBuildTest(BaseTestCase):
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -712,6 +729,9 @@ class JenkinsIntegrationTest(BaseTestCase):
             match_querystring=True,
             adding_headers={'X-Text-Size': '7'},
             body='Foo bar')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -770,6 +790,10 @@ class JenkinsIntegrationTest(BaseTestCase):
             'job_name': 'server',
             'build_no': 2,
         }
+
+        node = step_list[0].node
+        assert node.label == 'server-ubuntu-10.04 (ami-746cf244) (i-836023b7)'
+        assert [n.label for n in node.clusters] == ['server-runner']
 
         test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
 

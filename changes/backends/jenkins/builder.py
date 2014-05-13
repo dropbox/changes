@@ -9,7 +9,7 @@ import time
 from cStringIO import StringIO
 from datetime import datetime
 from flask import current_app
-from lxml import etree
+from lxml import etree, objectify
 
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
@@ -19,7 +19,7 @@ from changes.events import publish_logchunk_update
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
-    Artifact, TestResult, TestResultManager,
+    Artifact, Cluster, ClusterNode, TestResult, TestResultManager,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 from changes.handlers.coverage import CoverageHandler
@@ -436,6 +436,34 @@ class JenkinsBuilder(BaseBackend):
             'build_no': build_no,
         }
 
+    def _get_node(self, label):
+        node, created = get_or_create(Node, {'label': label})
+        if not created:
+            return node
+
+        try:
+            response = self._get_raw_response('/computer/{}/config.xml'.format(
+                label
+            ))
+        except NotFound:
+            return node
+
+        # lxml expects the response to be in bytes, so let's assume it's utf-8
+        # and send it back as the original format
+        response = response.encode('utf-8')
+
+        xml = objectify.fromstring(response)
+        cluster_names = xml.label.text.split(' ')
+
+        for cluster_name in cluster_names:
+            # remove swarm client as a cluster label as its not useful
+            if cluster_name == 'swarm':
+                continue
+            cluster, _ = get_or_create(Cluster, {'label': cluster_name})
+            get_or_create(ClusterNode, {'node': node, 'cluster': cluster})
+
+        return node
+
     def _sync_step_from_queue(self, step):
         # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
         # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
@@ -480,9 +508,7 @@ class JenkinsBuilder(BaseBackend):
 
         # TODO(dcramer): we're doing a lot of work here when we might
         # not need to due to it being sync'd previously
-        node, _ = get_or_create(Node, where={
-            'label': item['builtOn'],
-        })
+        node = self._get_node(item['builtOn'])
 
         step.node = node
         step.label = item['fullDisplayName']

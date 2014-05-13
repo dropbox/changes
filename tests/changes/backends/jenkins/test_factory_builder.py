@@ -36,6 +36,9 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server-downstream/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fcause%2FupstreamProject%3D%22server%22+and+action%2Fcause%2FupstreamBuild%3D%222%22%5D%2Fnumber&depth=1&wrapper=a',
             body=self.load_fixture('fixtures/GET/job_list_by_upstream.xml'),
             match_querystring=True)
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
