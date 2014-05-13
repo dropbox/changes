@@ -19,9 +19,9 @@ class APIClient(object):
         self.version = version
 
     def dispatch(self, url, method, data=None):
-        url = '/api/%d/%s' % (self.version, url.lstrip('/'))
-        client = current_app.test_client()
-        response = client.open(url, method, data)
+        url = '%s/api/%d/%s' % (current_app.config['BASE_URI'], self.version, url.lstrip('/'))
+        with current_app.test_client() as client:
+            response = client.open(path=url, method=method, data=data)
         if not (200 <= response.status_code < 300):
             raise APIError('Request returned invalid status code: %d' % (response.status_code,))
         if response.headers['Content-Type'] != 'application/json':
