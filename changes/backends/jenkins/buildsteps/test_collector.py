@@ -163,7 +163,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             )
             step.data.update(job_data)
             db.session.add(step)
-            db.session.commit()
+
+        db.session.commit()
 
         sync_job_step.delay_if_needed(
             step_id=step.id.hex,
