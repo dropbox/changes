@@ -213,7 +213,7 @@ class TrackedTask(local):
         retry_number = db.session.query(Task.num_retries).filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
-        ).scalar()
+        ).scalar() or 0
 
         retry_countdown = min(BASE_RETRY_COUNTDOWN + (retry_number ** 3), 3600)
 
