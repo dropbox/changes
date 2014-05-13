@@ -1,3 +1,4 @@
 define([
+  'bootstrap',
   'jquery'
 ], function() { });
