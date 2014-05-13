@@ -100,14 +100,6 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         assert '{test_names}' in phase_config['cmd']
         assert phase_config['tests']
 
-        phase, created = get_or_create(JobPhase, where={
-            'job': step.job,
-            'project': step.project,
-            'label': phase_config.get('phase') or 'Test',
-        }, defaults={
-            'status': Status.queued,
-        })
-
         test_stats, avg_test_time = self.get_test_stats(step.project)
 
         def get_test_duration(test):
@@ -121,6 +113,15 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             weights[low_index] += 1 + weight
             groups[low_index].append(test)
 
+        phase, created = get_or_create(JobPhase, where={
+            'job': step.job,
+            'project': step.project,
+            'label': phase_config.get('phase') or 'Test',
+        }, defaults={
+            'status': Status.queued,
+        })
+        db.session.commit()
+
         for test_list in groups:
             self._expand_job(phase, {
                 'tests': test_list,
@@ -130,7 +131,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     def _expand_job(self, phase, job_config):
         assert job_config['tests']
 
-        label = md5(' '.join(job_config['tests'])).hexdigest()
+        test_names = ' '.join(job_config['tests'])
+        label = md5(test_names).hexdigest()
 
         step, created = get_or_create(JobStep, where={
             'job': phase.job,
@@ -153,7 +155,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             builder = self.get_builder()
             params = builder.get_job_parameters(
                 step.job, script=step.data['cmd'].format(
-                    test_names=' '.join(step.data['tests']),
+                    test_names=test_names,
                 ))
 
             job_data = builder.create_job_from_params(
