@@ -1,11 +1,12 @@
 import logging
 import requests
 
+from datetime import datetime
 from flask import current_app
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import try_create
+from changes.db.utils import create_or_update
 from changes.models import (
     Event, EventType, ProjectOption, RepositoryBackend
 )
@@ -70,18 +71,26 @@ def build_finished_handler(build, **kwargs):
 
     project = options.get('green-build.project') or build.project.slug
 
-    requests.post(url, auth=auth, data={
-        'project': project,
-        'id': release_id,
-        'build_url': build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex)),
-        'build_server': 'changes',
-    })
+    try:
+        requests.post(url, auth=auth, data={
+            'project': project,
+            'id': release_id,
+            'build_url': build_uri('/projects/{0}/builds/{1}/'.format(
+                build.project.slug, build.id.hex)),
+            'build_server': 'changes',
+        })
+    except Exception:
+        logger.exception('Failed to report green build')
+        status = 'fail'
+    else:
+        status = 'success'
 
-    try_create(Event, where={
+    create_or_update(Event, where={
         'type': EventType.green_build,
-        'item_id': build.source_id,
+        'item_id': build.id,
+    }, values={
         'data': {
-            'build': build.id.hex,
-        }
+            'status': status,
+        },
+        'date_modified': datetime.utcnow(),
     })

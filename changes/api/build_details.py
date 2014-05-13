@@ -8,7 +8,7 @@ from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
 from changes.config import db
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, Job, TestCase, BuildSeen, User
+from changes.models import Build, Event, Job, TestCase, BuildSeen, User
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -166,11 +166,16 @@ class BuildDetailsAPIView(APIView):
             TestCase: TestCaseWithOriginSerializer(),
         }
 
+        event_list = list(Event.query.filter(
+            Event.item_id == build.id,
+        ))
+
         context = self.serialize(build)
         context.update({
             'jobs': jobs,
             'previousRuns': previous_runs,
             'seenBy': seen_by,
+            'events': event_list,
             'testFailures': {
                 'total': num_test_failures,
                 'tests': self.serialize(test_failures, extended_serializers),

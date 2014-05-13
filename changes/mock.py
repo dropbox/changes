@@ -13,7 +13,7 @@ from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
     TestResult, Change, LogChunk, Build, JobPlan, Plan, Source,
-    Patch, FileCoverage
+    Patch, FileCoverage, Event, EventType
 )
 from changes.testutils.fixtures import SAMPLE_DIFF
 from changes.utils.slugs import slugify
@@ -132,10 +132,15 @@ def build(project, **kwargs):
     kwargs['project_id'] = kwargs['project'].id
     kwargs['author_id'] = kwargs['author'].id
 
-    build = Build(
-        **kwargs
-    )
+    build = Build(**kwargs)
     db.session.add(build)
+
+    event = Event(
+        type=EventType.green_build,
+        item_id=build.id,
+        data={'status': 'success'}
+    )
+    db.session.add(event)
 
     return build
 

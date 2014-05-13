@@ -64,6 +64,7 @@ define([
         $scope.formattedBuildMessage = null;
       }
 
+      $scope.eventList = buildData.events;
       $scope.previousRuns = buildData.previousRuns;
       $scope.testFailures = buildData.testFailures;
       $scope.testChanges = buildData.testChanges;

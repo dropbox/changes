@@ -1437,3 +1437,34 @@ label.btn input[type=checkbox] {
 .deletion {
   color: red;
 }
+
+.event-list {
+  list-style: none;
+  margin-bottom: 20px;
+  padding-left: 0;
+  color: #999;
+}
+.event-list > li {
+  padding-left: 18px;
+  position: relative;
+}
+.event-list .indicator {
+  border: 0;
+  background: #999;
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  display: block;
+  top: 7px;
+  position: absolute;
+  left: 0;
+}
+.event-list .result-success .indicator {
+  background: rgb(114, 194, 114);
+}
+.event-list .result-fail .indicator {
+  background: #d9322d;
+}
+.event-list .event-label {
+  color: #000;
+}

@@ -61,4 +61,4 @@ class GreenBuildTest(TestCase):
             Event.type == EventType.green_build,
         ).first()
         assert event
-        assert event.item_id == build.source_id
+        assert event.item_id == build.id
