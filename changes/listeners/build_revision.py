@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 
 from changes.api.build_index import BuildIndexAPIView
 from changes.config import db
-from changes.models import ItemOption, Project
+from changes.models import ProjectOption, Project
 
 
 logger = logging.getLogger('build_revision')
@@ -30,10 +30,10 @@ def revision_created_handler(revision, **kwargs):
         return
 
     options_query = db.session.query(
-        ItemOption.item_id, ItemOption.name, ItemOption.value
+        ProjectOption.project_id, ProjectOption.name, ProjectOption.value
     ).filter(
-        ItemOption.item_id.in_(p.id for p in project_list),
-        ItemOption.name.in_([
+        ProjectOption.project_id.in_(p.id for p in project_list),
+        ProjectOption.name.in_([
             'build.branch-names',
             'build.commit-trigger',
         ])
