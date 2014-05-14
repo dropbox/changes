@@ -168,7 +168,7 @@ class BuildDetailsAPIView(APIView):
 
         event_list = list(Event.query.filter(
             Event.item_id == build.id,
-        ))
+        ).order_by(Event.date_created.desc()))
 
         context = self.serialize(build)
         context.update({
