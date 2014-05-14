@@ -44,7 +44,7 @@ def revision_created_handler(revision, **kwargs):
         if options.get('build.commit-trigger', '1') != '1':
             continue
 
-        branch_names = options.get('build.branch-names', '*').split(' ')
+        branch_names = filter(bool, options.get('build.branch-names', '*').split(' '))
         if not should_build_branch(revision, branch_names):
             continue
 
