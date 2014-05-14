@@ -41,10 +41,11 @@ define([
         $el.append(frag);
       }
 
-      $scope.logSource = logData.data.source;
+      $scope.logSource = logData.source;
+      $scope.step = logData.step;
 
       $timeout(function(){
-        $.each(logData.data.chunks, function(_, chunk){
+        $.each(logData.chunks, function(_, chunk){
           updateBuildLog(chunk);
         });
       });
@@ -56,7 +57,9 @@ define([
     },
     resolve: {
       logData: function($http, $stateParams, jobData) {
-        return $http.get('/api/0/jobs/' + jobData.data.id + '/logs/' + $stateParams.source_id + '?limit=0');
+        return $http.get('/api/0/jobs/' + jobData.data.id + '/logs/' + $stateParams.source_id + '?limit=0').then(function(response){
+          return response.data;
+        });
       }
     }
   };

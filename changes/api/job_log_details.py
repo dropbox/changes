@@ -54,12 +54,14 @@ class JobLogDetailsAPIView(APIView):
         else:
             next_offset = 0
 
-        # TODO: source should be top level
-        return self.respond({
+        context = self.serialize({
             'source': source,
             'chunks': logchunks,
             'nextOffset': next_offset,
         })
+        context['source']['step'] = self.serialize(source.step)
+
+        return self.respond(context, serialize=False)
 
     def get_stream_channels(self, job_id, source_id):
         source = LogSource.query.get(source_id)

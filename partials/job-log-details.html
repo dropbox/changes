@@ -1,5 +1,8 @@
 <section class="section" bind-once>
     <div class="section-header">
+    	<div class="pull-right" ng-if="step.node">
+    		<a ui-sref="node_details({node_id: step.node.id})">{{step.node.name}}</a>
+    	</div>
         <h3>{{logSource.name}} <small>Build Log</small></h3>
     </div>
     <div class="build-log-wrapper" id="log-{{logSource.id}}">
