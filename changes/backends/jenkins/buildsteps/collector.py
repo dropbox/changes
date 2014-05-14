@@ -12,6 +12,11 @@ from changes.jobs.sync_job_step import sync_job_step
 from changes.models import JobPhase, JobStep
 
 
+class JenkinsCollectorBuilder(JenkinsGenericBuilder):
+    def get_default_job_phase_label(self, job, job_data):
+        return 'Collect Jobs'
+
+
 class JenkinsCollectorBuildStep(JenkinsBuildStep):
     """
     Fires off a generic job with parameters:
@@ -51,11 +56,8 @@ class JenkinsCollectorBuildStep(JenkinsBuildStep):
     def get_label(self):
         return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
 
-    def get_default_job_phase_label(self, job, job_data):
-        return 'Collect Jobs'
-
     def get_builder(self, app=current_app):
-        return JenkinsGenericBuilder(
+        return JenkinsCollectorBuilder(
             app=app,
             job_name=self.job_name,
             script=self.script,

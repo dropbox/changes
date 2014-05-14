@@ -1,16 +1,24 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
+from flask import current_app
 from hashlib import md5
 from operator import itemgetter
 
 from changes.api.client import api_client
-from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuildStep
+from changes.backends.jenkins.buildsteps.collector import (
+    JenkinsCollectorBuilder, JenkinsCollectorBuildStep
+)
 from changes.config import db
 from changes.constants import Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import JobPhase, JobStep
+
+
+class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
+    def get_default_job_phase_label(self, job, job_data):
+        return 'Collect Jobs'
 
 
 class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
@@ -48,6 +56,14 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         self.script = script
         self.cluster = cluster
         self.max_shards = max_shards
+
+    def get_builder(self, app=current_app):
+        return JenkinsTestCollectorBuilder(
+            app=app,
+            job_name=self.job_name,
+            script=self.script,
+            cluster=self.cluster,
+        )
 
     def get_label(self):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)
