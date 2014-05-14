@@ -1,5 +1,6 @@
 import logging
 
+from collections import defaultdict
 from flask import current_app
 from fnmatch import fnmatch
 
@@ -28,23 +29,25 @@ def revision_created_handler(revision, **kwargs):
     if not project_list:
         return
 
-    options = dict(
-        db.session.query(
-            ItemOption.item_id, ItemOption.value
-        ).filter(
-            ItemOption.item_id.in_(p.id for p in project_list),
-            ItemOption.name.in_([
-                'build.branch-names',
-                'build.commit-trigger',
-            ])
-        )
+    options_query = db.session.query(
+        ItemOption.item_id, ItemOption.name, ItemOption.value
+    ).filter(
+        ItemOption.item_id.in_(p.id for p in project_list),
+        ItemOption.name.in_([
+            'build.branch-names',
+            'build.commit-trigger',
+        ])
     )
 
+    options = defaultdict(dict)
+    for project_id, option_name, option_value in options_query:
+        options[project_id][option_name] = option_value
+
     for project in project_list:
-        if options.get('build.commit-trigger', '1') != '1':
+        if options[project.id].get('build.commit-trigger', '1') != '1':
             continue
 
-        branch_names = filter(bool, options.get('build.branch-names', '*').split(' '))
+        branch_names = filter(bool, options[project.id].get('build.branch-names', '*').split(' '))
         if not should_build_branch(revision, branch_names):
             continue
 
