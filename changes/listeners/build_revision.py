@@ -12,7 +12,7 @@ logger = logging.getLogger('build_revision')
 
 
 def should_build_branch(revision, allowed_branches):
-    if not revision.branches:
+    if not revision.branches and '*' in allowed_branches:
         return True
 
     for branch in revision.branches:
@@ -35,14 +35,18 @@ def revision_created_handler(revision, **kwargs):
             ItemOption.item_id.in_(p.id for p in project_list),
             ItemOption.name.in_([
                 'build.branch-names',
+                'build.commit-trigger',
             ])
         )
     )
 
     for project in project_list:
+        if options.get('build.commit-trigger', '1') != '1':
+            continue
+
         branch_names = options.get('build.branch-names', '*').split(' ')
         if not should_build_branch(revision, branch_names):
-            return
+            continue
 
         data = {
             'sha': revision.sha,

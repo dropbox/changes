@@ -11,6 +11,7 @@ define([
     controller: function($scope, $http, $stateParams, projectData) {
       var booleans = {
         "build.allow-patches": 1,
+        "build.commit-trigger": 1,
         "build.expect-tests": 1,
         "green-build.notify": 1,
         "mail.notify-author": 1,

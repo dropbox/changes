@@ -40,6 +40,7 @@ OPTION_DEFAULTS = {
     'mail.notify-addresses': '',
     'mail.notify-addresses-revisions': '',
     'build.allow-patches': '1',
+    'build.commit-trigger': '1',
 }
 
 
