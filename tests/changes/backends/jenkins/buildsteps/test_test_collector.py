@@ -140,6 +140,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'build_no': 23,
             'job_name': 'foo-bar',
             'tests': ['foo.bar.test_buz'],
+            'path': '',
             'cmd': 'py.test --junit=junit.xml {test_names}',
         }
 
@@ -148,6 +149,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'build_no': 23,
             'job_name': 'foo-bar',
             'tests': ['foo.bar.test_baz', 'foo.bar.test_bar', 'foo.bar.test_biz'],
+            'path': '',
             'cmd': 'py.test --junit=junit.xml {test_names}',
         }
 

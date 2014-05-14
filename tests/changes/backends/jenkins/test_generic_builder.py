@@ -19,7 +19,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         builder = self.get_builder()
 
-        result = builder.get_job_parameters(job)
+        result = builder.get_job_parameters(job, path='foo')
         assert {'name': 'CHANGES_BID', 'value': job.id.hex} in result
         assert {'name': 'CHANGES_PID', 'value': job.project.slug} in result
         assert {'name': 'REPO_URL', 'value': job.project.repository.url} in result
@@ -27,4 +27,9 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'REVISION', 'value': job.source.revision_sha} in result
         assert {'name': 'SCRIPT', 'value': self.builder_options['script']} in result
         assert {'name': 'CLUSTER', 'value': self.builder_options['cluster']} in result
-        assert len(result) == 7
+        assert {'name': 'WORK_PATH', 'value': 'foo'} in result
+        assert len(result) == 8
+
+        # test optional path value
+        result = builder.get_job_parameters(job)
+        assert {'name': 'WORK_PATH', 'value': ''} in result

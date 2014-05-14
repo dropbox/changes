@@ -38,7 +38,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         {
             "phase": "optional phase name",
-            "cmd": "py.test --junit=junit.xml {test_names}"
+            "cmd": "py.test --junit=junit.xml {test_names}",
+            "path": "",
             "tests": [
                 "foo.bar.test_baz",
                 "foo.bar.test_bar"
@@ -139,6 +140,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             self._expand_job(phase, {
                 'tests': test_list,
                 'cmd': phase_config['cmd'],
+                'path': phase_config.get('path', ''),
             })
 
     def _expand_job(self, phase, job_config):
@@ -155,6 +157,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         }, defaults={
             'data': {
                 'cmd': job_config['cmd'],
+                'path': job_config['path'],
                 'tests': job_config['tests'],
                 'job_name': self.job_name,
                 'build_no': None,
@@ -167,9 +170,13 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         if not step.data.get('build_no'):
             builder = self.get_builder()
             params = builder.get_job_parameters(
-                step.job, script=step.data['cmd'].format(
+                step.job,
+                script=step.data['cmd'].format(
                     test_names=test_names,
-                ), target_id=step.id.hex)
+                ),
+                target_id=step.id.hex,
+                path=step.data['path'],
+            )
 
             job_data = builder.create_job_from_params(
                 target_id=step.id.hex,
