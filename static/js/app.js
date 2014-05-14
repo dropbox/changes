@@ -8,6 +8,8 @@ define([
   'angularRoute',
   'angularSanitize',
   'angularUIRouter',
+  'bootstrap',
+  'jquery',
   'modules/barChart',
   'modules/collection',
   'modules/d3BarChart',
