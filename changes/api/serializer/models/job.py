@@ -1,5 +1,7 @@
-from changes.api.serializer import Serializer, register
-from changes.models import Job
+from sqlalchemy.orm import joinedload
+
+from changes.api.serializer import Serializer, register, serialize
+from changes.models import Build, Job
 
 
 @register(Job)
@@ -41,8 +43,26 @@ class JobSerializer(Serializer):
 
 
 class JobWithBuildSerializer(JobSerializer):
+    def get_attrs(self, item_list):
+        build_list = list(Build.query.options(
+            joinedload('project'),
+            joinedload('author'),
+            joinedload('source').joinedload('revision'),
+        ).filter(
+            Build.id.in_(j.build_id for j in item_list),
+        ))
+        build_map = dict(
+            (b.id, d) for b, d in zip(build_list, serialize(build_list))
+        )
+
+        result = {}
+        for item in item_list:
+            result[item] = {'build': build_map[item.build_id]}
+
+        return result
+
     def serialize(self, instance, attrs):
         data = super(JobWithBuildSerializer, self).serialize(instance, attrs)
         # TODO(dcramer): this is O(N) queries due to the attach helpers
-        data['build'] = instance.build
+        data['build'] = attrs['build']
         return data
