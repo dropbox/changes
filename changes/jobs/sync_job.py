@@ -102,7 +102,7 @@ def sync_job(job_id):
 
     if is_finished:
         job.status = Status.finished
-    elif any(j.status is not Status.in_progress for j in all_phases):
+    elif any(j.status is not Status.queued for j in all_phases):
         job.status = Status.in_progress
     else:
         job.status = Status.queued
