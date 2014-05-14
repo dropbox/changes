@@ -1,7 +1,7 @@
 <section class="section" bind-once>
     <div class="section-header">
     	<div class="pull-right" ng-if="step.node">
-    		<a ui-sref="node_details({node_id: step.node.id})">{{step.node.name}}</a>
+    		<a ui-sref="node_details({node_id: step.node.id})">{{(step.node.name || step.node.id)|truncate:50}}</a>
     	</div>
         <h3>{{logSource.name}} <small>Build Log</small></h3>
     </div>
