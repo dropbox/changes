@@ -18,7 +18,7 @@ from changes.models import JobPhase, JobStep
 
 class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
     def get_default_job_phase_label(self, job, job_data):
-        return 'Collect Jobs'
+        return 'Collect Tests'
 
 
 class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
@@ -67,9 +67,6 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
     def get_label(self):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)
-
-    def get_default_job_phase_label(self, job, job_data):
-        return 'Collect Tests'
 
     def fetch_artifact(self, step, artifact):
         if artifact['fileName'].endswith('tests.json'):
