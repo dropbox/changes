@@ -120,11 +120,11 @@ class JenkinsCollectorBuildStepTest(TestCase):
         builder.fetch_artifact.assert_called_once_with(step, artifact)
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
-            job_id=new_steps[0].id.hex,
+            target_id=new_steps[0].id.hex,
             params=builder.get_job_parameters.return_value,
         )
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
-            job_id=new_steps[1].id.hex,
+            target_id=new_steps[1].id.hex,
             params=builder.get_job_parameters.return_value,
         )

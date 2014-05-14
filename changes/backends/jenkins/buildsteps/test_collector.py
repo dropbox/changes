@@ -156,10 +156,10 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             params = builder.get_job_parameters(
                 step.job, script=step.data['cmd'].format(
                     test_names=test_names,
-                ))
+                ), target_id=step.id.hex)
 
             job_data = builder.create_job_from_params(
-                job_id=step.id.hex,
+                target_id=step.id.hex,
                 params=params,
                 job_name=step.data['job_name'],
             )

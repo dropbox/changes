@@ -664,9 +664,12 @@ class JenkinsBuilder(BaseBackend):
         step.result = Result.aborted
         db.session.add(step)
 
-    def get_job_parameters(self, job):
+    def get_job_parameters(self, job, target_id=None):
+        if target_id is None:
+            target_id = job.id.hex
+
         params = [
-            {'name': 'CHANGES_BID', 'value': job.id.hex},
+            {'name': 'CHANGES_BID', 'value': target_id},
         ]
 
         if job.build.source.revision_sha:
@@ -684,7 +687,7 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def create_job_from_params(self, job_id, params, job_name=None):
+    def create_job_from_params(self, target_id, params, job_name=None):
         if job_name is None:
             job_name = self.job_name
 
@@ -707,7 +710,7 @@ class JenkinsBuilder(BaseBackend):
         t = time.time() + 5
         job_data = None
         while time.time() < t:
-            job_data = self._find_job(job_name, job_id)
+            job_data = self._find_job(job_name, target_id)
             if job_data:
                 break
             time.sleep(0.3)
@@ -732,7 +735,7 @@ class JenkinsBuilder(BaseBackend):
         """
         params = self.get_job_parameters(job)
         job_data = self.create_job_from_params(
-            job_id=job.id.hex,
+            target_id=job.id.hex,
             params=params,
         )
 
