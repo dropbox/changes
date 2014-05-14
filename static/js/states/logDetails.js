@@ -42,7 +42,7 @@ define([
       }
 
       $scope.logSource = logData.source;
-      $scope.step = logData.step;
+      $scope.step = logData.source.step;
 
       $timeout(function(){
         $.each(logData.chunks, function(_, chunk){
