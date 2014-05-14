@@ -7,8 +7,9 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         self.cluster = kwargs.pop('cluster')
         super(JenkinsGenericBuilder, self).__init__(*args, **kwargs)
 
-    def get_job_parameters(self, job, script=None):
-        params = super(JenkinsGenericBuilder, self).get_job_parameters(job)
+    def get_job_parameters(self, job, script=None, target_id=None):
+        params = super(JenkinsGenericBuilder, self).get_job_parameters(
+            job, target_id=target_id)
 
         if script is None:
             script = self.script
