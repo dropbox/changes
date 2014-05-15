@@ -5,11 +5,15 @@ class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, *args, **kwargs):
         self.script = kwargs.pop('script')
         self.cluster = kwargs.pop('cluster')
+        self.path = kwargs.pop('path', '')
         super(JenkinsGenericBuilder, self).__init__(*args, **kwargs)
 
-    def get_job_parameters(self, job, script=None, target_id=None, path=''):
+    def get_job_parameters(self, job, script=None, target_id=None, path=None):
         params = super(JenkinsGenericBuilder, self).get_job_parameters(
             job, target_id=target_id)
+
+        if path is None:
+            path = self.path
 
         if script is None:
             script = self.script
