@@ -34,14 +34,14 @@ class GreenBuildTest(TestCase):
         # test with failing build
         build.result = Result.failed
 
-        build_finished_handler(build=build)
+        build_finished_handler(build_id=build.id.hex)
 
         assert len(responses.calls) == 0
 
         # test with passing build
         build.result = Result.passed
 
-        build_finished_handler(build=build)
+        build_finished_handler(build_id=build.id.hex)
 
         vcs.run.assert_called_once_with([
             'log', '-r aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--limit=1',

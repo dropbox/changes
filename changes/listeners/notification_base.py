@@ -91,7 +91,11 @@ class NotificationHandler(object):
 
         return result_label
 
-    def job_finished_handler(self, job, **kwargs):
+    def job_finished_handler(self, job_id, **kwargs):
+        job = Job.query.get(job_id)
+        if job is None:
+            return
+
         parent = self.get_parent(job)
 
         if not self.should_notify(job, parent):

@@ -12,7 +12,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         plan = self.create_plan()
         plan.projects.append(project)
 
-        revision_created_handler(revision)
+        revision_created_handler(revision_sha=revision.sha, repository_id=repo.id)
 
         build_list = list(Build.query.filter(
             Build.project == project,

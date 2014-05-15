@@ -23,7 +23,7 @@ class HipChatTest(TestCase):
             'hipchat.room': 'Awesome',
         }
 
-        build_finished_handler(build)
+        build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(build.project_id)
 

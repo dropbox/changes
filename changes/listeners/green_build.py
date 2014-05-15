@@ -8,7 +8,7 @@ from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update
 from changes.models import (
-    Event, EventType, ProjectOption, RepositoryBackend
+    Build, Event, EventType, ProjectOption, RepositoryBackend
 )
 from changes.utils.http import build_uri
 from changes.utils.locking import lock
@@ -30,7 +30,11 @@ def get_options(project_id):
 
 
 @lock
-def build_finished_handler(build, **kwargs):
+def build_finished_handler(build_id, **kwargs):
+    build = Build.query.get(build_id)
+    if build is None:
+        return
+
     if build.result != Result.passed:
         return
 

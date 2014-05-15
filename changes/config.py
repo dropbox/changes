@@ -226,7 +226,6 @@ def create_app(_read_config=True, gevent=False, **config):
     configure_api_routes(app)
     configure_web_routes(app)
 
-    configure_event_listeners(app)
     configure_jobs(app)
 
     return app
@@ -384,6 +383,9 @@ def configure_jobs(app):
     from changes.jobs.notify_listeners import (
         notify_build_finished, notify_job_finished, notify_revision_created
     )
+    from changes.jobs.signals import (
+        fire_signal, run_event_listener
+    )
     from changes.jobs.sync_artifact import sync_artifact
     from changes.jobs.sync_build import sync_build
     from changes.jobs.sync_job import sync_job
@@ -395,9 +397,11 @@ def configure_jobs(app):
     queue.register('check_repos', check_repos)
     queue.register('cleanup_builds', cleanup_builds)
     queue.register('create_job', create_job)
+    queue.register('fire_signal', fire_signal)
     queue.register('notify_build_finished', notify_build_finished)
     queue.register('notify_job_finished', notify_job_finished)
     queue.register('notify_revision_created', notify_revision_created)
+    queue.register('run_event_listener', run_event_listener)
     queue.register('sync_artifact', sync_artifact)
     queue.register('sync_build', sync_build)
     queue.register('sync_job', sync_job)
@@ -435,12 +439,3 @@ def configure_jobs(app):
                  content_encoding='utf-8')
 
     register_changes_json()
-
-
-def configure_event_listeners(app):
-    from changes.signals import register_listener
-    from changes.utils.imports import import_string
-
-    for func_path, signal_name in app.config['EVENT_LISTENERS']:
-        func = import_string(func_path)
-        register_listener(func, signal_name)

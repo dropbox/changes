@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 
 from changes.api.build_index import BuildIndexAPIView
 from changes.config import db
-from changes.models import ProjectOption, Project
+from changes.models import ProjectOption, Project, Revision
 
 
 logger = logging.getLogger('build_revision')
@@ -22,7 +22,14 @@ def should_build_branch(revision, allowed_branches):
     return False
 
 
-def revision_created_handler(revision, **kwargs):
+def revision_created_handler(revision_sha, repository_id, **kwargs):
+    revision = Revision.query.filter(
+        Revision.sha == revision_sha,
+        Revision.repository_id == repository_id,
+    ).first()
+    if revision is None:
+        return
+
     project_list = list(Project.query.filter(
         Project.repository_id == revision.repository_id,
     ))

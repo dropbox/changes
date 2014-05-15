@@ -52,7 +52,11 @@ def should_notify(build):
     return True
 
 
-def build_finished_handler(build, **kwargs):
+def build_finished_handler(build_id, **kwargs):
+    build = Build.query.get(build_id)
+    if build is None:
+        return
+
     if build.patch_id:
         return
 

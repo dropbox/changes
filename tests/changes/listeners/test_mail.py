@@ -3,7 +3,7 @@ import mock
 from changes.config import db
 from changes.constants import Result
 from changes.models import ProjectOption, ItemOption
-from changes.listeners.mail import job_finished_handler, MailNotificationHandler
+from changes.listeners.mail import MailNotificationHandler
 from changes.testutils.cases import TestCase
 
 
@@ -82,8 +82,6 @@ class GetRecipientsTestCase(TestCase):
             author=author,
         )
         job = self.create_job(build=build)
-
-        job_finished_handler(job)
 
         handler = MailNotificationHandler()
         recipients = handler.get_recipients(job)
