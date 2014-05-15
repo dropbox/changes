@@ -6,6 +6,7 @@ from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import try_create
 from changes.events import publish_build_update
+from changes.jobs.signals import fire_signal
 from changes.models import Build, ItemStat, Job
 from changes.utils.agg import safe_agg
 from changes.queue.task import tracked_task
@@ -109,9 +110,10 @@ def sync_build(build_id):
     except Exception:
         current_app.logger.exception('Failing recording aggregate stats for build %s', build.id)
 
-    queue.delay('notify_build_finished', kwargs={
-        'build_id': build.id.hex,
-    })
+    fire_signal.delay(
+        signal='build.finished',
+        kwargs={'build_id': build.id.hex},
+    )
 
     queue.delay('update_project_stats', kwargs={
         'project_id': build.project_id.hex,

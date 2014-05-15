@@ -75,10 +75,12 @@ class SyncJobTest(TestCase):
 
         assert task.status == Status.in_progress
 
+    @mock.patch('changes.jobs.sync_job.fire_signal')
     @mock.patch('changes.jobs.sync_job.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
     @mock.patch('changes.jobs.sync_job.publish_job_update')
-    def test_finished(self, publish_job_update, get_implementation, queue_delay):
+    def test_finished(self, publish_job_update, get_implementation, queue_delay,
+                      mock_fire_signal):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -119,9 +121,10 @@ class SyncJobTest(TestCase):
             'plan_id': self.plan.id.hex,
         }, countdown=1)
 
-        queue_delay.assert_any_call('notify_job_finished', kwargs={
-            'job_id': job.id.hex,
-        })
+        mock_fire_signal.delay.assert_any_call(
+            signal='job.finished',
+            kwargs={'job_id': job.id.hex},
+        )
 
         task = Task.query.get(task.id)
 

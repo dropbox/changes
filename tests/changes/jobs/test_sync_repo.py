@@ -12,9 +12,10 @@ from changes.vcs.base import Vcs, RevisionResult
 
 
 class SyncRepoTest(TestCase):
+    @mock.patch('changes.jobs.sync_repo.fire_signal')
     @mock.patch('changes.models.Repository.get_vcs')
     @mock.patch('changes.config.queue.delay')
-    def test_simple(self, queue_delay, get_vcs_backend):
+    def test_simple(self, queue_delay, get_vcs_backend, mock_fire_signal):
         vcs_backend = mock.MagicMock(spec=Vcs)
 
         def log(parent):
@@ -55,7 +56,10 @@ class SyncRepoTest(TestCase):
             'parent_task_id': None,
         }, countdown=5)
 
-        queue_delay.assert_any_call('notify_revision_created', kwargs={
-            'repository_id': repo.id.hex,
-            'revision_sha': 'a' * 40,
-        })
+        mock_fire_signal.delay.assert_any_call(
+            signal='revision.created',
+            kwargs={
+                'repository_id': repo.id.hex,
+                'revision_sha': 'a' * 40,
+            },
+        )

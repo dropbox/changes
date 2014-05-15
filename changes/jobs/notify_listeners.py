@@ -24,7 +24,7 @@ def notify_build_finished(build_id):
 def notify_revision_created(repository_id, revision_sha):
     # TODO(dcramer): remove the use of this task
     fire_signal.delay(
-        signal='revision.finished',
+        signal='revision.created',
         kwargs={'repository_id': repository_id,
                 'revision_sha': revision_sha},
     )

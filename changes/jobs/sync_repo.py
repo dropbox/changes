@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from changes.config import db, queue
+from changes.config import db
+from changes.jobs.signals import fire_signal
 from changes.models import Repository
 from changes.queue.task import tracked_task
 
@@ -45,10 +46,11 @@ def sync_repo(repo_id, continuous=True):
             might_have_more = True
             parent = commit.id
 
-            queue.delay('notify_revision_created', kwargs={
-                'repository_id': repo.id.hex,
-                'revision_sha': revision.sha,
-            })
+            fire_signal.delay(
+                signal='revision.created',
+                kwargs={'repository_id': repo.id.hex,
+                        'revision_sha': revision.sha},
+            )
 
     Repository.query.filter(
         Repository.id == repo.id,
