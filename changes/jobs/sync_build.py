@@ -107,6 +107,8 @@ def sync_build(build_id):
         aggregate_build_stat(build, 'tests_missing')
         aggregate_build_stat(build, 'lines_covered')
         aggregate_build_stat(build, 'lines_uncovered')
+        aggregate_build_stat(build, 'diff_lines_covered')
+        aggregate_build_stat(build, 'diff_lines_uncovered')
     except Exception:
         current_app.logger.exception('Failing recording aggregate stats for build %s', build.id)
 

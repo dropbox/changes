@@ -1,5 +1,6 @@
 from flask import current_app
 from sqlalchemy.orm import subqueryload_all
+from sqlalchemy.sql import func
 
 from changes.backends.base import UnrecoverableException
 from changes.constants import Status, Result
@@ -55,33 +56,30 @@ def is_missing_tests(step):
 
 
 def record_coverage_stats(step):
-    # calculate lines_covered, lines_uncovered
-    coverage_data = dict(db.session.query(
-        FileCoverage.filename,
-        FileCoverage.data,
+    coverage_stats = db.session.query(
+        func.sum(FileCoverage.lines_covered),
+        func.sum(FileCoverage.lines_uncovered),
+        func.sum(FileCoverage.diff_lines_covered),
+        func.sum(FileCoverage.diff_lines_uncovered),
     ).filter(
         FileCoverage.step_id == step.id,
-    ))
+    ).group_by(
+        FileCoverage.step_id,
+    ).first()
 
-    # TODO(dcramer): record diff coverage
-    lines_covered = 0
-    lines_uncovered = 0
-    for filename, data in coverage_data.iteritems():
-        lines_covered += data.count('C')
-        lines_uncovered += data.count('U')
+    # XXX: must match order above in select!!!
+    stat_list = (
+        'lines_covered', 'lines_uncovered',
+        'diff_lines_covered', 'diff_lines_uncovered',
+    )
 
-    try_create(ItemStat, where={
-        'item_id': step.id,
-        'name': 'lines_covered',
-    }, defaults={
-        'value': lines_covered
-    })
-    try_create(ItemStat, where={
-        'item_id': step.id,
-        'name': 'lines_uncovered',
-    }, defaults={
-        'value': lines_uncovered
-    })
+    for stat_idx, stat_name in enumerate(stat_list):
+        try_create(ItemStat, where={
+            'item_id': step.id,
+            'name': stat_name,
+        }, defaults={
+            'value': coverage_stats[stat_idx] or 0,
+        })
 
 
 @tracked_task(on_abort=abort_step, max_retries=100)

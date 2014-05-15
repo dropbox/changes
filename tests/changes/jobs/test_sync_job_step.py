@@ -100,7 +100,12 @@ class SyncJobStepTest(TestCase):
 
         db.session.add(FileCoverage(
             job=job, step=step, project=job.project,
-            filename='foo.py', data='CCCUUUCCCUUNNN'))
+            filename='foo.py', data='CCCUUUCCCUUNNN',
+            lines_covered=6,
+            lines_uncovered=5,
+            diff_lines_covered=3,
+            diff_lines_uncovered=2,
+        ))
         db.session.commit()
 
         sync_job_step(
@@ -145,6 +150,18 @@ class SyncJobStepTest(TestCase):
             ItemStat.name == 'lines_uncovered',
         ).first()
         assert stat.value == 5
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == step.id,
+            ItemStat.name == 'diff_lines_covered',
+        ).first()
+        assert stat.value == 3
+
+        stat = ItemStat.query.filter(
+            ItemStat.item_id == step.id,
+            ItemStat.name == 'diff_lines_uncovered',
+        ).first()
+        assert stat.value == 2
 
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(Step, 'get_implementation')

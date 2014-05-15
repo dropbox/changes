@@ -131,6 +131,8 @@ def sync_job(job_id):
         aggregate_job_stat(job, 'tests_missing')
         aggregate_job_stat(job, 'lines_covered')
         aggregate_job_stat(job, 'lines_uncovered')
+        aggregate_job_stat(job, 'diff_lines_covered')
+        aggregate_job_stat(job, 'diff_lines_uncovered')
     except Exception:
         current_app.logger.exception('Failing recording aggregate stats for job %s', job.id)
 
