@@ -49,7 +49,7 @@ def build_finished_handler(build_id, **kwargs):
         return
 
     # we only want to identify stable revisions
-    if build.patch_id or not build.revision_sha:
+    if build.source.patch_id or not build.source.revision_sha:
         logger.debug('Ignoring build due to non-commit: %s', build.id)
         return
 
