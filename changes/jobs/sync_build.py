@@ -33,7 +33,7 @@ def aggregate_build_stat(build, name, func_=func.sum):
 
 
 def abort_build(task):
-    build = Job.query.get(task.kwargs['build_id'])
+    build = Build.query.get(task.kwargs['build_id'])
     build.status = Status.finished
     build.result = Result.aborted
     db.session.add(build)
