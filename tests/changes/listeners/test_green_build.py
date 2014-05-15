@@ -20,9 +20,16 @@ class GreenBuildTest(TestCase):
             backend=RepositoryBackend.hg,
         )
 
-        build = self.create_build(
-            project=self.create_project(repository=repository),
+        project = self.create_project(repository=repository)
+
+        source = self.create_source(
+            project=project,
             revision_sha='a' * 40,
+        )
+
+        build = self.create_build(
+            project=project,
+            source=source,
         )
 
         get_options.return_value = {
