@@ -1412,22 +1412,35 @@ label.btn input[type=checkbox] {
   top: -8px;
 }
 
-.unknown-coverage .coverage-info {
-  background-color: grey;
+.unknown-coverage .coverage-info,
+.unknown-coverage .tooltip-inner {
+  background-color: #ddd;
+}
+.unknown-coverage .tooltip-arrow {
+  border-right-color: #ddd !important;
 }
 
-.negative-coverage .coverage-info {
+.negative-coverage .coverage-info,
+.negative-coverage .tooltip-inner {
   background-color: #da4f49;
 }
+.negative-coverage .tooltip-arrow {
+  border-right-color: #da4f49 !important;
+}
 
-.positive-coverage .coverage-info {
+.positive-coverage .coverage-info,
+.positive-coverage .tooltip-inner {
   background-color: #5bb75b;
+}
+.positive-coverage .tooltip-arrow {
+  border-right-color: #5bb75b !important;
 }
 
 .coverage-info {
+  position: absolute;
   margin-left: -16px;
   margin-right: 6px;
-  width: 10px;
+  width: 9px;
 }
 
 .addition {

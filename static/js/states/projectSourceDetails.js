@@ -1,5 +1,6 @@
 define([
   'app',
+  'bootstrap',
   'utils/sortBuildList'
 ], function(app, sortBuildList) {
   'use strict';
@@ -23,19 +24,32 @@ define([
         // The use of setTimeout here is a bit hacky, but it's pretty localized.
         setTimeout(function() {
           $("pre code .addition").each(function(index) {
-            var coverage_type = null;
+            var coverage_type = null,
+                coverage_title, innerNode;
 
             if (coverage_list[index] == 'U') {
+              coverage_title = 'Uncovered';
               coverage_type = 'negative-coverage';
             } else if (coverage_list[index] == 'C') {
+              coverage_title = 'Covered';
               coverage_type = 'positive-coverage';
             } else if (coverage_list[index] == 'N') {
+              coverage_title = 'Not Executable';
               coverage_type = 'unknown-coverage';
             } else {
               throw new Error("Unknown coverage type: " + coverage_type[index]);
             }
 
-            $(this).addClass(coverage_type).prepend("<span class='coverage-info'> </span>");
+            innerNode = $('<span class="coverage-info"> </span>');
+            innerNode.data({
+              title: coverage_title,
+              placement: 'right'
+            });
+            innerNode.tooltip();
+
+            console.log(innerNode);
+
+            $(this).addClass(coverage_type).prepend(innerNode);
           });
         });
       }
