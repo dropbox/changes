@@ -73,6 +73,9 @@ def record_coverage_stats(step):
         'diff_lines_covered', 'diff_lines_uncovered',
     )
 
+    if coverage_stats is None:
+        coverage_stats = [0] * len(stat_list)
+
     for stat_idx, stat_name in enumerate(stat_list):
         try_create(ItemStat, where={
             'item_id': step.id,
