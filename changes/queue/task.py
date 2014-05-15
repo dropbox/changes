@@ -262,7 +262,7 @@ class TrackedTask(local):
         >>>     parent_task_id='659974858dcf4aa08e73a940e1066328',
         >>> )
         """
-        assert kwargs.get('task_id')
+        kwargs.setdefault('task_id', uuid4().hex)
 
         fn_kwargs = dict(
             (k, v) for k, v in kwargs.iteritems()
@@ -298,7 +298,7 @@ class TrackedTask(local):
         >>>     parent_task_id='659974858dcf4aa08e73a940e1066328',
         >>> )
         """
-        assert kwargs.get('task_id')
+        kwargs.setdefault('task_id', uuid4().hex)
 
         fn_kwargs = dict(
             (k, v) for k, v in kwargs.iteritems()
