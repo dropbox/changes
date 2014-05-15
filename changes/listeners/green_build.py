@@ -71,7 +71,7 @@ def build_finished_handler(build_id, **kwargs):
     # ensure we have the latest changes
     vcs.update()
 
-    release_id = vcs.run(['log', '-r %s' % (build.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
+    release_id = vcs.run(['log', '-r %s' % (build.source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
 
     project = options.get('green-build.project') or build.project.slug
 
