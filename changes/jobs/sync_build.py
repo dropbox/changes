@@ -31,7 +31,16 @@ def aggregate_build_stat(build, name, func_=func.sum):
     })
 
 
-@tracked_task(max_retries=None)
+def abort_build(task):
+    build = Job.query.get(task.kwargs['build_id'])
+    build.status = Status.finished
+    build.result = Result.aborted
+    db.session.add(build)
+    db.session.commit()
+    current_app.logger.exception('Unrecoverable exception syncing build %s', build.id)
+
+
+@tracked_task(on_abort=abort_build)
 def sync_build(build_id):
     """
     Synchronizing the build happens continuously until all jobs have reported in

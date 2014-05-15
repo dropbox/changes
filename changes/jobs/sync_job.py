@@ -35,7 +35,16 @@ def aggregate_job_stat(job, name, func_=func.sum):
     })
 
 
-@tracked_task(max_retries=None)
+def abort_job(task):
+    job = Job.query.get(task.kwargs['job_id'])
+    job.status = Status.finished
+    job.result = Result.aborted
+    db.session.add(job)
+    db.session.commit()
+    current_app.logger.exception('Unrecoverable exception syncing job %s', job.id)
+
+
+@tracked_task(on_abort=abort_job)
 def sync_job(job_id):
     job = Job.query.get(job_id)
     if not job:
