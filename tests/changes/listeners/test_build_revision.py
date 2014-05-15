@@ -30,6 +30,6 @@ class RevisionCreatedHandlerTestCase(TestCase):
         db.session.add(ProjectOption(project=project, name='build.commit-trigger', value='0'))
         db.session.commit()
 
-        revision_created_handler(revision)
+        revision_created_handler(revision_sha=revision.sha, repository_id=repo.id)
 
         assert not Build.query.first()
