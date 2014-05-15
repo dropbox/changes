@@ -12,6 +12,7 @@ class SignalTestBase(TestCase):
         self.original_listeners = current_app.config['EVENT_LISTENERS']
         current_app.config['EVENT_LISTENERS'] = (
             ('mock.Mock', 'test.signal'),
+            ('mock.Mock', 'test.signal2'),
         )
 
     def tearDown(self):
@@ -24,7 +25,7 @@ class FireSignalTest(SignalTestBase):
     def test_simple(self, mock_run_event_listener):
         fire_signal(signal='test.signal', kwargs={'foo': 'bar'})
 
-        mock_run_event_listener.delay.assert_any_call(
+        mock_run_event_listener.delay.assert_called_once_with(
             listener='mock.Mock',
             signal='test.signal',
             kwargs={'foo': 'bar'},
