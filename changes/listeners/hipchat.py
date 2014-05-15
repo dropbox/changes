@@ -57,7 +57,7 @@ def build_finished_handler(build_id, **kwargs):
     if build is None:
         return
 
-    if build.patch_id:
+    if build.source.patch_id:
         return
 
     if not current_app.config.get('HIPCHAT_TOKEN'):
