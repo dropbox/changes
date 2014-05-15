@@ -66,3 +66,6 @@ class Source(db.Model):
                 pass
 
         return None
+
+    def is_commit(self):
+        return self.patch_id is None and self.revision_sha
