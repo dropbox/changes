@@ -20,7 +20,7 @@
         <nav class="dropdown-menu">
           <ul>
             <li ng-repeat="project in projectList" ng-class="project.id == activeProject.id ? 'active' : ''">
-              <a ui-sref="project_builds({project_id: project.slug})">{{project.name}}</a>
+              <a ui-sref="project_commits({project_id: project.slug})">{{project.name}}</a>
             </li>
           </ul>
         </nav>
