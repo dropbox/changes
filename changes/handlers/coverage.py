@@ -84,7 +84,7 @@ class CoverageHandler(ArtifactHandler):
                     continue
 
                 lines_by_file[file_diff['new_filename'][2:]].update(
-                    d['new_lineno'] for d in diff_chunk
+                    d['new_lineno'] for d in diff_chunk if d['action'] in ('add', 'del')
                 )
         return lines_by_file
 
