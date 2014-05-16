@@ -11,7 +11,7 @@
 </div>
 <div class="coverage" ng-if="build.stats.lines_covered">
     {{coveragePercent}}%<br>
-    <small>{{build.stats.diff_}} lines</small>
+    <small>{{build.stats.diff_lines_covered}} lines</small>
 </div>
 <div class="duration" ng-if="!isFinished">
     <span type="{{build.result.id}}"
