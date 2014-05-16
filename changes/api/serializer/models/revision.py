@@ -7,6 +7,9 @@ class RevisionSerializer(Serializer):
     def serialize(self, instance, attrs):
         return {
             'id': instance.sha,
+            'repository': {
+                'id': instance.repository_id,
+            },
             'sha': instance.sha,
             'message': instance.message,
             'author': instance.author,

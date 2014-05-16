@@ -263,6 +263,7 @@ def logchunk(source, **kwargs):
 def revision(repository, author):
     result = Revision(
         repository=repository, sha=uuid4().hex, author=author,
+        repository_id=repository.id, author_id=author.id,
         message='\n\n'.join(get_paragraphs(2)),
         branches=['default', 'foobar'],
     )

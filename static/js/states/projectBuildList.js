@@ -118,17 +118,19 @@ define([
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       });
 
-      if (!$stateParams.query) {
-        stream.addScopedChannels($scope, [
-          'projects:' + $scope.project.id + ':builds'
-        ]);
-        stream.addScopedSubscriber($scope, 'build.update', function(data){
-          if (data.project.id != $scope.project.id) {
-            return;
-          }
+      stream.addScopedChannels($scope, [
+        'projects:' + $scope.project.id + ':builds'
+      ]);
+      stream.addScopedSubscriber($scope, 'build.update', function(data){
+        if (data.project.id != $scope.project.id) {
+          return;
+        }
+        if (!$stateParams.query) {
           $scope.builds.updateItem(data);
-        });
-      }
+        } else {
+          $scope.builds.updateItem(data, false);
+        }
+      });
     },
     resolve: {
       buildList: function($http, $window, projectData) {

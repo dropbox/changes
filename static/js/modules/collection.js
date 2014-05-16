@@ -5,7 +5,10 @@ define(['angular'], function(angular) {
     .factory('Collection', function(){
       var defaults = {
         sortFunc: null,
-        limit: null
+        limit: null,
+        equals: function(item, other) {
+          return item.id == other.id;
+        }
       };
 
       function Collection($scope, collection, options) {
@@ -62,23 +65,36 @@ define(['angular'], function(angular) {
       };
 
       Collection.prototype.popItem = function remove(data) {
-        for (var i = 0; i < this.length; i++) {
-          if (this[i].id == data.id) {
-            this.splice(i, i + 1);
-            return;
-          }
+        var idx = this.indexOf(data);
+        if (idx !== -1) {
+          this.splice(idx, idx + 1);
+          return;
         }
       };
 
-      Collection.prototype.updateItem = function updateItem(data) {
-        this.$scope.$apply(function() {
-          for (var i = 0; i < this.length; i++) {
-            if (this[i].id == data.id) {
-              angular.extend(this[i], data);
-              return;
-            }
+      Collection.prototype.indexOf = function(data) {
+        for (var i = 0; i < this.length; i++) {
+          if (this.options.equals(this[i], data)) {
+            return i;
           }
-          this.unshift(data);
+        }
+        return -1;
+      };
+
+      Collection.prototype.updateItem = function updateItem(data, create_missing) {
+        if (create_missing === undefined) {
+          create_missing = true;
+        }
+        var existing = this.indexOf(data);
+
+        this.$scope.$apply(function() {
+          if (existing !== -1) {
+            angular.extend(this[existing], data);
+            return;
+          }
+          if (create_missing) {
+            this.unshift(data);
+          }
         }.bind(this));
       };
 

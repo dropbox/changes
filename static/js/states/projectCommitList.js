@@ -12,7 +12,7 @@ define([
     parent: 'project_details',
     url: 'commits/',
     templateUrl: 'partials/project-commit-list.html',
-    controller: function($scope, $state, commitList) {
+    controller: function($scope, $state, Collection, commitList, stream) {
       var chart_options = {
         linkFormatter: function(item) {
           if (item.build) {
@@ -87,7 +87,11 @@ define([
         });
       }
 
-      $scope.commits = fromCommits(commitList.data);
+      $scope.commits = new Collection($scope, fromCommits(commitList.data), {
+        equals: function(item, other) {
+          return item.repository_id == other.repository_id && item.sha == other.sha;
+        }
+      });
 
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;
@@ -97,6 +101,35 @@ define([
 
       $scope.$watchCollection("commits", function() {
         $scope.chartData = chartHelpers.getChartData($scope.commits, null, chart_options);
+      });
+
+      stream.addScopedChannels($scope, [
+        'projects:' + $scope.project.id + ':builds',
+        'projects:' + $scope.project.id + ':commits'
+      ]);
+      stream.addScopedSubscriber($scope, 'build.update', function(data){
+        if (data.project.id != $scope.project.id) {
+          return;
+        }
+
+        var existing = $scope.commits.indexOf(data.source.revision);
+        if (existing === -1) {
+          return;
+        }
+
+        var commit = $scope.commits[existing];
+        if (!commit.build) {
+          commit.build = data;
+        } else if (commit.build.dateCreated >= data.dateCreated) {
+          angular.extend(commit.build, data);
+        }
+      });
+      stream.addScopedSubscriber($scope, 'commit.update', function(data){
+        if (data.repository.id != $scope.project.repository.id) {
+          return;
+        }
+
+        $scope.commits.updateItem(data);
       });
     },
     resolve: {

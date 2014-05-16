@@ -1,5 +1,6 @@
 from changes.api.base import as_json
 from changes.config import pubsub
+from changes.models import Project
 
 
 def publish_build_update(target):
@@ -27,6 +28,27 @@ def publish_build_update(target):
         pubsub.publish(channel, {
             'data': json,
             'event': 'build.update',
+        })
+
+
+def publish_commit_update(target):
+    channels = [
+        'commits:{repo_id}:{revision_sha}'.format(
+            repo_id=target.repository_id.hex,
+            revision_sha=target.sha,
+        ),
+    ]
+    for project in Project.query.filter(Project.repository_id == target.repository_id):
+        channels.append('projects:{project_id}:commits'.format(
+            project_id=project.id.hex
+        ))
+
+    for channel in channels:
+        json = as_json(target)
+
+        pubsub.publish(channel, {
+            'data': json,
+            'event': 'commit.update',
         })
 
 
