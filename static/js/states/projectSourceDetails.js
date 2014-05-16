@@ -1,8 +1,10 @@
 define([
   'app',
-  'bootstrap',
-  'utils/sortBuildList'
-], function(app, sortBuildList) {
+  'utils/sortBuildList',
+
+  'jquery',
+  'bootstrap'
+], function(app, sortBuildList, $) {
   'use strict';
 
   return {
