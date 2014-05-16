@@ -49,7 +49,7 @@
           scope.$watch(attrs.ngModel, function(build) {
             scope.build = build;
             scope.buildTitle = attrs.title || build.name;
-            scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered);
+            scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered) !== 0;
             scope.coveragePercent = getCoveragePercent(build);
             scope.isFinished = (build.status.id == 'finished');
 
