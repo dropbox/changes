@@ -49,8 +49,6 @@ define([
             });
             innerNode.tooltip();
 
-            console.log(innerNode);
-
             $(this).addClass(coverage_type).prepend(innerNode);
           });
         });
