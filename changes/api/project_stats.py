@@ -14,6 +14,10 @@ STAT_CHOICES = (
     'test_duration',
     'test_rerun_count',
     'tests_missing',
+    'lines_covered',
+    'lines_uncovered',
+    'diff_lines_covered',
+    'diff_lines_uncovered',
 )
 
 RESOLUTION_CHOICES = (
