@@ -13,7 +13,8 @@ from changes.events import (
     publish_build_update, publish_job_update, publish_commit_update
 )
 from changes.models import (
-    Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan
+    Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan,
+    ItemStat
 )
 
 app = create_app()
@@ -66,6 +67,12 @@ def create_new_entry(project):
         status=Status.in_progress,
         date_started=date_started,
     )
+
+    db.session.add(ItemStat(item_id=build.id, name='lines_covered', value='5'))
+    db.session.add(ItemStat(item_id=build.id, name='lines_uncovered', value='5'))
+    db.session.add(ItemStat(item_id=build.id, name='diff_lines_covered', value='5'))
+    db.session.add(ItemStat(item_id=build.id, name='diff_lines_uncovered', value='5'))
+
     db.session.commit()
     publish_build_update(build)
 

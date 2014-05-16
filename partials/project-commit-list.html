@@ -30,32 +30,16 @@
     <ul class="build-list">
         <li class="build-list-header">
             Build
-            <div class="date">Date</div>
+            <div class="date">When</div>
             <div class="tests">Tests</div>
+            <div class="coverage">Coverage</div>
             <div class="duration">Duration</div>
         </li>
         <li ng-repeat="commit in commits"
             class="status-{{commit.build.status.id}} result-{{commit.build.result.id}}"
             slyEvaluateOnlyWhen="commit.build.dateModified">
             <div ng-if="commit.build">
-                <a ui-sref="build_details({build_id: commit.build.id})" class="indicator">#{{commit.build.number}}</a>
-                <h5><a ui-sref="build_details({build_id: commit.build.id})">{{commit.subject}}</a></h5>
-                <div class="info">
-                    <span class="branch" ng-repeat="branch in commit.branches">{{branch}}</span>
-                    <a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>
-                    <span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
-                </div>
-                <div class="date" time-since="commit.build.dateCreated"></div>
-                <div class="tests">
-                    {{commit.build.stats.test_count}}
-                </div>
-                <div class="duration">
-                    <span ng-if="commit.build.duration && commit.build.dateFinished" duration="commit.build.duration"></span>
-                    <span ng-if="!commit.build.dateFinished"
-                          type="{{commit.build.result.id}}"
-                          value="commit.build|buildEstimatedProgress"
-                          progressbar>&nbsp;</span>
-                </div>
+                <buildrow ng-model="commit.build" title="{{commit.subject}}"></buildrow>
             </div>
             <div ng-if="!commit.build">
                 <h5>{{commit.subject}}</h5>

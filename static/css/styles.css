@@ -507,7 +507,7 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .build-list > li {
   min-height: 52px;
-  padding-right: 370px;
+  padding-right: 480px;
 }
 
 @media (max-width: 767px) {
@@ -515,6 +515,7 @@ table > tbody > tr.result-skipped > td.result span {
     padding-right: 0;
   }
   .build-list .duration,
+  .build-list .coverage,
   .build-list .tests,
   .build-list .date,
   .job-list .duration {
@@ -537,6 +538,7 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .build-list > li.build-list-header .duration,
 .build-list > li.build-list-header .tests,
+.build-list > li.build-list-header .coverage,
 .build-list > li.build-list-header .date,
 .job-list > li.job-list-header .duration {
   margin-top: 0;
@@ -595,6 +597,7 @@ table > tbody > tr.result-skipped > td.result span {
 
 .build-list .duration,
 .build-list .tests,
+.build-list .coverage,
 .build-list .date,
 .job-list .duration {
   position: absolute;
@@ -608,14 +611,19 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .build-list .duration {
   width: 120px;
-  right: 240px;
+  right: 340px;
 }
 .job-list .duration {
   width: 120px;
   right: 0;
 }
-.build-list .tests {
+.build-list .coverage {
   width: 70px;
+  right: 240px;
+  margin-top: 0;
+}
+.build-list .tests {
+  width: 50px;
   right: 160px;
 }
 .build-list .date {

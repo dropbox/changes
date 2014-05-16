@@ -1,0 +1,24 @@
+<a ui-sref="build_details({build_id: build.id})" class="indicator">#{{build.number}}</a>
+<h5><a ui-sref="build_details({build_id: build.id})">{{buildTitle}}</a></h5>
+<div class="info">
+    <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
+    <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
+    <span ng-if="build.author">&mdash; {{build.author.name}}</span>
+</div>
+<div class="date" time-since="build.dateCreated"></div>
+<div class="tests">
+    {{build.stats.test_count}}
+</div>
+<div class="coverage" ng-if="build.stats.lines_covered">
+    {{coveragePercent}}%<br>
+    <small>{{build.stats.diff_}} lines</small>
+</div>
+<div class="duration" ng-if="!isFinished">
+    <span type="{{build.result.id}}"
+          value="estimatedProgress"
+          animate="false"
+          progressbar>&nbsp;</span>
+</div>
+<div class="duration" ng-if="build.duration && isFinished">
+  <span duration="build.duration"></span>
+</div>

@@ -30,6 +30,7 @@ define([
 
   'directives/bindOnce',
   'directives/duration',
+  'directives/renderBuildRow',
   'directives/timeSince',
   'filters/escape',
   'filters/buildEstimatedProgress',

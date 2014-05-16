@@ -32,29 +32,13 @@
                 Build
                 <div class="date">When</div>
                 <div class="tests">Tests</div>
+                <div class="coverage">Coverage</div>
                 <div class="duration">Duration</div>
             </li>
             <li ng-repeat="build in builds"
                 class="status-{{build.status.id}} result-{{build.result.id}}"
                 slyEvaluateOnlyWhen="build.dateModified">
-                <a ui-sref="build_details({build_id: build.id})" class="indicator">#{{build.number}}</a>
-                <h5><a ui-sref="build_details({build_id: build.id})">{{build.name}}</a></h5>
-                <div class="info">
-                    <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
-                    <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
-                    <span ng-if="build.author">&mdash; {{build.author.name}}</span>
-                </div>
-                <div class="date" time-since="build.dateCreated"></div>
-                <div class="tests">
-                    {{build.stats.test_count}}
-                </div>
-                <div class="duration">
-                    <span ng-if="build.duration && build.status.id == 'finished'" duration="build.duration"></span>
-                    <span ng-if="build.status.id != 'finished'"
-                          type="{{build.result.id}}"
-                          value="build|buildEstimatedProgress"
-                          progressbar>&nbsp;</span>
-                </div>
+                <buildrow ng-model="build"></buildrow>
             </li>
         </ul>
 

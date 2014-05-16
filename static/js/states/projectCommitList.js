@@ -74,15 +74,19 @@ define([
         }
       };
 
+      function getCommitSubject(commit) {
+          if (commit.message) {
+            return commit.message.split('\n')[0].substr(0, 128);
+          } else if (commit.build) {
+            return commit.build.label;
+          } else {
+            return 'A homeless commit';
+          }
+      }
+
       function fromCommits(commitList) {
         return commitList.map(function(commit){
-          if (commit.message) {
-            commit.subject = commit.message.split('\n')[0].substr(0, 128);
-          } else if (commit.build) {
-            commit.subject = commit.build.label;
-          } else {
-            commit.subject = 'A homeless commit';
-          }
+          commit.subject = getCommitSubject(commit);
           return commit;
         });
       }
@@ -128,8 +132,7 @@ define([
         if (data.repository.id != $scope.project.repository.id) {
           return;
         }
-
-        $scope.commits.updateItem(data);
+        $scope.commits.updateItem(fromCommits([data])[0]);
       });
     },
     resolve: {
