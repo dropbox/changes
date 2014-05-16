@@ -71,4 +71,6 @@ def revision_created_handler(revision_sha, repository_id, **kwargs):
                 if isinstance(response, (list, tuple)):
                     response, status = response
                     if status != 200:
-                        logger.error('Failed to create build: %s' % (response,))
+                        logger.error('Failed to create build: %s' % (response,), extra={
+                            'data': data,
+                        })
