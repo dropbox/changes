@@ -10,55 +10,54 @@ define([
 
   return {
     parent: 'project_details',
-    url: '',
+    url: 'builds/?query',
     templateUrl: 'partials/project-build-list.html',
-    controller: function($scope, $http, $state, projectData, buildList, stream, Collection, PageTitle) {
-      var entrypoint = '/api/0/projects/' + projectData.id + '/builds/',
-          chart_options = {
-            linkFormatter: function(item) {
-              return $state.href('build_details', {build_id: item.id});
-            },
-            value: function(item) {
-              if ($scope.selectedChart == 'test_count') {
-                return item.stats.test_count;
-              } else if ($scope.selectedChart == 'duration') {
-                return item.duration;
-              } else if ($scope.selectedChart == 'test_duration') {
-                return item.stats.test_duration / item.stats.test_count;
-              } else if ($scope.selectedChart == 'test_rerun_count') {
-                return item.stats.test_rerun_count;
-              } else if ($scope.selectedChart == 'tests_missing') {
-                return item.stats.tests_missing;
-              }
-            },
-            tooltipFormatter: function(item) {
-              var content = '';
+    controller: function($scope, $http, $state, $stateParams, projectData, buildList, stream, Collection, PageTitle) {
+      var chart_options = {
+        linkFormatter: function(item) {
+          return $state.href('build_details', {build_id: item.id});
+        },
+        value: function(item) {
+          if ($scope.selectedChart == 'test_count') {
+            return item.stats.test_count;
+          } else if ($scope.selectedChart == 'duration') {
+            return item.duration;
+          } else if ($scope.selectedChart == 'test_duration') {
+            return item.stats.test_duration / item.stats.test_count;
+          } else if ($scope.selectedChart == 'test_rerun_count') {
+            return item.stats.test_rerun_count;
+          } else if ($scope.selectedChart == 'tests_missing') {
+            return item.stats.tests_missing;
+          }
+        },
+        tooltipFormatter: function(item) {
+          var content = '';
 
-              content += '<h5>';
-              content += escapeHtml(item.name);
-              content += '<br><small>';
-              content += escapeHtml(item.target);
-              if (item.author) {
-                content += ' &mdash; ' + item.author.name;
-              }
-              content += '</small>';
-              content += '</h5>';
+          content += '<h5>';
+          content += escapeHtml(item.name);
+          content += '<br><small>';
+          content += escapeHtml(item.target);
+          if (item.author) {
+            content += ' &mdash; ' + item.author.name;
+          }
+          content += '</small>';
+          content += '</h5>';
 
-              if ($scope.selectedChart == 'test_count') {
-                content += '<p>' + (item.stats.test_count || 0) + ' tests recorded';
-              } else if ($scope.selectedChart == 'test_duration') {
-                content += '<p>' + parseInt(item.stats.test_duration / item.stats.test_count || 0, 10) + 'ms avg test duration';
-              } else if ($scope.selectedChart == 'duration') {
-                content += '<p>' + duration(item.duration) + ' build time';
-              } else if ($scope.selectedChart == 'test_rerun_count') {
-                content += '<p>' + (item.stats.test_rerun_count || 0) + ' total retries';
-              } else if ($scope.selectedChart == 'tests_missing') {
-                content += '<p>' + (item.stats.tests_missing || 0) + ' job steps missing tests';
-              }
+          if ($scope.selectedChart == 'test_count') {
+            content += '<p>' + (item.stats.test_count || 0) + ' tests recorded';
+          } else if ($scope.selectedChart == 'test_duration') {
+            content += '<p>' + parseInt(item.stats.test_duration / item.stats.test_count || 0, 10) + 'ms avg test duration';
+          } else if ($scope.selectedChart == 'duration') {
+            content += '<p>' + duration(item.duration) + ' build time';
+          } else if ($scope.selectedChart == 'test_rerun_count') {
+            content += '<p>' + (item.stats.test_rerun_count || 0) + ' total retries';
+          } else if ($scope.selectedChart == 'tests_missing') {
+            content += '<p>' + (item.stats.tests_missing || 0) + ' job steps missing tests';
+          }
 
-              return content;
-            }
-          };
+          return content;
+        }
+      };
 
       function updatePageLinks(links) {
         var value = parseLinkHeader(links);
@@ -113,30 +112,27 @@ define([
       };
       $scope.selectChart('duration');
 
-      $scope.includePatches = false;
-
       PageTitle.set(projectData.name + ' Builds');
 
       $scope.$watchCollection("builds", function() {
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       });
 
-      stream.addScopedChannels($scope, [
-        'projects:' + $scope.project.id + ':builds'
-      ]);
-      stream.addScopedSubscriber($scope, 'build.update', function(data){
-        if (data.project.id != $scope.project.id) {
-          return;
-        }
-        if (data.source.patch && !$scope.includePatches) {
-          return;
-        }
-        $scope.builds.updateItem(data);
-      });
+      if (!$stateParams.query) {
+        stream.addScopedChannels($scope, [
+          'projects:' + $scope.project.id + ':builds'
+        ]);
+        stream.addScopedSubscriber($scope, 'build.update', function(data){
+          if (data.project.id != $scope.project.id) {
+            return;
+          }
+          $scope.builds.updateItem(data);
+        });
+      }
     },
     resolve: {
-      buildList: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/builds/?include_patches=0');
+      buildList: function($http, $window, projectData) {
+        return $http.get('/api/0/projects/' + projectData.id + '/builds/search/' + $window.location.search);
       }
     }
   };

@@ -9,6 +9,9 @@
       },
       value: function(item) {
         return item.duration || 50;
+      },
+      className: function(item) {
+        return 'result-' + item.result.id;
       }
     };
 
@@ -30,7 +33,7 @@
         for (i = 0, y = options.limit; (item = items[i]) && y > 0; i++, y--) {
           result.push({
             value: options.value(item),
-            className: 'result-' + item.result.id,
+            className: options.className(item),
             id: item.id,
             data: item,
             highlight: current && current.id == item.id

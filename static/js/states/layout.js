@@ -23,11 +23,7 @@ define([
           return false;
         }
 
-        if (!this.projectSearchQuery) {
-          $location.path('/projects/' + $rootScope.activeProject.slug + '/').search({});
-        } else {
-          $location.path('/projects/' + $rootScope.activeProject.slug + '/search/').search(this.projectSearchQuery);
-        }
+        $location.path('/projects/' + $rootScope.activeProject.slug + '/builds/').search(this.projectSearchQuery);
 
         return false;
       };

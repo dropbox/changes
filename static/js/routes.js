@@ -14,7 +14,6 @@ define([
   'states/planDetails',
   'states/planList',
   'states/projectBuildList',
-  'states/projectBuildSearch',
   'states/projectCommitDetails',
   'states/projectCommitList',
   'states/projectCreate',
@@ -52,7 +51,6 @@ define([
   PlanDetailsState,
   PlanListState,
   ProjectBuildListState,
-  ProjectBuildSearchState,
   ProjectCommitDetailsState,
   ProjectCommitListState,
   ProjectCreateState,
@@ -120,7 +118,6 @@ define([
       .state('project_builds', ProjectBuildListState)
       .state('project_details', ProjectDetailsState)
       .state('project_new_build', ProjectCreateBuildState)
-      .state('project_search', ProjectBuildSearchState)
       .state('project_commits', ProjectCommitListState)
       .state('project_commit_details', ProjectCommitDetailsState)
       .state('project_settings', ProjectSettingsState)
