@@ -1423,6 +1423,7 @@ label.btn input[type=checkbox] {
 .unknown-coverage .coverage-info,
 .unknown-coverage .tooltip-inner {
   background-color: #ddd;
+  color: #000;
 }
 .unknown-coverage .tooltip-arrow {
   border-right-color: #ddd !important;
