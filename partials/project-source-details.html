@@ -15,31 +15,19 @@
         <div class="section-header">
             <h4>Builds</h4>
         </div>
+
         <ul class="build-list">
             <li class="build-list-header">
                 Build
-                <div class="date">Date</div>
+                <div class="date">When</div>
                 <div class="tests">Tests</div>
+                <div class="coverage">Coverage</div>
                 <div class="duration">Duration</div>
             </li>
-            <li ng-repeat="build in builds" class="status-{{build.status.id}} result-{{build.result.id}}">
-                <a ui-sref="build_details({project_id: build.project.slug, build_id: build.id})" class="indicator" bind-once>#{{build.number}}</a>
-                <h5 bind-once><a ui-sref="build_details({project_id: build.project.slug, build_id: build.id})">{{build.name}}</a></h5>
-                <div class="info">
-                    <a ui-sref="project_builds({project_id: build.project.slug})">{{build.project.name}}</a> &mdash;
-                    <span ng-if="build.author" bind-once>&mdash; {{build.author.name}}</span>
-                </div>
-                <div class="date" time-since="build.dateCreated"></div>
-                <div class="tests">
-                    {{build.stats.test_count}}
-                </div>
-                <div class="duration">
-                    <span ng-if="build.duration && build.dateFinished" duration="build.duration"></span>
-                    <span ng-if="!build.dateFinished"
-                          type="{{build.result.id}}"
-                          value="build|buildEstimatedProgress"
-                          progressbar>&nbsp;</span>
-                </div>
+            <li ng-repeat="build in builds"
+                class="status-{{build.status.id}} result-{{build.result.id}}"
+                slyEvaluateOnlyWhen="build.dateModified">
+                <buildrow ng-model="build" show-project="true" show-branches="false"></buildrow>
             </li>
         </ul>
     </section>

@@ -1,7 +1,10 @@
 <a ui-sref="build_details({build_id: build.id})" class="indicator">#{{build.number}}</a>
 <h5><a ui-sref="build_details({build_id: build.id})">{{buildTitle}}</a></h5>
 <div class="info">
-    <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
+    <span ng-if="showProject">
+      <a ui-sref="project_builds({project_id: build.project.slug})">{{build.project.name}}</a> &mdash;
+    </span>
+    <span class="branch" ng-repeat="branch in build.source.revision.branches" ng-if="showBranches">{{branch}}</span>
     <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
     <span ng-if="build.author">&mdash; {{build.author.name}}</span>
 </div>

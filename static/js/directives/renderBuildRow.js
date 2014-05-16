@@ -52,6 +52,8 @@
             scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered) > 0;
             scope.coveragePercent = getCoveragePercent(build);
             scope.isFinished = (build.status.id == 'finished');
+            scope.showProject = attrs.showProject;
+            scope.showBranches = attrs.showBranches;
 
             updateBuildProgress(build);
           });
