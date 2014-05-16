@@ -7,6 +7,9 @@
 
       function getCoveragePercent(build) {
         var total_lines = build.stats.diff_lines_covered + build.stats.diff_lines_uncovered;
+        if (!total_lines) {
+          return 0;
+        }
         return parseInt(build.stats.diff_lines_covered / total_lines * 100, 10);
       }
 
