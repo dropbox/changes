@@ -10,7 +10,7 @@
     {{build.stats.test_count}}
 </div>
 <div ng-if="isFinished">
-  <div class="coverage" ng-if="build.stats.lines_covered">
+  <div class="coverage" ng-if="hasCoverage">
       {{coveragePercent}}%<br>
       <small>{{build.stats.diff_lines_covered}} lines</small>
   </div>
