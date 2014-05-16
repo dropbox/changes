@@ -45,7 +45,7 @@
                     <a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>
                     <span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
                 </div>
-                <div class="date" time-since="commit.dateCreated"></div>
+                <div class="date" time-since="commit.build.dateCreated"></div>
                 <div class="tests">
                     {{commit.build.stats.test_count}}
                 </div>
@@ -64,7 +64,7 @@
                     <a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>
                     <span ng-if="commit.author">&mdash; {{commit.author.name}}</span>
                 </div>
-                <div class="date" time-since="commit.build.dateCreated"></div>
+                <div class="date"></div>
             </div>
         </li>
     </ul>
