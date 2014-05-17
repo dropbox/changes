@@ -89,6 +89,9 @@ define([
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
+      $scope.hasCoverage = (buildData.stats.lines_covered + buildData.stats.lines_uncovered) > 0;
+      $scope.coveragePercent = getCoveragePercent(buildData.stats.lines_covered, buildData.stats.lines_uncovered);
+
       var fileCoverageData = [];
       $.each(coverageData, function(filename, item) {
         item.hasCoverage = (item.linesCovered + item.linesUncovered) > 0;
