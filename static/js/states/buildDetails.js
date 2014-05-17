@@ -91,6 +91,8 @@ define([
 
       var fileCoverageData = [];
       $.each(coverageData, function(filename, item) {
+        item.hasCoverage = (item.linesCovered + item.linesUncovered) > 0;
+        item.hasDiffCoverage = (item.diffLinesCovered + item.diffLinesUncovered) > 0;
         item.coveragePercent = getCoveragePercent(item.linesCovered, item.linesUncovered);
         item.diffCoveragePercent = getCoveragePercent(item.diffLinesCovered, item.diffLinesUncovered);
         item.filename = filename;

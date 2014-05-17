@@ -83,8 +83,12 @@
             <tbody>
                 <tr ng-repeat="fileCoverage in coverageData">
                     <td>{{fileCoverage.filename}}</td>
-                    <td style="text-align:center">{{fileCoverage.diffCoveragePercent}}%</td>
-                    <td style="text-align:center">{{fileCoverage.coveragePercent}}%</td>
+                    <td style="text-align:center">
+                        <span ng-if="fileCoverage.hasDiffCoverage">{{fileCoverage.diffCoveragePercent}}%</span>
+                    </td>
+                    <td style="text-align:center">
+                        <span ng-if="fileCoverage.hasCoverage">{{fileCoverage.coveragePercent}}%</span>
+                    </td>
                 </tr>
             </tbody>
         </table>
