@@ -1,13 +1,22 @@
 define([
-  'app'
-], function(app) {
+  'app',
+  'utils/sortArray'
+], function(app, sortArray) {
   'use strict';
 
   return {
     parent: 'project_details',
     url: "builds/:build_id/",
     templateUrl: 'partials/build-details.html',
-    controller: function($document, $scope, $state, $http, $filter, projectData, buildData, stream, flash, Collection, PageTitle) {
+    controller: function($document, $scope, $state, $http, $filter, projectData, buildData, coverageData, stream, flash, Collection, PageTitle) {
+      function getCoveragePercent(lines_covered, lines_uncovered) {
+        var total_lines = lines_covered + lines_uncovered;
+        if (!total_lines) {
+          return 0;
+        }
+        return parseInt(lines_covered / total_lines * 100, 10);
+      }
+
       function getFormattedBuildMessage(message) {
         return $filter('linkify')($filter('escape')(message));
       }
@@ -80,6 +89,16 @@ define([
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
+      var fileCoverageData = [];
+      $.each(coverageData, function(filename, item) {
+        item.coveragePercent = getCoveragePercent(item.linesCovered, item.linesUnovered);
+        item.diffCoveragePercent = getCoveragePercent(item.diffLinesCovered, item.diffLinesUnovered);
+        item.filename = filename;
+        fileCoverageData.push(item);
+      });
+
+      $scope.coverageData = sortArray(fileCoverageData, function(item) { return [item.filename]; });
+
       PageTitle.set(getPageTitle($scope.build));
 
       stream.addScopedChannels($scope, [
@@ -113,6 +132,11 @@ define([
     resolve: {
       buildData: function($http, $stateParams) {
         return $http.get('/api/0/builds/' + $stateParams.build_id + '/').then(function(response){
+          return response.data;
+        });
+      },
+      coverageData: function($http, $stateParams) {
+        return $http.get('/api/0/builds/' + $stateParams.build_id + '/stats/coverage/?diff=1').then(function(response){
           return response.data;
         });
       }
