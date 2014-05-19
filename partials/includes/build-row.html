@@ -23,7 +23,7 @@
               progressbar>&nbsp;</span>
     </td>
 
-    <td class="coverage">
+    <td class="coverage" ng-if="features.coverage">
         <span ng-if="hasCoverage && isFinished">
             {{coveragePercent}}%<br>
             <small>{{build.stats.diff_lines_covered}} lines</small>

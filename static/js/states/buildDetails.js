@@ -8,7 +8,8 @@ define([
     parent: 'project_details',
     url: "builds/:build_id/",
     templateUrl: 'partials/build-details.html',
-    controller: function($document, $scope, $state, $http, $filter, projectData, buildData, coverageData, stream, flash, Collection, PageTitle) {
+    controller: function($document, $scope, $state, $http, $filter, features, projectData, buildData,
+                         coverageData, stream, flash, Collection, PageTitle) {
       function getCoveragePercent(lines_covered, lines_uncovered) {
         var total_lines = lines_covered + lines_uncovered;
         if (!total_lines) {
@@ -89,20 +90,22 @@ define([
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
-      $scope.hasCoverage = (buildData.stats.lines_covered + buildData.stats.lines_uncovered) > 0;
-      $scope.coveragePercent = getCoveragePercent(buildData.stats.lines_covered, buildData.stats.lines_uncovered);
+      if (features.coverage) {
+        $scope.hasCoverage = (buildData.stats.lines_covered + buildData.stats.lines_uncovered) > 0;
+        $scope.coveragePercent = getCoveragePercent(buildData.stats.lines_covered, buildData.stats.lines_uncovered);
 
-      var fileCoverageData = [];
-      $.each(coverageData, function(filename, item) {
-        item.hasCoverage = (item.linesCovered + item.linesUncovered) > 0;
-        item.hasDiffCoverage = (item.diffLinesCovered + item.diffLinesUncovered) > 0;
-        item.coveragePercent = getCoveragePercent(item.linesCovered, item.linesUncovered);
-        item.diffCoveragePercent = getCoveragePercent(item.diffLinesCovered, item.diffLinesUncovered);
-        item.filename = filename;
-        fileCoverageData.push(item);
-      });
+        var fileCoverageData = [];
+        $.each(coverageData, function(filename, item) {
+          item.hasCoverage = (item.linesCovered + item.linesUncovered) > 0;
+          item.hasDiffCoverage = (item.diffLinesCovered + item.diffLinesUncovered) > 0;
+          item.coveragePercent = getCoveragePercent(item.linesCovered, item.linesUncovered);
+          item.diffCoveragePercent = getCoveragePercent(item.diffLinesCovered, item.diffLinesUncovered);
+          item.filename = filename;
+          fileCoverageData.push(item);
+        });
 
-      $scope.coverageData = sortArray(fileCoverageData, function(item) { return [item.filename]; });
+        $scope.coverageData = sortArray(fileCoverageData, function(item) { return [item.filename]; });
+      }
 
       PageTitle.set(getPageTitle($scope.build));
 

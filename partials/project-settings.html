@@ -102,6 +102,8 @@
 					</label>
 				</div>
 
+			</fieldset>
+
 			<fieldset>
 
 				<legend>Tests</legend>
@@ -116,6 +118,19 @@
 					<label>
 						<input type="checkbox" value="1" ng-model="options['build.expect-tests']">
 						Expect test results to be reported. If they're not, the build will be considered as failing, in addition to "failing during setup".
+					</label>
+				</div>
+
+			</fieldset>
+
+			<fieldset>
+
+				<legend>Code Coverage</legend>
+
+				<div class="form-group checkbox">
+					<label>
+						<input type="checkbox" value="1" ng-model="options['ui.show-coverage']">
+						Show coverage data in various UIs.
 					</label>
 				</div>
 

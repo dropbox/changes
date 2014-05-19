@@ -8,10 +8,12 @@ define([
     parent: 'projects',
     url: ':project_id/',
     templateUrl: 'partials/project-details.html',
-    controller: function($document, $scope, $rootScope, projectData, PageTitle) {
+    controller: function($document, $scope, $rootScope, features, projectData, PageTitle) {
+      PageTitle.set(projectData.name);
+
+      $scope.features = features;
       $scope.project = projectData;
       $rootScope.activeProject = $scope.project;
-      PageTitle.set(projectData.name);
     },
     resolve: {
       projectData: function($http, $location, $stateParams) {
@@ -20,6 +22,13 @@ define([
         }).then(function(response){
           return response.data;
         });
+      },
+      features: function($q, projectData) {
+        var deferred = $q.defer();
+        deferred.resolve({
+          coverage: (projectData.options['ui.show-coverage'] == '1')
+        });
+        return deferred.promise;
       }
     }
   };
