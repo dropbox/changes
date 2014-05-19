@@ -11,7 +11,7 @@ define([
     parent: 'project_details',
     url: 'sources/:source_id/',
     templateUrl: 'partials/project-source-details.html',
-    controller: function($scope, $http, sourceData, buildList, Collection) {
+    controller: function($scope, $http, features, sourceData, buildList, Collection) {
       $scope.source = sourceData.data;
       $scope.builds = new Collection($scope, buildList.data, {
         sortFunc: sortBuildList,
@@ -19,7 +19,7 @@ define([
       });
 
       var diff = sourceData.data.diff;
-      if (diff) {
+      if (features.coverage && diff) {
         // If we have diff information, render coverage after the DOM loads.
         var coverage_list = sourceData.data.coverageForAddedLines;
 
