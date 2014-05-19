@@ -1,30 +1,35 @@
-<a ui-sref="build_details({build_id: build.id})" class="indicator">#{{build.number}}</a>
-<h5><a ui-sref="build_details({build_id: build.id})">{{buildTitle}}</a></h5>
-<div class="info">
-    <span ng-if="showProject">
-      <a ui-sref="project_builds({project_id: build.project.slug})">{{build.project.name}}</a> &mdash;
-    </span>
-    <span class="branch" ng-repeat="branch in build.source.revision.branches" ng-if="showBranches">{{branch}}</span>
-    <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
-    <span ng-if="build.author">&mdash; {{build.author.name}}</span>
-</div>
-<div class="date" time-since="build.dateCreated"></div>
-<div class="tests">
-    {{build.stats.test_count}}
-</div>
-<div ng-if="isFinished">
-  <div class="coverage" ng-if="hasCoverage">
-      {{coveragePercent}}%<br>
-      <small>{{build.stats.diff_lines_covered}} lines</small>
-  </div>
+<tr class="status-{{build.status.id}} result-{{build.result.id}}"
+    slyEvaluateOnlyWhen="build.dateModified">
+    <td class="name">
+      <a ui-sref="build_details({build_id: build.id})" class="indicator">#{{build.number}}</a>
+      <h5><a ui-sref="build_details({build_id: build.id})">{{buildTitle}}</a></h5>
+      <div class="info">
+          <span ng-if="showProject">
+            <a ui-sref="project_builds({project_id: build.project.slug})">{{build.project.name}}</a> &mdash;
+          </span>
+          <span class="branch" ng-repeat="branch in build.source.revision.branches" ng-if="showBranches">{{branch}}</span>
+          <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
+          <span ng-if="build.author">&mdash; {{build.author.name}}</span>
+      </div>
+    </td>
+    <td class="date" time-since="build.dateCreated"></td>
+    <td class="tests">
+        {{build.stats.test_count}}
+    </td>
+    <td class="coverage">
+        <span ng-if="hasCoverage && isFinished">
+            {{coveragePercent}}%<br>
+            <small>{{build.stats.diff_lines_covered}} lines</small>
+        </span>
+    </td>
 
-  <div class="duration" ng-if="build.duration">
-    <span duration="build.duration"></span>
-  </div>
-</div>
-<div class="duration" ng-if="!isFinished">
-    <span type="{{build.result.id}}"
-          value="estimatedProgress"
-          animate="false"
-          progressbar>&nbsp;</span>
-</div>
+    <td class="duration" ng-if="isFinished">
+      <span duration="build.duration"></span>
+    </td>
+    <td class="duration" ng-if="!isFinished">
+        <span type="{{build.result.id}}"
+              value="estimatedProgress"
+              animate="false"
+              progressbar>&nbsp;</span>
+    </td>
+</tr>

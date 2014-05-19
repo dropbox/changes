@@ -498,22 +498,17 @@ table > tbody > tr.result-skipped > td.result span {
 }
 
 .build-list > li,
-.job-list > li {
+.job-list > li,
+.build-list td,
+.build-list th {
   position: relative;
   border-bottom: 1px solid #eee;
 }
 .job-list > li {
   padding-right: 140px;
 }
-.build-list > li {
-  min-height: 52px;
-  padding-right: 480px;
-}
 
 @media (max-width: 767px) {
-  .build-list > li {
-    padding-right: 0;
-  }
   .build-list .duration,
   .build-list .coverage,
   .build-list .tests,
@@ -521,26 +516,44 @@ table > tbody > tr.result-skipped > td.result span {
   .job-list .duration {
     display: none;
   }
-  .build-list > li.build-list-header {
+  .build-list > .build-list-header {
     display: none;
   }
-  .job-list > li.job-list-header {
+  .job-list > .job-list-header {
     display: none;
   }
 }
 
-.build-list > li.build-list-header,
-.job-list > li.job-list-header {
+.build-list .build-list-header,
+.job-list .job-list-header {
   min-height: 30px;
   text-transform: uppercase;
   font-size: 12px;
   color: #aaa;
 }
-.build-list > li.build-list-header .duration,
-.build-list > li.build-list-header .tests,
-.build-list > li.build-list-header .coverage,
-.build-list > li.build-list-header .date,
-.job-list > li.job-list-header .duration {
+
+table.build-list {
+  table-layout:fixed;
+  max-width:100%;
+  width: 100%;
+  border-collapse:collapse;
+  border-spacing:0;
+  margin-bottom: 20px;
+}
+.build-list th,
+.build-list td {
+  padding: 10px 0 10px 20px;
+}
+.build-list th:first-child,
+.build-list td:first-child {
+  padding: 10px 0;
+}
+
+.build-list > .build-list-header .duration,
+.build-list > .build-list-header .tests,
+.build-list > .build-list-header .coverage,
+.build-list > .build-list-header .date,
+.job-list > .job-list-header .duration {
   margin-top: 0;
 }
 
@@ -562,11 +575,10 @@ table > tbody > tr.result-skipped > td.result span {
   height: 34px;
   line-height: 34px;
   padding: 0 8px;
-  margin-top: 2px;
 }
 
 .build-list h5 {
-  margin-bottom: 0;
+  margin: 0;
   line-height: 1.3;
   font-weight: 500;
   white-space: nowrap;
@@ -600,44 +612,37 @@ table > tbody > tr.result-skipped > td.result span {
 .build-list .coverage,
 .build-list .date,
 .job-list .duration {
-  position: absolute;
-  top: 0;
-  margin: 10px 0 0 20px;
   text-align: right;
   font-weight: 300;
+  white-space: nowrap;
 }
 .job-list .duration {
   margin-top: 0;
 }
 .build-list .duration {
   width: 120px;
-  right: 340px;
 }
 .job-list .duration {
   width: 120px;
-  right: 0;
 }
 .build-list .coverage {
   width: 70px;
-  right: 240px;
-  margin-top: 0;
 }
 .build-list .tests {
-  width: 50px;
-  right: 160px;
+  width: 60px;
 }
 .build-list .date {
   width: 150px;
-  right: 0;
 }
 
 .build-list .progress {
-  margin-top: 3px;
+  margin: 0;
+  display: inline-block;
 }
 .build-list .progress,
 .job-list .progress {
   height: 12px;
-  width: 120px;
+  width: 100px;
 }
 
 .progress-bar,

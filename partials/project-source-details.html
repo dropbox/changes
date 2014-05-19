@@ -16,20 +16,21 @@
             <h4>Builds</h4>
         </div>
 
-        <ul class="build-list">
-            <li class="build-list-header">
-                Build
-                <div class="date">When</div>
-                <div class="tests">Tests</div>
-                <div class="coverage">Coverage</div>
-                <div class="duration">Duration</div>
-            </li>
-            <li ng-repeat="build in builds"
-                class="status-{{build.status.id}} result-{{build.result.id}}"
-                slyEvaluateOnlyWhen="build.dateModified">
-                <buildrow ng-model="build" show-project="true" show-branches="false"></buildrow>
-            </li>
-        </ul>
+        <table class="build-list">
+            <thead>
+                <tr class="build-list-header">
+                    <th>Build</th>
+                    <th class="date">When</th>
+                    <th class="tests">Tests</th>
+                    <th class="coverage">Coverage</th>
+                    <th class="duration">Duration</th>
+                </tr>
+            </thead>
+            <tbody ng-repeat-start="build in builds">
+                <tr buildrow="build" showProject="true" showBranches="false"></tr>
+            </tbody>
+            <tbody ng-repeat-end></tbody>
+        </table>
     </section>
 
     <section class="section">

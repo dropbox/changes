@@ -30,7 +30,8 @@
 
       return {
         templateUrl: 'partials/includes/build-row.html',
-        restrict: 'E',
+        restrict: 'A',
+        replace: true,
         link: function (scope, element, attrs) {
           var timeout_id;
 
@@ -46,7 +47,7 @@
             }
           }
 
-          scope.$watch(attrs.ngModel, function(build) {
+          scope.$watch(attrs.buildrow, function(build) {
             scope.build = build;
             scope.buildTitle = attrs.title || build.name;
             scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered) > 0;
