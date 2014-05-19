@@ -57,7 +57,7 @@ class JobWithBuildSerializer(JobSerializer):
 
         result = {}
         for item in item_list:
-            result[item] = {'build': build_map[item.build_id]}
+            result[item] = {'build': build_map.get(item.build_id)}
 
         return result
 
