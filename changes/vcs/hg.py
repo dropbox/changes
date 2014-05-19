@@ -49,7 +49,7 @@ class MercurialVcs(Vcs):
         # TODO(dcramer): we should make this streaming
         cmd = ['log', '--template=%s' % (LOG_FORMAT,)]
         if parent:
-            cmd.append('-r %s' % (parent,))
+            cmd.append('-r reverse(ancestors(%s))' % (parent,))
         if limit:
             cmd.append('--limit=%d' % (limit,))
         result = self.run(cmd)
