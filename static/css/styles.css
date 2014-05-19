@@ -490,22 +490,12 @@ table > tbody > tr.result-skipped > td.result span {
   background-color: gold;
 }
 
-.build-list,
-.job-list {
-  list-style: none;
-  padding-left: 0;
-  position: relative;
-}
-
-.build-list > li,
-.job-list > li,
+.job-list td,
+.job-list th,
 .build-list td,
 .build-list th {
   position: relative;
   border-bottom: 1px solid #eee;
-}
-.job-list > li {
-  padding-right: 140px;
 }
 
 @media (max-width: 767px) {
@@ -516,23 +506,24 @@ table > tbody > tr.result-skipped > td.result span {
   .job-list .duration {
     display: none;
   }
-  .build-list > .build-list-header {
+  .build-list-header {
     display: none;
   }
-  .job-list > .job-list-header {
+  .job-list-header {
     display: none;
   }
 }
 
-.build-list .build-list-header,
-.job-list .job-list-header {
+.build-list-header,
+.job-list-header {
   min-height: 30px;
   text-transform: uppercase;
   font-size: 12px;
   color: #aaa;
 }
 
-table.build-list {
+table.build-list,
+table.job-list {
   table-layout:fixed;
   max-width:100%;
   width: 100%;
@@ -540,20 +531,24 @@ table.build-list {
   border-spacing:0;
   margin-bottom: 20px;
 }
+.job-list th,
+.job-list td,
 .build-list th,
 .build-list td {
   padding: 10px 0 10px 20px;
 }
+.job-list th:first-child,
+.job-list td:first-child,
 .build-list th:first-child,
 .build-list td:first-child {
   padding: 10px 0;
 }
 
-.build-list > .build-list-header .duration,
-.build-list > .build-list-header .tests,
-.build-list > .build-list-header .coverage,
-.build-list > .build-list-header .date,
-.job-list > .job-list-header .duration {
+.build-list-header .duration,
+.build-list-header .tests,
+.build-list-header .coverage,
+.build-list-header .date,
+.job-list-header .duration {
   margin-top: 0;
 }
 
@@ -587,6 +582,7 @@ table.build-list {
 }
 
 .job-list h5 {
+  margin: 0;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -616,12 +612,7 @@ table.build-list {
   font-weight: 300;
   white-space: nowrap;
 }
-.job-list .duration {
-  margin-top: 0;
-}
-.build-list .duration {
-  width: 120px;
-}
+.build-list .duration,
 .job-list .duration {
   width: 120px;
 }
@@ -635,6 +626,7 @@ table.build-list {
   width: 150px;
 }
 
+.job-list .progress,
 .build-list .progress {
   margin: 0;
   display: inline-block;

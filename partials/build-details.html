@@ -8,25 +8,27 @@
         <div ng-include="'partials/includes/build-info.html'"></div>
 
         <section class="section">
-            <ul class="job-list">
-                <li class="job-list-header">
-                    Job
-                    <div class="duration">Duration</div>
-                </li>
-                <li class="status-{{job.status.id}} result-{{job.result.id}}"
+            <table class="job-list">
+                <tr class="job-list-header">
+                    <th class="name">Job</th>
+                    <th class="duration">Duration</th>
+                </tr>
+                <tr class="status-{{job.status.id}} result-{{job.result.id}}"
                     ng-repeat="job in jobList"
                     slyEvaluateOnlyWhen="job.dateModified">
-                    <a ui-sref="job_details({job_id: job.id})" class="indicator">#{{build.number}}.{{job.number}}</a>
-                    <h5><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
-                    <div class="duration">
+                    <td class="name">
+                        <a ui-sref="job_details({job_id: job.id})" class="indicator">#{{build.number}}.{{job.number}}</a>
+                        <h5><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
+                    </td>
+                    <td class="duration">
                         <span ng-if="job.duration && job.dateFinished" duration="job.duration"></span>
                         <span ng-if="!job.dateFinished"
                               type="{{job.result.id}}"
                               value="job|buildEstimatedProgress"
                               progressbar>&nbsp;</span>
-                    </div>
-                </li>
-            </ul>
+                    </td>
+                </tr>
+            </table>
         </section>
 
         <section class="section" ng-if="testFailures.total">
