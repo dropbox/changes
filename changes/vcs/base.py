@@ -128,7 +128,7 @@ class RevisionResult(object):
             if '@' in value:
                 name, email = value, value
             else:
-                raise ValueError(value)
+                name, email = value, '{0}@localhost'.format(value)
         else:
             name, email = match.group(1), match.group(2)
 
