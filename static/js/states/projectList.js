@@ -27,8 +27,8 @@ define([
       }
 
       function getProjectClass(project) {
-        if (project.lastPassingBuild) {
-          return 'result-' + project.lastPassingBuild.result.id;
+        if (project.lastBuild) {
+          return 'result-' + project.lastBuild.result.id;
         }
         return 'result-unknown';
       }
@@ -56,18 +56,16 @@ define([
           return;
         }
 
-        if (data.result.id == 'passed') {
-          // not passing, so not relevant
-          return;
-        }
-
         // older than the 'current' last build
-        if (project.lastPassingBuild && data.dateCreated < project.lastPassingBuild.dateCreated) {
+        if (project.lastBuild && data.dateCreated < project.lastBuild.dateCreated) {
           return;
         }
 
         $scope.$apply(function() {
-          project.lastPassingBuild = data;
+          project.lastBuild = data;
+          if (data.result.id == 'passed') {
+            project.lastPassingBuild = data;
+          }
         });
       }
 

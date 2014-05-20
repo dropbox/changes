@@ -15,8 +15,10 @@ class ProjectListTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 2
         assert data[0]['id'] == self.project.id.hex
+        assert data[0]['lastBuild']['id'] == build.id.hex
         assert data[0]['lastPassingBuild']['id'] == build.id.hex
         assert data[1]['id'] == self.project2.id.hex
+        assert data[1]['lastBuild'] is None
         assert data[1]['lastPassingBuild'] is None
 
 
