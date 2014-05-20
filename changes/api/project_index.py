@@ -6,7 +6,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 from changes.api.base import APIView
 from changes.api.auth import requires_auth
 from changes.config import db
-from changes.constants import Status, ProjectStatus
+from changes.constants import Result, Status, ProjectStatus
 from changes.models import Project, Repository, Build, Source
 
 
@@ -41,6 +41,22 @@ class ProjectIndexAPIView(APIView):
             ).order_by(
                 Build.date_created.desc(),
             ).first()
+            if data['lastBuild'].result != Result.passed:
+                data['lastPassingBuild'] = Build.query.options(
+                    joinedload('author'),
+                    contains_eager('source')
+                ).join(
+                    Source, Build.source_id == Source.id,
+                ).filter(
+                    Source.patch_id == None,  # NOQA
+                    Build.project == project,
+                    Build.result == Result.passed,
+                    Build.status == Status.finished,
+                ).order_by(
+                    Build.date_created.desc(),
+                ).first()
+            else:
+                data['lastPassingBuild'] = data['lastBuild']
 
             context.append(data)
 

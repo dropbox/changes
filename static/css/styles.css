@@ -430,8 +430,8 @@ a.indicator {
   display: block;
   background: #c7c0de;
   text-align: center;
-  height: 178px;
-  padding: 50px 10px;
+  height: 148px;
+  padding: 30px 10px;
 }
 .project-list > li > a:hover {
   text-decoration: none;

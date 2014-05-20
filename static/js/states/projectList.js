@@ -63,17 +63,20 @@ define([
 
         $scope.$apply(function() {
           project.lastBuild = data;
+          if (data.result.id == 'passed') {
+            project.lastPassingBuild = data;
+          }
         });
       }
 
       projectList = projectList.data;
       $.each(projectList, function(_, project){
-        var lastBuild = project.lastBuild;
-        if (!lastBuild) {
+        var lastPassingBuild = project.lastPassingBuild;
+        if (!lastPassingBuild) {
           return;
         }
-        var linesCovered = lastBuild.stats.lines_covered;
-        var linesUncovered = lastBuild.stats.lines_uncovered;
+        var linesCovered = lastPassingBuild.stats.lines_covered;
+        var linesUncovered = lastPassingBuild.stats.lines_uncovered;
         project.hasCoverage = (linesCovered + linesUncovered > 0);
         project.coveragePercent = getCoveragePercent(linesCovered, linesUncovered);
       });

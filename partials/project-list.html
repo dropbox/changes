@@ -1,14 +1,19 @@
 <section ui-view>
 	<ul class="project-list">
-		<li ng-repeat="project in projects" class="{{getProjectClass(project)}}">
+		<li ng-repeat="project in projects"
+		    slyEvaluateOnlyWhen="project.lastBuild.dateModified"
+		    class="{{getProjectClass(project)}}">
 			<a ui-sref="project_commits({project_id: project.slug})">
 				<h4 bind-once>{{project.name}}</h4>
 				<div ng-if="project.lastBuild">
 					<small>
-						{{project.lastBuild.target.substr(0, 12)}}<span ng-if="project.lastBuild.author"> &mdash; {{project.lastBuild.author.name}}</span><br>
+						{{project.lastBuild.target.substr(0, 12)}}
+						<span ng-if="project.lastBuild.author"> &mdash; {{project.lastBuild.author.name}}</span><br>
 						<span ng-if="project.hasCoverage">
-							{{project.coveragePercent}}% code coverage &mdash; <span duration="project.lastBuild.duration"></span>
+							{{project.coveragePercent}}% code coverage
+							<span ng-if="project.lastGreenBuild.duration"> &mdash; <span duration="project.lastGreenBuild.duration"></span></span>
 						</span>
+						<span ng-if="project.lastGreenBuild.duration && !project.hasCoverage" duration="project.lastGreenBuild.duration"></span>
 					</small>
 				</div>
 				<div ng-if="!project.lastBuild">
