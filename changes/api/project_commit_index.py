@@ -9,6 +9,9 @@ from changes.constants import Status
 from changes.models import Build, Project, Revision, Source
 
 
+COMMITS_PER_PAGE = 50
+
+
 class ProjectCommitIndexAPIView(APIView):
     def get(self, project_id):
         project = Project.get(project_id)
@@ -19,7 +22,7 @@ class ProjectCommitIndexAPIView(APIView):
         vcs = repo.get_vcs()
 
         if vcs:
-            vcs_log = list(vcs.log())
+            vcs_log = list(vcs.log(limit=COMMITS_PER_PAGE))
 
             if vcs_log:
                 revisions_qs = list(Revision.query.options(
@@ -49,7 +52,7 @@ class ProjectCommitIndexAPIView(APIView):
                     joinedload('author'),
                 ).filter(
                     Revision.repository_id == repo.id,
-                ).order_by(Revision.date_created.desc())[:100]
+                ).order_by(Revision.date_created.desc())[:COMMITS_PER_PAGE]
             ))
 
         if commits:
