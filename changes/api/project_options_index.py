@@ -23,6 +23,7 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('hipchat.notify')
     parser.add_argument('hipchat.room')
     parser.add_argument('ui.show-coverage')
+    parser.add_argument('ui.show-tests')
 
     def _get_project(self, project_id):
         project = Project.query.options(

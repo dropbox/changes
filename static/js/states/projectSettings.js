@@ -16,7 +16,8 @@ define([
         "green-build.notify": 1,
         "mail.notify-author": 1,
         "hipchat.notify": 1,
-        "ui.show-coverage": 1
+        "ui.show-coverage": 1,
+        "ui.show-tests": 1
       }, options = {
         "build.branch-names": "*"
       };

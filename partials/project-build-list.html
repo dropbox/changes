@@ -12,13 +12,13 @@
             <li ng-class="selectedChart == 'duration' ? 'active' : ''">
                 <a ng-click="selectChart('duration')">Build Duration</a>
             </li>
-            <li ng-class="selectedChart == 'test_count' ? 'active' : ''">
+            <li ng-if="features.tests" ng-class="selectedChart == 'test_count' ? 'active' : ''">
                 <a ng-click="selectChart('test_count')">Test Count</a>
             </li>
-            <li ng-class="selectedChart == 'test_rerun_count' ? 'active' : ''">
+            <li ng-if="features.tests" ng-class="selectedChart == 'test_rerun_count' ? 'active' : ''">
                 <a ng-click="selectChart('test_rerun_count')">Test Retries</a>
             </li>
-            <li ng-class="selectedChart == 'tests_missing' ? 'active' : ''">
+            <li ng-if="features.tests" ng-class="selectedChart == 'tests_missing' ? 'active' : ''">
                 <a ng-click="selectChart('tests_missing')">Missing Tests</a>
             </li>
         </ul>
@@ -33,7 +33,7 @@
                     <th>Build</th>
                     <th class="duration">Duration</th>
                     <th class="coverage" ng-if="features.coverage">Coverage</th>
-                    <th class="tests">Tests</th>
+                    <th class="tests" ng-if="features.tests">Tests</th>
                     <th class="date">When</th>
                 </tr>
             </thead>

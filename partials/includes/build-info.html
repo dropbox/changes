@@ -23,7 +23,7 @@
                 <li><a ui-sref="project_source_details({source_id: build.source.id})">
                     <i class="glyphicon glyphicon-search"></i> View Changes</a>
                 </li>
-                <li><a ui-sref="build_test_list()">
+                <li ng-if="features.tests"><a ui-sref="build_test_list()">
                     <i class="glyphicon glyphicon-list-alt"></i> View Test Report</a>
                 </li>
                 <li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">

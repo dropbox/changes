@@ -42,6 +42,7 @@ OPTION_DEFAULTS = {
     'build.allow-patches': '1',
     'build.commit-trigger': '1',
     'ui.show-coverage': '1',
+    'ui.show-tests': '1',
 }
 
 

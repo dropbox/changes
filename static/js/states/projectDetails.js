@@ -14,6 +14,7 @@ define([
       $scope.features = features;
       $scope.project = projectData;
       $rootScope.activeProject = $scope.project;
+      $rootScope.activeProjectFeatures = $scope.features;
     },
     resolve: {
       projectData: function($http, $location, $stateParams) {
@@ -26,7 +27,8 @@ define([
       features: function($q, projectData) {
         var deferred = $q.defer();
         deferred.resolve({
-          coverage: (projectData.options['ui.show-coverage'] == '1')
+          coverage: (projectData.options['ui.show-coverage'] == '1'),
+          tests: (projectData.options['ui.show-tests'] == '1')
         });
         return deferred.promise;
       }
