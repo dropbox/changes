@@ -18,6 +18,14 @@ define([
         }
       }
 
+      function getCoveragePercent(lines_covered, lines_uncovered) {
+        var total_lines = lines_covered + lines_uncovered;
+        if (!total_lines) {
+          return 0;
+        }
+        return parseInt(lines_covered / total_lines * 100, 10);
+      }
+
       function getProjectClass(project) {
         if (project.lastBuild) {
           return 'result-' + project.lastBuild.result.id;
@@ -58,8 +66,20 @@ define([
         });
       }
 
+      projectList = projectList.data;
+      $.each(projectList, function(_, project){
+        var lastBuild = project.lastBuild;
+        if (!lastBuild) {
+          return;
+        }
+        var linesCovered = lastBuild.stats.lines_covered;
+        var linesUncovered = lastBuild.stats.lines_uncovered;
+        project.hasCoverage = (linesCovered + linesUncovered > 0);
+        project.coveragePercent = getCoveragePercent(linesCovered, linesUncovered);
+      });
+
       $scope.getProjectClass = getProjectClass;
-      $scope.projects = new Collection($scope, projectList.data);
+      $scope.projects = new Collection($scope, projectList);
 
       stream.addScopedChannels($scope, ['projects:*']);
       stream.addScopedSubscriber($scope, 'project.update', $scope.projects.updateItem);
