@@ -68,8 +68,8 @@ define([
       };
 
       $scope.build = buildData;
-      if ($scope.build.message) {
-        $scope.formattedBuildMessage = getFormattedBuildMessage($scope.build.message);
+      if (buildData.message) {
+        $scope.formattedBuildMessage = getFormattedBuildMessage(buildData.message);
       } else {
         $scope.formattedBuildMessage = null;
       }
@@ -83,14 +83,14 @@ define([
       $scope.phaseList = [
         {
           name: "Test",
-          result: $scope.build.result,
-          status: $scope.build.status
+          result: buildData.result,
+          status: buildData.status
         }
       ];
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
-      if (features.coverage && build.status.id == 'finished') {
+      if (features.coverage && buildData.status.id == 'finished') {
         $scope.hasCoverage = (buildData.stats.lines_covered + buildData.stats.lines_uncovered) > 0;
         $scope.coveragePercent = getCoveragePercent(buildData.stats.lines_covered, buildData.stats.lines_uncovered);
 
@@ -107,11 +107,11 @@ define([
         $scope.coverageData = sortArray(fileCoverageData, function(item) { return [item.filename]; });
       }
 
-      PageTitle.set(getPageTitle($scope.build));
+      PageTitle.set(getPageTitle(buildData));
 
       stream.addScopedChannels($scope, [
-        'builds:' + $scope.build.id,
-        'builds:' + $scope.build.id + ':jobs'
+        'builds:' + buildData.id,
+        'builds:' + buildData.id + ':jobs'
       ]);
       stream.addScopedSubscriber($scope, 'build.update', updateBuild);
       stream.addScopedSubscriber($scope, 'job.update', function(data) {
