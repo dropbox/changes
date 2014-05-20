@@ -7,11 +7,13 @@
 				<h4 bind-once>{{project.name}}</h4>
 				<div ng-if="project.lastPassingBuild">
 					<small>
-						<span ng-if="project.hasCoverage">
-							{{project.coveragePercent}}% code coverage
-							<span ng-if="project.lastPassingBuild.duration"> &mdash; <span duration="project.lastPassingBuild.duration"></span></span>
+						<span ng-if="project.lastPassingBuild.stats.test_count">
+							{{project.lastPassingBuild.stats.test_count}} tests <span class="sep">/</span>
 						</span>
-						<span ng-if="project.lastPassingBuild.duration && !project.hasCoverage" duration="project.lastPassingBuild.duration"></span>
+						<span ng-if="project.hasCoverage">
+							{{project.coveragePercent}}% coverage <span class="sep">/</span>
+						</span>
+						<span duration="project.lastPassingBuild.duration"></span>
 					</small>
 				</div>
 				<div ng-if="!project.lastPassingBuild">

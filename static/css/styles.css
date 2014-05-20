@@ -469,6 +469,9 @@ a.indicator {
 .project-list > li.result-failed > a small {
   color: #FFCAC8;
 }
+.project-list .sep {
+  padding: 0 5px;
+}
 
 table > tbody > tr > td.result {
   vertical-align: middle;
