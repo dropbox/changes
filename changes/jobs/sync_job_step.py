@@ -57,31 +57,26 @@ def is_missing_tests(step):
 
 def record_coverage_stats(step):
     coverage_stats = db.session.query(
-        func.sum(FileCoverage.lines_covered),
-        func.sum(FileCoverage.lines_uncovered),
-        func.sum(FileCoverage.diff_lines_covered),
-        func.sum(FileCoverage.diff_lines_uncovered),
+        func.sum(FileCoverage.lines_covered).label('lines_covered'),
+        func.sum(FileCoverage.lines_uncovered).label('lines_uncovered'),
+        func.sum(FileCoverage.diff_lines_covered).label('diff_lines_covered'),
+        func.sum(FileCoverage.diff_lines_uncovered).label('diff_lines_uncovered'),
     ).filter(
         FileCoverage.step_id == step.id,
     ).group_by(
         FileCoverage.step_id,
     ).first()
 
-    # XXX: must match order above in select!!!
     stat_list = (
         'lines_covered', 'lines_uncovered',
         'diff_lines_covered', 'diff_lines_uncovered',
     )
-
-    if coverage_stats is None:
-        coverage_stats = [0] * len(stat_list)
-
-    for stat_idx, stat_name in enumerate(stat_list):
+    for stat_name in stat_list:
         try_create(ItemStat, where={
             'item_id': step.id,
             'name': stat_name,
         }, defaults={
-            'value': coverage_stats[stat_idx] or 0,
+            'value': getattr(coverage_stats, stat_name, 0) or 0,
         })
 
 
