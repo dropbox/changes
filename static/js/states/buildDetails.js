@@ -90,7 +90,7 @@ define([
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
-      if (features.coverage) {
+      if (features.coverage && build.status.id == 'finished') {
         $scope.hasCoverage = (buildData.stats.lines_covered + buildData.stats.lines_uncovered) > 0;
         $scope.coveragePercent = getCoveragePercent(buildData.stats.lines_covered, buildData.stats.lines_uncovered);
 
