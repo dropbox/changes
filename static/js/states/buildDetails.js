@@ -104,7 +104,7 @@ define([
           fileCoverageData.push(item);
         });
 
-        $scope.coverageData = sortArray(fileCoverageData, function(item) { return [item.filename]; });
+        $scope.coverageData = sortArray(fileCoverageData, function(item) { return [item.filename]; }).reverse();
       }
 
       PageTitle.set(getPageTitle(buildData));
