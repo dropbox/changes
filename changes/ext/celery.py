@@ -54,10 +54,13 @@ class _Celery(object):
         kwargs.setdefault('throw', False)
         self.tasks[name].retry(*args, **kwargs)
 
-    def register(self, name, func):
+    def register(self, name, func, **kwargs):
         # XXX(dcramer): hacky way to ensure the task gets registered so
         # celery knows how to execute it
-        self.tasks[name] = self.celery.task(func, name=name)
+        for key, value in self.app.config['CELERY_ROUTES'].get(name, {}).iteritems():
+            kwargs.setdefault(key, value)
+
+        self.tasks[name] = self.celery.task(func, name=name, **kwargs)
 
 
 Celery = lambda **o: Container(_Celery, o, name='celery')

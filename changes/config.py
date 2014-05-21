@@ -127,6 +127,10 @@ def create_app(_read_config=True, gevent=False, **config):
             'queue': 'job.sync',
             'routing_key': 'job.sync',
         },
+        'check_repos': {
+            'queue': 'repo.sync',
+            'routing_key': 'repo.sync',
+        },
         'sync_repo': {
             'queue': 'repo.sync',
             'routing_key': 'repo.sync',
