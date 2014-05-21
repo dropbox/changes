@@ -180,7 +180,7 @@ class JenkinsBuilder(BaseBackend):
         except Exception:
             db.session.rollback()
             self.logger.exception(
-                'Failed to sync test results for job step', jobstep.id)
+                'Failed to sync test results for job step %s', jobstep.id)
         else:
             db.session.commit()
 
@@ -195,7 +195,7 @@ class JenkinsBuilder(BaseBackend):
         except Exception:
             db.session.rollback()
             self.logger.exception(
-                'Failed to sync test results for job step', jobstep.id)
+                'Failed to sync test results for job step %s', jobstep.id)
         else:
             db.session.commit()
 
