@@ -106,6 +106,7 @@ def create_app(_read_config=True, gevent=False, **config):
         Queue('job.sync', routing_key='job.sync'),
         Queue('job.create', routing_key='job.create'),
         Queue('celery', routing_key='celery'),
+        Queue('events', routing_key='events'),
         Queue('default', routing_key='default'),
         Queue('repo.sync', routing_key='repo.sync'),
     )
@@ -118,9 +119,25 @@ def create_app(_read_config=True, gevent=False, **config):
             'queue': 'job.sync',
             'routing_key': 'job.sync',
         },
+        'sync_job_step': {
+            'queue': 'job.sync',
+            'routing_key': 'job.sync',
+        },
+        'sync_build': {
+            'queue': 'job.sync',
+            'routing_key': 'job.sync',
+        },
         'sync_repo': {
             'queue': 'repo.sync',
             'routing_key': 'repo.sync',
+        },
+        'run_event_listener': {
+            'queue': 'events',
+            'routing_key': 'events',
+        },
+        'fire_signal': {
+            'queue': 'events',
+            'routing_key': 'events',
         },
     }
 
