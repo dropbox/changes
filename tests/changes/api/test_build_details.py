@@ -2,7 +2,7 @@ from datetime import datetime
 
 from changes.config import db
 from changes.constants import Status
-from changes.models import TestCase
+from changes.models import Event, TestCase
 from changes.testutils import APITestCase, TestCase as BaseTestCase
 from changes.api.build_details import find_changed_tests
 
@@ -60,6 +60,11 @@ class BuildDetailsTest(APITestCase):
             self.project, date_created=datetime(2013, 9, 19, 22, 15, 24))
         job1 = self.create_job(build)
         job2 = self.create_job(build)
+        db.session.add(Event(
+            item_id=build.id,
+            type='green_build_notification',
+        ))
+        db.session.commit()
 
         path = '/api/0/builds/{0}/'.format(build.id.hex)
 
@@ -76,3 +81,4 @@ class BuildDetailsTest(APITestCase):
         assert data['testFailures']['total'] == 0
         assert data['testFailures']['tests'] == []
         assert data['testChanges'] == []
+        assert len(data['events']) == 1

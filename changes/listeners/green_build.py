@@ -75,6 +75,7 @@ def build_finished_handler(build_id, **kwargs):
 
     project = options.get('green-build.project') or build.project.slug
 
+    logging.info('Making green_build request to %s', url)
     try:
         requests.post(url, auth=auth, data={
             'project': project,
