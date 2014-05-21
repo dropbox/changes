@@ -104,6 +104,10 @@ def sync_build(build_id):
         raise sync_build.NotFinished
 
     try:
+        aggregate_build_stat(build, 'test_count')
+        aggregate_build_stat(build, 'test_duration')
+        aggregate_build_stat(build, 'test_failures')
+        aggregate_build_stat(build, 'test_rerun_count')
         aggregate_build_stat(build, 'tests_missing')
         aggregate_build_stat(build, 'lines_covered')
         aggregate_build_stat(build, 'lines_uncovered')

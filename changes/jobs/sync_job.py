@@ -128,6 +128,10 @@ def sync_job(job_id):
         raise sync_job.NotFinished
 
     try:
+        aggregate_job_stat(job, 'test_count')
+        aggregate_job_stat(job, 'test_duration')
+        aggregate_job_stat(job, 'test_failures')
+        aggregate_job_stat(job, 'test_rerun_count')
         aggregate_job_stat(job, 'tests_missing')
         aggregate_job_stat(job, 'lines_covered')
         aggregate_job_stat(job, 'lines_uncovered')

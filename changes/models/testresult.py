@@ -4,13 +4,11 @@ import logging
 import re
 
 from datetime import datetime
-from sqlalchemy import and_
-from sqlalchemy.sql import func, select
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import create_or_update, try_create
-from changes.models import ItemStat, Job, TestCase
+from changes.db.utils import create_or_update
+from changes.models import ItemStat, TestCase
 
 logger = logging.getLogger('changes.testresult')
 
@@ -99,18 +97,13 @@ class TestResultManager(object):
 
         try:
             self._record_test_counts(test_list)
+            self._record_test_failures(test_list)
             self._record_test_duration(test_list)
             self._record_test_rerun_counts(test_list)
         except Exception:
             logger.exception('Failed to record aggregate test statistics')
 
     def _record_test_counts(self, test_list):
-        job = self.step.job
-
-        test_count = db.session.query(func.count(TestCase.id)).filter(
-            TestCase.job_id == job.id,
-        ).as_scalar()
-
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
             'name': 'test_count',
@@ -119,46 +112,20 @@ class TestResultManager(object):
         })
         db.session.commit()
 
+    def _record_test_failures(self, test_list):
         create_or_update(ItemStat, where={
-            'item_id': job.id,
-            'name': 'test_count',
+            'item_id': self.step.id,
+            'name': 'test_failures',
         }, values={
-            'value': test_count,
+            'value': sum(t.result == Result.failed for t in test_list),
         })
         db.session.commit()
 
-        instance = try_create(ItemStat, where={
-            'item_id': job.build_id,
-            'name': 'test_count',
-        }, defaults={
-            'value': test_count
-        })
-        if not instance:
-            ItemStat.query.filter(
-                ItemStat.item_id == job.build_id,
-                ItemStat.name == 'test_count',
-            ).update({
-                'value': select([func.sum(ItemStat.value)]).where(
-                    and_(
-                        ItemStat.name == 'test_count',
-                        ItemStat.item_id.in_(select([Job.id]).where(
-                            Job.build_id == job.build_id,
-                        ))
-                    )
-                ),
-            }, synchronize_session=False)
-
     def _record_test_duration(self, test_list):
-        job = self.step.job
-
         if test_list:
             local_test_duration = sum(t.duration or 0 for t in test_list)
         else:
             local_test_duration = 0
-
-        test_duration = db.session.query(func.sum(TestCase.duration)).filter(
-            TestCase.job_id == job.id,
-        ).as_scalar()
 
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
@@ -167,73 +134,10 @@ class TestResultManager(object):
             'value': local_test_duration,
         })
 
-        create_or_update(ItemStat, where={
-            'item_id': job.id,
-            'name': 'test_duration',
-        }, values={
-            'value': test_duration,
-        })
-
-        instance = try_create(ItemStat, where={
-            'item_id': job.build_id,
-            'name': 'test_duration',
-        }, defaults={
-            'value': test_duration
-        })
-        if not instance:
-            ItemStat.query.filter(
-                ItemStat.item_id == job.build_id,
-                ItemStat.name == 'test_duration',
-            ).update({
-                'value': select([func.sum(ItemStat.value)]).where(
-                    and_(
-                        ItemStat.name == 'test_duration',
-                        ItemStat.item_id.in_(select([Job.id]).where(
-                            Job.build_id == job.build_id,
-                        ))
-                    )
-                ),
-            }, synchronize_session=False)
-
     def _record_test_rerun_counts(self, test_list):
-        job = self.step.job
-
-        rerun_count = db.session.query(func.count(TestCase.id)).filter(
-            TestCase.job_id == job.id,
-            TestCase.reruns > 0,
-        ).as_scalar()
-
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
             'name': 'test_rerun_count',
         }, values={
             'value': sum(1 for t in test_list if t.reruns),
         })
-
-        create_or_update(ItemStat, where={
-            'item_id': job.id,
-            'name': 'test_rerun_count',
-        }, values={
-            'value': rerun_count,
-        })
-
-        instance = try_create(ItemStat, where={
-            'item_id': job.build_id,
-            'name': 'test_rerun_count',
-        }, defaults={
-            'value': rerun_count
-        })
-        if not instance:
-            ItemStat.query.filter(
-                ItemStat.item_id == job.build_id,
-                ItemStat.name == 'test_rerun_count',
-            ).update({
-                'value': select([func.sum(ItemStat.value)]).where(
-                    and_(
-                        ItemStat.name == 'test_rerun_count',
-                        ItemStat.item_id.in_(select([Job.id]).where(
-                            Job.build_id == job.build_id,
-                        ))
-                    )
-                ),
-            }, synchronize_session=False)

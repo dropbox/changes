@@ -12,6 +12,7 @@ from changes.models import Project, Build, ItemStat
 STAT_CHOICES = (
     'test_count',
     'test_duration',
+    'test_failures',
     'test_rerun_count',
     'tests_missing',
     'lines_covered',

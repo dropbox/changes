@@ -58,33 +58,15 @@ class TestResultManagerTestCase(TestCase):
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_count',
-            ItemStat.item_id == build.id,
-        )[0]
-        assert teststat.value == 2
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == job.id,
-        )[0]
-        assert teststat.value == 2
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
             ItemStat.item_id == jobstep.id,
         )[0]
         assert teststat.value == 2
 
         teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == build.id,
+            ItemStat.name == 'test_failures',
+            ItemStat.item_id == jobstep.id,
         )[0]
-        assert teststat.value == 168
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == job.id,
-        )[0]
-        assert teststat.value == 168
+        assert teststat.value == 1
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_duration',
@@ -94,72 +76,6 @@ class TestResultManagerTestCase(TestCase):
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == build.id,
-        )[0]
-        assert teststat.value == 1
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == job.id,
-        )[0]
-        assert teststat.value == 1
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
             ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 1
-
-        job2 = self.create_job(build)
-        jobphase2 = self.create_jobphase(job2)
-        jobstep2 = self.create_jobstep(jobphase2)
-
-        results2 = [
-            TestResult(
-                step=jobstep2,
-                name='test_bar',
-                package='tests.changes.handlers.test_bar',
-                result=Result.failed,
-                message='collection failed',
-                duration=156,
-                reruns=2,
-            ),
-        ]
-        manager = TestResultManager(jobstep2)
-        manager.save(results2)
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == build.id,
-        )[0]
-        assert teststat.value == 3
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == job2.id,
-        )[0]
-        assert teststat.value == 1
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == build.id,
-        )[0]
-        assert teststat.value == 324
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == job2.id,
-        )[0]
-        assert teststat.value == 156
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == build.id,
-        )[0]
-        assert teststat.value == 2
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == job2.id,
         )[0]
         assert teststat.value == 1
