@@ -17,10 +17,15 @@
       <span duration="build.duration"></span>
     </td>
     <td class="duration" ng-if="!isFinished">
+      <span ng-if="isQueued">
+        Queued
+      </span>
+      <span ng-if="!isQueued">
         <span type="{{build.result.id}}"
               value="estimatedProgress"
               animate="false"
               progressbar>&nbsp;</span>
+      </span>
     </td>
 
     <td class="coverage" ng-if="features.coverage">
