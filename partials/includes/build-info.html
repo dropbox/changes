@@ -1,12 +1,6 @@
-<div class="row" slyEvaluateOnlyWhen="build.dateModified">
-    <div class="col-lg-9 col-md-8">
+<div class="row build-info" slyEvaluateOnlyWhen="build.dateModified">
+    <div class="col-lg-3 col-md-4 col-sm-5">
         <dl class="flat">
-            <dt ng-if="build.source.revision">Revision:</dt>
-            <dd ng-if="build.source.revision">
-                <a ui-sref="project_commit_details({project_id: build.project.id, commit_id: build.source.revision.id})">{{build.source.revision.id}}</a>
-            </dd>
-            <dt ng-if="build.source.patch">Patch:</dt>
-            <dd ng-if="build.source.patch"><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
             <dt>Status:</dt>
             <dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
             <dt ng-if="build.dateStarted">Started:</dt>
@@ -15,25 +9,38 @@
             <dd ng-if="build.duration" duration="build.duration"></dd>
             <dt ng-if="hasCoverage">Coverage:</dt>
             <dd ng-if="hasCoverage">{{coveragePercent}}% (overall)</dd>
+            <dt ng-if="hasTests">Tests:</dt>
+            <dd ng-if="hasTests">
+                <a ui-sref="build_test_list()">{{build.stats.test_count}}</a>
+                <span ng-if="build.stats.test_failures">({{build.stats.test_failures}} failures)</span>
+            </dd>
         </dl>
     </div>
-    <div class="col-lg-3 col-md-4">
-        <div class="panel panel-default">
-            <ul class="nav nav-small">
-                <li><a ui-sref="project_source_details({source_id: build.source.id})">
-                    <i class="glyphicon glyphicon-search"></i> View Changes</a>
-                </li>
-                <li ng-if="features.tests"><a ui-sref="build_test_list()">
-                    <i class="glyphicon glyphicon-list-alt"></i> View Test Report</a>
-                </li>
-                <li ng-if="build.status.id == 'finished'"><a href="javascript:void(0)" ng-click="restartBuild()">
-                    <i class="glyphicon glyphicon-repeat"></i> Recreate Build</a>
-                </li>
-                <li ng-if="build.status.id != 'finished'"><a href="javascript:void(0)" ng-click="cancelBuild()">
-                    <i class="glyphicon glyphicon-remove"></i> Cancel Build</a>
-                </li>
-            </ul>
-        </div>
+    <div class="col-lg-5 col-md-6 col-sm-7">
+        <img src="{{build.author.avatar}}&amp;s=64" class="build-avatar">
+        <dl class="flat" ng-if="build.source.patch">
+            <dt ng-if="build.source.revision">Parent:</dt>
+            <dd ng-if="build.source.revision">
+                <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0, 12)}}</a>
+            </dd>
+            <dt ng-if="build.source.patch">Patch:</dt>
+            <dd ng-if="build.source.patch"><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>
+            <dt>Discovered:</dt>
+            <dd time-since="build.source.dateCreated"></dd>
+        </dl>
+        <dl class="flat" ng-if="!build.source.patch">
+            <dt ng-if="build.source.revision">Commit:</dt>
+            <dd ng-if="build.source.revision">
+                <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0, 12)}}</a>
+            </dd>
+            <dt>Discovered:</dt>
+            <dd time-since="build.source.dateCreated"></dd>
+            <dt ng-if="build.source.revision.author">Author:</dt>
+            <dd ng-if="build.source.revision.author">
+                <span ng-if="build.author.email">{{build.source.revision.author.email}}</span>
+                <span ng-if="!build.author.email">{{build.source.revision.author.name}}</span>
+            </dd>
+        </dl>
     </div>
 </div>
 

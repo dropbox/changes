@@ -1,4 +1,5 @@
 from changes.api.serializer import Serializer, register
+from changes.api.serializer.models.user import get_gravatar_url
 from changes.models.author import Author
 
 
@@ -9,5 +10,6 @@ class AuthorSerializer(Serializer):
             'id': instance.id.hex,
             'name': instance.name,
             'email': instance.email,
+            'avatar': get_gravatar_url(instance.email),
             'dateCreated': instance.date_created,
         }

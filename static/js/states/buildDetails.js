@@ -33,10 +33,11 @@ define([
         if (data.id !== $scope.build.id) {
           return;
         }
-        $scope.$apply(function() {
-          $scope.build = data;
-        });
-      }
+
+        $scope.hasTests = (features.tests && buildData.stats.test_count);
+        $scope.isFinished = (buildData.status.id == 'finished');
+        $scope.build = data;
+    }
 
       $scope.cancelBuild = function() {
         $http.post('/api/0/builds/' + $scope.build.id + '/cancel/')
@@ -87,6 +88,9 @@ define([
           status: buildData.status
         }
       ];
+
+      updateBuild(buildData);
+
       // show phase list if > 1 phase
       $scope.showPhaseList = true;
 
@@ -113,7 +117,11 @@ define([
         'builds:' + buildData.id,
         'builds:' + buildData.id + ':jobs'
       ]);
-      stream.addScopedSubscriber($scope, 'build.update', updateBuild);
+      stream.addScopedSubscriber($scope, 'build.update', function(data){
+        $scope.$apply(function() {
+          updateBuild(data);
+        });
+      });
       stream.addScopedSubscriber($scope, 'job.update', function(data) {
         if (data.build.id == $scope.build.id) {
           $scope.jobList.updateItem(data);

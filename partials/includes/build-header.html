@@ -5,6 +5,27 @@
             <a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
         </li>
     </ul>
+    <div class="actions">
+        <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown">
+            <span class="caret"></span>
+        </a>
+        <nav class="dropdown-menu dropdown-menu-right">
+            <ul class="nav">
+                <li><a ui-sref="project_source_details({source_id: build.source.id})">
+                    <i class="glyphicon glyphicon-search"></i> View Changes</a>
+                </li>
+                <li ng-if="hasTests"><a ui-sref="build_test_list()">
+                    <i class="glyphicon glyphicon-list-alt"></i> View Test Report</a>
+                </li>
+                <li ng-if="isFinished"><a href="javascript:void(0)" ng-click="restartBuild()">
+                    <i class="glyphicon glyphicon-repeat"></i> Recreate Build
+                </a></li>
+                <li ng-if="!isFinished"><a href="javascript:void(0)" ng-click="cancelBuild()">
+                    <i class="glyphicon glyphicon-remove"></i> Cancel Build
+                </a></li>
+            </ul>
+        </nav>
+    </div>
     <div class="seen-by">
         <ul>
             <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
@@ -18,9 +39,10 @@
     <h2>
         {{build.name}}<br>
         <small>
-            <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
-            <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
-            <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
+            Commit  <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0,12)}}</a>
+            <span ng-if="build.source.revision.branches">
+                to <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
+            </span>
         </small>
     </h2>
 </div>

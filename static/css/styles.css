@@ -64,6 +64,14 @@ dl.flat {
   padding-left: 110px;
   margin-top: 0;
 }
+dl.flat dt,
+dl.flat dd {
+  line-height: 1.6em;
+}
+dl.flat dt {
+  font-weight: normal;
+  color: #666;
+}
 dl.flat dt {
   position: absolute;
   left: 0;
@@ -132,6 +140,7 @@ dl.flat dt {
   color: #333;
   padding: 0 3px;
   text-transform: uppercase;
+  font-size: 0.8em;
   margin-right: 3px;
   vertical-align: text-top;
 }
@@ -402,10 +411,38 @@ a.indicator {
 
 .build-header .seen-by {
   position: absolute;
-  right: 0;
+  right: 40px;
   top: 5px;
   bottom: 20px;
   max-width: 150px;
+}
+
+.build-header .actions {
+  position: absolute;
+  right: 0;
+  top: 5px;
+}
+.build-header .actions .dropdown-toggle {
+  padding: 0 5px;
+}
+.build-header .actions .dropdown-toggle .caret {
+  border-width: 8px 6px 0;
+}
+.build-header .actions .dropdown-menu {
+  width: 200px;
+}
+
+.build-avatar {
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+  border-radius: 64px;
+  margin-right: 20px;
+  margin-top: 5px;
+  vertical-align: top;
+}
+.build-info .flat {
+  display: inline-block;
 }
 
 .pager li > a {
@@ -1275,10 +1312,12 @@ d3barchart {
 }
 .btn-primary:hover,
 .btn-primary:focus,
-.btn-primary:active {
+.btn-primary:active, {
   background: #58488a;
   border-color: #58488a;
 }
+.open .dropdown-toggle.btn-primary,
+.dropdown-toggle.btn-primary:hover,
 .btn-primary.active {
   background: #63519e;
   color: #fff;
@@ -1395,7 +1434,6 @@ label.btn input[type=checkbox] {
 .nav a .glyphicon {
   margin-right: 10px;
 }
-
 
 .alert a {
   color: inherit;
