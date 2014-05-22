@@ -1,4 +1,4 @@
 define([
-  'bootstrap',
-  'jquery'
+  'jquery',
+  'bootstrap/tooltip'
 ], function() { });
