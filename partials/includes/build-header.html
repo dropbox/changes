@@ -38,11 +38,15 @@
     </div>
     <h2>
         {{build.name}}<br>
-        <small>
-            Commit  <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0,12)}}</a>
+        <small ng-if="!build.source.patch">
+            Commit <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0,12)}}</a>
             <span ng-if="build.source.revision.branches">
                 to <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
             </span>
+        </small>
+        <small ng-if="build.source.patch">
+            Patch build <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.target}}</a>
+            on <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0,12)}}
         </small>
     </h2>
 </div>
