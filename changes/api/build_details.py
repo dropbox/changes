@@ -1,14 +1,14 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 from uuid import UUID
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
 from changes.config import db
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, Event, Job, TestCase, BuildSeen, User
+from changes.models import Build, Source, Event, Job, TestCase, BuildSeen, User
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -116,9 +116,11 @@ class BuildDetailsAPIView(APIView):
             Build.date_created < build.date_created,
             Build.status == Status.finished,
             Build.id != build.id,
-            Build.patch == None,  # NOQA
+            Source.patch_id == None,  # NOQA
+        ).join(
+            Source, Build.source_id == Source.id,
         ).options(
-            joinedload('source'),
+            contains_eager('source'),
             joinedload('author'),
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 

@@ -26,6 +26,10 @@ class GreenBuildTest(TestCase):
             project=project,
             revision_sha='a' * 40,
         )
+        build = self.create_build(
+            project=project,
+            source=source,
+        )
 
         build = self.create_build(
             project=project,
@@ -35,7 +39,7 @@ class GreenBuildTest(TestCase):
         get_options.return_value = {
             'green-build.notify': '1',
         }
-        vcs = build.repository.get_vcs.return_value
+        vcs = build.source.repository.get_vcs.return_value
         vcs.run.return_value = '134:asdadfadf'
 
         # test with failing build

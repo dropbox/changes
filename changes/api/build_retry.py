@@ -22,7 +22,6 @@ class BuildRetryAPIView(APIView):
             target=build.target,
             message=build.message,
             author=build.author,
-            patch=build.patch,
             source=build.source,
             cause=Cause.retry,
         )

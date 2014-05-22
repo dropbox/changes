@@ -26,9 +26,7 @@ class Build(db.Model):
     __tablename__ = 'build'
     __table_args__ = (
         Index('idx_buildfamily_project_id', 'project_id'),
-        Index('idx_buildfamily_repository_sha', 'repository_id', 'revision_sha'),
         Index('idx_buildfamily_author_id', 'author_id'),
-        Index('idx_buildfamily_patch_id', 'patch_id'),
         Index('idx_buildfamily_source_id', 'source_id'),
         UniqueConstraint('project_id', 'number', name='unq_build_number'),
     )
@@ -37,10 +35,6 @@ class Build(db.Model):
     number = Column(Integer)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
-    # TODO(dcramer): repo/sha/patch_id should be removed in favor of source
-    revision_sha = Column(String(40))
-    repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
-    patch_id = Column(GUID, ForeignKey('patch.id', ondelete="CASCADE"))
     author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
     cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
     label = Column(String(128), nullable=False)
@@ -56,9 +50,7 @@ class Build(db.Model):
     data = Column(JSONEncodedDict)
 
     project = relationship('Project', innerjoin=True)
-    repository = relationship('Repository')
     source = relationship('Source', innerjoin=True)
-    patch = relationship('Patch')
     author = relationship('Author')
 
     __repr__ = model_repr('label', 'target')

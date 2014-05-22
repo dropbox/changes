@@ -17,9 +17,10 @@ def publish_build_update(target):
             author_id=target.author.id.hex,
         ))
 
-    if not target.source.patch and target.source.revision_sha:
+    source = target.source
+    if source.is_commit():
         channels.append('revisions:{revision_id}:builds'.format(
-            revision_id=target.revision_sha,
+            revision_id=source.revision_sha,
         ))
 
     for channel in channels:

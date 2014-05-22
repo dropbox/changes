@@ -182,8 +182,6 @@ class Fixtures(object):
         kwargs.setdefault('label', 'Sample')
 
         build = Build(
-            repository_id=project.repository_id,
-            repository=project.repository,
             project_id=project.id,
             project=project,
             **kwargs

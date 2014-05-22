@@ -48,8 +48,10 @@ def build_finished_handler(build_id, **kwargs):
         logger.info('GREEN_BUILD_AUTH not set')
         return
 
+    source = build.source
+
     # we only want to identify stable revisions
-    if not build.source.is_commit():
+    if not source.is_commit():
         logger.debug('Ignoring build due to non-commit: %s', build.id)
         return
 
@@ -59,19 +61,19 @@ def build_finished_handler(build_id, **kwargs):
         logger.info('green-build.notify disabled for project: %s', build.project_id)
         return
 
-    if build.repository.backend != RepositoryBackend.hg:
-        logger.info('Repository backend is not supported: %s', build.repository.id)
+    if source.repository.backend != RepositoryBackend.hg:
+        logger.info('Repository backend is not supported: %s', source.repository.id)
         return
 
-    vcs = build.repository.get_vcs()
+    vcs = source.repository.get_vcs()
     if vcs is None:
-        logger.info('Repository has no VCS set: %s', build.repository.id)
+        logger.info('Repository has no VCS set: %s', source.repository.id)
         return
 
     # ensure we have the latest changes
     vcs.update()
 
-    release_id = vcs.run(['log', '-r %s' % (build.source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
+    release_id = vcs.run(['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
 
     project = options.get('green-build.project') or build.project.slug
 

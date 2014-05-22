@@ -120,7 +120,6 @@ def build(project, **kwargs):
     kwargs.setdefault('label', get_sentences(1)[0][:128])
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
-    kwargs.setdefault('repository', project.repository)
     kwargs.setdefault('duration', random.randint(10000, 100000))
     kwargs.setdefault('target', uuid4().hex)
 
@@ -128,7 +127,6 @@ def build(project, **kwargs):
         kwargs['source'] = source(project.repository)
 
     kwargs['project'] = project
-    kwargs['repository_id'] = kwargs['repository'].id
     kwargs['project_id'] = kwargs['project'].id
     kwargs['author_id'] = kwargs['author'].id
 
