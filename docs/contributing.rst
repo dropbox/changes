@@ -34,7 +34,7 @@ While it's likely you won't need to actually run the workers, they're managed vi
     # is utilized for periodic tasks.
     $ bin/worker -B
 
-.. note:: In development you can set ``CELERY_ALWAYS_EAGER=True`` to run the queue tasks synchronously in-process. Generally we prefer to test throughs through automated integration tests, but this is useful if you want to QA and don't want to run several processes.
+.. note:: In development you can set ``CELERY_ALWAYS_EAGER=True`` to run the queue tasks synchronously in-process. Generally we prefer to test through automated integration tests, but this is useful if you want to QA and don't want to run several processes.
 
 
 Directory Layout
