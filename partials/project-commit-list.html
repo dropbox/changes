@@ -38,6 +38,7 @@
 
         <tbody ng-repeat-start="commit in commits">
             <tr buildrow="commit.build"
+                features="features"
                 ng-if="commit.build"></tr>
             <tr ng-if="!commit.build">
                 <td class="name">

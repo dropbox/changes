@@ -32,6 +32,10 @@
         templateUrl: 'partials/includes/build-row.html',
         restrict: 'A',
         replace: true,
+        scope: {
+          build: '=buildrow',
+          features: '=features'
+        },
         link: function (scope, element, attrs) {
           var timeout_id;
 
@@ -47,7 +51,7 @@
             }
           }
 
-          scope.$watch(attrs.buildrow, function(build) {
+          scope.$watch('build', function(build) {
             scope.buildTitle = attrs.title || build.name;
             scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered) > 0;
             scope.coveragePercent = getCoveragePercent(build);
@@ -64,7 +68,6 @@
               scope.showBranches = attrs.showBranches;
             }
             updateBuildProgress(build);
-            scope.build = build;
           });
 
           element.bind('$destroy', function() {
