@@ -142,7 +142,7 @@ define([
       /**
        $scope.chartData = [[x, y], [x, y]];
 
-       <barchart ng-model="chartData"/>
+       <barchart data="chartData" options="chartOptions"/>
        */
       function BarChart(element, items, options) {
         var self = this;
@@ -163,17 +163,10 @@ define([
       return {
         restrict: 'E',
         link: function(scope, elem, attrs) {
-          function render(data, attrs){
-            $(elem).empty();
-            new BarChart(elem, data, attrs);
-          }
-
-          scope.$watch(attrs.ngModel, function(value) {
-            $timeout(function(){
-              if (!value) {
-                return;
-              }
-              render(value, attrs);
+          scope.$watchCollection(attrs.data, function(value) {
+            window.setTimeout(function(){
+              $(elem).empty();
+              new BarChart(elem, value || [], attrs);
             });
           });
         }

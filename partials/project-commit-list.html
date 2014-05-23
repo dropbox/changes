@@ -24,7 +24,8 @@
             </li>
         </ul>
 
-        <barchart ng-model="chartData" style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
+        <barchart data="chartData.data" options="chartData.options"
+                  style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
     </div>
 
     <table class="build-list">
