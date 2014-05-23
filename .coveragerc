@@ -1,0 +1,7 @@
+[run]
+source =
+	changes
+	tests
+
+[xml]
+output=coverage.xml

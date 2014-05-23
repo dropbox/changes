@@ -40,7 +40,8 @@ lint-js:
 	@echo ""
 
 test-full: install-requirements install-test-requirements lint
-	py.test --junitxml=junit.xml --cov-report=xml --cov=. tests
+	coverage run -m py.test --junitxml=junit.xml tests
+	coverage xml
 
 resetdb:
 	dropdb --if-exists changes
