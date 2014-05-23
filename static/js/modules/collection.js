@@ -93,7 +93,6 @@ define(['angular'], function(angular) {
         var existing = this.indexOf(data);
 
         if (existing !== -1) {
-          console.log('deep merge ' + data.id);
           $.extend(true, this[existing], data);
           return;
         }
