@@ -109,28 +109,27 @@ define([
         return 'Job ' + job.id + ' - ' + projectData.name;
       }
 
-      function organizeLogSources(logSources) {
-        var result = {};
+      function organizeLogSources(sourcesByPhase, logSources) {
         $.each(logSources, function(_, source){
           if (!source.step.phase) {
             // legacy, incompatible
             return;
           }
           var phaseId = source.step.phase.id;
-          if (result[phaseId] === undefined) {
-            result[phaseId] = [source];
-          } else {
-            result[phaseId].push(source);
+          if (sourcesByPhase[phaseId] === undefined) {
+            sourcesByPhase[phaseId] = new Collection($scope, []);
           }
+          sourcesByPhase[phaseId].update(source);
         });
-        return result;
       }
 
       $scope.job = jobData;
       $scope.phases = new Collection(jobData.phases);
       $scope.testFailures = jobData.testFailures;
       $scope.previousRuns = new Collection(jobData.previousRuns);
-      $scope.logSourcesByPhase = organizeLogSources(jobData.logs);
+      $scope.logSourcesByPhase = {};
+
+      organizeLogSources($scope.logSourcesByPhase, jobData.logs);
 
       PageTitle.set(getPageTitle(buildData, $scope.job));
 
@@ -146,6 +145,8 @@ define([
           $.extend(true, $scope.testFailures, response.testFailures);
           $scope.previousRuns.extend(jobData.previousRuns);
           $scope.phases.extend(response.phases);
+
+          organizeLogSources($scope.logSourcesByPhase, jobData.logs);
         }
       });
     },
