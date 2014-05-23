@@ -16,6 +16,7 @@ define([
   'states/projectBuildList',
   'states/projectCommitDetails',
   'states/projectCommitList',
+  'states/projectCoverageList',
   'states/projectCreate',
   'states/projectCreateBuild',
   'states/projectDetails',
@@ -54,6 +55,7 @@ define([
   ProjectBuildListState,
   ProjectCommitDetailsState,
   ProjectCommitListState,
+  ProjectCoverageListState,
   ProjectCreateState,
   ProjectCreateBuildState,
   ProjectDetailsState,
@@ -121,6 +123,7 @@ define([
       .state('project_new_build', ProjectCreateBuildState)
       .state('project_commits', ProjectCommitListState)
       .state('project_commit_details', ProjectCommitDetailsState)
+      .state('project_coverage', ProjectCoverageListState)
       .state('project_settings', ProjectSettingsState)
       .state('project_tests', ProjectTestListState)
       .state('project_test_details', ProjectTestDetailsState)

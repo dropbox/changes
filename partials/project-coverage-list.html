@@ -1,0 +1,31 @@
+<div class="page-header">
+	<h2>Coverage Report</h2>
+</div>
+
+<ul class="breadcrumb" ng-if="trail">
+	<li ng-repeat="piece in trail"><a ui-sref="project_coverage({parent: piece.path})">{{piece.name}}</a></li>
+</ul>
+
+<section>
+	<table class="grid-list">
+		<thead>
+			<tr class="grid-list-header">
+				<th>&nbsp;</th>
+				<th class="column">Files</th>
+				<th class="column">Lines Covered</th>
+				<th class="column">Lines Uncovered</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="fileCoverage in fileCoverageList track by fileCoverage.filename">
+				<td>
+					<a ui-sref="project_coverage({parent: fileCoverage.path})" ng-if="fileCoverage.numFiles > 1">{{fileCoverage.filename}}</a>
+					<span ng-if="fileCoverage.numFiles == 1">{{fileCoverage.filename}}</span>
+				</td>
+				<td class="column">{{fileCoverage.numFiles}}</td>
+				<td class="column">{{fileCoverage.totalLinesCovered}}</td>
+				<td class="column">{{fileCoverage.totalLinesUncovered}}</td>
+			</tr>
+		</tbody>
+	</table>
+</section>
