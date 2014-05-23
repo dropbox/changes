@@ -52,7 +52,7 @@ define([
     },
     resolve: {
       logData: function($http, $stateParams, jobData) {
-        return $http.get('/api/0/jobs/' + jobData.data.id + '/logs/' + $stateParams.source_id + '?limit=0').then(function(response){
+        return $http.get('/api/0/jobs/' + jobData.id + '/logs/' + $stateParams.source_id + '?limit=0').then(function(response){
           return response.data;
         });
       }
