@@ -1185,6 +1185,7 @@ chart {
 }
 
 d3barchart {
+  display: block;
   border-bottom: 1px solid #EFEFEF;
 }
 

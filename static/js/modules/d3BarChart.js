@@ -138,7 +138,7 @@ define([
   };
 
   angular.module('changes.barchart', [])
-    .directive('d3barchart', function($window, $timeout) {
+    .directive('d3barchart', function($window) {
       /**
        $scope.chartData = [[x, y], [x, y]];
 
