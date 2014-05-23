@@ -7,4 +7,6 @@ python:
 install:
   - make develop
 script:
+  - hg --version
+  - git --version
   - make test
