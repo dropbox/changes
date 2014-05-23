@@ -58,6 +58,7 @@ install_requires = [
     'sqlalchemy==0.9.4',
     'statprof',
     'toronado==0.0.4',
+    'uwsgi>=2.0.4,<2.1.0',
 ]
 
 
