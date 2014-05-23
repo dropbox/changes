@@ -9,7 +9,8 @@ define([
     url: "jobs/:job_id/",
     parent: 'build_details',
     templateUrl: 'partials/job-details.html',
-    controller: function($scope, $http, $filter, projectData, buildData, jobData, stream, PageTitle, Pagination) {
+    controller: function($scope, $http, $filter, projectData, buildData, Collection,
+                         jobData, ItemPoller, PageTitle, Pagination) {
       var logStreams = {};
 
       function getLogSourceEntrypoint(jobId, logSourceId) {
@@ -125,24 +126,34 @@ define([
         return result;
       }
 
-      $scope.job = jobData.data;
-      $scope.phases = jobData.data.phases;
-      $scope.testFailures = jobData.data.testFailures;
-      $scope.previousRuns = jobData.data.previousRuns;
-      $scope.logSourcesByPhase = organizeLogSources(jobData.data.logs);
+      $scope.job = jobData;
+      $scope.phases = new Collection(jobData.phases);
+      $scope.testFailures = jobData.testFailures;
+      $scope.previousRuns = new Collection(jobData.previousRuns);
+      $scope.logSourcesByPhase = organizeLogSources(jobData.logs);
 
       PageTitle.set(getPageTitle(buildData, $scope.job));
 
-      stream.addScopedChannels($scope, [
-        'jobs:' + $scope.job.id,
-        'logsources:' + $scope.job.id + ':*'
-      ]);
-      stream.addScopedSubscriber($scope, 'job.update', updateJob);
-      stream.addScopedSubscriber($scope, 'buildlog.update', updateBuildLog);
+      // TODO(dcramer): support log polling with offsets
+      var poller = new ItemPoller({
+        $scope: $scope,
+        endpoint: '/api/0/jobs/' + jobData.id + '/',
+        update: function(response) {
+          if (response.dateModified < $scope.job.dateModified) {
+            return;
+          }
+          angular.extend($scope.job, response);
+          angular.extend($scope.testFailures, response.testFailures);
+          $scope.previousRuns.extend(jobData.previousRuns);
+          $scope.phases.extend(response.phases);
+        }
+      });
     },
     resolve: {
       jobData: function($http, $stateParams) {
-        return $http.get('/api/0/jobs/' + $stateParams.job_id + '/');
+        return $http.get('/api/0/jobs/' + $stateParams.job_id + '/').then(function(response){
+          return response.data;
+        });
       }
     }
   };

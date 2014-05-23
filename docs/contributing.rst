@@ -222,7 +222,7 @@ a fairly simple state:
         // parsed by angular and included in the function's scope
         controller: function($scope, planList, Collection) {
           // binding to $scope adds it to the template context
-          $scope.plans = new Collection($scope, planList);
+          $scope.plans = new Collection(planList);
         },
 
         // resolvers get executed **before** the controller is run and

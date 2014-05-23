@@ -15,8 +15,8 @@ define([
   'modules/flash',
   'modules/pageTitle',
   'modules/pagination',
-  'modules/scalyr',
-  'modules/stream'
+  'modules/poller',
+  'modules/scalyr'
   ], function (angular) {
     'use strict';
 
@@ -24,6 +24,7 @@ define([
       'barChart',
       'changes.barchart',
       'changes.pageTitle',
+      'changes.poller',
       'chieffancypants.loadingBar',
       'collection',
       'flash',
@@ -34,7 +35,6 @@ define([
       'ngSanitize',
       'pagination',
       'sly',
-      'stream',
       'ui.bootstrap',
       'ui.router'
     ]);

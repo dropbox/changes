@@ -12,7 +12,7 @@ define([
     parent: 'project_details',
     url: 'commits/',
     templateUrl: 'partials/project-commit-list.html',
-    controller: function($scope, $state, Collection, commitList, stream) {
+    controller: function($scope, $state, Collection, commitList, CollectionPoller, projectData) {
       var chart_options = {
         linkFormatter: function(item) {
           if (item.build) {
@@ -91,7 +91,7 @@ define([
         });
       }
 
-      $scope.commits = new Collection($scope, fromCommits(commitList.data), {
+      $scope.commits = new Collection(fromCommits(commitList.data), {
         equals: function(item, other) {
           return item.repository_id == other.repository_id && item.sha == other.sha;
         }
@@ -107,32 +107,25 @@ define([
         $scope.chartData = chartHelpers.getChartData($scope.commits, null, chart_options);
       });
 
-      stream.addScopedChannels($scope, [
-        'projects:' + $scope.project.id + ':builds',
-        'projects:' + $scope.project.id + ':commits'
-      ]);
-      stream.addScopedSubscriber($scope, 'build.update', function(data){
-        if (data.project.id != $scope.project.id) {
-          return;
+      var poller = new CollectionPoller({
+        $scope: $scope,
+        collection: $scope.commits,
+        endpoint: '/api/0/projects/' + projectData.id + '/commits/',
+        transform: function(response) {
+          return fromCommits(response);
+        },
+        shouldUpdate: function(item, existing) {
+          if (!existing.build && !item.build) {
+            return false;
+          } else if (item.build) {
+            return true;
+          } else if (existing.build.dateCreated < item.build.dateCreated) {
+            return true;
+          } else if (existing.build.id == item.build.id &&
+                     existing.build.dateModified < item.build.dateModified) {
+            return true;
+          }
         }
-
-        var existing = $scope.commits.indexOf(data.source.revision);
-        if (existing === -1) {
-          return;
-        }
-
-        var commit = $scope.commits[existing];
-        if (!commit.build) {
-          commit.build = data;
-        } else if (commit.build.dateCreated >= data.dateCreated) {
-          angular.extend(commit.build, data);
-        }
-      });
-      stream.addScopedSubscriber($scope, 'commit.update', function(data){
-        if (data.repository.id != $scope.project.repository.id) {
-          return;
-        }
-        $scope.commits.updateItem(fromCommits([data])[0]);
       });
     },
     resolve: {

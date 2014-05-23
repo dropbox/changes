@@ -6,7 +6,7 @@ define(['app'], function(app) {
     url: '/plans/',
     templateUrl: 'partials/plan-list.html',
     controller: function($scope, planList, Collection) {
-      $scope.plans = new Collection($scope, planList.data);
+      $scope.plans = new Collection(planList.data);
     },
     resolve: {
       planList: function($http) {

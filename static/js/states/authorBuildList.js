@@ -9,7 +9,7 @@ define([
     parent: 'layout',
     url: '/my/builds/',
     templateUrl: 'partials/author-build-list.html',
-    controller: function($scope, $http, buildList, authData, Collection, stream, PageTitle) {
+    controller: function($scope, $http, buildList, authData, Collection, CollectionPoller, PageTitle) {
       PageTitle.set('My Builds');
 
       function addBuild(data) {
@@ -71,22 +71,22 @@ define([
 
       $scope.pageLinks = parseLinkHeader(buildList.headers('Link'));
 
-      $scope.builds = new Collection($scope, buildList.data, {
+      $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
         limit: 100
       });
 
-      if (authData.authenticated) {
-        stream.addScopedChannels($scope, [
-          'authors:me:builds'
-        ]);
-        stream.addScopedSubscriber($scope, 'build.update', function(data){
-          if (data.author.email != authData.user.email) {
-            return;
+      var poller = new CollectionPoller({
+        $scope: $scope,
+        collection: $scope.builds,
+        endpoint: '/api/0/authors/me/builds/',
+        shouldUpdate: function(item, existing) {
+          if (existing.dateModified < item.dateModified) {
+            return true;
           }
-          $scope.builds.updateItem(data);
-        });
-      }
+          return false;
+        }
+      });
     },
     resolve: {
       buildList: function($http) {

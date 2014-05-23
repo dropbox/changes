@@ -7,7 +7,6 @@ from flask import Response, current_app, request
 from flask.ext.restful import Resource
 
 from changes.api.serializer import serialize as serialize_func
-from changes.api.stream import EventStream
 from changes.config import db
 
 LINK_HEADER = '<{uri}&page={page}>; rel="{name}"'
@@ -66,12 +65,6 @@ class ParamError(APIError):
 
 class APIView(Resource):
     def dispatch_request(self, *args, **kwargs):
-        if 'text/event-stream' in request.headers.get('Accept', ''):
-            channels = self.get_stream_channels(**kwargs)
-            if not channels:
-                return Response(status=404)
-            return self.stream_response(channels)
-
         response = super(APIView, self).dispatch_request(*args, **kwargs)
         db.session.commit()
         return response
@@ -137,13 +130,6 @@ class APIView(Resource):
 
     def as_json(self, context):
         return json.dumps(context)
-
-    def get_stream_channels(self, **kwargs):
-        return []
-
-    def stream_response(self, channels):
-        stream = EventStream(channels=channels)
-        return Response(stream, mimetype='text/event-stream')
 
     def get_backend(self, app=current_app):
         # TODO this should be automatic via a project

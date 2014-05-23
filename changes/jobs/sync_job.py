@@ -7,7 +7,6 @@ from changes.backends.base import UnrecoverableException
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.db.utils import try_create
-from changes.events import publish_job_update
 from changes.jobs.signals import fire_signal
 from changes.models import (
     ItemStat, Job, JobStep, JobPlan, Plan, TestCase
@@ -122,7 +121,6 @@ def sync_job(job_id):
 
         db.session.add(job)
         db.session.commit()
-        publish_job_update(job)
 
     if not is_finished:
         raise sync_job.NotFinished

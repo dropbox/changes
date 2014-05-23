@@ -19,7 +19,6 @@ from werkzeug.contrib.fixers import ProxyFix
 from changes.constants import PROJECT_ROOT
 from changes.api.controller import APIController
 from changes.ext.celery import Celery
-from changes.ext.pubsub import PubSub
 from changes.ext.redis import Redis
 from changes.url_converters.uuid import UUIDConverter
 
@@ -54,13 +53,12 @@ class ChangesDebugToolbarExtension(DebugToolbarExtension):
 db = SQLAlchemy(session_options={})
 api = APIController(prefix='/api/0')
 mail = Mail()
-pubsub = PubSub()
 queue = Celery()
 redis = Redis()
 sentry = Sentry(logging=True, level=logging.ERROR)
 
 
-def create_app(_read_config=True, gevent=False, **config):
+def create_app(_read_config=True, **config):
     app = flask.Flask(__name__,
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
@@ -209,9 +207,6 @@ def create_app(_read_config=True, gevent=False, **config):
     else:
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30
 
-    if gevent and app.config['SENTRY_DSN']:
-        app.config['SENTRY_DSN'] = 'gevent+{0}'.format(app.config['SENTRY_DSN'])
-
     app.url_map.converters['uuid'] = UUIDConverter
 
     # init sentry first
@@ -228,7 +223,6 @@ def create_app(_read_config=True, gevent=False, **config):
     api.init_app(app)
     db.init_app(app)
     mail.init_app(app)
-    pubsub.init_app(app)
     queue.init_app(app)
     redis.init_app(app)
     configure_debug_toolbar(app)
@@ -305,7 +299,6 @@ def configure_api_routes(app):
     from changes.api.project_source_details import ProjectSourceDetailsAPIView
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.step_details import StepDetailsAPIView
-    from changes.api.stream_index import StreamIndexAPIView
     from changes.api.task_details import TaskDetailsAPIView
     from changes.api.testcase_details import TestCaseDetailsAPIView
 
@@ -350,7 +343,6 @@ def configure_api_routes(app):
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
-    api.add_resource(StreamIndexAPIView, '/stream/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')
     api.add_resource(TaskDetailsAPIView, '/tasks/<uuid:task_id>/')
 

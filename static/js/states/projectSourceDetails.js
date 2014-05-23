@@ -13,7 +13,7 @@ define([
     templateUrl: 'partials/project-source-details.html',
     controller: function($scope, $http, features, sourceData, buildList, Collection) {
       $scope.source = sourceData.data;
-      $scope.builds = new Collection($scope, buildList.data, {
+      $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
         limit: 100
       });

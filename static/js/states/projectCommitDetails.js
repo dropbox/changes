@@ -26,7 +26,7 @@ define([
 
       $scope.commit = commitData.data;
       $scope.repository = commitData.data.repository;
-      $scope.builds = new Collection($scope, commitData.data.builds, {
+      $scope.builds = new Collection(commitData.data.builds, {
         sortFunc: sortBuildList,
         limit: 100
       });

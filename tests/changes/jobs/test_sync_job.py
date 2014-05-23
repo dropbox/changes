@@ -31,8 +31,7 @@ class SyncJobTest(TestCase):
 
     @mock.patch('changes.jobs.sync_job.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
-    @mock.patch('changes.jobs.sync_job.publish_job_update')
-    def test_in_progress(self, publish_job_update, get_implementation,
+    def test_in_progress(self, get_implementation,
                          queue_delay):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
@@ -69,8 +68,6 @@ class SyncJobTest(TestCase):
             'parent_task_id': build.id.hex,
         }, countdown=5)
 
-        publish_job_update.assert_called_once_with(job)
-
         task = Task.query.get(task.id)
 
         assert task.status == Status.in_progress
@@ -78,8 +75,7 @@ class SyncJobTest(TestCase):
     @mock.patch('changes.jobs.sync_job.fire_signal')
     @mock.patch('changes.jobs.sync_job.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
-    @mock.patch('changes.jobs.sync_job.publish_job_update')
-    def test_finished(self, publish_job_update, get_implementation, queue_delay,
+    def test_finished(self, get_implementation, queue_delay,
                       mock_fire_signal):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
@@ -113,8 +109,6 @@ class SyncJobTest(TestCase):
         job = Job.query.get(job.id)
 
         assert job.status == Status.finished
-
-        publish_job_update.assert_called_once_with(job)
 
         queue_delay.assert_any_call('update_project_plan_stats', kwargs={
             'project_id': self.project.id.hex,

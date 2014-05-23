@@ -15,7 +15,6 @@ from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
-from changes.events import publish_logchunk_update
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
@@ -234,8 +233,6 @@ class JenkinsBuilder(BaseBackend):
             })
             offset += chunk_size
 
-            publish_logchunk_update(chunk)
-
     def _sync_console_log(self, jobstep):
         job = jobstep.job
         return self._sync_log(
@@ -291,8 +288,6 @@ class JenkinsBuilder(BaseBackend):
                 'text': chunk,
             })
             offset += chunk_size
-
-            publish_logchunk_update(chunk)
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.

@@ -11,7 +11,7 @@ define(['angular'], function(angular) {
         }
       };
 
-      function Collection($scope, collection, options) {
+      function Collection(collection, options) {
         var i;
 
         Array.call(this);
@@ -27,7 +27,6 @@ define(['angular'], function(angular) {
         }
 
         this.options = options;
-        this.$scope = $scope;
 
         if (collection !== undefined) {
           for (i=0; i<collection.length; i++) {
@@ -42,7 +41,7 @@ define(['angular'], function(angular) {
 
       Collection.prototype.constructor = Collection;
 
-      // TODO(dcramer): we hsould probably make the behavior in updateItem actually
+      // TODO(dcramer): we should probably make the behavior in update actually
       // be part of push/unshift
       Collection.prototype.push = function push() {
         Array.prototype.push.apply(this, arguments);
@@ -72,7 +71,7 @@ define(['angular'], function(angular) {
         }
       };
 
-      Collection.prototype.indexOf = function(data) {
+      Collection.prototype.indexOf = function indexOf(data) {
         for (var i = 0; i < this.length; i++) {
           if (this.options.equals(this[i], data)) {
             return i;
@@ -81,21 +80,25 @@ define(['angular'], function(angular) {
         return -1;
       };
 
-      Collection.prototype.updateItem = function updateItem(data, create_missing) {
+      Collection.prototype.extend = function extend(data) {
+        for (var i = 0; i < data.length; i++) {
+          this.update(data[i]);
+        }
+      };
+
+      Collection.prototype.update = function update(data, create_missing) {
         if (create_missing === undefined) {
           create_missing = true;
         }
         var existing = this.indexOf(data);
 
-        this.$scope.$apply(function() {
-          if (existing !== -1) {
-            angular.extend(this[existing], data);
-            return;
-          }
-          if (create_missing) {
-            this.unshift(data);
-          }
-        }.bind(this));
+        if (existing !== -1) {
+          angular.extend(this[existing], data);
+          return;
+        }
+        if (create_missing) {
+          this.unshift(data);
+        }
       };
 
       return Collection;

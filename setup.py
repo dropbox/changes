@@ -46,7 +46,6 @@ install_requires = [
     'flask-mail>=0.9.0,<0.10.0',
     'flask-restful>=0.2.10,<0.2.11',
     'flask-sqlalchemy>=1.0,<1.1',
-    'gevent>=1.0.0,<1.1.0',
     'lxml>=3.2.3,<3.3.0',
     'raven>=4.0.4,<4.1.0',
     'redis>=2.8.0,<2.9.0',

@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from changes.config import db
-from changes.events import publish_commit_update
 from changes.jobs.signals import fire_signal
 from changes.models import Repository
 from changes.queue.task import tracked_task
@@ -46,8 +45,6 @@ def sync_repo(repo_id, continuous=True):
                 break
             might_have_more = True
             parent = commit.id
-
-            publish_commit_update(revision)
 
             fire_signal.delay(
                 signal='revision.created',

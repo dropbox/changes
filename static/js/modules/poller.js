@@ -1,0 +1,73 @@
+define(['angular'], function(angular) {
+  'use strict';
+
+  angular.module('changes.poller', [])
+    .factory('ItemPoller', function($http, $timeout){
+      var default_options = {
+        delay: 3000,
+        errorDelay: 10000
+      };
+
+      return function ItemPoller(opts) {
+        var options = {};
+        angular.extend(options, default_options);
+        angular.extend(options, opts);
+
+        var endpoint = options.endpoint;
+        var $scope = options.$scope;
+        var pollTimeoutID;
+
+        $scope.$on('$destroy', function(){
+          if (pollTimeoutID) {
+            $timeout.cancel(pollTimeoutID);
+          }
+        });
+
+        var tick = function() {
+          $http.get(options.endpoint, {
+            ignoreLoadingBar: true
+          }).success(function(response){
+            options.update(response);
+            pollTimeoutID = $timeout(tick, options.delay);
+          }).error(function(){
+            pollTimeoutID = $timeout(tick, options.errorDelay);
+          });
+        };
+
+        tick();
+      };
+    })
+    .factory('CollectionPoller', function(ItemPoller){
+      var default_options = {
+        transform: function(response) {
+          return response;
+        },
+        shouldUpdate: function(item, existing) {
+          return true;
+        }
+      };
+
+      return function CollectionPoller(opts) {
+        var options = {};
+        angular.extend(options, default_options);
+        angular.extend(options, opts);
+        options.update = function(response) {
+          response = options.transform(response);
+          $.each(response, function(_ ,item){
+            var existing = collection.indexOf(item);
+            if (existing === -1) {
+              return collection.unshift(item);
+            }
+
+            existing = collection[existing];
+            if (options.shouldUpdate(item, existing)) {
+              angular.extend(existing, item);
+            }
+          });
+        };
+
+        var collection = options.collection;
+        var itemPoller = new ItemPoller(options);
+      };
+    });
+});

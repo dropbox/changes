@@ -15,7 +15,7 @@ define([
         }
         $http.get(url)
           .success(function(data, status, headers){
-            $scope.nodeList = new Collection($scope, data, {
+            $scope.nodeList = new Collection(data, {
               limit: 100
             });
             $scope.pageLinks = parseLinkHeader(headers('Link'));
@@ -39,7 +39,7 @@ define([
 
       $scope.pageLinks = parseLinkHeader(nodeList.headers('Link'));
 
-      $scope.nodeList = new Collection($scope, nodeList.data);
+      $scope.nodeList = new Collection(nodeList.data);
 
       PageTitle.set('Nodes');
     },

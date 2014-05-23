@@ -7,7 +7,7 @@ define([
     parent: 'layout',
     url: "/projects/",
     templateUrl: 'partials/project-list.html',
-    controller: function(projectList, $scope, Collection, stream) {
+    controller: function(projectList, $scope, Collection, CollectionPoller) {
       function sortByDateCreated(a, b){
         if (a.dateCreated < b.dateCreated) {
           return 1;
@@ -82,11 +82,25 @@ define([
       });
 
       $scope.getProjectClass = getProjectClass;
-      $scope.projects = new Collection($scope, projectList);
+      $scope.projects = new Collection(projectList);
 
-      stream.addScopedChannels($scope, ['projects:*']);
-      stream.addScopedSubscriber($scope, 'project.update', $scope.projects.updateItem);
-      stream.addScopedSubscriber($scope, 'build.update', addBuild);
+      var poller = new CollectionPoller({
+        $scope: $scope,
+        collection: $scope.projects,
+        endpoint: '/api/0/projects/',
+        shouldUpdate: function(item, existing) {
+          if (!existing.lastBuild && !item.lastBuild) {
+            return false;
+          } else if (item.lastBuild) {
+            return true;
+          } else if (existing.lastBuild.dateCreated < item.lastBuild.dateCreated) {
+            return true;
+          } else if (existing.lastBuild.id == item.lastBuild.id &&
+                     existing.lastBuild.dateModified < item.lastBuild.dateModified) {
+            return true;
+          }
+        }
+      });
     }
   };
 });

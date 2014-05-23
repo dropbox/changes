@@ -9,9 +9,6 @@ from changes import mock
 from changes.config import db, create_app
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
-from changes.events import (
-    publish_build_update, publish_job_update, publish_commit_update
-)
 from changes.models import (
     Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan,
     ItemStat
@@ -37,7 +34,6 @@ def create_new_entry(project):
     if new_change:
         author = mock.author()
         revision = mock.revision(project.repository, author)
-        publish_commit_update(revision)
         change = create_new_change(
             project=project,
             author=author,
@@ -47,7 +43,6 @@ def create_new_entry(project):
         change.date_modified = datetime.utcnow()
         db.session.add(change)
         revision = mock.revision(project.repository, change.author)
-        publish_commit_update(revision)
 
     if random.randint(0, 1) == 1:
         patch = mock.patch(project)
@@ -74,7 +69,6 @@ def create_new_entry(project):
     db.session.add(ItemStat(item_id=build.id, name='diff_lines_uncovered', value='5'))
 
     db.session.commit()
-    publish_build_update(build)
 
     for x in xrange(0, random.randint(1, 3)):
         job = mock.job(
@@ -83,7 +77,6 @@ def create_new_entry(project):
             status=Status.in_progress,
         )
         db.session.commit()
-        publish_job_update(job)
         if patch:
             mock.file_coverage(project, job, patch)
 
@@ -118,7 +111,6 @@ def update_existing_entry(project):
     job.result = Result.failed if random.randint(0, 3) == 1 else Result.passed
     job.date_finished = datetime.utcnow()
     db.session.add(job)
-    publish_job_update(job)
 
     jobstep = JobStep.query.filter(JobStep.job == job).first()
     if jobstep:
@@ -136,7 +128,6 @@ def update_existing_entry(project):
         job.build.result = job.result
         job.build.date_finished = job.date_finished
         db.session.add(job.build)
-        publish_build_update(job.build)
 
     return job
 

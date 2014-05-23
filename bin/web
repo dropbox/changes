@@ -1,21 +1,9 @@
 #!/usr/bin/env python
 from __future__ import absolute_import
 
-
-def patch_gevent():
-    from gevent import monkey
-    monkey.patch_all()
-
-    from changes.db import psyco_gevent
-    psyco_gevent.make_psycopg_green()
-
-patch_gevent()
-
 import argparse
 import statprof
 import sys
-
-from werkzeug.serving import run_with_reloader
 
 
 def main(argv=sys.argv[1:]):
@@ -30,8 +18,7 @@ def main(argv=sys.argv[1:]):
 
 
 def web(addr, profile=None):
-    from gevent import pywsgi
-    from changes.config import create_app, db
+    from changes.config import create_app
 
     host, port = addr.split(':')
     if not host:
@@ -39,23 +26,14 @@ def web(addr, profile=None):
     port = int(port)
     addr = '{0}:{1}'.format(host, port)
 
-    app = create_app(gevent=True, SERVER_NAME=addr)
-
-    # use threadlocals for gevent compatibility
-    db.get_engine(app).engine.pool._use_threadlocal = True
+    app = create_app(SERVER_NAME=addr)
 
     if profile:
         statprof.start()
 
-    def run_webserver():
-        print "Listening on http://{0}".format(addr)
-        return pywsgi.WSGIServer((host, port), app).serve_forever()
-
+    print "Listening on http://{0}".format(addr)
     try:
-        if app.debug:
-            run_with_reloader(run_webserver)()
-        else:
-            run_webserver()
+        app.run(host, port)
     finally:
         if profile:
             statprof.stop()

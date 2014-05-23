@@ -9,8 +9,8 @@ define(['app'], function(app) {
     templateUrl: 'partials/plan-details.html',
     controller: function($http, $scope, planData, Collection, flash) {
       $scope.plan = planData;
-      $scope.projectList = new Collection($scope, planData.projects);
-      $scope.stepList = new Collection($scope, planData.steps);
+      $scope.projectList = new Collection(planData.projects);
+      $scope.stepList = new Collection(planData.steps);
 
       $scope.saveStep = function(step) {
         if (step.saving === true) {

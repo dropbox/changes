@@ -12,7 +12,8 @@ define([
     parent: 'project_details',
     url: 'builds/?query',
     templateUrl: 'partials/project-build-list.html',
-    controller: function($scope, $http, $state, $stateParams, projectData, buildList, stream, Collection, PageTitle) {
+    controller: function($scope, $http, $state, $stateParams, projectData, buildList,
+                         Collection, CollectionPoller, PageTitle) {
       var chart_options = {
         linkFormatter: function(item) {
           return $state.href('build_details', {build_id: item.id});
@@ -81,7 +82,7 @@ define([
         }
         $http.get(url)
           .success(function(data, status, headers){
-            $scope.builds = new Collection($scope, data, {
+            $scope.builds = new Collection(data, {
               sortFunc: sortBuildList,
               limit: 100
             });
@@ -101,7 +102,7 @@ define([
 
       updatePageLinks(buildList.headers('Link'));
 
-      $scope.builds = new Collection($scope, buildList.data, {
+      $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
         limit: 100
       });
@@ -118,23 +119,21 @@ define([
         $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
       });
 
-      stream.addScopedChannels($scope, [
-        'projects:' + $scope.project.id + ':builds'
-      ]);
-      stream.addScopedSubscriber($scope, 'build.update', function(data){
-        if (data.project.id != $scope.project.id) {
-          return;
-        }
-        if (!$stateParams.query) {
-          $scope.builds.updateItem(data);
-        } else {
-          $scope.builds.updateItem(data, false);
+      var poller = new CollectionPoller({
+        $scope: $scope,
+        collection: $scope.builds,
+        endpoint: '/api/0/projects/' + projectData.id + '/builds/search/?query=' + $stateParams.query,
+        shouldUpdate: function(item, existing) {
+          if (existing.dateModified < item.dateModified) {
+            return true;
+          }
+          return false;
         }
       });
     },
     resolve: {
-      buildList: function($http, $window, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/builds/search/' + $window.location.search);
+      buildList: function($http, $stateParams, projectData) {
+        return $http.get('/api/0/projects/' + projectData.id + '/builds/search/?query=' + $stateParams.query);
       }
     }
   };

@@ -13,7 +13,6 @@ from changes.api.validators.author import AuthorValidator
 from changes.config import db
 from changes.constants import Status, ProjectStatus
 from changes.db.utils import get_or_create
-from changes.events import publish_build_update, publish_job_update
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
@@ -127,10 +126,7 @@ def execute_build(build):
 
     db.session.commit()
 
-    publish_build_update(build)
-
     for job in jobs:
-        publish_job_update(job)
         create_job.delay(
             job_id=job.id.hex,
             task_id=job.id.hex,
