@@ -24,7 +24,7 @@ def create_new_change(project, **kwargs):
 
 
 def create_new_entry(project):
-    new_change = (random.randint(0, 2) == 1)
+    new_change = (random.randint(0, 2) == 5)
     if not new_change:
         try:
             change = Change.query.all()[0]
@@ -107,6 +107,7 @@ def update_existing_entry(project):
     except IndexError:
         return create_new_entry(project)
 
+    job.date_modified = datetime.utcnow()
     job.status = Status.finished
     job.result = Result.failed if random.randint(0, 3) == 1 else Result.passed
     job.date_finished = datetime.utcnow()
@@ -127,6 +128,7 @@ def update_existing_entry(project):
         job.build.status = job.status
         job.build.result = job.result
         job.build.date_finished = job.date_finished
+        job.build.date_modified = job.date_finished
         db.session.add(job.build)
 
     return job
