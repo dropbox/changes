@@ -42,6 +42,7 @@
         <li ng-if="activeProject.repository.backend == 'unknown'"
             ui-sref-active="active"><a ui-sref="project_builds()">Builds</a></li>
         <li ui-sref-active="active" ng-if="activeProjectFeatures.tests"><a ui-sref="project_tests({parent: null})">Tests</a></li>
+        <li ui-sref-active="active" ng-if="activeProjectFeatures.coverage"><a ui-sref="project_coverage({parent: null})">Coverage</a></li>
       </ul>
     </div>
   </div>
