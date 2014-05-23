@@ -22,41 +22,41 @@
 		<dd duration="test.duration"></dd>
 	</dl>
 
-	<hr>
-	<h3>History</h3>
+	<hr><br>
 
-	<table class="table table-striped table-bordered">
-		<thead>
-			<tr>
-				<th class="date">Test status</th>
-				<th class="date">Author</th>
-				<th class="date">Time</th>
-				<th class="duration">Duration</th>
-				<th class="duration">Num retries</th>
-				<th class="duration">Build</th>
-				<th class="duration">Source</th>
+	<section class="section">
+		<div class="section-header">
+			<h3>Test History</h3>
+		</div>
+
+		<table class="grid-list">
+			<thead>
+				<tr class="grid-list-header">
+					<th class="result">Result</th>
+					<th>Source</th>
+					<th class="column">Author</th>
+					<th class="column">When</th>
+					<th class="column">Duration</th>
+					<th class="column">Retries</th>
+				</tr>
+			</thead>
+			<tr ng-repeat="result in results" class="result-{{result.result.id}}">
+				<td class="result">
+					<a class="indicator"
+					   href="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})">
+					   	#{{result.job.build.number}}.{{result.job.number}}
+					</a>
+				</td>
+				<td>
+					<a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.target}}</a>
+				</td>
+				<td class="column">
+					{{ result.job.build.author.email }}
+				</td>
+				<td class="column" time-since="result.job.build.dateCreated"></td>
+				<td class="column" duration="result.duration"></td>
+				<td class="column">{{ result.numRetries}}</td>
 			</tr>
-		</thead>
-		<tr ng-repeat="result in results">
-			<td class="result-{{result.result.id}}">
-				<div class="indicator">
-					{{result.result.id}}
-				</div>
-			<td>
-				{{ result.job.build.author.email }}
-			</td>
-			<td class="date" time-since="result.job.build.dateCreated"></td>
-			<td duration="result.duration">
-			</td>
-			<td>
-				{{ result.numRetries}}
-			</td>
-			<td>
-				<a ui-sref="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})" class="indicator" bind-once>#{{result.job.build.number}}</a>
-			</td>
-			<td>
-				<a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.target}}</a>
-			</td>
-		</tr>
-	</table>
+		</table>
+	</section>
 </section>

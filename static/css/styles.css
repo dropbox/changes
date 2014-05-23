@@ -531,6 +531,11 @@ table > tbody > tr.result-skipped > td.result span {
   background-color: gold;
 }
 
+.grid-list {
+  width: 100%;
+}
+.grid-list td,
+.grid-list th,
 .job-list td,
 .job-list th,
 .build-list td,
@@ -555,6 +560,7 @@ table > tbody > tr.result-skipped > td.result span {
   }
 }
 
+.grid-list-header,
 .build-list-header,
 .job-list-header {
   min-height: 30px;
@@ -572,12 +578,16 @@ table.job-list {
   border-spacing:0;
   margin-bottom: 20px;
 }
+.grid-list th,
+.grid-list td,
 .job-list th,
 .job-list td,
 .build-list th,
 .build-list td {
   padding: 10px 0 10px 20px;
 }
+.grid-list th:first-child,
+.grid-list td:first-child,
 .job-list th:first-child,
 .job-list td:first-child,
 .build-list th:first-child,
@@ -585,20 +595,23 @@ table.job-list {
   padding: 10px 0;
 }
 
+.grid-list-header .column,
 .build-list-header .duration,
 .build-list-header .tests,
 .build-list-header .coverage,
 .build-list-header .date,
-.job-list-header .duration {
+.job-list-header .duration, {
   margin-top: 0;
 }
 
+.grid-list .indicator,
 .build-list .indicator,
 .job-list .indicator {
   float: left;
   margin-right: 10px;
 }
 
+.grid-list .indicator,
 .job-list .indicator {
   font-size: 16px;
   height: 24px;
@@ -622,6 +635,7 @@ table.job-list {
   text-overflow: ellipsis;
 }
 
+.grid-list h5,
 .job-list h5 {
   margin: 0;
   font-weight: 500;
@@ -644,6 +658,7 @@ table.job-list {
   font-size: 9px;
 }
 
+.grid-list .column,
 .build-list .duration,
 .build-list .tests,
 .build-list .coverage,
@@ -665,6 +680,9 @@ table.job-list {
 }
 .build-list .date {
   width: 150px;
+}
+.grid-list .column {
+  width: 120px;
 }
 
 .job-list .progress,
