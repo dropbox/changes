@@ -142,8 +142,8 @@ define([
           if (response.dateModified < $scope.job.dateModified) {
             return;
           }
-          angular.extend($scope.job, response);
-          angular.extend($scope.testFailures, response.testFailures);
+          $.extend(true, $scope.job, response);
+          $.extend(true, $scope.testFailures, response.testFailures);
           $scope.previousRuns.extend(jobData.previousRuns);
           $scope.phases.extend(response.phases);
         }

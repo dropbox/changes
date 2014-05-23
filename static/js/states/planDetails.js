@@ -26,7 +26,7 @@ define(['app'], function(app) {
         }
         $http.post(url, angular.copy(step)).success(function(data){
           step.showForm = false;
-          angular.extend(step, data);
+          $.extend(true, step, data);
         }).error(function(data){
           console.log(data);
           flash('error', data.message);

@@ -1,4 +1,4 @@
-define(['angular'], function(angular) {
+define(['angular', 'jquery'], function(angular, $) {
   'use strict';
 
   angular.module('changes.poller', [])
@@ -10,8 +10,8 @@ define(['angular'], function(angular) {
 
       return function ItemPoller(opts) {
         var options = {};
-        angular.extend(options, default_options);
-        angular.extend(options, opts);
+        $.extend(options, default_options);
+        $.extend(options, opts);
 
         var endpoint = options.endpoint;
         var $scope = options.$scope;
@@ -49,8 +49,8 @@ define(['angular'], function(angular) {
 
       return function CollectionPoller(opts) {
         var options = {};
-        angular.extend(options, default_options);
-        angular.extend(options, opts);
+        $.extend(options, default_options);
+        $.extend(options, opts);
         options.update = function(response) {
           response = options.transform(response);
           $.each(response, function(_ ,item){
@@ -61,7 +61,7 @@ define(['angular'], function(angular) {
 
             existing = collection[existing];
             if (options.shouldUpdate(item, existing)) {
-              angular.extend(existing, item);
+              collection.update(item);
             }
           });
         };

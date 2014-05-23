@@ -137,7 +137,7 @@ define([
           if (response.dateModified < $scope.build.dateModified) {
             return;
           }
-          angular.extend($scope.build, response);
+          $.extend(true, $scope.build, response);
           $scope.jobList.extend(response.jobs);
         }
       });
