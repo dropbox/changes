@@ -621,8 +621,8 @@ table.job-list {
 
 .build-list .indicator {
   font-size: 18px;
-  height: 34px;
-  line-height: 34px;
+  height: 36px;
+  line-height: 36px;
   padding: 0 8px;
 }
 
@@ -697,6 +697,10 @@ table.job-list {
 .job-list .progress {
   height: 12px;
   width: 100px;
+}
+
+.build-list .branch {
+  text-align: top;
 }
 
 .progress-bar,
