@@ -1,4 +1,5 @@
-<tr class="status-{{build.status.id}} result-{{build.result.id}}">
+<tr class="status-{{build.status.id}} result-{{build.result.id}}"
+    slyEvaluateOnlyWhen="build.dateModified">
     <td class="name">
       <a ui-sref="build_details({project_id: build.project.slug, build_id: build.id})" class="indicator">#{{build.number}}</a>
       <h5><a ui-sref="build_details({project_id: build.project.slug, build_id: build.id})">{{buildTitle}}</a></h5>
@@ -13,7 +14,7 @@
     </td>
 
     <td class="duration" ng-if="isFinished">
-      <span duration="build.duration" bind-once></span>
+      <span duration="build.duration"></span>
     </td>
     <td class="duration" ng-if="!isFinished">
       <span ng-if="isQueued">
@@ -28,7 +29,7 @@
     </td>
 
     <td class="coverage" ng-if="features.coverage">
-        <span ng-if="hasCoverage && isFinished" bind-once>
+        <span ng-if="hasCoverage && isFinished">
             {{coveragePercent}}%<br>
             <small>{{build.stats.diff_lines_covered}} lines</small>
         </span>
