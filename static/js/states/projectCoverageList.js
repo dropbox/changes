@@ -16,7 +16,7 @@ define([
         if (file_coverage.totalLinesCovered === 0) {
           percent = 0;
         } else {
-          total_lines = file_coverage.totalLinesCovered + file_coverage.totalLinesUnovered;
+          total_lines = file_coverage.totalLinesCovered + file_coverage.totalLinesUncovered;
           percent = parseInt(file_coverage.totalLinesCovered / total_lines * 100, 10);
         }
 
