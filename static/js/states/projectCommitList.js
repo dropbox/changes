@@ -117,7 +117,7 @@ define([
         shouldUpdate: function(item, existing) {
           if (!existing.build && !item.build) {
             return false;
-          } else if (item.build) {
+          } else if (!existing.build) {
             return true;
           } else if (existing.build.dateCreated < item.build.dateCreated) {
             return true;

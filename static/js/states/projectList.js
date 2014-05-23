@@ -91,7 +91,7 @@ define([
         shouldUpdate: function(item, existing) {
           if (!existing.lastBuild && !item.lastBuild) {
             return false;
-          } else if (item.lastBuild) {
+          } else if (!existing.lastBuild) {
             return true;
           } else if (existing.lastBuild.dateCreated < item.lastBuild.dateCreated) {
             return true;
