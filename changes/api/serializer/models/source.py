@@ -16,6 +16,7 @@ class SourceSerializer(Serializer):
             'id': instance.id.hex,
             'patch': patch,
             'revision': instance.revision,
+            'isCommit': instance.is_commit(),
             'dateCreated': instance.date_created,
             'data': dict(instance.data or {}),
         }
