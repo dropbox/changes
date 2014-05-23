@@ -8,6 +8,14 @@ define([
 ], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
   'use strict';
 
+  function getEndpoint($stateParams) {
+    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?';
+    if ($stateParams.query) {
+      url += '&query=' + $stateParams.query;
+    }
+    return url;
+  }
+
   return {
     parent: 'project_details',
     url: 'builds/?query',
@@ -122,7 +130,7 @@ define([
       var poller = new CollectionPoller({
         $scope: $scope,
         collection: $scope.builds,
-        endpoint: '/api/0/projects/' + projectData.id + '/builds/search/?query=' + $stateParams.query,
+        endpoint: getEndpoint($stateParams),
         shouldUpdate: function(item, existing) {
           if (existing.dateModified < item.dateModified) {
             return true;
@@ -132,8 +140,8 @@ define([
       });
     },
     resolve: {
-      buildList: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/builds/search/?query=' + $stateParams.query);
+      buildList: function($http, $stateParams) {
+        return $http.get(getEndpoint($stateParams));
       }
     }
   };
