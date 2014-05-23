@@ -48,12 +48,13 @@
                     </a>
                 </td>
                 <td ng-if="result.job.build.source.isCommit">
-                    <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.source.revision.sha.substr(0, 12)}}</a>
                     <span ng-if="result.job.build.source.revision.branches">
-                        in <span class="branch" ng-repeat="branch in result.job.build.source.revision.branches">{{branch}}</span>
+                        <span class="branch" ng-repeat="branch in result.job.build.source.revision.branches">{{branch}}</span>
                     </span>
+                    <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.source.revision.sha.substr(0, 12)}}</a>
                 </td>
                 <td ng-if="!result.job.build.source.isCommit">
+                    <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.target}}</a>
                 </td>
                 <td class="column left-align">
                     {{ result.job.build.author.email }}

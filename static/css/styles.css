@@ -142,7 +142,7 @@ dl.flat dt {
   text-transform: uppercase;
   font-size: 0.8em;
   margin-right: 3px;
-  vertical-align: text-top;
+  vertical-align: text-middle;
 }
 .branch:nth-child(2) {
   background: #d3d1ff;
