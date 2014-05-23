@@ -54,8 +54,16 @@
             scope.coveragePercent = getCoveragePercent(build);
             scope.isFinished = (build.status.id == 'finished');
             scope.isQueued = (build.status.id == 'queued');
-            scope.showProject = attrs.showProject;
-            scope.showBranches = attrs.showBranches;
+            if (attrs.showProject === undefined) {
+              scope.showProject = false;
+            } else {
+              scope.showProject = attrs.showProject;
+            }
+            if (attrs.showBranches === undefined) {
+              scope.showBranches = true;
+            } else {
+              scope.showBranches = attrs.showBranches;
+            }
 
             updateBuildProgress(build);
           });
