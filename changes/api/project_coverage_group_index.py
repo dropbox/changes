@@ -43,7 +43,6 @@ class ProjectCoverageGroupIndexAPIView(APIView):
 
         # use the most recent coverage
         cover_list = FileCoverage.query.filter(
-            FileCoverage.project_id == project_id,
             FileCoverage.job_id.in_(
                 db.session.query(Job.id).filter(
                     Job.build_id == latest_build.id,
