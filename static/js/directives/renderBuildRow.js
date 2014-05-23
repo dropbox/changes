@@ -51,24 +51,23 @@
             }
           }
 
+          scope.showProject = scope.$eval(attrs.showProject);
+          if (scope.showProject === undefined) {
+            scope.showProject = false;
+          }
+          scope.showBranches = scope.$eval(attrs.showBranches);
+          if (scope.showBranches === undefined) {
+            scope.showBranches = true;
+          }
+
           scope.$watch('build', function(build) {
             scope.buildTitle = attrs.title || build.name;
             scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered) > 0;
             scope.coveragePercent = getCoveragePercent(build);
             scope.isFinished = (build.status.id == 'finished');
             scope.isQueued = (build.status.id == 'queued');
-            if (attrs.showProject === undefined) {
-              scope.showProject = false;
-            } else {
-              scope.showProject = attrs.showProject;
-            }
-            if (attrs.showBranches === undefined) {
-              scope.showBranches = true;
-            } else {
-              scope.showBranches = attrs.showBranches;
-            }
             updateBuildProgress(build);
-          });
+          }, true);
 
           element.bind('$destroy', function() {
             if (timeout_id) {
