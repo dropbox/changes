@@ -60,14 +60,15 @@
             scope.showBranches = true;
           }
 
-          scope.$watch('build', function(build) {
+          scope.$watch('build.dateModified', function() {
+            var build = scope.build;
             scope.buildTitle = attrs.title || build.name;
             scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered) > 0;
             scope.coveragePercent = getCoveragePercent(build);
             scope.isFinished = (build.status.id == 'finished');
             scope.isQueued = (build.status.id == 'queued');
             updateBuildProgress(build);
-          }, true);
+          });
 
           element.bind('$destroy', function() {
             if (timeout_id) {
