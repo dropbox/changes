@@ -43,14 +43,14 @@
             <tr ng-repeat="result in results" class="result-{{result.result.id}}">
                 <td class="result">
                     <a class="indicator"
-                       href="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})">
+                       ui-sref="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})">
                         #{{result.job.build.number}}.{{result.job.number}}
                     </a>
                 </td>
                 <td ng-if="result.job.build.source.isCommit">
                     <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.source.revision.sha.substr(0, 12)}}</a>
-                    <span ng-if="result.build.source.revision.branches">
-                        in <span class="branch" ng-repeat="branch in result.build.source.revision.branches">{{branch}}</span>
+                    <span ng-if="result.job.build.source.revision.branches">
+                        in <span class="branch" ng-repeat="branch in result.job.build.source.revision.branches">{{branch}}</span>
                     </span>
                 </td>
                 <td ng-if="!result.job.build.source.isCommit">
