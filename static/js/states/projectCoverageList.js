@@ -11,6 +11,17 @@ define([
     templateUrl: 'partials/project-coverage-list.html',
     controller: function($http, $scope, $state, $stateParams, projectData, fileCoverageData) {
       $scope.fileCoverageList = fileCoverageData.groups;
+      $.each($scope.fileCoverageList, function(_, file_coverage){
+        var percent, total_lines;
+        if (file_coverage.totalLinesCovered === 0) {
+          percent = 0;
+        } else {
+          total_lines = file_coverage.totalLinesCovered + file_coverage.totalLinesUnovered;
+          percent = parseInt(file_coverage.totalLinesCovered / total_lines * 100, 10);
+        }
+
+        file_coverage.percent = percent;
+      });
       $scope.trail = fileCoverageData.trail;
       $scope.overThreshold = fileCoverageData.overThreshold;
     },
