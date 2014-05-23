@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import os
+import pytest
 
 from datetime import datetime
 from subprocess import check_call
@@ -9,6 +10,19 @@ from changes.testutils import TestCase
 from changes.vcs.hg import MercurialVcs
 
 
+def has_current_hg_version():
+    import pkg_resources
+
+    try:
+        mercurial = pkg_resources.get_distribution('mercurial')
+    except pkg_resources.DistributionNotFound:
+        return False
+
+    return mercurial.parsed_version < pkg_resources.parse_version('2.4')
+
+
+@pytest.mark.skipif(not has_current_hg_version(),
+                    reason='missing or invalid mercurial version')
 class MercurialVcsTest(TestCase):
     root = '/tmp/changes-hg-test'
     path = '%s/clone' % (root,)

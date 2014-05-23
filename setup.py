@@ -21,6 +21,7 @@ tests_require = [
     'exam>=0.10.2,<0.11.0',
     'flake8>=2.1.0,<2.2.0',
     'loremipsum>=1.0.2,<1.1.0',
+    'mercurial>=2.4',
     'mock>=1.0.1,<1.1.0',
     'pytest>=2.5.0,<2.6.0',
     'pytest-cov>=1.6,<1.7',
