@@ -1414,20 +1414,20 @@ label.btn input[type=checkbox] {
   opacity: 0;
 }
 
-.build-list > li.ng-enter, .build-list > li.ng-leave {
+.build-list > tbody.ng-enter, .build-list > tbody.ng-leave {
   -webkit-transition: 1s; /* Chrome */
   transition: 1s;
 }
-.build-list > li.ng-enter {
+.build-list > tbody.ng-enter {
   opacity: 0;
 }
-.build-list > li.ng-leave-active {
+.build-list > tbody.ng-leave-active {
   opacity: 0;
 }
-.build-list > li.ng-leave {
+.build-list > tbody.ng-leave {
   opacity: 1;
 }
-.build-list > li.ng-enter-active {
+.build-list > tbody.ng-enter-active {
   opacity: 1;
 }
 
