@@ -668,6 +668,9 @@ table.job-list {
   font-weight: 300;
   white-space: nowrap;
 }
+.grid-list .column.left-align {
+  text-align: left;
+}
 .build-list .duration,
 .job-list .duration {
   width: 120px;

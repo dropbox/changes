@@ -1,62 +1,67 @@
 <section bind-once>
-	<div id="overview">
-		<div class="page-header">
-			<h2>{{test.shortName}}<br><small>{{test.package}}</small></h2>
-		</div>
-	</div>
+    <div id="overview">
+        <div class="page-header">
+            <h2>{{test.shortName}}<br><small>{{test.package}}</small></h2>
+        </div>
+    </div>
 
-	<barchart ng-model="chartData" style="height:130px"></barchart>
+    <barchart ng-model="chartData" style="height:130px"></barchart>
 
-	<dl class="flat">
-		<dt>First Seen:</dt>
-		<dd>
-			<a ui-sref="build_details({build_id: test.firstBuild.id})">#{{test.firstBuild.number}} &mdash; {{test.firstBuild.target}}</a><br>
-			<span ng-if="test.firstBuild.author">{{test.firstBuild.author.name}} &mdash; </span><span time-since="test.firstBuild.dateCreated"></span>
-		</dd>
-<!-- 		<dt>Last Seen:</dt>
-		<dd>
-			<a href="{{test.lastBuild.link}}">{{test.lastBuild.target}}</a><br>
-			<span ng-if="test.lastBuild.author">{{test.lastBuild.author.name}} &mdash; </span><span time-since="test.lastBuild.dateCreated"></span>
-		</dd> -->
-		<dt>Duration: <span class="help" title="duration from last build">?</span></dt>
-		<dd duration="test.duration"></dd>
-	</dl>
+    <dl class="flat">
+        <dt>First Seen:</dt>
+        <dd>
+            <a ui-sref="build_details({build_id: test.firstBuild.id})">#{{test.firstBuild.number}} &mdash; {{test.firstBuild.target}}</a><br>
+            <span ng-if="test.firstBuild.author">{{test.firstBuild.author.name}} &mdash; </span><span time-since="test.firstBuild.dateCreated"></span>
+        </dd>
+<!--        <dt>Last Seen:</dt>
+        <dd>
+            <a href="{{test.lastBuild.link}}">{{test.lastBuild.target}}</a><br>
+            <span ng-if="test.lastBuild.author">{{test.lastBuild.author.name}} &mdash; </span><span time-since="test.lastBuild.dateCreated"></span>
+        </dd> -->
+        <dt>Duration: <span class="help" title="duration from last build">?</span></dt>
+        <dd duration="test.duration"></dd>
+    </dl>
 
-	<hr><br>
+    <hr><br>
 
-	<section class="section">
-		<div class="section-header">
-			<h3>Test History</h3>
-		</div>
+    <section class="section">
+        <div class="section-header">
+            <h3>Test History</h3>
+        </div>
 
-		<table class="grid-list">
-			<thead>
-				<tr class="grid-list-header">
-					<th class="result">Result</th>
-					<th>Source</th>
-					<th class="column">Author</th>
-					<th class="column">When</th>
-					<th class="column">Duration</th>
-					<th class="column">Retries</th>
-				</tr>
-			</thead>
-			<tr ng-repeat="result in results" class="result-{{result.result.id}}">
-				<td class="result">
-					<a class="indicator"
-					   href="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})">
-					   	#{{result.job.build.number}}.{{result.job.number}}
-					</a>
-				</td>
-				<td>
-					<a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.target}}</a>
-				</td>
-				<td class="column">
-					{{ result.job.build.author.email }}
-				</td>
-				<td class="column" time-since="result.job.build.dateCreated"></td>
-				<td class="column" duration="result.duration"></td>
-				<td class="column">{{ result.numRetries}}</td>
-			</tr>
-		</table>
-	</section>
+        <table class="grid-list">
+            <thead>
+                <tr class="grid-list-header">
+                    <th class="result">Result</th>
+                    <th>Source</th>
+                    <th class="column left-align">Author</th>
+                    <th class="column">When</th>
+                    <th class="column">Duration</th>
+                    <th class="column">Retries</th>
+                </tr>
+            </thead>
+            <tr ng-repeat="result in results" class="result-{{result.result.id}}">
+                <td class="result">
+                    <a class="indicator"
+                       href="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})">
+                        #{{result.job.build.number}}.{{result.job.number}}
+                    </a>
+                </td>
+                <td ng-if="result.job.build.source.isCommit">
+                    <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.source.revision.sha.substr(0, 12)}}</a>
+                    <span ng-if="result.build.source.revision.branches">
+                        in <span class="branch" ng-repeat="branch in result.build.source.revision.branches">{{branch}}</span>
+                    </span>
+                </td>
+                <td ng-if="!result.job.build.source.isCommit">
+                </td>
+                <td class="column left-align">
+                    {{ result.job.build.author.email }}
+                </td>
+                <td class="column" time-since="result.job.build.dateCreated"></td>
+                <td class="column" duration="result.duration"></td>
+                <td class="column">{{ result.numRetries}}</td>
+            </tr>
+        </table>
+    </section>
 </section>
