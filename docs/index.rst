@@ -8,6 +8,7 @@ It currently is built on top of Jenkins, but attempts to abstract away most cont
 .. toctree::
    :maxdepth: 2
 
+   setup
    userguide
    integrations/jenkins
    integrations/phabricator
