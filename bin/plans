@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import, print_function
+
 import argparse
 import json
 import sys
@@ -78,7 +80,7 @@ def get_plan(id_):
     result = Plan.query.get(id_)
 
     if not result:
-        print "Plan not found"
+        print("Plan not found")
         sys.exit(1)
 
     return result
@@ -92,7 +94,7 @@ def get_project(id_):
         project = Project.query.filter_by(slug=id_).first()
 
     if not project:
-        print "Project not found"
+        print("Project not found")
         sys.exit(1)
 
     return project
@@ -102,7 +104,7 @@ def get_step(id_):
     result = Step.query.get(id_)
 
     if not result:
-        print "Step not found"
+        print("Step not found")
         sys.exit(1)
 
     return result
@@ -118,9 +120,9 @@ if args.command == 'add':
 
     db.session.add(plan)
 
-    print "Created new plan with ID {%s}" % (
+    print("Created new plan with ID {%s}" % (
         plan.id,
-    )
+    ))
 
 elif args.command == 'edit':
     plan = get_plan(args.id)
@@ -132,14 +134,14 @@ elif args.command == 'edit':
 
     db.session.add(plan)
 
-    print "Saved plan with ID {%s}" % (
+    print("Saved plan with ID {%s}" % (
         plan.id,
-    )
+    ))
 
 
 elif args.command == 'list':
     for plan in Plan.query.order_by(Plan.label.asc()):
-        print plan.id, plan.label
+        print('{0} {1}'.format(plan.id, plan.label))
 
 elif args.command == 'projects':
     if args.project_command == 'add':
@@ -151,7 +153,7 @@ elif args.command == 'projects':
             'project_id': project.id,
         })
 
-        print "Added %s to %s" % (project.slug, plan.id)
+        print("Added %s to %s" % (project.slug, plan.id))
 
     if args.project_command == 'delete':
         plan = get_plan(args.id)
@@ -159,13 +161,13 @@ elif args.command == 'projects':
 
         project.plans.remove(plan)
 
-        print "Removed %s from %s" % (project.slug, plan.id)
+        print("Removed %s from %s" % (project.slug, plan.id))
 
     if args.project_command == 'list':
         plan = get_plan(args.id)
 
         for project in plan.projects:
-            print project.slug
+            print(project.slug)
 
 elif args.command == 'steps':
     if args.step_command == 'add':
@@ -179,8 +181,8 @@ elif args.command == 'steps':
         )
         db.session.add(step)
 
-        print "Added step %s (%s) to %s" % (
-            step.order, step.implementation, plan.id)
+        print("Added step %s (%s) to %s" % (
+            step.order, step.implementation, plan.id))
 
     if args.step_command == 'delete':
         plan = get_plan(args.id)
@@ -190,14 +192,14 @@ elif args.command == 'steps':
             Step.id == step.id,
         ).delete(synchronize_session=False)
 
-        print "Removed step %s (%s) from %s" % (
-            step.order, step.implementation, plan.id)
+        print("Removed step %s (%s) from %s" % (
+            step.order, step.implementation, plan.id))
 
     if args.step_command == 'list':
         plan = get_plan(args.id)
 
         for step in plan.steps:
-            print step.id, step.order, step.implementation
+            print('{0} {1} {2}'.format(step.id, step.order, step.implementation))
 
     if args.step_command == 'clear':
         plan = get_plan(args.id)
@@ -206,6 +208,6 @@ elif args.command == 'steps':
             Step.plan_id == plan.id,
         ).delete(synchronize_session=False)
 
-        print "Removed all steps from %s" % (plan.id,)
+        print("Removed all steps from %s" % (plan.id,))
 
 db.session.commit()

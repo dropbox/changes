@@ -6,6 +6,8 @@ Create Date: 2013-11-05 14:08:23.068195
 
 """
 
+from __future__ import absolute_import, print_function
+
 # revision identifiers, used by Alembic.
 revision = '3edf6ec6abd5'
 down_revision = '47e23df5a7ed'
@@ -39,7 +41,7 @@ def upgrade():
     # perform data migrations
     for testgroup in connection.execute(testgroups_table.select()):
         # migrate group to suite
-        print "Migrating TestGroup %s" % (testgroup.id,)
+        print("Migrating TestGroup %s" % (testgroup.id,))
 
         query = select([testcases_table]).where(
             sa.and_(

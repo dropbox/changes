@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import argparse
 import statprof
@@ -31,7 +31,7 @@ def web(addr, profile=None):
     if profile:
         statprof.start()
 
-    print "Listening on http://{0}".format(addr)
+    print("Listening on http://{0}".format(addr))
     try:
         app.run(host, port)
     finally:

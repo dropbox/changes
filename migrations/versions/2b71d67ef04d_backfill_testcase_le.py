@@ -6,6 +6,8 @@ Create Date: 2013-11-07 12:48:43.717544
 
 """
 
+from __future__ import absolute_import, print_function
+
 # revision identifiers, used by Alembic.
 revision = '2b71d67ef04d'
 down_revision = '3edf6ec6abd5'
@@ -54,7 +56,7 @@ def upgrade():
     )
 
     for testcase in connection.execute(testcases_table.select()):
-        print "Migrating TestCase %s" % (testcase.id,)
+        print("Migrating TestCase %s" % (testcase.id,))
 
         if testcase.package:
             full_name = testcase.package + '.' + testcase.name

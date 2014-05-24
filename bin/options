@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import, print_function
+
 import argparse
 
 from changes.config import create_app, db
@@ -39,14 +41,14 @@ if args.command == 'set':
     }, values={
         'value': value,
     })
-    print "%s=%s" % (name, value)
+    print("%s=%s" % (name, value))
 
 if args.command == 'delete':
     ItemOption.query.filter(
         ItemOption.item_id == args.id,
         ItemOption.name == args.option,
     ).delete(synchronize_session=False)
-    print "Ok!"
+    print("Ok!")
 
 if args.command == 'get':
     option_list = ItemOption.query.filter(
@@ -59,7 +61,7 @@ if args.command == 'get':
         )
 
     for option in option_list:
-        print "%s=%s" % (option.name, option.value)
+        print("%s=%s" % (option.name, option.value))
 
 
 db.session.commit()

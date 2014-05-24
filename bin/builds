@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import, print_function
+
 import argparse
 import sys
 
@@ -40,7 +42,7 @@ def get_build(id_):
     build = Build.query.get(id_)
 
     if not build:
-        print "Build not found"
+        print("Build not found")
         sys.exit(1)
 
     return build
@@ -76,9 +78,9 @@ if args.command == 'add':
     db.session.add(build)
     db.session.commit()
 
-    print "Created new build with ID {%s}" % (
+    print("Created new build with ID {%s}" % (
         build.id,
-    )
+    ))
 
 
 elif args.command == 'sync':
@@ -90,7 +92,7 @@ elif args.command == 'sync':
         abort()
 
     for build in builds:
-        print "Forcing build sync - {}".format(build.id.hex)
+        print("Forcing build sync - {}".format(build.id.hex))
 
         sync_build.delay(
             build_id=build.id.hex,

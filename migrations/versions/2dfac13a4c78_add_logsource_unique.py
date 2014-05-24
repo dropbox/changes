@@ -6,6 +6,8 @@ Create Date: 2013-12-06 10:56:15.727933
 
 """
 
+from __future__ import absolute_import, print_function
+
 # revision identifiers, used by Alembic.
 revision = '2dfac13a4c78'
 down_revision = '5896e31725d'
@@ -37,8 +39,8 @@ def upgrade():
         if key in done:
             continue
 
-        print "Checking LogSource %s - %s" % (
-            logsource.build_id, logsource.name)
+        print("Checking LogSource %s - %s" % (
+            logsource.build_id, logsource.name))
         query = logchunks_table.delete().where(
             logchunks_table.c.source_id.in_(select([logchunks_table]).where(
                 sa.and_(

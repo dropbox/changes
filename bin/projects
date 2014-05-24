@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import, print_function
+
 import argparse
 import sys
 
@@ -37,7 +39,7 @@ def get_project(id_):
         project = Project.query.filter_by(slug=id_).first()
 
     if not project:
-        print "Project not found"
+        print("Project not found")
         sys.exit(1)
 
     return project
@@ -107,9 +109,9 @@ if args.command == 'add':
     )
     db.session.add(project)
 
-    print "Created new project with ID {%s}" % (
+    print("Created new project with ID {%s}" % (
         project.id,
-    )
+    ))
 
 elif args.command == 'edit':
     project = get_project(args.id)
@@ -130,13 +132,13 @@ elif args.command == 'edit':
 
     db.session.add(project)
 
-    print "Saved project with ID {%s}" % (
+    print("Saved project with ID {%s}" % (
         project.id,
-    )
+    ))
 
 elif args.command == 'list':
     for project in Project.query.order_by(Project.slug.asc()):
-        print project.slug
+        print(project.slug)
 
 elif args.command == 'options':
     if args.option_command == 'set':
@@ -150,7 +152,7 @@ elif args.command == 'options':
         }, values={
             'value': value,
         })
-        print "%s=%s" % (name, value)
+        print("%s=%s" % (name, value))
 
     if args.option_command == 'delete':
         project = get_project(args.id)
@@ -159,7 +161,7 @@ elif args.command == 'options':
             ProjectOption.project_id == project.id,
             ProjectOption.name == args.option,
         ).delete(synchronize_session=False)
-        print "Ok!"
+        print("Ok!")
 
     if args.option_command == 'get':
         project = get_project(args.id)
@@ -174,7 +176,7 @@ elif args.command == 'options':
             )
 
         for option in option_list:
-            print "%s=%s" % (option.name, option.value)
+            print("%s=%s" % (option.name, option.value))
 
 
 db.session.commit()
