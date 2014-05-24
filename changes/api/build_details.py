@@ -20,10 +20,10 @@ def find_changed_tests(current_build, previous_build, limit=25):
         return []
 
     current_job_clause = ', '.join(
-        ':c_job_id_%s' % i for i in xrange(len(current_job_ids))
+        ':c_job_id_%s' % i for i in range(len(current_job_ids))
     )
     previous_job_clause = ', '.join(
-        ':p_job_id_%s' % i for i in xrange(len(previous_job_ids))
+        ':p_job_id_%s' % i for i in range(len(previous_job_ids))
     )
 
     params = {}

@@ -39,7 +39,7 @@ class CoverageHandler(ArtifactHandler):
         ).first()
 
         cov_data = []
-        for lineno in xrange(max(len(existing.data), len(new.data))):
+        for lineno in range(max(len(existing.data), len(new.data))):
             try:
                 old_cov = existing.data[lineno]
             except IndexError:
@@ -146,7 +146,7 @@ class CoverageHandler(ArtifactHandler):
                 for line in lineset.iterchildren('line'):
                     number, hits = int(line.get('number')), int(line.get('hits'))
                     if lineno < number - 1:
-                        for lineno in xrange(lineno, number - 1):
+                        for lineno in range(lineno, number - 1):
                             file_coverage.append('N')
                     if hits > 0:
                         file_coverage.append('C')
