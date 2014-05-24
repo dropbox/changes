@@ -47,8 +47,6 @@ def app(request, session_config):
     app_context = app.test_request_context()
     context = app_context.push()
 
-    print context
-
     # request.addfinalizer(app_context.pop)
     return app
 

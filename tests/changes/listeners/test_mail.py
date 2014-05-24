@@ -124,7 +124,6 @@ class SendTestCase(TestCase):
             job.build.target, job.project.name, job.build.number, job.number)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
-        print msg.body
 
         assert job_link in msg.html
         assert job_link in msg.body
@@ -174,7 +173,6 @@ class SendTestCase(TestCase):
             job.build.target, job.project.name, job.build.number, job.number)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
-        print msg.body
 
         assert job_link in msg.html
         assert job_link in msg.body
