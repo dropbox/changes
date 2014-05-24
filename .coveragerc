@@ -2,6 +2,8 @@
 source =
 	changes
 	tests
+omit =
+	changes/mock.py
 
 [xml]
 output=coverage.xml
