@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import mock
 import json
-import unittest2
+import unittest
 
 from exam import Exam, fixture
 from flask import current_app as app
@@ -46,7 +46,7 @@ class AuthMixin(object):
         return self.login(self.default_admin)
 
 
-class TestCase(Exam, unittest2.TestCase, Fixtures, AuthMixin):
+class TestCase(Exam, unittest.TestCase, Fixtures, AuthMixin):
     def setUp(self):
         self.repo = self.create_repo(
             url='https://github.com/dropbox/changes.git',
