@@ -112,7 +112,7 @@ class SendTestCase(TestCase):
         job_link = 'http://example.com/projects/test/builds/%s/jobs/%s/' % (build.id.hex, job.id.hex,)
         log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
 
-        get_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+        get_recipients.return_value = ['foo@example.com', 'bob@example.com']
 
         handler = MailNotificationHandler()
         handler.send(job, None)
@@ -122,8 +122,8 @@ class SendTestCase(TestCase):
 
         assert msg.subject == '%s Failed - %s #%s.%s' % (
             job.build.target, job.project.name, job.build.number, job.number)
-        assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
-        assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
+        assert msg.recipients == ['foo@example.com', 'bob@example.com']
+        assert msg.extra_headers['Reply-To'] == 'foo@example.com, bob@example.com'
 
         assert job_link in msg.html
         assert job_link in msg.body
@@ -161,7 +161,7 @@ class SendTestCase(TestCase):
         log_link1 = '%slogs/%s/' % (job_link, logsource.id.hex)
         log_link2 = '%slogs/%s/' % (job_link, logsource2.id.hex)
 
-        get_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+        get_recipients.return_value = ['foo@example.com']
 
         handler = MailNotificationHandler()
         handler.send(job, None)
@@ -171,8 +171,7 @@ class SendTestCase(TestCase):
 
         assert msg.subject == '%s Failed - %s #%s.%s' % (
             job.build.target, job.project.name, job.build.number, job.number)
-        assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
-        assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
+        assert msg.recipients == ['foo@example.com']
 
         assert job_link in msg.html
         assert job_link in msg.body

@@ -7,7 +7,7 @@ def build_tree(tests, sep='.', min_children=1, parent=''):
     # Build a mapping of prefix => set(children)
     for test in tests:
         segments = test.split(sep)
-        for i in xrange(len(segments)):
+        for i in range(len(segments)):
             prefix = sep.join(segments[:i])
             h[prefix].add(sep.join(segments[:i + 1]))
 

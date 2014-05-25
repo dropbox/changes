@@ -1,4 +1,4 @@
-from cStringIO import StringIO
+from io import BytesIO
 
 from changes.config import db
 from changes.models import Job, JobPlan, ProjectOption
@@ -78,7 +78,7 @@ class BuildCreateTest(APITestCase):
             'label': 'Foo Bar',
             'message': 'Hello world!',
             'author': 'David Cramer <dcramer@example.com>',
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch': (BytesIO(SAMPLE_DIFF.encode('utf-8')), 'foo.diff'),
             'patch[data]': '{"foo": "bar"}',
         })
         assert resp.status_code == 200, resp.data
@@ -149,7 +149,7 @@ class BuildCreateTest(APITestCase):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch': (BytesIO(SAMPLE_DIFF.encode('utf-8')), 'foo.diff'),
             'patch[label]': 'D1234',
         })
         assert resp.status_code == 200, resp.data

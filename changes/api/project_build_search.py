@@ -11,9 +11,9 @@ from changes.models import Project, Build
 
 class ProjectBuildSearchAPIView(APIView):
     get_parser = reqparse.RequestParser()
-    get_parser.add_argument('query', type=unicode, location='args')
-    get_parser.add_argument('source', type=unicode, location='args')
-    get_parser.add_argument('result', type=unicode, location='args',
+    get_parser.add_argument('query', location='args')
+    get_parser.add_argument('source', location='args')
+    get_parser.add_argument('result', location='args',
                             choices=('failed', 'passed', 'aborted', 'unknown'))
 
     def get(self, project_id):

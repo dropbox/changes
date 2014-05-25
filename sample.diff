@@ -9,8 +9,8 @@ diff -r 3142efbcdcdb -r 28720876f4a2 ci/run_with_retries.py
  import subprocess
 @@ -41,7 +42,7 @@
      return [testcase for testcase in root if testcase_status(testcase) in ('failure', 'error')]
- 
- 
+
+
 -def run(files):
 +def run(files, cwd):
      cmd = COVERAGE_COMMAND_LINE % PYTEST_COMMAND_LINE
@@ -19,7 +19,7 @@ diff -r 3142efbcdcdb -r 28720876f4a2 ci/run_with_retries.py
 @@ -49,6 +50,16 @@
      write_out("Generating coverage.xml")
      run_streaming_out(COVERAGE_XML_COMMAND_LINE)
- 
+
 +    new_file_text = ""
 +    if os.path.isfile('%s/coverage.xml' % os.getcwd()):
 +        write_out("Replacing all paths in coverage.xml with repo paths.")
@@ -36,7 +36,7 @@ diff -r 3142efbcdcdb -r 28720876f4a2 ci/run_with_retries.py
 @@ -171,5 +182,10 @@
      if os.path.isfile(test_file):
          subprocess.Popen("rm %s" % test_file, shell=True)
- 
+
 -    files_args = ' '.join(sys.argv[1:])
 -    run(files_args)
 +    parser = argparse.ArgumentParser(description='Run the tests with retries')

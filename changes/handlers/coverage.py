@@ -23,7 +23,7 @@ class CoverageHandler(ArtifactHandler):
             except IntegrityError:
                 lock_key = 'coverage:{job_id}:{file_hash}'.format(
                     job_id=result.job_id.hex,
-                    file_hash=md5(result.filename).hexdigest(),
+                    file_hash=md5(result.filename.encode('utf-8')).hexdigest(),
                 )
                 with redis.lock(lock_key):
                     result = self.merge_coverage(result)
@@ -135,7 +135,7 @@ class CoverageHandler(ArtifactHandler):
         step = self.step
         job = self.step.job
 
-        root = etree.fromstring(fp.read())
+        root = etree.parse(fp)
 
         results = []
         for node in root.iter('class'):

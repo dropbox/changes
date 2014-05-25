@@ -18,7 +18,7 @@ def get_serializer(item, registry):
     serializer = registry.get(item_type, _registry.get(item_type))
 
     if serializer is None:
-        for cls, _serializer in _registry.iteritems():
+        for cls, _serializer in _registry.items():
             if issubclass(item_type, cls):
                 serializer = _serializer
                 break
@@ -33,14 +33,14 @@ def serialize(data, extended_registry=None):
     if data is None:
         return None
 
-    if isinstance(data, (basestring, int, long, float, bool)):
+    if isinstance(data, (str, bytes, int, float, bool)):
         return data
 
     if isinstance(data, dict):
         return dict(
             (k, v) for k, v
-            in zip(serialize(data.keys(), extended_registry),
-                   serialize(data.values(), extended_registry))
+            in zip(serialize(list(data.keys()), extended_registry),
+                   serialize(list(data.values()), extended_registry))
         )
 
     if isinstance(data, (list, tuple, set, frozenset)):
@@ -93,7 +93,7 @@ class EnumSerializer(Serializer):
     def serialize(self, item, attrs):
         return {
             'id': item.name,
-            'name': unicode(item),
+            'name': str(item),
         }
 
 

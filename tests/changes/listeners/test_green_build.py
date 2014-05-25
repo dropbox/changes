@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import mock
 import responses
 
+from urllib.parse import parse_qsl
+
 from changes.constants import Result
 from changes.listeners.green_build import build_finished_handler
 from changes.models import Event, EventType, RepositoryBackend
@@ -63,10 +65,15 @@ class GreenBuildTest(TestCase):
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == 'https://foo.example.com/'
-        assert responses.calls[0].request.body == 'project={project_slug}&build_server=changes&build_url=http%3A%2F%2Fexample.com%2Fprojects%2F{project_slug}%2Fbuilds%2F{build_id}%2F&id=134%3Aasdadfadf'.format(
-            project_slug=build.project.slug,
-            build_id=build.id.hex,
-        )
+        assert sorted(parse_qsl(responses.calls[0].request.body)) == [
+            ('build_server', 'changes'),
+            ('build_url', 'http://example.com/projects/{project_slug}/builds/{build_id}/'.format(
+                project_slug=build.project.slug,
+                build_id=build.id.hex,
+            )),
+            ('id', '134:asdadfadf'),
+            ('project', build.project.slug),
+        ]
 
         event = Event.query.filter(
             Event.type == EventType.green_build,

@@ -31,7 +31,7 @@ class BuildReport(object):
         previous_results = self.get_project_stats(
             start_period - days_delta, start_period)
 
-        for project, stats in current_results.iteritems():
+        for project, stats in current_results.items():
             previous_stats = previous_results.get(project)
             if not previous_stats:
                 green_change = None
@@ -126,7 +126,7 @@ class BuildReport(object):
             if result == Result.passed:
                 project_results[project]['green_builds'] += num_builds
 
-        for project, stats in project_results.iteritems():
+        for project, stats in project_results.items():
             if stats['total_builds']:
                 stats['green_percent'] = int(stats['green_builds'] / stats['total_builds'] * 100)
             else:
@@ -217,7 +217,7 @@ class BuildReport(object):
             return []
 
         tests_with_pct = []
-        for test_key, counts in test_results.iteritems():
+        for test_key, counts in test_results.items():
             total = counts['passed'] + counts['failed']
             if counts['failed'] == 0:
                 continue

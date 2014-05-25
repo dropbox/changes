@@ -59,7 +59,7 @@ class TestCase(db.Model):
     @classmethod
     def calculate_name_sha(self, name):
         if name:
-            return sha1(name).hexdigest()
+            return sha1(name.encode('utf-8')).hexdigest()
         raise ValueError
 
     @property
@@ -99,7 +99,7 @@ def set_name_sha(target, value, oldvalue, initiator):
     if not value:
         return value
 
-    new_sha = sha1(value).hexdigest()
+    new_sha = sha1(value.encode('utf-8')).hexdigest()
     if new_sha != target.name_sha:
         target.name_sha = new_sha
     return value

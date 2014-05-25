@@ -12,9 +12,9 @@ from changes.models import Project, Repository, Build, Source
 
 class ProjectIndexAPIView(APIView):
     parser = reqparse.RequestParser()
-    parser.add_argument('name', type=unicode, required=True)
-    parser.add_argument('slug', type=str)
-    parser.add_argument('repository', type=unicode, required=True)
+    parser.add_argument('name', required=True)
+    parser.add_argument('slug')
+    parser.add_argument('repository', required=True)
 
     def get(self):
         queryset = Project.query.filter(

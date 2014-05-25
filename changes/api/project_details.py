@@ -23,11 +23,11 @@ class Validator(object):
         result = {}
         for name in self.fields:
             value = self.data.get(name, self.initial.get(name))
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 value = value.strip()
             result[name] = value
 
-        for key, value in result.iteritems():
+        for key, value in result.items():
             if not value:
                 raise ValidationError('%s is required' % (key,))
 
@@ -99,7 +99,7 @@ class ProjectDetailsAPIView(APIView):
                 ProjectOption.project_id == project.id,
             )
         )
-        for key, value in OPTION_DEFAULTS.iteritems():
+        for key, value in OPTION_DEFAULTS.items():
             options.setdefault(key, value)
 
         data = self.serialize(project)

@@ -9,7 +9,7 @@ class ModuleProxyCache(dict):
 
         module_name, class_name = key.rsplit('.', 1)
 
-        module = __import__(module_name, {}, {}, [class_name], -1)
+        module = __import__(module_name, {}, {}, [class_name], 0)
         handler = getattr(module, class_name)
 
         # We cache a NoneType for missing imports to avoid repeated lookups
@@ -33,7 +33,7 @@ def import_string(path):
 def import_submodules(context, root_module, path):
     for loader, module_name, is_pkg in pkgutil.walk_packages(path):
         module = loader.find_module(module_name).load_module(module_name)
-        for k, v in vars(module).iteritems():
+        for k, v in vars(module).items():
             if not k.startswith('_'):
                 context[k] = v
         sys.modules['{0}.{1}'.format(root_module, module_name)] = module

@@ -53,11 +53,11 @@ def decr_week(dt):
 
 class ProjectStatsAPIView(APIView):
     parser = reqparse.RequestParser()
-    parser.add_argument('resolution', type=unicode, location='args',
+    parser.add_argument('resolution', location='args',
                         choices=RESOLUTION_CHOICES, default='1d')
-    parser.add_argument('stat', type=unicode, location='args',
+    parser.add_argument('stat', location='args',
                         choices=STAT_CHOICES, required=True)
-    parser.add_argument('agg', type=unicode, location='args',
+    parser.add_argument('agg', location='args',
                         choices=AGG_CHOICES)
     parser.add_argument('points', type=int, location='args')
     parser.add_argument('from', type=int, location='args',
@@ -103,7 +103,7 @@ class ProjectStatsAPIView(APIView):
             value = func.avg(ItemStat.value)
 
         date_begin = date_end.replace()
-        for _ in xrange(points):
+        for _ in range(points):
             date_begin = decr_res(date_begin)
 
         # TODO(dcramer): put minimum date bounds
@@ -120,7 +120,7 @@ class ProjectStatsAPIView(APIView):
 
         data = []
         cur_date = date_end.replace()
-        for _ in xrange(points):
+        for _ in range(points):
             cur_date = decr_res(cur_date)
             data.append({
                 'time': int(float(cur_date.strftime('%s.%f')) * 1000),

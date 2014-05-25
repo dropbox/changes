@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 from datetime import datetime
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from .base import Vcs, RevisionResult, BufferParser
 
@@ -71,7 +71,7 @@ class GitVcs(Vcs):
             # sha may have a trailing newline due to git log adding it
             sha = sha.lstrip('\n')
 
-            parents = filter(bool, parents.split(' '))
+            parents = [p for p in parents.split(' ') if p]
 
             author_date = datetime.utcfromtimestamp(float(author_date))
             committer_date = datetime.utcfromtimestamp(float(committer_date))

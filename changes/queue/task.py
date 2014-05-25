@@ -99,7 +99,7 @@ class TrackedTask(local):
         except Exception as exc:
             db.session.rollback()
 
-            self.logger.exception(unicode(exc))
+            self.logger.exception(str(exc))
 
             try:
                 self._retry()
@@ -112,12 +112,12 @@ class TrackedTask(local):
                     Task.status: Status.finished,
                     Task.result: Result.failed,
                 })
-                self.logger.exception(unicode(exc))
+                self.logger.exception(str(exc))
 
                 if self.on_abort:
                     self.on_abort(self)
             except Exception as exc:
-                self.logger.exception(unicode(exc))
+                self.logger.exception(str(exc))
                 raise
 
         else:
@@ -132,7 +132,7 @@ class TrackedTask(local):
                     Task.result: Result.passed,
                 })
             except Exception as exc:
-                self.logger.exception(unicode(exc))
+                self.logger.exception(str(exc))
                 raise
 
             db.session.commit()
@@ -265,7 +265,7 @@ class TrackedTask(local):
         kwargs.setdefault('task_id', uuid4().hex)
 
         fn_kwargs = dict(
-            (k, v) for k, v in kwargs.iteritems()
+            (k, v) for k, v in kwargs.items()
             if k not in ('task_id', 'parent_task_id')
         )
 
@@ -301,7 +301,7 @@ class TrackedTask(local):
         kwargs.setdefault('task_id', uuid4().hex)
 
         fn_kwargs = dict(
-            (k, v) for k, v in kwargs.iteritems()
+            (k, v) for k, v in kwargs.items()
             if k not in ('task_id', 'parent_task_id')
         )
 

@@ -147,7 +147,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         assert job_config['tests']
 
         test_names = ' '.join(job_config['tests'])
-        label = md5(test_names).hexdigest()
+        label = md5(test_names.encode('utf-8')).hexdigest()
 
         step, created = get_or_create(JobStep, where={
             'job': phase.job,

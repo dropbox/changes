@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
 
-import itertools
-
 from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView
@@ -34,7 +32,7 @@ class ProjectCommitIndexAPIView(APIView):
 
                 revisions_map = dict(
                     (c.sha, d)
-                    for c, d in itertools.izip(revisions_qs, self.serialize(revisions_qs))
+                    for c, d in zip(revisions_qs, self.serialize(revisions_qs))
                 )
 
                 commits = []
@@ -71,7 +69,7 @@ class ProjectCommitIndexAPIView(APIView):
 
             builds_map = dict(
                 (b.source.revision_sha, d)
-                for b, d in itertools.izip(builds_qs, self.serialize(builds_qs))
+                for b, d in zip(builds_qs, self.serialize(builds_qs))
             )
         else:
             builds_map = {}

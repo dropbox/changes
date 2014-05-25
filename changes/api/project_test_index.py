@@ -17,8 +17,8 @@ SORT_CHOICES = (
 class ProjectTestIndexAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('min_duration', type=int, location='args')
-    parser.add_argument('query', type=unicode, location='args')
-    parser.add_argument('sort', type=unicode, location='args',
+    parser.add_argument('query', location='args')
+    parser.add_argument('sort', location='args',
                         choices=SORT_CHOICES, default='duration')
 
     def get(self, project_id):

@@ -52,9 +52,9 @@ class JSONEncodedDict(TypeDecorator):
         if value:
             if isinstance(value, MutableDict):
                 value = value.value
-            return unicode(json.dumps(value))
+            return json.dumps(value)
 
-        return u'{}'
+        return '{}'
 
     def process_result_value(self, value, dialect):
         if value:

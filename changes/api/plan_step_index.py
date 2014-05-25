@@ -11,11 +11,15 @@ from changes.constants import IMPLEMENTATION_CHOICES
 from changes.models import Step, Plan
 
 
+def JSON(value):
+    return json.loads(value)
+
+
 class PlanStepIndexAPIView(APIView):
     parser = reqparse.RequestParser()
-    parser.add_argument('data', default='{}')
-    parser.add_argument('implementation', choices=IMPLEMENTATION_CHOICES,
-                        required=True)
+    parser.add_argument('data', type=JSON, default={})
+    parser.add_argument('implementation', type=str,
+                        choices=IMPLEMENTATION_CHOICES, required=True)
     parser.add_argument('order', type=int, default=0)
 
     def get(self, plan_id):
@@ -39,8 +43,7 @@ class PlanStepIndexAPIView(APIView):
             implementation=args.implementation,
         )
 
-        data = json.loads(args.data)
-        if not isinstance(data, dict):
+        if not isinstance(args.data, dict):
             return {"message": "data must be a JSON mapping"}, 400
 
         impl_cls = step.get_implementation(load=False)
@@ -48,11 +51,11 @@ class PlanStepIndexAPIView(APIView):
             return {"message": "unable to load build step implementation"}, 400
 
         try:
-            impl_cls(**data)
+            impl_cls(**args.data)
         except Exception:
             return {"message": "unable to create build step provided data"}, 400
 
-        step.data = data
+        step.data = args.data
         step.order = args.order
         db.session.add(step)
 

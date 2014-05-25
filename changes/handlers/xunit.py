@@ -23,11 +23,12 @@ class XunitHandler(ArtifactHandler):
 
     def get_tests(self, fp):
         try:
-            root = etree.fromstring(fp.read())
+            tree = etree.parse(fp)
         except Exception:
             self.logger.exception('Failed to parse XML')
             return []
 
+        root = next(tree.iter())
         if root.tag == 'unittest-results':
             return self.get_bitten_tests(root)
         return self.get_xunit_tests(root)
@@ -82,8 +83,8 @@ class XunitHandler(ArtifactHandler):
             # AFAIK the spec says only one tag can be present
             # http://windyroad.com.au/dl/Open%20Source/JUnit.xsd
             try:
-                r_node = list(node.iterchildren())[0]
-            except IndexError:
+                r_node = next(node.iterchildren())
+            except StopIteration:
                 result = Result.passed
                 message = ''
             else:

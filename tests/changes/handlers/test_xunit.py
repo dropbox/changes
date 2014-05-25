@@ -1,6 +1,6 @@
 import uuid
 
-from cStringIO import StringIO
+from io import BytesIO
 
 from changes.constants import Result
 from changes.models import JobStep, TestResult
@@ -15,7 +15,7 @@ def test_result_generation():
         job_id=uuid.uuid4(),
     )
 
-    fp = StringIO(SAMPLE_XUNIT)
+    fp = BytesIO(SAMPLE_XUNIT.encode('utf-8'))
 
     handler = XunitHandler(jobstep)
     results = handler.get_tests(fp)

@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+from __future__ import absolute_import, print_function
 
 import random
 import time
@@ -70,7 +72,7 @@ def create_new_entry(project):
 
     db.session.commit()
 
-    for x in xrange(0, random.randint(1, 3)):
+    for x in range(0, random.randint(1, 3)):
         job = mock.job(
             build=build,
             change=change,
@@ -91,7 +93,7 @@ def create_new_entry(project):
             db.session.commit()
 
             offset = 0
-            for x in xrange(30):
+            for x in range(30):
                 lc = mock.logchunk(source=logsource, offset=offset)
                 db.session.commit()
                 offset += lc.size
@@ -116,7 +118,7 @@ def update_existing_entry(project):
     jobstep = JobStep.query.filter(JobStep.job == job).first()
     if jobstep:
         test_results = []
-        for _ in xrange(50):
+        for _ in range(50):
             if job.result == Result.failed:
                 result = Result.failed if random.randint(0, 3) == 1 else Result.passed
             else:
@@ -156,7 +158,7 @@ def loop():
 
     while True:
         build = gen(project)
-        print 'Pushed build {0} on {1}'.format(build.id, project.slug)
+        print('Pushed build {0} on {1}'.format(build.id, project.slug))
         time.sleep(0.1)
 
 

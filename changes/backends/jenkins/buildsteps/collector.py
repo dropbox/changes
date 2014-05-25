@@ -92,7 +92,7 @@ class JenkinsCollectorBuildStep(JenkinsBuildStep):
             self._expand_job(phase, job_config)
 
     def _expand_job(self, phase, job_config):
-        label = job_config.get('name') or md5(job_config['cmd']).hexdigest()
+        label = job_config.get('name') or md5(job_config['cmd'].encode('utf-8')).hexdigest()
 
         step, created = get_or_create(JobStep, where={
             'job': phase.job,

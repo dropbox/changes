@@ -8,9 +8,9 @@ def try_create(model, where, defaults=None):
         defaults = {}
 
     instance = model()
-    for key, value in defaults.iteritems():
+    for key, value in defaults.items():
         setattr(instance, key, value)
-    for key, value in where.iteritems():
+    for key, value in where.items():
         setattr(instance, key, value)
     try:
         with db.session.begin_nested():
@@ -93,7 +93,7 @@ def create_or_get(model, where, values=None):
 
 
 def update(instance, values):
-    for key, value in values.iteritems():
+    for key, value in values.items():
         if getattr(instance, key) != value:
             setattr(instance, key, value)
     db.session.add(instance)

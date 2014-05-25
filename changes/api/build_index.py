@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, unicode_literals
 import json
 import logging
 
-from cStringIO import StringIO
 from flask.ext.restful import reqparse
+from io import StringIO
 from sqlalchemy.orm import joinedload, subqueryload_all
 from werkzeug.datastructures import FileStorage
 
@@ -145,18 +145,18 @@ def execute_build(build):
 
 class BuildIndexAPIView(APIView):
     parser = reqparse.RequestParser()
-    parser.add_argument('sha', type=str, required=True)
+    parser.add_argument('sha', required=True)
     parser.add_argument('project', type=lambda x: Project.query.filter(
         Project.slug == x,
         Project.status == ProjectStatus.active,
     ).first())
     parser.add_argument('repository', type=lambda x: Repository.query.filter_by(url=x).first())
     parser.add_argument('author', type=AuthorValidator())
-    parser.add_argument('label', type=unicode)
-    parser.add_argument('target', type=unicode)
-    parser.add_argument('message', type=unicode)
+    parser.add_argument('label')
+    parser.add_argument('target')
+    parser.add_argument('message')
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
-    parser.add_argument('patch[data]', type=unicode, dest='patch_data')
+    parser.add_argument('patch[data]', dest='patch_data')
 
     def get(self):
         queryset = Build.query.options(
@@ -250,10 +250,8 @@ class BuildIndexAPIView(APIView):
         label = label[:128]
 
         if args.patch_file:
-            fp = StringIO()
-            for line in args.patch_file:
-                fp.write(line)
-            patch_file = fp
+            patch_file = StringIO()
+            patch_file.write(args.patch_file.read().decode('utf-8'))
         else:
             patch_file = None
 

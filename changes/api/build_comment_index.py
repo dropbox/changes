@@ -8,7 +8,7 @@ from changes.models import Build, Comment, User
 
 class BuildCommentIndexAPIView(APIView):
     parser = reqparse.RequestParser()
-    parser.add_argument('text', type=unicode, required=True)
+    parser.add_argument('text', required=True)
 
     def get(self, build_id):
         build = Build.query.get(build_id)

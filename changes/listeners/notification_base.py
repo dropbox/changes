@@ -83,11 +83,11 @@ class NotificationHandler(object):
     def get_result_label(self, job, parent):
         if parent:
             if parent.result == Result.failed and job.result == Result.passed:
-                result_label = u'Fixed'
+                result_label = 'Fixed'
             else:
-                result_label = unicode(job.result)
+                result_label = str(job.result)
         else:
-            result_label = unicode(job.result)
+            result_label = str(job.result)
 
         return result_label
 

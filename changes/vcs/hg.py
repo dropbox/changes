@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 
 from datetime import datetime
-from rfc822 import parsedate_tz, mktime_tz
-from urlparse import urlparse
+from email.utils import parsedate_tz, mktime_tz
+from urllib.parse import urlparse
 
 from .base import Vcs, RevisionResult, BufferParser
 
@@ -57,8 +57,8 @@ class MercurialVcs(Vcs):
         for chunk in BufferParser(result, '\x02'):
             (sha, author, author_date, parents, branches, message) = chunk.split('\x01')
 
-            branches = filter(bool, branches.split(' ')) or ['default']
-            parents = filter(lambda x: x and x != '0' * 40, parents.split(' '))
+            branches = [b for b in branches.split(' ') if b] or ['default']
+            parents = [p for p in parents.split(' ') if p and p != '0' * 40]
 
             author_date = datetime.utcfromtimestamp(
                 mktime_tz(parsedate_tz(author_date)))

@@ -15,8 +15,8 @@ SORT_CHOICES = (
 
 class ProjectCoverageIndexAPIView(APIView):
     parser = reqparse.RequestParser()
-    parser.add_argument('query', type=unicode, location='args')
-    parser.add_argument('sort', type=unicode, location='args',
+    parser.add_argument('query', location='args')
+    parser.add_argument('sort', location='args',
                         choices=SORT_CHOICES, default='name')
 
     def get(self, project_id):

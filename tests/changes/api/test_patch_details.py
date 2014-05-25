@@ -19,4 +19,4 @@ class PatchDetailsTest(APITestCase):
 
         resp = self.client.get(path)
         assert resp.status_code == 200
-        assert resp.data == patch.diff
+        assert resp.data == patch.diff.encode('utf-8')

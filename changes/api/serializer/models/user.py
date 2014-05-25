@@ -1,5 +1,5 @@
 from hashlib import md5
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from changes.api.serializer import Serializer, register
 from changes.models import User
@@ -7,7 +7,7 @@ from changes.models import User
 
 def get_gravatar_url(email, size=None, default='mm'):
     gravatar_url = "https://secure.gravatar.com/avatar/%s" % (
-        md5(email.lower()).hexdigest())
+        md5(email.lower().encode('utf-8')).hexdigest())
 
     properties = {}
     if size:

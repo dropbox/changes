@@ -43,7 +43,7 @@ class ProjectOptionsIndexAPIView(APIView):
 
         args = self.parser.parse_args()
 
-        for name, value in args.iteritems():
+        for name, value in args.items():
             if value is None:
                 continue
             create_or_update(ProjectOption, where={

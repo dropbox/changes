@@ -37,7 +37,7 @@ class BaseTestCase(BackendTestCase):
             os.path.dirname(__file__),
             filename,
         )
-        with open(filepath, 'rb') as fp:
+        with open(filepath, 'r') as fp:
             return fp.read()
 
 
@@ -86,19 +86,19 @@ class CreateBuildTest(BaseTestCase):
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid&wrapper=x',
+            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22492af3128d2b4b6988a3677afea108db%22%5D%2Fid&wrapper=x',
             status=404,
             match_querystring=True)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fnumber&depth=1&wrapper=x',
+            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22492af3128d2b4b6988a3677afea108db%22%5D%2Fnumber&depth=1&wrapper=x',
             body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
             match_querystring=True)
 
         build = self.create_build(self.project)
         job = self.create_job(
             build=build,
-            id=UUID('f9481a17aac446718d7893b6e1c6288b'),
+            id=UUID('492af312-8d2b-4b69-88a3-677afea108db'),
         )
 
         builder = self.get_builder()
@@ -712,7 +712,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             body='',
             status=201)
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid',
+            responses.GET, 'http://jenkins.example.com/queue/api/xml/?wrapper=x&xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid',
             body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
             match_querystring=True)
         responses.add(

@@ -45,7 +45,7 @@ class Change(db.Model):
         if self.id is None:
             self.id = uuid4()
         if self.hash is None:
-            self.hash = sha1(uuid4().hex).hexdigest()
+            self.hash = sha1(uuid4().hex.encode('utf-8')).hexdigest()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
         if self.date_modified is None:

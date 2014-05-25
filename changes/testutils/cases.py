@@ -77,7 +77,7 @@ class TestCase(Exam, unittest.TestCase, Fixtures, AuthMixin):
 
     def unserialize(self, response):
         assert response.headers['Content-Type'] == 'application/json'
-        return json.loads(response.data)
+        return json.loads(response.data.decode('utf-8'))
 
 
 class BackendTestCase(TestCase):

@@ -57,7 +57,7 @@ class _Celery(object):
     def register(self, name, func, **kwargs):
         # XXX(dcramer): hacky way to ensure the task gets registered so
         # celery knows how to execute it
-        for key, value in self.app.config['CELERY_ROUTES'].get(name, {}).iteritems():
+        for key, value in self.app.config['CELERY_ROUTES'].get(name, {}).items():
             kwargs.setdefault(key, value)
 
         self.tasks[name] = self.celery.task(func, name=name, **kwargs)

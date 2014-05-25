@@ -112,7 +112,7 @@ def upgrade():
         print("Migrating TestCase %s" % (testcase.id,))
 
         suite_name = testcase.group or 'default'
-        suite_sha = sha1(suite_name).hexdigest()
+        suite_sha = sha1(suite_name.encode('utf-8')).hexdigest()
 
         result = connection.execute(testsuites_table.select().where(sa.and_(
             testsuites_table.c.build_id == testcase.build_id,
@@ -142,7 +142,7 @@ def upgrade():
         )
         # add package as group
         group_name = testcase.package or testcase.name.rsplit('.', 1)[1]
-        group_sha = sha1(group_name).hexdigest()
+        group_sha = sha1(group_name.encode('utf-8')).hexdigest()
 
         result = connection.execute(testgroups_table.select().where(sa.and_(
             testgroups_table.c.build_id == testcase.build_id,

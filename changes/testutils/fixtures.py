@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 __all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT')
 
-from loremipsum import get_paragraphs, get_sentences
 from uuid import uuid4
 
 from changes.config import db
@@ -58,6 +57,29 @@ E   ImportError: No module named mock</failure>
     </testcase>
     <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
 </testsuite>"""
+
+LOREM_IPSUM = """
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed facilisis ligula ut ante ultrices, quis posuere eros tristique. Phasellus auctor imperdiet ligula quis gravida. Duis id gravida libero. Praesent non justo quis felis elementum volutpat at in neque. Sed eget consectetur lorem. Donec condimentum condimentum volutpat. Vestibulum lobortis enim augue, quis egestas libero dictum eu.
+
+Vivamus a erat eu nibh pharetra rhoncus sit amet at lacus. Proin ullamcorper quis enim at feugiat. Suspendisse sit amet luctus elit. Nunc quis aliquet massa, sed imperdiet est. In urna orci, consectetur a auctor eget, dapibus at turpis. Aliquam facilisis mi id nunc auctor, id convallis odio fermentum. Nunc mollis felis nec orci mattis, ut mollis elit imperdiet.
+
+Mauris eget elit aliquet, mattis augue dignissim, fermentum orci. Ut vestibulum viverra cursus. Duis libero justo, dapibus vel tincidunt in, laoreet et nulla. Maecenas cursus diam id gravida sollicitudin. Nullam varius nunc purus, nec bibendum sem mattis ac. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla et ullamcorper nibh. Duis convallis erat erat, a egestas leo consectetur vel. Vivamus fermentum placerat ipsum, a vulputate risus lacinia eu. Donec iaculis orci non neque mattis lacinia.
+
+Duis id volutpat leo. Quisque turpis erat, scelerisque nec nibh eu, elementum interdum ipsum. Proin viverra leo eget nisl scelerisque, a euismod urna eleifend. Sed vel luctus arcu. Phasellus eros ligula, rutrum cursus egestas ut, consequat id ante. In hac habitasse platea dictumst. Nullam venenatis ut risus a elementum. Donec hendrerit massa risus, a ultricies orci mollis ut. Fusce eget orci magna. Pellentesque pharetra faucibus dolor, ac porttitor nulla elementum in. Ut posuere, nibh ut consectetur tincidunt, libero turpis rutrum enim, sit amet volutpat mauris dui sit amet mi. In consequat dictum vehicula.
+
+Morbi dictum justo nec auctor lacinia. Vestibulum scelerisque vitae nisi quis faucibus. Nunc facilisis nibh sit amet porttitor varius. Nulla rhoncus, orci at venenatis faucibus, mauris nisl mattis odio, ut vulputate arcu magna et orci. Duis in sodales tellus. Nam feugiat quis enim ac dictum. Sed in tortor enim. Curabitur nibh leo, pulvinar ac vestibulum at, lobortis vel dui. Aenean a ante in dolor lacinia tristique facilisis eget massa. Duis in erat vitae tortor lacinia auctor. Quisque sit amet sem nec justo sagittis viverra.
+"""
+
+_lorem_paragraphs = tuple(filter(bool, LOREM_IPSUM.splitlines()))
+_lorem_sentences = [s.strip() for s in LOREM_IPSUM.split('. ') if s.strip()]
+
+
+def get_paragraphs(number):
+    return _lorem_paragraphs[:number]
+
+
+def get_sentences(number):
+    return _lorem_sentences[:number]
 
 
 class Fixtures(object):

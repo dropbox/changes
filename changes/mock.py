@@ -4,7 +4,6 @@ import itertools
 import random
 
 from hashlib import sha1
-from loremipsum import get_paragraphs, get_sentences
 from uuid import uuid4
 
 from changes.config import db
@@ -15,7 +14,7 @@ from changes.models import (
     TestResult, Change, LogChunk, Build, JobPlan, Plan, Source,
     Patch, FileCoverage, Event, EventType
 )
-from changes.testutils.fixtures import SAMPLE_DIFF
+from changes.testutils.fixtures import SAMPLE_DIFF, get_paragraphs, get_sentences
 from changes.utils.slugs import slugify
 
 
@@ -68,7 +67,7 @@ def repository(**kwargs):
 
 def project(repository, **kwargs):
     if 'name' not in kwargs:
-        kwargs['name'] = PROJECT_NAMES.next()
+        kwargs['name'] = next(PROJECT_NAMES)
 
     project = Project.query.filter(
         Project.name == kwargs['name'],
@@ -107,7 +106,7 @@ def change(project, **kwargs):
         diff_id = None
 
     if 'hash' not in kwargs:
-        kwargs['hash'] = sha1(diff_id or uuid4().hex).hexdigest()
+        kwargs['hash'] = sha1(diff_id or uuid4().hex.encode('utf-8')).hexdigest()
 
     kwargs.setdefault('repository', project.repository)
 
@@ -145,7 +144,7 @@ def build(project, **kwargs):
 
 def plan(**kwargs):
     if 'label' not in kwargs:
-        kwargs['label'] = PLAN_NAMES.next()
+        kwargs['label'] = next(PLAN_NAMES)
 
     plan = Plan.query.filter(
         Plan.label == kwargs['label'],
@@ -227,13 +226,13 @@ def job(build, change=None, **kwargs):
     step = JobStep(
         project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
-        label=TEST_STEP_LABELS.next(), node=node,
+        label=next(TEST_STEP_LABELS), node=node,
     )
     db.session.add(step)
     step = JobStep(
         project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
-        label=TEST_STEP_LABELS.next(), node=node,
+        label=next(TEST_STEP_LABELS), node=node,
     )
     db.session.add(step)
 
@@ -302,7 +301,7 @@ def _generate_sample_coverage_data(diff):
         elif current_file is None and line_number is None and (line.startswith('+++') or line.startswith('---')):
             if line.startswith('+++ b/'):
                 line = line.split('\t')[0]
-                current_file = unicode(line[6:])
+                current_file = line[6:]
         elif line.startswith('@@'):
             line_num_info = line.split('+')[1]
             line_number = int(line_num_info.split(',')[0])
@@ -319,7 +318,7 @@ def _generate_sample_coverage_data(diff):
 def file_coverage(project, job, patch):
     file_cov = _generate_sample_coverage_data(patch.diff)
 
-    for file, coverage in file_cov.iteritems():
+    for file, coverage in file_cov.items():
         file_coverage = FileCoverage(
             project_id=project.id,
             job_id=job.id,
@@ -360,10 +359,10 @@ def source(repository, **kwargs):
 
 def test_result(jobstep, **kwargs):
     if 'package' not in kwargs:
-        kwargs['package'] = TEST_PACKAGES.next()
+        kwargs['package'] = next(TEST_PACKAGES)
 
     if 'name' not in kwargs:
-        kwargs['name'] = TEST_NAMES.next() + '_' + uuid4().hex
+        kwargs['name'] = next(TEST_NAMES) + '_' + uuid4().hex
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)

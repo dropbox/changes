@@ -6,9 +6,9 @@ import re
 import requests
 import time
 
-from cStringIO import StringIO
 from datetime import datetime
 from flask import current_app
+from io import BytesIO
 from lxml import etree, objectify
 
 from changes.backends.base import BaseBackend, UnrecoverableException
@@ -175,7 +175,7 @@ class JenkinsBuilder(BaseBackend):
         # API, so we're stuffing it into StringIO
         try:
             handler = XunitHandler(jobstep)
-            handler.process(StringIO(resp.content))
+            handler.process(BytesIO(resp.content))
         except Exception:
             db.session.rollback()
             self.logger.exception(
@@ -190,7 +190,7 @@ class JenkinsBuilder(BaseBackend):
         # API, so we're stuffing it into StringIO
         try:
             handler = CoverageHandler(jobstep)
-            handler.process(StringIO(resp.content))
+            handler.process(BytesIO(resp.content))
         except Exception:
             db.session.rollback()
             self.logger.exception(
@@ -219,7 +219,7 @@ class JenkinsBuilder(BaseBackend):
 
         offset = 0
         resp = requests.get(url, stream=True, timeout=15)
-        iterator = resp.iter_content()
+        iterator = resp.iter_content(decode_unicode=True)
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
             chunk, _ = create_or_update(LogChunk, where={
@@ -273,7 +273,7 @@ class JenkinsBuilder(BaseBackend):
         if offset > log_length:
             return
 
-        iterator = resp.iter_content()
+        iterator = resp.iter_content(decode_unicode=True)
         # XXX: requests doesnt seem to guarantee chunk_size, so we force it
         # with our own helper
         for chunk in chunked(iterator, LOG_CHUNK_SIZE):
@@ -388,7 +388,7 @@ class JenkinsBuilder(BaseBackend):
         # it's possible that we managed to create multiple jobs in certain
         # situations, so let's just get the newest one
         try:
-            match = etree.fromstring(response).iter('id').next()
+            match = next(etree.fromstring(response).iter('id'))
         except StopIteration:
             return
         item_id = match.text
@@ -419,7 +419,7 @@ class JenkinsBuilder(BaseBackend):
         # it's possible that we managed to create multiple jobs in certain
         # situations, so let's just get the newest one
         try:
-            match = etree.fromstring(response).iter('number').next()
+            match = next(etree.fromstring(response).iter('number'))
         except StopIteration:
             return
         build_no = match.text

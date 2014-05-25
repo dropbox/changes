@@ -17,5 +17,5 @@ class RepositoryBackendSerializer(Serializer):
     def serialize(self, instance, attrs):
         return {
             'id': instance.name,
-            'name': unicode(instance),
+            'name': str(instance),
         }

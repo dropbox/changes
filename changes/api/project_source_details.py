@@ -58,14 +58,11 @@ class ProjectSourceDetailsAPIView(APIView):
         if not diff:
             return None
 
-        # Let's just encode it as utf-8 just in case
-        diff_lines = diff.encode('utf-8').splitlines()
-
         current_file = None
         line_number = None
         coverage_by_added_line = []
 
-        for line in diff_lines:
+        for line in diff.splitlines():
             if line.startswith('diff'):
                 # We're about to start a new file.
                 current_file = None
@@ -74,7 +71,7 @@ class ProjectSourceDetailsAPIView(APIView):
                 # We're starting a new file
                 if line.startswith('+++ b/'):
                     line = line.split('\t')[0]
-                    current_file = unicode(line[6:])
+                    current_file = line[6:]
             elif line.startswith('@@'):
                 # Jump to new lines within the file
                 line_num_info = line.split('+')[1]
@@ -108,6 +105,6 @@ class ProjectSourceDetailsAPIView(APIView):
         for line in diff_lines:
             if line.startswith('+++ b/'):
                 line = line.split('\t')[0]
-                files.add(unicode(line[6:]))
+                files.add(line[6:])
 
         return files

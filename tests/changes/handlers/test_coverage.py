@@ -1,6 +1,6 @@
 import uuid
 
-from cStringIO import StringIO
+from io import BytesIO
 from mock import patch
 
 from changes.models import Job, JobStep
@@ -16,7 +16,7 @@ def test_result_generation():
         job=Job(id=uuid.uuid4(), project_id=uuid.uuid4())
     )
 
-    fp = StringIO(SAMPLE_COVERAGE)
+    fp = BytesIO(SAMPLE_COVERAGE.encode('utf-8'))
 
     handler = CoverageHandler(jobstep)
     results = handler.get_coverage(fp)
@@ -61,7 +61,7 @@ class CoverageHandlerTest(TestCase):
             data='CUNNNNCCNNNUNNNUUUUUU'
         )]
 
-        fp = StringIO()
+        fp = BytesIO()
         handler.process(fp)
         get_coverage.assert_called_once_with(fp)
 
@@ -75,7 +75,7 @@ class CoverageHandlerTest(TestCase):
             data='NUUNNNNNNNNUCCNU'
         )]
 
-        fp = StringIO()
+        fp = BytesIO()
         handler.process(fp)
         get_coverage.assert_called_once_with(fp)
 

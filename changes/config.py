@@ -13,7 +13,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
 from kombu import Queue
 from raven.contrib.flask import Sentry
-from urlparse import urlparse
+from urllib.parse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
 
 from changes.constants import PROJECT_ROOT
@@ -204,6 +204,7 @@ def create_app(_read_config=True, **config):
 
     if app.debug:
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+        os.environ['DEBUG'] = '1'
     else:
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30
 
@@ -439,8 +440,6 @@ def configure_jobs(app):
                 obj = obj.hex
             elif isinstance(obj, bytes_t):
                 obj = obj.decode()
-            elif isinstance(obj, buffer):
-                obj = bytes(obj).decode()
             return loads(obj)
 
         register('changes_json', dumps, _loads,

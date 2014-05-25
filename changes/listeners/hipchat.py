@@ -76,7 +76,7 @@ def build_finished_handler(build_id, **kwargs):
 
     message = u'Build {result} - <a href="{link}">{project} #{number}</a> ({target})'.format(
         number='{0}'.format(build.number),
-        result=unicode(build.result),
+        result=str(build.result),
         target=build.target or build.source.revision_sha or 'Unknown',
         project=build.project.name,
         link=build_uri('/projects/{0}/builds/{1}/'.format(
@@ -107,7 +107,7 @@ def send_payload(token, room, message, notify, color='red',
         'color': color,
     }
     response = requests.post(API_ENDPOINT, data=data, timeout=timeout)
-    response_data = json.loads(response.content)
+    response_data = json.loads(response.content.decode('utf-8'))
 
     if 'status' not in response_data:
         logger.error('Unexpected response: %s', response_data)

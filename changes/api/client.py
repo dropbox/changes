@@ -27,7 +27,7 @@ class APIClient(object):
         if response.headers['Content-Type'] != 'application/json':
             raise APIError('Request returned invalid content type: %s' % (response.headers['Content-Type'],))
         # TODO(dcramer): ideally we wouldn't encode + decode this
-        return json.loads(response.data)
+        return json.loads(response.data.decode('utf-8'))
 
     def delete(self, *args, **kwargs):
         return self.dispatch(method='DELETE', *args, **kwargs)

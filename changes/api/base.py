@@ -1,7 +1,7 @@
 import json
 
 from functools import wraps
-from urllib import quote
+from urllib.parse import quote
 
 from flask import Response, current_app, request
 from flask.ext.restful import Resource
@@ -95,7 +95,7 @@ class APIView(Resource):
 
         querystring = u'&'.join(
             u'{0}={1}'.format(quote(k), quote(v))
-            for k, v in request.args.iteritems()
+            for k, v in request.args.items()
             if k != 'page'
         )
         if querystring:

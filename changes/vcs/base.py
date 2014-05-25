@@ -23,13 +23,13 @@ class CommandError(Exception):
 
 
 class BufferParser(object):
-    def __init__(self, fp, delim):
-        self.fp = fp
+    def __init__(self, data, delim):
+        self.data = data
         self.delim = delim
 
     def __iter__(self):
         chunk_buffer = []
-        for chunk in self.fp:
+        for chunk in self.data:
             while chunk.find(self.delim) != -1:
                 d_pos = chunk.find(self.delim)
 
@@ -66,7 +66,7 @@ class Vcs(object):
 
         env = os.environ.copy()
 
-        for key, value in self.get_default_env().iteritems():
+        for key, value in self.get_default_env().items():
             env.setdefault(key, value)
 
         env.setdefault('CHANGES_SSH_REPO', self.url)
@@ -80,6 +80,8 @@ class Vcs(object):
 
         proc = Popen(*args, **kwargs)
         (stdout, stderr) = proc.communicate()
+        stdout = stdout.decode('utf-8')
+        stderr = stderr.decode('utf-8')
         if proc.returncode != 0:
             raise CommandError(args[0], proc.returncode, stdout, stderr)
         return stdout
@@ -103,7 +105,7 @@ class Vcs(object):
         """
         Return a ``Revision`` given by ``id`.
         """
-        return self.log(parent=id, limit=1).next()
+        return next(self.log(parent=id, limit=1))
 
 
 class RevisionResult(object):

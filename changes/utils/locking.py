@@ -12,8 +12,8 @@ def lock(func):
         key = '{0}:{1}'.format(
             func.__name__,
             md5(
-                '&'.join('{0}={1}'.format(k, repr(v))
-                for k, v in sorted(kwargs.iteritems()))
+                ('&'.join('{0}={1}'.format(k, repr(v))
+                 for k, v in sorted(kwargs.items()))).encode('utf-8')
             ).hexdigest()
         )
         try:
