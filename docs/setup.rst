@@ -59,17 +59,7 @@ Setup the default configuration:
 
 .. code-block:: python
 
-    # ~/.changes/changes.conf.py
-    BASE_URI = 'http://localhost:5000'
-    SERVER_NAME = 'localhost:5000'
-
-    REPO_ROOT = '/tmp'
-
-    # You can obtain these values via the Google Developers Console:
-    # https://console.developers.google.com/
-    GOOGLE_CLIENT_ID = None
-    GOOGLE_CLIENT_SECRET = None
-
+    .. literalinclude:: examples/changes.conf.py
 
 Create a Python environment:
 
@@ -109,30 +99,6 @@ You're going to need to run several services in the background. Specifically, yo
 
 Below is a sample configuration for both the web and worker processes:
 
-::
-
-    [program:changes-web]
-    command=/srv/changes/env/bin/uwsgi --http 127.0.0.1:50%(process_num)02d --processes 1 --threads 10 --log-x-forwarded-for --buffer-size 32768 --post-buffering 65536 --need-app --disable-logging -w changes.app:app
-    user=ubuntu
-    environment=CHANGES_CONF="/srv/changes/config.py",PATH="/srv/changes/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:"
-    process_name=%(program_name)s_%(process_num)02d
-    numprocs=4
-    autorestart=true
-    killasgroup=true
-    stopasgroup=true
-    directory=/srv/changes
-    redirect_stderr=true
-    stdout_logfile=/tmp/%(program_name)s_%(process_num)02d.log
-
-    [program:changes-worker]
-    command=/srv/changes/env/bin/celery -A changes.app:celery worker -c 96 --without-mingle
-    user=ubuntu
-    environment=CHANGES_CONF="/srv/changes/config.py",PATH="/srv/changes/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:"
-    directory=/srv/changes
-    autorestart=true
-    killasgroup=true
-    stopasgroup=true
-    redirect_stderr=true
-    stdout_logfile=/tmp/%(program_name)s_%(process_num)02d.log
+    .. literalinclude:: examples/supervisord.conf
 
 For more details you'll want to refer to the `supervisord documentation <http://supervisord.org/configuration.html#program-x-section-settings>`_.
