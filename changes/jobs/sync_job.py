@@ -17,7 +17,7 @@ from changes.utils.agg import safe_agg
 
 def aggregate_job_stat(job, name, func_=func.sum):
     value = db.session.query(
-        func_(ItemStat.value),
+        func.coalesce(func_(ItemStat.value), 0),
     ).filter(
         ItemStat.item_id.in_(
             db.session.query(JobStep.id).filter(
