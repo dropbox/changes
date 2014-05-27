@@ -14,7 +14,7 @@ class BuildRestartAPIView(APIView):
         build = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
-            joinedload('source'),
+            joinedload('source').joinedload('revision'),
         ).get(build_id)
         if build is None:
             return '', 404

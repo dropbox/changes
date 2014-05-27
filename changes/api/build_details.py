@@ -106,7 +106,7 @@ class BuildDetailsAPIView(APIView):
         build = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
-            joinedload('source'),
+            joinedload('source').joinedload('revision'),
         ).get(build_id)
         if build is None:
             return '', 404
@@ -120,7 +120,7 @@ class BuildDetailsAPIView(APIView):
         ).join(
             Source, Build.source_id == Source.id,
         ).options(
-            contains_eager('source'),
+            contains_eager('source').joinedload('revision'),
             joinedload('author'),
         ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
 

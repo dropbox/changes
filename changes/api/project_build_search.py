@@ -40,7 +40,7 @@ class ProjectBuildSearchAPIView(APIView):
         queryset = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
-            joinedload('source'),
+            joinedload('source').joinedload('revision'),
         ).filter(
             Build.project_id == project.id,
             *filters

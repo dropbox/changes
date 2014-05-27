@@ -53,7 +53,7 @@ class ProjectTestDetailsAPIView(APIView):
         ).order_by(TestCase.date_created.asc()).limit(1).first()
         first_build = Build.query.options(
             joinedload('author'),
-            joinedload('source'),
+            joinedload('source').joinedload('revision'),
         ).filter(
             Build.id == first_test.job.build_id,
         ).first()
