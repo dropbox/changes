@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from flask.ext.restful import reqparse
-from sqlalchemy.orm import aliased, contains_eager, joinedload
+from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.auth import requires_auth
@@ -10,9 +10,9 @@ from changes.constants import Result, Status, ProjectStatus
 from changes.models import Project, Repository, Build, Source
 
 
-def get_latest_builds(project_list):
-    build_subquery = Build.query.options(
-        contains_eager('source'),
+def get_latest_builds_query(project_list, result=None):
+    build_subquery = db.session.query(
+        Build.id,
     ).join(
         Source, Build.source_id == Source.id,
     ).filter(
@@ -20,45 +20,29 @@ def get_latest_builds(project_list):
         Build.status == Status.finished,
     ).order_by(
         Build.date_created.desc(),
-    ).limit(1).subquery()
+    )
 
-    # TODO(dcramer): we're selecting source twice which is a waste of resources
-    results = db.session.query(
+    if result:
+        build_subquery = build_subquery.filter(
+            Build.result == result,
+        )
+
+    # TODO(dcramer): we dont actually need the project table here
+    build_map = dict(db.session.query(
         Project.id,
-        aliased(Build, build_subquery),
+        build_subquery.filter(
+            Build.project_id == Project.id,
+        ).limit(1).subquery(),
+    ).filter(
+        Project.id.in_(p.id for p in project_list),
+    ))
+
+    return Build.query.filter(
+        Build.id.in_(build_map.values()),
     ).options(
         joinedload('author'),
         joinedload('source').joinedload('revision'),
-    ).filter(
-        Project.id == build_subquery.c.project_id,
     )
-    return dict(results)
-
-
-def get_passing_builds(project_list):
-    build_subquery = Build.query.options(
-        contains_eager('source'),
-    ).join(
-        Source, Build.source_id == Source.id,
-    ).filter(
-        Source.patch_id == None,  # NOQA
-        Build.result == Result.passed,
-        Build.status == Status.finished,
-    ).order_by(
-        Build.date_created.desc(),
-    ).limit(1).subquery()
-
-    # TODO(dcramer): we're selecting source twice which is a waste of resources
-    results = db.session.query(
-        Project.id,
-        aliased(Build, build_subquery),
-    ).options(
-        joinedload('author'),
-        joinedload('source').joinedload('revision'),
-    ).filter(
-        Project.id == build_subquery.c.project_id,
-    )
-    return dict(results)
 
 
 class ProjectIndexAPIView(APIView):
@@ -76,7 +60,9 @@ class ProjectIndexAPIView(APIView):
 
         context = []
 
-        latest_build_results = get_latest_builds(project_list)
+        latest_build_results = dict(
+            (b.project_id, b) for b in get_latest_builds_query(project_list)
+        )
         latest_build_map = dict(
             zip(latest_build_results.keys(),
                 self.serialize(latest_build_results.values()))
@@ -92,7 +78,11 @@ class ProjectIndexAPIView(APIView):
                 missing_passing_builds.add(project_id)
 
         if missing_passing_builds:
-            passing_build_results = get_passing_builds(project_list)
+            passing_build_results = dict(
+                (b.project_id, b) for b in get_latest_builds_query(
+                    project_list, result=Result.passed,
+                )
+            )
             passing_build_map.update(dict(
                 zip(passing_build_results.keys(),
                     self.serialize(passing_build_results.values()))
