@@ -71,7 +71,10 @@ def build_finished_handler(build_id, **kwargs):
         return
 
     # ensure we have the latest changes
-    vcs.update()
+    if vcs.exists():
+        vcs.update()
+    else:
+        vcs.clone()
 
     release_id = vcs.run(['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
 
