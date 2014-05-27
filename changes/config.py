@@ -11,7 +11,7 @@ from flask import request, session
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
-from kombu import Queue
+from kombu import Exchange, Queue
 from raven.contrib.flask import Sentry
 from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
@@ -106,7 +106,7 @@ def create_app(_read_config=True, **config):
         Queue('celery', routing_key='celery'),
         Queue('events', routing_key='events'),
         Queue('default', routing_key='default'),
-        Queue('repo.sync', routing_key='repo.sync'),
+        Queue('repo.sync', Exchange('fanout', 'fanout'), routing_key='repo.sync'),
     )
     app.config['CELERY_ROUTES'] = {
         'create_job': {
