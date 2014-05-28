@@ -1,6 +1,10 @@
 <section class="section" ng-if="testFailures.total">
     <div class="section-header">
-        <h3>Failing Tests <small>{{ testFailures.total }} total</small></h3>
+        <h3>
+            Failing Tests
+            <small ng-if="isFinished">{{testFailures.total}} total</small>
+            <small ng-if="!isFinished">{{testFailures.total}} and counting</small>
+        </h3>
     </div>
 
     <table class="grid-list"
