@@ -20,8 +20,8 @@
         </dd>
         <dt ng-if="source.revision.parents">Parents:</dt>
         <dd ng-if="source.revision.parents">
-            <a ui-sref="project_commit_details({project_id: project.id, commit_id: parent.sha})"
-               ng-repeat="parent in source.revision.parents">{{parent.sha.substr(0, 12)}}</a>
+            <a ui-sref="project_commit_details({project_id: project.id, commit_id: parent})"
+               ng-repeat="parent in source.revision.parents">{{parent.substr(0, 12)}}</a>
         </dd>
         <dt>Discovered:</dt>
         <dd time-since="source.dateCreated"></dd>
