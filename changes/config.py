@@ -274,6 +274,9 @@ def configure_api_routes(app):
     from changes.api.build_test_index_counts import BuildTestIndexCountsAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
+    from changes.api.cluster_details import ClusterDetailsAPIView
+    from changes.api.cluster_index import ClusterIndexAPIView
+    from changes.api.cluster_nodes import ClusterNodesAPIView
     from changes.api.job_details import JobDetailsAPIView
     from changes.api.job_log_details import JobLogDetailsAPIView
     from changes.api.jobphase_index import JobPhaseIndexAPIView
@@ -317,6 +320,9 @@ def configure_api_routes(app):
     api.add_resource(BuildTestIndexCountsAPIView, '/builds/<uuid:build_id>/tests/counts')
     api.add_resource(BuildTestCoverageAPIView, '/builds/<uuid:build_id>/coverage/')
     api.add_resource(BuildTestCoverageStatsAPIView, '/builds/<uuid:build_id>/stats/coverage/')
+    api.add_resource(ClusterIndexAPIView, '/clusters/')
+    api.add_resource(ClusterDetailsAPIView, '/clusters/<uuid:cluster_id>/')
+    api.add_resource(ClusterNodesAPIView, '/clusters/<uuid:cluster_id>/nodes/')
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')

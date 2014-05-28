@@ -13,7 +13,7 @@ from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
     TestResult, Change, LogChunk, Build, JobPlan, Plan, Source,
-    Patch, FileCoverage, Event, EventType
+    Patch, FileCoverage, Event, EventType, Cluster, ClusterNode
 )
 from changes.testutils.fixtures import SAMPLE_DIFF
 from changes.utils.slugs import slugify
@@ -180,9 +180,17 @@ def job(build, change=None, **kwargs):
     )
     db.session.add(job)
 
-    node, _ = get_or_create(Node, where={
+    node, created = get_or_create(Node, where={
         'label': get_sentences(1)[0][:32],
     })
+
+    if created:
+        cluster, _ = get_or_create(Cluster, where={
+            'label': get_sentences(1)[0][:32],
+        })
+
+        clusternode = ClusterNode(cluster=cluster, node=node)
+        db.session.add(clusternode)
 
     jobplan = JobPlan(
         plan=plan(),

@@ -1,5 +1,19 @@
-<section ui-view>
+<section class="section">
     <div class="page-header">
+        <h2>{{cluster.name}}</h2>
+    </div>
+
+    <dl class="flat">
+        <dt>Total Nodes:</dt>
+        <dd>{{cluster.numNodes}}</dd>
+
+        <dt>First Seen:</dt>
+        <dd time-since="cluster.dateCreated"></dd>
+    </dl>
+</section>
+
+<section class="section">
+    <div class="section-header">
         <h2>Nodes</h2>
     </div>
 
@@ -21,12 +35,10 @@
     </table>
 
     <ul class="pager">
-        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">&larr; Older</a>
         </li>
-        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-            <a ng-click="loadNextPage()">Next &rarr;</a>
+        <li class="next" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">Newer &rarr;</a>
         </li>
     </ul>
-
-</section>

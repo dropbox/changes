@@ -1,11 +1,13 @@
 from changes.testutils import APITestCase
 
 
-class NodeIndexTest(APITestCase):
+class ClusterNodesTest(APITestCase):
     def test_simple(self):
-        node_1 = self.create_node(label='bar')
-        node_2 = self.create_node(label='foo')
-        path = '/api/0/nodes/'
+        cluster_1 = self.create_cluster(label='bar')
+        node_1 = self.create_node(cluster=cluster_1, label='foo')
+        node_2 = self.create_node(cluster=cluster_1, label='test')
+
+        path = '/api/0/clusters/{0}/nodes/'.format(cluster_1.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
