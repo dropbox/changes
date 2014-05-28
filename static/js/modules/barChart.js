@@ -1,4 +1,7 @@
-define(['jquery', 'angular', 'bootstrap/tooltip'], function($) {
+define([
+  'angular',
+  'jquery'
+], function(angular, $) {
   'use strict';
 
   angular.module('barChart', [])

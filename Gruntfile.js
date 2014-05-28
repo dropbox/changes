@@ -22,10 +22,13 @@ module.exports = function(grunt) {
           modules: [
             {
               name: "main",
-              exclude: ["vendor-angular", "vendor-jquery", "vendor-misc"]
+              exclude: ["vendor-angular", "vendor-bootstrap", "vendor-jquery", "vendor-misc"]
             },
             {
               name: "vendor-angular"
+            },
+            {
+              name: "vendor-bootstrap"
             },
             {
               name: "vendor-jquery"
