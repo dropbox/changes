@@ -19,10 +19,7 @@
         <h2 slyEvaluateOnlyWhen="build.dateModified">
             {{build.name}}<br>
             <small>
-                <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name|truncate:20}} &mdash;
-                <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
-                <a ui-sref="project_source_details({source_id: build.source.id})">{{build.target}}</a>
-                <span ng-if="build.author"> &mdash; {{build.author.name}} <span ng-if="build.author.email"> ({{build.author.email}})</span></span>
+                <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name|truncate:20}}
             </small>
         </h2>
     </div>
@@ -94,35 +91,42 @@
         </table>
     </section>
 
-    <section class="section">
-        <div class="section-header">
+    <section ng-repeat="phase in phases" class="section">
+        <div class="section-header result-{{phase.result.id}}">
             <div class="line"></div>
-            <h3>Test</h3>
-            <div class="timing" duration="job.duration"></div>
+            <h3>{{phase.name}}</h3>
+            <div class="indicator-wrapper">
+                <div class="indicator"></div>
+            </div>
+            <div class="toggle">
+                <a ng-click="phase.isVisible = !phase.isVisible">Toggle Details</a>
+            </div>
+            <div class="timing">
+                <span ng-if="phase.status.id != 'finished'">
+                    <span class="spinner-icon"></span>
+                </span>
+                <span ng-if="phase.status.id == 'finished'">
+                    <span duration="phase.duration"></span>
+                </span>
+            </div>
         </div>
+        <div ng-if="logSourcesByPhase[phase.id] && phase.isVisible">
+            <tabset type="'links'">
+                <tab ng-repeat="logSource in logSourcesByPhase[phase.id]" class="result-{{logSource.step.result.id}}"
+                     heading="{{logSource.name}}"
+                     select="loadLogSource(logSource)">
 
-        <section ng-repeat="phase in phases" class="section">
-            <div class="section-header">
-                <h4>{{phase.name}} <span ng-if="phase.status.id != 'finished'"><span class="spinner-icon"></span></span></h4>
-            </div>
-            <div ng-if="logSourcesByPhase[phase.id]">
-                <tabset type="'links'">
-                    <tab ng-repeat="logSource in logSourcesByPhase[phase.id]" class="result-{{logSource.step.result.id}}"
-                         heading="{{logSource.name}}"
-                         select="loadLogSource(logSource)">
+                    <div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
+                        <div class="build-log"></div>
+                        <a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
+                    </div>
 
-                        <div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
-                            <div class="build-log"></div>
-                            <a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i></a>
-                        </div>
-
-                    </tab>
-                </tabset>
-            </div>
-            <div ng-if="!logSourcesByPhase[phase.id]">
-                <p>No logs have been captured.</p>
-            </div>
-        </section>
+                </tab>
+            </tabset>
+        </div>
+        <div ng-if="!logSourcesByPhase[phase.id]">
+            <p>No logs have been captured.</p>
+        </div>
     </section>
 
     <section class="section">

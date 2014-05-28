@@ -194,18 +194,24 @@ def job(build, change=None, **kwargs):
 
     phase1_setup = JobPhase(
         project=job.project, job=job,
+        date_started=job.date_started,
+        date_finished=job.date_finished,
         status=Status.finished, result=Result.passed, label='Setup',
     )
     db.session.add(phase1_setup)
 
     phase1_compile = JobPhase(
         project=job.project, job=job,
+        date_started=job.date_started,
+        date_finished=job.date_finished,
         status=Status.finished, result=Result.passed, label='Compile',
     )
     db.session.add(phase1_compile)
 
     phase1_test = JobPhase(
         project=job.project, job=job,
+        date_started=job.date_started,
+        date_finished=job.date_finished,
         status=kwargs['status'], result=kwargs['result'], label='Test',
     )
     db.session.add(phase1_test)

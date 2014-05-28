@@ -255,12 +255,15 @@ dl.flat dt {
 }
 
 .section {
+  position: relative;
   margin-bottom: 20px;
 }
 
 .section-header {
   position: relative;
   margin-bottom: 20px;
+  font-size: 0;
+  line-height: 26px;
 }
 .section-header h3 {
   margin: 0;
@@ -268,16 +271,37 @@ dl.flat dt {
   padding-right: 15px;
 }
 .section-header h3,
-.section-header .timing {
+.section-header .timing,
+.section-header .toggle,
+.section-header .indicator-wrapper {
+  position: relative;
   background: #fff;
   display: inline-block;
   z-index: 2;
+}
+.section-header .toggle {
+  position: absolute;
+  left: 40%;
+  right: 40%;
+  top: 0;
+  bottom: 0;
+  text-align: center;
+  font-size: 12px;
+  background: inherit;
+}
+.section-header .toggle a {
+  background: #fff;
+  padding: 0 15px;
+  text-transform: uppercase;
+  color: #999;
+  cursor: pointer;
 }
 .section-header .timing {
   position: absolute;
   right: 0;
   top: 4px;
   color: #aaa;
+  font-size: 16px;
   padding-left: 15px;
 }
 .section-header .line {
@@ -289,6 +313,15 @@ dl.flat dt {
   top: 14px;
   right: 0;
   z-index: 1;
+}
+.section-header .indicator {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border-radius: 20px;
+}
+.section-header .indicator-wrapper {
+  padding-right: 15px;
 }
 
 .page-header {
@@ -334,7 +367,8 @@ dl.flat dt {
 .page-header,
 .phase-header,
 .stage-header,
-.test-header {
+.test-header,
+.section-header {
   position: relative;
 }
 

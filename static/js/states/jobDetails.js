@@ -123,6 +123,10 @@ define([
         });
       }
 
+      $.map(jobData.phases, function(phase){
+        phase.isVisible = phase.status.id != 'finished' || phase.result.id != 'passed';
+      });
+
       $scope.job = jobData;
       $scope.phases = new Collection(jobData.phases);
       $scope.testFailures = jobData.testFailures;
