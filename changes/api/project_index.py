@@ -11,7 +11,7 @@ from changes.models import Project, Repository, Build, Source
 
 
 def get_latest_builds_query(project_list, result=None):
-    build_subquery = db.session.query(
+    build_query = db.session.query(
         Build.id,
     ).join(
         Source, Build.source_id == Source.id,
@@ -23,26 +23,26 @@ def get_latest_builds_query(project_list, result=None):
     )
 
     if result:
-        build_subquery = build_subquery.filter(
+        build_query = build_query.filter(
             Build.result == result,
         )
 
     # TODO(dcramer): we dont actually need the project table here
     build_map = dict(db.session.query(
         Project.id,
-        build_subquery.filter(
+        build_query.filter(
             Build.project_id == Project.id,
-        ).limit(1).subquery(),
+        ).limit(1).as_scalar(),
     ).filter(
         Project.id.in_(p.id for p in project_list),
     ))
 
-    return Build.query.filter(
+    return list(Build.query.filter(
         Build.id.in_(build_map.values()),
     ).options(
         joinedload('author'),
         joinedload('source').joinedload('revision'),
-    )
+    ))
 
 
 class ProjectIndexAPIView(APIView):
@@ -60,32 +60,28 @@ class ProjectIndexAPIView(APIView):
 
         context = []
 
-        latest_build_results = dict(
-            (b.project_id, b) for b in get_latest_builds_query(project_list)
-        )
+        latest_build_results = get_latest_builds_query(project_list)
         latest_build_map = dict(
-            zip(latest_build_results.keys(),
-                self.serialize(latest_build_results.values()))
+            zip([b.project_id for b in latest_build_results],
+                self.serialize(latest_build_results))
         )
 
         passing_build_map = {}
         missing_passing_builds = set()
-        for project_id, build in latest_build_results.iteritems():
+        for build in latest_build_results:
             if build.result == Result.passed:
-                passing_build_map[project_id] = build
+                passing_build_map[build.project_id] = build
             else:
-                passing_build_map[project_id] = None
-                missing_passing_builds.add(project_id)
+                passing_build_map[build.project_id] = None
+                missing_passing_builds.add(build.project_id)
 
         if missing_passing_builds:
-            passing_build_results = dict(
-                (b.project_id, b) for b in get_latest_builds_query(
-                    project_list, result=Result.passed,
-                )
+            passing_build_results = get_latest_builds_query(
+                project_list, result=Result.passed,
             )
             passing_build_map.update(dict(
-                zip(passing_build_results.keys(),
-                    self.serialize(passing_build_results.values()))
+                zip([b.project_id for b in passing_build_results],
+                    self.serialize(passing_build_results))
             ))
 
         for project, data in zip(project_list, self.serialize(project_list)):
