@@ -37,7 +37,11 @@ h1 small {
 }
 
 h2 {
-  font-size: 1.6em;
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 20px;
 }
 
 th {
