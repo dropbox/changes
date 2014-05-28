@@ -53,9 +53,16 @@ install-requirements:
 install-test-requirements: install-requirements
 	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
 
-test: lint
+test: lint test-python test-js
+
+test-python:
 	@echo "Running Python tests"
 	py.test tests
+	@echo ""
+
+test-js:
+	@echo "Running JavaScript tests"
+	npm test
 	@echo ""
 
 lint: lint-js lint-python
@@ -73,6 +80,7 @@ lint-js:
 test-full: install-test-requirements
 	$(MAKE) lint
 	$(MAKE) coverage
+	$(MAKE) test-js
 
 coverage:
 	coverage run -m py.test --junitxml=junit.xml tests
@@ -129,7 +137,7 @@ docker: docker-container
 	$(MAKE) docker-info
 
 docker-browse:
-	xdg-open $(shell $(MAKE) -s docker-browse-info) || open $(shell $(MAKE) -s docker-browse-info) 
+	xdg-open $(shell $(MAKE) -s docker-browse-info) || open $(shell $(MAKE) -s docker-browse-info)
 
 docker-browse-info:
 	@$(DOCKER) inspect --format='http://localhost:{{(index (index .NetworkSettings.Ports "5000/tcp") 0).HostPort}}/' $(DOCKER_CONTAINER_NAME)
