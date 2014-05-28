@@ -6,8 +6,7 @@
     "tests": "tests"
   },
   "scripts": {
-    "test": "node_modules/karma/bin/karma start tests/karma.conf.js",
-    "test-single-run": "node_modules/karma/bin/karma start test/karma.conf.js  --single-run"
+    "test": "node_modules/karma/bin/karma start tests/karma.conf.js"
   },
   "repository": {
     "type": "git",
@@ -29,7 +28,9 @@
     "chai": "~1.9.1",
     "karma-chai": "~0.1.0",
     "sinon": "~1.10.0",
-    "karma-sinon": "~1.0.3"
+    "karma-sinon": "~1.0.3",
+    "karma-junit-reporter": "~0.2.2",
+    "karma-requirejs": "~0.2.2"
   },
   "private": true
 }
