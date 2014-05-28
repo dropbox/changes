@@ -721,7 +721,7 @@ class JenkinsBuilder(BaseBackend):
         return job_data
 
     def get_default_job_phase_label(self, job, job_data):
-        return job_data['job_name']
+        return 'Build {0}'.format(job_data['job_name'])
 
     def create_job(self, job):
         """
