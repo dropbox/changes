@@ -1287,7 +1287,7 @@ d3barchart {
 }
 .build-log .line {
   font-family: monospace, serif;
-  font-size: 1em;
+  font-size: 0.9em;
   white-space: pre-wrap;
 }
 
