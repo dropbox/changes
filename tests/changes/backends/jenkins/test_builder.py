@@ -459,7 +459,7 @@ class SyncBuildTest(BaseTestCase):
 
         source = LogSource.query.filter_by(job=job).first()
         assert source.step == step
-        assert source.name == 'server #2'
+        assert source.name == step.label
         assert source.project == self.project
         assert source.date_created == step.date_started
 
@@ -809,7 +809,7 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert test_list[1].duration == 155
 
         source = LogSource.query.filter_by(job=job).first()
-        assert source.name == 'server #2'
+        assert source.name == step_list[0].label
         assert source.step == step_list[0]
         assert source.project == self.project
         assert source.date_created == job.date_started
