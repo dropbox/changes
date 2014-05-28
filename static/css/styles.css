@@ -1286,6 +1286,8 @@ d3barchart {
   color: #fff;
 }
 .build-log .line {
+  font-family: monospace, serif;
+  font-size: 1em;
   white-space: pre-wrap;
 }
 
