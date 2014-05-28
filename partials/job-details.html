@@ -96,18 +96,18 @@
             <div class="line"></div>
             <h3>{{phase.name}}</h3>
             <div class="indicator-wrapper">
-                <div class="indicator"></div>
+                <div ng-if="phase.status.id == 'finished'">
+                    <div class="indicator"></div>
+                </div>
+                <div ng-if="phase.status.id != 'finished'">
+                    <span class="spinner-icon"></span>
+                </div>
             </div>
             <div class="toggle">
                 <a ng-click="phase.isVisible = !phase.isVisible">Toggle Details</a>
             </div>
-            <div class="timing">
-                <span ng-if="phase.status.id != 'finished'">
-                    <span class="spinner-icon"></span>
-                </span>
-                <span ng-if="phase.status.id == 'finished'">
-                    <span duration="phase.duration"></span>
-                </span>
+            <div class="timing" ng-if="phase.duration">
+                <span duration="phase.duration"></span>
             </div>
         </div>
         <div ng-if="phase.isVisible">
