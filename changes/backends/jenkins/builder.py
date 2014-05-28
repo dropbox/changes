@@ -506,7 +506,6 @@ class JenkinsBuilder(BaseBackend):
         node = self._get_node(item['builtOn'])
 
         step.node = node
-        step.label = item['fullDisplayName']
         step.date_started = datetime.utcfromtimestamp(
             item['timestamp'] / 1000)
 
