@@ -62,7 +62,7 @@ test-python:
 
 test-js:
 	@echo "Running JavaScript tests"
-	npm test
+	@node_modules/karma/bin/karma start tests/karma.conf.js --single-run
 	@echo ""
 
 lint: lint-js lint-python
