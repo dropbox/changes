@@ -8,7 +8,7 @@
         return item.link;
       },
       value: function(item) {
-        return item.duration || 50;
+        return item.duration || 1;
       },
       className: function(item) {
         return 'result-' + item.result.id;

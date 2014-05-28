@@ -19,6 +19,7 @@ define([
             return $state.href('build_details', {build_id: item.build.id});
           }
         },
+        limit: 50,
         className: function(item) {
           if (item.build) {
             return 'result-' + item.build.result.id;
@@ -91,20 +92,22 @@ define([
         });
       }
 
-      $scope.commits = new Collection(fromCommits(commitList.data), {
-        equals: function(item, other) {
-          return item.repository_id == other.repository_id && item.sha == other.sha;
-        }
-      });
-
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;
         $scope.chartData = chartHelpers.getChartData($scope.commits, null, chart_options);
       };
-      $scope.selectChart('duration');
 
+      $scope.selectedChart = 'duration';
       $scope.$watchCollection("commits", function() {
         $scope.chartData = chartHelpers.getChartData($scope.commits, null, chart_options);
+        $scope.visibleCommits = $scope.commits.slice(0, 25);
+      });
+
+      $scope.commits = new Collection(fromCommits(commitList.data), {
+        equals: function(item, other) {
+          return item.repository_id == other.repository_id && item.sha == other.sha;
+        },
+        limit: 50
       });
 
       var poller = new CollectionPoller({
