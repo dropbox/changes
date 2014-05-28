@@ -16,17 +16,20 @@
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="test in testFailures.tests"
-                class="result-{{test.result.id}}">
+            <tr ng-repeat="testCase in testFailures.tests"
+                class="result-{{testCase.result.id}}">
                 <td>
                     <span class="indicator indicator-sm"></span>
 
-                    <a ui-sref="test_details({job_id: test.job.id, test_id: test.id})">{{test.name|truncate:80}}</a><br>
-                    <small ng-if="test.origin">
-                        This failure likely originated in <a href="{{test.origin.link}}">{{test.origin.target}}</a><span ng-if="test.origin.author"> &mdash; {{test.origin.author.name}}</span>
+                    <a ui-sref="test_details({job_id: testCase.job.id, test_id: testCase.id})">{{testCase.name|truncate:80}}</a><br>
+                    <small>
+                        <a ui-sref="project_test_details({test_id: testCase.hash})">History</a>
+                        <span ng-if="testCase.origin">
+                            &mdash; This failure likely originated in <a href="{{testCase.origin.link}}">{{testCase.origin.target}}</a><span ng-if="testCase.origin.author"> &mdash; {{testCase.origin.author.name}}</span>
+                        </span>
                     </small>
                 </td>
-                <td class="column" duration="test.duration"></td>
+                <td class="column" duration="testCase.duration"></td>
             </tr>
         </tbody>
     </table>
