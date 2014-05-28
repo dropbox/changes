@@ -19,7 +19,7 @@
         <h2 slyEvaluateOnlyWhen="build.dateModified">
             {{build.name}}<br>
             <small>
-                <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name|truncate:20}}
+                <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name}}
             </small>
         </h2>
     </div>
