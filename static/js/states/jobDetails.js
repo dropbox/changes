@@ -153,12 +153,16 @@ define([
           if (response.dateModified < $scope.job.dateModified) {
             return;
           }
+          $.map(response.phases, function(phase){
+            phase.isVisible = phase.status.id != 'finished' || phase.result.id != 'passed';
+          });
+
           $.extend(true, $scope.job, response);
           $.extend(true, $scope.testFailures, response.testFailures);
-          $scope.previousRuns.extend(jobData.previousRuns);
+          $scope.previousRuns.extend(response.previousRuns);
           $scope.phases.extend(response.phases);
 
-          organizeLogSources($scope.logSourcesByPhase, jobData.logs);
+          organizeLogSources($scope.logSourcesByPhase, response.logs);
         }
       });
     },
