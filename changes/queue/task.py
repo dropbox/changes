@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from changes.config import db, queue
 from changes.constants import Result, Status
-from changes.db.utils import try_create, get_or_create
+from changes.db.utils import get_or_create
 from changes.models import Task
 from changes.utils.locking import lock
 
@@ -281,6 +281,10 @@ class TrackedTask(local):
         })
 
         if created or self.needs_requeued(task):
+            if not created:
+                task.date_modified = datetime.utcnow()
+                db.session.add(task)
+
             db.session.commit()
 
             queue.delay(
@@ -305,15 +309,20 @@ class TrackedTask(local):
             if k not in ('task_id', 'parent_task_id')
         )
 
-        try_create(Task, where={
+        task, created = get_or_create(Task, where={
             'task_name': self.task_name,
-            'parent_id': kwargs.get('parent_task_id'),
             'task_id': kwargs['task_id'],
-            'status': Status.queued,
+        }, defaults={
+            'parent_id': kwargs.get('parent_task_id'),
             'data': {
                 'kwargs': fn_kwargs,
             },
+            'status': Status.queued,
         })
+
+        if not created:
+            task.date_modified = datetime.utcnow()
+            db.session.add(task)
 
         db.session.commit()
 

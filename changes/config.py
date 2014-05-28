@@ -155,8 +155,8 @@ def create_app(_read_config=True, **config):
     # celerybeat must be running for our cleanup tasks to execute
     # e.g. celery worker -B
     app.config['CELERYBEAT_SCHEDULE'] = {
-        'cleanup-builds': {
-            'task': 'cleanup_builds',
+        'cleanup-tasks': {
+            'task': 'cleanup_tasks',
             'schedule': timedelta(minutes=1),
         },
         'check-repos': {
@@ -399,7 +399,7 @@ def configure_debug_routes(app):
 
 def configure_jobs(app):
     from changes.jobs.check_repos import check_repos
-    from changes.jobs.cleanup_builds import cleanup_builds
+    from changes.jobs.cleanup_tasks import cleanup_tasks
     from changes.jobs.create_job import create_job
     from changes.jobs.signals import (
         fire_signal, run_event_listener
@@ -413,7 +413,7 @@ def configure_jobs(app):
         update_project_stats, update_project_plan_stats)
 
     queue.register('check_repos', check_repos)
-    queue.register('cleanup_builds', cleanup_builds)
+    queue.register('cleanup_tasks', cleanup_tasks)
     queue.register('create_job', create_job)
     queue.register('fire_signal', fire_signal)
     queue.register('run_event_listener', run_event_listener)
