@@ -1,7 +1,7 @@
+<div ng-if="isSingleJob" ng-include="'partials/includes/build-header.html'"></div>
+
 <!-- Build header -->
 <section ui-view>
-    <div ng-include="'partials/includes/build-header.html'"></div>
-
     <div ng-if="!isSingleJob">
         <div ng-include="'partials/includes/build-info.html'"></div>
 
