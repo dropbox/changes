@@ -22,7 +22,7 @@
           return input;
         }
 
-        return '...' + input.substr(input.length - length - 3, input.length);
+        return '...' + input.substr(input.length - length + 3, input.length);
       };
     });
   });
