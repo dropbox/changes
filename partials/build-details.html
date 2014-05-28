@@ -32,29 +32,7 @@
         </section>
 
         <div ng-include="'partials/includes/job-test-failures.html'"></div>
-
-        <section class="section" ng-if="features.coverage && coverageData" bind-once>
-            <div class="section-header">
-                <h3>File Coverage</h3>
-            </div>
-            <table class="table table-striped table-bordered"
-                   slyEvaluateOnlyWhen="testFailures.tests.length">
-                <thead>
-                    <tr>
-                        <th>Filename</th>
-                        <th style="width:110px;text-align:center">Diff</th>
-                        <th style="width:110px;text-align:center">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="fileCoverage in coverageData">
-                        <td>{{fileCoverage.filename}}</td>
-                        <td style="text-align:center">{{fileCoverage.diffCoveragePercent}}%</td>
-                        <td style="text-align:center">{{fileCoverage.coveragePercent}}%</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+        <div ng-include="'partials/includes/job-file-coverage.html'"></div>
     </div>
     <section class="section" ng-if="isSingleJob" bind-once>
         <div class="loading">
