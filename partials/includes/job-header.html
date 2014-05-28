@@ -1,8 +1,7 @@
-<div class="page-header build-header status-{{build.status.id}} result-{{build.result.id}}"
-     slyEvaluateOnlyWhen="build.dateModified">
+<div class="page-header build-header status-{{job.status.id}} result-{{job.result.id}}">
     <ul class="crumb">
-        <li class="nodiv">
-            <a ui-sref="build_details()" class="indicator">#{{build.number}}</a>
+        <li class="status-{{build.status.id}} result-{{build.result.id}}">
+            <a ui-sref="build_details()" class="indicator" bind-once>#{{build.number}}</a>
         </li>
     </ul>
     <div class="actions">
@@ -15,7 +14,7 @@
                     <span ng-if="build.source.isCommit">View Commit</span>
                     <span ng-if="!build.source.isCommit">View Patch</span><br>
                     <small>Raw diff and code coverage.</small>
-                </li>
+                </a></li>
                 <li ng-if="hasTests"><a ui-sref="build_test_list()">
                     Test Results<br>
                     <small>Individual test results.</small>
@@ -35,7 +34,7 @@
             </ul>
         </nav>
     </div>
-    <div class="seen-by">
+    <div class="seen-by" bind-once>
         <ul>
             <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
                 <a tooltip="{{seenUser.email}}"
@@ -45,17 +44,10 @@
             </li>
         </ul>
     </div>
-    <h2>
+    <h2 slyEvaluateOnlyWhen="build.dateModified">
         {{build.name}}<br>
-        <small ng-if="build.source.isCommit">
-            Commit <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0,12)}}</a>
-            <span ng-if="build.source.revision.branches">
-                to <span class="branch" ng-repeat="branch in build.source.revision.branches">{{branch}}</span>
-            </span>
-        </small>
-        <small ng-if="!build.source.isCommit">
-            Patch build <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.target}}</a>
-            on <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0,12)}}
+        <small>
+            <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name}}
         </small>
     </h2>
 </div>

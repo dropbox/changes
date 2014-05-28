@@ -463,7 +463,10 @@ a.indicator {
   border-width: 8px 6px 0;
 }
 .build-header .actions .dropdown-menu {
-  width: 200px;
+  width: 250px;
+}
+.build-header .actions small {
+  color: #999;
 }
 
 .build-avatar {
@@ -975,38 +978,6 @@ footer {
   font-size: 12px;
   background: #f7f5fa;
   min-height: 150px;
-}
-
-
-/**
- * Animations
- */
-
-.change-list tr.ng-enter {
-  opacity: 0.2;
-  transition: opacity .5s ease-in;
-  -moz-transition: opacity .5s ease-in;
-  -o-transition: opacity .5s ease-in;
-  -webkit-transition: opacity .5s ease-in;
-}
-.change-list tr.ng-enter-active {
-  opacity: 1;
-}
-
-.alert-list {
-  list-style: none;
-  padding-left: 0;
-  margin-bottom: 0;
-}
-.alert-list .alert {
-  border-radius: 0;
-  margin: 0;
-  padding: 0;
-  border-width: 1px 0;
-}
-
-.alert-list .alert .container {
-  padding: 15px 25px 15px 0;
 }
 
 span {
@@ -1530,6 +1501,22 @@ label.btn input[type=checkbox] {
   top: -8px;
 }
 
+.alert-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+.alert-list .alert {
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  border-width: 1px 0;
+}
+
+.alert-list .alert .container {
+  padding: 15px 25px 15px 0;
+}
+
 .unknown-coverage .coverage-info,
 .unknown-coverage .tooltip-inner {
   background-color: #ddd;
@@ -1599,4 +1586,20 @@ label.btn input[type=checkbox] {
 }
 .event-list .event-label {
   color: #000;
+}
+
+
+/**
+ * Animations via ngAnimate
+ */
+
+.change-list tr.ng-enter {
+  opacity: 0.2;
+  transition: opacity .5s ease-in;
+  -moz-transition: opacity .5s ease-in;
+  -o-transition: opacity .5s ease-in;
+  -webkit-transition: opacity .5s ease-in;
+}
+.change-list tr.ng-enter-active {
+  opacity: 1;
 }

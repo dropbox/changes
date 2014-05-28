@@ -153,14 +153,16 @@ define([
           if (response.dateModified < $scope.job.dateModified) {
             return;
           }
-          $.map(response.phases, function(phase){
-            phase.isVisible = phase.status.id != 'finished' || phase.result.id != 'passed';
-          });
-
           $.extend(true, $scope.job, response);
           $.extend(true, $scope.testFailures, response.testFailures);
           $scope.previousRuns.extend(response.previousRuns);
           $scope.phases.extend(response.phases);
+          $.map($scope.phases.phases, function(phase){
+            if (phase.isVisible === undefined) {
+              phase.isVisible = true;
+            }
+          });
+
 
           organizeLogSources($scope.logSourcesByPhase, response.logs);
         }

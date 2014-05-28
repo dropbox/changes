@@ -1,29 +1,5 @@
-<!-- Job header (only for matrix builds) -->
-<div ng-if="!isSingleJob" bind-once>
-    <div class="page-header build-header status-{{job.status.id}} result-{{job.result.id}}">
-        <ul class="crumb">
-            <li class="status-{{build.status.id}} result-{{build.result.id}}">
-                <a ui-sref="build_details()" class="indicator" bind-once>#{{build.number}}</a>
-            </li>
-        </ul>
-        <div class="seen-by" bind-once>
-            <ul>
-                <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
-                    <a tooltip="{{seenUser.email}}"
-                       tooltip-placement="bottom">
-                        <img src="{{seenUser.avatar}}&amp;s=16">
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <h2 slyEvaluateOnlyWhen="build.dateModified">
-            {{build.name}}<br>
-            <small>
-                <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name}}
-            </small>
-        </h2>
-    </div>
-</div>
+<div ng-if="isSingleJob" ng-include="'partials/includes/build-header.html'"></div>
+<div ng-if="!isSingleJob" ng-include="'partials/includes/job-header.html'"></div>
 
 <!--
 <ul class="nav nav-justified nav-tabs phase-list" ng-if="phases">
@@ -57,7 +33,7 @@
                 <span duration="phase.duration"></span>
             </div>
         </div>
-        <div ng-if="phase.isVisible">
+        <div ng-if="phase.isVisible" class="section-body">
             <div ng-if="logSourcesByPhase[phase.id]">
                 <tabset type="'links'">
                     <tab ng-repeat="logSource in logSourcesByPhase[phase.id]" class="result-{{logSource.step.result.id}}"
@@ -76,17 +52,5 @@
                 <p>No logs have been captured for this phase.</p>
             </div>
         </div>
-    </section>
-
-    <section class="section">
-        <div class="section-header">
-            <h3>Additional Information</h3>
-        </div>
-        <ul class="nav nav-list">
-            <li><a ui-sref="job_phase_list()">
-                View Phase Report<br>
-                <small>Detailed breakdown of each phase, timings, and executing host.</small>
-            </a></li>
-        </ul>
     </section>
 </div>

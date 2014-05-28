@@ -17,7 +17,7 @@
                 <td>
                     <span class="indicator indicator-sm"></span>
 
-                    <a ui-sref="test_details({job_id: test.job.id, test_id: test.id})">{{test.name|ltruncate:70}}</a><br>
+                    <a ui-sref="test_details({job_id: test.job.id, test_id: test.id})">{{test.name|truncate:80}}</a><br>
                     <small ng-if="test.origin">
                         This failure likely originated in <a href="{{test.origin.link}}">{{test.origin.target}}</a><span ng-if="test.origin.author"> &mdash; {{test.origin.author.name}}</span>
                     </small>
