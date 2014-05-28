@@ -1,6 +1,7 @@
 define([
-  'app'
-], function(app) {
+  'app',
+  'utils/sortArray'
+], function(app, sortArray) {
   'use strict';
 
   var BUFFER_SIZE = 10000;
@@ -128,7 +129,14 @@ define([
       });
 
       $scope.job = jobData;
-      $scope.phases = new Collection(jobData.phases);
+      $scope.phases = new Collection(jobData.phases, {
+          sortFunc: function(arr) {
+            function getScore(object) {
+              return [-new Date(object.dateCreated).getTime()];
+            }
+            return sortArray(arr, getScore);
+          }
+      });
       $scope.testFailures = jobData.testFailures;
       $scope.previousRuns = new Collection(jobData.previousRuns);
       $scope.logSourcesByPhase = {};
