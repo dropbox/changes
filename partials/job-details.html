@@ -64,33 +64,6 @@
         </table>
     </section>
 
-    <section class="section" ng-if="coverageData" bind-once>
-        <div class="section-header">
-            <h3>File Coverage</h3>
-        </div>
-        <table class="table table-striped table-bordered"
-               slyEvaluateOnlyWhen="testFailures.tests.length">
-            <thead>
-                <tr>
-                    <th>Filename</th>
-                    <th style="width:110px;text-align:center">Diff</th>
-                    <th style="width:110px;text-align:center">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="fileCoverage in coverageData">
-                    <td>{{fileCoverage.filename}}</td>
-                    <td style="text-align:center">
-                        <span ng-if="fileCoverage.hasDiffCoverage">{{fileCoverage.diffCoveragePercent}}%</span>
-                    </td>
-                    <td style="text-align:center">
-                        <span ng-if="fileCoverage.hasCoverage">{{fileCoverage.coveragePercent}}%</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-
     <section ng-repeat="phase in phases" class="section">
         <div class="section-header result-{{phase.result.id}}">
             <div class="line"></div>
