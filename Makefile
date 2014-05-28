@@ -83,7 +83,7 @@ test-full: install-test-requirements
 	@node_modules/karma/bin/karma start tests/karma.conf.js --single-run --reporters junit,dots
 
 coverage:
-	coverage run -m py.test --junitxml=junit.xml tests
+	coverage run -m py.test --junitxml=python.junit.xml tests
 	coverage xml
 
 dropdb:
