@@ -157,7 +157,7 @@ define([
           $.extend(true, $scope.testFailures, response.testFailures);
           $scope.previousRuns.extend(response.previousRuns);
           $scope.phases.extend(response.phases);
-          $.map($scope.phases.phases, function(phase){
+          $.map($scope.phases, function(phase){
             if (phase.isVisible === undefined) {
               phase.isVisible = true;
             }
