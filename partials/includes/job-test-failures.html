@@ -1,0 +1,29 @@
+<section class="section" ng-if="testFailures.total">
+    <div class="section-header">
+        <h3>Failing Tests <small>{{ testFailures.total }} total</small></h3>
+    </div>
+
+    <table class="grid-list"
+           slyEvaluateOnlyWhen="testFailures.tests.length">
+        <thead>
+            <tr class="grid-list-header">
+                <th style="padding-left: 20px">Test</th>
+                <th class="column">Duration</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="test in testFailures.tests"
+                class="result-{{test.result.id}}">
+                <td>
+                    <span class="indicator indicator-sm"></span>
+
+                    <a ui-sref="test_details({job_id: test.job.id, test_id: test.id})">{{test.name}}</a><br>
+                    <small ng-if="test.origin">
+                        This failure likely originated in <a href="{{test.origin.link}}">{{test.origin.target}}</a><span ng-if="test.origin.author"> &mdash; {{test.origin.author.name}}</span>
+                    </small>
+                </td>
+                <td class="column" duration="test.duration"></td>
+            </tr>
+        </tbody>
+    </table>
+</section>
