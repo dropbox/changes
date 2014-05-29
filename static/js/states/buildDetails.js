@@ -138,6 +138,7 @@ define([
             return;
           }
           $.extend(true, $scope.build, response);
+          updateBuild(response);
           $scope.jobList.extend(response.jobs);
         }
       });
