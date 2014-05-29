@@ -5,12 +5,17 @@ from changes.models import Task
 @register(Task)
 class TaskSerializer(Serializer):
     def serialize(self, instance, attrs):
+        if instance.data:
+            args = instance.data.get('kwargs') or {}
+        else:
+            args = {}
+
         return {
             'id': instance.id.hex,
             'objectID': instance.task_id,
             'parentObjectID': instance.parent_id,
             'name': instance.task_name,
-            'args': instance.data.get('kwargs') or {},
+            'args': args,
             'attempts': instance.num_retries + 1,
             'status': instance.status,
             'result': instance.result,
