@@ -18,7 +18,7 @@ class ClusterNodesAPIView(APIView):
 
         queryset = Node.query.filter(
             Node.clusters.contains(cluster),
-        )
+        ).order_by(Node.label.asc())
 
         args = self.parser.parse_args()
         if args.since:
