@@ -22,12 +22,12 @@ define([
 
       $scope.loadPreviousPage = function() {
         $(document.body).scrollTop(0);
-        loadJobList($scope.pageLinks.previous);
+        loadNodeList($scope.pageLinks.previous);
       };
 
       $scope.loadNextPage = function() {
         $(document.body).scrollTop(0);
-        loadJobList($scope.pageLinks.next);
+        loadNodeList($scope.pageLinks.next);
       };
 
       $scope.$watch("pageLinks", function(value) {
