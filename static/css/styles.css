@@ -266,7 +266,6 @@ dl.flat dt {
 .section-header {
   position: relative;
   margin-bottom: 10px;
-  font-size: 0;
   line-height: 26px;
 }
 .section-header h3 {
@@ -325,7 +324,9 @@ dl.flat dt {
   border-radius: 20px;
 }
 .section-header .indicator-wrapper {
-  padding-right: 15px;
+  padding-right: 10px;
+  margin-top: 6px;
+  margin-left: -5px;
 }
 
 .page-header {
