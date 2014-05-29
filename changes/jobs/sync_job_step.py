@@ -52,10 +52,10 @@ def is_missing_tests(step):
     # if this is not the final phase then ignore it
     # TODO(dcramer): there is probably a better way we can be explicit about
     # this?
-    if JobPhase.query.filter(
+    if db.session.query(JobPhase.query.filter(
         JobPhase.job_id == step.job_id,
         JobPhase.date_created > step.phase.date_created,
-    ).first():
+    ).exists()).scalar():
         return False
 
     has_tests = db.session.query(TestCase.query.filter(
