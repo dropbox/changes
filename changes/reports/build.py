@@ -53,7 +53,7 @@ class BuildReport(object):
 
         projects_by_green_builds = sorted(
             current_results.items(), key=lambda x: (
-                -abs(x[1]['green_percent'] or 0), -(x[1]['percent_change'] or 0),
+                abs(x[1]['green_percent'] or 0), -(x[1]['percent_change'] or 0),
                 x[0].name,
             ))
 
