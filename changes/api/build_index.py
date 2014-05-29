@@ -11,7 +11,7 @@ from werkzeug.datastructures import FileStorage
 from changes.api.base import APIView
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
-from changes.constants import Status, ProjectStatus
+from changes.constants import Result, Status, ProjectStatus
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
@@ -54,6 +54,42 @@ def identify_revision(repository, treeish):
     revision, _ = commit.save(repository)
 
     return revision
+
+
+def find_green_parent_sha(project, sha):
+    """
+    Attempt to find a better revision than ``sha`` that is green.
+
+    - If sha is green, let it ride.
+    - Only search future revisions.
+    - Find the newest revision (more likely to conflict).
+    - If there's nothing better, return existing sha.
+    """
+    green_rev = Build.query.join(
+        Source, Source.id == Build.source_id,
+    ).filter(
+        Source.repository_id == project.repository_id,
+        Source.revision_sha == sha,
+    ).first()
+    if green_rev:
+        if green_rev.status == Status.finished and green_rev.result == Result.passed:
+            return sha
+
+        latest_green = Build.query.filter(
+            Build.date_created > green_rev.date_created,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).order_by(Build.date_created.desc()).first()
+    else:
+        latest_green = Build.query.filter(
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).order_by(Build.date_created.desc()).first()
+
+    if latest_green:
+        return latest_green.source.revision_sha
+
+    return sha
 
 
 def create_build(project, label, target, message, author, change=None,
@@ -168,6 +204,12 @@ class BuildIndexAPIView(APIView):
         return self.paginate(queryset)
 
     def post(self):
+        """
+        Note: If ``patch`` is specified ``sha`` is assumed to be the original
+        base revision to apply the patch. It is **not** guaranteed to be the rev
+        used to apply the patch. See ``find_green_parent_sha`` for the logic of
+        identifying the correct revision.
+        """
         args = self.parser.parse_args()
 
         if not (args.project or args.repository):
@@ -285,19 +327,24 @@ class BuildIndexAPIView(APIView):
                     continue
 
             if patch_file:
+                forced_sha = find_green_parent_sha(
+                    project=project,
+                    sha=sha,
+                )
                 patch = Patch(
                     repository=repository,
                     project=project,
-                    parent_revision_sha=args.sha,
+                    parent_revision_sha=forced_sha,
                     diff=patch_file.getvalue(),
                 )
                 db.session.add(patch)
             else:
+                forced_sha = sha
                 patch = None
 
             builds.append(create_build(
                 project=project,
-                sha=sha,
+                sha=forced_sha,
                 target=target,
                 label=label,
                 message=message,
