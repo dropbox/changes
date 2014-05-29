@@ -107,7 +107,7 @@ define([
         restrict: 'E',
         link: function(scope, elem, attrs) {
           scope.$watchCollection(attrs.data, function(value) {
-            new BarChart(elem, value || [], attrs.options || {});
+            new BarChart(elem, value || [], scope.$eval(attrs.options) || {});
           });
         }
       };

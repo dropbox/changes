@@ -98,8 +98,8 @@ define([
       };
 
       $scope.selectedChart = 'duration';
-      $scope.$watchCollection("commits", function() {
-        $scope.chartData = chartHelpers.getChartData($scope.commits, null, chart_options);
+      $scope.$watchCollection("commits", function(value) {
+        $scope.chartData = chartHelpers.getChartData(value, null, chart_options);
       });
 
       $scope.commits = new Collection(fromCommits(commitList.data), {
