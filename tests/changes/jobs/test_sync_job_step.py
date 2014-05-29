@@ -2,16 +2,115 @@ from __future__ import absolute_import
 
 import mock
 
+from datetime import datetime
+
 from changes.config import db
 from changes.constants import Result, Status
-from changes.jobs.sync_job_step import sync_job_step
+from changes.jobs.sync_job_step import sync_job_step, is_missing_tests
 from changes.models import (
-    ItemStat, JobStep, ProjectOption, Step, Task, FileCoverage
+    ItemStat, JobStep, ProjectOption, Step, Task, FileCoverage, TestCase
 )
-from changes.testutils import TestCase
+from changes.testutils import TestCase as BaseTestCase
 
 
-class SyncJobStepTest(TestCase):
+class IsMissingTestsTest(BaseTestCase):
+    def test_single_phase(self):
+        project = self.project
+
+        option = ProjectOption(
+            project_id=project.id,
+            name='build.expect-tests',
+            value='0',
+        )
+        db.session.add(option)
+        db.session.commit()
+
+        build = self.create_build(project=self.project)
+        job = self.create_job(build=build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        jobstep2 = self.create_jobstep(jobphase)
+
+        assert not is_missing_tests(jobstep)
+
+        option.value = '1'
+        db.session.commit()
+
+        assert is_missing_tests(jobstep)
+
+        testcase = TestCase(
+            project_id=project.id,
+            job_id=job.id,
+            step_id=jobstep2.id,
+            name='test',
+        )
+        db.session.add(testcase)
+        db.session.commit()
+
+        assert is_missing_tests(jobstep)
+
+        testcase = TestCase(
+            project_id=project.id,
+            job_id=job.id,
+            step_id=jobstep.id,
+            name='test2',
+        )
+        db.session.add(testcase)
+        db.session.commit()
+
+        assert not is_missing_tests(jobstep)
+
+    def test_multi_phase(self):
+        project = self.project
+
+        option = ProjectOption(
+            project_id=project.id,
+            name='build.expect-tests',
+            value='1',
+        )
+        db.session.add(option)
+        db.session.commit()
+
+        build = self.create_build(project=self.project)
+        job = self.create_job(build=build)
+        jobphase = self.create_jobphase(
+            job=job,
+            label='setup',
+            date_created=datetime(2013, 9, 19, 22, 15, 24),
+        )
+        jobphase2 = self.create_jobphase(
+            job=job,
+            label='test',
+            date_created=datetime(2013, 9, 19, 22, 16, 24),
+        )
+        jobstep = self.create_jobstep(jobphase)
+        jobstep2 = self.create_jobstep(jobphase2)
+
+        testcase = TestCase(
+            project_id=project.id,
+            job_id=job.id,
+            step_id=jobstep.id,
+            name='test',
+        )
+        db.session.add(testcase)
+        db.session.commit()
+
+        assert not is_missing_tests(jobstep)
+        assert is_missing_tests(jobstep2)
+
+        testcase = TestCase(
+            project_id=project.id,
+            job_id=job.id,
+            step_id=jobstep2.id,
+            name='test2',
+        )
+        db.session.add(testcase)
+        db.session.commit()
+
+        assert not is_missing_tests(jobstep2)
+
+
+class SyncJobStepTest(BaseTestCase):
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
     def test_in_progress(self, get_implementation, queue_delay):

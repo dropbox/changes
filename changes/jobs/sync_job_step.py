@@ -7,7 +7,8 @@ from changes.constants import Status, Result
 from changes.config import db
 from changes.db.utils import try_create
 from changes.models import (
-    JobStep, JobPlan, Plan, ProjectOption, TestCase, ItemStat, FileCoverage
+    JobPhase, JobStep, JobPlan, Plan, ProjectOption, TestCase, ItemStat,
+    FileCoverage
 )
 from changes.queue.task import tracked_task
 
@@ -46,6 +47,15 @@ def is_missing_tests(step):
         ProjectOption.value == '1',
     )
     if not db.session.query(query.exists()).scalar():
+        return False
+
+    # if this is not the final phase then ignore it
+    # TODO(dcramer): there is probably a better way we can be explicit about
+    # this?
+    if JobPhase.query.filter(
+        JobPhase.job_id == step.job_id,
+        JobPhase.date_created > step.phase.date_created,
+    ).first():
         return False
 
     has_tests = db.session.query(TestCase.query.filter(
