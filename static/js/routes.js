@@ -29,6 +29,7 @@ define([
   'states/projectTestList',
   'states/projectTestSearch',
   'states/taskDetails',
+  'states/taskList',
   'states/testCaseDetails',
 
   'directives/bindOnce',
@@ -70,6 +71,7 @@ define([
   ProjectTestListState,
   ProjectTestSearchState,
   TaskDetailsState,
+  TaskListState,
   TestCaseDetailsState
 ) {
 
@@ -136,6 +138,7 @@ define([
       .state('project_test_search', ProjectTestSearchState)
       .state('project_source_details', ProjectSourceDetailsState)
       .state('test_details', TestCaseDetailsState)
+      .state('tasks', TaskListState)
       .state('task_details', TaskDetailsState);
   });
 });

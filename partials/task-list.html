@@ -1,0 +1,37 @@
+<section ui-view>
+    <div class="page-header">
+        <h2>Tasks</h2>
+    </div>
+
+    <table class="grid-list">
+        <thead>
+            <tr class="grid-list-header">
+                <th>Task</th>
+                <th class="column">Status</th>
+                <th class="column">Checked In</th>
+                <th class="column">Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="task in taskList">
+                <td>
+                    <a ui-sref="task_details({task_id: task.id})">{{task.name}} {{task.objectID}}</a><br>
+                    <small ng-show="task.args"><code>{{task.args}}</code></small>
+                </td>
+                <td class="column">{{task.status.name}}</td>
+                <td class="column" time-since="task.dateModified"></td>
+                <td class="column" time-since="task.dateCreated"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul class="pager">
+        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        </li>
+        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">Next &rarr;</a>
+        </li>
+    </ul>
+
+</section>

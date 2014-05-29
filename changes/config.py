@@ -304,6 +304,7 @@ def configure_api_routes(app):
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.step_details import StepDetailsAPIView
     from changes.api.task_details import TaskDetailsAPIView
+    from changes.api.task_index import TaskIndexAPIView
     from changes.api.testcase_details import TestCaseDetailsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
@@ -352,6 +353,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')
+    api.add_resource(TaskIndexAPIView, '/tasks/')
     api.add_resource(TaskDetailsAPIView, '/tasks/<uuid:task_id>/')
 
 

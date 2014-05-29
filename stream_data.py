@@ -13,10 +13,13 @@ from changes.models import (
     Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan,
     ItemStat
 )
+from changes.testutils.fixtures import Fixtures
 
 app = create_app()
 app_context = app.app_context()
 app_context.push()
+
+fixtures = Fixtures()
 
 
 def create_new_change(project, **kwargs):
@@ -63,6 +66,12 @@ def create_new_entry(project):
         date_started=date_started,
     )
 
+    build_task = fixtures.create_task(
+        task_id=build.id,
+        task_name='sync_build',
+        data={'kwargs': {'build_id': build.id.hex}},
+    )
+
     db.session.add(ItemStat(item_id=build.id, name='lines_covered', value='5'))
     db.session.add(ItemStat(item_id=build.id, name='lines_uncovered', value='5'))
     db.session.add(ItemStat(item_id=build.id, name='diff_lines_covered', value='5'))
@@ -76,6 +85,13 @@ def create_new_entry(project):
             change=change,
             status=Status.in_progress,
         )
+        fixtures.create_task(
+            task_id=job.id.hex,
+            parent_id=build_task.task_id,
+            task_name='sync_job',
+            data={'kwargs': {'job_id': job.id.hex}},
+        )
+
         db.session.commit()
         if patch:
             mock.file_coverage(project, job, patch)

@@ -10,6 +10,7 @@ class TaskSerializer(Serializer):
             'objectID': instance.task_id,
             'parentObjectID': instance.parent_id,
             'name': instance.task_name,
+            'args': instance.data.get('kwargs') or {},
             'attempts': instance.num_retries + 1,
             'status': instance.status,
             'result': instance.result,

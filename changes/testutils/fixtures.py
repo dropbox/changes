@@ -309,6 +309,8 @@ class Fixtures(object):
         return step
 
     def create_task(self, **kwargs):
+        kwargs.setdefault('task_id', uuid4())
+
         task = Task(**kwargs)
         db.session.add(task)
         db.session.commit()
