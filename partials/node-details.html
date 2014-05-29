@@ -4,8 +4,8 @@
     </div>
 
     <dl class="flat">
-        <dt>Clusters:</dt>
-        <dd><a ui-sref="cluster_details({cluster_id: cluster.id})"
+        <dt ng-show="node.clusters">Clusters:</dt>
+        <dd ng-show="node.clusters"><a ui-sref="cluster_details({cluster_id: cluster.id})"
                ng-repeat="cluster in node.clusters">{{cluster.name}}</a>
         </dd>
         <dt>First Seen:</dt>
