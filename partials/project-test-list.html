@@ -33,12 +33,12 @@
 </ul>
 
 <section>
-	<table class="table table-striped table-bordered">
+	<table class="grid-list">
 		<thead>
-			<tr>
+			<tr class="grid-list-header">
 				<th>&nbsp;</th>
-				<th style="width:100px;text-align:center">Tests</th>
-				<th style="width:100px;text-align:center">Duration</th>
+				<th class="column">Tests</th>
+				<th class="column">Duration</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -47,8 +47,8 @@
 					<a ui-sref="project_tests({parent: test.path})" ng-if="test.numTests > 1">{{test.name}}</a>
 					<span ng-if="test.numTests == 1">{{test.name}}</span>
 				</td>
-				<td style="text-align:center">{{test.numTests}}</td>
-				<td style="text-align:center" duration="test.totalDuration"></td>
+				<td class="column">{{test.numTests}}</td>
+				<td class="column" duration="test.totalDuration"></td>
 			</tr>
 		</tbody>
 	</table>
