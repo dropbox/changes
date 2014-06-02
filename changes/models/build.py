@@ -52,6 +52,10 @@ class Build(db.Model):
     project = relationship('Project', innerjoin=True)
     source = relationship('Source', innerjoin=True)
     author = relationship('Author')
+    stats = relationship('ItemStat',
+                         primaryjoin='Build.id == ItemStat.item_id',
+                         foreign_keys=[id],
+                         uselist=True)
 
     __repr__ = model_repr('label', 'target')
 
