@@ -39,7 +39,12 @@ class BuildReport(object):
         previous_results = self.get_project_stats(
             start_period - days_delta, start_period)
 
-        for project, stats in current_results.iteritems():
+        for project, stats in current_results.items():
+            # exclude projects that had no builds in this period
+            if not stats['total_builds']:
+                del current_results[project]
+                continue
+
             previous_stats = previous_results.get(project)
             if not previous_stats:
                 green_change = None
