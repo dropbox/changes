@@ -153,7 +153,10 @@ class BuildCreateTest(APITestCase):
         assert source.revision_sha == 'a' * 40
 
     def test_defaults_to_revision(self):
-        revision = self.create_revision(sha='a' * 40)
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40,
+        )
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
