@@ -98,6 +98,8 @@ class BuildReport(object):
             start_period.strftime('%b %d, %Y'),
             end_period.strftime('%b %d, %Y'),
         )
+        if len(self.projects) == 1:
+            title = '[%s] %s' % (self.projects[0].name, title)
 
         return {
             'title': title,
