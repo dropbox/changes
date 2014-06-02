@@ -82,7 +82,7 @@ class BuildReport(object):
 
         project_stats = sorted(
             current_results.items(), key=lambda x: (
-                (x[1]['total_builds'] or 0), abs(x[1]['green_percent'] or 0),
+                -(x[1]['total_builds'] or 0), abs(x[1]['green_percent'] or 0),
                 x[0].name,
             ))
 
