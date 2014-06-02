@@ -86,6 +86,9 @@ class IsMissingTestsTest(BaseTestCase):
         jobstep = self.create_jobstep(jobphase)
         jobstep2 = self.create_jobstep(jobphase2)
 
+        assert not is_missing_tests(jobstep)
+        assert is_missing_tests(jobstep2)
+
         testcase = TestCase(
             project_id=project.id,
             job_id=job.id,
