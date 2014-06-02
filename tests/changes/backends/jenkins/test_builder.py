@@ -76,6 +76,7 @@ class CreateBuildTest(BaseTestCase):
             'item_id': '13',
             'job_name': 'server',
             'queued': True,
+            'uri': None,
         }
 
     @responses.activate
@@ -111,6 +112,7 @@ class CreateBuildTest(BaseTestCase):
             'item_id': None,
             'job_name': 'server',
             'queued': False,
+            'uri': None,
         }
 
     @responses.activate

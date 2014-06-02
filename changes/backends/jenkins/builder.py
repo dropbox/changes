@@ -131,7 +131,7 @@ class JenkinsBuilder(BaseBackend):
         return params
 
     def _create_job_step(self, phase, job_name=None, build_no=None,
-                         label=None, **kwargs):
+                         label=None, uri=None, **kwargs):
         # TODO(dcramer): we make an assumption that the job step label is unique
         # but its not guaranteed to be the case. We can ignore this assumption
         # by guaranteeing that the JobStep.id value is used for builds instead
@@ -140,6 +140,7 @@ class JenkinsBuilder(BaseBackend):
             'data': {
                 'job_name': job_name,
                 'build_no': build_no,
+                'uri': uri,
             },
         }
         defaults.update(kwargs)
@@ -399,6 +400,7 @@ class JenkinsBuilder(BaseBackend):
             'queued': True,
             'item_id': item_id,
             'build_no': None,
+            'uri': None,
         }
 
     def _find_job_in_active(self, job_name, job_id):
@@ -429,6 +431,7 @@ class JenkinsBuilder(BaseBackend):
             'queued': False,
             'item_id': None,
             'build_no': build_no,
+            'uri': None,
         }
 
     def _get_node(self, label):
@@ -501,6 +504,10 @@ class JenkinsBuilder(BaseBackend):
                 job_name, build_no))
         except NotFound:
             raise UnrecoverableException('Unable to find job in Jenkins')
+
+        if not step.data.get('uri'):
+            step.data['uri'] = item['url']
+            db.session.add(step)
 
         # TODO(dcramer): we're doing a lot of work here when we might
         # not need to due to it being sync'd previously
