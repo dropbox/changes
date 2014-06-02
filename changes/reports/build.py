@@ -34,10 +34,18 @@ class BuildReport(object):
         days_delta = timedelta(days=days)
         start_period = end_period - days_delta
 
+        # if we're pulling data for a select number of days let's use the
+        # previous week as the previous period
+        if days < 7:
+            previous_end_period = start_period - timedelta(days=7)
+        else:
+            previous_end_period = start_period
+        previous_start_period = previous_end_period - days_delta
+
         current_results = self.get_project_stats(
             start_period, end_period)
         previous_results = self.get_project_stats(
-            start_period - days_delta, start_period)
+            previous_start_period, previous_end_period)
 
         for project, stats in current_results.items():
             # exclude projects that had no builds in this period
@@ -81,7 +89,7 @@ class BuildReport(object):
         current_failure_stats = self.get_failure_stats(
             start_period, end_period)
         previous_failure_stats = self.get_failure_stats(
-            start_period - days_delta, start_period)
+            previous_start_period, previous_end_period)
         failure_stats = []
         for stat_name, current_stat_value in current_failure_stats['reasons'].iteritems():
             previous_stat_value = previous_failure_stats['reasons'].get(stat_name, 0)
