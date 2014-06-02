@@ -39,8 +39,6 @@ class BuildReport(object):
         previous_results = self.get_project_stats(
             start_period - days_delta, start_period)
 
-        global_build_total = 0
-        previous_global_build_total = 0
         for project, stats in current_results.iteritems():
             previous_stats = previous_results.get(project)
             if not previous_stats:
@@ -63,10 +61,6 @@ class BuildReport(object):
             else:
                 total_change = stats['total_builds'] - previous_stats['total_builds']
 
-            global_build_total += stats['total_builds']
-            if previous_stats:
-                previous_global_build_total += previous_stats['total_builds']
-
             stats['avg_duration'] = stats['avg_duration']
 
             stats['total_change'] = total_change
@@ -84,17 +78,17 @@ class BuildReport(object):
         previous_failure_stats = self.get_failure_stats(
             start_period - days_delta, start_period)
         failure_stats = []
-        for stat_name, current_stat_value in current_failure_stats.iteritems():
-            previous_stat_value = previous_failure_stats.get(stat_name, 0)
+        for stat_name, current_stat_value in current_failure_stats['reasons'].iteritems():
+            previous_stat_value = previous_failure_stats['reasons'].get(stat_name, 0)
             failure_stats.append({
                 'name': stat_name,
                 'current': {
                     'value': current_stat_value,
-                    'percent': percent(current_stat_value, global_build_total)
+                    'percent': percent(current_stat_value, current_failure_stats['total'])
                 },
                 'previous': {
                     'value': previous_stat_value,
-                    'percent': percent(previous_stat_value, previous_global_build_total)
+                    'percent': percent(previous_stat_value, previous_failure_stats['total'])
                 },
             })
 
@@ -167,11 +161,23 @@ class BuildReport(object):
         return project_results
 
     def get_failure_stats(self, start_period, end_period):
-        failure_stats = defaultdict(int)
+        failure_stats = {
+            'total': 0,
+            'reasons': defaultdict(int),
+        }
         for project in self.projects:
             for stat, value in self.get_failure_stats_for_project(
                     project, start_period, end_period).iteritems():
-                failure_stats[stat] += value
+                failure_stats['reasons'][stat] += value
+
+        failure_stats['total'] = Build.query.filter(
+            Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.result == Result.failed,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+        ).count()
+
         return failure_stats
 
     def get_failure_stats_for_project(self, project, start_period, end_period):
