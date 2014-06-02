@@ -8,7 +8,8 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.jobs.sync_job_step import sync_job_step, is_missing_tests
 from changes.models import (
-    ItemStat, JobStep, ProjectOption, Step, Task, FileCoverage, TestCase
+    ItemStat, JobStep, ProjectOption, Step, Task, FileCoverage, TestCase,
+    FailureReason
 )
 from changes.testutils import TestCase as BaseTestCase
 
@@ -180,11 +181,12 @@ class SyncJobStepTest(BaseTestCase):
 
         def mark_finished(step):
             step.status = Status.finished
-            step.result = Result.passed
+            step.result = Result.failed
 
         implementation.update_step.side_effect = mark_finished
 
-        build = self.create_build(project=self.project)
+        project = self.project
+        build = self.create_build(project=project)
         job = self.create_job(build=build)
 
         plan = self.create_plan()
@@ -199,6 +201,14 @@ class SyncJobStepTest(BaseTestCase):
             task_name='sync_job_step',
             status=Status.finished,
         )
+
+        db.session.add(TestCase(
+            name='test',
+            step_id=step.id,
+            job_id=job.id,
+            project_id=project.id,
+            result=Result.failed,
+        ))
 
         db.session.add(FileCoverage(
             job=job, step=step, project=job.project,
@@ -265,6 +275,11 @@ class SyncJobStepTest(BaseTestCase):
         ).first()
         assert stat.value == 2
 
+        assert FailureReason.query.filter(
+            FailureReason.step_id == step.id,
+            FailureReason.reason == 'test_failures',
+        )
+
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(Step, 'get_implementation')
     def test_missing_test_results_and_expected(self, get_implementation, queue_delay):
@@ -312,3 +327,8 @@ class SyncJobStepTest(BaseTestCase):
             ItemStat.name == 'tests_missing',
         ).first()
         assert stat.value == 1
+
+        assert FailureReason.query.filter(
+            FailureReason.step_id == step.id,
+            FailureReason.reason == 'missing_tests',
+        )

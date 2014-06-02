@@ -8,7 +8,7 @@ from changes.config import db
 from changes.db.utils import try_create
 from changes.models import (
     JobPhase, JobStep, JobPlan, Plan, ProjectOption, TestCase, ItemStat,
-    FileCoverage
+    FileCoverage, FailureReason
 )
 from changes.queue.task import tracked_task
 
@@ -63,6 +63,13 @@ def is_missing_tests(step):
     ).exists()).scalar()
 
     return not has_tests
+
+
+def has_test_failures(step):
+    return db.session.query(TestCase.query.filter(
+        TestCase.step_id == step.id,
+        TestCase.result == Result.failed,
+    ).exists()).scalar()
 
 
 def record_coverage_stats(step):
@@ -124,4 +131,24 @@ def sync_job_step(step_id):
     if step.result == Result.passed and missing_tests:
         step.result = Result.failed
         db.session.add(step)
+        db.session.add(FailureReason(
+            step_id=step.id,
+            job_id=step.job_id,
+            build_id=step.job.build_id,
+            project_id=step.project_id,
+            reason='missing_tests'
+        ))
+        db.session.commit()
+
+    if step.result != Result.failed:
+        return
+
+    if has_test_failures(step):
+        db.session.add(FailureReason(
+            step_id=step.id,
+            job_id=step.job_id,
+            build_id=step.job.build_id,
+            project_id=step.project_id,
+            reason='test_failures'
+        ))
         db.session.commit()
