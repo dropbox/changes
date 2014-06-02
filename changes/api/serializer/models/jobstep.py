@@ -11,6 +11,7 @@ class JobStepSerializer(Serializer):
             'phase': {
                 'id': instance.phase_id.hex,
             },
+            'data': dict(instance.data),
             'result': instance.result,
             'status': instance.status,
             'node': instance.node,
