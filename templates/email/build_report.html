@@ -328,33 +328,6 @@ tr.odd td {
 			</table>
 		</div>
 	{% endif %}
-
-	{% if tests.flakey_list %}
-		<div id="frequent-failures">
-			<div class="subheader">
-				<h2>Most Frequent Failures</h2>
-			</div>
-
-			<table>
-				<tbody>
-					{% for test in tests.flakey_list %}
-					<tr class="{{ loop.cycle('odd', 'even') }}">
-						<th>
-							<a href="{{ test.link }}" class="truncate">{{ test.name }}</a><br>
-							{% if test.package %}
-								<small class="truncate">{{ test.package }}</small>
-							{% endif %}
-						</th>
-						<td class="duration">
-							{{ test.fail_pct }}%<br>
-							<small>{{ test.fail_count }} out of {{ test.total_count }}</small>
-						</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
-	{% endif %}
 </div>
 
 </div></body></html>

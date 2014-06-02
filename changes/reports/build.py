@@ -2,6 +2,7 @@ from __future__ import absolute_import, division
 
 from collections import defaultdict
 from datetime import datetime, timedelta
+from hashlib import sha1
 from sqlalchemy.sql import func
 from sqlalchemy.orm import subqueryload_all
 
@@ -98,8 +99,6 @@ class BuildReport(object):
             })
 
         slow_tests = self.get_slow_tests(start_period, end_period)
-        # flakey_tests = self.get_frequent_failures(start_period, end_period)
-        flakey_tests = []
 
         title = 'Build Report ({0} through {1})'.format(
             start_period.strftime('%b %d, %Y'),
@@ -113,7 +112,6 @@ class BuildReport(object):
             'projects_by_green_builds': projects_by_green_builds,
             'tests': {
                 'slow_list': slow_tests,
-                'flakey_list': flakey_tests,
             },
         }
 
@@ -244,84 +242,11 @@ class BuildReport(object):
                 'package': '',  # TODO
                 'duration': '%.2f s' % (duration / 1000.0,),
                 'duration_raw': duration,
-                # 'link': build_uri('/projects/{0}/tests/{1}/'.format(
-                #     project.slug, agg_id.hex)),
+                'link': build_uri('/projects/{0}/tests/{1}/'.format(
+                    project.slug, sha1(name).hexdigest())),
             })
 
         return slow_list
-
-    def get_frequent_failures(self, start_period, end_period):
-        projects_by_id = dict((p.id, p) for p in self.projects)
-        project_ids = projects_by_id.keys()
-
-        queryset = db.session.query(
-            TestCase.name,
-            TestCase.project_id,
-            TestCase.result,
-            func.count(TestCase.id).label('num'),
-        ).filter(
-            TestCase.project_id.in_(project_ids),
-            TestCase.result.in_([Result.passed, Result.failed]),
-            TestCase.date_created > start_period,
-            TestCase.date_created <= end_period,
-        ).group_by(
-            TestCase.name,
-            TestCase.project_id,
-            TestCase.result,
-        )
-
-        test_results = defaultdict(lambda: {
-            'passed': 0,
-            'failed': 0,
-        })
-        for name, project_id, result, count in queryset:
-            # TODO: parent name
-            test_results[(name, '', project_id)][result.name] += count
-
-        if not test_results:
-            return []
-
-        tests_with_pct = []
-        for test_key, counts in test_results.iteritems():
-            total = counts['passed'] + counts['failed']
-            if counts['failed'] == 0:
-                continue
-            # exclude tests which haven't been seen frequently
-            elif total < 5:
-                continue
-            else:
-                pct = percent(counts['failed'], total)
-            # if the test has failed 100% of the time, it's not flakey
-            if pct == 100:
-                continue
-            tests_with_pct.append((test_key, pct, total, counts['failed']))
-        tests_with_pct.sort(key=lambda x: x[1], reverse=True)
-
-        flakiest_tests = tests_with_pct[:10]
-
-        if not flakiest_tests:
-            return []
-
-        results = []
-        for test_key, pct, total, fail_count in flakiest_tests:
-            (name, parent_name, project_id) = test_key
-
-            if parent_name:
-                name = name[len(parent_name) + 1:]
-
-            # project = projects_by_id[project_id]
-
-            results.append({
-                'name': name,
-                'package': parent_name,
-                'fail_pct': int(pct),
-                'fail_count': fail_count,
-                'total_count': total,
-                # 'link': build_uri('/projects/{0}/tests/{1}/'.format(
-                #     project.slug, agg.id.hex)),
-            })
-
-        return results
 
     def _date_to_key(self, dt):
         return int(dt.replace(
