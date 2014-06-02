@@ -239,7 +239,7 @@ tr.odd td {
 			</tr>
 		</thead>
 		<tbody>
-			{% for project, data in projects_by_green_builds %}
+			{% for project, data in project_stats %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<th><a href="{{ data.link }}">{{ project.name }}</a></th>
 					<td style="text-align:right;width:50px">{{ data.avg_duration|duration }}</td>

@@ -80,9 +80,9 @@ class BuildReport(object):
             stats['percent_change'] = green_change
             stats['duration_change'] = duration_change
 
-        projects_by_green_builds = sorted(
+        project_stats = sorted(
             current_results.items(), key=lambda x: (
-                abs(x[1]['green_percent'] or 0), -(x[1]['percent_change'] or 0),
+                (x[1]['total_builds'] or 0), abs(x[1]['green_percent'] or 0),
                 x[0].name,
             ))
 
@@ -118,7 +118,7 @@ class BuildReport(object):
             'title': title,
             'period': [start_period, end_period],
             'failure_stats': failure_stats,
-            'projects_by_green_builds': projects_by_green_builds,
+            'project_stats': project_stats,
             'tests': {
                 'slow_list': slow_tests,
             },
