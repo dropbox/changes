@@ -278,6 +278,33 @@ tr.odd td {
 		</tbody>
 	</table>
 
+	<div id="failure-breakdown">
+		<div class="subheader">
+			<h2>Failure Breakdown</h2>
+		</div>
+
+		<table>
+			<thead>
+				<tr>
+					<th>Reason</th>
+					<th colspan="2" style="text-align:center">Current</th>
+					<th colspan="2" style="text-align:center">Previous</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for stat in failure_stats %}
+					<tr class="{{ loop.cycle('odd', 'even') }}">
+						<th>{{ stat.name }}</th>
+						<td style="text-align:right;width:50px">{{ stat.current.value }}</td>
+						<td style="text-align:left;width:50px">{{ stat.current.percent }}%</td>
+						<td style="text-align:right;width:50px">{{ stat.previous.value }}</td>
+						<td style="text-align:left;width:50px">{{ stat.previous.percent }}%</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
 	{% if tests.slow_list %}
 		<div id="slowest-tests">
 			<div class="subheader">

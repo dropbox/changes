@@ -3,6 +3,7 @@ from __future__ import absolute_import, division
 from collections import defaultdict
 from datetime import datetime, timedelta
 from sqlalchemy.sql import func
+from sqlalchemy.orm import subqueryload_all
 
 from changes.config import db
 from changes.constants import Status, Result
@@ -13,6 +14,12 @@ from changes.utils.http import build_uri
 SLOW_TEST_THRESHOLD = 3000  # ms
 
 ONE_DAY = 60 * 60 * 24
+
+
+def percent(value, total):
+    if not value:
+        return 0
+    return int(value / total * 100)
 
 
 class BuildReport(object):
@@ -31,6 +38,8 @@ class BuildReport(object):
         previous_results = self.get_project_stats(
             start_period - days_delta, start_period)
 
+        global_build_total = 0
+        previous_global_build_total = 0
         for project, stats in current_results.iteritems():
             previous_stats = previous_results.get(project)
             if not previous_stats:
@@ -53,6 +62,10 @@ class BuildReport(object):
             else:
                 total_change = stats['total_builds'] - previous_stats['total_builds']
 
+            global_build_total += stats['total_builds']
+            if previous_stats:
+                previous_global_build_total += previous_stats['total_builds']
+
             stats['avg_duration'] = stats['avg_duration']
 
             stats['total_change'] = total_change
@@ -64,6 +77,25 @@ class BuildReport(object):
                 abs(x[1]['green_percent'] or 0), -(x[1]['percent_change'] or 0),
                 x[0].name,
             ))
+
+        current_failure_stats = self.get_failure_stats(
+            start_period, end_period)
+        previous_failure_stats = self.get_failure_stats(
+            start_period - days_delta, start_period)
+        failure_stats = []
+        for stat_name, current_stat_value in current_failure_stats.iteritems():
+            previous_stat_value = previous_failure_stats.get(stat_name, 0)
+            failure_stats.append({
+                'name': stat_name,
+                'current': {
+                    'value': current_stat_value,
+                    'percent': percent(current_stat_value, global_build_total)
+                },
+                'previous': {
+                    'value': previous_stat_value,
+                    'percent': percent(previous_stat_value, previous_global_build_total)
+                },
+            })
 
         slow_tests = self.get_slow_tests(start_period, end_period)
         # flakey_tests = self.get_frequent_failures(start_period, end_period)
@@ -77,6 +109,7 @@ class BuildReport(object):
         return {
             'title': title,
             'period': [start_period, end_period],
+            'failure_stats': failure_stats,
             'projects_by_green_builds': projects_by_green_builds,
             'tests': {
                 'slow_list': slow_tests,
@@ -129,11 +162,42 @@ class BuildReport(object):
 
         for project, stats in project_results.iteritems():
             if stats['total_builds']:
-                stats['green_percent'] = int(stats['green_builds'] / stats['total_builds'] * 100)
+                stats['green_percent'] = percent(stats['green_builds'], stats['total_builds'])
             else:
                 stats['green_percent'] = None
 
         return project_results
+
+    def get_failure_stats(self, start_period, end_period):
+        failure_stats = defaultdict(int)
+        for project in self.projects:
+            for stat, value in self.get_failure_stats_for_project(
+                    project, start_period, end_period).iteritems():
+                failure_stats[stat] += value
+        return failure_stats
+
+    def get_failure_stats_for_project(self, project, start_period, end_period):
+        stats = {
+            'Test Failures': 0,
+            'Missing Tests': 0,
+        }
+        # TODO(dcramer): we should embed this logic into the job/build results
+        failing_builds = Build.query.filter(
+            Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.result == Result.failed,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+        ).options(
+            subqueryload_all('stats'),
+        )
+        for build in failing_builds:
+            build_stats = dict((s.name, s.value) for s in build.stats)
+            if build_stats.get('test_failures', 0):
+                stats['Test Failures'] += 1
+            if build_stats.get('tests_missing', 0):
+                stats['Missing Tests'] += 1
+        return stats
 
     def get_slow_tests(self, start_period, end_period):
         slow_tests = []
@@ -226,7 +290,7 @@ class BuildReport(object):
             elif total < 5:
                 continue
             else:
-                pct = counts['failed'] / total * 100
+                pct = percent(counts['failed'], total)
             # if the test has failed 100% of the time, it's not flakey
             if pct == 100:
                 continue
