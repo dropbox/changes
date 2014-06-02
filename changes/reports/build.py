@@ -18,7 +18,7 @@ ONE_DAY = 60 * 60 * 24
 
 
 def percent(value, total):
-    if not value:
+    if not (value and total):
         return 0
     return int(value / total * 100)
 
