@@ -789,6 +789,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             'log_offset': 7,
             'job_name': 'server',
             'build_no': 2,
+            'uri': 'https://jenkins.build.itc.dropbox.com/job/server/2/',
         }
 
         node = step_list[0].node

@@ -476,6 +476,7 @@ class JenkinsBuilder(BaseBackend):
             build_no = item['executable']['number']
             step.data['queued'] = False
             step.data['build_no'] = build_no
+            step.data['uri'] = item['executable']['url']
             db.session.add(step)
 
         if item['blocked']:
