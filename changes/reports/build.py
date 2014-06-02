@@ -37,7 +37,7 @@ class BuildReport(object):
         # if we're pulling data for a select number of days let's use the
         # previous week as the previous period
         if days < 7:
-            previous_end_period = start_period - timedelta(days=6)
+            previous_end_period = end_period - timedelta(days=7)
         else:
             previous_end_period = start_period
         previous_start_period = previous_end_period - days_delta
