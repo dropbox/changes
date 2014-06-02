@@ -105,6 +105,9 @@ class Vcs(object):
         """
         return self.log(parent=id, limit=1).next()
 
+    def get_default_revision(self):
+        raise NotImplementedError
+
 
 class RevisionResult(object):
     def __init__(self, id, message, author, author_date, committer=None,

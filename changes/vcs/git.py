@@ -18,6 +18,9 @@ class GitVcs(Vcs):
             'GIT_SSH': self.ssh_connect_path,
         }
 
+    def get_default_revision(self):
+        return 'master'
+
     @property
     def remote_url(self):
         if self.url.startswith(('ssh:', 'http:', 'https:')):

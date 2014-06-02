@@ -39,6 +39,10 @@ class GitVcsTest(TestCase):
             path=self.path
         )
 
+    def test_get_default_revision(self):
+        vcs = self.get_vcs()
+        assert vcs.get_default_revision() == 'master'
+
     def test_simple(self):
         vcs = self.get_vcs()
         vcs.clone()
