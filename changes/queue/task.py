@@ -219,7 +219,7 @@ class TrackedTask(local):
             Task.task_id == self.task_id,
         ).scalar() or 0
 
-        retry_countdown = min(BASE_RETRY_COUNTDOWN + (retry_number ** 3), 300)
+        retry_countdown = min(BASE_RETRY_COUNTDOWN + (retry_number ** 2), 300)
 
         queue.delay(
             self.task_name,
