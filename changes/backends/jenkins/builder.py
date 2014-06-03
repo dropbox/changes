@@ -285,18 +285,14 @@ class JenkinsBuilder(BaseBackend):
 
             # Jenkins will suggest to us that there is more data when the job has
             # yet to complete
-            # has_more = resp.headers.get('X-More-Data') == 'true'
+            has_more = resp.headers.get('X-More-Data') == 'true'
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
         jobstep.data['log_offset'] = log_length
         db.session.add(jobstep)
 
-        # TODO(dcramer): we sync at the end of the job so there is no way there
-        # should be more data. This doesnt seem to be true. Might be a Jenkins
-        # bug?
-        # return True if has_more else None
-        return False
+        return True if has_more else None
 
     def _process_test_report(self, step, test_report):
         test_list = []
