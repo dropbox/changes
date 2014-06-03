@@ -253,7 +253,7 @@ def job(build, change=None, **kwargs):
 
     if phase1_test.result == Result.failed:
         db.session.add(FailureReason(
-            reason='test_failure',
+            reason='test_failures',
             build_id=build.id,
             job_id=job.id,
             step_id=step.id,

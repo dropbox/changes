@@ -8,5 +8,5 @@ class Registry(dict):
         self[type] = cls()
 
 registry = Registry()
-registry.add('test_failure', TestFailure)  # NOQA
+registry.add('test_failures', TestFailure)  # NOQA
 registry.add('missing_tests', MissingTests)  # NOQA

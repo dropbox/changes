@@ -76,7 +76,7 @@ class BuildDetailsTest(APITestCase):
             build_id=build.id,
             job_id=job1.id,
             step_id=step.id,
-            reason='test_failure'
+            reason='test_failures'
         ))
         db.session.commit()
 
