@@ -251,7 +251,7 @@ class JenkinsBuilder(BaseBackend):
         else:
             offset = jobstep.data.get('log_offset', 0)
 
-        url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
+        url = '{base}/job/{job}/{build}/logText/progressiveText/'.format(
             base=self.base_url,
             job=job_name,
             build=build_no,

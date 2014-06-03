@@ -28,7 +28,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
             body='')
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
