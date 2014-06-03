@@ -7,6 +7,7 @@ import requests
 import time
 
 from cStringIO import StringIO
+from contextlib import closing
 from datetime import datetime
 from flask import current_app
 from lxml import etree, objectify
@@ -218,20 +219,21 @@ class JenkinsBuilder(BaseBackend):
         )
 
         offset = 0
-        resp = requests.get(url, stream=True, timeout=15)
-        iterator = resp.iter_content()
-        for chunk in chunked(iterator, LOG_CHUNK_SIZE):
-            chunk_size = len(chunk)
-            chunk, _ = create_or_update(LogChunk, where={
-                'source': logsource,
-                'offset': offset,
-            }, values={
-                'job': job,
-                'project': job.project,
-                'size': chunk_size,
-                'text': chunk,
-            })
-            offset += chunk_size
+        session = requests.Session()
+        with closing(session.get(url, stream=True, timeout=15)) as resp:
+            iterator = resp.iter_content()
+            for chunk in chunked(iterator, LOG_CHUNK_SIZE):
+                chunk_size = len(chunk)
+                chunk, _ = create_or_update(LogChunk, where={
+                    'source': logsource,
+                    'offset': offset,
+                }, values={
+                    'job': job,
+                    'project': job.project,
+                    'size': chunk_size,
+                    'text': chunk,
+                })
+                offset += chunk_size
 
     def _sync_console_log(self, jobstep):
         job = jobstep.job
@@ -264,30 +266,31 @@ class JenkinsBuilder(BaseBackend):
             build=build_no,
         )
 
-        resp = requests.get(
-            url, params={'start': offset}, stream=True, timeout=15)
-        log_length = int(resp.headers['X-Text-Size'])
-        # When you request an offset that doesnt exist in the build log, Jenkins
-        # will instead return the entire log. Jenkins also seems to provide us
-        # with X-Text-Size which indicates the total size of the log
-        if offset > log_length:
-            return
+        session = requests.Session()
+        with closing(session.get(url, params={'start': offset}, stream=True, timeout=15)) as resp:
+            log_length = int(resp.headers['X-Text-Size'])
 
-        iterator = resp.iter_content()
-        # XXX: requests doesnt seem to guarantee chunk_size, so we force it
-        # with our own helper
-        for chunk in chunked(iterator, LOG_CHUNK_SIZE):
-            chunk_size = len(chunk)
-            chunk, _ = create_or_update(LogChunk, where={
-                'source': logsource,
-                'offset': offset,
-            }, values={
-                'job': job,
-                'project': job.project,
-                'size': chunk_size,
-                'text': chunk,
-            })
-            offset += chunk_size
+            # When you request an offset that doesnt exist in the build log, Jenkins
+            # will instead return the entire log. Jenkins also seems to provide us
+            # with X-Text-Size which indicates the total size of the log
+            if offset > log_length:
+                return
+
+            # XXX: requests doesnt seem to guarantee chunk_size, so we force it
+            # with our own helper
+            iterator = resp.iter_content()
+            for chunk in chunked(iterator, LOG_CHUNK_SIZE):
+                chunk_size = len(chunk)
+                chunk, _ = create_or_update(LogChunk, where={
+                    'source': logsource,
+                    'offset': offset,
+                }, values={
+                    'job': job,
+                    'project': job.project,
+                    'size': chunk_size,
+                    'text': chunk,
+                })
+                offset += chunk_size
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
