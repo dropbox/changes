@@ -185,7 +185,10 @@ class BuildReport(object):
                     project, start_period, end_period).iteritems():
                 failure_stats['reasons'][stat] += value
 
-        failure_stats['total'] = Build.query.filter(
+        failure_stats['total'] = Build.query.join(
+            Source, Source.id == Build.source_id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
             Build.project_id.in_(p.id for p in self.projects),
             Build.status == Status.finished,
             Build.result == Result.failed,
@@ -201,7 +204,10 @@ class BuildReport(object):
             'Missing Tests': 0,
         }
         # TODO(dcramer): we should embed this logic into the job/build results
-        failing_builds = Build.query.filter(
+        failing_builds = Build.query.join(
+            Source, Source.id == Build.source_id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
             Build.project_id == project.id,
             Build.status == Status.finished,
             Build.result == Result.failed,
