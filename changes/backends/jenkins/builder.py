@@ -544,6 +544,7 @@ class JenkinsBuilder(BaseBackend):
         db.session.commit()
 
         # sync artifacts
+        self.logger.info('Syncing artifacts for %s', step.id)
         for artifact in item.get('artifacts', ()):
             artifact, created = get_or_create(Artifact, where={
                 'step': step,
@@ -561,6 +562,7 @@ class JenkinsBuilder(BaseBackend):
             )
 
         # sync test results
+        self.logger.info('Syncing tests results for %s', step.id)
         try:
             self._sync_test_results(
                 step=step,
@@ -575,6 +577,7 @@ class JenkinsBuilder(BaseBackend):
             db.session.commit()
 
         # sync console log
+        self.logger.info('Syncing console log for %s', step.id)
         try:
             result = True
             while result:
