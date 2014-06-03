@@ -1,9 +1,9 @@
-<section class="section">
+<section class="section" ng-if="eventList">
     <div class="section-header">
         <h3>Events</h3>
     </div>
 
-    <ul class="event-list" ng-if="eventList">
+    <ul class="event-list">
         <li ng-repeat="event in eventList" class="result-{{event.data.status}}" bind-once>
             <span class="indicator"></span>
             <!-- TODO(dcramer): we need an abstraction for how to render each event -->
