@@ -87,6 +87,10 @@ class TrackedTask(local):
 
         date_started = datetime.utcnow()
 
+        self._update({
+            Task.date_modified: datetime.utcnow(),
+        })
+
         try:
             self.func(**kwargs)
 
