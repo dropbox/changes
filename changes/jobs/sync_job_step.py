@@ -167,13 +167,13 @@ def sync_job_step(step_id):
     if step.result == Result.passed and missing_tests:
         step.result = Result.failed
         db.session.add(step)
-        db.session.add(FailureReason(
-            step_id=step.id,
-            job_id=step.job_id,
-            build_id=step.job.build_id,
-            project_id=step.project_id,
-            reason='missing_tests'
-        ))
+        try_create(FailureReason, {
+            'step_id': step.id,
+            'job_id': step.job_id,
+            'build_id': step.job.build_id,
+            'project_id': step.project_id,
+            'reason': 'missing_tests'
+        })
         db.session.commit()
 
     sync_phase(phase=step.phase)
@@ -182,11 +182,11 @@ def sync_job_step(step_id):
         return
 
     if has_test_failures(step):
-        db.session.add(FailureReason(
-            step_id=step.id,
-            job_id=step.job_id,
-            build_id=step.job.build_id,
-            project_id=step.project_id,
-            reason='test_failures'
-        ))
+        try_create(FailureReason, {
+            'step_id': step.id,
+            'job_id': step.job_id,
+            'build_id': step.job.build_id,
+            'project_id': step.project_id,
+            'reason': 'test_failures'
+        })
         db.session.commit()
