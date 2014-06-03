@@ -23,7 +23,6 @@ from changes.models import (
 )
 from changes.handlers.coverage import CoverageHandler
 from changes.handlers.xunit import XunitHandler
-from changes.utils.agg import safe_agg
 from changes.utils.http import build_uri
 
 LOG_CHUNK_SIZE = 4096
@@ -534,41 +533,6 @@ class JenkinsBuilder(BaseBackend):
         # })
         db.session.add(step)
         db.session.commit()
-
-        # TODO(dcramer): we should abstract this into a sync_phase
-        phase = step.phase
-        phase_steps = list(phase.steps)
-
-        if phase.date_started is None:
-            phase.date_started = safe_agg(
-                min, (s.date_started for s in phase_steps), step.date_started)
-            db.session.add(phase)
-
-        if phase.status == Status.queued != step.status:
-            phase.status = Status.in_progress
-            db.session.add(phase)
-
-        if db.session.is_modified(phase):
-            db.session.commit()
-
-        if step.status != Status.finished:
-            return
-
-        if all(s.status == Status.finished for s in phase_steps):
-            phase.status = Status.finished
-            phase.date_finished = safe_agg(
-                max, (s.date_finished for s in phase_steps), step.date_finished)
-
-            if any(s.result is Result.failed for s in phase_steps):
-                phase.result = Result.failed
-            else:
-                phase.result = safe_agg(
-                    max, (s.result for s in phase.steps), Result.unknown)
-
-            db.session.add(phase)
-
-        if db.session.is_modified(phase):
-            db.session.commit()
 
         # sync artifacts
         for artifact in item.get('artifacts', ()):
