@@ -4,10 +4,10 @@
     </div>
     <div class="panel-body">
         <ul class="failure-list">
-            <li ng-repeat="failure in failureList" bind-once>
+            <li ng-repeat="failure in failureList">
                 <span class="indicator"></span>
                 <span ng-bind-html="failure.reason" class="failure-label"></span>
-                <span class="failure-count" ng-if="failure-count > 1">({{failure.count}})</span>
+                <span class="failure-count" ng-if="failure.count > 1">({{failure.count}})</span>
             </li>
         </ul>
     </div>
