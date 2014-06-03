@@ -103,8 +103,10 @@ def sync_job_step(step_id):
     if not step:
         return
 
-    implementation = get_build_step(step.job_id)
-    implementation.update_step(step=step)
+    # only synchronize if upstream hasn't suggested we're finished
+    if step.status != Status.finished:
+        implementation = get_build_step(step.job_id)
+        implementation.update_step(step=step)
 
     if step.status != Status.finished:
         is_finished = False
