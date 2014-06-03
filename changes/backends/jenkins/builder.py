@@ -235,15 +235,6 @@ class JenkinsBuilder(BaseBackend):
                 })
                 offset += chunk_size
 
-    def _sync_console_log(self, jobstep):
-        job = jobstep.job
-        return self._sync_log(
-            jobstep=jobstep,
-            name='console',
-            job_name=job.data['job_name'],
-            build_no=job.data['build_no'],
-        )
-
     def _sync_log(self, jobstep, name, job_name, build_no):
         job = jobstep.job
         # TODO(dcramer): this doesnt handle concurrency
@@ -542,6 +533,9 @@ class JenkinsBuilder(BaseBackend):
         # })
         db.session.add(step)
         db.session.commit()
+
+        if step.status != Status.finished:
+            return
 
         # sync artifacts
         self.logger.info('Syncing artifacts for %s', step.id)
