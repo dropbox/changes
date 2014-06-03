@@ -334,8 +334,12 @@ class TrackedTask(local):
 
     def verify_all_children(self):
         task_list = list(Task.query.filter(
-            Task.parent_id == self.task_id
+            Task.parent_id == self.task_id,
+            Task.status != Status.finished,
         ))
+
+        if not task_list:
+            return Status.finished
 
         current_datetime = datetime.utcnow()
 
@@ -345,9 +349,6 @@ class TrackedTask(local):
         has_pending = False
 
         for task in task_list:
-            if task.status == Status.finished:
-                continue
-
             if self.needs_expired(task):
                 need_expire.add(task)
                 continue

@@ -26,7 +26,7 @@ def cleanup_tasks():
 
     for task in pending_tasks:
         task_func = TrackedTask(queue.get_task(task.task_name))
-        task_func.delay_if_needed(
+        task_func.delay(
             task_id=task.task_id.hex,
             parent_task_id=task.parent_id.hex if task.parent_id else None,
             **task.data['kwargs']
