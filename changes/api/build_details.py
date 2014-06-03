@@ -114,7 +114,11 @@ def get_failure_reasons(build):
     ).group_by(FailureReason.reason)
 
     return [
-        {'reason': registry[k].get_html_label(build), 'count': v}
+        {
+            'id': k,
+            'reason': registry[k].get_html_label(build),
+            'count': v,
+        }
         for k, v in failure_reasons
     ]
 

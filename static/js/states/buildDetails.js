@@ -76,11 +76,7 @@ define([
       }
 
       $scope.eventList = new Collection(buildData.events);
-      $scope.failureList = new Collection(buildData.failures, {
-        equals: function(item, other) {
-          return item.reason == other.reason;
-        }
-      });
+      $scope.failureList = new Collection(buildData.failures);
       $scope.previousRuns = buildData.previousRuns;
       $scope.testFailures = buildData.testFailures;
       $scope.testChanges = buildData.testChanges;

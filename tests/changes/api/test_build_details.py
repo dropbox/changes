@@ -98,6 +98,7 @@ class BuildDetailsTest(APITestCase):
         assert len(data['events']) == 1
         assert len(data['failures']) == 1
         assert data['failures'][0] == {
+            'id': 'test_failures',
             'reason': 'There were <a href="/projects/test/builds/{0}/tests/?result=failed">2 failing tests</a>.'.format(
                 build.id.hex,
             ),
