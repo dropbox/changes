@@ -186,6 +186,7 @@ class BuildReport(object):
                 failure_stats['reasons'][stat] += value
 
         failure_stats['total'] = Build.query.filter(
+            Build.project_id.in_(p.id for p in self.projects),
             Build.status == Status.finished,
             Build.result == Result.failed,
             Build.date_created >= start_period,
