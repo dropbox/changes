@@ -75,7 +75,8 @@ define([
         $scope.formattedBuildMessage = null;
       }
 
-      $scope.eventList = buildData.events;
+      $scope.eventList = new Collection(buildData.events);
+      $scope.failureList = new Collection(buildData.failures);
       $scope.previousRuns = buildData.previousRuns;
       $scope.testFailures = buildData.testFailures;
       $scope.testChanges = buildData.testChanges;
@@ -140,6 +141,8 @@ define([
           $.extend(true, $scope.build, response);
           updateBuild(response);
           $scope.jobList.extend(response.jobs);
+          $scope.eventList.extend(response.events);
+          $scope.failureList.extend(response.failures);
         }
       });
     },

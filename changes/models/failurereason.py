@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division
 
-import uuid
+from uuid import uuid4
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String
@@ -9,15 +9,6 @@ from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
 from changes.db.types.guid import GUID
-
-
-# TODO(dcramer): abstract this somewhere/somehow
-REASONS = {
-    # key: text label
-    'test_failure': 'There were test failures.',
-    'missing_tests': 'Tests were expected, but none were reported.',
-    'timeout': 'The build timed out.',
-}
 
 
 class FailureReason(db.Model):
@@ -29,7 +20,7 @@ class FailureReason(db.Model):
         UniqueConstraint('step_id', 'reason', name='unq_failurereason_key'),
     )
 
-    id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, nullable=False, primary_key=True, default=uuid4)
     step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), nullable=False)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
@@ -45,7 +36,4 @@ class FailureReason(db.Model):
     def __init__(self, **kwargs):
         super(FailureReason, self).__init__(**kwargs)
         if self.id is None:
-            self.id = uuid.uuid4()
-
-    def get_reason_text(self):
-        return REASONS[self.reason]
+            self.id = uuid4()

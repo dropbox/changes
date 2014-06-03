@@ -2,7 +2,7 @@ from datetime import datetime
 
 from changes.config import db
 from changes.constants import Status
-from changes.models import Event, TestCase
+from changes.models import Event, FailureReason, ItemStat, TestCase
 from changes.testutils import APITestCase, TestCase as BaseTestCase
 from changes.api.build_details import find_changed_tests
 
@@ -60,9 +60,23 @@ class BuildDetailsTest(APITestCase):
             self.project, date_created=datetime(2013, 9, 19, 22, 15, 24))
         job1 = self.create_job(build)
         job2 = self.create_job(build)
+        phase = self.create_jobphase(job1)
+        step = self.create_jobstep(phase)
         db.session.add(Event(
             item_id=build.id,
             type='green_build_notification',
+        ))
+        db.session.add(ItemStat(
+            item_id=build.id,
+            name='test_failures',
+            value=2,
+        ))
+        db.session.add(FailureReason(
+            project_id=self.project.id,
+            build_id=build.id,
+            job_id=job1.id,
+            step_id=step.id,
+            reason='test_failure'
         ))
         db.session.commit()
 
@@ -82,3 +96,10 @@ class BuildDetailsTest(APITestCase):
         assert data['testFailures']['tests'] == []
         assert data['testChanges'] == []
         assert len(data['events']) == 1
+        assert len(data['failures']) == 1
+        assert data['failures'][0] == {
+            'reason': 'There were <a href="/projects/test/builds/{0}/tests/?result=failed">2 failing tests</a>.'.format(
+                build.id.hex,
+            ),
+            'count': 1,
+        }

@@ -2,8 +2,12 @@
     <div class="section-header">
         <h3>
             Failing Tests
-            <small ng-if="isFinished">{{testFailures.total}} total</small>
-            <small ng-if="!isFinished">{{testFailures.total}} and counting</small>
+            <small ng-show="isFinished">
+                <a ui-sref="build_test_list({result: 'failed'})">{{testFailures.total}} total</a>
+            </small>
+            <small ng-hide="isFinished">
+                <a ui-sref="build_test_list({result: 'failed'})">{{testFailures.total}} and counting</a>
+            </small>
         </h3>
     </div>
 

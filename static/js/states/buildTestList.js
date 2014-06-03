@@ -7,14 +7,16 @@ define([
   var defaults = {
     per_page: 100,
     sort: 'duration',
-    query: ''
+    query: '',
+    result: ''
   };
 
   var buildTestListUrl = function(build_id, params) {
     var query = $.param({
       query: params.query,
       sort: params.sort,
-      per_page: params.per_page
+      per_page: params.per_page,
+      result: params.result
     });
 
     return '/api/0/builds/' + build_id + '/tests/?' + query;
@@ -22,7 +24,7 @@ define([
 
   return {
     parent: 'build_details',
-    url: 'tests/?sort&query&per_page',
+    url: 'tests/?sort&query&per_page&result',
     templateUrl: 'partials/build-test-list.html',
     controller: function($http, $scope, $state, $stateParams, testList) {
       function loadTestList(url) {
@@ -58,7 +60,8 @@ define([
       $scope.searchParams = {
         sort: $stateParams.duration,
         query: $stateParams.query,
-        per_page: $stateParams.per_page
+        per_page: $stateParams.per_page,
+        result: $stateParams.result
       };
 
       $scope.pageLinks = parseLinkHeader(testList.headers('Link'));
@@ -69,6 +72,7 @@ define([
         if (!$stateParams.sort) $stateParams.sort = defaults.sort;
         if (!$stateParams.query) $stateParams.query = defaults.query;
         if (!$stateParams.per_page) $stateParams.per_page = defaults.per_page;
+        if (!$stateParams.result) $stateParams.result = defaults.result;
 
         return $http.get(buildTestListUrl(buildData.id, $stateParams));
       }

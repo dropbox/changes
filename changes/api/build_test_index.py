@@ -5,6 +5,7 @@ from sqlalchemy.orm import contains_eager
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView
+from changes.constants import Result
 from changes.models import Build, TestCase, Job
 
 
@@ -14,10 +15,14 @@ SORT_CHOICES = (
     'retries'
 )
 
+RESULT_CHOICES = [r.name for r in Result]
+
 
 class BuildTestIndexAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('query', type=unicode, location='args')
+    parser.add_argument('result', type=unicode, location='args',
+                        choices=RESULT_CHOICES)
     parser.add_argument('sort', type=unicode, location='args',
                         choices=SORT_CHOICES, default='duration')
 
@@ -39,6 +44,11 @@ class BuildTestIndexAPIView(APIView):
         if args.query:
             test_list = test_list.filter(
                 func.lower(TestCase.name).contains(args.query.lower()),
+            )
+
+        if args.result:
+            test_list = test_list.filter(
+                TestCase.result == Result[args.result],
             )
 
         if args.sort == 'duration':

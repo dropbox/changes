@@ -12,7 +12,7 @@ from changes.constants import Status, Result
 from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
-    TestResult, Change, LogChunk, Build, JobPlan, Plan, Source,
+    TestResult, Change, LogChunk, Build, JobPlan, Plan, Source, FailureReason,
     Patch, FileCoverage, Event, EventType, Cluster, ClusterNode
 )
 from changes.testutils.fixtures import SAMPLE_DIFF
@@ -250,6 +250,15 @@ def job(build, change=None, **kwargs):
         label=TEST_STEP_LABELS.next(), node=node,
     )
     db.session.add(step)
+
+    if phase1_test.result == Result.failed:
+        db.session.add(FailureReason(
+            reason='test_failure',
+            build_id=build.id,
+            job_id=job.id,
+            step_id=step.id,
+            project_id=job.project_id
+        ))
 
     return job
 

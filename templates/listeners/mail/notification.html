@@ -159,10 +159,10 @@
       padding: 9.5px;
       min-height: 50px;
     }
-    .test-list {
+    .test-list, .failure-list, .log-list {
       margin-left: 30px;
       padding-left: 0;
-      list-style: square;
+      list-style: disc;
     }
     .test-list li {
       position: relative;
@@ -210,12 +210,16 @@
     </h2>
 </div>
 
-{% if build.message %}
-  <pre class="build-message">{{ build.message|truncate(300) }}</pre>
-{% endif %}
-
 {% if is_passing %}
     <p><strong>Congraulations, your build passed!</strong></p>
+{% elif failure_reasons %}
+    <h3>Build Failed</h3>
+
+    <ul class="failure-list">
+        {% for failure in failure_reasons %}
+            <li>{{ failure.reason }}</li>
+        {% endfor %}
+    </ul>
 {% endif %}
 
 {% if test_failures %}
@@ -231,7 +235,7 @@
 {% endif %}
 
 {% if relevant_logs %}
-    <h3>Relevant Logs <small>{{ relevant_logs|length }} logs containing failures</small>
+    <h3>Relevant Logs <small>{{ relevant_logs|length }} logs containing failures</small></h3>
     <ul class="log-list">
         {% for source in relevant_logs %}
             <li><a href="{{ source.uri }}">{{ source.name }}</a></li>

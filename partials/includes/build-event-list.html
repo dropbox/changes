@@ -1,0 +1,13 @@
+<section class="section">
+    <div class="section-header">
+        <h3>Events</h3>
+    </div>
+
+    <ul class="event-list" ng-if="eventList">
+        <li ng-repeat="event in eventList" class="result-{{event.data.status}}" bind-once>
+            <span class="indicator"></span>
+            <!-- TODO(dcramer): we need an abstraction for how to render each event -->
+            <span class="event-label">{{event.type}}</span> &mdash; <span time-since="event.dateCreated" class="event-time"></span>
+        </li>
+    </ul>
+</section>

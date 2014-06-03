@@ -85,6 +85,9 @@ dl.flat dt {
 .container {
   margin: 0 auto;
 }
+.panel-body {
+  padding-bottom: 0;
+}
 .navbar {
   background: #fff;
   color: #000;
@@ -1567,17 +1570,20 @@ label.btn input[type=checkbox] {
   color: red;
 }
 
-.event-list {
+.event-list,
+.failure-list {
   list-style: none;
   margin-bottom: 20px;
   padding-left: 0;
   color: #999;
 }
-.event-list > li {
+.event-list > li,
+.failure-list > li {
   padding-left: 18px;
   position: relative;
 }
-.event-list .indicator {
+.event-list .indicator,
+.failure-list .indicator {
   border: 0;
   background: #999;
   width: 8px;
@@ -1591,10 +1597,12 @@ label.btn input[type=checkbox] {
 .event-list .result-success .indicator {
   background: rgb(114, 194, 114);
 }
-.event-list .result-fail .indicator {
+.event-list .result-fail .indicator,
+.failure-list .indicator {
   background: #d9322d;
 }
-.event-list .event-label {
+.event-list .event-label,
+.failure-list .failure-label {
   color: #000;
 }
 

@@ -1,14 +1,17 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
-from sqlalchemy.orm import contains_eager, joinedload
+from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
+from sqlalchemy.sql import func
 from uuid import UUID
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
 from changes.config import db
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
-from changes.models import Build, Source, Event, Job, TestCase, BuildSeen, User
+from changes.models import (
+    Build, Source, Event, FailureReason, Job, TestCase, BuildSeen, User
+)
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -101,12 +104,28 @@ def find_changed_tests(current_build, previous_build, limit=25):
     }
 
 
+def get_failure_reasons(build):
+    from changes.buildfailures import registry
+
+    failure_reasons = db.session.query(
+        FailureReason.reason, func.count()
+    ).filter(
+        FailureReason.build_id == build.id,
+    ).group_by(FailureReason.reason)
+
+    return [
+        {'reason': registry[k].get_html_label(build), 'count': v}
+        for k, v in failure_reasons
+    ]
+
+
 class BuildDetailsAPIView(APIView):
     def get(self, build_id):
         build = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
             joinedload('source').joinedload('revision'),
+            subqueryload_all('stats'),
         ).get(build_id)
         if build is None:
             return '', 404
@@ -178,6 +197,7 @@ class BuildDetailsAPIView(APIView):
             'previousRuns': previous_runs,
             'seenBy': seen_by,
             'events': event_list,
+            'failures': get_failure_reasons(build),
             'testFailures': {
                 'total': num_test_failures,
                 'tests': self.serialize(test_failures, extended_serializers),

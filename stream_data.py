@@ -61,7 +61,7 @@ def create_new_entry(project):
         project=project,
         source=source,
         message=change.message,
-        result=Result.unknown,
+        result=Result.failed if random.randint(0, 3) == 1 else Result.unknown,
         status=Status.in_progress,
         date_started=date_started,
     )
@@ -84,6 +84,7 @@ def create_new_entry(project):
             build=build,
             change=change,
             status=Status.in_progress,
+            result=build.result,
         )
         fixtures.create_task(
             task_id=job.id.hex,
@@ -142,7 +143,8 @@ def update_existing_entry(project):
 
     if job.status == Status.finished:
         job.build.status = job.status
-        job.build.result = job.result
+        if job.result == Result.failed and job.build.result != Result.failed:
+            job.build.result = job.result
         job.build.date_finished = job.date_finished
         job.build.date_modified = job.date_finished
         db.session.add(job.build)
