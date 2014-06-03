@@ -292,6 +292,8 @@ class JenkinsBuilder(BaseBackend):
                 })
                 offset += chunk_size
 
+            has_more = resp.headers.get('X-More-Data') == 'true'
+
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
         jobstep.data['log_offset'] = log_length
@@ -299,7 +301,7 @@ class JenkinsBuilder(BaseBackend):
 
         # Jenkins will suggest to us that there is more data when the job has
         # yet to complete
-        return True if resp.headers.get('X-More-Data') == 'true' else None
+        return True if has_more else None
 
     def _process_test_report(self, step, test_report):
         test_list = []
