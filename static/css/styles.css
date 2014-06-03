@@ -81,6 +81,10 @@ dl.flat dt {
   left: 0;
   width: 100px;
 }
+dd .progress {
+  margin: 4px 0;
+  height: 16px;
+}
 
 .container {
   margin: 0 auto;

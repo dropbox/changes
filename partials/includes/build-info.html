@@ -17,7 +17,15 @@
     <div class="col-lg-3 col-md-4 col-sm-5">
         <dl class="flat">
             <dt>Status:</dt>
-            <dd>{{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span></dd>
+            <dd ng-show="build.status.id == 'in_progress'">
+                <span type="{{build.result.id}}"
+                  value="build|buildEstimatedProgress"
+                  animate="false"
+                  progressbar>&nbsp;</span>
+            </dd>
+            <dd ng-show="build.status.id != 'in_progress'">
+                {{build.status.name}} <span ng-if="build.status.id == 'finished'">({{build.result.name}})</span>
+            </dd>
             <dt ng-if="build.dateStarted">Started:</dt>
             <dd ng-if="build.dateStarted" time-since="build.dateStarted"></dd>
             <dt ng-if="build.duration">Duration:</dt>
