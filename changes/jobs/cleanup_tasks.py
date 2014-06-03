@@ -7,7 +7,7 @@ from changes.constants import Status
 from changes.models import Task
 from changes.queue.task import TrackedTask, tracked_task
 
-CHECK_TIME = timedelta(minutes=5)
+CHECK_TIME = timedelta(minutes=60)
 
 
 @tracked_task
