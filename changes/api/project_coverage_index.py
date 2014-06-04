@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
+from changes.api.serializer import Serializer
+from changes.config import db
 from changes.constants import Result, Status
 from changes.models import Build, Job, FileCoverage, Project, Source
 
@@ -11,6 +13,15 @@ SORT_CHOICES = (
     'lines_uncovered',
     'name',
 )
+
+
+class GeneralizedFileCoverage(Serializer):
+    def serialize(self, instance, attrs):
+        return {
+            'filename': instance.filename,
+            'linesCovered': instance.lines_covered,
+            'linesUncovered': instance.lines_uncovered,
+        }
 
 
 class ProjectCoverageIndexAPIView(APIView):
@@ -43,7 +54,7 @@ class ProjectCoverageIndexAPIView(APIView):
         # use the most recent coverage
         cover_list = FileCoverage.query.filter(
             FileCoverage.job_id.in_(
-                Job.query.filter(Job.build_id == latest_build.id)
+                db.session.query(Job.id).filter(Job.build_id == latest_build.id)
             )
         )
 
@@ -57,8 +68,10 @@ class ProjectCoverageIndexAPIView(APIView):
         elif args.sort == 'lines_covered':
             sort_by = FileCoverage.lines_uncovered.desc()
         elif args.sort == 'name':
-            sort_by = FileCoverage.name.asc()
+            sort_by = FileCoverage.filename.asc()
 
         cover_list = cover_list.order_by(sort_by)
 
-        return self.paginate(cover_list)
+        return self.paginate(cover_list, serializers={
+            FileCoverage: GeneralizedFileCoverage(),
+        })
