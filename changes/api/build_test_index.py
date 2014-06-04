@@ -15,7 +15,7 @@ SORT_CHOICES = (
     'retries'
 )
 
-RESULT_CHOICES = [r.name for r in Result]
+RESULT_CHOICES = [r.name for r in Result] + ['']
 
 
 class BuildTestIndexAPIView(APIView):

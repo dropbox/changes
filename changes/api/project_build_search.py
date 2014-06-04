@@ -14,7 +14,7 @@ class ProjectBuildSearchAPIView(APIView):
     get_parser.add_argument('query', type=unicode, location='args')
     get_parser.add_argument('source', type=unicode, location='args')
     get_parser.add_argument('result', type=unicode, location='args',
-                            choices=('failed', 'passed', 'aborted', 'unknown'))
+                            choices=('failed', 'passed', 'aborted', 'unknown', ''))
 
     def get(self, project_id):
         project = Project.get(project_id)
