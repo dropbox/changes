@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
-from flask import current_app
 from hashlib import md5
 from operator import itemgetter
 
@@ -49,22 +48,14 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     The collected tests will be sorted and partitioned evenly across a set number
     of shards with the <cmd> value being passed a space-delimited list of tests.
     """
+    builder_cls = JenkinsTestCollectorBuilder
+
     # TODO(dcramer): longer term we'd rather have this create a new phase which
     # actually executes a different BuildStep (e.g. of order + 1), but at the
     # time of writing the system only supports a single build step.
-    def __init__(self, job_name=None, script=None, cluster=None, max_shards=10):
-        self.job_name = job_name
-        self.script = script
-        self.cluster = cluster
+    def __init__(self, max_shards=10, **kwargs):
         self.max_shards = max_shards
-
-    def get_builder(self, app=current_app):
-        return JenkinsTestCollectorBuilder(
-            app=app,
-            job_name=self.job_name,
-            script=self.script,
-            cluster=self.cluster,
-        )
+        super(JenkinsTestCollectorBuildStep, self).__init__(**kwargs)
 
     def get_label(self):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)

@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 
-from flask import current_app
 from hashlib import md5
 
-from changes.backends.jenkins.buildstep import JenkinsBuildStep
+from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.config import db
 from changes.constants import Status
@@ -17,7 +16,7 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
         return 'Collect Jobs'
 
 
-class JenkinsCollectorBuildStep(JenkinsBuildStep):
+class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
     """
     Fires off a generic job with parameters:
 
@@ -47,22 +46,10 @@ class JenkinsCollectorBuildStep(JenkinsBuildStep):
     # TODO(dcramer): longer term we'd rather have this create a new phase which
     # actually executes a different BuildStep (e.g. of order + 1), but at the
     # time of writing the system only supports a single build step.
-
-    def __init__(self, job_name=None, script=None, cluster=None):
-        self.job_name = job_name
-        self.script = script
-        self.cluster = cluster
+    builder_cls = JenkinsCollectorBuilder
 
     def get_label(self):
         return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
-
-    def get_builder(self, app=current_app):
-        return JenkinsCollectorBuilder(
-            app=app,
-            job_name=self.job_name,
-            script=self.script,
-            cluster=self.cluster,
-        )
 
     def fetch_artifact(self, step, artifact):
         if artifact['fileName'] == 'jobs.json':
