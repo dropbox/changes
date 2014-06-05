@@ -63,7 +63,10 @@ class ProjectDetailsAPIView(APIView):
 
         build_counts = dict(db.session.query(
             Build.result, func.count()
+        ).join(
+            Source, Build.source_id == Source.id,
         ).filter(
+            Source.patch_id == None,  # NOQA
             Build.project_id == project.id,
             Build.date_created >= stat_window_cutoff,
             Build.status == Status.finished,
