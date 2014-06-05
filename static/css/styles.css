@@ -143,9 +143,9 @@ dd .progress {
 .navbar-stats .stat {
   padding: 15px 5px;
   margin-right: 10px;
-  color: #ccc;
+  color: #aaa;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 11px;
 }
 .navbar-stats .stat .change {
   position: relative;
@@ -158,10 +158,10 @@ dd .progress {
   border-radius: 2px;
 }
 .navbar-stats .stat .change.good {
-  background: rgb(114, 194, 114);
+  background: rgb(156, 207, 156);;
 }
 .navbar-stats .stat .change.bad {
-  background: #EB6D69;
+  background: #EB9B99;
 }
 .navbar-stats .stat .change .arrow {
   position: relative;
