@@ -167,6 +167,8 @@ def sync_job_step(step_id):
     if step.result == Result.passed and missing_tests:
         step.result = Result.failed
         db.session.add(step)
+
+    if missing_tests:
         try_create(FailureReason, {
             'step_id': step.id,
             'job_id': step.job_id,
