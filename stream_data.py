@@ -143,7 +143,7 @@ def update_existing_entry(project):
 
     if job.status == Status.finished:
         job.build.status = job.status
-        if job.result == Result.failed and job.build.result != Result.failed:
+        if job.build.result != Result.failed:
             job.build.result = job.result
         job.build.date_finished = job.date_finished
         job.build.date_modified = job.date_finished
