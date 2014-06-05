@@ -147,6 +147,45 @@ dd .progress {
   text-transform: uppercase;
   font-size: 12px;
 }
+.navbar-stats .stat .change {
+  position: relative;
+  background: #ccc;
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 5px;
+  top: -1px;
+  margin-left: 3px;
+  border-radius: 2px;
+}
+.navbar-stats .stat .change.good {
+  background: rgb(114, 194, 114);
+}
+.navbar-stats .stat .change.bad {
+  background: #d9322d;
+}
+.navbar-stats .stat .change .arrow {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: 2px;
+  top: -1px;
+  vertical-align: middle;
+  content: "";
+}
+.navbar-stats .stat .change.up .arrow {
+  border-bottom: 6px solid #fff;
+  border-right: 3px solid transparent;
+  border-top: 0 dotted;
+  border-left: 3px solid transparent;
+}
+
+.navbar-stats .stat .change.down .arrow {
+  border-top: 6px solid #fff;
+  border-right: 3px solid transparent;
+  border-bottom: 0 dotted;
+  border-left: 3px solid transparent;
+}
 
 .changes-navbar-small li a {
   padding: 15px 5px;

@@ -58,9 +58,21 @@ class ProjectValidator(Validator):
 
 
 class ProjectDetailsAPIView(APIView):
-    def _get_stats(self, project):
-        stat_window_cutoff = datetime.utcnow() - timedelta(days=7)
+    def _get_avg_duration(self, project, start_period, end_period):
+        avg_duration = db.session.query(
+            func.avg(Build.duration)
+        ).filter(
+            Build.project_id == project.id,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).scalar() or None
+        if avg_duration is not None:
+            avg_duration = float(avg_duration)
+        return avg_duration
 
+    def _get_green_percent(self, project, start_period, end_period):
         build_counts = dict(db.session.query(
             Build.result, func.count()
         ).join(
@@ -68,7 +80,8 @@ class ProjectDetailsAPIView(APIView):
         ).filter(
             Source.patch_id == None,  # NOQA
             Build.project_id == project.id,
-            Build.date_created >= stat_window_cutoff,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
             Build.status == Status.finished,
             Build.result.in_([Result.passed, Result.failed])
         ).group_by(
@@ -84,20 +97,30 @@ class ProjectDetailsAPIView(APIView):
         else:
             green_percent = None
 
-        avg_duration = db.session.query(
-            func.avg(Build.duration)
-        ).filter(
-            Build.project_id == project.id,
-            Build.date_created >= stat_window_cutoff,
-            Build.status == Status.finished,
-            Build.result == Result.passed,
-        ).scalar() or None
-        if avg_duration is not None:
-            avg_duration = float(avg_duration)
+        return green_percent
+
+    def _get_stats(self, project):
+        window = timedelta(days=7)
+
+        end_period = datetime.utcnow()
+        start_period = end_period - window
+
+        prev_end_period = start_period
+        prev_start_period = start_period - window
+
+        green_percent = self._get_green_percent(project, start_period, end_period)
+        prev_green_percent = self._get_green_percent(
+            project, prev_start_period, prev_end_period)
+
+        avg_duration = self._get_avg_duration(project, start_period, end_period)
+        prev_avg_duration = self._get_avg_duration(
+            project, prev_start_period, prev_end_period)
 
         return {
             'greenPercent': green_percent,
+            'previousGreenPercent': prev_green_percent,
             'avgDuration': avg_duration,
+            'previousAvgDuration': prev_avg_duration,
         }
 
     def get(self, project_id):

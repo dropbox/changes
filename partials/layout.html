@@ -39,8 +39,23 @@
       </form>
 
       <div class="navbar-stats navbar-right">
-        <span class="stat" ng-if="activeProject.stats.greenPercent >= 0">{{activeProject.stats.greenPercent}}% Green</span>
-        <span class="stat" ng-if="activeProject.stats.avgDuration" duration="activeProject.stats.avgDuration"></span>
+        <span class="stat"
+              ng-if="activeProject.stats.greenPercent >= 0">
+          <span title="Percentage of commits which passed in the last week.">{{activeProject.stats.greenPercent}}% Green</span>
+          <span ng-if="activeProject.stats.greenPercentChange"
+                ng-class="{true: 'change up good', false: 'change down bad'}[activeProject.stats.greenPercentChange > 0]">
+            <i class="arrow"></i> {{activeProject.stats.greenPercentChange}}%
+          </span>
+        </span>
+        <span class="stat"
+              ng-if="activeProject.stats.avgDuration">
+          <span duration="activeProject.stats.avgDuration"
+                title="Average duration of successful builds in the last week."></span>
+          <span ng-if="activeProject.stats.avgDurationChange"
+                ng-class="{true: 'change up bad', false: 'change down good'}[activeProject.stats.avgDurationChange > 0]">
+            <i class="arrow"></i> <span duration="activeProject.stats.avgDurationChange"></span>
+          </span>
+        </span>
       </div>
 
       <div class="navbar-collapse collapse navbar-header-collapse">
