@@ -89,10 +89,12 @@ class ProjectDetailsAPIView(APIView):
             Build.status == Status.finished,
             Build.result == Result.passed,
         ).scalar() or None
+        if avg_duration is not None:
+            avg_duration = float(avg_duration)
 
         return {
             'greenPercent': green_percent,
-            'avgDuration': float(avg_duration),
+            'avgDuration': avg_duration,
         }
 
     def get(self, project_id):
