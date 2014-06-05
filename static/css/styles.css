@@ -140,6 +140,14 @@ dd .progress {
   color: #333;
 }
 
+.navbar-stats .stat {
+  padding: 15px 5px;
+  margin-right: 10px;
+  color: #ccc;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
 .changes-navbar-small li a {
   padding: 15px 5px;
 }

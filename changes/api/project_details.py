@@ -1,5 +1,7 @@
+from datetime import datetime, timedelta
 from flask import request
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
+from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.config import db
@@ -54,6 +56,43 @@ class ProjectValidator(Validator):
 
 
 class ProjectDetailsAPIView(APIView):
+    def _get_stats(self, project):
+        stat_window_cutoff = datetime.utcnow() - timedelta(days=7)
+
+        build_counts = dict(db.session.query(
+            Build.result, func.count()
+        ).filter(
+            Build.project_id == project.id,
+            Build.date_created >= stat_window_cutoff,
+            Build.status == Status.finished,
+            Build.result.in_([Result.passed, Result.failed])
+        ).group_by(
+            Build.result,
+        ))
+
+        failed_builds = build_counts.get(Result.failed) or 0
+        passed_builds = build_counts.get(Result.passed) or 0
+        if passed_builds:
+            green_percent = passed_builds / (failed_builds + passed_builds)
+        elif failed_builds:
+            green_percent = 0
+        else:
+            green_percent = None
+
+        avg_duration = db.session.query(
+            func.avg(Build.duration)
+        ).filter(
+            Build.project_id == project.id,
+            Build.date_created >= stat_window_cutoff,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).scalar() or None
+
+        return {
+            'greenPercent': green_percent,
+            'avgDuration': avg_duration,
+        }
+
     def get(self, project_id):
         project = Project.get(project_id)
         if project is None:
@@ -108,6 +147,7 @@ class ProjectDetailsAPIView(APIView):
         data['repository'] = project.repository
         data['plans'] = list(plans)
         data['options'] = options
+        data['stats'] = self._get_stats(project)
 
         return self.respond(data)
 

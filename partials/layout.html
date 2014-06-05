@@ -30,20 +30,29 @@
       <li id="my-builds"><a href="/my/builds/" title="My Builds"><i class="glyphicon glyphicon-user"></i></a></li>
       <li><a href="/auth/logout/" target="_self" title="Logout"><i class="glyphicon glyphicon-off"></i></a></li>
     </ul>
-    <form class="navbar-form navbar-right" role="search" ng-if="activeProject" ng-submit="searchBuilds()">
-      <div class="form-group">
-        <input type="text" class="form-control" ng-model="projectSearchQuery.query" placeholder="search builds">
+
+    <div ng-if="activeProject">
+      <form class="navbar-form navbar-right" role="search" ng-submit="searchBuilds()">
+        <div class="form-group">
+          <input type="text" class="form-control" ng-model="projectSearchQuery.query" placeholder="search builds">
+        </div>
+      </form>
+
+      <div class="navbar-stats navbar-right">
+        <span class="stat" ng-if="activeProject.stats.greenPercent >= 0">{{activeProject.stats.greenPercent}}% Green</span>
+        <span class="stat" ng-if="activeProject.stats.avgDuration" duration="activeProject.stats.avgDuration"></span>
       </div>
-    </form>
-    <div class="navbar-collapse collapse navbar-header-collapse" ng-if="activeProject">
-      <ul class="nav navbar-nav">
-        <li ng-if="activeProject.repository.backend != 'unknown'"
-            ui-sref-active="active"><a ui-sref="project_commits()">Commits</a></li>
-        <li ng-if="activeProject.repository.backend == 'unknown'"
-            ui-sref-active="active"><a ui-sref="project_builds()">Builds</a></li>
-        <li ui-sref-active="active" ng-if="activeProjectFeatures.tests"><a ui-sref="project_tests({parent: null})">Tests</a></li>
-        <li ui-sref-active="active" ng-if="activeProjectFeatures.coverage"><a ui-sref="project_coverage({parent: null})">Coverage</a></li>
-      </ul>
+
+      <div class="navbar-collapse collapse navbar-header-collapse">
+        <ul class="nav navbar-nav">
+          <li ng-if="activeProject.repository.backend != 'unknown'"
+              ui-sref-active="active"><a ui-sref="project_commits()">Commits</a></li>
+          <li ng-if="activeProject.repository.backend == 'unknown'"
+              ui-sref-active="active"><a ui-sref="project_builds()">Builds</a></li>
+          <li ui-sref-active="active" ng-if="activeProjectFeatures.tests"><a ui-sref="project_tests({parent: null})">Tests</a></li>
+          <li ui-sref-active="active" ng-if="activeProjectFeatures.coverage"><a ui-sref="project_coverage({parent: null})">Coverage</a></li>
+        </ul>
+      </div>
     </div>
   </div>
 </nav>
