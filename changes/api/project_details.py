@@ -1,3 +1,5 @@
+from __future__ import division
+
 from datetime import datetime, timedelta
 from flask import request
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
@@ -73,7 +75,7 @@ class ProjectDetailsAPIView(APIView):
         failed_builds = build_counts.get(Result.failed) or 0
         passed_builds = build_counts.get(Result.passed) or 0
         if passed_builds:
-            green_percent = passed_builds / (failed_builds + passed_builds)
+            green_percent = int((passed_builds / (failed_builds + passed_builds)) * 100)
         elif failed_builds:
             green_percent = 0
         else:
