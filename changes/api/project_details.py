@@ -90,7 +90,7 @@ class ProjectDetailsAPIView(APIView):
 
         return {
             'greenPercent': green_percent,
-            'avgDuration': avg_duration,
+            'avgDuration': float(avg_duration),
         }
 
     def get(self, project_id):
