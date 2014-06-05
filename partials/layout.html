@@ -52,7 +52,7 @@
           <span duration="activeProject.stats.avgDuration"
                 title="Average duration of successful builds in the last week."></span>
           <span ng-if="activeProject.stats.avgDurationChange"
-                ng-class="{true: 'change up bad', false: 'change down good'}[activeProject.stats.avgDurationChange > 0]">
+                ng-class="{true: 'change up', false: 'change down good'}[activeProject.stats.avgDurationChange > 0]">
             <i class="arrow"></i> <span duration="activeProject.stats.avgDurationChange"></span>
           </span>
         </span>
