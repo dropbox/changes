@@ -72,6 +72,7 @@ dl.flat {
 dl.flat dt,
 dl.flat dd {
   line-height: 1.6em;
+  min-height: 1.6em;
 }
 dl.flat dt {
   font-weight: normal;
@@ -83,8 +84,11 @@ dl.flat dt {
   width: 100px;
 }
 dd .progress {
-  margin: 4px 0;
+  margin: 0;
   height: 16px;
+  vertical-align: middle;
+  display: inline-block;
+  width: 100%;
 }
 
 .container {
