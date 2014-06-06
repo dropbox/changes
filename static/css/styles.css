@@ -64,6 +64,7 @@ fieldset {
 }
 
 dl.flat {
+  display: block;
   position: relative;
   padding-left: 110px;
   margin-top: 0;
@@ -528,17 +529,23 @@ a.indicator {
   color: #999;
 }
 
+.build-info {
+  white-space: nowrap;
+}
+
 .build-avatar {
-  display: inline-block;
+  position: absolute;
+  left: 0;
+  top: 5px;
   width: 64px;
   height: 64px;
   border-radius: 64px;
   margin-right: 20px;
-  margin-top: 5px;
-  vertical-align: top;
 }
-.build-info .flat {
-  display: inline-block;
+
+.build-info .avatar-wrapper {
+  position: relative;
+  padding-left: 84px;
 }
 
 .pager li > a {
