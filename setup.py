@@ -9,13 +9,6 @@ Magic.
 """
 
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
-import sys
-
-setup_requires = []
-
-if 'test' in sys.argv:
-    setup_requires.append('pytest')
 
 tests_require = [
     'exam>=0.10.2,<0.11.0',
@@ -62,20 +55,6 @@ install_requires = [
     'uwsgi>=2.0.4,<2.1.0',
 ]
 
-
-class PyTest(TestCommand):
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = ['tests']
-        self.test_suite = True
-
-    def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(self.test_args)
-        sys.exit(errno)
-
-
 setup(
     name='changes',
     version='0.1.0',
@@ -85,11 +64,8 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=install_requires,
-    extras_require={
-        'tests': tests_require,
-    },
+    extras_require={'tests': tests_require},
     tests_require=tests_require,
-    cmdclass={'test': PyTest},
     include_package_data=True,
     classifiers=[
         '__DO NOT UPLOAD__',
