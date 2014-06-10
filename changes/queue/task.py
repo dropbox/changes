@@ -158,6 +158,7 @@ class TrackedTask(local):
         Task.query.filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
+            Task.parent_id == self.parent_id,
         ).update(kwargs, synchronize_session=False)
 
     def _continue(self, kwargs):
@@ -189,6 +190,7 @@ class TrackedTask(local):
         task = Task.query.filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
+            Task.parent_id == self.parent_id,
         ).first()
         if task and self.max_retries and task.num_retries > self.max_retries:
             date_finished = datetime.utcnow()
@@ -217,6 +219,7 @@ class TrackedTask(local):
         retry_number = db.session.query(Task.num_retries).filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
+            Task.parent_id == self.parent_id,
         ).scalar() or 0
 
         retry_countdown = min(BASE_RETRY_COUNTDOWN + (retry_number ** 2), 300)
