@@ -515,21 +515,21 @@ a.indicator {
   max-width: 150px;
 }
 
-.build-header .actions {
+.page-header .actions {
   position: absolute;
   right: 0;
   top: 5px;
 }
-.build-header .actions .dropdown-toggle {
+.page-header .actions .dropdown-toggle {
   padding: 0 5px;
 }
-.build-header .actions .dropdown-toggle .caret {
+.page-header .actions .dropdown-toggle .caret {
   border-width: 8px 6px 0;
 }
-.build-header .actions .dropdown-menu {
+.page-header .actions .dropdown-menu {
   width: 250px;
 }
-.build-header .actions small {
+.page-header .actions small {
   color: #999;
 }
 
