@@ -10,8 +10,11 @@ define([
     parent: 'project_details',
     url: 'tests/:test_id/',
     templateUrl: 'partials/project-test-details.html',
-    controller: function($scope, testData) {
+    controller: function($scope, $state, testData, historicalData) {
       var chart_options = {
+          linkFormatter: function(item) {
+            return $state.href('build_details', {build_id: item.job.build.id});
+          },
           tooltipFormatter: function(item) {
             var content = '';
             var build = item.job.build;
@@ -36,12 +39,17 @@ define([
         };
 
       $scope.test = testData;
-      $scope.results = testData.results;
+      $scope.results = historicalData;
       $scope.chartData = chartHelpers.getChartData($scope.results, null, chart_options);
     },
     resolve: {
       testData: function($http, $stateParams, projectData) {
         return $http.get('/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/').then(function(response){
+          return response.data;
+        });
+      },
+      historicalData: function($http, $stateParams, projectData) {
+        return $http.get('/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/history/').then(function(response){
           return response.data;
         });
       }
