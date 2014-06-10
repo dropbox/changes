@@ -309,6 +309,16 @@ class BuildIndexAPIView(APIView):
         else:
             patch_file = None
 
+        if patch_file:
+            patch = Patch(
+                repository=repository,
+                parent_revision_sha=sha,
+                diff=patch_file.getvalue(),
+            )
+            db.session.add(patch)
+        else:
+            patch = None
+
         builds = []
         for project in projects:
             plan_list = list(project.plans)
@@ -341,15 +351,8 @@ class BuildIndexAPIView(APIView):
                     project=project,
                     sha=sha,
                 )
-                patch = Patch(
-                    repository=repository,
-                    parent_revision_sha=forced_sha,
-                    diff=patch_file.getvalue(),
-                )
-                db.session.add(patch)
             else:
                 forced_sha = sha
-                patch = None
 
             builds.append(create_build(
                 project=project,

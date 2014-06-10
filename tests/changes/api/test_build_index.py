@@ -227,7 +227,8 @@ class BuildCreateTest(APITestCase):
 
         patch = source.patch
         assert patch.diff == SAMPLE_DIFF
-        assert patch.parent_revision_sha == 'b' * 40
+        # we still reference the precise parent revision for patches
+        assert patch.parent_revision_sha == 'a' * 40
 
         jobplans = list(JobPlan.query.filter(
             JobPlan.build_id == build.id,
