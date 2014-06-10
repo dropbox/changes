@@ -212,8 +212,6 @@ class Fixtures(object):
         kwargs['repository_id'] = kwargs['repository'].id
 
         patch = Patch(
-            project=project,
-            project_id=project.id,
             **kwargs
         )
         db.session.add(patch)

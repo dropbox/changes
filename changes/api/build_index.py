@@ -343,7 +343,6 @@ class BuildIndexAPIView(APIView):
                 )
                 patch = Patch(
                     repository=repository,
-                    project=project,
                     parent_revision_sha=forced_sha,
                     diff=patch_file.getvalue(),
                 )

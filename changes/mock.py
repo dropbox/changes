@@ -363,7 +363,6 @@ def patch(project, **kwargs):
 
     patch = Patch(
         repository=project.repository,
-        project=project,
         **kwargs
     )
     db.session.add(patch)

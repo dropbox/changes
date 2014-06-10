@@ -18,14 +18,12 @@ class Patch(db.Model):
     id = Column(GUID, primary_key=True, default=uuid4)
     change_id = Column(GUID, ForeignKey('change.id', ondelete="CASCADE"))
     repository_id = Column(GUID, ForeignKey('repository.id', ondelete="CASCADE"), nullable=False)
-    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     parent_revision_sha = Column(String(40))
     diff = Column(Text)
     date_created = Column(DateTime, default=datetime.utcnow)
 
     change = relationship('Change')
     repository = relationship('Repository')
-    project = relationship('Project')
 
     def __init__(self, **kwargs):
         super(Patch, self).__init__(**kwargs)
