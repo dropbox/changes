@@ -6,6 +6,8 @@ define([
 ], function(app, chartHelpers, duration, escapeHtml) {
   'use strict';
 
+  var HISTORICAL_ITEMS = 100;
+
   return {
     parent: 'project_details',
     url: 'tests/:test_id/',
@@ -35,7 +37,8 @@ define([
             content += ' (Build ' + build.result.name + ')</p>';
 
             return content;
-          }
+          },
+          limit: HISTORICAL_ITEMS
         };
 
       $scope.test = testData;
@@ -49,7 +52,7 @@ define([
         });
       },
       historicalData: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/history/').then(function(response){
+        return $http.get('/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/history/?per_page=' + HISTORICAL_ITEMS).then(function(response){
           return response.data;
         });
       }
