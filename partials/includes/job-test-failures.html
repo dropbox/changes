@@ -29,7 +29,14 @@
                     <small>
                         <a ui-sref="project_test_details({test_id: testCase.hash})">History</a>
                         <span ng-if="testCase.origin">
-                            &mdash; This failure likely originated in <a href="{{testCase.origin.link}}">{{testCase.origin.target}}</a><span ng-if="testCase.origin.author"> &mdash; {{testCase.origin.author.name}}</span>
+                            &mdash; This failure likely originated in
+                                <span ng-if="testCase.origin.source.id == build.source.id">
+                                    this changeset
+                                </span>
+                                <span ng-if="testCase.origin.source.id != build.source.id">
+                                    <a href="{{testCase.origin.link}}">{{testCase.origin.target}}</a>
+                                    <span ng-if="testCase.origin.author"> &mdash; {{testCase.origin.author.name}}</span>
+                                </span>
                         </span>
                     </small>
                 </td>
