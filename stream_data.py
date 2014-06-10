@@ -129,17 +129,21 @@ def update_existing_entry(project):
     job.result = Result.failed if random.randint(0, 3) == 1 else Result.passed
     job.date_finished = datetime.utcnow()
     db.session.add(job)
+    db.session.commit()
 
     jobstep = JobStep.query.filter(JobStep.job == job).first()
     if jobstep:
         test_results = []
-        for _ in xrange(50):
+        for _ in xrange(10):
             if job.result == Result.failed:
                 result = Result.failed if random.randint(0, 3) == 1 else Result.passed
             else:
                 result = Result.passed
             test_results.append(mock.test_result(jobstep, result=result))
-        TestResultManager(jobstep).save(test_results)
+        try:
+            TestResultManager(jobstep).save(test_results)
+        except Exception:
+            db.session.rollback()
 
     if job.status == Status.finished:
         job.build.status = job.status
