@@ -13,7 +13,7 @@ define([
       function getCoveragePercent(lines_covered, lines_uncovered) {
         var total_lines = lines_covered + lines_uncovered;
         if (!total_lines) {
-          return 0;
+          return 100;
         }
         return parseInt(lines_covered / total_lines * 100, 10);
       }
