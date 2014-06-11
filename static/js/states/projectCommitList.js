@@ -112,7 +112,7 @@ define([
       var poller = new CollectionPoller({
         $scope: $scope,
         collection: $scope.commits,
-        endpoint: '/api/0/projects/' + projectData.id + '/commits/',
+        endpoint: '/api/0/projects/' + projectData.id + '/commits/?per_page=25',
         transform: function(response) {
           return fromCommits(response);
         },

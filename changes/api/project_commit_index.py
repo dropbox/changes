@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 import itertools
 
+from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView
@@ -9,20 +10,23 @@ from changes.constants import Status
 from changes.models import Build, Project, Revision, Source
 
 
-COMMITS_PER_PAGE = 50
-
-
 class ProjectCommitIndexAPIView(APIView):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('per_page', type=int, location='args',
+                            default=50)
+
     def get(self, project_id):
         project = Project.get(project_id)
         if not project:
             return '', 404
 
+        args = self.get_parser.parse_args()
+
         repo = project.repository
         vcs = repo.get_vcs()
 
         if vcs:
-            vcs_log = list(vcs.log(limit=COMMITS_PER_PAGE))
+            vcs_log = list(vcs.log(limit=args.per_page))
 
             if vcs_log:
                 revisions_qs = list(Revision.query.options(
@@ -52,7 +56,7 @@ class ProjectCommitIndexAPIView(APIView):
                     joinedload('author'),
                 ).filter(
                     Revision.repository_id == repo.id,
-                ).order_by(Revision.date_created.desc())[:COMMITS_PER_PAGE]
+                ).order_by(Revision.date_created.desc())[:args.per_page]
             ))
 
         if commits:
