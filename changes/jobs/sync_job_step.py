@@ -169,6 +169,10 @@ def sync_job_step(step_id):
         db.session.add(step)
 
     if missing_tests:
+        if step.result != Result.failed:
+            step.result = Result.failed
+            db.session.add(step)
+
         try_create(FailureReason, {
             'step_id': step.id,
             'job_id': step.job_id,
@@ -180,10 +184,11 @@ def sync_job_step(step_id):
 
     sync_phase(phase=step.phase)
 
-    if step.result != Result.failed:
-        return
-
     if has_test_failures(step):
+        if step.result != Result.failed:
+            step.result = Result.failed
+            db.session.add(step)
+
         try_create(FailureReason, {
             'step_id': step.id,
             'job_id': step.job_id,
