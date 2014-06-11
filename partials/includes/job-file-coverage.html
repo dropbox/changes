@@ -1,9 +1,9 @@
-<section class="section" ng-if="features.coverage && coverageData" bind-once>
+<section class="section" ng-if="coverageData">
     <div class="section-header">
         <h3>File Coverage</h3>
     </div>
     <table class="table table-striped table-bordered"
-           slyEvaluateOnlyWhen="testFailures.tests.length">
+           slyEvaluateOnlyWhen="coverageData.length">
         <thead>
             <tr>
                 <th>Filename</th>
