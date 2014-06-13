@@ -3,11 +3,24 @@ from __future__ import absolute_import, division, print_function
 from datetime import datetime
 from urlparse import urlparse
 
+from changes.utils.cache import memoize
+
 from .base import Vcs, RevisionResult, BufferParser
 
 LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
 
 ORIGIN_PREFIX = 'remotes/origin/'
+
+
+class LazyGitRevisionResult(RevisionResult):
+    def __init__(self, vcs, *args, **kwargs):
+        self.vcs = vcs
+        super(LazyGitRevisionResult, self).__init__(*args, **kwargs)
+
+    @memoize
+    def branches(self):
+        print(repr(self.vcs.branches_for_commit(self.id)))
+        return self.vcs.branches_for_commit(self.id)
 
 
 class GitVcs(Vcs):
@@ -79,14 +92,14 @@ class GitVcs(Vcs):
             author_date = datetime.utcfromtimestamp(float(author_date))
             committer_date = datetime.utcfromtimestamp(float(committer_date))
 
-            yield RevisionResult(
+            yield LazyGitRevisionResult(
+                vcs=self,
                 id=sha,
                 author=author,
                 committer=committer,
                 author_date=author_date,
                 committer_date=committer_date,
                 parents=parents,
-                branches=self.branches_for_commit(sha),
                 message=message,
             )
 
