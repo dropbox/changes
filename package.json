@@ -6,7 +6,7 @@
     "tests": "tests"
   },
   "scripts": {
-    "tests": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/karma/bin/karma start tests/karma.conf.js"
   },
   "repository": {
     "type": "git",
@@ -17,11 +17,21 @@
   "readmeFilename": "README.rst",
   "devDependencies": {
     "bower": "~1.2.8",
-    "jshint": "~2.5.0",
-    "requirejs": "2.1.x",
+    "chai": "~1.9.1",
     "grunt-contrib-requirejs": "~0.4.1",
     "grunt": "~0.4.2",
-    "grunt-cli": "~0.1.3"
+    "grunt-cli": "~0.1.3",
+    "jshint": "~2.5.0",
+    "karma": "~0.12.16",
+    "karma-chai": "~0.1.0",
+    "karma-mocha": "~0.1.3",
+    "karma-junit-reporter": "~0.2.2",
+    "karma-requirejs": "~0.2.2",
+    "karma-sinon": "~1.0.3",
+    "karma-phantomjs-launcher": "~0.1.4",
+    "mocha": "~1.19.0",
+    "requirejs": "~2.1.11",
+    "sinon": "~1.10.0"
   },
   "private": true
 }

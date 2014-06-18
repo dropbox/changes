@@ -1,0 +1,30 @@
+<section ui-view>
+    <div class="page-header">
+        <h2>Clusters</h2>
+    </div>
+
+    <table class="grid-list">
+        <thead>
+            <tr class="grid-list-header">
+                <th>Cluster</th>
+                <th class="column">First Seen</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="cluster in clusterList">
+                <td><a ui-sref="cluster_details({cluster_id: cluster.id})">{{cluster.name}}</a></td>
+                <td class="column" time-since="cluster.dateCreated" bind-once></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul class="pager">
+        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        </li>
+        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">Next &rarr;</a>
+        </li>
+    </ul>
+
+</section>

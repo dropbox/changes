@@ -19,6 +19,7 @@ define([
             return $state.href('build_details', {build_id: item.build.id});
           }
         },
+        limit: 50,
         className: function(item) {
           if (item.build) {
             return 'result-' + item.build.result.id;
@@ -91,26 +92,27 @@ define([
         });
       }
 
-      $scope.commits = new Collection(fromCommits(commitList.data), {
-        equals: function(item, other) {
-          return item.repository_id == other.repository_id && item.sha == other.sha;
-        }
-      });
-
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;
         $scope.chartData = chartHelpers.getChartData($scope.commits, null, chart_options);
       };
-      $scope.selectChart('duration');
 
-      $scope.$watchCollection("commits", function() {
-        $scope.chartData = chartHelpers.getChartData($scope.commits, null, chart_options);
+      $scope.selectedChart = 'duration';
+      $scope.$watchCollection("commits", function(value) {
+        $scope.chartData = chartHelpers.getChartData(value, null, chart_options);
+      });
+
+      $scope.commits = new Collection(fromCommits(commitList.data), {
+        equals: function(item, other) {
+          return item.repository_id == other.repository_id && item.sha == other.sha;
+        },
+        limit: 50
       });
 
       var poller = new CollectionPoller({
         $scope: $scope,
         collection: $scope.commits,
-        endpoint: '/api/0/projects/' + projectData.id + '/commits/',
+        endpoint: '/api/0/projects/' + projectData.id + '/commits/?per_page=25',
         transform: function(response) {
           return fromCommits(response);
         },

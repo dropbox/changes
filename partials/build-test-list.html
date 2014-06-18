@@ -11,16 +11,16 @@
         <h3>Test Results</h3>
     </div>
 
-    <table class="table table-striped table-bordered">
+    <table class="grid-list">
         <thead>
             <tr>
-                <th colspan="2">
+                <th style="padding-left: 20px">
                     <a ui-sref="build_test_list({sort: 'name'})">Test</a>
                 </th>
-                <th style="width:110px;text-align:center">
+                <th class="column">
                     <a ui-sref="build_test_list({sort: 'retries'})"># Retries</a>
                 </th>
-                <th style="width:110px;text-align:center">
+                <th class="column">
                     <a ui-sref="build_test_list({sort: 'duration'})">Duration</a>
                 </th>
             </tr>
@@ -28,13 +28,13 @@
         <tbody>
             <tr ng-repeat="testCase in testList"
                 class="result-{{testCase.result.id}}">
-                <td class="result"><span></span></td>
                 <td>
+                    <span class="indicator indicator-sm"></span>
                     <a ui-sref="test_details({job_id: testCase.job.id, test_id: testCase.id})">{{testCase.shortName}}</a><br>
                     <small ng-if="testCase.package">{{testCase.package}}</small>
                 </td>
-                <td style="text-align:center">{{testCase.numRetries}}</td>
-                <td style="text-align:center" duration="testCase.duration"></td>
+                <td class="column">{{testCase.numRetries}}</td>
+                <td class="column" duration="testCase.duration"></td>
             </tr>
         </tbody>
     </table>

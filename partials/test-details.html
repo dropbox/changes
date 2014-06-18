@@ -1,17 +1,19 @@
-<section bind-once>
+<section class="section" bind-once>
 	<div class="section-header">
+		<div class="pull-right">
+			<a ui-sref="project_test_details({test_id: testCase.hash})" class="btn btn-default">History</a>
+		</div>
 		<h2>{{testCase.shortName}}<br><small>{{testCase.package}}</small></h2>
-		<a ui-sref="project_test_details({test_id: testCase.hash})">history</a><br>
 	</div>
 
-	<div ng-switch="testCase.result.id" class="alert" ng-class="{'passed': 'alert-success', 'failed': 'alert-danger', 'skipped': 'alert-warning'}[testCase.result.id]">
+	<div ng-switch="testCase.result.id" class="alert alert-block" ng-class="{'passed': 'alert-success', 'failed': 'alert-danger', 'skipped': 'alert-warning'}[testCase.result.id]">
 		<p ng-switch-when="passed">This test passed successfully!</p>
 		<p ng-switch-when="failed">This test failed. Check the <a ui-sref="job_details()">console log</a> or captured output for more information.</p>
 		<p ng-switch-when="skipped">This test was not run (conditions for skipping were met).</p>
 		<p ng-switch-default>The result of this test was {{testCase.result.name}}.</p>
 	</div>
 </section>
-<section bind-once>
+<section class="section" bind-once>
 	<div class="section-header">
 		<h4>Captured Output</h4>
 	</div>

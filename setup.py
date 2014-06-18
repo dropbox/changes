@@ -8,11 +8,7 @@ Magic.
 :copyright: (c) 2014 Dropbox, Inc.
 """
 
-import sys
-
 from setuptools import setup, find_packages
-
-setup_requires = []
 
 tests_require = [
     'exam>=0.10.2,<0.11.0',
@@ -45,7 +41,7 @@ install_requires = [
     'lxml>=3.2.3,<3.3.0',
     'raven>=4.0.4,<4.1.0',
     'redis>=2.8.0,<2.9.0',
-    'requests>=2.3.0,<2.1.0',
+    'requests>=2.3.0,<2.4.0',
     'requests-oauthlib>=0.4.0,<0.5.0',
     'phabricator>=0.3.0,<0.4.0',
     'psycopg2>=2.5.1,<2.6.0',
@@ -57,7 +53,6 @@ install_requires = [
     'uwsgi>=2.0.4,<2.1.0',
 ]
 
-
 setup(
     name='changes',
     version='0.1.0',
@@ -67,9 +62,7 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=install_requires,
-    extras_require={
-        'tests': tests_require,
-    },
+    extras_require={'tests': tests_require},
     tests_require=tests_require,
     include_package_data=True,
     classifiers=[

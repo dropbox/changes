@@ -1,12 +1,12 @@
 <section class="section">
     <div class="section-header">
-        <form class="pull-right form-inline" ng-submit="searchTests()" style="width:400px">
+        <form class="pull-right form-inline" ng-submit="searchTests()">
             <input type="text"
                    ng-model="searchParams.query"
                    placeholder="search"
                    class="form-control">
         </form>
-        <h3>Test Cases</h3>
+        <h2>Test Cases</h2>
     </div>
 
     <div class="alert alert-block alert-warning" ng-if="searchParams.min_duration">
@@ -14,13 +14,13 @@
         Showing tests that took longer than <span duration="searchParams.min_duration"></span> to run [<a ng-click="searchTests({min_duration: 0})">clear</a>]
     </div>
 
-    <table class="table table-striped table-bordered">
+    <table class="grid-list">
         <thead>
-            <tr>
+            <tr class="grid-list-header">
                 <th>
                     <a ui-sref="project_test_search({sort: 'name'})">Test</a>
                 </th>
-                <th style="width:110px;text-align:center">
+                <th class="column">
                     <a ui-sref="project_test_search({sort: 'duration'})">Duration</a>
                 </th>
             </tr>
@@ -31,7 +31,7 @@
                     <a ui-sref="project_test_details({test_id: testCase.hash})">{{testCase.shortName}}</a><br>
                     <small ng-if="testCase.package">{{testCase.package}}</small>
                 </td>
-                <td style="text-align:center" duration="testCase.duration"></td>
+                <td class="column" duration="testCase.duration"></td>
             </tr>
         </tbody>
     </table>

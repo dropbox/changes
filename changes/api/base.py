@@ -71,7 +71,7 @@ class APIView(Resource):
 
     def paginate(self, queryset, max_per_page=100, **kwargs):
         page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 50) or 0)
+        per_page = int(request.args.get('per_page', 25) or 0)
         if max_per_page:
             assert per_page <= max_per_page
         assert page > 0

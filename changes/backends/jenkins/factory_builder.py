@@ -39,6 +39,8 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
         if step.data.get('job_name') != self.job_name:
             return super(JenkinsFactoryBuilder, self).sync_step(step)
 
+        job = step.job
+
         # for any downstream jobs, pull their results using xpath magic
         for downstream_job_name in self.downstream_job_names:
             downstream_build_nos = self._get_downstream_jobs(step, downstream_job_name)
@@ -47,10 +49,10 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 continue
 
             phase, created = get_or_create(JobPhase, where={
-                'job': step.job,
+                'job': job,
                 'label': downstream_job_name,
             }, defaults={
-                'project_id': step.job.project_id,
+                'project_id': job.project_id,
             })
             db.session.commit()
 
@@ -66,7 +68,7 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 sync_job_step.delay_if_needed(
                     step_id=downstream_step.id.hex,
                     task_id=downstream_step.id.hex,
-                    parent_task_id=step.id.hex,
+                    parent_task_id=job.id.hex,
                 )
 
         return super(JenkinsFactoryBuilder, self).sync_step(step)

@@ -64,6 +64,7 @@ class SyncBuildTest(TestCase):
         db.session.add(task_b)
         job_b.status = Status.finished
         db.session.add(job_b)
+        db.session.commit()
 
         sync_build(build_id=build.id.hex, task_id=build.id.hex)
 

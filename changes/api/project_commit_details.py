@@ -22,7 +22,7 @@ class ProjectCommitDetailsAPIView(APIView):
 
         build_list = list(Build.query.options(
             joinedload('author'),
-            contains_eager('source'),
+            contains_eager('source').joinedload('revision'),
         ).join(
             Source, Build.source_id == Source.id,
         ).filter(

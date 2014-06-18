@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.models import TestCase
 from changes.testutils import APITestCase
 
@@ -10,7 +10,7 @@ class BuildTestIndexTest(APITestCase):
     def test_simple(self):
         fake_id = uuid4()
 
-        build = self.create_build(self.project)
+        build = self.create_build(self.project, result=Result.failed)
         job = self.create_job(build, status=Status.finished)
 
         test = TestCase(
@@ -68,6 +68,20 @@ class BuildTestIndexTest(APITestCase):
         assert data[0]['id'] == test.id.hex
 
         path = '/api/0/builds/{0}/tests/?query=bar'.format(build.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
+        path = '/api/0/builds/{0}/tests/?result='.format(build.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+        path = '/api/0/builds/{0}/tests/?result=passed'.format(build.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200

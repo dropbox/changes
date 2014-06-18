@@ -56,7 +56,7 @@ requirejs.config({
   }
 });
 
-require(["vendor-angular", "vendor-jquery", "vendor-misc"], function(){
+require(["vendor-angular", "vendor-bootstrap", "vendor-jquery", "vendor-misc"], function(){
   'use strict';
 
   require(["app", "angular", "routes"], function(app, angular){

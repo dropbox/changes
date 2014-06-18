@@ -12,16 +12,25 @@
         <nav class="dropdown-menu dropdown-menu-right">
             <ul class="nav">
                 <li><a ui-sref="project_source_details({source_id: build.source.id})">
-                    <i class="glyphicon glyphicon-search"></i> View Changes</a>
-                </li>
+                    <span ng-if="build.source.isCommit">View Commit</span>
+                    <span ng-if="!build.source.isCommit">View Patch</span><br>
+                    <small>Raw diff and code coverage.</small>
+                </a></li>
                 <li ng-if="hasTests"><a ui-sref="build_test_list()">
-                    <i class="glyphicon glyphicon-list-alt"></i> View Test Report</a>
-                </li>
+                    Test Results<br>
+                    <small>Individual test results.</small>
+                </a></li>
+                <li ng-if="job"><a ui-sref="job_phase_list()">
+                    Phase Report<br>
+                    <small>Detailed breakdown of phases.</small>
+                </a></li>
                 <li ng-if="isFinished"><a href="javascript:void(0)" ng-click="restartBuild()">
-                    <i class="glyphicon glyphicon-repeat"></i> Recreate Build
+                    Recreate Build<br>
+                    <small>Start a new build from this diff.</small>
                 </a></li>
                 <li ng-if="!isFinished"><a href="javascript:void(0)" ng-click="cancelBuild()">
-                    <i class="glyphicon glyphicon-remove"></i> Cancel Build
+                    Cancel Build<br>
+                    <small>Cancel this in-progress build.</small>
                 </a></li>
             </ul>
         </nav>

@@ -4,6 +4,8 @@ define([
   'states/authorBuildList',
   'states/buildDetails',
   'states/buildTestList',
+  'states/clusterDetails',
+  'states/clusterList',
   'states/jobDetails',
   'states/jobPhaseList',
   'states/layout',
@@ -27,6 +29,7 @@ define([
   'states/projectTestList',
   'states/projectTestSearch',
   'states/taskDetails',
+  'states/taskList',
   'states/testCaseDetails',
 
   'directives/bindOnce',
@@ -43,6 +46,8 @@ define([
   AuthorBuildListState,
   BuildDetailsState,
   BuildTestListState,
+  ClusterDetailsState,
+  ClusterListState,
   JobDetailsState,
   JobPhaseListState,
   LayoutState,
@@ -66,6 +71,7 @@ define([
   ProjectTestListState,
   ProjectTestSearchState,
   TaskDetailsState,
+  TaskListState,
   TestCaseDetailsState
 ) {
 
@@ -107,6 +113,8 @@ define([
       .state('layout', LayoutState)
       .state('build_details', BuildDetailsState)
       .state('build_test_list', BuildTestListState)
+      .state('cluster_details', ClusterDetailsState)
+      .state('clusters', ClusterListState)
       .state('job_details', JobDetailsState)
       .state('job_phase_list', JobPhaseListState)
       .state('log_details', LogDetailsState)
@@ -130,6 +138,7 @@ define([
       .state('project_test_search', ProjectTestSearchState)
       .state('project_source_details', ProjectSourceDetailsState)
       .state('test_details', TestCaseDetailsState)
+      .state('tasks', TaskListState)
       .state('task_details', TaskDetailsState);
   });
 });

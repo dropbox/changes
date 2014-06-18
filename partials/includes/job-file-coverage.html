@@ -1,0 +1,22 @@
+<section class="section" ng-if="coverageData">
+    <div class="section-header">
+        <h3>File Coverage</h3>
+    </div>
+    <table class="grid-list"
+           slyEvaluateOnlyWhen="coverageData.length">
+        <thead>
+            <tr class="grid-list-header">
+                <th>Filename</th>
+                <th class="column">Diff</th>
+                <th class="column">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="fileCoverage in coverageData">
+                <td>{{fileCoverage.filename}}</td>
+                <td class="column">{{fileCoverage.diffCoveragePercent}}</td>
+                <td class="column">{{fileCoverage.coveragePercent}}</td>
+            </tr>
+        </tbody>
+    </table>
+</section>

@@ -11,24 +11,36 @@ from changes.constants import Status, Result
 from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
-    TestResult, Change, LogChunk, Build, JobPlan, Plan, Source,
-    Patch, FileCoverage, Event, EventType
+    TestResult, Change, LogChunk, Build, JobPlan, Plan, Source, FailureReason,
+    Patch, FileCoverage, Event, EventType, Cluster, ClusterNode
 )
 from changes.testutils.fixtures import SAMPLE_DIFF, get_paragraphs, get_sentences
 from changes.utils.slugs import slugify
 
 
-TEST_PACKAGES = itertools.cycle([
+TEST_PACKAGES = [
     'tests/changes/handlers/test_xunit.py',
     'tests/changes/handlers/test_coverage.py',
     'tests/changes/backends/koality/test_backend.py',
     'tests/changes/backends/koality/test_backend.py',
-])
+]
 
-TEST_NAMES = itertools.cycle([
+TEST_NAMES = [
     'ListBuildsTest.test_simple',
     'SyncBuildDetailsTest.test_simple',
-])
+    'ListBuildsTest.test_complex',
+    'SyncBuildDetailsTest.test_complex',
+    'ListBuildsTest.test_functional',
+    'SyncBuildDetailsTest.test_functional',
+    'ListBuildsTest.test_nothing',
+    'SyncBuildDetailsTest.test_nothing',
+]
+
+TEST_FULL_NAMES = []
+for package in TEST_PACKAGES:
+    for name in TEST_NAMES:
+        TEST_FULL_NAMES.append('{0}::{1}'.format(package, name))
+TEST_FULL_NAMES = itertools.cycle(TEST_FULL_NAMES)
 
 TEST_STEP_LABELS = itertools.cycle([
     'tests/changes/web/frontend/test_build_list.py',
@@ -179,9 +191,17 @@ def job(build, change=None, **kwargs):
     )
     db.session.add(job)
 
-    node, _ = get_or_create(Node, where={
+    node, created = get_or_create(Node, where={
         'label': get_sentences(1)[0][:32],
     })
+
+    if created:
+        cluster, _ = get_or_create(Cluster, where={
+            'label': get_sentences(1)[0][:32],
+        })
+
+        clusternode = ClusterNode(cluster=cluster, node=node)
+        db.session.add(clusternode)
 
     jobplan = JobPlan(
         plan=plan(),
@@ -193,18 +213,24 @@ def job(build, change=None, **kwargs):
 
     phase1_setup = JobPhase(
         project=job.project, job=job,
+        date_started=job.date_started,
+        date_finished=job.date_finished,
         status=Status.finished, result=Result.passed, label='Setup',
     )
     db.session.add(phase1_setup)
 
     phase1_compile = JobPhase(
         project=job.project, job=job,
+        date_started=job.date_started,
+        date_finished=job.date_finished,
         status=Status.finished, result=Result.passed, label='Compile',
     )
     db.session.add(phase1_compile)
 
     phase1_test = JobPhase(
         project=job.project, job=job,
+        date_started=job.date_started,
+        date_finished=job.date_finished,
         status=kwargs['status'], result=kwargs['result'], label='Test',
     )
     db.session.add(phase1_test)
@@ -235,6 +261,15 @@ def job(build, change=None, **kwargs):
         label=next(TEST_STEP_LABELS), node=node,
     )
     db.session.add(step)
+
+    if phase1_test.result == Result.failed:
+        db.session.add(FailureReason(
+            reason='test_failures',
+            build_id=build.id,
+            job_id=job.id,
+            step_id=step.id,
+            project_id=job.project_id
+        ))
 
     return job
 
@@ -339,7 +374,6 @@ def patch(project, **kwargs):
 
     patch = Patch(
         repository=project.repository,
-        project=project,
         **kwargs
     )
     db.session.add(patch)
@@ -358,11 +392,8 @@ def source(repository, **kwargs):
 
 
 def test_result(jobstep, **kwargs):
-    if 'package' not in kwargs:
-        kwargs['package'] = next(TEST_PACKAGES)
-
     if 'name' not in kwargs:
-        kwargs['name'] = next(TEST_NAMES) + '_' + uuid4().hex
+        kwargs['name'] = next(TEST_FULL_NAMES)
 
     if 'duration' not in kwargs:
         kwargs['duration'] = random.randint(0, 3000)

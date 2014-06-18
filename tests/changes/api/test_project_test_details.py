@@ -10,24 +10,12 @@ class ProjectTestDetailsTest(APITestCase):
 
         project = self.create_project()
 
-        previous_build = self.create_build(
-            project=project,
-            status=Status.finished,
-            result=Result.passed,
-        )
-        previous_job = self.create_job(previous_build)
-
         build = self.create_build(
             project=project,
             status=Status.finished,
             result=Result.passed,
         )
         job = self.create_job(build)
-
-        previous_parent_group = self.create_test(
-            job=previous_job,
-            name='foo',
-        )
 
         parent_group = self.create_test(
             job=job,
@@ -56,6 +44,4 @@ class ProjectTestDetailsTest(APITestCase):
         # simple test for the composite primary key
         assert data['hash'] == parent_group.name_sha
         assert data['project']['id'] == parent_group.project.id.hex
-        assert len(data['results']) == 2
-        assert data['results'][1]['id'] == previous_parent_group.id.hex
-        assert data['results'][0]['id'] == parent_group.id.hex
+        assert data['firstBuild']['id'] == build.id.hex

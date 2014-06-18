@@ -8,8 +8,10 @@ define([
 ], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
   'use strict';
 
+  var PER_PAGE = 50;
+
   function getEndpoint($stateParams) {
-    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?';
+    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?per_page=' + PER_PAGE;
     if ($stateParams.query) {
       url += '&query=' + $stateParams.query;
     }
@@ -65,7 +67,8 @@ define([
           }
 
           return content;
-        }
+        },
+        limit: PER_PAGE
       };
 
       function updatePageLinks(links) {
@@ -92,7 +95,7 @@ define([
           .success(function(data, status, headers){
             $scope.builds = new Collection(data, {
               sortFunc: sortBuildList,
-              limit: 100
+              limit: PER_PAGE
             });
             updatePageLinks(headers('Link'));
           });
@@ -112,7 +115,7 @@ define([
 
       $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
-        limit: 100
+        limit: PER_PAGE
       });
 
       $scope.selectChart = function(chart) {

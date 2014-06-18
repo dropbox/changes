@@ -1,4 +1,7 @@
-define(['jquery', 'angular', 'bootstrap/tooltip'], function($) {
+define([
+  'angular',
+  'jquery'
+], function(angular, $) {
   'use strict';
 
   angular.module('barChart', [])
@@ -104,7 +107,7 @@ define(['jquery', 'angular', 'bootstrap/tooltip'], function($) {
         restrict: 'E',
         link: function(scope, elem, attrs) {
           scope.$watchCollection(attrs.data, function(value) {
-            new BarChart(elem, value || [], attrs.options || {});
+            new BarChart(elem, value || [], scope.$eval(attrs.options) || {});
           });
         }
       };

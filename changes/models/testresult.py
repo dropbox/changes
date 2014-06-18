@@ -4,6 +4,7 @@ import logging
 import re
 
 from datetime import datetime
+from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Result
@@ -108,7 +109,9 @@ class TestResultManager(object):
             'item_id': self.step.id,
             'name': 'test_count',
         }, values={
-            'value': len(test_list),
+            'value': db.session.query(func.count(TestCase.id)).filter(
+                TestCase.step_id == self.step.id,
+            ).as_scalar(),
         })
         db.session.commit()
 
@@ -117,21 +120,21 @@ class TestResultManager(object):
             'item_id': self.step.id,
             'name': 'test_failures',
         }, values={
-            'value': sum(t.result == Result.failed for t in test_list),
+            'value': db.session.query(func.count(TestCase.id)).filter(
+                TestCase.step_id == self.step.id,
+                TestCase.result == Result.failed,
+            ).as_scalar(),
         })
         db.session.commit()
 
     def _record_test_duration(self, test_list):
-        if test_list:
-            local_test_duration = sum(t.duration or 0 for t in test_list)
-        else:
-            local_test_duration = 0
-
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
             'name': 'test_duration',
         }, values={
-            'value': local_test_duration,
+            'value': db.session.query(func.coalesce(func.sum(TestCase.duration), 0)).filter(
+                TestCase.step_id == self.step.id,
+            ).as_scalar(),
         })
 
     def _record_test_rerun_counts(self, test_list):
@@ -139,5 +142,8 @@ class TestResultManager(object):
             'item_id': self.step.id,
             'name': 'test_rerun_count',
         }, values={
-            'value': sum(1 for t in test_list if t.reruns),
+            'value': db.session.query(func.count(TestCase.id)).filter(
+                TestCase.step_id == self.step.id,
+                TestCase.reruns > 0,
+            ).as_scalar(),
         })

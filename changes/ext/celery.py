@@ -54,6 +54,9 @@ class _Celery(object):
         kwargs.setdefault('throw', False)
         self.tasks[name].retry(*args, **kwargs)
 
+    def get_task(self, name):
+        return self.tasks[name]
+
     def register(self, name, func, **kwargs):
         # XXX(dcramer): hacky way to ensure the task gets registered so
         # celery knows how to execute it

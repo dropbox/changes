@@ -76,6 +76,7 @@ class CreateBuildTest(BaseTestCase):
             'item_id': '13',
             'job_name': 'server',
             'queued': True,
+            'uri': None,
         }
 
     @responses.activate
@@ -111,6 +112,7 @@ class CreateBuildTest(BaseTestCase):
             'item_id': None,
             'job_name': 'server',
             'queued': False,
+            'uri': None,
         }
 
     @responses.activate
@@ -130,7 +132,6 @@ class CreateBuildTest(BaseTestCase):
 
         patch = Patch(
             repository=self.repo,
-            project=self.project,
             parent_revision_sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
             diff=SAMPLE_DIFF,
         )
@@ -279,7 +280,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_building.json'))
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -310,7 +311,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_success.json'))
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -346,7 +347,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_failed.json'))
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -385,7 +386,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -432,7 +433,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '7'},
             body='Foo bar')
@@ -459,7 +460,7 @@ class SyncBuildTest(BaseTestCase):
 
         source = LogSource.query.filter_by(job=job).first()
         assert source.step == step
-        assert source.name == 'server #2'
+        assert source.name == step.label
         assert source.project == self.project
         assert source.date_created == step.date_started
 
@@ -485,7 +486,7 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '0'},
             body='')
@@ -725,7 +726,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
             body=self.load_fixture('fixtures/GET/job_test_report.json'))
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveHtml/?start=0',
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
             adding_headers={'X-Text-Size': '7'},
             body='Foo bar')
@@ -789,6 +790,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             'log_offset': 7,
             'job_name': 'server',
             'build_no': 2,
+            'uri': 'https://jenkins.build.itc.dropbox.com/job/server/2/',
         }
 
         node = step_list[0].node
@@ -809,7 +811,7 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert test_list[1].duration == 155
 
         source = LogSource.query.filter_by(job=job).first()
-        assert source.name == 'server #2'
+        assert source.name == step_list[0].label
         assert source.step == step_list[0]
         assert source.project == self.project
         assert source.date_created == job.date_started

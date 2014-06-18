@@ -15,10 +15,13 @@ from changes.models import (
     Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan,
     ItemStat
 )
+from changes.testutils.fixtures import Fixtures
 
 app = create_app()
 app_context = app.app_context()
 app_context.push()
+
+fixtures = Fixtures()
 
 
 def create_new_change(project, **kwargs):
@@ -60,9 +63,15 @@ def create_new_entry(project):
         project=project,
         source=source,
         message=change.message,
-        result=Result.unknown,
+        result=Result.failed if random.randint(0, 3) == 1 else Result.unknown,
         status=Status.in_progress,
         date_started=date_started,
+    )
+
+    build_task = fixtures.create_task(
+        task_id=build.id,
+        task_name='sync_build',
+        data={'kwargs': {'build_id': build.id.hex}},
     )
 
     db.session.add(ItemStat(item_id=build.id, name='lines_covered', value='5'))
@@ -77,7 +86,15 @@ def create_new_entry(project):
             build=build,
             change=change,
             status=Status.in_progress,
+            result=build.result,
         )
+        fixtures.create_task(
+            task_id=job.id.hex,
+            parent_id=build_task.task_id,
+            task_name='sync_job',
+            data={'kwargs': {'job_id': job.id.hex}},
+        )
+
         db.session.commit()
         if patch:
             mock.file_coverage(project, job, patch)
@@ -114,21 +131,30 @@ def update_existing_entry(project):
     job.result = Result.failed if random.randint(0, 3) == 1 else Result.passed
     job.date_finished = datetime.utcnow()
     db.session.add(job)
+    db.session.commit()
 
     jobstep = JobStep.query.filter(JobStep.job == job).first()
     if jobstep:
         test_results = []
+<<<<<<< HEAD
         for _ in range(50):
+=======
+        for _ in xrange(10):
+>>>>>>> master
             if job.result == Result.failed:
                 result = Result.failed if random.randint(0, 3) == 1 else Result.passed
             else:
                 result = Result.passed
             test_results.append(mock.test_result(jobstep, result=result))
-        TestResultManager(jobstep).save(test_results)
+        try:
+            TestResultManager(jobstep).save(test_results)
+        except Exception:
+            db.session.rollback()
 
     if job.status == Status.finished:
         job.build.status = job.status
-        job.build.result = job.result
+        if job.build.result != Result.failed:
+            job.build.result = job.result
         job.build.date_finished = job.date_finished
         job.build.date_modified = job.date_finished
         db.session.add(job.build)

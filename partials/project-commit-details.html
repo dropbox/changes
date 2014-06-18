@@ -1,30 +1,28 @@
 <section>
     <div class="page-header" bind-once>
+        <div class="actions">
+            <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown">
+                <span class="caret"></span>
+            </a>
+            <nav class="dropdown-menu dropdown-menu-right">
+                <ul class="nav">
+                    <li><a href="javascript:void(0)" ng-click="createBuild()">Build this Commit</a></li>
+                </ul>
+            </nav>
+        </div>
+
         <h2>{{commit.id}}</h2>
     </div>
-    <div class="row" bind-once>
-        <div class="col-lg-9 col-md-8">
-            <dl class="flat">
-                <dt ng-if="commit.author">Author:</dt>
-                <dd ng-if="commit.author">{{commit.author.name}} <span ng-if="commit.author.email">(<a href="mailto:{{commit.author.email}}">{{commit.author.email}}</a>)</span></dd>
-                <dt>Repository:</dt>
-                <dd>{{repository.url}}</dd>
-                <dt>Date:</dt>
-                <dd time-since="commit.dateCreated"></dd>
-                <dt>Branch:</dt>
-                <dd><span ng-repeat="branch in commit.branches">{{branch}}</span></dd>
-            </dl>
-        </div>
-        <div class="col-lg-3 col-md-4">
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <ul class="nav nav-small">
-                        <li><a href="javascript:void(0)" ng-click="createBuild()">Build this Commit</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+    <dl class="flat">
+        <dt ng-if="commit.author">Author:</dt>
+        <dd ng-if="commit.author">{{commit.author.name}} <span ng-if="commit.author.email">(<a href="mailto:{{commit.author.email}}">{{commit.author.email}}</a>)</span></dd>
+        <dt>Repository:</dt>
+        <dd>{{repository.url}}</dd>
+        <dt>Date:</dt>
+        <dd time-since="commit.dateCreated"></dd>
+        <dt>Branch:</dt>
+        <dd><span ng-repeat="branch in commit.branches">{{branch}}</span></dd>
+    </dl>
 
     <section class="section">
         <div class="section-header">

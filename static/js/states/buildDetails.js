@@ -13,9 +13,9 @@ define([
       function getCoveragePercent(lines_covered, lines_uncovered) {
         var total_lines = lines_covered + lines_uncovered;
         if (!total_lines) {
-          return 0;
+          return '';
         }
-        return parseInt(lines_covered / total_lines * 100, 10);
+        return parseInt(lines_covered / total_lines * 100, 10) + '%';
       }
 
       function getFormattedBuildMessage(message) {
@@ -75,7 +75,8 @@ define([
         $scope.formattedBuildMessage = null;
       }
 
-      $scope.eventList = buildData.events;
+      $scope.eventList = new Collection(buildData.events);
+      $scope.failureList = new Collection(buildData.failures);
       $scope.previousRuns = buildData.previousRuns;
       $scope.testFailures = buildData.testFailures;
       $scope.testChanges = buildData.testChanges;
@@ -138,7 +139,10 @@ define([
             return;
           }
           $.extend(true, $scope.build, response);
+          updateBuild(response);
           $scope.jobList.extend(response.jobs);
+          $scope.eventList.extend(response.events);
+          $scope.failureList.extend(response.failures);
         }
       });
     },

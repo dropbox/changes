@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from flask import Response, request
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.base import APIView
-from changes.models import Project, Build
+from changes.models import Project, Source, Build
 
 
 class ProjectBuildIndexAPIView(APIView):
@@ -18,14 +18,16 @@ class ProjectBuildIndexAPIView(APIView):
         queryset = Build.query.options(
             joinedload('project'),
             joinedload('author'),
-            joinedload('source').joinedload('revision'),
+            contains_eager('source').joinedload('revision'),
+        ).join(
+            Source, Source.id == Build.source_id,
         ).filter(
             Build.project_id == project.id,
         ).order_by(Build.date_created.desc())
 
         if include_patches == '0':
             queryset = queryset.filter(
-                Build.patch == None,  # NOQA
+                Source.patch_id == None,  # NOQA
             )
 
         return self.paginate(queryset)

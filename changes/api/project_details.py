@@ -1,5 +1,9 @@
+from __future__ import division
+
+from datetime import datetime, timedelta
 from flask import request
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
+from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.config import db
@@ -54,6 +58,71 @@ class ProjectValidator(Validator):
 
 
 class ProjectDetailsAPIView(APIView):
+    def _get_avg_duration(self, project, start_period, end_period):
+        avg_duration = db.session.query(
+            func.avg(Build.duration)
+        ).filter(
+            Build.project_id == project.id,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).scalar() or None
+        if avg_duration is not None:
+            avg_duration = float(avg_duration)
+        return avg_duration
+
+    def _get_green_percent(self, project, start_period, end_period):
+        build_counts = dict(db.session.query(
+            Build.result, func.count()
+        ).join(
+            Source, Build.source_id == Source.id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
+            Build.project_id == project.id,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+            Build.status == Status.finished,
+            Build.result.in_([Result.passed, Result.failed])
+        ).group_by(
+            Build.result,
+        ))
+
+        failed_builds = build_counts.get(Result.failed) or 0
+        passed_builds = build_counts.get(Result.passed) or 0
+        if passed_builds:
+            green_percent = int((passed_builds / (failed_builds + passed_builds)) * 100)
+        elif failed_builds:
+            green_percent = 0
+        else:
+            green_percent = None
+
+        return green_percent
+
+    def _get_stats(self, project):
+        window = timedelta(days=7)
+
+        end_period = datetime.utcnow()
+        start_period = end_period - window
+
+        prev_end_period = start_period
+        prev_start_period = start_period - window
+
+        green_percent = self._get_green_percent(project, start_period, end_period)
+        prev_green_percent = self._get_green_percent(
+            project, prev_start_period, prev_end_period)
+
+        avg_duration = self._get_avg_duration(project, start_period, end_period)
+        prev_avg_duration = self._get_avg_duration(
+            project, prev_start_period, prev_end_period)
+
+        return {
+            'greenPercent': green_percent,
+            'previousGreenPercent': prev_green_percent,
+            'avgDuration': avg_duration,
+            'previousAvgDuration': prev_avg_duration,
+        }
+
     def get(self, project_id):
         project = Project.get(project_id)
         if project is None:
@@ -108,6 +177,7 @@ class ProjectDetailsAPIView(APIView):
         data['repository'] = project.repository
         data['plans'] = list(plans)
         data['options'] = options
+        data['stats'] = self._get_stats(project)
 
         return self.respond(data)
 

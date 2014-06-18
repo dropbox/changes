@@ -14,7 +14,7 @@ class ProjectBuildSearchAPIView(APIView):
     get_parser.add_argument('query', location='args')
     get_parser.add_argument('source', location='args')
     get_parser.add_argument('result', location='args',
-                            choices=('failed', 'passed', 'aborted', 'unknown'))
+                            choices=('failed', 'passed', 'aborted', 'unknown', ''))
 
     def get(self, project_id):
         project = Project.get(project_id)
@@ -40,7 +40,7 @@ class ProjectBuildSearchAPIView(APIView):
         queryset = Build.query.options(
             joinedload('project', innerjoin=True),
             joinedload('author'),
-            joinedload('source'),
+            joinedload('source').joinedload('revision'),
         ).filter(
             Build.project_id == project.id,
             *filters

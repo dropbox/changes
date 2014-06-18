@@ -6,6 +6,7 @@ from flask import render_template
 from flask_mail import Message, sanitize_address
 from jinja2 import Markup
 
+from changes.api.build_details import get_failure_reasons
 from changes.config import db, mail
 from changes.constants import Result
 from changes.db.utils import try_create
@@ -49,6 +50,7 @@ class MailNotificationHandler(NotificationHandler):
             'result_label': result_label,
             'total_test_failures': num_test_failures,
             'test_failures': test_failures,
+            'failure_reasons': get_failure_reasons(build),
         }
 
         if is_failure:

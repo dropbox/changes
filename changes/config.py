@@ -11,7 +11,7 @@ from flask import request, session
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
-from kombu import Queue
+from kombu import Exchange, Queue
 from raven.contrib.flask import Sentry
 from urllib.parse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
@@ -106,7 +106,7 @@ def create_app(_read_config=True, **config):
         Queue('celery', routing_key='celery'),
         Queue('events', routing_key='events'),
         Queue('default', routing_key='default'),
-        Queue('repo.sync', routing_key='repo.sync'),
+        Queue('repo.sync', Exchange('fanout', 'fanout'), routing_key='repo.sync'),
     )
     app.config['CELERY_ROUTES'] = {
         'create_job': {
@@ -155,8 +155,8 @@ def create_app(_read_config=True, **config):
     # celerybeat must be running for our cleanup tasks to execute
     # e.g. celery worker -B
     app.config['CELERYBEAT_SCHEDULE'] = {
-        'cleanup-builds': {
-            'task': 'cleanup_builds',
+        'cleanup-tasks': {
+            'task': 'cleanup_tasks',
             'schedule': timedelta(minutes=1),
         },
         'check-repos': {
@@ -275,6 +275,9 @@ def configure_api_routes(app):
     from changes.api.build_test_index_counts import BuildTestIndexCountsAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
+    from changes.api.cluster_details import ClusterDetailsAPIView
+    from changes.api.cluster_index import ClusterIndexAPIView
+    from changes.api.cluster_nodes import ClusterNodesAPIView
     from changes.api.job_details import JobDetailsAPIView
     from changes.api.job_log_details import JobLogDetailsAPIView
     from changes.api.jobphase_index import JobPhaseIndexAPIView
@@ -290,18 +293,21 @@ def configure_api_routes(app):
     from changes.api.project_build_search import ProjectBuildSearchAPIView
     from changes.api.project_commit_details import ProjectCommitDetailsAPIView
     from changes.api.project_commit_index import ProjectCommitIndexAPIView
+    from changes.api.project_coverage_index import ProjectCoverageIndexAPIView
     from changes.api.project_coverage_group_index import ProjectCoverageGroupIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_options_index import ProjectOptionsIndexAPIView
     from changes.api.project_stats import ProjectStatsAPIView
     from changes.api.project_test_details import ProjectTestDetailsAPIView
     from changes.api.project_test_group_index import ProjectTestGroupIndexAPIView
+    from changes.api.project_test_history import ProjectTestHistoryAPIView
     from changes.api.project_test_index import ProjectTestIndexAPIView
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.project_source_details import ProjectSourceDetailsAPIView
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.step_details import StepDetailsAPIView
     from changes.api.task_details import TaskDetailsAPIView
+    from changes.api.task_index import TaskIndexAPIView
     from changes.api.testcase_details import TestCaseDetailsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
@@ -318,6 +324,9 @@ def configure_api_routes(app):
     api.add_resource(BuildTestIndexCountsAPIView, '/builds/<uuid:build_id>/tests/counts')
     api.add_resource(BuildTestCoverageAPIView, '/builds/<uuid:build_id>/coverage/')
     api.add_resource(BuildTestCoverageStatsAPIView, '/builds/<uuid:build_id>/stats/coverage/')
+    api.add_resource(ClusterIndexAPIView, '/clusters/')
+    api.add_resource(ClusterDetailsAPIView, '/clusters/<uuid:cluster_id>/')
+    api.add_resource(ClusterNodesAPIView, '/clusters/<uuid:cluster_id>/nodes/')
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')
@@ -337,16 +346,19 @@ def configure_api_routes(app):
     api.add_resource(ProjectBuildSearchAPIView, '/projects/<project_id>/builds/search/')
     api.add_resource(ProjectCommitIndexAPIView, '/projects/<project_id>/commits/')
     api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')
+    api.add_resource(ProjectCoverageIndexAPIView, '/projects/<project_id>/coverage/')
     api.add_resource(ProjectCoverageGroupIndexAPIView, '/projects/<project_id>/coveragegroups/')
     api.add_resource(ProjectOptionsIndexAPIView, '/projects/<project_id>/options/')
     api.add_resource(ProjectStatsAPIView, '/projects/<project_id>/stats/')
     api.add_resource(ProjectTestIndexAPIView, '/projects/<project_id>/tests/')
     api.add_resource(ProjectTestGroupIndexAPIView, '/projects/<project_id>/testgroups/')
     api.add_resource(ProjectTestDetailsAPIView, '/projects/<project_id>/tests/<test_hash>/')
+    api.add_resource(ProjectTestHistoryAPIView, '/projects/<project_id>/tests/<test_hash>/history/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')
+    api.add_resource(TaskIndexAPIView, '/tasks/')
     api.add_resource(TaskDetailsAPIView, '/tasks/<uuid:task_id>/')
 
 
@@ -394,7 +406,7 @@ def configure_debug_routes(app):
 
 def configure_jobs(app):
     from changes.jobs.check_repos import check_repos
-    from changes.jobs.cleanup_builds import cleanup_builds
+    from changes.jobs.cleanup_tasks import cleanup_tasks
     from changes.jobs.create_job import create_job
     from changes.jobs.signals import (
         fire_signal, run_event_listener
@@ -408,7 +420,7 @@ def configure_jobs(app):
         update_project_stats, update_project_plan_stats)
 
     queue.register('check_repos', check_repos)
-    queue.register('cleanup_builds', cleanup_builds)
+    queue.register('cleanup_tasks', cleanup_tasks)
     queue.register('create_job', create_job)
     queue.register('fire_signal', fire_signal)
     queue.register('run_event_listener', run_event_listener)

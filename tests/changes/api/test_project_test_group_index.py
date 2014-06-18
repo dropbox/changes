@@ -4,7 +4,7 @@ from changes.constants import Result, Status
 from changes.testutils import APITestCase
 
 
-class ProjectTestIndexTest(APITestCase):
+class ProjectTestGroupIndexTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 

@@ -1,6 +1,7 @@
 define([
-  'app'
-], function(app) {
+  'app',
+  'utils/sortArray'
+], function(app, sortArray) {
   'use strict';
 
   var BUFFER_SIZE = 10000;
@@ -123,11 +124,23 @@ define([
         });
       }
 
+      $.map(jobData.phases, function(phase){
+        phase.isVisible = phase.status.id != 'finished' || phase.result.id != 'passed';
+      });
+
       $scope.job = jobData;
-      $scope.phases = new Collection(jobData.phases);
+      $scope.phases = new Collection(jobData.phases, {
+          sortFunc: function(arr) {
+            function getScore(object) {
+              return [-new Date(object.dateCreated).getTime()];
+            }
+            return sortArray(arr, getScore);
+          }
+      });
       $scope.testFailures = jobData.testFailures;
       $scope.previousRuns = new Collection(jobData.previousRuns);
       $scope.logSourcesByPhase = {};
+      $scope.$parent.job = jobData;
 
       organizeLogSources($scope.logSourcesByPhase, jobData.logs);
 
@@ -143,10 +156,16 @@ define([
           }
           $.extend(true, $scope.job, response);
           $.extend(true, $scope.testFailures, response.testFailures);
-          $scope.previousRuns.extend(jobData.previousRuns);
+          $scope.previousRuns.extend(response.previousRuns);
           $scope.phases.extend(response.phases);
+          $.map($scope.phases, function(phase){
+            if (phase.isVisible === undefined) {
+              phase.isVisible = true;
+            }
+          });
 
-          organizeLogSources($scope.logSourcesByPhase, jobData.logs);
+
+          organizeLogSources($scope.logSourcesByPhase, response.logs);
         }
       });
     },

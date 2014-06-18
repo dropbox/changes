@@ -3,17 +3,38 @@
         <h2>Source Details</h2>
     </div>
 
-    <dl class="flat">
-        <dt>Sha:</dt>
-        <dd>{{source.revision.id}}</dd>
+    <dl class="flat" ng-hide="source.isCommit">
+        <dt ng-if="source.revision">Parent:</dt>
+        <dd ng-if="source.revision">
+            <a ui-sref="project_commit_details({project_id: project.id, commit_id: source.revision.sha})">{{source.revision.sha.substr(0, 12)}}</a>
+        </dd>
         <dt>Patch:</dt>
-        <dd ng-if="source.patch"><a href="/api/0/patches/{{source.patch.id}}/?raw=1" target="_self">{{source.patch.id}}</a></dd>
-        <dd ng-if="!source.patch">&mdash;</dd>
+        <dd><a href="/api/0/patches/{{source.patch.id}}/?raw=1" target="_self">{{source.patch.id}}</a></dd>
+        <dt>Discovered:</dt>
+        <dd time-since="source.dateCreated"></dd>
+    </dl>
+    <dl class="flat" ng-show="source.isCommit">
+        <dt>Commit:</dt>
+        <dd>
+            {{source.revision.sha.substr(0, 12)}}
+        </dd>
+        <dt ng-if="source.revision.parents">Parents:</dt>
+        <dd ng-if="source.revision.parents">
+            <a ui-sref="project_commit_details({project_id: project.id, commit_id: parent})"
+               ng-repeat="parent in source.revision.parents">{{parent.substr(0, 12)}}</a>
+        </dd>
+        <dt>Discovered:</dt>
+        <dd time-since="source.dateCreated"></dd>
+        <dt ng-if="source.revision.author">Author:</dt>
+        <dd ng-if="source.revision.author">
+            <span ng-show="source.revision.author.email">{{source.revision.author.email}}</span>
+            <span ng-hide="source.revision.author.email">{{source.revision.author.name}}</span>
+        </dd>
     </dl>
 
     <section class="section">
         <div class="section-header">
-            <h4>Builds</h4>
+            <h3>Builds</h3>
         </div>
 
         <table class="build-list">
@@ -35,7 +56,7 @@
 
     <section class="section">
         <div class="section-header">
-            <h4>Diff</h4>
+            <h3>Diff</h3>
         </div>
         <div ng-if="source.diff">
             <div hljs source="source.diff" language="diff"></div>

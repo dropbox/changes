@@ -1,9 +1,22 @@
 <section class="section">
-	<div class="page-header">
-		<h2>{{node.name}}</h2>
-	</div>
+    <div class="page-header">
+        <h2>{{node.name}}</h2>
+    </div>
 
-	<h2>Jobs</h2>
+    <dl class="flat">
+        <dt ng-show="node.clusters">Clusters:</dt>
+        <dd ng-show="node.clusters"><a ui-sref="cluster_details({cluster_id: cluster.id})"
+               ng-repeat="cluster in node.clusters">{{cluster.name}}</a>
+        </dd>
+        <dt>First Seen:</dt>
+        <dd time-since="node.dateCreated"></dd>
+    </dl>
+</section>
+
+<section class="section">
+    <div class="page-header">
+        <h3>Jobs</h3>
+    </div>
 
     <table class="build-list">
         <tr class="build-list-header">
@@ -32,12 +45,12 @@
         </tr>
     </table>
 
-	<ul class="pager">
-		<li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
-			<a ng-click="loadNextPage()">&larr; Older</a>
-		</li>
-		<li class="next" ng-class="previousPage === null ? 'disabled' : ''">
-			<a ng-click="loadPreviousPage()">Newer &rarr;</a>
-		</li>
-	</ul>
+    <ul class="pager">
+        <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">&larr; Older</a>
+        </li>
+        <li class="next" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">Newer &rarr;</a>
+        </li>
+    </ul>
 </section>

@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from changes.config import db, queue
 from changes.constants import Result, Status
-from changes.db.utils import try_create, get_or_create
+from changes.db.utils import get_or_create
 from changes.models import Task
 from changes.utils.locking import lock
 
@@ -87,6 +87,10 @@ class TrackedTask(local):
 
         date_started = datetime.utcnow()
 
+        self._update({
+            Task.date_modified: datetime.utcnow(),
+        })
+
         try:
             self.func(**kwargs)
 
@@ -154,6 +158,7 @@ class TrackedTask(local):
         Task.query.filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
+            Task.parent_id == self.parent_id,
         ).update(kwargs, synchronize_session=False)
 
     def _continue(self, kwargs):
@@ -185,6 +190,7 @@ class TrackedTask(local):
         task = Task.query.filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
+            Task.parent_id == self.parent_id,
         ).first()
         if task and self.max_retries and task.num_retries > self.max_retries:
             date_finished = datetime.utcnow()
@@ -213,9 +219,10 @@ class TrackedTask(local):
         retry_number = db.session.query(Task.num_retries).filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
+            Task.parent_id == self.parent_id,
         ).scalar() or 0
 
-        retry_countdown = min(BASE_RETRY_COUNTDOWN + (retry_number ** 3), 3600)
+        retry_countdown = min(BASE_RETRY_COUNTDOWN + (retry_number ** 2), 300)
 
         queue.delay(
             self.task_name,
@@ -281,6 +288,10 @@ class TrackedTask(local):
         })
 
         if created or self.needs_requeued(task):
+            if not created:
+                task.date_modified = datetime.utcnow()
+                db.session.add(task)
+
             db.session.commit()
 
             queue.delay(
@@ -305,15 +316,20 @@ class TrackedTask(local):
             if k not in ('task_id', 'parent_task_id')
         )
 
-        try_create(Task, where={
+        task, created = get_or_create(Task, where={
             'task_name': self.task_name,
-            'parent_id': kwargs.get('parent_task_id'),
             'task_id': kwargs['task_id'],
-            'status': Status.queued,
+        }, defaults={
+            'parent_id': kwargs.get('parent_task_id'),
             'data': {
                 'kwargs': fn_kwargs,
             },
+            'status': Status.queued,
         })
+
+        if not created:
+            task.date_modified = datetime.utcnow()
+            db.session.add(task)
 
         db.session.commit()
 
@@ -325,8 +341,12 @@ class TrackedTask(local):
 
     def verify_all_children(self):
         task_list = list(Task.query.filter(
-            Task.parent_id == self.task_id
+            Task.parent_id == self.task_id,
+            Task.status != Status.finished,
         ))
+
+        if not task_list:
+            return Status.finished
 
         current_datetime = datetime.utcnow()
 
@@ -336,9 +356,6 @@ class TrackedTask(local):
         has_pending = False
 
         for task in task_list:
-            if task.status == Status.finished:
-                continue
-
             if self.needs_expired(task):
                 need_expire.add(task)
                 continue

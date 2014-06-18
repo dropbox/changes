@@ -6,6 +6,8 @@ import re
 import requests
 import time
 
+from cStringIO import StringIO
+from contextlib import closing
 from datetime import datetime
 from flask import current_app
 from io import BytesIO
@@ -23,7 +25,6 @@ from changes.models import (
 )
 from changes.handlers.coverage import CoverageHandler
 from changes.handlers.xunit import XunitHandler
-from changes.utils.agg import safe_agg
 from changes.utils.http import build_uri
 
 LOG_CHUNK_SIZE = 4096
@@ -131,7 +132,7 @@ class JenkinsBuilder(BaseBackend):
         return params
 
     def _create_job_step(self, phase, job_name=None, build_no=None,
-                         label=None, **kwargs):
+                         label=None, uri=None, **kwargs):
         # TODO(dcramer): we make an assumption that the job step label is unique
         # but its not guaranteed to be the case. We can ignore this assumption
         # by guaranteeing that the JobStep.id value is used for builds instead
@@ -140,6 +141,7 @@ class JenkinsBuilder(BaseBackend):
             'data': {
                 'job_name': job_name,
                 'build_no': build_no,
+                'uri': uri,
             },
         }
         defaults.update(kwargs)
@@ -218,29 +220,21 @@ class JenkinsBuilder(BaseBackend):
         )
 
         offset = 0
-        resp = requests.get(url, stream=True, timeout=15)
-        iterator = resp.iter_content(decode_unicode=True)
-        for chunk in chunked(iterator, LOG_CHUNK_SIZE):
-            chunk_size = len(chunk)
-            chunk, _ = create_or_update(LogChunk, where={
-                'source': logsource,
-                'offset': offset,
-            }, values={
-                'job': job,
-                'project': job.project,
-                'size': chunk_size,
-                'text': chunk,
-            })
-            offset += chunk_size
-
-    def _sync_console_log(self, jobstep):
-        job = jobstep.job
-        return self._sync_log(
-            jobstep=jobstep,
-            name='console',
-            job_name=job.data['job_name'],
-            build_no=job.data['build_no'],
-        )
+        session = requests.Session()
+        with closing(session.get(url, stream=True, timeout=15)) as resp:
+            iterator = resp.iter_content(decode_unicode=True)
+            for chunk in chunked(iterator, LOG_CHUNK_SIZE):
+                chunk_size = len(chunk)
+                chunk, _ = create_or_update(LogChunk, where={
+                    'source': logsource,
+                    'offset': offset,
+                }, values={
+                    'job': job,
+                    'project': job.project,
+                    'size': chunk_size,
+                    'text': chunk,
+                })
+                offset += chunk_size
 
     def _sync_log(self, jobstep, name, job_name, build_no):
         job = jobstep.job
@@ -258,45 +252,48 @@ class JenkinsBuilder(BaseBackend):
         else:
             offset = jobstep.data.get('log_offset', 0)
 
-        url = '{base}/job/{job}/{build}/logText/progressiveHtml/'.format(
+        url = '{base}/job/{job}/{build}/logText/progressiveText/'.format(
             base=self.base_url,
             job=job_name,
             build=build_no,
         )
 
-        resp = requests.get(
-            url, params={'start': offset}, stream=True, timeout=15)
-        log_length = int(resp.headers['X-Text-Size'])
-        # When you request an offset that doesnt exist in the build log, Jenkins
-        # will instead return the entire log. Jenkins also seems to provide us
-        # with X-Text-Size which indicates the total size of the log
-        if offset > log_length:
-            return
+        session = requests.Session()
+        with closing(session.get(url, params={'start': offset}, stream=True, timeout=15)) as resp:
+            log_length = int(resp.headers['X-Text-Size'])
 
-        iterator = resp.iter_content(decode_unicode=True)
-        # XXX: requests doesnt seem to guarantee chunk_size, so we force it
-        # with our own helper
-        for chunk in chunked(iterator, LOG_CHUNK_SIZE):
-            chunk_size = len(chunk)
-            chunk, _ = create_or_update(LogChunk, where={
-                'source': logsource,
-                'offset': offset,
-            }, values={
-                'job': job,
-                'project': job.project,
-                'size': chunk_size,
-                'text': chunk,
-            })
-            offset += chunk_size
+            # When you request an offset that doesnt exist in the build log, Jenkins
+            # will instead return the entire log. Jenkins also seems to provide us
+            # with X-Text-Size which indicates the total size of the log
+            if offset > log_length:
+                return
+
+            # XXX: requests doesnt seem to guarantee chunk_size, so we force it
+            # with our own helper
+            iterator = resp.iter_content(decode_unicode=True)
+            for chunk in chunked(iterator, LOG_CHUNK_SIZE):
+                chunk_size = len(chunk)
+                chunk, _ = create_or_update(LogChunk, where={
+                    'source': logsource,
+                    'offset': offset,
+                }, values={
+                    'job': job,
+                    'project': job.project,
+                    'size': chunk_size,
+                    'text': chunk,
+                })
+                offset += chunk_size
+
+            # Jenkins will suggest to us that there is more data when the job has
+            # yet to complete
+            has_more = resp.headers.get('X-More-Data') == 'true'
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
         jobstep.data['log_offset'] = log_length
         db.session.add(jobstep)
 
-        # Jenkins will suggest to us that there is more data when the job has
-        # yet to complete
-        return True if resp.headers.get('X-More-Data') == 'true' else None
+        return True if has_more else None
 
     def _process_test_report(self, step, test_report):
         test_list = []
@@ -399,6 +396,7 @@ class JenkinsBuilder(BaseBackend):
             'queued': True,
             'item_id': item_id,
             'build_no': None,
+            'uri': None,
         }
 
     def _find_job_in_active(self, job_name, job_id):
@@ -429,6 +427,7 @@ class JenkinsBuilder(BaseBackend):
             'queued': False,
             'item_id': None,
             'build_no': build_no,
+            'uri': None,
         }
 
     def _get_node(self, label):
@@ -476,6 +475,7 @@ class JenkinsBuilder(BaseBackend):
             build_no = item['executable']['number']
             step.data['queued'] = False
             step.data['build_no'] = build_no
+            step.data['uri'] = item['executable']['url']
             db.session.add(step)
 
         if item['blocked']:
@@ -501,12 +501,15 @@ class JenkinsBuilder(BaseBackend):
         except NotFound:
             raise UnrecoverableException('Unable to find job in Jenkins')
 
+        if not step.data.get('uri'):
+            step.data['uri'] = item['url']
+            db.session.add(step)
+
         # TODO(dcramer): we're doing a lot of work here when we might
         # not need to due to it being sync'd previously
         node = self._get_node(item['builtOn'])
 
         step.node = node
-        step.label = item['fullDisplayName']
         step.date_started = datetime.utcfromtimestamp(
             item['timestamp'] / 1000)
 
@@ -528,37 +531,11 @@ class JenkinsBuilder(BaseBackend):
         db.session.add(step)
         db.session.commit()
 
-        # TODO(dcramer): we shoudl abstract this into a sync_phase
-        phase = step.phase
-
-        if not phase.date_started:
-            phase.date_started = safe_agg(
-                min, (s.date_started for s in phase.steps), step.date_started)
-            db.session.add(phase)
-
-        if phase.status != step.status:
-            phase.status = step.status
-            db.session.add(phase)
-
-        if step.status == Status.finished:
-            phase.status = Status.finished
-            phase.date_finished = safe_agg(
-                max, (s.date_finished for s in phase.steps), step.date_finished)
-
-            if any(s.result is Result.failed for s in phase.steps):
-                phase.result = Result.failed
-            else:
-                phase.result = safe_agg(
-                    max, (s.result for s in phase.steps), Result.unknown)
-
-            db.session.add(phase)
-
-        db.session.commit()
-
         if step.status != Status.finished:
             return
 
         # sync artifacts
+        self.logger.info('Syncing artifacts for %s', step.id)
         for artifact in item.get('artifacts', ()):
             artifact, created = get_or_create(Artifact, where={
                 'step': step,
@@ -576,6 +553,7 @@ class JenkinsBuilder(BaseBackend):
             )
 
         # sync test results
+        self.logger.info('Syncing tests results for %s', step.id)
         try:
             self._sync_test_results(
                 step=step,
@@ -590,6 +568,7 @@ class JenkinsBuilder(BaseBackend):
             db.session.commit()
 
         # sync console log
+        self.logger.info('Syncing console log for %s', step.id)
         try:
             result = True
             while result:
@@ -716,7 +695,7 @@ class JenkinsBuilder(BaseBackend):
         return job_data
 
     def get_default_job_phase_label(self, job, job_data):
-        return job_data['job_name']
+        return 'Build {0}'.format(job_data['job_name'])
 
     def create_job(self, job):
         """

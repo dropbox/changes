@@ -25,11 +25,10 @@ class Source(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow)
     data = Column(JSONEncodedDict)
 
-    repository = relationship('Repository')
+    repository = relationship('Repository', innerjoin=False)
     patch = relationship('Patch')
     revision = relationship('Revision',
-                            foreign_keys=[repository_id, revision_sha],
-                            innerjoin=True)
+                            foreign_keys=[repository_id, revision_sha])
 
     __tablename__ = 'source'
     __table_args__ = (

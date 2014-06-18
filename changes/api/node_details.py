@@ -10,4 +10,7 @@ class NodeDetailsAPIView(APIView):
         if node is None:
             return '', 404
 
-        return self.respond(node)
+        context = self.serialize(node)
+        context['clusters'] = self.serialize(list(node.clusters))
+
+        return self.respond(context, serialize=False)

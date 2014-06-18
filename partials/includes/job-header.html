@@ -1,0 +1,53 @@
+<div class="page-header build-header status-{{job.status.id}} result-{{job.result.id}}">
+    <ul class="crumb">
+        <li class="status-{{build.status.id}} result-{{build.result.id}}">
+            <a ui-sref="build_details()" class="indicator" bind-once>#{{build.number}}</a>
+        </li>
+    </ul>
+    <div class="actions">
+        <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown">
+            <span class="caret"></span>
+        </a>
+        <nav class="dropdown-menu dropdown-menu-right">
+            <ul class="nav">
+                <li><a ui-sref="project_source_details({source_id: build.source.id})">
+                    <span ng-if="build.source.isCommit">View Commit</span>
+                    <span ng-if="!build.source.isCommit">View Patch</span><br>
+                    <small>Raw diff and code coverage.</small>
+                </a></li>
+                <li ng-if="hasTests"><a ui-sref="build_test_list()">
+                    Test Results<br>
+                    <small>Individual test results.</small>
+                </a></li>
+                <li ng-if="job"><a ui-sref="job_phase_list()">
+                    Phase Report<br>
+                    <small>Detailed breakdown of phases.</small>
+                </a></li>
+                <li ng-if="isFinished"><a href="javascript:void(0)" ng-click="restartBuild()">
+                    Recreate Build<br>
+                    <small>Start a new build from this diff.</small>
+                </a></li>
+                <li ng-if="!isFinished"><a href="javascript:void(0)" ng-click="cancelBuild()">
+                    Cancel Build<br>
+                    <small>Cancel this in-progress build.</small>
+                </a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="seen-by" bind-once>
+        <ul>
+            <li ng-repeat="seenUser in seenBy" ng-class="seenUser.email == build.author.email ? 'active' : ''">
+                <a tooltip="{{seenUser.email}}"
+                   tooltip-placement="bottom">
+                    <img src="{{seenUser.avatar}}&amp;s=16">
+                </a>
+            </li>
+        </ul>
+    </div>
+    <h2 slyEvaluateOnlyWhen="build.dateModified">
+        {{build.name}}<br>
+        <small>
+            <span ng-if="build.number"><a ui-sref="job_details()" class="indicator">#{{build.number}}.{{job.number}}</a></span> {{job.name}}
+        </small>
+    </h2>
+</div>

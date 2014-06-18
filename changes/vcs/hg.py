@@ -17,6 +17,9 @@ class MercurialVcs(Vcs):
             'HGPLAIN': '1',
         }
 
+    def get_default_revision(self):
+        return 'default'
+
     @property
     def remote_url(self):
         if self.url.startswith(('ssh:', 'http:', 'https:')):

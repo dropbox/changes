@@ -5,6 +5,7 @@ from sqlalchemy.schema import UniqueConstraint
 
 from changes.config import db
 from changes.db.types.guid import GUID
+from changes.db.utils import model_repr
 
 
 class ItemStat(db.Model):
@@ -17,6 +18,8 @@ class ItemStat(db.Model):
     item_id = Column(GUID, nullable=False)
     name = Column(String(64), nullable=False)
     value = Column(Integer, nullable=False)
+
+    __repr__ = model_repr('item_id', 'name', 'value')
 
     def __init__(self, **kwargs):
         super(ItemStat, self).__init__(**kwargs)

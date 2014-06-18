@@ -2,7 +2,9 @@ from __future__ import absolute_import, division
 
 from collections import defaultdict
 from datetime import datetime, timedelta
+from hashlib import sha1
 from sqlalchemy.sql import func
+from sqlalchemy.orm import subqueryload_all
 
 from changes.config import db
 from changes.constants import Status, Result
@@ -13,6 +15,12 @@ from changes.utils.http import build_uri
 SLOW_TEST_THRESHOLD = 3000  # ms
 
 ONE_DAY = 60 * 60 * 24
+
+
+def percent(value, total):
+    if not (value and total):
+        return 0
+    return int(value / total * 100)
 
 
 class BuildReport(object):
@@ -26,12 +34,25 @@ class BuildReport(object):
         days_delta = timedelta(days=days)
         start_period = end_period - days_delta
 
+        # if we're pulling data for a select number of days let's use the
+        # previous week as the previous period
+        if days < 7:
+            previous_end_period = end_period - timedelta(days=7)
+        else:
+            previous_end_period = start_period
+        previous_start_period = previous_end_period - days_delta
+
         current_results = self.get_project_stats(
             start_period, end_period)
         previous_results = self.get_project_stats(
-            start_period - days_delta, start_period)
+            previous_start_period, previous_end_period)
 
         for project, stats in current_results.items():
+            # exclude projects that had no builds in this period
+            if not stats['total_builds']:
+                del current_results[project]
+                continue
+
             previous_stats = previous_results.get(project)
             if not previous_stats:
                 green_change = None
@@ -46,40 +67,60 @@ class BuildReport(object):
                 green_change = stats['green_percent'] - previous_stats['green_percent']
                 duration_change = stats['avg_duration'] - previous_stats['avg_duration']
 
+            if not previous_stats:
+                total_change = None
+            elif previous_stats['total_builds'] is None:
+                total_change = None
+            else:
+                total_change = stats['total_builds'] - previous_stats['total_builds']
+
             stats['avg_duration'] = stats['avg_duration']
 
+            stats['total_change'] = total_change
             stats['percent_change'] = green_change
             stats['duration_change'] = duration_change
 
-        projects_by_green_builds = sorted(
+        project_stats = sorted(
             current_results.items(), key=lambda x: (
-                -abs(x[1]['green_percent'] or 0), -(x[1]['percent_change'] or 0),
+                -(x[1]['total_builds'] or 0), abs(x[1]['green_percent'] or 0),
                 x[0].name,
             ))
 
-        projects_by_build_time = sorted(
-            current_results.items(), key=lambda x: (
-                -abs(x[1]['avg_duration'] or 0), (x[1]['duration_change'] or 0),
-                x[0].name,
-            ))
+        current_failure_stats = self.get_failure_stats(
+            start_period, end_period)
+        previous_failure_stats = self.get_failure_stats(
+            previous_start_period, previous_end_period)
+        failure_stats = []
+        for stat_name, current_stat_value in current_failure_stats['reasons'].iteritems():
+            previous_stat_value = previous_failure_stats['reasons'].get(stat_name, 0)
+            failure_stats.append({
+                'name': stat_name,
+                'current': {
+                    'value': current_stat_value,
+                    'percent': percent(current_stat_value, current_failure_stats['total'])
+                },
+                'previous': {
+                    'value': previous_stat_value,
+                    'percent': percent(previous_stat_value, previous_failure_stats['total'])
+                },
+            })
 
         slow_tests = self.get_slow_tests(start_period, end_period)
-        # flakey_tests = self.get_frequent_failures(start_period, end_period)
-        flakey_tests = []
 
         title = 'Build Report ({0} through {1})'.format(
             start_period.strftime('%b %d, %Y'),
             end_period.strftime('%b %d, %Y'),
         )
+        if len(self.projects) == 1:
+            title = '[%s] %s' % (iter(self.projects).next().name, title)
 
         return {
             'title': title,
             'period': [start_period, end_period],
-            'projects_by_build_time': projects_by_build_time,
-            'projects_by_green_builds': projects_by_green_builds,
+            'failure_stats': failure_stats,
+            'project_stats': project_stats,
             'tests': {
                 'slow_list': slow_tests,
-                'flakey_list': flakey_tests,
             },
         }
 
@@ -128,11 +169,60 @@ class BuildReport(object):
 
         for project, stats in project_results.items():
             if stats['total_builds']:
-                stats['green_percent'] = int(stats['green_builds'] / stats['total_builds'] * 100)
+                stats['green_percent'] = percent(stats['green_builds'], stats['total_builds'])
             else:
                 stats['green_percent'] = None
 
         return project_results
+
+    def get_failure_stats(self, start_period, end_period):
+        failure_stats = {
+            'total': 0,
+            'reasons': defaultdict(int),
+        }
+        for project in self.projects:
+            for stat, value in self.get_failure_stats_for_project(
+                    project, start_period, end_period).iteritems():
+                failure_stats['reasons'][stat] += value
+
+        failure_stats['total'] = Build.query.join(
+            Source, Source.id == Build.source_id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
+            Build.project_id.in_(p.id for p in self.projects),
+            Build.status == Status.finished,
+            Build.result == Result.failed,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+        ).count()
+
+        return failure_stats
+
+    def get_failure_stats_for_project(self, project, start_period, end_period):
+        stats = {
+            'Test Failures': 0,
+            'Missing Tests': 0,
+        }
+        # TODO(dcramer): we should embed this logic into the job/build results
+        failing_builds = Build.query.join(
+            Source, Source.id == Build.source_id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
+            Build.project_id == project.id,
+            Build.status == Status.finished,
+            Build.result == Result.failed,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+        ).options(
+            subqueryload_all('stats'),
+        )
+        for build in failing_builds:
+            build_stats = dict((s.name, s.value) for s in build.stats)
+            if build_stats.get('test_failures', 0):
+                stats['Test Failures'] += 1
+            if build_stats.get('tests_missing', 0):
+                stats['Missing Tests'] += 1
+        return stats
 
     def get_slow_tests(self, start_period, end_period):
         slow_tests = []
@@ -179,84 +269,11 @@ class BuildReport(object):
                 'package': '',  # TODO
                 'duration': '%.2f s' % (duration / 1000.0,),
                 'duration_raw': duration,
-                # 'link': build_uri('/projects/{0}/tests/{1}/'.format(
-                #     project.slug, agg_id.hex)),
+                'link': build_uri('/projects/{0}/tests/{1}/'.format(
+                    project.slug, sha1(name).hexdigest())),
             })
 
         return slow_list
-
-    def get_frequent_failures(self, start_period, end_period):
-        projects_by_id = dict((p.id, p) for p in self.projects)
-        project_ids = projects_by_id.keys()
-
-        queryset = db.session.query(
-            TestCase.name,
-            TestCase.project_id,
-            TestCase.result,
-            func.count(TestCase.id).label('num'),
-        ).filter(
-            TestCase.project_id.in_(project_ids),
-            TestCase.result.in_([Result.passed, Result.failed]),
-            TestCase.date_created > start_period,
-            TestCase.date_created <= end_period,
-        ).group_by(
-            TestCase.name,
-            TestCase.project_id,
-            TestCase.result,
-        )
-
-        test_results = defaultdict(lambda: {
-            'passed': 0,
-            'failed': 0,
-        })
-        for name, project_id, result, count in queryset:
-            # TODO: parent name
-            test_results[(name, '', project_id)][result.name] += count
-
-        if not test_results:
-            return []
-
-        tests_with_pct = []
-        for test_key, counts in test_results.items():
-            total = counts['passed'] + counts['failed']
-            if counts['failed'] == 0:
-                continue
-            # exclude tests which haven't been seen frequently
-            elif total < 5:
-                continue
-            else:
-                pct = counts['failed'] / total * 100
-            # if the test has failed 100% of the time, it's not flakey
-            if pct == 100:
-                continue
-            tests_with_pct.append((test_key, pct, total, counts['failed']))
-        tests_with_pct.sort(key=lambda x: x[1], reverse=True)
-
-        flakiest_tests = tests_with_pct[:10]
-
-        if not flakiest_tests:
-            return []
-
-        results = []
-        for test_key, pct, total, fail_count in flakiest_tests:
-            (name, parent_name, project_id) = test_key
-
-            if parent_name:
-                name = name[len(parent_name) + 1:]
-
-            # project = projects_by_id[project_id]
-
-            results.append({
-                'name': name,
-                'package': parent_name,
-                'fail_pct': int(pct),
-                'fail_count': fail_count,
-                'total_count': total,
-                # 'link': build_uri('/projects/{0}/tests/{1}/'.format(
-                #     project.slug, agg.id.hex)),
-            })
-
-        return results
 
     def _date_to_key(self, dt):
         return int(dt.replace(

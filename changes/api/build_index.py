@@ -11,7 +11,7 @@ from werkzeug.datastructures import FileStorage
 from changes.api.base import APIView
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
-from changes.constants import Status, ProjectStatus
+from changes.constants import Result, Status, ProjectStatus
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
@@ -21,13 +21,20 @@ from changes.models import (
 )
 
 
+class MissingRevision(Exception):
+    pass
+
+
 def identify_revision(repository, treeish):
     """
     Attempt to transform a a commit-like reference into a valid revision.
     """
     # try to find it from the database first
     if len(treeish) == 40:
-        revision = Revision.query.filter(Revision.sha == treeish).first()
+        revision = Revision.query.filter(
+            Revision.repository_id == repository.id,
+            Revision.sha == treeish,
+        ).first()
         if revision:
             return revision
 
@@ -36,24 +43,57 @@ def identify_revision(repository, treeish):
         return
 
     try:
-        commit = list(vcs.log(parent=treeish, limit=1))[0]
-    except IndexError:
+        commit = vcs.log(parent=treeish, limit=1).next()
+    except Exception:
         # fall back to HEAD/tip when a matching revision isn't found
         # this case happens frequently with gateways like hg-git
         # TODO(dcramer): it's possible to DOS the endpoint by passing invalid
         # commits so we should really cache the failed lookups
+        tree = vcs.get_default_revision()
         try:
-            commit = list(vcs.log(limit=1))[0]
+            commit = vcs.log(parent=tree, limit=1).next()
         except Exception:
-            logging.exception('Failed to find commit: %s', treeish)
-            return
-    except Exception:
-        logging.exception('Failed to find commit: %s', treeish)
-        return
+            raise MissingRevision('Unable to find revision %s' % (tree,))
 
     revision, _ = commit.save(repository)
 
     return revision
+
+
+def find_green_parent_sha(project, sha):
+    """
+    Attempt to find a better revision than ``sha`` that is green.
+
+    - If sha is green, let it ride.
+    - Only search future revisions.
+    - Find the newest revision (more likely to conflict).
+    - If there's nothing better, return existing sha.
+    """
+    green_rev = Build.query.join(
+        Source, Source.id == Build.source_id,
+    ).filter(
+        Source.repository_id == project.repository_id,
+        Source.revision_sha == sha,
+    ).first()
+    if green_rev:
+        if green_rev.status == Status.finished and green_rev.result == Result.passed:
+            return sha
+
+        latest_green = Build.query.filter(
+            Build.date_created > green_rev.date_created,
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).order_by(Build.date_created.desc()).first()
+    else:
+        latest_green = Build.query.filter(
+            Build.status == Status.finished,
+            Build.result == Result.passed,
+        ).order_by(Build.date_created.desc()).first()
+
+    if latest_green:
+        return latest_green.source.revision_sha
+
+    return sha
 
 
 def create_build(project, label, target, message, author, change=None,
@@ -168,6 +208,12 @@ class BuildIndexAPIView(APIView):
         return self.paginate(queryset)
 
     def post(self):
+        """
+        Note: If ``patch`` is specified ``sha`` is assumed to be the original
+        base revision to apply the patch. It is **not** guaranteed to be the rev
+        used to apply the patch. See ``find_green_parent_sha`` for the logic of
+        identifying the correct revision.
+        """
         args = self.parser.parse_args()
 
         if not (args.project or args.repository):
@@ -224,7 +270,13 @@ class BuildIndexAPIView(APIView):
         author = args.author
         message = args.message
 
-        revision = identify_revision(repository, args.sha)
+        try:
+            revision = identify_revision(repository, args.sha)
+        except MissingRevision:
+            # if the default fails, we absolutely can't continue and the
+            # client should send a valid revision
+            return '{"error": "Unable to find a commit to build."}', 400
+
         if revision:
             if not author:
                 author = revision.author
@@ -255,6 +307,16 @@ class BuildIndexAPIView(APIView):
         else:
             patch_file = None
 
+        if patch_file:
+            patch = Patch(
+                repository=repository,
+                parent_revision_sha=sha,
+                diff=patch_file.getvalue(),
+            )
+            db.session.add(patch)
+        else:
+            patch = None
+
         builds = []
         for project in projects:
             plan_list = list(project.plans)
@@ -283,19 +345,16 @@ class BuildIndexAPIView(APIView):
                     continue
 
             if patch_file:
-                patch = Patch(
-                    repository=repository,
+                forced_sha = find_green_parent_sha(
                     project=project,
-                    parent_revision_sha=args.sha,
-                    diff=patch_file.getvalue(),
+                    sha=sha,
                 )
-                db.session.add(patch)
             else:
-                patch = None
+                forced_sha = sha
 
             builds.append(create_build(
                 project=project,
-                sha=sha,
+                sha=forced_sha,
                 target=target,
                 label=label,
                 message=message,

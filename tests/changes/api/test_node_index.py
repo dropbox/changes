@@ -1,7 +1,7 @@
 from changes.testutils import APITestCase
 
 
-class NodeDetailsTest(APITestCase):
+class NodeIndexTest(APITestCase):
     def test_simple(self):
         node_1 = self.create_node(label='bar')
         node_2 = self.create_node(label='foo')

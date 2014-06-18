@@ -1,4 +1,7 @@
 define([
-  'jquery',
-  'bootstrap/tooltip'
-], function() { });
+  'jquery'
+], function(jQuery) {
+  'use strict';
+
+  return jQuery;
+});

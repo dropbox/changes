@@ -77,7 +77,7 @@ class TestCase(db.Model):
             try:
                 package, _ = self.name.rsplit(self.sep, 1)
             except ValueError:
-                package, _ = None, self.name
+                package = None
         else:
             package = self._package
         return package
@@ -89,10 +89,10 @@ class TestCase(db.Model):
 
     @property
     def short_name(self):
-        package = self.package
-        if package and self.name.startswith(package):
-            return self.name[len(package) + 1:]
-        return self.name
+        name, package = self.name, self.package
+        if package and name.startswith(package) and name != package:
+            return name[len(package) + 1:]
+        return name
 
 
 def set_name_sha(target, value, oldvalue, initiator):

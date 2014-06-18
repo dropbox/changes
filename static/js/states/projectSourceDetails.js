@@ -2,8 +2,7 @@ define([
   'app',
   'utils/sortBuildList',
 
-  'jquery',
-  'bootstrap/tooltip'
+  'jquery'
 ], function(app, sortBuildList, $) {
   'use strict';
 

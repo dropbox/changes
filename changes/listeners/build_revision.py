@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 
 from changes.api.build_index import BuildIndexAPIView
 from changes.config import db
-from changes.models import ProjectOption, Project, Revision
+from changes.models import ProjectOption, ProjectStatus, Project, Revision
 
 
 logger = logging.getLogger('build_revision')
@@ -32,6 +32,7 @@ def revision_created_handler(revision_sha, repository_id, **kwargs):
 
     project_list = list(Project.query.filter(
         Project.repository_id == revision.repository_id,
+        Project.status == ProjectStatus.active,
     ))
     if not project_list:
         return

@@ -8,7 +8,7 @@ from changes.config import db
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
-    Artifact, TestCase, LogChunk, LogSource
+    Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode
 )
 from changes.utils.slugs import slugify
 
@@ -92,14 +92,27 @@ class Fixtures(object):
 
         return repo
 
-    def create_node(self, **kwargs):
+    def create_node(self, cluster=None, **kwargs):
         kwargs.setdefault('label', uuid4().hex)
 
         node = Node(**kwargs)
         db.session.add(node)
+
+        if cluster:
+            db.session.add(ClusterNode(cluster=cluster, node=node))
+
         db.session.commit()
 
         return node
+
+    def create_cluster(self, **kwargs):
+        kwargs.setdefault('label', uuid4().hex)
+
+        cluster = Cluster(**kwargs)
+        db.session.add(cluster)
+        db.session.commit()
+
+        return cluster
 
     def create_project(self, **kwargs):
         if not kwargs.get('repository'):
@@ -221,8 +234,6 @@ class Fixtures(object):
         kwargs['repository_id'] = kwargs['repository'].id
 
         patch = Patch(
-            project=project,
-            project_id=project.id,
             **kwargs
         )
         db.session.add(patch)
@@ -318,6 +329,8 @@ class Fixtures(object):
         return step
 
     def create_task(self, **kwargs):
+        kwargs.setdefault('task_id', uuid4())
+
         task = Task(**kwargs)
         db.session.add(task)
         db.session.commit()
