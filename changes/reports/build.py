@@ -112,7 +112,7 @@ class BuildReport(object):
             end_period.strftime('%b %d, %Y'),
         )
         if len(self.projects) == 1:
-            title = '[%s] %s' % (iter(self.projects).next().name, title)
+            title = '[%s] %s' % (next(iter(self.projects)).name, title)
 
         return {
             'title': title,

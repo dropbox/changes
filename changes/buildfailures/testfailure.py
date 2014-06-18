@@ -10,9 +10,9 @@ class TestFailure(BuildFailure):
         link = '/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex)
 
         try:
-            test_failures = (
+            test_failures = next(
                 s.value for s in build.stats if s.name == 'test_failures'
-            ).next()
+            )
         except StopIteration:
             return Markup('There were an <a href="{link}">unknown number of test failures</a>.'.format(
                 link=link,

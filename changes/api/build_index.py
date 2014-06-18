@@ -43,7 +43,7 @@ def identify_revision(repository, treeish):
         return
 
     try:
-        commit = vcs.log(parent=treeish, limit=1).next()
+        commit = next(vcs.log(parent=treeish, limit=1))
     except Exception:
         # fall back to HEAD/tip when a matching revision isn't found
         # this case happens frequently with gateways like hg-git
@@ -51,7 +51,7 @@ def identify_revision(repository, treeish):
         # commits so we should really cache the failed lookups
         tree = vcs.get_default_revision()
         try:
-            commit = vcs.log(parent=tree, limit=1).next()
+            commit = next(vcs.log(parent=tree, limit=1))
         except Exception:
             raise MissingRevision('Unable to find revision %s' % (tree,))
 
