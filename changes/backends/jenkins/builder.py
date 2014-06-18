@@ -6,7 +6,6 @@ import re
 import requests
 import time
 
-from cStringIO import StringIO
 from contextlib import closing
 from datetime import datetime
 from flask import current_app
