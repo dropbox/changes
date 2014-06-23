@@ -285,7 +285,7 @@ There's no real surprises here if you've ever written Python. We're using SQLAlc
 There are two things happening here:
 
 - We're serializing the list of Plans using the default registered serializer (dig
-  into the `serializer https://github.com/dropbox/changes/blob/master/changes/api/serializer/models/plan.py>`_ to see what this does.)
+  into the `serializer <https://github.com/dropbox/changes/blob/master/changes/api/serializer/models/plan.py>`_ to see what this does.)
 
 - ``respond()`` is then going to return an HTTP response object, with a 200 status code
   any required headers, as well as eventually encode our Python object into JSON.

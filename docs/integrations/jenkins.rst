@@ -8,9 +8,8 @@ Creating the Job
 
 This changes rapidly and documentation is not maintained for the internals of the generic job.
 
-.. code-block:: xml
-
-    .. literalinclude:: ../examples/jenkins-generic-job.xml
+.. literalinclude:: /examples/jenkins-generic-job.xml
+   :language: xml
 
 
 Example scripts based on git are included for reference. Note that REPO_PATH is a global variables that is assumed to exist.
@@ -19,9 +18,8 @@ Example scripts based on git are included for reference. Note that REPO_PATH is 
 Master Build Step
 ~~~~~~~~~~~~~~~~~
 
-.. code-block:: bash
-
-    .. literalinclude:: ../examples/generic-build-step
+.. literalinclude:: /examples/generic-build-step
+   :language: bash
 
 
 Fetching the Revision
