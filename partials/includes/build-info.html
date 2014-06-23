@@ -31,7 +31,7 @@
             <dt ng-if="build.duration">Duration:</dt>
             <dd ng-if="build.duration" duration="build.duration"></dd>
             <dt ng-if="hasCoverage">Coverage:</dt>
-            <dd ng-if="hasCoverage">{{coveragePercent}}% (overall)</dd>
+            <dd ng-if="hasCoverage">{{coveragePercent}} (overall)</dd>
             <dt ng-if="hasTests">Tests:</dt>
             <dd ng-if="hasTests">
                 <a ui-sref="build_test_list()">{{build.stats.test_count}}</a>
