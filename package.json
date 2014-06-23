@@ -6,7 +6,17 @@
     "tests": "tests"
   },
   "scripts": {
-    "test": "node_modules/karma/bin/karma start tests/karma.conf.js"
+    "postinstall": "bower install",
+
+    "prelint": "npm install",
+    "lint": "jshint static/",
+
+    "precompile-static": "npm install",
+    "compile-static": "grunt requirejs",
+
+    "pretest": "npm install",
+    "test": "node_modules/karma/bin/karma start tests/karma.conf.js --single-run",
+    "test-ci": "node_modules/karma/bin/karma start tests/karma.conf.js --single-run --reporters junit,dots"
   },
   "repository": {
     "type": "git",

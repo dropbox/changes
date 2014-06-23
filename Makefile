@@ -62,7 +62,7 @@ test-python:
 
 test-js:
 	@echo "Running JavaScript tests"
-	@node_modules/karma/bin/karma start tests/karma.conf.js --single-run
+	@npm run test
 	@echo ""
 
 lint: lint-js lint-python
@@ -74,13 +74,13 @@ lint-python:
 
 lint-js:
 	@echo "Linting JavaScript files"
-	@node_modules/.bin/jshint static/
+	@npm run lint
 	@echo ""
 
 test-full: install-test-requirements
 	$(MAKE) lint
 	$(MAKE) coverage
-	@node_modules/karma/bin/karma start tests/karma.conf.js --single-run --reporters junit,dots
+	@npm run test-ci
 
 coverage:
 	coverage run -m py.test --junitxml=python.junit.xml tests
@@ -101,7 +101,7 @@ resetdb:
 	$(MAKE) migratedb
 
 static:
-	node_modules/.bin/grunt requirejs
+	npm run compile-static
 
 # Debian/Ubuntu name collision on /usr/bin/docker
 # - https://bugs.debian.org/740863
