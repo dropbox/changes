@@ -77,7 +77,7 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <authToken>553f27f964ab488eb4eb9c1a0810422e</authToken>
+  <authToken/>
   <triggers/>
   <concurrentBuild>true</concurrentBuild>
   <builders>
