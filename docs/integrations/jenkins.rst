@@ -10,7 +10,7 @@ This changes rapidly and documentation is not maintained for the internals of th
 
 .. code-block:: xml
 
-    .. literalinclude:: examples/jenkins-generic-job.xml
+    .. literalinclude:: ../examples/jenkins-generic-job.xml
 
 
 Example scripts based on git are included for reference. Note that REPO_PATH is a global variables that is assumed to exist.
@@ -21,7 +21,7 @@ Master Build Step
 
 .. code-block:: bash
 
-    .. literalinclude:: examples/generic-build-step
+    .. literalinclude:: ../examples/generic-build-step
 
 
 Fetching the Revision
