@@ -10,7 +10,7 @@ This changes rapidly and documentation is not maintained for the internals of th
 
 .. literalinclude:: /examples/jenkins-generic-job.xml
    :language: xml
-
+   :emphasize-lines: 85-88
 
 Example scripts based on git are included for reference. Note that REPO_PATH is a global variables that is assumed to exist.
 
