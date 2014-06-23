@@ -20,7 +20,7 @@
                     Test Results<br>
                     <small>Individual test results.</small>
                 </a></li>
-                <li ng-if="job"><a ui-sref="job_phase_list()">
+                <li ng-if="job"><a ui-sref="job_phase_list({job_id: job.id})">
                     Phase Report<br>
                     <small>Detailed breakdown of phases.</small>
                 </a></li>
