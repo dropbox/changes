@@ -140,7 +140,6 @@ define([
       $scope.testFailures = jobData.testFailures;
       $scope.previousRuns = new Collection(jobData.previousRuns);
       $scope.logSourcesByPhase = {};
-      $scope.$parent.job = jobData;
 
       organizeLogSources($scope.logSourcesByPhase, jobData.logs);
 

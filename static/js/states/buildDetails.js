@@ -119,7 +119,13 @@ define([
       }
 
       // TODO(dcramer): we should actually find out if there could be > 1 job ever for this
-      $scope.isSingleJob = buildData.jobs.length === 1;
+      if (buildData.jobs.length === 1) {
+        $scope.isSingleJob = true;
+        $scope.job = buildData.jobs[0];
+      } else {
+        $scope.isSingleJob = false;
+        $scope.job = null;
+      }
 
       $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
         if (toState.name !== 'build_details') {
