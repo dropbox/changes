@@ -95,7 +95,8 @@ class JenkinsBuilder(BaseBackend):
         if params is None:
             params = {}
 
-        params.setdefault('token', self.token)
+        if self.token is not None:
+            params.setdefault('token', self.token)
 
         self.logger.info('Fetching %r', url)
         resp = getattr(requests, method.lower())(url, params=params, **kwargs)
