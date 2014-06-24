@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import logging
+
 from datetime import datetime, timedelta
 from flask import current_app
 
@@ -13,6 +15,7 @@ from .generic_builder import JenkinsGenericBuilder
 
 class JenkinsBuildStep(BuildStep):
     builder_cls = JenkinsBuilder
+    logger = logging.getLogger('jenkins')
 
     def __init__(self, job_name=None, jenkins_url=None, token=None, auth=None):
         self.job_name = job_name

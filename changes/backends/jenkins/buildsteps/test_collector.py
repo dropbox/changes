@@ -108,7 +108,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         test_stats, avg_test_time = self.get_test_stats(step.project)
 
         def get_test_duration(test):
-            return test_stats.get(test, avg_test_time)
+            result = test_stats.get(test)
+            if result is None:
+                if test_stats:
+                    self.logger.info('No existing duration found for test %r', test)
+                result = avg_test_time
+            return result
 
         groups = [[] for _ in range(self.max_shards)]
         weights = [0] * self.max_shards
