@@ -1,17 +1,19 @@
 from __future__ import absolute_import
 
+import json
 import mock
 import os.path
 import responses
 import pytest
 
+from datetime import datetime
 from flask import current_app
 from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Artifact, TestCase, Patch, LogSource, LogChunk, Job, FileCoverage
+    Artifact, TestCase, Patch, LogSource, LogChunk, Job, JobPhase, FileCoverage
 )
 from changes.backends.jenkins.builder import JenkinsBuilder, chunked
 from changes.testutils import (
@@ -377,6 +379,8 @@ class SyncStepTest(BaseTestCase):
         assert step.result == Result.failed
         assert step.date_finished is not None
 
+
+class SyncGenericResultsTest(BaseTestCase):
     @responses.activate
     def test_does_sync_log(self):
         responses.add(
@@ -490,6 +494,102 @@ class SyncStepTest(BaseTestCase):
             task_id=xunit_artifact.id.hex,
             parent_task_id=step.id.hex
         )
+
+
+class SyncPhaseResultsTest(BaseTestCase):
+    @responses.activate
+    def test_does_sync_phases(self):
+        phase_data = {
+            "retcode": 0,
+            "command": ["echo", "foo bar"],
+            "log": "test.log",
+            "startTime": 1403645499.39586,
+            "endTime": 1403645500.398765,
+            "name": "Test"
+        }
+
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_with_phase_artifacts.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
+            match_querystring=True,
+            adding_headers={'X-Text-Size': '7'},
+            body='Foo bar')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/test.phase.json',
+            body=json.dumps(phase_data))
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
+
+        builder = self.get_builder()
+        builder.sync_step(step)
+
+        # the log should still get populated for the existing phase
+        source = LogSource.query.filter_by(job=job).first()
+        assert source.step == step
+        assert source.name == step.label
+        assert source.project == self.project
+        assert source.date_created == step.date_started
+
+        chunks = list(LogChunk.query.filter_by(
+            source=source,
+        ).order_by(LogChunk.date_created.asc()))
+        assert len(chunks) == 1
+        assert chunks[0].job_id == job.id
+        assert chunks[0].project_id == self.project.id
+        assert chunks[0].offset == 0
+        assert chunks[0].size == 7
+        assert chunks[0].text == 'Foo bar'
+
+        assert step.data.get('log_offset') == 7
+
+        other_phases = list(JobPhase.query.filter(
+            JobPhase.job_id == job.id,
+            JobPhase.id != phase.id,
+        ))
+        assert len(other_phases) == 1
+        test_phase = other_phases[0]
+        assert test_phase.label == 'Test'
+        assert test_phase.result == Result.passed
+        assert test_phase.status == Status.finished
+        assert test_phase.date_started == datetime(2014, 6, 24, 21, 31, 39, 395860)
+        assert test_phase.date_finished == datetime(2014, 6, 24, 21, 31, 39, 395860)
+
+        assert len(test_phase.steps) == 1
+        test_step = test_phase.steps[0]
+        assert test_step.label == test_phase.label
+        assert test_step.result == test_phase.result
+        assert test_step.status == test_phase.status
+        assert test_step.node == step.node
+        assert test_step.date_started == test_phase.date_started
+        assert test_step.date_finished == test_phase.date_finished
+
+        log_artifact = Artifact.query.filter(
+            Artifact.name == 'test.log',
+            Artifact.step_id == test_step.id,
+        ).first()
+
+        assert log_artifact.data == {
+            "displayPath": "test.log",
+            "fileName": "test.log",
+            "relativePath": "artifacts/test.log",
+        }
 
 
 class SyncArtifactTest(BaseTestCase):

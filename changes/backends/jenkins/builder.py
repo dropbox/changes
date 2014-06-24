@@ -73,7 +73,7 @@ class JenkinsBuilder(BaseBackend):
     provider = 'jenkins'
 
     def __init__(self, base_url=None, job_name=None, token=None, auth=None,
-                 *args, **kwargs):
+                 sync_phase_artifacts=True, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.base_url = base_url or self.app.config['JENKINS_URL']
         self.token = token or self.app.config['JENKINS_TOKEN']
@@ -81,6 +81,7 @@ class JenkinsBuilder(BaseBackend):
         self.logger = logging.getLogger('jenkins')
         self.job_name = job_name
         # disabled by default as it's expensive
+        self.sync_phase_artifacts = sync_phase_artifacts
         self.sync_log_artifacts = self.app.config.get('JENKINS_SYNC_LOG_ARTIFACTS', False)
         self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
         self.sync_coverage_artifacts = self.app.config.get('JENKINS_SYNC_COVERAGE_ARTIFACTS', True)
@@ -515,29 +516,26 @@ class JenkinsBuilder(BaseBackend):
         if step.status != Status.finished:
             return
 
-        self._sync_build_results(step, item)
+        self._sync_results(step, item)
 
-    def _sync_build_results(self, step, item):
+    def _sync_results(self, step, item):
         job_name = step.data['job_name']
         build_no = step.data['build_no']
 
-        # sync artifacts
-        self.logger.info('Syncing artifacts for %s', step.id)
-        for artifact in item.get('artifacts', ()):
-            artifact, created = get_or_create(Artifact, where={
-                'step': step,
-                'name': artifact['fileName'],
-            }, defaults={
-                'project': step.project,
-                'job': step.job,
-                'data': artifact,
-            })
-            db.session.commit()
-            sync_artifact.delay_if_needed(
-                artifact_id=artifact.id.hex,
-                task_id=artifact.id.hex,
-                parent_task_id=step.id.hex,
-            )
+        artifacts = item.get('artifacts', ())
+        if self.sync_phase_artifacts:
+            # if we are allowing phase artifacts and we find *any* artifacts
+            # that resemble a phase we need to change the behavior of the
+            # the remainder of tasks
+            phased_results = any(a['fileName'].endswith('phase.json') for a in artifacts)
+        else:
+            phased_results = False
+
+        # artifacts sync differently depending on the style of job results
+        if phased_results:
+            self._sync_phased_results(step, artifacts)
+        else:
+            self._sync_generic_results(step, artifacts)
 
         # sync console log
         self.logger.info('Syncing console log for %s', step.id)
@@ -556,6 +554,119 @@ class JenkinsBuilder(BaseBackend):
             current_app.logger.exception(
                 'Unable to sync console log for job step %r',
                 step.id.hex)
+
+    def _handle_generic_artifact(self, jobstep, artifact):
+        artifact, created = get_or_create(Artifact, where={
+            'step': jobstep,
+            'name': artifact['fileName'],
+        }, defaults={
+            'project': jobstep.project,
+            'job': jobstep.job,
+            'data': artifact,
+        })
+        if not created:
+            db.session.commit()
+
+        sync_artifact.delay_if_needed(
+            artifact_id=artifact.id.hex,
+            task_id=artifact.id.hex,
+            parent_task_id=jobstep.id.hex,
+        )
+
+    def _sync_phased_results(self, step, artifacts):
+        # due to the limitations of Jenkins and our requirement to have more
+        # insight into the actual steps a build process takes and unfortunately
+        # the best way to do this is to rewrite history within Changes
+        job = step.job
+        project = step.project
+
+        artifacts_by_name = dict(
+            (a['fileName'], a)
+            for a in artifacts
+        )
+        pending_artifacts = set(artifacts_by_name.keys())
+
+        phase_steps = set()
+
+        # fetch each phase and create it immediately (as opposed to async)
+        for artifact in artifacts:
+            artifact_filename = artifact['fileName']
+
+            if not artifact_filename.endswith('phase.json'):
+                continue
+
+            pending_artifacts.remove(artifact_filename)
+
+            resp = self.fetch_artifact(step, artifact)
+            phase_data = resp.json()
+
+            if phase_data['retcode']:
+                result = Result.failed
+            else:
+                result = Result.passed
+
+            date_started = datetime.utcfromtimestamp(phase_data['startTime'])
+            date_finished = datetime.utcfromtimestamp(phase_data['startTime'])
+
+            jobphase, created = get_or_create(JobPhase, where={
+                'job': job,
+                'label': phase_data['name'],
+            }, defaults={
+                'project': project,
+                'result': result,
+                'status': Status.finished,
+                'date_started': date_started,
+                'date_finished': date_finished,
+            })
+
+            jobstep, created = get_or_create(JobStep, where={
+                'phase': jobphase,
+                'job': job,
+            }, defaults={
+                'node': step.node,
+                'label': jobphase.label,
+                'project': project,
+                'result': jobphase.result,
+                'status': jobphase.status,
+                'date_started': jobphase.date_started,
+                'date_finished': jobphase.date_finished,
+                'data': phase_data,
+            })
+
+            phase_steps.add(jobstep)
+
+        for phase_step in phase_steps:
+            for artifact in artifacts:
+                if artifact['fileName'] == phase_data['log']:
+                    log_artifact = artifact
+                    break
+            else:
+                self.logger.warning('Unable to find logfile for phase: %s', phase_data)
+                continue
+
+            pending_artifacts.remove(log_artifact['fileName'])
+
+            self._handle_generic_artifact(
+                jobstep=phase_step,
+                artifact=log_artifact,
+            )
+
+        if not pending_artifacts:
+            return
+
+        # all remaining artifacts get bound to the final phase
+        final_step = sorted(phase_steps, key=lambda x: x.date_finished, reversed=True)[0]
+        for artifact_name in pending_artifacts:
+            self._handle_generic_artifact(
+                jobstep=final_step,
+                artifact=artifacts_by_name[artifact_name],
+            )
+
+    def _sync_generic_results(self, step, artifacts):
+        # sync artifacts
+        self.logger.info('Syncing artifacts for %s', step.id)
+        for artifact in artifacts:
+            self._handle_generic_artifact(jobstep=step, artifact=artifact)
 
     def sync_job(self, job):
         """
