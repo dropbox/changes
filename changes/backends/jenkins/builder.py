@@ -491,7 +491,6 @@ class JenkinsBuilder(BaseBackend):
 
         if not step.data.get('uri'):
             step.data['uri'] = item['url']
-            db.session.add(step)
 
         # TODO(dcramer): we're doing a lot of work here when we might
         # not need to due to it being sync'd previously
@@ -506,21 +505,21 @@ class JenkinsBuilder(BaseBackend):
         else:
             step.status = Status.finished
             step.result = RESULT_MAP[item['result']]
-            # values['duration'] = item['duration'] or None
             step.date_finished = datetime.utcfromtimestamp(
                 (item['timestamp'] + item['duration']) / 1000)
 
-        # step.data.update({
-        #     'backend': {
-        #         'uri': item['url'],
-        #         'label': item['fullDisplayName'],
-        #     }
-        # })
-        db.session.add(step)
-        db.session.commit()
+        if db.session.is_modified(step):
+            db.session.add(step)
+            db.session.commit()
 
         if step.status != Status.finished:
             return
+
+        self._sync_build_results(step, item)
+
+    def _sync_build_results(self, step, item):
+        job_name = step.data['job_name']
+        build_no = step.data['build_no']
 
         # sync artifacts
         self.logger.info('Syncing artifacts for %s', step.id)
