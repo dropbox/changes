@@ -8,17 +8,25 @@ class ProjectTestGroupIndexTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 
-        build = self.create_build(self.project)
-        self.create_job(build)
-
         project = self.create_project()
-        build = self.create_build(project)
-        job = self.create_job(
-            build, status=Status.finished, result=Result.passed)
+        build = self.create_build(
+            project=project,
+            status=Status.finished,
+            result=Result.passed,
+        )
+
+        job = self.create_job(build)
+        job2 = self.create_job(build)
 
         self.create_test(job=job, name='foo.bar', duration=50)
         self.create_test(job=job, name='foo.baz', duration=70)
-        self.create_test(job=job, name='blah.blah', duration=10)
+        self.create_test(job=job2, name='blah.blah', duration=10)
+
+        # an unfinished build which shouldn't be used
+        self.create_build(
+            project=self.project,
+            status=Status.in_progress,
+        )
 
         path = '/api/0/projects/{0}/testgroups/'.format(fake_project_id.hex)
 
