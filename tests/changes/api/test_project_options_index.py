@@ -3,7 +3,7 @@ from changes.models import ProjectOption
 from changes.testutils import APITestCase
 
 
-class BuildListTest(APITestCase):
+class ProjectOptionsTest(APITestCase):
     def test_simple(self):
         path = '/api/0/projects/{0}/options/'.format(self.project.slug)
 
