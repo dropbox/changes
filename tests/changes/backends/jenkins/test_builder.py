@@ -378,60 +378,10 @@ class SyncBuildTest(BaseTestCase):
         assert step.date_finished is not None
 
     @responses.activate
-    def test_does_sync_test_report(self):
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
-            body=self.load_fixture('fixtures/GET/job_details_with_test_report.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
-            body=self.load_fixture('fixtures/GET/job_test_report.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
-            match_querystring=True,
-            adding_headers={'X-Text-Size': '0'},
-            body='')
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
-            body=self.load_fixture('fixtures/GET/node_config.xml'))
-
-        build = self.create_build(self.project)
-        job = self.create_job(
-            build=build,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': 2,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': False,
-            },
-        )
-        phase = self.create_jobphase(job)
-        step = self.create_jobstep(phase, data=job.data)
-
-        builder = self.get_builder()
-        builder.sync_step(step)
-
-        test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
-
-        assert len(test_list) == 2
-        assert test_list[0].name == 'tests.changes.handlers.test_xunit.Test'
-        assert test_list[0].result == Result.skipped
-        assert test_list[0].message == 'collection skipped'
-        assert test_list[0].duration == 0
-
-        assert test_list[1].name == 'tests.changes.api.test_build_details.BuildDetailsTest.test_simple'
-        assert test_list[1].result == Result.passed
-        assert test_list[1].message == ''
-        assert test_list[1].duration == 155
-
-    @responses.activate
     def test_does_sync_log(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_failed.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
-            body=self.load_fixture('fixtures/GET/job_test_report.json'))
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
@@ -482,9 +432,6 @@ class SyncBuildTest(BaseTestCase):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_with_artifacts.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
-            body=self.load_fixture('fixtures/GET/job_test_report.json'))
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
@@ -721,10 +668,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             body=self.load_fixture('fixtures/GET/queue_details_building.json'))
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
-            body=self.load_fixture('fixtures/GET/job_details_with_test_report.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/testReport/api/json/',
-            body=self.load_fixture('fixtures/GET/job_test_report.json'))
+            body=self.load_fixture('fixtures/GET/job_details_success.json'))
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
             match_querystring=True,
@@ -796,19 +740,6 @@ class JenkinsIntegrationTest(BaseTestCase):
         node = step_list[0].node
         assert node.label == 'server-ubuntu-10.04 (ami-746cf244) (i-836023b7)'
         assert [n.label for n in node.clusters] == ['server-runner']
-
-        test_list = sorted(TestCase.query.filter_by(job=job), key=lambda x: x.duration)
-
-        assert len(test_list) == 2
-        assert test_list[0].name == 'tests.changes.handlers.test_xunit.Test'
-        assert test_list[0].result == Result.skipped
-        assert test_list[0].message == 'collection skipped'
-        assert test_list[0].duration == 0
-
-        assert test_list[1].name == 'tests.changes.api.test_build_details.BuildDetailsTest.test_simple'
-        assert test_list[1].result == Result.passed
-        assert test_list[1].message == ''
-        assert test_list[1].duration == 155
 
         source = LogSource.query.filter_by(job=job).first()
         assert source.name == step_list[0].label

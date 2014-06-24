@@ -19,7 +19,7 @@ from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
-    Artifact, Cluster, ClusterNode, TestResult, TestResultManager,
+    Artifact, Cluster, ClusterNode, TestResult,
     LogSource, LogChunk, Node, JobPhase, JobStep
 )
 from changes.handlers.coverage import CoverageHandler
@@ -333,18 +333,6 @@ class JenkinsBuilder(BaseBackend):
                 test_list.append(test_result)
         return test_list
 
-    def _sync_test_results(self, step, job_name, build_no):
-        try:
-            test_report = self._get_response('/job/{}/{}/testReport/'.format(
-                job_name, build_no))
-        except NotFound:
-            return
-
-        test_list = self._process_test_report(step, test_report)
-
-        manager = TestResultManager(step)
-        manager.save(test_list)
-
     def _find_job(self, job_name, job_id):
         """
         Given a job identifier, we attempt to poll the various endpoints
@@ -551,21 +539,6 @@ class JenkinsBuilder(BaseBackend):
                 task_id=artifact.id.hex,
                 parent_task_id=step.id.hex,
             )
-
-        # sync test results
-        self.logger.info('Syncing tests results for %s', step.id)
-        try:
-            self._sync_test_results(
-                step=step,
-                job_name=job_name,
-                build_no=build_no,
-            )
-        except Exception:
-            db.session.rollback()
-            self.logger.exception(
-                'Failed to sync test results for %s #%s', job_name, build_no)
-        else:
-            db.session.commit()
 
         # sync console log
         self.logger.info('Syncing console log for %s', step.id)
