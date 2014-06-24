@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-from collections import defaultdict
 from hashlib import md5
 from operator import itemgetter
 
@@ -12,7 +11,8 @@ from changes.config import db
 from changes.constants import Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import JobPhase, JobStep
+from changes.models import Job, JobPhase, JobStep, TestCase
+from changes.utils.trees import build_flat_tree
 
 
 class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
@@ -75,26 +75,39 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         if not last_build:
             return {}, 0
 
-        response = api_client.get('/builds/{build}/tests/?per_page='.format(
-            build=last_build['id']))
+        # XXX(dcramer): ideally this would be abstractied via an API
+        job_list = db.session.query(Job.id).filter(
+            Job.build_id == last_build['id'],
+        )
 
-        results = defaultdict(int)
-        total_duration = 0
-        test_count = 0
-        for test in response:
-            results[test['name']] += test['duration']
-            results[test['package']] += test['duration']
-            total_duration += test['duration']
-            test_count += 1
+        test_durations = dict(db.session.query(
+            TestCase.name, TestCase.duration
+        ).filter(
+            TestCase.job_id.in_(job_list),
+        ))
+        test_names = []
+        total_count, total_duration = 0, 0
+        for test in test_durations:
+            test_names.append(test)
+            total_duration += test_durations[test]
+            total_count += 1
+
+        sep = TestCase(name=test_names[0]).sep
+        tree = build_flat_tree(test_names, sep=sep)
+        test_stats = {}
+        for group_name, group_tests in tree.iteritems():
+            test_stats[group_name] = sum(test_durations[t] for t in group_tests)
+
+        print test_stats
 
         # the build report can contain different test suites so this isnt the
         # most accurate
         if total_duration > 0:
-            avg_test_time = int(total_duration / test_count)
+            avg_test_time = int(total_duration / total_count)
         else:
             avg_test_time = 0
 
-        return results, avg_test_time
+        return test_stats, avg_test_time
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
