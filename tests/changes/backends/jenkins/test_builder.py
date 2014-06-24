@@ -221,7 +221,7 @@ class CancelStepTest(BaseTestCase):
         assert step.result == Result.aborted
 
 
-class SyncBuildTest(BaseTestCase):
+class SyncStepTest(BaseTestCase):
     @responses.activate
     def test_waiting_in_queue(self):
         responses.add(
@@ -491,6 +491,8 @@ class SyncBuildTest(BaseTestCase):
             parent_task_id=step.id.hex
         )
 
+
+class SyncArtifactTest(BaseTestCase):
     @responses.activate
     def test_sync_artifact_as_log(self):
         responses.add(
