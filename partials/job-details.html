@@ -48,7 +48,9 @@
                                ui-sref="log_details({source_id: step.logSources[0].id})"
                                tooltip="Log: {{step.logSources[0].name}}">{{step.name}}</a>
                             <span ng-if="!step.logSources">{{step.name}}</span><br>
-                            <small><a href="/nodes/{{step.node.id}}/" ng-if="step.node">{{(step.node.name || step.node.id)|truncate:50}}</a></small>
+                        </td>
+                        <td class="column">
+                            <a href="/nodes/{{step.node.id}}/" ng-if="step.node">{{(step.node.name || step.node.id)|truncate:50}}</a>
                         </td>
                         <td class="column" ng-if="step.status.id == 'finished'">
                             <span ng-if="step.duration" duration="step.duration"></span>
