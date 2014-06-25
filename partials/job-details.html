@@ -47,8 +47,7 @@
                                   class="spinner-icon spinner-icon-sm"></span>
 
                             <a ng-if="step.logSources"
-                               ui-sref="log_details({source_id: step.logSources[0].id})"
-                               tooltip="Log: {{step.logSources[0].name}}">{{step.name}}</a>
+                               ui-sref="log_details({source_id: step.logSources[0].id})">{{step.name}}</a>
                             <span ng-if="!step.logSources">{{step.name}}</span><br>
                         </td>
                         <td class="column">
