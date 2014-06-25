@@ -640,20 +640,17 @@ class JenkinsBuilder(BaseBackend):
             phase_steps.add(jobstep)
 
             # capture the log if available
-            for artifact in artifacts:
-                if artifact['fileName'] == phase_data['log']:
-                    log_artifact = artifact
-                    break
-            else:
+            try:
+                log_artifact = artifacts_by_name[phase_data['log']]
+            except KeyError:
                 self.logger.warning('Unable to find logfile for phase: %s', phase_data)
-                continue
+            else:
+                pending_artifacts.remove(log_artifact['fileName'])
 
-            pending_artifacts.remove(log_artifact['fileName'])
-
-            self._handle_generic_artifact(
-                jobstep=jobstep,
-                artifact=log_artifact,
-            )
+                self._handle_generic_artifact(
+                    jobstep=jobstep,
+                    artifact=log_artifact,
+                )
 
         if not pending_artifacts:
             return
