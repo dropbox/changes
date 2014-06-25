@@ -606,7 +606,7 @@ class JenkinsBuilder(BaseBackend):
                 result = Result.passed
 
             date_started = datetime.utcfromtimestamp(phase_data['startTime'])
-            date_finished = datetime.utcfromtimestamp(phase_data['startTime'])
+            date_finished = datetime.utcfromtimestamp(phase_data['endTime'])
 
             jobphase, created = get_or_create(JobPhase, where={
                 'job': job,

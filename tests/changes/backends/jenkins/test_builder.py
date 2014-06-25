@@ -569,7 +569,7 @@ class SyncPhaseResultsTest(BaseTestCase):
         assert test_phase.result == Result.passed
         assert test_phase.status == Status.finished
         assert test_phase.date_started == datetime(2014, 6, 24, 21, 31, 39, 395860)
-        assert test_phase.date_finished == datetime(2014, 6, 24, 21, 31, 39, 395860)
+        assert test_phase.date_finished == datetime(2014, 6, 24, 21, 31, 40, 398765)
 
         assert len(test_phase.steps) == 1
         test_step = test_phase.steps[0]
