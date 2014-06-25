@@ -415,6 +415,10 @@ dd .progress {
 .section-boxed .section-body ul:last-child {
   margin-bottom: 0;
 }
+.section-boxed .section-header .timing {
+  right: 20px;
+  top: 14px;
+}
 
 .page-header {
   margin-top: 0;
