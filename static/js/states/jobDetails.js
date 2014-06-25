@@ -4,8 +4,6 @@ define([
 ], function(app, sortArray) {
   'use strict';
 
-  var BUFFER_SIZE = 10000;
-
   return {
     url: "jobs/:job_id/",
     parent: 'build_details',
