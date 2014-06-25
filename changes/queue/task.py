@@ -202,7 +202,7 @@ class TrackedTask(local):
             })
             db.session.commit()
 
-            raise TooManyRetries
+            raise TooManyRetries('%s failed after %d retries' % (self.task_name, task.num_retries))
 
         self._update({
             Task.date_modified: datetime.utcnow(),
