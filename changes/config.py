@@ -55,7 +55,7 @@ api = APIController(prefix='/api/0')
 mail = Mail()
 queue = Celery()
 redis = Redis()
-sentry = Sentry(logging=True, level=logging.ERROR)
+sentry = Sentry(logging=True, level=logging.WARN)
 
 
 def create_app(_read_config=True, **config):
