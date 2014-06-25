@@ -1,8 +1,8 @@
-<div class="section section-boxed" ng-if="failureList">
-    <div class="section-header">
-        <h3>Build Failed</h3>
+<div class="panel panel-danger" ng-if="failureList">
+    <div class="panel-heading">
+        <h3 class="panel-title">Build Failed</h3>
     </div>
-    <div class="section-body">
+    <div class="panel-body">
         <ul class="failure-list">
             <li ng-repeat="failure in failureList">
                 <span class="indicator"></span>
