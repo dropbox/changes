@@ -719,6 +719,7 @@ class JenkinsBuilder(BaseBackend):
 
         step.status = Status.finished
         step.result = Result.aborted
+        step.date_finished = datetime.utcnow()
         db.session.add(step)
 
     def get_job_parameters(self, job, target_id=None):
