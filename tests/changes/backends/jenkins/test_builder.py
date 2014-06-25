@@ -573,7 +573,7 @@ class SyncPhaseResultsTest(BaseTestCase):
 
         assert len(test_phase.steps) == 1
         test_step = test_phase.steps[0]
-        assert test_step.label == test_phase.label
+        assert test_step.label == step.label
         assert test_step.result == test_phase.result
         assert test_step.status == test_phase.status
         assert test_step.node == step.node
