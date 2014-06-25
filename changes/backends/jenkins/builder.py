@@ -639,7 +639,7 @@ class JenkinsBuilder(BaseBackend):
 
             phase_steps.add(jobstep)
 
-        for phase_step in phase_steps:
+            # capture the log if available
             for artifact in artifacts:
                 if artifact['fileName'] == phase_data['log']:
                     log_artifact = artifact
@@ -651,7 +651,7 @@ class JenkinsBuilder(BaseBackend):
             pending_artifacts.remove(log_artifact['fileName'])
 
             self._handle_generic_artifact(
-                jobstep=phase_step,
+                jobstep=jobstep,
                 artifact=log_artifact,
             )
 
