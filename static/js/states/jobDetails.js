@@ -9,7 +9,7 @@ define([
     parent: 'build_details',
     templateUrl: 'partials/job-details.html',
     controller: function($scope, $http, $filter, projectData, buildData, Collection,
-                         jobData, phaseList, ItemPoller, PageTitle, Pagination) {
+                         jobData, phaseList, CollectionPoller, ItemPoller, PageTitle) {
 
       function updateJob(data){
         if (data.id !== $scope.job.id) {
@@ -82,12 +82,13 @@ define([
           $scope.previousRuns.extend(response.previousRuns);
         }
       });
-      var phasesPoller = new ItemPoller({
+      var phasesPoller = new CollectionPoller({
         $scope: $scope,
+        collection: $scope.phaseList,
         endpoint: '/api/0/jobs/' + jobData.id + '/phases/',
-        update: function(response) {
-          $scope.phaseList.extend(response);
-          $.map($scope.phaseList, processPhase);
+        transform: function(response) {
+          $.map(response, processPhase);
+          return response;
         }
       });
     },
