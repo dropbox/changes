@@ -1,4 +1,4 @@
-<section class="section section-boxed" ng-if="testFailures.total">
+<section class="section" ng-if="testFailures.total">
     <div class="section-header">
         <h3>
             Failing Tests
@@ -13,6 +13,12 @@
     <div class="section-body">
         <table class="grid-list"
                slyEvaluateOnlyWhen="testFailures.tests.length">
+            <thead>
+                <tr class="grid-list-header">
+                    <th>Test</th>
+                    <th class="column">Duration</th>
+                </tr>
+            </thead>
             <tbody>
                 <tr ng-repeat="testCase in testFailures.tests"
                     class="result-{{testCase.result.id}}">
