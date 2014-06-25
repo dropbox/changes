@@ -634,10 +634,10 @@ class JenkinsBuilder(BaseBackend):
 
             jobstep, created = get_or_create(JobStep, where={
                 'phase': jobphase,
+                'label': step.label,
             }, defaults={
                 'job': job,
                 'node': step.node,
-                'label': step.label,
                 'project': project,
                 'result': jobphase.result,
                 'status': jobphase.status,
