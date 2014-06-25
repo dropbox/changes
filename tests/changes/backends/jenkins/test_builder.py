@@ -577,6 +577,7 @@ class SyncPhaseResultsTest(BaseTestCase):
         assert test_step.result == test_phase.result
         assert test_step.status == test_phase.status
         assert test_step.node == step.node
+        assert test_step.data == step.data
         assert test_step.date_started == test_phase.date_started
         assert test_step.date_finished == test_phase.date_finished
 
