@@ -42,8 +42,8 @@
                     <tr ng-repeat="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
                         <td>
                             <span class="indicator indicator-sm"
-                                  ng-if="phase.status.id == 'finished'"></span>
-                            <span ng-if="phase.status.id != 'finished'"
+                                  ng-if="step.status.id == 'finished'"></span>
+                            <span ng-if="step.status.id != 'finished'"
                                   class="spinner-icon spinner-icon-sm"></span>
 
                             <a ng-if="step.logSources.length"
