@@ -23,8 +23,10 @@
 							<a ng-repeat="logSource in step.logSources"
 							   ui-sref="log_details({source_id: logSource.id})"
 							   tooltip="Log: {{logSource.name}}"><span class="glyphicon glyphicon-unchecked"></span></a>
-							{{step.name}}<br>
-							<a ng-if="step.data.uri" href="{{step.data.uri}}">{{step.data.uri}}</a>
+							<a ng-if="step.data.uri"
+							   href="{{step.data.uri}}"><span class="glyphicon glyphicon-link"></span></a>
+
+							{{step.name}}
 						</td>
 						<td>{{step.status.name}}</td>
 						<td><a href="/nodes/{{step.node.id}}/" ng-if="step.node">{{(step.node.name || step.node.id)|truncate:50}}</a></td>
