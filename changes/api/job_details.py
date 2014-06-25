@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from sqlalchemy.orm import joinedload, subqueryload_all
+from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
@@ -12,7 +12,6 @@ from changes.utils.originfinder import find_failure_origins
 class JobDetailsAPIView(APIView):
     def get(self, job_id):
         job = Job.query.options(
-            subqueryload_all(Job.phases),
             joinedload('project', innerjoin=True),
         ).get(job_id)
         if job is None:
@@ -50,7 +49,6 @@ class JobDetailsAPIView(APIView):
 
         context = self.serialize(job)
         context.update({
-            'phases': job.phases,
             'testFailures': {
                 'total': num_test_failures,
                 'tests': self.serialize(test_failures, extended_serializers),

@@ -345,8 +345,8 @@ dd .progress {
   position: absolute;
   left: 40%;
   right: 40%;
-  top: 0;
-  bottom: 0;
+  top: 10px;
+  bottom: 10px;
   text-align: center;
   font-size: 12px;
   background: inherit;
@@ -384,7 +384,7 @@ dd .progress {
 }
 .section-header .indicator-wrapper {
   padding-right: 10px;
-  margin-top: 6px;
+  margin-top: 7px;
 }
 
 .section-boxed {
@@ -392,8 +392,7 @@ dd .progress {
   border-bottom: 0;
 }
 .section-boxed .section-header {
-  padding: 0 20px;
-  line-height: 46px;
+  padding: 10px 20px;
   background: #f9f9f9;
   border-bottom: 1px solid #eee;
   margin-bottom: 0;
@@ -406,10 +405,15 @@ dd .progress {
   border-bottom: 1px solid #eee;
 }
 .section-boxed .section-body .grid-list {
-  margin-bottom: -10px;
 }
 .section-boxed .section-body .grid-list tr:last-child td {
   border-bottom: 0;
+}
+.section-boxed .section-body .build-log {
+  margin: 0 -20px -10px;
+}
+.section-boxed .section-body ul:last-child {
+  margin-bottom: 0;
 }
 
 .page-header {
@@ -736,6 +740,7 @@ table.job-list {
 }
 
 .grid-list .indicator,
+.grid-list .spinner-icon,
 .build-list .indicator,
 .job-list .indicator {
   float: left;
@@ -743,20 +748,22 @@ table.job-list {
 }
 
 .grid-list .indicator,
-.job-list .indicator {
+.job-list .indicator,
+.grid-list .spinner-icon, {
   font-size: 16px;
   height: 24px;
   line-height: 24px;
   padding: 0 5px;
 }
 
-.grid-list .indicator-sm {
+.grid-list .indicator-sm,
+.grid-list .spinner-icon-sm {
   height: 12px;
   width: 12px;
   border-radius: 12px;
   padding: 0;
-  margin-top: 6px;
-  margin-bottom: 6px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .build-list .indicator {
@@ -1374,9 +1381,9 @@ d3barchart {
 
 .build-log {
   border-radius: 4px;
-  height: 500px;
-  background: #333;
-  color: #ddd;
+  max-height: 500px;
+  background: #fff;
+  color: #666;
   padding: 9.5px;
   font-size: 14px;
   font-weight: 300;
@@ -1401,7 +1408,9 @@ d3barchart {
 
 .build-log.expanded {
   height: auto;
-  min-height: auto;
+  max-height: none;
+  min-height: none;
+  overflow: auto;
 }
 
 .expand-log-link {
@@ -1409,7 +1418,8 @@ d3barchart {
   right: 20px;
   top: 5px;
   color: #c7c0de;
-  background: #555;
+  border: 2px solid #c7c0de;
+  background: #fff;
   padding: 5px;
 }
 .expand-log-link i {
@@ -1417,7 +1427,9 @@ d3barchart {
 }
 .expand-log-link:hover,
 .expand-log-link:focus {
-  color: #fff;
+  color: #000;
+  border-color: #000;
+  text-decoration: none;
 }
 
 .build-log-inner {
@@ -1657,19 +1669,22 @@ label.btn input[type=checkbox] {
 }
 
 .event-list,
-.failure-list {
+.failure-list,
+.indicated-list {
   list-style: none;
   margin-bottom: 20px;
   padding-left: 0;
   color: #999;
 }
 .event-list > li,
-.failure-list > li {
+.failure-list > li,
+.indicated-list > li {
   padding-left: 18px;
   position: relative;
 }
 .event-list .indicator,
-.failure-list .indicator {
+.failure-list .indicator,
+.indicated-list .indicator {
   border: 0;
   background: #999;
   width: 8px;
@@ -1680,15 +1695,19 @@ label.btn input[type=checkbox] {
   position: absolute;
   left: 0;
 }
-.event-list .result-success .indicator {
+.event-list .result-success .indicator,
+.indicated-list .result-success .indicator {
   background: rgb(114, 194, 114);
 }
 .event-list .result-fail .indicator,
-.failure-list .indicator {
+.failure-list .indicator,
+.indicated-list .result-fail .indicator
+ {
   background: #d9322d;
 }
 .event-list .event-label,
-.failure-list .failure-label {
+.failure-list .failure-label,
+.indicated-list .failure-label {
   color: #000;
 }
 

@@ -15,7 +15,7 @@
     <div ng-include="'partials/includes/job-file-coverage.html'"></div>
     <div ng-if="isSingleJob" ng-include="'partials/includes/build-event-list.html'"></div>
 
-    <section class="section section-boxed" ng-repeat="phase in phases">
+    <section class="section section-boxed" ng-repeat="phase in phaseList">
         <div class="section-header result-{{phase.result.id}}">
             <div class="line"></div>
             <div class="indicator-wrapper">
@@ -35,23 +35,31 @@
             </div>
         </div>
         <div ng-if="phase.isVisible" class="section-body">
-            <div ng-if="logSourcesByPhase[phase.id]">
-                <tabset type="'links'">
-                    <tab ng-repeat="logSource in logSourcesByPhase[phase.id]" class="result-{{logSource.step.result.id}}"
-                         heading="{{logSource.name}}"
-                         select="loadLogSource(logSource)">
+            <table class="grid-list">
+                <tbody>
+                    <tr ng-repeat="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
+                        <td>
+                            <span class="indicator indicator-sm"
+                                  ng-if="phase.status.id == 'finished'"></span>
+                            <span ng-if="phase.status.id != 'finished'"
+                                  class="spinner-icon spinner-icon-sm"></span>
 
-                        <div class="build-log-wrapper" id="log-{{logSource.id}}" bind-once>
-                            <div class="build-log"></div>
-                            <a ui-sref="log_details({source_id: logSource.id})" class="expand-log-link"><i class="glyphicon glyphicon-new-window"></i>Expand Log</a>
-                        </div>
-
-                    </tab>
-                </tabset>
-            </div>
-            <div ng-if="!logSourcesByPhase[phase.id]">
-                <p>No logs have been captured for this phase.</p>
-            </div>
+                            <a ng-if="step.logSources"
+                               ui-sref="log_details({source_id: step.logSources[0].id})"
+                               tooltip="Log: {{step.logSources[0].name}}">{{step.name}}</a>
+                            <span ng-if="!step.logSources">{{step.name}}</span><br>
+                            <small><a href="/nodes/{{step.node.id}}/" ng-if="step.node">{{(step.node.name || step.node.id)|truncate:50}}</a></small>
+                        </td>
+                        <td class="column" ng-if="step.status.id == 'finished'">
+                            <span ng-if="step.duration" duration="step.duration"></span>
+                            <span ng-if="!step.duration">{{step.result.name}}</span>
+                        </td>
+                        <td class="column" ng-if="step.status.id != 'finished'">
+                            {{step.status.name}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </section>
 </div>
