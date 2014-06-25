@@ -337,7 +337,7 @@ dd .progress {
 .section-header .toggle,
 .section-header .indicator-wrapper {
   position: relative;
-  background: #fff;
+  background: inherit;
   display: inline-block;
   z-index: 2;
 }
@@ -385,7 +385,29 @@ dd .progress {
 .section-header .indicator-wrapper {
   padding-right: 10px;
   margin-top: 6px;
-  margin-left: -5px;
+}
+
+.section-boxed {
+  border: 1px solid #eee;
+}
+.section-boxed .section-header {
+  padding: 10px 20px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 0;
+}
+.section-boxed .section-header h3 {
+  background: inherit;
+}
+.section-boxed .section-body {
+  padding: 10px 20px;
+}
+.section-boxed .section-body .grid-list {
+  margin-top: -10px;
+  margin-bottom: -10px;
+}
+.section-boxed .section-body .grid-list tr:last-child td {
+  border-bottom: 0;
 }
 
 .page-header {

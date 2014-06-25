@@ -17,7 +17,6 @@
     <section ng-repeat="phase in phases" class="section">
         <div class="section-header result-{{phase.result.id}}">
             <div class="line"></div>
-            <h3>{{phase.name}}</h3>
             <div class="indicator-wrapper">
                 <div ng-if="phase.status.id == 'finished'">
                     <div class="indicator"></div>
@@ -26,6 +25,7 @@
                     <span class="spinner-icon"></span>
                 </div>
             </div>
+            <h3>{{phase.name}}</h3>
             <div class="toggle">
                 <a ng-click="phase.isVisible = !phase.isVisible">Toggle Details</a>
             </div>
