@@ -32,7 +32,7 @@
                 <a ng-click="phase.isVisible = !phase.isVisible"></a>
             </div>
             <div class="timing">
-                <span ng-if="phase.duration">&mdash; <span duration="phase.duration"></span></span>
+                <span ng-if="phase.duration"><span duration="phase.duration"></span> &mdash;</span>
                 {{phase.finishedSteps}} / {{phase.totalSteps}}
             </div>
         </div>
