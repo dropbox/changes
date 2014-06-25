@@ -703,6 +703,7 @@ class JenkinsBuilder(BaseBackend):
 
         job.status = Status.finished
         job.result = Result.aborted
+        job.date_finished = datetime.utcnow()
         db.session.add(job)
 
     def cancel_step(self, step):
