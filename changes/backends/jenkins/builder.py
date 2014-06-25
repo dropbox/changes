@@ -621,8 +621,8 @@ class JenkinsBuilder(BaseBackend):
 
             jobstep, created = get_or_create(JobStep, where={
                 'phase': jobphase,
-                'job': job,
             }, defaults={
+                'job': job,
                 'node': step.node,
                 'label': jobphase.label,
                 'project': project,
@@ -630,7 +630,7 @@ class JenkinsBuilder(BaseBackend):
                 'status': jobphase.status,
                 'date_started': jobphase.date_started,
                 'date_finished': jobphase.date_finished,
-                'data': phase_data,
+                'data': step.data,
             })
 
             phase_steps.add(jobstep)
