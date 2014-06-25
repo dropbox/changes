@@ -42,7 +42,7 @@ define([
             }
             return sortArray(arr, getScore, false);
           }
-        }, false);
+        });
 
         phase.totalSteps = phase.steps.length;
 
@@ -61,7 +61,7 @@ define([
       $scope.phaseList = new Collection(phaseList, {
           sortFunc: function(arr) {
             function getScore(object) {
-              return [-new Date(object.dateStarted || object.dateCreated).getTime()];
+              return [new Date(object.dateStarted || object.dateCreated).getTime()];
             }
             return sortArray(arr, getScore);
           }
