@@ -69,12 +69,6 @@ define([
       };
 
       $scope.build = buildData;
-      if (buildData.message) {
-        $scope.formattedBuildMessage = getFormattedBuildMessage(buildData.message);
-      } else {
-        $scope.formattedBuildMessage = null;
-      }
-
       $scope.eventList = new Collection(buildData.events);
       $scope.failureList = new Collection(buildData.failures);
       $scope.previousRuns = buildData.previousRuns;
