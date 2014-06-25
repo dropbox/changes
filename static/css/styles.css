@@ -337,7 +337,7 @@ dd .progress {
 .section-header .toggle,
 .section-header .indicator-wrapper {
   position: relative;
-  background: inherit;
+  background: #fff;
   display: inline-block;
   z-index: 2;
 }
