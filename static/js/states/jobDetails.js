@@ -30,9 +30,32 @@ define([
         return 'Job ' + job.id + ' - ' + projectData.name;
       }
 
-      $.map(phaseList, function(phase){
-        phase.isVisible = phase.status.id != 'finished' || phase.result.id != 'passed';
-      });
+      function processPhase(phase) {
+        if (phase.isVisible === undefined) {
+          phase.isVisible = phase.status.id != 'finished' || phase.result.id != 'passed';
+        }
+
+        phase.steps = new Collection(phase.steps, {
+          sortFunc: function(arr) {
+            function getScore(object) {
+              return [object.result.id == 'failed' ? 1 : 2, object.name];
+            }
+            return sortArray(arr, getScore, false);
+          }
+        }, false);
+
+        phase.totalSteps = phase.steps.length;
+
+        var finishedSteps = 0;
+        $.each(phase.steps, function(_, step){
+          if (step.status.id == 'finished') {
+            finishedSteps += 1;
+          }
+        });
+        phase.finishedSteps = finishedSteps;
+      }
+
+      $.map(phaseList, processPhase);
 
       $scope.job = jobData;
       $scope.phaseList = new Collection(phaseList, {
@@ -66,11 +89,7 @@ define([
         endpoint: '/api/0/jobs/' + jobData.id + '/phases/',
         update: function(response) {
           $scope.phaseList.extend(response);
-          $.map($scope.phaseList, function(phase){
-            if (phase.isVisible === undefined) {
-              phase.isVisible = true;
-            }
-          });
+          $.map($scope.phaseList, processPhase);
         }
       });
     },
