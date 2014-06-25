@@ -587,6 +587,10 @@ class JenkinsBuilder(BaseBackend):
         pending_artifacts = set(artifacts_by_name.keys())
 
         phase_steps = set()
+        phase_step_data = {
+            'job_name': step.data['job_name'],
+            'build_no': step.data['build_no'],
+        }
 
         # fetch each phase and create it immediately (as opposed to async)
         for artifact in artifacts:
@@ -630,7 +634,7 @@ class JenkinsBuilder(BaseBackend):
                 'status': jobphase.status,
                 'date_started': jobphase.date_started,
                 'date_finished': jobphase.date_finished,
-                'data': step.data,
+                'data': phase_step_data,
             })
 
             phase_steps.add(jobstep)
