@@ -132,7 +132,7 @@ define([
       $scope.phases = new Collection(jobData.phases, {
           sortFunc: function(arr) {
             function getScore(object) {
-              return [-new Date(object.dateCreated).getTime()];
+              return [-new Date(object.dateStarted || object.dateCreated).getTime()];
             }
             return sortArray(arr, getScore);
           }
