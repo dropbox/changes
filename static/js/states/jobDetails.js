@@ -86,9 +86,9 @@ define([
         $scope: $scope,
         collection: $scope.phaseList,
         endpoint: '/api/0/jobs/' + jobData.id + '/phases/',
-        transform: function(response) {
-          $.map(response, processPhase);
-          return response;
+        update: function(response) {
+          $scope.phaseList.extend(response);
+          $.map($scope.phaseList, processPhase);
         }
       });
     },
