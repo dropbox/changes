@@ -1,11 +1,26 @@
 from sqlalchemy.orm import joinedload
 
 from changes.api.serializer import Serializer, register, serialize
-from changes.models import Build, Job
+from changes.models import Build, ItemStat, Job
 
 
 @register(Job)
 class JobSerializer(Serializer):
+    def get_attrs(self, item_list):
+        stat_list = ItemStat.query.filter(
+            ItemStat.item_id.in_(r.id for r in item_list),
+        )
+        stats_by_item = {}
+        for stat in stat_list:
+            stats_by_item.setdefault(stat.item_id, {})
+            stats_by_item[stat.item_id][stat.name] = stat.value
+
+        result = {}
+        for item in item_list:
+            result[item] = {'stats': stats_by_item.get(item.id, {})}
+
+        return result
+
     def serialize(self, instance, attrs):
         if instance.project_id:
             avg_build_time = instance.project.avg_build_time
@@ -32,6 +47,7 @@ class JobSerializer(Serializer):
             'duration': instance.duration,
             'estimatedDuration': avg_build_time,
             'external': external,
+            'stats': attrs['stats'],
             'dateCreated': instance.date_created.isoformat(),
             'dateModified': instance.date_modified.isoformat() if instance.date_modified else None,
             'dateStarted': instance.date_started.isoformat() if instance.date_started else None,
@@ -44,6 +60,8 @@ class JobSerializer(Serializer):
 
 class JobWithBuildSerializer(JobSerializer):
     def get_attrs(self, item_list):
+        result = super(JobWithBuildSerializer, self).get_attrs(item_list)
+
         build_list = list(Build.query.options(
             joinedload('project'),
             joinedload('author'),
@@ -55,9 +73,8 @@ class JobWithBuildSerializer(JobSerializer):
             (b.id, d) for b, d in zip(build_list, serialize(build_list))
         )
 
-        result = {}
         for item in item_list:
-            result[item] = {'build': build_map.get(item.build_id)}
+            result[item]['build'] = build_map.get(item.build_id)
 
         return result
 
