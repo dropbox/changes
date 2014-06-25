@@ -325,66 +325,11 @@ dd .progress {
 .section-header {
   position: relative;
   margin-bottom: 10px;
-  line-height: 26px;
 }
 .section-header h3 {
   margin: 0;
   position: relative;
   padding-right: 15px;
-}
-.section-header h3,
-.section-header .timing,
-.section-header .toggle,
-.section-header .indicator-wrapper {
-  position: relative;
-  background: inherit;
-  display: inline-block;
-  z-index: 2;
-}
-.section-header .toggle {
-  position: absolute;
-  left: 40%;
-  right: 40%;
-  top: 10px;
-  bottom: 10px;
-  text-align: center;
-  font-size: 12px;
-  background: inherit;
-}
-.section-header .toggle a {
-  background: #fff;
-  padding: 0 15px;
-  text-transform: uppercase;
-  color: #999;
-  cursor: pointer;
-}
-.section-header .timing {
-  position: absolute;
-  right: 0;
-  top: 4px;
-  color: #aaa;
-  font-size: 16px;
-  padding-left: 15px;
-}
-.section-header .line {
-  background: #f7f5fa;
-  height: 1px;
-  display: block;
-  position: absolute;
-  left: 0;
-  top: 14px;
-  right: 0;
-  z-index: 1;
-}
-.section-header .indicator {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  border-radius: 20px;
-}
-.section-header .indicator-wrapper {
-  padding-right: 10px;
-  margin-top: 7px;
 }
 
 .section-boxed {
@@ -397,9 +342,65 @@ dd .progress {
   border-bottom: 1px solid #eee;
   margin-bottom: 0;
 }
-.section-boxed .section-header h3 {
+.section-boxed .section-header h3,
+.section-boxed .section-header .timing,
+.section-boxed .section-header .toggle,
+.section-boxed .section-header .indicator-wrapper {
+  position: relative;
+  background: inherit;
+  display: inline-block;
+  z-index: 2;
+  height: 26px;
+  line-height: 26px;
+  vertical-align: middle;
+}
+.section-boxed .section-header .toggle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
   background: inherit;
 }
+.section-boxed .section-header .toggle a {
+  padding: 18px 10px;
+  display: block;
+  font-size: 10px;
+  text-align: center;
+  color: #999;
+  cursor: pointer;
+  border-left: 1px solid #eee;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  position: relative;
+  text-decoration: none;
+}
+.section-boxed .section-header .toggle a:before {
+  content: "\e114";
+}
+.section-boxed .section-header .toggle-open a:before {
+  content: "\e113";
+}
+.section-boxed .section-header .timing {
+  position: absolute;
+  right: 40px;
+  top: 12px;
+  color: #aaa;
+  font-size: 14px;
+  padding-left: 15px;
+}
+.section-boxed .section-header .indicator,
+.section-boxed .section-header .spinner-icon {
+  margin: 5px 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 16px;
+}
+.section-boxed .section-header .indicator-wrapper {
+  margin-right: 10px;
+}
+
 .section-boxed .section-body {
   padding: 10px 20px;
   border-bottom: 1px solid #eee;
@@ -414,10 +415,6 @@ dd .progress {
 }
 .section-boxed .section-body ul:last-child {
   margin-bottom: 0;
-}
-.section-boxed .section-header .timing {
-  right: 20px;
-  top: 14px;
 }
 
 .page-header {
