@@ -638,7 +638,7 @@ class JenkinsBuilder(BaseBackend):
             }, defaults={
                 'job': job,
                 'node': step.node,
-                'label': jobphase.label,
+                'label': step.label,
                 'project': project,
                 'result': jobphase.result,
                 'status': jobphase.status,
