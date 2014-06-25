@@ -32,13 +32,13 @@
     </ul>
 
     <div ng-if="activeProject">
-      <form class="navbar-form navbar-right" role="search" ng-submit="searchBuilds()">
+      <form class="navbar-form navbar-right hidden-sm hidden-xs" role="search" ng-submit="searchBuilds()">
         <div class="form-group">
           <input type="text" class="form-control" ng-model="projectSearchQuery.query" placeholder="search builds">
         </div>
       </form>
 
-      <div class="navbar-stats navbar-right">
+      <div class="navbar-stats navbar-right hidden-md hidden-sm hidden-xs">
         <span class="stat"
               ng-if="activeProject.stats.greenPercent >= 0">
           <span tooltip="Percentage of commits which passed in the last week."
