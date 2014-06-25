@@ -655,7 +655,7 @@ class JenkinsBuilder(BaseBackend):
             return
 
         # all remaining artifacts get bound to the final phase
-        final_step = sorted(phase_steps, key=lambda x: x.date_finished, reversed=True)[0]
+        final_step = sorted(phase_steps, key=lambda x: x.date_finished, reverse=True)[0]
         for artifact_name in pending_artifacts:
             self._handle_generic_artifact(
                 jobstep=final_step,
