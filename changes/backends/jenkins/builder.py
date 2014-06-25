@@ -555,7 +555,17 @@ class JenkinsBuilder(BaseBackend):
                 'Unable to sync console log for job step %r',
                 step.id.hex)
 
-    def _handle_generic_artifact(self, jobstep, artifact):
+    def _handle_generic_artifact(self, jobstep, artifact, skip_checks=False):
+        if not skip_checks:
+            if artifact['fileName'].endswith('.log') and not self.sync_log_artifacts:
+                return
+
+            if artifact['fileName'].endswith(XUNIT_FILENAMES) and not self.sync_xunit_artifacts:
+                return
+
+            if artifact['fileName'].endswith(COVERAGE_FILENAMES) and not self.sync_coverage_artifacts:
+                return
+
         artifact, created = get_or_create(Artifact, where={
             'step': jobstep,
             'name': artifact['fileName'],
@@ -650,6 +660,7 @@ class JenkinsBuilder(BaseBackend):
                 self._handle_generic_artifact(
                     jobstep=jobstep,
                     artifact=log_artifact,
+                    skip_checks=True,
                 )
 
         if not pending_artifacts:
@@ -682,12 +693,15 @@ class JenkinsBuilder(BaseBackend):
             self._sync_step_from_active(step)
 
     def sync_artifact(self, step, artifact):
-        if self.sync_log_artifacts and artifact['fileName'].endswith('.log'):
+        if artifact['fileName'].endswith('.log'):
             self._sync_artifact_as_log(step, artifact)
-        if self.sync_xunit_artifacts and artifact['fileName'].endswith(XUNIT_FILENAMES):
+
+        if artifact['fileName'].endswith(XUNIT_FILENAMES):
             self._sync_artifact_as_xunit(step, artifact)
-        if self.sync_coverage_artifacts and artifact['fileName'].endswith(COVERAGE_FILENAMES):
+
+        if artifact['fileName'].endswith(COVERAGE_FILENAMES):
             self._sync_artifact_as_coverage(step, artifact)
+
         db.session.commit()
 
     def cancel_job(self, job):
