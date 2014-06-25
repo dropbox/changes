@@ -205,9 +205,9 @@ class JenkinsBuilder(BaseBackend):
         job = jobstep.job
         logsource, created = get_or_create(LogSource, where={
             'name': artifact['displayPath'],
-            'job': job,
             'step': jobstep,
         }, defaults={
+            'job': job,
             'project': job.project,
             'date_created': job.date_started,
         })
@@ -239,12 +239,11 @@ class JenkinsBuilder(BaseBackend):
 
     def _sync_log(self, jobstep, name, job_name, build_no):
         job = jobstep.job
-        # TODO(dcramer): this doesnt handle concurrency
         logsource, created = get_or_create(LogSource, where={
             'name': name,
-            'job': job,
-        }, defaults={
             'step': jobstep,
+        }, defaults={
+            'job': job,
             'project': jobstep.project,
             'date_created': jobstep.date_started,
         })
