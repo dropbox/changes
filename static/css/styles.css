@@ -671,8 +671,6 @@ table > tbody > tr.result-skipped > td.result span {
 }
 .grid-list td,
 .grid-list th,
-.job-list td,
-.job-list th,
 .build-list td,
 .build-list th {
   position: relative;
@@ -684,28 +682,20 @@ table > tbody > tr.result-skipped > td.result span {
   .build-list .coverage,
   .build-list .tests,
   .build-list .date,
-  .job-list .duration {
-    display: none;
-  }
   .build-list-header {
-    display: none;
-  }
-  .job-list-header {
     display: none;
   }
 }
 
 .grid-list-header,
-.build-list-header,
-.job-list-header {
+.build-list-header {
   min-height: 30px;
   text-transform: uppercase;
   font-size: 12px;
   color: #aaa;
 }
 
-table.build-list,
-table.job-list {
+table.build-list {
   table-layout:fixed;
   max-width:100%;
   width: 100%;
@@ -715,16 +705,12 @@ table.job-list {
 }
 .grid-list th,
 .grid-list td,
-.job-list th,
-.job-list td,
 .build-list th,
 .build-list td {
   padding: 10px 0 10px 20px;
 }
 .grid-list th:first-child,
 .grid-list td:first-child,
-.job-list th:first-child,
-.job-list td:first-child,
 .build-list th:first-child,
 .build-list td:first-child {
   padding: 10px 0;
@@ -734,22 +720,19 @@ table.job-list {
 .build-list-header .duration,
 .build-list-header .tests,
 .build-list-header .coverage,
-.build-list-header .date,
-.job-list-header .duration, {
+.build-list-header .date {
   margin-top: 0;
 }
 
 .grid-list .indicator,
 .grid-list .spinner-icon,
-.build-list .indicator,
-.job-list .indicator {
+.build-list .indicator {
   float: left;
   margin-right: 10px;
 }
 
 .grid-list .indicator,
-.job-list .indicator,
-.grid-list .spinner-icon, {
+.grid-list .spinner-icon {
   font-size: 16px;
   height: 24px;
   line-height: 24px;
@@ -782,8 +765,7 @@ table.job-list {
   text-overflow: ellipsis;
 }
 
-.grid-list h5,
-.job-list h5 {
+.grid-list h5 {
   margin: 0;
   font-weight: 500;
   white-space: nowrap;
@@ -809,8 +791,7 @@ table.job-list {
 .build-list .duration,
 .build-list .tests,
 .build-list .coverage,
-.build-list .date,
-.job-list .duration {
+.build-list .date {
   text-align: right;
   font-weight: 300;
   white-space: nowrap;
@@ -818,8 +799,7 @@ table.job-list {
 .grid-list .column.left-align {
   text-align: left;
 }
-.build-list .duration,
-.job-list .duration {
+.build-list .duration {
   width: 120px;
 }
 .build-list .coverage {
@@ -835,13 +815,10 @@ table.job-list {
   width: 120px;
 }
 
-.job-list .progress,
+.grid-list .progress,
 .build-list .progress {
   margin: 0;
   display: inline-block;
-}
-.build-list .progress,
-.job-list .progress {
   height: 12px;
   width: 100px;
 }
