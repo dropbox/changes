@@ -21,7 +21,7 @@
                     </td>
                     <td class="duration" ng-if="job.status.id == 'finished'">
                         <span ng-if="job.duration" duration="job.duration"></span>
-                        <span ng-if="!job.duration">{{job.status.name}}</span>
+                        <span ng-if="!job.duration">{{job.result.name}}</span>
                     </td>
                     <td class="duration" ng-if="job.status.id != 'finished'">
                         <span type="{{job.result.id}}"
