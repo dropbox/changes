@@ -10,6 +10,7 @@
             <table class="grid-list">
                 <tr class="grid-list-header">
                     <th>Job</th>
+                    <th class="column" ng-if="features.tests">Tests</th>
                     <th class="column">Duration</th>
                 </tr>
                 <tr class="status-{{job.status.id}} result-{{job.result.id}}"
@@ -19,6 +20,7 @@
                         <a ui-sref="job_details({job_id: job.id})" class="indicator">#{{build.number}}.{{job.number}}</a>
                         <h5><a ui-sref="job_details({job_id: job.id})">{{job.name}}</a></h5>
                     </td>
+                    <th class="column" ng-if="features.tests">{{job.stats.test_count}}</th>
                     <td class="column" ng-if="job.status.id == 'finished'">
                         <span ng-if="job.duration" duration="job.duration"></span>
                         <span ng-if="!job.duration">{{job.result.name}}</span>
