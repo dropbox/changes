@@ -64,7 +64,7 @@
 					<span class="pull-right" style="margin-top:5px;">
 						<a class="btn btn-danger btn-sm" ng-click="removeProject(project)">Remove</a>
 					</span>
-					<h4><a href="/projects/{{project.slug}}/">{{project.name}}</a></h4>
+					<h4><a ui-sref="project_builds({project_id: project.slug})">{{project.name}}</a></h4>
 				</li>
 			</ul>
 		</section>
