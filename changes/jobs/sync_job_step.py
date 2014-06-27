@@ -53,7 +53,7 @@ def sync_phase(phase):
                 max, (s.result for s in phase.steps), Result.unknown)
 
         db.session.add(phase)
-    elif any(s.status == Status.in_progress for s in phase_steps):
+    elif any(s.status != Status.finished for s in phase_steps):
         phase.status = Status.in_progress
         db.session.add(phase)
 
@@ -146,7 +146,7 @@ def sync_job_step(step_id):
         is_finished = sync_job_step.verify_all_children() == Status.finished
 
     if not is_finished:
-        if step.phase.status == Status.in_progress != step.status:
+        if step.phase.status != Status.in_progress == step.status:
             sync_phase(phase=step.phase)
         raise sync_job_step.NotFinished
 
