@@ -17,7 +17,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_artifact import sync_artifact
-from changes.jobs.sync_job_step import sync_job_step
+from changes.jobs.sync_job_step import sync_job_step, sync_phase
 from changes.models import (
     Artifact, Cluster, ClusterNode, TestResult,
     LogSource, LogChunk, Node, JobPhase, JobStep
@@ -601,6 +601,8 @@ class JenkinsBuilder(BaseBackend):
             'build_no': step.data['build_no'],
         }
 
+        phases = set()
+
         # fetch each phase and create it immediately (as opposed to async)
         for artifact in artifacts:
             artifact_filename = artifact['fileName']
@@ -631,6 +633,7 @@ class JenkinsBuilder(BaseBackend):
                 'date_started': date_started,
                 'date_finished': date_finished,
             })
+            phases.add(jobphase)
 
             jobstep, created = get_or_create(JobStep, where={
                 'phase': jobphase,
@@ -661,6 +664,10 @@ class JenkinsBuilder(BaseBackend):
                     artifact=log_artifact,
                     skip_checks=True,
                 )
+
+        # ensure the results of the phase reflect the current aggregate data
+        for phase in phases:
+            sync_phase(phase)
 
         if not pending_artifacts:
             return
