@@ -8,11 +8,12 @@
 
 	<div ng-switch="testCase.result.id" class="alert alert-block" ng-class="{'passed': 'alert-success', 'failed': 'alert-danger', 'skipped': 'alert-warning'}[testCase.result.id]">
 		<p ng-switch-when="passed">This test passed successfully!</p>
-		<p ng-switch-when="failed">This test failed. Check the <a ui-sref="job_details()">console log</a> or captured output for more information.</p>
+		<p ng-switch-when="failed">This test failed. Check the <a ui-sref="log_details({source_id: testCase.logSource.id})">console log</a> or captured output for more information.</p>
 		<p ng-switch-when="skipped">This test was not run (conditions for skipping were met).</p>
 		<p ng-switch-default>The result of this test was {{testCase.result.name}}.</p>
 	</div>
 </section>
+
 <section class="section" bind-once>
 	<div class="section-header">
 		<h4>Captured Output</h4>
