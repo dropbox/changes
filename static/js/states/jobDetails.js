@@ -36,7 +36,7 @@ define([
         phase.steps = new Collection(phase.steps, {
           sortFunc: function(arr) {
             function getScore(object) {
-              return [object.result.id == 'failed' ? 1 : 2, object.name];
+              return [object.result.id == 'failed' ? 1 : 2, object.dateStarted || object.dateCreated];
             }
             return sortArray(arr, getScore, false);
           }
