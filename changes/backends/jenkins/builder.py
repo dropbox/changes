@@ -721,6 +721,12 @@ class JenkinsBuilder(BaseBackend):
             except UnrecoverableException:
                 # assume the job no longer exists
                 pass
+        db.session.flush()
+
+        if active_steps:
+            for phase in JobPhase.query.filter(JobPhase.job == job):
+                sync_phase(phase)
+            db.session.flush()
 
         job.status = Status.finished
         job.result = Result.aborted
