@@ -496,7 +496,7 @@ class SyncGenericResultsTest(BaseTestCase):
         )
 
 
-class SyncPhaseResultsTest(BaseTestCase):
+class SyncPhasedResultsTest(BaseTestCase):
     @responses.activate
     def test_does_sync_phases(self):
         phase_data = {
@@ -580,6 +580,7 @@ class SyncPhaseResultsTest(BaseTestCase):
         assert test_step.data == {
             'job_name': 'server',
             'build_no': 2,
+            'generated': True,
         }
         assert test_step.date_started == test_phase.date_started
         assert test_step.date_finished == test_phase.date_finished

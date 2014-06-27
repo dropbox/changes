@@ -599,6 +599,7 @@ class JenkinsBuilder(BaseBackend):
         phase_step_data = {
             'job_name': step.data['job_name'],
             'build_no': step.data['build_no'],
+            'generated': True,
         }
 
         phases = set()
@@ -648,7 +649,11 @@ class JenkinsBuilder(BaseBackend):
                 'date_finished': jobphase.date_finished,
                 'data': phase_step_data,
             })
-
+            sync_job_step.delay_if_needed(
+                task_id=jobstep.id.hex,
+                parent_task_id=job.id.hex,
+                step_id=jobstep.id.hex,
+            )
             phase_steps.add(jobstep)
 
             # capture the log if available
@@ -664,10 +669,6 @@ class JenkinsBuilder(BaseBackend):
                     artifact=log_artifact,
                     skip_checks=True,
                 )
-
-        # ensure the results of the phase reflect the current aggregate data
-        for phase in phases:
-            sync_phase(phase)
 
         if not pending_artifacts:
             return
@@ -693,6 +694,9 @@ class JenkinsBuilder(BaseBackend):
         """
 
     def sync_step(self, step):
+        if step.data.get('generated'):
+            return
+
         if step.data.get('queued'):
             self._sync_step_from_queue(step)
         else:
