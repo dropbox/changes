@@ -60,6 +60,8 @@ class JobLogDetailsAPIView(APIView):
             'nextOffset': next_offset,
         })
         context['source']['step'] = self.serialize(source.step)
+        if source.step:
+            context['source']['step']['phase'] = self.serialize(source.step.phase),
 
         return self.respond(context, serialize=False)
 

@@ -1357,13 +1357,13 @@ d3barchart {
 }
 
 .build-log {
-  border-radius: 4px;
   max-height: 500px;
-  background: #fff;
   color: #000;
-  padding: 9.5px;
+  border: 1px solid #eee;
+  border-width: 1px 0;
   font-size: 14px;
   font-weight: 300;
+  padding: 20px 0;
   min-height: 50px;
   overflow: -moz-scrollbars-vertical;
   overflow-y: scroll;
