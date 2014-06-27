@@ -643,10 +643,10 @@ class JenkinsBuilder(BaseBackend):
                 'job': job,
                 'node': step.node,
                 'project': project,
-                'result': jobphase.result,
-                'status': jobphase.status,
-                'date_started': jobphase.date_started,
-                'date_finished': jobphase.date_finished,
+                'result': result,
+                'status': Status.finished,
+                'date_started': date_started,
+                'date_finished': date_finished,
                 'data': phase_step_data,
             })
             sync_job_step.delay_if_needed(
