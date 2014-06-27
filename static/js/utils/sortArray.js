@@ -5,21 +5,17 @@ define([], function() {
     arr.sort(function(a, b){
       var a_score = score_fn(a),
           b_score = score_fn(b),
-          result = 0;
+          modifier = (reverse === true ? -1 : 1);
 
       for (var i = 0; i < a_score.length; i++) {
         if (a_score[i] < b_score[i]) {
-          result = -1;
+          return -1 * modifier;
         }
         if (a_score[i] > b_score[i]) {
-          result = 1;
+          return 1 * modifier;
         }
       }
-
-      if (reverse) {
-        reverse = result * -1;
-      }
-      return result;
+      return 0;
     });
 
     return arr;

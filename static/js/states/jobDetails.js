@@ -36,7 +36,7 @@ define([
         phase.steps = new Collection(phase.steps, {
           sortFunc: function(arr) {
             function getScore(object) {
-              return [object.result.id == 'failed' ? 1 : 2, object.dateStarted || object.dateCreated];
+              return [object.result.id == 'failed' ? 1 : 2, (object.dateStarted || object.dateCreated)];
             }
             return sortArray(arr, getScore, false);
           }
@@ -59,7 +59,7 @@ define([
       $scope.phaseList = new Collection(phaseList, {
           sortFunc: function(arr) {
             function getScore(object) {
-              return [new Date(object.dateStarted || object.dateCreated).getTime()];
+              return [new Date(object.dateStarted || object.dateCreated)];
             }
             return sortArray(arr, getScore);
           }
