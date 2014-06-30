@@ -66,6 +66,11 @@
           <description>Working directory to run SCRIPT from. Relative to REPO_ROOT.</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>C_WORKSPACE</name>
+          <description>Custom workspace directory.</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.20">

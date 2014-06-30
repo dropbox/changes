@@ -6,6 +6,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         self.script = kwargs.pop('script')
         self.cluster = kwargs.pop('cluster')
         self.path = kwargs.pop('path', '')
+        self.workspace = kwargs.pop('workspace', '')
         super(JenkinsGenericBuilder, self).__init__(*args, **kwargs)
 
     def get_job_parameters(self, job, script=None, target_id=None, path=None):
@@ -34,6 +35,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             {'name': 'REPO_VCS', 'value': repository.backend.name},
             {'name': 'CLUSTER', 'value': self.cluster},
             {'name': 'WORK_PATH', 'value': path},
+            {'name': 'C_WORKSPACE', 'value': self.workspace},
         ])
 
         return params
