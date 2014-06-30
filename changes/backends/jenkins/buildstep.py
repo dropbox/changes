@@ -81,10 +81,12 @@ class JenkinsFactoryBuildStep(JenkinsBuildStep):
 class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
-    def __init__(self, job_name, script, cluster, path='', **kwargs):
+    def __init__(self, job_name, script, cluster, path='', workspace='',
+                 **kwargs):
         self.script = script
         self.cluster = cluster
         self.path = path
+        self.workspace = workspace
         super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, **kwargs)
 
     def get_builder_options(self):
@@ -93,5 +95,6 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'script': self.script,
             'cluster': self.cluster,
             'path': self.path,
+            'workspace': self.workspace,
         })
         return options
