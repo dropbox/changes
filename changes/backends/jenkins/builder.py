@@ -672,7 +672,7 @@ class JenkinsBuilder(BaseBackend):
 
         # ideally we don't mark the base step as a failure if any of the phases
         # report more correct results
-        if phases and result == Result.failed and any(p.result == Result.failed for p in phases):
+        if phases and step.result == Result.failed and any(p.result == Result.failed for p in phases):
             step.result = Result.passed
             db.session.add(step)
 
