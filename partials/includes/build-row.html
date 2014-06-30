@@ -10,7 +10,7 @@
           <span class="branch" ng-repeat="branch in build.source.revision.branches" ng-if="showBranches">{{branch}}</span>
           <a ui-sref="project_source_details({project_id: build.project.slug, source_id: build.source.id})">{{build.target}}</a>
           <span ng-if="build.author">&mdash; {{build.author.name}}</span>
-          <span ng-if="build.stats.test_failures"> &mdash; <small style="color:red">{{ build.stats.test_failures }} test failures</small></span>
+          <span ng-if="build.stats.test_failures"> &mdash; <span style="color:red">{{ build.stats.test_failures }} test failures</span></span>
       </div>
     </td>
 
