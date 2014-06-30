@@ -92,13 +92,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             total_duration += test_durations[test]
             total_count += 1
 
-        sep = TestCase(name=test_names[0]).sep
-        tree = build_flat_tree(test_names, sep=sep)
         test_stats = {}
-        for group_name, group_tests in tree.iteritems():
-            test_stats[group_name] = sum(test_durations[t] for t in group_tests)
-
-        print test_stats
+        if test_names:
+            sep = TestCase(name=test_names[0]).sep
+            tree = build_flat_tree(test_names, sep=sep)
+            for group_name, group_tests in tree.iteritems():
+                test_stats[group_name] = sum(test_durations[t] for t in group_tests)
 
         # the build report can contain different test suites so this isnt the
         # most accurate
