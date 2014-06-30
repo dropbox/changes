@@ -8,7 +8,7 @@ from changes.backends.jenkins.buildsteps.collector import (
     JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 )
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import Job, JobPhase, JobStep, TestCase
@@ -108,6 +108,17 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         return test_stats, avg_test_time
 
+    def _sync_results(self, step, item):
+        super(JenkinsTestCollectorBuilder, self)._sync_results(step, item)
+
+        if step.data.get('expanded'):
+            return
+
+        artifacts = item.get('artifacts', ())
+        if not any(a['fileName'].endswith('tests.json') for a in artifacts):
+            step.result = Result.failed
+            db.session.add(step)
+
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
         artifact_data = builder.fetch_artifact(step, artifact)
@@ -167,6 +178,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 'cmd': job_config['cmd'],
                 'path': job_config['path'],
                 'tests': job_config['tests'],
+                'expanded': True,
                 'job_name': self.job_name,
                 'build_no': None,
             },

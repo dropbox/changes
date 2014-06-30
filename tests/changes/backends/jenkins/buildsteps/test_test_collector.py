@@ -137,6 +137,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert len(new_steps) == 2
         assert new_steps[0].label == '790ed83d37c20fd5178ddb4f20242ef6'
         assert new_steps[0].data == {
+            'expanded': True,
             'build_no': 23,
             'job_name': 'foo-bar',
             'tests': ['foo.bar.test_buz'],
@@ -146,6 +147,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
         assert new_steps[1].label == '4984ae5173fdb4166e5454d2494a106d'
         assert new_steps[1].data == {
+            'expanded': True,
             'build_no': 23,
             'job_name': 'foo-bar',
             'tests': ['foo.bar.test_baz', 'foo.bar.test_bar', 'foo.bar.test_biz'],
