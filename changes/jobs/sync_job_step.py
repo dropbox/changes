@@ -146,6 +146,7 @@ def sync_job_step(step_id):
         is_finished = sync_job_step.verify_all_children() == Status.finished
 
     if not is_finished:
+        db.session.flush()
         if step.phase.status != Status.in_progress == step.status:
             sync_phase(phase=step.phase)
         raise sync_job_step.NotFinished
@@ -181,6 +182,8 @@ def sync_job_step(step_id):
             'reason': 'missing_tests'
         })
         db.session.commit()
+
+    db.session.flush()
 
     sync_phase(phase=step.phase)
 
