@@ -8,7 +8,8 @@ define([
     parent: 'project_commits',
     url: ':commit_id/',
     templateUrl: 'partials/project-commit-details.html',
-    controller: function($scope, $http, $state, projectData, commitData, Collection, flash) {
+    controller: function($scope, $http, $state, projectData, commitData, buildList,
+                         Collection, CollectionPoller, flash) {
       $scope.createBuild = function() {
         var data = {
           repository: $scope.repository.url,
@@ -24,16 +25,31 @@ define([
           });
       };
 
-      $scope.commit = commitData.data;
-      $scope.repository = commitData.data.repository;
-      $scope.builds = new Collection(commitData.data.builds, {
+      $scope.commit = commitData;
+      $scope.repository = commitData.repository;
+      $scope.builds = new Collection(buildList, {
         sortFunc: sortBuildList,
         limit: 100
+      });
+
+      var poller = new CollectionPoller({
+        $scope: $scope,
+        collection: $scope.builds,
+        endpoint: '/api/0/projects/' + projectData.id + '/commits/' + $stateParams.commit_id + '/builds/'
       });
     },
     resolve: {
       commitData: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/commits/' + $stateParams.commit_id + '/');
+        return $http.get('/api/0/projects/' + projectData.id + '/commits/' + $stateParams.commit_id + '/')
+          .then(function(response){
+            return response.data;
+          });
+      },
+      buildList: function($http, $stateParams, projectData) {
+        return $http.get('/api/0/projects/' + projectData.id + '/commits/' + $stateParams.commit_id + '/builds/')
+          .then(function(response){
+            return response.data;
+          });
       }
     }
   };

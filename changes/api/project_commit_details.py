@@ -1,9 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from sqlalchemy.orm import joinedload, contains_eager
-
 from changes.api.base import APIView
-from changes.models import Build, Project, Revision, Source
+from changes.models import Project, Revision
 
 
 class ProjectCommitDetailsAPIView(APIView):
@@ -20,22 +18,10 @@ class ProjectCommitDetailsAPIView(APIView):
         if not revision:
             return '', 404
 
-        build_list = list(Build.query.options(
-            joinedload('author'),
-            contains_eager('source').joinedload('revision'),
-        ).join(
-            Source, Build.source_id == Source.id,
-        ).filter(
-            Build.project_id == project.id,
-            Source.revision_sha == revision.sha,
-            Source.patch == None,  # NOQA
-        ).order_by(Build.date_created.desc()))[:100]
-
         context = self.serialize(revision)
 
         context.update({
             'repository': repo,
-            'builds': build_list,
         })
 
         return self.respond(context)
