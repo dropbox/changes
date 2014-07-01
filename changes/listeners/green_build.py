@@ -61,10 +61,6 @@ def build_finished_handler(build_id, **kwargs):
         logger.info('green-build.notify disabled for project: %s', build.project_id)
         return
 
-    if source.repository.backend != RepositoryBackend.hg:
-        logger.info('Repository backend is not supported: %s', source.repository.id)
-        return
-
     vcs = source.repository.get_vcs()
     if vcs is None:
         logger.info('Repository has no VCS set: %s', source.repository.id)
@@ -76,7 +72,10 @@ def build_finished_handler(build_id, **kwargs):
     else:
         vcs.clone()
 
-    release_id = vcs.run(['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
+    if source.repository.backend == RepositoryBackend.hg:
+        release_id = vcs.run(['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
+    else:
+        release_id = source.revision_sha
 
     project = options.get('green-build.project') or build.project.slug
 
