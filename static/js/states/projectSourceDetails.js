@@ -10,7 +10,8 @@ define([
     parent: 'project_details',
     url: 'sources/:source_id/',
     templateUrl: 'partials/project-source-details.html',
-    controller: function($scope, $http, features, sourceData, buildList, Collection) {
+    controller: function($scope, $http, features, sourceData, buildList,
+                         Collection, CollectionPoller) {
       $scope.source = sourceData.data;
       $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
@@ -52,6 +53,12 @@ define([
           });
         });
       }
+
+      var poller = new CollectionPoller({
+        $scope: $scope,
+        collection: $scope.builds,
+        endpoint: '/api/0/projects/' + projectData.id + '/sources/' + $stateParams.source_id + '/builds/'
+      });
     },
     resolve: {
       sourceData: function($http, $stateParams, projectData) {

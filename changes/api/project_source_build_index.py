@@ -20,10 +20,11 @@ class ProjectSourceBuildIndexAPIView(APIView):
         if source is None:
             return '', 404
 
-        build_list = list(Build.query.options(
+        build_query = Build.query.options(
             joinedload('author'),
         ).filter(
+            Build.project_id == project.id,
             Build.source_id == source.id,
-        ).order_by(Build.date_created.desc()))[:100]
+        ).order_by(Build.date_created.desc())
 
-        return self.respond(build_list)
+        return self.paginate(build_query)
