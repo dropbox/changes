@@ -8,7 +8,7 @@ define([
     parent: 'project_commits',
     url: ':commit_id/',
     templateUrl: 'partials/project-commit-details.html',
-    controller: function($scope, $http, $state, projectData, commitData, buildList,
+    controller: function($scope, $http, $state, $stateParams, projectData, commitData, buildList,
                          Collection, CollectionPoller, flash) {
       $scope.createBuild = function() {
         var data = {
