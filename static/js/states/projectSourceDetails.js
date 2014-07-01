@@ -10,8 +10,8 @@ define([
     parent: 'project_details',
     url: 'sources/:source_id/',
     templateUrl: 'partials/project-source-details.html',
-    controller: function($scope, $http, features, sourceData, buildList,
-                         Collection, CollectionPoller) {
+    controller: function($scope, $http, features, projectData, sourceData,
+                         buildList, Collection, CollectionPoller) {
       $scope.source = sourceData.data;
       $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
