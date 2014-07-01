@@ -8,11 +8,26 @@ define([
 ], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
   'use strict';
 
+  var PER_PAGE = 50;
+
+  var COLLECTION_OPTIONS = {
+    equals: function(item, other) {
+      return item.repository_id == other.repository_id && item.sha == other.sha;
+    },
+    limit: PER_PAGE
+  };
+
+  function getEndpoint($stateParams) {
+    var url = '/api/0/projects/' + $stateParams.project_id + '/commits/?per_page=' + PER_PAGE;
+    return url;
+  }
+
   return {
     parent: 'project_details',
     url: 'commits/',
     templateUrl: 'partials/project-commit-list.html',
-    controller: function($scope, $state, Collection, commitList, CollectionPoller, projectData) {
+    controller: function($http, $scope, $state, $stateParams, Collection, CollectionPoller,
+                         commitList) {
       var chart_options = {
         linkFormatter: function(item) {
           if (item.build) {
@@ -75,6 +90,31 @@ define([
         }
       };
 
+      function updatePageLinks(links) {
+        var value = parseLinkHeader(links);
+
+        $scope.pageLinks = value;
+        $scope.nextPage = value.next || null;
+        $scope.previousPage = value.previous || null;
+
+        if (value.previous) {
+          poller.stop();
+        } else {
+          poller.start();
+        }
+      }
+
+      function loadCommitList(url) {
+        if (!url) {
+          return;
+        }
+        $http.get(url)
+          .success(function(data, status, headers){
+            $scope.commits = new Collection(fromCommits(data), COLLECTION_OPTIONS);
+            updatePageLinks(headers('Link'));
+          });
+      }
+
       function getCommitSubject(commit) {
           if (commit.message) {
             return commit.message.split('\n')[0].substr(0, 128);
@@ -102,17 +142,22 @@ define([
         $scope.chartData = chartHelpers.getChartData(value, null, chart_options);
       });
 
-      $scope.commits = new Collection(fromCommits(commitList.data), {
-        equals: function(item, other) {
-          return item.repository_id == other.repository_id && item.sha == other.sha;
-        },
-        limit: 50
-      });
+      $scope.loadPreviousPage = function() {
+        $(document.body).scrollTop(0);
+        loadCommitList($scope.pageLinks.previous);
+      };
+
+      $scope.loadNextPage = function() {
+        $(document.body).scrollTop(0);
+        loadCommitList($scope.pageLinks.next);
+      };
+
+      $scope.commits = new Collection(fromCommits(commitList.data), COLLECTION_OPTIONS);
 
       var poller = new CollectionPoller({
         $scope: $scope,
         collection: $scope.commits,
-        endpoint: '/api/0/projects/' + projectData.id + '/commits/?per_page=25',
+        endpoint: '/api/0/projects/' + $stateParams.project_id + '/commits/?per_page=25',
         transform: function(response) {
           return fromCommits(response);
         },
@@ -129,10 +174,12 @@ define([
           }
         }
       });
+
+      updatePageLinks(commitList.headers('Link'));
     },
     resolve: {
-      commitList: function($http, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/commits/');
+      commitList: function($http, $stateParams) {
+        return $http.get(getEndpoint($stateParams));
       }
     }
   };

@@ -16,6 +16,7 @@ define(['angular', 'jquery'], function(angular, $) {
         var endpoint = options.endpoint;
         var $scope = options.$scope;
         var pollTimeoutID;
+        var stopped = (options.active === false);
 
         $scope.$on('$destroy', function(){
           if (pollTimeoutID) {
@@ -24,6 +25,11 @@ define(['angular', 'jquery'], function(angular, $) {
         });
 
         var tick = function() {
+          if (stopped) {
+            pollTimeoutID = $timeout(tick, options.delay);
+            return;
+          }
+
           $http.get(options.endpoint, {
             ignoreLoadingBar: true
           }).success(function(response){
@@ -35,6 +41,15 @@ define(['angular', 'jquery'], function(angular, $) {
         };
 
         tick();
+
+        return {
+          stop: function() {
+            stopped = true;
+          },
+          start: function() {
+            stopped = false;
+          }
+        };
       };
     })
     .factory('CollectionPoller', function(ItemPoller){
@@ -67,7 +82,7 @@ define(['angular', 'jquery'], function(angular, $) {
         };
 
         var collection = options.collection;
-        var itemPoller = new ItemPoller(options);
+        return new ItemPoller(options);
       };
     });
 });

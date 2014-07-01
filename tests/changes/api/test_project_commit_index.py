@@ -36,24 +36,39 @@ class ProjectCommitIndexTest(APITestCase):
         assert data[1]['id'] == revision1.sha
         assert data[1]['build']['id'] == build.id.hex
 
+        resp = self.client.get(path + '?per_page=1&page=1')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == revision2.sha
+
+        resp = self.client.get(path + '?per_page=1&page=2')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == revision1.sha
+
     @mock.patch('changes.models.Repository.get_vcs')
     def test_with_vcs(self, get_vcs):
-        def log_results():
-            yield RevisionResult(
-                id='a' * 40,
-                message='hello world',
-                author='Foo <foo@example.com>',
-                author_date=datetime(2013, 9, 19, 22, 15, 22),
-            )
-            yield RevisionResult(
-                id='b' * 40,
-                message='biz',
-                author='Bar <bar@example.com>',
-                author_date=datetime(2013, 9, 19, 22, 15, 21),
-            )
+        def log_results(parent=None, offset=0, limit=100):
+            results = [
+                RevisionResult(
+                    id='a' * 40,
+                    message='hello world',
+                    author='Foo <foo@example.com>',
+                    author_date=datetime(2013, 9, 19, 22, 15, 22),
+                ),
+                RevisionResult(
+                    id='b' * 40,
+                    message='biz',
+                    author='Bar <bar@example.com>',
+                    author_date=datetime(2013, 9, 19, 22, 15, 21),
+                ),
+            ]
+            return iter(results[offset:offset + limit])
 
         fake_vcs = mock.Mock(spec=Vcs)
-        fake_vcs.log.return_value = log_results()
+        fake_vcs.log.side_effect = log_results
 
         get_vcs.return_value = fake_vcs
 
@@ -72,3 +87,15 @@ class ProjectCommitIndexTest(APITestCase):
         assert data[0]['build'] is None
         assert data[1]['id'] == 'b' * 40
         assert data[1]['build']['id'] == build.id.hex
+
+        resp = self.client.get(path + '?per_page=1&page=1')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == 'a' * 40
+
+        resp = self.client.get(path + '?per_page=1&page=2')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == 'b' * 40

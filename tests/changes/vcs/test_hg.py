@@ -87,3 +87,10 @@ class MercurialVcsTest(TestCase):
         assert diff == """diff --git a/BAR b/BAR
 new file mode 100644
 """
+        revisions = list(vcs.log(offset=0, limit=1))
+        assert len(revisions) == 1
+        assert revisions[0].subject == 'biz'
+
+        revisions = list(vcs.log(offset=1, limit=1))
+        assert len(revisions) == 1
+        assert revisions[0].subject == 'test'

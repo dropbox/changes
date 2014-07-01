@@ -21,6 +21,9 @@ class CommandError(Exception):
         return '%s returned %d:\nSTDOUT: %r\nSTDERR: %r' % (
             self.cmd, self.retcode, self.stdout, self.stderr)
 
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
+
 
 class BufferParser(object):
     def __init__(self, fp, delim):
@@ -93,7 +96,7 @@ class Vcs(object):
     def update(self):
         raise NotImplementedError
 
-    def log(self, parent=None, limit=100):
+    def log(self, parent=None, offset=0, limit=100):
         raise NotImplementedError
 
     def export(self, id):

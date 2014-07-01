@@ -11,7 +11,8 @@ define([
   var PER_PAGE = 50;
 
   function getEndpoint($stateParams) {
-    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?per_page=' + PER_PAGE;
+    var page = $stateParams.page || 1;
+    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?page=' + page + '&per_page=' + PER_PAGE;
     if ($stateParams.query) {
       url += '&query=' + $stateParams.query;
     }
@@ -20,7 +21,7 @@ define([
 
   return {
     parent: 'project_details',
-    url: 'builds/?query',
+    url: 'builds/?query&page',
     templateUrl: 'partials/project-build-list.html',
     controller: function($scope, $http, $state, $stateParams, projectData, buildList,
                          Collection, CollectionPoller, PageTitle) {
@@ -71,14 +72,6 @@ define([
         limit: PER_PAGE
       };
 
-      function updatePageLinks(links) {
-        var value = parseLinkHeader(links);
-
-        $scope.pageLinks = value;
-        $scope.nextPage = value.next || null;
-        $scope.previousPage = value.previous || null;
-      }
-
       $scope.getBuildStatus = function(build) {
         if (build.status.id == 'finished') {
           return build.result.name;
@@ -101,6 +94,20 @@ define([
           });
       }
 
+      function updatePageLinks(links) {
+        var value = parseLinkHeader(links);
+
+        $scope.pageLinks = value;
+        $scope.nextPage = value.next || null;
+        $scope.previousPage = value.previous || null;
+
+        if (value.previous) {
+          poller.stop();
+        } else {
+          poller.start();
+        }
+      }
+
       $scope.loadPreviousPage = function() {
         $(document.body).scrollTop(0);
         loadBuildList($scope.pageLinks.previous);
@@ -110,8 +117,6 @@ define([
         $(document.body).scrollTop(0);
         loadBuildList($scope.pageLinks.next);
       };
-
-      updatePageLinks(buildList.headers('Link'));
 
       $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
@@ -141,6 +146,8 @@ define([
           return false;
         }
       });
+
+      updatePageLinks(buildList.headers('Link'));
     },
     resolve: {
       buildList: function($http, $stateParams) {

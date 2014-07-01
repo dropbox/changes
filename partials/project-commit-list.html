@@ -59,4 +59,13 @@
         <tbody ng-repeat-end></tbody>
     </table>
 
+    <ul class="pager">
+        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
+            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        </li>
+        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
+            <a ng-click="loadNextPage()">Next &rarr;</a>
+        </li>
+    </ul>
+
 </section>

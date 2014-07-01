@@ -19,7 +19,6 @@ class LazyGitRevisionResult(RevisionResult):
 
     @memoize
     def branches(self):
-        print(repr(self.vcs.branches_for_commit(self.id)))
         return self.vcs.branches_for_commit(self.id)
 
 
@@ -71,13 +70,15 @@ class GitVcs(Vcs):
     def update(self):
         self.run(['fetch', '--all'])
 
-    def log(self, parent=None, limit=100):
+    def log(self, parent=None, offset=0, limit=100):
         # TODO(dcramer): we should make this streaming
         cmd = ['log', '--all', '--pretty=format:%s' % (LOG_FORMAT,)]
         if parent:
             cmd.append(parent)
+        if offset:
+            cmd.append('--skip=%d' % (offset,))
         if limit:
-            cmd.append('-n %d' % (limit,))
+            cmd.append('--max-count=%d' % (limit,))
         result = self.run(cmd)
 
         for chunk in BufferParser(result, '\x02'):

@@ -48,16 +48,19 @@ class MercurialVcs(Vcs):
     def update(self):
         self.run(['pull'])
 
-    def log(self, parent=None, limit=100):
+    def log(self, parent=None, offset=0, limit=100):
         # TODO(dcramer): we should make this streaming
         cmd = ['log', '--template=%s' % (LOG_FORMAT,)]
         if parent:
             cmd.append('-r reverse(ancestors(%s))' % (parent,))
         if limit:
-            cmd.append('--limit=%d' % (limit,))
+            cmd.append('--limit=%d' % (offset + limit,))
         result = self.run(cmd)
 
-        for chunk in BufferParser(result, '\x02'):
+        for idx, chunk in enumerate(BufferParser(result, '\x02')):
+            if idx < offset:
+                continue
+
             (sha, author, author_date, parents, branches, message) = chunk.split('\x01')
 
             branches = filter(bool, branches.split(' ')) or ['default']

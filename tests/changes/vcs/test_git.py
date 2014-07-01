@@ -73,3 +73,10 @@ class GitVcsTest(TestCase):
 new file mode 100644
 index 0000000..e69de29
 """
+        revisions = list(vcs.log(offset=0, limit=1))
+        assert len(revisions) == 1
+        assert revisions[0].subject == 'biz'
+
+        revisions = list(vcs.log(offset=1, limit=1))
+        assert len(revisions) == 1
+        assert revisions[0].subject == 'test'
