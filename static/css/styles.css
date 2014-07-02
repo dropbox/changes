@@ -129,6 +129,13 @@ dd .progress {
 .navbar .navbar-brand:focus {
   color: #000;
 }
+.navbar .navbar-brand {
+  font-weight: 200;
+  float: left;
+  margin-left: -15px;
+  position: relative;
+  padding: 15px 15px 14px 50px;
+}
 .navbar .navbar-nav > li > a {
   color: #ccc;
 }
@@ -145,6 +152,32 @@ dd .progress {
 .navbar .navbar-nav > li.active > a > .badge {
   color: #333;
 }
+.navbar-admin {
+  background: #6e5baa;
+  color: #fff;
+  border-bottom-color: #6e5baa;
+}
+.navbar-admin .navbar-brand,
+.navbar-admin .navbar-brand:focus,
+.navbar-admin .navbar-brand:hover {
+  color: #fff;
+}
+.navbar-admin a:hover,
+.navbar-admin a:focus {
+  color: #fff;
+}
+
+.navbar-logo {
+  position: absolute;
+  left: 1px;
+  top: 0;
+  font-size: 20px;
+  line-height: 20px;
+  padding: 14px 15px;
+  color: inherit;
+  z-index: 101;
+}
+
 
 .navbar-stats .stat {
   padding: 15px 5px;
@@ -226,22 +259,10 @@ dd .progress {
   display: block;
   z-index: 20000;
   max-width: 550px;
-  color: #6e5baa;
   float: left;
   margin-left: -15px;
   display: block;
   height: auto;
-}
-
-.project-selector > .logo {
-  position: absolute;
-  left: 1px;
-  top: 0;
-  font-size: 20px;
-  line-height: 20px;
-  padding: 14px 15px;
-  color: inherit;
-  z-index: 101;
 }
 
 .project-selector > .dropdown-toggle {
