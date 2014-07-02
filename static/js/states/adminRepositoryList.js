@@ -7,16 +7,14 @@ define([
     parent: 'admin_layout',
     url: 'repositories/',
     templateUrl: 'partials/admin/repository-list.html',
-    controller: function($scope, Collection, repositoryList) {
-      $scope.repositoryList = new Collection(repositoryList);
-    },
-    resolve: {
-      repositoryList: function($http) {
-        return $http.get('/api/0/repositories/')
-          .then(function(response){
-            return response.data;
-          });
-      }
+    controller: function($scope, Collection, Paginator) {
+      var collection = new Collection();
+      var paginator = new Paginator('/api/0/repositories/?per_page=50', {
+        collection: collection
+      });
+
+      $scope.repositoryList = collection;
+      $scope.repositoryPaginator = paginator;
     }
   };
 });
