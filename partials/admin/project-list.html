@@ -6,9 +6,18 @@
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="project in projects">
+    <tr ng-repeat="project in projectList">
       <td><a ui-sref="project_settings({project_id: project.slug})">{{project.name}}</a></td>
       <td class="column" time-since="project.dateCreated"></td>
     </tr>
   </tbody>
 </table>
+
+<ul class="pager">
+  <li class="previous" ng-class="projectPaginator.nextPage === null ? 'disabled' : ''">
+    <a ng-click="projectPaginator.loadNextPage()">&larr; Older</a>
+  </li>
+  <li class="next" ng-class="projectPaginator.previousPage === null ? 'disabled' : ''">
+    <a ng-click="projectPaginator.loadPreviousPage()">Newer &rarr;</a>
+  </li>
+</ul>

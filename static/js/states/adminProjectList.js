@@ -7,16 +7,14 @@ define([
     parent: 'admin_layout',
     url: 'projects/',
     templateUrl: 'partials/admin/project-list.html',
-    controller: function($scope, Collection, projectList) {
-      $scope.projects = new Collection(projectList);
-    },
-    resolve: {
-      projectList: function($http) {
-        return $http.get('/api/0/projects/')
-          .then(function(response){
-            return response.data;
-          });
-      }
+    controller: function($scope, Collection, Paginator) {
+      var collection = new Collection();
+      var paginator = new Paginator('/api/0/projects/?per_page=50', {
+        collection: collection
+      });
+
+      $scope.projectList = collection;
+      $scope.projectPaginator = paginator;
     }
   };
 });
