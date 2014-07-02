@@ -3,6 +3,7 @@ import requests
 
 from datetime import datetime
 from flask import current_app
+from time import time
 
 from changes.config import db
 from changes.constants import Result
@@ -72,10 +73,15 @@ def build_finished_handler(build_id, **kwargs):
     else:
         vcs.clone()
 
+    # green_build requires an identifier that is <integer:revision_sha>
+    # the integer must also be sequential and unique
+    # TODO(dcramer): it's a terrible API and realistically we should just be
+    # sending a sha, as the sequential counter is hg-only, invalid, and really
+    # isn't used
     if source.repository.backend == RepositoryBackend.hg:
         release_id = vcs.run(['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
     else:
-        release_id = source.revision_sha
+        release_id = '%d:%s' % (time(), source.revision_sha)
 
     project = options.get('green-build.project') or build.project.slug
 
