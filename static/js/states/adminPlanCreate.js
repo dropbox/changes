@@ -2,9 +2,9 @@ define(['app'], function(app) {
   'use strict';
 
   return {
-    parent: 'layout',
-    url: '/new/plan/',
-    templateUrl: 'partials/plan-create.html',
+    parent: 'admin_layout',
+    url: 'new/plan/',
+    templateUrl: 'partials/admin/plan-create.html',
     controller: function($scope, $http, $state) {
       $scope.createPlan = function() {
         $http.post('/api/0/plans/', $scope.plan)

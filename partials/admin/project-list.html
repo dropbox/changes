@@ -1,0 +1,14 @@
+<table class="grid-list">
+  <thead>
+    <tr class="grid-list-header">
+      <th>Project</th>
+      <th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="project in projects">
+      <td><a ui-sref="project_settings({project_id: project.slug})">{{project.name}}</a></td>
+      <td class="column" time-since="project.dateCreated"></td>
+    </tr>
+  </tbody>
+</table>

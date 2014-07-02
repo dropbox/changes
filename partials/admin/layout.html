@@ -1,0 +1,52 @@
+<nav class="navbar navbar-default navbar-fixed-top navbar-admin" role="navigation">
+  <div class="row container" style="display:none">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-header-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <div class="project-selector">
+        <a class="dropdown-toggle">
+          <span>Admin</span>
+        </a>
+        <a href="/" title="Dashboard" class="logo">
+          <i class="glyphicon glyphicon-th"></i>
+        </a>
+      </div>
+    </div>
+    <ul class="nav navbar-nav navbar-right changes-navbar-small hidden-xs">
+      <li id="my-builds"><a href="/my/builds/" title="My Builds"><i class="glyphicon glyphicon-user"></i></a></li>
+      <li><a href="/auth/logout/" target="_self" title="Logout"><i class="glyphicon glyphicon-off"></i></a></li>
+    </ul>
+  </div>
+</nav>
+
+<flash-messages></flash-messages>
+
+<section class="body">
+  <div class="row container">
+    <div class="col-md-2">
+      <ul class="nav nav-list">
+        <li class="nav-header"><h6>Projects</h6></li>
+        <li ui-sref-active="open"><a ui-sref="admin_project_list()">Project List</a></li>
+        <li ui-sref-active="open"><a ui-sref="admin_project_create()">New Project</a></li>
+        <li class="divider"></li>
+        <li class="nav-header"><h6>Build Plans</h6></li>
+        <li ui-sref-active="open"><a ui-sref="admin_plan_list()">Plan List</a></li>
+        <li ui-sref-active="open"><a ui-sref="admin_plan_create()">New Plan</a></li>
+      </ul>
+    </div>
+    <div ui-view class="col-md-10">
+      <div class="loading">
+        <div class="spinner-icon spinner-large"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer bind-once>
+  Changes {{ appVersion }} &mdash; Made with love from <a href="https://opensource.dropbox.com">Dropbox</a>
+</footer>

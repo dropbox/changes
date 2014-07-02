@@ -16,6 +16,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-weight: 300;
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+  margin-top: 0;
 }
 h1 small,
 h2 small,
@@ -1009,6 +1010,32 @@ table.build-list {
 
 .nav-links-sm > li > a {
   margin: 0 5px;
+}
+
+.nav-list > li > a {
+  color: #aaa;
+  font-size: 12px;
+  font-weight: normal;
+  cursor: pointer;
+  padding: 5px 10px;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+}
+.nav-list > li.divider {
+  height: 1px;
+  margin: 9px 0;
+  overflow: hidden;
+}
+.nav-list > li.nav-header {
+  margin-bottom: 9px;
+}
+.nav-list > li.nav-header > h6 {
+  text-transform: uppercase;
+  margin: 0;
+  font-size: 14px;
+  line-height: 18px;
+}
+.nav-list > li.open > a {
+  color: #000;
 }
 
 .test-list {

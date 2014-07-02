@@ -17,13 +17,12 @@
 			</thead>
 			<tbody>
 				<tr ng-repeat="plan in plans">
-					<td><a ui-sref="plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
+					<td><a ui-sref="admin_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
 					<td class="column" time-since="plan.dateCreated"></td>
 					<td class="column" time-since="plan.dateModified"></td>
 				</tr>
 			</tbody>
 		</table>
-
 
         <ul class="pager">
             <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">

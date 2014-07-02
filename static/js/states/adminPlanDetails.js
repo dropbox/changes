@@ -4,9 +4,9 @@ define(['app'], function(app) {
   'use strict';
 
   return {
-    parent: 'plans',
-    url: ':plan_id/',
-    templateUrl: 'partials/plan-details.html',
+    parent: 'admin_layout',
+    url: 'plans/:plan_id/',
+    templateUrl: 'partials/admin/plan-details.html',
     controller: function($http, $scope, planData, Collection, flash) {
       $scope.plan = planData;
       $scope.projectList = new Collection(planData.projects);

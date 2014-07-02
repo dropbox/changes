@@ -1,6 +1,13 @@
 define([
   'app',
 
+  'states/adminHome',
+  'states/adminLayout',
+  'states/adminPlanCreate',
+  'states/adminPlanDetails',
+  'states/adminPlanList',
+  'states/adminProjectCreate',
+  'states/adminProjectList',
   'states/authorBuildList',
   'states/buildDetails',
   'states/buildTestList',
@@ -12,14 +19,10 @@ define([
   'states/logDetails',
   'states/nodeDetails',
   'states/nodeList',
-  'states/planCreate',
-  'states/planDetails',
-  'states/planList',
   'states/projectBuildList',
   'states/projectCommitDetails',
   'states/projectCommitList',
   'states/projectCoverageList',
-  'states/projectCreate',
   'states/projectCreateBuild',
   'states/projectDetails',
   'states/projectList',
@@ -43,6 +46,13 @@ define([
 ], function(
   app,
 
+  AdminHomeState,
+  AdminLayoutState,
+  AdminPlanCreateState,
+  AdminPlanDetailsState,
+  AdminPlanListState,
+  AdminProjectCreateState,
+  AdminProjectListState,
   AuthorBuildListState,
   BuildDetailsState,
   BuildTestListState,
@@ -54,14 +64,10 @@ define([
   LogDetailsState,
   NodeDetailsState,
   NodeListState,
-  PlanCreateState,
-  PlanDetailsState,
-  PlanListState,
   ProjectBuildListState,
   ProjectCommitDetailsState,
   ProjectCommitListState,
   ProjectCoverageListState,
-  ProjectCreateState,
   ProjectCreateBuildState,
   ProjectDetailsState,
   ProjectListState,
@@ -109,6 +115,7 @@ define([
     }];
     $httpProvider.responseInterceptors.push(logInUserOn401);
 
+    // Base routes
     $stateProvider
       .state('layout', LayoutState)
       .state('build_details', BuildDetailsState)
@@ -121,10 +128,6 @@ define([
       .state('my_builds', AuthorBuildListState)
       .state('nodes', NodeListState)
       .state('node_details', NodeDetailsState)
-      .state('new_plan', PlanCreateState)
-      .state('new_project', ProjectCreateState)
-      .state('plans', PlanListState)
-      .state('plan_details', PlanDetailsState)
       .state('projects', ProjectListState)
       .state('project_builds', ProjectBuildListState)
       .state('project_details', ProjectDetailsState)
@@ -140,5 +143,15 @@ define([
       .state('test_details', TestCaseDetailsState)
       .state('tasks', TaskListState)
       .state('task_details', TaskDetailsState);
+
+    // Admin routes
+    $stateProvider
+      .state('admin_layout', AdminLayoutState)
+      .state('admin_home', AdminHomeState)
+      .state('admin_project_create', AdminProjectCreateState)
+      .state('admin_project_list', AdminProjectListState)
+      .state('admin_plan_list', AdminPlanListState)
+      .state('admin_plan_create', AdminPlanCreateState)
+      .state('admin_plan_details', AdminPlanDetailsState);
   });
 });
