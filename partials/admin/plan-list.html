@@ -16,7 +16,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="plan in plans">
+				<tr ng-repeat="plan in planList">
 					<td><a ui-sref="admin_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
 					<td class="column" time-since="plan.dateCreated"></td>
 					<td class="column" time-since="plan.dateModified"></td>
@@ -25,11 +25,11 @@
 		</table>
 
         <ul class="pager">
-            <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
-                <a ng-click="loadNextPage()">&larr; Older</a>
+            <li class="previous" ng-class="planPaginator.nextPage === null ? 'disabled' : ''">
+                <a ng-click="planPaginator.loadNextPage()">&larr; Older</a>
             </li>
-            <li class="next" ng-class="previousPage === null ? 'disabled' : ''">
-                <a ng-click="loadPreviousPage()">Newer &rarr;</a>
+            <li class="next" ng-class="planPaginator.previousPage === null ? 'disabled' : ''">
+                <a ng-click="planPaginator.loadPreviousPage()">Newer &rarr;</a>
             </li>
         </ul>
 	</div>
