@@ -8,7 +8,7 @@ define([
 
   return {
     parent: 'admin_layout',
-    url: '/plans/',
+    url: 'plans/',
     templateUrl: 'partials/admin/plan-list.html',
     controller: function($scope, planList, Collection) {
       function updatePageLinks(links) {
