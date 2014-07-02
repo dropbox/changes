@@ -204,7 +204,7 @@ class Fixtures(object):
 
         return build
 
-    def create_patch(self, project, **kwargs):
+    def create_patch(self, **kwargs):
         kwargs.setdefault('diff', SAMPLE_DIFF)
         kwargs.setdefault('parent_revision_sha', uuid4().hex)
         if not kwargs.get('repository'):

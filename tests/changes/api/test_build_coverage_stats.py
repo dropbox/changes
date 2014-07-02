@@ -11,19 +11,20 @@ from changes.testutils.fixtures import SAMPLE_DIFF
 class BuildDetailsTest(APITestCase):
     @patch('changes.models.Source.generate_diff')
     def test_simple(self, generate_diff):
+        project = self.create_project()
         build = self.create_build(
-            self.project, date_created=datetime(2013, 9, 19, 22, 15, 24),
+            project, date_created=datetime(2013, 9, 19, 22, 15, 24),
             status=Status.finished)
         job1 = self.create_job(build)
         job2 = self.create_job(build)
 
         db.session.add(FileCoverage(
-            project_id=self.project.id,
+            project_id=project.id,
             job_id=job1.id, filename='ci/run_with_retries.py', lines_covered=4,
             lines_uncovered=5, diff_lines_covered=2, diff_lines_uncovered=3,
         ))
         db.session.add(FileCoverage(
-            project_id=self.project.id,
+            project_id=project.id,
             job_id=job2.id, filename='foobar.py', lines_covered=4,
             lines_uncovered=5, diff_lines_covered=2, diff_lines_uncovered=3,
         ))

@@ -40,7 +40,8 @@ class SyncBuildTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
             body=self.load_fixture('fixtures/GET/node_config.xml'))
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),

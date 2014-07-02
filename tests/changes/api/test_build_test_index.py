@@ -10,12 +10,13 @@ class BuildTestIndexTest(APITestCase):
     def test_simple(self):
         fake_id = uuid4()
 
-        build = self.create_build(self.project, result=Result.failed)
+        project = self.create_project()
+        build = self.create_build(project, result=Result.failed)
         job = self.create_job(build, status=Status.finished)
 
         test = TestCase(
             job=job,
-            project=self.project,
+            project=project,
             name='foo',
             name_sha='a' * 40,
         )

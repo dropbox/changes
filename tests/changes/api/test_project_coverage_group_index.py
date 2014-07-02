@@ -10,12 +10,13 @@ class ProjectCoverageGroupIndexTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         self.create_job(build)
 
-        project = self.create_project()
+        project2 = self.create_project()
         build = self.create_build(
-            project, status=Status.finished, result=Result.passed)
+            project2, status=Status.finished, result=Result.passed)
         job = self.create_job(build)
         phase = self.create_jobphase(job)
         step = self.create_jobstep(phase)
@@ -23,7 +24,7 @@ class ProjectCoverageGroupIndexTest(APITestCase):
         db.session.add(FileCoverage(
             step_id=step.id,
             job_id=job.id,
-            project_id=project.id,
+            project_id=project2.id,
             lines_covered=5,
             lines_uncovered=7,
             filename="foo/bar.py",
@@ -31,7 +32,7 @@ class ProjectCoverageGroupIndexTest(APITestCase):
         db.session.add(FileCoverage(
             step_id=step.id,
             job_id=job.id,
-            project_id=project.id,
+            project_id=project2.id,
             lines_covered=0,
             lines_uncovered=5,
             filename="foo/baz.py",
@@ -39,7 +40,7 @@ class ProjectCoverageGroupIndexTest(APITestCase):
         db.session.add(FileCoverage(
             step_id=step.id,
             job_id=job.id,
-            project_id=project.id,
+            project_id=project2.id,
             lines_covered=6,
             lines_uncovered=23,
             filename="blah/blah.py",
@@ -51,7 +52,7 @@ class ProjectCoverageGroupIndexTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 404
 
-        path = '/api/0/projects/{0}/coveragegroups/'.format(project.id.hex)
+        path = '/api/0/projects/{0}/coveragegroups/'.format(project2.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
@@ -69,7 +70,7 @@ class ProjectCoverageGroupIndexTest(APITestCase):
         assert data['groups'][1]['totalLinesUncovered'] == 12
         assert len(data['trail']) == 0
 
-        path = '/api/0/projects/{0}/coveragegroups/?parent=foo'.format(project.id.hex)
+        path = '/api/0/projects/{0}/coveragegroups/?parent=foo'.format(project2.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200

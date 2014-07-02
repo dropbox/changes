@@ -5,7 +5,7 @@ from changes.testutils import APITestCase
 
 class BuildCommentIndexTest(APITestCase):
     def test_get(self):
-        build = self.create_build(project=self.project)
+        build = self.create_build(project=self.create_project())
 
         comment = Comment(
             build=build,
@@ -29,7 +29,7 @@ class BuildCommentIndexTest(APITestCase):
     def test_post(self):
         self.login_default()
 
-        build = self.create_build(project=self.project)
+        build = self.create_build(project=self.create_project())
 
         path = '/api/0/builds/{0}/comments/'.format(build.id.hex)
         resp = self.client.post(path, data={

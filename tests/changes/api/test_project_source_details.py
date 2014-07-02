@@ -4,10 +4,11 @@ from changes.api.project_source_details import ProjectSourceDetailsAPIView
 
 class ProjectSourceDetailsTest(APITestCase):
     def test_simple(self):
-        source = self.create_source(self.project)
+        project = self.create_project()
+        source = self.create_source(project)
 
         path = '/api/0/projects/{0}/sources/{1}/'.format(
-            self.project.id.hex, source.id.hex)
+            project.id.hex, source.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200

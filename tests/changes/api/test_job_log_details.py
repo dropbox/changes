@@ -5,18 +5,19 @@ from changes.testutils import APITestCase
 
 class JobLogDetailsTest(APITestCase):
     def test_simple(self):
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build)
-        source = LogSource(job=job, project=self.project, name='test')
+        source = LogSource(job=job, project=project, name='test')
         db.session.add(source)
 
         lc1 = LogChunk(
-            job=job, project=self.project, source=source,
+            job=job, project=project, source=source,
             offset=0, size=100, text='a' * 100,
         )
         db.session.add(lc1)
         lc2 = LogChunk(
-            job=job, project=self.project, source=source,
+            job=job, project=project, source=source,
             offset=100, size=100, text='b' * 100,
         )
         db.session.add(lc2)

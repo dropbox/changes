@@ -9,8 +9,9 @@ from changes.testutils import APITestCase
 class BuildRestartTest(APITestCase):
     @mock.patch('changes.api.build_restart.execute_build')
     def test_simple(self, execute_build):
+        project = self.create_project()
         build = self.create_build(
-            project=self.project, status=Status.in_progress)
+            project=project, status=Status.in_progress)
         job = self.create_job(build=build)
         phase = self.create_jobphase(job=job)
         step = self.create_jobstep(phase=phase)

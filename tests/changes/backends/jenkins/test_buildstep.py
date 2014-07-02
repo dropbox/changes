@@ -22,7 +22,7 @@ class JenkinsBuildStepTest(TestCase):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        build = self.create_build(self.create_project())
         job = self.create_job(build)
 
         buildstep = self.get_buildstep()
@@ -35,7 +35,7 @@ class JenkinsBuildStepTest(TestCase):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        build = self.create_build(self.create_project())
         job = self.create_job(build, data={
             'job_name': 'server',
             'build_no': '35',
@@ -51,7 +51,7 @@ class JenkinsBuildStepTest(TestCase):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        build = self.create_build(self.create_project())
         job = self.create_job(build, data={
             'job_name': 'server',
             'build_no': '35',
@@ -72,7 +72,7 @@ class JenkinsBuildStepTest(TestCase):
         builder = mock.Mock()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        build = self.create_build(self.create_project())
         job = self.create_job(build, data={
             'job_name': 'server',
             'build_no': '35',

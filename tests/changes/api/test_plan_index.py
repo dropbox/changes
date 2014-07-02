@@ -5,7 +5,7 @@ class PlanIndexTest(APITestCase):
     path = '/api/0/plans/'
 
     def test_simple(self):
-        plan1 = self.plan
+        plan1 = self.create_plan()
         plan2 = self.create_plan(label='Bar')
 
         resp = self.client.get(self.path)

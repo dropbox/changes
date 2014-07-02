@@ -14,7 +14,8 @@ class JenkinsGenericBuilderTest(BaseTestCase):
     }
 
     def test_get_job_parameters(self):
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build)
 
         builder = self.get_builder()

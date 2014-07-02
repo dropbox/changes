@@ -15,7 +15,7 @@ class JobPhaseIndexTest(APITestCase):
         assert resp.status_code == 404
 
     def test_simple(self):
-        project = self.project
+        project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build)
 

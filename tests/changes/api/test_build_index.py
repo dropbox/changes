@@ -117,8 +117,10 @@ class BuildListTest(APITestCase):
     path = '/api/0/builds/'
 
     def test_simple(self):
-        build = self.create_build(self.project)
-        build2 = self.create_build(self.project2)
+        project = self.create_project()
+        project2 = self.create_project()
+        build = self.create_build(project)
+        build2 = self.create_build(project2)
 
         resp = self.client.get(self.path)
         assert resp.status_code == 200
@@ -130,6 +132,13 @@ class BuildListTest(APITestCase):
 
 class BuildCreateTest(APITestCase):
     path = '/api/0/builds/'
+
+    def setUp(self):
+        self.project = self.create_project()
+        self.plan = self.create_plan()
+        self.plan.projects.append(self.project)
+        db.session.commit()
+        super(BuildCreateTest, self).setUp()
 
     def test_minimal(self):
         resp = self.client.post(self.path, data={

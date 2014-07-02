@@ -176,8 +176,8 @@ def execute_build(build):
     db.session.commit()
 
     sync_build.delay(
-        build_id=job.build_id.hex,
-        task_id=job.build_id.hex,
+        build_id=build.id.hex,
+        task_id=build.id.hex,
     )
 
     return build

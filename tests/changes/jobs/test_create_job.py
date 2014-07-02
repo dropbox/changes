@@ -14,7 +14,8 @@ class CreateJobTest(TestCase):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build)
         plan = self.create_plan()
         self.create_step(plan)

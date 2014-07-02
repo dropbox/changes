@@ -8,7 +8,8 @@ class ProjectBuildSearchTest(APITestCase):
     def test_simple(self):
         fake_project_id = uuid4()
 
-        self.create_build(self.project)
+        project = self.create_project()
+        self.create_build(project)
 
         project1 = self.create_project()
         build1 = self.create_build(project1, label='test', target='D1234',

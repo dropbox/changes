@@ -16,7 +16,7 @@ from changes.testutils import TestCase as BaseTestCase
 
 class IsMissingTestsTest(BaseTestCase):
     def test_single_phase(self):
-        project = self.project
+        project = self.create_project()
 
         option = ProjectOption(
             project_id=project.id,
@@ -26,7 +26,7 @@ class IsMissingTestsTest(BaseTestCase):
         db.session.add(option)
         db.session.commit()
 
-        build = self.create_build(project=self.project)
+        build = self.create_build(project=project)
         job = self.create_job(build=build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
@@ -62,7 +62,7 @@ class IsMissingTestsTest(BaseTestCase):
         assert not is_missing_tests(jobstep)
 
     def test_multi_phase(self):
-        project = self.project
+        project = self.create_project()
 
         option = ProjectOption(
             project_id=project.id,
@@ -72,7 +72,7 @@ class IsMissingTestsTest(BaseTestCase):
         db.session.add(option)
         db.session.commit()
 
-        build = self.create_build(project=self.project)
+        build = self.create_build(project=project)
         job = self.create_job(build=build)
         jobphase = self.create_jobphase(
             job=job,
@@ -124,7 +124,8 @@ class SyncJobStepTest(BaseTestCase):
         def mark_in_progress(step):
             step.status = Status.in_progress
 
-        build = self.create_build(project=self.project)
+        project = self.create_project()
+        build = self.create_build(project=project)
         job = self.create_job(build=build)
 
         plan = self.create_plan()
@@ -185,7 +186,7 @@ class SyncJobStepTest(BaseTestCase):
 
         implementation.update_step.side_effect = mark_finished
 
-        project = self.project
+        project = self.create_project()
         build = self.create_build(project=project)
         job = self.create_job(build=build)
 
@@ -292,7 +293,8 @@ class SyncJobStepTest(BaseTestCase):
 
         implementation.update_step.side_effect = mark_finished
 
-        build = self.create_build(project=self.project)
+        project = self.create_project()
+        build = self.create_build(project=project)
         job = self.create_job(build=build)
 
         plan = self.create_plan()
@@ -303,7 +305,7 @@ class SyncJobStepTest(BaseTestCase):
         step = self.create_jobstep(phase)
 
         db.session.add(ProjectOption(
-            project_id=self.project.id,
+            project_id=project.id,
             name='build.expect-tests',
             value='1'
         ))

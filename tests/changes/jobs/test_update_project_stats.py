@@ -11,44 +11,46 @@ from changes.testutils import TestCase
 
 class UpdateProjectStatsTest(TestCase):
     def test_simple(self):
+        project = self.create_project()
         self.create_build(
-            project=self.project,
+            project=project,
             status=Status.finished,
             result=Result.passed,
             duration=5050,
         )
 
-        update_project_stats(project_id=self.project.id.hex)
+        update_project_stats(project_id=project.id.hex)
 
-        db.session.expire(self.project)
+        db.session.expire(project)
 
-        project = Project.query.get(self.project.id)
+        project = Project.query.get(project.id)
 
         assert project.avg_build_time == 5050
 
 
 class UpdateProjectPlanStatsTest(TestCase):
     def test_simple(self):
+        project = self.create_project()
         build = self.create_build(
-            project=self.project,
+            project=project,
             status=Status.finished,
             result=Result.passed,
             duration=5050,
         )
         job = self.create_job(build)
         plan = self.create_plan()
-        plan.projects.append(self.project)
+        plan.projects.append(project)
         self.create_job_plan(job, plan)
 
         update_project_plan_stats(
-            project_id=self.project.id.hex,
+            project_id=project.id.hex,
             plan_id=plan.id.hex,
         )
 
         db.session.expire(plan)
 
         project_plan = ProjectPlan.query.filter(
-            ProjectPlan.project_id == self.project.id,
+            ProjectPlan.project_id == project.id,
             ProjectPlan.plan_id == plan.id,
         ).first()
 

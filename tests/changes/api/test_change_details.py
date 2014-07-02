@@ -3,7 +3,8 @@ from changes.testutils import APITestCase
 
 class ChangeDetailsTest(APITestCase):
     def test_simple(self):
-        change = self.create_change(self.project)
+        project = self.create_project()
+        change = self.create_change(project)
 
         path = '/api/0/changes/{0}/'.format(change.id.hex)
 

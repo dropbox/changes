@@ -33,7 +33,8 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         builder = self.get_mock_builder()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build, data={
             'job_name': 'server',
             'build_no': '35',
@@ -51,8 +52,9 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         builder.sync_artifact.assert_called_once_with(step, artifact)
 
     def test_get_test_stats(self):
+        project = self.create_project()
         build = self.create_build(
-            project=self.project,
+            project=project,
             status=Status.finished,
             result=Result.passed,
         )
@@ -62,7 +64,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
         buildstep = self.get_buildstep()
 
-        results, avg_time = buildstep.get_test_stats(self.project)
+        results, avg_time = buildstep.get_test_stats(project)
 
         assert avg_time == 37
 
@@ -104,7 +106,8 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'foo.bar': 275,
         }, 68
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build, data={
             'job_name': 'server',
             'build_no': '35',

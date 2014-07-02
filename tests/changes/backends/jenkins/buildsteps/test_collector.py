@@ -31,7 +31,8 @@ class JenkinsCollectorBuildStepTest(TestCase):
         builder = self.get_mock_builder()
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build, data={
             'job_name': 'server',
             'build_no': '35',
@@ -72,7 +73,8 @@ class JenkinsCollectorBuildStepTest(TestCase):
 
         get_builder.return_value = builder
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build, data={
             'job_name': 'server',
             'build_no': '35',

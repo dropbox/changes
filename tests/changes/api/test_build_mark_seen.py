@@ -4,7 +4,8 @@ from changes.testutils import APITestCase
 
 class BuildMarkSeenTest(APITestCase):
     def test_simple(self):
-        build = self.create_build(project=self.project)
+        project = self.create_project()
+        build = self.create_build(project=project)
 
         self.login_default()
 

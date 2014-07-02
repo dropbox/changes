@@ -9,7 +9,9 @@ from changes.api.build_details import find_changed_tests
 
 class FindChangedTestsTest(BaseTestCase):
     def test_simple(self):
-        previous_build = self.create_build(self.project)
+        project = self.create_project()
+
+        previous_build = self.create_build(project)
         previous_job = self.create_job(previous_build)
 
         changed_test = TestCase(
@@ -25,7 +27,7 @@ class FindChangedTestsTest(BaseTestCase):
         db.session.add(removed_test)
         db.session.add(changed_test)
 
-        current_build = self.create_build(self.project)
+        current_build = self.create_build(project)
         current_job = self.create_job(current_build)
         added_test = TestCase(
             job=current_job,
@@ -53,11 +55,12 @@ class FindChangedTestsTest(BaseTestCase):
 
 class BuildDetailsTest(APITestCase):
     def test_simple(self):
+        project = self.create_project()
         previous_build = self.create_build(
-            self.project, date_created=datetime(2013, 9, 19, 22, 15, 23),
+            project, date_created=datetime(2013, 9, 19, 22, 15, 23),
             status=Status.finished)
         build = self.create_build(
-            self.project, date_created=datetime(2013, 9, 19, 22, 15, 24))
+            project, date_created=datetime(2013, 9, 19, 22, 15, 24))
         job1 = self.create_job(build)
         job2 = self.create_job(build)
         phase = self.create_jobphase(job1)
@@ -72,7 +75,7 @@ class BuildDetailsTest(APITestCase):
             value=2,
         ))
         db.session.add(FailureReason(
-            project_id=self.project.id,
+            project_id=project.id,
             build_id=build.id,
             job_id=job1.id,
             step_id=step.id,
@@ -99,7 +102,8 @@ class BuildDetailsTest(APITestCase):
         assert len(data['failures']) == 1
         assert data['failures'][0] == {
             'id': 'test_failures',
-            'reason': 'There were <a href="/projects/test/builds/{0}/tests/?result=failed">2 failing tests</a>.'.format(
+            'reason': 'There were <a href="/projects/{0}/builds/{1}/tests/?result=failed">2 failing tests</a>.'.format(
+                project.slug,
                 build.id.hex,
             ),
             'count': 1,

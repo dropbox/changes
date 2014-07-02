@@ -3,7 +3,8 @@ from changes.testutils import APITestCase
 
 class TestCaseDetailsTest(APITestCase):
     def test_simple(self):
-        build = self.create_build(project=self.project)
+        project = self.create_project()
+        build = self.create_build(project=project)
         job = self.create_job(build=build)
 
         testcase = self.create_test(job=job)

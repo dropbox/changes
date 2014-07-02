@@ -5,8 +5,8 @@ from changes.testutils import APITestCase
 
 class ProjectListTest(APITestCase):
     def test_simple(self):
-        project_1 = self.project
-        project_2 = self.project2
+        project_1 = self.create_project(name='test1')
+        project_2 = self.create_project(name='test2')
         project_3 = self.create_project(name='zzz')
 
         build_1 = self.create_build(

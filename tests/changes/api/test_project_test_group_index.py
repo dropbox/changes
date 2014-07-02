@@ -24,7 +24,7 @@ class ProjectTestGroupIndexTest(APITestCase):
 
         # an unfinished build which shouldn't be used
         self.create_build(
-            project=self.project,
+            project=project,
             status=Status.in_progress,
         )
 

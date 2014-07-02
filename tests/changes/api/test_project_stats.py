@@ -1,7 +1,6 @@
 import itertools
 
 from datetime import datetime, timedelta
-from exam import fixture
 
 from changes.config import db
 from changes.models import ItemStat
@@ -13,31 +12,30 @@ def to_timestamp(dt):
 
 
 class ProjectDetailsTest(APITestCase):
-    @fixture
-    def path(self):
-        return '/api/0/projects/{0}/stats/'.format(self.project.id.hex)
-
     def test_simple(self):
         now = datetime(2014, 4, 21, 22, 15, 22)
 
+        project = self.create_project()
+        path = '/api/0/projects/{0}/stats/'.format(project.id.hex)
+
         build1 = self.create_build(
-            project=self.project,
+            project=project,
             date_created=now,
         )
         build2 = self.create_build(
-            project=self.project,
+            project=project,
             date_created=now - timedelta(hours=1),
         )
         build3 = self.create_build(
-            project=self.project,
+            project=project,
             date_created=now - timedelta(days=1),
         )
         build4 = self.create_build(
-            project=self.project,
+            project=project,
             date_created=now.replace(day=1) - timedelta(days=32),
         )
         build5 = self.create_build(
-            project=self.project,
+            project=project,
             date_created=now.replace(day=1) - timedelta(days=370),
         )
 
@@ -48,7 +46,7 @@ class ProjectDetailsTest(APITestCase):
         db.session.add(ItemStat(name='test_count', value=100, item_id=build5.id))
         db.session.commit()
 
-        base_path = self.path + '?from=' + now.strftime('%s') + '&'
+        base_path = path + '?from=' + now.strftime('%s') + '&'
 
         # test hourly
         resp = self.client.get(base_path + 'stat=test_count&resolution=1h')

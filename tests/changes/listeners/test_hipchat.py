@@ -12,7 +12,8 @@ class HipChatTest(TestCase):
     @responses.activate
     @mock.patch('changes.listeners.hipchat.get_options')
     def test_simple(self, get_options):
-        build = self.create_build(self.project, result=Result.failed)
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(project, result=Result.failed)
 
         responses.add(
             responses.POST, 'https://api.hipchat.com/v1/rooms/message',

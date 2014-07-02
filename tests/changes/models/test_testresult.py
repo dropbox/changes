@@ -8,7 +8,8 @@ class TestResultManagerTestCase(TestCase):
     def test_simple(self):
         from changes.models import TestCase
 
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
@@ -42,7 +43,7 @@ class TestResultManagerTestCase(TestCase):
         for test in testcase_list:
             assert test.job_id == job.id
             assert test.step_id == jobstep.id
-            assert test.project_id == self.project.id
+            assert test.project_id == project.id
 
         assert testcase_list[0].name == 'tests.changes.handlers.test_coverage.test_foo'
         assert testcase_list[0].result == Result.passed

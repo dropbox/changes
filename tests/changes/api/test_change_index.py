@@ -4,8 +4,10 @@ from changes.testutils import APITestCase
 
 class ChangeListTest(APITestCase):
     def test_simple(self):
-        change = self.create_change(self.project)
-        change2 = self.create_change(self.project2)
+        project = self.create_project()
+        project2 = self.create_project()
+        change = self.create_change(project)
+        change2 = self.create_change(project2)
 
         resp = self.client.get('/api/0/changes/')
         assert resp.status_code == 200
@@ -17,10 +19,11 @@ class ChangeListTest(APITestCase):
 
 class ChangeCreateTest(APITestCase):
     def test_simple(self):
-        change = self.create_change(self.project)
+        project = self.create_project()
+        change = self.create_change(project)
         path = '/api/0/changes/'.format(change.id.hex)
         resp = self.client.post(path, data={
-            'project': self.project.slug,
+            'project': project.slug,
             'label': 'D1234',
             'author': 'David Cramer <dcramer@example.com>',
         })
@@ -28,7 +31,7 @@ class ChangeCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert data['id']
         change = Change.query.get(data['id'])
-        assert change.project == self.project
+        assert change.project == project
         assert change.label == 'D1234'
         assert change.author.name == 'David Cramer'
         assert change.author.email == 'dcramer@example.com'

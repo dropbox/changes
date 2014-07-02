@@ -14,8 +14,9 @@ from changes.testutils import TestCase
 class SyncBuildTest(TestCase):
     @mock.patch('changes.config.queue.delay')
     def test_simple(self, queue_delay):
+        project = self.create_project()
         build = self.create_build(
-            project=self.project,
+            project=project,
             status=Status.unknown,
             result=Result.unknown,
         )
@@ -77,7 +78,7 @@ class SyncBuildTest(TestCase):
         assert build.date_finished == datetime(2013, 9, 19, 22, 15, 26)
 
         queue_delay.assert_any_call('update_project_stats', kwargs={
-            'project_id': self.project.id.hex,
+            'project_id': project.id.hex,
         }, countdown=1)
 
         stat = ItemStat.query.filter(

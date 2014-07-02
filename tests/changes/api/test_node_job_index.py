@@ -5,18 +5,19 @@ from changes.testutils import APITestCase
 
 class NodeJobIndexTest(APITestCase):
     def test_simple(self):
+        project = self.create_project()
         node = self.create_node()
-        build = self.create_build(self.project)
+        build = self.create_build(project)
         job = self.create_job(build)
         phase = JobPhase(
             job=job,
-            project=self.project,
+            project=project,
             label='test',
         )
         db.session.add(phase)
         jobstep = JobStep(
             job=job,
-            project=self.project,
+            project=project,
             phase=phase,
             node=node,
             label='test',

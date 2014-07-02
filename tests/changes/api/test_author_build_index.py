@@ -9,7 +9,9 @@ class AuthorBuildListTest(APITestCase):
     def test_simple(self):
         fake_author_id = uuid4()
 
-        self.create_build(self.project)
+        project = self.create_project()
+
+        self.create_build(project)
 
         path = '/api/0/authors/{0}/builds/'.format(fake_author_id.hex)
 
@@ -20,7 +22,7 @@ class AuthorBuildListTest(APITestCase):
 
         author = Author(email=self.default_user.email, name='Foo Bar')
         db.session.add(author)
-        build = self.create_build(self.project, author=author)
+        build = self.create_build(project, author=author)
 
         path = '/api/0/authors/{0}/builds/'.format(author.id.hex)
 

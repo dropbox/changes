@@ -8,11 +8,13 @@ from changes.testutils import APITestCase
 class BuildCancelTest(APITestCase):
     @mock.patch.object(Step, 'get_implementation')
     def test_simple(self, get_implementation):
+        project = self.create_project()
+
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
         build = self.create_build(
-            project=self.project, status=Status.in_progress)
+            project=project, status=Status.in_progress)
         job = self.create_job(build=build, status=Status.in_progress)
         plan = self.create_plan()
         self.create_step(plan)

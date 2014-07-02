@@ -6,18 +6,19 @@ from changes.testutils.cases import TestCase
 
 class GetLogClippingTestCase(TestCase):
     def test_simple(self):
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build)
 
         logsource = LogSource(
-            project=self.project,
+            project=project,
             job=job,
             name='console',
         )
         db.session.add(logsource)
 
         logchunk = LogChunk(
-            project=self.project,
+            project=project,
             job=job,
             source=logsource,
             offset=0,
@@ -26,7 +27,7 @@ class GetLogClippingTestCase(TestCase):
         )
         db.session.add(logchunk)
         logchunk = LogChunk(
-            project=self.project,
+            project=project,
             job=job,
             source=logsource,
             offset=11,

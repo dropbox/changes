@@ -5,12 +5,13 @@ from changes.testutils import APITestCase
 
 class JobDetailsTest(APITestCase):
     def test_simple(self):
-        build = self.create_build(self.project)
+        project = self.create_project()
+        build = self.create_build(project)
         job = self.create_job(build)
 
-        ls1 = LogSource(job=job, project=self.project, name='test')
+        ls1 = LogSource(job=job, project=project, name='test')
         db.session.add(ls1)
-        ls2 = LogSource(job=job, project=self.project, name='test2')
+        ls2 = LogSource(job=job, project=project, name='test2')
         db.session.add(ls2)
         db.session.commit()
 

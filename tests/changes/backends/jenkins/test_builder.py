@@ -29,6 +29,10 @@ class BaseTestCase(BackendTestCase):
         'job_name': 'server',
     }
 
+    def setUp(self):
+        self.project = self.create_project()
+        super(BaseTestCase, self).setUp()
+
     def get_builder(self, **options):
         base_options = self.builder_options.copy()
         base_options.update(options)
@@ -133,7 +137,7 @@ class CreateBuildTest(BaseTestCase):
         }
 
         patch = Patch(
-            repository=self.repo,
+            repository=self.project.repository,
             parent_revision_sha='7ebd1f2d750064652ef5bbff72452cc19e1731e0',
             diff=SAMPLE_DIFF,
         )

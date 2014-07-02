@@ -9,8 +9,9 @@ from changes.testutils.cases import TestCase
 
 class GetRecipientsTestCase(TestCase):
     def test_default_options(self):
+        project = self.create_project()
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project, result=Result.passed, author=author)
+        build = self.create_build(project, result=Result.passed, author=author)
         job = self.create_job(build)
 
         handler = MailNotificationHandler()
@@ -19,10 +20,11 @@ class GetRecipientsTestCase(TestCase):
         assert recipients == ['{0} <foo@example.com>'.format(author.name)]
 
     def test_without_author_option(self):
+        project = self.create_project()
         db.session.add(ProjectOption(
-            project=self.project, name='mail.notify-author', value='0'))
+            project=project, name='mail.notify-author', value='0'))
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project, result=Result.failed, author=author)
+        build = self.create_build(project, result=Result.failed, author=author)
         job = self.create_job(build)
         db.session.commit()
 
@@ -32,14 +34,15 @@ class GetRecipientsTestCase(TestCase):
         assert recipients == []
 
     def test_with_addressees(self):
+        project = self.create_project()
         db.session.add(ProjectOption(
-            project=self.project, name='mail.notify-author', value='1'))
+            project=project, name='mail.notify-author', value='1'))
         db.session.add(ProjectOption(
-            project=self.project, name='mail.notify-addresses',
+            project=project, name='mail.notify-addresses',
             value='test@example.com, bar@example.com'))
 
         author = self.create_author('foo@example.com')
-        build = self.create_build(self.project, result=Result.failed, author=author)
+        build = self.create_build(project, result=Result.failed, author=author)
         job = self.create_job(build)
         db.session.commit()
 
@@ -53,17 +56,18 @@ class GetRecipientsTestCase(TestCase):
         ]
 
     def test_with_revision_addressees(self):
+        project = self.create_project()
         db.session.add(ProjectOption(
-            project=self.project, name='mail.notify-author', value='1'))
+            project=project, name='mail.notify-author', value='1'))
         db.session.add(ProjectOption(
-            project=self.project, name='mail.notify-addresses-revisions',
+            project=project, name='mail.notify-addresses-revisions',
             value='test@example.com, bar@example.com'))
 
         author = self.create_author('foo@example.com')
-        patch = self.create_patch(project=self.project)
-        source = self.create_source(self.project, patch=patch)
+        patch = self.create_patch(repository=project.repository)
+        source = self.create_source(project, patch=patch)
         build = self.create_build(
-            project=self.project,
+            project=project,
             source=source,
             author=author,
             result=Result.failed,
@@ -77,7 +81,7 @@ class GetRecipientsTestCase(TestCase):
         assert recipients == ['{0} <foo@example.com>'.format(author.name)]
 
         build = self.create_build(
-            project=self.project,
+            project=project,
             result=Result.failed,
             author=author,
         )
@@ -96,7 +100,8 @@ class GetRecipientsTestCase(TestCase):
 class SendTestCase(TestCase):
     @mock.patch.object(MailNotificationHandler, 'get_recipients')
     def test_simple(self, get_recipients):
-        build = self.create_build(self.project, target='D1234')
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(project, target='D1234')
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
         step = self.create_jobstep(phase=phase)
@@ -134,7 +139,8 @@ class SendTestCase(TestCase):
 
     @mock.patch.object(MailNotificationHandler, 'get_recipients')
     def test_multiple_sources(self, get_recipients):
-        build = self.create_build(self.project, target='D1234')
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(project, target='D1234')
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
         step = self.create_jobstep(phase=phase)
@@ -186,7 +192,7 @@ class SendTestCase(TestCase):
 
 class GetJobOptionsTestCase(TestCase):
     def test_simple(self):
-        project = self.project
+        project = self.create_project()
         plan = self.create_plan()
         plan.projects.append(project)
         build = self.create_build(project)
