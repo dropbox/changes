@@ -90,7 +90,7 @@ class ProjectIndexAPIView(APIView):
             data['lastPassingBuild'] = passing_build_map.get(project.id)
             context.append(data)
 
-        return self.paginate(context)
+        return self.respond(context)
 
     @requires_auth
     def post(self):
