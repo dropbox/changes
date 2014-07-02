@@ -19,7 +19,7 @@ class RepositoryIndexAPIView(APIView):
     get_parser.add_argument('backend', type=unicode, location='args',
                             choices=BACKEND_CHOICES)
     get_parser.add_argument('sort', type=unicode, location='args',
-                            choices=SORT_CHOICES, default='duration')
+                            choices=SORT_CHOICES, default='url')
 
     post_parser = reqparse.RequestParser()
     post_parser.add_argument('url', type=unicode, required=True)

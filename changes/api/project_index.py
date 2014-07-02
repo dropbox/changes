@@ -58,7 +58,7 @@ class ProjectIndexAPIView(APIView):
     get_parser.add_argument('status', type=unicode, location='args',
                             choices=STATUS_CHOICES, default='active')
     get_parser.add_argument('sort', type=unicode, location='args',
-                            choices=SORT_CHOICES, default='duration')
+                            choices=SORT_CHOICES, default='name')
 
     post_parser = reqparse.RequestParser()
     post_parser.add_argument('name', type=unicode, required=True)
