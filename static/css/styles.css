@@ -92,6 +92,10 @@ dd .progress {
   width: 100%;
 }
 
+input, select, textarea {
+  font-weight: 300;
+}
+
 .container {
   margin: 0 auto;
 }
@@ -357,6 +361,22 @@ dd .progress {
 
 .section-header .form-inline input[type=text] {
   height: 26px;
+  background: #f0f0f0;
+  border: 0;
+  text-shadow: none;
+  box-shadow: none;
+  border-radius: 0;
+  width: 200px;
+}
+.section-header .form-inline input[type=text]:focus {
+  color: #000;
+}
+.section-header .form-inline .btn {
+  background: inherit;
+  font-size: 16px;
+  padding: 0;
+  color: #aaa;
+  margin-left: 5px;
 }
 
 .section-boxed {
