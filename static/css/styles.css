@@ -492,6 +492,11 @@ a.indicator {
   background: #d9322d;
   border-color: #d9322d;
 }
+.result-skipped .indicator {
+  color: #fff;
+  background: rgb(255, 215, 0);
+  border-color: rgb(255, 215, 0);
+}
 .result-unknown .indicator {
   color: #aaa;
   background: #fff;
