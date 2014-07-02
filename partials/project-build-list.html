@@ -27,7 +27,7 @@
                   style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
     </div>
 
-    <div ng-if="builds.length">
+    <div ng-if="buildList.length">
         <table class="build-list">
             <thead>
                 <tr class="build-list-header">
@@ -38,22 +38,22 @@
                     <th class="date">When</th>
                 </tr>
             </thead>
-            <tbody ng-repeat-start="build in builds">
+            <tbody ng-repeat-start="build in buildList">
                 <tr buildrow="build" features="features"></tr>
             </tbody>
             <tbody ng-repeat-end></tbody>
         </table>
 
         <ul class="pager">
-            <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-                <a ng-click="loadPreviousPage()">&larr; Previous</a>
+            <li class="previous" ng-class="buildPaginator.previousPage === null ? 'disabled' : ''">
+                <a ng-click="buildPaginator.loadPreviousPage()">&larr; Previous</a>
             </li>
-            <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-                <a ng-click="loadNextPage()">Next &rarr;</a>
+            <li class="next" ng-class="buildPaginator.nextPage === null ? 'disabled' : ''">
+                <a ng-click="buildPaginator.loadNextPage()">Next &rarr;</a>
             </li>
         </ul>
     </div>
-    <div ng-if="!builds.length">
+    <div ng-if="!buildList.length">
         <p>There are no builds to show here.</p>
     </div>
 </section>

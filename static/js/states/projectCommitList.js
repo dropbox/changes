@@ -30,7 +30,7 @@ define([
     url: 'commits/',
     templateUrl: 'partials/project-commit-list.html',
     controller: function($scope, $state, $stateParams, Collection, CollectionPoller,
-                         Paginator) {
+                         Paginator, PageTitle, projectData) {
       var chartOptions = {
         linkFormatter: function(item) {
           if (item.build) {
@@ -129,6 +129,8 @@ define([
         collection: collection,
         poller: poller
       });
+
+      PageTitle.set(projectData.name + ' Commits');
 
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;

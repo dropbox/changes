@@ -10,21 +10,27 @@ define([
 
   var PER_PAGE = 50;
 
-  function getEndpoint($stateParams) {
-    var page = $stateParams.page || 1;
-    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?page=' + page + '&per_page=' + PER_PAGE;
+  function getEndpoint($stateParams, options) {
+    if (options === undefined) {
+      options = {};
+    }
+
+    var per_page = options.per_page || PER_PAGE;
+    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?per_page=' + per_page;
+
     if ($stateParams.query) {
       url += '&query=' + $stateParams.query;
     }
+
     return url;
   }
 
   return {
     parent: 'project_details',
-    url: 'builds/?query&page',
+    url: 'builds/?query',
     templateUrl: 'partials/project-build-list.html',
-    controller: function($scope, $http, $state, $stateParams, projectData, buildList,
-                         Collection, CollectionPoller, PageTitle) {
+    controller: function($scope, $state, $stateParams, Collection, CollectionPoller,
+                         Paginator, PageTitle, projectData) {
       var chart_options = {
         linkFormatter: function(item) {
           return $state.href('build_details', {build_id: item.id});
@@ -72,73 +78,23 @@ define([
         limit: PER_PAGE
       };
 
-      $scope.getBuildStatus = function(build) {
-        if (build.status.id == 'finished') {
-          return build.result.name;
-        } else {
-          return build.status.name;
+      function selectChart(chart) {
+        if (chart) {
+          $scope.selectedChart = chart;
         }
-      };
-
-      function loadBuildList(url) {
-        if (!url) {
-          return;
-        }
-        $http.get(url)
-          .success(function(data, status, headers){
-            $scope.builds = new Collection(data, {
-              sortFunc: sortBuildList,
-              limit: PER_PAGE
-            });
-            updatePageLinks(headers('Link'));
-          });
+        $scope.chartData = chartHelpers.getChartData(collection, null, chart_options);
       }
 
-      function updatePageLinks(links) {
-        var value = parseLinkHeader(links);
-
-        $scope.pageLinks = value;
-        $scope.nextPage = value.next || null;
-        $scope.previousPage = value.previous || null;
-
-        if (value.previous) {
-          poller.stop();
-        } else {
-          poller.start();
-        }
-      }
-
-      $scope.loadPreviousPage = function() {
-        $(document.body).scrollTop(0);
-        loadBuildList($scope.pageLinks.previous);
-      };
-
-      $scope.loadNextPage = function() {
-        $(document.body).scrollTop(0);
-        loadBuildList($scope.pageLinks.next);
-      };
-
-      $scope.builds = new Collection(buildList.data, {
+      var collection = new Collection([], {
         sortFunc: sortBuildList,
-        limit: PER_PAGE
-      });
-
-      $scope.selectChart = function(chart) {
-        $scope.selectedChart = chart;
-        $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
-      };
-      $scope.selectChart('duration');
-
-      PageTitle.set(projectData.name + ' Builds');
-
-      $scope.$watchCollection("builds", function() {
-        $scope.chartData = chartHelpers.getChartData($scope.builds, null, chart_options);
+        limit: PER_PAGE,
+        onUpdate: $scope.selectChart
       });
 
       var poller = new CollectionPoller({
         $scope: $scope,
-        collection: $scope.builds,
-        endpoint: getEndpoint($stateParams),
+        collection: collection,
+        endpoint: getEndpoint($stateParams, {per_page: 25}),
         shouldUpdate: function(item, existing) {
           if (existing.dateModified < item.dateModified) {
             return true;
@@ -147,12 +103,27 @@ define([
         }
       });
 
-      updatePageLinks(buildList.headers('Link'));
-    },
-    resolve: {
-      buildList: function($http, $stateParams) {
-        return $http.get(getEndpoint($stateParams));
-      }
+      var paginator = new Paginator(getEndpoint($stateParams), {
+        collection: collection,
+        poller: poller
+      });
+
+      PageTitle.set(projectData.name + ' Builds');
+
+      $scope.getBuildStatus = function(build) {
+        if (build.status.id == 'finished') {
+          return build.result.name;
+        } else {
+          return build.status.name;
+        }
+      };
+
+      $scope.selectChart = selectChart;
+      $scope.selectChart('duration');
+
+      $scope.buildList = collection;
+      $scope.buildPaginator = paginator;
+
     }
   };
 });
