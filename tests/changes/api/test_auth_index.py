@@ -17,7 +17,4 @@ class AuthIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['authenticated'] is True
-        assert data['user'] == {
-            'id': self.default_user.id.hex,
-            'email': self.default_user.email,
-        }
+        assert data['user']['id'] == self.default_user.id.hex
