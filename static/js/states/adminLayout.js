@@ -8,6 +8,10 @@ define([
     url: '/admin/',
     templateUrl: 'partials/admin/layout.html',
     controller: function($scope, $rootScope, $location, $window, authData, flash, PageTitle) {
+      if (!authData.user.isAdmin) {
+        return $location.path('/');
+      }
+
       PageTitle.set('Changes Admin');
 
       $scope.appVersion = $window.APP_VERSION;
