@@ -1,36 +1,34 @@
-<section ui-view>
-	<div id="overview">
-		<div class="page-header">
-			<div class="pull-right">
-				<a ui-sref="new_plan()" class="btn btn-primary">New Plan</a>
-			</div>
-			<h2>Build Plans</h2>
+<div id="overview">
+	<div class="page-header">
+		<div class="pull-right">
+			<a ui-sref="new_plan()" class="btn btn-primary">New Plan</a>
 		</div>
-
-		<table class="grid-list">
-			<thead>
-				<tr class="grid-list-header">
-					<th>Plan</th>
-					<th class="column">Created</th>
-					<th class="column">Modified</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr ng-repeat="plan in planList">
-					<td><a ui-sref="admin_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
-					<td class="column" time-since="plan.dateCreated"></td>
-					<td class="column" time-since="plan.dateModified"></td>
-				</tr>
-			</tbody>
-		</table>
-
-        <ul class="pager">
-            <li class="previous" ng-class="planPaginator.nextPage === null ? 'disabled' : ''">
-                <a ng-click="planPaginator.loadNextPage()">&larr; Older</a>
-            </li>
-            <li class="next" ng-class="planPaginator.previousPage === null ? 'disabled' : ''">
-                <a ng-click="planPaginator.loadPreviousPage()">Newer &rarr;</a>
-            </li>
-        </ul>
+		<h2>Build Plans</h2>
 	</div>
-</section>
+
+	<table class="grid-list">
+		<thead>
+			<tr class="grid-list-header">
+				<th>Plan</th>
+				<th class="column">Created</th>
+				<th class="column">Modified</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="plan in planList">
+				<td><a ui-sref="admin_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
+				<td class="column" time-since="plan.dateCreated"></td>
+				<td class="column" time-since="plan.dateModified"></td>
+			</tr>
+		</tbody>
+	</table>
+
+  <ul class="pager">
+    <li class="previous" ng-class="planPaginator.nextPage === null ? 'disabled' : ''">
+        <a ng-click="planPaginator.loadNextPage()">&larr; Older</a>
+    </li>
+    <li class="next" ng-class="planPaginator.previousPage === null ? 'disabled' : ''">
+        <a ng-click="planPaginator.loadPreviousPage()">Newer &rarr;</a>
+    </li>
+  </ul>
+</div>
