@@ -1,0 +1,16 @@
+<table class="grid-list">
+  <thead>
+    <tr class="grid-list-header">
+      <th>Repository</th>
+      <th class="column">Backend</th>
+      <th class="column">Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="repository in repositoryList">
+      <td>{{repository.url}}</td>
+      <td class="column">{{repository.backend.name}}</td>
+      <td class="column" time-since="repository.dateCreated"></td>
+    </tr>
+  </tbody>
+</table>
