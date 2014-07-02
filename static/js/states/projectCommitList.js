@@ -3,9 +3,8 @@ define([
   'utils/chartHelpers',
   'utils/duration',
   'utils/escapeHtml',
-  'utils/parseLinkHeader',
   'utils/sortBuildList'
-], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader, sortBuildList) {
+], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
   'use strict';
 
   var PER_PAGE = 50;
