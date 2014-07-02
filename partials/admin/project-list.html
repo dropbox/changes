@@ -14,10 +14,10 @@
 </table>
 
 <ul class="pager">
-  <li class="previous" ng-class="projectPaginator.nextPage === null ? 'disabled' : ''">
-    <a ng-click="projectPaginator.loadNextPage()">&larr; Older</a>
+  <li class="previous" ng-class="projectPaginator.previousPage === null ? 'disabled' : ''">
+    <a ng-click="projectPaginator.loadPreviousPage()">&larr; Previous</a>
   </li>
-  <li class="next" ng-class="projectPaginator.previousPage === null ? 'disabled' : ''">
-    <a ng-click="projectPaginator.loadPreviousPage()">Newer &rarr;</a>
+  <li class="next" ng-class="projectPaginator.nextPage === null ? 'disabled' : ''">
+    <a ng-click="projectPaginator.loadNextPage()">Next &rarr;</a>
   </li>
 </ul>

@@ -16,10 +16,10 @@
 </table>
 
 <ul class="pager">
-  <li class="previous" ng-class="repositoryPaginator.nextPage === null ? 'disabled' : ''">
-    <a ng-click="repositoryPaginator.loadNextPage()">&larr; Older</a>
+  <li class="previous" ng-class="repositoryPaginator.previousPage === null ? 'disabled' : ''">
+    <a ng-click="repositoryPaginator.loadPreviousPage()">&larr; Previous</a>
   </li>
-  <li class="next" ng-class="repositoryPaginator.previousPage === null ? 'disabled' : ''">
-    <a ng-click="repositoryPaginator.loadPreviousPage()">Newer &rarr;</a>
+  <li class="next" ng-class="repositoryPaginator.nextPage === null ? 'disabled' : ''">
+    <a ng-click="repositoryPaginator.loadNextPage()">Next &rarr;</a>
   </li>
 </ul>
