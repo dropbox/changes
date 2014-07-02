@@ -13,7 +13,6 @@ define([
         collection: collection
       });
 
-
       $scope.planList = collection;
       $scope.planPaginator = paginator;
     }
