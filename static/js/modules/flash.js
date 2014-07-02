@@ -20,13 +20,21 @@ define(['angular'], function(angular) {
 
       $rootScope.$on('$routeChangeSuccess', emit);
 
+      var getLevelTypeName = function(level) {
+        if (level == 'error') {
+          return 'danger';
+        } else {
+          return level;
+        }
+      };
+
       var asMessage = function(level, text) {
         if (text === undefined) {
           text = level;
           level = 'success';
         }
         return {
-          level: level,
+          type: getLevelTypeName(level),
           text: text || default_message
         };
       };
@@ -35,7 +43,7 @@ define(['angular'], function(angular) {
         if (level instanceof Array) return level.map(function(message) {
           return message.text ? message : asMessage(message);
         });
-        return text !== undefined ? [{ level: level, text: text || default_message }] : [asMessage(level)];
+        return [asMessage(level, text)];
       };
 
       return function(level, text) {
@@ -48,20 +56,16 @@ define(['angular'], function(angular) {
         replace: true,
         template:
           '<ol class="alert-list" id="flash-messages">' +
-            '<li ng-repeat="m in messages" class="alert alert-{{levelClassName(m.level)}} alert-dismissable">' +
+            '<li ng-repeat="m in messages" class="alert alert-{{m.type}} alert-dismissable">' +
               '<div class="container">' +
-                '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                '<button type="button" class="close" ng-click=close($index)>&times;</button>' +
                 '{{m.text}}' +
               '</div>' +
             '</li>' +
           '</ol>',
         controller: function($scope, $rootScope) {
-          $scope.levelClassName = function(level) {
-            if (level == 'error') {
-              return 'danger';
-            } else {
-              return level;
-            }
+          $scope.close = function(index){
+            $scope.messages.splice(index, 1);
           };
 
           $rootScope.$on('flash:message', function(_, messages, done) {
