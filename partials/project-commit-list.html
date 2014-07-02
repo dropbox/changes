@@ -37,7 +37,7 @@
             <th class="date">When</th>
         </tr>
 
-        <tbody ng-repeat-start="commit in commits">
+        <tbody ng-repeat-start="commit in commitList">
             <tr buildrow="commit.build"
                 features="features"
                 ng-if="commit.build"></tr>
@@ -60,11 +60,11 @@
     </table>
 
     <ul class="pager">
-        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        <li class="previous" ng-class="commitPaginator.previousPage === null ? 'disabled' : ''">
+            <a ng-click="commitPaginator.loadPreviousPage()">&larr; Previous</a>
         </li>
-        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-            <a ng-click="loadNextPage()">Next &rarr;</a>
+        <li class="next" ng-class="commitPaginator.nextPage === null ? 'disabled' : ''">
+            <a ng-click="commitPaginator.loadNextPage()">Next &rarr;</a>
         </li>
     </ul>
 
