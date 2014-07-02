@@ -1511,26 +1511,34 @@ d3barchart {
   border-color: #999;
 }
 
-
+.form-submit {
+  position: relative;
+  display: block;
+}
 .fixed-form-submit {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
 }
+.form-submit,
+.fixed-form-submit .container {
+  font-size: 12px;
+}
 .fixed-form-submit .container {
   border: 1px solid #58488a;
   border-bottom: 0;
-  padding: 10px;
-  font-size: 12px;
-  color: #fff;
   background: #63519e;
+  padding: 10px;
+  color: #fff;
 }
+.form-submit p,
 .fixed-form-submit p {
   display: inline-block;
   padding: 5px 0;
   margin: 0;
 }
+.form-submit button,
 .fixed-form-submit button {
   float: right;
 }

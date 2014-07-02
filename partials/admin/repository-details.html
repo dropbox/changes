@@ -1,0 +1,28 @@
+<div id="overview">
+  <div class="page-header">
+    <h2>Repository Details</h2>
+  </div>
+
+  <form name="repositoryDetailsForm" ng-submit="saveForm()">
+    <div class="form-group">
+      <label>URL</label>
+      <input type="text" class="form-control" ng-model="formData.url">
+    </div>
+
+    <div class="form-group">
+      <label>Backend</label>
+      <select class="form-control" ng-model="formData.backend">
+        <option value="unknown">Unknown</option>
+        <option value="git">Git</option>
+        <option value="hg">Mercurial</option>
+      </select>
+    </div>
+
+    <div class="form-submit">
+      <p ng-show="repositoryDetailsForm.$dirty">Your changes have not yet been saved.</p>
+      <button type="submit" class="btn btn-sm btn-primary"
+              ng-disabled="repositoryDetailsForm.$pristine">Save Changes</button>
+    </div>
+
+  </form>
+</div>

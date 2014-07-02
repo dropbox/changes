@@ -8,6 +8,7 @@ define([
   'states/adminPlanList',
   'states/adminProjectCreate',
   'states/adminProjectList',
+  'states/adminRepositoryDetails',
   'states/adminRepositoryList',
   'states/authorBuildList',
   'states/buildDetails',
@@ -54,6 +55,7 @@ define([
   AdminPlanListState,
   AdminProjectCreateState,
   AdminProjectListState,
+  AdminRepositoryDetailsState,
   AdminRepositoryListState,
   AuthorBuildListState,
   BuildDetailsState,
@@ -155,6 +157,7 @@ define([
       .state('admin_plan_list', AdminPlanListState)
       .state('admin_plan_create', AdminPlanCreateState)
       .state('admin_plan_details', AdminPlanDetailsState)
-      .state('admin_repository_list', AdminRepositoryListState);
+      .state('admin_repository_list', AdminRepositoryListState)
+      .state('admin_repository_details', AdminRepositoryDetailsState);
   });
 });

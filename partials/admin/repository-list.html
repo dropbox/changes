@@ -8,7 +8,7 @@
   </thead>
   <tbody>
     <tr ng-repeat="repository in repositoryList">
-      <td>{{repository.url}}</td>
+      <td><a ui-sref="admin_repository_details({repository_id: repository.id})">{{repository.url}}</a></td>
       <td class="column">{{repository.backend.name}}</td>
       <td class="column" time-since="repository.dateCreated"></td>
     </tr>
