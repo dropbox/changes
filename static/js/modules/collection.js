@@ -8,6 +8,12 @@ define(['angular'], function(angular) {
         limit: null,
         equals: function(item, other) {
           return item.id == other.id;
+        },
+        onUpdate: function(data){
+          return data;
+        },
+        transform: function(data){
+          return data;
         }
       };
 
@@ -41,34 +47,41 @@ define(['angular'], function(angular) {
 
       Collection.prototype.constructor = Collection;
 
-      // TODO(dcramer): we should probably make the behavior in update actually
-      // be part of push/unshift
-      Collection.prototype.push = function push() {
-        Array.prototype.push.apply(this, arguments);
+      Collection.prototype.push = function push(data) {
+        data = this.options.transform(data);
+        Array.prototype.push.apply(this, [data]);
         if (this.options.sortFunc) {
           this.options.sortFunc(this);
         }
         if (this.options.limit && this.length > this.options.limit) {
           this.splice(this.options.limit, this.length - this.options.limit);
         }
+        this.options.onUpdate(this);
       };
 
-      Collection.prototype.unshift = function unshift() {
-        Array.prototype.unshift.apply(this, arguments);
+      Collection.prototype.unshift = function unshift(data) {
+        data = this.options.transform(data);
+        Array.prototype.unshift.apply(this, [data]);
         if (this.options.sortFunc) {
           this.options.sortFunc(this);
         }
         if (this.options.limit && this.length > this.options.limit) {
           this.splice(this.options.limit, this.length - this.options.limit);
         }
+        this.options.onUpdate(this);
+      };
+
+      Collection.prototype.pop = function() {
+        Array.prototype.pop.apply(this, arguments);
+        this.options.onUpdate(this);
       };
 
       Collection.prototype.popItem = function remove(data) {
         var idx = this.indexOf(data);
         if (idx !== -1) {
           this.splice(idx, idx + 1);
-          return;
         }
+        this.options.onUpdate(this);
       };
 
       Collection.prototype.indexOf = function indexOf(data) {
@@ -87,17 +100,29 @@ define(['angular'], function(angular) {
       };
 
       Collection.prototype.update = function update(data, create_missing) {
+        var existing;
+
         if (create_missing === undefined) {
           create_missing = true;
         }
-        var existing = this.indexOf(data);
+
+        data = this.options.transform(data);
+
+        existing = this.indexOf(data);
 
         if (existing !== -1) {
           $.extend(true, this[existing], data);
+          this.options.onUpdate(this);
           return;
         }
         if (create_missing) {
-          this.unshift(data);
+          this.push(data);
+        }
+      };
+
+      Collection.prototype.empty = function empty() {
+        while (this.length > 0) {
+          this.pop();
         }
       };
 

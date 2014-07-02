@@ -15,7 +15,7 @@ define([
   'modules/d3BarChart',
   'modules/flash',
   'modules/pageTitle',
-  'modules/pagination',
+  'modules/paginator',
   'modules/poller',
   'modules/scalyr'
   ], function (angular) {
@@ -25,6 +25,7 @@ define([
       'barChart',
       'changes.barchart',
       'changes.pageTitle',
+      'changes.paginator',
       'changes.poller',
       'chieffancypants.loadingBar',
       'collection',
@@ -34,7 +35,6 @@ define([
       'ngAnimate',
       'ngRoute',
       'ngSanitize',
-      'pagination',
       'sly',
       'ui.bootstrap',
       'ui.router'
