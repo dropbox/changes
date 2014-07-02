@@ -1,13 +1,20 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from flask.ext.restful import reqparse
+from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.api.auth import requires_auth
 from changes.config import db
 from changes.constants import Result, Status, ProjectStatus
 from changes.models import Project, Repository, Build, Source
+
+
+STATUS_CHOICES = ('active', 'inactive')
+
+SORT_CHOICES = ('name', 'date')
 
 
 def get_latest_builds_query(project_list, result=None):
@@ -46,55 +53,80 @@ def get_latest_builds_query(project_list, result=None):
 
 
 class ProjectIndexAPIView(APIView):
-    parser = reqparse.RequestParser()
-    parser.add_argument('name', type=unicode, required=True)
-    parser.add_argument('slug', type=str)
-    parser.add_argument('repository', type=unicode, required=True)
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('query', type=unicode, location='args')
+    get_parser.add_argument('status', type=unicode, location='args',
+                            choices=STATUS_CHOICES, default='active')
+    get_parser.add_argument('sort', type=unicode, location='args',
+                            choices=SORT_CHOICES, default='duration')
+
+    post_parser = reqparse.RequestParser()
+    post_parser.add_argument('name', type=unicode, required=True)
+    post_parser.add_argument('slug', type=str)
+    post_parser.add_argument('repository', type=unicode, required=True)
 
     def get(self):
-        queryset = Project.query.filter(
-            Project.status == ProjectStatus.active,
-        ).order_by(Project.name.asc())
+        args = self.get_parser.parse_args()
+
+        queryset = Project.query
+
+        if args.query:
+            queryset = queryset.filter(
+                or_(
+                    func.lower(Project.name).contains(args.query.lower()),
+                    func.lower(Project.slug).contains(args.query.lower()),
+                ),
+            )
+
+        if args.status:
+            queryset = queryset.filter(
+                Project.status == ProjectStatus[args.status]
+            )
+
+        if args.sort == 'name':
+            queryset = queryset.order_by(Project.name.asc())
+        elif args.sort == 'date':
+            queryset = queryset.order_by(Project.date_created.asc())
 
         project_list = list(queryset)
 
         context = []
-
-        latest_build_results = get_latest_builds_query(project_list)
-        latest_build_map = dict(
-            zip([b.project_id for b in latest_build_results],
-                self.serialize(latest_build_results))
-        )
-
-        passing_build_map = {}
-        missing_passing_builds = set()
-        for build in latest_build_results:
-            if build.result == Result.passed:
-                passing_build_map[build.project_id] = build
-            else:
-                passing_build_map[build.project_id] = None
-                missing_passing_builds.add(build.project_id)
-
-        if missing_passing_builds:
-            passing_build_results = get_latest_builds_query(
-                project_list, result=Result.passed,
+        if project_list:
+            latest_build_results = get_latest_builds_query(project_list)
+            latest_build_map = dict(
+                zip([b.project_id for b in latest_build_results],
+                    self.serialize(latest_build_results))
             )
-            passing_build_map.update(dict(
-                zip([b.project_id for b in passing_build_results],
-                    self.serialize(passing_build_results))
-            ))
 
-        for project, data in zip(project_list, self.serialize(project_list)):
-            # TODO(dcramer): build serializer is O(N) for stats
-            data['lastBuild'] = latest_build_map.get(project.id)
-            data['lastPassingBuild'] = passing_build_map.get(project.id)
-            context.append(data)
+            passing_build_map = {}
+            missing_passing_builds = set()
+            for build in latest_build_results:
+                if build.result == Result.passed:
+                    passing_build_map[build.project_id] = build
+                else:
+                    passing_build_map[build.project_id] = None
+                    missing_passing_builds.add(build.project_id)
+
+            if missing_passing_builds:
+                passing_build_results = get_latest_builds_query(
+                    project_list, result=Result.passed,
+                )
+                passing_build_map.update(dict(
+                    zip([b.project_id for b in passing_build_results],
+                        self.serialize(passing_build_results))
+                ))
+
+            for project, data in zip(project_list, self.serialize(project_list)):
+                # TODO(dcramer): build serializer is O(N) for stats
+                data['lastBuild'] = latest_build_map.get(project.id)
+                data['lastPassingBuild'] = passing_build_map.get(project.id)
+                context.append(data)
 
         return self.respond(context)
 
     @requires_auth
     def post(self):
-        args = self.parser.parse_args()
+        args = self.post_parser.parse_args()
 
         slug = str(args.slug or args.name.replace(' ', '-').lower())
 

@@ -346,11 +346,17 @@ dd .progress {
 
 .section-header {
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 .section-header h3 {
-  margin: 0;
   padding-right: 15px;
+}
+.section-header h1, .section-header h2, .section-header h3 {
+  margin: 0;
+}
+
+.section-header .form-inline input[type=text] {
+  height: 26px;
 }
 
 .section-boxed {
@@ -475,6 +481,10 @@ dd .progress {
 .page-header .branch {
   font-size: 0.7em;
   line-height: 22px;
+}
+
+.page-header h1, .page-header h2, .page-header h3 {
+  margin: 0;
 }
 
 .build-header,
@@ -720,6 +730,9 @@ table > tbody > tr.result-skipped > td.result span {
   text-transform: uppercase;
   font-size: 12px;
   color: #aaa;
+}
+.grid-list-header a {
+  color: inherit;
 }
 
 table.build-list {

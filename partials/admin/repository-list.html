@@ -1,25 +1,37 @@
-<table class="grid-list">
-  <thead>
-    <tr class="grid-list-header">
-      <th>Repository</th>
-      <th class="column">Backend</th>
-      <th class="column">Created</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr ng-repeat="repository in repositoryList">
-      <td><a ui-sref="admin_repository_details({repository_id: repository.id})">{{repository.url}}</a></td>
-      <td class="column">{{repository.backend.name}}</td>
-      <td class="column" time-since="repository.dateCreated"></td>
-    </tr>
-  </tbody>
-</table>
+<section class="section">
+  <div class="section-header">
+    <form class="pull-right form-inline" ng-submit="search()">
+        <input type="text"
+               ng-model="searchForm.query"
+               placeholder="search"
+               class="form-control">
+    </form>
+    <h2>Repositories</h2>
+  </div>
 
-<ul class="pager">
-  <li class="previous" ng-class="repositoryPaginator.previousPage === null ? 'disabled' : ''">
-    <a ng-click="repositoryPaginator.loadPreviousPage()">&larr; Previous</a>
-  </li>
-  <li class="next" ng-class="repositoryPaginator.nextPage === null ? 'disabled' : ''">
-    <a ng-click="repositoryPaginator.loadNextPage()">Next &rarr;</a>
-  </li>
-</ul>
+  <table class="grid-list">
+    <thead>
+      <tr class="grid-list-header">
+        <th><a ui-sref="admin_repository_list({sort: 'url'})">Repository</a></th>
+        <th class="column">Backend</th>
+        <th class="column"><a ui-sref="admin_repository_list({sort: 'date'})">Created</a></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="repository in repositoryList">
+        <td><a ui-sref="admin_repository_details({repository_id: repository.id})">{{repository.url}}</a></td>
+        <td class="column">{{repository.backend.name}}</td>
+        <td class="column" time-since="repository.dateCreated"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ul class="pager">
+    <li class="previous" ng-class="repositoryPaginator.previousPage === null ? 'disabled' : ''">
+      <a ng-click="repositoryPaginator.loadPreviousPage()">&larr; Previous</a>
+    </li>
+    <li class="next" ng-class="repositoryPaginator.nextPage === null ? 'disabled' : ''">
+      <a ng-click="repositoryPaginator.loadNextPage()">Next &rarr;</a>
+    </li>
+  </ul>
+</section>
