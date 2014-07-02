@@ -1,9 +1,9 @@
 <div id="overview">
   <div class="page-header">
-    <h2>Repository Details</h2>
+    <h2>New Repository</h2>
   </div>
 
-  <form name="repositoryDetailsForm" ng-submit="saveForm()">
+  <form name="repositoryCreateForm" ng-submit="saveForm()">
     <div class="form-group">
       <label>URL</label>
       <input type="text" class="form-control" ng-model="formData.url"
@@ -22,9 +22,8 @@
     </div>
 
     <div class="form-submit">
-      <p ng-show="repositoryDetailsForm.$dirty">Your changes have not yet been saved.</p>
       <button type="submit" class="btn btn-sm btn-primary"
-              ng-disabled="repositoryDetailsForm.$pristine || repositoryDetailsForm.$invalid">Save Changes</button>
+              ng-disabled="repositoryCreateForm.$pristine || repositoryCreateForm.$invalid">Save Changes</button>
     </div>
 
   </form>

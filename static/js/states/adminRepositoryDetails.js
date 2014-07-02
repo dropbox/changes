@@ -24,6 +24,10 @@ define(['app'], function(app) {
             $scope.repository = data;
             $scope.formData = getFormData(data);
             $scope.repositoryDetailsForm.$setPristine();
+            flash('success', 'Repository saved successfully.');
+          })
+          .error(function(){
+            flash('error', 'An error ocurred, and we have yet to implement a way to tell you about it.');
           });
       };
     },
