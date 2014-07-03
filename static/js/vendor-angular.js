@@ -2,7 +2,6 @@ define([
   'angular',
   'angular',
   'angularAnimate',
-  'angularBootstrap',
   'angularHighlightjs',
   'angularLinkify',
   'angularLoadingBar',

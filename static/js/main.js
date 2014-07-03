@@ -11,12 +11,14 @@ requirejs.config({
     'angularLoadingBar': '../vendor/angular-loading-bar/build/loading-bar.min',
     'angularUIRouter': '../vendor/angular-ui-router/release/angular-ui-router.min',
     'bootstrap': '../vendor/bootstrap/js',
+    'bloodhound': '../vendor/typeahead.js/dist/bloodhound.min',
     'd3': '../vendor/d3/d3.min',
     'd3-tip': '../vendor/d3-tip/index',
     'jquery': '../vendor/jquery/jquery',
     'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
-    'requirejs': '../vendor/requirejs/require'
+    'requirejs': '../vendor/requirejs/require',
+    'typeahead': '../vendor/typeahead.js/dist/typeahead.jquery.min',
   },
   shim: {
     'angular': {
@@ -34,6 +36,7 @@ requirejs.config({
     'angularRoute': ['angular'],
     'angularSanitize': ['angular'],
     'angularUIRouter': ['angular'],
+    'bloodhound': {deps: ['jquery'], exports: 'Bloodhound'},
     'bootstrap/affix': {deps: ['jquery'], exports: '$.fn.affix'},
     'bootstrap/alert': {deps: ['jquery'], exports: '$.fn.alert'},
     'bootstrap/button': {deps: ['jquery'], exports: '$.fn.button'},
@@ -50,9 +53,11 @@ requirejs.config({
     'modules/pagination': ['angular'],
     'modules/stream': ['angular'],
     'modules/scalyr': ['angular'],
+    'modules/typeahead': ['angular'],
     'jquery': {
         exports: 'jquery'
-    }
+    },
+    'typeahead': ['bloodhound', 'jquery']
   }
 });
 

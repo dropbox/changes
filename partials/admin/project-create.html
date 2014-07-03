@@ -1,21 +1,23 @@
-<section>
-	<div id="overview">
-		<div class="page-header">
-			<h2>Create Project</h2>
-		</div>
+<div class="page-header">
+  <h2>New Project</h2>
+</div>
+<form name="projetCreateForm" ng-submit="createProject()">
+  <div class="form-group">
+    <label>Name:</label>
+    <input type="text" class="form-control" ng-model="project.name"
+         required>
+  </div>
 
-		<form name="createProjectForm" ng-submit="createProject()">
-			<div class="form-group">
-				<label>Name:</label>
-				<input type="text" class="form-control" ng-model="project.name">
-			</div>
+  <div class="form-group">
+    <label>Repository:</label>
+    <input type="text" class="form-control" ng-model="project.repository"
+         datasets="repoTypeaheadData" typeahead
+         required>
+  </div>
 
-			<div class="form-group">
-				<label>Repository URL:</label>
-				<input type="text" class="form-control" ng-model="project.repository">
-			</div>
 
-			<button type="submit" class="btn btn-primary">Save</button>
-		</form>
-	</div>
-</section>
+  <div class="form-submit">
+    <button type="submit" class="btn btn-sm btn-primary"
+            ng-disabled="projetCreateForm.$pristine || projetCreateForm.$invalid">Save Changes</button>
+  </div>
+</form>

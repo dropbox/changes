@@ -1,7 +1,6 @@
 define([
   'angular',
   'angularAnimate',
-  'angularBootstrap',
   'angularHighlightjs',
   'angularLinkify',
   'angularLoadingBar',
@@ -17,7 +16,8 @@ define([
   'modules/pageTitle',
   'modules/paginator',
   'modules/poller',
-  'modules/scalyr'
+  'modules/scalyr',
+  'modules/typeahead'
   ], function (angular) {
     'use strict';
 
@@ -27,6 +27,7 @@ define([
       'changes.pageTitle',
       'changes.paginator',
       'changes.poller',
+      'changes.typeahead',
       'chieffancypants.loadingBar',
       'collection',
       'flash',
@@ -36,7 +37,6 @@ define([
       'ngRoute',
       'ngSanitize',
       'sly',
-      'ui.bootstrap',
       'ui.router'
     ]);
 });
