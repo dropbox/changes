@@ -167,6 +167,9 @@ def create_app(_read_config=True, **config):
     app.config['CELERY_TIMEZONE'] = 'UTC'
 
     app.config['SENTRY_DSN'] = None
+    app.config['SENTRY_INCLUDE_PATHS'] = [
+        'changes',
+    ]
 
     app.config['JENKINS_AUTH'] = None
     app.config['JENKINS_URL'] = None
