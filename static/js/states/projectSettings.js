@@ -4,6 +4,14 @@ define([
 ], function(app, escapeHtml) {
   'use strict';
 
+  function getFormData(projectData) {
+    return {
+      name: projectData.name,
+      slug: projectData.slug,
+      repository: projectData.repository.url
+    };
+  }
+
   return {
     parent: 'project_details',
     url: 'settings/',
@@ -29,6 +37,32 @@ define([
         options[key] = value;
       }
 
+      $scope.searchRepositories = function(value) {
+        return $http.get('/api/0/repositories/', {
+          params: {
+            query: value
+          }
+        }).success(function(data){
+          var results = [];
+          angular.forEach(data, function(item){
+            results.push(item.url);
+          });
+          return results;
+        });
+      };
+
+      var bloodhound = new Bloodhound({
+        datumTokenizer: function(d) { return Bloodhound.tokenizers.whitespace(d.url); },
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        remote: '/api/0/repositories/?query=%QUERY'
+      });
+      bloodhound.initialize();
+
+      $scope.repoTypeaheadData = {
+        displayKey: 'url',
+        source: bloodhound.ttAdapter()
+      };
+
       $scope.saveProjectSettings = function() {
         var options = angular.copy($scope.options);
         for (var key in options) {
@@ -36,14 +70,23 @@ define([
             options[key] = options[key] ? '1' : '0';
           }
         }
+        // TODO(dcramer): we dont correctly update the URL when the project slug
+        // changes
         $http.post('/api/0/projects/' + $scope.project.slug + '/options/', options);
-        $scope.projectSettingsForm.$setPristine();
+        $http.post('/api/0/projects/' + $scope.project.slug + '/', $scope.formData)
+          .success(function(data){
+            $scope.project = data;
+            $scope.formData = getFormData(data);
+          });
+          // TODO(dcramer): this is actually invalid
+          $scope.projectSettingsForm.$setPristine();
       };
 
       $scope.project = projectData;
       $scope.repo = projectData.repository;
       $scope.plans = projectData.plans;
       $scope.options = options;
+      $scope.formData = getFormData(projectData);
     },
     resolve: {
       projectData: function($http, $stateParams) {

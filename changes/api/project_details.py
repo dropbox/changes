@@ -1,41 +1,16 @@
 from __future__ import division
 
 from datetime import datetime, timedelta
-from flask import request
+from flask.ext.restful import reqparse
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.config import db
 from changes.models import (
-    Project, Plan, Build, Source, Status, Result, ProjectOption
+    Project, Plan, Build, Source, Status, Result, ProjectOption, Repository
 )
 
-
-class ValidationError(Exception):
-    pass
-
-
-class Validator(object):
-    fields = ()
-
-    def __init__(self, data=None, initial=None):
-        self.data = data or {}
-        self.initial = initial or {}
-
-    def clean(self):
-        result = {}
-        for name in self.fields:
-            value = self.data.get(name, self.initial.get(name))
-            if isinstance(value, basestring):
-                value = value.strip()
-            result[name] = value
-
-        for key, value in result.iteritems():
-            if not value:
-                raise ValidationError('%s is required' % (key,))
-
-        return result
 
 OPTION_DEFAULTS = {
     'green-build.notify': '0',
@@ -50,14 +25,12 @@ OPTION_DEFAULTS = {
 }
 
 
-class ProjectValidator(Validator):
-    fields = (
-        'name',
-        'slug',
-    )
-
-
 class ProjectDetailsAPIView(APIView):
+    post_parser = reqparse.RequestParser()
+    post_parser.add_argument('name')
+    post_parser.add_argument('slug')
+    post_parser.add_argument('repository')
+
     def _get_avg_duration(self, project, start_period, end_period):
         avg_duration = db.session.query(
             func.avg(Build.duration)
@@ -186,20 +159,30 @@ class ProjectDetailsAPIView(APIView):
         if project is None:
             return '', 404
 
-        validator = ProjectValidator(
-            data=request.form,
-            initial={
-                'name': project.name,
-                'slug': project.slug,
-            },
-        )
-        try:
-            result = validator.clean()
-        except ValidationError:
-            return '', 400
+        args = self.post_parser.parse_args()
 
-        project.name = result['name']
-        project.slug = result['slug']
+        if args.name:
+            project.name = args.name
+
+        if args.slug:
+            match = Project.query.filter(
+                Project.slug == args.slug,
+                Project.id != project.id,
+            ).first()
+            if match:
+                return '{"error": "Project with slug %r already exists"}' % (args.slug,), 400
+
+            project.slug = args.slug
+
+        if args.repository:
+            repository = Repository.get(args.repository)
+            if repository is None:
+                return '{"error": "Repository with url %r does not exist"}' % (args.repository,), 400
+            project.repository = repository
+
         db.session.add(project)
 
-        return self.respond(project)
+        data = self.serialize(project)
+        data['repository'] = self.serialize(project.repository)
+
+        return self.respond(data, serialize=False)
