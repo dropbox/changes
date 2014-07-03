@@ -7,6 +7,7 @@ define([
   'angularRoute',
   'angularSanitize',
   'angularUIRouter',
+  'bootstrap/dropdown',
   'bootstrap/tooltip',
   'jquery',
   'modules/barChart',

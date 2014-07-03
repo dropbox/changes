@@ -46,6 +46,8 @@ define([
       });
 
       $('.navbar .container').show();
+
+      $('.dropdown-toggle').dropdown();
     },
     resolve: {
       projectList: function($http) {
