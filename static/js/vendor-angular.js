@@ -1,6 +1,5 @@
 define([
   'angular',
-  'angular',
   'angularAnimate',
   'angularHighlightjs',
   'angularLinkify',
