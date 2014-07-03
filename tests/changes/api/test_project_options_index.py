@@ -11,7 +11,6 @@ class ProjectOptionsTest(APITestCase):
         resp = self.client.post(path, data={
             'mail.notify-author': '0',
             'build.allow-patches': '1',
-            'build.expect-tests': '1',
         })
         assert resp.status_code == 401
 
@@ -20,7 +19,6 @@ class ProjectOptionsTest(APITestCase):
         resp = self.client.post(path, data={
             'mail.notify-author': '0',
             'build.allow-patches': '1',
-            'build.expect-tests': '1',
         })
         assert resp.status_code == 200
 
@@ -32,4 +30,3 @@ class ProjectOptionsTest(APITestCase):
 
         assert options.get('mail.notify-author') == '0'
         assert options.get('build.allow-patches') == '1'
-        assert options.get('build.expect-tests') == '1'

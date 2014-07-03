@@ -15,6 +15,19 @@
 
 		<section class="section">
 			<div class="section-header">
+				<h3>Tests</h3>
+			</div>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['build.expect-tests']" ng-change="saveOption('build.expect-tests')">
+					Expect test results to be reported. If they're not, the build will be considered as failing, in addition to "failing during setup".
+				</label>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="section-header">
 				<h3>Steps <button ng-disabled="stepList.length >= 1" ng-click="addStep()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
 			</div>
 			<ul class="list-group">

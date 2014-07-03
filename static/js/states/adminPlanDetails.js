@@ -7,10 +7,23 @@ define(['app'], function(app) {
     parent: 'admin_layout',
     url: 'plans/:plan_id/',
     templateUrl: 'partials/admin/plan-details.html',
-    controller: function($http, $scope, planData, Collection, flash) {
+    controller: function($http, $scope, planData, planOptionData, Collection, flash) {
+      var booleans = {
+        "build.expect-tests": 1
+      }, options = {};
+
+      for (var key in planOptionData) {
+        var value = planOptionData[key];
+        if (booleans[key]) {
+          value = parseInt(value, 10) == 1;
+        }
+        options[key] = value;
+      }
+
       $scope.plan = planData;
       $scope.projectList = new Collection(planData.projects);
       $scope.stepList = new Collection(planData.steps);
+      $scope.options = options;
 
       $scope.saveStep = function(step) {
         if (step.saving === true) {
@@ -83,10 +96,29 @@ define(['app'], function(app) {
         });
       };
 
+      $scope.saveOption = function(option) {
+        var value, data = {};
+
+        if (booleans[option]) {
+          value = $scope.options[option] ? '1' : '0';
+        } else {
+          value = $scope.options[option];
+        }
+
+        data[option] = value;
+
+        $http.post('/api/0/plans/' + planData.id + '/options/', data);
+      };
+
     },
     resolve: {
       planData: function($http, $stateParams) {
         return $http.get('/api/0/plans/' + $stateParams.plan_id + '/').then(function(response){
+          return response.data;
+        });
+      },
+      planOptionData: function($http, $stateParams) {
+        return $http.get('/api/0/plans/' + $stateParams.plan_id + '/options/').then(function(response){
           return response.data;
         });
       }

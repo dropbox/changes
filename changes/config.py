@@ -286,6 +286,7 @@ def configure_api_routes(app):
     from changes.api.patch_details import PatchDetailsAPIView
     from changes.api.plan_details import PlanDetailsAPIView
     from changes.api.plan_index import PlanIndexAPIView
+    from changes.api.plan_options import PlanOptionsAPIView
     from changes.api.plan_project_index import PlanProjectIndexAPIView
     from changes.api.plan_step_index import PlanStepIndexAPIView
     from changes.api.project_build_index import ProjectBuildIndexAPIView
@@ -340,6 +341,7 @@ def configure_api_routes(app):
     api.add_resource(PatchDetailsAPIView, '/patches/<uuid:patch_id>/')
     api.add_resource(PlanIndexAPIView, '/plans/')
     api.add_resource(PlanDetailsAPIView, '/plans/<uuid:plan_id>/')
+    api.add_resource(PlanOptionsAPIView, '/plans/<uuid:plan_id>/options/')
     api.add_resource(PlanProjectIndexAPIView, '/plans/<uuid:plan_id>/projects/')
     api.add_resource(PlanStepIndexAPIView, '/plans/<uuid:plan_id>/steps/')
     api.add_resource(ProjectIndexAPIView, '/projects/')

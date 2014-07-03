@@ -8,7 +8,7 @@ from changes.constants import Status, Result
 from changes.config import db
 from changes.db.utils import try_create
 from changes.models import (
-    JobPhase, JobStep, JobPlan, Plan, ProjectOption, TestCase, ItemStat,
+    ItemOption, JobPhase, JobStep, JobPlan, Plan, TestCase, ItemStat,
     FileCoverage, FailureReason
 )
 from changes.queue.task import tracked_task
@@ -24,13 +24,14 @@ def get_build_step(job_id):
     if not job_plan:
         raise UnrecoverableException('Missing job plan for job: %s' % (job_id,))
 
+    plan = job_plan.plan
     try:
-        step = job_plan.plan.steps[0]
+        step = plan.steps[0]
     except IndexError:
         raise UnrecoverableException('Missing steps for plan: %s' % (job_plan.plan.id))
 
     implementation = step.get_implementation()
-    return implementation
+    return plan, implementation
 
 
 def sync_phase(phase):
@@ -72,11 +73,11 @@ def abort_step(task):
     current_app.logger.exception('Unrecoverable exception syncing step %s', step.id)
 
 
-def is_missing_tests(step):
-    query = ProjectOption.query.filter(
-        ProjectOption.project_id == step.project_id,
-        ProjectOption.name == 'build.expect-tests',
-        ProjectOption.value == '1',
+def is_missing_tests(plan, step):
+    query = ItemOption.query.filter(
+        ItemOption.item_id == plan.id,
+        ItemOption.name == 'build.expect-tests',
+        ItemOption.value == '1',
     )
     if not db.session.query(query.exists()).scalar():
         return False
@@ -135,9 +136,10 @@ def sync_job_step(step_id):
     if not step:
         return
 
+    plan, implementation = get_build_step(step.job_id)
+
     # only synchronize if upstream hasn't suggested we're finished
     if step.status != Status.finished:
-        implementation = get_build_step(step.job_id)
         implementation.update_step(step=step)
 
     if step.status != Status.finished:
@@ -151,7 +153,7 @@ def sync_job_step(step_id):
             sync_phase(phase=step.phase)
         raise sync_job_step.NotFinished
 
-    missing_tests = is_missing_tests(step)
+    missing_tests = is_missing_tests(plan, step)
 
     try_create(ItemStat, where={
         'item_id': step.id,
