@@ -9,7 +9,8 @@ from changes.config import db
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
-    Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode
+    Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
+    RepositoryStatus
 )
 from changes.utils.slugs import slugify
 
@@ -63,6 +64,7 @@ E   ImportError: No module named mock</failure>
 class Fixtures(object):
     def create_repo(self, **kwargs):
         kwargs.setdefault('url', 'http://example.com/{0}'.format(uuid4().hex))
+        kwargs.setdefault('status', RepositoryStatus.active)
 
         repo = Repository(**kwargs)
         db.session.add(repo)

@@ -9,6 +9,7 @@ class RepositorySerializer(Serializer):
             'id': instance.id.hex,
             'url': instance.url,
             'backend': instance.backend,
+            'status': instance.status,
             'dateCretaed': instance.date_created,
         }
 

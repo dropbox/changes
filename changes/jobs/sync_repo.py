@@ -1,23 +1,31 @@
 from __future__ import absolute_import, print_function
 
+import logging
+
 from datetime import datetime
 
 from changes.config import db
 from changes.jobs.signals import fire_signal
-from changes.models import Repository
+from changes.models import Repository, RepositoryStatus
 from changes.queue.task import tracked_task
+
+logger = logging.getLogger('repo.sync')
 
 
 @tracked_task(max_retries=None)
 def sync_repo(repo_id, continuous=True):
     repo = Repository.query.get(repo_id)
     if not repo:
-        print('Repository not found')
+        logger.error('Repository %s not found', repo_id)
         return
 
     vcs = repo.get_vcs()
     if vcs is None:
-        print('No VCS backend available')
+        logger.warning('Repository %s has no VCS backend set', repo.id)
+        return
+
+    if repo.status != RepositoryStatus.active:
+        logger.info('Repository %s is not active', repo.id)
         return
 
     Repository.query.filter(
@@ -45,6 +53,7 @@ def sync_repo(repo_id, continuous=True):
             db.session.commit()
             if not created:
                 break
+
             might_have_more = True
             parent = commit.id
 

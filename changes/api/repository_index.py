@@ -6,7 +6,8 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView
 from changes.api.auth import requires_auth
 from changes.config import db
-from changes.models import Repository, RepositoryBackend
+from changes.jobs.import_repo import import_repo
+from changes.models import Repository, RepositoryBackend, RepositoryStatus
 
 BACKEND_CHOICES = ('git', 'hg', 'unknown')
 
@@ -60,8 +61,14 @@ class RepositoryIndexAPIView(APIView):
         repo = Repository(
             url=args.url,
             backend=RepositoryBackend[args.backend],
+            status=RepositoryStatus.importing,
         )
         db.session.add(repo)
         db.session.commit()
+
+        import_repo.delay(
+            repo_id=repo.id.hex,
+            task_id=repo.id.hex,
+        )
 
         return self.respond(repo)
