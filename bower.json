@@ -10,6 +10,7 @@
   "devDependencies": {
     "angular": "1.2.14",
     "angular-animate": "1.2.14",
+    "angular-bootstrap": "~0.10.0",
     "angular-loading-bar": "~0.4.2",
     "angular-linkify": "~0.3.0",
     "angular-highlightjs": "~0.1.3",

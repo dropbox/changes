@@ -2,6 +2,7 @@ requirejs.config({
   paths: {
     'angular': '../vendor/angular/angular.min',
     'angularAnimate': '../vendor/angular-animate/angular-animate.min',
+    'angularBootstrap': '../vendor/angular-bootstrap/ui-bootstrap-tpls',
     'angularHighlightjs': '../vendor/angular-highlightjs/angular-highlightjs',
     'angularLinkify': '../vendor/angular-linkify/angular-linkify.min',
     'angularRaven': '../vendor/angular-raven/angular-raven',
@@ -25,6 +26,7 @@ requirejs.config({
         deps: ['jquery']
     },
     'angularAnimate': ['angular'],
+    'angularBootstrap': ['angular'],
     'angularHighlightjs': {
         deps: ['angular', 'highlightjs']
     },

@@ -46,12 +46,6 @@ define([
       });
 
       $('.navbar .container').show();
-
-      // TODO(dcramer): we dont want to critically fail if bootstrap fails to
-      // load
-      try {
-        $('.dropdown-toggle').dropdown();
-      } catch (ex) { }
     },
     resolve: {
       projectList: function($http) {

@@ -1,6 +1,7 @@
 define([
   'angular',
   'angularAnimate',
+  'angularBootstrap',
   'angularHighlightjs',
   'angularLinkify',
   'angularLoadingBar',
@@ -38,6 +39,7 @@ define([
       'ngRoute',
       'ngSanitize',
       'sly',
+      'ui.bootstrap',
       'ui.router'
     ]);
 });
