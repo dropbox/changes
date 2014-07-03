@@ -25,9 +25,13 @@
         </ul>
 
         <barchart data="chartData.data" options="chartData.options"
-                  style="height:130px;margin-bottom:20px;" class="hidden-xs"></barchart>
+                  style="height:130px;margin-bottom:20px;" class="hidden-xs"
+                  ng-hide="loading"></barchart>
     </div>
 
+    <div ng-show="loading" class="loading">
+        <div class="spinner-icon spinner-large"></div>
+    </div>
     <table class="build-list">
         <tr class="build-list-header">
             <th>Build</th>
@@ -37,7 +41,8 @@
             <th class="date">When</th>
         </tr>
 
-        <tbody ng-repeat-start="commit in commitList">
+        <tbody ng-repeat-start="commit in commitList"
+               ng-hide="loading">
             <tr buildrow="commit.build"
                 features="features"
                 ng-if="commit.build"></tr>
@@ -59,13 +64,13 @@
         <tbody ng-repeat-end></tbody>
     </table>
 
-    <ul class="pager">
-        <li class="previous" ng-class="commitPaginator.previousPage === null ? 'disabled' : ''">
-            <a ng-click="commitPaginator.loadPreviousPage()">&larr; Previous</a>
-        </li>
-        <li class="next" ng-class="commitPaginator.nextPage === null ? 'disabled' : ''">
-            <a ng-click="commitPaginator.loadNextPage()">Next &rarr;</a>
-        </li>
-    </ul>
-
+        <ul class="pager">
+            <li class="previous" ng-class="commitPaginator.previousPage === null ? 'disabled' : ''">
+                <a ng-click="commitPaginator.loadPreviousPage()">&larr; Previous</a>
+            </li>
+            <li class="next" ng-class="commitPaginator.nextPage === null ? 'disabled' : ''">
+                <a ng-click="commitPaginator.loadNextPage()">Next &rarr;</a>
+            </li>
+        </ul>
+    </div>
 </section>

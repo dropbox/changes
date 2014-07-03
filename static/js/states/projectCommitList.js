@@ -126,11 +126,18 @@ define([
 
       var paginator = new Paginator(getEndpoint($stateParams), {
         collection: collection,
-        poller: poller
+        poller: poller,
+        onLoadBegin: function(){
+          $scope.loading = true;
+        },
+        onLoadSuccess: function(){
+          $scope.loading = false;
+        }
       });
 
       PageTitle.set(projectData.name + ' Commits');
 
+      $scope.loading = true;
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;
         $scope.chartData = chartHelpers.getChartData(collection, null, chartOptions);

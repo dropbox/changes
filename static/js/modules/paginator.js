@@ -9,7 +9,9 @@ define(['angular', 'jquery'], function(angular, jQuery) {
         collection: null,
         transform: function(data) {
           return data;
-        }
+        },
+        onLoadBegin: function(url){},
+        onLoadSuccess: function(url, data){}
       };
 
       function parseLinkHeader(header) {
@@ -75,11 +77,14 @@ define(['angular', 'jquery'], function(angular, jQuery) {
       Paginator.prototype.loadResults = function loadResults(url) {
         var self = this;
 
+        self.options.onLoadBegin(url);
+
         return $http.get(url)
           .success(function(data, status, headers){
             self.collection.empty();
             self.collection.extend(self.options.transform(data));
             self.updatePageLinks(headers('Link'));
+            self.options.onLoadSuccess(url, data);
           });
       };
 
