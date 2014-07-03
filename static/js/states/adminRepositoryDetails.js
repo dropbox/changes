@@ -6,7 +6,8 @@ define(['app'], function(app) {
   function getFormData(repositoryData) {
     return {
       url: repositoryData.url,
-      backend: repositoryData.backend.id
+      backend: repositoryData.backend.id,
+      status: repositoryData.status.id == 'inactive' ? 'inactive' : 'active'
     };
   }
 

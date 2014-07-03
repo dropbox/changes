@@ -3,12 +3,24 @@
     <h2>Repository Details</h2>
   </div>
 
+  <div ng-if="repository.status.id == 'importing'"
+       class="alert alert-block alert-info">This repository is inactive while it imports a minimum amount of history.</div>
+
   <form name="repositoryDetailsForm" ng-submit="saveForm()">
     <div class="form-group">
       <label>URL</label>
       <input type="text" class="form-control" ng-model="formData.url"
              placeholder="i.e. git@github.com:dropbox/changes.git"
              required>
+    </div>
+
+    <div class="form-group">
+      <label>Status</label>
+      <select class="form-control" ng-model="formData.status"
+              required>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
     </div>
 
     <div class="form-group">

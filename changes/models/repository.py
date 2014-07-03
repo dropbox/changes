@@ -27,11 +27,20 @@ class RepositoryStatus(Enum):
     active = 1
     importing = 2
 
+    def __str__(self):
+        return STATUS_LABELS[self]
+
 
 BACKEND_LABELS = {
     RepositoryBackend.unknown: 'Unknown',
     RepositoryBackend.git: 'git',
     RepositoryBackend.hg: 'hg',
+}
+
+STATUS_LABELS = {
+    RepositoryStatus.inactive: 'Inactive',
+    RepositoryStatus.active: 'Active',
+    RepositoryStatus.importing: 'importing',
 }
 
 
