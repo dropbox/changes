@@ -1,4 +1,6 @@
-from changes.models import Repository, RepositoryBackend
+from mock import patch
+
+from changes.models import Repository, RepositoryBackend, RepositoryStatus
 from changes.testutils import APITestCase
 
 
@@ -24,7 +26,8 @@ class RepositoryListTest(APITestCase):
 class RepositoryCreateTest(APITestCase):
     path = '/api/0/repositories/'
 
-    def test_simple(self):
+    @patch('changes.config.queue.delay')
+    def test_simple(self, queue_delay):
         # without auth
         resp = self.client.post(self.path, data={
             'url': 'ssh://example.com/foo',
@@ -42,7 +45,11 @@ class RepositoryCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert data['url'] == 'ssh://example.com/foo'
 
-        assert Repository.query.filter(
+        repo = Repository.query.filter(
             Repository.url == 'ssh://example.com/foo',
-            Repository.backend == RepositoryBackend.git,
         ).first()
+        assert repo
+        assert repo.backend == RepositoryBackend.git
+        assert repo.status == RepositoryStatus.importing
+
+        queue_delay.assert_called_once
