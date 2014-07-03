@@ -57,7 +57,10 @@ requirejs.config({
     'jquery': {
         exports: 'jquery'
     },
-    'typeahead': ['bloodhound', 'jquery']
+    'typeahead': {
+        deps: ['bloodhound', 'jquery'],
+        exports: '$.fn.typeahead'
+    }
   }
 });
 

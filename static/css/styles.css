@@ -1825,6 +1825,7 @@ label.btn input[type=checkbox] {
 }
 .tt-suggestion > p {
   display: block;
+  margin: 0;
   padding: 3px 20px;
   clear: both;
   font-weight: normal;
@@ -1838,7 +1839,7 @@ label.btn input[type=checkbox] {
   color: #ffffff;
   text-decoration: none;
   outline: 0;
-  background-color: #428bca;
+  background-color: #6e5baa;
 }
 .twitter-typeahead {
   width: 100%;
