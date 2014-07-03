@@ -38,7 +38,8 @@ module.exports = function(grunt) {
             }
           ],
           optimize: "uglify2",
-          optimizeCss: "none"
+          optimizeCss: "none",
+          wrapShim: 'true'
         }
       }
     }
