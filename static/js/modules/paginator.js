@@ -11,7 +11,9 @@ define(['angular', 'jquery'], function(angular, jQuery) {
           return data;
         },
         onLoadBegin: function(url){},
-        onLoadSuccess: function(url, data){}
+        onLoadSuccess: function(url, data){},
+        onLoadError: function(url, data){},
+        onLoadComplete: function(url, data){}
       };
 
       function parseLinkHeader(header) {
@@ -85,6 +87,11 @@ define(['angular', 'jquery'], function(angular, jQuery) {
             self.collection.extend(self.options.transform(data));
             self.updatePageLinks(headers('Link'));
             self.options.onLoadSuccess(url, data);
+            self.options.onLoadComplete(url);
+          })
+          .error(function(){
+            self.options.onLoadError(url);
+            self.options.onLoadComplete(url);
           });
       };
 

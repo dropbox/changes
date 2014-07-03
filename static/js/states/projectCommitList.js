@@ -130,7 +130,7 @@ define([
         onLoadBegin: function(){
           $scope.loading = true;
         },
-        onLoadSuccess: function(){
+        onLoadComplete: function(){
           $scope.loading = false;
         }
       });
