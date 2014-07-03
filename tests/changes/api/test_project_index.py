@@ -44,9 +44,18 @@ class ProjectCreateTest(APITestCase):
 
         self.login_default()
 
+        # invalid repo url
         resp = self.client.post(path, data={
             'name': 'Foobar',
             'repository': 'ssh://example.com/foo',
+        })
+        assert resp.status_code == 400
+
+        # valid params
+        repo = self.create_repo()
+        resp = self.client.post(path, data={
+            'name': 'Foobar',
+            'repository': repo.url,
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)

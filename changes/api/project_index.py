@@ -138,10 +138,7 @@ class ProjectIndexAPIView(APIView):
 
         repository = Repository.get(args.repository)
         if repository is None:
-            repository = Repository(
-                url=args.repository,
-            )
-            db.session.add(repository)
+            return '{"error": "Repository with url %r does not exist"}' % (args.repository,), 400
 
         project = Project(
             name=args.name,
