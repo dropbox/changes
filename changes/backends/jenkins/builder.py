@@ -508,14 +508,14 @@ class JenkinsBuilder(BaseBackend):
             step.date_finished = datetime.utcfromtimestamp(
                 (item['timestamp'] + item['duration']) / 1000)
 
-        if db.session.is_modified(step):
-            db.session.add(step)
-            db.session.commit()
-
         if step.status != Status.finished:
             return
 
         self._sync_results(step, item)
+
+        if db.session.is_modified(step):
+            db.session.add(step)
+            db.session.commit()
 
     def _sync_results(self, step, item):
         job_name = step.data['job_name']
