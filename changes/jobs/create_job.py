@@ -24,7 +24,9 @@ def create_job(job_id):
     if not job:
         return
 
-    if job.result == Result.aborted:
+    # we might already be marked as finished for various reasons
+    # (such as aborting the task)
+    if job.status == Status.finished:
         return
 
     job_plan = JobPlan.query.options(
