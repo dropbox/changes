@@ -64,13 +64,12 @@
         <tbody ng-repeat-end></tbody>
     </table>
 
-        <ul class="pager">
-            <li class="previous" ng-class="commitPaginator.previousPage === null ? 'disabled' : ''">
-                <a ng-click="commitPaginator.loadPreviousPage()">&larr; Previous</a>
-            </li>
-            <li class="next" ng-class="commitPaginator.nextPage === null ? 'disabled' : ''">
-                <a ng-click="commitPaginator.loadNextPage()">Next &rarr;</a>
-            </li>
-        </ul>
-    </div>
+    <ul class="pager">
+        <li class="previous" ng-class="commitPaginator.previousPage === null ? 'disabled' : ''">
+            <a ng-click="commitPaginator.loadPreviousPage()">&larr; Previous</a>
+        </li>
+        <li class="next" ng-class="commitPaginator.nextPage === null ? 'disabled' : ''">
+            <a ng-click="commitPaginator.loadNextPage()">Next &rarr;</a>
+        </li>
+    </ul>
 </section>
