@@ -3,6 +3,7 @@ from flask import current_app
 from sqlalchemy.orm import subqueryload_all
 
 from changes.backends.base import UnrecoverableException
+from changes.constants import Result
 from changes.models import Artifact, JobPlan, Plan
 from changes.queue.task import tracked_task
 
@@ -35,6 +36,9 @@ def sync_artifact(artifact_id=None):
 
     step = artifact.step
     data = artifact.data
+
+    if step.result == Result.aborted:
+        return
 
     try:
         implementation = get_build_step(step.job_id)
