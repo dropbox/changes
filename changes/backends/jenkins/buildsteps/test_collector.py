@@ -60,12 +60,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     def get_label(self):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)
 
-    def fetch_artifact(self, step, artifact):
+    def fetch_artifact(self, step, artifact, **kwargs):
         if artifact['fileName'].endswith('tests.json'):
             self._expand_jobs(step, artifact)
         else:
             builder = self.get_builder()
-            builder.sync_artifact(step, artifact)
+            builder.sync_artifact(step, artifact, **kwargs)
 
     def get_test_stats(self, project):
         response = api_client.get('/projects/{project}/'.format(

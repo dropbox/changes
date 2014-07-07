@@ -51,12 +51,12 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
     def get_label(self):
         return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
 
-    def fetch_artifact(self, step, artifact):
+    def fetch_artifact(self, step, artifact, **kwargs):
         if artifact['fileName'] == 'jobs.json':
             self._expand_jobs(step, artifact)
         else:
             builder = self.get_builder()
-            builder.sync_artifact(step, artifact)
+            builder.sync_artifact(step, artifact, **kwargs)
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
