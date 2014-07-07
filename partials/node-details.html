@@ -46,11 +46,11 @@
     </table>
 
     <ul class="pager">
-        <li class="previous" ng-class="nextPage === null ? 'disabled' : ''">
-            <a ng-click="loadNextPage()">&larr; Older</a>
+        <li class="previous" ng-class="jobPaginator.previousPage === null ? 'disabled' : ''">
+            <a ng-click="jobPaginator.loadPreviousPage()">&larr; Previous</a>
         </li>
-        <li class="next" ng-class="previousPage === null ? 'disabled' : ''">
-            <a ng-click="loadPreviousPage()">Newer &rarr;</a>
+        <li class="next" ng-class="jobPaginator.nextPage === null ? 'disabled' : ''">
+            <a ng-click="jobPaginator.loadNextPage()">Next &rarr;</a>
         </li>
     </ul>
 </section>
