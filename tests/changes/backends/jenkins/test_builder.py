@@ -479,7 +479,8 @@ class SyncGenericResultsTest(BaseTestCase):
         sync_artifact.delay_if_needed.assert_any_call(
             artifact_id=log_artifact.id.hex,
             task_id=log_artifact.id.hex,
-            parent_task_id=step.id.hex
+            parent_task_id=step.id.hex,
+            skip_checks=False,
         )
 
         xunit_artifact = Artifact.query.filter(
@@ -496,7 +497,8 @@ class SyncGenericResultsTest(BaseTestCase):
         sync_artifact.delay_if_needed.assert_any_call(
             artifact_id=xunit_artifact.id.hex,
             task_id=xunit_artifact.id.hex,
-            parent_task_id=step.id.hex
+            parent_task_id=step.id.hex,
+            skip_checks=False,
         )
 
 

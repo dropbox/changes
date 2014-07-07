@@ -553,16 +553,6 @@ class JenkinsBuilder(BaseBackend):
                 step.id.hex)
 
     def _handle_generic_artifact(self, jobstep, artifact, skip_checks=False):
-        if not skip_checks:
-            if artifact['fileName'].endswith('.log') and not self.sync_log_artifacts:
-                return
-
-            if artifact['fileName'].endswith(XUNIT_FILENAMES) and not self.sync_xunit_artifacts:
-                return
-
-            if artifact['fileName'].endswith(COVERAGE_FILENAMES) and not self.sync_coverage_artifacts:
-                return
-
         artifact, created = get_or_create(Artifact, where={
             'step': jobstep,
             'name': artifact['fileName'],
@@ -578,6 +568,7 @@ class JenkinsBuilder(BaseBackend):
             artifact_id=artifact.id.hex,
             task_id=artifact.id.hex,
             parent_task_id=jobstep.id.hex,
+            skip_checks=skip_checks,
         )
 
     def _sync_phased_results(self, step, artifacts):
@@ -706,7 +697,17 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_step_from_active(step)
 
-    def sync_artifact(self, step, artifact):
+    def sync_artifact(self, step, artifact, skip_checks=False):
+        if not skip_checks:
+            if artifact['fileName'].endswith('.log') and not self.sync_log_artifacts:
+                return
+
+            if artifact['fileName'].endswith(XUNIT_FILENAMES) and not self.sync_xunit_artifacts:
+                return
+
+            if artifact['fileName'].endswith(COVERAGE_FILENAMES) and not self.sync_coverage_artifacts:
+                return
+
         if artifact['fileName'].endswith('.log'):
             self._sync_artifact_as_log(step, artifact)
 
