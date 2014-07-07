@@ -24,6 +24,9 @@ def create_job(job_id):
     if not job:
         return
 
+    if job.result == Result.aborted:
+        return
+
     job_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
     ).filter(
