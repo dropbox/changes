@@ -60,9 +60,9 @@ class JenkinsBuildStep(BuildStep):
         builder = self.get_builder()
         builder.cancel_job(job)
 
-    def fetch_artifact(self, step, artifact):
+    def fetch_artifact(self, step, artifact, **kwargs):
         builder = self.get_builder()
-        builder.sync_artifact(step, artifact)
+        builder.sync_artifact(step, artifact, **kwargs)
 
 
 class JenkinsFactoryBuildStep(JenkinsBuildStep):

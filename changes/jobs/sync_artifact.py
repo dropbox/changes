@@ -27,7 +27,7 @@ def get_build_step(job_id):
 
 
 @tracked_task
-def sync_artifact(artifact_id=None):
+def sync_artifact(artifact_id=None, **kwargs):
     if artifact_id:
         artifact = Artifact.query.get(artifact_id)
 
@@ -42,7 +42,7 @@ def sync_artifact(artifact_id=None):
 
     try:
         implementation = get_build_step(step.job_id)
-        implementation.fetch_artifact(step=step, artifact=data)
+        implementation.fetch_artifact(step=step, artifact=data, **kwargs)
 
     except UnrecoverableException:
         current_app.logger.exception(
