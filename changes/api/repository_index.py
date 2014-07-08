@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful import reqparse
 from sqlalchemy.sql import func
 
+from changes.api.auth import requires_admin
 from changes.api.base import APIView
-from changes.api.auth import requires_auth
 from changes.config import db
 from changes.jobs.import_repo import import_repo
 from changes.models import Repository, RepositoryBackend, RepositoryStatus
@@ -48,7 +48,7 @@ class RepositoryIndexAPIView(APIView):
 
         return self.paginate(queryset)
 
-    @requires_auth
+    @requires_admin
     def post(self):
         args = self.post_parser.parse_args()
 

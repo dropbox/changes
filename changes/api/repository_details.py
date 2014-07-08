@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 from flask.ext.restful import reqparse
 
-from changes.api.auth import requires_auth
+from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.jobs.import_repo import import_repo
@@ -26,7 +26,7 @@ class RepositoryDetailsAPIView(APIView):
 
         return self.respond(repo)
 
-    @requires_auth
+    @requires_admin
     def post(self, repository_id):
         repo = Repository.query.get(repository_id)
         if repo is None:

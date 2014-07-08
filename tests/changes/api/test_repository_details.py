@@ -33,6 +33,14 @@ class UpdateRepositoryTest(APITestCase):
 
         self.login_default()
 
+        # ensure endpoint requires admin
+        resp = self.client.post(path, data={
+            'url': 'https://example.com/foo'
+        })
+        assert resp.status_code == 403
+
+        self.login_default_admin()
+
         # test only setting url
         resp = self.client.post(path, data={
             'url': 'https://example.com/foo'

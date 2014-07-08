@@ -20,6 +20,14 @@ class ProjectOptionsTest(APITestCase):
             'mail.notify-author': '0',
             'build.allow-patches': '1',
         })
+        assert resp.status_code == 403
+
+        self.login_default_admin()
+
+        resp = self.client.post(path, data={
+            'mail.notify-author': '0',
+            'build.allow-patches': '1',
+        })
         assert resp.status_code == 200
 
         options = dict(db.session.query(

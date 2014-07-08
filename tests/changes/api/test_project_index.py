@@ -44,6 +44,15 @@ class ProjectCreateTest(APITestCase):
 
         self.login_default()
 
+        # without admin
+        resp = self.client.post(path, data={
+            'name': 'Foobar',
+            'repository': 'ssh://example.com/foo',
+        })
+        assert resp.status_code == 403
+
+        self.login_default_admin()
+
         # invalid repo url
         resp = self.client.post(path, data={
             'name': 'Foobar',

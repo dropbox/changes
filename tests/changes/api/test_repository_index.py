@@ -37,6 +37,15 @@ class RepositoryCreateTest(APITestCase):
 
         self.login_default()
 
+        # without admin
+        resp = self.client.post(self.path, data={
+            'url': 'ssh://example.com/foo',
+            'backend': 'git',
+        })
+        assert resp.status_code == 403
+
+        self.login_default_admin()
+
         resp = self.client.post(self.path, data={
             'url': 'ssh://example.com/foo',
             'backend': 'git',
