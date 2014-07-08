@@ -13,9 +13,9 @@ define([
   }
 
   return {
-    parent: 'project_details',
-    url: 'settings/',
-    templateUrl: 'partials/project-settings.html',
+    parent: 'admin_layout',
+    url: 'projects/:project_id/',
+    templateUrl: 'partials/admin/project-details.html',
     controller: function($scope, $http, $stateParams, projectData) {
       var booleans = {
         "build.allow-patches": 1,
@@ -90,9 +90,10 @@ define([
     },
     resolve: {
       projectData: function($http, $stateParams) {
-        return $http.get('/api/0/projects/' + $stateParams.project_id + '/').then(function(response){
-          return response.data;
-        });
+        return $http.get('/api/0/projects/' + $stateParams.project_id + '/')
+          .then(function(response){
+            return response.data;
+          });
       }
     }
   };
