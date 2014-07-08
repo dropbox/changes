@@ -10,7 +10,7 @@ from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
-    RepositoryStatus
+    RepositoryStatus, User
 )
 from changes.utils.slugs import slugify
 
@@ -362,3 +362,9 @@ class Fixtures(object):
         db.session.commit()
 
         return logchunk
+
+    def create_user(self, email, **kwargs):
+        user = User(email=email, **kwargs)
+        db.session.add(user)
+        db.session.commit()
+        return user
