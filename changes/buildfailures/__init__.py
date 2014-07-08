@@ -10,3 +10,4 @@ class Registry(dict):
 registry = Registry()
 registry.add('test_failures', TestFailure)  # NOQA
 registry.add('missing_tests', MissingTests)  # NOQA
+registry.add('timeout', Timeout)  # NOQA

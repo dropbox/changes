@@ -9,7 +9,7 @@ from changes.constants import Status, Result
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
 from changes.models import (
-    ItemStat, Job, JobStep, JobPlan, Plan, TestCase
+    FailureReason, ItemOption, ItemStat, Job, JobStep, JobPlan, Plan, TestCase
 )
 from changes.queue.task import tracked_task
 from changes.utils.agg import safe_agg
@@ -33,6 +33,34 @@ def aggregate_job_stat(job, name, func_=func.sum):
     }, defaults={
         'value': value
     })
+
+
+def has_timed_out(job, job_plan):
+    if job.status != Status.in_progress:
+        return False
+
+    options = dict(
+        db.session.query(
+            ItemOption.name, ItemOption.value
+        ).filter(
+            ItemOption.item_id == job_plan.plan_id,
+            ItemOption.name.in_([
+                'build.timeout',
+            ])
+        )
+    )
+
+    timeout = options.get('build.timeout')
+    if not timeout:
+        return False
+
+    timeout = int(timeout)
+
+    delta = datetime.utcnow() - job.date_started
+    if delta.total_seconds() > timeout:
+        return True
+
+    return False
 
 
 def abort_job(task):
@@ -69,7 +97,22 @@ def sync_job(job_id):
             raise UnrecoverableException('Missing steps for plan')
 
         implementation = step.get_implementation()
-        implementation.update(job=job)
+
+        if has_timed_out(job, job_plan):
+            implementation.cancel(job=job)
+
+            for step in JobStep.query.filter(JobStep.status == Status.aborted):
+                try_create(FailureReason, {
+                    'step_id': step.id,
+                    'job_id': job.id,
+                    'build_id': job.build_id,
+                    'project_id': job.project_id,
+                    'reason': 'timeout'
+                })
+            db.session.commit()
+
+        else:
+            implementation.update(job=job)
 
     except UnrecoverableException:
         job.status = Status.finished

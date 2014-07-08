@@ -2,11 +2,47 @@ from __future__ import absolute_import
 
 import mock
 
+from datetime import datetime, timedelta
+
 from changes.constants import Status
 from changes.config import db
-from changes.jobs.sync_job import sync_job
-from changes.models import ItemStat, Job, Step, Task
+from changes.jobs.sync_job import has_timed_out, sync_job
+from changes.models import FailureReason, ItemOption, ItemStat, Job, Step, Task
 from changes.testutils import TestCase
+
+
+class HasTimedOutTest(TestCase):
+    def test_simple(self):
+        project = self.create_project()
+        plan = self.create_plan()
+        plan.projects.append(project)
+
+        build = self.create_build(project=project)
+        job = self.create_job(build=build, status=Status.queued)
+        job_plan = self.create_job_plan(job, plan)
+
+        option = ItemOption(
+            item_id=plan.id,
+            name='build.timeout',
+            value='300',
+        )
+        db.session.add(option)
+        db.session.commit()
+
+        assert not has_timed_out(job, job_plan)
+
+        job.status = Status.in_progress
+        job.date_started = datetime.utcnow()
+        db.session.add(job)
+        db.session.commit()
+
+        assert not has_timed_out(job, job_plan)
+
+        job.date_started = datetime.utcnow() - timedelta(seconds=400)
+        db.session.add(job)
+        db.session.commit()
+
+        assert has_timed_out(job, job_plan)
 
 
 class SyncJobTest(TestCase):
@@ -141,3 +177,33 @@ class SyncJobTest(TestCase):
             ItemStat.name == 'lines_uncovered',
         ).first()
         assert stat.value == 25
+
+    @mock.patch('changes.jobs.sync_job.has_timed_out')
+    @mock.patch('changes.jobs.sync_job.queue.delay')
+    @mock.patch.object(Step, 'get_implementation')
+    def test_timed_out(self, get_implementation,
+                       queue_delay, mock_has_timed_out):
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+
+        build, job, task = self.build, self.job, self.task
+
+        mock_has_timed_out.return_value = True
+
+        sync_job(
+            job_id=job.id.hex,
+            task_id=job.id.hex,
+            parent_task_id=build.id.hex
+        )
+
+        mock_has_timed_out.assert_called_once_with(job, self.jobplan)
+
+        get_implementation.assert_called_once_with()
+        implementation.cancel.assert_called_once_with(
+            job=self.job,
+        )
+
+        assert FailureReason.query.filter(
+            FailureReason.step_id == self.jobstep.id,
+            FailureReason.reason == 'timeout',
+        )
