@@ -54,7 +54,8 @@ def has_timed_out(job, job_plan):
     if not timeout:
         return False
 
-    timeout = int(timeout)
+    # timeout is in minutes
+    timeout = int(timeout) * 60
 
     delta = datetime.utcnow() - job.date_started
     if delta.total_seconds() > timeout:

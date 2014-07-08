@@ -24,7 +24,7 @@ class HasTimedOutTest(TestCase):
         option = ItemOption(
             item_id=plan.id,
             name='build.timeout',
-            value='300',
+            value='5',
         )
         db.session.add(option)
         db.session.commit()
