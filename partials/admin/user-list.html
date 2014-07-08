@@ -1,0 +1,29 @@
+<div class="page-header">
+  <h2>User</h2>
+</div>
+
+<table class="grid-list">
+  <thead>
+    <tr class="grid-list-header">
+      <th><a ui-sref="admin_user_list({sort: 'email'})">Email</a></th>
+      <th class="column">Admin?</th>
+      <th class="column"><a ui-sref="admin_user_list({sort: 'date'})">Created</a></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="user in userList">
+      <td><a>{{user.email}}</a></td>
+      <td class="column">{{user.isAdmin}}</td>
+      <td class="column" time-since="user.dateCreated"></td>
+    </tr>
+  </tbody>
+</table>
+
+<ul class="pager">
+  <li class="previous" ng-class="userPaginator.previousPage === null ? 'disabled' : ''">
+    <a ng-click="userPaginator.loadPreviousPage()">&larr; Previous</a>
+  </li>
+  <li class="next" ng-class="userPaginator.nextPage === null ? 'disabled' : ''">
+    <a ng-click="userPaginator.loadNextPage()">Next &rarr;</a>
+  </li>
+</ul>
