@@ -7,13 +7,10 @@
   },
   "scripts": {
     "postinstall": "bower install",
-
     "prelint": "npm install",
     "lint": "jshint static/",
-
     "precompile-static": "npm install",
     "compile-static": "grunt requirejs",
-
     "pretest": "npm install",
     "test": "node_modules/karma/bin/karma start tests/karma.conf.js --single-run",
     "test-ci": "node_modules/karma/bin/karma start tests/karma.conf.js --single-run --reporters junit,dots"
@@ -26,7 +23,7 @@
   "license": "Apache 2.0",
   "readmeFilename": "README.rst",
   "devDependencies": {
-    "bower": "~1.2.8",
+    "bower": "~1.3.7",
     "chai": "~1.9.1",
     "grunt-contrib-requirejs": "~0.4.1",
     "grunt": "~0.4.2",
