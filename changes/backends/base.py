@@ -15,8 +15,5 @@ class BaseBackend(object):
     def sync_step(self, step):
         raise NotImplementedError
 
-    def cancel_job(self, job):
-        raise NotImplementedError
-
     def cancel_step(self, step):
         raise NotImplementedError

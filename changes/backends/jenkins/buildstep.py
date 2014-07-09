@@ -56,9 +56,9 @@ class JenkinsBuildStep(BuildStep):
                 return
             raise
 
-    def cancel(self, job):
+    def cancel_step(self, step):
         builder = self.get_builder()
-        builder.cancel_job(job)
+        builder.cancel_step(step)
 
     def fetch_artifact(self, step, artifact, **kwargs):
         builder = self.get_builder()

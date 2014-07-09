@@ -24,7 +24,7 @@ class DummyBuildStep(BuildStep):
         step.result = Result.aborted
         db.session.add(step)
 
-    def cancel(self, job):
-        job.status = Status.finished
-        job.result = Result.aborted
-        db.session.add(job)
+    def cancel_step(self, step):
+        step.status = Status.finished
+        step.result = Result.aborted
+        db.session.add(step)

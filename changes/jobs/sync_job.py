@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function
+
 from datetime import datetime
 from flask import current_app
 from sqlalchemy.orm import subqueryload_all
@@ -8,7 +10,6 @@ from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
-from changes.jobs.sync_job_step import sync_phase
 from changes.models import (
     FailureReason, ItemOption, ItemStat, Job, JobPhase, JobPlan, JobStep, Plan,
     TestCase
@@ -69,11 +70,48 @@ def has_timed_out(job, job_plan):
     return False
 
 
+def sync_job_phases(job, phases=None):
+    if phases is None:
+        phases = JobPhase.query.filter(JobPhase.job_id == job.id)
+
+    for phase in phases:
+        sync_phase(phase)
+
+
+def sync_phase(phase):
+    phase_steps = list(phase.steps)
+
+    if phase.date_started is None:
+        phase.date_started = safe_agg(min, (s.date_started for s in phase_steps))
+        db.session.add(phase)
+
+    if all(s.status == Status.finished for s in phase_steps):
+        phase.status = Status.finished
+        phase.date_finished = safe_agg(max, (s.date_finished for s in phase_steps))
+
+    elif any(s.status != Status.finished for s in phase_steps):
+        phase.status = Status.in_progress
+        db.session.add(phase)
+
+    if any(s.result is Result.failed for s in phase_steps):
+        phase.result = Result.failed
+
+    elif phase.status == Status.finished:
+        phase.result = safe_agg(max, (s.result for s in phase.steps), Result.unknown)
+
+    if db.session.is_modified(phase):
+        phase.date_modified = datetime.utcnow()
+        db.session.add(phase)
+        db.session.commit()
+
+
 def abort_job(task):
     job = Job.query.get(task.kwargs['job_id'])
     job.status = Status.finished
     job.result = Result.aborted
     db.session.add(job)
+    db.session.flush()
+    sync_job_phases(job)
     db.session.commit()
     current_app.logger.exception('Unrecoverable exception syncing job %s', job.id)
 
@@ -86,6 +124,8 @@ def sync_job(job_id):
 
     if job.status == Status.finished:
         return
+
+    current_job_status = job.status
 
     # TODO(dcramer): we make an assumption that there is a single step
     job_plan = JobPlan.query.options(
@@ -125,16 +165,10 @@ def sync_job(job_id):
                     'reason': 'timeout'
                 })
 
-            db.session.flush()
-
-            # propagate changes to any phases
-            for phase in JobPhase.query.filter(JobPhase.job_id == job.id):
-                sync_phase(phase)
-
             # ensure the job result actually reflects a failure
             job.result = Result.failed
-            db.session.flush()
-
+            job.status = Status.finished
+            db.session.add(job)
         else:
             implementation.update(job=job)
 
@@ -147,7 +181,14 @@ def sync_job(job_id):
     if is_finished:
         job.status = Status.finished
 
+    db.session.flush()
+
     all_phases = list(job.phases)
+
+    if current_job_status != job.status:
+        # propagate changes to any phases as they live outside of the
+        # normalize synchronization routines
+        sync_job_phases(job, all_phases)
 
     job.date_started = safe_agg(
         min, (j.date_started for j in all_phases if j.date_started))

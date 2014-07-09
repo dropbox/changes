@@ -1,4 +1,3 @@
-from datetime import datetime
 from flask import current_app
 from sqlalchemy.orm import subqueryload_all
 from sqlalchemy.sql import func
@@ -12,7 +11,6 @@ from changes.models import (
     FileCoverage, FailureReason
 )
 from changes.queue.task import tracked_task
-from changes.utils.agg import safe_agg
 
 
 def get_build_step(job_id):
@@ -34,42 +32,12 @@ def get_build_step(job_id):
     return plan, implementation
 
 
-def sync_phase(phase):
-    phase_steps = list(phase.steps)
-
-    if phase.date_started is None:
-        phase.date_started = safe_agg(
-            min, (s.date_started for s in phase_steps), phase.date_started)
-        db.session.add(phase)
-
-    if all(s.status == Status.finished for s in phase_steps):
-        phase.status = Status.finished
-        phase.date_finished = safe_agg(
-            max, (s.date_finished for s in phase_steps), phase.date_finished)
-
-        if any(s.result is Result.failed for s in phase_steps):
-            phase.result = Result.failed
-        else:
-            phase.result = safe_agg(
-                max, (s.result for s in phase.steps), Result.unknown)
-
-        db.session.add(phase)
-    elif any(s.status != Status.finished for s in phase_steps):
-        phase.status = Status.in_progress
-        db.session.add(phase)
-
-    if db.session.is_modified(phase):
-        phase.date_modified = datetime.utcnow()
-        db.session.commit()
-
-
 def abort_step(task):
     step = JobStep.query.get(task.kwargs['step_id'])
     step.status = Status.finished
     step.result = Result.aborted
     db.session.add(step)
     db.session.commit()
-    sync_phase(phase=step.phase)
     current_app.logger.exception('Unrecoverable exception syncing step %s', step.id)
 
 
@@ -149,15 +117,14 @@ def sync_job_step(step_id):
     if step.status != Status.finished:
         implementation.update_step(step=step)
 
+    db.session.flush()
+
     if step.status != Status.finished:
         is_finished = False
     else:
         is_finished = sync_job_step.verify_all_children() == Status.finished
 
     if not is_finished:
-        db.session.flush()
-        if step.phase.status != Status.in_progress == step.status:
-            sync_phase(phase=step.phase)
         raise sync_job_step.NotFinished
 
     missing_tests = is_missing_tests(plan, step)
@@ -193,8 +160,6 @@ def sync_job_step(step_id):
         db.session.commit()
 
     db.session.flush()
-
-    sync_phase(phase=step.phase)
 
     if has_test_failures(step):
         if step.result != Result.failed:

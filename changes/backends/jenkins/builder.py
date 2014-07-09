@@ -17,7 +17,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_artifact import sync_artifact
-from changes.jobs.sync_job_step import sync_job_step, sync_phase
+from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
     Artifact, Cluster, ClusterNode, TestResult,
     LogSource, LogChunk, Node, JobPhase, JobStep
@@ -718,29 +718,6 @@ class JenkinsBuilder(BaseBackend):
             self._sync_artifact_as_coverage(step, artifact)
 
         db.session.commit()
-
-    def cancel_job(self, job):
-        active_steps = JobStep.query.filter(
-            JobStep.job == job,
-            JobStep.status != Status.finished,
-        )
-        for step in active_steps:
-            try:
-                self.cancel_step(step)
-            except UnrecoverableException:
-                # assume the job no longer exists
-                pass
-        db.session.flush()
-
-        if active_steps:
-            for phase in JobPhase.query.filter(JobPhase.job == job):
-                sync_phase(phase)
-            db.session.flush()
-
-        job.status = Status.finished
-        job.result = Result.aborted
-        job.date_finished = datetime.utcnow()
-        db.session.add(job)
 
     def cancel_step(self, step):
         if step.data.get('build_no'):
