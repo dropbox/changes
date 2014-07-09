@@ -100,9 +100,15 @@ def sync_job(job_id):
         implementation = step.get_implementation()
 
         if has_timed_out(job, job_plan):
+            remaining_steps = list(JobStep.query.filter(JobStep.status != Status.finished))
+
             implementation.cancel(job=job)
 
-            for step in JobStep.query.filter(JobStep.status == Status.aborted):
+            for step in remaining_steps:
+                step.result = Result.failed
+                step.status = Status.finished
+                db.session.add(step)
+
                 try_create(FailureReason, {
                     'step_id': step.id,
                     'job_id': job.id,
