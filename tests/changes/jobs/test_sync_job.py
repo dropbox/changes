@@ -200,6 +200,11 @@ class SyncJobTest(TestCase):
 
         build, job, task = self.build, self.job, self.task
 
+        other_build = self.create_build(self.project, status=Status.in_progress)
+        other_job = self.create_job(other_build)
+        other_jobphase = self.create_jobphase(other_job)
+        other_jobstep = self.create_jobstep(other_jobphase)
+
         mock_has_timed_out.return_value = True
 
         sync_job(
@@ -228,3 +233,9 @@ class SyncJobTest(TestCase):
             FailureReason.step_id == self.jobstep.id,
             FailureReason.reason == 'timeout',
         )
+
+        # ensure we haven't updated an incorrect jobstep as well
+        assert other_jobstep.status == Status.in_progress
+        assert other_jobphase.status == Status.in_progress
+        assert other_job.status == Status.in_progress
+        assert other_build.status == Status.in_progress
