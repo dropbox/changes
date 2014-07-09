@@ -25,6 +25,7 @@ def get_latest_builds_query(project_list, result=None):
     ).filter(
         Source.patch_id == None,  # NOQA
         Build.status == Status.finished,
+        Build.result.in_([Result.passed, Result.failed]),
     ).order_by(
         Build.date_created.desc(),
     )
