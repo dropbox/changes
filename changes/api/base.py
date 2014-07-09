@@ -65,8 +65,13 @@ class ParamError(APIError):
 
 class APIView(Resource):
     def dispatch_request(self, *args, **kwargs):
-        response = super(APIView, self).dispatch_request(*args, **kwargs)
-        db.session.commit()
+        try:
+            response = super(APIView, self).dispatch_request(*args, **kwargs)
+        except Exception:
+            db.session.rollback()
+            raise
+        else:
+            db.session.commit()
         return response
 
     def paginate(self, queryset, max_per_page=100, **kwargs):
