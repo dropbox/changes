@@ -105,7 +105,10 @@ def sync_job(job_id):
         implementation = step.get_implementation()
 
         if has_timed_out(job, job_plan):
-            remaining_steps = list(JobStep.query.filter(JobStep.status != Status.finished))
+            remaining_steps = list(JobStep.query.filter(
+                JobStep.status != Status.finished,
+                JobStep.job_id == job.id,
+            ))
 
             implementation.cancel(job=job)
 
@@ -125,7 +128,7 @@ def sync_job(job_id):
             db.session.flush()
 
             # propagate changes to any phases
-            for phase in JobPhase.query.filter(JobPhase.job == job):
+            for phase in JobPhase.query.filter(JobPhase.job_id == job.id):
                 sync_phase(phase)
 
             # ensure the job result actually reflects a failure
