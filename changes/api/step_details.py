@@ -9,7 +9,8 @@ from changes.api.base import APIView
 from changes.api.auth import requires_admin
 from changes.config import db
 from changes.constants import IMPLEMENTATION_CHOICES
-from changes.models import Step
+from changes.db.utils import create_or_update
+from changes.models import ItemOption, Step, STEP_OPTIONS
 
 
 class StepDetailsAPIView(APIView):
@@ -17,6 +18,8 @@ class StepDetailsAPIView(APIView):
     parser.add_argument('data')
     parser.add_argument('implementation', choices=IMPLEMENTATION_CHOICES)
     parser.add_argument('order', type=int, default=0)
+    for name in STEP_OPTIONS.keys():
+        parser.add_argument(name)
 
     def get(self, step_id):
         step = Step.query.get(step_id)
@@ -61,6 +64,18 @@ class StepDetailsAPIView(APIView):
         plan.date_modified = step.date_modified
         db.session.add(plan)
 
+        for name in STEP_OPTIONS.keys():
+            value = args.get(name)
+            if value is None:
+                continue
+
+            create_or_update(ItemOption, where={
+                'item_id': step.id,
+                'name': name,
+            }, values={
+                'value': value,
+            })
+
         db.session.commit()
 
         return self.serialize(step), 200
@@ -71,11 +86,18 @@ class StepDetailsAPIView(APIView):
         if step is None:
             return '', 404
 
+        ItemOption.query.filter(
+            ItemOption.item_id == step.id
+        ).delete(
+            synchronize_session=False,
+        )
+
         Step.query.filter(
             Step.id == step.id,
         ).delete(
             synchronize_session=False,
         )
+
         db.session.commit()
 
         return '', 200

@@ -10,7 +10,7 @@ from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
-    RepositoryStatus, User
+    RepositoryStatus, User, ItemOption
 )
 from changes.utils.slugs import slugify
 
@@ -368,3 +368,9 @@ class Fixtures(object):
         db.session.add(user)
         db.session.commit()
         return user
+
+    def create_option(self, **kwargs):
+        option = ItemOption(**kwargs)
+        db.session.add(option)
+        db.session.commit()
+        return option

@@ -12,6 +12,12 @@ from changes.db.utils import model_repr
 from changes.utils.imports import import_string
 
 
+STEP_OPTIONS = {
+    # name => default value,
+    'build.timeout': '0',
+}
+
+
 class Step(db.Model):
     """
     Represents one of N build steps for a plan.

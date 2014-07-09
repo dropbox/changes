@@ -1,5 +1,5 @@
 from changes.config import db
-from changes.models import Step
+from changes.models import ItemOption, Step
 from changes.testutils import APITestCase
 
 
@@ -8,12 +8,15 @@ class StepDetailsTest(APITestCase):
         plan = self.create_plan(label='Foo')
         step = self.create_step(plan=plan)
 
+        self.create_option(item_id=step.id, name='build.timeout', value='1')
+
         path = '/api/0/steps/{0}/'.format(step.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['id'] == step.id.hex
+        assert data['options'] == {'build.timeout': '1'}
 
 
 class UpdateStepDetailsTest(APITestCase):
@@ -40,12 +43,14 @@ class UpdateStepDetailsTest(APITestCase):
             'order': 1,
             'implementation': 'changes.buildsteps.dummy.DummyBuildStep',
             'data': '{}',
+            'build.timeout': '1',
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['data'] == '{}'
         assert data['order'] == 1
         assert data['implementation'] == 'changes.buildsteps.dummy.DummyBuildStep'
+        assert data['options'] == {'build.timeout': '1'}
 
         db.session.expire(step)
 
@@ -53,6 +58,11 @@ class UpdateStepDetailsTest(APITestCase):
         assert step.data == {}
         assert step.order == 1
         assert step.implementation == 'changes.buildsteps.dummy.DummyBuildStep'
+
+        options = list(ItemOption.query.filter(ItemOption.item_id == step.id))
+        assert len(options) == 1
+        assert options[0].name == 'build.timeout'
+        assert options[0].value == '1'
 
 
 class DeleteStepDetailsTest(APITestCase):

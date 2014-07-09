@@ -1,3 +1,4 @@
+from changes.models import ItemOption
 from changes.testutils import APITestCase
 
 
@@ -11,6 +12,8 @@ class PlanStepIndexTest(APITestCase):
         plan1.projects.append(project2)
         step1 = self.create_step(plan=plan1)
 
+        self.create_option(item_id=step1.id, name='build.timeout', value='1')
+
         path = '/api/0/plans/{0}/steps/'.format(plan1.id.hex)
 
         resp = self.client.get(path)
@@ -18,6 +21,7 @@ class PlanStepIndexTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 1
         assert data[0]['id'] == step1.id.hex
+        assert data[0]['options'] == {'build.timeout': '1'}
 
 
 class CreatePlanStepTest(APITestCase):
@@ -42,8 +46,20 @@ class CreatePlanStepTest(APITestCase):
         path = '/api/0/plans/{0}/steps/'.format(plan1.id.hex)
 
         resp = self.client.post(path, data={
-            'implementation': 'changes.buildsteps.dummy.DummyBuildStep'
+            'implementation': 'changes.buildsteps.dummy.DummyBuildStep',
+            'build.timeout': '1',
         })
         assert resp.status_code == 201, resp.data
         data = self.unserialize(resp)
         assert data['implementation'] == 'changes.buildsteps.dummy.DummyBuildStep'
+        assert data['options'] == {'build.timeout': '1'}
+
+        assert len(plan1.steps) == 1
+        step = plan1.steps[0]
+        assert step.implementation == 'changes.buildsteps.dummy.DummyBuildStep'
+        assert step.order == 0
+
+        options = list(ItemOption.query.filter(ItemOption.item_id == step.id))
+        assert len(options) == 1
+        assert options[0].name == 'build.timeout'
+        assert options[0].value == '1'
