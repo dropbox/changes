@@ -185,6 +185,15 @@ def sync_job_step(step_id):
             db.session.flush()
         raise sync_job_step.NotFinished
 
+    # ignore any 'failures' if its aborted
+    if step.result == Result.aborted:
+        return
+
+    try:
+        record_coverage_stats(step)
+    except Exception:
+        current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
+
     missing_tests = is_missing_tests(plan, step)
 
     try_create(ItemStat, where={
@@ -193,11 +202,6 @@ def sync_job_step(step_id):
     }, defaults={
         'value': int(missing_tests)
     })
-
-    try:
-        record_coverage_stats(step)
-    except Exception:
-        current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
 
     if step.result == Result.passed and missing_tests:
         step.result = Result.failed
