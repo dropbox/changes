@@ -41,6 +41,9 @@ def has_timed_out(job, job_plan):
     if job.status != Status.in_progress:
         return False
 
+    if not job.date_started:
+        return False
+
     options = dict(
         db.session.query(
             ItemOption.name, ItemOption.value
