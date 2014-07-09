@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 from datetime import datetime
 from flask import current_app
+from sqlalchemy import or_
 from sqlalchemy.orm import subqueryload_all
 from sqlalchemy.sql import func
 
@@ -64,7 +65,10 @@ def is_missing_tests(plan, step):
     jobphase_query = JobPhase.query.filter(
         JobPhase.job_id == step.job_id,
         JobPhase.id != step.phase_id,
-        JobPhase.date_started > step.phase.date_started,
+        or_(
+            JobPhase.date_started > step.phase.date_started,
+            JobPhase.date_started == None,  # NOQA
+        )
     )
     if db.session.query(jobphase_query.exists()).scalar():
         return False
