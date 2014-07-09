@@ -110,6 +110,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'build_no': 23,
             'job_name': 'foo-bar',
             'cmd': 'echo 1',
+            'expanded': True,
         }
 
         assert new_steps[1].label == 'a357e93d82b8627ba1aa5f5c58884cd8'
@@ -117,6 +118,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'build_no': 23,
             'job_name': 'foo-bar',
             'cmd': 'py.test --junit=junit.xml',
+            'expanded': True,
         }
 
         builder.fetch_artifact.assert_called_once_with(step, artifact)

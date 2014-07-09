@@ -5,10 +5,10 @@ from hashlib import md5
 from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.config import db
-from changes.constants import Status
-from changes.db.utils import get_or_create
+from changes.constants import Result, Status
+from changes.db.utils import get_or_create, try_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import JobPhase, JobStep
+from changes.models import FailureReason, JobPhase, JobStep
 
 
 class JenkinsCollectorBuilder(JenkinsGenericBuilder):
@@ -52,11 +52,31 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
         return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
 
     def fetch_artifact(self, step, artifact, **kwargs):
-        if artifact['fileName'] == 'jobs.json':
+        if artifact['fileName'].endswith('jobs.json'):
             self._expand_jobs(step, artifact)
         else:
             builder = self.get_builder()
             builder.sync_artifact(step, artifact, **kwargs)
+
+    def _sync_results(self, step, item):
+        super(JenkinsCollectorBuilder, self)._sync_results(step, item)
+
+        if step.data.get('expanded'):
+            return
+
+        artifacts = item.get('artifacts', ())
+        if not any(a['fileName'].endswith('jobs.json') for a in artifacts):
+            step.result = Result.failed
+            db.session.add(step)
+
+            job = step.job
+            try_create(FailureReason, {
+                'step_id': step.id,
+                'job_id': job.id,
+                'build_id': job.build_id,
+                'project_id': job.project_id,
+                'reason': 'missing_artifact'
+            })
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
@@ -91,6 +111,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
                 'cmd': job_config['cmd'],
                 'job_name': self.job_name,
                 'build_no': None,
+                'expanded': True,
             },
             'status': Status.queued,
         })

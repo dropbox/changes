@@ -9,9 +9,9 @@ from changes.backends.jenkins.buildsteps.collector import (
 )
 from changes.config import db
 from changes.constants import Result, Status
-from changes.db.utils import get_or_create
+from changes.db.utils import get_or_create, try_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import Job, JobPhase, JobStep, TestCase
+from changes.models import FailureReason, Job, JobPhase, JobStep, TestCase
 from changes.utils.trees import build_flat_tree
 
 
@@ -118,6 +118,15 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         if not any(a['fileName'].endswith('tests.json') for a in artifacts):
             step.result = Result.failed
             db.session.add(step)
+
+            job = step.job
+            try_create(FailureReason, {
+                'step_id': step.id,
+                'job_id': job.id,
+                'build_id': job.build_id,
+                'project_id': job.project_id,
+                'reason': 'missing_artifact'
+            })
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
