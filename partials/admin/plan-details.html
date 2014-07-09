@@ -81,6 +81,12 @@
                     <input class="form-control" type="number" ng-model="step.order">
                 </div>
 -->
+                <div class="form-group">
+                    <label>Timeout</label>
+                    <input type="text" class="form-control" ng-model="step.options['build.timeout']">
+                    <div class="help-block">Abort step if it runs longer than given duration (in minutes)</div>
+                </div>
+
                 <div style="text-align:right">
                     <button ng-disabled="step.saving" ng-click="saveStep(step)" class="btn btn-sm btn-primary">Save Changes</button>
                 </div>

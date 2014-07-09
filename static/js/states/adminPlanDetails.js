@@ -38,7 +38,18 @@ define(['app'], function(app) {
         } else {
           url = '/api/0/plans/' + planData.id + '/steps/';
         }
-        $http.post(url, angular.copy(step)).success(function(data){
+
+        var formData = {
+          data: step.data,
+          order: step.order,
+          name: step.name,
+        };
+
+        for (var key in step.options) {
+          formData[key] = step.options[key];
+        }
+
+        $http.post(url, formData).success(function(data){
           step.showForm = false;
           $.extend(true, step, data);
         }).error(function(data){
@@ -50,7 +61,14 @@ define(['app'], function(app) {
       };
 
       $scope.addStep = function() {
-        $scope.stepList.push({showForm: true, data: '{}', order: 0, name: 'Unsaved step'});
+        $scope.stepList.push({
+          showForm: true,
+          data: '{}',
+          order: 0,
+          name: 'Unsaved step',
+          options: {
+            'build.timeout': '0'
+          }});
       };
 
       $scope.removeStep = function(step) {
