@@ -29,7 +29,10 @@ class IsMissingTestsTest(BaseTestCase):
 
         build = self.create_build(project=project)
         job = self.create_job(build=build)
-        jobphase = self.create_jobphase(job)
+        jobphase = self.create_jobphase(
+            job=job,
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+        )
         jobstep = self.create_jobstep(jobphase)
         jobstep2 = self.create_jobstep(jobphase)
 
@@ -80,12 +83,16 @@ class IsMissingTestsTest(BaseTestCase):
         jobphase = self.create_jobphase(
             job=job,
             label='setup',
-            date_created=datetime(2013, 9, 19, 22, 15, 24),
+            # it's important that the date_created here is actually newer
+            # than the second phase
+            date_created=datetime(2013, 9, 19, 22, 17, 24),
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
         )
         jobphase2 = self.create_jobphase(
             job=job,
             label='test',
             date_created=datetime(2013, 9, 19, 22, 16, 24),
+            date_started=datetime(2013, 9, 19, 22, 16, 24),
         )
         jobstep = self.create_jobstep(jobphase)
         jobstep2 = self.create_jobstep(jobphase2)
@@ -304,7 +311,10 @@ class SyncJobStepTest(BaseTestCase):
         self.create_step(plan, implementation='test', order=0)
         self.create_job_plan(job, plan)
 
-        phase = self.create_jobphase(job)
+        phase = self.create_jobphase(
+            job=job,
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+        )
         step = self.create_jobstep(phase)
 
         db.session.add(ItemOption(

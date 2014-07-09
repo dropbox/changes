@@ -87,7 +87,8 @@ def is_missing_tests(plan, step):
     # this?
     if db.session.query(JobPhase.query.filter(
         JobPhase.job_id == step.job_id,
-        JobPhase.date_created > step.phase.date_created,
+        JobPhase.date_started > step.phase.date_started,
+        JobPhase.id != step.phase_id,
     ).exists()).scalar():
         return False
 
