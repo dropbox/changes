@@ -1,3 +1,6 @@
+from __future__ import absolute_import, print_function
+
+from datetime import datetime
 from flask import current_app
 from sqlalchemy.orm import subqueryload_all
 from sqlalchemy.sql import func
@@ -80,6 +83,41 @@ def has_test_failures(step):
     ).exists()).scalar()
 
 
+def has_timed_out(step, plan):
+    if step.status != Status.in_progress:
+        return False
+
+    if not step.date_started:
+        return False
+
+    # TODO(dcramer): we make an assumption that there is a single step
+    step = plan.steps[0]
+
+    options = dict(
+        db.session.query(
+            ItemOption.name, ItemOption.value
+        ).filter(
+            ItemOption.item_id == step.id,
+            ItemOption.name.in_([
+                'build.timeout',
+            ])
+        )
+    )
+
+    timeout = int(options.get('build.timeout') or 0)
+    if not timeout:
+        return False
+
+    # timeout is in minutes
+    timeout = timeout * 60
+
+    delta = datetime.utcnow() - step.date_started
+    if delta.total_seconds() > timeout:
+        return True
+
+    return False
+
+
 def record_coverage_stats(step):
     coverage_stats = db.session.query(
         func.sum(FileCoverage.lines_covered).label('lines_covered'),
@@ -125,6 +163,22 @@ def sync_job_step(step_id):
         is_finished = sync_job_step.verify_all_children() == Status.finished
 
     if not is_finished:
+        if has_timed_out(step, plan):
+            implementation.cancel_step(step=step)
+
+            step.result = Result.failed
+            db.session.add(step)
+
+            job = step.job
+            try_create(FailureReason, {
+                'step_id': step.id,
+                'job_id': job.id,
+                'build_id': job.build_id,
+                'project_id': job.project_id,
+                'reason': 'timeout'
+            })
+
+            db.session.flush()
         raise sync_job_step.NotFinished
 
     missing_tests = is_missing_tests(plan, step)

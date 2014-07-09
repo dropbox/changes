@@ -347,3 +347,42 @@ class SyncJobStepTest(BaseTestCase):
             FailureReason.step_id == step.id,
             FailureReason.reason == 'missing_tests',
         )
+
+    @mock.patch('changes.jobs.sync_job_step.has_timed_out')
+    @mock.patch.object(Step, 'get_implementation')
+    def test_timed_out(self, get_implementation, mock_has_timed_out):
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+
+        project = self.create_project()
+        build = self.create_build(project=project)
+        job = self.create_job(build=build)
+
+        plan = self.create_plan()
+        self.create_step(plan, implementation='test', order=0)
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.in_progress)
+
+        mock_has_timed_out.return_value = True
+
+        sync_job_step(
+            step_id=step.id.hex,
+            task_id=step.id.hex,
+            parent_task_id=job.id.hex
+        )
+
+        mock_has_timed_out.assert_called_once_with(step, plan)
+
+        get_implementation.assert_called_once_with()
+        implementation.cancel_step.assert_called_once_with(
+            step=step,
+        )
+
+        assert step.result == Result.failed
+
+        assert FailureReason.query.filter(
+            FailureReason.step_id == step.id,
+            FailureReason.reason == 'timeout',
+        )

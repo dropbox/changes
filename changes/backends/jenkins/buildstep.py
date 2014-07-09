@@ -7,6 +7,8 @@ from flask import current_app
 
 from changes.backends.base import UnrecoverableException
 from changes.buildsteps.base import BuildStep
+from changes.config import db
+from changes.constants import Status
 
 from .builder import JenkinsBuilder
 from .factory_builder import JenkinsFactoryBuilder
@@ -59,6 +61,10 @@ class JenkinsBuildStep(BuildStep):
     def cancel_step(self, step):
         builder = self.get_builder()
         builder.cancel_step(step)
+
+        step.status = Status.finished
+        step.date_finished = datetime.utcnow()
+        db.session.add(step)
 
     def fetch_artifact(self, step, artifact, **kwargs):
         builder = self.get_builder()
