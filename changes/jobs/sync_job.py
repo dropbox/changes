@@ -119,13 +119,15 @@ def sync_job(job_id):
                     'reason': 'timeout'
                 })
 
+            db.session.flush()
+
             # propagate changes to any phases
             for phase in JobPhase.query.filter(JobPhase.job == job):
                 sync_phase(phase)
 
             # ensure the job result actually reflects a failure
             job.result = Result.failed
-            db.session.commit()
+            db.session.flush()
 
         else:
             implementation.update(job=job)
