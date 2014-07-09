@@ -52,7 +52,7 @@ def has_timed_out(job, job_plan):
         )
     )
 
-    timeout = int(options.get('build.timeout', '0'))
+    timeout = int(options.get('build.timeout') or 0)
     if not timeout:
         return False
 
