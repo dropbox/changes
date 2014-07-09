@@ -8,8 +8,10 @@ from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
+from changes.jobs.sync_job_step import sync_phase
 from changes.models import (
-    FailureReason, ItemOption, ItemStat, Job, JobStep, JobPlan, Plan, TestCase
+    FailureReason, ItemOption, ItemStat, Job, JobPhase, JobPlan, JobStep, Plan,
+    TestCase
 )
 from changes.queue.task import tracked_task
 from changes.utils.agg import safe_agg
@@ -116,6 +118,13 @@ def sync_job(job_id):
                     'project_id': job.project_id,
                     'reason': 'timeout'
                 })
+
+            # propagate changes to any phases
+            for phase in JobPhase.query.filter(JobPhase.job == job):
+                sync_phase(phase)
+
+            # ensure the job result actually reflects a failure
+            job.result = Result.failed
             db.session.commit()
 
         else:

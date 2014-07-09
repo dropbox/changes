@@ -4,7 +4,7 @@ import mock
 
 from datetime import datetime, timedelta
 
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.config import db
 from changes.jobs.sync_job import has_timed_out, sync_job
 from changes.models import FailureReason, ItemOption, ItemStat, Job, Step, Task
@@ -202,6 +202,15 @@ class SyncJobTest(TestCase):
         implementation.cancel.assert_called_once_with(
             job=self.job,
         )
+
+        assert job.result == Result.failed
+        assert job.status == Status.finished
+
+        assert self.jobphase.result == job.result
+        assert self.jobphase.status == job.status
+
+        assert self.jobstep.result == job.result
+        assert self.jobstep.status == job.status
 
         assert FailureReason.query.filter(
             FailureReason.step_id == self.jobstep.id,
