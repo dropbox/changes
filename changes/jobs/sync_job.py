@@ -125,8 +125,6 @@ def sync_job(job_id):
     if job.status == Status.finished:
         return
 
-    current_job_status = job.status
-
     # TODO(dcramer): we make an assumption that there is a single step
     job_plan = JobPlan.query.options(
         subqueryload_all('plan.steps')
@@ -185,10 +183,9 @@ def sync_job(job_id):
 
     all_phases = list(job.phases)
 
-    if current_job_status != job.status:
-        # propagate changes to any phases as they live outside of the
-        # normalize synchronization routines
-        sync_job_phases(job, all_phases)
+    # propagate changes to any phases as they live outside of the
+    # normalize synchronization routines
+    sync_job_phases(job, all_phases)
 
     job.date_started = safe_agg(
         min, (j.date_started for j in all_phases if j.date_started))
