@@ -44,6 +44,18 @@ class HasTimedOutTest(TestCase):
 
         assert has_timed_out(job, job_plan)
 
+        option.value = '0'
+        db.session.add(option)
+        db.session.commit()
+
+        assert not has_timed_out(job, job_plan)
+
+        option.value = '500'
+        db.session.add(option)
+        db.session.commit()
+
+        assert not has_timed_out(job, job_plan)
+
 
 class SyncJobTest(TestCase):
     def setUp(self):
