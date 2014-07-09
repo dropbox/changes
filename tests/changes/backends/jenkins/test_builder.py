@@ -183,7 +183,7 @@ class CancelStepTest(BaseTestCase):
     @responses.activate
     def test_queued(self):
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/cancelItem?id=13',
+            responses.POST, 'http://jenkins.example.com/queue/cancelItem?id=13',
             match_querystring=True, status=302)
 
         build = self.create_build(self.project)

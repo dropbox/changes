@@ -746,11 +746,13 @@ class JenkinsBuilder(BaseBackend):
         if step.data.get('build_no'):
             url = '/job/{}/{}/stop/'.format(
                 step.data['job_name'], step.data['build_no'])
+            method = 'GET'
         else:
             url = '/queue/cancelItem?id={}'.format(step.data['item_id'])
+            method = 'POST'
 
         try:
-            self._get_raw_response(url)
+            self._get_raw_response(url, method=method)
         except NotFound:
             raise UnrecoverableException('Unable to find job in Jenkins')
 
