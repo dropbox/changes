@@ -4,11 +4,10 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from hashlib import sha1
 from sqlalchemy.sql import func
-from sqlalchemy.orm import subqueryload_all
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Build, TestCase, Source
+from changes.models import Build, FailureReason, TestCase, Source
 from changes.utils.http import build_uri
 
 
@@ -199,30 +198,29 @@ class BuildReport(object):
         return failure_stats
 
     def get_failure_stats_for_project(self, project, start_period, end_period):
-        stats = {
-            'Test Failures': 0,
-            'Missing Tests': 0,
-        }
-        # TODO(dcramer): we should embed this logic into the job/build results
-        failing_builds = Build.query.join(
+        base_query = db.session.query(
+            FailureReason.reason, FailureReason.build_id
+        ).join(
+            Build, Build.id == FailureReason.build_id,
+        ).join(
             Source, Source.id == Build.source_id,
         ).filter(
             Source.patch_id == None,  # NOQA
             Build.project_id == project.id,
-            Build.status == Status.finished,
-            Build.result == Result.failed,
             Build.date_created >= start_period,
             Build.date_created < end_period,
-        ).options(
-            subqueryload_all('stats'),
+        ).group_by(
+            FailureReason.reason, FailureReason.build_id
+        ).subquery()
+
+        return dict(
+            db.session.query(
+                base_query.c.reason,
+                func.count(),
+            ).group_by(
+                base_query.c.reason,
+            )
         )
-        for build in failing_builds:
-            build_stats = dict((s.name, s.value) for s in build.stats)
-            if build_stats.get('test_failures', 0):
-                stats['Test Failures'] += 1
-            if build_stats.get('tests_missing', 0):
-                stats['Missing Tests'] += 1
-        return stats
 
     def get_slow_tests(self, start_period, end_period):
         slow_tests = []
