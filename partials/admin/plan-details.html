@@ -1,97 +1,106 @@
-<section ui-view>
-	<div id="overview">
-		<div class="page-header">
-			<h2>Plan Details</h2>
-		</div>
+<div class="page-header">
+    <h2>Plan Details</h2>
+</div>
 
-		<dl class="flat">
-			<dt>Name:</dt>
-			<dd>{{plan.name}}</dd>
-			<dt>Created:</dt>
-			<dd time-since="plan.dateCreated"></dd>
-			<dt>Modified:</dt>
-			<dd time-since="plan.dateModified"></dd>
-		</dl>
+<form name="planSettingsForm" ng-submit="savePlanSettings()">
+    <section class="section">
+        <div class="section-header">
+            <h3>General</h3>
+        </div>
 
-		<section class="section">
-			<div class="section-header">
-				<h3>Builds</h3>
-			</div>
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" class="form-control" ng-model="formData.name"
+                 required>
+        </div>
+    </section>
 
-			<div class="form-group">
-				<label>Timeout</label>
-				<input type="text" class="form-control" ng-model="options['build.timeout']">
-				<div class="help-block">Abort builds if they run longer than given duration (in minutes)</div>
-			</div>
-		</section>
+    <section class="section">
+        <div class="section-header">
+            <h3>Builds</h3>
+        </div>
 
-		<section class="section">
-			<div class="section-header">
-				<h3>Tests</h3>
-			</div>
+        <div class="form-group">
+            <label>Timeout</label>
+            <input type="text" class="form-control" ng-model="options['build.timeout']">
+            <div class="help-block">Abort builds if they run longer than given duration (in minutes)</div>
+        </div>
+    </section>
 
-			<div class="form-group checkbox">
-				<label>
-					<input type="checkbox" value="1" ng-model="options['build.expect-tests']" ng-change="saveOption('build.expect-tests')">
-					Expect test results to be reported. If they're not, the build will be considered as failing, in addition to "failing during setup".
-				</label>
-			</div>
-		</section>
+    <section class="section">
+        <div class="section-header">
+            <h3>Tests</h3>
+        </div>
 
-		<section class="section">
-			<div class="section-header">
-				<h3>Steps <button ng-disabled="stepList.length >= 1" ng-click="addStep()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
-			</div>
-			<ul class="list-group">
-				<li class="list-group-item" ng-repeat="step in stepList">
-					<span class="pull-right" style="margin-top:5px;">
-						<a class="btn btn-primary btn-sm" ng-click="step.showForm = !step.showForm">Edit</a>
-						<a class="btn btn-danger btn-sm" ng-click="removeStep(step)">Remove</a>
-					</span>
-					<h4>{{step.order}}. {{step.name}}</h4>
+        <div class="form-group checkbox">
+            <label>
+                <input type="checkbox" value="1" ng-model="options['build.expect-tests']">
+                Expect test results to be reported. If they're not, the build will be considered as failing, in addition to "failing during setup".
+            </label>
+        </div>
+    </section>
 
-					<form ng-show="step.showForm">
-						<div class="form-group">
-							<label>Implementation</label>
-							<select class="form-control" ng-model="step.implementation" required>
-								<option value="changes.backends.jenkins.buildstep.JenkinsBuildStep">JenkinsBuildStep</option>
-								<option value="changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep">JenkinsFactoryBuildStep</option>
-								<option value="changes.backends.jenkins.buildstep.JenkinsGenericBuildStep">JenkinsGenericBuildStep</option>
-								<option value="changes.backends.jenkins.buildsteps.collector.JenkinsCollectorBuildStep">JenkinsCollectorBuildStep</option>
-								<option value="changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep">JenkinsTestCollectorBuildStep</option>
-							</select>
-						</div>
-						<div class="form-group">
-							<label>Config</label>
-							<textarea class="form-control" rows="3" ng-model="step.data" required></textarea>
-						</div>
-<!-- 						<div class="form-group">
-							<label>Order</label>
-							<input class="form-control" type="number" ng-model="step.order">
-						</div>
- -->
-						<div style="text-align:right">
-							<button ng-disabled="step.saving" ng-click="saveStep(step)" class="btn btn-sm btn-primary">Save Changes</button>
-						</div>
-					</form>
-				</li>
-			</ul>
+    <div class="form-submit clearfix">
+      <p ng-show="planSettingsForm.$dirty">Your changes have not yet been saved.</p>
+      <button type="submit" class="btn btn-sm btn-primary"
+              ng-disabled="planSettingsForm.$pristine || planSettingsForm.$invalid">Save Changes</button>
+    </div>
+</form>
+
+<hr>
+
+<section class="section">
+    <div class="section-header">
+        <h3>Steps <button ng-disabled="stepList.length >= 1" ng-click="addStep()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item" ng-repeat="step in stepList">
+            <span class="pull-right" style="margin-top:5px;">
+                <a class="btn btn-primary btn-sm" ng-click="step.showForm = !step.showForm">Edit</a>
+                <a class="btn btn-danger btn-sm" ng-click="removeStep(step)">Remove</a>
+            </span>
+            <h4>{{step.order}}. {{step.name}}</h4>
+
+            <form ng-show="step.showForm">
+                <div class="form-group">
+                    <label>Implementation</label>
+                    <select class="form-control" ng-model="step.implementation" required>
+                        <option value="changes.backends.jenkins.buildstep.JenkinsBuildStep">JenkinsBuildStep</option>
+                        <option value="changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep">JenkinsFactoryBuildStep</option>
+                        <option value="changes.backends.jenkins.buildstep.JenkinsGenericBuildStep">JenkinsGenericBuildStep</option>
+                        <option value="changes.backends.jenkins.buildsteps.collector.JenkinsCollectorBuildStep">JenkinsCollectorBuildStep</option>
+                        <option value="changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep">JenkinsTestCollectorBuildStep</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Config</label>
+                    <textarea class="form-control" rows="3" ng-model="step.data" required></textarea>
+                </div>
+<!--                        <div class="form-group">
+                    <label>Order</label>
+                    <input class="form-control" type="number" ng-model="step.order">
+                </div>
+-->
+                <div style="text-align:right">
+                    <button ng-disabled="step.saving" ng-click="saveStep(step)" class="btn btn-sm btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </li>
+    </ul>
 
 
-		</section>
+</section>
 
-		<section class="section">
-			<div class="section-header">
-				<h3>Projects <button ng-click="addProject()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
-			</div>
-			<ul class="list-group">
-				<li class="list-group-item" ng-repeat="project in projectList">
-					<span class="pull-right" style="margin-top:5px;">
-						<a class="btn btn-danger btn-sm" ng-click="removeProject(project)">Remove</a>
-					</span>
-					<h4><a ui-sref="project_builds({project_id: project.slug})">{{project.name}}</a></h4>
-				</li>
-			</ul>
-		</section>
-	</div>
+<section class="section">
+    <div class="section-header">
+        <h3>Projects <button ng-click="addProject()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item" ng-repeat="project in projectList">
+            <span class="pull-right" style="margin-top:5px;">
+                <a class="btn btn-danger btn-sm" ng-click="removeProject(project)">Remove</a>
+            </span>
+            <h4><a ui-sref="project_builds({project_id: project.slug})">{{project.name}}</a></h4>
+        </li>
+    </ul>
 </section>
