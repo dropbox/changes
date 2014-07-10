@@ -146,6 +146,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'tests': ['foo.bar.test_buz'],
             'path': '',
             'cmd': 'py.test --junit=junit.xml {test_names}',
+            'weight': 201,
         }
 
         assert new_steps[1].label == '4984ae5173fdb4166e5454d2494a106d'
@@ -156,6 +157,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'tests': ['foo.bar.test_baz', 'foo.bar.test_bar', 'foo.bar.test_biz'],
             'path': '',
             'cmd': 'py.test --junit=junit.xml {test_names}',
+            'weight': 78,
         }
 
         builder.fetch_artifact.assert_called_once_with(step, artifact)

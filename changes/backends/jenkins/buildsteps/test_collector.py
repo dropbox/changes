@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import itertools
+
 from hashlib import md5
 from operator import itemgetter
 
@@ -147,13 +149,15 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 result = avg_test_time
             return result
 
-        groups = [[] for _ in range(self.max_shards)]
+        group_tests = [[] for _ in range(self.max_shards)]
+        group_weights = [0 for _ in range(self.max_shards)]
         weights = [0] * self.max_shards
         weighted_tests = [(get_test_duration(t), t) for t in phase_config['tests']]
         for weight, test in sorted(weighted_tests, reverse=True):
             low_index, _ = min(enumerate(weights), key=itemgetter(1))
             weights[low_index] += 1 + weight
-            groups[low_index].append(test)
+            group_tests[low_index].append(test)
+            group_weights[low_index] += 1 + weight
 
         phase, created = get_or_create(JobPhase, where={
             'job': step.job,
@@ -164,11 +168,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         })
         db.session.commit()
 
-        for test_list in groups:
+        for test_list, weight in itertools.izip(group_tests, group_weights):
             self._expand_job(phase, {
                 'tests': test_list,
                 'cmd': phase_config['cmd'],
                 'path': phase_config.get('path', ''),
+                'weight': weight,
             })
 
     def _expand_job(self, phase, job_config):
@@ -190,6 +195,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 'expanded': True,
                 'job_name': self.job_name,
                 'build_no': None,
+                'weight': job_config['weight']
             },
             'status': Status.queued,
         })
