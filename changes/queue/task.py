@@ -17,8 +17,8 @@ from changes.utils.locking import lock
 BASE_RETRY_COUNTDOWN = 60
 CONTINUE_COUNTDOWN = 5
 
-RUN_TIMEOUT = timedelta(minutes=5)
-EXPIRE_TIMEOUT = timedelta(minutes=30)
+RUN_TIMEOUT = timedelta(minutes=60)
+EXPIRE_TIMEOUT = timedelta(minutes=120)
 HARD_TIMEOUT = timedelta(hours=12)
 
 MAX_RETRIES = 10
