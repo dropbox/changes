@@ -90,7 +90,7 @@ class JenkinsBuilder(BaseBackend):
         url = '{}/{}'.format(self.base_url, path.lstrip('/'))
 
         kwargs.setdefault('allow_redirects', False)
-        kwargs.setdefault('timeout', 5)
+        kwargs.setdefault('timeout', 30)
         kwargs.setdefault('auth', self.auth)
 
         if params is None:
