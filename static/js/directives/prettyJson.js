@@ -3,7 +3,7 @@ define(['app'], function(app) {
 
   app.directive('prettyJson', function() {
     return function prettyJsonDirective(scope, element, attrs) {
-      var result = JSON.stringify(attrs.prettyJson, undefined, 2).slice(1, -1);
+      var result = JSON.stringify(scope.$eval(attrs.prettyJson), undefined, 2);
       element.text(result);
     };
   });
