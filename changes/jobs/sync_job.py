@@ -209,12 +209,9 @@ def sync_job(job_id):
         job.result = Result.failed
     # if we've finished all phases, use the best result available
     elif is_finished:
-        job.result = safe_agg(
-            max, (j.result for j in all_phases), Result.unknown)
+        job.result = safe_agg(max, (j.result for j in all_phases))
     else:
         job.result = Result.unknown
-
-    print([j.result for j in all_phases])
 
     if is_finished:
         job.status = Status.finished

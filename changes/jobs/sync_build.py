@@ -81,8 +81,7 @@ def sync_build(build_id):
     if any(j.result is Result.failed for j in all_jobs):
         build.result = Result.failed
     elif is_finished:
-        build.result = safe_agg(
-            max, (j.result for j in all_jobs), Result.unknown)
+        build.result = safe_agg(max, (j.result for j in all_jobs))
     else:
         build.result = Result.unknown
 
