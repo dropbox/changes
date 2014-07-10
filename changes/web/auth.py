@@ -8,11 +8,19 @@ from oauth2client.client import OAuth2WebServerFlow
 from changes.db.utils import get_or_create
 from changes.models import User
 
+GOOGLE_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'
+GOOGLE_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
+
 
 def get_auth_flow(redirect_uri=None):
     # XXX(dcramer): we have to generate this each request because oauth2client
     # doesn't want you to set redirect_uri as part of the request, which causes
     # a lot of runtime issues.
+    auth_uri = GOOGLE_AUTH_URI
+    if current_app.config['GOOGLE_DOMAIN']:
+        auth_uri = auth_uri + '?hd=' + current_app.config['GOOGLE_DOMAIN']
+
     return OAuth2WebServerFlow(
         client_id=current_app.config['GOOGLE_CLIENT_ID'],
         client_secret=current_app.config['GOOGLE_CLIENT_SECRET'],
@@ -21,7 +29,10 @@ def get_auth_flow(redirect_uri=None):
         user_agent='changes/{0} (python {1})'.format(
             changes.VERSION,
             sys.version,
-        )
+        ),
+        auth_uri=auth_uri,
+        token_uri=GOOGLE_TOKEN_URI,
+        revoke_uri=GOOGLE_REVOKE_URI,
     )
 
 
