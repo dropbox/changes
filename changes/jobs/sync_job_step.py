@@ -95,13 +95,13 @@ def has_timed_out(step, plan):
         return False
 
     # TODO(dcramer): we make an assumption that there is a single step
-    step = plan.steps[0]
+    plan_step = plan.steps[0]
 
     options = dict(
         db.session.query(
             ItemOption.name, ItemOption.value
         ).filter(
-            ItemOption.item_id == step.id,
+            ItemOption.item_id == plan_step.id,
             ItemOption.name.in_([
                 'build.timeout',
             ])

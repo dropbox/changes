@@ -2,16 +2,68 @@ from __future__ import absolute_import
 
 import mock
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.jobs.sync_job_step import sync_job_step, is_missing_tests
+from changes.jobs.sync_job_step import (
+    sync_job_step, is_missing_tests, has_timed_out
+)
 from changes.models import (
     ItemOption, ItemStat, JobStep, Step, Task, FileCoverage, TestCase,
     FailureReason
 )
 from changes.testutils import TestCase as BaseTestCase
+
+
+class HasTimedOutTest(TestCase):
+    def test_simple(self):
+        project = self.create_project()
+        plan = self.create_plan()
+        plan.projects.append(project)
+        step = self.create_step(plan)
+
+        build = self.create_build(project=project)
+        job = self.create_job(build=build, status=Status.queued)
+        self.create_job_plan(job, plan)
+
+        option = ItemOption(
+            item_id=step.id,
+            name='build.timeout',
+            value='5',
+        )
+        db.session.add(option)
+        db.session.commit()
+
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        assert not has_timed_out(jobstep, plan)
+
+        jobstep.status = Status.in_progress
+        jobstep.date_started = datetime.utcnow()
+        db.session.add(jobstep)
+        db.session.commit()
+
+        assert not has_timed_out(jobstep, plan)
+
+        jobstep.date_started = datetime.utcnow() - timedelta(seconds=400)
+        db.session.add(jobstep)
+        db.session.commit()
+
+        assert has_timed_out(jobstep, plan)
+
+        option.value = '0'
+        db.session.add(option)
+        db.session.commit()
+
+        assert not has_timed_out(jobstep, plan)
+
+        option.value = '500'
+        db.session.add(option)
+        db.session.commit()
+
+        assert not has_timed_out(jobstep, plan)
 
 
 class IsMissingTestsTest(BaseTestCase):
