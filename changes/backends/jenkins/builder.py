@@ -731,7 +731,7 @@ class JenkinsBuilder(BaseBackend):
         try:
             self._get_raw_response(url, method=method)
         except NotFound:
-            raise UnrecoverableException('Unable to find job in Jenkins')
+            pass
 
         step.status = Status.finished
         step.result = Result.aborted
