@@ -1,10 +1,10 @@
 define([
   'app',
+  'utils',
   'utils/chartHelpers',
-  'utils/duration',
   'utils/escapeHtml',
   'utils/sortBuildList'
-], function(app, chartHelpers, duration, escapeHtml, sortBuildList) {
+], function(app, utils, chartHelpers, escapeHtml, sortBuildList) {
   'use strict';
 
   var PER_PAGE = 50;
@@ -80,7 +80,7 @@ define([
             } else if ($scope.selectedChart == 'test_duration') {
               content += '<p>' + parseInt(item.build.stats.test_duration / item.build.stats.test_count || 0, 10) + 'ms avg test duration';
             } else if ($scope.selectedChart == 'duration') {
-              content += '<p>' + duration(item.build.duration) + ' build time';
+              content += '<p>' + utils.time.duration(item.build.duration) + ' build time';
             } else if ($scope.selectedChart == 'test_rerun_count') {
               content += '<p>' + (item.build.stats.test_rerun_count || 0) + ' total retries';
             } else if ($scope.selectedChart == 'tests_missing') {

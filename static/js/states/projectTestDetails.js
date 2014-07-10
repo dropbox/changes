@@ -1,9 +1,9 @@
 define([
   'app',
+  'utils',
   'utils/chartHelpers',
-  'utils/duration',
   'utils/escapeHtml'
-], function(app, chartHelpers, duration, escapeHtml) {
+], function(app, utils, chartHelpers, escapeHtml) {
   'use strict';
 
   var HISTORICAL_ITEMS = 100;
@@ -32,7 +32,7 @@ define([
             content += '</h5>';
             content += '<p>Test ' + item.result.name;
             if (item.duration) {
-              content += ' in ' + duration(item.duration);
+              content += ' in ' + utils.time.duration(item.duration);
             }
             content += ' (Build ' + build.result.name + ')</p>';
 

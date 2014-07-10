@@ -1,10 +1,9 @@
 define([
   'app',
   'utils/chartHelpers',
-  'utils/duration',
   'utils/escapeHtml',
   'utils/parseLinkHeader'
-], function(app, chartHelpers, duration, escapeHtml, parseLinkHeader) {
+], function(app, chartHelpers, escapeHtml, parseLinkHeader) {
   'use strict';
 
   var defaults = {

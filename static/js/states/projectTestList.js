@@ -1,8 +1,7 @@
 define([
   'app',
-  'moment',
-  'utils/duration'
-], function(app, moment, duration) {
+  'moment'
+], function(app, moment) {
   'use strict';
 
   return {

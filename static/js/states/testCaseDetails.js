@@ -1,8 +1,6 @@
 define([
-  'app',
-  'utils/duration',
-  'utils/escapeHtml'
-], function(app, duration, escapeHtml) {
+  'app'
+], function(app) {
   'use strict';
 
   return {

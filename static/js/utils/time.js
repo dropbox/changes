@@ -1,12 +1,12 @@
-(function(){
+define([], function() {
   'use strict';
 
-  define(['app'], function(app) {
-    function round(value) {
-      return parseInt(value * 100, 10) / 100;
-    }
+  function round(value) {
+    return parseInt(value * 100, 10) / 100;
+  }
 
-    return function duration(value) {
+  return {
+    duration: function duration(value) {
       var result, neg;
 
       neg = value < 0 ? true : false;
@@ -31,6 +31,6 @@
       }
 
       return result;
-    };
-  });
-})();
+    }
+  };
+});
