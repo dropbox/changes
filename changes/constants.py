@@ -7,25 +7,32 @@ NUM_PREVIOUS_RUNS = 50
 
 
 class OrderedEnum(Enum):
+    def get_order(self):
+        return sorted(self.__members__, key=lambda x: x._value_)
+
     def __ge__(self, other):
-        if type(self) is type(other):
-            return self._value_ >= other._value_
-        return NotImplemented
+        if type(self) is not type(other):
+            return NotImplemented
+        order = self.get_order()
+        return order.index(self) >= order.index(other)
 
     def __gt__(self, other):
-        if type(self) is type(other):
-            return self._value_ > other._value_
-        return NotImplemented
+        if type(self) is not type(other):
+            return NotImplemented
+        order = self.get_order()
+        return order.index(self) > order.index(other)
 
     def __le__(self, other):
-        if type(self) is type(other):
-            return self._value_ <= other._value_
-        return NotImplemented
+        if type(self) is not type(other):
+            return NotImplemented
+        order = self.get_order()
+        return order.index(self) <= order.index(other)
 
     def __lt__(self, other):
-        if type(self) is type(other):
-            return self._value_ < other._value_
-        return NotImplemented
+        if type(self) is not type(other):
+            return NotImplemented
+        order = self.get_order()
+        return order.index(self) < order.index(other)
 
 
 class Status(Enum):
@@ -48,6 +55,15 @@ class Result(OrderedEnum):
 
     def __str__(self):
         return RESULT_LABELS[self]
+
+    def get_order(self):
+        return [
+            Result.skipped,
+            Result.passed,
+            Result.unknown,
+            Result.failed,
+            Result.aborted,
+        ]
 
 
 class Provider(Enum):

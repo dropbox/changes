@@ -85,19 +85,19 @@ def sync_phase(phase):
         phase.date_started = safe_agg(min, (s.date_started for s in phase_steps))
         db.session.add(phase)
 
-    if all(s.status == Status.finished for s in phase_steps):
-        phase.status = Status.finished
-        phase.date_finished = safe_agg(max, (s.date_finished for s in phase_steps))
+    if phase_steps:
+        if all(s.status == Status.finished for s in phase_steps):
+            phase.status = Status.finished
+            phase.date_finished = safe_agg(max, (s.date_finished for s in phase_steps))
 
-    elif any(s.status != Status.finished for s in phase_steps):
-        phase.status = Status.in_progress
-        db.session.add(phase)
+        elif any(s.status != Status.finished for s in phase_steps):
+            phase.status = Status.in_progress
 
-    if any(s.result is Result.failed for s in phase_steps):
-        phase.result = Result.failed
+        if any(s.result is Result.failed for s in phase_steps):
+            phase.result = Result.failed
 
-    elif phase.status == Status.finished:
-        phase.result = safe_agg(max, (s.result for s in phase.steps), Result.unknown)
+        elif phase.status == Status.finished:
+            phase.result = safe_agg(max, (s.result for s in phase.steps))
 
     if db.session.is_modified(phase):
         phase.date_modified = datetime.utcnow()
@@ -213,6 +213,8 @@ def sync_job(job_id):
             max, (j.result for j in all_phases), Result.unknown)
     else:
         job.result = Result.unknown
+
+    print([j.result for j in all_phases])
 
     if is_finished:
         job.status = Status.finished
