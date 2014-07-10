@@ -41,6 +41,7 @@ define([
 
   'directives/bindOnce',
   'directives/duration',
+  'directives/prettyJson',
   'directives/renderBuildRow',
   'directives/timeSince',
   'filters/escape',
