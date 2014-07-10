@@ -99,7 +99,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             sep = TestCase(name=test_names[0]).sep
             tree = build_flat_tree(test_names, sep=sep)
             for group_name, group_tests in tree.iteritems():
-                test_stats[group_name] = sum(test_durations[t] for t in group_tests)
+                segments = self._normalize_test_segments(group_name)
+                test_stats[segments] = sum(test_durations[t] for t in group_tests)
 
         # the build report can contain different test suites so this isnt the
         # most accurate
@@ -130,6 +131,16 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 'reason': 'missing_artifact'
             })
 
+    def _normalize_test_segments(self, test_name):
+        sep = TestCase(name=test_name).sep
+        segments = test_name.split(sep)
+
+        # kill the file extension
+        if sep is '/' and '.' in segments[-1]:
+            segments[-1] = segments[-1].rsplit('.', 1)[0]
+
+        return tuple(segments)
+
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
         artifact_data = builder.fetch_artifact(step, artifact)
@@ -141,11 +152,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         test_stats, avg_test_time = self.get_test_stats(step.project)
 
-        def get_test_duration(test):
-            result = test_stats.get(test)
+        def get_test_duration(test_name):
+            segments = self._normalize_test_segments(test_name)
+            result = test_stats.get(segments)
             if result is None:
                 if test_stats:
-                    self.logger.info('No existing duration found for test %r', test)
+                    self.logger.info('No existing duration found for test %r', test_name)
                 result = avg_test_time
             return result
 
