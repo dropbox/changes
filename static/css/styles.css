@@ -1007,6 +1007,10 @@ table.build-list {
   display: none;
 }
 
+.phase-list pre {
+  padding: 0;
+}
+
 .nav-pills > li.active > a,
 .nav-pills > li.active > a:hover,
 .nav-pills > li.active > a:focus {
