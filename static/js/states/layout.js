@@ -12,6 +12,7 @@ define([
       $scope.appVersion = $window.APP_VERSION;
       $scope.projectList = projectList.data;
       $scope.user = authData.user;
+      $scope.activeUser = $scope.user;
       $scope.authenticated = authData.authenticated;
       $scope.projectSearchQuery = {
         query: null,

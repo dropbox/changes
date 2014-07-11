@@ -12,7 +12,7 @@
   </thead>
   <tbody>
     <tr ng-repeat="user in userList">
-      <td><a>{{user.email}}</a></td>
+      <td><a ui-sref="admin_user_details({user_id: user.id})">{{user.email}}</a></td>
       <td class="column">{{user.isAdmin}}</td>
       <td class="column" time-since="user.dateCreated"></td>
     </tr>

@@ -1,0 +1,26 @@
+<div id="overview">
+  <div class="page-header">
+    <h2>User Details</h2>
+  </div>
+
+  <form name="userDetailsForm" ng-submit="saveForm()">
+    <div class="form-group">
+      <label>Email</label>
+      {{user.email}}
+    </div>
+
+    <div class="form-group checkbox">
+      <label>
+        <input type="checkbox" value="1" ng-model="formData.isAdmin">
+        This user should be an administrator, and therefore should be able to do whatever they want.
+      </label>
+    </div>
+
+    <div class="form-submit">
+      <p ng-show="userDetailsForm.$dirty">Your changes have not yet been saved.</p>
+      <button type="submit" class="btn btn-sm btn-primary"
+              ng-disabled="userDetailsForm.$pristine || userDetailsForm.$invalid">Save Changes</button>
+    </div>
+
+  </form>
+</div>
