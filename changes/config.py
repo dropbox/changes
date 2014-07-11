@@ -312,6 +312,7 @@ def configure_api_routes(app):
     from changes.api.repository_details import RepositoryDetailsAPIView
     from changes.api.repository_index import RepositoryIndexAPIView
     from changes.api.step_details import StepDetailsAPIView
+    from changes.api.system_options import SystemOptionsAPIView
     from changes.api.task_details import TaskDetailsAPIView
     from changes.api.task_index import TaskIndexAPIView
     from changes.api.testcase_details import TestCaseDetailsAPIView
@@ -369,6 +370,7 @@ def configure_api_routes(app):
     api.add_resource(RepositoryIndexAPIView, '/repositories/')
     api.add_resource(RepositoryDetailsAPIView, '/repositories/<uuid:repository_id>/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
+    api.add_resource(SystemOptionsAPIView, '/systemoptions/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')
     api.add_resource(TaskIndexAPIView, '/tasks/')
     api.add_resource(TaskDetailsAPIView, '/tasks/<uuid:task_id>/')
