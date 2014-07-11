@@ -43,6 +43,13 @@ class PlanOptionsUpdateTest(APITestCase):
         resp = self.client.post(path, data={
             'build.expect-tests': '1',
         })
+        assert resp.status_code == 403
+
+        self.login_default_admin()
+
+        resp = self.client.post(path, data={
+            'build.expect-tests': '1',
+        })
         assert resp.status_code == 200
 
         options = dict(db.session.query(

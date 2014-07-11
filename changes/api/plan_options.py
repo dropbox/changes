@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful.reqparse import RequestParser
 
 from changes.api.base import APIView
-from changes.api.auth import requires_auth
+from changes.api.auth import requires_admin
 from changes.db.utils import create_or_update
 from changes.models import ItemOption, Plan
 
@@ -34,7 +34,7 @@ class PlanOptionsAPIView(APIView):
     post_parser.add_argument('build.expect-tests')
     post_parser.add_argument('build.timeout')
 
-    @requires_auth
+    @requires_admin
     def post(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:
