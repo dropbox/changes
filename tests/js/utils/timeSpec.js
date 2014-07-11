@@ -42,7 +42,8 @@ define(['app', 'utils/time'], function(app, time) {
     var now;
 
     beforeEach(function(){
-      now = new Date().getTime();
+      // There is probably an API thats exposed for this
+      now = moment.utc()._d.getTime();
     });
 
     it('should support seconds', function() {
