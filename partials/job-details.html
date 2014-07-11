@@ -14,12 +14,12 @@
         <div ng-include="'partials/includes/job-info.html'"></div>
     </div>
 
-    <div ng-include="'partials/includes/job-test-failures.html'"></div>
-    <div ng-include="'partials/includes/job-file-coverage.html'"></div>
-
     <div ng-if="!isFinished && job.result.id != 'unknown'" class="alert alert-info alert-block">
         <p>Hold tight! This build is still in progress, but we're collecting results and reporting them as quickly as we get them.</p>
     </div>
+
+    <div ng-include="'partials/includes/job-test-failures.html'"></div>
+    <div ng-include="'partials/includes/job-file-coverage.html'"></div>
 
     <section class="section section-boxed" ng-repeat="phase in phaseList">
         <div class="section-header result-{{phase.result.id}}">
