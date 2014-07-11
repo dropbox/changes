@@ -1,4 +1,4 @@
-define([], function() {
+define(['moment'], function(moment) {
   'use strict';
 
   function round(value) {
@@ -6,7 +6,7 @@ define([], function() {
   }
 
   return {
-    duration: function duration(value) {
+    duration: function(value) {
       var result, neg;
 
       neg = value < 0 ? true : false;
@@ -31,6 +31,35 @@ define([], function() {
       }
 
       return result;
+    },
+    timeSince: function(timestamp) {
+      var date = moment(timestamp),
+          diff = date.diff(),
+          past = diff > 0,
+          result, value;
+
+      diff = Math.abs(diff);
+
+      if (diff > 1728000000) { // 48 hours
+        return date.format('l');
+      } else if (diff > 7200000) {
+        value = Math.round(diff / 3600000);
+        result = value + ' hour';
+      } else if (diff > 60000) {
+        value = Math.round(diff / 60000);
+        result = value + ' minute';
+      } else {
+        return 'just now';
+      }
+
+      if (value != 1) {
+        result = result + 's';
+      }
+
+      if (past) {
+        return 'in ' + result;
+      }
+      return result + ' ago';
     }
   };
 });
