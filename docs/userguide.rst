@@ -6,7 +6,7 @@ At a high level, Changes is designed to be a view into the lifetime of a changes
 A few concepts you should understand about Changes:
 
 - A "Change" is a discrete object that represents a code changeset. This generally starts out as a patch, and works its way into a commit.
-- Builds are bundled into families, and each build target has it's own build. That is if you're project needs to build on two platforms, there are two separate builds bundled into a single family grouping.
+- Builds are bundled into families, and each build target has it's own build. That is if your project needs to build on two platforms, there are two separate builds bundled into a single family grouping.
 
 
 Understanding Build Results
