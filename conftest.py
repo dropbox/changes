@@ -43,6 +43,7 @@ def app(request, session_config):
         GOOGLE_CLIENT_ID='a' * 12,
         GOOGLE_CLIENT_SECRET='b' * 40,
         HIPCHAT_TOKEN='abc',
+        DEFAULT_FILE_STORAGE='changes.storage.dummy.DummyFileStorage',
     )
     app_context = app.test_request_context()
     context = app_context.push()

@@ -12,9 +12,11 @@ fileConfig(config.config_file_name)
 
 import sqlalchemy as sa
 from changes.db.types.enum import Enum
+from changes.db.types.filestorage import FileStorage
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 sa.Enum = Enum
+sa.FileStorage = FileStorage
 sa.GUID = GUID
 sa.JSONEncodedDict = JSONEncodedDict
 

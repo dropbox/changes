@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import uuid
 
 from datetime import datetime
@@ -6,8 +8,13 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import UniqueConstraint
 
 from changes.config import db
+from changes.db.types.filestorage import FileData, FileStorage
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
+
+ARTIFACT_STORAGE_OPTIONS = {
+    'path': 'artifacts',
+}
 
 
 class Artifact(db.Model):
@@ -18,6 +25,7 @@ class Artifact(db.Model):
     name = Column(String(128), nullable=False)
     date_created = Column(DateTime, nullable=False, default=datetime.utcnow)
     data = Column(JSONEncodedDict)
+    file = Column(FileStorage(**ARTIFACT_STORAGE_OPTIONS))
 
     job = relationship('Job', backref=backref('artifacts'))
     project = relationship('Project')
@@ -36,3 +44,7 @@ class Artifact(db.Model):
             self.date_created = datetime.utcnow()
         if self.data is None:
             self.data = {}
+        if self.file is None:
+            # TODO(dcramer): this is super hacky but not sure a better way to
+            # do it with SQLAlchemy
+            self.file = FileData({}, ARTIFACT_STORAGE_OPTIONS)

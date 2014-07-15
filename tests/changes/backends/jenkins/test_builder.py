@@ -599,12 +599,13 @@ class SyncArtifactTest(BaseTestCase):
         phase = self.create_jobphase(job)
         step = self.create_jobstep(phase, data=job.data)
 
-        builder = self.get_builder()
-        builder.sync_artifact(step, {
+        artifact = self.create_artifact(step, name='foobar.log', data={
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log"
         })
+        builder = self.get_builder()
+        builder.sync_artifact(artifact)
 
         source = LogSource.query.filter(
             LogSource.job_id == job.id,
@@ -644,13 +645,14 @@ class SyncArtifactTest(BaseTestCase):
         )
         phase = self.create_jobphase(job)
         step = self.create_jobstep(phase, data=job.data)
-
-        builder = self.get_builder()
-        builder.sync_artifact(step, {
+        artifact = self.create_artifact(step, name='xunit.xml', data={
             "displayPath": "xunit.xml",
             "fileName": "xunit.xml",
             "relativePath": "artifacts/xunit.xml"
         })
+
+        builder = self.get_builder()
+        builder.sync_artifact(artifact)
 
         test_list = list(TestCase.query.filter(
             TestCase.job_id == job.id
@@ -679,18 +681,50 @@ class SyncArtifactTest(BaseTestCase):
         phase = self.create_jobphase(job)
         step = self.create_jobstep(phase, data=job.data)
 
-        builder = self.get_builder()
-        builder.sync_artifact(step, {
+        artifact = self.create_artifact(step, name='coverage.xml', data={
             "displayPath": "coverage.xml",
             "fileName": "coverage.xml",
             "relativePath": "artifacts/coverage.xml"
         })
+
+        builder = self.get_builder()
+        builder.sync_artifact(artifact)
 
         cover_list = list(FileCoverage.query.filter(
             FileCoverage.job_id == job.id
         ))
 
         assert len(cover_list) == 2
+
+    @responses.activate
+    def test_sync_artifact_as_file(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/foo.bar',
+            body=SAMPLE_COVERAGE,
+            stream=True)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
+
+        artifact = self.create_artifact(step, name='foo.bar', data={
+            "displayPath": "foo.bar",
+            "fileName": "foo.bar",
+            "relativePath": "artifacts/foo.bar"
+        })
+
+        builder = self.get_builder()
+        builder.sync_artifact(artifact)
 
 
 class JenkinsIntegrationTest(BaseTestCase):

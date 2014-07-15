@@ -66,9 +66,9 @@ class JenkinsBuildStep(BuildStep):
         step.date_finished = datetime.utcnow()
         db.session.add(step)
 
-    def fetch_artifact(self, step, artifact, **kwargs):
+    def fetch_artifact(self, artifact, **kwargs):
         builder = self.get_builder()
-        builder.sync_artifact(step, artifact, **kwargs)
+        builder.sync_artifact(artifact, **kwargs)
 
 
 class JenkinsFactoryBuildStep(JenkinsBuildStep):

@@ -103,9 +103,9 @@ class JenkinsBuildStepTest(TestCase):
             'item_id': 13,
             'job_name': 'server',
         })
-        artifact = {'foo': 'bar'}
+        artifact = self.create_artifact(step, name='foo.log')
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(step, artifact)
+        buildstep.fetch_artifact(artifact)
 
-        builder.sync_artifact.assert_called_once_with(step, artifact)
+        builder.sync_artifact.assert_called_once_with(artifact)

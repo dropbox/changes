@@ -317,11 +317,12 @@ class Fixtures(object):
 
         return task
 
-    def create_artifact(self, step, **kwargs):
+    def create_artifact(self, step, name, **kwargs):
         artifact = Artifact(
             step=step,
             project=step.project,
             job=step.job,
+            name=name,
             **kwargs
         )
         db.session.add(artifact)

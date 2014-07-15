@@ -22,6 +22,8 @@ tests_require = [
     'pytest-xdist>=1.9,<1.10',
     'responses>=0.2.0,<0.3.0',
     'unittest2>=0.5.1,<0.6.0',
+    # https://github.com/spulec/moto/archive/master.zip
+    'moto',
 ]
 
 install_requires = [
@@ -31,6 +33,7 @@ install_requires = [
     'anyjson>=0.3.3,<0.4.0',
     'argparse>=1.2.1,<1.3.0',
     'blinker>=1.3,<1.4',
+    'boto>=2.25.0,<2.26.0',
     # celery 3.1.9 breaks TrackedTask (wraps is incorrect)
     'celery==3.1.8',
     'kombu>=3.0.8,<4.0.0',

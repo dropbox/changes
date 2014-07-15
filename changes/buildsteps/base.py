@@ -44,5 +44,5 @@ class BuildStep(object):
     def cancel_step(self, step):
         raise NotImplementedError
 
-    def fetch_artifact(self, step, artifact):
+    def fetch_artifact(self, artifact):
         raise NotImplementedError

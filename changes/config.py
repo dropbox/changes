@@ -184,6 +184,11 @@ def create_app(_read_config=True, **config):
 
     app.config['REPO_ROOT'] = None
 
+    app.config['DEFAULT_FILE_STORAGE'] = 'changes.storage.s3.S3FileStorage'
+    app.config['S3_ACCESS_KEY'] = None
+    app.config['S3_SECRET_KEY'] = None
+    app.config['S3_BUCKET'] = None
+
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
     app.config['BASE_URI'] = None
 

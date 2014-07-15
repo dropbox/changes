@@ -4,6 +4,7 @@ from sqlalchemy.orm import subqueryload_all
 
 from changes.backends.base import UnrecoverableException
 from changes.constants import Result
+
 from changes.models import Artifact, JobPlan, Plan
 from changes.queue.task import tracked_task
 
@@ -28,23 +29,20 @@ def get_build_step(job_id):
 
 @tracked_task
 def sync_artifact(artifact_id=None, **kwargs):
-    if artifact_id:
-        artifact = Artifact.query.get(artifact_id)
-
+    artifact = Artifact.query.get(artifact_id)
     if artifact is None:
         return
 
     step = artifact.step
-    data = artifact.data
 
     if step.result == Result.aborted:
         return
 
     try:
         implementation = get_build_step(step.job_id)
-        implementation.fetch_artifact(step=step, artifact=data, **kwargs)
+        implementation.fetch_artifact(artifact=artifact, **kwargs)
 
     except UnrecoverableException:
         current_app.logger.exception(
             'Unrecoverable exception fetching artifact %s: %s',
-            step.id, artifact)
+            artifact.step_id, artifact)

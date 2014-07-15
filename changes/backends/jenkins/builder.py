@@ -65,6 +65,7 @@ class JenkinsBuilder(BaseBackend):
         self.sync_log_artifacts = self.app.config.get('JENKINS_SYNC_LOG_ARTIFACTS', False)
         self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
         self.sync_coverage_artifacts = self.app.config.get('JENKINS_SYNC_COVERAGE_ARTIFACTS', True)
+        self.sync_file_artifacts = self.app.config.get('JENKINS_SYNC_FILE_ARTIFACTS', True)
 
     def _get_raw_response(self, path, method='GET', params=None, **kwargs):
         url = '{}/{}'.format(self.base_url, path.lstrip('/'))
@@ -142,17 +143,27 @@ class JenkinsBuilder(BaseBackend):
 
         return step
 
-    def fetch_artifact(self, jobstep, artifact):
+    def fetch_artifact(self, jobstep, artifact_data):
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
             base=self.base_url,
             job=jobstep.data['job_name'],
             build=jobstep.data['build_no'],
-            artifact=artifact['relativePath'],
+            artifact=artifact_data['relativePath'],
         )
         return requests.get(url, stream=True, timeout=15)
 
-    def _sync_artifact_as_xunit(self, jobstep, artifact):
-        resp = self.fetch_artifact(jobstep, artifact)
+    def _sync_artifact_as_file(self, artifact):
+        jobstep = artifact.step
+        resp = self.fetch_artifact(jobstep, artifact.data)
+
+        artifact_id = artifact.id.hex
+
+        artifact.file.save(
+            resp, '{0}/{1}/{2}'.format(artifact_id[:4], artifact_id[4:], artifact.name))
+
+    def _sync_artifact_as_xunit(self, artifact):
+        jobstep = artifact.step
+        resp = self.fetch_artifact(jobstep, artifact.data)
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
@@ -166,8 +177,9 @@ class JenkinsBuilder(BaseBackend):
         else:
             db.session.commit()
 
-    def _sync_artifact_as_coverage(self, jobstep, artifact):
-        resp = self.fetch_artifact(jobstep, artifact)
+    def _sync_artifact_as_coverage(self, artifact):
+        jobstep = artifact.step
+        resp = self.fetch_artifact(jobstep, artifact.data)
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
@@ -181,10 +193,13 @@ class JenkinsBuilder(BaseBackend):
         else:
             db.session.commit()
 
-    def _sync_artifact_as_log(self, jobstep, artifact):
-        job = jobstep.job
+    def _sync_artifact_as_log(self, artifact):
+        jobstep = artifact.step
+        job = artifact.job
+
         logsource, created = get_or_create(LogSource, where={
-            'name': artifact['displayPath'],
+            'name': artifact.data['displayPath'],
+            'job': job,
             'step': jobstep,
         }, defaults={
             'job': job,
@@ -192,12 +207,11 @@ class JenkinsBuilder(BaseBackend):
             'date_created': job.date_started,
         })
 
-        job_name = jobstep.data['job_name']
-        build_no = jobstep.data['build_no']
-
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url, job=job_name,
-            build=build_no, artifact=artifact['relativePath'],
+            base=self.base_url,
+            job=jobstep.data['job_name'],
+            build=jobstep.data['build_no'],
+            artifact=artifact.data['relativePath'],
         )
 
         offset = 0
@@ -574,15 +588,15 @@ class JenkinsBuilder(BaseBackend):
         phases = set()
 
         # fetch each phase and create it immediately (as opposed to async)
-        for artifact in artifacts:
-            artifact_filename = artifact['fileName']
+        for artifact_data in artifacts:
+            artifact_filename = artifact_data['fileName']
 
             if not artifact_filename.endswith('phase.json'):
                 continue
 
             pending_artifacts.remove(artifact_filename)
 
-            resp = self.fetch_artifact(step, artifact)
+            resp = self.fetch_artifact(step, artifact_data)
             phase_data = resp.json()
 
             if phase_data['retcode']:
@@ -677,25 +691,31 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_step_from_active(step)
 
-    def sync_artifact(self, step, artifact, skip_checks=False):
+    def sync_artifact(self, artifact, skip_checks=False):
         if not skip_checks:
-            if artifact['fileName'].endswith('.log') and not self.sync_log_artifacts:
+            if artifact.name.endswith('.log') and not self.sync_log_artifacts:
                 return
 
-            if artifact['fileName'].endswith(XUNIT_FILENAMES) and not self.sync_xunit_artifacts:
+            elif artifact.name.endswith(XUNIT_FILENAMES) and not self.sync_xunit_artifacts:
                 return
 
-            if artifact['fileName'].endswith(COVERAGE_FILENAMES) and not self.sync_coverage_artifacts:
+            elif artifact.name.endswith(COVERAGE_FILENAMES) and not self.sync_coverage_artifacts:
                 return
 
-        if artifact['fileName'].endswith('.log'):
-            self._sync_artifact_as_log(step, artifact)
+            elif not self.sync_file_artifacts:
+                return
 
-        if artifact['fileName'].endswith(XUNIT_FILENAMES):
-            self._sync_artifact_as_xunit(step, artifact)
+        if artifact.name.endswith('.log'):
+            self._sync_artifact_as_log(artifact)
 
-        if artifact['fileName'].endswith(COVERAGE_FILENAMES):
-            self._sync_artifact_as_coverage(step, artifact)
+        elif artifact.name.endswith(XUNIT_FILENAMES):
+            self._sync_artifact_as_xunit(artifact)
+
+        elif artifact.name.endswith(COVERAGE_FILENAMES):
+            self._sync_artifact_as_coverage(artifact)
+
+        else:
+            self._sync_artifact_as_file(artifact)
 
         db.session.commit()
 

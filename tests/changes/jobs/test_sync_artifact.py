@@ -32,6 +32,5 @@ class SyncArtifactTest(TestCase):
         sync_artifact(artifact_id=self.artifact.id.hex)
 
         implementation.fetch_artifact.assert_called_once_with(
-            step=self.jobstep,
-            artifact=self.artifact.data,
+            artifact=self.artifact,
         )
