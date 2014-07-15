@@ -159,7 +159,7 @@ class JenkinsBuilder(BaseBackend):
         step_id = jobstep.id.hex
 
         artifact.file.save(
-            resp, '{0}/{1}/{2}_{3}'.format(
+            StringIO(resp.content), '{0}/{1}/{2}_{3}'.format(
                 step_id[:4], step_id[4:], artifact.id.hex, artifact.name
             )
         )
