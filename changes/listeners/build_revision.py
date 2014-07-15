@@ -66,8 +66,8 @@ def revision_created_handler(revision_sha, repository_id, **kwargs):
         with current_app.test_request_context('/api/0/builds/', method='POST', data=data):
             try:
                 response = BuildIndexAPIView().post()
-            except Exception:
-                logger.exception('Failed to create build: %s' % (response,))
+            except Exception as e:
+                logger.exception('Failed to create build: %s' % (e,))
             else:
                 if isinstance(response, (list, tuple)):
                     response, status = response
