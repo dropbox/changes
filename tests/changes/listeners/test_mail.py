@@ -3,8 +3,21 @@ import mock
 from changes.config import db
 from changes.constants import Result
 from changes.models import ProjectOption, ItemOption
-from changes.listeners.mail import MailNotificationHandler
+from changes.listeners.mail import filter_recipients, MailNotificationHandler
 from changes.testutils.cases import TestCase
+
+
+class FilterRecipientsTestCase(TestCase):
+    def test_simple(self):
+        results = filter_recipients(
+            ['foo@example.com', 'bar@localhost'], ['example.com'])
+
+        assert results == ['foo@example.com']
+
+        results = filter_recipients(
+            ['foo@example.com', 'bar@localhost'], ['example.com', 'localhost'])
+
+        assert results == ['foo@example.com', 'bar@localhost']
 
 
 class GetRecipientsTestCase(TestCase):

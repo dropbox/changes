@@ -150,6 +150,9 @@ def create_app(_read_config=True, **config):
         ('changes.listeners.build_revision.revision_created_handler', 'revision.created'),
     )
 
+    # restrict outbound notifications to the given domains
+    app.config['MAIL_DOMAIN_WHITELIST'] = ()
+
     app.config['DEBUG_TB_ENABLED'] = True
 
     # celerybeat must be running for our cleanup tasks to execute

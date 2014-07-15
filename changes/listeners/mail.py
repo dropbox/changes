@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function
 
 import toronado
 
-from flask import render_template
+from flask import current_app, render_template
 from flask_mail import Message, sanitize_address
 from jinja2 import Markup
 
@@ -13,6 +13,19 @@ from changes.db.utils import try_create
 from changes.listeners.notification_base import NotificationHandler
 from changes.models import Event, EventType, JobPlan, ProjectOption, ItemOption
 from changes.utils.http import build_uri
+
+
+def filter_recipients(email_list, domain_whitelist=None):
+    if domain_whitelist is None:
+        domain_whitelist = current_app.config['MAIL_DOMAIN_WHITELIST']
+
+    if not domain_whitelist:
+        return email_list
+
+    return [
+        e for e in email_list
+        if e.split('@', 1)[-1] in domain_whitelist
+    ]
 
 
 class MailNotificationHandler(NotificationHandler):
@@ -77,7 +90,7 @@ class MailNotificationHandler(NotificationHandler):
 
     def send(self, job, parent=None):
         # TODO(dcramer): we should send a clipping of a relevant job log
-        recipients = self.get_recipients(job)
+        recipients = filter_recipients(self.get_recipients(job))
         if not recipients:
             return
 
