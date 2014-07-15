@@ -12,6 +12,8 @@ from datetime import datetime
 from flask import current_app
 from lxml import etree, objectify
 
+from changes.artifacts.coverage import CoverageHandler
+from changes.artifacts.xunit import XunitHandler
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
 from changes.constants import Result, Status
@@ -22,8 +24,6 @@ from changes.models import (
     Artifact, Cluster, ClusterNode, TestResult,
     LogSource, LogChunk, Node, JobPhase, JobStep, LOG_CHUNK_SIZE
 )
-from changes.handlers.coverage import CoverageHandler
-from changes.handlers.xunit import XunitHandler
 from changes.utils.http import build_uri
 from changes.utils.text import chunked
 

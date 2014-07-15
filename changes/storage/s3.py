@@ -43,3 +43,6 @@ class S3FileStorage(FileStorage):
     def url_for(self, filename, expire=300):
         key = self.bucket.get_key(self.get_file_path(filename))
         return key.generate_url(300)
+
+    def get_file(self, filename):
+        return self.bucket.get_key(self.get_file_path(filename))

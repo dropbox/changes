@@ -3,9 +3,9 @@ import uuid
 from cStringIO import StringIO
 from mock import patch
 
+from changes.artifacts.coverage import CoverageHandler
 from changes.models import Job, JobStep
 from changes.models.filecoverage import FileCoverage
-from changes.handlers.coverage import CoverageHandler
 from changes.testutils import TestCase
 from changes.testutils.fixtures import SAMPLE_COVERAGE
 

@@ -2,9 +2,9 @@ import uuid
 
 from cStringIO import StringIO
 
+from changes.artifacts.xunit import XunitHandler
 from changes.constants import Result
 from changes.models import JobStep, TestResult
-from changes.handlers.xunit import XunitHandler
 from changes.testutils import SAMPLE_XUNIT
 
 

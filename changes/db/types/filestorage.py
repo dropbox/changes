@@ -27,6 +27,9 @@ class FileData(Mutable):
     def __repr__(self):
         return '<%s: filename=%s>' % (type(self).__name__, self.filename)
 
+    def __nonzero__(self):
+        return bool(self.filename)
+
     def get_storage(self):
         storage = import_string(self.storage)
         return storage(**self.storage_options)
@@ -43,6 +46,11 @@ class FileData(Mutable):
             raise ValueError('Missing filename')
 
         self.get_storage().save(self.filename, fp)
+
+    def get_file(self):
+        if self.filename is None:
+            raise ValueError('Missing filename')
+        return self.get_storage().get_file(self.filename)
 
     @classmethod
     def coerce(cls, key, value):

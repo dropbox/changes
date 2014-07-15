@@ -5,6 +5,7 @@ from sqlalchemy.orm import subqueryload_all
 from changes.backends.base import UnrecoverableException
 from changes.constants import Result
 
+from changes.artifacts import manager
 from changes.models import Artifact, JobPlan, Plan
 from changes.queue.task import tracked_task
 
@@ -38,11 +39,17 @@ def sync_artifact(artifact_id=None, **kwargs):
     if step.result == Result.aborted:
         return
 
-    try:
-        implementation = get_build_step(step.job_id)
-        implementation.fetch_artifact(artifact=artifact, **kwargs)
+    # TODO(dcramer): we eventually want to abstract the entirety of Jenkins
+    # artifact syncing so that we pull files and then process them
+    print artifact.file
+    if artifact.file:
+        manager.process(artifact)
+    else:
+        try:
+            implementation = get_build_step(step.job_id)
+            implementation.fetch_artifact(artifact=artifact, **kwargs)
 
-    except UnrecoverableException:
-        current_app.logger.exception(
-            'Unrecoverable exception fetching artifact %s: %s',
-            artifact.step_id, artifact)
+        except UnrecoverableException:
+            current_app.logger.exception(
+                'Unrecoverable exception fetching artifact %s: %s',
+                artifact.step_id, artifact)
