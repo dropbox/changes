@@ -63,7 +63,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)
 
     def fetch_artifact(self, artifact, **kwargs):
-        if artifact['fileName'].endswith('tests.json'):
+        if artifact.data['fileName'].endswith('tests.json'):
             self._expand_jobs(artifact.step, artifact)
         else:
             builder = self.get_builder()

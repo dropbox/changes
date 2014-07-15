@@ -44,12 +44,16 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'item_id': 13,
             'job_name': 'server',
         })
-        artifact = {'fileName': 'junit.xml'}
+        artifact = self.create_artifact(
+            step=step,
+            name='junit.xml',
+            data={'fileName': 'junit.xml'},
+        )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(step, artifact)
+        buildstep.fetch_artifact(artifact)
 
-        builder.sync_artifact.assert_called_once_with(step, artifact)
+        builder.sync_artifact.assert_called_once_with(artifact)
 
     def test_get_test_stats(self):
         project = self.create_project()
@@ -116,12 +120,15 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'item_id': 13,
             'job_name': 'server',
         })
-        artifact = {
-            'fileName': 'tests.json',
-        }
+
+        artifact = self.create_artifact(
+            step=step,
+            name='tests.json',
+            data={'fileName': 'tests.json'},
+        )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(step, artifact)
+        buildstep.fetch_artifact(artifact)
 
         phase2 = JobPhase.query.filter(
             JobPhase.job_id == job.id,
@@ -159,7 +166,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert new_steps[1].data['cmd'] == 'py.test --junit=junit.xml {test_names}'
         assert new_steps[1].data['weight'] == 78
 
-        builder.fetch_artifact.assert_called_once_with(step, artifact)
+        builder.fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
             target_id=new_steps[0].id.hex,

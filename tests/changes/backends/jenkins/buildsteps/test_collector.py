@@ -42,12 +42,17 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'item_id': 13,
             'job_name': 'server',
         })
-        artifact = {'fileName': 'junit.xml'}
+
+        artifact = self.create_artifact(
+            step=step,
+            name='junit.xml',
+            data={'fileName': 'junit.xml'},
+        )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(step, artifact)
+        buildstep.fetch_artifact(artifact)
 
-        builder.sync_artifact.assert_called_once_with(step, artifact)
+        builder.sync_artifact.assert_called_once_with(artifact)
 
     @responses.activate
     @mock.patch.object(JenkinsCollectorBuildStep, 'get_builder')
@@ -84,12 +89,15 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'item_id': 13,
             'job_name': 'server',
         })
-        artifact = {
-            'fileName': 'jobs.json',
-        }
+
+        artifact = self.create_artifact(
+            step=step,
+            name='jobs.json',
+            data={'fileName': 'jobs.json'},
+        )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(step, artifact)
+        buildstep.fetch_artifact(artifact)
 
         phase2 = JobPhase.query.filter(
             JobPhase.job_id == job.id,
@@ -121,7 +129,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'expanded': True,
         }
 
-        builder.fetch_artifact.assert_called_once_with(step, artifact)
+        builder.fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
             target_id=new_steps[0].id.hex,
