@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import mock
 import json
 import unittest
 
@@ -74,16 +73,4 @@ class BackendTestCase(TestCase):
 
 
 class APITestCase(TestCase):
-    def setUp(self):
-        from changes.backends.base import BaseBackend
-
-        super(APITestCase, self).setUp()
-
-        self.mock_backend = mock.Mock(
-            spec=BaseBackend(app=app),
-        )
-        self.patcher = mock.patch(
-            'changes.api.base.APIView.get_backend',
-            mock.Mock(return_value=self.mock_backend))
-        self.patcher.start()
-        self.addCleanup(self.patcher.stop)
+    pass

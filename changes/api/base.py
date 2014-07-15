@@ -3,7 +3,7 @@ import json
 from functools import wraps
 from urllib import quote
 
-from flask import Response, current_app, request
+from flask import Response, request
 from flask.ext.restful import Resource
 
 from changes.api.serializer import serialize as serialize_func
@@ -149,8 +149,3 @@ class APIView(Resource):
 
     def as_json(self, context):
         return json.dumps(context)
-
-    def get_backend(self, app=current_app):
-        # TODO this should be automatic via a project
-        from changes.backends.jenkins.builder import JenkinsBuilder
-        return JenkinsBuilder(app=current_app, base_url=app.config['JENKINS_URL'])
