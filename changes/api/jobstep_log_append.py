@@ -79,10 +79,10 @@ class JobStepLogAppendAPIView(APIView):
         context = self.serialize({
             'source': logsource,
             'chunks': [{
-                'id': chunk.id,
-                'offset': chunk.offset,
-                'size': chunk.size,
-            } for chunk in logchunks]
+                'id': c.id,
+                'offset': c.offset,
+                'size': c.size,
+            } for c in logchunks]
         })
 
         return self.respond(context, serialize=False)
