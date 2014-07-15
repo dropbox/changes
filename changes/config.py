@@ -283,6 +283,7 @@ def configure_api_routes(app):
     from changes.api.job_details import JobDetailsAPIView
     from changes.api.job_log_details import JobLogDetailsAPIView
     from changes.api.jobphase_index import JobPhaseIndexAPIView
+    from changes.api.jobstep_log_append import JobStepLogAppendAPIView
     from changes.api.node_details import NodeDetailsAPIView
     from changes.api.node_index import NodeIndexAPIView
     from changes.api.node_job_index import NodeJobIndexAPIView
@@ -339,6 +340,7 @@ def configure_api_routes(app):
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')
+    api.add_resource(JobStepLogAppendAPIView, '/jobsteps/<uuid:step_id>/logappend/')
     api.add_resource(ChangeIndexAPIView, '/changes/')
     api.add_resource(ChangeDetailsAPIView, '/changes/<uuid:change_id>/')
     api.add_resource(NodeDetailsAPIView, '/nodes/<uuid:node_id>/')

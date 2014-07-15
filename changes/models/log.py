@@ -9,6 +9,9 @@ from changes.config import db
 from changes.db.types.guid import GUID
 
 
+LOG_CHUNK_SIZE = 4096
+
+
 class LogSource(db.Model):
     __tablename__ = 'logsource'
     __table_args__ = (

@@ -20,13 +20,13 @@ from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
     Artifact, Cluster, ClusterNode, TestResult,
-    LogSource, LogChunk, Node, JobPhase, JobStep
+    LogSource, LogChunk, Node, JobPhase, JobStep, LOG_CHUNK_SIZE
 )
 from changes.handlers.coverage import CoverageHandler
 from changes.handlers.xunit import XunitHandler
 from changes.utils.http import build_uri
+from changes.utils.text import chunked
 
-LOG_CHUNK_SIZE = 4096
 
 RESULT_MAP = {
     'SUCCESS': Result.passed,
@@ -43,26 +43,6 @@ XUNIT_FILENAMES = ('junit.xml', 'xunit.xml', 'nosetests.xml')
 COVERAGE_FILENAMES = ('coverage.xml',)
 
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
-
-
-def chunked(iterator, chunk_size):
-    """
-    Given an iterator, chunk it up into ~chunk_size, but be aware of newline
-    termination as an intended goal.
-    """
-    result = ''
-    for chunk in iterator:
-        result += chunk
-        while len(result) >= chunk_size:
-            newline_pos = result.rfind('\n', 0, chunk_size)
-            if newline_pos == -1:
-                newline_pos = chunk_size
-            else:
-                newline_pos += 1
-            yield result[:newline_pos]
-            result = result[newline_pos:]
-    if result:
-        yield result
 
 
 class NotFound(Exception):
