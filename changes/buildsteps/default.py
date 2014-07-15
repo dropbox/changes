@@ -7,8 +7,8 @@ class Command(object):
     def __init__(self, script, path='', artifacts=None, env=None):
         self.script = script
         self.path = path
-        self.artifacts = artifacts
-        self.env = env
+        self.artifacts = artifacts or ()
+        self.env = env or {}
 
 
 class DefaultBuildStep(BuildStep):
@@ -21,16 +21,18 @@ class DefaultBuildStep(BuildStep):
     within a given timeout. All results are expected to be pushed via APIs.
     """
     def __init__(self, commands, path='', env=None, artifacts=None, **kwargs):
-        command_defaults = {
-            'path': path,
-            'env': env or {},
-            'artifacts': artifacts or [],
-        }
+        command_defaults = (
+            ('path', path),
+            ('env', env),
+            ('artifacts', artifacts),
+        )
         for command in commands:
             for k, v in command_defaults:
                 if k not in command:
                     command[k] = v
+
         self.commands = map(Command, commands)
+
         super(DefaultBuildStep, self).__init__(**kwargs)
 
     def get_label(self):
