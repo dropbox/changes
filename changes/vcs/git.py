@@ -5,7 +5,7 @@ from urlparse import urlparse
 
 from changes.utils.cache import memoize
 
-from .base import Vcs, RevisionResult, BufferParser
+from .base import Vcs, RevisionResult, BufferParser, CommandError
 
 LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
 
@@ -108,3 +108,11 @@ class GitVcs(Vcs):
         cmd = ['log', '-n 1', '-p', '--pretty="%b"', id]
         result = self.run(cmd)[4:]
         return result
+
+    def is_child_parent(self, child_in_question, parent_in_question):
+        cmd = ['merge-base', '--is-ancestor', parent_in_question, child_in_question]
+        try:
+            self.run(cmd)
+            return True
+        except CommandError:
+            return False

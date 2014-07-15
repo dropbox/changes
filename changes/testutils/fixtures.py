@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from changes.models.latest_green_build import LatestGreenBuild
 
 __all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT')
 
@@ -375,3 +376,14 @@ class Fixtures(object):
         db.session.add(option)
         db.session.commit()
         return option
+
+    def create_latest_green_build(self, **kwargs):
+        if not kwargs.get('project'):
+            kwargs['project'] = self.create_repo()
+        kwargs['project_id'] = kwargs['project'].id
+
+        latest_green_build = LatestGreenBuild(**kwargs)
+        db.session.add(latest_green_build)
+        db.session.commit()
+
+        return latest_green_build

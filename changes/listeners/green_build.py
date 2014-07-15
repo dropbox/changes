@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 from flask import current_app
 from time import time
+from sqlalchemy.orm import joinedload
 
 from changes.config import db
 from changes.constants import Result
@@ -11,6 +12,7 @@ from changes.db.utils import create_or_update
 from changes.models import (
     Build, Event, EventType, ProjectOption, RepositoryBackend
 )
+from changes.models.latest_green_build import LatestGreenBuild
 from changes.utils.http import build_uri
 from changes.utils.locking import lock
 
@@ -79,7 +81,8 @@ def build_finished_handler(build_id, **kwargs):
     # sending a sha, as the sequential counter is hg-only, invalid, and really
     # isn't used
     if source.repository.backend == RepositoryBackend.hg:
-        release_id = vcs.run(['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
+        release_id = vcs.run(
+            ['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
     else:
         release_id = '%d:%s' % (time(), source.revision_sha)
 
@@ -109,3 +112,27 @@ def build_finished_handler(build_id, **kwargs):
         },
         'date_modified': datetime.utcnow(),
     })
+
+    # set latest_green_build if latest for each branch:
+    _set_latest_green_build_for_each_branch(build, source, vcs)
+
+
+def _set_latest_green_build_for_each_branch(build, source, vcs):
+    project = build.project
+    for branch in source.revision.branches:
+        current_latest_green_build = LatestGreenBuild.query.options(
+            joinedload('build').joinedload('source')
+        ).filter(
+            LatestGreenBuild.project_id == project.id,
+            LatestGreenBuild.branch == branch).first()
+
+        if not current_latest_green_build or vcs.is_child_parent(
+                child_in_question=source.revision_sha,
+                parent_in_question=current_latest_green_build.build.source.revision_sha):
+            # switch latest_green_build to this sha
+            green_build, _ = create_or_update(LatestGreenBuild, where={
+                'project_id': project.id,
+                'branch': branch,
+            }, values={
+                'build': build,
+            })

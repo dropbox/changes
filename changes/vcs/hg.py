@@ -82,3 +82,8 @@ class MercurialVcs(Vcs):
         cmd = ['diff', '-g', '-c %s' % (id,)]
         result = self.run(cmd)
         return result
+
+    def is_child_parent(self, child_in_question, parent_in_question):
+        cmd = ['debugancestor', parent_in_question, child_in_question]
+        result = self.run(cmd)
+        return parent_in_question in result

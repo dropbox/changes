@@ -111,6 +111,9 @@ class Vcs(object):
     def get_default_revision(self):
         raise NotImplementedError
 
+    def is_child_parent(self, child_in_question, parent_in_question):
+        raise NotImplementedError
+
 
 class RevisionResult(object):
     parents = None
