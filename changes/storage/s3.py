@@ -40,8 +40,8 @@ class S3FileStorage(FileStorage):
 
     def save(self, filename, fp):
         key = self.bucket.new_key(self.get_file_path(filename))
-        key.set_acl('private')
         key.set_contents_from_file(fp)
+        key.set_acl('private')
 
     def url_for(self, filename, expire=300):
         key = self.bucket.get_key(self.get_file_path(filename))
