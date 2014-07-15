@@ -289,6 +289,7 @@ def configure_api_routes(app):
     from changes.api.job_log_details import JobLogDetailsAPIView
     from changes.api.jobphase_index import JobPhaseIndexAPIView
     from changes.api.jobstep_allocate import JobStepAllocateAPIView
+    from changes.api.jobstep_artifacts import JobStepArtifactsAPIView
     from changes.api.jobstep_deallocate import JobStepDeallocateAPIView
     from changes.api.jobstep_log_append import JobStepLogAppendAPIView
     from changes.api.node_details import NodeDetailsAPIView
@@ -348,6 +349,7 @@ def configure_api_routes(app):
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')
     api.add_resource(JobStepAllocateAPIView, '/jobsteps/allocate/')
+    api.add_resource(JobStepArtifactsAPIView, '/jobsteps/<uuid:step_id>/artifacts/')
     api.add_resource(JobStepDeallocateAPIView, '/jobsteps/<uuid:step_id>/deallocate/')
     api.add_resource(JobStepLogAppendAPIView, '/jobsteps/<uuid:step_id>/logappend/')
     api.add_resource(ChangeIndexAPIView, '/changes/')

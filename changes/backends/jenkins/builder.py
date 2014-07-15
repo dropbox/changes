@@ -156,10 +156,13 @@ class JenkinsBuilder(BaseBackend):
         jobstep = artifact.step
         resp = self.fetch_artifact(jobstep, artifact.data)
 
-        artifact_id = artifact.id.hex
+        step_id = jobstep.id.hex
 
         artifact.file.save(
-            resp, '{0}/{1}/{2}'.format(artifact_id[:4], artifact_id[4:], artifact.name))
+            resp, '{0}/{1}/{2}_{3}'.format(
+                step_id[:4], step_id[4:], artifact.id.hex, artifact.name
+            )
+        )
 
     def _sync_artifact_as_xunit(self, artifact):
         jobstep = artifact.step
