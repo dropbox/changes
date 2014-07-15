@@ -28,6 +28,7 @@
     "typeahead.js": "~0.10.2"
   },
   "resolutions": {
-    "angular": "1.2.14"
+    "angular": "1.2.14",
+    "jquery": "2.0.3"
   }
 }
