@@ -27,7 +27,10 @@ class S3FileStorage(FileStorage):
         return self.get_bucket(self.connection)
 
     def get_connection(self):
-        return boto.connect_s3(self.access_key, self.secret_key)
+        return boto.connect_s3(
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+        )
 
     def get_bucket(self, connection):
         return connection.get_bucket(self.bucket_name)
