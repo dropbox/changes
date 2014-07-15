@@ -51,12 +51,12 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
     def get_label(self):
         return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
 
-    def fetch_artifact(self, step, artifact, **kwargs):
+    def fetch_artifact(self, artifact, **kwargs):
         if artifact['fileName'].endswith('jobs.json'):
-            self._expand_jobs(step, artifact)
+            self._expand_jobs(artifact.step, artifact)
         else:
             builder = self.get_builder()
-            builder.sync_artifact(step, artifact, **kwargs)
+            builder.sync_artifact(artifact, **kwargs)
 
     def _sync_results(self, step, item):
         super(JenkinsCollectorBuilder, self)._sync_results(step, item)
@@ -80,7 +80,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
-        artifact_data = builder.fetch_artifact(step, artifact)
+        artifact_data = builder.fetch_artifact(step, artifact.data)
         phase_config = artifact_data.json()
 
         assert phase_config['phase']
