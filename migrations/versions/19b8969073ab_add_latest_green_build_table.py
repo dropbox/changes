@@ -1,14 +1,14 @@
 """add latest green build table
 
 Revision ID: 19b8969073ab
-Revises: 2b7153fe25af
+Revises: 4d235d421320
 Create Date: 2014-07-10 10:53:34.415990
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '19b8969073ab'
-down_revision = '2b7153fe25af'
+down_revision = '4d235d421320'
 
 from alembic import op
 import sqlalchemy as sa
