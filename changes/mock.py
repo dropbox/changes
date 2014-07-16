@@ -13,7 +13,7 @@ from changes.db.utils import get_or_create
 from changes.models import (
     Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
     TestResult, Change, LogChunk, Build, JobPlan, Plan, Source, FailureReason,
-    Patch, FileCoverage, Event, EventType, Cluster, ClusterNode
+    Patch, FileCoverage, Event, EventType, Cluster, ClusterNode, Command
 )
 from changes.testutils.fixtures import SAMPLE_DIFF
 from changes.utils.slugs import slugify
@@ -237,6 +237,12 @@ def job(build, change=None, **kwargs):
         label='Setup', node=node,
     )
     db.session.add(step)
+    command = Command(
+        jobstep=step,
+        script="echo 1",
+        label="echo 1",
+    )
+    db.session.add(command)
 
     step = JobStep(
         project=job.project, job=job,
@@ -244,6 +250,12 @@ def job(build, change=None, **kwargs):
         label='Compile', node=node,
     )
     db.session.add(step)
+    command = Command(
+        jobstep=step,
+        script="echo 2",
+        label="echo 2",
+    )
+    db.session.add(command)
 
     step = JobStep(
         project=job.project, job=job,
@@ -251,12 +263,25 @@ def job(build, change=None, **kwargs):
         label=TEST_STEP_LABELS.next(), node=node,
     )
     db.session.add(step)
+    command = Command(
+        jobstep=step,
+        script="echo 3",
+        label="echo 3",
+    )
+    db.session.add(command)
+
     step = JobStep(
         project=job.project, job=job,
         phase=phase1_test, status=phase1_test.status, result=phase1_test.result,
         label=TEST_STEP_LABELS.next(), node=node,
     )
     db.session.add(step)
+    command = Command(
+        jobstep=step,
+        script="echo 4",
+        label="echo 4",
+    )
+    db.session.add(command)
 
     if phase1_test.result == Result.failed:
         db.session.add(FailureReason(
