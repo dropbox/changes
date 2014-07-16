@@ -43,8 +43,8 @@ def get_release_id(source, vcs):
         return vcs.run(
             ['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
     elif source.repository.backend == RepositoryBackend.git:
-        counter = vcs.run(['rev-list', source.revision_sha, '--count'])
-        return '%d:%s' % (counter, source.revision_sha)
+        counter = vcs.run(['rev-list', source.revision_sha, '--count']).strip()
+        return '%s:%s' % (counter, source.revision_sha)
     else:
         return '%d:%s' % (time(), source.revision_sha)
 
