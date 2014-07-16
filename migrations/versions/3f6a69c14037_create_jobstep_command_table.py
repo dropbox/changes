@@ -1,14 +1,14 @@
 """create jobstep command table
 
 Revision ID: 3f6a69c14037
-Revises: 19b8969073ab
+Revises: 21a9d1ebe15c
 Create Date: 2014-07-15 15:47:01.960708
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '3f6a69c14037'
-down_revision = '19b8969073ab'
+down_revision = '21a9d1ebe15c'
 
 from alembic import op
 import sqlalchemy as sa
