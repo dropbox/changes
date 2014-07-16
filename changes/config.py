@@ -440,6 +440,7 @@ def configure_jobs(app):
     from changes.jobs.check_repos import check_repos
     from changes.jobs.cleanup_tasks import cleanup_tasks
     from changes.jobs.create_job import create_job
+    from changes.jobs.import_repo import import_repo
     from changes.jobs.signals import (
         fire_signal, run_event_listener
     )
@@ -455,6 +456,7 @@ def configure_jobs(app):
     queue.register('cleanup_tasks', cleanup_tasks)
     queue.register('create_job', create_job)
     queue.register('fire_signal', fire_signal)
+    queue.register('import_repo', import_repo)
     queue.register('run_event_listener', run_event_listener)
     queue.register('sync_artifact', sync_artifact)
     queue.register('sync_build', sync_build)
