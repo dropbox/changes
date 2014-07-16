@@ -315,6 +315,7 @@ def configure_api_routes(app):
     from changes.api.project_coverage_group_index import ProjectCoverageGroupIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_options_index import ProjectOptionsIndexAPIView
+    from changes.api.project_snapshot_index import ProjectSnapshotIndexAPIView
     from changes.api.project_stats import ProjectStatsAPIView
     from changes.api.project_test_details import ProjectTestDetailsAPIView
     from changes.api.project_test_group_index import ProjectTestGroupIndexAPIView
@@ -325,6 +326,7 @@ def configure_api_routes(app):
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.repository_details import RepositoryDetailsAPIView
     from changes.api.repository_index import RepositoryIndexAPIView
+    from changes.api.snapshot_details import SnapshotDetailsAPIView
     from changes.api.step_details import StepDetailsAPIView
     from changes.api.system_options import SystemOptionsAPIView
     from changes.api.task_details import TaskDetailsAPIView
@@ -380,6 +382,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectCoverageIndexAPIView, '/projects/<project_id>/coverage/')
     api.add_resource(ProjectCoverageGroupIndexAPIView, '/projects/<project_id>/coveragegroups/')
     api.add_resource(ProjectOptionsIndexAPIView, '/projects/<project_id>/options/')
+    api.add_resource(ProjectSnapshotIndexAPIView, '/projects/<project_id>/snapshots/')
     api.add_resource(ProjectStatsAPIView, '/projects/<project_id>/stats/')
     api.add_resource(ProjectTestIndexAPIView, '/projects/<project_id>/tests/')
     api.add_resource(ProjectTestGroupIndexAPIView, '/projects/<project_id>/testgroups/')
@@ -389,6 +392,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(RepositoryIndexAPIView, '/repositories/')
     api.add_resource(RepositoryDetailsAPIView, '/repositories/<uuid:repository_id>/')
+    api.add_resource(SnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(SystemOptionsAPIView, '/systemoptions/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')
