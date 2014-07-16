@@ -32,6 +32,23 @@ def get_options(project_id):
     )
 
 
+def get_release_id(source, vcs):
+    """Return an ID of the form counter:hash"""
+    # green_build requires an identifier that is <integer:revision_sha>
+    # the integer must also be sequential and unique
+    # TODO(dcramer): it's a terrible API and realistically we should just be
+    # sending a sha, as the sequential counter is hg-only, invalid, and really
+    # isn't used
+    if source.repository.backend == RepositoryBackend.hg:
+        return vcs.run(
+            ['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
+    elif source.repository.backend == RepositoryBackend.git:
+        counter = vcs.run(['rev-list', source.revision_sha, '--count'])
+        return '%d:%s' % (counter, source.revision_sha)
+    else:
+        return '%d:%s' % (time(), source.revision_sha)
+
+
 @lock
 def build_finished_handler(build_id, **kwargs):
     build = Build.query.get(build_id)
@@ -75,16 +92,7 @@ def build_finished_handler(build_id, **kwargs):
     else:
         vcs.clone()
 
-    # green_build requires an identifier that is <integer:revision_sha>
-    # the integer must also be sequential and unique
-    # TODO(dcramer): it's a terrible API and realistically we should just be
-    # sending a sha, as the sequential counter is hg-only, invalid, and really
-    # isn't used
-    if source.repository.backend == RepositoryBackend.hg:
-        release_id = vcs.run(
-            ['log', '-r %s' % (source.revision_sha,), '--limit=1', '--template={rev}:{node|short}'])
-    else:
-        release_id = '%d:%s' % (time(), source.revision_sha)
+    release_id = get_release_id(source, vcs)
 
     project = options.get('green-build.project') or build.project.slug
 
