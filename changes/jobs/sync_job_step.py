@@ -28,12 +28,13 @@ def is_missing_tests(step, jobplan):
     if 'snapshot' in jobplan.data:
         options = jobplan.data['snapshot']['options']
     else:
-        options = db.session.query(
+        options = dict(db.session.query(
             ItemOption.name, ItemOption.value,
         ).filter(
             ItemOption.item_id == jobplan.plan.id,
             ItemOption.name == 'build.expect-tests',
-        )
+        ))
+
     if options.get('build.expect-tests') != '1':
         return False
 
