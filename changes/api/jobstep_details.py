@@ -27,7 +27,10 @@ class JobStepDetailsAPIView(APIView):
         if jobstep is None:
             return '', 404
 
-        return self.respond(jobstep, serialize=False)
+        context = self.serialize(jobstep)
+        context['commands'] = self.serialize(list(jobstep.commands))
+
+        return self.respond(context, serialize=False)
 
     def post(self, step_id):
         jobstep = JobStep.query.options(
@@ -58,4 +61,4 @@ class JobStepDetailsAPIView(APIView):
         db.session.add(jobstep)
         db.session.commit()
 
-        return self.respond(jobstep, serialize=False)
+        return self.respond(jobstep)
