@@ -9,6 +9,7 @@ from sqlalchemy.schema import Index
 
 from changes.config import db
 from changes.db.types.guid import GUID
+from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
 
 
@@ -32,6 +33,7 @@ class JobPlan(db.Model):
     plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
+    data = Column(JSONEncodedDict)
 
     project = relationship('Project')
     build = relationship('Build')
