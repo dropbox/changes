@@ -193,7 +193,7 @@ def create_app(_read_config=True, **config):
     app.config['S3_BUCKET'] = None
 
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
-    app.config['BASE_URI'] = None
+    app.config['BASE_URI'] = 'http://localhost:5000'
 
     app.config.update(config)
 
