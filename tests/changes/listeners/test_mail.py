@@ -210,7 +210,6 @@ class GetJobOptionsTestCase(TestCase):
         plan.projects.append(project)
         build = self.create_build(project)
         job = self.create_job(build)
-        self.create_job_plan(job, plan)
 
         db.session.add(ItemOption(
             item_id=plan.id,
@@ -229,6 +228,10 @@ class GetJobOptionsTestCase(TestCase):
             name='mail.notify-addresses',
             value='foo@example.com',
         ))
+        db.session.flush()
+
+        self.create_job_plan(job, plan)
+
         db.session.commit()
 
         handler = MailNotificationHandler()

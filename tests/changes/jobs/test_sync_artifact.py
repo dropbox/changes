@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import mock
 
 from changes.jobs.sync_artifact import sync_artifact
-from changes.models import Step
+from changes.models import HistoricalImmutableStep
 from changes.testutils import TestCase
 
 
@@ -24,7 +24,7 @@ class SyncArtifactTest(TestCase):
         self.step = self.create_step(self.plan, implementation='test', order=0)
         self.jobplan = self.create_job_plan(self.job, self.plan)
 
-    @mock.patch.object(Step, 'get_implementation')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     def test_simple(self, get_implementation):
         implementation = mock.Mock()
         get_implementation.return_value = implementation

@@ -11,7 +11,7 @@ from changes.config import db, mail
 from changes.constants import Result
 from changes.db.utils import try_create
 from changes.listeners.notification_base import NotificationHandler
-from changes.models import Event, EventType, JobPlan, ProjectOption, ItemOption
+from changes.models import Event, EventType, JobPlan, ProjectOption
 from changes.utils.http import build_uri
 
 
@@ -135,20 +135,12 @@ class MailNotificationHandler(NotificationHandler):
         )
 
         # if a plan was specified, it's options override the project's
-        job_plan = JobPlan.query.filter(
+        # TODO(dcramer): this should use snapshots of options
+        jobplan = JobPlan.query.filter(
             JobPlan.job_id == job.id,
         ).first()
-        if job_plan:
-            plan_options = db.session.query(
-                ItemOption.name, ItemOption.value
-            ).filter(
-                ItemOption.item_id == job_plan.plan_id,
-                ItemOption.name.in_(option_names),
-            )
-            # determine plan options
-            for key, value in plan_options:
-                options[key] = value
-
+        if jobplan and 'snapshot' in jobplan.data:
+            options.update(jobplan.data['snapshot']['options'])
         return options
 
     def get_recipients(self, job):

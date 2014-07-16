@@ -1,12 +1,12 @@
 import mock
 
 from changes.constants import Result, Status
-from changes.models import Build, Step
+from changes.models import Build, HistoricalImmutableStep
 from changes.testutils import APITestCase
 
 
 class BuildCancelTest(APITestCase):
-    @mock.patch.object(Step, 'get_implementation')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     def test_simple(self, get_implementation):
         project = self.create_project()
 

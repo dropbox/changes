@@ -1,9 +1,9 @@
-from sqlalchemy.orm import joinedload, subqueryload_all
+from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build, JobPlan, Plan
+from changes.models import Build, JobPlan
 
 
 class BuildCancelAPIView(APIView):
@@ -24,20 +24,10 @@ class BuildCancelAPIView(APIView):
         # find any active/pending jobs
         for job in filter(lambda x: x.status != Status.finished, build.jobs):
             # TODO(dcramer): we make an assumption that there is a single step
-            job_plan = JobPlan.query.options(
-                subqueryload_all('plan.steps')
-            ).filter(
-                JobPlan.job_id == job.id,
-            ).join(Plan).first()
-            if not job_plan:
+            jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
+            if not implementation:
                 continue
 
-            try:
-                step = job_plan.plan.steps[0]
-            except IndexError:
-                continue
-
-            implementation = step.get_implementation()
             implementation.cancel(job=job)
             cancelled.append(job)
 

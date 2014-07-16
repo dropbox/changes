@@ -164,16 +164,11 @@ class Fixtures(object):
         return job
 
     def create_job_plan(self, job, plan):
-        job_plan = JobPlan(
-            project_id=job.project_id,
-            build_id=job.build_id,
-            plan_id=plan.id,
-            job_id=job.id,
-        )
-        db.session.add(job_plan)
+        jobplan = JobPlan.build_jobplan(plan, job)
+        db.session.add(jobplan)
         db.session.commit()
 
-        return job_plan
+        return jobplan
 
     def create_source(self, project, **kwargs):
         if 'revision_sha' not in kwargs:

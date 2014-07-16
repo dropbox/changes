@@ -734,7 +734,7 @@ class JenkinsIntegrationTest(BaseTestCase):
     """
     # it's possible for this test to infinitely hang due to continuous polling,
     # so let's ensure we set a timeout
-    @pytest.mark.timeout(1)
+    @pytest.mark.timeout(5)
     @mock.patch('changes.config.redis.lock', mock.MagicMock())
     @eager_tasks
     @responses.activate

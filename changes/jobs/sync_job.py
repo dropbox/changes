@@ -2,7 +2,6 @@ from __future__ import absolute_import, print_function
 
 from datetime import datetime
 from flask import current_app
-from sqlalchemy.orm import subqueryload_all
 from sqlalchemy.sql import func
 
 from changes.backends.base import UnrecoverableException
@@ -10,10 +9,7 @@ from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
-from changes.models import (
-    FailureReason, ItemOption, ItemStat, Job, JobPhase, JobPlan, JobStep, Plan,
-    TestCase
-)
+from changes.models import ItemStat, Job, JobPhase, JobPlan, JobStep, TestCase
 from changes.queue.task import tracked_task
 from changes.utils.agg import safe_agg
 
@@ -36,38 +32,6 @@ def aggregate_job_stat(job, name, func_=func.sum):
     }, defaults={
         'value': value
     })
-
-
-def has_timed_out(job, job_plan):
-    if job.status != Status.in_progress:
-        return False
-
-    if not job.date_started:
-        return False
-
-    options = dict(
-        db.session.query(
-            ItemOption.name, ItemOption.value
-        ).filter(
-            ItemOption.item_id == job_plan.plan_id,
-            ItemOption.name.in_([
-                'build.timeout',
-            ])
-        )
-    )
-
-    timeout = int(options.get('build.timeout') or 0)
-    if not timeout:
-        return False
-
-    # timeout is in minutes
-    timeout = timeout * 60
-
-    delta = datetime.utcnow() - job.date_started
-    if delta.total_seconds() > timeout:
-        return True
-
-    return False
 
 
 def sync_job_phases(job, phases=None):
@@ -126,49 +90,10 @@ def sync_job(job_id):
         return
 
     # TODO(dcramer): we make an assumption that there is a single step
-    job_plan = JobPlan.query.options(
-        subqueryload_all('plan.steps')
-    ).filter(
-        JobPlan.job_id == job.id,
-    ).join(Plan).first()
+    jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
+
     try:
-        if not job_plan:
-            raise UnrecoverableException('Got sync_job task without job plan: %s' % (job.id,))
-
-        try:
-            step = job_plan.plan.steps[0]
-        except IndexError:
-            raise UnrecoverableException('Missing steps for plan')
-
-        implementation = step.get_implementation()
-
-        if has_timed_out(job, job_plan):
-            remaining_steps = list(JobStep.query.filter(
-                JobStep.status != Status.finished,
-                JobStep.job_id == job.id,
-            ))
-
-            implementation.cancel(job=job)
-
-            for step in remaining_steps:
-                step.result = Result.failed
-                step.status = Status.finished
-                db.session.add(step)
-
-                try_create(FailureReason, {
-                    'step_id': step.id,
-                    'job_id': job.id,
-                    'build_id': job.build_id,
-                    'project_id': job.project_id,
-                    'reason': 'timeout'
-                })
-
-            # ensure the job result actually reflects a failure
-            job.result = Result.failed
-            job.status = Status.finished
-            db.session.add(job)
-        else:
-            implementation.update(job=job)
+        implementation.update(job=job)
 
     except UnrecoverableException:
         job.status = Status.finished
@@ -247,8 +172,8 @@ def sync_job(job_id):
         kwargs={'job_id': job.id.hex},
     )
 
-    if job_plan:
+    if jobplan:
         queue.delay('update_project_plan_stats', kwargs={
             'project_id': job.project_id.hex,
-            'plan_id': job_plan.plan_id.hex,
+            'plan_id': jobplan.plan_id.hex,
         }, countdown=1)

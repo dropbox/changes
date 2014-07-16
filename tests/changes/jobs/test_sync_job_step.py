@@ -10,8 +10,8 @@ from changes.jobs.sync_job_step import (
     sync_job_step, is_missing_tests, has_timed_out
 )
 from changes.models import (
-    ItemOption, ItemStat, JobStep, Step, Task, FileCoverage, TestCase,
-    FailureReason
+    ItemOption, ItemStat, JobStep, HistoricalImmutableStep, Task, FileCoverage,
+    TestCase, FailureReason
 )
 from changes.testutils import TestCase as BaseTestCase
 
@@ -25,7 +25,7 @@ class HasTimedOutTest(TestCase):
 
         build = self.create_build(project=project)
         job = self.create_job(build=build, status=Status.queued)
-        self.create_job_plan(job, plan)
+        jobplan = self.create_job_plan(job, plan)
 
         option = ItemOption(
             item_id=step.id,
@@ -38,32 +38,32 @@ class HasTimedOutTest(TestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
 
-        assert not has_timed_out(jobstep, plan)
+        assert not has_timed_out(jobstep, jobplan)
 
         jobstep.status = Status.in_progress
         jobstep.date_started = datetime.utcnow()
         db.session.add(jobstep)
         db.session.commit()
 
-        assert not has_timed_out(jobstep, plan)
+        assert not has_timed_out(jobstep, jobplan)
 
         jobstep.date_started = datetime.utcnow() - timedelta(seconds=400)
         db.session.add(jobstep)
         db.session.commit()
 
-        assert has_timed_out(jobstep, plan)
+        assert has_timed_out(jobstep, jobplan)
 
-        option.value = '0'
-        db.session.add(option)
+        jobplan.data['snapshot']['options'][option.name] = '0'
+        db.session.add(jobplan)
         db.session.commit()
 
-        assert not has_timed_out(jobstep, plan)
+        assert not has_timed_out(jobstep, jobplan)
 
-        option.value = '500'
-        db.session.add(option)
+        jobplan.data['snapshot']['options'][option.name] = '500'
+        db.session.add(jobplan)
         db.session.commit()
 
-        assert not has_timed_out(jobstep, plan)
+        assert not has_timed_out(jobstep, jobplan)
 
 
 class IsMissingTestsTest(BaseTestCase):
@@ -81,6 +81,7 @@ class IsMissingTestsTest(BaseTestCase):
 
         build = self.create_build(project=project)
         job = self.create_job(build=build)
+        jobplan = self.create_job_plan(job, plan)
         jobphase = self.create_jobphase(
             job=job,
             date_started=datetime(2013, 9, 19, 22, 15, 24),
@@ -88,12 +89,13 @@ class IsMissingTestsTest(BaseTestCase):
         jobstep = self.create_jobstep(jobphase)
         jobstep2 = self.create_jobstep(jobphase)
 
-        assert not is_missing_tests(plan, jobstep)
+        assert not is_missing_tests(jobstep, jobplan)
 
-        option.value = '1'
+        jobplan.data['snapshot']['options'][option.name] = '1'
+        db.session.add(jobplan)
         db.session.commit()
 
-        assert is_missing_tests(plan, jobstep)
+        assert is_missing_tests(jobstep, jobplan)
 
         testcase = TestCase(
             project_id=project.id,
@@ -104,7 +106,7 @@ class IsMissingTestsTest(BaseTestCase):
         db.session.add(testcase)
         db.session.commit()
 
-        assert is_missing_tests(plan, jobstep)
+        assert is_missing_tests(jobstep, jobplan)
 
         testcase = TestCase(
             project_id=project.id,
@@ -115,7 +117,7 @@ class IsMissingTestsTest(BaseTestCase):
         db.session.add(testcase)
         db.session.commit()
 
-        assert not is_missing_tests(plan, jobstep)
+        assert not is_missing_tests(jobstep, jobplan)
 
     def test_multi_phase(self):
         project = self.create_project()
@@ -132,6 +134,7 @@ class IsMissingTestsTest(BaseTestCase):
 
         build = self.create_build(project=project)
         job = self.create_job(build=build)
+        jobplan = self.create_job_plan(job, plan)
         jobphase = self.create_jobphase(
             job=job,
             label='setup',
@@ -149,8 +152,8 @@ class IsMissingTestsTest(BaseTestCase):
         jobstep = self.create_jobstep(jobphase)
         jobstep2 = self.create_jobstep(jobphase2)
 
-        assert not is_missing_tests(plan, jobstep)
-        assert is_missing_tests(plan, jobstep2)
+        assert not is_missing_tests(jobstep, jobplan)
+        assert is_missing_tests(jobstep2, jobplan)
 
         testcase = TestCase(
             project_id=project.id,
@@ -161,8 +164,8 @@ class IsMissingTestsTest(BaseTestCase):
         db.session.add(testcase)
         db.session.commit()
 
-        assert not is_missing_tests(plan, jobstep)
-        assert is_missing_tests(plan, jobstep2)
+        assert not is_missing_tests(jobstep, jobplan)
+        assert is_missing_tests(jobstep2, jobplan)
 
         testcase = TestCase(
             project_id=project.id,
@@ -173,12 +176,12 @@ class IsMissingTestsTest(BaseTestCase):
         db.session.add(testcase)
         db.session.commit()
 
-        assert not is_missing_tests(plan, jobstep2)
+        assert not is_missing_tests(jobstep2, jobplan)
 
 
 class SyncJobStepTest(BaseTestCase):
     @mock.patch('changes.config.queue.delay')
-    @mock.patch.object(Step, 'get_implementation')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     def test_in_progress(self, get_implementation, queue_delay):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
@@ -237,7 +240,7 @@ class SyncJobStepTest(BaseTestCase):
         }, countdown=5)
 
     @mock.patch('changes.config.queue.delay')
-    @mock.patch.object(Step, 'get_implementation')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     def test_finished(self, get_implementation, queue_delay):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
@@ -344,7 +347,7 @@ class SyncJobStepTest(BaseTestCase):
         )
 
     @mock.patch('changes.config.queue.delay')
-    @mock.patch.object(Step, 'get_implementation')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     def test_missing_test_results_and_expected(self, get_implementation, queue_delay):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
@@ -361,13 +364,6 @@ class SyncJobStepTest(BaseTestCase):
 
         plan = self.create_plan()
         self.create_step(plan, implementation='test', order=0)
-        self.create_job_plan(job, plan)
-
-        phase = self.create_jobphase(
-            job=job,
-            date_started=datetime(2013, 9, 19, 22, 15, 24),
-        )
-        step = self.create_jobstep(phase)
 
         db.session.add(ItemOption(
             item_id=plan.id,
@@ -375,6 +371,14 @@ class SyncJobStepTest(BaseTestCase):
             value='1'
         ))
         db.session.commit()
+
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(
+            job=job,
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+        )
+        step = self.create_jobstep(phase)
 
         sync_job_step(
             step_id=step.id.hex,
@@ -401,7 +405,7 @@ class SyncJobStepTest(BaseTestCase):
         )
 
     @mock.patch('changes.jobs.sync_job_step.has_timed_out')
-    @mock.patch.object(Step, 'get_implementation')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     def test_timed_out(self, get_implementation, mock_has_timed_out):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
@@ -412,7 +416,7 @@ class SyncJobStepTest(BaseTestCase):
 
         plan = self.create_plan()
         self.create_step(plan, implementation='test', order=0)
-        self.create_job_plan(job, plan)
+        jobplan = self.create_job_plan(job, plan)
 
         phase = self.create_jobphase(job)
         step = self.create_jobstep(phase, status=Status.in_progress)
@@ -425,7 +429,7 @@ class SyncJobStepTest(BaseTestCase):
             parent_task_id=job.id.hex
         )
 
-        mock_has_timed_out.assert_called_once_with(step, plan)
+        mock_has_timed_out.assert_called_once_with(step, jobplan)
 
         get_implementation.assert_called_once_with()
         implementation.cancel_step.assert_called_once_with(

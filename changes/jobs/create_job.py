@@ -1,11 +1,10 @@
 from flask import current_app
-from sqlalchemy.orm import subqueryload_all
 
 from changes.backends.base import UnrecoverableException
 from changes.config import db
 from changes.constants import Status, Result
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, JobPlan, Plan
+from changes.models import Job, JobPlan
 from changes.queue.task import tracked_task
 
 
@@ -29,23 +28,16 @@ def create_job(job_id):
     if job.status == Status.finished:
         return
 
-    job_plan = JobPlan.query.options(
-        subqueryload_all('plan.steps')
-    ).filter(
-        JobPlan.job_id == job.id,
-    ).join(Plan).first()
+    jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
+    if implementation is None:
+        # TODO(dcramer): record a FailureReason?
+        job.status = Status.finished
+        job.result = Result.failed
+        current_app.logger.exception('No build plan set %s', job_id)
+        return
 
     try:
-        if not job_plan:
-            raise UnrecoverableException('Got create_job task without job plan: %s' % (job_id,))
-        try:
-            step = job_plan.plan.steps[0]
-        except IndexError:
-            raise UnrecoverableException('Missing steps for plan')
-
-        implementation = step.get_implementation()
         implementation.execute(job=job)
-
     except UnrecoverableException:
         job.status = Status.finished
         job.result = Result.aborted

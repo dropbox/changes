@@ -153,12 +153,7 @@ def execute_build(build):
 
         db.session.add(job)
 
-        jobplan = JobPlan(
-            project=project,
-            job=job,
-            build=build,
-            plan=plan,
-        )
+        jobplan = JobPlan.build_jobplan(plan, job)
 
         db.session.add(jobplan)
 

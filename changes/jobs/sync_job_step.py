@@ -3,37 +3,16 @@ from __future__ import absolute_import, print_function
 from datetime import datetime
 from flask import current_app
 from sqlalchemy import or_
-from sqlalchemy.orm import subqueryload_all
 from sqlalchemy.sql import func
 
-from changes.backends.base import UnrecoverableException
 from changes.constants import Status, Result
 from changes.config import db
 from changes.db.utils import try_create
 from changes.models import (
-    ItemOption, JobPhase, JobStep, JobPlan, Plan, TestCase, ItemStat,
+    ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
     FileCoverage, FailureReason
 )
 from changes.queue.task import tracked_task
-
-
-def get_build_step(job_id):
-    job_plan = JobPlan.query.options(
-        subqueryload_all('plan.steps')
-    ).filter(
-        JobPlan.job_id == job_id,
-    ).join(Plan).first()
-    if not job_plan:
-        raise UnrecoverableException('Missing job plan for job: %s' % (job_id,))
-
-    plan = job_plan.plan
-    try:
-        step = plan.steps[0]
-    except IndexError:
-        raise UnrecoverableException('Missing steps for plan: %s' % (job_plan.plan.id))
-
-    implementation = step.get_implementation()
-    return plan, implementation
 
 
 def abort_step(task):
@@ -45,13 +24,17 @@ def abort_step(task):
     current_app.logger.exception('Unrecoverable exception syncing step %s', step.id)
 
 
-def is_missing_tests(plan, step):
-    query = ItemOption.query.filter(
-        ItemOption.item_id == plan.id,
-        ItemOption.name == 'build.expect-tests',
-        ItemOption.value == '1',
-    )
-    if not db.session.query(query.exists()).scalar():
+def is_missing_tests(step, jobplan):
+    if 'snapshot' in jobplan.data:
+        options = jobplan.data['snapshot']['options']
+    else:
+        options = db.session.query(
+            ItemOption.name, ItemOption.value,
+        ).filter(
+            ItemOption.item_id == jobplan.plan.id,
+            ItemOption.name == 'build.expect-tests',
+        )
+    if options.get('build.expect-tests') != '1':
         return False
 
     # if the phase hasn't started (at least according to metadata)
@@ -87,7 +70,7 @@ def has_test_failures(step):
     ).exists()).scalar()
 
 
-def has_timed_out(step, plan):
+def has_timed_out(step, jobplan):
     if step.status != Status.in_progress:
         return False
 
@@ -95,18 +78,7 @@ def has_timed_out(step, plan):
         return False
 
     # TODO(dcramer): we make an assumption that there is a single step
-    plan_step = plan.steps[0]
-
-    options = dict(
-        db.session.query(
-            ItemOption.name, ItemOption.value
-        ).filter(
-            ItemOption.item_id == plan_step.id,
-            ItemOption.name.in_([
-                'build.timeout',
-            ])
-        )
-    )
+    options = jobplan.get_steps()[0].options
 
     timeout = int(options.get('build.timeout') or 0)
     if not timeout:
@@ -153,7 +125,7 @@ def sync_job_step(step_id):
     if not step:
         return
 
-    plan, implementation = get_build_step(step.job_id)
+    jobplan, implementation = JobPlan.get_build_step_for_job(job_id=step.job_id)
 
     # only synchronize if upstream hasn't suggested we're finished
     if step.status != Status.finished:
@@ -167,7 +139,7 @@ def sync_job_step(step_id):
         is_finished = sync_job_step.verify_all_children() == Status.finished
 
     if not is_finished:
-        if has_timed_out(step, plan):
+        if has_timed_out(step, jobplan):
             implementation.cancel_step(step=step)
 
             step.result = Result.failed
@@ -194,7 +166,7 @@ def sync_job_step(step_id):
     except Exception:
         current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
 
-    missing_tests = is_missing_tests(plan, step)
+    missing_tests = is_missing_tests(step, jobplan)
 
     try_create(ItemStat, where={
         'item_id': step.id,

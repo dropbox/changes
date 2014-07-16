@@ -245,6 +245,7 @@ class BuildCreateTest(APITestCase):
 
         assert len(jobplans) == 1
 
+        assert jobplans[0].job_id == job.id
         assert jobplans[0].plan_id == self.plan.id
         assert jobplans[0].project_id == self.project.id
 

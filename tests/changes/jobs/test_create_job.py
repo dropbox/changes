@@ -3,13 +3,13 @@ from __future__ import absolute_import
 import mock
 
 from changes.jobs.create_job import create_job
-from changes.models import Step
+from changes.models import HistoricalImmutableStep
 from changes.testutils import TestCase
 
 
 class CreateJobTest(TestCase):
     @mock.patch('changes.jobs.create_job.sync_job')
-    @mock.patch.object(Step, 'get_implementation')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     def test_simple(self, get_implementation, sync_job):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
