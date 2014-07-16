@@ -5,6 +5,7 @@ from werkzeug.datastructures import FileStorage
 
 from changes.api.base import APIView
 from changes.config import db
+from changes.constants import Result
 from changes.jobs.sync_artifact import sync_artifact
 from changes.models import Artifact, JobStep
 
@@ -22,6 +23,9 @@ class JobStepArtifactsAPIView(APIView):
         step = JobStep.query.get(step_id)
         if step is None:
             return '', 404
+
+        if step.result == Result.aborted:
+            return '', 410
 
         args = self.parser.parse_args()
 
