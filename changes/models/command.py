@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.schema import UniqueConstraint
 
 from changes.config import db
 from changes.constants import Status
@@ -14,6 +15,9 @@ from changes.db.types.json import JSONEncodedDict
 
 class Command(db.Model):
     __tablename__ = 'command'
+    __table_args__ = (
+        UniqueConstraint('jobstep_id', 'order', name='unq_command_order'),
+    )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     jobstep_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), nullable=False)
@@ -30,7 +34,7 @@ class Command(db.Model):
     data = Column(JSONEncodedDict)
     order = Column(Integer, default=0, server_default='0', nullable=False)
 
-    jobstep = relationship('JobStep', backref=backref('commands', order_by='Command.date_started'))
+    jobstep = relationship('JobStep', backref=backref('commands', order_by='Command.order'))
 
     def __init__(self, **kwargs):
         super(Command, self).__init__(**kwargs)
