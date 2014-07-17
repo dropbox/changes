@@ -41,6 +41,7 @@ class JobStepArtifactsAPIView(APIView):
                 db.session.add(artifact)
                 db.session.flush()
             except IntegrityError:
+                db.session.rollback()
                 exists = True
             else:
                 exists = False
