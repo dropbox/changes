@@ -22,6 +22,7 @@ class JobStepAllocateAPIView(APIView):
         db.session.commit()
 
         context = self.serialize(to_allocate)
+        context['project'] = self.serialize(to_allocate.project)
         context['resources'] = {
             'cpus': 4,
             'mem': 8 * 1024,
