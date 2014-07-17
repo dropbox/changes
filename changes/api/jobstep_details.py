@@ -5,6 +5,7 @@ from flask_restful.reqparse import RequestParser
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
+from changes.api.validators.datetime import ISODatetime
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import JobStep
@@ -17,6 +18,7 @@ STATUS_CHOICES = ('queued', 'in_progress', 'finished')
 
 class JobStepDetailsAPIView(APIView):
     post_parser = RequestParser()
+    post_parser.add_argument('date', type=ISODatetime())
     post_parser.add_argument('status', choices=STATUS_CHOICES)
     post_parser.add_argument('result', choices=RESULT_CHOICES)
 
@@ -41,6 +43,8 @@ class JobStepDetailsAPIView(APIView):
 
         args = self.post_parser.parse_args()
 
+        current_datetime = args.date or datetime.utcnow()
+
         if args.result:
             jobstep.result = Result[args.result]
 
@@ -49,12 +53,12 @@ class JobStepDetailsAPIView(APIView):
 
             # if we've finished this job, lets ensure we have set date_finished
             if jobstep.status == Status.finished and jobstep.date_finished is None:
-                jobstep.date_finished = datetime.utcnow()
+                jobstep.date_finished = current_datetime
             elif jobstep.status != Status.finished and jobstep.date_finished:
                 jobstep.date_finished = None
 
             if jobstep.status != Status.queued and jobstep.date_started is None:
-                jobstep.date_started = datetime.utcnow()
+                jobstep.date_started = current_datetime
             elif jobstep.status == Status.queued and jobstep.date_started:
                 jobstep.date_started = None
 
