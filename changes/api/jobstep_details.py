@@ -8,6 +8,7 @@ from changes.api.base import APIView
 from changes.api.validators.datetime import ISODatetime
 from changes.config import db
 from changes.constants import Result, Status
+from changes.jobs.sync_job import sync_job
 from changes.models import JobStep
 
 
@@ -63,6 +64,16 @@ class JobStepDetailsAPIView(APIView):
                 jobstep.date_started = None
 
         db.session.add(jobstep)
-        db.session.commit()
+        if db.session.is_modified(jobstep):
+            db.session.commit()
+
+            # TODO(dcramer): this is a little bit hacky, but until we can entirely
+            # move to push APIs we need a good way to handle the existing sync
+            job = jobstep.job
+            sync_job.delay_if_needed(
+                task_id=job.id.hex,
+                parent_task_id=job.id.hex,
+                step_id=job.build_id.hex,
+            )
 
         return self.respond(jobstep)
