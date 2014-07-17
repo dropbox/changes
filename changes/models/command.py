@@ -19,7 +19,7 @@ class Command(db.Model):
     jobstep_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), nullable=False)
     label = Column(String(128), nullable=False)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
-    return_code = Column(Integer(), nullable=False, default=0)
+    return_code = Column(Integer, nullable=True)
     script = Column(Text(), nullable=False)
     env = Column(String(2048), nullable=True)
     cwd = Column(String(256), nullable=True)
@@ -28,6 +28,7 @@ class Command(db.Model):
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
     data = Column(JSONEncodedDict)
+    order = Column(Integer, default=0, server_default='0', nullable=False)
 
     jobstep = relationship('JobStep', backref=backref('commands', order_by='Command.date_started'))
 
