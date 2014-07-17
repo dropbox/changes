@@ -73,7 +73,7 @@ class JobStepDetailsAPIView(APIView):
             sync_job.delay_if_needed(
                 task_id=job.id.hex,
                 parent_task_id=job.id.hex,
-                step_id=job.build_id.hex,
+                job_id=job.build_id.hex,
             )
 
         return self.respond(jobstep)
