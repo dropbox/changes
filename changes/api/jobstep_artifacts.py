@@ -36,15 +36,14 @@ class JobStepArtifactsAPIView(APIView):
             job_id=step.job_id,
             project_id=step.project_id,
         )
-        with db.session.begin_nested():
-            try:
-                db.session.add(artifact)
-                db.session.flush()
-            except IntegrityError:
-                db.session.rollback()
-                exists = True
-            else:
-                exists = False
+        try:
+            db.session.add(artifact)
+            db.session.flush()
+        except IntegrityError:
+            db.session.rollback()
+            exists = True
+        else:
+            exists = False
 
         if exists:
             # XXX(dcramer); this is more of an error but we make an assumption
