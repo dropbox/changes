@@ -11,7 +11,7 @@ from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
-    RepositoryStatus, User, ItemOption
+    RepositoryStatus, User, ItemOption, Command
 )
 from changes.utils.slugs import slugify
 
@@ -303,6 +303,19 @@ class Fixtures(object):
         db.session.commit()
 
         return step
+
+    def create_command(self, jobstep, **kwargs):
+        kwargs.setdefault('label', 'a command')
+        kwargs.setdefault('script', 'echo 1')
+
+        command = Command(
+            jobstep=jobstep,
+            **kwargs
+        )
+        db.session.add(command)
+        db.session.commit()
+
+        return command
 
     def create_task(self, **kwargs):
         kwargs.setdefault('task_id', uuid4())

@@ -35,8 +35,6 @@ class Command(db.Model):
         super(Command, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid.uuid4()
-        if self.return_code is None:
-            self.return_code = 0
         if self.status is None:
             self.status = Status.unknown
         if self.date_created is None:
