@@ -41,13 +41,18 @@ class JobStepArtifactsAPIView(APIView):
                 db.session.add(artifact)
                 db.session.flush()
             except IntegrityError:
-                # XXX(dcramer); this is more of an error but we make an assumption
-                # that this happens because it was already sent
-                # TODO(dcramer): this should really return a different status code
-                # but something in Flask/Flask-Restful is causing the test suite
-                # to error if we return 204
-                existing_msg = {"error": "An artifact with this name already exists"}
-                return self.respond(existing_msg, status_code=200)
+                exists = True
+            else:
+                exists = False
+
+        if exists:
+            # XXX(dcramer); this is more of an error but we make an assumption
+            # that this happens because it was already sent
+            # TODO(dcramer): this should really return a different status code
+            # but something in Flask/Flask-Restful is causing the test suite
+            # to error if we return 204
+            existing_msg = {"error": "An artifact with this name already exists"}
+            return self.respond(existing_msg, status_code=200)
 
         step_id = artifact.step_id.hex
         artifact.file.save(
