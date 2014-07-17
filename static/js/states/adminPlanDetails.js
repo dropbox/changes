@@ -40,6 +40,7 @@ define(['app'], function(app) {
         }
 
         var formData = {
+          implementation: step.implementation,
           data: step.data,
           order: step.order,
           name: step.name,
@@ -53,7 +54,6 @@ define(['app'], function(app) {
           step.showForm = false;
           $.extend(true, step, data);
         }).error(function(data){
-          console.log(data);
           flash('error', data.message);
         }).finally(function(){
           step.saving = false;
@@ -66,6 +66,7 @@ define(['app'], function(app) {
           data: '{}',
           order: 0,
           name: 'Unsaved step',
+          implementation: '',
           options: {
             'build.timeout': '0'
           }});
