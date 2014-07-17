@@ -15,10 +15,16 @@ class JobStepAllocateAPIView(APIView):
 
         # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
         if to_allocate is None:
-            return self.respond('')
+            return self.respond([])
 
         to_allocate.status = Status.allocated
         db.session.add(to_allocate)
         db.session.commit()
 
-        return self.respond(to_allocate)
+        context = self.serialize(to_allocate)
+        context['resources'] = {
+            'cpus': 4,
+            'mem': 8 * 1024,
+        }
+
+        return self.respond([context])
