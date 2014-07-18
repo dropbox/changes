@@ -65,7 +65,6 @@ class DefaultBuildStep(BuildStep):
 
         for index, command in enumerate(self.commands):
             command_model, created = get_or_create(CommandModel, where={
-                'jobstep': step,
                 'label': command.script.splitlines()[0][:128],
                 'status': Status.queued,
                 'jobstep': step,
