@@ -16,7 +16,7 @@ class SnapshotDetailsTest(APITestCase):
         assert data['id'] == snapshot.id.hex
         assert data['url'] == snapshot.url
         assert data['project_id'] == project.id.hex
-        assert data['build_id'] == None
+        assert data['build_id'] is None
 
 
 class UpdateSnapshotTest(APITestCase):

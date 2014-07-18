@@ -26,7 +26,7 @@ class ProjectSnapshotIndexAPIView(APIView):
 
         # TODO(adegtiar): initialize a snapshot build.
         snapshot = Snapshot(
-            project_id = project.id,
+            project_id=project.id,
         )
 
         db.session.add(snapshot)
