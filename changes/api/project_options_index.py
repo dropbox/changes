@@ -4,7 +4,14 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.api.auth import requires_admin
 from changes.db.utils import create_or_update
-from changes.models import Project, ProjectOption
+from changes.models import Project, ProjectOption, Snapshot, SnapshotStatus
+
+
+def validate_snapshot_id(id_hex):
+    snapshot = Snapshot.query.get(id_hex)
+    assert snapshot is not None, "Could not find snapshot"
+    assert snapshot.status == SnapshotStatus.active, "Snapshot not active"
+    return id_hex
 
 
 class ProjectOptionsIndexAPIView(APIView):
@@ -23,6 +30,8 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('hipchat.room')
     parser.add_argument('ui.show-coverage')
     parser.add_argument('ui.show-tests')
+    # Validate the passed-in Snapshot id.
+    parser.add_argument('snapshot.current', type=validate_snapshot_id)
 
     def _get_project(self, project_id):
         project = Project.query.options(

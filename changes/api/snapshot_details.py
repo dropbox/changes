@@ -4,13 +4,15 @@ from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Snapshot, SnapshotStatus
+from changes.db.utils import create_or_update
+from changes.models import ProjectOption, Snapshot, SnapshotStatus
 
 
 class SnapshotDetailsAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('url', type=unicode)
     parser.add_argument('status', choices=SnapshotStatus._member_names_)
+    parser.add_argument('set_current', type=bool)
 
     def get(self, snapshot_id):
         snapshot = Snapshot.query.get(snapshot_id)
@@ -29,9 +31,22 @@ class SnapshotDetailsAPIView(APIView):
         if args.url:
             snapshot.url = args.url
         if args.status:
+            if snapshot.url is None:
+                return '{"error": "Cannot set to active without a url"}', 400
             snapshot.status = SnapshotStatus._member_map_[args.status]
+        if args.set_current and snapshot.status != SnapshotStatus.active:
+            return '{"error": "Cannot set inactive current snapshot"}', 400
 
         db.session.add(snapshot)
         db.session.commit()
+
+        if args.set_current:
+            # TODO(adegtiar): improve logic for picking current snapshot.
+            create_or_update(ProjectOption, where={
+                'project': snapshot.project,
+                'name': 'snapshot.current',
+            }, values={
+                'value': snapshot.id.hex,
+            })
 
         return self.respond(snapshot)
