@@ -20,7 +20,7 @@ class JobStepDeallocateAPIView(APIView):
                 "actual_status": to_deallocate.status.name
             }, 400
 
-        to_deallocate.status = Status.queued
+        to_deallocate.status = Status.pending_allocation
         db.session.add(to_deallocate)
         db.session.commit()
 
