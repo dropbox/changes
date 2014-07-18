@@ -71,7 +71,8 @@ class DefaultBuildStep(BuildStep):
                 'script': command.script,
                 'env': command.env,
                 'cwd': command.path,
-                'artifacts': command.artifacts
+                'artifacts': command.artifacts,
+                'order': index,
             }, defaults={
                 'status': Status.queued,
             })
