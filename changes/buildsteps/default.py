@@ -35,7 +35,7 @@ class DefaultBuildStep(BuildStep):
                 if k not in command:
                     command[k] = v
 
-        self.commands = map(Command, commands)
+        self.commands = map(lambda x: Command(**x), commands)
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
@@ -49,32 +49,31 @@ class DefaultBuildStep(BuildStep):
         phase, created = get_or_create(JobPhase, where={
             'job': job,
             'label': job.label,
-            'project': job.project,
         }, defaults={
             'status': Status.queued,
+            'project': job.project,
         })
 
         step, created = get_or_create(JobStep, where={
-            'job': phase.job,
-            'project': phase.project,
             'phase': phase,
             'label': job.label,
         }, defaults={
             'status': Status.pending_allocation,
+            'job': phase.job,
+            'project': phase.project,
         })
 
         for index, command in enumerate(self.commands):
             command_model, created = get_or_create(CommandModel, where={
+                'jobstep': step,
+                'order': index,
+            }, defaults={
                 'label': command.script.splitlines()[0][:128],
                 'status': Status.queued,
-                'jobstep': step,
                 'script': command.script,
                 'env': command.env,
                 'cwd': command.path,
                 'artifacts': command.artifacts,
-                'order': index,
-            }, defaults={
-                'status': Status.queued,
             })
         db.session.commit()
 
