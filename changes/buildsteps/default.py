@@ -61,16 +61,8 @@ class DefaultBuildStep(BuildStep):
             'label': job.label,
         }, defaults={
             'status': Status.queued,
-            'data': {
-                'build_no': None,
-                'item_id': job.id.hex,
-                'queued': True,
-                'uri': None,
-            }
         })
 
-        # if not created:
-        #     if step.date_created
         for index, command in enumerate(self.commands):
             command_model, created = get_or_create(CommandModel, where={
                 'jobstep': step,
