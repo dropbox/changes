@@ -71,7 +71,6 @@ class DefaultBuildStep(BuildStep):
 
         # if not created:
         #     if step.date_created
-        print type(self.commands)
         for index, command in enumerate(self.commands):
             command_model, created = get_or_create(CommandModel, where={
                 'jobstep': step,
