@@ -24,8 +24,8 @@ class JobStepAllocateTest(APITestCase):
         jobphase = self.create_jobphase(job)
 
         jobstep_ignored = self.create_jobstep(jobphase, status=Status.unknown)
-        jobstep_first_q = self.create_jobstep(jobphase, status=Status.queued)
-        jobstep_second_q = self.create_jobstep(jobphase, status=Status.queued)
+        jobstep_first_q = self.create_jobstep(jobphase, status=Status.pending_allocation)
+        jobstep_second_q = self.create_jobstep(jobphase, status=Status.pending_allocation)
 
         # ensure we get back the latest queued jobstep first
         resp = self.client.post(self.path)

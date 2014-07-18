@@ -42,6 +42,7 @@ class Status(Enum):
     finished = 3
     collecting_results = 4
     allocated = 5
+    pending_allocation = 6
 
     def __str__(self):
         return STATUS_LABELS[self]
@@ -93,7 +94,8 @@ STATUS_LABELS = {
     Status.queued: 'Queued',
     Status.in_progress: 'In progress',
     Status.finished: 'Finished',
-    Status.allocated: 'Allocated'
+    Status.allocated: 'Allocated',
+    Status.pending_allocation: 'Queued',
 }
 
 RESULT_LABELS = {

@@ -60,7 +60,7 @@ class DefaultBuildStep(BuildStep):
             'phase': phase,
             'label': job.label,
         }, defaults={
-            'status': Status.queued,
+            'status': Status.pending_allocation,
         })
 
         for index, command in enumerate(self.commands):

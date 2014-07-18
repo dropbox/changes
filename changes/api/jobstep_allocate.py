@@ -10,7 +10,7 @@ class JobStepAllocateAPIView(APIView):
 
     def post(self):
         to_allocate = JobStep.query.filter(
-            JobStep.status == Status.queued,
+            JobStep.status == Status.pending_allocation,
         ).order_by(JobStep.date_created.desc()).first()
 
         # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
