@@ -55,11 +55,8 @@ class JobStepLogAppendAPIView(APIView):
             if existing_chunk is not None:
                 # XXX(dcramer); this is more of an error but we make an assumption
                 # that this happens because it was already sent
-                # TODO(dcramer): this should really return a different status code
-                # but something in Flask/Flask-Restful is causing the test suite
-                # to error if we return 204
                 existing_msg = {"error": "A chunk within the bounds of the given offset is already recorded."}
-                return self.respond(existing_msg, status_code=200)
+                return self.respond(existing_msg, status_code=204)
         else:
             # TODO(dcramer): we should support a straight up simple append
             raise NotImplementedError
