@@ -48,7 +48,7 @@ class DefaultBuildStep(BuildStep):
 
         phase, created = get_or_create(JobPhase, where={
             'job': job,
-            'label': 'Build {0}'.format(job.label),
+            'label': job.label,
             'project': job.project,
         }, defaults={
             'status': Status.queued,
@@ -58,7 +58,7 @@ class DefaultBuildStep(BuildStep):
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
-            'label': '{0} #{1}'.format(job.label, job.id.hex),
+            'label': job.label,
         }, defaults={
             'status': Status.queued,
             'data': {
