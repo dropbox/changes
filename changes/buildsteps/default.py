@@ -71,7 +71,8 @@ class DefaultBuildStep(BuildStep):
                 'label': command.script.splitlines()[0][:128],
                 'status': Status.queued,
                 'script': command.script,
-                'env': command.env,
+                # TODO(cramer): this must support json encoded dict
+                # 'env': command.env,
                 'cwd': command.path,
                 'artifacts': command.artifacts,
             })
