@@ -37,9 +37,9 @@ class JobStepDeallocateTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['id'] == jobstep.id.hex
-        assert data['status']['id'] == Status.queued.name
+        assert data['status']['id'] == 'pending_allocation'
 
         resp = self.client.post(path)
         assert resp.status_code == 400, resp
         data = self.unserialize(resp)
-        assert data['actual_status'] == Status.queued.name
+        assert data['actual_status'] == 'pending_allocation'

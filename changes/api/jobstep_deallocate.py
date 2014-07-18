@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from changes.api.base import APIView
 from changes.constants import Status
 from changes.config import db
+from changes.jobs.sync_job_step import sync_job_step
 from changes.models import JobStep
 
 
@@ -21,7 +22,15 @@ class JobStepDeallocateAPIView(APIView):
             }, 400
 
         to_deallocate.status = Status.pending_allocation
+        to_deallocate.date_started = None
+        to_deallocate.date_finished = None
         db.session.add(to_deallocate)
         db.session.commit()
+
+        sync_job_step.delay(
+            step_id=to_deallocate.id.hex,
+            task_id=to_deallocate.id.hex,
+            parent_task_id=to_deallocate.job_id.hex,
+        )
 
         return self.respond(to_deallocate)
