@@ -4,6 +4,7 @@ from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Status
 from changes.db.utils import get_or_create
+from changes.jobs.sync_job_step import sync_job_step
 from changes.models import Command as CommandModel, JobPhase, JobStep
 
 
@@ -76,6 +77,12 @@ class DefaultBuildStep(BuildStep):
                 'artifacts': command.artifacts,
             })
         db.session.commit()
+
+        sync_job_step.delay(
+            step_id=step.id.hex,
+            task_id=step.id.hex,
+            parent_task_id=job.id.hex,
+        )
 
     def update(self, job):
         pass
