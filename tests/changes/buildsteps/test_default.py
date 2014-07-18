@@ -17,13 +17,12 @@ class DefaultBuildStepTest(BackendTestCase):
                 script='echo "hello world 2"',
                 path='/usr/test/1',
                 artifacts=['artifact1.txt', 'artifact2.txt'],
-                env="PATH=/usr/test/1",
+                env={'PATH': '/usr/test/1'},
             ),
             dict(
                 script='echo "hello world 2"',
                 path='/usr/test/2',
                 artifacts=['artifact3.txt', 'artifact4.txt'],
-                env="PATH=/usr/test/2",
             ),
         ))
 

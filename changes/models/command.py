@@ -25,7 +25,7 @@ class Command(db.Model):
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     return_code = Column(Integer, nullable=True)
     script = Column(Text(), nullable=False)
-    env = Column(String(2048), nullable=True)
+    env = Column(JSONEncodedDict, nullable=True)
     cwd = Column(String(256), nullable=True)
     artifacts = Column(ARRAY(String(256)), nullable=True)
     date_started = Column(DateTime)
