@@ -17,6 +17,7 @@ class CommandSerializerTest(TestCase):
             label='echo 1',
             jobstep_id=jobstep.id,
             cwd='/home/foobar',
+            env={'foo': 'bar'},
             script='echo 1',
             date_created=datetime(2013, 9, 19, 22, 15, 22),
             artifacts=['junit.xml'],
@@ -28,4 +29,5 @@ class CommandSerializerTest(TestCase):
         assert result['id'] == command.id.hex
         assert result['dateCreated'] == '2013-09-19T22:15:22'
         assert result['cwd'] == command.cwd
+        assert result['env'] == {'foo': 'bar'}
         assert result['script'] == command.script
