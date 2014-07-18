@@ -11,7 +11,7 @@ class CommandSerializer(Serializer):
             'status': instance.status,
             'script': instance.script,
             'returnCode': instance.return_code,
-            'env': instance.env,
+            'env': dict(instance.env or {}),
             'cwd': instance.cwd,
             'artifacts': instance.artifacts or [],
             'duration': instance.duration,
