@@ -57,9 +57,7 @@ Create the database in Postgres:
 
 Setup the default configuration:
 
-.. code-block:: python
-
-    .. literalinclude:: examples/changes.conf.py
+.. literalinclude:: examples/changes.conf.py
 
 Create a Python environment:
 
