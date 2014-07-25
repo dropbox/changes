@@ -18,7 +18,7 @@ requirejs.config({
     'highlightjs': '../vendor/highlightjs/highlight.pack',
     'moment': '../vendor/moment/moment',
     'requirejs': '../vendor/requirejs/require',
-    'typeahead': '../vendor/typeahead.js/dist/typeahead.jquery.min',
+    'typeahead': '../vendor/typeahead.js/dist/typeahead.jquery.min'
   },
   shim: {
     'angular': {
