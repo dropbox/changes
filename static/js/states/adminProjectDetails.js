@@ -8,7 +8,8 @@ define([
     return {
       name: projectData.name,
       slug: projectData.slug,
-      repository: projectData.repository.url
+      repository: projectData.repository.url,
+      status: projectData.status.id == 'inactive' ? 'inactive' : 'active'
     };
   }
 

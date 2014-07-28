@@ -1,4 +1,4 @@
-from changes.models import Project
+from changes.models import Project, ProjectStatus
 from changes.testutils import APITestCase
 
 
@@ -53,6 +53,22 @@ class ProjectDetailsTest(APITestCase):
         project = Project.query.get(project.id)
         assert project.name == 'details test project'
         assert project.slug == 'details-test-project'
+
+        resp = self.client.post(path, data={
+            'status': 'inactive',
+        })
+        assert resp.status_code == 200
+
+        project = Project.query.get(project.id)
+        assert project.status == ProjectStatus.inactive
+
+        resp = self.client.post(path, data={
+            'status': 'active',
+        })
+        assert resp.status_code == 200
+
+        project = Project.query.get(project.id)
+        assert project.status == ProjectStatus.active
 
     def test_update_by_slug(self):
         project = self.create_project()

@@ -13,6 +13,7 @@ class ProjectSerializer(Serializer):
             'repository': {
                 'id': instance.repository_id,
             },
+            'status': instance.status,
             'dateCreated': instance.date_created,
             'link': build_uri('/projects/{0}/'.format(instance.slug)),
         }
