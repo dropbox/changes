@@ -14,12 +14,14 @@
     <thead>
       <tr class="grid-list-header">
         <th><a ui-sref="admin_project_list({sort: 'name'})">Project</a></th>
+        <th class="column">Status</th>
         <th class="column"><a ui-sref="admin_project_list({sort: 'date'})">Created</a></th>
       </tr>
     </thead>
     <tbody>
       <tr ng-repeat="project in projectList">
         <td><a ui-sref="admin_project_details({project_id: project.slug})">{{project.name}}</a></td>
+        <td class="column">{{project.status.name}}</td>
         <td class="column" time-since="project.dateCreated"></td>
       </tr>
     </tbody>
