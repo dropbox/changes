@@ -88,6 +88,15 @@ class ProjectStatus(Enum):
     active = 1
     inactive = 2
 
+    def __str__(self):
+        return PROJECT_STATUS_LABELS[self]
+
+
+PROJECT_STATUS_LABELS = {
+    ProjectStatus.unknown: 'Unknown',
+    ProjectStatus.active: 'Active',
+    ProjectStatus.inactive: 'Inactive',
+}
 
 STATUS_LABELS = {
     Status.unknown: 'Unknown',
