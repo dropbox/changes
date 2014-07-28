@@ -32,9 +32,9 @@ define(['moment'], function(moment) {
 
       return result;
     },
-    timeSince: function(timestamp) {
+    timeSince: function(timestamp, currentTimestamp) {
       var date = moment.utc(timestamp),
-          diff = date.diff(),
+          diff = date.diff(currentTimestamp),
           past = diff > 0,
           result, value;
 

@@ -47,43 +47,43 @@ define(['app', 'utils/time'], function(app, time) {
     });
 
     it('should support seconds', function() {
-      var result = time.timeSince(now - 1000);
+      var result = time.timeSince(now - 1000, now);
       expect(result).to.equal('just now');
 
-      var result = time.timeSince(now + 1000);
+      var result = time.timeSince(now + 1000, now);
       expect(result).to.equal('just now');
 
-      var result = time.timeSince(now - 3200);
+      var result = time.timeSince(now - 3200, now);
       expect(result).to.equal('just now');
     });
 
     it('should support minutes', function() {
-      var result = time.timeSince(now - 60001);
+      var result = time.timeSince(now - 60001, now);
       expect(result).to.equal('1 minute ago');
 
-      var result = time.timeSince(now - 120000);
+      var result = time.timeSince(now - 120000, now);
       expect(result).to.equal('2 minutes ago');
 
-      var result = time.timeSince(now - 180000);
+      var result = time.timeSince(now - 180000, now);
       expect(result).to.equal('3 minutes ago');
 
-      var result = time.timeSince(now - 360000);
+      var result = time.timeSince(now - 360000, now);
       expect(result).to.equal('6 minutes ago');
 
-      var result = time.timeSince(now - 3600000);
+      var result = time.timeSince(now - 3600000, now);
       expect(result).to.equal('60 minutes ago');
 
-      var result = time.timeSince(now - 7200000);
+      var result = time.timeSince(now - 7200000, now);
       expect(result).to.equal('120 minutes ago');
     });
 
     it('should support hours', function() {
-      var result = time.timeSince(now - 14400000);
+      var result = time.timeSince(now - 14400000, now);
       expect(result).to.equal('4 hours ago');
     });
 
     it('should support dates', function() {
-      var result = time.timeSince(now - 3456000000);
+      var result = time.timeSince(now - 3456000000, now);
       expect(result).to.not.equal('4 hours ago');
     });
   });
