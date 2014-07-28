@@ -50,9 +50,10 @@
                             <span ng-if="step.status.id != 'finished'"
                                   class="spinner-icon spinner-icon-sm"></span>
 
-                            <a ng-if="step.logSources.length"
-                               ui-sref="log_details({source_id: step.logSources[0].id})">{{step.name}}</a>
-                            <span ng-if="!step.logSources.length">{{step.name}}</span>
+                            {{step.name}}
+                            <span ng-if="step.logSources.length">
+                                (<a ui-sref="log_details({source_id: step.logSources[0].id})">log</a>)
+                            </span>
                         </td>
                         <td class="column">
                             <a href="/nodes/{{step.node.id}}/" ng-if="step.node">{{(step.node.name || step.node.id)|truncate:50}}</a>
