@@ -16,12 +16,8 @@ app_context = app.app_context()
 app_context.push()
 
 
-def get_repo(id_):
-    if len(id_) in (32, 36):
-        # assume its a uuid
-        repo = Repository.query.get(id_)
-    else:
-        repo = Repository.query.filter_by(url=id_).first()
+def get_repo(url):
+    repo = Repository.query.filter_by(url=url).first()
 
     if not repo:
         print("Repository not found")
