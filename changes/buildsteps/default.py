@@ -28,7 +28,7 @@ class DefaultBuildStep(BuildStep):
     This build step is also responsible for generating appropriate commands
     in order for the client to obtain the source code.
     """
-    def __init__(self, commands, path='/workspace', env=None, artifacts=None, **kwargs):
+    def __init__(self, commands, path='./workspace/', env=None, artifacts=None, **kwargs):
         command_defaults = (
             ('path', path),
             ('env', env),
