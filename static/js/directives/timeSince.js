@@ -4,7 +4,7 @@ define(['app', 'utils'], function(app, utils) {
   // we use a shared timeout for the page loop to avoid
   // extremely large amounts of $digest cycles and wasteful
   // amounts of defers
-  window.setTimeout(function(){
+  window.setInterval(function(){
     $('.ng-timesince').each(function(_, element){
       var $element = angular.element(element),
           value = $element.data('datetime');
