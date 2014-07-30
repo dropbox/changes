@@ -57,6 +57,7 @@ class DefaultBuildStep(BuildStep):
                 script=vcs.get_buildstep_clone(source, self.path),
                 env=self.env,
                 path=self.path,
+                artifacts=(),
             )
 
             if source.patch:
@@ -64,6 +65,7 @@ class DefaultBuildStep(BuildStep):
                     script=vcs.get_buildstep_patch(source, self.path),
                     env=self.env,
                     path=self.path,
+                    artifacts=(),
                 )
 
         for command in self.commands:
