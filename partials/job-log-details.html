@@ -1,5 +1,10 @@
 <section class="section" bind-once>
     <div class="section-header">
+    	<div class="pull-right">
+    		<a href="/api/0/jobs/{{job.id}}/logs/{{logSource.id}}/?raw=1"
+    		   class="btn btn-default"
+    		   target="_self">Raw Log</a>
+    	</div>
         <h3>{{step.name}} <small>{{logSource.name}}</small></h3>
     </div>
 	<dl class="flat">

@@ -54,6 +54,9 @@ class JobLogDetailsAPIView(APIView):
         else:
             next_offset = 0
 
+        if request.args.get('raw'):
+            return Response(''.join(l.text for l in logchunks), mimetype='text/plain')
+
         context = self.serialize({
             'source': source,
             'chunks': logchunks,

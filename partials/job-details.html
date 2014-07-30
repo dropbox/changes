@@ -52,7 +52,7 @@
 
                             {{step.name}}
                             <span ng-if="step.logSources.length">
-                                (<a ui-sref="log_details({source_id: step.logSources[0].id})">log</a>)
+                                (<a ui-sref="log_details({source_id: step.logSources[0].id})">log</a> | <a href="/api/0/jobs/{{job.id}}/logs/{{step.logSources[0].id}}/?raw=1" target="_self">raw</a>)
                             </span>
                         </td>
                         <td class="column">
