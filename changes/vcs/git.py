@@ -153,16 +153,16 @@ class GitVcs(Vcs):
         except CommandError:
             return False
 
-    def get_buildstep_clone(self, source):
+    def get_buildstep_clone(self, source, workspace):
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
-            local_path='/tmp/source',
+            local_path=workspace,
             revision=source.revision_sha,
         )
 
-    def get_buildstep_patch(self, source):
+    def get_buildstep_patch(self, source, workspace):
         return BASH_PATCH_STEP % dict(
-            local_path='/tmp/source',
+            local_path=workspace,
             patch_url=build_uri('/api/0/patches/{0}/?raw=1'.format(
                                 source.patch_id.hex)),
         )

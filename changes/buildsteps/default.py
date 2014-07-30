@@ -9,11 +9,11 @@ from changes.models import Command as CommandModel, JobPhase, JobStep
 
 
 class Command(object):
-    def __init__(self, script, path='', artifacts=None, env=None):
+    def __init__(self, script, path, artifacts, env):
         self.script = script
         self.path = path
-        self.artifacts = artifacts or ()
-        self.env = env or {}
+        self.artifacts = artifacts
+        self.env = env
 
 
 class DefaultBuildStep(BuildStep):
@@ -28,7 +28,7 @@ class DefaultBuildStep(BuildStep):
     This build step is also responsible for generating appropriate commands
     in order for the client to obtain the source code.
     """
-    def __init__(self, commands, path='', env=None, artifacts=None, **kwargs):
+    def __init__(self, commands, path='/workspace', env=None, artifacts=None, **kwargs):
         command_defaults = (
             ('path', path),
             ('env', env),
@@ -54,14 +54,14 @@ class DefaultBuildStep(BuildStep):
         vcs = repo.get_vcs()
         if vcs is not None:
             yield Command(
-                script=vcs.get_buildstep_clone(source),
+                script=vcs.get_buildstep_clone(source, self.path),
                 env=self.env,
                 path=self.path,
             )
 
             if source.patch:
                 yield Command(
-                    script=vcs.get_buildstep_patch(source),
+                    script=vcs.get_buildstep_patch(source, self.path),
                     env=self.env,
                     path=self.path,
                 )
