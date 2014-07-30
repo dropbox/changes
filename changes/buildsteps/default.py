@@ -24,6 +24,9 @@ class DefaultBuildStep(BuildStep):
     Jobs will get allocated via a polling step that is handled by the external
     scheduling framework. Once allocated a job is expected to begin reporting
     within a given timeout. All results are expected to be pushed via APIs.
+
+    This build step is also responsible for generating appropriate commands
+    in order for the client to obtain the source code.
     """
     def __init__(self, commands, path='', env=None, artifacts=None, **kwargs):
         command_defaults = (
@@ -36,12 +39,35 @@ class DefaultBuildStep(BuildStep):
                 if k not in command:
                     command[k] = v
 
+        self.env = env
+        self.path = path
         self.commands = map(lambda x: Command(**x), commands)
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
     def get_label(self):
         return 'Build via Changes Client'
+
+    def iter_all_commands(self, job):
+        source = job.source
+        repo = source.repository
+        vcs = repo.get_vcs()
+        if vcs is not None:
+            yield Command(
+                script=vcs.get_buildstep_clone(source),
+                env=self.env,
+                path=self.path,
+            )
+
+            if source.patch:
+                yield Command(
+                    script=vcs.get_buildstep_patch(source),
+                    env=self.env,
+                    path=self.path,
+                )
+
+        for command in self.commands:
+            yield command
 
     def execute(self, job):
         job.status = Status.queued
@@ -64,7 +90,7 @@ class DefaultBuildStep(BuildStep):
             'project': phase.project,
         })
 
-        for index, command in enumerate(self.commands):
+        for index, command in enumerate(self.iter_all_commands(job)):
             command_model, created = get_or_create(CommandModel, where={
                 'jobstep': step,
                 'order': index,

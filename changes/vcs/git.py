@@ -4,12 +4,48 @@ from datetime import datetime
 from urlparse import urlparse
 
 from changes.utils.cache import memoize
+from changes.utils.http import build_uri
 
 from .base import Vcs, RevisionResult, BufferParser, CommandError
 
 LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
 
 ORIGIN_PREFIX = 'remotes/origin/'
+
+BASH_CLONE_STEP = """
+#!/bin/bash -eux
+
+REMOTE_URL=%(remote_url)s
+LOCAL_PATH=%(local_path)s
+REVISION=%(revision)s
+
+if [ ! -d $LOCAL_PATH/.git ]; then
+    git clone $REMOTE_URL $LOCAL_PATH
+    pushd $LOCAL_PATH
+else
+    pushd $LOCAL_PATH && git fetch --all
+    git remote prune origin
+fi
+
+git clean -fdx
+
+if ! git reset --hard $REVISION ; then
+    git reset --hard origin/master
+    echo "Failed to update to $REVISION, falling back to master"
+fi
+"""
+
+BASH_PATCH_STEP = """
+#!/bin/bash -eux
+
+LOCAL_PATH=%(local_path)s
+PATCH_URL=%(patch_url)s
+
+pushd $LOCAL_PATH
+PATCH_PATH=/tmp/$(mktemp patch.XXXXXXXXXX)
+curl -o $PATCH_PATH $PATCH_URL
+git apply $PATCH_PATH
+"""
 
 
 class LazyGitRevisionResult(RevisionResult):
@@ -116,3 +152,17 @@ class GitVcs(Vcs):
             return True
         except CommandError:
             return False
+
+    def get_buildstep_clone(self, source):
+        return BASH_CLONE_STEP % dict(
+            remote_url=self.remote_url,
+            local_path='/tmp/source',
+            revision=source.revision_sha,
+        )
+
+    def get_buildstep_patch(self, source):
+        return BASH_PATCH_STEP % dict(
+            local_path='/tmp/source',
+            patch_url=build_uri('/api/0/patches/{0}/?raw=1'.format(
+                                source.patch_id.hex)),
+        )

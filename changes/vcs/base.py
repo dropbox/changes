@@ -114,6 +114,13 @@ class Vcs(object):
     def is_child_parent(self, child_in_question, parent_in_question):
         raise NotImplementedError
 
+    # XXX(dcramer): not overly happy with the buildstep commands API
+    def get_buildstep_clone(self):
+        raise NotImplementedError
+
+    def get_buildstep_patch(self):
+        raise NotImplementedError
+
 
 class RevisionResult(object):
     parents = None
