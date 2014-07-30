@@ -33,7 +33,7 @@ define(['angular', 'jquery'], function(angular, $) {
           $http.get(options.endpoint, {
             ignoreLoadingBar: true
           }).success(function(response){
-            $scope.$apply(function(){
+            $timeout(function(){
               options.update(response);
             });
             pollTimeoutID = $timeout(tick, options.delay);
