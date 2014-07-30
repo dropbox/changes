@@ -33,7 +33,7 @@ if ! git reset --hard $REVISION ; then
     git reset --hard origin/master
     echo "Failed to update to $REVISION, falling back to master"
 fi
-"""
+""".strip()
 
 BASH_PATCH_STEP = """
 #!/bin/bash -eux
@@ -45,7 +45,7 @@ pushd $LOCAL_PATH
 PATCH_PATH=/tmp/$(mktemp patch.XXXXXXXXXX)
 curl -o $PATCH_PATH $PATCH_URL
 git apply $PATCH_PATH
-"""
+""".strip()
 
 
 class LazyGitRevisionResult(RevisionResult):
