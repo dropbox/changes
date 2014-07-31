@@ -6,7 +6,7 @@
     "tests": "tests"
   },
   "scripts": {
-    "postinstall": "bower install",
+    "postinstall": "bower install --allow-root",
     "prelint": "npm install",
     "lint": "jshint static/",
     "precompile-static": "npm install",
