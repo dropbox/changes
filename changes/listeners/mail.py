@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import toronado
 
+from email.utils import parseaddr
 from flask import current_app, render_template
 from flask_mail import Message, sanitize_address
 from jinja2 import Markup
@@ -24,7 +25,7 @@ def filter_recipients(email_list, domain_whitelist=None):
 
     return [
         e for e in email_list
-        if e.split('@', 1)[-1] in domain_whitelist
+        if parseaddr(e)[1].split('@', 1)[-1] in domain_whitelist
     ]
 
 

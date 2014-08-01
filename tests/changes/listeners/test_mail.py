@@ -19,6 +19,11 @@ class FilterRecipientsTestCase(TestCase):
 
         assert results == ['foo@example.com', 'bar@localhost']
 
+        results = filter_recipients(
+            ['Foo Bar <foo@example.com>'], ['example.com'])
+
+        assert results == ['Foo Bar <foo@example.com>']
+
 
 class GetRecipientsTestCase(TestCase):
     def test_default_options(self):
