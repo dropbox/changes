@@ -46,3 +46,12 @@ class AuthorBuildListTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
+
+        username, domain = self.default_user.email.split('@', 1)
+        author = self.create_author('{}+foo@{}'.format(username, domain))
+        self.create_build(project, author=author)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
