@@ -34,35 +34,40 @@ class NotificationHandler(object):
             JobStep.result == Result.failed,
         ).order_by(JobStep.date_created))
 
+    # TODO(cramer): until we are able to quickly check commit-ordered build
+    # results we always notify on failures
     def should_notify(self, job, parent=UNSET):
-        """
-        Compare with parent job (previous job) and confirm if current
-        job provided any change in state (e.g. new failures).
-        """
-        if job.result not in (Result.failed, Result.passed):
-            return
+        return job.result == Result.failed
 
-        if parent is UNSET:
-            parent = self.get_parent(job)
+    # def should_notify(self, job, parent=UNSET):
+    #     """
+    #     Compare with parent job (previous job) and confirm if current
+    #     job provided any change in state (e.g. new failures).
+    #     """
+    #     if job.result not in (Result.failed, Result.passed):
+    #         return
 
-        # if theres no parent, this job must be at fault
-        if parent is None:
-            return job.result == Result.failed
+    #     if parent is UNSET:
+    #         parent = self.get_parent(job)
 
-        if job.result == Result.passed == parent.result:
-            return False
+    #     # if theres no parent, this job must be at fault
+    #     if parent is None:
+    #         return job.result == Result.failed
 
-        current_failures = set([t.name_sha for t in self.get_test_failures(job)])
-        # if we dont have any testgroup failures, then we cannot identify the cause
-        # so we must notify the individual
-        if not current_failures:
-            return True
+    #     if job.result == Result.passed == parent.result:
+    #         return False
 
-        parent_failures = set([t.name_sha for t in self.get_test_failures(parent)])
-        if parent_failures != current_failures:
-            return True
+    #     current_failures = set([t.name_sha for t in self.get_test_failures(job)])
+    #     # if we dont have any testgroup failures, then we cannot identify the cause
+    #     # so we must notify the individual
+    #     if not current_failures:
+    #         return True
 
-        return False
+    #     parent_failures = set([t.name_sha for t in self.get_test_failures(parent)])
+    #     if parent_failures != current_failures:
+    #         return True
+
+    #     return False
 
     def get_log_clipping(self, logsource, max_size=5000, max_lines=25):
         queryset = LogChunk.query.filter(
