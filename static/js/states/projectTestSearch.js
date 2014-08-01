@@ -13,33 +13,23 @@ define([
     min_duration: 0
   };
 
-  var buildTestListUrl = function(project_id, params) {
+  function getEndpoint(params) {
     var query = $.param({
-      query: params.query,
-      sort: params.sort,
-      per_page: params.per_page,
-      min_duration: params.min_duration
+      query: params.query || defaults.query,
+      sort: params.sort || defaults.sort,
+      per_page: params.per_page || defaults.per_page,
+      min_duration: params.min_duration || defaults.min_duration
     });
 
-    return '/api/0/projects/' + project_id + '/tests/?' + query;
-  };
+    return '/api/0/projects/' + params.project_id + '/tests/?' + query;
+  }
 
   return {
     parent: 'project_details',
     url: 'search/tests/?sort&query&per_page&min_duration',
     templateUrl: 'partials/project-test-search.html',
-    controller: function($http, $scope, $state, $stateParams, testList) {
-      function loadTestList(url) {
-        if (!url) {
-          return;
-        }
-        $http.get(url)
-          .success(function(data, status, headers){
-            $scope.testList = data;
-            $scope.pageLinks = parseLinkHeader(headers('Link'));
-          });
-      }
-
+    controller: function($scope, $state, $stateParams, Collection, PageTitle,
+                         Paginator, projectData) {
       $scope.searchTests = function(params) {
         if (params !== undefined) {
           $.each(params, function(key, value){
@@ -49,21 +39,6 @@ define([
         $state.go('project_test_search', $scope.searchParams);
       };
 
-      $scope.loadPreviousPage = function() {
-        $(document.body).scrollTop(0);
-        loadTestList($scope.pageLinks.previous);
-      };
-
-      $scope.loadNextPage = function() {
-        $(document.body).scrollTop(0);
-        loadTestList($scope.pageLinks.next);
-      };
-
-      $scope.$watch("pageLinks", function(value) {
-        $scope.nextPage = value.next || null;
-        $scope.previousPage = value.previous || null;
-      });
-
       $scope.searchParams = {
         sort: $stateParams.duration,
         query: $stateParams.query,
@@ -71,19 +46,18 @@ define([
         per_page: $stateParams.per_page
       };
 
-      $scope.pageLinks = parseLinkHeader(testList.headers('Link'));
-      $scope.testList = testList.data;
+      var paginator = new Paginator(getEndpoint($stateParams), {
+        collection: new Collection([], {
+          equals: function(item, other) {
+            return item.hash == other.hash;
+          }
+        })
+      });
 
-    },
-    resolve: {
-      testList: function($http, $stateParams, projectData) {
-        if (!$stateParams.sort) $stateParams.sort = defaults.sort;
-        if (!$stateParams.query) $stateParams.query = defaults.query;
-        if (!$stateParams.per_page) $stateParams.per_page = defaults.per_page;
-        if (!$stateParams.min_duration) $stateParams.min_duration = defaults.min_duration;
+      PageTitle.set(projectData.name + ' Tests');
 
-        return $http.get(buildTestListUrl(projectData.id, $stateParams));
-      }
+      $scope.testList = paginator.collection;
+      $scope.testPaginator = paginator;
     }
   };
 });

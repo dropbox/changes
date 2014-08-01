@@ -44,7 +44,7 @@ class ProjectTestIndexAPIView(APIView):
 
         # use the most recent test
         test_list = TestCase.query.filter(
-            TestCase.project_id == project_id,
+            TestCase.project_id == project.id,
             TestCase.job_id == latest_job.id,
         )
 
@@ -55,7 +55,7 @@ class ProjectTestIndexAPIView(APIView):
 
         if args.query:
             test_list = test_list.filter(
-                TestCase.name.startswith(args.query),
+                TestCase.name.contains(args.query),
             )
 
         if args.sort == 'duration':

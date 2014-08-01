@@ -1,8 +1,8 @@
 define(['angular', 'jquery'], function(angular, jQuery) {
   'use strict';
 
-  angular.module('changes.paginator', [])
-    .factory('Paginator', function($http) {
+  angular.module('changes.paginator', ['collection'])
+    .factory('Paginator', function($http, Collection) {
 
       var defaults = {
         poller: null,
@@ -47,7 +47,7 @@ define(['angular', 'jquery'], function(angular, jQuery) {
         }
 
         this.options = options;
-        this.collection = options.collection || new Collection([]);
+        this.collection = options.collection || new Collection();
         this.pageLinks = [];
         this.nextPage = null;
         this.previousPage = null;

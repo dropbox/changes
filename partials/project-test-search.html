@@ -7,7 +7,11 @@
                    class="form-control">
             <button type="submit" class="btn btn-xs"><i class="glyphicon glyphicon-search"></i></button>
         </form>
-        <h2>Test Cases</h2>
+        <h2 class="pull-left">Tests</h2>
+        <div class="btn-group" class="pull-left" style="margin-left: 20px;">
+            <a class="btn btn-sm btn-default" ui-sref-active="active" ui-sref="project_tests()">Overview</a>
+            <a class="btn btn-sm btn-default" ui-sref-active="active" ui-sref="project_test_search()">All Tests</a>
+        </div>
     </div>
 
     <div class="alert alert-block alert-warning" ng-if="searchParams.min_duration">
@@ -38,11 +42,11 @@
     </table>
 
     <ul class="pager">
-        <li class="previous" ng-class="previousPage === null ? 'disabled' : ''">
-            <a ng-click="loadPreviousPage()">&larr; Previous</a>
+        <li class="previous" ng-class="testPaginator.previousPage === null ? 'disabled' : ''">
+            <a ng-click="testPaginator.loadPreviousPage()">&larr; Previous</a>
         </li>
-        <li class="next" ng-class="nextPage === null ? 'disabled' : ''">
-            <a ng-click="loadNextPage()">Next &rarr;</a>
+        <li class="next" ng-class="testPaginator.nextPage === null ? 'disabled' : ''">
+            <a ng-click="testPaginator.loadNextPage()">Next &rarr;</a>
         </li>
     </ul>
 </section>
