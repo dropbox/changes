@@ -8,6 +8,16 @@ from changes.jobs.sync_job_step import sync_job_step
 from changes.models import Command as CommandModel, JobPhase, JobStep
 
 
+DEFAULT_ARTIFACTS = (
+    'junit.xml',
+    '*.junit.xml',
+    'xunit.xml',
+    '*.xunit.xml',
+    'coverage.xml',
+    '*.coverage.xml',
+)
+
+
 class Command(object):
     def __init__(self, script, path, artifacts, env):
         self.script = script
@@ -28,7 +38,8 @@ class DefaultBuildStep(BuildStep):
     This build step is also responsible for generating appropriate commands
     in order for the client to obtain the source code.
     """
-    def __init__(self, commands, path='./source/', env=None, artifacts=None, **kwargs):
+    def __init__(self, commands, path='./source/', env=None,
+                 artifacts=DEFAULT_ARTIFACTS, **kwargs):
         command_defaults = (
             ('path', path),
             ('env', env),
