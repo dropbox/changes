@@ -13,9 +13,8 @@ class ProjectTestIndexTest(APITestCase):
         self.create_job(build)
 
         project2 = self.create_project()
-        build = self.create_build(project2)
-        job = self.create_job(
-            build, status=Status.finished, result=Result.passed)
+        build = self.create_build(project2, status=Status.finished, result=Result.passed)
+        job = self.create_job(build)
         test = self.create_test(job=job, name='foobar', duration=50)
 
         path = '/api/0/projects/{0}/tests/'.format(fake_project_id.hex)
