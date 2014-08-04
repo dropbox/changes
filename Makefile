@@ -47,7 +47,6 @@ setup-git:
 install-requirements:
 	@# XXX: Can any of these run in parallel?
 	npm install
-	bower install --allow-root
 	pip install -U pip
 	pip install -e . --use-mirrors --allow-external=argparse
 
