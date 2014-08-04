@@ -38,8 +38,5 @@
     "mocha": "~1.19.0",
     "requirejs": "~2.1.11"
   },
-  "config": {
-    "unsafe-perm": true
-  },
   "private": true
 }
