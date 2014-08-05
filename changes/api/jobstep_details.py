@@ -8,8 +8,9 @@ from changes.api.base import APIView
 from changes.api.validators.datetime import ISODatetime
 from changes.config import db
 from changes.constants import Result, Status
+from changes.db.utils import get_or_create
 from changes.jobs.sync_job import sync_job
-from changes.models import JobStep
+from changes.models import JobStep, Node
 
 
 RESULT_CHOICES = ('failed', 'passed')
@@ -22,6 +23,7 @@ class JobStepDetailsAPIView(APIView):
     post_parser.add_argument('date', type=ISODatetime())
     post_parser.add_argument('status', choices=STATUS_CHOICES)
     post_parser.add_argument('result', choices=RESULT_CHOICES)
+    post_parser.add_argument('node')
 
     def get(self, step_id):
         jobstep = JobStep.query.options(
@@ -62,6 +64,12 @@ class JobStepDetailsAPIView(APIView):
                 jobstep.date_started = current_datetime
             elif jobstep.status == Status.queued and jobstep.date_started:
                 jobstep.date_started = None
+
+        if args.node:
+            node, _ = get_or_create(Node, where={
+                'label': args.node,
+            })
+            jobstep.node_id = node.id
 
         db.session.add(jobstep)
         if db.session.is_modified(jobstep):

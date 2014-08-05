@@ -1,3 +1,4 @@
+from changes.config import db
 from changes.constants import Result, Status
 from changes.models import JobStep
 from changes.testutils import APITestCase
@@ -73,3 +74,25 @@ class UpdateJobStepTest(APITestCase):
         assert jobstep.result == Result.passed
         assert jobstep.date_started is not None
         assert jobstep.date_finished is not None
+
+        resp = self.client.post(path, data={
+            'node': 'foo',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+
+        db.session.expire(jobstep)
+        jobstep = JobStep.query.get(jobstep.id)
+        assert jobstep.node.label == 'foo'
+
+        resp = self.client.post(path, data={
+            'node': 'bar',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+
+        db.session.expire(jobstep)
+        jobstep = JobStep.query.get(jobstep.id)
+        assert jobstep.node.label == 'bar'
