@@ -1,11 +1,15 @@
 Changes
 -------
 
-Changes is a dashboard to view information about your code. Specifically, it focuses on aggregating quality metrics and history, such as results from a build server.
+Changes is a build coordinator and reporting solution written in Python.
 
-Supported build platforms include:
+The project is primarily built on top of Jenkins, but efforts are underway to
+replace the underlying dependency. The current work-in-progress tooling exists
+under several additional repositories:
 
-- `Jenkins <http://jenkins-ci.org>`_
+- https://github.com/dropbox/changes-client
+- https://github.com/dropbox/changes-lxc-wrapper
+- https://github.com/dropbox/changes-mesos-framework
 
 .. note:: **Changes is under extremely active and rapid development, and you probably shouldn't use it unless you like broken software.**
 

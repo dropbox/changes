@@ -3,7 +3,14 @@ Changes
 
 Changes is a build coordinator and reporting solution written in Python.
 
-It currently is built on top of Jenkins, but attempts to abstract away most controls via numerous hacks and APIs.
+The project is primarily built on top of Jenkins, but efforts are underway to
+replace the underlying dependency. The current work-in-progress tooling exists
+under several additional repositories:
+
+- https://github.com/dropbox/changes-client
+- https://github.com/dropbox/changes-lxc-wrapper
+- https://github.com/dropbox/changes-mesos-framework
+
 
 Users Guide
 -----------
