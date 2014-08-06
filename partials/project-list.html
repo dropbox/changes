@@ -1,5 +1,6 @@
 <section ui-view>
-  <ul class="project-list indicated-list">
+  <ul class="project-list indicated-list"
+      ng-class="projectList.length <= 16 ? 'project-list-wide' : ''">
     <li ng-repeat="project in projects"
         slyEvaluateOnlyWhen="project.lastPassingBuild.dateModified"
         class="{{getProjectClass(project)}}">
@@ -8,10 +9,10 @@
         <h4 bind-once>{{project.name}}</h4>
         <span ng-if="project.lastPassingBuild">
           <small>
-            <span ng-if="project.lastPassingBuild.stats.test_count">
+            <span ng-if="project.lastPassingBuild.stats.test_count" class="stat stat-tests">
               {{project.lastPassingBuild.stats.test_count}} tests <span class="sep">/</span>
             </span>
-            <span ng-if="project.hasCoverage">
+            <span ng-if="project.hasCoverage" class="stat stat-coverage">
               {{project.coveragePercent}}% coverage <span class="sep">/</span>
             </span>
             <span duration="project.lastPassingBuild.duration"></span>

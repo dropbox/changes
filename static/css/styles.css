@@ -654,6 +654,7 @@ a.indicator {
   float: left;
   display: block;
 }
+
 .project-list > li .indicator {
   height: 40px;
   width: 40px;
@@ -688,6 +689,9 @@ a.indicator {
   font-weight: 300;
   color: #666;
 }
+.project-list .sep {
+  padding: 0 5px;
+}
 .project-list-wide > li > a {
   text-align: center;
   height: 130px;
@@ -721,8 +725,40 @@ a.indicator {
 .project-list-wide > li.result-failed > a small {
   color: #FFCAC8;
 }
-.project-list .sep {
-  padding: 0 5px;
+
+@media (max-width: 1200px) {
+  .project-list > li {
+    width: 33%;
+  }
+}
+@media (max-width: 992px) {
+  .project-list > li {
+    width: 50%;
+  }
+}
+@media (max-width: 767px) {
+  .project-list > li {
+    width: 50%;
+  }
+  .project-list > li > a small {
+    display: none;
+  }
+  .project-list > li > a h4 {
+    margin: 0;
+    display: inline;
+  }
+  .project-list .stat {
+    display: none;
+  }
+  .project-list-wide > li > a {
+    padding: 20px 10px;
+    height: auto;
+  }
+}
+@media (max-width: 500px) {
+  .project-list > li {
+    width: 100%;
+  }
 }
 
 table > tbody > tr > td.result {
