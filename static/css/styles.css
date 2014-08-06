@@ -661,6 +661,10 @@ a.indicator {
   height: 130px;
   padding: 40px 10px;
 }
+.project-list-small > li > a {
+  height: 70px;
+  padding: 10px;
+}
 .project-list > li > a:hover {
   text-decoration: none;
 }

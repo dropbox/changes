@@ -1,5 +1,5 @@
 <section ui-view>
-	<ul class="project-list">
+	<ul class="project-list" ng-class="projectList.length > 16 ? 'project-list-small' : ''">
 		<li ng-repeat="project in projects"
 		    slyEvaluateOnlyWhen="project.lastPassingBuild.dateModified"
 		    class="{{getProjectClass(project)}}">
