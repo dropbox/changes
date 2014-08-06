@@ -654,16 +654,21 @@ a.indicator {
   float: left;
   display: block;
 }
-.project-list > li > a {
-  display: block;
-  background: #c7c0de;
-  text-align: center;
-  height: 130px;
-  padding: 40px 10px;
+.project-list > li .indicator {
+  height: 40px;
+  width: 40px;
+  position: absolute;
+  top: 5px;
+  left: 5px;
 }
-.project-list-small > li > a {
-  height: 70px;
-  padding: 10px;
+.project-list > li > a {
+  position: relative;
+  display: block;
+  padding: 5px 5px 5px 55px;
+  border-radius: 8px;
+}
+.project-list > li > a:hover {
+  background: #eee;
 }
 .project-list > li > a:hover {
   text-decoration: none;
@@ -673,8 +678,9 @@ a.indicator {
   overflow: hidden;
   height: 20px;
   margin-top: 0;
+  margin-bottom: 0;
   white-space: nowrap;
-  text-align: center;
+  text-align: inherit;
 }
 .project-list > li small {
   display: block;
@@ -682,23 +688,37 @@ a.indicator {
   font-weight: 300;
   color: #666;
 }
-
-.project-list > li.result-skipped > a {
+.project-list-wide > li > a {
+  text-align: center;
+  height: 130px;
+  padding: 40px 10px;
+  border-radius: 0;
+}
+.project-list-wide > li h4 {
+  margin-bottom: 10px;
+}
+.project-list-wide > li .indicator {
+  display: none;
+}
+.project-list-wide > li > a {
+  background: #c7c0de;
+}
+.project-list-wide > li.result-skipped > a {
   color: #fff;
   background: gold;
 }
-.project-list > li.result-passed > a {
+.project-list-wide > li.result-passed > a {
   color: #fff;
   background: rgb(114, 194, 114);
 }
-.project-list > li.result-passed > a small {
+.project-list-wide > li.result-passed > a small {
   color: rgb(208, 255, 208);
 }
-.project-list > li.result-failed > a {
+.project-list-wide > li.result-failed > a {
   color: #fff;
   background: #d9322d;
 }
-.project-list > li.result-failed > a small {
+.project-list-wide > li.result-failed > a small {
   color: #FFCAC8;
 }
 .project-list .sep {
@@ -1777,10 +1797,9 @@ label.btn input[type=checkbox] {
 .indicated-list .result-success .indicator {
   background: rgb(114, 194, 114);
 }
-.event-list .result-fail .indicator,
+.event-list .result-failed .indicator,
 .failure-list .indicator,
-.indicated-list .result-fail .indicator
- {
+.indicated-list .result-failed .indicator {
   background: #d9322d;
 }
 .event-list .event-label,

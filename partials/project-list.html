@@ -1,25 +1,26 @@
 <section ui-view>
-	<ul class="project-list" ng-class="projectList.length > 16 ? 'project-list-small' : ''">
-		<li ng-repeat="project in projects"
-		    slyEvaluateOnlyWhen="project.lastPassingBuild.dateModified"
-		    class="{{getProjectClass(project)}}">
-			<a ui-sref="project_commits({project_id: project.slug})">
-				<h4 bind-once>{{project.name}}</h4>
-				<div ng-if="project.lastPassingBuild">
-					<small>
-						<span ng-if="project.lastPassingBuild.stats.test_count">
-							{{project.lastPassingBuild.stats.test_count}} tests <span class="sep">/</span>
-						</span>
-						<span ng-if="project.hasCoverage">
-							{{project.coveragePercent}}% coverage <span class="sep">/</span>
-						</span>
-						<span duration="project.lastPassingBuild.duration"></span>
-					</small>
-				</div>
-				<div ng-if="!project.lastPassingBuild">
-					<small>No build information available</small>
-				</div>
-			</a>
-		</li>
-	</ul>
+  <ul class="project-list indicated-list">
+    <li ng-repeat="project in projects"
+        slyEvaluateOnlyWhen="project.lastPassingBuild.dateModified"
+        class="{{getProjectClass(project)}}">
+      <a ui-sref="project_commits({project_id: project.slug})">
+        <span class="indicator"></span>
+        <h4 bind-once>{{project.name}}</h4>
+        <span ng-if="project.lastPassingBuild">
+          <small>
+            <span ng-if="project.lastPassingBuild.stats.test_count">
+              {{project.lastPassingBuild.stats.test_count}} tests <span class="sep">/</span>
+            </span>
+            <span ng-if="project.hasCoverage">
+              {{project.coveragePercent}}% coverage <span class="sep">/</span>
+            </span>
+            <span duration="project.lastPassingBuild.duration"></span>
+          </small>
+        </span>
+        <span ng-if="!project.lastPassingBuild">
+          <small>No build information available</small>
+        </span>
+      </a>
+    </li>
+  </ul>
 </section>
