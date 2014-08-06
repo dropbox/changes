@@ -41,6 +41,7 @@ define([
   'states/testCaseDetails',
 
   'directives/bindOnce',
+  'directives/commitInfo',
   'directives/duration',
   'directives/prettyJson',
   'directives/renderBuildRow',

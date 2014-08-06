@@ -35,7 +35,6 @@
                 <tr class="grid-list-header">
                     <th class="result">Result</th>
                     <th>Source</th>
-                    <th class="column left-align">Author</th>
                     <th class="column">When</th>
                     <th class="column">Duration</th>
                     <th class="column">Retries</th>
@@ -49,16 +48,10 @@
                     </a>
                 </td>
                 <td ng-if="result.job.build.source.isCommit">
-                    <span ng-if="result.job.build.source.revision.branches">
-                        <span class="branch" ng-repeat="branch in result.job.build.source.revision.branches">{{branch}}</span>
-                    </span>
-                    <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.source.revision.sha.substr(0, 12)}}</a>
+                    <data-commit-info commit="result.job.build" show-branches="result.job.build.source.revision.branches" title="result.job.build.name"></data-commit-info>
                 </td>
                 <td ng-if="!result.job.build.source.isCommit">
                     <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.target}}</a>
-                </td>
-                <td class="column left-align">
-                    {{ result.job.build.author.email }}
                 </td>
                 <td class="column" time-since="result.job.build.dateCreated"></td>
                 <td class="column" duration="result.duration"></td>
