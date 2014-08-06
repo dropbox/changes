@@ -1794,11 +1794,13 @@ label.btn input[type=checkbox] {
   left: 0;
 }
 .event-list .result-success .indicator,
-.indicated-list .result-success .indicator {
+.indicated-list .result-success .indicator,
+.indicated-list .result-passed .indicator {
   background: rgb(114, 194, 114);
 }
-.event-list .result-failed .indicator,
+.event-list .result-fail .indicator,
 .failure-list .indicator,
+.indicated-list .result-fail .indicator,
 .indicated-list .result-failed .indicator {
   background: #d9322d;
 }
