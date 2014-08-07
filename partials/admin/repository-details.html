@@ -7,31 +7,48 @@
        class="alert alert-block alert-info">This repository is inactive while it imports a minimum amount of history.</div>
 
   <form name="repositoryDetailsForm" ng-submit="saveForm()">
-    <div class="form-group">
-      <label>URL</label>
-      <input type="text" class="form-control" ng-model="formData.url"
-             placeholder="i.e. git@github.com:dropbox/changes.git"
-             required>
-    </div>
+    <fieldset>
 
-    <div class="form-group">
-      <label>Status</label>
-      <select class="form-control" ng-model="formData.status"
-              required>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
-    </div>
+      <legend>Basics</legend>
 
-    <div class="form-group">
-      <label>Backend</label>
-      <select class="form-control" ng-model="formData.backend"
-              required>
-        <option value="unknown">Unknown</option>
-        <option value="git">Git</option>
-        <option value="hg">Mercurial</option>
-      </select>
-    </div>
+      <div class="form-group">
+        <label>URL</label>
+        <input type="text" class="form-control" ng-model="formData.url"
+               placeholder="i.e. git@github.com:dropbox/changes.git"
+               required>
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select class="form-control" ng-model="formData.status"
+                required>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Backend</label>
+        <select class="form-control" ng-model="formData.backend"
+                required>
+          <option value="unknown">Unknown</option>
+          <option value="git">Git</option>
+          <option value="hg">Mercurial</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+
+      <legend>Phabricator</legend>
+
+      <div class="form-group">
+        <label>Callsign</label>
+        <input type="text" class="form-control" ng-model="formData['phabricator.callsign']"
+               placeholder="i.e. MYREPO">
+      </div>
+
+    </fieldset>
 
     <div class="form-submit">
       <p ng-show="repositoryDetailsForm.$dirty">Your changes have not yet been saved.</p>

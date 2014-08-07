@@ -7,7 +7,8 @@ define(['app'], function(app) {
     return {
       url: repositoryData.url,
       backend: repositoryData.backend.id,
-      status: repositoryData.status.id == 'inactive' ? 'inactive' : 'active'
+      status: repositoryData.status.id == 'inactive' ? 'inactive' : 'active',
+      'phabricator.callsign': repositoryData.options['phabricator.callsign']
     };
   }
 

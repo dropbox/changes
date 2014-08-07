@@ -178,6 +178,23 @@ def execute_build(build):
     return build
 
 
+def get_repository_by_callsign(callsign):
+    # It's possible to have multiple repositories with the same callsign due
+    # to us not enforcing a unique constraint (via options). Given that it is
+    # complex and shouldn't actually happen we make an assumption that there's
+    # only a single repo
+    item_id_list = db.session.query(ItemOption.item_id).filter(
+        ItemOption.name == 'phabricator.callsign',
+        ItemOption.value == callsign,
+    )
+    repo_list = list(Repository.query.filter(
+        Repository.id.in_(item_id_list),
+    ))
+    if len(repo_list) > 1:
+        logging.warning('Multiple repositories found matching phabricator.callsign=%s', callsign)
+    return repo_list[0]
+
+
 class BuildIndexAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('sha', type=str, required=True)
@@ -185,7 +202,10 @@ class BuildIndexAPIView(APIView):
         Project.slug == x,
         Project.status == ProjectStatus.active,
     ).first())
+    # TODO(dcramer): it might make sense to move the repository and callsign
+    # options into something like a "repository builds index" endpoint
     parser.add_argument('repository', type=lambda x: Repository.query.filter_by(url=x).first())
+    parser.add_argument('repository[phabricator.callsign]', type=get_repository_by_callsign)
     parser.add_argument('author', type=AuthorValidator())
     parser.add_argument('label', type=unicode)
     parser.add_argument('target', type=unicode)
@@ -211,7 +231,7 @@ class BuildIndexAPIView(APIView):
         """
         args = self.parser.parse_args()
 
-        if not (args.project or args.repository):
+        if not (args.project or args.repository or args['repository[phabricator.callsign]']):
             return '{"error": "Need project or repository"}', 400
 
         if args.patch_data:
@@ -228,8 +248,18 @@ class BuildIndexAPIView(APIView):
         if args.project:
             projects = [args.project]
             repository = Repository.query.get(args.project.repository_id)
-        else:
+
+        elif args.repository:
             repository = args.repository
+            projects = list(Project.query.options(
+                subqueryload_all(Project.project_plans, ProjectPlan.plan),
+            ).filter(
+                Project.status == ProjectStatus.active,
+                Project.repository_id == repository.id,
+            ))
+
+        elif args['repository[phabricator.callsign]']:
+            repository = args['repository[phabricator.callsign]']
             projects = list(Project.query.options(
                 subqueryload_all(Project.project_plans, ProjectPlan.plan),
             ).filter(

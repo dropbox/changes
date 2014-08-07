@@ -1,4 +1,5 @@
-from changes.models import Repository, RepositoryBackend
+from changes.config import db
+from changes.models import ItemOption, Repository, RepositoryBackend
 from changes.testutils import APITestCase
 
 
@@ -15,6 +16,8 @@ class RepositoryDetailsTest(APITestCase):
         data = self.unserialize(resp)
         assert data['id'] == repo.id.hex
         assert data['url'] == repo.url
+        assert 'options' in data
+        assert data['options']['phabricator.callsign'] == ''
 
 
 class UpdateRepositoryTest(APITestCase):
@@ -64,3 +67,18 @@ class UpdateRepositoryTest(APITestCase):
         repo = Repository.query.get(repo.id)
 
         assert repo.backend == RepositoryBackend.git
+
+        # test setting phabricator callsign
+        resp = self.client.post(path, data={
+            'phabricator.callsign': 'FOOBAR'
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert 'options' in data
+        assert data['options']['phabricator.callsign'] == 'FOOBAR'
+
+        result = db.session.query(ItemOption.value).filter(
+            ItemOption.item_id == repo.id,
+            ItemOption.name == 'phabricator.callsign',
+        ).scalar()
+        assert result == 'FOOBAR'

@@ -267,6 +267,29 @@ class BuildCreateTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 2
 
+    def test_with_repository_callsign(self):
+        plan = self.create_plan()
+        repo = self.create_repo()
+
+        project1 = self.create_project(repository=repo)
+        project2 = self.create_project(repository=repo)
+        plan.projects.append(project1)
+        plan.projects.append(project2)
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'repository[phabricator.callsign]': 'FOO',
+            'sha': 'a' * 40,
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
+
     def test_with_patch_without_diffs_enabled(self):
         po = ProjectOption(
             project=self.project,
