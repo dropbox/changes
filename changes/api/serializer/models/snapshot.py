@@ -14,4 +14,5 @@ class SnapshotSerializer(Serializer):
                 'id': instance.build_id.hex if instance.build_id else None,
             },
             'status': instance.status,
+            'dateCreated': instance.date_created,
         }

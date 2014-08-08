@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 
+from datetime import datetime
 from uuid import uuid4
 from enum import Enum
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from changes.config import db
@@ -47,6 +48,7 @@ class Snapshot(db.Model):
     status = Column(EnumType(SnapshotStatus),
                     default=SnapshotStatus.unknown,
                     nullable=False, server_default='0')
+    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     build = relationship('Build')
     project = relationship('Project', innerjoin=True)
