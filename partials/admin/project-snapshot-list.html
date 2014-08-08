@@ -1,15 +1,27 @@
-<section ng-show="snapshotList">
+<section ng-hide="snapshotList.length == 0">
   <table class="grid-list">
     <thead>
       <tr class="grid-list-header">
         <th>ID</th>
+        <th class="column">Status</th>
         <th class="column">Created</th>
+        <th class="column"></th>
       </tr>
     </thead>
     <tbody>
       <tr ng-repeat="snapshot in snapshotList">
         <td>{{snapshot.id}}</td>
+        <td class="column">{{snapshot.status.name}}</td>
         <td class="column" time-since="snapshot.dateCreated"></td>
+        <td class="column" ng-if="snapshot.status.id == 'active'">
+          <a ng-if="snapshot.id == currentSnapshotId"
+             ng-click="deactivateSnapshot(snapshot.id)">Deactivate</a>
+          <a ng-if="snapshot.id != currentSnapshotId"
+             ng-click="activateSnapshot(snapshot.id)">Activate</a>
+        </td>
+        <td class="column" ng-if="snapshot.status.id != 'active'">
+          <em>Inactive</em>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -24,6 +36,6 @@
   </ul>
 </section>
 
-<section ng-hide="snapshotList">
+<section ng-show="snapshotList.length == 0">
   <p>No snapshots have been generated for this project.</p>
 </section>

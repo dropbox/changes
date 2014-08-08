@@ -11,7 +11,7 @@ from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.models import (
     Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan,
-    ItemStat
+    ItemStat, Snapshot, SnapshotStatus
 )
 from changes.testutils.fixtures import Fixtures
 
@@ -174,6 +174,14 @@ def loop():
     get_or_create(ProjectPlan, where={
         'plan': plan,
         'project': project,
+    })
+    get_or_create(Snapshot, where={
+        'project': project,
+        'status': SnapshotStatus.active,
+    })
+    get_or_create(Snapshot, where={
+        'project': project,
+        'status': SnapshotStatus.pending,
     })
 
     while True:

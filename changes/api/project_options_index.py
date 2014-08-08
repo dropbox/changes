@@ -8,6 +8,9 @@ from changes.models import Project, ProjectOption, Snapshot, SnapshotStatus
 
 
 def validate_snapshot_id(id_hex):
+    if not id_hex:
+        return ''
+
     snapshot = Snapshot.query.get(id_hex)
     assert snapshot is not None, "Could not find snapshot"
     assert snapshot.status == SnapshotStatus.active, "Snapshot not active"

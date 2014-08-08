@@ -17,16 +17,18 @@ class SnapshotStatus(Enum):
     active = 1
     failed = 2
     invalidated = 3
+    pending = 4
 
     def __str__(self):
         return STATUS_LABELS[self]
 
 
 STATUS_LABELS = {
-    SnapshotStatus.unknown: 'unknown',
-    SnapshotStatus.active: 'active',
-    SnapshotStatus.failed: 'failed',
-    SnapshotStatus.invalidated: 'invalidated',
+    SnapshotStatus.unknown: 'Unknown',
+    SnapshotStatus.pending: 'Pending',
+    SnapshotStatus.active: 'Active',
+    SnapshotStatus.failed: 'Failed',
+    SnapshotStatus.invalidated: 'Invalidated',
 }
 
 
