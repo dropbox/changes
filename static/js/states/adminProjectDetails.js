@@ -1,7 +1,6 @@
 define([
-  'app',
-  'utils/escapeHtml'
-], function(app, escapeHtml) {
+  'app'
+], function(app) {
   'use strict';
 
   function getFormData(projectData) {
