@@ -1,0 +1,29 @@
+<section ng-show="snapshotList">
+  <table class="grid-list">
+    <thead>
+      <tr class="grid-list-header">
+        <th>ID</th>
+        <th class="column">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="snapshot in snapshotList">
+        <td>{{snapshot.id}}</td>
+        <td class="column" time-since="snapshot.dateCreated"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ul class="pager">
+    <li class="previous" ng-class="snapshotPaginator.previousPage === null ? 'disabled' : ''">
+      <a ng-click="snapshotPaginator.loadPreviousPage()">&larr; Previous</a>
+    </li>
+    <li class="next" ng-class="snapshotPaginator.nextPage === null ? 'disabled' : ''">
+      <a ng-click="snapshotPaginator.loadNextPage()">Next &rarr;</a>
+    </li>
+  </ul>
+</section>
+
+<section ng-hide="snapshotList">
+  <p>No snapshots have been generated for this project.</p>
+</section>

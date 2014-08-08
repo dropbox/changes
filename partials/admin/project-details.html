@@ -2,179 +2,186 @@
 	<div class="pull-right">
 		<a ui-sref="project_commits({project_id: project.id})" class="btn btn-default">View Builds &rarr;</a>
 	</div>
-	<h2>Settings for {{project.name}}</h2>
+	<h2>{{project.name}}</h2>
 </div>
 
-<form name="projectSettingsForm">
-	<fieldset>
+<ul class="nav nav-tabs" style="margin-bottom: 20px;">
+	<li ui-sref-active="active"><a ui-sref="admin_project_details()">Settings</a></li>
+	<li ui-sref-active="active"><a ui-sref="admin_project_snapshot_list()">Snapshots</a></li>
+</ul>
 
-		<legend>Basics</legend>
+<section ui-view>
+	<form name="projectSettingsForm">
+		<fieldset>
 
-		<div class="form-group">
-			<label>Name:</label>
-			<input type="text" class="form-control" ng-model="formData.name" required>
+			<legend>Basics</legend>
+
+			<div class="form-group">
+				<label>Name:</label>
+				<input type="text" class="form-control" ng-model="formData.name" required>
+			</div>
+
+			<div class="form-group">
+				<label>Slug:</label>
+				<input type="text" class="form-control" ng-model="formData.slug" required>
+			</div>
+
+			<div class="form-group">
+				<label>Repository:</label>
+				<input type="text" class="form-control" ng-model="formData.repository"
+					   datasets="repoTypeaheadData" tw-typeahead
+					   required>
+			</div>
+
+			<div class="form-group">
+			  <label>Status</label>
+			  <select class="form-control" ng-model="formData.status"
+					  required>
+				<option value="active">Active</option>
+				<option value="inactive">Inactive</option>
+			  </select>
+			</div>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Mail</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['mail.notify-author']">
+					Notify authors of build failures.
+				</label>
+			</div>
+
+			<div class="form-group">
+				<label>Addresses to notify of any build failure</label>
+				<input type="text" class="form-control" ng-model="options['mail.notify-addresses']">
+			</div>
+
+			<div class="form-group">
+				<label>Addresses to notify of failures from commits (not patches)</label>
+				<input type="text" class="form-control" ng-model="options['mail.notify-addresses-revisions']">
+			</div>
+
+		</fieldset>
+
+
+		<fieldset>
+
+			<legend>HipChat</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['hipchat.notify']">
+					Notify of notable builds.
+				</label>
+			</div>
+
+			<div class="form-group">
+				<label>Room ID</label>
+				<input type="text" class="form-control" ng-model="options['hipchat.room']">
+			</div>
+
+		</fieldset>
+
+		<fiedlset>
+
+			<legend>Green Build</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['green-build.notify']">
+					Notify of passing builds.
+				</label>
+			</div>
+
+			<div class="form-group">
+				<label>Project name</label>
+				<input type="text" class="form-control" ng-model="options['green-build.project']">
+			</div>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Builds</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['build.commit-trigger']">
+					Automatically create builds for new commits.
+				</label>
+			</div>
+
+			<div class="form-group">
+				<label>Branches</label>
+				<input type="text" class="form-control" ng-model="options['build.branch-names']">
+				<div class="help-block">Limit commit triggered builds from the following branches</div>
+			</div>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['build.allow-patches']">
+					Allow builds to be created from patches.
+				</label>
+			</div>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Tests</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['ui.show-tests']">
+					Show test data in various UIs.
+				</label>
+			</div>
+
+			<div class="form-group">
+				<label>Maximum Duration (per test)</label>
+				<input type="text" class="form-control" ng-model="options['build.test-duration-warning']">
+				<div class="help-block">Tests exceeding this duration (in ms) will show up as warnings.</div>
+			</div>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Code Coverage</legend>
+
+			<div class="form-group checkbox">
+				<label>
+					<input type="checkbox" value="1" ng-model="options['ui.show-coverage']">
+					Show coverage data in various UIs.
+				</label>
+			</div>
+
+		</fieldset>
+
+		<fieldset>
+
+			<legend>Build Plans</legend>
+
+			<ul>
+				<li ng-repeat="plan in plans">
+					<h4><a ui-sref="admin_plan_details({plan_id: plan.id})">{{ plan.name }}</a></h4>
+					<ol>
+						<li ng-repeat="step in plan.steps">{{step.name}}</li>
+					</ol>
+				</li>
+			</ul>
+
+		</fieldset>
+
+		<div class="fixed-form-submit" ng-show="projectSettingsForm.$dirty">
+			<div class="container">
+				<p>Your changes have not yet been saved.</p>
+				<button ng-click="saveProjectSettings()" class="btn btn-sm btn-primary">Save Changes</button>
+			</div>
 		</div>
-
-		<div class="form-group">
-			<label>Slug:</label>
-			<input type="text" class="form-control" ng-model="formData.slug" required>
-		</div>
-
-		<div class="form-group">
-			<label>Repository:</label>
-			<input type="text" class="form-control" ng-model="formData.repository"
-				   datasets="repoTypeaheadData" tw-typeahead
-				   required>
-		</div>
-
-		<div class="form-group">
-		  <label>Status</label>
-		  <select class="form-control" ng-model="formData.status"
-				  required>
-			<option value="active">Active</option>
-			<option value="inactive">Inactive</option>
-		  </select>
-		</div>
-
-	</fieldset>
-
-	<fieldset>
-
-		<legend>Mail</legend>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['mail.notify-author']">
-				Notify authors of build failures.
-			</label>
-		</div>
-
-		<div class="form-group">
-			<label>Addresses to notify of any build failure</label>
-			<input type="text" class="form-control" ng-model="options['mail.notify-addresses']">
-		</div>
-
-		<div class="form-group">
-			<label>Addresses to notify of failures from commits (not patches)</label>
-			<input type="text" class="form-control" ng-model="options['mail.notify-addresses-revisions']">
-		</div>
-
-	</fieldset>
-
-
-	<fieldset>
-
-		<legend>HipChat</legend>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['hipchat.notify']">
-				Notify of notable builds.
-			</label>
-		</div>
-
-		<div class="form-group">
-			<label>Room ID</label>
-			<input type="text" class="form-control" ng-model="options['hipchat.room']">
-		</div>
-
-	</fieldset>
-
-	<fiedlset>
-
-		<legend>Green Build</legend>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['green-build.notify']">
-				Notify of passing builds.
-			</label>
-		</div>
-
-		<div class="form-group">
-			<label>Project name</label>
-			<input type="text" class="form-control" ng-model="options['green-build.project']">
-		</div>
-
-	</fieldset>
-
-	<fieldset>
-
-		<legend>Builds</legend>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['build.commit-trigger']">
-				Automatically create builds for new commits.
-			</label>
-		</div>
-
-		<div class="form-group">
-			<label>Branches</label>
-			<input type="text" class="form-control" ng-model="options['build.branch-names']">
-			<div class="help-block">Limit commit triggered builds from the following branches</div>
-		</div>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['build.allow-patches']">
-				Allow builds to be created from patches.
-			</label>
-		</div>
-
-	</fieldset>
-
-	<fieldset>
-
-		<legend>Tests</legend>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['ui.show-tests']">
-				Show test data in various UIs.
-			</label>
-		</div>
-
-		<div class="form-group">
-			<label>Maximum Duration (per test)</label>
-			<input type="text" class="form-control" ng-model="options['build.test-duration-warning']">
-			<div class="help-block">Tests exceeding this duration (in ms) will show up as warnings.</div>
-		</div>
-
-	</fieldset>
-
-	<fieldset>
-
-		<legend>Code Coverage</legend>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['ui.show-coverage']">
-				Show coverage data in various UIs.
-			</label>
-		</div>
-
-	</fieldset>
-
-	<fieldset>
-
-		<legend>Build Plans</legend>
-
-		<ul>
-			<li ng-repeat="plan in plans">
-				<h4><a ui-sref="admin_plan_details({plan_id: plan.id})">{{ plan.name }}</a></h4>
-				<ol>
-					<li ng-repeat="step in plan.steps">{{step.name}}</li>
-				</ol>
-			</li>
-		</ul>
-
-	</fieldset>
-
-	<div class="fixed-form-submit" ng-show="projectSettingsForm.$dirty">
-		<div class="container">
-			<p>Your changes have not yet been saved.</p>
-			<button ng-click="saveProjectSettings()" class="btn btn-sm btn-primary">Save Changes</button>
-		</div>
-	</div>
-</fiedlset>
+	</fiedlset>
+</form>
