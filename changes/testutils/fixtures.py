@@ -11,7 +11,7 @@ from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
-    RepositoryStatus, User, ItemOption, Command
+    RepositoryStatus, User, ItemOption, Command, Snapshot
 )
 from changes.utils.slugs import slugify
 
@@ -395,3 +395,14 @@ class Fixtures(object):
         db.session.commit()
 
         return latest_green_build
+
+    def create_snapshot(self, project, **kwargs):
+        snapshot = Snapshot(
+            project_id=project.id,
+            project=project,
+            **kwargs
+        )
+        db.session.add(snapshot)
+        db.session.commit()
+
+        return snapshot
