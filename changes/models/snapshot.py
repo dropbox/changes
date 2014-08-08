@@ -55,3 +55,16 @@ class Snapshot(db.Model):
         super(Snapshot, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid4()
+
+    @classmethod
+    def get_current(self, project_id):
+        from changes.models import ProjectOption
+
+        current_id = db.session.query(ProjectOption.value).filter(
+            ProjectOption.project_id == project_id,
+            ProjectOption.name == 'snapshot.current',
+        ).scalar()
+        if not current_id:
+            return
+
+        return Snapshot.query.get(current_id)

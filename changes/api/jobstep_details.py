@@ -10,7 +10,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job import sync_job
-from changes.models import JobStep, Node
+from changes.models import JobStep, Node, Snapshot
 
 
 RESULT_CHOICES = ('failed', 'passed')
@@ -32,8 +32,11 @@ class JobStepDetailsAPIView(APIView):
         if jobstep is None:
             return '', 404
 
+        current_snapshot = Snapshot.get_current(jobstep.project_id)
+
         context = self.serialize(jobstep)
         context['commands'] = self.serialize(list(jobstep.commands))
+        context['snapshot'] = self.serialize(current_snapshot)
 
         return self.respond(context, serialize=False)
 
