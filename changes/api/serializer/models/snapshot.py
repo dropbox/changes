@@ -7,7 +7,11 @@ class SnapshotSerializer(Serializer):
     def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
-            'project_id': instance.project_id.hex,
-            'build_id': instance.build_id.hex if instance.build_id else None,
+            'project': {
+                'id': instance.project_id.hex,
+            },
+            'build': {
+                'id': instance.build_id.hex if instance.build_id else None,
+            },
             'status': instance.status,
         }

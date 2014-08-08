@@ -1,5 +1,5 @@
 from changes.config import db
-from changes.models import ProjectOption
+from changes.models import ProjectOption, Snapshot, SnapshotStatus
 from changes.testutils import APITestCase
 
 
@@ -14,8 +14,8 @@ class SnapshotDetailsTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['id'] == snapshot.id.hex
-        assert data['project_id'] == project.id.hex
-        assert data['build_id'] is None
+        assert data['project']['id'] == project.id.hex
+        assert data['build']['id'] is None
 
 
 class UpdateSnapshotTest(APITestCase):
@@ -34,7 +34,11 @@ class UpdateSnapshotTest(APITestCase):
             assert resp.status_code == 200
             data = self.unserialize(resp)
             assert data['id'] == self.snapshot.id.hex
-            assert data['project_id'] == self.project.id.hex
+            assert data['status']['id'] == status
+            db.session.expire(self.snapshot)
+
+            snapshot = Snapshot.query.get(self.snapshot.id)
+            assert snapshot.status == SnapshotStatus[status]
 
     def test_invalid_status(self):
         resp = self.client.post(self.path, data={

@@ -28,7 +28,8 @@ class SnapshotDetailsAPIView(APIView):
         args = self.parser.parse_args()
 
         if args.status:
-            snapshot.status = SnapshotStatus._member_map_[args.status]
+            snapshot.status = SnapshotStatus[args.status]
+
         if args.set_current and snapshot.status != SnapshotStatus.active:
             return '{"error": "Cannot set inactive current snapshot"}', 400
 
