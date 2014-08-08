@@ -21,7 +21,6 @@ def upgrade():
         sa.Column('project_id', sa.GUID(), nullable=False),
         sa.Column('build_id', sa.GUID(), nullable=True),
         sa.Column('status', sa.Enum(), server_default='0', nullable=False),
-        sa.Column('url', sa.String(length=200), nullable=True),
         sa.ForeignKeyConstraint(['build_id'], ['build.id'], ),
         sa.ForeignKeyConstraint(['project_id'], ['project.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')

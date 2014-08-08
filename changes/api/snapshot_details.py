@@ -10,7 +10,6 @@ from changes.models import ProjectOption, Snapshot, SnapshotStatus
 
 class SnapshotDetailsAPIView(APIView):
     parser = reqparse.RequestParser()
-    parser.add_argument('url', type=unicode)
     parser.add_argument('status', choices=SnapshotStatus._member_names_)
     parser.add_argument('set_current', type=bool)
 
@@ -28,11 +27,7 @@ class SnapshotDetailsAPIView(APIView):
 
         args = self.parser.parse_args()
 
-        if args.url:
-            snapshot.url = args.url
         if args.status:
-            if snapshot.url is None:
-                return '{"error": "Cannot set to active without a url"}', 400
             snapshot.status = SnapshotStatus._member_map_[args.status]
         if args.set_current and snapshot.status != SnapshotStatus.active:
             return '{"error": "Cannot set inactive current snapshot"}', 400

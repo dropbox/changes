@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from uuid import uuid4
 from enum import Enum
 
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
 
 from changes.config import db
@@ -32,7 +32,8 @@ STATUS_LABELS = {
 class Snapshot(db.Model):
     """
     Represents a snapshot used as a base in builds.
-    This is primarily used to indicate status and url.
+
+    This is primarily used to indicate status.
     """
 
     __tablename__ = 'snapshot'
@@ -46,7 +47,6 @@ class Snapshot(db.Model):
     status = Column(EnumType(SnapshotStatus),
                     default=SnapshotStatus.unknown,
                     nullable=False, server_default='0')
-    url = Column(String(200))
 
     build = relationship('Build')
     project = relationship('Project', innerjoin=True)

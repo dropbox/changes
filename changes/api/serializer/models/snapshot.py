@@ -10,5 +10,4 @@ class SnapshotSerializer(Serializer):
             'project_id': instance.project_id.hex,
             'build_id': instance.build_id.hex if instance.build_id else None,
             'status': instance.status,
-            'url': instance.url,
         }
