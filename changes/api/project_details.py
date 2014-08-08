@@ -24,6 +24,7 @@ OPTION_DEFAULTS = {
     'build.commit-trigger': '1',
     'ui.show-coverage': '1',
     'ui.show-tests': '1',
+    'snapshot.current': '',
 }
 
 STATUS_CHOICES = ('active', 'inactive')
