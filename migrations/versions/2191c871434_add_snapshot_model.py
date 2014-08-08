@@ -13,6 +13,7 @@ down_revision = '19168fe64c41'
 from alembic import op
 import sqlalchemy as sa
 
+
 def upgrade():
     op.create_table(
         'snapshot',
