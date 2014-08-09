@@ -37,6 +37,7 @@ class JobStepDetailsAPIView(APIView):
         context = self.serialize(jobstep)
         context['commands'] = self.serialize(list(jobstep.commands))
         context['snapshot'] = self.serialize(current_snapshot)
+        context['project'] = self.serialize(jobstep.project)
 
         return self.respond(context, serialize=False)
 
