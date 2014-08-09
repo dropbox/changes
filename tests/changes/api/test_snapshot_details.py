@@ -15,7 +15,7 @@ class SnapshotDetailsTest(APITestCase):
         data = self.unserialize(resp)
         assert data['id'] == snapshot.id.hex
         assert data['project']['id'] == project.id.hex
-        assert data['build']['id'] is None
+        assert data['build'] is None
 
 
 class UpdateSnapshotTest(APITestCase):
