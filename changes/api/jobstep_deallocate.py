@@ -15,9 +15,9 @@ class JobStepDeallocateAPIView(APIView):
         if to_deallocate is None:
             return '', 404
 
-        if to_deallocate.status not in (Status.in_progress, Status.allocated):
+        if to_deallocate.status != Status.allocated:
             return {
-                "error": "Only allocated and running job steps may be deallocated.",
+                "error": "Only {0} job steps may be deallocated.",
                 "actual_status": to_deallocate.status.name
             }, 400
 
