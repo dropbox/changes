@@ -20,11 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-define(['angular', 'jquery', 'typeahead'], function(angular, jQuery, typeahead){
+define(['angular', 'jquery', 'typeahead'], function(angular){
   'use strict';
-
-  // Require.js :(
-  jQuery.fn.typeahead = typeahead;
 
   angular.module('changes.typeahead', [])
     .directive('twTypeahead', function () {
