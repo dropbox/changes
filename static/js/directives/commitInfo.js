@@ -25,6 +25,7 @@
           commit: '=',
           title: '=',
           showBranches: '=',
+          showProject: '=',
         },
         replace: true,
       };
