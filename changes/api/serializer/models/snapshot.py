@@ -17,6 +17,7 @@ class SnapshotSerializer(Serializer):
             'project': {
                 'id': instance.project_id.hex,
             },
+            'source': instance.source,
             'build': build,
             'status': instance.status,
             'dateCreated': instance.date_created,

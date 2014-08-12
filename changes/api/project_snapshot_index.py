@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from flask.ext.restful.reqparse import RequestParser
+from sqlalchemy.orm import joinedload
 
 from changes.config import db
 from changes.db.utils import get_or_create
@@ -18,7 +19,9 @@ class ProjectSnapshotIndexAPIView(APIView):
         if not project:
             return '', 404
 
-        queryset = Snapshot.query.filter(
+        queryset = Snapshot.query.options(
+            joinedload('source').joinedload('revision'),
+        ).filter(
             Snapshot.project_id == project.id,
         )
 

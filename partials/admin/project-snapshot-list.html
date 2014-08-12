@@ -10,13 +10,18 @@
     </thead>
     <tbody>
       <tr ng-repeat="snapshot in snapshotList">
-        <td>{{snapshot.id}}</td>
+        <td>
+          {{snapshot.id}}<br>
+          <small ng-if="snapshot.source.revision.sha">Commit {{snapshot.source.revision.sha}}</small>
+        </td>
         <td class="column">{{snapshot.status.name}}</td>
         <td class="column" time-since="snapshot.dateCreated"></td>
         <td class="column" ng-if="snapshot.status.id == 'active'">
-          <a ng-if="snapshot.id == currentSnapshotId"
+          <a href="#"
+             ng-if="snapshot.id == currentSnapshotId"
              ng-click="deactivateSnapshot(snapshot.id)">Deactivate</a>
-          <a ng-if="snapshot.id != currentSnapshotId"
+          <a href="#"
+             ng-if="snapshot.id != currentSnapshotId"
              ng-click="activateSnapshot(snapshot.id)">Activate</a>
         </td>
         <td class="column" ng-if="snapshot.status.id != 'active'">
