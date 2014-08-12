@@ -17,6 +17,12 @@ DEFAULT_ARTIFACTS = (
     '*.coverage.xml',
 )
 
+DEFAULT_PATH = './source/'
+
+# TODO(dcramer): this doesnt make a lot of sense once we get off of LXC, so
+# for now we're only stuffing it into JobStep.data
+DEFAULT_RELEASE = 'precise'
+
 
 class Command(object):
     def __init__(self, script, path, artifacts, env):
@@ -38,8 +44,9 @@ class DefaultBuildStep(BuildStep):
     This build step is also responsible for generating appropriate commands
     in order for the client to obtain the source code.
     """
-    def __init__(self, commands, path='./source/', env=None,
-                 artifacts=DEFAULT_ARTIFACTS, **kwargs):
+    def __init__(self, commands, path=DEFAULT_PATH, env=None,
+                 artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
+                 **kwargs):
         command_defaults = (
             ('path', path),
             ('env', env),
@@ -52,6 +59,7 @@ class DefaultBuildStep(BuildStep):
 
         self.env = env
         self.path = path
+        self.release = release
         self.commands = map(lambda x: Command(**x), commands)
 
         super(DefaultBuildStep, self).__init__(**kwargs)
@@ -101,6 +109,9 @@ class DefaultBuildStep(BuildStep):
             'status': Status.pending_allocation,
             'job': phase.job,
             'project': phase.project,
+            'data': {
+                'release': self.release,
+            },
         })
 
         for index, command in enumerate(self.iter_all_commands(job)):
