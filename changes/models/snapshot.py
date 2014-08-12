@@ -47,6 +47,7 @@ class Snapshot(db.Model):
     project_id = Column(
         GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     build_id = Column(GUID, ForeignKey('build.id'))
+    source_id = Column(GUID, ForeignKey('source.id'))
     status = Column(EnumType(SnapshotStatus),
                     default=SnapshotStatus.unknown,
                     nullable=False, server_default='0')
@@ -54,6 +55,7 @@ class Snapshot(db.Model):
 
     build = relationship('Build')
     project = relationship('Project', innerjoin=True)
+    source = relationship('Source')
 
     def __init__(self, **kwargs):
         super(Snapshot, self).__init__(**kwargs)
