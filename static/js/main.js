@@ -49,11 +49,6 @@ requirejs.config({
     'bootstrap/tab': {deps: ['jquery'], exports: '$.fn.tab'},
     'bootstrap/tooltip': {deps: ['jquery'], exports: '$.fn.tooltip'},
     'bootstrap/transition': {deps: ['jquery'], exports: '$.fn.transition'},
-    'modules/flash': ['angular'],
-    'modules/pagination': ['angular'],
-    'modules/stream': ['angular'],
-    'modules/scalyr': ['angular'],
-    'modules/typeahead': ['angular'],
     'jquery': {
         exports: 'jquery'
     },
