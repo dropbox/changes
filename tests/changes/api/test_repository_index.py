@@ -10,9 +10,11 @@ class RepositoryListTest(APITestCase):
     def test_simple(self):
         repo_1 = self.create_repo(
             url='https://example.com/bar',
+            status=RepositoryStatus.inactive,
         )
         repo_2 = self.create_repo(
             url='https://example.com/foo',
+            status=RepositoryStatus.active,
         )
 
         resp = self.client.get(self.path)
@@ -21,6 +23,12 @@ class RepositoryListTest(APITestCase):
         assert len(data) == 2
         assert data[0]['id'] == repo_1.id.hex
         assert data[1]['id'] == repo_2.id.hex
+
+        resp = self.client.get(self.path + '?status=active')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == repo_2.id.hex
 
 
 class RepositoryCreateTest(APITestCase):

@@ -13,6 +13,8 @@ BACKEND_CHOICES = ('git', 'hg', 'unknown')
 
 SORT_CHOICES = ('url', 'date')
 
+STATUS_CHOICES = ('active', 'inactive')
+
 
 class RepositoryIndexAPIView(APIView):
     get_parser = reqparse.RequestParser()
@@ -21,6 +23,8 @@ class RepositoryIndexAPIView(APIView):
                             choices=BACKEND_CHOICES)
     get_parser.add_argument('sort', type=unicode, location='args',
                             choices=SORT_CHOICES, default='url')
+    get_parser.add_argument('status', type=unicode, location='args',
+                            choices=STATUS_CHOICES)
 
     post_parser = reqparse.RequestParser()
     post_parser.add_argument('url', type=unicode, required=True)
@@ -39,6 +43,11 @@ class RepositoryIndexAPIView(APIView):
         if args.backend:
             queryset = queryset.filter(
                 Repository.backend == RepositoryBackend[args.backend]
+            )
+
+        if args.status:
+            queryset = queryset.filter(
+                Repository.status == RepositoryStatus[args.status],
             )
 
         if args.sort == 'url':
