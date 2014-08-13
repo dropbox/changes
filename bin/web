@@ -11,13 +11,15 @@ def main(argv=sys.argv[1:]):
 
     parser.add_argument('--addr', default='127.0.0.1:5000')
     parser.add_argument('--profile')
+    parser.add_argument('--no-debug', dest='debug', action='store_false',
+                        default=True)
 
     args = parser.parse_args(argv)
 
-    web(addr=args.addr, profile=args.profile)
+    web(addr=args.addr, profile=args.profile, debug=args.debug)
 
 
-def web(addr, profile=None):
+def web(addr, profile=None, debug=True):
     from changes.config import create_app
 
     host, port = addr.split(':')
@@ -26,7 +28,7 @@ def web(addr, profile=None):
     port = int(port)
     addr = '{0}:{1}'.format(host, port)
 
-    app = create_app(SERVER_NAME=addr)
+    app = create_app(SERVER_NAME=addr, DEBUG=debug)
 
     if profile:
         statprof.start()
