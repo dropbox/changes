@@ -19,6 +19,7 @@ define(['app'], function(app) {
     controller: function($http, $scope, repositoryData, flash) {
       $scope.repository = repositoryData;
       $scope.formData = getFormData(repositoryData);
+      $scope.projectList = repositoryData.projects;
 
       $scope.saveForm = function() {
         $http.post('/api/0/repositories/' + repositoryData.id + '/', $scope.formData)

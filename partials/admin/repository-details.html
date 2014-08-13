@@ -50,11 +50,25 @@
 
     </fieldset>
 
-    <div class="form-submit">
+    <div class="form-submit clearfix">
       <p ng-show="repositoryDetailsForm.$dirty">Your changes have not yet been saved.</p>
       <button type="submit" class="btn btn-sm btn-primary"
               ng-disabled="repositoryDetailsForm.$pristine || repositoryDetailsForm.$invalid">Save Changes</button>
     </div>
 
+    <fieldset>
+
+      <legend>Projects</legend>
+
+      <ul ng-show="projectList">
+        <li ng-repeat="project in projectList">
+          <a ui-sref="admin_project_details({project_id: project.id})">{{project.name}}</a>
+        </li>
+      </ul>
+
+      <p ng-hide="projectList">
+        There are no projects assiged to this repository.
+      </p>
+    </fieldset>
   </form>
 </div>

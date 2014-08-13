@@ -8,7 +8,7 @@ from changes.config import db
 from changes.db.utils import create_or_update
 from changes.jobs.import_repo import import_repo
 from changes.models import (
-    ItemOption, Repository, RepositoryBackend, RepositoryStatus
+    ItemOption, Project, Repository, RepositoryBackend, RepositoryStatus
 )
 
 BACKEND_CHOICES = ('git', 'hg', 'unknown')
@@ -46,6 +46,9 @@ class RepositoryDetailsAPIView(APIView):
 
         context = self.serialize(repo)
         context['options'] = self._get_options(repo)
+        context['projects'] = self.serialize(list(Project.query.filter(
+            Project.repository_id == repo.id,
+        )))
 
         return self.respond(context, serialize=False)
 
