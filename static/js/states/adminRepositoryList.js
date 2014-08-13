@@ -14,6 +14,10 @@ define([
       endpoint += '&sort=' + params.sort;
     }
 
+    if (params.status) {
+      endpoint += '&status=' + params.status;
+    }
+
     if (params.backend) {
       endpoint += '&backend=' + params.backend;
     }
@@ -25,9 +29,15 @@ define([
     return endpoint;
   }
 
+  function ensureDefaults(params) {
+    if (params.status === null) {
+      params.status = 'active';
+    }
+  }
+
   return {
     parent: 'admin_layout',
-    url: 'repositories/?query&sort&backend&per_page',
+    url: 'repositories/?query&sort&backend&per_page&status',
     templateUrl: 'partials/admin/repository-list.html',
     controller: function($scope, $state, $stateParams, Collection, Paginator) {
       var collection = new Collection();
@@ -45,6 +55,9 @@ define([
       $scope.search = function(){
         $state.go('admin_repository_list', $scope.searchForm);
       };
+    },
+    onEnter: function($stateParams) {
+      ensureDefaults($stateParams);
     }
   };
 });
