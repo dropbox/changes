@@ -163,21 +163,6 @@
 
 		</fieldset>
 
-		<fieldset>
-
-			<legend>Build Plans</legend>
-
-			<ul>
-				<li ng-repeat="plan in plans">
-					<h4><a ui-sref="admin_plan_details({plan_id: plan.id})">{{ plan.name }}</a></h4>
-					<ol>
-						<li ng-repeat="step in plan.steps">{{step.name}}</li>
-					</ol>
-				</li>
-			</ul>
-
-		</fieldset>
-
 		<div class="fixed-form-submit" ng-show="projectSettingsForm.$dirty">
 			<div class="container">
 				<p>Your changes have not yet been saved.</p>
