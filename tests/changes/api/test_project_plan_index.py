@@ -8,7 +8,7 @@ class ProjectPlanListTest(APITestCase):
             project.id.hex)
 
         plan = self.create_plan()
-        plan.projects.add(project)
+        plan.projects.append(project)
 
         self.create_plan()
 
