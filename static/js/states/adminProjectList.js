@@ -10,6 +10,10 @@ define([
       endpoint += '&query=' + params.query;
     }
 
+    if (params.status) {
+      endpoint += '&status=' + params.status;
+    }
+
     if (params.sort) {
       endpoint += '&sort=' + params.sort;
     }
@@ -21,9 +25,16 @@ define([
     return endpoint;
   }
 
+
+  function ensureDefaults(params) {
+    if (params.status === null) {
+      params.status = 'active';
+    }
+  }
+
   return {
     parent: 'admin_layout',
-    url: 'projects/?query&per_page&sort',
+    url: 'projects/?query&per_page&sort&status',
     templateUrl: 'partials/admin/project-list.html',
     controller: function($scope, $state, $stateParams, Collection, Paginator) {
       var collection = new Collection();
@@ -41,6 +52,9 @@ define([
       $scope.search = function(){
         $state.go('admin_project_list', $scope.searchForm);
       };
+    },
+    onEnter: function($stateParams) {
+      ensureDefaults($stateParams);
     }
   };
 });
