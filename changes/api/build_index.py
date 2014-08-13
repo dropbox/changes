@@ -16,8 +16,8 @@ from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
-    Project, Build, Job, JobPlan, Repository, Patch, ProjectOption,
-    ItemOption, Source, ProjectPlan, Revision
+    Project, Build, Job, JobPlan, Repository, RepositoryStatus, Patch,
+    ProjectOption, ItemOption, Source, ProjectPlan, Revision
 )
 
 
@@ -189,10 +189,18 @@ def get_repository_by_callsign(callsign):
     )
     repo_list = list(Repository.query.filter(
         Repository.id.in_(item_id_list),
+        Repository.status == RepositoryStatus.active,
     ))
     if len(repo_list) > 1:
         logging.warning('Multiple repositories found matching phabricator.callsign=%s', callsign)
     return repo_list[0]
+
+
+def get_repository_by_url(url):
+    return Repository.query.filter(
+        Repository.url == url,
+        Repository.status == RepositoryStatus.active,
+    ).first()
 
 
 class BuildIndexAPIView(APIView):
@@ -204,7 +212,7 @@ class BuildIndexAPIView(APIView):
     ).first())
     # TODO(dcramer): it might make sense to move the repository and callsign
     # options into something like a "repository builds index" endpoint
-    parser.add_argument('repository', type=lambda x: Repository.query.filter_by(url=x).first())
+    parser.add_argument('repository', type=get_repository_by_url)
     parser.add_argument('repository[phabricator.callsign]', type=get_repository_by_callsign)
     parser.add_argument('author', type=AuthorValidator())
     parser.add_argument('label', type=unicode)
