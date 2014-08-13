@@ -82,6 +82,7 @@ class RepositoryDetailsAPIView(APIView):
                 existing = ItemOption.query.filter(
                     ItemOption.item_id != repo.id,
                     ItemOption.name == name,
+                    ItemOption.value == value,
                 ).first()
                 if existing:
                     return '{"error": "A repository already exists with the given Phabricator callsign"}', 400
