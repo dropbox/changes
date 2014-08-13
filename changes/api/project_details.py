@@ -2,14 +2,14 @@ from __future__ import division
 
 from datetime import datetime, timedelta
 from flask.ext.restful import reqparse
-from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
+from sqlalchemy.orm import contains_eager, joinedload
 from sqlalchemy.sql import func
 
 from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.models import (
-    Project, Plan, Build, Source, Status, Result, ProjectOption, Repository,
+    Project, Build, Source, Status, Result, ProjectOption, Repository,
     ProjectStatus
 )
 
@@ -107,12 +107,6 @@ class ProjectDetailsAPIView(APIView):
         if project is None:
             return '', 404
 
-        plans = Plan.query.options(
-            subqueryload_all(Plan.steps),
-        ).filter(
-            Plan.projects.contains(project),
-        )
-
         last_build = Build.query.options(
             joinedload('author'),
             contains_eager('source')
@@ -154,7 +148,6 @@ class ProjectDetailsAPIView(APIView):
         data['lastBuild'] = last_build
         data['lastPassingBuild'] = last_passing_build
         data['repository'] = project.repository
-        data['plans'] = list(plans)
         data['options'] = options
         data['stats'] = self._get_stats(project)
 

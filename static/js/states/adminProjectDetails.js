@@ -84,7 +84,6 @@ define([
 
       $scope.project = projectData;
       $scope.repo = projectData.repository;
-      $scope.plans = projectData.plans;
       $scope.options = options;
       $scope.formData = getFormData(projectData);
     },

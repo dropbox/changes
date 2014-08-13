@@ -9,6 +9,7 @@ define([
   'states/adminProjectCreate',
   'states/adminProjectDetails',
   'states/adminProjectList',
+  'states/adminProjectPlanList',
   'states/adminProjectSnapshotList',
   'states/adminRepositoryCreate',
   'states/adminRepositoryDetails',
@@ -63,6 +64,7 @@ define([
   AdminProjectCreateState,
   AdminProjectDetailsState,
   AdminProjectListState,
+  AdminProjectPlanListState,
   AdminProjectSnapshotListState,
   AdminRepositoryCreateState,
   AdminRepositoryDetailsState,
@@ -166,6 +168,7 @@ define([
       .state('admin_project_create', AdminProjectCreateState)
       .state('admin_project_details', AdminProjectDetailsState)
       .state('admin_project_list', AdminProjectListState)
+      .state('admin_project_plan_list', AdminProjectPlanListState)
       .state('admin_project_snapshot_list', AdminProjectSnapshotListState)
       .state('admin_plan_list', AdminPlanListState)
       .state('admin_plan_create', AdminPlanCreateState)

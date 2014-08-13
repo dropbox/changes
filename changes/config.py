@@ -315,6 +315,7 @@ def configure_api_routes(app):
     from changes.api.project_coverage_group_index import ProjectCoverageGroupIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_options_index import ProjectOptionsIndexAPIView
+    from changes.api.project_plan_index import ProjectPlanIndexAPIView
     from changes.api.project_snapshot_index import ProjectSnapshotIndexAPIView
     from changes.api.project_stats import ProjectStatsAPIView
     from changes.api.project_test_details import ProjectTestDetailsAPIView
@@ -383,6 +384,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectCoverageIndexAPIView, '/projects/<project_id>/coverage/')
     api.add_resource(ProjectCoverageGroupIndexAPIView, '/projects/<project_id>/coveragegroups/')
     api.add_resource(ProjectOptionsIndexAPIView, '/projects/<project_id>/options/')
+    api.add_resource(ProjectPlanIndexAPIView, '/projects/<project_id>/plans/')
     api.add_resource(ProjectSnapshotIndexAPIView, '/projects/<project_id>/snapshots/')
     api.add_resource(ProjectStatsAPIView, '/projects/<project_id>/stats/')
     api.add_resource(ProjectTestIndexAPIView, '/projects/<project_id>/tests/')
