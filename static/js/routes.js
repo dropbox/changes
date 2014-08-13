@@ -13,6 +13,7 @@ define([
   'states/adminRepositoryCreate',
   'states/adminRepositoryDetails',
   'states/adminRepositoryList',
+  'states/adminRepositoryProjectList',
   'states/adminUserDetails',
   'states/adminUserList',
   'states/authorBuildList',
@@ -66,6 +67,7 @@ define([
   AdminRepositoryCreateState,
   AdminRepositoryDetailsState,
   AdminRepositoryListState,
+  AdminRepositoryProjectListState,
   AdminUserDetailsState,
   AdminUserListState,
   AuthorBuildListState,
@@ -171,6 +173,7 @@ define([
       .state('admin_repository_list', AdminRepositoryListState)
       .state('admin_repository_create', AdminRepositoryCreateState)
       .state('admin_repository_details', AdminRepositoryDetailsState)
+      .state('admin_repository_project_list', AdminRepositoryProjectListState)
       .state('admin_user_list', AdminUserListState)
       .state('admin_user_details', AdminUserDetailsState);
   });

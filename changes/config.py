@@ -326,6 +326,7 @@ def configure_api_routes(app):
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
     from changes.api.repository_details import RepositoryDetailsAPIView
     from changes.api.repository_index import RepositoryIndexAPIView
+    from changes.api.repository_project_index import RepositoryProjectIndexAPIView
     from changes.api.snapshot_details import SnapshotDetailsAPIView
     from changes.api.step_details import StepDetailsAPIView
     from changes.api.system_options import SystemOptionsAPIView
@@ -392,6 +393,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
     api.add_resource(RepositoryIndexAPIView, '/repositories/')
     api.add_resource(RepositoryDetailsAPIView, '/repositories/<uuid:repository_id>/')
+    api.add_resource(RepositoryProjectIndexAPIView, '/repositories/<uuid:repository_id>/projects/')
     api.add_resource(SnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(SystemOptionsAPIView, '/systemoptions/')
