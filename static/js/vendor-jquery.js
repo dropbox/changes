@@ -1,7 +1,12 @@
 define([
-  'jquery'
-], function(jQuery) {
+  'jquery',
+  'bootstrap/tooltip',
+  'typeahead',
+  'bloodhound'
+], function(jQuery, tooltip, typeahead) {
   'use strict';
 
-  return jQuery;
+  // XXX(dcramer): not entirely sure why we have to do this
+  jQuery.fn.tooltip = tooltip;
+  jQuery.fn.typeahead = typeahead;
 });

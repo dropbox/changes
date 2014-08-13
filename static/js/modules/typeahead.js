@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-define(['angular', 'jquery', 'typeahead'], function(angular){
+define(['angular', 'typeahead'], function(angular){
   'use strict';
 
   angular.module('changes.typeahead', [])
@@ -39,7 +39,7 @@ define(['angular', 'jquery', 'typeahead'], function(angular){
               datasets = (angular.isArray(scope.datasets) ? scope.datasets : [scope.datasets]) || []; // normalize to array
 
           // Create the typeahead on the element
-          element.typeahead(scope.options, scope.datasets);
+          jQuery(element).typeahead(scope.options, scope.datasets);
 
           // Parses and validates what is going to be set to model (called when: ngModel.$setViewValue(value))
           ngModel.$parsers.push(function (fromView) {
