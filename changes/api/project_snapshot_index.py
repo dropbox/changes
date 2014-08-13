@@ -23,6 +23,8 @@ class ProjectSnapshotIndexAPIView(APIView):
             joinedload('source').joinedload('revision'),
         ).filter(
             Snapshot.project_id == project.id,
+        ).order_by(
+            Snapshot.date_created.desc(),
         )
 
         return self.paginate(queryset)
