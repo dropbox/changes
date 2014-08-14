@@ -30,8 +30,8 @@ fi
 git clean -fdx
 
 if ! git reset --hard $REVISION ; then
-    git reset --hard origin/master
-    echo "Failed to update to $REVISION, falling back to master"
+    echo "Failed to update to $REVISION"
+    exit 1
 fi
 """.strip()
 
