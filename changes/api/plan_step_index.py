@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 import json
 
+from copy import deepcopy
 from flask.ext.restful import reqparse
 
 from changes.api.auth import requires_admin
@@ -51,7 +52,9 @@ class PlanStepIndexAPIView(APIView):
             return {"message": "unable to load build step implementation"}, 400
 
         try:
-            impl_cls(**data)
+            # XXX(dcramer): It's important that we deepcopy data so any
+            # mutations within the BuildStep don't propagate into the db
+            impl_cls(**deepcopy(data))
         except Exception:
             return {"message": "unable to create build step provided data"}, 400
 
