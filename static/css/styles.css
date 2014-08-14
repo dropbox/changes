@@ -645,7 +645,8 @@ a.indicator {
   list-style: none;
   padding-left: 0;
 }
-.project-list > li {
+.project-list > li,
+.indicated-list.project-list > li {
   width: 25%;
   position: relative;
   min-height: 1px;
