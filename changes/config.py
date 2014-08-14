@@ -289,6 +289,7 @@ def configure_api_routes(app):
     from changes.api.cluster_index import ClusterIndexAPIView
     from changes.api.cluster_nodes import ClusterNodesAPIView
     from changes.api.command_details import CommandDetailsAPIView
+    from changes.api.job_artifact_index import JobArtifactIndexAPIView
     from changes.api.job_details import JobDetailsAPIView
     from changes.api.job_log_details import JobLogDetailsAPIView
     from changes.api.jobphase_index import JobPhaseIndexAPIView
@@ -358,6 +359,7 @@ def configure_api_routes(app):
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')
+    api.add_resource(JobArtifactIndexAPIView, '/jobs/<uuid:job_id>/artifacts/')
     api.add_resource(JobStepAllocateAPIView, '/jobsteps/allocate/')
     api.add_resource(JobStepDetailsAPIView, '/jobsteps/<uuid:step_id>/')
     api.add_resource(JobStepArtifactsAPIView, '/jobsteps/<uuid:step_id>/artifacts/')

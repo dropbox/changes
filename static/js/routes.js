@@ -22,6 +22,7 @@ define([
   'states/buildTestList',
   'states/clusterDetails',
   'states/clusterList',
+  'states/jobArtifactList',
   'states/jobDetails',
   'states/jobPhaseList',
   'states/layout',
@@ -77,6 +78,7 @@ define([
   BuildTestListState,
   ClusterDetailsState,
   ClusterListState,
+  JobArtifactListState,
   JobDetailsState,
   JobPhaseListState,
   LayoutState,
@@ -141,6 +143,7 @@ define([
       .state('cluster_details', ClusterDetailsState)
       .state('clusters', ClusterListState)
       .state('job_details', JobDetailsState)
+      .state('job_artifact_list', JobArtifactListState)
       .state('job_phase_list', JobPhaseListState)
       .state('log_details', LogDetailsState)
       .state('my_builds', AuthorBuildListState)

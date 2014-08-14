@@ -869,6 +869,14 @@ table.build-list {
   margin-bottom: 5px;
 }
 
+.grid-list .meta {
+  color: #999;
+}
+.grid-list .meta strong {
+  font-weight: normal;
+  color: #000;
+}
+
 .build-list .indicator {
   font-size: 18px;
   height: 36px;

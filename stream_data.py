@@ -107,6 +107,15 @@ def create_new_entry(project):
             db.session.add(logsource)
             db.session.commit()
 
+            fixtures.create_artifact(
+                step=step,
+                name='junit.xml',
+            )
+            fixtures.create_artifact(
+                step=step,
+                name='coverage.xml',
+            )
+
             offset = 0
             for x in xrange(30):
                 lc = mock.logchunk(source=logsource, offset=offset)
