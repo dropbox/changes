@@ -114,6 +114,12 @@ class Vcs(object):
     def is_child_parent(self, child_in_question, parent_in_question):
         raise NotImplementedError
 
+    def get_known_branches(self):
+        """ This is limited to parallel trees with names.
+        :return: A list of unique names for the branches.
+        """
+        raise NotImplementedError
+
     # XXX(dcramer): not overly happy with the buildstep commands API
     def get_buildstep_clone(self):
         raise NotImplementedError

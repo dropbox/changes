@@ -83,9 +83,25 @@ class GitVcs(Vcs):
             url = self.url
         return url
 
-    def branches_for_commit(self, id):
+    def branches_for_commit(self, _id):
+        return self.get_known_branches(commit_id=_id)
+
+    def get_known_branches(self, commit_id=None):
+        """ List all branches or those related to the commit for this repo.
+
+        Either gets all the branches (if the commit_id is not specified) or then
+        the branches related to the given commit reference.
+
+        :param commit_id: A commit ID for fetching all related branches. If not
+            specified, returns all branch names for this repository.
+        :return: List of branches for the commit, or all branches for the repo.
+        """
         results = []
-        output = self.run(['branch', '-a', '--contains', id])
+        command_parameters = ['branch', '-a']
+        if commit_id:
+            command_parameters.extend(['--contains', commit_id])
+        output = self.run(command_parameters)
+
         for result in output.splitlines():
             # HACK(dcramer): is there a better way around removing the prefix?
             result = result[2:].strip()

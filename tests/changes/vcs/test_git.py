@@ -88,3 +88,19 @@ index 0000000..e69de29
         revisions = list(vcs.log())
         assert vcs.is_child_parent(child_in_question=revisions[0].id, parent_in_question=revisions[1].id)
         assert vcs.is_child_parent(child_in_question=revisions[1].id, parent_in_question=revisions[0].id) is False
+
+    def test_get_known_branches(self):
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        branches = vcs.get_known_branches()
+        self.assertEquals(1, len(branches))
+        self.assertIn('master', branches)
+
+        check_call('cd %s && git checkout -B test_branch' % self.remote_path,
+                   shell=True)
+        vcs.update()
+        branches = vcs.get_known_branches()
+        self.assertEquals(2, len(branches))
+        self.assertIn('test_branch', branches)

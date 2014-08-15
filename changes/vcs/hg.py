@@ -87,3 +87,19 @@ class MercurialVcs(Vcs):
         cmd = ['debugancestor', parent_in_question, child_in_question]
         result = self.run(cmd)
         return parent_in_question in result
+
+    def get_known_branches(self):
+        """ Gets all the named branches.
+        :return: A list of unique names for the branches.
+        """
+        cmd = ['branches']
+        results = self.run(cmd)
+
+        branch_names = set()
+        for line in results.splitlines():
+            if line:
+                name = line.split(None, 1)
+                if name[0]:
+                    branch_names.add(name[0])
+
+        return list(branch_names)
