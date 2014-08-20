@@ -11,6 +11,23 @@ from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 
 
+class FutureJobStep(object):
+    def __init__(self, label, commands=None, data=None):
+        self.label = label
+        self.commands = commands or []
+        self.data = data or {}
+
+    def as_jobstep(self, jobphase):
+        return JobStep(
+            job_id=jobphase.job_id,
+            phase_id=jobphase.id,
+            project_id=jobphase.project_id,
+            label=self.label,
+            status=Status.queued,
+            data=self.data,
+        )
+
+
 class JobStep(db.Model):
     # TODO(dcramer): make duration a column
     __tablename__ = 'jobstep'

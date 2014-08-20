@@ -5,7 +5,7 @@ from changes.config import db
 from changes.constants import Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import Command as CommandModel, JobPhase, JobStep
+from changes.models import FutureCommand, JobPhase, JobStep
 
 
 DEFAULT_ARTIFACTS = (
@@ -24,14 +24,6 @@ DEFAULT_PATH = './source/'
 DEFAULT_RELEASE = 'precise'
 
 
-class Command(object):
-    def __init__(self, script, path, artifacts, env):
-        self.script = script
-        self.path = path
-        self.artifacts = artifacts
-        self.env = env
-
-
 class DefaultBuildStep(BuildStep):
     """
     A build step which relies on the a scheduling framework in addition to the
@@ -46,7 +38,7 @@ class DefaultBuildStep(BuildStep):
     """
     def __init__(self, commands, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
-                 **kwargs):
+                 max_executors=20, **kwargs):
         command_defaults = (
             ('path', path),
             ('env', env),
@@ -60,7 +52,8 @@ class DefaultBuildStep(BuildStep):
         self.env = env
         self.path = path
         self.release = release
-        self.commands = map(lambda x: Command(**x), commands)
+        self.commands = map(lambda x: FutureCommand(**x), commands)
+        self.max_executors = max_executors
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
@@ -72,7 +65,7 @@ class DefaultBuildStep(BuildStep):
         repo = source.repository
         vcs = repo.get_vcs()
         if vcs is not None:
-            yield Command(
+            yield FutureCommand(
                 script=vcs.get_buildstep_clone(source, self.path),
                 env=self.env,
                 path='',
@@ -80,7 +73,7 @@ class DefaultBuildStep(BuildStep):
             )
 
             if source.patch:
-                yield Command(
+                yield FutureCommand(
                     script=vcs.get_buildstep_patch(source, self.path),
                     env=self.env,
                     path='',
@@ -111,21 +104,17 @@ class DefaultBuildStep(BuildStep):
             'project': phase.project,
             'data': {
                 'release': self.release,
+                'max_executors': self.max_executors,
             },
         })
 
-        for index, command in enumerate(self.iter_all_commands(job)):
-            command_model, created = get_or_create(CommandModel, where={
-                'jobstep': step,
-                'order': index,
-            }, defaults={
-                'label': command.script.splitlines()[0][:128],
-                'status': Status.queued,
-                'script': command.script,
-                'env': command.env,
-                'cwd': command.path,
-                'artifacts': command.artifacts,
-            })
+        for index, future_command in enumerate(self.iter_all_commands(job)):
+            command = future_command.as_command(
+                jobstep=step,
+                order=index,
+            )
+            db.session.add(command)
+
         db.session.commit()
 
         sync_job_step.delay(
