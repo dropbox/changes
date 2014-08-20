@@ -19,7 +19,7 @@ class PlanProjectIndexTest(APITestCase):
 
 
 class CreatePlanProjectTest(APITestCase):
-    def requires_auth(self):
+    def test_requires_auth(self):
         plan = self.create_plan(label='Foo')
 
         path = '/api/0/plans/{0}/projects/'.format(plan.id.hex)

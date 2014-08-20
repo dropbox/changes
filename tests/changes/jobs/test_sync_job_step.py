@@ -16,16 +16,12 @@ from changes.models import (
 from changes.testutils import TestCase as BaseTestCase
 
 
-class HasTimedOutTest(TestCase):
+class HasTimedOutTest(BaseTestCase):
     def test_simple(self):
         project = self.create_project()
         plan = self.create_plan()
         plan.projects.append(project)
         step = self.create_step(plan)
-
-        build = self.create_build(project=project)
-        job = self.create_job(build=build, status=Status.queued)
-        jobplan = self.create_job_plan(job, plan)
 
         option = ItemOption(
             item_id=step.id,
@@ -33,6 +29,12 @@ class HasTimedOutTest(TestCase):
             value='5',
         )
         db.session.add(option)
+        db.session.flush()
+
+        build = self.create_build(project=project)
+        job = self.create_job(build=build, status=Status.queued)
+        jobplan = self.create_job_plan(job, plan)
+
         db.session.commit()
 
         jobphase = self.create_jobphase(job)
@@ -53,13 +55,13 @@ class HasTimedOutTest(TestCase):
 
         assert has_timed_out(jobstep, jobplan)
 
-        jobplan.data['snapshot']['options'][option.name] = '0'
+        jobplan.data['snapshot']['steps'][0]['options'][option.name] = '0'
         db.session.add(jobplan)
         db.session.commit()
 
         assert not has_timed_out(jobstep, jobplan)
 
-        jobplan.data['snapshot']['options'][option.name] = '500'
+        jobplan.data['snapshot']['steps'][0]['options'][option.name] = '500'
         db.session.add(jobplan)
         db.session.commit()
 

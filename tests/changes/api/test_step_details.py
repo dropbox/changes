@@ -20,7 +20,7 @@ class StepDetailsTest(APITestCase):
 
 
 class UpdateStepDetailsTest(APITestCase):
-    def requires_auth(self):
+    def test_requires_auth(self):
         plan = self.create_plan(label='Foo')
         step = self.create_step(plan=plan)
 
@@ -66,7 +66,7 @@ class UpdateStepDetailsTest(APITestCase):
 
 
 class DeleteStepDetailsTest(APITestCase):
-    def requires_auth(self):
+    def test_requires_auth(self):
         plan = self.create_plan(label='Foo')
         step = self.create_step(plan=plan)
 

@@ -19,7 +19,7 @@ class PlanIndexTest(APITestCase):
 class CreatePlanTest(APITestCase):
     path = '/api/0/plans/'
 
-    def requires_auth(self):
+    def test_requires_auth(self):
         resp = self.client.post(self.path, data={
             'name': 'Bar',
         })
