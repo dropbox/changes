@@ -121,7 +121,7 @@ class JobPlan(db.Model):
 
         snapshot = {
             'steps': [
-                HistoricalImmutableStep.from_step(s, options[s]).to_json()
+                HistoricalImmutableStep.from_step(s, options[s.id]).to_json()
                 for s in plan_steps
             ],
             'options': options[plan.id]
