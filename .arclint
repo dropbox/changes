@@ -1,0 +1,15 @@
+{
+  "linters": {
+    "json": {
+      "type": "json",
+      "include": [
+        "(^\\.arcconfig$)",
+        "(^\\.arclint$)",
+        "(\\.json$)"
+      ]
+    },
+    "spelling": {
+      "type": "spelling"
+    }
+  }
+}
