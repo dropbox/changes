@@ -9,7 +9,7 @@ class RepositoryTreeListTest(APITestCase):
         repo = self.create_repo(url='https://example.co.nonexistent/bar')
         path = '/api/0/repositories/{0}/trees/'.format(repo.id)
         resp = self.client.get(path)
-        self.assertEquals(resp.status_code, 400, resp.data)
+        self.assertEquals(resp.status_code, 422, resp.data)
         self.assertIn('backend', resp.data)
 
     @patch('changes.vcs.git.GitVcs.get_known_branches')

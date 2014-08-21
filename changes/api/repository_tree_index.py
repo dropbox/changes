@@ -17,7 +17,7 @@ class RepositoryTreeIndexAPIView(APIView):
 
         vcs = repo.get_vcs()
         if not vcs:
-            return '{"error": "Repository has no backend specified"}', 400
+            return {'error': 'Repository has no backend specified'}, 422
 
         branch_name_list = vcs.get_known_branches()
         branches = [{'name': branch_name} for branch_name in branch_name_list]
