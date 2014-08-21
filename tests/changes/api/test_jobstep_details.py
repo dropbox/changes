@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import JobStep, ProjectOption
@@ -5,6 +7,12 @@ from changes.testutils import APITestCase
 
 
 class JobStepDetailsTest(APITestCase):
+    def test_invalid_id(self):
+        path = '/api/0/jobsteps/{0}/'.format(uuid4().hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 404
+
     def test_without_snapshot(self):
         project = self.create_project()
         build = self.create_build(project)
@@ -73,6 +81,12 @@ class JobStepDetailsTest(APITestCase):
 
 
 class UpdateJobStepTest(APITestCase):
+    def test_invalid_id(self):
+        path = '/api/0/jobsteps/{0}/'.format(uuid4().hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 404
+
     def test_simple(self):
         project = self.create_project()
         build = self.create_build(project)
