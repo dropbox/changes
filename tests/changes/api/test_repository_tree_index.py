@@ -42,7 +42,6 @@ class RepositoryTreeListTest(APITestCase):
         self.assertIn(data[0]['name'], test_branches)
         self.assertIn(data[1]['name'], test_branches)
 
-
     @patch('changes.vcs.git.GitVcs.get_known_branches')
     def test_get_with_tree_filter(self, git_vcs_mock):
         test_branches = ['master', 'MATCH_ME']

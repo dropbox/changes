@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, unicode_literals
 import re
 
 from flask.ext.restful import reqparse
-from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.models import Repository
