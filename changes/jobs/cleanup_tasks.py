@@ -14,7 +14,7 @@ CHECK_TIME = timedelta(minutes=60)
 def cleanup_tasks():
     """
     Find any tasks which haven't checked in within a reasonable time period and
-    requeue them if nescessary.
+    requeue them if necessary.
     """
     now = datetime.utcnow()
     cutoff = now - CHECK_TIME
