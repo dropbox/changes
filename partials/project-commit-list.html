@@ -1,8 +1,24 @@
 <section ui-view>
     <div class="page-header">
-        <div class="pull-right">
-            <a class="btn btn-sm btn-default" ui-sref-active="active" ui-sref="project_builds()">All Builds</a>
-            <a class="btn btn-sm btn-default" ui-sref="project_new_build()">Create Build</a>
+        <div class="pull-right btn-toolbar" role="toolbar">
+            <div class="btn-group btn-group-sm" style="margin-right: 10px; margin-top: 2px">
+                <a href="#" class="btn btn-default"
+                  ui-sref="project_builds()"
+                  ui-sref-active="active">All Builds</a>
+            </div>
+            <div class="btn-group actions" style="position: relative">
+                <a class="dropdown-toggle btn btn-primary" data-toggle="action-dropdown">
+                    <span class="caret"></span>
+                </a>
+                <nav class="dropdown-menu dropdown-menu-right">
+                    <ul class="nav">
+                        <li><a ui-sref="project_new_build()">
+                            <span>Create Build</span><br>
+                            <small>A page for creating new builds.</small>
+                        </a></li>
+                    </ul>
+                </nav>
+            </div>
         </div>
         <h2>Commit Log</h2>
     </div>
