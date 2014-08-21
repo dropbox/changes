@@ -121,6 +121,7 @@ CAUSE_LABELS = {
     Cause.manual: 'Manual',
     Cause.push: 'Code Push',
     Cause.retry: 'Retry',
+    Cause.snapshot: 'Snapshot',
 }
 
 IMPLEMENTATION_CHOICES = (
