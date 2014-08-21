@@ -31,6 +31,7 @@ Developers
    :maxdepth: 2
 
    contributing
+   internals/snapshots
 
 
 Resources

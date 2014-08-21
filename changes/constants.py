@@ -78,6 +78,7 @@ class Cause(Enum):
     manual = 1
     push = 2
     retry = 3
+    snapshot = 4
 
     def __str__(self):
         return CAUSE_LABELS[self]

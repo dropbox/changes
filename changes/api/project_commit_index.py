@@ -6,7 +6,7 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView
-from changes.constants import Status
+from changes.constants import Cause, Status
 from changes.models import Build, Project, Revision, Source
 
 
@@ -88,6 +88,7 @@ class ProjectCommitIndexAPIView(APIView):
                 Build.source_id == Source.id,
                 Build.project_id == project.id,
                 Build.status.in_([Status.finished, Status.in_progress, Status.queued]),
+                Build.cause != Cause.snapshot,
                 Source.revision_sha.in_(c['id'] for c in commits),
                 Source.patch == None,  # NOQA
             ).order_by(Build.date_created.asc()))

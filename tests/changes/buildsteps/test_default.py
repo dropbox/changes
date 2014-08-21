@@ -5,7 +5,7 @@ from changes.buildsteps.default import (
     DEFAULT_ARTIFACTS, DEFAULT_PATH, DEFAULT_RELEASE, DefaultBuildStep
 )
 from changes.constants import Status
-from changes.models import Command
+from changes.models import Command, CommandType
 from changes.testutils import BackendTestCase
 
 
@@ -21,6 +21,7 @@ class DefaultBuildStepTest(BackendTestCase):
                 path='/usr/test/1',
                 artifacts=['artifact1.txt', 'artifact2.txt'],
                 env={'PATH': '/usr/test/1'},
+                type='setup',
             ),
             dict(
                 script='echo "hello world 1"',
@@ -43,11 +44,15 @@ class DefaultBuildStepTest(BackendTestCase):
             Command.jobstep_id == step.id,
         ))
         assert len(commands) == 2
+
         assert commands[0].script == 'echo "hello world 2"'
         assert commands[0].cwd == '/usr/test/1'
+        assert commands[0].type == CommandType.setup
         assert tuple(commands[0].artifacts) == ('artifact1.txt', 'artifact2.txt')
         assert commands[0].env == {'PATH': '/usr/test/1'}
+
         assert commands[1].script == 'echo "hello world 1"'
         assert commands[1].cwd == DEFAULT_PATH
+        assert commands[1].type == CommandType.default
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[1].env == {}

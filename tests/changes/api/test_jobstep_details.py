@@ -1,11 +1,11 @@
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import JobStep
+from changes.models import JobStep, ProjectOption
 from changes.testutils import APITestCase
 
 
 class JobStepDetailsTest(APITestCase):
-    def test_simple(self):
+    def test_without_snapshot(self):
         project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build)
@@ -18,6 +18,36 @@ class JobStepDetailsTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['id'] == jobstep.id.hex
+        assert data['snapshot'] is None
+
+    def test_with_snapshot(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        plan = self.create_plan()
+        plan.projects.append(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        snapshot = self.create_snapshot(project)
+        image = self.create_snapshot_image(
+            plan=plan,
+            snapshot=snapshot,
+            job=job,
+        )
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='snapshot.current',
+            value=snapshot.id.hex,
+        ))
+        db.session.commit()
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+        assert data['snapshot']['id'] == image.id.hex
 
 
 class UpdateJobStepTest(APITestCase):

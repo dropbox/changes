@@ -124,7 +124,7 @@ class JobPlan(db.Model):
                 HistoricalImmutableStep.from_step(s, options[s.id]).to_json()
                 for s in plan_steps
             ],
-            'options': options[plan.id]
+            'options': options[plan.id],
         }
 
         instance = cls(

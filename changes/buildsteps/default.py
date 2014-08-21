@@ -2,10 +2,10 @@ from __future__ import absolute_import
 
 from changes.buildsteps.base import BuildStep
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Cause, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import FutureCommand, JobPhase, JobStep
+from changes.models import CommandType, FutureCommand, JobPhase, JobStep
 
 
 DEFAULT_ARTIFACTS = (
@@ -48,6 +48,10 @@ class DefaultBuildStep(BuildStep):
             for k, v in command_defaults:
                 if k not in command:
                     command[k] = v
+            if 'type' in command:
+                command['type'] = CommandType[command['type']]
+            else:
+                command['type'] = CommandType.default
 
         self.env = env
         self.path = path
@@ -108,7 +112,15 @@ class DefaultBuildStep(BuildStep):
             },
         })
 
-        for index, future_command in enumerate(self.iter_all_commands(job)):
+        # HACK(dcramer): we need to filter out non-setup commands
+        # if we're running a snapshot build
+        is_snapshot = job.build.cause == Cause.snapshot
+        index = 0
+        for future_command in self.iter_all_commands(job):
+            if is_snapshot and future_command.type != CommandType.setup:
+                continue
+
+            index += 1
             command = future_command.as_command(
                 jobstep=step,
                 order=index,

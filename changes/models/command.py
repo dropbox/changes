@@ -14,8 +14,16 @@ from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 
 
+class CommandType(Enum):
+    default = 0
+    collect_steps = 1
+    collect_tests = 2
+    setup = 3
+
+
 class FutureCommand(object):
-    def __init__(self, script, path=None, artifacts=None, env=None, label=None):
+    def __init__(self, script, path=None, artifacts=None, env=None, label=None,
+                 type=CommandType.default):
         if not label:
             label = script.splitlines()[0][:128]
 
@@ -24,6 +32,7 @@ class FutureCommand(object):
         self.artifacts = artifacts or []
         self.env = env or {}
         self.label = label
+        self.type = type
 
     def as_command(self, jobstep, order):
         return Command(
@@ -35,13 +44,8 @@ class FutureCommand(object):
             label=self.label,
             order=order,
             status=Status.queued,
+            type=self.type,
         )
-
-
-class CommandType(Enum):
-    default = 0
-    collect_steps = 1
-    collect_tests = 2
 
 
 class Command(db.Model):
