@@ -21,4 +21,4 @@ When a build is created for a snapshot it will be registered in the system with 
 
 If any of the jobs failed the entire snapshot is considered invalid and cannot be used.
 
-If a new build plan is added when an existing snapshot is activated, it will simply ignoring the missing image for the new build plan, which would suggest to the underlying system that they use whatever the default is.
+If a new build plan is added when an existing snapshot is activated, it will simply ignore the missing image for the new build plan, which would suggest to the underlying system that they use whatever the default is.
