@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
 
-import re
-
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
@@ -17,7 +15,8 @@ class RepositoryTreeIndexAPIView(APIView):
     TREE_ARGUMENT_NAME = 'tree'
 
     get_parser = reqparse.RequestParser()
-    get_parser.add_argument(TREE_ARGUMENT_NAME, type=unicode, location='args')
+    get_parser.add_argument(TREE_ARGUMENT_NAME, type=unicode, location='args',
+                            case_sensitive=False)
 
     def get(self, repository_id):
         repo = Repository.query.get(repository_id)
@@ -33,10 +32,10 @@ class RepositoryTreeIndexAPIView(APIView):
 
         # Filter out any branches that don't match the tree query
         args = self.get_parser.parse_args()
-        if args and args[self.TREE_ARGUMENT_NAME]:
-            query = re.compile(args[self.TREE_ARGUMENT_NAME], re.IGNORECASE)
+        if args[RepositoryTreeIndexAPIView.TREE_ARGUMENT_NAME]:
+            query = args[RepositoryTreeIndexAPIView.TREE_ARGUMENT_NAME].lower()
             branches = [{'name': branch_name} for branch_name in branch_names
-                        if query.match(branch_name)]
+                        if branch_name.lower().startswith(query)]
         else:
             branches = [{'name': branch_name} for branch_name in branch_names]
 
