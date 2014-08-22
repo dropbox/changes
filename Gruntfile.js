@@ -16,9 +16,6 @@ module.exports = function(grunt) {
           findNestedDependencies: true,
           preserveLicenseComments: false,
           removeCombined: true,
-          uglify2: {
-            mangle: false
-          },
           modules: [
             {
               name: "main",
@@ -37,7 +34,7 @@ module.exports = function(grunt) {
           optimize: "uglify2",
           optimizeCss: "none",
           useSourceUrl: true,
-          wrapShim: 'true'
+          wrapShim: true
         }
       }
     }

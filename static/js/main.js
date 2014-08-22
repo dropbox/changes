@@ -50,7 +50,7 @@ requirejs.config({
     'bootstrap/tooltip': {deps: ['jquery'], exports: '$.fn.tooltip'},
     'bootstrap/transition': {deps: ['jquery'], exports: '$.fn.transition'},
     'jquery': {
-        exports: 'jquery'
+        exports: 'jQuery'
     },
     'typeahead': {
         deps: ['bloodhound', 'jquery'],

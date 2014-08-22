@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-define(['angular', 'typeahead'], function(angular){
+define(['angular', 'jquery', 'typeahead'], function(angular, jQuery){
   'use strict';
 
   angular.module('changes.typeahead', [])
@@ -90,7 +90,7 @@ define(['angular', 'typeahead'], function(angular){
                   if (found || index === datasets.length - 1) {
                     setTimeout(function () {
                       scope.$apply(function () {
-                        element.typeahead('val', value);
+                        jQuery(element).typeahead('val', value);
                       });
                     }, 0);
                   }
@@ -181,7 +181,7 @@ define(['angular', 'typeahead'], function(angular){
           element.bind('input', function () {
             var preservePos = getCursorPosition(element);
             scope.$apply(function () {
-              var value = element.typeahead('val');
+              var value = jQuery(element).typeahead('val');
               ngModel.$setViewValue(value);
             });
             setCursorPosition(element, preservePos);
