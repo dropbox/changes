@@ -74,6 +74,7 @@ class DefaultBuildStep(BuildStep):
                 env=self.env,
                 path='',
                 artifacts=(),
+                type=CommandType.setup,
             )
 
             if source.patch:
@@ -82,6 +83,7 @@ class DefaultBuildStep(BuildStep):
                     env=self.env,
                     path='',
                     artifacts=(),
+                    type=CommandType.setup,
                 )
 
         for command in self.commands:
