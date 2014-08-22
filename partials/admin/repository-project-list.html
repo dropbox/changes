@@ -8,7 +8,7 @@
     </thead>
     <tbody>
       <tr ng-repeat="project in projectList">
-        <td><a ui-sref="admin_project_details({project_id: project.id})">{{project.name}}</a></td>
+        <td><a ui-sref="admin_project_settings({project_id: project.id})">{{project.name}}</a></td>
         <td class="column">{{project.status.name}}</td>
       </tr>
     </tbody>

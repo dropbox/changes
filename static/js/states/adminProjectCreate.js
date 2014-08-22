@@ -35,7 +35,7 @@ define(['app', 'bloodhound'], function(app, Bloodhound) {
       $scope.createProject = function() {
         $http.post('/api/0/projects/', $scope.project)
           .success(function(data){
-            return $state.go('admin_project_details', {project_id: data.slug});
+            return $state.go('admin_project_settings', {project_id: data.slug});
           });
       };
 
