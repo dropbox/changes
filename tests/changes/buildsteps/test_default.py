@@ -2,7 +2,8 @@ from __future__ import absolute_import
 
 
 from changes.buildsteps.default import (
-    DEFAULT_ARTIFACTS, DEFAULT_PATH, DEFAULT_RELEASE, DefaultBuildStep
+    DEFAULT_ARTIFACTS, DEFAULT_ENV, DEFAULT_PATH, DEFAULT_RELEASE,
+    DefaultBuildStep
 )
 from changes.constants import Status
 from changes.models import Command, CommandType
@@ -49,10 +50,13 @@ class DefaultBuildStepTest(BackendTestCase):
         assert commands[0].cwd == '/usr/test/1'
         assert commands[0].type == CommandType.setup
         assert tuple(commands[0].artifacts) == ('artifact1.txt', 'artifact2.txt')
-        assert commands[0].env == {'PATH': '/usr/test/1'}
+        assert commands[0].env['PATH'] == '/usr/test/1'
+        for k, v in DEFAULT_ENV.items():
+            if k != 'PATH':
+                assert commands[0].env[k] == v
 
         assert commands[1].script == 'echo "hello world 1"'
         assert commands[1].cwd == DEFAULT_PATH
         assert commands[1].type == CommandType.default
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
-        assert commands[1].env == {}
+        assert commands[1].env == DEFAULT_ENV

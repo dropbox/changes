@@ -23,6 +23,8 @@ DEFAULT_PATH = './source/'
 # for now we're only stuffing it into JobStep.data
 DEFAULT_RELEASE = 'precise'
 
+DEFAULT_ENV = {}
+
 
 class DefaultBuildStep(BuildStep):
     """
@@ -39,15 +41,23 @@ class DefaultBuildStep(BuildStep):
     def __init__(self, commands, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=20, **kwargs):
-        command_defaults = (
-            ('path', path),
-            ('env', env),
-            ('artifacts', artifacts),
-        )
+
+        if env is None:
+            env = DEFAULT_ENV.copy()
+
         for command in commands:
-            for k, v in command_defaults:
-                if k not in command:
-                    command[k] = v
+            if 'artifacts' not in command:
+                command['artifacts'] = artifacts
+
+            if 'path' not in command:
+                command['path'] = path
+
+            c_env = env.copy()
+            if 'env' in command:
+                for key, value in command['env'].items():
+                    c_env[key] = value
+            command['env'] = c_env
+
             if 'type' in command:
                 command['type'] = CommandType[command['type']]
             else:
