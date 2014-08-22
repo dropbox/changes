@@ -12,7 +12,7 @@ module.exports = function(grunt) {
           appDir: "static/",
           dir: "static-built/",
           skipDirOptimize: true,
-          generateSourceMaps: false,
+          generateSourceMaps: true,
           findNestedDependencies: true,
           preserveLicenseComments: false,
           removeCombined: true,
@@ -36,6 +36,7 @@ module.exports = function(grunt) {
           ],
           optimize: "uglify2",
           optimizeCss: "none",
+          useSourceUrl: true,
           wrapShim: 'true'
         }
       }
