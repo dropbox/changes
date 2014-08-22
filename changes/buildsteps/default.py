@@ -129,6 +129,9 @@ class DefaultBuildStep(BuildStep):
             )
             db.session.add(command)
 
+        # TODO(dcramer): improve error handling here
+        assert index != 0, "No commands were registered for build plan"
+
         db.session.commit()
 
         sync_job_step.delay(
