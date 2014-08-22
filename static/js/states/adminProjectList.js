@@ -6,19 +6,19 @@ define([
   function getEndpoint(params) {
     var endpoint = '/api/0/projects/?';
 
-    if (params.query) {
+    if (params.query !== null) {
       endpoint += '&query=' + params.query;
     }
 
-    if (params.status) {
+    if (params.status !== null) {
       endpoint += '&status=' + params.status;
     }
 
-    if (params.sort) {
+    if (params.sort !== null) {
       endpoint += '&sort=' + params.sort;
     }
 
-    if (params.per_page) {
+    if (params.per_page !== null) {
       endpoint += '&per_page=' + params.per_page;
     }
 

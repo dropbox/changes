@@ -6,23 +6,23 @@ define([
   function getEndpoint(params) {
     var endpoint = '/api/0/repositories/?';
 
-    if (params.query) {
+    if (params.query !== null) {
       endpoint += '&query=' + params.query;
     }
 
-    if (params.sort) {
+    if (params.sort !== null) {
       endpoint += '&sort=' + params.sort;
     }
 
-    if (params.status) {
+    if (params.status !== null) {
       endpoint += '&status=' + params.status;
     }
 
-    if (params.backend) {
+    if (params.backend !== null) {
       endpoint += '&backend=' + params.backend;
     }
 
-    if (params.per_page) {
+    if (params.per_page !== null) {
       endpoint += '&per_page=' + params.per_page;
     }
 

@@ -12,7 +12,7 @@ from changes.constants import Result, Status, ProjectStatus
 from changes.models import Project, Repository, Build, Source
 
 
-STATUS_CHOICES = ('active', 'inactive')
+STATUS_CHOICES = ('', 'active', 'inactive')
 
 SORT_CHOICES = ('name', 'date')
 
