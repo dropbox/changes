@@ -95,6 +95,9 @@ class SnapshotImage(db.Model):
     plan_id = Column(
         GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), unique=True)
+    status = Column(EnumType(SnapshotStatus),
+                    default=SnapshotStatus.unknown,
+                    nullable=False, server_default='0')
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     snapshot = relationship('Snapshot')
