@@ -5,6 +5,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.build_index import identify_revision, MissingRevision
+from changes.api.serializer.models.snapshot import SnapshotWithBuildSerializer
 from changes.config import db
 from changes.constants import Cause, Status
 from changes.db.utils import get_or_create
@@ -33,7 +34,9 @@ class ProjectSnapshotIndexAPIView(APIView):
             Snapshot.date_created.desc(),
         )
 
-        return self.paginate(queryset)
+        return self.paginate(queryset, serializers={
+            Snapshot: SnapshotWithBuildSerializer(),
+        })
 
     def post(self, project_id):
         """Initiates a new snapshot for this project."""
