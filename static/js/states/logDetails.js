@@ -53,7 +53,7 @@ define([
 
         e.preventDefault();
 
-        $checkbox.prop('checked', !$checkbox.is(':checked'));
+        $checkbox.prop('checked', !$checkbox.is(':checked')).change();
       });
 
       $('.btn-livescroll input[type=checkbox]').change(function(){
