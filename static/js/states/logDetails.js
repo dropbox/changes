@@ -90,12 +90,12 @@ define([
         $http.get(url)
           .success(function(data){
             $timeout(function(){
-              $.each(logData.chunks, function(_, chunk){
+              $.each(data.chunks, function(_, chunk){
                 updateBuildLog(chunk);
               });
             });
 
-            if (logData.chunks.length > 0 || jobData.status != 'finished') {
+            if (data.chunks.length > 0 || jobData.status != 'finished') {
               window.setTimeout(pollForChanges, 1000);
             }
           })
