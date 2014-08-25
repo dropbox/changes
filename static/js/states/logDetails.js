@@ -3,16 +3,24 @@ define([
 ], function(app) {
   'use strict';
 
+  function getEndpoint(params) {
+    return '/api/0/jobs/' + params.job_id + '/logs/' + params.source_id + '?limit=0';
+  }
+
+  function scrollToBottom(el) {
+    el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
+  }
+
   return {
     parent: 'job_details',
     url: 'logs/:source_id/',
     templateUrl: 'partials/job-log-details.html',
     controller: function($scope, $timeout, $http, $stateParams, jobData, logData, flash) {
       var logChunkData = {
-            text: '',
             size: 0,
             nextOffset: 0
-          };
+          },
+          liveScroll = false;
 
       function updateBuildLog(data) {
         var $el = $('#log-' + data.source.id + ' > .build-log'),
@@ -23,7 +31,9 @@ define([
         if (data.offset < logChunkData.nextOffset) {
           return;
         }
+
         logChunkData.nextOffset = data.offset + data.size;
+        logChunkData.size += data.size;
 
         frag = document.createDocumentFragment();
 
@@ -35,11 +45,35 @@ define([
           frag.appendChild(div);
         });
 
-        logChunkData.text += data.text;
-        logChunkData.size += data.size;
-
         $el.append(frag);
+
+        if (liveScroll) {
+          scrollToBottom(document);
+        }
       }
+
+      $('.btn-livescroll').click(function(e){
+        var $el = $(this),
+            $checkbox = $el.find('input[type=checkbox]');
+
+        e.preventDefault();
+
+        $checkbox.prop('checked', !$checkbox.is(':checked'));
+      });
+
+      $('.btn-livescroll input[type=checkbox]').change(function(){
+        var $el = $(this).parent();
+
+        liveScroll = $(this).is(':checked');
+
+        if (liveScroll) {
+          $el.addClass('active');
+        } else {
+          $el.removeClass('active');
+        }
+      }).click(function(e){
+        e.stopPropagation();
+      }).change();
 
       $scope.logSource = logData.source;
       $scope.step = logData.source.step;
@@ -49,10 +83,32 @@ define([
           updateBuildLog(chunk);
         });
       });
+
+      function pollForChanges() {
+        var url = getEndpoint($stateParams) + '&offset=' + logChunkData.nextOffset;
+
+        $http.get(url)
+          .success(function(data){
+            $timeout(function(){
+              $.each(logData.chunks, function(_, chunk){
+                updateBuildLog(chunk);
+              });
+            });
+
+            if (logData.chunks.length > 0 || jobData.status != 'finished') {
+              window.setTimeout(pollForChanges, 1000);
+            }
+          })
+          .error(function(){
+            window.setTimeout(pollForChanges, 10000);
+          });
+      }
+
+      window.setTimeout(pollForChanges, 1000);
     },
     resolve: {
-      logData: function($http, $stateParams, jobData) {
-        return $http.get('/api/0/jobs/' + jobData.id + '/logs/' + $stateParams.source_id + '?limit=0').then(function(response){
+      logData: function($http, $stateParams) {
+        return $http.get(getEndpoint($stateParams)).then(function(response){
           return response.data;
         });
       }

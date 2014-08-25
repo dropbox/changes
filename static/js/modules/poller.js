@@ -20,13 +20,13 @@ define(['angular', 'jquery'], function(angular, $) {
 
         $scope.$on('$destroy', function(){
           if (pollTimeoutID) {
-            $timeout.cancel(pollTimeoutID);
+            window.clearInterval(pollTimeoutID);
           }
         });
 
         var tick = function() {
           if (stopped) {
-            pollTimeoutID = $timeout(tick, options.delay);
+            pollTimeoutID = window.setTimeout(tick, options.delay);
             return;
           }
 
@@ -36,9 +36,9 @@ define(['angular', 'jquery'], function(angular, $) {
             $timeout(function(){
               options.update(response);
             });
-            pollTimeoutID = $timeout(tick, options.delay);
+            pollTimeoutID = window.setTimeout(tick, options.delay);
           }).error(function(){
-            pollTimeoutID = $timeout(tick, options.errorDelay);
+            pollTimeoutID = window.setTimeout(tick, options.errorDelay);
           });
         };
 

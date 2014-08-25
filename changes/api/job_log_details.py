@@ -45,7 +45,7 @@ class JobLogDetailsAPIView(APIView):
                 logchunks = list(queryset)
         else:
             queryset = queryset.filter(
-                (LogChunk.offset + LogChunk.size) >= offset,
+                LogChunk.offset > offset,
             )
             if limit:
                 queryset = queryset.filter(
