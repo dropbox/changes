@@ -7,10 +7,6 @@ define([
     return '/api/0/jobs/' + params.job_id + '/logs/' + params.source_id + '?limit=0';
   }
 
-  function scrollToBottom(el) {
-    el.scrollTop = Math.max(el.scrollHeight, el.clientHeight) - el.clientHeight;
-  }
-
   return {
     parent: 'job_details',
     url: 'logs/:source_id/',
@@ -48,7 +44,7 @@ define([
         $el.append(frag);
 
         if (liveScroll) {
-          scrollToBottom(document);
+          window.scrollTo(0, document.body.scrollHeight);
         }
       }
 
