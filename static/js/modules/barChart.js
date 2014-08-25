@@ -1,6 +1,7 @@
 define([
   'angular',
-  'jquery'
+  'jquery',
+  'bootstrap/tooltip'
 ], function(angular, $) {
   'use strict';
 
