@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import Response
 from flask_restful.reqparse import RequestParser
 from sqlalchemy.orm import contains_eager, joinedload
 
@@ -54,9 +53,3 @@ class ProjectBuildIndexAPIView(APIView):
             )
 
         return self.paginate(queryset)
-
-    def get_stream_channels(self, project_id=None):
-        project = Project.get(project_id)
-        if not project:
-            return Response(status=404)
-        return ['projects:{0}:builds'.format(project.id.hex)]

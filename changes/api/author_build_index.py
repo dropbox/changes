@@ -24,9 +24,3 @@ class AuthorBuildIndexAPIView(APIView):
         ).order_by(Build.date_created.desc(), Build.date_started.desc())
 
         return self.paginate(queryset)
-
-    def get_stream_channels(self, author_id):
-        author = self._get_author(author_id)
-        if not author:
-            return []
-        return ['authors:{0}:builds'.format(author.id.hex)]

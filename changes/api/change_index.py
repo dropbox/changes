@@ -51,6 +51,3 @@ class ChangeIndexAPIView(APIView):
         db.session.add(change)
 
         return self.respond(change)
-
-    def get_stream_channels(self):
-        return ['changes:*']

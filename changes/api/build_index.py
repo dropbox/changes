@@ -399,6 +399,3 @@ class BuildIndexAPIView(APIView):
             ))
 
         return self.respond(builds)
-
-    def get_stream_channels(self):
-        return ['builds:*']

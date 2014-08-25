@@ -58,10 +58,3 @@ class JobDetailsAPIView(APIView):
         })
 
         return self.respond(context)
-
-    def get_stream_channels(self, job_id):
-        return [
-            'jobs:{0}'.format(job_id),
-            'testgroups:{0}:*'.format(job_id),
-            'logsources:{0}:*'.format(job_id),
-        ]

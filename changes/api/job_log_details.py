@@ -73,10 +73,3 @@ class JobLogDetailsAPIView(APIView):
             context['source']['step']['phase'] = self.serialize(source.step.phase),
 
         return self.respond(context, serialize=False)
-
-    def get_stream_channels(self, job_id, source_id):
-        source = LogSource.query.get(source_id)
-        if source is None or source.job_id != job_id:
-            return Response(status=404)
-
-        return ['logsources:{0}:{1}'.format(job_id, source.id.hex)]

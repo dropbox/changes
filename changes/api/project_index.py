@@ -150,6 +150,3 @@ class ProjectIndexAPIView(APIView):
         db.session.commit()
 
         return self.respond(project)
-
-    def get_stream_channels(self):
-        return ['builds:*']

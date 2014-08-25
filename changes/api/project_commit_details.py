@@ -25,8 +25,3 @@ class ProjectCommitDetailsAPIView(APIView):
         })
 
         return self.respond(context)
-
-    def get_stream_channels(self, project_id, commit_id):
-        return [
-            'revisions:{0}:*'.format(commit_id),
-        ]

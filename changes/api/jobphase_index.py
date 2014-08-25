@@ -31,10 +31,3 @@ class JobPhaseIndexAPIView(APIView):
             context.append(phase_data)
 
         return self.respond(context, serialize=False)
-
-    def get_stream_channels(self, job_id):
-        return [
-            'jobs:{0}'.format(job_id),
-            'testgroups:{0}:*'.format(job_id),
-            'logsources:{0}:*'.format(job_id),
-        ]

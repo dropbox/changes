@@ -12,6 +12,3 @@ class ChangeDetailsAPIView(APIView):
         ).get(change_id)
 
         return self.respond(change)
-
-    def get_stream_channels(self, change_id):
-        return ['changes:{0}'.format(change_id)]
