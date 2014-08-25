@@ -91,7 +91,7 @@ define([
               });
             });
 
-            if (data.chunks.length > 0 || jobData.status != 'finished') {
+            if (data.chunks.length > 0 || jobData.status.id != 'finished') {
               window.setTimeout(pollForChanges, 1000);
             }
           })
