@@ -49,8 +49,7 @@ define([
       }
 
       $('.btn-livescroll').click(function(e){
-        var $el = $(this),
-            $checkbox = $el.find('input[type=checkbox]');
+        var $checkbox = $(this).find('input[type=checkbox]');
 
         e.preventDefault();
 
@@ -89,9 +88,11 @@ define([
               $.each(data.chunks, function(_, chunk){
                 updateBuildLog(chunk);
               });
+              $.extend(true, $scope.logSource, data.source);
+              $.extend(true, $scope.step, data.source.step);
             });
 
-            if (data.chunks.length > 0 || jobData.status.id != 'finished') {
+            if (data.chunks.length > 0 || data.source.step.status.id != 'finished') {
               window.setTimeout(pollForChanges, 1000);
             }
           })

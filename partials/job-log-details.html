@@ -22,8 +22,11 @@
         <div class="build-log expanded"></div>
     </div>
     <br>
-    <div class="clearfix" ng-if="jobData.status.id != 'finished'">
+    <div class="clearfix" ng-show="step.status.id != 'finished'">
         <div class="spinner-icon spinner-small pull-left"></div>
-        <a href="#" class="btn btn-default btn-livescroll pull-right"><input type="checkbox"> <span>Follow Log</span></a>
+        <a href="javascript:void(0)"
+           class="btn btn-default btn-livescroll pull-right">
+            <input type="checkbox"> <span>Follow Log</span>
+        </a>
     </div>
 </section>
