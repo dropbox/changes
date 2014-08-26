@@ -48,11 +48,25 @@ class MercurialVcs(Vcs):
     def update(self):
         self.run(['pull'])
 
-    def log(self, parent=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, offset=0, limit=100):
+        """ Gets the commit log for the repository.
+
+        Each revision returned has exactly one branch name associated with it.
+        This is the branch name encoded into the revision changeset description.
+
+        See documentation for the base for general information on this function.
+        """
         # TODO(dcramer): we should make this streaming
         cmd = ['log', '--template=%s' % (LOG_FORMAT,)]
+
+        if parent and branch:
+            raise ValueError('Both parent and branch cannot be set')
+        if branch:
+            cmd.append('-r reverse(branch({0}) or ancestors({0}))'
+                       .format(branch))
         if parent:
-            cmd.append('-r reverse(ancestors(%s))' % (parent,))
+            cmd.append('-r reverse(ancestors(%s))' % parent)
+
         if limit:
             cmd.append('--limit=%d' % (offset + limit,))
         result = self.run(cmd)

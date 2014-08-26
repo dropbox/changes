@@ -122,11 +122,27 @@ class GitVcs(Vcs):
     def update(self):
         self.run(['fetch', '--all'])
 
-    def log(self, parent=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, offset=0, limit=100):
+        """ Gets the commit log for the repository.
+
+        Each revision returned includes all the branches with which this commit
+        is associated. There will always be at least one associated branch.
+
+        See documentation for the base for general information on this function.
+        """
         # TODO(dcramer): we should make this streaming
-        cmd = ['log', '--all', '--pretty=format:%s' % (LOG_FORMAT,)]
+        cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,)]
+
+        if parent and branch:
+            raise ValueError('Both parent and branch cannot be set')
+        if branch:
+            cmd.append(branch)
+        else:
+            # TODO(vishal): Figure out if this makes sense with parent specified
+            cmd.append('--all')
         if parent:
             cmd.append(parent)
+
         if offset:
             cmd.append('--skip=%d' % (offset,))
         if limit:

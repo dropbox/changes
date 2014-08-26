@@ -96,17 +96,29 @@ class Vcs(object):
     def update(self):
         raise NotImplementedError
 
-    def log(self, parent=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, offset=0, limit=100):
+        """ Gets the commit log for the repository.
+
+        Only one of parent or branch can be specified for restricting searches.
+        If parent is set, it is used to identify any ancestor revisions,
+            regardless of their branch.
+        If branch is set, all revisions in the branch AND any ancestor commits
+            are returned.
+
+        For any revisions returned, the list of associated branches returned is
+        tool specific and may or may not include ancestor branch names. See tool
+        implementations for exact behavior of this function.
+
+        :param parent: Parent at which revision search begins.
+        :param branch: Branch name the revision must be associated with.
+        :param offset: An offset into the results at which to begin.
+        :param limit: The maximum number of results to return.
+        :return: A list of revisions matching the given criteria.
+        """
         raise NotImplementedError
 
     def export(self, id):
         raise NotImplementedError
-
-    def get_revision(self, id):
-        """
-        Return a ``Revision`` given by ``id`.
-        """
-        return self.log(parent=id, limit=1).next()
 
     def get_default_revision(self):
         raise NotImplementedError
