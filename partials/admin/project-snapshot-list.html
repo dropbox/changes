@@ -17,11 +17,9 @@
         <td class="column">{{snapshot.status.name}}</td>
         <td class="column" time-since="snapshot.dateCreated"></td>
         <td class="column" ng-if="snapshot.status.id == 'active'">
-          <a href="#"
-             ng-if="snapshot.id == currentSnapshotId"
+          <a ng-if="snapshot.id == currentSnapshotId"
              ng-click="deactivateSnapshot(snapshot.id)">Deactivate</a>
-          <a href="#"
-             ng-if="snapshot.id != currentSnapshotId"
+          <a ng-if="snapshot.id != currentSnapshotId"
              ng-click="activateSnapshot(snapshot.id)">Activate</a>
         </td>
         <td class="column" ng-if="snapshot.status.id != 'active'">
