@@ -137,8 +137,10 @@ class GitVcs(Vcs):
             raise ValueError('Both parent and branch cannot be set')
         if branch:
             cmd.append(branch)
-        else:
-            # TODO(vishal): Figure out if this makes sense with parent specified
+
+        # TODO(dcramer): determine correct way to paginate results in git as
+        # combining --all with --parent causes issues
+        elif not parent:
             cmd.append('--all')
         if parent:
             cmd.append(parent)
