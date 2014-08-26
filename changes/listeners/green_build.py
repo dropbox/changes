@@ -7,7 +7,7 @@ from time import time
 from sqlalchemy.orm import joinedload
 
 from changes.config import db
-from changes.constants import Result
+from changes.constants import Cause, Result
 from changes.db.utils import create_or_update
 from changes.models import (
     Build, Event, EventType, ProjectOption, RepositoryBackend
@@ -53,6 +53,9 @@ def get_release_id(source, vcs):
 def build_finished_handler(build_id, **kwargs):
     build = Build.query.get(build_id)
     if build is None:
+        return
+
+    if build.cause == Cause.snapshot:
         return
 
     if build.result != Result.passed:
