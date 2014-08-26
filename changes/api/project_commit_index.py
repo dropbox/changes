@@ -17,6 +17,7 @@ class ProjectCommitIndexAPIView(APIView):
     get_parser.add_argument('per_page', type=int, location='args',
                             default=50)
     get_parser.add_argument('parent', location='args')
+    get_parser.add_argument('branch', location='args')
 
     def get(self, project_id):
         project = Project.get(project_id)
@@ -36,6 +37,7 @@ class ProjectCommitIndexAPIView(APIView):
                 offset=offset,
                 limit=limit,
                 parent=args.parent,
+                branch=args.branch,
             ))
 
             if vcs_log:
@@ -60,8 +62,9 @@ class ProjectCommitIndexAPIView(APIView):
                     commits.append(result)
             else:
                 commits = []
-        elif args.parent:
-            return '{"error": "Parent argument not supported"}', 400
+        elif args.parent or args.branch:
+            param = 'Branches' if args.branch else 'Parents'
+            return {'error': '{0} not supported for projects with no repository.'.format(param)}, 422
         else:
             commits = self.serialize(list(
                 Revision.query.options(

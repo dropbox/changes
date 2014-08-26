@@ -50,7 +50,8 @@ class ProjectCommitIndexTest(APITestCase):
 
     @mock.patch('changes.models.Repository.get_vcs')
     def test_with_vcs(self, get_vcs):
-        def log_results(parent=None, offset=0, limit=100):
+        def log_results(parent=None, branch=None, offset=0, limit=100):
+            assert not branch
             results = [
                 RevisionResult(
                     id='a' * 40,
@@ -99,3 +100,54 @@ class ProjectCommitIndexTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 1
         assert data[0]['id'] == 'b' * 40
+
+    @mock.patch('changes.models.Repository.get_vcs')
+    def test_with_vcs_filtering(self, get_vcs):
+        def log_results(parent=None, branch=None, offset=0, limit=100):
+            results = [
+                RevisionResult(
+                    id='a' * 40,
+                    message='hello world',
+                    author='Foo <foo@example.com>',
+                    author_date=datetime(2013, 9, 19, 22, 15, 22),
+                    branches=['first', '2nd']
+                )]
+
+            # Exclude one result for queries with '2nd'
+            if branch != '2nd':
+                results.append(RevisionResult(
+                    id='b' * 40,
+                    message='biz',
+                    author='Bar <bar@example.com>',
+                    author_date=datetime(2013, 9, 19, 22, 15, 21),
+                    branches=['first']
+                ))
+            return results
+
+        fake_vcs = mock.Mock(spec=Vcs)
+        fake_vcs.log.side_effect = log_results
+        get_vcs.return_value = fake_vcs
+
+        project = self.create_project()
+        source = self.create_source(project, revision_sha='b' * 40)
+        build = self.create_build(project, source=source, status=Status.finished)
+
+        path = '/api/0/projects/{0}/commits/'.format(project.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
+
+        resp = self.client.get(path + '?branch=first')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
+        assert data[0]['branches'] == ['first', '2nd']
+        assert data[1]['branches'] == ['first']
+
+        resp = self.client.get(path + '?branch=2nd')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['branches'] == ['first', '2nd']
