@@ -48,7 +48,7 @@ class MercurialVcs(Vcs):
     def update(self):
         self.run(['pull'])
 
-    def log(self, parent=None, branch=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, author=None, offset=0, limit=100):
         """ Gets the commit log for the repository.
 
         Each revision returned has exactly one branch name associated with it.
@@ -61,11 +61,18 @@ class MercurialVcs(Vcs):
 
         if parent and branch:
             raise ValueError('Both parent and branch cannot be set')
+
+        # Build the -r parameter value into r_str with branch, parent and author
+        r_str = None
         if branch:
-            cmd.append('-r reverse(branch({0}) or ancestors({0}))'
-                       .format(branch))
+            r_str = ('branch({1}) or ancestors({1})'.format(r_str, branch))
         if parent:
-            cmd.append('-r reverse(ancestors(%s))' % parent)
+            r_str = ('ancestors(%s)' % parent)
+        if author:
+            r_str = ('({r}) and author("{0}")' if r_str else 'author("{0}")')\
+                .format(author, r=r_str)
+        if r_str:
+            cmd.append('-r reverse({0})'.format(r_str))
 
         if limit:
             cmd.append('--limit=%d' % (offset + limit,))

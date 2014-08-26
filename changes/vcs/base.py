@@ -96,7 +96,7 @@ class Vcs(object):
     def update(self):
         raise NotImplementedError
 
-    def log(self, parent=None, branch=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, author=None, offset=0, limit=100):
         """ Gets the commit log for the repository.
 
         Only one of parent or branch can be specified for restricting searches.
@@ -111,6 +111,7 @@ class Vcs(object):
 
         :param parent: Parent at which revision search begins.
         :param branch: Branch name the revision must be associated with.
+        :param author: The author name or email to filter results.
         :param offset: An offset into the results at which to begin.
         :param limit: The maximum number of results to return.
         :return: A list of revisions matching the given criteria.

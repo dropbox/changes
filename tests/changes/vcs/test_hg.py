@@ -31,6 +31,11 @@ class MercurialVcsTest(TestCase, VcsAsserts):
     remote_path = '%s/remote' % (root,)
     url = 'file://%s' % (remote_path,)
 
+    def _set_author(self, author):
+        with open(os.path.join(self.remote_path, '.hg/hgrc'), 'w') as fp:
+            fp.write('[ui]\n')
+            fp.write('username={0}\n'.format(author))
+
     def setUp(self):
         self.reset()
         self.addCleanup(check_call, 'rm -rf %s' % (self.root,), shell=True)
@@ -39,9 +44,7 @@ class MercurialVcsTest(TestCase, VcsAsserts):
         check_call('rm -rf %s' % (self.root,), shell=True)
         check_call('mkdir -p %s %s' % (self.path, self.remote_path), shell=True)
         check_call('hg init %s' % (self.remote_path,), shell=True)
-        with open(os.path.join(self.remote_path, '.hg/hgrc'), 'w') as fp:
-            fp.write('[ui]\n')
-            fp.write('username=Foo Bar <foo@example.com>\n')
+        self._set_author('Foo Bar <foo@example.com>')
         check_call('cd %s && touch FOO && hg add FOO && hg commit -m "test\nlol"' % (
             self.remote_path,
         ), shell=True)
@@ -58,6 +61,35 @@ class MercurialVcsTest(TestCase, VcsAsserts):
     def test_get_default_revision(self):
         vcs = self.get_vcs()
         assert vcs.get_default_revision() == 'default'
+
+    def test_log_with_authors(self):
+        vcs = self.get_vcs()
+
+        # Create a commit with a new author
+        self._set_author('Another Committer <ac@d.not.zm.exist>')
+        check_call('cd %s && touch BAZ && hg add BAZ && hg commit -m "bazzy"' % (
+            self.remote_path,
+        ), shell=True)
+        vcs.clone()
+        vcs.update()
+        revisions = list(vcs.log())
+        assert len(revisions) == 3
+
+        revisions = list(vcs.log(author='Another Committer'))
+        assert len(revisions) == 1
+        self.assertRevision(revisions[0],
+                            author='Another Committer <ac@d.not.zm.exist>',
+                            message='bazzy')
+
+        revisions = list(vcs.log(author='ac@d.not.zm.exist'))
+        assert len(revisions) == 1
+        self.assertRevision(revisions[0],
+                            author='Another Committer <ac@d.not.zm.exist>',
+                            message='bazzy')
+
+        revisions = list(vcs.log(branch=vcs.get_default_revision(),
+                                 author='Foo'))
+        assert len(revisions) == 2
 
     def test_log_throws_errors_when_needed(self):
         vcs = self.get_vcs()

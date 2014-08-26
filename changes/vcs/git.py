@@ -122,7 +122,7 @@ class GitVcs(Vcs):
     def update(self):
         self.run(['fetch', '--all'])
 
-    def log(self, parent=None, branch=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, author=None, offset=0, limit=100):
         """ Gets the commit log for the repository.
 
         Each revision returned includes all the branches with which this commit
@@ -143,6 +143,8 @@ class GitVcs(Vcs):
         if parent:
             cmd.append(parent)
 
+        if author:
+            cmd.append('--author=%s' % (author,))
         if offset:
             cmd.append('--skip=%d' % (offset,))
         if limit:
