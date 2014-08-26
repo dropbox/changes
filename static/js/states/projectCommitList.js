@@ -28,7 +28,7 @@ define([
     parent: 'project_details',
     url: 'commits/',
     templateUrl: 'partials/project-commit-list.html',
-    controller: function($scope, $state, $stateParams, Collection, CollectionPoller,
+    controller: function($scope, $state, $stateParams, flash, Collection, CollectionPoller,
                          Paginator, PageTitle, projectData) {
       var chartOptions = {
         linkFormatter: function(item) {
@@ -132,7 +132,14 @@ define([
         },
         onLoadComplete: function(){
           $scope.loading = false;
-        }
+        },
+        onLoadError: function(url, data){
+          if (data.error) {
+            flash('error', data.error);
+          } else {
+            flash('error');
+          }
+        },
       });
 
       PageTitle.set(projectData.name + ' Commits');

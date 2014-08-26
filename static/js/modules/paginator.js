@@ -90,7 +90,7 @@ define(['angular', 'jquery'], function(angular, jQuery) {
             self.options.onLoadComplete(url);
           })
           .error(function(){
-            self.options.onLoadError(url);
+            self.options.onLoadError(url, data);
             self.options.onLoadComplete(url);
           });
       };
