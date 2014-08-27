@@ -35,7 +35,7 @@ define([
     parent: 'admin_layout',
     url: 'plans/?query&sort&per_page&status',
     templateUrl: 'partials/admin/plan-list.html',
-    controller: function($scope, $stateParams, Collection, Paginator) {
+    controller: function($scope, $state, $stateParams, Collection, Paginator) {
       var collection = new Collection();
       var paginator = new Paginator(getEndpoint($stateParams), {
         collection: collection
