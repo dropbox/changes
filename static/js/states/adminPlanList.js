@@ -46,7 +46,7 @@ define([
       };
 
       $scope.search = function(){
-        $state.go('admin_repository_list', $scope.searchForm);
+        $state.go('admin_plan_list', $scope.searchForm);
       };
 
       $scope.planList = collection;
