@@ -340,6 +340,7 @@ def configure_api_routes(app):
     from changes.api.testcase_details import TestCaseDetailsAPIView
     from changes.api.user_details import UserDetailsAPIView
     from changes.api.user_index import UserIndexAPIView
+    from changes.api.project_latest_green_builds import ProjectLatestGreenBuildsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
@@ -384,6 +385,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectDetailsAPIView, '/projects/<project_id>/')
     api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/')
     api.add_resource(ProjectBuildSearchAPIView, '/projects/<project_id>/builds/search/')
+    api.add_resource(ProjectLatestGreenBuildsAPIView, '/projects/<project_id>/latest_green_builds/')
     api.add_resource(ProjectCommitIndexAPIView, '/projects/<project_id>/commits/')
     api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')
     api.add_resource(ProjectCommitBuildsAPIView, '/projects/<project_id>/commits/<commit_id>/builds/')
