@@ -82,9 +82,9 @@ define(['app', 'states/layout', 'states/projectDetails',
         ProjectCommitListState.custom.ensureDefaults($filter('lowercase'), params, branch);
         expect(params.branch).to.equal('imabranch');
 
-        // Remove the branch if we move to a repository without names
+        // Keep the existing branch even if it's not the names list
         ProjectCommitListState.custom.ensureDefaults($filter('lowercase'), params, {});
-        expect(params.branch).to.not.be.ok;
+        expect(params.branch).to.equal('imabranch');
       })
     );
 

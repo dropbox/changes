@@ -38,10 +38,6 @@ define([
         params.branch = repositoryBranches.primary;
       }
       params.branch = lowercaseFunc(params.branch);
-    } else {
-      // Ignore branch if someone tries to navigate to a project with no
-      // branches. It's better than showing them an error.
-      params.branch = null;
     }
   }
 
