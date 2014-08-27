@@ -309,7 +309,6 @@ def configure_api_routes(app):
     from changes.api.plan_project_index import PlanProjectIndexAPIView
     from changes.api.plan_step_index import PlanStepIndexAPIView
     from changes.api.project_build_index import ProjectBuildIndexAPIView
-    from changes.api.project_build_search import ProjectBuildSearchAPIView
     from changes.api.project_commit_builds import ProjectCommitBuildsAPIView
     from changes.api.project_commit_details import ProjectCommitDetailsAPIView
     from changes.api.project_commit_index import ProjectCommitIndexAPIView
@@ -384,7 +383,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectIndexAPIView, '/projects/')
     api.add_resource(ProjectDetailsAPIView, '/projects/<project_id>/')
     api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/')
-    api.add_resource(ProjectBuildSearchAPIView, '/projects/<project_id>/builds/search/')
+    api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/search/', endpoint='projectbuildsearchapiview')
     api.add_resource(ProjectLatestGreenBuildsAPIView, '/projects/<project_id>/latest_green_builds/')
     api.add_resource(ProjectCommitIndexAPIView, '/projects/<project_id>/commits/')
     api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')

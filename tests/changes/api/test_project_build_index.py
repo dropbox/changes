@@ -1,31 +1,79 @@
 from uuid import uuid4
 from urllib import quote
 
+from changes.constants import Result
 from changes.testutils import APITestCase
 
 
 class ProjectBuildListTest(APITestCase):
     def test_simple(self):
+
         fake_project_id = uuid4()
 
         project = self.create_project()
         self.create_build(project)
 
-        project = self.create_project()
-        build = self.create_build(project)
+        project1 = self.create_project()
+        build1 = self.create_build(project1, label='test', target='D1234',
+                                   result=Result.passed)
+        project2 = self.create_project()
+        build2 = self.create_build(project2, label='test', target='D1234',
+                                   result=Result.failed)
 
         path = '/api/0/projects/{0}/builds/'.format(fake_project_id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 404
 
-        path = '/api/0/projects/{0}/builds/'.format(project.id.hex)
+        path = '/api/0/projects/{0}/builds/'.format(project1.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == build.id.hex
+        assert data[0]['id'] == build1.id.hex
+
+        resp = self.client.get(path + '?source=D1234')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
+
+        resp = self.client.get(path + '?query=D1234')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
+
+        resp = self.client.get(path + '?query=test')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
+
+        resp = self.client.get(path + '?query=something_impossible')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
+
+        path = '/api/0/projects/{0}/builds/'.format(project2.id.hex)
+
+        resp = self.client.get(path + '?result=failed')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build2.id.hex
+
+        resp = self.client.get(path + '?result=aborted')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 0
 
     def test_include_patches(self):
         project = self.create_project()

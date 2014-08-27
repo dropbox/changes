@@ -15,10 +15,22 @@ define([
     }
 
     var per_page = options.per_page || PER_PAGE;
-    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/search/?per_page=' + per_page;
+    var url = '/api/0/projects/' + $stateParams.project_id + '/builds/?per_page=' + per_page;
 
     if ($stateParams.query) {
       url += '&query=' + $stateParams.query;
+    }
+
+    if ($stateParams.result) {
+      url += '&result=' + $stateParams.result;
+    }
+
+    if ($stateParams.source) {
+      url += '&source=' + $stateParams.source;
+    }
+
+    if ($stateParams.author) {
+      url += '&source=' + $stateParams.author;
     }
 
     return url;
@@ -26,7 +38,7 @@ define([
 
   return {
     parent: 'project_details',
-    url: 'builds/?query',
+    url: 'builds/?query&result&source&author',
     templateUrl: 'partials/project-build-list.html',
     controller: function($scope, $state, $stateParams, Collection, CollectionPoller,
                          Paginator, PageTitle, projectData) {
