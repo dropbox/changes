@@ -18,7 +18,7 @@ def validate_author(author_id):
 
 class ProjectBuildIndexAPIView(APIView):
     get_parser = RequestParser()
-    get_parser.add_argument('include_patches', type=bool, location='args',
+    get_parser.add_argument('include_patches', type=lambda x: bool(int(x)), location='args',
                             default=True)
     get_parser.add_argument('author', type=validate_author, location='args',
                             dest='authors')
@@ -47,7 +47,7 @@ class ProjectBuildIndexAPIView(APIView):
         elif args.authors is not None:
             return []
 
-        if args.include_patches:
+        if not args.include_patches:
             queryset = queryset.filter(
                 Source.patch_id == None,  # NOQA
             )

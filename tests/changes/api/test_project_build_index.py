@@ -43,6 +43,13 @@ class ProjectBuildListTest(APITestCase):
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
 
+        path = '/api/0/projects/{0}/builds/?include_patches=1'.format(project.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
+
     def test_author(self):
         project = self.create_project()
         patch = self.create_patch(repository=project.repository)
