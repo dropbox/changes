@@ -4,7 +4,20 @@
             <div class="btn-group btn-group-sm" style="margin-right: 10px; margin-top: 2px">
                 <a href="#" class="btn btn-default"
                   ui-sref="project_builds()"
-                  ui-sref-active="active">All Builds</a>
+                  ui-sref-active="active">All</a>
+                <a ng-if="repository.primary" href="#" class="btn btn-default"
+                  ui-sref="project_commits({branch: '{{repository.primary | lowercase}}'})"
+                  ui-sref-active="active">{{repository.primary}}</a>
+                <button ng-if="repository.names.length > 0" type="button" data-toggle="dropdown"
+                  class="btn btn-default dropdown-toggle"
+                  ng-class="{active:repository.secondaryActive}">
+                  Other Trees <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a ng-repeat="name in repository.names" href="#"
+                         ui-sref="project_commits({branch: '{{name | lowercase}}'})">
+                         {{name}}</a></li>
+                </ul>
             </div>
             <div class="btn-group actions" style="position: relative">
                 <a class="dropdown-toggle btn btn-primary" data-toggle="action-dropdown">

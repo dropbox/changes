@@ -54,7 +54,7 @@ class Task(db.Model):
         >>> if Task.check('my_task', parent_item.id) == Status.finished:
         >>>     print "all child tasks done!"
         """
-        # XXX(dcramer): we could make this fast if we're concerneda bout # of
+        # XXX(dcramer): we could make this fast if we're concerned about # of
         # rows by doing two network hops (first check for in progress, then
         # report result)
         child_tasks = list(db.session.query(

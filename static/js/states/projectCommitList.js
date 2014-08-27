@@ -8,9 +8,17 @@ define([
   'use strict';
 
   var PER_PAGE = 50;
+  var MASTER_REPOSITORY = 'master';
+  var DEFAULT_REPOSITORY = 'default';
 
-  function getEndpoint($stateParams) {
-    var url = '/api/0/projects/' + $stateParams.project_id + '/commits/?per_page=' + PER_PAGE;
+  function getEndpoint($stateParams, per_page_size) {
+    var url = '/api/0/projects/' + $stateParams.project_id + '/commits/?' +
+              'per_page=' + per_page_size;
+
+    if ($stateParams.branch) {
+      url += '&branch=' + $stateParams.branch;
+    }
+
     return url;
   }
 
@@ -24,12 +32,62 @@ define([
     }
   }
 
+  function ensureDefaults(lowercaseFunc, params, repositoryBranches) {
+    if (repositoryBranches.names && repositoryBranches.names.length > 0) {
+      if (!params.branch) {
+        params.branch = repositoryBranches.primary;
+      }
+      params.branch = lowercaseFunc(params.branch);
+    } else {
+      // Ignore branch if someone tries to navigate to a project with no
+      // branches. It's better than showing them an error.
+      params.branch = null;
+    }
+  }
+
+  function createRepositoryBranchData(rawBranchData) {
+    var repositoryBranches = {
+      data: rawBranchData,
+      names: []
+    };
+
+    var branchName = '';
+    var arrayLength = rawBranchData.length;
+    for (var index = 0; index < arrayLength; index++) {
+      branchName = rawBranchData[index].name;
+      if (branchName) {
+        // Set the primary repository to 'master' (if present), or 'default'.
+        // If neither is present, leave it undefined. Ignore case in matching
+        // branches because both git and hg have problems with case sensitive
+        // branch names.
+        switch (branchName.toLowerCase()) {
+          case DEFAULT_REPOSITORY:
+            if (!repositoryBranches.primary) {
+              repositoryBranches.primary = branchName;
+            }
+            break;
+          case MASTER_REPOSITORY:
+            repositoryBranches.primary = branchName;
+            break;
+        }
+
+        // Always add the name to the names list
+        repositoryBranches.names.push(branchName);
+      }
+    }
+    return repositoryBranches;
+  }
+
   return {
+    custom: {
+      createRepositoryBranchData: createRepositoryBranchData,
+      ensureDefaults: ensureDefaults,
+    },
     parent: 'project_details',
-    url: 'commits/',
+    url: 'commits/?branch',
     templateUrl: 'partials/project-commit-list.html',
     controller: function($scope, $state, $stateParams, flash, Collection, CollectionPoller,
-                         Paginator, PageTitle, projectData) {
+                         Paginator, PageTitle, projectData, repositoryBranches) {
       var chartOptions = {
         linkFormatter: function(item) {
           if (item.build) {
@@ -109,7 +167,7 @@ define([
       var poller = new CollectionPoller({
         $scope: $scope,
         collection: collection,
-        endpoint: '/api/0/projects/' + $stateParams.project_id + '/commits/?per_page=25',
+        endpoint: getEndpoint($stateParams, 25),
         shouldUpdate: function(item, existing) {
           if (!existing.build && !item.build) {
             return false;
@@ -124,7 +182,7 @@ define([
         }
       });
 
-      var paginator = new Paginator(getEndpoint($stateParams), {
+      var paginator = new Paginator(getEndpoint($stateParams, PER_PAGE), {
         collection: collection,
         poller: poller,
         onLoadBegin: function(){
@@ -143,6 +201,7 @@ define([
       });
 
       PageTitle.set(projectData.name + ' Commits');
+      $scope.repository = repositoryBranches;
 
       $scope.loading = true;
       $scope.selectChart = function(chart) {
@@ -153,6 +212,30 @@ define([
 
       $scope.commitList = collection;
       $scope.commitPaginator = paginator;
+    },
+    resolve: {
+      repositoryBranches: function ($http, $stateParams, $q, projectData) {
+        var success_callback = function(response) {
+          var branchData = createRepositoryBranchData(response.data);
+          branchData.secondaryActive = $stateParams.branch && ($stateParams.branch != branchData.primary);
+          return branchData;
+        };
+
+        var error_callback = function(response) {
+          // The repository doesn't support branches
+          if (response.status == 422 && response.data.error) {
+            return {};
+          }
+          // Return the original error
+          return $q.reject(response);
+        };
+
+        return $http.get('/api/0/repositories/' + projectData.repository.id + '/branches/').
+            then(success_callback, error_callback);
+      },
+    },
+    onEnter: function($filter, $stateParams, repositoryBranches) {
+      ensureDefaults($filter('lowercase'), $stateParams, repositoryBranches);
     }
   };
 });

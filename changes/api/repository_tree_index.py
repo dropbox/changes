@@ -12,7 +12,7 @@ class RepositoryTreeIndexAPIView(APIView):
     This is exposed as an API on the repository because in the future there may
     be related preferences that affect the behavior for associated trees.
     """
-    TREE_ARGUMENT_NAME = 'tree'
+    TREE_ARGUMENT_NAME = 'branch'
 
     get_parser = reqparse.RequestParser()
     get_parser.add_argument(TREE_ARGUMENT_NAME, type=unicode, location='args',

@@ -402,7 +402,7 @@ def configure_api_routes(app):
     api.add_resource(RepositoryIndexAPIView, '/repositories/')
     api.add_resource(RepositoryDetailsAPIView, '/repositories/<uuid:repository_id>/')
     api.add_resource(RepositoryProjectIndexAPIView, '/repositories/<uuid:repository_id>/projects/')
-    api.add_resource(RepositoryTreeIndexAPIView, '/repositories/<uuid:repository_id>/trees/')
+    api.add_resource(RepositoryTreeIndexAPIView, '/repositories/<uuid:repository_id>/branches/')
     api.add_resource(SnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/')
     api.add_resource(SnapshotImageDetailsAPIView, '/snapshotimages/<uuid:image_id>/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+import getpass
 import random
 import time
+import os
+import subprocess
 
 from datetime import datetime
 
@@ -11,7 +14,7 @@ from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.models import (
     Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan,
-    ItemStat, Snapshot, SnapshotStatus
+    ItemStat, Snapshot, SnapshotStatus, RepositoryBackend, RepositoryStatus
 )
 from changes.testutils.fixtures import Fixtures
 
@@ -53,7 +56,10 @@ def create_new_entry(project):
         patch = None
     source = mock.source(
         project.repository, revision_sha=revision.sha, patch=patch)
+    return create_new_build(change, source, patch, project)
 
+
+def create_new_build(change, source, patch, project):
     date_started = datetime.utcnow()
 
     build = mock.build(
@@ -176,6 +182,25 @@ def gen(project):
     return build
 
 
+def add(project, revision):
+    """ Similar to gen, except uses an existing revision for the project
+    :return: A new build that's been saved.
+    """
+    author = mock.author()
+    change = create_new_change(
+        project=project,
+        author=author,
+        message=revision.message
+    )
+    if random.randint(0, 1) == 1:
+        patch = mock.patch(project)
+    else:
+        patch = None
+    source = mock.source(
+        project.repository, revision_sha=revision.sha, patch=patch)
+    return create_new_build(change, source, patch, project)
+
+
 def loop():
     repository = mock.repository()
     project = mock.project(repository)
@@ -193,11 +218,81 @@ def loop():
         'status': SnapshotStatus.pending,
     })
 
+    print 'Looping indefinitely, creating data for {1}'.format(project.slug)
     while True:
         build = gen(project)
-        print 'Pushed build {0} on {1}'.format(build.id, project.slug)
+        print '  Pushed build {0} on {1}'.format(build.id, project.slug)
         time.sleep(0.1)
 
 
+def identify_local_vcs():
+    """ Identifies if we're currently in a git repo or a hg repo
+
+    :return: Tuple of (RepositoryBackend, Vcs) representing the type of repo
+    """
+    # Try running a git command
+    dn = open(os.devnull, 'w')
+    if subprocess.call('git status', shell=True, stdout=dn, stderr=dn) < 1:
+        return RepositoryBackend.git
+
+    # Git didn't work - try hg instead
+    if subprocess.call('hg status', shell=True, stdout=dn, stderr=dn) < 1:
+        return RepositoryBackend.hg
+
+    return RepositoryBackend.unknown
+
+
+def get_vcs(repository):
+    """ Gets the Vcs based on repository options. Based on repository.get_vcs()
+    """
+    kwargs = {
+        'path': os.getcwd(),
+        'url': repository.url,
+        'username': getpass.getuser(),
+    }
+    from changes.vcs.git import GitVcs
+    from changes.vcs.hg import MercurialVcs
+
+    if repository.backend == RepositoryBackend.git:
+        return GitVcs(**kwargs)
+    elif repository.backend == RepositoryBackend.hg:
+        return MercurialVcs(**kwargs)
+    else:
+        return None
+
+
+def simulate_local_repository():
+    # Identify if we're in a git or hg repo
+    backend = identify_local_vcs()
+
+    # Simulate the repository in a new project
+    repository = mock.repository(backend=backend,
+                                 status=RepositoryStatus.active)
+    project = mock.project(repository)
+    plan = mock.plan()
+    get_or_create(ProjectPlan, where={
+        'plan': plan,
+        'project': project,
+    })
+    get_or_create(Snapshot, where={
+        'project': project,
+        'status': SnapshotStatus.active,
+    })
+    get_or_create(Snapshot, where={
+        'project': project,
+        'status': SnapshotStatus.pending,
+    })
+
+    # Create some build data based off commits in the local repository
+    print 'Creating data based on {0} repository in {1}'.format(backend, os.getcwd())
+    vcs = get_vcs(repository)
+    for lazy_revision in vcs.log(limit=10):
+        revision, created = lazy_revision.save(repository)
+        print '    Created revision {0} in {1}'.format(revision.sha, revision.branches)
+        build = add(project, revision)
+        print '    Inserted build {0} into {1}'.format(build.id, project.slug)
+
+
 if __name__ == '__main__':
+    simulate_local_repository()
     loop()

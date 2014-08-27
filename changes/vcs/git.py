@@ -133,6 +133,13 @@ class GitVcs(Vcs):
         # TODO(dcramer): we should make this streaming
         cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,)]
 
+        if author:
+            cmd.append('--author=%s' % (author,))
+        if offset:
+            cmd.append('--skip=%d' % (offset,))
+        if limit:
+            cmd.append('--max-count=%d' % (limit,))
+
         if parent and branch:
             raise ValueError('Both parent and branch cannot be set')
         if branch:
@@ -145,14 +152,7 @@ class GitVcs(Vcs):
         if parent:
             cmd.append(parent)
 
-        if author:
-            cmd.append('--author=%s' % (author,))
-        if offset:
-            cmd.append('--skip=%d' % (offset,))
-        if limit:
-            cmd.append('--max-count=%d' % (limit,))
         result = self.run(cmd)
-
         for chunk in BufferParser(result, '\x02'):
             (sha, author, author_date, committer, committer_date,
              parents, message) = chunk.split('\x01')

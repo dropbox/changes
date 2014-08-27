@@ -9,7 +9,7 @@ from changes.models import RepositoryBackend
 class RepositoryTreeListTest(APITestCase):
     def test_no_vcs(self):
         repo = self.create_repo(url='https://example.co.nonexistent/bar')
-        path = '/api/0/repositories/{0}/trees/'.format(repo.id)
+        path = '/api/0/repositories/{0}/branches/'.format(repo.id)
         resp = self.client.get(path)
         self.assertEquals(resp.status_code, 422, resp.data)
         self.assertIn('backend', resp.data)
@@ -20,7 +20,7 @@ class RepositoryTreeListTest(APITestCase):
         known_branches_mock.return_value = [test_branch_name]
         repo = self.create_repo(url='https://example.co.nonexistent/bar',
                                 backend=RepositoryBackend.git)
-        path = '/api/0/repositories/{0}/trees/'.format(repo.id)
+        path = '/api/0/repositories/{0}/branches/'.format(repo.id)
 
         resp = self.client.get(path)
         self.assertEquals(resp.status_code, 200, resp.data)
@@ -34,7 +34,7 @@ class RepositoryTreeListTest(APITestCase):
         known_branches_mock.return_value = test_branches
         repo = self.create_repo(url='https://example.co.nonexistent/bar',
                                 backend=RepositoryBackend.git)
-        path = '/api/0/repositories/{0}/trees/'.format(repo.id)
+        path = '/api/0/repositories/{0}/branches/'.format(repo.id)
 
         resp = self.client.get(path)
         self.assertEquals(resp.status_code, 200, resp.data)
@@ -50,7 +50,7 @@ class RepositoryTreeListTest(APITestCase):
         repo = self.create_repo(url='https://example.co.nonexistent/bar',
                                 backend=RepositoryBackend.git)
 
-        path = '/api/0/repositories/{0}/trees/?tree={1}'.format(
+        path = '/api/0/repositories/{0}/branches/?branch={1}'.format(
             repo.id, 'match')
 
         resp = self.client.get(path)
@@ -66,7 +66,7 @@ class RepositoryTreeListTest(APITestCase):
         repo = self.create_repo(url='https://example.co.nonexistent/bar',
                                 backend=RepositoryBackend.git)
 
-        path = '/api/0/repositories/{0}/trees/?tree={1}'.format(
+        path = '/api/0/repositories/{0}/branches/?branch={1}'.format(
             repo.id, urllib.quote('match:/', safe=''))
 
         resp = self.client.get(path)
