@@ -202,6 +202,7 @@ define([
 
       PageTitle.set(projectData.name + ' Commits');
       $scope.repository = repositoryBranches;
+      $scope.branch = $stateParams.branch;
 
       $scope.loading = true;
       $scope.selectChart = function(chart) {
