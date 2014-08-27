@@ -1,13 +1,29 @@
 from uuid import uuid4
 
 from datetime import datetime
+from enum import Enum
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from changes.config import db
+from changes.db.types.enum import Enum as EnumType
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
+
+
+class PlanStatus(Enum):
+    inactive = 0
+    active = 1
+
+    def __str__(self):
+        return STATUS_LABELS[self]
+
+
+STATUS_LABELS = {
+    PlanStatus.inactive: 'Inactive',
+    PlanStatus.active: 'Active',
+}
 
 
 class Plan(db.Model):
@@ -19,6 +35,9 @@ class Plan(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     date_modified = Column(DateTime, default=datetime.utcnow, nullable=False)
     data = Column(JSONEncodedDict)
+    status = Column(EnumType(PlanStatus),
+                    default=PlanStatus.inactive,
+                    nullable=False, server_default='1')
 
     projects = association_proxy('plan_projects', 'project')
 

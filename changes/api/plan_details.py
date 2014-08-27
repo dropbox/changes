@@ -5,12 +5,15 @@ from flask.ext.restful import reqparse
 from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Plan
+from changes.models import Plan, PlanStatus
+
+STATUS_CHOICES = ('active', 'inactive')
 
 
 class PlanDetailsAPIView(APIView):
     post_parser = reqparse.RequestParser()
     post_parser.add_argument('name', type=unicode)
+    post_parser.add_argument('status', choices=STATUS_CHOICES)
 
     def get(self, plan_id):
         plan = Plan.query.get(plan_id)
@@ -33,6 +36,9 @@ class PlanDetailsAPIView(APIView):
 
         if args.name:
             plan.label = args.name
+
+        if args.status:
+            plan.status = PlanStatus[args.status]
 
         db.session.add(plan)
         db.session.commit()

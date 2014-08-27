@@ -11,6 +11,7 @@ class PlanSerializer(Serializer):
             'id': instance.id.hex,
             'name': instance.label,
             'steps': list(instance.steps),
+            'status': instance.status,
             'dateCreated': instance.date_created,
             'dateModified': instance.date_modified,
         }

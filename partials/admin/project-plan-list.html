@@ -3,15 +3,15 @@
     <thead>
       <tr class="grid-list-header">
         <th>Plan</th>
+        <th class="column">Status</th>
         <th class="column">Created</th>
-        <th class="column">Modified</th>
       </tr>
     </thead>
     <tbody>
       <tr ng-repeat="plan in planList">
         <td><a ui-sref="admin_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
+        <td class="column">{{plan.status.name}}</td>
         <td class="column" time-since="plan.dateCreated"></td>
-        <td class="column" time-since="plan.dateModified"></td>
       </tr>
     </tbody>
   </table>

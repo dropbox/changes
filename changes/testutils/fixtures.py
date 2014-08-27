@@ -11,7 +11,8 @@ from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
-    RepositoryStatus, User, ItemOption, Command, Snapshot, SnapshotImage
+    RepositoryStatus, User, ItemOption, Command, Snapshot, SnapshotImage,
+    PlanStatus
 )
 from changes.utils.slugs import slugify
 
@@ -256,6 +257,7 @@ class Fixtures(object):
 
     def create_plan(self, **kwargs):
         kwargs.setdefault('label', 'test')
+        kwargs.setdefault('status', PlanStatus.active)
 
         plan = Plan(**kwargs)
         db.session.add(plan)

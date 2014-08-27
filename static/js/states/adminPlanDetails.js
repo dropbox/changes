@@ -5,7 +5,8 @@ define(['app'], function(app) {
 
   function getFormData(planData) {
     return {
-      name: planData.name
+      name: planData.name,
+      status: planData.status.id
     };
   }
 

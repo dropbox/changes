@@ -17,7 +17,7 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, RepositoryStatus, Patch,
-    ProjectOption, ItemOption, Source, ProjectPlan, Revision
+    ProjectOption, ItemOption, Source, PlanStatus, ProjectPlan, Revision
 )
 
 
@@ -133,13 +133,17 @@ def create_build(project, label, target, message, author, change=None,
     return build
 
 
+def get_build_plans(project):
+    return [p for p in project.plans if p.status == PlanStatus.active]
+
+
 def execute_build(build):
     # TODO(dcramer): most of this should be abstracted into sync_build as if it
     # were a "im on step 0, create step 1"
     project = build.project
 
     jobs = []
-    for plan in project.plans:
+    for plan in get_build_plans(project):
         job = Job(
             build=build,
             build_id=build.id,
@@ -354,7 +358,7 @@ class BuildIndexAPIView(APIView):
 
         builds = []
         for project in projects:
-            plan_list = list(project.plans)
+            plan_list = get_build_plans(project)
             if not plan_list:
                 logging.warning('No plans defined for project %s', project.slug)
                 continue
