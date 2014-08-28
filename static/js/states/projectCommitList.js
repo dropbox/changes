@@ -32,58 +32,24 @@ define([
     }
   }
 
-  function ensureDefaults(lowercaseFunc, params, repositoryBranches) {
-    if (repositoryBranches.names && repositoryBranches.names.length > 0) {
+  function ensureDefaults(lowercaseFunc, params, repository) {
+    if (repository.branches && repository.branches.length > 0) {
       if (!params.branch) {
-        params.branch = repositoryBranches.primary;
+        params.branch = repository.defaultBranch;
       }
       params.branch = lowercaseFunc(params.branch);
     }
   }
 
-  function createRepositoryBranchData(rawBranchData) {
-    var repositoryBranches = {
-      data: rawBranchData,
-      names: []
-    };
-
-    var branchName = '';
-    var arrayLength = rawBranchData.length;
-    for (var index = 0; index < arrayLength; index++) {
-      branchName = rawBranchData[index].name;
-      if (branchName) {
-        // Set the primary repository to 'master' (if present), or 'default'.
-        // If neither is present, leave it undefined. Ignore case in matching
-        // branches because both git and hg have problems with case sensitive
-        // branch names.
-        switch (branchName.toLowerCase()) {
-          case DEFAULT_REPOSITORY:
-            if (!repositoryBranches.primary) {
-              repositoryBranches.primary = branchName;
-            }
-            break;
-          case MASTER_REPOSITORY:
-            repositoryBranches.primary = branchName;
-            break;
-        }
-
-        // Always add the name to the names list
-        repositoryBranches.names.push(branchName);
-      }
-    }
-    return repositoryBranches;
-  }
-
   return {
     custom: {
-      createRepositoryBranchData: createRepositoryBranchData,
       ensureDefaults: ensureDefaults,
     },
     parent: 'project_details',
     url: 'commits/?branch',
     templateUrl: 'partials/project-commit-list.html',
-    controller: function($scope, $state, $stateParams, flash, Collection, CollectionPoller,
-                         Paginator, PageTitle, projectData, repositoryBranches) {
+    controller: function($scope, $state, $stateParams, flash,
+                         Collection, CollectionPoller, Paginator, PageTitle, projectData) {
       var chartOptions = {
         linkFormatter: function(item) {
           if (item.build) {
@@ -197,8 +163,8 @@ define([
       });
 
       PageTitle.set(projectData.name + ' Commits');
-      $scope.repository = repositoryBranches;
       $scope.branch = $stateParams.branch;
+      $scope.projectData = projectData;
 
       $scope.loading = true;
       $scope.selectChart = function(chart) {
@@ -211,11 +177,10 @@ define([
       $scope.commitPaginator = paginator;
     },
     resolve: {
-      repositoryBranches: function ($http, $stateParams, $q, projectData) {
+      repositoryData: function ($http, $stateParams, $q, projectData) {
         var success_callback = function(response) {
-          var branchData = createRepositoryBranchData(response.data);
-          branchData.secondaryActive = $stateParams.branch && ($stateParams.branch != branchData.primary);
-          return branchData;
+          projectData.repository.branches = response.data;
+          return projectData.repository;
         };
 
         var error_callback = function(response) {
@@ -231,8 +196,8 @@ define([
             then(success_callback, error_callback);
       },
     },
-    onEnter: function($filter, $stateParams, repositoryBranches) {
-      ensureDefaults($filter('lowercase'), $stateParams, repositoryBranches);
+    onEnter: function($filter, $stateParams, repositoryData) {
+      ensureDefaults($filter('lowercase'), $stateParams, repositoryData);
     }
   };
 });

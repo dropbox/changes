@@ -26,10 +26,10 @@
                     <li><a ui-sref="project_builds()"
                            ui-sref-active="active">All Builds</a></li>
                     <li class="divider"></li>
-                    <li><a ng-repeat="name in repository.names" href="#"
-                         ui-sref="project_commits({branch: '{{name | lowercase}}'})"
+                    <li><a ng-repeat="branch_item in projectData.repository.branches" href="#"
+                         ui-sref="project_commits({branch: '{{branch_item.name | lowercase}}'})"
                          ui-sref-active="active">
-                         {{name}}</a></li>
+                         {{branch_item.name}}</a></li>
                 </ul></span>
             </span>
         </h2>

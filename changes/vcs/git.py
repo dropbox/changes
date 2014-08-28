@@ -66,7 +66,9 @@ class GitVcs(Vcs):
             'GIT_SSH': self.ssh_connect_path,
         }
 
-    def get_default_revision(self):
+    # This is static so that the repository serializer can easily use it
+    @staticmethod
+    def get_default_revision():
         return 'master'
 
     @property

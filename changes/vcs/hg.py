@@ -17,7 +17,9 @@ class MercurialVcs(Vcs):
             'HGPLAIN': '1',
         }
 
-    def get_default_revision(self):
+    # This is static so that the repository serializer can easily use it
+    @staticmethod
+    def get_default_revision():
         return 'default'
 
     @property
