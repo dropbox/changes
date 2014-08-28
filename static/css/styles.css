@@ -25,10 +25,6 @@ h4 small {
   font-weight: 300;
 }
 
-h2 .branch-selector > a {
-  font-weight: bold;
-}
-
 h4 small {
   font-size: 0.7em;
 }
@@ -958,6 +954,11 @@ table.build-list {
 .build-list .branch {
   text-align: top;
 }
+
+.branch-selector > span {
+  position: relative;
+}
+
 
 .progress-bar,
 .progress-bar {
