@@ -10,6 +10,12 @@ from changes.constants import Cause, Status
 from changes.models import Build, Project, Revision, Source
 
 
+def error(message):
+    """ Returns a new error dictionary serializable into JSON.
+    """
+    return {'error': message}
+
+
 class ProjectCommitIndexAPIView(APIView):
     get_parser = reqparse.RequestParser()
     get_parser.add_argument('page', type=int, location='args',
@@ -33,12 +39,15 @@ class ProjectCommitIndexAPIView(APIView):
         limit = args.per_page + 1
 
         if vcs:
-            vcs_log = list(vcs.log(
-                offset=offset,
-                limit=limit,
-                parent=args.parent,
-                branch=args.branch,
-            ))
+            try:
+                vcs_log = list(vcs.log(
+                    offset=offset,
+                    limit=limit,
+                    parent=args.parent,
+                    branch=args.branch,
+                ))
+            except ValueError as err:
+                return error(err.message), 400
 
             if vcs_log:
                 revisions_qs = list(Revision.query.options(
@@ -64,7 +73,7 @@ class ProjectCommitIndexAPIView(APIView):
                 commits = []
         elif args.parent or args.branch:
             param = 'Branches' if args.branch else 'Parents'
-            return {'error': '{0} not supported for projects with no repository.'.format(param)}, 422
+            return error('{0} not supported for projects with no repository.'.format(param)), 422
         else:
             commits = self.serialize(list(
                 Revision.query.options(

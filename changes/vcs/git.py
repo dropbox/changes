@@ -154,7 +154,19 @@ class GitVcs(Vcs):
         if parent:
             cmd.append(parent)
 
-        result = self.run(cmd)
+        try:
+            result = self.run(cmd)
+        except CommandError as cmd_error:
+            err_msg = cmd_error.stderr
+            if branch and branch in err_msg:
+                import traceback
+                import logging
+                msg = traceback.format_exception(CommandError, cmd_error, None)
+                logging.warning(msg)
+                raise ValueError('Unable to fetch commit log for branch "{0}".'
+                                 .format(branch))
+            raise
+
         for chunk in BufferParser(result, '\x02'):
             (sha, author, author_date, committer, committer_date,
              parents, message) = chunk.split('\x01')
