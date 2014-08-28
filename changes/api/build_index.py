@@ -75,20 +75,24 @@ def find_green_parent_sha(project, sha):
         Source.repository_id == project.repository_id,
         Source.revision_sha == sha,
     ).first()
+
+    filters = []
     if green_rev:
         if green_rev.status == Status.finished and green_rev.result == Result.passed:
             return sha
+        filters.append(Build.date_created > green_rev.date_created)
 
-        latest_green = Build.query.filter(
-            Build.date_created > green_rev.date_created,
-            Build.status == Status.finished,
-            Build.result == Result.passed,
-        ).order_by(Build.date_created.desc()).first()
-    else:
-        latest_green = Build.query.filter(
-            Build.status == Status.finished,
-            Build.result == Result.passed,
-        ).order_by(Build.date_created.desc()).first()
+    latest_green = Build.query.join(
+        Source, Source.id == Build.source_id,
+    ).filter(
+        Build.status == Status.finished,
+        Build.result == Result.passed,
+        Build.project_id == project.id,
+        Source.patch_id == None,  # NOQA
+        Source.revision_sha != None,
+        Source.repository_id == project.repository_id,
+        *filters
+    ).order_by(Build.date_created.desc()).first()
 
     if latest_green:
         return latest_green.source.revision_sha

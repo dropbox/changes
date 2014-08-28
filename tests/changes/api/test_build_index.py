@@ -72,6 +72,45 @@ class FindGreenParentShaTest(TestCase):
         result = find_green_parent_sha(project, current_source.revision_sha)
         assert result == newer_source.revision_sha
 
+    def test_newer_green_missing_revision(self):
+        project = self.create_project()
+        current_source = self.create_source(
+            project=project,
+            revision_sha='a' * 40,
+        )
+        newer_source = self.create_source(
+            project=project,
+            revision_sha=None,
+        )
+        newer_build = self.create_build(  # NOQA
+            project=project,
+            source=newer_source,
+            status=Status.finished,
+            result=Result.passed,
+        )
+        result = find_green_parent_sha(project, current_source.revision_sha)
+        assert result == current_source.revision_sha
+
+    def test_newer_green_is_patch(self):
+        project = self.create_project()
+        current_source = self.create_source(
+            project=project,
+            revision_sha='a' * 40,
+        )
+        newer_source = self.create_source(
+            project=project,
+            revision_sha='b' * 40,
+            patch=self.create_patch(repository=project.repository),
+        )
+        newer_build = self.create_build(  # NOQA
+            project=project,
+            source=newer_source,
+            status=Status.finished,
+            result=Result.passed,
+        )
+        result = find_green_parent_sha(project, current_source.revision_sha)
+        assert result == current_source.revision_sha
+
     def test_without_newer_green(self):
         project = self.create_project()
         older_source = self.create_source(
