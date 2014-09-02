@@ -8,7 +8,6 @@
             '<h5><a ui-sref="build_details({project_id: commit.project.slug, build_id: commit.id})">{{title}}</a></h5>' +
             '<div class="info">' +
               '<span ng-if="showProject"><a ui-sref="project_builds({project_id: commit.project.slug})">{{commit.project.name}}</a> &mdash;</span>' +
-              '<span class="branch" ng-repeat="branch in commit.source.revision.branches" ng-if="showBranches">{{branch}}</span>' +
               '<a ui-sref="project_source_details({project_id: commit.project.slug, source_id: commit.source.id})">{{commit.target}}</a>' +
               '<span ng-if="commit.author">&mdash; {{commit.author.name}}</span>' +
               '<span ng-if="commit.stats.test_failures"> &mdash; <span style="color:red">{{commit.stats.test_failures}} test failures</span></span>' +
@@ -24,7 +23,6 @@
         scope: {
           commit: '=',
           title: '=',
-          showBranches: '=',
           showProject: '=',
         },
         replace: true,

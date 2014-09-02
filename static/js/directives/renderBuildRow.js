@@ -55,10 +55,6 @@
           if (scope.showProject === undefined) {
             scope.showProject = false;
           }
-          scope.showBranches = scope.$eval(attrs.showBranches);
-          if (scope.showBranches === undefined) {
-            scope.showBranches = true;
-          }
 
           scope.$watch('build.dateModified', function() {
             var build = scope.build;
