@@ -101,6 +101,12 @@ define([
           });
       }
 
+      $scope.$watch("job.status.id", function(value) {
+        if (value == 'finished') {
+          $(document.body).addClass('build-log-stream-inactive');
+        }
+      });
+
       window.setTimeout(pollForChanges, 1000);
     },
     resolve: {
@@ -115,6 +121,7 @@ define([
     },
     onExit: function(){
       $(document.body).removeClass('build-log-container');
+      $(document.body).removeClass('build-log-stream-inactive');
     }
   };
 });

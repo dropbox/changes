@@ -1575,6 +1575,16 @@ d3barchart {
   margin-left: 10px;
 }
 
+.build-log-stream-inactive .build-log-controls {
+  display: none;
+}
+.build-log-stream-inactive .log-spinner {
+  display: none;
+}
+.build-log-stream-inactive .build-log-wrapper {
+  margin-bottom: 0;
+}
+
 .build-log {
   max-height: 500px;
   color: #000;
