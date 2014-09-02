@@ -1525,6 +1525,9 @@ d3barchart {
   font-size: 1.3em;
 }
 
+.build-log-container {
+  background: #fff;
+}
 .build-log-container .container {
   width: 100%;
 }
@@ -1586,16 +1589,11 @@ d3barchart {
 }
 
 .build-log {
-  max-height: 500px;
   color: #000;
   border-width: 1px 0;
   font-size: 14px;
   font-weight: 300;
   padding: 20px 0;
-  min-height: 50px;
-  overflow: -moz-scrollbars-vertical;
-  overflow-y: scroll;
-  resize: vertical;
 }
 .build-log a {
   color: #c7c0de;
@@ -1609,13 +1607,6 @@ d3barchart {
   font-family: monospace, serif;
   font-size: 0.9em;
   white-space: pre-wrap;
-}
-
-.build-log.expanded {
-  height: auto;
-  max-height: none;
-  min-height: none;
-  overflow: auto;
 }
 
 .expand-log-link {
