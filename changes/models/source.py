@@ -20,7 +20,7 @@ class Source(db.Model):
     """
     id = Column(GUID, primary_key=True, default=uuid4)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    patch_id = Column(GUID, ForeignKey('patch.id'))
+    patch_id = Column(GUID, ForeignKey('patch.id'), unique=True)
     revision_sha = Column(String(40))
     date_created = Column(DateTime, default=datetime.utcnow)
     data = Column(JSONEncodedDict)
@@ -37,12 +37,7 @@ class Source(db.Model):
             ('revision.repository_id', 'revision.sha')
         ),
         UniqueConstraint(
-            'repository_id', 'revision_sha', name='unq_source_revision',
-            # postgresql_where=(patch_id == None)
-        ),
-        UniqueConstraint(
-            'patch_id', name='unq_source_patch_id',
-            # postgresql_where=(patch_id != None),
+            'repository_id', 'revision_sha', 'patch_id', name='unq_source_revision',
         ),
     )
 

@@ -108,13 +108,23 @@ def create_build(project, label, target, message, author, change=None,
     repository = project.repository
 
     if source is None:
-        source, _ = get_or_create(Source, where={
-            'repository': repository,
-            'patch': patch,
-            'revision_sha': sha,
-        }, defaults={
-            'data': source_data or {},
-        })
+        if patch:
+            source, _ = get_or_create(Source, where={
+                'patch': patch,
+            }, defaults={
+                'repository': repository,
+                'revision_sha': sha,
+                'data': source_data or {},
+            })
+
+        else:
+            source, _ = get_or_create(Source, where={
+                'repository': repository,
+                'patch': None,
+                'revision_sha': sha,
+            }, defaults={
+                'data': source_data or {},
+            })
 
     build = Build(
         project=project,
