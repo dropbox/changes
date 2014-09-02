@@ -1,32 +1,19 @@
-<section class="section" bind-once>
-    <div class="section-header">
-    	<div class="pull-right">
-    		<a href="/api/0/jobs/{{job.id}}/logs/{{logSource.id}}/?raw=1"
-    		   class="btn btn-default"
-    		   target="_self">Raw Log</a>
-    	</div>
-        <h3>{{step.name}} <small>{{logSource.name}}</small></h3>
-    </div>
-	<dl class="flat">
-		<dt ng-if="step.phase.name">Phase:</dt>
-		<dd ng-if="step.phase.name">{{step.phase.name}}</dd>
-		<dt>Result:</dt>
-		<dd>{{step.result.name}}</dd>
-		<dt ng-if="step.node">Node:</dt>
-		<dd ng-if="step.node"><a ui-sref="node_details({node_id: step.node.id})">{{(step.node.name || step.node.id)|truncate:50}}</a></dd>
-		<dt>Created:</dt>
-		<dd time-since="logSource.dateCreated"></dd>
-	</dl>
+<div class="build-log-wrapper" id="log-{{logSource.id}}">
+    <div class="build-log expanded"></div>
+    <span class="spinner-icon spinner-small"></span>
+</div>
 
-    <div class="build-log-wrapper" id="log-{{logSource.id}}">
-        <div class="build-log expanded"></div>
-    </div>
-    <br>
-    <div class="clearfix" ng-show="step.status.id != 'finished'">
-        <div class="spinner-icon spinner-small pull-left"></div>
+<div class="clearfix build-log-controls" ng-show="step.status.id != 'finished'">
+    <h3 class="hidden-xs">
+        {{step.name}} <small class="hidden-sm">{{logSource.name}}</small>
+    </h3>
+    <div class="pull-right">
+        <a href="/api/0/jobs/{{job.id}}/logs/{{logSource.id}}/?raw=1"
+           class="btn btn-default"
+           target="_self">Raw Log</a>
         <a href="javascript:void(0)"
-           class="btn btn-default btn-livescroll pull-right">
+           class="btn btn-default btn-livescroll">
             <input type="checkbox"> <span>Follow Log</span>
         </a>
     </div>
-</section>
+</div>

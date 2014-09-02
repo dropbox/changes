@@ -48,14 +48,6 @@ define([
         }
       }
 
-      $('.btn-livescroll').click(function(e){
-        var $checkbox = $(this).find('input[type=checkbox]');
-
-        e.preventDefault();
-
-        $checkbox.prop('checked', !$checkbox.is(':checked')).change();
-      });
-
       $('.btn-livescroll input[type=checkbox]').change(function(){
         var $el = $(this).parent();
 
@@ -69,6 +61,14 @@ define([
       }).click(function(e){
         e.stopPropagation();
       }).change();
+
+      $('.btn-livescroll').click(function(e){
+        var $checkbox = $(this).find('input[type=checkbox]');
+
+        e.preventDefault();
+
+        $checkbox.prop('checked', !$checkbox.is(':checked')).change();
+      }).click();
 
       $scope.logSource = logData.source;
       $scope.step = logData.source.step;
@@ -109,6 +109,12 @@ define([
           return response.data;
         });
       }
+    },
+    onEnter: function(){
+      $(document.body).addClass('build-log-container');
+    },
+    onExit: function(){
+      $(document.body).removeClass('build-log-container');
     }
   };
 });

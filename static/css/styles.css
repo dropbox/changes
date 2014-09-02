@@ -1525,14 +1525,59 @@ d3barchart {
   font-size: 1.3em;
 }
 
-.build-log-wrapper {
-  position: relative;
+.build-log-container .container {
+  width: 100%;
+}
+.build-log-container footer {
+  display: none;
+}
+.build-log-container .build-header {
+  position: fixed;
+  top: 50px;
+  left: 0;
+  right: 0;
+  height: 88px;
+  background: #fff;
+  margin: 0;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+.build-log-container .build-header .actions {
+  right: 20px;
+  top: 25px;
+}
+.build-log-container .build-log-wrapper {
+  margin-bottom: 0;
+  margin-top: 73px;
+  padding: 0 5px;
+  margin-bottom: 41px;
+}
+.build-log-container .build-log-wrapper .build-log {
+  padding: 0;
+}
+.build-log-container .build-log-controls {
+  background: #fff;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 20px;
+  height: 55px;
+  border-top: 1px solid #eee;
+}
+.build-log-container .build-log-controls h3 {
+  margin: 0;
+  font-size: 18px;
+  display: inline-block;
+  line-height: 30px;
+}
+.build-log-container .build-log-controls h3 .spinner-icon {
+  margin-left: 10px;
 }
 
 .build-log {
   max-height: 500px;
   color: #000;
-  border: 1px solid #eee;
   border-width: 1px 0;
   font-size: 14px;
   font-weight: 300;
