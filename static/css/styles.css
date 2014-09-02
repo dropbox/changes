@@ -1549,6 +1549,10 @@ d3barchart {
   right: 20px;
   top: 25px;
 }
+.build-log-container .build-header .seen-by {
+  right: 60px;
+  top: 25px;
+}
 .build-log-container .build-log-wrapper {
   margin-bottom: 0;
   margin-top: 73px;
