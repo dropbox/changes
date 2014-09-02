@@ -112,6 +112,7 @@ def create_build(project, label, target, message, author, change=None,
             'repository': repository,
             'patch': patch,
             'revision_sha': sha,
+        }, defaults={
             'data': source_data or {},
         })
 
