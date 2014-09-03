@@ -13,6 +13,7 @@ class CommandSerializer(Serializer):
             'returnCode': instance.return_code,
             'env': dict(instance.env or {}),
             'cwd': instance.cwd,
+            'type': instance.type,
             'artifacts': instance.artifacts or [],
             'duration': instance.duration,
             'dateCreated': instance.date_created,
