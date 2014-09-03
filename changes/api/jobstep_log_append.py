@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask_restful.reqparse import RequestParser
 
 from changes.api.base import APIView
+from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import JobStep, LogSource, LogChunk, LOG_CHUNK_SIZE
@@ -44,13 +45,14 @@ class JobStepLogAppendAPIView(APIView):
             'job_id': step.job_id,
         })
 
-        if args.offset is not None:
+        offset = args.offset
+        if offset is not None:
             # ensure we haven't already recorded an offset that could be
             # in this range
             existing_chunk = LogChunk.query.filter(
                 LogChunk.source_id == logsource.id,
-                args.offset >= LogChunk.offset,
-                args.offset <= LogChunk.offset + LogChunk.size - 1,
+                offset >= LogChunk.offset,
+                offset <= LogChunk.offset + LogChunk.size - 1,
             ).first()
             if existing_chunk is not None:
                 # XXX(dcramer); this is more of an error but we make an assumption
@@ -58,11 +60,15 @@ class JobStepLogAppendAPIView(APIView):
                 existing_msg = {"error": "A chunk within the bounds of the given offset is already recorded."}
                 return self.respond(existing_msg, status_code=204)
         else:
-            # TODO(dcramer): we should support a straight up simple append
-            raise NotImplementedError
+            offset = db.session.query(
+                LogChunk.offset + LogChunk.size,
+            ).filter(
+                LogChunk.source_id == logsource.id,
+            ).order_by(
+                LogChunk.offset.desc(),
+            ).scalar() or 0
 
         logchunks = []
-        offset = args.offset
         for chunk in chunked(args.text, LOG_CHUNK_SIZE):
             chunk_size = len(chunk)
             chunk, _ = create_or_update(LogChunk, where={

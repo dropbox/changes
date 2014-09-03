@@ -75,3 +75,39 @@ class JobStepLogAppendTest(APITestCase):
         logchunk = LogChunk.query.get(data['chunks'][0]['id'])
         assert logchunk.offset == 0
         assert logchunk.size == 10
+
+    def test_without_offsets(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        path = '/api/0/jobsteps/{0}/logappend/'.format(jobstep.id.hex)
+
+        resp = self.client.post(path, data={
+            'source': 'stderr',
+            'text': 'hello world!\n',
+        })
+
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        logsource = LogSource.query.get(data['source']['id'])
+        assert logsource.name == 'stderr'
+        assert len(data['chunks']) == 1
+        logchunk = LogChunk.query.get(data['chunks'][0]['id'])
+        assert logchunk.offset == 0
+        assert logchunk.size == 13
+
+        resp = self.client.post(path, data={
+            'source': 'stderr',
+            'text': 'foo bar?\n',
+        })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        logsource = LogSource.query.get(data['source']['id'])
+        assert logsource.name == 'stderr'
+        assert len(data['chunks']) == 1
+        logchunk = LogChunk.query.get(data['chunks'][0]['id'])
+        assert logchunk.offset == 13
+        assert logchunk.size == 9
