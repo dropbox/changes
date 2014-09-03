@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Cause, Result, Status
-from changes.models import JobStep, ProjectOption
+from changes.models import CommandType, JobStep, ProjectOption
 from changes.testutils import APITestCase
 
 
@@ -201,3 +201,97 @@ class UpdateJobStepTest(APITestCase):
         db.session.expire(jobstep)
         jobstep = JobStep.query.get(jobstep.id)
         assert jobstep.node.label == 'bar'
+
+    def test_missing_expected_tests_collector(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(
+            jobphase, status=Status.queued, result=Result.unknown,
+            date_started=None, date_finished=None)
+        self.create_command(
+            jobstep=jobstep,
+            type=CommandType.collect_tests,
+            return_code=0,
+            status=Status.finished,
+        )
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.post(path, data={
+            'status': 'finished',
+            'result': 'passed'
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+
+        jobstep = JobStep.query.get(jobstep.id)
+
+        assert jobstep.status == Status.finished
+        assert jobstep.result == Result.failed
+        assert jobstep.date_started is not None
+        assert jobstep.date_finished is not None
+
+    def test_failed_command(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(
+            jobphase, status=Status.queued, result=Result.unknown,
+            date_started=None, date_finished=None)
+        self.create_command(
+            jobstep=jobstep,
+            type=CommandType.collect_tests,
+            return_code=1,
+            status=Status.finished,
+        )
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.post(path, data={
+            'status': 'finished',
+            'result': 'passed'
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+
+        jobstep = JobStep.query.get(jobstep.id)
+
+        assert jobstep.status == Status.finished
+        assert jobstep.result == Result.failed
+        assert jobstep.date_started is not None
+        assert jobstep.date_finished is not None
+
+    def test_unfinished_command(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(
+            jobphase, status=Status.queued, result=Result.unknown,
+            date_started=None, date_finished=None)
+        self.create_command(
+            jobstep=jobstep,
+            type=CommandType.collect_tests,
+            return_code=0,
+            status=Status.unknown,
+        )
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.post(path, data={
+            'status': 'finished',
+            'result': 'passed'
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+
+        jobstep = JobStep.query.get(jobstep.id)
+
+        assert jobstep.status == Status.finished
+        assert jobstep.result == Result.failed
+        assert jobstep.date_started is not None
+        assert jobstep.date_finished is not None

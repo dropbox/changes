@@ -20,6 +20,9 @@ class CommandType(Enum):
     collect_tests = 2
     setup = 3
 
+    def is_collector(self):
+        return self in set([CommandType.collect_steps, CommandType.collect_tests])
+
 
 class FutureCommand(object):
     def __init__(self, script, path=None, artifacts=None, env=None, label=None,

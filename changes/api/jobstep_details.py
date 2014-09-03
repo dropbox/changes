@@ -10,7 +10,9 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job import sync_job
-from changes.models import JobPlan, JobStep, Node, Snapshot, SnapshotImage
+from changes.models import (
+    Command, FailureReason, JobPhase, JobPlan, JobStep, Node, Snapshot, SnapshotImage
+)
 
 
 RESULT_CHOICES = ('failed', 'passed')
@@ -24,6 +26,13 @@ class JobStepDetailsAPIView(APIView):
     post_parser.add_argument('status', choices=STATUS_CHOICES)
     post_parser.add_argument('result', choices=RESULT_CHOICES)
     post_parser.add_argument('node')
+
+    def _is_final_jobphase(self, jobphase):
+        return not db.session.query(
+            JobPhase.query.filter(
+                JobPhase.date_created > jobphase.date_created,
+            ).exists(),
+        ).scalar()
 
     def get(self, step_id):
         jobstep = JobStep.query.options(
@@ -93,6 +102,36 @@ class JobStepDetailsAPIView(APIView):
                 'label': args.node,
             })
             jobstep.node_id = node.id
+
+        # we want to guarantee that even if the jobstep seems to succeed, that
+        # we accurately reflect what we internally would consider a success state
+        if jobstep.result == Result.passed and jobstep.status == Status.finished:
+            last_command = Command.query.filter(
+                Command.jobstep_id == jobstep.id,
+            ).order_by(Command.order.desc()).first()
+
+            if not last_command:
+                pass
+
+            elif last_command.status != Status.finished:
+                jobstep.result = Result.failed
+
+            elif last_command.return_code != 0:
+                jobstep.result = Result.failed
+
+            # are we missing an expansion step? it must happen before reporting
+            # the result, and would falsely give us a success metric
+            elif last_command.type.is_collector() and self._is_final_jobphase(jobstep.phase):
+                jobstep.result = Result.failed
+                job = jobstep.job
+                # TODO(dcramer): we should add a better failure reason
+                db.session.add(FailureReason(
+                    step_id=jobstep.id,
+                    job_id=job.id,
+                    build_id=job.build_id,
+                    project_id=job.project_id,
+                    reason='missing_artifact',
+                ))
 
         db.session.add(jobstep)
         if db.session.is_modified(jobstep):
