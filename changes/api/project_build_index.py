@@ -13,7 +13,7 @@ from changes.models import Author, Project, Source, Build
 def validate_author(author_id):
     current_user = get_current_user()
     if author_id == 'me' and not current_user:
-        raise ValueError('You are not authenticated')
+        raise ValueError('You are not signed in.')
 
     return Author.find(author_id, current_user)
 

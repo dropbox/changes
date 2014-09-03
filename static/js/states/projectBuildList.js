@@ -30,7 +30,7 @@ define([
     }
 
     if ($stateParams.author) {
-      url += '&source=' + $stateParams.author;
+      url += '&author=' + $stateParams.author;
     }
 
     return url;
@@ -40,8 +40,8 @@ define([
     parent: 'project_details',
     url: 'builds/?query&result&source&author',
     templateUrl: 'partials/project-build-list.html',
-    controller: function($scope, $state, $stateParams, Collection, CollectionPoller,
-                         Paginator, PageTitle, projectData) {
+    controller: function($scope, $state, $stateParams, flash,
+                         Collection, CollectionPoller, Paginator, PageTitle, projectData) {
       var chart_options = {
         linkFormatter: function(item) {
           return $state.href('build_details', {build_id: item.id});
@@ -116,7 +116,14 @@ define([
 
       var paginator = new Paginator(getEndpoint($stateParams), {
         collection: collection,
-        poller: poller
+        poller: poller,
+        onLoadError: function(url, data){
+          if (data.message) {
+            flash('error', data.message);
+          } else {
+            flash('error');
+          }
+        },
       });
 
       PageTitle.set(projectData.name + ' Builds');
@@ -128,6 +135,15 @@ define([
           return build.status.name;
         }
       };
+
+      if ($stateParams.author) {
+        var activeUser = ($scope.activeUser) ? $scope.activeUser.email : null;
+        if ($stateParams.author == 'me' || $stateParams.author == activeUser) {
+          $scope.authorName  = 'me';
+        } else {
+          $scope.authorName = $stateParams.author;
+        }
+      }
 
       $scope.selectChart = selectChart;
       $scope.selectChart('duration');

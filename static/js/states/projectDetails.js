@@ -47,7 +47,26 @@ define([
           tests: (projectData.options['ui.show-tests'] == '1')
         });
         return deferred.promise;
-      }
+      },
+      repositoryData: function ($http, $stateParams, $q, projectData) {
+        var success_callback = function(response) {
+          projectData.repository.branches = response.data;
+          console.log(projectData.repository.branches);
+          return projectData.repository;
+        };
+
+        var error_callback = function(response) {
+          // The repository doesn't support branches
+          if (response.status == 422 && response.data.error) {
+            return {};
+          }
+          // Return the original error
+          return $q.reject(response);
+        };
+
+        return $http.get('/api/0/repositories/' + projectData.repository.id + '/branches/').
+            then(success_callback, error_callback);
+      },
     }
   };
 });

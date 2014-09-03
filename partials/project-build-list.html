@@ -3,7 +3,25 @@
         <div class="pull-right">
             <a class="btn btn-sm btn-default" ui-sref="project_new_build()">Create Build</a>
         </div>
-        <h2>Builds</h2>
+        <h2 bind-once>Builds
+            <span ng-if="authorName" class="branch-selector"> by
+                <span>
+                    <a class="dropdown-toggle" data-toggle="action-dropdown">
+                        {{authorName}} <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a>All Builds</a></li>
+                        <li><a ui-sref="project_builds({author: 'me'})"
+                               ng-class="{active: authorName == 'me'}">My Builds</a></li>
+                        <li ng-if="project.repository.branches.length > 0" class="divider"></li>
+                        <li><a ng-repeat="branch_item in project.repository.branches" href="#"
+                             ui-sref="project_commits({branch: '{{branch_item.name | lowercase}}'})"
+                             ui-sref-active="active">
+                             {{branch_item.name}}</a></li>
+                    </ul></span>
+                <small ng-if="authorName== 'me' "> {{activeUser.email}}</small>
+            </span>
+        </h2>
     </div>
 
     <div ng-if="chartData">
