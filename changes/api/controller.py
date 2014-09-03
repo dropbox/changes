@@ -1,5 +1,5 @@
 from flask.signals import got_request_exception
-from flask.ext.restful import Api
+from flask.ext.restful import Api, Resource
 
 
 class APIController(Api):
@@ -16,3 +16,13 @@ class APIController(Api):
             raise
 
         return super(APIController, self).handle_error(e)
+
+
+class APICatchall(Resource):
+    def get(self, path):
+        return {'error': 'Not Found'}, 404
+
+    post = get
+    put = get
+    delete = get
+    patch = get

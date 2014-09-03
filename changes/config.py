@@ -17,7 +17,7 @@ from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
 
 from changes.constants import PROJECT_ROOT
-from changes.api.controller import APIController
+from changes.api.controller import APIController, APICatchall
 from changes.ext.celery import Celery
 from changes.ext.redis import Redis
 from changes.url_converters.uuid import UUIDConverter
@@ -413,6 +413,7 @@ def configure_api_routes(app):
     api.add_resource(TaskDetailsAPIView, '/tasks/<uuid:task_id>/')
     api.add_resource(UserIndexAPIView, '/users/')
     api.add_resource(UserDetailsAPIView, '/users/<uuid:user_id>/')
+    api.add_resource(APICatchall, '/<path:path>')
 
 
 def configure_web_routes(app):
