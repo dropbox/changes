@@ -958,6 +958,10 @@ table.build-list {
 .branch-selector > span {
   position: relative;
 }
+.branch-selector a.dropdown-toggle {
+  cursor: pointer;
+  text-decoration: none;
+}
 
 
 .progress-bar,
