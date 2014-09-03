@@ -78,6 +78,7 @@
                 ng-if="commit.build"></tr>
             <tr ng-if="!commit.build">
                 <td class="name">
+                    <a class="btn btn-xs indicator" ng-if="commit.sha" ng-click="startBuild(commit)">#Start</a>
                     <h5>{{commit.subject}}</h5>
                     <div class="info" bind-once>
                         <a ui-sref="project_commit_details({commit_id: commit.id})">{{commit.id.substr(0, 12)}}</a>

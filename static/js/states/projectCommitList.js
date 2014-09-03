@@ -2,9 +2,10 @@ define([
   'app',
   'utils',
   'utils/chartHelpers',
+  'utils/createBuild',
   'utils/escapeHtml',
   'utils/sortBuildList'
-], function(app, utils, chartHelpers, escapeHtml, sortBuildList) {
+], function(app, utils, chartHelpers, createBuild, escapeHtml, sortBuildList) {
   'use strict';
 
   var PER_PAGE = 50;
@@ -48,7 +49,7 @@ define([
     parent: 'project_details',
     url: 'commits/?branch',
     templateUrl: 'partials/project-commit-list.html',
-    controller: function($scope, $state, $stateParams, flash,
+    controller: function($scope, $http, $state, $stateParams, flash,
                          Collection, CollectionPoller, Paginator, PageTitle, projectData) {
       var chartOptions = {
         linkFormatter: function(item) {
@@ -167,6 +168,14 @@ define([
       $scope.projectData = projectData;
 
       $scope.loading = true;
+
+      $scope.startBuild = function(commit) {
+        var buildData = {
+          project: projectData.slug,
+          sha: commit.sha
+        };
+        createBuild($http, $state, flash, buildData);
+      };
       $scope.selectChart = function(chart) {
         $scope.selectedChart = chart;
         $scope.chartData = chartHelpers.getChartData(collection, null, chartOptions);

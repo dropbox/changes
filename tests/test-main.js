@@ -15,7 +15,8 @@ requirejs.config({
 
   paths: {
     'chai': '../../node_modules/chai/chai',
-    'angularMocks': '../vendor/angular-mocks/angular-mocks'
+    'angularMocks': '../vendor/angular-mocks/angular-mocks',
+    'sinon': '../../node_modules/sinon/lib/sinon'
   },
 
   shim: {
@@ -23,8 +24,9 @@ requirejs.config({
   }
 });
 
-require(['main', 'chai'], function(_, chai){
+require(['main', 'chai', 'sinon'], function(_, chai, sinon){
   window.expect = chai.expect;
+  window.sinon = sinon;
 
   require(['routes', 'angularMocks'], function(){
     require(tests, window.__karma__.start);

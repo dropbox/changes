@@ -10,6 +10,8 @@ define([
     templateUrl: 'partials/project-commit-details.html',
     controller: function($scope, $http, $state, $stateParams, projectData, commitData, buildList,
                          Collection, CollectionPoller, flash) {
+
+      // TODO(vishal): Figure out if we can replace this with createBuild.js
       $scope.createBuild = function() {
         var data = {
           repository: $scope.repository.url,
@@ -18,7 +20,7 @@ define([
 
         $http.post('/api/0/builds/', data)
           .success(function(data){
-            $state.go('build_details', {build_id: data.build.id});
+            $state.go('build_details', {build_id: data[0].id});
           })
           .error(function(){
             flash('error', 'There was an error while creating this build.');
