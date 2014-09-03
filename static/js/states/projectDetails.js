@@ -51,7 +51,6 @@ define([
       repositoryData: function ($http, $stateParams, $q, projectData) {
         var success_callback = function(response) {
           projectData.repository.branches = response.data;
-          console.log(projectData.repository.branches);
           return projectData.repository;
         };
 
