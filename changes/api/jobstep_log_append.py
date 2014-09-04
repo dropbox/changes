@@ -66,7 +66,7 @@ class JobStepLogAppendAPIView(APIView):
                 LogChunk.source_id == logsource.id,
             ).order_by(
                 LogChunk.offset.desc(),
-            ).scalar() or 0
+            ).limit(1).scalar() or 0
 
         logchunks = []
         for chunk in chunked(args.text, LOG_CHUNK_SIZE):
