@@ -245,10 +245,12 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 200, resp.data
 
-        mock_find_green_parent_sha.assert_called_once_with(
-            project=self.project,
-            sha='a' * 40,
-        )
+        # TODO(dcramer): re-enable test when find_green_parent_sha is turned
+        # back on
+        # mock_find_green_parent_sha.assert_called_once_with(
+        #     project=self.project,
+        #     sha='a' * 40,
+        # )
 
         data = self.unserialize(resp)
         assert len(data) == 1
@@ -270,7 +272,9 @@ class BuildCreateTest(APITestCase):
         assert job.label == self.plan.label
 
         assert source.repository_id == self.project.repository_id
-        assert source.revision_sha == 'b' * 40
+        # TODO(dcramer): re-enable test when find_green_parent_sha is turned
+        # assert source.revision_sha == 'b' * 40
+        assert source.revision_sha == 'a' * 40
         assert source.data == {'foo': 'bar'}
 
         patch = source.patch

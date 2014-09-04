@@ -398,13 +398,14 @@ class BuildIndexAPIView(APIView):
                 if not plan_list:
                     continue
 
-            if patch_file:
-                forced_sha = find_green_parent_sha(
-                    project=project,
-                    sha=sha,
-                )
-            else:
-                forced_sha = sha
+            forced_sha = sha
+            # TODO(dcramer): find_green_parent_sha needs to take branch
+            # into account
+            # if patch_file:
+            #     forced_sha = find_green_parent_sha(
+            #         project=project,
+            #         sha=sha,
+            #     )
 
             builds.append(create_build(
                 project=project,
