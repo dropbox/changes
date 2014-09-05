@@ -20,6 +20,7 @@ class FutureJobStep(object):
     def as_jobstep(self, jobphase):
         return JobStep(
             job_id=jobphase.job_id,
+            phase=jobphase,
             phase_id=jobphase.id,
             project_id=jobphase.project_id,
             label=self.label,

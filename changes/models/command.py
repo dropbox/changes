@@ -12,6 +12,7 @@ from changes.constants import Status
 from changes.db.types.enum import Enum as EnumType
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
+from changes.db.utils import model_repr
 
 
 class CommandType(Enum):
@@ -75,6 +76,8 @@ class Command(db.Model):
                   server_default='0')
 
     jobstep = relationship('JobStep', backref=backref('commands', order_by='Command.order'))
+
+    __repr__ = model_repr('jobstep_id', 'script')
 
     def __init__(self, **kwargs):
         super(Command, self).__init__(**kwargs)

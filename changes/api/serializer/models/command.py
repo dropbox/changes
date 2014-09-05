@@ -14,6 +14,7 @@ class CommandSerializer(Serializer):
             'env': dict(instance.env or {}),
             'cwd': instance.cwd,
             'type': instance.type,
+            'captureOutput': instance.type.is_collector(),
             'artifacts': instance.artifacts or [],
             'duration': instance.duration,
             'dateCreated': instance.date_created,
