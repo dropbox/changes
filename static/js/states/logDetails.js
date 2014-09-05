@@ -28,9 +28,6 @@ define([
           return;
         }
 
-        logChunkData.nextOffset = data.offset + data.size;
-        logChunkData.size += data.size;
-
         frag = document.createDocumentFragment();
 
         // add each additional new line
@@ -90,6 +87,7 @@ define([
               });
               $.extend(true, $scope.logSource, data.source);
               $.extend(true, $scope.step, data.source.step);
+              logChunkData.nextOffset = data.nextOffset;
             });
 
             if (data.chunks.length > 0 || data.source.step.status.id != 'finished') {
