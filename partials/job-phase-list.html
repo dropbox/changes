@@ -5,7 +5,7 @@
 	<ol class="phase-list">
 		<li ng-repeat="phase in phaseList">
 			<h4>{{phase.name}} <small duration="phase.duration"></small></h4>
-			<table class="table">
+			<table class="grid-list">
 				<colgroup>
 					<col style="width:20px">
 					<col style="width:80px">
@@ -13,28 +13,26 @@
 					<col style="width:100px">
 					<col style="width:400px">
 				</colgroup>
-				<tr ng-repeat-start="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
-					<td>
-						<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;"></div>
-					</td>
-					<td duration="step.duration"></td>
-					<td>
-						<a ng-repeat="logSource in step.logSources"
-						   ui-sref="log_details({source_id: logSource.id})"
-						   tooltip="Log: {{logSource.name}}"><span class="glyphicon glyphicon-unchecked"></span></a>
-						<a ng-if="step.data.uri"
-						   href="{{step.data.uri}}"><span class="glyphicon glyphicon-link"></span></a>
+				<tbody>
+					<tr ng-repeat="step in phase.steps" class="status-{{step.status.id}} result-{{step.result.id}}">
+						<td>
+							<div class="indicator" title="{{step.result.name}}" style="width:20px;height:20px;"></div>
+						</td>
+						<td duration="step.duration"></td>
+						<td>
+							<a ng-repeat="logSource in step.logSources"
+							   ui-sref="log_details({source_id: logSource.id})"
+							   tooltip="Log: {{logSource.name}}"><span class="glyphicon glyphicon-unchecked"></span></a>
+							<a ng-if="step.data.uri"
+							   href="{{step.data.uri}}"><span class="glyphicon glyphicon-link"></span></a>
 
-						{{step.name}}<br>
-					</td>
-					<td>{{step.status.name}}</td>
-					<td><a href="/nodes/{{step.node.id}}/" ng-if="step.node">{{(step.node.name || step.node.id)|truncate:50}}</a></td>
-				</tr>
-				<tr ng-repeat-end>
-					<td colspan="5" style="border-top:0">
-						<pre pretty-json="step.data"></pre>
-					</td>
-				</tr>
+							{{step.name}}<br>
+							<small>ID: {{step.id}}</small>
+						</td>
+						<td class="column">{{step.status.name}}</td>
+						<td class="column"><a href="/nodes/{{step.node.id}}/" ng-if="step.node">{{(step.node.name || step.node.id)|truncate:50}}</a></td>
+					</tr>
+				</tbody>
 			</table>
 		</li>
 	</ol>
