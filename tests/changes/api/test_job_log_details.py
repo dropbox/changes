@@ -30,7 +30,7 @@ class JobLogDetailsTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['source']['id'] == source.id.hex
-        assert data['nextOffset'] == 200
+        assert data['nextOffset'] == 201
         assert len(data['chunks']) == 2
         assert data['chunks'][0]['text'] == lc1.text
         assert data['chunks'][1]['text'] == lc2.text
