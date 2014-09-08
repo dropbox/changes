@@ -19,7 +19,7 @@ define([
           liveScroll = false;
 
       function updateBuildLog(data) {
-        var $el = $('#log-' + data.source.id + ' > .build-log'),
+        var $el = $('.build-log'),
             source_id = data.source.id,
             chars_to_remove, lines_to_remove,
             frag;

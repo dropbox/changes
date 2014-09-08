@@ -1,10 +1,10 @@
-<div class="build-log-wrapper" id="log-{{logSource.id}}">
+<div class="build-log-wrapper">
     <div class="build-log expanded"></div>
     <span class="log-spinner spinner-icon spinner-small"></span>
 </div>
 
 <div class="clearfix build-log-controls">
-    <h3 class="hidden-xs">
+    <h3 class="hidden-xs" bind-once>
         {{step.name}} <small class="hidden-sm">{{logSource.name}}</small>
     </h3>
     <div class="pull-right">
