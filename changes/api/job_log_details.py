@@ -56,7 +56,7 @@ class JobLogDetailsAPIView(APIView):
         logchunks.sort(key=lambda x: x.date_created)
 
         if logchunks:
-            next_offset = logchunks[-1].offset + logchunks[-1].size
+            next_offset = logchunks[-1].offset + logchunks[-1].size + 1
         else:
             next_offset = 0
 
