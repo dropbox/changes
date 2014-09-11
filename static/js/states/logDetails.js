@@ -14,7 +14,7 @@ define([
     controller: function($scope, $timeout, $http, $stateParams, jobData, logData, flash) {
       var logChunkData = {
             size: 0,
-            nextOffset: 0
+            nextOffset: logData.nextOffset
           },
           liveScroll = false;
 
