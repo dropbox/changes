@@ -74,6 +74,7 @@ define([
         $.each(logData.chunks, function(_, chunk){
           updateBuildLog(chunk);
         });
+        logChunkData.nextOffset = logData.nextOffset;
       });
 
       function pollForChanges() {
