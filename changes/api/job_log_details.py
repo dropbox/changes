@@ -58,7 +58,7 @@ class JobLogDetailsAPIView(APIView):
         if logchunks:
             next_offset = logchunks[-1].offset + logchunks[-1].size + 1
         else:
-            next_offset = 0
+            next_offset = offset
 
         if raw:
             return Response(''.join(l.text for l in logchunks), mimetype='text/plain')
