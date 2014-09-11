@@ -83,6 +83,9 @@ def create_app(_read_config=True, **config):
 
     app.config['API_TRACEBACKS'] = True
 
+    # default snapshot ID to use when no project-specific active image available
+    app.config['DEFAULT_SNAPSHOT'] = None
+
     app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json']
     app.config['CELERY_ACKS_LATE'] = True
     app.config['CELERY_BROKER_URL'] = 'redis://localhost/0'

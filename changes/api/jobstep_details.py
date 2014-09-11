@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from datetime import datetime
+from flask import current_app
 from flask_restful.reqparse import RequestParser
 from sqlalchemy.orm import joinedload
 
@@ -60,6 +61,10 @@ class JobStepDetailsAPIView(APIView):
                     SnapshotImage.snapshot_id == current_snapshot.id,
                     SnapshotImage.plan_id == jobplan.plan_id,
                 ).first()
+            elif current_app.config['DEFAULT_SNAPSHOT']:
+                current_image = {
+                    'id': current_app.config['DEFAULT_SNAPSHOT'],
+                }
 
         context = self.serialize(jobstep)
         context['commands'] = self.serialize(list(jobstep.commands))
