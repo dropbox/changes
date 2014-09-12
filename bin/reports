@@ -3,7 +3,7 @@
 from __future__ import absolute_import, print_function
 
 import argparse
-import sys
+import logging
 import toronado
 
 from flask import render_template
@@ -22,8 +22,9 @@ def get_project(id_):
         project = Project.query.filter_by(slug=id_).first()
 
     if not project:
-        print("Project not found: {0}".format(id_))
-        sys.exit(1)
+        err_msg = "Project '{0}' not found".format(id_)
+        print(err_msg)
+        raise Exception(err_msg)
 
     return project
 
@@ -38,33 +39,46 @@ subparsers = parser.add_subparsers(dest='command')
 
 parser_send = subparsers.add_parser('send', help='send report')
 parser_send.add_argument(
-    '-p', '--project', dest='projects', help='project ID or slug',
-    action='append')
-parser_send.add_argument(
-    dest='emails', help='email', nargs='+')
-parser_send.add_argument(
     '-d', '--days', dest='days', type=int, help='period length (days)',
     default=7)
-
+parser_send.add_argument(
+    '-p', '--project', dest='projects', metavar='PROJECT',
+    help='project ID or slug (default: all projects)', action='append')
+parser_send.add_argument(
+    '-n', '--dry_run', dest='dry_run', action="store_true",
+    help='run without actually sending mail')
+parser_send.add_argument(
+    dest='emails', help='email', nargs='+')
 
 args = parser.parse_args()
 
-if args.command == 'send':
-    if not args.projects:
-        projects = Project.query.all()
-    else:
-        projects = [get_project(p) for p in args.projects]
+try:
+    if args.command == 'send':
+        if not args.projects:
+            print('Fetching project details for all projects')
+            projects = Project.query.all()
+        else:
+            print('Fetching project details for: %s' % args.projects)
+            projects = [get_project(p) for p in args.projects]
 
-    report = BuildReport(projects)
+        report = BuildReport(projects)
 
-    context = report.generate(days=args.days)
+        context = report.generate(days=args.days)
 
-    html_content = toronado.from_string(
-        render_template('email/build_report.html', **context)
-    )
+        text_content = 'HTML only, #dealwithit'
+        html_content = toronado.from_string(
+            render_template('email/build_report.html', **context)
+        )
 
-    msg = Message(context['title'], recipients=args.emails)
-    msg.body = 'HTML only, #dealwithit'
-    msg.html = html_content
+        msg = Message(context['title'], recipients=args.emails)
+        msg.body = text_content
+        msg.html = html_content
 
-    mail.send(msg)
+        if args.dry_run:
+            print('If this were not a dry run, we would have sent:', msg)
+        else:
+            mail.send(msg)
+
+except Exception as err:
+    logging.exception(unicode(err))
+    print(err)
