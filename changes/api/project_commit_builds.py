@@ -16,7 +16,7 @@ class ProjectCommitBuildsAPIView(APIView):
         revision = Revision.query.filter(
             Revision.repository_id == repo.id,
             Revision.sha == commit_id,
-        ).join(Revision.author).first()
+        ).outerjoin(Revision.author).first()
         if not revision:
             return '', 404
 
