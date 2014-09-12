@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
+from sqlalchemy.orm import joinedload
+
 from changes.api.base import APIView
 from changes.models import Project, Revision
 
@@ -11,8 +13,8 @@ class ProjectCommitDetailsAPIView(APIView):
             return '', 404
 
         repo = project.repository
-        revision = Revision.query.outerjoin(
-            'author',
+        revision = Revision.query.options(
+            joinedload('author'),
         ).filter(
             Revision.repository_id == repo.id,
             Revision.sha == commit_id,
