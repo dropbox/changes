@@ -333,6 +333,7 @@ def configure_api_routes(app):
     from changes.api.repository_project_index import RepositoryProjectIndexAPIView
     from changes.api.repository_tree_index import RepositoryTreeIndexAPIView
     from changes.api.snapshot_details import SnapshotDetailsAPIView
+    from changes.api.snapshot_index import SnapshotIndexAPIView
     from changes.api.snapshotimage_details import SnapshotImageDetailsAPIView
     from changes.api.step_details import StepDetailsAPIView
     from changes.api.system_options import SystemOptionsAPIView
@@ -405,6 +406,7 @@ def configure_api_routes(app):
     api.add_resource(RepositoryDetailsAPIView, '/repositories/<uuid:repository_id>/')
     api.add_resource(RepositoryProjectIndexAPIView, '/repositories/<uuid:repository_id>/projects/')
     api.add_resource(RepositoryTreeIndexAPIView, '/repositories/<uuid:repository_id>/branches/')
+    api.add_resource(SnapshotIndexAPIView, '/snapshots/')
     api.add_resource(SnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/')
     api.add_resource(SnapshotImageDetailsAPIView, '/snapshotimages/<uuid:image_id>/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')

@@ -1,7 +1,10 @@
+from __future__ import absolute_import
+
+from collections import defaultdict
 from sqlalchemy.orm import joinedload
 
 from changes.api.serializer import Serializer, register, serialize
-from changes.models import Build, Snapshot
+from changes.models import Build, Snapshot, SnapshotImage
 
 
 @register(Snapshot)
@@ -48,4 +51,25 @@ class SnapshotWithBuildSerializer(SnapshotSerializer):
     def serialize(self, instance, attrs):
         data = super(SnapshotWithBuildSerializer, self).serialize(instance, attrs)
         data['build'] = attrs['build']
+        return data
+
+
+class SnapshotWithImagesSerializer(SnapshotSerializer):
+    def get_attrs(self, item_list):
+        image_list = sorted(SnapshotImage.query.filter(
+            SnapshotImage.snapshot_id.in_(j.id for j in item_list),
+        ), key=lambda x: x.date_created)
+        image_map = defaultdict(list)
+        for image in image_list:
+            image_map[image.snapshot_id].append(serialize(image))
+
+        result = {}
+        for item in item_list:
+            result[item] = {'images': image_map.get(item.id, [])}
+
+        return result
+
+    def serialize(self, instance, attrs):
+        data = super(SnapshotWithImagesSerializer, self).serialize(instance, attrs)
+        data['images'] = attrs['images']
         return data
