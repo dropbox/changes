@@ -224,9 +224,10 @@ class Fixtures(object):
             kwargs['repository'] = self.create_repo()
         kwargs['repository_id'] = kwargs['repository'].id
 
-        if not kwargs.get('author'):
+        if kwargs.get('author', -1) == -1:
             kwargs['author'] = self.create_author()
-        kwargs['author_id'] = kwargs['author'].id
+        if kwargs.get('author'):
+            kwargs['author_id'] = kwargs['author'].id
 
         if not kwargs.get('message'):
             message = get_sentences(1)[0][:128] + '\n'
