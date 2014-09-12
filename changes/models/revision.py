@@ -21,8 +21,8 @@ class Revision(db.Model):
     date_committed = Column(DateTime, default=datetime.utcnow)
 
     repository = relationship('Repository')
-    author = relationship('Author', foreign_keys=[author_id])
-    committer = relationship('Author', foreign_keys=[committer_id])
+    author = relationship('Author', foreign_keys=[author_id], innerjoin=False)
+    committer = relationship('Author', foreign_keys=[committer_id], innerjoin=False)
 
     def __init__(self, **kwargs):
         super(Revision, self).__init__(**kwargs)

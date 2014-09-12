@@ -11,10 +11,12 @@ class ProjectCommitDetailsAPIView(APIView):
             return '', 404
 
         repo = project.repository
-        revision = Revision.query.filter(
+        revision = Revision.query.join(
+            'author',
+        ).filter(
             Revision.repository_id == repo.id,
             Revision.sha == commit_id,
-        ).join(Revision.author).first()
+        ).first()
         if not revision:
             return '', 404
 

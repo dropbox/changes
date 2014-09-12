@@ -29,3 +29,15 @@ class ProjectCommitDetailsTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert data['id'] == revision.sha
+
+    def test_missing_author(self):
+        project = self.create_project()
+        revision = self.create_revision(repository=project.repository, author=None)
+
+        path = '/api/0/projects/{0}/commits/{1}/'.format(
+            project.id.hex, revision.sha)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == revision.sha
