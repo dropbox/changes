@@ -224,8 +224,9 @@ class Fixtures(object):
             kwargs['repository'] = self.create_repo()
         kwargs['repository_id'] = kwargs['repository'].id
 
-        if kwargs.get('author', -1) == -1:
+        if 'author' not in kwargs:
             kwargs['author'] = self.create_author()
+
         if kwargs.get('author'):
             kwargs['author_id'] = kwargs['author'].id
 
