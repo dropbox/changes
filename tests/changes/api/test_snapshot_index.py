@@ -1,4 +1,5 @@
-from changes.models import SnapshotStatus
+from changes.config import db
+from changes.models import ProjectOption, SnapshotStatus
 from changes.testutils import APITestCase
 
 
@@ -17,6 +18,13 @@ class SnapshotListTest(APITestCase):
         image_2 = self.create_snapshot_image(snapshot_2, plan_1)
         image_3 = self.create_snapshot_image(snapshot_2, plan_2)
 
+        db.session.add(ProjectOption(
+            project=project_2,
+            name='snapshot.current',
+            value=snapshot_2.id.hex,
+        ))
+        db.session.commit()
+
         path = '/api/0/snapshots/?state='
 
         resp = self.client.get(path)
@@ -24,11 +32,13 @@ class SnapshotListTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 2
         assert data[0]['id'] == snapshot_2.id.hex
+        assert data[0]['isActive']
         assert len(data[0]['images']) == 2
         assert data[0]['images'][0]['id'] == image_2.id.hex
         assert data[0]['images'][1]['id'] == image_3.id.hex
 
         assert data[1]['id'] == snapshot_1.id.hex
+        assert not data[1]['isActive']
         assert len(data[1]['images']) == 1
         assert data[1]['images'][0]['id'] == image_1.id.hex
 

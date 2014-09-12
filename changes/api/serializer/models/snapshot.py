@@ -4,7 +4,8 @@ from collections import defaultdict
 from sqlalchemy.orm import joinedload
 
 from changes.api.serializer import Serializer, register, serialize
-from changes.models import Build, Snapshot, SnapshotImage
+from changes.config import db
+from changes.models import Build, ProjectOption, Snapshot, SnapshotImage
 
 
 @register(Snapshot)
@@ -63,13 +64,25 @@ class SnapshotWithImagesSerializer(SnapshotSerializer):
         for image in image_list:
             image_map[image.snapshot_id].append(serialize(image))
 
+        active_snapshots = set((
+            x[0] for x in db.session.query(
+                ProjectOption.value,
+            ).filter(
+                ProjectOption.name == 'snapshot.current',
+            )
+        ))
+
         result = {}
         for item in item_list:
-            result[item] = {'images': image_map.get(item.id, [])}
+            result[item] = {
+                'images': image_map.get(item.id, []),
+                'active': item.id.hex in active_snapshots,
+            }
 
         return result
 
     def serialize(self, instance, attrs):
         data = super(SnapshotWithImagesSerializer, self).serialize(instance, attrs)
         data['images'] = attrs['images']
+        data['isActive'] = attrs['active']
         return data
