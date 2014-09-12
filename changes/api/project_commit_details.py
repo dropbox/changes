@@ -11,7 +11,7 @@ class ProjectCommitDetailsAPIView(APIView):
             return '', 404
 
         repo = project.repository
-        revision = Revision.query.join(
+        revision = Revision.query.outerjoin(
             'author',
         ).filter(
             Revision.repository_id == repo.id,
