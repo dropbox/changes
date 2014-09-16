@@ -4,7 +4,6 @@ from flask_restful.reqparse import RequestParser
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.constants import Result
 from changes.db.utils import create_or_update, get_or_create
 from changes.models import JobStep, LogSource, LogChunk, LOG_CHUNK_SIZE
 from changes.utils.text import chunked
@@ -31,9 +30,6 @@ class JobStepLogAppendAPIView(APIView):
         step = JobStep.query.get(step_id)
         if step is None:
             return '', 404
-
-        if step.result == Result.aborted:
-            return '', 410
 
         args = self.parser.parse_args()
 
