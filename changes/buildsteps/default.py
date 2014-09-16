@@ -66,7 +66,7 @@ class DefaultBuildStep(BuildStep):
         self.env = env
         self.path = path
         self.release = release
-        self.commands = map(lambda x: FutureCommand(**x), commands)
+        self.commands = commands
         self.max_executors = max_executors
 
         super(DefaultBuildStep, self).__init__(**kwargs)
@@ -82,8 +82,6 @@ class DefaultBuildStep(BuildStep):
             yield FutureCommand(
                 script=vcs.get_buildstep_clone(source, self.path),
                 env=self.env,
-                path='',
-                artifacts=(),
                 type=CommandType.setup,
             )
 
@@ -91,13 +89,11 @@ class DefaultBuildStep(BuildStep):
                 yield FutureCommand(
                     script=vcs.get_buildstep_patch(source, self.path),
                     env=self.env,
-                    path='',
-                    artifacts=(),
                     type=CommandType.setup,
                 )
 
         for command in self.commands:
-            yield command
+            yield FutureCommand(**command)
 
     def execute(self, job):
         job.status = Status.queued
@@ -129,7 +125,7 @@ class DefaultBuildStep(BuildStep):
         is_snapshot = job.build.cause == Cause.snapshot
         index = 0
         for future_command in self.iter_all_commands(job):
-            if is_snapshot and future_command.type != CommandType.setup:
+            if is_snapshot and future_command.type not in (CommandType.setup, CommandType.teardown):
                 continue
 
             index += 1

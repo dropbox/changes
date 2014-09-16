@@ -20,6 +20,7 @@ class CommandType(Enum):
     collect_steps = 1
     collect_tests = 2
     setup = 3
+    teardown = 4
 
     def is_collector(self):
         return self in set([CommandType.collect_steps, CommandType.collect_tests])
