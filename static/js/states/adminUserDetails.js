@@ -5,7 +5,7 @@ define(['app'], function(app) {
 
   function getFormData(userData) {
     return {
-      isAdmin: userData.isAdmin
+      is_admin: userData.isAdmin
     };
   }
 
