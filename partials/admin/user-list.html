@@ -1,5 +1,12 @@
-<div class="page-header">
-  <h2>User</h2>
+<div class="section-header">
+  <form class="pull-right form-inline" ng-submit="search()">
+    <input type="text"
+           ng-model="searchForm.query"
+           placeholder="search"
+           class="form-control">
+    <button type="submit" class="btn btn-xs"><i class="glyphicon glyphicon-search"></i></button>
+  </form>
+  <h2>Users</h2>
 </div>
 
 <table class="grid-list">
