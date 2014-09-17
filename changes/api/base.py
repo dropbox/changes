@@ -146,6 +146,3 @@ class APIView(Resource):
 
     def serialize(self, *args, **kwargs):
         return serialize_func(*args, **kwargs)
-
-    def as_json(self, context):
-        return json.dumps(context)
