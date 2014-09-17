@@ -8,7 +8,7 @@ import sys
 from tempfile import NamedTemporaryFile
 
 from changes.config import create_app, db
-from changes.models import Repository, RepositoryOption
+from changes.models import ItemOption, Repository
 
 
 app = create_app()
@@ -33,10 +33,10 @@ repo = get_repo(repo_id)
 
 options = dict(
     db.session.query(
-        RepositoryOption.name, RepositoryOption.value
+        ItemOption.name, ItemOption.value
     ).filter(
-        RepositoryOption.repository_id == repo.id,
-        RepositoryOption.name.in_([
+        ItemOption.item_id == repo.id,
+        ItemOption.name.in_([
             'auth.private-key',
             'auth.private-key-file',
         ])

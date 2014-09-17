@@ -4,9 +4,7 @@ from uuid import uuid4
 from datetime import datetime
 from enum import Enum
 from flask import current_app
-from sqlalchemy import Column, String, DateTime, ForeignKey, Text
-from sqlalchemy.orm import relationship
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy import Column, String, DateTime
 
 from changes.config import db
 from changes.db.types.enum import Enum as EnumType
@@ -67,15 +65,16 @@ class Repository(db.Model):
             self.date_created = datetime.utcnow()
 
     def get_vcs(self):
+        from changes.models import ItemOption
         from changes.vcs.git import GitVcs
         from changes.vcs.hg import MercurialVcs
 
         options = dict(
             db.session.query(
-                RepositoryOption.name, RepositoryOption.value
+                ItemOption.name, ItemOption.value
             ).filter(
-                RepositoryOption.repository_id == self.id,
-                RepositoryOption.name.in_([
+                ItemOption.item_id == self.id,
+                ItemOption.name.in_([
                     'auth.username',
                 ])
             )
@@ -100,18 +99,3 @@ class Repository(db.Model):
         if result is None and len(id) == 32:
             result = cls.query.get(id)
         return result
-
-
-class RepositoryOption(db.Model):
-    __tablename__ = 'repositoryoption'
-    __table_args__ = (
-        UniqueConstraint('repository_id', 'name', name='unq_repositoryoption_name'),
-    )
-
-    id = Column(GUID, primary_key=True, default=uuid4)
-    repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)
-    name = Column(String(64), nullable=False)
-    value = Column(Text, nullable=False)
-    date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
-
-    repository = relationship('Repository')

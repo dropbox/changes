@@ -8,7 +8,7 @@ import sys
 from changes.config import create_app, db
 from changes.db.utils import create_or_update
 from changes.jobs.sync_repo import sync_repo
-from changes.models import Repository, RepositoryBackend, RepositoryOption
+from changes.models import ItemOption, Repository, RepositoryBackend
 
 
 def abort():
@@ -132,7 +132,7 @@ elif args.command == 'show':
     print("Backend: {}".format(repo.backend))
     print("Options:")
 
-    for option in RepositoryOption.query.filter_by(repository_id=repo.id):
+    for option in ItemOption.query.filter_by(item_id=repo.id):
         print("  {} = {}".format(option.name, option.value))
 
 elif args.command == 'sync':
@@ -156,8 +156,8 @@ elif args.command == 'options':
 
         name, value = args.option.split('=', 1)
 
-        create_or_update(RepositoryOption, where={
-            'repository': repo,
+        create_or_update(ItemOption, where={
+            'item_id': repo.id,
             'name': name,
         }, values={
             'value': value,
@@ -167,22 +167,22 @@ elif args.command == 'options':
     if args.option_command == 'delete':
         repo = get_repo(args.id)
 
-        RepositoryOption.query.filter(
-            RepositoryOption.repository_id == repo.id,
-            RepositoryOption.name == args.option,
+        ItemOption.query.filter(
+            ItemOption.item_id == repo.id,
+            ItemOption.name == args.option,
         ).delete(synchronize_session=False)
         print("Ok!")
 
     if args.option_command == 'get':
         repo = get_repo(args.id)
 
-        option_list = RepositoryOption.query.filter(
-            RepositoryOption.repository_id == repo.id,
-        ).order_by(RepositoryOption.name.asc())
+        option_list = ItemOption.query.filter(
+            ItemOption.item_id == repo.id,
+        ).order_by(ItemOption.name.asc())
 
         if args.option:
             option_list = option_list.filter(
-                RepositoryOption.name == args.option,
+                ItemOption.name == args.option,
             )
 
         for option in option_list:
