@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 from changes.models import Repository, RepositoryBackend
 from changes.jobs.sync_repo import sync_repo
 
@@ -9,9 +7,6 @@ def check_repos():
     Looks for any repositories which haven't checked in within several minutes
     and creates `sync_repo` tasks for them.
     """
-    now = datetime.utcnow()
-    cutoff = now - timedelta(minutes=5)
-
     repo_list = list(Repository.query.filter(
         Repository.backend != RepositoryBackend.unknown,
     ))
