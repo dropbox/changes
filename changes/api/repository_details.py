@@ -33,6 +33,7 @@ class RepositoryDetailsAPIView(APIView):
         options = dict(
             (o.name, o.value) for o in ItemOption.query.filter(
                 ItemOption.item_id == repo.id,
+                ItemOption.name != 'auth.private-key',
             )
         )
         for key, value in OPTION_DEFAULTS.iteritems():
