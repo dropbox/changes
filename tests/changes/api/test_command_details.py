@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from mock import Mock, patch
 
+from changes.buildsteps.base import BuildStep
 from changes.constants import Result, Status
 from changes.expanders.base import Expander
 from changes.models import (
@@ -80,8 +81,26 @@ class UpdateCommandTest(APITestCase):
         assert command.date_started is not None
         assert command.date_finished is not None
 
+    @patch('changes.models.JobPlan.get_build_step_for_job')
     @patch('changes.api.command_details.CommandDetailsAPIView.get_expander')
-    def test_simple_expander(self, mock_get_expander):
+    def test_simple_expander(self, mock_get_expander, mock_get_build_step_for_job):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase, data={
+            'max_executors': 10,
+        })
+        plan = self.create_plan(label='test')
+        self.create_step(plan)
+        jobplan = self.create_job_plan(job, plan)
+        command = self.create_command(
+            jobstep, type=CommandType.collect_tests,
+            status=Status.in_progress)
+
+        def dummy_expand_jobstep(jobstep, new_jobphase, future_jobstep):
+            return future_jobstep.as_jobstep(new_jobphase)
+
         dummy_expander = Mock(spec=Expander)
         dummy_expander.expand.return_value = [FutureJobStep(
             label='test',
@@ -92,17 +111,10 @@ class UpdateCommandTest(APITestCase):
             )],
         )]
         mock_get_expander.return_value.return_value = dummy_expander
+        mock_buildstep = Mock(spec=BuildStep)
+        mock_buildstep.expand_jobstep.side_effect = dummy_expand_jobstep
 
-        project = self.create_project()
-        build = self.create_build(project)
-        job = self.create_job(build)
-        jobphase = self.create_jobphase(job)
-        jobstep = self.create_jobstep(jobphase, data={
-            'max_executors': 10,
-        })
-        command = self.create_command(
-            jobstep, type=CommandType.collect_tests,
-            status=Status.in_progress)
+        mock_get_build_step_for_job.return_value = jobplan, mock_buildstep
 
         path = '/api/0/commands/{0}/'.format(command.id.hex)
 
@@ -134,18 +146,3 @@ class UpdateCommandTest(APITestCase):
             JobStep.id != jobstep.id,
         ).first()
         assert new_jobstep.label == 'test'
-        assert new_jobstep.data['generated'] is True
-
-        commands = list(Command.query.filter(
-            Command.jobstep_id == new_jobstep.id,
-        ).order_by(
-            Command.order.asc(),
-        ))
-
-        assert len(commands) == 2
-        assert commands[0].label == 'echo 1'
-        assert commands[0].script == 'echo 1'
-        assert commands[0].order == 0
-        assert commands[1].label == 'echo "foo"'
-        assert commands[1].script == 'echo "foo"\necho "bar"'
-        assert commands[1].order == 1

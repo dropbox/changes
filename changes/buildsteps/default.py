@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 
+from copy import deepcopy
+from itertools import chain
+
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Cause, Status
@@ -38,6 +41,10 @@ class DefaultBuildStep(BuildStep):
     This build step is also responsible for generating appropriate commands
     in order for the client to obtain the source code.
     """
+    # TODO(dcramer): we need to enforce ordering of setup/teardown commands
+    # so that setup is always first and teardown is always last. Realistically
+    # this should be something we abstract away in the UI so that there are
+    # just three command phases entered
     def __init__(self, commands, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=20, **kwargs):
@@ -158,3 +165,38 @@ class DefaultBuildStep(BuildStep):
 
     def cancel_step(self, step):
         pass
+
+    def expand_jobstep(self, jobstep, new_jobphase, future_jobstep):
+        new_jobstep = future_jobstep.as_jobstep(new_jobphase)
+
+        base_jobstep_data = deepcopy(jobstep.data)
+
+        # TODO(dcramer): realistically we should abstract this into the
+        # BuildStep interface so it can dictate how the job is created
+        # and fired.
+        new_jobstep.status = Status.pending_allocation
+        # inherit base properties from parent jobstep
+        for key, value in base_jobstep_data.items():
+            if key not in new_jobstep.data:
+                new_jobstep.data[key] = value
+        new_jobstep.data['generated'] = True
+        db.session.add(new_jobstep)
+
+        # when we expand the command we need to include all setup and teardown
+        # commands as part of the build step
+        setup_commands = []
+        teardown_commands = []
+        for future_command in self.iter_all_commands(jobstep.job):
+            if future_command.type == CommandType.setup:
+                setup_commands.append(future_command)
+            elif future_command.type == CommandType.teardown:
+                teardown_commands.append(future_command)
+
+        # setup -> newly generated commands from expander -> teardown
+        for index, command in enumerate(chain(setup_commands,
+                                              future_jobstep.commands,
+                                              teardown_commands)):
+            new_command = command.as_command(new_jobstep, index)
+            db.session.add(new_command)
+
+        return new_jobstep

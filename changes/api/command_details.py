@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import json
 
-from copy import deepcopy
 from datetime import datetime
 from flask_restful.reqparse import RequestParser
 from sqlalchemy.sql import func
@@ -13,7 +12,7 @@ from changes.config import db, redis
 from changes.constants import Status
 from changes.expanders import CommandsExpander, TestsExpander
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import Command, CommandType, JobPhase
+from changes.models import Command, CommandType, JobPhase, JobPlan
 
 
 STATUS_CHOICES = ('queued', 'in_progress', 'finished')
@@ -96,7 +95,7 @@ class CommandDetailsAPIView(APIView):
                     db.session.rollback()
                     return '', 500
 
-                self.expand_jobstep(command.jobstep, expander, args.output)
+                self.expand_command(command, expander, args.output)
 
         db.session.commit()
 
@@ -105,7 +104,8 @@ class CommandDetailsAPIView(APIView):
     def get_expander(self, type):
         return EXPANDERS.get(type)
 
-    def expand_jobstep(self, jobstep, expander, data):
+    def expand_command(self, command, expander, data):
+        jobstep = command.jobstep
         phase_name = data.get('phase')
         if not phase_name:
             phase_count = db.session.query(
@@ -114,8 +114,6 @@ class CommandDetailsAPIView(APIView):
                 JobPhase.job_id == jobstep.job_id,
             ).scalar()
             phase_name = 'Phase #{}'.format(phase_count)
-
-        base_jobstep_data = deepcopy(jobstep.data)
 
         jobstep.data['expanded'] = True
         db.session.add(jobstep)
@@ -128,24 +126,11 @@ class CommandDetailsAPIView(APIView):
         )
         db.session.add(new_jobphase)
 
+        _, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
+
         results = []
         for future_jobstep in expander.expand(max_executors=jobstep.data['max_executors']):
-            new_jobstep = future_jobstep.as_jobstep(new_jobphase)
-            # TODO(dcramer): realistically we should abstract this into the
-            # BuildStep interface so it can dictate how the job is created
-            # and fired.
-            new_jobstep.status = Status.pending_allocation
-            # inherit base properties from parent jobstep
-            for key, value in base_jobstep_data.items():
-                if key not in new_jobstep.data:
-                    new_jobstep.data[key] = value
-            new_jobstep.data['generated'] = True
-            db.session.add(new_jobstep)
-
-            for index, command in enumerate(future_jobstep.commands):
-                new_command = command.as_command(new_jobstep, index)
-                db.session.add(new_command)
-
+            new_jobstep = buildstep.expand_jobstep(jobstep, new_jobphase, future_jobstep)
             results.append(new_jobstep)
 
         db.session.flush()

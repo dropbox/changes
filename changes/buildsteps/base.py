@@ -46,3 +46,6 @@ class BuildStep(object):
 
     def fetch_artifact(self, artifact):
         raise NotImplementedError
+
+    def expand_jobstep(self, jobstep, new_jobphase, future_jobstep):
+        raise NotImplementedError
