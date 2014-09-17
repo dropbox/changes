@@ -218,7 +218,7 @@ def loop():
         'status': SnapshotStatus.pending,
     })
 
-    print 'Looping indefinitely, creating data for {1}'.format(project.slug)
+    print('Looping indefinitely, creating data for', project.slug)
     while True:
         build = gen(project)
         print '  Pushed build {0} on {1}'.format(build.id, project.slug)
