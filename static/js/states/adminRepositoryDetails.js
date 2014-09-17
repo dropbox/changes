@@ -8,7 +8,8 @@ define(['app'], function(app) {
       url: repositoryData.url,
       backend: repositoryData.backend.id,
       status: repositoryData.status.id == 'inactive' ? 'inactive' : 'active',
-      'phabricator.callsign': repositoryData.options['phabricator.callsign']
+      'phabricator.callsign': repositoryData.options['phabricator.callsign'],
+      'auth.private-key-file': repositoryData.options['auth.private-key-file']
     };
   }
 
