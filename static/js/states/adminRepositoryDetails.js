@@ -9,7 +9,8 @@ define(['app'], function(app) {
       backend: repositoryData.backend.id,
       status: repositoryData.status.id == 'inactive' ? 'inactive' : 'active',
       'phabricator.callsign': repositoryData.options['phabricator.callsign'],
-      'auth.private-key-file': repositoryData.options['auth.private-key-file']
+      'auth.private-key-file': repositoryData.options['auth.private-key-file'],
+      'auth.username': repositoryData.options['auth.username']
     };
   }
 

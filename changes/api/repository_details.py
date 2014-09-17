@@ -17,6 +17,7 @@ STATUS_CHOICES = ('active', 'inactive')
 
 OPTION_DEFAULTS = {
     'phabricator.callsign': '',
+    'auth.username': '',
     'auth.private-key-file': '',
 }
 

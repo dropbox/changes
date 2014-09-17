@@ -48,6 +48,12 @@
       <legend>Credentials</legend>
 
       <div class="form-group">
+        <label>Username</label>
+        <input type="text" class="form-control" ng-model="formData['auth.username']"
+               placeholder="defaults to vcs backend">
+      </div>
+
+      <div class="form-group">
         <label>Private Key File</label>
         <input type="text" class="form-control" ng-model="formData['auth.private-key-file']"
                placeholder="i.e. ~/.ssh/id_rsa">
