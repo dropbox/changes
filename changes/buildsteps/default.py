@@ -194,6 +194,12 @@ class DefaultBuildStep(BuildStep):
                                               future_jobstep.commands,
                                               teardown_commands)):
             new_command = command.as_command(new_jobstep, index)
+            # TODO(dcramer): we need to remove path as an end-user option
+            new_command.path = self.path
+            # TODO(dcramer): this API isn't really ideal. Future command should
+            # set things to NoneType and we should deal with unset values
+            if not new_command.artifacts:
+                new_command.artifacts = DEFAULT_ARTIFACTS
             db.session.add(new_command)
 
         return new_jobstep
