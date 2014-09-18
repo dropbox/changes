@@ -42,7 +42,9 @@ define(['angular', 'jquery'], function(angular, $) {
           });
         };
 
-        tick();
+        // Pollers don't start polling immediately.
+        // The first poll is always after the defined delay.
+        pollTimeoutID = window.setTimeout(tick, options.delay);
 
         return {
           stop: function() {
