@@ -171,14 +171,11 @@ class DefaultBuildStep(BuildStep):
 
         base_jobstep_data = deepcopy(jobstep.data)
 
-        # TODO(dcramer): realistically we should abstract this into the
-        # BuildStep interface so it can dictate how the job is created
-        # and fired.
-        new_jobstep.status = Status.pending_allocation
         # inherit base properties from parent jobstep
         for key, value in base_jobstep_data.items():
             if key not in new_jobstep.data:
                 new_jobstep.data[key] = value
+        new_jobstep.status = Status.pending_allocation
         new_jobstep.data['generated'] = True
         db.session.add(new_jobstep)
 
