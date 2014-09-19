@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from flask.ext.restful import reqparse
+
 from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.base import APIView
@@ -53,7 +54,7 @@ class ProjectTestHistoryAPIView(APIView):
             Source.patch_id == None,  # NOQA
             Source.revision_sha != None,  # NOQA
             TestCase.name_sha == test.name_sha,
-        ).order_by(job_sq.c.date_created.desc())[:num_results])
+        ).order_by(job_sq.c.date_created.desc()))
 
         jobs = set(r.job for r in recent_runs)
         builds = set(j.build for j in jobs)
@@ -67,4 +68,4 @@ class ProjectTestHistoryAPIView(APIView):
             s_recent_run['job']['build'] = serialized_builds[recent_run.job.build]
             results.append(s_recent_run)
 
-        return self.respond(results, serialize=False)
+        return self.paginate(results, serialize=False)

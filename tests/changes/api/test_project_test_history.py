@@ -56,3 +56,21 @@ class ProjectTestHistoryTest(APITestCase):
         assert len(data) == 2
         assert data[1]['id'] == previous_parent_group.id.hex
         assert data[0]['id'] == parent_group.id.hex
+
+        # pagination
+        path = '/api/0/projects/{0}/tests/{1}/history/?per_page=1'.format(
+            project.id.hex, parent_group.name_sha)
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == parent_group.id.hex
+
+        path = '/api/0/projects/{0}/tests/{1}/history/?per_page=1&{2}'.format(
+            project.id.hex, parent_group.name_sha, 'page=2')
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == previous_parent_group.id.hex

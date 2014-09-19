@@ -12,7 +12,7 @@ define([
     parent: 'project_details',
     url: 'tests/:test_id/',
     templateUrl: 'partials/project-test-details.html',
-    controller: function($scope, $state, testData, historicalData) {
+    controller: function($scope, $state, $stateParams, flash, Collection, Paginator, projectData, testData) {
       var chart_options = {
           linkFormatter: function(item) {
             return $state.href('build_details', {build_id: item.job.build.id});
@@ -41,9 +41,25 @@ define([
           limit: HISTORICAL_ITEMS
         };
 
+      var historicalData = new Collection();
+      var endpoint = '/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/history/?per_page=' + HISTORICAL_ITEMS;
+      var paginator = new Paginator(endpoint, {
+        collection: historicalData,
+        onLoadSuccess: function(url, data) {
+          $scope.chartData = chartHelpers.getChartData(historicalData, null, chart_options);
+        },
+        onLoadError: function(url, data) {
+          if (data.error) {
+            flash('error', data.error);
+          } else {
+            flash('error');
+          }
+        },
+      });
+
       $scope.test = testData;
       $scope.results = historicalData;
-      $scope.chartData = chartHelpers.getChartData($scope.results, null, chart_options);
+      $scope.testPaginator = paginator;
     },
     resolve: {
       testData: function($http, $stateParams, projectData) {
@@ -51,11 +67,6 @@ define([
           return response.data;
         });
       },
-      historicalData: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/history/?per_page=' + HISTORICAL_ITEMS).then(function(response){
-          return response.data;
-        });
-      }
     }
   };
 });

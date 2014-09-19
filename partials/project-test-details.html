@@ -1,4 +1,4 @@
-<section bind-once>
+<section>
     <div id="overview">
         <div class="page-header">
             <h2>{{test.shortName}}<br><small>{{test.package}}</small></h2>
@@ -58,5 +58,15 @@
                 <td class="column">{{ result.numRetries}}</td>
             </tr>
         </table>
+
+        <ul class="pager">
+            <li class="previous" ng-class="testPaginator.previousPage === null ? 'disabled' : ''">
+                <a ng-click="testPaginator.loadPreviousPage()">&larr; Previous</a>
+            </li>
+            <li class="next" ng-class="testPaginator.nextPage === null ? 'disabled' : ''">
+                <a ng-click="testPaginator.loadNextPage()">Next &rarr;</a>
+            </li>
+        </ul>
+
     </section>
 </section>
