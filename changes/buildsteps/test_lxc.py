@@ -44,16 +44,16 @@ class LXCBuildStepTest(BackendTestCase):
         ))
         assert len(commands) == 4
 
-        assert commands[0].script == 'changes-lxc launch 2f1424516eca469da908e1438b991470 --release=precise'
+        assert commands[0].script == '#!/bin/bash -eux\nchanges-lxc launch 2f1424516eca469da908e1438b991470 --release=precise'
         assert commands[0].type == CommandType.setup
 
-        assert commands[1].script == 'changes-lxc exec 2f1424516eca469da908e1438b991470 -- echo "hello world 2"'
+        assert commands[1].script == '#!/bin/bash -eux\nchanges-lxc exec 2f1424516eca469da908e1438b991470 -- echo "hello world 2"'
         assert commands[1].type == CommandType.setup
 
-        assert commands[2].script == 'changes-lxc exec 2f1424516eca469da908e1438b991470 -- echo "hello world 1"'
+        assert commands[2].script == '#!/bin/bash -eux\nchanges-lxc exec 2f1424516eca469da908e1438b991470 -- echo "hello world 1"'
         assert commands[2].type == CommandType.default
 
-        assert commands[3].script == 'changes-lxc destroy 2f1424516eca469da908e1438b991470'
+        assert commands[3].script == '#!/bin/bash -eux\nchanges-lxc destroy 2f1424516eca469da908e1438b991470'
         assert commands[3].type == CommandType.teardown
 
     def test_write_to_file_command(self):
