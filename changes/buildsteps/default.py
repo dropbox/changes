@@ -189,13 +189,15 @@ class DefaultBuildStep(BuildStep):
             elif future_command.type == CommandType.teardown:
                 teardown_commands.append(future_command)
 
-        # setup -> newly generated commands from expander -> teardown
-        for index, command in enumerate(chain(setup_commands,
-                                              future_jobstep.commands,
-                                              teardown_commands)):
-            new_command = command.as_command(new_jobstep, index)
+        for future_command in future_jobstep.commands:
             # TODO(dcramer): we need to remove path as an end-user option
-            new_command.cwd = self.path
+            future_command.path = self.path
+
+        # setup -> newly generated commands from expander -> teardown
+        for index, future_command in enumerate(chain(setup_commands,
+                                                     future_jobstep.commands,
+                                                     teardown_commands)):
+            new_command = future_command.as_command(new_jobstep, index)
             # TODO(dcramer): this API isn't really ideal. Future command should
             # set things to NoneType and we should deal with unset values
             if not new_command.artifacts:
