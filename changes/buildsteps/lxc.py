@@ -11,7 +11,7 @@ from changes.models import (
 
 
 WRITE_TO_FILE_COMMAND = """
-#!/bin/bash
+#!/bin/bash -eux
 
 { cat <<"EOF"
 %(script)s
