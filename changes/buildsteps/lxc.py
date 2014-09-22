@@ -94,6 +94,10 @@ class LXCBuildStep(DefaultBuildStep):
                 type=CommandType.setup,
             )
             yield FutureCommand(
+                script='chmod +x /tmp/update-source',
+                env=self.env,
+            )
+            yield FutureCommand(
                 script=exec_cmd + '/tmp/update-source',
                 env=self.env,
                 type=CommandType.setup,
@@ -104,6 +108,10 @@ class LXCBuildStep(DefaultBuildStep):
                     script=self.write_to_file_command(
                         '/tmp/apply-patch', vcs.get_buildstep_patch(source, self.path)
                     ),
+                    env=self.env,
+                )
+                yield FutureCommand(
+                    script='chmod +x /tmp/apply-patch',
                     env=self.env,
                 )
                 yield FutureCommand(
