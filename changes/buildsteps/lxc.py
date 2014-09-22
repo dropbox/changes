@@ -66,7 +66,7 @@ class LXCBuildStep(DefaultBuildStep):
         current_image = self.get_snapshot_image(job)
         container_name = uuid4().hex
 
-        launch_cmd = '{bin} launch {container} --release={release}'.format(
+        launch_cmd = '#!/bin/bash -eux\n{bin} launch {container} --release={release}'.format(
             bin=self.changes_lxc_bin,
             container=container_name,
             release=self.release,
@@ -79,7 +79,7 @@ class LXCBuildStep(DefaultBuildStep):
             type=CommandType.setup,
         )
 
-        exec_cmd = '{bin} exec {container} -- '.format(
+        exec_cmd = '#!/bin/bash -eux\n{bin} exec {container} -- '.format(
             bin=self.changes_lxc_bin,
             container=container_name,
         )
@@ -125,7 +125,7 @@ class LXCBuildStep(DefaultBuildStep):
             yield FutureCommand(**command)
 
         yield FutureCommand(
-            script='{bin} destroy {container}'.format(
+            script='#!/bin/bash -eux\n{bin} destroy {container}'.format(
                 bin=self.changes_lxc_bin,
                 container=container_name,
             ),
