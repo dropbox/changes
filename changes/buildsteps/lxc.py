@@ -125,7 +125,7 @@ class LXCBuildStep(DefaultBuildStep):
         )
 
     def write_to_file_command(self, filename, script):
-        return WRITE_TO_FILE_COMMAND.format(
+        return WRITE_TO_FILE_COMMAND % dict(
             filename=filename,
             script=script,
         )
