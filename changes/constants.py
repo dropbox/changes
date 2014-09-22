@@ -127,6 +127,7 @@ CAUSE_LABELS = {
 IMPLEMENTATION_CHOICES = (
     'changes.buildsteps.dummy.DummyBuildStep',
     'changes.buildsteps.default.DefaultBuildStep',
+    'changes.buildsteps.lxc.LXCBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsFactoryBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
