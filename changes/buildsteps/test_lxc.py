@@ -55,3 +55,15 @@ class LXCBuildStepTest(BackendTestCase):
 
         assert commands[3].script == 'changes-lxc destroy 2f1424516eca469da908e1438b991470'
         assert commands[3].type == CommandType.teardown
+
+    def test_write_to_file_command(self):
+        buildstep = self.get_buildstep()
+        result = buildstep.write_to_file_command('/tmp/foo.sh', '#!/bin/bash -eux\necho 1')
+
+        assert result == """#!/bin/bash -eux
+
+{ cat <<"EOF"
+#!/bin/bash -eux
+echo 1
+EOF
+} | tee /tmp/foo.sh"""
