@@ -100,6 +100,8 @@ class DefaultBuildStepTest(BackendTestCase):
         assert commands[1].label == 'echo 1'
         assert commands[1].script == 'echo 1'
         assert commands[1].order == 1
+        assert commands[1].cwd == DEFAULT_PATH
         assert commands[2].label == 'echo "foo"'
         assert commands[2].script == 'echo "foo"\necho "bar"'
         assert commands[2].order == 2
+        assert commands[2].cwd == DEFAULT_PATH
