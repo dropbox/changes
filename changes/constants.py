@@ -35,7 +35,7 @@ class OrderedEnum(Enum):
         return order.index(self) < order.index(other)
 
 
-class Status(Enum):
+class Status(OrderedEnum):
     unknown = 0
     queued = 1
     in_progress = 2
@@ -46,6 +46,17 @@ class Status(Enum):
 
     def __str__(self):
         return STATUS_LABELS[self]
+
+    def get_order(self):
+        return [
+            Status.in_progress,
+            Status.queued,
+            Status.allocated,
+            Status.pending_allocation,
+            Status.unknown,
+            Status.collecting_results,
+            Status.finished,
+        ]
 
 
 class Result(OrderedEnum):
