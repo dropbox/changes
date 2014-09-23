@@ -85,6 +85,9 @@ def create_app(_read_config=True, **config):
 
     # default snapshot ID to use when no project-specific active image available
     app.config['DEFAULT_SNAPSHOT'] = None
+    app.config['SNAPSHOT_S3_BUCKET'] = None
+    app.config['LXC_PRE_LAUNCH'] = None
+    app.config['LXC_POST_LAUNCH'] = None
 
     app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json']
     app.config['CELERY_ACKS_LATE'] = True

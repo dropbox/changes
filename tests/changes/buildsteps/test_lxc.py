@@ -44,7 +44,7 @@ class LXCBuildStepTest(BackendTestCase):
         ))
         assert len(commands) == 4
 
-        assert commands[0].script == '#!/bin/bash -eux\nchanges-lxc launch 2f1424516eca469da908e1438b991470 --release=precise'
+        assert commands[0].script == '#!/bin/bash -eux\nchanges-lxc launch 2f1424516eca469da908e1438b991470 --release=precise --s3-bucket=snapshot-bucket --pre-launch="echo pre" --post-launch="echo post"'
         assert commands[0].type == CommandType.setup
 
         assert commands[1].script == '#!/bin/bash -eux\nchanges-lxc exec 2f1424516eca469da908e1438b991470 -- echo "hello world 2"'

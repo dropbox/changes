@@ -66,11 +66,18 @@ class LXCBuildStep(DefaultBuildStep):
         current_image = self.get_snapshot_image(job)
         container_name = uuid4().hex
 
-        launch_cmd = '#!/bin/bash -eux\n{bin} launch {container} --release={release}'.format(
-            bin=self.changes_lxc_bin,
-            container=container_name,
-            release=self.release,
-        )
+        launch_cmd = '#!/bin/bash -eux\n{bin} launch {container} ' \
+            '--release={release} ' \
+            '--s3-bucket={s3_bucket} ' \
+            '--pre-launch="{pre_launch}" ' \
+            '--post-launch="{post_launch}"'.format(
+                bin=self.changes_lxc_bin,
+                container=container_name,
+                release=self.release,
+                s3_bucket=current_app.config['SNAPSHOT_S3_BUCKET'],
+                pre_launch=current_app.config['LXC_PRE_LAUNCH'],
+                post_launch=current_app.config['LXC_POST_LAUNCH'],
+            )
         if current_image:
             launch_cmd = '{} --snapshot={}'.format(launch_cmd, current_image)
 

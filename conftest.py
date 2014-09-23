@@ -44,6 +44,9 @@ def app(request, session_config):
         GOOGLE_CLIENT_SECRET='b' * 40,
         HIPCHAT_TOKEN='abc',
         DEFAULT_FILE_STORAGE='changes.storage.dummy.DummyFileStorage',
+        LXC_PRE_LAUNCH='echo pre',
+        LXC_POST_LAUNCH='echo post',
+        SNAPSHOT_S3_BUCKET='snapshot-bucket'
     )
     app_context = app.test_request_context()
     context = app_context.push()
