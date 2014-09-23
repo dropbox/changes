@@ -87,8 +87,10 @@ def sync_build(build_id):
 
     if is_finished:
         build.status = Status.finished
+    elif any(j.status is not Status.queued for j in all_jobs):
+        build.status = Status.in_progress
     else:
-        build.status = safe_agg(min, (j.status for j in all_jobs))
+        build.status = Status.queued
 
     if db.session.is_modified(build):
         build.date_modified = datetime.utcnow()
