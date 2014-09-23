@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from changes.api.base import APIView
 from changes.constants import Status
 from changes.config import db
-from changes.models import JobStep
+from changes.models import JobPlan, JobStep
 
 
 class JobStepAllocateAPIView(APIView):
@@ -21,11 +21,16 @@ class JobStepAllocateAPIView(APIView):
         db.session.add(to_allocate)
         db.session.commit()
 
+        jobplan, buildstep = JobPlan.get_build_step_for_job(to_allocate.job_id)
+
+        assert jobplan and buildstep
+
         context = self.serialize(to_allocate)
         context['project'] = self.serialize(to_allocate.project)
         context['resources'] = {
             'cpus': 4,
             'mem': 8 * 1024,
         }
+        context['cmd'] = buildstep.get_allocation_command(to_allocate)
 
         return self.respond([context])

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from copy import deepcopy
+from flask import current_app
 from itertools import chain
 
 from changes.buildsteps.base import BuildStep
@@ -9,6 +10,7 @@ from changes.constants import Cause, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import CommandType, FutureCommand, JobPhase, JobStep
+from changes.utils.http import build_uri
 
 
 DEFAULT_ARTIFACTS = (
@@ -205,3 +207,17 @@ class DefaultBuildStep(BuildStep):
             db.session.add(new_command)
 
         return new_jobstep
+
+    def get_allocation_command(self, jobstep):
+        args = {
+            'api_url': build_uri('/api/0/'),
+            'jobstep_id': jobstep.id.hex,
+            's3_bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
+            'pre_launch': current_app.config['LXC_PRE_LAUNCH'],
+            'post_launch': current_app.config['LXC_POST_LAUNCH'],
+        }
+        return "changes-lxc-wrapper --api-url=%(api_url)s " \
+            "--jobstep-id=%(jobstep_id)s " \
+            "--s3-bucket=%(s3_bucket)s " \
+            "--pre-launch=\"%(pre_launch)s\" " \
+            "--post-launch=\"%(post_launch)s\"" % args

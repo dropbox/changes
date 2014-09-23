@@ -49,3 +49,6 @@ class BuildStep(object):
 
     def expand_jobstep(self, jobstep, new_jobphase, future_jobstep):
         raise NotImplementedError
+
+    def get_allocation_command(self, jobstep):
+        raise NotImplementedError

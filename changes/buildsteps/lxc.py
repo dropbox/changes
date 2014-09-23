@@ -8,6 +8,7 @@ from changes.config import db
 from changes.models import (
     CommandType, FutureCommand, JobPlan, Snapshot, SnapshotImage
 )
+from changes.utils.http import build_uri
 
 
 WRITE_TO_FILE_COMMAND = """
@@ -144,3 +145,12 @@ class LXCBuildStep(DefaultBuildStep):
             filename=filename,
             script=script,
         )
+
+    def get_allocation_command(self, jobstep):
+        args = {
+            'api_url': build_uri('/api/0/'),
+            'jobstep_id': jobstep.id.hex,
+        }
+        return "changes-client " \
+            "--server %(api_url)s " \
+            "--jobstep_id %(jobstep_id)s" % args
