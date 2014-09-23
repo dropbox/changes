@@ -7,7 +7,7 @@ from changes.constants import Result, Status
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
 from changes.models import Build, ItemStat, Job
-from changes.utils.agg import safe_agg
+from changes.utils.agg import aggregate_result, aggregate_status, safe_agg
 from changes.queue.task import tracked_task
 
 
@@ -63,6 +63,8 @@ def sync_build(build_id):
     ))
 
     is_finished = sync_build.verify_all_children() == Status.finished
+    if any(p.status != Status.finished for p in all_jobs):
+        is_finished = False
 
     build.date_started = safe_agg(
         min, (j.date_started for j in all_jobs if j.date_started))
@@ -81,14 +83,17 @@ def sync_build(build_id):
     if any(j.result is Result.failed for j in all_jobs):
         build.result = Result.failed
     elif is_finished:
-        build.result = safe_agg(max, (j.result for j in all_jobs))
+        build.result = aggregate_result((j.result for j in all_jobs))
     else:
         build.result = Result.unknown
 
     if is_finished:
         build.status = Status.finished
     else:
-        build.status = safe_agg(min, (j.status for j in all_jobs))
+        # ensure we dont set the status to finished unless it actually is
+        new_status = aggregate_status((j.status for j in all_jobs))
+        if new_status != Status.finished:
+            build.status = new_status
 
     if db.session.is_modified(build):
         build.date_modified = datetime.utcnow()

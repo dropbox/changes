@@ -11,7 +11,7 @@ from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
 from changes.models import ItemStat, Job, JobPhase, JobPlan, JobStep, TestCase
 from changes.queue.task import tracked_task
-from changes.utils.agg import safe_agg
+from changes.utils.agg import aggregate_result, aggregate_status, safe_agg
 
 
 def aggregate_job_stat(job, name, func_=func.sum):
@@ -54,13 +54,16 @@ def sync_phase(phase):
             phase.status = Status.finished
             phase.date_finished = safe_agg(max, (s.date_finished for s in phase_steps))
         else:
-            phase.status = safe_agg(min, (s.status for s in phase_steps))
+            # ensure we dont set the status to finished unless it actually is
+            new_status = aggregate_status((s.status for s in phase_steps))
+            if new_status != Status.finished:
+                phase.status = new_status
 
         if any(s.result is Result.failed for s in phase_steps):
             phase.result = Result.failed
 
         elif phase.status == Status.finished:
-            phase.result = safe_agg(max, (s.result for s in phase_steps))
+            phase.result = aggregate_result((s.result for s in phase_steps))
 
     if db.session.is_modified(phase):
         phase.date_modified = datetime.utcnow()
@@ -99,17 +102,15 @@ def sync_job(job_id):
         job.result = Result.aborted
         current_app.logger.exception('Unrecoverable exception syncing %s', job.id)
 
-    is_finished = sync_job.verify_all_children() == Status.finished
-    if is_finished:
-        job.status = Status.finished
-
-    db.session.flush()
-
     all_phases = list(job.phases)
 
     # propagate changes to any phases as they live outside of the
     # normalize synchronization routines
     sync_job_phases(job, all_phases)
+
+    is_finished = sync_job.verify_all_children() == Status.finished
+    if any(p.status != Status.finished for p in all_phases):
+        is_finished = False
 
     job.date_started = safe_agg(
         min, (j.date_started for j in all_phases if j.date_started))
@@ -133,14 +134,17 @@ def sync_job(job_id):
         job.result = Result.failed
     # if we've finished all phases, use the best result available
     elif is_finished:
-        job.result = safe_agg(max, (j.result for j in all_phases))
+        job.result = aggregate_result((j.result for j in all_phases))
     else:
         job.result = Result.unknown
 
     if is_finished:
         job.status = Status.finished
     else:
-        job.status = safe_agg(min, (j.status for j in all_phases))
+        # ensure we dont set the status to finished unless it actually is
+        new_status = aggregate_status((j.status for j in all_phases))
+        if new_status != Status.finished:
+            job.status = new_status
 
     if db.session.is_modified(job):
         job.date_modified = datetime.utcnow()

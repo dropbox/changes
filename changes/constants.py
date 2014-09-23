@@ -6,36 +6,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir
 NUM_PREVIOUS_RUNS = 50
 
 
-class OrderedEnum(Enum):
-    def get_order(self):
-        return sorted(self.__members__, key=lambda x: x._value_)
-
-    def __ge__(self, other):
-        if type(self) is not type(other):
-            return NotImplemented
-        order = self.get_order()
-        return order.index(self) >= order.index(other)
-
-    def __gt__(self, other):
-        if type(self) is not type(other):
-            return NotImplemented
-        order = self.get_order()
-        return order.index(self) > order.index(other)
-
-    def __le__(self, other):
-        if type(self) is not type(other):
-            return NotImplemented
-        order = self.get_order()
-        return order.index(self) <= order.index(other)
-
-    def __lt__(self, other):
-        if type(self) is not type(other):
-            return NotImplemented
-        order = self.get_order()
-        return order.index(self) < order.index(other)
-
-
-class Status(OrderedEnum):
+class Status(Enum):
     unknown = 0
     queued = 1
     in_progress = 2
@@ -47,19 +18,8 @@ class Status(OrderedEnum):
     def __str__(self):
         return STATUS_LABELS[self]
 
-    def get_order(self):
-        return [
-            Status.in_progress,
-            Status.queued,
-            Status.allocated,
-            Status.pending_allocation,
-            Status.collecting_results,
-            Status.finished,
-            Status.unknown,
-        ]
 
-
-class Result(OrderedEnum):
+class Result(Enum):
     unknown = 0
     aborted = 5
     passed = 1
@@ -68,15 +28,6 @@ class Result(OrderedEnum):
 
     def __str__(self):
         return RESULT_LABELS[self]
-
-    def get_order(self):
-        return [
-            Result.skipped,
-            Result.passed,
-            Result.unknown,
-            Result.failed,
-            Result.aborted,
-        ]
 
 
 class Provider(Enum):
@@ -119,6 +70,15 @@ STATUS_LABELS = {
     Status.pending_allocation: 'Queued',
 }
 
+STATUS_PRIORITY = (
+    Status.in_progress,
+    Status.queued,
+    Status.allocated,
+    Status.pending_allocation,
+    Status.collecting_results,
+    Status.finished,
+)
+
 RESULT_LABELS = {
     Result.unknown: 'Unknown',
     Result.passed: 'Passed',
@@ -126,6 +86,13 @@ RESULT_LABELS = {
     Result.skipped: 'Skipped',
     Result.aborted: 'Aborted',
 }
+
+RESULT_PRIORITY = (
+    Result.aborted,
+    Result.failed,
+    Result.passed,
+    Result.skipped,
+)
 
 CAUSE_LABELS = {
     Cause.unknown: 'Unknown',

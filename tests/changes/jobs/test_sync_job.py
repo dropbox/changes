@@ -95,6 +95,9 @@ class SyncJobTest(TestCase):
         self.create_test(job)
         self.create_test(job)
 
+        self.jobstep.status = Status.finished
+        db.session.add(self.jobstep)
+
         db.session.add(ItemStat(item_id=step.id, name='tests_missing', value=1))
         db.session.add(ItemStat(item_id=step.id, name='lines_covered', value=10))
         db.session.add(ItemStat(item_id=step.id, name='lines_uncovered', value=25))
