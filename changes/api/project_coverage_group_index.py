@@ -39,7 +39,7 @@ class ProjectCoverageGroupIndexAPIView(APIView):
         ).limit(1).first()
 
         if not latest_build:
-            return self.respond()
+            return '{}'
 
         # use the most recent coverage
         cover_list = FileCoverage.query.filter(
