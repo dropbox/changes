@@ -53,14 +53,15 @@ def sync_phase(phase):
         if all(s.status == Status.finished for s in phase_steps):
             phase.status = Status.finished
             phase.date_finished = safe_agg(max, (s.date_finished for s in phase_steps))
-        else:
-            phase.status = safe_agg(min, (s.status for s in phase_steps))
+
+        elif any(s.status != Status.finished for s in phase_steps):
+            phase.status = Status.in_progress
 
         if any(s.result is Result.failed for s in phase_steps):
             phase.result = Result.failed
 
         elif phase.status == Status.finished:
-            phase.result = safe_agg(max, (s.result for s in phase_steps))
+            phase.result = safe_agg(max, (s.result for s in phase.steps))
 
     if db.session.is_modified(phase):
         phase.date_modified = datetime.utcnow()
@@ -139,8 +140,10 @@ def sync_job(job_id):
 
     if is_finished:
         job.status = Status.finished
+    elif any(j.status is not Status.queued for j in all_phases):
+        job.status = Status.in_progress
     else:
-        job.status = safe_agg(min, (j.status for j in all_phases))
+        job.status = Status.queued
 
     if db.session.is_modified(job):
         job.date_modified = datetime.utcnow()
