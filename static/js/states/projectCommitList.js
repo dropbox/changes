@@ -132,7 +132,6 @@ define([
         collection: collection,
         endpoint: getEndpoint($stateParams, 25),
         shouldUpdate: function(item, existing) {
-          console.log(item);
           if (!item.build) {
             return false;
           } else if (!existing.build) {
