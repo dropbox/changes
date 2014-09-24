@@ -75,7 +75,7 @@ class LXCBuildStepTest(BackendTestCase):
         mock_vcs.get_buildstep_clone.assert_called_once_with(source, './source/')
         mock_vcs.get_buildstep_patch.assert_called_once_with(source, './source/')
 
-        assert len(commands) == 6
+        assert len(commands) == 4
 
     def test_write_to_file_command(self):
         buildstep = self.get_buildstep()
