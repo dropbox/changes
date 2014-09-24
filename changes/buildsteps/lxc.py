@@ -103,7 +103,7 @@ class LXCBuildStep(DefaultBuildStep):
                 type=CommandType.setup,
             )
             yield FutureCommand(
-                script='chmod +x /tmp/update-source',
+                script='#!/bin/bash -eux\nchmod +x /tmp/update-source',
                 env=self.env,
             )
             yield FutureCommand(
@@ -120,7 +120,7 @@ class LXCBuildStep(DefaultBuildStep):
                     env=self.env,
                 )
                 yield FutureCommand(
-                    script='chmod +x /tmp/apply-patch',
+                    script='#!/bin/bash -eux\nchmod +x /tmp/apply-patch',
                     env=self.env,
                 )
                 yield FutureCommand(
