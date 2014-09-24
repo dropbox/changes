@@ -46,7 +46,7 @@ class JobStepAllocateAPIView(APIView):
 
         # prioritize a job that's has already started
         existing = JobStep.query.join(
-            'job',
+            Job, JobStep.job_id == Job.id,
         ).filter(
             Job.status.in_([Status.allocated, Status.in_progress]),
             *filters

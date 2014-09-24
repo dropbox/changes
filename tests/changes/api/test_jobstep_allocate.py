@@ -38,13 +38,13 @@ class JobStepAllocateTest(APITestCase):
 
         mock_get_allocation_command.return_value = 'echo 1'
 
-        # ensure we get back the latest queued jobstep first
+        # ensure we get back the earliest queued jobstep first
         resp = self.client.post(self.path)
 
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == jobstep_second_q.id.hex
+        assert data[0]['id'] == jobstep_first_q.id.hex
         assert data[0]['status']['id'] == Status.allocated.name
         assert data[0]['resources']
         assert data[0]['cmd'] == 'echo 1'
@@ -55,7 +55,7 @@ class JobStepAllocateTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['id'] == jobstep_first_q.id.hex
+        assert data[0]['id'] == jobstep_second_q.id.hex
         assert data[0]['status']['id'] == Status.allocated.name
         assert data[0]['resources']
         assert data[0]['cmd'] == 'echo 1'
