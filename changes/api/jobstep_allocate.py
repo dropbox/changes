@@ -38,21 +38,25 @@ class JobStepAllocateAPIView(APIView):
             if c >= 10
         ]
 
+        filters = [
+            JobStep.status == Status.pending_allocation,
+        ]
+        if unavail_projects:
+            filters.append(~JobStep.project_id.in_(unavail_projects))
+
         # prioritize a job that's has already started
         existing = JobStep.query.join(
             'job',
         ).filter(
             Job.status.in_([Status.allocated, Status.in_progress]),
-            JobStep.status == Status.pending_allocation,
-            ~JobStep.project_id.in_(unavail_projects),
+            *filters
         ).order_by(JobStep.date_created.desc()).first()
         if existing:
             return existing
 
         # now allow any prioritized project, based on order
         return JobStep.query.filter(
-            JobStep.status == Status.pending_allocation,
-            ~JobStep.project_id.in_(unavail_projects),
+            *filters
         ).order_by(JobStep.date_created.desc()).first()
 
     def post(self):
