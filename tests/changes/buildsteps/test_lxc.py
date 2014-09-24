@@ -56,6 +56,27 @@ class LXCBuildStepTest(BackendTestCase):
         assert commands[3].script == '#!/bin/bash -eux\nchanges-lxc destroy 2f1424516eca469da908e1438b991470'
         assert commands[3].type == CommandType.teardown
 
+    @patch('changes.models.Repository.get_vcs')
+    def test_iter_vcs_commands(self, mock_get_vcs):
+        mock_vcs = mock_get_vcs.return_value
+        mock_vcs.get_buildstep_clone.return_value = 'clone'
+        mock_vcs.get_buildstep_patch.return_value = 'patch'
+
+        project = self.create_project()
+        patch = self.create_patch()
+        source = self.create_source(project, patch=patch)
+        build = self.create_build(project, source=source)
+        job = self.create_job(build)
+
+        buildstep = self.get_buildstep()
+        commands = list(buildstep.iter_vcs_commands(job, 'container-name'))
+
+        mock_get_vcs.assert_called_once_with()
+        mock_vcs.get_buildstep_clone.assert_called_once_with(source, './source/')
+        mock_vcs.get_buildstep_patch.assert_called_once_with(source, './source/')
+
+        assert len(commands) == 6
+
     def test_write_to_file_command(self):
         buildstep = self.get_buildstep()
         result = buildstep.write_to_file_command('/tmp/foo.sh', '#!/bin/bash -eux\necho 1')

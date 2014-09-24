@@ -62,9 +62,6 @@ class LXCBuildStep(DefaultBuildStep):
         return None
 
     def iter_all_commands(self, job):
-        source = job.source
-        repo = source.repository
-
         current_image = self.get_snapshot_image(job)
         container_name = uuid4().hex
 
@@ -88,13 +85,37 @@ class LXCBuildStep(DefaultBuildStep):
             type=CommandType.setup,
         )
 
+        for command in self.iter_vcs_commands(job, container_name):
+            yield command
+
         exec_cmd = '#!/bin/bash -eux\n{bin} exec {container} -- '.format(
             bin=self.changes_lxc_bin,
             container=container_name,
         )
 
+        for command in self.commands:
+            command = command.copy()
+            command['script'] = exec_cmd + command['script']
+            yield FutureCommand(**command)
+
+        yield FutureCommand(
+            script='#!/bin/bash -eux\n{bin} destroy {container}'.format(
+                bin=self.changes_lxc_bin,
+                container=container_name,
+            ),
+            type=CommandType.teardown,
+        )
+
+    def iter_vcs_commands(self, job, container_name):
+        source = job.source
+        repo = source.repository
         vcs = repo.get_vcs()
         if vcs is not None:
+            exec_script_cmd = '#!/bin/bash -eux\n{bin} exec-script {container} '.format(
+                bin=self.changes_lxc_bin,
+                container=container_name,
+            )
+
             yield FutureCommand(
                 script=self.write_to_file_command(
                     '/tmp/update-source', vcs.get_buildstep_clone(source, self.path)
@@ -107,7 +128,7 @@ class LXCBuildStep(DefaultBuildStep):
                 env=self.env,
             )
             yield FutureCommand(
-                script=exec_cmd + '/tmp/update-source',
+                script=exec_script_cmd + '/tmp/update-source',
                 env=self.env,
                 type=CommandType.setup,
             )
@@ -124,22 +145,9 @@ class LXCBuildStep(DefaultBuildStep):
                     env=self.env,
                 )
                 yield FutureCommand(
-                    script=exec_cmd + '/tmp/apply-patch',
+                    script=exec_script_cmd + '/tmp/apply-patch',
                     env=self.env,
                 )
-
-        for command in self.commands:
-            command = command.copy()
-            command['script'] = exec_cmd + command['script']
-            yield FutureCommand(**command)
-
-        yield FutureCommand(
-            script='#!/bin/bash -eux\n{bin} destroy {container}'.format(
-                bin=self.changes_lxc_bin,
-                container=container_name,
-            ),
-            type=CommandType.teardown,
-        )
 
     def write_to_file_command(self, filename, script):
         return WRITE_TO_FILE_COMMAND % dict(
