@@ -118,13 +118,13 @@ class LXCBuildStep(DefaultBuildStep):
 
             yield FutureCommand(
                 script=self.write_to_file_command(
-                    '/tmp/update-source', vcs.get_buildstep_clone(source, self.path)
+                    './update-source', vcs.get_buildstep_clone(source, self.path)
                 ),
                 env=self.env,
                 type=CommandType.setup,
             )
             yield FutureCommand(
-                script=exec_script_cmd + '/tmp/update-source',
+                script=exec_script_cmd + './update-source',
                 env=self.env,
                 type=CommandType.setup,
             )
@@ -132,12 +132,12 @@ class LXCBuildStep(DefaultBuildStep):
             if source.patch:
                 yield FutureCommand(
                     script=self.write_to_file_command(
-                        '/tmp/apply-patch', vcs.get_buildstep_patch(source, self.path)
+                        './apply-patch', vcs.get_buildstep_patch(source, self.path)
                     ),
                     env=self.env,
                 )
                 yield FutureCommand(
-                    script=exec_script_cmd + '/tmp/apply-patch',
+                    script=exec_script_cmd + './apply-patch',
                     env=self.env,
                 )
 
