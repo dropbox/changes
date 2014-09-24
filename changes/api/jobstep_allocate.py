@@ -12,12 +12,14 @@ class JobStepAllocateAPIView(APIView):
     def find_next_jobstep(self):
         # find projects with pending allocations
         project_list = [p for p, in db.session.query(
-            JobStep.project_id,
+            Job.project_id,
         ).filter(
-            JobStep.status == Status.pending_allocation,
+            Job.status == Status.pending_allocation,
         ).group_by(
-            JobStep.project_id
+            Job.project_id
         )]
+        if not project_list:
+            return None
 
         # TODO(dcramer): this should be configurably and handle more cases
         # than just 'active job' as that can be 1 step or 100 steps
