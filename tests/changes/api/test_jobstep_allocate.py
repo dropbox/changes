@@ -24,7 +24,7 @@ class JobStepAllocateTest(APITestCase):
     @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
     def test_several_queued(self, mock_get_allocation_command):
         project = self.create_project()
-        build = self.create_build(project)
+        build = self.create_build(project, status=Status.pending_allocation)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         plan = self.create_plan()

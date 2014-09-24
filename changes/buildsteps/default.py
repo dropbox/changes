@@ -105,14 +105,14 @@ class DefaultBuildStep(BuildStep):
             yield FutureCommand(**command)
 
     def execute(self, job):
-        job.status = Status.queued
+        job.status = Status.pending_allocation
         db.session.add(job)
 
         phase, created = get_or_create(JobPhase, where={
             'job': job,
             'label': job.label,
         }, defaults={
-            'status': Status.queued,
+            'status': Status.pending_allocation,
             'project': job.project,
         })
 
