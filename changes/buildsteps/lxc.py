@@ -48,12 +48,13 @@ class LXCBuildStep(DefaultBuildStep):
 
         current_snapshot = Snapshot.get_current(job.project_id)
         if current_snapshot and jobplan:
-            return str(db.session.query(
+            image = db.session.query(
                 SnapshotImage.id,
             ).filter(
                 SnapshotImage.snapshot_id == current_snapshot.id,
                 SnapshotImage.plan_id == jobplan.plan_id,
-            ).scalar())
+            ).scalar()
+            return str(image) if image else None
 
         elif current_app.config['DEFAULT_SNAPSHOT']:
             return current_app.config['DEFAULT_SNAPSHOT']
