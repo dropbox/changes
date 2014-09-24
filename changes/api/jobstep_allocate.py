@@ -50,14 +50,22 @@ class JobStepAllocateAPIView(APIView):
         ).filter(
             Job.status.in_([Status.allocated, Status.in_progress]),
             *filters
-        ).order_by(JobStep.date_created.desc()).first()
+        ).order_by(JobStep.date_created.asc()).first()
         if existing:
             return existing
 
         # now allow any prioritized project, based on order
-        return JobStep.query.filter(
+        existing = JobStep.query.filter(
             *filters
-        ).order_by(JobStep.date_created.desc()).first()
+        ).order_by(JobStep.date_created.asc()).first()
+        if existing:
+            return existing
+
+        # TODO(dcramer): we want to burst but not go too far. For now just
+        # let burst
+        return JobStep.query.filter(
+            JobStep.status == Status.pending_allocation,
+        ).order_by(JobStep.date_created.asc()).first()
 
     def post(self):
         with redis.lock('jobstep:allocate'):
