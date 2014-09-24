@@ -46,15 +46,19 @@ class LXCBuildStepTest(BackendTestCase):
 
         assert commands[0].script == '#!/bin/bash -eux\nchanges-lxc launch 2f1424516eca469da908e1438b991470 --release=precise --s3-bucket=snapshot-bucket --pre-launch="echo pre" --post-launch="echo post"'
         assert commands[0].type == CommandType.setup
+        assert commands[0].cwd == ''
 
-        assert commands[1].script == '#!/bin/bash -eux\nchanges-lxc exec 2f1424516eca469da908e1438b991470 -- echo "hello world 2"'
+        assert commands[1].script == '#!/bin/bash -eux\nchanges-lxc exec 2f1424516eca469da908e1438b991470 --cwd="./source/" -- echo "hello world 2"'
         assert commands[1].type == CommandType.setup
+        assert commands[1].cwd == ''
 
-        assert commands[2].script == '#!/bin/bash -eux\nchanges-lxc exec 2f1424516eca469da908e1438b991470 -- echo "hello world 1"'
+        assert commands[2].script == '#!/bin/bash -eux\nchanges-lxc exec 2f1424516eca469da908e1438b991470 --cwd="./source/" -- echo "hello world 1"'
         assert commands[2].type == CommandType.default
+        assert commands[2].cwd == ''
 
         assert commands[3].script == '#!/bin/bash -eux\nchanges-lxc destroy 2f1424516eca469da908e1438b991470'
         assert commands[3].type == CommandType.teardown
+        assert commands[3].cwd == ''
 
     @patch('changes.models.Repository.get_vcs')
     def test_iter_vcs_commands(self, mock_get_vcs):

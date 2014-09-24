@@ -88,14 +88,20 @@ class LXCBuildStep(DefaultBuildStep):
         for command in self.iter_vcs_commands(job, container_name):
             yield command
 
-        exec_cmd = '#!/bin/bash -eux\n{bin} exec {container} -- '.format(
+        exec_cmd = '#!/bin/bash -eux\n{bin} exec {container}'.format(
             bin=self.changes_lxc_bin,
             container=container_name,
         )
 
         for command in self.commands:
             command = command.copy()
-            command['script'] = exec_cmd + command['script']
+            script = '{} --cwd="{}" -- {}'.format(
+                exec_cmd,
+                command['path'] or '',
+                command['script'],
+            )
+            command['path'] = ''
+            command['script'] = script
             yield FutureCommand(**command)
 
         yield FutureCommand(
