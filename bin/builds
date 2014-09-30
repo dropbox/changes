@@ -5,11 +5,13 @@ from __future__ import absolute_import, print_function
 import argparse
 import sys
 
+from datetime import datetime, timedelta
+
 from changes.config import create_app, db
 from changes.constants import Status
 from changes.jobs.sync_build import sync_build
 from changes.models import (
-    Project, Build
+    Project, Build, Job
 )
 
 app = create_app()
@@ -30,6 +32,18 @@ parser_sync = subparsers.add_parser('sync', help='sync build details')
 parser_sync.add_argument('id', help='build ID', nargs='?')
 parser_sync.add_argument('-a', '--all', dest='all', action='store_true', help='all pending builds', required=False)
 
+parser_stats = subparsers.add_parser('stats', help='get stats on jobs')
+parser_stats.add_argument('-d', '--days', type=int,
+                          help='period length (days)',
+                          default=7)
+parser_stats.add_argument('-o', '--output_format', choices=['text', 'csv'],
+                          help='output format (default: text)',
+                          default='text')
+parser_stats.add_argument('-t', '--detail_type', dest='type',
+                          choices=['projects', 'date', 'all'],
+                          help='type of data for outputting details (default: all)',
+                          default='all')
+
 args = parser.parse_args()
 
 
@@ -46,6 +60,26 @@ def get_build(id_):
         sys.exit(1)
 
     return build
+
+
+class CsvFormatter(object):
+    def print_header(self, key, value):
+        self.print(key, value)
+
+    def print(self, key, value):
+        print("{0},{1}".format(key, value))
+
+
+class TextFormatter(object):
+    def __init__(self, key_prefix, value_prefix):
+        self.key_prefix = key_prefix
+        self.value_prefix = value_prefix
+
+    def print_header(self, key_name, value_name):
+        print("Writing data for", key_name, "and", value_name)
+
+    def print(self, key, value):
+        print(self.key_prefix, key, self.value_prefix, value)
 
 
 if args.command == 'add':
@@ -98,3 +132,64 @@ elif args.command == 'sync':
             build_id=build.id.hex,
             task_id=build.id.hex,
         )
+
+elif args.command == 'stats':
+    end_period = datetime.utcnow()
+    days_delta = timedelta(days=args.days)
+    start_period = end_period - days_delta
+
+    jobs = Job.query.filter(
+        Job.date_created >= start_period,
+        Job.date_created < end_period,
+    ).order_by(
+        Job.date_created.desc(),
+    )
+
+    total_job_seconds = 0
+    projects = {}
+    cost_by_day = {}
+    previous_day = end_period
+
+    if args.output_format == 'csv':
+        project_formatter = CsvFormatter()
+        day_formatter = CsvFormatter()
+    else:
+        project_formatter = TextFormatter("Project", "cost")
+        day_formatter = TextFormatter("On", "cost was")
+
+    for job in jobs:
+        if job.duration:
+            job_seconds = job.duration/1000
+            total_job_seconds += job_seconds
+
+            # Add in cost by day stats
+            if job.date_created < previous_day:
+                previous_day -= timedelta(1)
+                cost_by_day[previous_day] = job_seconds
+            else:
+                cost_by_day[previous_day] += job_seconds
+
+            # Add in project stats
+            project_id = job.project_id.hex
+            if project_id in projects:
+                previous_cost = projects[project_id]
+                projects[project_id] = previous_cost + job_seconds
+            else:
+                projects[project_id] = job.duration/1000
+        else:
+            print("WARNING: No duration found for:", job, file=sys.stderr)
+
+    if args.output_format == 'text':
+        print("Total cost (seconds) spent running jobs:", total_job_seconds)
+
+    if args.type == 'all' or args.type == 'project':
+        print()
+        project_formatter.print_header("Project_ID", "Seconds")
+        for project_id, cost in projects.items():
+            project_formatter.print(project_id, cost)
+
+    if args.type == 'all' or args.type == 'date':
+        print()
+        day_formatter.print_header("Date", "Seconds")
+        for day, cost in cost_by_day.items():
+            day_formatter.print(day, cost)

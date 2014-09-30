@@ -26,10 +26,8 @@ class BuildReport(object):
     def __init__(self, projects):
         self.projects = set(projects)
 
-    def generate(self, end_period=None, days=7):
-        if end_period is None:
-            end_period = datetime.utcnow()
-
+    def generate(self, days=7):
+        end_period = datetime.utcnow()
         days_delta = timedelta(days=days)
         start_period = end_period - days_delta
 
@@ -272,8 +270,3 @@ class BuildReport(object):
             })
 
         return slow_list
-
-    def _date_to_key(self, dt):
-        return int(dt.replace(
-            minute=0, hour=0, second=0, microsecond=0
-        ).strftime('%s'))
