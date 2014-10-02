@@ -62,7 +62,7 @@
             scope.hasCoverage = (build.stats.diff_lines_covered + build.stats.diff_lines_uncovered) > 0;
             scope.coveragePercent = getCoveragePercent(build);
             scope.isFinished = (build.status.id == 'finished');
-            scope.isQueued = (build.status.id == 'queued');
+            scope.isQueued = (!scope.isFinished && build.status.id != 'in_progress');
             updateBuildProgress(build);
           });
 
