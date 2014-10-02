@@ -8,14 +8,10 @@ from changes.buildsteps.default import (
 from changes.config import db
 from changes.constants import Status
 from changes.models import Command, CommandType, FutureCommand, FutureJobStep
-from changes.testutils import BackendTestCase
+from changes.testutils import TestCase
 
 
-class DefaultBuildStepTest(BackendTestCase):
-    def setUp(self):
-        self.project = self.create_project()
-        super(DefaultBuildStepTest, self).setUp()
-
+class DefaultBuildStepTest(TestCase):
     def get_buildstep(self):
         return DefaultBuildStep(commands=(
             dict(
@@ -105,3 +101,19 @@ class DefaultBuildStepTest(BackendTestCase):
         assert commands[2].script == 'echo "foo"\necho "bar"'
         assert commands[2].order == 2
         assert commands[2].cwd == DEFAULT_PATH
+
+    def test_get_allocation_command(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        buildstep = self.get_buildstep()
+        result = buildstep.get_allocation_command(jobstep)
+        assert result == 'changes-lxc-wrapper ' \
+            '--api-url=http://example.com/api/0/ ' \
+            '--jobstep-id=%s ' \
+            '--s3-bucket=snapshot-bucket ' \
+            '--pre-launch="echo pre" ' \
+            '--post-launch="echo post"' % (jobstep.id.hex,)
