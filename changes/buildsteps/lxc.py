@@ -11,8 +11,6 @@ class LXCBuildStep(DefaultBuildStep):
     Similar to the default build step, except that it runs the client using
     the LXC adapter.
     """
-    changes_lxc_bin = 'changes-lxc'
-
     def get_label(self):
         return 'Build via Changes Client (LXC)'
 
