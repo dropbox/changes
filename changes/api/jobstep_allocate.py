@@ -12,11 +12,11 @@ class JobStepAllocateAPIView(APIView):
     def find_next_jobstep(self):
         # find projects with pending allocations
         project_list = [p for p, in db.session.query(
-            Job.project_id,
+            JobStep.project_id,
         ).filter(
-            Job.status == Status.pending_allocation,
+            JobStep.status == Status.pending_allocation,
         ).group_by(
-            Job.project_id
+            JobStep.project_id
         )]
         if not project_list:
             return None
