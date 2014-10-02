@@ -29,7 +29,7 @@ class LXCBuildStepTest(TestCase):
         buildstep = self.get_buildstep()
         result = buildstep.get_allocation_command(jobstep)
         assert result == 'changes-client ' \
-            '-adapter lxc' \
+            '-adapter lxc ' \
             '-server http://example.com/api/0/ ' \
             '-jobstep_id %s ' \
             '-s3-bucket snapshot-bucket ' \

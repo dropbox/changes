@@ -23,7 +23,7 @@ class LXCBuildStep(DefaultBuildStep):
             'post_launch': current_app.config['LXC_POST_LAUNCH'],
         }
         return "changes-client " \
-            "-adapter lxc" \
+            "-adapter lxc " \
             "-server %(api_url)s " \
             "-jobstep_id %(jobstep_id)s " \
             "-s3-bucket %(s3_bucket)s " \
