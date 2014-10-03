@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from flask import current_app
 
 from changes.buildsteps.default import DefaultBuildStep
+from changes.config import db
+from changes.models import SnapshotImage
 from changes.utils.http import build_uri
 
 
@@ -23,7 +25,7 @@ class LXCBuildStep(DefaultBuildStep):
             'post_launch': current_app.config['LXC_POST_LAUNCH'],
             'release': self.release,
         }
-        return "changes-client " \
+        command = "changes-client " \
             "-adapter lxc " \
             "-server %(api_url)s " \
             "-jobstep_id %(jobstep_id)s " \
@@ -31,3 +33,16 @@ class LXCBuildStep(DefaultBuildStep):
             "-s3-bucket %(s3_bucket)s " \
             "-pre-launch \"%(pre_launch)s\" " \
             "-post-launch \"%(post_launch)s\"" % args
+
+        # TODO(dcramer): we need some kind of tie into the JobPlan in order
+        # to dictate that this is a snapshot build
+        # determine if there's an expected snapshot outcome
+        expected_image = db.session.query(
+            SnapshotImage.id,
+        ).filter(
+            SnapshotImage.job_id == jobstep.job_id,
+        ).scalar()
+        if expected_image:
+            command = "%s -save-snapshot %s" % (command, expected_image.hex)
+
+        return command

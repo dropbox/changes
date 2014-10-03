@@ -36,3 +36,25 @@ class LXCBuildStepTest(TestCase):
             '-s3-bucket snapshot-bucket ' \
             '-pre-launch "echo pre" ' \
             '-post-launch "echo post"' % (jobstep.id.hex,)
+
+    def test_get_allocation_command_for_snapshotting(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        plan = self.create_plan()
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        snapshot = self.create_snapshot(project)
+        image = self.create_snapshot_image(snapshot, plan, job=job)
+
+        buildstep = self.get_buildstep()
+        result = buildstep.get_allocation_command(jobstep)
+        assert result == 'changes-client ' \
+            '-adapter lxc ' \
+            '-server http://example.com/api/0/ ' \
+            '-jobstep_id %s ' \
+            '-release trusty ' \
+            '-s3-bucket snapshot-bucket ' \
+            '-pre-launch "echo pre" ' \
+            '-post-launch "echo post" ' \
+            '-save-snapshot %s' % (jobstep.id.hex, image.id.hex,)
