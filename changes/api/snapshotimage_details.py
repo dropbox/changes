@@ -40,6 +40,9 @@ class SnapshotImageDetailsAPIView(APIView):
             if not db.session.query(inactive_image_query).scalar():
                 snapshot.status = SnapshotStatus.active
                 db.session.add(snapshot)
+            elif snapshot.status == SnapshotStatus.active:
+                snapshot.status = SnapshotStatus.inactive
+            db.session.add(snapshot)
 
         db.session.commit()
 
