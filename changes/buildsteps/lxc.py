@@ -21,11 +21,13 @@ class LXCBuildStep(DefaultBuildStep):
             's3_bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
             'pre_launch': current_app.config['LXC_PRE_LAUNCH'],
             'post_launch': current_app.config['LXC_POST_LAUNCH'],
+            'release': self.release,
         }
         return "changes-client " \
             "-adapter lxc " \
             "-server %(api_url)s " \
             "-jobstep_id %(jobstep_id)s " \
+            "-release %(release)s " \
             "-s3-bucket %(s3_bucket)s " \
             "-pre-launch \"%(pre_launch)s\" " \
             "-post-launch \"%(post_launch)s\"" % args

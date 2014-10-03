@@ -17,7 +17,7 @@ class LXCBuildStepTest(TestCase):
             dict(
                 script='echo "hello world 1"',
             ),
-        ))
+        ), release='trusty')
 
     def test_get_allocation_command(self):
         project = self.create_project()
@@ -32,6 +32,7 @@ class LXCBuildStepTest(TestCase):
             '-adapter lxc ' \
             '-server http://example.com/api/0/ ' \
             '-jobstep_id %s ' \
+            '-release trusty ' \
             '-s3-bucket snapshot-bucket ' \
             '-pre-launch "echo pre" ' \
             '-post-launch "echo post"' % (jobstep.id.hex,)
