@@ -111,9 +111,11 @@ class DefaultBuildStepTest(TestCase):
 
         buildstep = self.get_buildstep()
         result = buildstep.get_allocation_command(jobstep)
-        assert result == 'changes-lxc-wrapper ' \
-            '--api-url=http://example.com/api/0/ ' \
-            '--jobstep-id=%s ' \
-            '--s3-bucket=snapshot-bucket ' \
-            '--pre-launch="echo pre" ' \
-            '--post-launch="echo post"' % (jobstep.id.hex,)
+        assert result == 'changes-client ' \
+            '-adapter basic ' \
+            '-server http://example.com/api/0/ ' \
+            '-jobstep_id %s ' \
+            '-release precise ' \
+            '-s3-bucket snapshot-bucket ' \
+            '-pre-launch "echo pre" ' \
+            '-post-launch "echo post"' % (jobstep.id.hex,)

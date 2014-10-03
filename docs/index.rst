@@ -8,7 +8,6 @@ replace the underlying dependency. The current work-in-progress tooling exists
 under several additional repositories:
 
 - https://github.com/dropbox/changes-client
-- https://github.com/dropbox/changes-lxc-wrapper
 - https://github.com/dropbox/changes-mesos-framework
 
 

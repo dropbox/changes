@@ -1,7 +1,7 @@
 Snapshotting
 ============
 
-One of the core concepts of Changes is snapshotting. At a high level, the API only provides an abstraction for snapshots and relies on individual implementations (such as the changes-lxc-wrapper project) to actually determine what they mean.
+One of the core concepts of Changes is snapshotting. At a high level, the API only provides an abstraction for snapshots and relies on individual adapters to actually determine what they mean.
 
 
 Architecture
