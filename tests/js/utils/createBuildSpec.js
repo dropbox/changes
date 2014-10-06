@@ -31,6 +31,18 @@ define(['app', 'utils/createBuild'], function(app, createBuild) {
       expect(flash.alwaysCalledWith('error')).to.be.true;
     });
 
+    it('should flash correct message for failed post', function() {
+      $httpBackend.whenPOST('/api/0/builds/').respond(400, {error: 'foo_bar'});
+
+      var flash = sinon.spy();
+      createBuild($http, {}, flash, {});
+      $httpBackend.flush();
+
+      expect(flash.calledOnce).to.be.true;
+      expect(flash.alwaysCalledWith('error')).to.be.true;
+      expect(flash.getCall(0).args[1]).to.equal('foo_bar')
+    });
+
     it('should flash error for no data returned', function() {
       $httpBackend.whenPOST('/api/0/builds/').respond(200, '');
 

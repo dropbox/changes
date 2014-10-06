@@ -45,15 +45,9 @@ def identify_revision(repository, treeish):
     try:
         commit = vcs.log(parent=treeish, limit=1).next()
     except Exception:
-        # fall back to HEAD/tip when a matching revision isn't found
-        # this case happens frequently with gateways like hg-git
         # TODO(dcramer): it's possible to DOS the endpoint by passing invalid
         # commits so we should really cache the failed lookups
-        tree = vcs.get_default_revision()
-        try:
-            commit = vcs.log(parent=tree, limit=1).next()
-        except Exception:
-            raise MissingRevision('Unable to find revision %s' % (tree,))
+        raise MissingRevision('Unable to find revision %s' % (treeish,))
 
     revision, _ = commit.save(repository)
 
@@ -259,16 +253,16 @@ class BuildIndexAPIView(APIView):
         args = self.parser.parse_args()
 
         if not (args.project or args.repository or args['repository[phabricator.callsign]']):
-            return '{"error": "Need project or repository"}', 400
+            return {"error": "Project or repository must be specified"}, 400
 
         if args.patch_data:
             try:
                 patch_data = json.loads(args.patch_data)
             except Exception:
-                return '{"error": "Invalid patch data (must be JSON dict)"}', 400
+                return {"error": "Invalid patch data (must be JSON dict)"}, 400
 
             if not isinstance(patch_data, dict):
-                return '{"error": "Invalid patch data (must be JSON dict)"}', 400
+                return {"error": "Invalid patch data (must be JSON dict)"}, 400
         else:
             patch_data = None
 
@@ -295,7 +289,7 @@ class BuildIndexAPIView(APIView):
             ))
 
         if not projects:
-            return '{"error": "Unable to find project(s)."}', 400
+            return {"error": "Unable to find project(s)."}, 400
 
         if args.patch_file:
             # eliminate projects without diff builds
@@ -327,7 +321,8 @@ class BuildIndexAPIView(APIView):
         except MissingRevision:
             # if the default fails, we absolutely can't continue and the
             # client should send a valid revision
-            return '{"error": "Unable to find a commit to build."}', 400
+            return {"error": "Unable to find commit %s in %s." % (
+                args.sha, repository.url)}, 400
 
         if revision:
             if not author:

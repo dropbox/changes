@@ -1,11 +1,12 @@
 from cStringIO import StringIO
-from mock import patch
+from mock import patch, Mock
 
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import Job, JobPlan, ProjectOption
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
+from changes.vcs.base import Vcs, RevisionResult
 
 
 class FindGreenParentShaTest(TestCase):
@@ -228,6 +229,32 @@ class BuildCreateTest(APITestCase):
 
         assert source.repository_id == self.project.repository_id
         assert source.revision_sha == 'a' * 40
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_error_on_invalid_revision(self, get_vcs):
+        def log_results(parent=None, branch=None, offset=0, limit=1):
+            assert not branch
+            return iter([
+                RevisionResult(
+                    id='a' * 40,
+                    message='hello world',
+                    author='Foo <foo@example.com>',
+                )])
+
+        # Fake having a VCS and stub the returned commit log
+        fake_vcs = Mock(spec=Vcs)
+        fake_vcs.log.side_effect = log_results
+        get_vcs.return_value = fake_vcs
+
+        # Try a commit SHA that doesn't match the stub above
+        resp = self.client.post(self.path, data={
+            'sha': 'z' * 40,
+            'project': self.project.slug,
+        })
+        assert resp.status_code == 400
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert 'error' in data
 
     @patch('changes.api.build_index.find_green_parent_sha')
     def test_with_full_params(self, mock_find_green_parent_sha):
