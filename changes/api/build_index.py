@@ -206,6 +206,8 @@ def get_repository_by_callsign(callsign):
     ))
     if len(repo_list) > 1:
         logging.warning('Multiple repositories found matching phabricator.callsign=%s', callsign)
+    elif len(repo_list) < 1:
+        return None  # Match behavior of project and repository parameters
     return repo_list[0]
 
 
