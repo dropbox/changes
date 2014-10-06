@@ -56,11 +56,17 @@ While there are a significant and growing number of paths, this is an attempt to
     # api controllers and serializers
     │   ├── api
 
-    # various integration code (primarily for communicating with Jenkins)
+    # various integration code (primarily legacy for communicating with Jenkins)
     │   ├── backends
+
+    # implementations of the various buildsteps (modern build handlers)
+    │   ├── buildsteps
 
     # database utilities
     │   ├── db
+
+    # implementations of build factory expanders
+    │   ├── expanders
 
     # tasks executed asynchronously via Celery workers
     │   ├── jobs
