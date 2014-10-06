@@ -67,8 +67,9 @@
 		</div>
 
 		<div class="form-group">
-			<label>Room ID</label>
-			<input type="text" class="form-control" ng-model="options['hipchat.room']">
+			<label>Room Name</label>
+			<input type="text" class="form-control" ng-model="options['hipchat.room']"
+				   placeholder="e.g. {{project.name}}">
 		</div>
 
 	</fieldset>
@@ -86,7 +87,8 @@
 
 		<div class="form-group">
 			<label>Project name</label>
-			<input type="text" class="form-control" ng-model="options['green-build.project']">
+			<input type="text" class="form-control" ng-model="options['green-build.project']"
+				   placeholder="e.g. {{project.name}}">
 		</div>
 
 	</fieldset>
