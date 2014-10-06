@@ -5,7 +5,7 @@ import requests
 from flask import current_app
 
 from changes.config import db
-from changes.constants import Result, Status
+from changes.constants import Cause, Result, Status
 from changes.models import Build, ProjectOption, Source
 from changes.utils.http import build_uri
 
@@ -40,6 +40,7 @@ def should_notify(build):
         Build.project == build.project,
         Build.date_created < build.date_created,
         Build.status == Status.finished,
+        Build.cause != Cause.snapshot,
         Build.result.in_([Result.passed, Result.failed]),
     ).order_by(Build.date_created.desc()).first()
 
@@ -55,6 +56,9 @@ def should_notify(build):
 def build_finished_handler(build_id, **kwargs):
     build = Build.query.get(build_id)
     if build is None:
+        return
+
+    if build.cause == Cause.snapshot:
         return
 
     if build.source.patch_id:
