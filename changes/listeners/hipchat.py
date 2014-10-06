@@ -78,10 +78,11 @@ def build_finished_handler(build_id, **kwargs):
     if not options.get('hipchat.room'):
         return
 
-    message = u'Build {result} - <a href="{link}">{project} #{number}</a> ({target})'.format(
+    message = u'Build {result} - <a href="{link}">{project} #{number}</a> ({target}) - {subject}'.format(
         number='{0}'.format(build.number),
         result=unicode(build.result),
         target=build.target or build.source.revision_sha or 'Unknown',
+        subject=build.source.revision.subject,
         project=build.project.name,
         link=build_uri('/projects/{0}/builds/{1}/'.format(
             build.project.slug, build.id.hex))

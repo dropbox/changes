@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import mock
 import responses
 
+from urllib import quote_plus
+
 from changes.constants import Result
 from changes.listeners.hipchat import build_finished_handler
 from changes.testutils import TestCase
@@ -35,7 +37,8 @@ class HipChatTest(TestCase):
             '&auth_token=abc' \
             '&room_id=Awesome' \
             '&notify=1' \
-            '&message=Build+Failed+-+%3Ca+href%3D%22http%3A%2F%2Fexample.com%2Fprojects%2Ftest%2Fbuilds%2F{build_id}%2F%22%3Etest+%231%3C%2Fa%3E+%28{target}%29'.format(
+            '&message=Build+Failed+-+%3Ca+href%3D%22http%3A%2F%2Fexample.com%2Fprojects%2Ftest%2Fbuilds%2F{build_id}%2F%22%3Etest+%231%3C%2Fa%3E+%28{target}%29+-+{subject}'.format(
                 build_id=build.id.hex,
                 target=build.source.revision_sha,
+                subject=quote_plus(build.source.revision.subject),
             )
