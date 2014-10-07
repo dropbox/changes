@@ -26,7 +26,8 @@ define([
         "ui.show-coverage": 1,
         "ui.show-tests": 1
       }, options = {
-        "build.branch-names": "*"
+        "build.branch-names": "*",
+        "build.file-whitelist": ""
       };
 
       for (var key in projectData.options) {
