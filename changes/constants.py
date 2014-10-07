@@ -65,6 +65,7 @@ STATUS_LABELS = {
     Status.unknown: 'Unknown',
     Status.queued: 'Queued',
     Status.in_progress: 'In progress',
+    Status.collecting_results: 'Collecting Results',
     Status.finished: 'Finished',
     Status.allocated: 'Allocated',
     Status.pending_allocation: 'Queued',
