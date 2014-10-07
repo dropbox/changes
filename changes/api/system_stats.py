@@ -111,6 +111,9 @@ class SystemStatsAPIView(APIView):
 
         context = []
         for result in Result.__members__.values():
+            if result in (Result.unknown, Result.skipped):
+                continue
+
             context.append({
                 'name': unicode(result),
                 'numBuilds': build_stats.get(result, 0),
