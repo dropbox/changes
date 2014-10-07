@@ -28,6 +28,7 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('build.allow-patches')
     parser.add_argument('build.branch-names')
     parser.add_argument('build.commit-trigger')
+    parser.add_argument('build.file-whitelist')
     parser.add_argument('build.test-duration-warning')
     parser.add_argument('hipchat.notify')
     parser.add_argument('hipchat.room')
