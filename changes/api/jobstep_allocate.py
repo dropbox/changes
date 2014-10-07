@@ -68,17 +68,19 @@ class JobStepAllocateAPIView(APIView):
         ).order_by(JobStep.date_created.asc()).first()
 
     def post(self):
-        with redis.lock('jobstep:allocate'):
-            to_allocate = self.find_next_jobstep()
+        try:
+            with redis.lock('jobstep:allocate', nowait=True):
+                to_allocate = self.find_next_jobstep()
 
-            # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
-            if to_allocate is None:
-                return self.respond([])
+                # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
+                if to_allocate is None:
+                    return self.respond([])
 
-            to_allocate.status = Status.allocated
-            db.session.add(to_allocate)
-            db.session.flush()
-
+                to_allocate.status = Status.allocated
+                db.session.add(to_allocate)
+                db.session.flush()
+        except redis.UnableToGetLock:
+            return self.respond({"error": "Another allocation is in progress"}), 503
         jobplan, buildstep = JobPlan.get_build_step_for_job(to_allocate.job_id)
 
         assert jobplan and buildstep
