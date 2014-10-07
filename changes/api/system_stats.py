@@ -43,31 +43,18 @@ class SystemStatsAPIView(APIView):
             JobStep.status,
         ))
 
-        build_stats[Status.queued] = (
-            build_stats.get(Status.queued, 0) +
-            build_stats.pop(Status.pending_allocation, 0)
-        )
-
-        job_stats[Status.queued] = (
-            job_stats.get(Status.queued, 0) +
-            job_stats.pop(Status.pending_allocation, 0)
-        )
-
-        jobstep_stats[Status.queued] = (
-            jobstep_stats.get(Status.queued, 0) +
-            jobstep_stats.pop(Status.pending_allocation, 0)
-        )
-
         context = []
         for status in Status.__members__.values():
             if status in excluded:
                 continue
 
             if status == Status.pending_allocation:
-                continue
+                name = 'Pending Allocation'
+            else:
+                name = unicode(status)
 
             context.append({
-                'name': unicode(status),
+                'name': name,
                 'numBuilds': build_stats.get(status, 0),
                 'numJobs': job_stats.get(status, 0),
                 'numJobSteps': jobstep_stats.get(status, 0),
