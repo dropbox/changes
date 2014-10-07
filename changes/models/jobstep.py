@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship, backref
 
 from changes.config import db
 from changes.constants import Status, Result
+from changes.db.utils import model_repr
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
@@ -50,6 +51,8 @@ class JobStep(db.Model):
     project = relationship('Project')
     node = relationship('Node')
     phase = relationship('JobPhase', backref=backref('steps', order_by='JobStep.date_started'))
+
+    __repr__ = model_repr('label')
 
     def __init__(self, **kwargs):
         super(JobStep, self).__init__(**kwargs)
