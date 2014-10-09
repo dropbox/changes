@@ -16,6 +16,19 @@ def as_json(context):
     return json.dumps(serialize_func(context))
 
 
+def error(message, problems=None, http_code=400):
+    """ Returns a new error response to send API clients.
+
+    :param message: A human readable description of the error
+    :param problems: List of fields that caused the error.
+    :param http_code: The HTTP code to use for the response.
+    """
+    error_response = {'error': message}
+    if problems:
+        error_response['problems'] = problems
+    return error_response, http_code
+
+
 def param(key, validator=lambda x: x, required=True, dest=None):
     def wrapped(func):
         @wraps(func)

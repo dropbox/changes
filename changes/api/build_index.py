@@ -8,7 +8,7 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, subqueryload_all
 from werkzeug.datastructures import FileStorage
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
 from changes.constants import Result, Status, ProjectStatus
@@ -255,16 +255,20 @@ class BuildIndexAPIView(APIView):
         args = self.parser.parse_args()
 
         if not (args.project or args.repository or args['repository[phabricator.callsign]']):
-            return {"error": "Project or repository must be specified"}, 400
+            return error("Project or repository must be specified",
+                         problems=["project", "repository",
+                                   "repository[phabricator.callsign]"])
 
         if args.patch_data:
             try:
                 patch_data = json.loads(args.patch_data)
             except Exception:
-                return {"error": "Invalid patch data (must be JSON dict)"}, 400
+                return error("Invalid patch data (must be JSON dict)",
+                             problems=["patch[data]"])
 
             if not isinstance(patch_data, dict):
-                return {"error": "Invalid patch data (must be JSON dict)"}, 400
+                return error("Invalid patch data (must be JSON dict)",
+                             problems=["patch[data]"])
         else:
             patch_data = None
 
@@ -291,7 +295,7 @@ class BuildIndexAPIView(APIView):
             ))
 
         if not projects:
-            return {"error": "Unable to find project(s)."}, 400
+            return error("Unable to find project(s).")
 
         if args.patch_file:
             # eliminate projects without diff builds
@@ -323,8 +327,8 @@ class BuildIndexAPIView(APIView):
         except MissingRevision:
             # if the default fails, we absolutely can't continue and the
             # client should send a valid revision
-            return {"error": "Unable to find commit %s in %s." % (
-                args.sha, repository.url)}, 400
+            return error("Unable to find commit %s in %s." % (
+                args.sha, repository.url), problems=['sha', 'repository'])
 
         if revision:
             if not author:

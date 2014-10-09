@@ -5,15 +5,9 @@ import itertools
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, contains_eager
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.constants import Cause, Status
 from changes.models import Build, Project, Revision, Source
-
-
-def error(message):
-    """ Returns a new error dictionary serializable into JSON.
-    """
-    return {'error': message}
 
 
 class ProjectCommitIndexAPIView(APIView):
@@ -47,7 +41,7 @@ class ProjectCommitIndexAPIView(APIView):
                     branch=args.branch,
                 ))
             except ValueError as err:
-                return error(err.message), 400
+                return error(err.message)
 
             if vcs_log:
                 revisions_qs = list(Revision.query.options(
@@ -73,7 +67,8 @@ class ProjectCommitIndexAPIView(APIView):
                 commits = []
         elif args.parent or args.branch:
             param = 'Branches' if args.branch else 'Parents'
-            return error('{0} not supported for projects with no repository.'.format(param)), 422
+            return error('{0} not supported for projects with no repository.'.format(param),
+                         http_code=422)
         else:
             commits = self.serialize(list(
                 Revision.query.options(
