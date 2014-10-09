@@ -6,7 +6,6 @@
     <thead>
       <tr class="grid-list-header">
         <th>Plan</th>
-        <th class="column">Created</th>
         <th class="column">Status</th>
       </tr>
     </thead>
@@ -15,7 +14,6 @@
         <td>
           {{image.plan.name}}
         </td>
-        <td class="column" time-since="image.dateCreated"></td>
         <td class="column" ng-if="snapshot.status.id != 'active'">
           <em>{{image.status.name}}</em>
         </td>
