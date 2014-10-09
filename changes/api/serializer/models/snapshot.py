@@ -57,7 +57,9 @@ class SnapshotWithBuildSerializer(SnapshotSerializer):
 
 class SnapshotWithImagesSerializer(SnapshotSerializer):
     def get_attrs(self, item_list):
-        image_list = sorted(SnapshotImage.query.filter(
+        image_list = sorted(SnapshotImage.query.options(
+            joinedload('plan'),
+        ).filter(
             SnapshotImage.snapshot_id.in_(j.id for j in item_list),
         ), key=lambda x: x.date_created)
         image_map = defaultdict(list)

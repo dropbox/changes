@@ -9,4 +9,5 @@ class SnapshotImageSerializer(Serializer):
             'id': instance.id.hex,
             'status': instance.status,
             'dateCreated': instance.date_created,
+            'plan': instance.plan,
         }
