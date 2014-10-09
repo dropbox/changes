@@ -5,7 +5,7 @@ from uuid import uuid4
 from enum import Enum
 
 from sqlalchemy import Column, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy.schema import UniqueConstraint
 
 from changes.config import db
@@ -100,7 +100,7 @@ class SnapshotImage(db.Model):
                     nullable=False, server_default='0')
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    snapshot = relationship('Snapshot')
+    snapshot = relationship('Snapshot', backref=backref('images', order_by='SnapshotImage.date_created'))
     plan = relationship('Plan')
     job = relationship('Job')
 
