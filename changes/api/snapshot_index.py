@@ -4,7 +4,6 @@ from flask_restful.reqparse import RequestParser
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.api.serializer.models.snapshot import SnapshotWithImagesSerializer
 from changes.models import Snapshot, SnapshotStatus
 
 STATE_CHOICES = ('', 'valid', 'invalid')
@@ -35,6 +34,4 @@ class SnapshotIndexAPIView(APIView):
                 Snapshot.status == SnapshotStatus.invalidated,
             )
 
-        return self.paginate(queryset, serializers={
-            Snapshot: SnapshotWithImagesSerializer(),
-        })
+        return self.paginate(queryset)
