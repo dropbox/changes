@@ -11,7 +11,7 @@
     <tbody>
       <tr ng-repeat="snapshot in snapshotList">
         <td>
-          {{snapshot.id}}
+          <a ng-click="showDetails(snapshot)">{{snapshot.id}}</a>
         </td>
         <td class="column" ng-if="snapshot.source.revision.sha">
           {{snapshot.source.revision.sha.substr(12)}}
