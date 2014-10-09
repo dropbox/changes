@@ -24,7 +24,8 @@ define([
         "mail.notify-author": 1,
         "hipchat.notify": 1,
         "ui.show-coverage": 1,
-        "ui.show-tests": 1
+        "ui.show-tests": 1,
+        "phabricator.notify": 1
       }, options = {
         "build.branch-names": "*",
         "build.file-whitelist": ""
