@@ -253,9 +253,8 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 400
         data = self.unserialize(resp)
-        assert len(data) == 2
+        assert len(data) == 1
         assert 'error' in data
-        assert 'problems' in data
 
     @patch('changes.api.build_index.find_green_parent_sha')
     def test_with_full_params(self, mock_find_green_parent_sha):
@@ -364,12 +363,13 @@ class BuildCreateTest(APITestCase):
     def test_with_patch_without_diffs_enabled(self):
         po = ProjectOption(
             project=self.project,
-            name='build.allow-patches',
+            name='phabricator.diff-trigger',
             value='0',
         )
         db.session.add(po)
         db.session.commit()
 
+        # Default to not creating a build (for tools)
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
@@ -379,3 +379,17 @@ class BuildCreateTest(APITestCase):
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 0
+
+        # Create a build for cli invocations
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch[label]': 'D1234',
+            'origin': 'cli',
+        })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+        assert data[0]['project']

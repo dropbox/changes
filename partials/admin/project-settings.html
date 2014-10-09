@@ -42,6 +42,14 @@
 			</label>
 		</div>
 
+		<div class="form-group checkbox">
+			<label>
+				<input type="checkbox" value="1" ng-model="options['phabricator.diff-trigger']">
+				Automatically create builds for Phabricator diffs.
+			</label>
+			<div class="help-block">If unchecked, a build must be manually requested for each patch.</div>
+		</div>
+
 		<div class="form-group">
 			<label>File Whitelist</label>
 			<textarea class="form-control" ng-model="options['build.file-whitelist']"
@@ -53,13 +61,6 @@
 			<label>Branches</label>
 			<input type="text" class="form-control" ng-model="options['build.branch-names']">
 			<div class="help-block">Limit commit triggered builds from the following branches.</div>
-		</div>
-
-		<div class="form-group checkbox">
-			<label>
-				<input type="checkbox" value="1" ng-model="options['build.allow-patches']">
-				Allow builds to be created from patches.
-			</label>
 		</div>
 
 	</fieldset>

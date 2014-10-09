@@ -18,11 +18,11 @@ define([
     templateUrl: 'partials/admin/project-settings.html',
     controller: function($scope, $http, $state, $stateParams, flash, projectData) {
       var booleans = {
-        "build.allow-patches": 1,
         "build.commit-trigger": 1,
         "green-build.notify": 1,
         "mail.notify-author": 1,
         "hipchat.notify": 1,
+        "phabricator.diff-trigger": 1,
         "ui.show-coverage": 1,
         "ui.show-tests": 1,
         "phabricator.notify": 1
