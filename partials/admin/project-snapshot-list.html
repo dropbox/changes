@@ -3,18 +3,22 @@
     <thead>
       <tr class="grid-list-header">
         <th>ID</th>
-        <th class="column">Status</th>
+        <th class="column">Sha</th>
         <th class="column">Created</th>
-        <th class="column"></th>
+        <th class="column">Status</th>
       </tr>
     </thead>
     <tbody>
       <tr ng-repeat="snapshot in snapshotList">
         <td>
-          {{snapshot.id}}<br>
-          <small ng-if="snapshot.source.revision.sha">Commit {{snapshot.source.revision.sha}}</small>
+          {{snapshot.id}}
         </td>
-        <td class="column">{{snapshot.status.name}}</td>
+        <td class="column" ng-if="snapshot.source.revision.sha">
+          {{snapshot.source.revision.sha.substr(12)}}
+        </td>
+        <td class="column" ng-if="!snapshot.source.revision.sha">
+          &mdash;
+        </td>
         <td class="column" time-since="snapshot.dateCreated"></td>
         <td class="column" ng-if="snapshot.status.id == 'active'">
           <a ng-if="snapshot.id == currentSnapshotId"
@@ -23,7 +27,7 @@
              ng-click="activateSnapshot(snapshot.id)">Activate</a>
         </td>
         <td class="column" ng-if="snapshot.status.id != 'active'">
-          <em>Inactive</em>
+          <em>{{snapshot.status.name}}</em>
         </td>
       </tr>
     </tbody>
