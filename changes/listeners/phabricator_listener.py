@@ -41,9 +41,6 @@ def _init_phabricator():
 
 
 def build_finished_handler(build_id, **kwargs):
-    if not current_app.config.get('PHABRICATOR_POST_BUILD_RESULT'):
-        return
-
     build = Build.query.get(build_id)
     if build is None:
         return
