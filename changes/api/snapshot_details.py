@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
+from changes.api.serializer.models.snapshot import SnapshotWithImagesSerializer
 from changes.config import db
 from changes.db.utils import create_or_update
 from changes.models import ProjectOption, Snapshot, SnapshotStatus
@@ -18,7 +19,9 @@ class SnapshotDetailsAPIView(APIView):
         if snapshot is None:
             return '', 404
 
-        return self.respond(snapshot)
+        return self.respond(snapshot, serializers={
+            Snapshot: SnapshotWithImagesSerializer(),
+        })
 
     def post(self, snapshot_id):
         snapshot = Snapshot.query.get(snapshot_id)
