@@ -5,8 +5,7 @@
   <table class="grid-list">
     <thead>
       <tr class="grid-list-header">
-        <th>Image</th>
-        <th class="column">Plan</th>
+        <th>Plan</th>
         <th class="column">Created</th>
         <th class="column">Status</th>
       </tr>
@@ -14,9 +13,6 @@
     <tbody>
       <tr ng-repeat="image in imageList">
         <td>
-          {{image.id}}
-        </td>
-        <td class="column">
           {{image.plan.name}}
         </td>
         <td class="column" time-since="image.dateCreated"></td>
