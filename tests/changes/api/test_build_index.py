@@ -252,8 +252,9 @@ class BuildCreateTest(APITestCase):
         })
         assert resp.status_code == 400
         data = self.unserialize(resp)
-        assert len(data) == 1
         assert 'error' in data
+        assert 'problems' in data
+        assert 'sha' in data['problems']
 
     @patch('changes.api.build_index.find_green_parent_sha')
     def test_with_full_params(self, mock_find_green_parent_sha):
