@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy.sql import func
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.constants import Status, Result
 from changes.config import db, redis
 from changes.models import Build, Job, JobPlan, JobStep
@@ -84,7 +84,7 @@ class JobStepAllocateAPIView(APIView):
                 db.session.add(to_allocate)
                 db.session.flush()
         except redis.UnableToGetLock:
-            return self.respond({"error": "Another allocation is in progress"}), 503
+            return error('Another allocation is in progress', http_code=503)
 
         try:
             jobplan, buildstep = JobPlan.get_build_step_for_job(to_allocate.job_id)
@@ -100,11 +100,15 @@ class JobStepAllocateAPIView(APIView):
             context['cmd'] = buildstep.get_allocation_command(to_allocate)
 
             return self.respond([context])
-        except Exception as e:
-            logging.warning('Exception occurred while allocating job step: %s',
-                            str(e))
+        except Exception:
             to_allocate.status = Status.finished
             to_allocate.result = Result.aborted
             db.session.add(to_allocate)
             db.session.flush()
-            return self.respond({"error": "Internal error while attempting allocation"}), 503
+            project = ""
+            if to_allocate.project:
+                project = " for '%s'" % self.serialize(to_allocate.project)
+            logging.exception('Exception occurred while allocating job step%s',
+                              project)
+            return error('Internal error while attempting allocation',
+                         http_code=503)

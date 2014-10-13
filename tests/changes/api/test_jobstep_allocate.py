@@ -64,3 +64,20 @@ class JobStepAllocateTest(APITestCase):
         resp = self.client.post(self.path)
         assert resp.status_code == 200
         assert resp.data == '[]', 'Expecting no content'
+
+    @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
+    def test_allocation_error(self, mock_get_allocation_command):
+        mock_get_allocation_command.side_effect = Exception('Boom!')
+
+        project = self.create_project()
+        build = self.create_build(project, status=Status.pending_allocation)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        plan = self.create_plan(project)
+        self.create_step(plan)
+        self.create_job_plan(job, plan)
+        self.create_jobstep(jobphase, status=Status.pending_allocation)
+
+        resp = self.client.post(self.path)
+        assert resp.status_code == 503, resp
+        assert 'error' in resp.data
