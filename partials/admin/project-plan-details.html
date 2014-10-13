@@ -1,12 +1,6 @@
-<div class="page-header">
-  <h2>Plan Details</h2>
-</div>
-
 <form name="planSettingsForm" ng-submit="savePlanSettings()">
-  <section class="section">
-    <div class="section-header">
-      <h3>General</h3>
-    </div>
+  <fieldset>
+    <legend>Basics</legend>
 
     <div class="form-group">
       <label>Name</label>
@@ -22,12 +16,10 @@
         <option value="inactive">Inactive</option>
       </select>
     </div>
-  </section>
+  </fieldset>
 
-  <section class="section">
-    <div class="section-header">
-      <h3>Tests</h3>
-    </div>
+  <fieldset>
+    <legend>Tests</legend>
 
     <div class="form-group checkbox">
       <label>
@@ -35,7 +27,7 @@
         Expect test results to be reported. If they're not, the build will be considered as failing, in addition to "failing during setup".
       </label>
     </div>
-  </section>
+  </fieldset>
 
   <div class="form-submit clearfix">
     <p ng-show="planSettingsForm.$dirty">Your changes have not yet been saved.</p>
@@ -46,10 +38,8 @@
 
 <hr>
 
-<section class="section">
-  <div class="section-header">
-    <h3>Steps <button ng-disabled="stepList.length >= 1" ng-click="addStep()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
-  </div>
+<fieldset>
+  <legend>Steps <button ng-disabled="stepList.length >= 1" ng-click="addStep()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></legend>
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="step in stepList">
       <span class="pull-right" style="margin-top:5px;">
@@ -87,4 +77,4 @@
       </form>
     </li>
   </ul>
-</section>
+</fieldset>
