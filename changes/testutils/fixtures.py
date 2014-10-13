@@ -257,11 +257,11 @@ class Fixtures(object):
 
         return author
 
-    def create_plan(self, **kwargs):
+    def create_plan(self, project, **kwargs):
         kwargs.setdefault('label', 'test')
         kwargs.setdefault('status', PlanStatus.active)
 
-        plan = Plan(**kwargs)
+        plan = Plan(project=project, **kwargs)
         db.session.add(plan)
         db.session.commit()
 

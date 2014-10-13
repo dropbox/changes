@@ -55,8 +55,7 @@ class JobStepDetailsTest(APITestCase):
     def test_with_snapshot(self):
         project = self.create_project()
         build = self.create_build(project)
-        plan = self.create_plan()
-        plan.projects.append(project)
+        plan = self.create_plan(project)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
@@ -85,8 +84,7 @@ class JobStepDetailsTest(APITestCase):
     def test_with_expected_snapshot(self):
         project = self.create_project()
         build = self.create_build(project, cause=Cause.snapshot)
-        plan = self.create_plan()
-        plan.projects.append(project)
+        plan = self.create_plan(project)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)

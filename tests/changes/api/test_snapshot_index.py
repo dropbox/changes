@@ -8,13 +8,13 @@ class SnapshotListTest(APITestCase):
         project_1 = self.create_project()
         snapshot_1 = self.create_snapshot(
             project=project_1, status=SnapshotStatus.active)
-        plan_1 = self.create_plan()
+        plan_1 = self.create_plan(project_1)
         image_1 = self.create_snapshot_image(snapshot_1, plan_1)
 
         project_2 = self.create_project()
         snapshot_2 = self.create_snapshot(
             project=project_2, status=SnapshotStatus.invalidated)
-        plan_2 = self.create_plan()
+        plan_2 = self.create_plan(project_2)
         image_2 = self.create_snapshot_image(snapshot_2, plan_1)
         image_3 = self.create_snapshot_image(snapshot_2, plan_2)
 

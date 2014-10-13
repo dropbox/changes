@@ -1,4 +1,3 @@
-from changes.config import db
 from changes.constants import Cause
 from changes.models import Build, Job
 from changes.testutils import APITestCase
@@ -9,9 +8,7 @@ class BuildRetryTest(APITestCase):
         project = self.create_project()
         build = self.create_build(project=project)
         job = self.create_job(build=build)
-        plan = self.create_plan()
-        plan.projects.append(project)
-        db.session.commit()
+        self.create_plan(project)
 
         path = '/api/0/builds/{0}/retry/'.format(build.id.hex)
         resp = self.client.post(path, follow_redirects=True)

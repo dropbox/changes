@@ -7,7 +7,7 @@ class SnapshotImageDetailsTest(APITestCase):
     def test_simple(self):
         project = self.create_project()
         snapshot = self.create_snapshot(project)
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         image = self.create_snapshot_image(snapshot, plan)
 
         path = '/api/0/snapshotimages/{0}/'.format(image.id)
@@ -23,7 +23,7 @@ class UpdateSnapshotImageTest(APITestCase):
         super(UpdateSnapshotImageTest, self).setUp()
         self.project = self.create_project()
         self.snapshot = self.create_snapshot(self.project)
-        self.plan = self.create_plan()
+        self.plan = self.create_plan(self.project)
         self.image = self.create_snapshot_image(self.snapshot, self.plan)
 
         self.path = '/api/0/snapshotimages/{0}/'.format(self.image.id)

@@ -21,7 +21,6 @@ class PlanDetailsAPIView(APIView):
             return '', 404
 
         context = self.serialize(plan)
-        context['projects'] = list(plan.projects)
         context['steps'] = list(plan.steps)
 
         return self.respond(context)

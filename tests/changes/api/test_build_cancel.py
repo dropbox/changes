@@ -16,7 +16,7 @@ class BuildCancelTest(APITestCase):
         build = self.create_build(
             project=project, status=Status.in_progress)
         job = self.create_job(build=build, status=Status.in_progress)
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         self.create_step(plan)
         self.create_job_plan(job, plan)
 

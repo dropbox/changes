@@ -14,8 +14,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         repo = self.create_repo()
         revision = self.create_revision(repository=repo)
         project = self.create_project(repository=repo)
-        plan = self.create_plan()
-        plan.projects.append(project)
+        self.create_plan(project)
 
         revision_created_handler(revision_sha=revision.sha, repository_id=repo.id)
 
@@ -29,8 +28,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         repo = self.create_repo()
         revision = self.create_revision(repository=repo)
         project = self.create_project(repository=repo)
-        plan = self.create_plan()
-        plan.projects.append(project)
+        self.create_plan(project)
 
         db.session.add(ProjectOption(project=project, name='build.commit-trigger', value='0'))
         db.session.flush()
@@ -45,8 +43,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         repo = self.create_repo()
         revision = self.create_revision(repository=repo)
         project = self.create_project(repository=repo)
-        plan = self.create_plan()
-        plan.projects.append(project)
+        self.create_plan(project)
 
         option = ProjectOption(project=project, name='build.file-whitelist', value='foo.txt')
 

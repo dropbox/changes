@@ -11,9 +11,9 @@ define(['app'], function(app) {
   }
 
   return {
-    parent: 'admin_layout',
+    parent: 'admin_project_details',
     url: 'plans/:plan_id/',
-    templateUrl: 'partials/admin/plan-details.html',
+    templateUrl: 'partials/admin/project-plan-details.html',
     controller: function($http, $scope, planData, planOptionData, Collection, flash) {
       var booleans = {
         "build.expect-tests": 1
@@ -84,36 +84,6 @@ define(['app'], function(app) {
           flash('error', data.message);
         }).finally(function(){
           step.saving = false;
-        });
-      };
-
-      $scope.addProject = function() {
-        var data = {
-          id: window.prompt('Enter the project ID or slug')
-        };
-        if (!data.id) {
-          return;
-        }
-
-        $http.post('/api/0/plans/' + planData.id + '/projects/', data).success(function(data){
-          $scope.projectList.push(data);
-        }).error(function(data){
-          flash('error', data.message);
-        });
-      };
-
-      $scope.removeProject = function(project) {
-        if (project.saving === true) {
-          return;
-        }
-
-        project.saving = true;
-        $http.delete('/api/0/plans/' + planData.id + '/projects/?id=' + project.id).success(function(data){
-          $scope.projectList.popItem(project);
-        }).error(function(data){
-          flash('error', data.message);
-        }).finally(function(){
-          project.saving = false;
         });
       };
 

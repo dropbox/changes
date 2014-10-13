@@ -155,17 +155,18 @@ def build(project, **kwargs):
     return build
 
 
-def plan(**kwargs):
+def plan(project, **kwargs):
     if 'label' not in kwargs:
         kwargs['label'] = PLAN_NAMES.next()
 
     plan = Plan.query.filter(
         Plan.label == kwargs['label'],
+        Plan.project_id == project.id,
     ).first()
     if plan:
         return plan
 
-    result = Plan(**kwargs)
+    result = Plan(project=project, **kwargs)
     db.session.add(result)
 
     return result

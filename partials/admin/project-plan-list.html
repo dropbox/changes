@@ -1,4 +1,4 @@
-<section ng-hide="planList.length == 0">
+<section ng-hide="planList.length == 0" class="section">
   <table class="grid-list">
     <thead>
       <tr class="grid-list-header">
@@ -9,23 +9,19 @@
     </thead>
     <tbody>
       <tr ng-repeat="plan in planList">
-        <td><a ui-sref="admin_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
+        <td><a ui-sref="admin_project_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
         <td class="column">{{plan.status.name}}</td>
         <td class="column" time-since="plan.dateCreated"></td>
       </tr>
     </tbody>
   </table>
-
-  <ul class="pager">
-    <li class="previous" ng-class="planPaginator.previousPage === null ? 'disabled' : ''">
-      <a ng-click="planPaginator.loadPreviousPage()">&larr; Previous</a>
-    </li>
-    <li class="next" ng-class="planPaginator.nextPage === null ? 'disabled' : ''">
-      <a ng-click="planPaginator.loadNextPage()">Next &rarr;</a>
-    </li>
-  </ul>
 </section>
 
-<section ng-show="planList.length == 0">
+<section ng-show="planList.length == 0" class="section">
   <p>No plans have been setup for this project.</p>
+  <hr>
+</section>
+
+<section class="section">
+  <a ui-sref="admin_project_plan_create()" class="btn btn-primary">New Plan</a>
 </section>

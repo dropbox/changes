@@ -87,20 +87,4 @@
       </form>
     </li>
   </ul>
-
-
-</section>
-
-<section class="section">
-  <div class="section-header">
-    <h3>Projects <button ng-click="addProject()" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-plus"></i></button></h3>
-  </div>
-  <ul class="list-group">
-    <li class="list-group-item" ng-repeat="project in projectList">
-      <span class="pull-right" style="margin-top:5px;">
-        <a class="btn btn-danger btn-sm" ng-click="removeProject(project)">Remove</a>
-      </span>
-      <h4><a ui-sref="project_builds({project_id: project.slug})">{{project.name}}</a></h4>
-    </li>
-  </ul>
 </section>

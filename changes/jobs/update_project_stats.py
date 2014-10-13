@@ -2,7 +2,7 @@ from sqlalchemy import and_
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Project, ProjectPlan, Build, Job, JobPlan
+from changes.models import Plan, Project, Build, Job, JobPlan
 from changes.utils.locking import lock
 
 
@@ -56,9 +56,8 @@ def update_project_plan_stats(project_id, plan_id):
     else:
         avg_build_time = None
 
-    db.session.query(ProjectPlan).filter(
-        ProjectPlan.project_id == job_plan.project_id,
-        ProjectPlan.plan_id == job_plan.plan_id,
+    db.session.query(Plan).filter(
+        Plan.id == job_plan.plan_id,
     ).update({
-        ProjectPlan.avg_build_time: avg_build_time,
+        Plan.avg_build_time: avg_build_time,
     }, synchronize_session=False)

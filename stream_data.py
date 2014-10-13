@@ -13,7 +13,7 @@ from changes.config import db, create_app
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.models import (
-    Change, Job, JobStep, LogSource, TestResultManager, ProjectPlan,
+    Change, Job, JobStep, LogSource, TestResultManager,
     ItemStat, Snapshot, SnapshotStatus, RepositoryBackend, RepositoryStatus
 )
 from changes.testutils.fixtures import Fixtures
@@ -204,11 +204,7 @@ def add(project, revision):
 def loop():
     repository = mock.repository()
     project = mock.project(repository)
-    plan = mock.plan()
-    get_or_create(ProjectPlan, where={
-        'plan': plan,
-        'project': project,
-    })
+    plan = mock.plan(project)
     get_or_create(Snapshot, where={
         'project': project,
         'status': SnapshotStatus.active,
@@ -269,11 +265,7 @@ def simulate_local_repository():
     repository = mock.repository(backend=backend,
                                  status=RepositoryStatus.active)
     project = mock.project(repository)
-    plan = mock.plan()
-    get_or_create(ProjectPlan, where={
-        'plan': plan,
-        'project': project,
-    })
+    plan = mock.plan(project)
     get_or_create(Snapshot, where={
         'project': project,
         'status': SnapshotStatus.active,

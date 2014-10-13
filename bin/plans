@@ -8,8 +8,7 @@ import sys
 
 from changes.config import create_app, db
 from changes.constants import IMPLEMENTATION_CHOICES
-from changes.db.utils import try_create
-from changes.models import Plan, Project, ProjectPlan, Step
+from changes.models import Plan, Project, Step
 
 
 app = create_app()
@@ -142,32 +141,6 @@ elif args.command == 'edit':
 elif args.command == 'list':
     for plan in Plan.query.order_by(Plan.label.asc()):
         print('{0} {1}'.format(plan.id, plan.label))
-
-elif args.command == 'projects':
-    if args.project_command == 'add':
-        plan = get_plan(args.id)
-        project = get_project(args.project)
-
-        try_create(ProjectPlan, where={
-            'plan_id': plan.id,
-            'project_id': project.id,
-        })
-
-        print("Added %s to %s" % (project.slug, plan.id))
-
-    if args.project_command == 'delete':
-        plan = get_plan(args.id)
-        project = get_project(args.project)
-
-        project.plans.remove(plan)
-
-        print("Removed %s from %s" % (project.slug, plan.id))
-
-    if args.project_command == 'list':
-        plan = get_plan(args.id)
-
-        for project in plan.projects:
-            print(project.slug)
 
 elif args.command == 'steps':
     if args.step_command == 'add':

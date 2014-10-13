@@ -17,7 +17,7 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, RepositoryStatus, Patch,
-    ProjectOption, ItemOption, Source, PlanStatus, ProjectPlan, Revision
+    ProjectOption, ItemOption, Source, PlanStatus, Revision
 )
 
 
@@ -285,7 +285,7 @@ class BuildIndexAPIView(APIView):
         elif args.repository:
             repository = args.repository
             projects = list(Project.query.options(
-                subqueryload_all(Project.project_plans, ProjectPlan.plan),
+                subqueryload_all('plans'),
             ).filter(
                 Project.status == ProjectStatus.active,
                 Project.repository_id == repository.id,
@@ -294,7 +294,7 @@ class BuildIndexAPIView(APIView):
         elif args['repository[phabricator.callsign]']:
             repository = args['repository[phabricator.callsign]']
             projects = list(Project.query.options(
-                subqueryload_all(Project.project_plans, ProjectPlan.plan),
+                subqueryload_all('plans'),
             ).filter(
                 Project.status == ProjectStatus.active,
                 Project.repository_id == repository.id,

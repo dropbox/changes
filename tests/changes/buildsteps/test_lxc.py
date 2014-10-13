@@ -40,7 +40,7 @@ class LXCBuildStepTest(TestCase):
     def test_get_allocation_command_for_snapshotting(self):
         project = self.create_project()
         build = self.create_build(project)
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)

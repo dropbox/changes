@@ -17,7 +17,7 @@ class CreateJobTest(TestCase):
         project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build)
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         self.create_step(plan)
         self.create_job_plan(job, plan)
 

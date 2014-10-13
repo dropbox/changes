@@ -2,8 +2,8 @@ from uuid import uuid4
 
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, DateTime, String
-from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import backref, relationship
 
 from changes.config import db
 from changes.db.types.enum import Enum as EnumType
@@ -31,6 +31,7 @@ class Plan(db.Model):
     Represents one of N build plans for a project.
     """
     id = Column(GUID, primary_key=True, default=uuid4)
+    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     label = Column(String(128), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     date_modified = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -38,8 +39,9 @@ class Plan(db.Model):
     status = Column(EnumType(PlanStatus),
                     default=PlanStatus.inactive,
                     nullable=False, server_default='1')
+    avg_build_time = Column(Integer)
 
-    projects = association_proxy('plan_projects', 'project')
+    project = relationship('Project', backref=backref('plans'))
 
     __repr__ = model_repr('label')
     __tablename__ = 'plan'

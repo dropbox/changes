@@ -3,12 +3,11 @@ define([
 
   'states/adminHome',
   'states/adminLayout',
-  'states/adminPlanCreate',
-  'states/adminPlanDetails',
-  'states/adminPlanList',
   'states/adminProjectCreate',
   'states/adminProjectDetails',
   'states/adminProjectList',
+  'states/adminProjectPlanCreate',
+  'states/adminProjectPlanDetails',
   'states/adminProjectPlanList',
   'states/adminProjectSettings',
   'states/adminProjectSnapshotList',
@@ -60,12 +59,11 @@ define([
 
   AdminHomeState,
   AdminLayoutState,
-  AdminPlanCreateState,
-  AdminPlanDetailsState,
-  AdminPlanListState,
   AdminProjectCreateState,
   AdminProjectDetailsState,
   AdminProjectListState,
+  AdminProjectPlanCreateState,
+  AdminProjectPlanDetailsState,
   AdminProjectPlanListState,
   AdminProjectSettingsState,
   AdminProjectSnapshotListState,
@@ -175,10 +173,9 @@ define([
       .state('admin_project_settings', AdminProjectSettingsState)
       .state('admin_project_list', AdminProjectListState)
       .state('admin_project_plan_list', AdminProjectPlanListState)
+      .state('admin_project_plan_details', AdminProjectPlanDetailsState)
+      .state('admin_project_plan_create', AdminProjectPlanCreateState)
       .state('admin_project_snapshot_list', AdminProjectSnapshotListState)
-      .state('admin_plan_list', AdminPlanListState)
-      .state('admin_plan_create', AdminPlanCreateState)
-      .state('admin_plan_details', AdminPlanDetailsState)
       .state('admin_repository_list', AdminRepositoryListState)
       .state('admin_repository_create', AdminRepositoryCreateState)
       .state('admin_repository_details', AdminRepositoryDetailsState)

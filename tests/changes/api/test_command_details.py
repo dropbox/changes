@@ -91,7 +91,7 @@ class UpdateCommandTest(APITestCase):
         jobstep = self.create_jobstep(jobphase, data={
             'max_executors': 10,
         })
-        plan = self.create_plan(label='test')
+        plan = self.create_plan(project, label='test')
         self.create_step(plan)
         jobplan = self.create_job_plan(job, plan)
         command = self.create_command(

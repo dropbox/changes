@@ -1,0 +1,15 @@
+<section class="section">
+	<p>To create a new build plan, you'll first need to give it a name.</p>
+</section>
+
+<section class="section">
+	<form name="createPlanForm" ng-submit="createPlan()">
+		<div class="form-group">
+			<label>Name:</label>
+			<input type="text" class="form-control" ng-model="plan.name"
+				   placeholder="e.g. {{project.name}}">
+		</div>
+
+		<button type="submit" class="btn btn-primary">Create Plan</button>
+	</form>
+</section>

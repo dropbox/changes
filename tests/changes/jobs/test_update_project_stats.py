@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from changes.constants import Status, Result
 from changes.config import db
-from changes.models import Project, ProjectPlan
+from changes.models import Project
 from changes.jobs.update_project_stats import (
     update_project_stats, update_project_plan_stats
 )
@@ -38,8 +38,7 @@ class UpdateProjectPlanStatsTest(TestCase):
             duration=5050,
         )
         job = self.create_job(build)
-        plan = self.create_plan()
-        plan.projects.append(project)
+        plan = self.create_plan(project)
         self.create_job_plan(job, plan)
 
         update_project_plan_stats(
@@ -49,9 +48,4 @@ class UpdateProjectPlanStatsTest(TestCase):
 
         db.session.expire(plan)
 
-        project_plan = ProjectPlan.query.filter(
-            ProjectPlan.project_id == project.id,
-            ProjectPlan.plan_id == plan.id,
-        ).first()
-
-        assert project_plan.avg_build_time == 5050
+        assert plan.avg_build_time == 5050

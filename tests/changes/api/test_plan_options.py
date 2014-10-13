@@ -5,7 +5,8 @@ from changes.testutils import APITestCase
 
 class PlanOptionsListTest(APITestCase):
     def test_simple(self):
-        plan = self.create_plan()
+        project = self.create_project()
+        plan = self.create_plan(project)
 
         path = '/api/0/plans/{0}/options/'.format(plan.id.hex)
 
@@ -29,7 +30,8 @@ class PlanOptionsListTest(APITestCase):
 
 class PlanOptionsUpdateTest(APITestCase):
     def test_simple(self):
-        plan = self.create_plan()
+        project = self.create_project()
+        plan = self.create_plan(project)
 
         path = '/api/0/plans/{0}/options/'.format(plan.id.hex)
 

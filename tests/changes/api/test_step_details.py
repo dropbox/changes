@@ -5,7 +5,8 @@ from changes.testutils import APITestCase
 
 class StepDetailsTest(APITestCase):
     def test_simple(self):
-        plan = self.create_plan(label='Foo')
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
         step = self.create_step(plan=plan)
 
         self.create_option(item_id=step.id, name='build.timeout', value='1')
@@ -21,7 +22,8 @@ class StepDetailsTest(APITestCase):
 
 class UpdateStepDetailsTest(APITestCase):
     def test_requires_auth(self):
-        plan = self.create_plan(label='Foo')
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
         step = self.create_step(plan=plan)
 
         path = '/api/0/steps/{0}/'.format(step.id.hex)
@@ -32,7 +34,8 @@ class UpdateStepDetailsTest(APITestCase):
     def test_simple(self):
         self.login_default_admin()
 
-        plan = self.create_plan(label='Foo')
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
         step = self.create_step(plan=plan)
 
         self.login_default_admin()
@@ -67,7 +70,8 @@ class UpdateStepDetailsTest(APITestCase):
 
 class DeleteStepDetailsTest(APITestCase):
     def test_requires_auth(self):
-        plan = self.create_plan(label='Foo')
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
         step = self.create_step(plan=plan)
 
         path = '/api/0/steps/{0}/'.format(step.id.hex)
@@ -78,7 +82,8 @@ class DeleteStepDetailsTest(APITestCase):
     def test_simple(self):
         self.login_default()
 
-        plan = self.create_plan(label='Foo')
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
         step = self.create_step(plan=plan)
 
         self.login_default_admin()

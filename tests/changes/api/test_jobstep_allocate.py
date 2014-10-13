@@ -27,8 +27,7 @@ class JobStepAllocateTest(APITestCase):
         build = self.create_build(project, status=Status.pending_allocation)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
-        plan = self.create_plan()
-        plan.projects.append(project)
+        plan = self.create_plan(project)
         self.create_step(plan)
         self.create_job_plan(job, plan)
 

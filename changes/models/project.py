@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, relationship, joinedload
+from sqlalchemy.orm import relationship, joinedload
 from sqlalchemy.schema import UniqueConstraint
 from uuid import uuid4
 
@@ -66,23 +66,3 @@ class ProjectOption(db.Model):
             self.id = uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
-
-
-class ProjectPlan(db.Model):
-    __tablename__ = 'project_plan'
-
-    project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"),
-                        nullable=False, primary_key=True)
-    plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"),
-                     nullable=False, primary_key=True)
-    avg_build_time = Column(Integer)
-
-    project = relationship('Project', backref=backref(
-        "project_plans", cascade="all, delete-orphan"))
-    plan = relationship('Plan', backref=backref(
-        "plan_projects", cascade="all, delete-orphan"))
-
-    def __init__(self, project=None, plan=None, **kwargs):
-        kwargs.setdefault('project', project)
-        kwargs.setdefault('plan', plan)
-        super(ProjectPlan, self).__init__(**kwargs)

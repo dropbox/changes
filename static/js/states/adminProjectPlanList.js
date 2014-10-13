@@ -9,7 +9,7 @@ define([
     templateUrl: 'partials/admin/project-plan-list.html',
     controller: function($scope, $stateParams, Collection, Paginator, projectData) {
       var collection = new Collection();
-      var paginator = new Paginator('/api/0/projects/' + $stateParams.project_id + '/plans/', {
+      var paginator = new Paginator('/api/0/projects/' + $stateParams.project_id + '/plans/?status=', {
         collection: collection
       });
 

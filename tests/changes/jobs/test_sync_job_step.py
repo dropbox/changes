@@ -19,8 +19,7 @@ from changes.testutils import TestCase as BaseTestCase
 class HasTimedOutTest(BaseTestCase):
     def test_simple(self):
         project = self.create_project()
-        plan = self.create_plan()
-        plan.projects.append(project)
+        plan = self.create_plan(project)
         step = self.create_step(plan)
 
         option = ItemOption(
@@ -71,7 +70,7 @@ class HasTimedOutTest(BaseTestCase):
 class IsMissingTestsTest(BaseTestCase):
     def test_single_phase(self):
         project = self.create_project()
-        plan = self.create_plan()
+        plan = self.create_plan(project)
 
         option = ItemOption(
             item_id=plan.id,
@@ -124,7 +123,7 @@ class IsMissingTestsTest(BaseTestCase):
     def test_multi_phase(self):
         project = self.create_project()
 
-        plan = self.create_plan()
+        plan = self.create_plan(project)
 
         option = ItemOption(
             item_id=plan.id,
@@ -195,7 +194,7 @@ class SyncJobStepTest(BaseTestCase):
         build = self.create_build(project=project)
         job = self.create_job(build=build)
 
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         self.create_step(plan, implementation='test', order=0)
         self.create_job_plan(job, plan)
 
@@ -257,7 +256,7 @@ class SyncJobStepTest(BaseTestCase):
         build = self.create_build(project=project)
         job = self.create_job(build=build)
 
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         self.create_step(plan, implementation='test', order=0)
         self.create_job_plan(job, plan)
 
@@ -364,7 +363,7 @@ class SyncJobStepTest(BaseTestCase):
         build = self.create_build(project=project)
         job = self.create_job(build=build)
 
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         self.create_step(plan, implementation='test', order=0)
 
         db.session.add(ItemOption(
@@ -416,7 +415,7 @@ class SyncJobStepTest(BaseTestCase):
         build = self.create_build(project=project)
         job = self.create_job(build=build)
 
-        plan = self.create_plan()
+        plan = self.create_plan(project)
         self.create_step(plan, implementation='test', order=0)
         jobplan = self.create_job_plan(job, plan)
 

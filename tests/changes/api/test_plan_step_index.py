@@ -4,17 +4,14 @@ from changes.testutils import APITestCase
 
 class PlanStepIndexTest(APITestCase):
     def test_simple(self):
-        project1 = self.create_project()
-        project2 = self.create_project()
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
 
-        plan1 = self.create_plan(label='Foo')
-        plan1.projects.append(project1)
-        plan1.projects.append(project2)
-        step1 = self.create_step(plan=plan1)
+        step1 = self.create_step(plan=plan)
 
         self.create_option(item_id=step1.id, name='build.timeout', value='1')
 
-        path = '/api/0/plans/{0}/steps/'.format(plan1.id.hex)
+        path = '/api/0/plans/{0}/steps/'.format(plan.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
@@ -26,7 +23,8 @@ class PlanStepIndexTest(APITestCase):
 
 class CreatePlanStepTest(APITestCase):
     def test_requires_auth(self):
-        plan = self.create_plan(label='Foo')
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
 
         path = '/api/0/plans/{0}/steps/'.format(plan.id.hex)
 
@@ -34,16 +32,12 @@ class CreatePlanStepTest(APITestCase):
         assert resp.status_code == 401
 
     def test_simple(self):
-        project1 = self.create_project()
-        project2 = self.create_project()
-
-        plan1 = self.create_plan(label='Foo')
-        plan1.projects.append(project1)
-        plan1.projects.append(project2)
+        project = self.create_project()
+        plan = self.create_plan(project, label='Foo')
 
         self.login_default_admin()
 
-        path = '/api/0/plans/{0}/steps/'.format(plan1.id.hex)
+        path = '/api/0/plans/{0}/steps/'.format(plan.id.hex)
 
         resp = self.client.post(path, data={
             'implementation': 'changes.buildsteps.dummy.DummyBuildStep',
@@ -54,8 +48,8 @@ class CreatePlanStepTest(APITestCase):
         assert data['implementation'] == 'changes.buildsteps.dummy.DummyBuildStep'
         assert data['options'] == {'build.timeout': '1'}
 
-        assert len(plan1.steps) == 1
-        step = plan1.steps[0]
+        assert len(plan.steps) == 1
+        step = plan.steps[0]
         assert step.implementation == 'changes.buildsteps.dummy.DummyBuildStep'
         assert step.order == 0
 

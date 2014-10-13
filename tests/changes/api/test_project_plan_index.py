@@ -4,13 +4,12 @@ from changes.testutils import APITestCase
 class ProjectPlanListTest(APITestCase):
     def test_retrieve(self):
         project = self.create_project()
+        project2 = self.create_project()
         path = '/api/0/projects/{0}/plans/'.format(
             project.id.hex)
 
-        plan = self.create_plan()
-        plan.projects.append(project)
-
-        self.create_plan()
+        plan = self.create_plan(project)
+        self.create_plan(project2)
 
         resp = self.client.get(path)
         assert resp.status_code == 200

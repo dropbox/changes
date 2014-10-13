@@ -175,8 +175,7 @@ class BuildCreateTest(APITestCase):
 
     def setUp(self):
         self.project = self.create_project()
-        self.plan = self.create_plan()
-        self.plan.projects.append(self.project)
+        self.plan = self.create_plan(self.project)
         db.session.commit()
         super(BuildCreateTest, self).setUp()
 
@@ -320,13 +319,12 @@ class BuildCreateTest(APITestCase):
         assert jobplans[0].project_id == self.project.id
 
     def test_with_repository(self):
-        plan = self.create_plan()
         repo = self.create_repo()
 
         project1 = self.create_project(repository=repo)
         project2 = self.create_project(repository=repo)
-        plan.projects.append(project1)
-        plan.projects.append(project2)
+        self.create_plan(project1)
+        self.create_plan(project2)
         db.session.commit()
 
         resp = self.client.post(self.path, data={
@@ -338,13 +336,12 @@ class BuildCreateTest(APITestCase):
         assert len(data) == 2
 
     def test_with_repository_callsign(self):
-        plan = self.create_plan()
         repo = self.create_repo()
 
         project1 = self.create_project(repository=repo)
         project2 = self.create_project(repository=repo)
-        plan.projects.append(project1)
-        plan.projects.append(project2)
+        self.create_plan(project1)
+        self.create_plan(project2)
         self.create_option(
             item_id=repo.id,
             name='phabricator.callsign',

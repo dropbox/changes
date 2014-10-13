@@ -770,8 +770,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
 
-        plan = self.create_plan()
-        plan.projects.append(self.project)
+        plan = self.create_plan(self.project)
         self.create_step(
             plan, order=0, implementation='changes.backends.jenkins.buildstep.JenkinsBuildStep', data={
                 'job_name': 'server',

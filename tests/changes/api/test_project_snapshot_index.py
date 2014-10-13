@@ -58,11 +58,9 @@ class CreateProjectSnapshotTest(APITestCase):
         })
         assert resp.status_code == 400
 
-        plan_1 = self.create_plan(label='a')
-        plan_1.projects.append(project)
+        plan_1 = self.create_plan(project, label='a')
 
-        plan_2 = self.create_plan(label='b')
-        plan_2.projects.append(project)
+        plan_2 = self.create_plan(project, label='b')
 
         db.session.commit()
 

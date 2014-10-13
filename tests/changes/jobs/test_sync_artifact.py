@@ -19,8 +19,7 @@ class SyncArtifactTest(TestCase):
             'foo': 'bar',
         })
 
-        self.plan = self.create_plan()
-        self.plan.projects.append(self.project)
+        self.plan = self.create_plan(self.project)
         self.step = self.create_step(self.plan, implementation='test', order=0)
         self.jobplan = self.create_job_plan(self.job, self.plan)
 

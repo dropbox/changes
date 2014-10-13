@@ -211,8 +211,7 @@ class SendTestCase(TestCase):
 class GetJobOptionsTestCase(TestCase):
     def test_simple(self):
         project = self.create_project()
-        plan = self.create_plan()
-        plan.projects.append(project)
+        plan = self.create_plan(project)
         build = self.create_build(project)
         job = self.create_job(build)
 
