@@ -1,9 +1,11 @@
 from __future__ import absolute_import, division, unicode_literals
 
+import logging
+
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView
-from changes.constants import Status
+from changes.constants import Status, Result
 from changes.config import db, redis
 from changes.models import Build, Job, JobPlan, JobStep
 
@@ -83,16 +85,26 @@ class JobStepAllocateAPIView(APIView):
                 db.session.flush()
         except redis.UnableToGetLock:
             return self.respond({"error": "Another allocation is in progress"}), 503
-        jobplan, buildstep = JobPlan.get_build_step_for_job(to_allocate.job_id)
 
-        assert jobplan and buildstep
+        try:
+            jobplan, buildstep = JobPlan.get_build_step_for_job(to_allocate.job_id)
 
-        context = self.serialize(to_allocate)
-        context['project'] = self.serialize(to_allocate.project)
-        context['resources'] = {
-            'cpus': 4,
-            'mem': 8 * 1024,
-        }
-        context['cmd'] = buildstep.get_allocation_command(to_allocate)
+            assert jobplan and buildstep
 
-        return self.respond([context])
+            context = self.serialize(to_allocate)
+            context['project'] = self.serialize(to_allocate.project)
+            context['resources'] = {
+                'cpus': 4,
+                'mem': 8 * 1024,
+            }
+            context['cmd'] = buildstep.get_allocation_command(to_allocate)
+
+            return self.respond([context])
+        except Exception as e:
+            logging.warning('Exception occurred while allocating job step: %s',
+                            str(e))
+            to_allocate.status = Status.finished
+            to_allocate.result = Result.aborted
+            db.session.add(to_allocate)
+            db.session.flush()
+            return self.respond({"error": "Internal error while attempting allocation"}), 503
