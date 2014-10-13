@@ -205,7 +205,7 @@ def job(build, change=None, **kwargs):
         clusternode = ClusterNode(cluster=cluster, node=node)
         db.session.add(clusternode)
 
-    jobplan = JobPlan.build_jobplan(plan(), job)
+    jobplan = JobPlan.build_jobplan(plan(build.project), job)
     db.session.add(jobplan)
 
     phase1_setup = JobPhase(
