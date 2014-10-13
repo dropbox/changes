@@ -2,7 +2,9 @@ from datetime import datetime
 
 from changes.config import db
 from changes.constants import Status
-from changes.models import Event, FailureReason, ItemStat, TestCase
+from changes.models import (
+    Build, BuildPriority, Event, FailureReason, ItemStat, TestCase
+)
 from changes.testutils import APITestCase, TestCase as BaseTestCase
 from changes.api.build_details import find_changed_tests
 
@@ -108,3 +110,22 @@ class BuildDetailsTest(APITestCase):
             ),
             'count': 1,
         }
+
+
+class BuildUpdateTest(APITestCase):
+    def test_simple(self):
+        project = self.create_project()
+        build = self.create_build(
+            project, priority=BuildPriority.default)
+
+        path = '/api/0/builds/{0}/'.format(build.id.hex)
+
+        resp = self.client.post(path, data={'priority': 'high'})
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == build.id.hex
+
+        db.session.expire_all()
+
+        build = Build.query.get(build.id)
+        assert build.priority == BuildPriority.high

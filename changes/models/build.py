@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import uuid
 
 from datetime import datetime
+from enum import Enum
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
@@ -10,10 +11,16 @@ from sqlalchemy.sql import func, select
 
 from changes.config import db
 from changes.constants import Status, Result, Cause
-from changes.db.types.enum import Enum
+from changes.db.types.enum import Enum as EnumType
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
+
+
+class BuildPriority(Enum):
+    default = 0
+    high = 100
+    low = -100
 
 
 class Build(db.Model):
@@ -36,13 +43,15 @@ class Build(db.Model):
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
     author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
-    cause = Column(Enum(Cause), nullable=False, default=Cause.unknown)
+    cause = Column(EnumType(Cause), nullable=False, default=Cause.unknown)
     label = Column(String(128), nullable=False)
     target = Column(String(128))
-    status = Column(Enum(Status), nullable=False, default=Status.unknown)
-    result = Column(Enum(Result), nullable=False, default=Result.unknown)
+    status = Column(EnumType(Status), nullable=False, default=Status.unknown)
+    result = Column(EnumType(Result), nullable=False, default=Result.unknown)
     message = Column(Text)
     duration = Column(Integer)
+    priority = Column(EnumType(BuildPriority), nullable=False,
+                      default=BuildPriority.default, server_default='0')
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)

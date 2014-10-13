@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
+from flask_restful.reqparse import RequestParser
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
 from sqlalchemy.sql import func
 from uuid import UUID
@@ -10,7 +11,8 @@ from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
 from changes.config import db
 from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
 from changes.models import (
-    Build, Source, Event, FailureReason, Job, TestCase, BuildSeen, User
+    Build, BuildPriority, Source, Event, FailureReason, Job, TestCase,
+    BuildSeen, User
 )
 from changes.utils.originfinder import find_failure_origins
 
@@ -124,6 +126,9 @@ def get_failure_reasons(build):
 
 
 class BuildDetailsAPIView(APIView):
+    post_parser = RequestParser()
+    post_parser.add_argument('priority', choices=BuildPriority._member_names_)
+
     def get(self, build_id):
         build = Build.query.options(
             joinedload('project', innerjoin=True),
@@ -210,3 +215,22 @@ class BuildDetailsAPIView(APIView):
         })
 
         return self.respond(context)
+
+    def post(self, build_id):
+        build = Build.query.options(
+            joinedload('project', innerjoin=True),
+            joinedload('author'),
+            joinedload('source').joinedload('revision'),
+        ).get(build_id)
+        if build is None:
+            return '', 404
+
+        args = self.post_parser.parse_args()
+        if args.priority is not None:
+            build.priority = BuildPriority[args.priority]
+
+        db.session.add(build)
+
+        context = self.serialize(build)
+
+        return self.respond(context, serialize=False)

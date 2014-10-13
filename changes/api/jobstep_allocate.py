@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView
 from changes.constants import Status
 from changes.config import db, redis
-from changes.models import Job, JobPlan, JobStep
+from changes.models import Build, Job, JobPlan, JobStep
 
 
 class JobStepAllocateAPIView(APIView):
@@ -44,28 +44,30 @@ class JobStepAllocateAPIView(APIView):
         if unavail_projects:
             filters.append(~JobStep.project_id.in_(unavail_projects))
 
-        # prioritize a job that's has already started
-        existing = JobStep.query.join(
+        base_queryset = JobStep.query.join(
             Job, JobStep.job_id == Job.id,
-        ).filter(
+        ).join(
+            Build, Job.build_id == Build.id,
+        ).order_by(Build.priority.desc(), JobStep.date_created.asc())
+
+        # prioritize a job that's has already started
+        existing = base_queryset.filter(
             Job.status.in_([Status.allocated, Status.in_progress]),
             *filters
-        ).order_by(JobStep.date_created.asc()).first()
+        ).first()
         if existing:
             return existing
 
         # now allow any prioritized project, based on order
-        existing = JobStep.query.filter(
+        existing = base_queryset.filter(
             *filters
-        ).order_by(JobStep.date_created.asc()).first()
+        ).first()
         if existing:
             return existing
 
         # TODO(dcramer): we want to burst but not go too far. For now just
         # let burst
-        return JobStep.query.filter(
-            JobStep.status == Status.pending_allocation,
-        ).order_by(JobStep.date_created.asc()).first()
+        return base_queryset.first()
 
     def post(self):
         try:
