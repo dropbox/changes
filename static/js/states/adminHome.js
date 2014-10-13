@@ -19,7 +19,9 @@ define([
       });
 
       function tick() {
-        $http.get('/api/0/systemstats/').success(function(data){
+        $http.get('/api/0/systemstats/', {
+          ignoreLoadingBar: true
+        }).success(function(data){
           $scope.statusCounts = data.statusCounts;
           $scope.resultCounts = data.resultCounts;
         }).error(function(){
