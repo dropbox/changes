@@ -69,7 +69,9 @@ class JobStepAllocateAPIView(APIView):
 
         # TODO(dcramer): we want to burst but not go too far. For now just
         # let burst
-        return base_queryset.first()
+        return base_queryset.filter(
+            JobStep.status == Status.pending_allocation,
+        ).first()
 
     def post(self):
         try:
