@@ -122,7 +122,7 @@ class GitVcs(Vcs):
         self.run(['clone', '--mirror', self.remote_url, self.path])
 
     def update(self):
-        self.run(['fetch', '--all'])
+        self.run(['fetch', '--all', '-p'])
 
     def log(self, parent=None, branch=None, author=None, offset=0, limit=100):
         """ Gets the commit log for the repository.
