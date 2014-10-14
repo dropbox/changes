@@ -4,7 +4,7 @@ from changes.backends.base import UnrecoverableException
 from changes.config import db
 from changes.constants import Status, Result
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, JobPlan
+from changes.models import Job, JobPlan, ProjectStatus
 from changes.queue.task import tracked_task
 
 
@@ -23,6 +23,14 @@ def create_job(job_id):
     if not job:
         return
 
+    if job.project.status == ProjectStatus.inactive:
+        current_app.logger.warn('Project is not active: %s', job.project.slug)
+        job.status = Status.finished
+        job.result = Result.failed
+        db.session.add(job)
+        db.session.flush()
+        return
+
     # we might already be marked as finished for various reasons
     # (such as aborting the task)
     if job.status == Status.finished:
@@ -33,6 +41,8 @@ def create_job(job_id):
         # TODO(dcramer): record a FailureReason?
         job.status = Status.finished
         job.result = Result.failed
+        db.session.add(job)
+        db.session.flush()
         current_app.logger.exception('No build plan set %s', job_id)
         return
 
@@ -41,6 +51,8 @@ def create_job(job_id):
     except UnrecoverableException:
         job.status = Status.finished
         job.result = Result.aborted
+        db.session.add(job)
+        db.session.flush()
         current_app.logger.exception('Unrecoverable exception creating %s', job_id)
         return
 
