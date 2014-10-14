@@ -105,10 +105,10 @@ class JobStepAllocateAPIView(APIView):
             to_allocate.result = Result.aborted
             db.session.add(to_allocate)
             db.session.flush()
-            project = ""
-            if to_allocate.project:
-                project = " for '%s'" % self.serialize(to_allocate.project)
-            logging.exception('Exception occurred while allocating job step%s',
-                              project)
+
+            logging.exception(
+                'Exception occurred while allocating job step for project %s',
+                to_allocate.project.slug)
+
             return error('Internal error while attempting allocation',
                          http_code=503)
