@@ -72,10 +72,11 @@ def build_finished_handler(build_id, **kwargs):
 def post_comment(target, message):
     try:
         if not target.startswith(u'D') or len(target) < 2:
-            logging.error("Invalid phabricator target %s" % target)
+            # Not a diff build
+            return
 
         revision_id = target[1:]
         phab = _init_phabricator()
         phab.differential.createcomment(revision_id=revision_id, message=message)
     except Exception:
-        logger.exception("Failed to post to target: %s" % target)
+        logger.exception("Failed to post to target: %s", target)
