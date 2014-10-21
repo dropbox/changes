@@ -32,6 +32,11 @@ def post_diff_comment(diff_id, comment):
     host = current_app.config.get('PHABRICATOR_HOST')
     cert = current_app.config.get('PHABRICATOR_CERT')
 
+    if not cert:
+        logger.error("Couldn't find phabricator credentials user: %s host: %s cert: %s",
+                     user, host, cert)
+        return
+
     token = int(time.time())
 
     connect_args = {
@@ -74,7 +79,10 @@ def build_finished_handler(build_id, **kwargs):
     if build is None:
         return
 
-    if build.source.patch_id:
+    target = build.target
+    is_diff_build = target and target.startswith(u'D')
+    if not is_diff_build:
+        # Not a diff build
         return
 
     if build.result not in (Result.failed, Result.passed):
@@ -95,15 +103,12 @@ def build_finished_handler(build_id, **kwargs):
     if build.author:
         message += ' - {author}'.format(author=build.author.email,)
 
-    post_comment(build.target, message)
+    post_comment(target, message)
 
 
 def post_comment(target, message):
     try:
-        if not target.startswith(u'D') or len(target) < 2:
-            # Not a diff build
-            return
-
+        logger.info("Posting build results to %s", target)
         revision_id = target[1:]
         post_diff_comment(revision_id, message)
     except Exception:
