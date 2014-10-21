@@ -80,24 +80,24 @@ define([
       function pollForChanges() {
         var url = getEndpoint($stateParams) + '&offset=' + logChunkData.nextOffset;
 
-        $http.get(url)
-          .success(function(data){
-            $timeout(function(){
-              $.each(data.chunks, function(_, chunk){
-                updateBuildLog(chunk);
-              });
-              $.extend(true, $scope.logSource, data.source);
-              $.extend(true, $scope.step, data.source.step);
-              logChunkData.nextOffset = data.nextOffset;
+        $http.get(url, {
+          ignoreLoadingBar: true
+        }).success(function(data){
+          $timeout(function(){
+            $.each(data.chunks, function(_, chunk){
+              updateBuildLog(chunk);
             });
-
-            if (data.chunks.length > 0 || data.source.step.status.id != 'finished') {
-              window.setTimeout(pollForChanges, 1000);
-            }
-          })
-          .error(function(){
-            window.setTimeout(pollForChanges, 10000);
+            $.extend(true, $scope.logSource, data.source);
+            $.extend(true, $scope.step, data.source.step);
+            logChunkData.nextOffset = data.nextOffset;
           });
+
+          if (data.chunks.length > 0 || data.source.step.status.id != 'finished') {
+            window.setTimeout(pollForChanges, 1000);
+          }
+        }).error(function(){
+          window.setTimeout(pollForChanges, 10000);
+        });
       }
 
       $scope.$watch("job.status.id", function(value) {
