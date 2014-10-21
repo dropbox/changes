@@ -15,7 +15,7 @@ class PhabricatorListenerTest(TestCase):
         super(PhabricatorListenerTest, self).setUp()
         current_app.config['PHABRICATOR_POST_BUILD_RESULT'] = True
 
-    @mock.patch('changes.listeners.phabricator_listener._init_phabricator')
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_no_target(self, get_options, phab):
         project = self.create_project(name='test', slug='test')
@@ -23,7 +23,7 @@ class PhabricatorListenerTest(TestCase):
         build_finished_handler(build_id=build.id.hex)
         self.assertEquals(phab.call_count, 0)
 
-    @mock.patch('changes.listeners.phabricator_listener._init_phabricator')
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_blacklisted_project(self, get_options, phab):
         project = self.create_project(name='test', slug='test')
@@ -33,20 +33,9 @@ class PhabricatorListenerTest(TestCase):
         self.assertEquals(phab.call_count, 0)
         get_options.assert_called_once_with(project.id)
 
-    @mock.patch('changes.listeners.phabricator_listener._init_phabricator')
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_whitelisted_project(self, get_options, phab):
-        class Object(object):
-            pass
-
-        class PhabMock(Object):
-            def __init__(self):
-                self.differential = Object()
-                setattr(self.differential, 'createcomment', mock.Mock())
-                self.differential.createcomment = mock.Mock()
-
-        m_phab = PhabMock()
-        phab.return_value = m_phab
         get_options.return_value = {
             'phabricator.notify': '1'
         }
@@ -61,5 +50,4 @@ class PhabricatorListenerTest(TestCase):
         expected_msg = "Build Failed - test #1 (D1). Build Results: [link]({0})".format(
             build_link)
 
-        m_phab.differential.createcomment.assert_called_once_with(revision_id='1',
-                                                                  message=expected_msg)
+        phab.assert_called_once_with('1', expected_msg)

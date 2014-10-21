@@ -1,7 +1,10 @@
 import logging
+import time
+import hashlib
+import json
+import requests
 
 from flask import current_app
-from phabricator import Phabricator
 
 from changes.config import db
 from changes.constants import Result
@@ -9,7 +12,6 @@ from changes.models import Build, ProjectOption
 from changes.utils.http import build_uri
 
 logger = logging.getLogger('phabricator-listener')
-PHABRICATOR = None
 
 
 def get_options(project_id):
@@ -25,19 +27,46 @@ def get_options(project_id):
     )
 
 
-def _init_phabricator():
-    global PHABRICATOR
-    if not PHABRICATOR:
-        host = current_app.config.get('PHABRICATOR_HOST')
-        username = current_app.config.get('PHABRICATOR_USERNAME')
-        cert = current_app.config.get('PHABRICATOR_CERT')
+def post_diff_comment(diff_id, comment):
+    user = current_app.config.get('PHABRICATOR_USERNAME')
+    host = current_app.config.get('PHABRICATOR_HOST')
+    cert = current_app.config.get('PHABRICATOR_CERT')
 
-        PHABRICATOR = Phabricator(username, cert, host)
-        PHABRICATOR.connect()
-        whoami = PHABRICATOR.user.whoami()
-        logger.info("Connected to tails as {username}.".format(username=whoami['userName']))
+    token = int(time.time())
 
-    return PHABRICATOR
+    connect_args = {
+        'authSignature': hashlib.sha1(str(token) + cert).hexdigest(),
+        'authToken': token,
+        'client': 'changes-phabricator',
+        'clientVersion': 1,
+        'host': host,
+        'user': user,
+    }
+
+    connect_url = "%s/api/conduit.connect" % host
+    resp = requests.post(connect_url, {
+        '__conduit__': True,
+        'output': 'json',
+        'params': json.dumps(connect_args),
+    })
+
+    resp = json.loads(resp.content)['result']
+    auth_params = {
+        'connectionID': resp['connectionID'],
+        'sessionKey': resp['sessionKey'],
+    }
+
+    comment_args = {
+        'params': json.dumps({
+            'revision_id': diff_id,
+            'message': comment,
+            '__conduit__': auth_params,
+        }),
+        'output': 'json',
+    }
+
+    comment_url = "%s/api/differential.createcomment" % host
+    requests.post(comment_url, comment_args)
 
 
 def build_finished_handler(build_id, **kwargs):
@@ -76,7 +105,6 @@ def post_comment(target, message):
             return
 
         revision_id = target[1:]
-        phab = _init_phabricator()
-        phab.differential.createcomment(revision_id=revision_id, message=message)
+        post_diff_comment(revision_id, message)
     except Exception:
         logger.exception("Failed to post to target: %s", target)
