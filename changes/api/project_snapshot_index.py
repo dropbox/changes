@@ -14,7 +14,7 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Build, Job, JobPlan, Project, Snapshot, SnapshotImage, SnapshotStatus,
-    Source, ItemOption
+    Source, ItemOption, PlanStatus
 )
 
 
@@ -33,10 +33,16 @@ def get_snapshottable_plans(project):
 
     plan_list = []
     for plan in project.plans:
+        if plan.status != PlanStatus.active:
+            logging.info('Disallowing snapshot on plan [%s] due to status',
+                         plan.id)
+            continue
+
         if options.get(plan.id, '1') == '0':
             logging.info('Disallowing snapshot on plan [%s] due to snapshot.allow setting',
                          plan.id)
             continue
+
         try:
             if not plan.steps[0].get_implementation().can_snapshot():
                 logging.info('Disallowing snapshot on plan [%s] due to buildstep implementation',
