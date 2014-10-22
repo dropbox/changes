@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import logging
+
 from flask.ext.restful.reqparse import RequestParser
 from sqlalchemy.orm import joinedload
 
@@ -12,8 +14,42 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Build, Job, JobPlan, Project, Snapshot, SnapshotImage, SnapshotStatus,
-    Source
+    Source, ItemOption
 )
+
+
+def get_snapshottable_plans(project):
+    project_plans = list(project.plans)
+
+    if not project_plans:
+        return []
+
+    options = dict(db.session.query(
+        ItemOption.item_id, ItemOption.value,
+    ).filter(
+        ItemOption.item_id.in_([p.id for p in project_plans]),
+        ItemOption.name == 'snapshot.allow',
+    ))
+    print options
+
+    plan_list = []
+    for plan in project.plans:
+        if options.get(plan.id, '1') == '0':
+            logging.info('Disallowing snapshot on plan [%s] due to snapshot.allow setting',
+                         plan.id)
+            continue
+        try:
+            if not plan.steps[0].get_implementation().can_snapshot():
+                logging.info('Disallowing snapshot on plan [%s] due to buildstep implementation',
+                             plan.id)
+                continue
+        except IndexError:
+            logging.info('Disallowing snapshot on plan [%s] due to invalid buildstep',
+                         plan.id)
+            continue
+
+        plan_list.append(plan)
+    return plan_list
 
 
 class ProjectSnapshotIndexAPIView(APIView):
@@ -57,9 +93,10 @@ class ProjectSnapshotIndexAPIView(APIView):
         else:
             sha = args.sha
 
-        plan_list = list(project.plans)
+        plan_list = get_snapshottable_plans(project)
+
         if not plan_list:
-            return '{"error": "No plans associated with project."}', 400
+            return '{"error": "No snapshottable plans associated with project."}', 400
 
         source, _ = get_or_create(Source, where={
             'repository': repository,

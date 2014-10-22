@@ -11,6 +11,7 @@ from changes.models import ItemOption, Plan
 OPTION_DEFAULTS = {
     'build.expect-tests': '0',
     'build.timeout': '0',
+    'snapshot.allow': '1',
 }
 
 
@@ -33,6 +34,7 @@ class PlanOptionsAPIView(APIView):
     post_parser = RequestParser()
     post_parser.add_argument('build.expect-tests')
     post_parser.add_argument('build.timeout')
+    post_parser.add_argument('snapshot.allow')
 
     @requires_admin
     def post(self, plan_id):

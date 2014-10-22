@@ -8,6 +8,9 @@ from changes.models import JobStep
 
 
 class BuildStep(object):
+    def can_snapshot(self):
+        return False
+
     def get_label(self):
         raise NotImplementedError
 

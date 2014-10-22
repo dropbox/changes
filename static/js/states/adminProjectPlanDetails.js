@@ -16,7 +16,8 @@ define(['app'], function(app) {
     templateUrl: 'partials/admin/project-plan-details.html',
     controller: function($http, $scope, planData, planOptionData, Collection, flash) {
       var booleans = {
-        "build.expect-tests": 1
+        "build.expect-tests": 1,
+        "snapshot.allow": 1
       }, options = {};
 
       for (var key in planOptionData) {

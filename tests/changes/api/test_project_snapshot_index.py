@@ -1,10 +1,63 @@
 from mock import patch
 from uuid import uuid4
 
+from changes.api.project_snapshot_index import get_snapshottable_plans
+from changes.buildsteps.dummy import DummyBuildStep
 from changes.config import db
 from changes.constants import Status, Cause
 from changes.models import Snapshot, SnapshotImage, SnapshotStatus
 from changes.testutils import APITestCase
+
+
+class SnapshottableBuildStep(DummyBuildStep):
+    def can_snapshot(self):
+        return True
+
+
+class GetSnapshottablePlansTest(APITestCase):
+    def test_missing_buildstep(self):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        self.create_option(item_id=plan.id, name='snapshot.allow', value='1')
+
+        result = get_snapshottable_plans(project)
+        assert result == []
+
+    @patch('changes.models.Step.get_implementation')
+    def test_unsnapshottable_buildstep(self, mock_get_implementation):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        self.create_option(item_id=plan.id, name='snapshot.allow', value='1')
+        self.create_step(plan)
+
+        mock_get_implementation.return_value = DummyBuildStep()
+
+        result = get_snapshottable_plans(project)
+        assert result == []
+
+    @patch('changes.models.Step.get_implementation')
+    def test_disabled_plan(self, mock_get_implementation):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        self.create_option(item_id=plan.id, name='snapshot.allow', value='0')
+        self.create_step(plan)
+
+        mock_get_implementation.return_value = SnapshottableBuildStep()
+
+        result = get_snapshottable_plans(project)
+        assert result == []
+
+    @patch('changes.models.Step.get_implementation')
+    def test_valid_plan(self, mock_get_implementation):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        self.create_step(plan)
+        self.create_option(item_id=plan.id, name='snapshot.allow', value='1')
+
+        mock_get_implementation.return_value = SnapshottableBuildStep()
+
+        result = get_snapshottable_plans(project)
+        assert result == [plan]
 
 
 class ProjectSnapshotListTest(APITestCase):
@@ -45,12 +98,16 @@ class CreateProjectSnapshotTest(APITestCase):
         })
         assert resp.status_code == 404
 
+    @patch('changes.api.project_snapshot_index.get_snapshottable_plans')
     @patch('changes.jobs.create_job.create_job.delay')
     @patch('changes.jobs.sync_build.sync_build.delay')
-    def test_simple(self, mock_sync_build, mock_create_job):
+    def test_simple(self, mock_sync_build, mock_create_job,
+                    mock_get_snapshottable_plans):
         project = self.create_project()
 
         path = '/api/0/projects/{0}/snapshots/'.format(project.id.hex)
+
+        mock_get_snapshottable_plans.return_value = []
 
         # missing plan
         resp = self.client.post(path, data={
@@ -62,16 +119,21 @@ class CreateProjectSnapshotTest(APITestCase):
 
         plan_2 = self.create_plan(project, label='b')
 
+        mock_get_snapshottable_plans.reset_mock()
+        mock_get_snapshottable_plans.return_value = [plan_1, plan_2]
+
         db.session.commit()
 
         # missing sha
         resp = self.client.post(path)
         assert resp.status_code == 400
 
+        # valid params
         resp = self.client.post(path, data={
             'sha': 'a' * 40,
         })
         assert resp.status_code == 200
+        mock_get_snapshottable_plans.assert_called_once_with(project)
         data = self.unserialize(resp)
 
         snapshot = Snapshot.query.get(data['id'])
