@@ -16,11 +16,12 @@ requirejs.config({
   paths: {
     'chai': '../../node_modules/chai/chai',
     'angularMocks': '../vendor/angular-mocks/angular-mocks',
-    'sinon': '../../node_modules/sinon/lib/sinon'
+    'sinon': '../../node_modules/sinon/pkg/sinon'
   },
 
   shim: {
     'angularMocks': ['angular'],
+    'sinon': {exports: 'sinon'}
   }
 });
 
