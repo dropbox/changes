@@ -30,7 +30,6 @@ def get_snapshottable_plans(project):
         ItemOption.item_id.in_([p.id for p in project_plans]),
         ItemOption.name == 'snapshot.allow',
     ))
-    print options
 
     plan_list = []
     for plan in project.plans:
