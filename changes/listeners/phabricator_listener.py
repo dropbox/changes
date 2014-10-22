@@ -85,7 +85,7 @@ def build_finished_handler(build_id, **kwargs):
         # Not a diff build
         return
 
-    if build.result not in (Result.failed, Result.passed):
+    if build.result != Result.failed:
         return
 
     options = get_options(build.project_id)
