@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from copy import deepcopy
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String, Integer
 from sqlalchemy.orm import relationship, backref
@@ -60,6 +61,8 @@ class Step(db.Model):
             return cls
 
         try:
-            return cls(**self.data)
+            # XXX(dcramer): It's important that we deepcopy data so any
+            # mutations within the BuildStep don't propagate into the db
+            return cls(**deepcopy(self.data))
         except Exception:
             return None

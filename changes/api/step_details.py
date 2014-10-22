@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, unicode_literals
 
 import json
 
-from copy import deepcopy
 from datetime import datetime
 from flask.ext.restful import reqparse
 
@@ -50,9 +49,7 @@ class StepDetailsAPIView(APIView):
                 return {"message": "unable to load build step implementation"}, 400
 
             try:
-                # XXX(dcramer): It's important that we deepcopy data so any
-                # mutations within the BuildStep don't propagate into the db
-                impl_cls(**deepcopy(data))
+                impl_cls(**data)
             except Exception:
                 return {"message": "unable to create build step mapping provided data"}, 400
             step.data = data
