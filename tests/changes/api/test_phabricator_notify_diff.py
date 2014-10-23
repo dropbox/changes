@@ -58,6 +58,7 @@ class PhabricatorNotifyDiffTest(APITestCase):
         # assert source.revision_sha == 'b' * 40
         assert source.revision_sha == 'a' * 40
         assert source.data == {
+            'phabricator.buildTargetPHID': None,
             'phabricator.diffID': '1324134',
             'phabricator.revisionID': '1234',
             'phabricator.revisionURL': 'https://phabricator.example.com/D1234',

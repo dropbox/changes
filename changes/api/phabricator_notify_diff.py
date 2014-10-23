@@ -49,6 +49,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
 
     parser.add_argument('phabricator.callsign', type=get_repository_by_callsign,
                         required=True, dest='repository')
+    parser.add_argument('phabricator.buildTargetPHID', required=False)
     parser.add_argument('phabricator.diffID', required=True)
     parser.add_argument('phabricator.revisionID', required=True)
     parser.add_argument('phabricator.revisionURL', required=True)
@@ -114,6 +115,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
         db.session.add(patch)
 
         patch_data = {
+            'phabricator.buildTargetPHID': args['phabricator.buildTargetPHID'],
             'phabricator.diffID': args['phabricator.diffID'],
             'phabricator.revisionID': args['phabricator.revisionID'],
             'phabricator.revisionURL': args['phabricator.revisionURL'],
