@@ -64,6 +64,8 @@ class PhabricatorNotifyDiffAPIView(APIView):
         args = self.parser.parse_args()
 
         repository = args.repository
+        if not args.repository:
+            return error("Repository not found")
 
         projects = list(Project.query.options(
             subqueryload_all('plans'),
