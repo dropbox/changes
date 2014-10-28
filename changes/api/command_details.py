@@ -46,7 +46,15 @@ class CommandDetailsAPIView(APIView):
 
         # We need to lock this resource to ensure the command doesn't get expanded
         # twice in the time it's checking the attr + writing the updated value
-        with redis.lock('expand:{}'.format(command_id), expire=3, nowait=True):
+        if args.output or args.status == 'finished':
+            lock = redis.lock('expand:{}'.format(command_id), expire=3, nowait=True)
+        else:
+            lock = None
+
+        if lock:
+            lock.__enter__()
+
+        try:
             command = Command.query.get(command_id)
             if command is None:
                 return '', 404
@@ -73,6 +81,9 @@ class CommandDetailsAPIView(APIView):
 
             db.session.add(command)
             db.session.flush()
+        finally:
+            if lock:
+                lock.__exit__(None, None, None)
 
         if args.output or args.status == 'finished':
             expander_cls = self.get_expander(command.type)
