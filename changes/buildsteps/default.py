@@ -51,7 +51,7 @@ class DefaultBuildStep(BuildStep):
     # just three command phases entered
     def __init__(self, commands, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
-                 max_executors=20, **kwargs):
+                 max_executors=20, cpus=4, memory=8 * 1024, **kwargs):
 
         if env is None:
             env = DEFAULT_ENV.copy()
@@ -79,6 +79,10 @@ class DefaultBuildStep(BuildStep):
         self.release = release
         self.commands = commands
         self.max_executors = max_executors
+        self.resources = {
+            'cpus': cpus,
+            'mem': memory,
+        }
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
@@ -128,6 +132,8 @@ class DefaultBuildStep(BuildStep):
             'data': {
                 'release': self.release,
                 'max_executors': self.max_executors,
+                'cpus': self.resources['cpus'],
+                'mem': self.resources['mem'],
             },
         })
 

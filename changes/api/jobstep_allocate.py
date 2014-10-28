@@ -96,8 +96,8 @@ class JobStepAllocateAPIView(APIView):
             context = self.serialize(to_allocate)
             context['project'] = self.serialize(to_allocate.project)
             context['resources'] = {
-                'cpus': 4,
-                'mem': 8 * 1024,
+                'cpus': to_allocate.data.get('cpus', 4),
+                'mem': to_allocate.data.get('mem', 8 * 1024),
             }
             context['cmd'] = buildstep.get_allocation_command(to_allocate)
 
