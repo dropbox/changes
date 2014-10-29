@@ -204,6 +204,9 @@ def create_app(_read_config=True, **config):
 
     app.config.update(config)
 
+    # default the DSN for changes-client to the server's DSN
+    app.config.setdefault('CLIENT_SENTRY_DSN', app.config['SENTRY_DSN'])
+
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
             # CHANGES_CONF=/etc/changes.conf.py

@@ -230,6 +230,9 @@ class DefaultBuildStep(BuildStep):
             'release': self.release,
         }
 
+        if current_app.config['CLIENT_SENTRY_DSN']:
+            params['sentry-dsn'] = current_app.config['CLIENT_SENTRY_DSN']
+
         # TODO(dcramer): we need some kind of tie into the JobPlan in order
         # to dictate that this is a snapshot build
         # determine if there's an expected snapshot outcome
