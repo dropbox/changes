@@ -16,3 +16,9 @@ class LXCBuildStep(DefaultBuildStep):
 
     def get_client_adapter(self):
         return 'lxc'
+
+    def get_allocation_params(self, jobstep):
+        params = super(LXCBuildStep, self).get_allocation_params(jobstep)
+        params['memory'] = str(self.resources['mem'])
+        params['cpus'] = str(self.resources['cpus'])
+        return params

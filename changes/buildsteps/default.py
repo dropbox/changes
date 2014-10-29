@@ -219,24 +219,16 @@ class DefaultBuildStep(BuildStep):
     def get_client_adapter(self):
         return 'basic'
 
-    def get_allocation_command(self, jobstep):
-        args = {
+    def get_allocation_params(self, jobstep):
+        params = {
             'adapter': self.get_client_adapter(),
-            'api_url': build_uri('/api/0/'),
+            'server': build_uri('/api/0/'),
             'jobstep_id': jobstep.id.hex,
-            's3_bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
-            'pre_launch': current_app.config['LXC_PRE_LAUNCH'],
-            'post_launch': current_app.config['LXC_POST_LAUNCH'],
+            's3-bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
+            'pre-launch': current_app.config['LXC_PRE_LAUNCH'],
+            'post-launch': current_app.config['LXC_POST_LAUNCH'],
             'release': self.release,
         }
-        command = "changes-client " \
-            "-adapter %(adapter)s " \
-            "-server %(api_url)s " \
-            "-jobstep_id %(jobstep_id)s " \
-            "-release %(release)s " \
-            "-s3-bucket %(s3_bucket)s " \
-            "-pre-launch \"%(pre_launch)s\" " \
-            "-post-launch \"%(post_launch)s\"" % args
 
         # TODO(dcramer): we need some kind of tie into the JobPlan in order
         # to dictate that this is a snapshot build
@@ -247,6 +239,13 @@ class DefaultBuildStep(BuildStep):
             SnapshotImage.job_id == jobstep.job_id,
         ).scalar()
         if expected_image:
-            command = "%s -save-snapshot %s" % (command, expected_image.hex)
+            params['save-snapshot'] = expected_image.hex
 
-        return command
+        return params
+
+    def get_allocation_command(self, jobstep):
+        params = self.get_allocation_params(jobstep)
+        return 'changes-client %s' % (' '.join(
+            '-%s %s' % (k, v)
+            for k, v in params.iteritems()
+        ))

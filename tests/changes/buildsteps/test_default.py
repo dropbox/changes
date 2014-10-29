@@ -102,7 +102,7 @@ class DefaultBuildStepTest(TestCase):
         assert commands[2].order == 2
         assert commands[2].cwd == DEFAULT_PATH
 
-    def test_get_allocation_command(self):
+    def test_get_allocation_params(self):
         project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build)
@@ -110,12 +110,27 @@ class DefaultBuildStepTest(TestCase):
         jobstep = self.create_jobstep(jobphase)
 
         buildstep = self.get_buildstep()
-        result = buildstep.get_allocation_command(jobstep)
-        assert result == 'changes-client ' \
-            '-adapter basic ' \
-            '-server http://example.com/api/0/ ' \
-            '-jobstep_id %s ' \
-            '-release precise ' \
-            '-s3-bucket snapshot-bucket ' \
-            '-pre-launch "echo pre" ' \
-            '-post-launch "echo post"' % (jobstep.id.hex,)
+        result = buildstep.get_allocation_params(jobstep)
+        assert result == {
+            'adapter': 'basic',
+            'server': 'http://example.com/api/0/',
+            'jobstep_id': jobstep.id.hex,
+            'release': 'precise',
+            's3-bucket': 'snapshot-bucket',
+            'pre-launch': 'echo pre',
+            'post-launch': 'echo post',
+        }
+
+    def test_test_get_allocation_params_for_snapshotting(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        plan = self.create_plan(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        snapshot = self.create_snapshot(project)
+        image = self.create_snapshot_image(snapshot, plan, job=job)
+
+        buildstep = self.get_buildstep()
+        result = buildstep.get_allocation_params(jobstep)
+        assert result['save-snapshot'] == image.id.hex
