@@ -119,7 +119,7 @@ class SendTestCase(TestCase):
     @mock.patch.object(MailNotificationHandler, 'get_recipients')
     def test_simple(self, get_recipients):
         project = self.create_project(name='test', slug='test')
-        build = self.create_build(project, target='D1234')
+        build = self.create_build(project, target='D1234', label='Test diff')
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
         step = self.create_jobstep(phase=phase)
@@ -143,8 +143,8 @@ class SendTestCase(TestCase):
         assert len(self.outbox) == 1
         msg = self.outbox[0]
 
-        assert msg.subject == '%s Failed - %s #%s.%s' % (
-            job.build.target, job.project.name, job.build.number, job.number)
+        assert msg.subject == '%s FAILED - %s %s #%s.%s' % (
+            job.build.target, job.project.name, job.build.label, job.build.number, job.number)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
 
@@ -193,8 +193,8 @@ class SendTestCase(TestCase):
         assert len(self.outbox) == 1
         msg = self.outbox[0]
 
-        assert msg.subject == '%s Failed - %s #%s.%s' % (
-            job.build.target, job.project.name, job.build.number, job.number)
+        assert msg.subject == '%s FAILED - %s %s #%s.%s' % (
+            job.build.target, job.project.name, job.build.label, job.build.number, job.number)
         assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
         assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
 

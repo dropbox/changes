@@ -38,8 +38,11 @@ class MailNotificationHandler(NotificationHandler):
         build = job.build
 
         result_label = self.get_result_label(job, parent)
+        if result_label:
+            result_label = result_label.upper()
 
-        subject = u"{target} {result} - {project} #{number}".format(
+        subject = u"{target} {result} - {project} {name} #{number}".format(
+            name=build.label,
             number='{0}.{1}'.format(job.build.number, job.number),
             result=result_label,
             target=build.target or build.source.revision_sha or 'Build',
