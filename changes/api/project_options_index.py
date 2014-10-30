@@ -31,6 +31,7 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('build.test-duration-warning')
     parser.add_argument('hipchat.notify')
     parser.add_argument('hipchat.room')
+    parser.add_argument('hipchat.token')
     parser.add_argument('phabricator.diff-trigger')
     parser.add_argument('phabricator.notify')
     parser.add_argument('ui.show-coverage')

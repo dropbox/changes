@@ -22,7 +22,7 @@ def get_options(project_id):
         ).filter(
             ProjectOption.project_id == project_id,
             ProjectOption.name.in_([
-                'hipchat.notify', 'hipchat.room',
+                'hipchat.notify', 'hipchat.room', 'hipchat.token',
             ])
         )
     )
@@ -64,9 +64,6 @@ def build_finished_handler(build_id, **kwargs):
     if build.source.patch_id:
         return
 
-    if not current_app.config.get('HIPCHAT_TOKEN'):
-        return
-
     if not should_notify(build):
         return
 
@@ -76,6 +73,10 @@ def build_finished_handler(build_id, **kwargs):
         return
 
     if not options.get('hipchat.room'):
+        return
+
+    token = options.get('hipchat.token') or current_app.config.get('HIPCHAT_TOKEN')
+    if not token:
         return
 
     message = u'Build {result} - <a href="{link}">{project} #{number}</a> ({target}) - {subject}'.format(
@@ -93,7 +94,7 @@ def build_finished_handler(build_id, **kwargs):
         )
 
     send_payload(
-        token=current_app.config['HIPCHAT_TOKEN'],
+        token=token,
         room=options['hipchat.room'],
         message=message,
         notify=True,
