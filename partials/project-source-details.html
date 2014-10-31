@@ -18,6 +18,8 @@
         <dd>
             {{source.revision.sha.substr(0, 12)}}
         </dd>
+        <dt ng-if="source.revision.external">Browse:</dt>
+        <dd ng-if="source.revision.external"><a href="{{source.revision.external.link}}">{{source.revision.external.label}}</a></dd>
         <dt ng-if="source.revision.parents">Parents:</dt>
         <dd ng-if="source.revision.parents">
             <a ui-sref="project_commit_details({project_id: project.id, commit_id: parent})"
