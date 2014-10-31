@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from changes.api.serializer import Serializer, register
 from changes.models import Source
 
@@ -6,8 +8,17 @@ from changes.models import Source
 class SourceSerializer(Serializer):
     def serialize(self, instance, attrs):
         if instance.patch_id:
+            if instance.data.get('phabricator.revisionURL'):
+                external = {
+                    'link': instance.data['phabricator.revisionURL'],
+                    'label': 'D{}'.format(instance.data['phabricator.revisionID']),
+                }
+            else:
+                external = None
+
             patch = {
                 'id': instance.patch_id.hex,
+                'external': external,
             }
         else:
             patch = None
