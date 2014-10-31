@@ -12,9 +12,10 @@ from changes.api.build_index import (
 )
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
+from changes.db.utils import try_create
 from changes.models import (
-    ItemOption, Patch, Project, ProjectOption, ProjectStatus,
-    Repository, RepositoryStatus
+    ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectStatus,
+    Repository, RepositoryStatus, Source
 )
 
 
@@ -109,6 +110,13 @@ class PhabricatorNotifyDiffAPIView(APIView):
             return error("Unable to find commit %s in %s." % (
                 sha, repository.url), problems=['sha', 'repository'])
 
+        source_data = {
+            'phabricator.buildTargetPHID': args['phabricator.buildTargetPHID'],
+            'phabricator.diffID': args['phabricator.diffID'],
+            'phabricator.revisionID': args['phabricator.revisionID'],
+            'phabricator.revisionURL': args['phabricator.revisionURL'],
+        }
+
         patch = Patch(
             repository=repository,
             parent_revision_sha=sha,
@@ -116,12 +124,22 @@ class PhabricatorNotifyDiffAPIView(APIView):
         )
         db.session.add(patch)
 
-        patch_data = {
-            'phabricator.buildTargetPHID': args['phabricator.buildTargetPHID'],
-            'phabricator.diffID': args['phabricator.diffID'],
-            'phabricator.revisionID': args['phabricator.revisionID'],
-            'phabricator.revisionURL': args['phabricator.revisionURL'],
-        }
+        source = Source(
+            patch=patch,
+            repository=repository,
+            revision_sha=sha,
+            data=source_data,
+        )
+        db.session.add(source)
+
+        phabricatordiff = try_create(PhabricatorDiff, {
+            'diff_id': args['phabricator.diffID'],
+            'revision_id': args['phabricator.revisionID'],
+            'url': args['phabricator.revisionURL'],
+            'source': source,
+        })
+        if phabricatordiff is None:
+            return error("Diff already exists within Changes")
 
         builds = []
         for project in projects:
@@ -138,7 +156,6 @@ class PhabricatorNotifyDiffAPIView(APIView):
                 message=message,
                 author=author,
                 patch=patch,
-                source_data=patch_data,
             ))
 
         return self.respond(builds)
