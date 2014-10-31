@@ -199,6 +199,10 @@ def create_app(_read_config=True, **config):
     app.config['S3_SECRET_KEY'] = None
     app.config['S3_BUCKET'] = None
 
+    app.config['PHABRICATOR_HOST'] = None
+    app.config['PHABRICATOR_USERNAME'] = None
+    app.config['PHABRICATOR_CERT'] = None
+
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
     app.config['BASE_URI'] = 'http://localhost:5000'
 

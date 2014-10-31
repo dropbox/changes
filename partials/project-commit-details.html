@@ -22,6 +22,8 @@
         <dd time-since="commit.dateCreated"></dd>
         <dt>Branch:</dt>
         <dd><span ng-repeat="branch in commit.branches">{{branch}}</span></dd>
+        <dt ng-if="commit.external">Browse:</dt>
+        <dd ng-if="commit.external"><a href="{{commit.external.link}}">{{commit.external.label}}</a></dd>
     </dl>
 
     <section class="section">
