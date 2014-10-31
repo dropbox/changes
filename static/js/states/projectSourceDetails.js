@@ -10,18 +10,22 @@ define([
     parent: 'project_details',
     url: 'sources/:source_id/',
     templateUrl: 'partials/project-source-details.html',
-    controller: function($scope, $stateParams, features, projectData, sourceData,
-                         buildList, Collection, CollectionPoller) {
-      $scope.source = sourceData.data;
+    controller: function($filter, $scope, $stateParams, features, projectData,
+                         sourceData, buildList, Collection, CollectionPoller) {
+      $scope.source = sourceData;
       $scope.builds = new Collection(buildList.data, {
         sortFunc: sortBuildList,
         limit: 100
       });
 
-      var diff = sourceData.data.diff;
+      if (sourceData.isCommit) {
+        $scope.commitMessage = $filter('linkify')($filter('escape')(sourceData.revision.message));
+      }
+
+      var diff = sourceData.diff;
       if (features.coverage && diff) {
         // If we have diff information, render coverage after the DOM loads.
-        var coverage_list = sourceData.data.coverageForAddedLines;
+        var coverage_list = sourceData.coverageForAddedLines;
 
         // The use of setTimeout here is a bit hacky, but it's pretty localized.
         setTimeout(function() {
@@ -62,7 +66,10 @@ define([
     },
     resolve: {
       sourceData: function($http, $stateParams, projectData) {
-        return $http.get('/api/0/projects/' + projectData.id + '/sources/' + $stateParams.source_id + '/');
+        return $http.get('/api/0/projects/' + projectData.id + '/sources/' + $stateParams.source_id + '/')
+          .then(function(resp){
+            return resp.data;
+          });
       },
       buildList: function($http, $stateParams, projectData) {
         return $http.get('/api/0/projects/' + projectData.id + '/sources/' + $stateParams.source_id + '/builds/');

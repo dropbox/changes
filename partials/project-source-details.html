@@ -43,6 +43,10 @@
         </dd>
     </dl>
 
+    <section class="section" ng-if="commitMessage">
+        <pre ng-bind-html="commitMessage"></pre>
+    </section>
+
     <section class="section">
         <div class="section-header">
             <h3>Builds</h3>
