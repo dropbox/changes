@@ -4,9 +4,48 @@ from datetime import datetime
 from rfc822 import parsedate_tz, mktime_tz
 from urlparse import urlparse
 
+from changes.utils.http import build_uri
+
 from .base import Vcs, RevisionResult, BufferParser
 
 LOG_FORMAT = '{node}\x01{author}\x01{date|rfc822date}\x01{p1node} {p2node}\x01{branches}\x01{desc}\x02'
+
+BASH_CLONE_STEP = """
+#!/bin/bash -eux
+
+REMOTE_URL=%(remote_url)s
+LOCAL_PATH=%(local_path)s
+REVISION=%(revision)s
+
+if [ ! -d $LOCAL_PATH/.hg ]; then
+    hg clone --uncompressed $REMOTE_URL $LOCAL_PATH
+    pushd $LOCAL_PATH
+else
+    pushd $LOCAL_PATH
+    hg recover || true
+    hg pull $REMOTE_URL
+fi
+
+if ! hg up --clean $REVISION ; then
+    echo "Failed to update to $REVISION"
+    exit 1
+fi
+
+# similar to hg purge, but without requiring the extension
+hg status -un0 | xargs -0 rm -rf
+""".strip()
+
+BASH_PATCH_STEP = """
+#!/bin/bash -eux
+
+LOCAL_PATH=%(local_path)s
+PATCH_URL=%(patch_url)s
+
+pushd $LOCAL_PATH
+PATCH_PATH=/tmp/$(mktemp patch.XXXXXXXXXX)
+curl -o $PATCH_PATH $PATCH_URL
+hg import --no-commit $PATCH_PATCH
+""".strip()
 
 
 class MercurialVcs(Vcs):
@@ -126,3 +165,17 @@ class MercurialVcs(Vcs):
                     branch_names.add(name[0])
 
         return list(branch_names)
+
+    def get_buildstep_clone(self, source, workspace):
+        return BASH_CLONE_STEP % dict(
+            remote_url=self.remote_url,
+            local_path=workspace,
+            revision=source.revision_sha,
+        )
+
+    def get_buildstep_patch(self, source, workspace):
+        return BASH_PATCH_STEP % dict(
+            local_path=workspace,
+            patch_url=build_uri('/api/0/patches/{0}/?raw=1'.format(
+                                source.patch_id.hex)),
+        )

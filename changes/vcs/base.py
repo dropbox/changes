@@ -134,10 +134,10 @@ class Vcs(object):
         raise NotImplementedError
 
     # XXX(dcramer): not overly happy with the buildstep commands API
-    def get_buildstep_clone(self):
+    def get_buildstep_clone(self, source, workspace):
         raise NotImplementedError
 
-    def get_buildstep_patch(self):
+    def get_buildstep_patch(self, source, workspace):
         raise NotImplementedError
 
 
