@@ -139,6 +139,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
             'source': source,
         })
         if phabricatordiff is None:
+            logging.error("Diff %s, Revision %s already exists", args['phabricator.diffID'], args['phabricator.revisionID'])
             return error("Diff already exists within Changes")
 
         builds = []
