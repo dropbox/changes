@@ -27,7 +27,6 @@ class RevisionSerializer(Serializer):
         return result
 
     def serialize(self, instance, attrs):
-        print attrs
         callsign = attrs['phabricator.callsign']
         if callsign and current_app.config['PHABRICATOR_HOST']:
             label = 'r{}{}'.format(callsign, instance.sha[:12])
