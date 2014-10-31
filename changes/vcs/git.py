@@ -191,8 +191,8 @@ class GitVcs(Vcs):
             )
 
     def export(self, id):
-        cmd = ['log', '-n 1', '-p', '--pretty="%b"', id]
-        result = self.run(cmd)[4:]
+        cmd = ['diff', '%s^..%s' % (id, id)]
+        result = self.run(cmd)
         return result
 
     def is_child_parent(self, child_in_question, parent_in_question):
