@@ -52,7 +52,6 @@ install-requirements:
 
 install-test-requirements: install-requirements
 	# TODO(dcramer): we need an unreleased version due to https://github.com/spulec/moto/issues/91
-	pip install https://github.com/spulec/moto/archive/6e1196386f19b901cfedaa0dd2552e668149540b.zip
 	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
 
 test: lint test-python test-js

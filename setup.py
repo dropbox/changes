@@ -22,7 +22,6 @@ tests_require = [
     'pytest-xdist>=1.9,<1.10',
     'responses>=0.2.0,<0.3.0',
     'unittest2>=0.5.1,<0.6.0',
-    # https://github.com/spulec/moto/archive/master.zip
     'moto',
 ]
 
