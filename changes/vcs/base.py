@@ -6,8 +6,8 @@ import re
 from subprocess import Popen, PIPE
 
 from changes.constants import PROJECT_ROOT
-from changes.db.utils import create_or_update, get_or_create
-from changes.models import Author, Revision
+from changes.db.utils import create_or_update, get_or_create, try_create
+from changes.models import Author, Revision, Source
 
 
 class CommandError(Exception):
@@ -202,6 +202,13 @@ class RevisionResult(object):
             'branches': self.branches,
             'date_created': self.author_date,
             'date_committed': self.committer_date,
+        })
+
+        # we also want to create a source for this item as it's the canonical
+        # representation in the UI
+        try_create(Source, {
+            'revision_sha': self.id,
+            'repository': repository,
         })
 
         return (revision, created)
