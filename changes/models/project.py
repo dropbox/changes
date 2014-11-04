@@ -1,10 +1,11 @@
 from datetime import datetime
+from uuid import uuid4
+from collections import defaultdict
+
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, joinedload
 from sqlalchemy.schema import UniqueConstraint
-from uuid import uuid4
-
 from changes.config import db
 from changes.constants import ProjectStatus
 from changes.db.types.guid import GUID
@@ -66,3 +67,20 @@ class ProjectOption(db.Model):
             self.id = uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+
+
+class ProjectOptionsHelper:
+    @staticmethod
+    def get_options(project_list, options_list):
+        options_query = db.session.query(
+            ProjectOption.project_id, ProjectOption.name, ProjectOption.value
+        ).filter(
+            ProjectOption.project_id.in_(p.id for p in project_list),
+            ProjectOption.name.in_(options_list)
+        )
+
+        options = defaultdict(dict)
+        for project_id, option_name, option_value in options_query:
+            options[project_id][option_name] = option_value
+
+        return options

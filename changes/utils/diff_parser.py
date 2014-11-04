@@ -131,3 +131,12 @@ class DiffParser(object):
             pass
 
         return files
+
+    def get_changed_files(self):
+        results = set()
+        for info in self.parse():
+            if info['new_filename']:
+                results.add(info['new_filename'][2:])
+            if info['old_filename']:
+                results.add(info['old_filename'][2:])
+        return results

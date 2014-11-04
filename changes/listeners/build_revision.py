@@ -2,14 +2,12 @@ from __future__ import absolute_import, print_function
 
 import logging
 
-from collections import defaultdict
 from flask import current_app
 from fnmatch import fnmatch
-
 from changes.api.build_index import BuildIndexAPIView
-from changes.config import db
-from changes.models import ProjectOption, ProjectStatus, Project, Revision
+from changes.models import ProjectStatus, Project, ProjectOptionsHelper, Revision
 from changes.utils.diff_parser import DiffParser
+from changes.utils.whitelist import in_project_files_whitelist
 
 
 def revision_created_handler(revision_sha, repository_id, **kwargs):
@@ -37,24 +35,6 @@ class CommitTrigger(object):
             Project.status == ProjectStatus.active,
         ))
 
-    def get_options(self, project_list):
-        options_query = db.session.query(
-            ProjectOption.project_id, ProjectOption.name, ProjectOption.value
-        ).filter(
-            ProjectOption.project_id.in_(p.id for p in project_list),
-            ProjectOption.name.in_([
-                'build.branch-names',
-                'build.commit-trigger',
-                'build.file-whitelist',
-            ])
-        )
-
-        options = defaultdict(dict)
-        for project_id, option_name, option_value in options_query:
-            options[project_id][option_name] = option_value
-
-        return options
-
     def should_build_branch(self, allowed_branches):
         if not self.revision.branches and '*' in allowed_branches:
             return True
@@ -71,21 +51,7 @@ class CommitTrigger(object):
 
         diff = vcs.export(self.revision.sha)
         diff_parser = DiffParser(diff)
-        parsed_diff = diff_parser.parse()
-
-        results = set()
-        for info in parsed_diff:
-            if info['new_filename']:
-                results.add(info['new_filename'][2:])
-            if info['old_filename']:
-                results.add(info['old_filename'][2:])
-        return results
-
-    def in_file_whitelist(self, files_changed, file_whitelist):
-        for filename in files_changed:
-            if any(fnmatch(filename, pattern) for pattern in file_whitelist):
-                return True
-        return False
+        return diff_parser.get_changed_files()
 
     def run(self):
         revision = self.revision
@@ -94,7 +60,11 @@ class CommitTrigger(object):
         if not project_list:
             return
 
-        options = self.get_options(project_list)
+        options = ProjectOptionsHelper.get_options(project_list, [
+            'build.branch-names',
+            'build.commit-trigger',
+            'build.file-whitelist',
+        ])
 
         if any(o.get('build.file-whitelist') for o in options.values()):
             files_changed = self.get_changed_files()
@@ -112,8 +82,7 @@ class CommitTrigger(object):
                 self.logger.info('No branches matched build.branch-names for project %s', project.slug)
                 continue
 
-            file_whitelist = filter(bool, options[project.id].get('build.file-whitelist', '').splitlines())
-            if file_whitelist and not self.in_file_whitelist(files_changed, file_whitelist):
+            if not in_project_files_whitelist(options[project.id], files_changed):
                 self.logger.info('No changed files matched build.file-whitelist for project %s', project.slug)
                 continue
 

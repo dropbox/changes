@@ -3,9 +3,10 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 
 from flask_restful.reqparse import RequestParser
-from sqlalchemy.orm import subqueryload_all
-from werkzeug.datastructures import FileStorage
 
+from sqlalchemy.orm import subqueryload_all
+from changes.utils.diff_parser import DiffParser
+from werkzeug.datastructures import FileStorage
 from changes.api.base import APIView, error
 from changes.api.build_index import (
     create_build, get_build_plans, identify_revision, MissingRevision
@@ -14,9 +15,10 @@ from changes.api.validators.author import AuthorValidator
 from changes.config import db
 from changes.db.utils import try_create
 from changes.models import (
-    ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectStatus,
+    ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectOptionsHelper, ProjectStatus,
     Repository, RepositoryStatus, Source
 )
+from changes.utils.whitelist import in_project_files_whitelist
 
 
 def get_repository_by_callsign(callsign):
@@ -142,11 +144,19 @@ class PhabricatorNotifyDiffAPIView(APIView):
             logging.error("Diff %s, Revision %s already exists", args['phabricator.diffID'], args['phabricator.revisionID'])
             return error("Diff already exists within Changes")
 
+        project_options = ProjectOptionsHelper.get_options(projects, ['build.file-whitelist'])
+        diff_parser = DiffParser(patch.diff)
+        files_changed = diff_parser.get_changed_files()
+
         builds = []
         for project in projects:
             plan_list = get_build_plans(project)
             if not plan_list:
                 logging.warning('No plans defined for project %s', project.slug)
+                continue
+
+            if not in_project_files_whitelist(project_options[project.id], files_changed):
+                logging.info('No changed files matched build.file-whitelist for project %s', project.slug)
                 continue
 
             builds.append(create_build(

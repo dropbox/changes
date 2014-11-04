@@ -10,6 +10,19 @@ from changes.testutils import APITestCase, SAMPLE_DIFF
 class PhabricatorNotifyDiffTest(APITestCase):
     path = '/api/0/phabricator/notify-diff/'
 
+    def post_sample_patch(self):
+        return self.client.post(self.path, data={
+            'phabricator.callsign': 'FOO',
+            'phabricator.diffID': '1324134',
+            'phabricator.revisionID': '1234',
+            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
+            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'sha': 'a' * 40,
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>',
+        })
+
     def test_valid_params(self):
         repo = self.create_repo()
 
@@ -22,17 +35,7 @@ class PhabricatorNotifyDiffTest(APITestCase):
         )
         db.session.commit()
 
-        resp = self.client.post(self.path, data={
-            'phabricator.callsign': 'FOO',
-            'phabricator.diffID': '1324134',
-            'phabricator.revisionID': '1234',
-            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'sha': 'a' * 40,
-            'label': 'Foo Bar',
-            'message': 'Hello world!',
-            'author': 'David Cramer <dcramer@example.com>',
-        })
+        resp = self.post_sample_patch()
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
@@ -99,17 +102,55 @@ class PhabricatorNotifyDiffTest(APITestCase):
         db.session.commit()
 
         # Default to not creating a build (for tools)
-        resp = self.client.post(self.path, data={
-            'phabricator.callsign': 'FOO',
-            'phabricator.diffID': '1324134',
-            'phabricator.revisionID': '1234',
-            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'sha': 'a' * 40,
-            'label': 'Foo Bar',
-            'message': 'Hello world!',
-            'author': 'David Cramer <dcramer@example.com>',
-        })
+        resp = self.post_sample_patch()
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 0
+
+    def test_when_not_in_whitelist(self):
+        repo = self.create_repo()
+
+        project = self.create_project(repository=repo)
+        self.create_plan(project)
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+
+        po = ProjectOption(
+            project=project,
+            name='build.file-whitelist',
+            value='nonexisting_directory',
+        )
+        db.session.add(po)
+        db.session.commit()
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
+    def test_when_in_whitelist(self):
+        repo = self.create_repo()
+
+        project = self.create_project(repository=repo)
+        self.create_plan(project)
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+
+        po = ProjectOption(
+            project=project,
+            name='build.file-whitelist',
+            value='ci/*',
+        )
+        db.session.add(po)
+        db.session.commit()
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
