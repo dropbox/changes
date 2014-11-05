@@ -66,20 +66,22 @@ class JobStepAllocateAPIView(APIView):
 
         # now allow any prioritized project, based on order
         queryset = base_queryset.filter(
-            ~JobStep.id.in_(q.id for q in results),
             *filters
-        )[:limit - len(results)]
-        results.extend(queryset)
+        )
+        if results:
+            queryset = queryset.filter(~JobStep.id.in_(q.id for q in results))
+        results.extend(queryset[:limit - len(results)])
         if len(results) >= limit:
             return results[:limit]
 
         # TODO(dcramer): we want to burst but not go too far. For now just
         # let burst
         queryset = base_queryset.filter(
-            ~JobStep.id.in_(q.id for q in results),
             JobStep.status == Status.pending_allocation,
-        )[:limit - len(results)]
-        results.extend(queryset)
+        )
+        if results:
+            queryset = queryset.filter(~JobStep.id.in_(q.id for q in results))
+        results.extend(queryset[:limit - len(results)])
         return results[:limit]
 
     def post(self):
