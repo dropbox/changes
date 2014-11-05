@@ -124,6 +124,7 @@ def get_failure_reasons(build):
         for k, v in failure_reasons
     ]
 
+
 def get_parent_revision_last_build(build):
     if build.source.revision.parents:
         parent_revision_builds = list(Build.query.filter(
@@ -141,6 +142,7 @@ def get_parent_revision_last_build(build):
         if parent_revision_builds:
             return parent_revision_builds[0]
     return None
+
 
 class BuildDetailsAPIView(APIView):
     post_parser = RequestParser()

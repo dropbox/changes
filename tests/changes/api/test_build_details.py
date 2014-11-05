@@ -142,7 +142,7 @@ class BuildDetailsTest(APITestCase):
         resp = self.client.get(path)
         data = self.unserialize(resp)
 
-        assert data['parentRevisionBuild'] == None
+        assert data['parentRevisionBuild'] is None
 
 
 class BuildUpdateTest(APITestCase):
