@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, unicode_literals
 
+import json
 import logging
 
+from flask import request
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView, error
@@ -11,7 +13,7 @@ from changes.models import Build, Job, JobPlan, JobStep
 
 
 class JobStepAllocateAPIView(APIView):
-    def find_next_jobstep(self):
+    def find_next_jobsteps(self, limit=10):
         # find projects with pending allocations
         project_list = [p for p, in db.session.query(
             JobStep.project_id,
@@ -21,7 +23,7 @@ class JobStepAllocateAPIView(APIView):
             JobStep.project_id
         )]
         if not project_list:
-            return None
+            return []
 
         # TODO(dcramer): this should be configurably and handle more cases
         # than just 'active job' as that can be 1 step or 100 steps
@@ -53,64 +55,95 @@ class JobStepAllocateAPIView(APIView):
         ).order_by(Build.priority.desc(), JobStep.date_created.asc())
 
         # prioritize a job that's has already started
-        existing = base_queryset.filter(
+        queryset = list(base_queryset.filter(
             Job.status.in_([Status.allocated, Status.in_progress]),
             *filters
-        ).first()
-        if existing:
-            return existing
+        )[:limit])
+        if len(queryset) == limit:
+            return queryset
+
+        results = queryset
 
         # now allow any prioritized project, based on order
-        existing = base_queryset.filter(
+        queryset = base_queryset.filter(
+            ~JobStep.id.in_(q.id for q in results),
             *filters
-        ).first()
-        if existing:
-            return existing
+        )[:limit - len(results)]
+        results.extend(queryset)
+        if len(results) >= limit:
+            return results[:limit]
 
         # TODO(dcramer): we want to burst but not go too far. For now just
         # let burst
-        return base_queryset.filter(
+        queryset = base_queryset.filter(
+            ~JobStep.id.in_(q.id for q in results),
             JobStep.status == Status.pending_allocation,
-        ).first()
+        )[:limit - len(results)]
+        results.extend(queryset)
+        return results[:limit]
 
     def post(self):
+        args = json.loads(request.data)
+
+        try:
+            resources = args['resources']
+        except KeyError:
+            return error('Missing resources attribute')
+
+        total_cpus = int(resources['cpus'])
+        total_mem = int(resources['mem'])  # MB
+
         try:
             with redis.lock('jobstep:allocate', nowait=True):
-                to_allocate = self.find_next_jobstep()
+                available_allocations = self.find_next_jobsteps(limit=10)
+                to_allocate = []
+                for jobstep in available_allocations:
+                    req_cpus = jobstep.data.get('cpus', 4)
+                    req_mem = jobstep.data.get('mem', 8 * 1024)
 
-                # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
-                if to_allocate is None:
+                    if total_cpus >= req_cpus and total_mem >= req_mem:
+                        total_cpus -= req_cpus
+                        total_mem -= req_mem
+
+                        jobstep.status = Status.allocated
+                        db.session.add(jobstep)
+
+                        to_allocate.append(jobstep)
+                    else:
+                        logging.info('Not allocating %s due to lack of offered resources', jobstep.id.hex)
+
+                if not to_allocate:
+                    # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
                     return self.respond([])
 
-                to_allocate.status = Status.allocated
-                db.session.add(to_allocate)
                 db.session.flush()
         except redis.UnableToGetLock:
             return error('Another allocation is in progress', http_code=503)
 
-        try:
-            jobplan, buildstep = JobPlan.get_build_step_for_job(to_allocate.job_id)
+        context = []
 
-            assert jobplan and buildstep
+        for jobstep, jobstep_data in zip(to_allocate, self.serialize(to_allocate)):
+            try:
+                jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
 
-            context = self.serialize(to_allocate)
-            context['project'] = self.serialize(to_allocate.project)
-            context['resources'] = {
-                'cpus': to_allocate.data.get('cpus', 4),
-                'mem': to_allocate.data.get('mem', 8 * 1024),
-            }
-            context['cmd'] = buildstep.get_allocation_command(to_allocate)
+                assert jobplan and buildstep
 
-            return self.respond([context])
-        except Exception:
-            to_allocate.status = Status.finished
-            to_allocate.result = Result.aborted
-            db.session.add(to_allocate)
-            db.session.flush()
+                jobstep_data['project'] = self.serialize(jobstep.project)
+                jobstep_data['resources'] = {
+                    'cpus': jobstep.data.get('cpus', 4),
+                    'mem': jobstep.data.get('mem', 8 * 1024),
+                }
+                jobstep_data['cmd'] = buildstep.get_allocation_command(jobstep)
+            except Exception:
+                jobstep.status = Status.finished
+                jobstep.result = Result.aborted
+                db.session.add(jobstep)
+                db.session.flush()
 
-            logging.exception(
-                'Exception occurred while allocating job step for project %s',
-                to_allocate.project.slug)
+                logging.exception(
+                    'Exception occurred while allocating job step %s for project %s',
+                    jobstep.id.hex, jobstep.project.slug)
+            else:
+                context.append(jobstep_data)
 
-            return error('Internal error while attempting allocation',
-                         http_code=503)
+        return self.respond(context)
