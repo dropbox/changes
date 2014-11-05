@@ -48,7 +48,12 @@ class DefaultBuildStep(BuildStep):
     # TODO(dcramer): we need to enforce ordering of setup/teardown commands
     # so that setup is always first and teardown is always last. Realistically
     # this should be something we abstract away in the UI so that there are
-    # just three command phases entered
+    # just three command phases entered. We should **probably** just have
+    # commands be specified in different arrays:
+    # - setup_commands
+    # - collect_commands
+    # - commands
+    # - teardown_commands
     def __init__(self, commands, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=20, cpus=4, memory=8 * 1024, **kwargs):
@@ -137,12 +142,21 @@ class DefaultBuildStep(BuildStep):
             },
         })
 
+        all_commands = list(self.iter_all_commands(job))
+
+        # HACK(dcramer): we dont want to run setup on collect jobs
+        # ideally the abstraction would be cleaner and it break out of
+        # the commands array (same for setup commands)
+        has_collect = any(fc.type.is_collector() for fc in all_commands)
         # HACK(dcramer): we need to filter out non-setup commands
         # if we're running a snapshot build
         is_snapshot = job.build.cause == Cause.snapshot
         index = 0
-        for future_command in self.iter_all_commands(job):
+        for future_command in all_commands:
             if is_snapshot and future_command.type not in (CommandType.setup, CommandType.teardown):
+                continue
+
+            if has_collect and not future_command.type.is_collector():
                 continue
 
             index += 1
