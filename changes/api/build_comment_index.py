@@ -17,7 +17,7 @@ class BuildCommentIndexAPIView(APIView):
 
         comments = list(Comment.query.filter(
             Comment.build == build,
-        ).order_by(Comment.date_created.asc()))
+        ).order_by(Comment.date_created.desc()))
 
         return self.respond(comments)
 
@@ -39,8 +39,10 @@ class BuildCommentIndexAPIView(APIView):
         comment = Comment(
             build=build,
             user=user,
-            text=args.text,
+            text=args.text.strip(),
         )
         db.session.add(comment)
+
+        # TODO(dcramer): this shoudl send out a notification about a new comment
 
         return self.respond(comment)

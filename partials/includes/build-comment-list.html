@@ -1,0 +1,32 @@
+<section class="section" ng-if="commentsLoaded">
+    <div class="section-header">
+        <h3>
+            Comments
+            <a ng-click="commentFormVisible = !commentFormVisible"
+               class="btn btn-xs btn-default"><i class="glyphicon glyphicon-plus"></i></a>
+        </h3>
+    </div>
+    <div class="section-body">
+        <form name="commentForm" class="new-comment-form"
+              ng-submit="saveComment()" ng-show="commentFormVisible">
+            <div class="form-group">
+                <textarea class="form-control" ng-model="commentFormData['text']"
+                          ng-keypress="handleKeypress($event)"
+                          placeholder="what'd you break?"></textarea>
+            </div>
+        </form>
+        <ul ng-if="commentList.length"
+            class="comment-list">
+            <li ng-repeat="comment in commentList">
+                <div class="comment-author">
+                    <img src="{{comment.user.avatar}}&amp;s=16" class="avatar">
+                    <span class="comment-author-name">{{comment.user.email}}</span> &mdash; <span time-since="comment.dateCreated"></span>
+                </div>
+                <pre class="comment-body" ng-bind-html="comment.html"></pre>
+            </li>
+        </ul>
+        <p ng-if="!commentList.length && !commentFormVisible">
+            No one has left any comments.
+        </p>
+    </div>
+</section>
