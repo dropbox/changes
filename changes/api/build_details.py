@@ -126,7 +126,7 @@ def get_failure_reasons(build):
 
 def get_parent_revision_last_build(build):
     if build.source.revision.parents:
-        parent_revision_builds = Build.query.filter(
+        parent_revision_builds = list(Build.query.filter(
             Build.project == build.project,
             Build.status == Status.finished,
             Build.id != build.id,
@@ -137,7 +137,7 @@ def get_parent_revision_last_build(build):
             contains_eager('source').joinedload('revision'),
         ).filter(
             Source.revision_sha == build.source.revision.parents[0]
-        ).order_by(Build.date_created.desc())
+        ).order_by(Build.date_created.desc()))
         if parent_revision_builds:
             return parent_revision_builds[0]
     return None

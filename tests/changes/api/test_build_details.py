@@ -130,6 +130,20 @@ class BuildDetailsTest(APITestCase):
 
         assert data['parentRevisionBuild']['source']['revision']['sha'] == parent_sha
 
+    def test_parent_revision_has_no_build(self):
+        project = self.create_project()
+        revision = self.create_revision(repository_id=project.repository_id,
+                                        parents=['random-sha-with-no-build-for-it'],)
+        source = self.create_source(project,
+                                    revision_sha=revision.sha)
+
+        build = self.create_build(project, source=source)
+        path = '/api/0/builds/{0}/'.format(build.id.hex)
+        resp = self.client.get(path)
+        data = self.unserialize(resp)
+
+        assert data['parentRevisionBuild'] == None
+
 
 class BuildUpdateTest(APITestCase):
     def test_simple(self):
