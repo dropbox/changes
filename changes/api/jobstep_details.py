@@ -27,6 +27,7 @@ class JobStepDetailsAPIView(APIView):
     post_parser.add_argument('status', choices=STATUS_CHOICES)
     post_parser.add_argument('result', choices=RESULT_CHOICES)
     post_parser.add_argument('node')
+    post_parser.add_argument('heartbeat', type=bool)
 
     def _is_final_jobphase(self, jobphase):
         return not db.session.query(
