@@ -153,10 +153,10 @@ class DefaultBuildStep(BuildStep):
         is_snapshot = job.build.cause == Cause.snapshot
         index = 0
         for future_command in all_commands:
-            if is_snapshot and future_command.type not in (CommandType.setup, CommandType.teardown):
-                continue
-
-            if has_collect and not future_command.type.is_collector():
+            if is_snapshot:
+                if future_command.type not in (CommandType.setup, CommandType.teardown):
+                    continue
+            elif has_collect and not future_command.type.is_collector():
                 continue
 
             index += 1
