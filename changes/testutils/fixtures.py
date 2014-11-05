@@ -220,9 +220,10 @@ class Fixtures(object):
 
     def create_revision(self, **kwargs):
         kwargs.setdefault('sha', uuid4().hex)
-        if not kwargs.get('repository'):
-            kwargs['repository'] = self.create_repo()
-        kwargs['repository_id'] = kwargs['repository'].id
+        if not kwargs.get('repository_id'):
+            if not kwargs.get('repository'):
+                kwargs['repository'] = self.create_repo()
+            kwargs['repository_id'] = kwargs['repository'].id
 
         if 'author' not in kwargs:
             kwargs['author'] = self.create_author()

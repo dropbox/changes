@@ -124,6 +124,23 @@ def get_failure_reasons(build):
         for k, v in failure_reasons
     ]
 
+def get_parent_revision_last_build(build):
+    if build.source.revision.parents:
+        parent_revision_builds = Build.query.filter(
+            Build.project == build.project,
+            Build.status == Status.finished,
+            Build.id != build.id,
+            Source.patch_id == None,  # NOQA
+        ).join(
+            Source, Build.source_id == Source.id,
+        ).options(
+            contains_eager('source').joinedload('revision'),
+        ).filter(
+            Source.revision_sha == build.source.revision.parents[0]
+        ).order_by(Build.date_created.desc())
+        if parent_revision_builds:
+            return parent_revision_builds[0]
+    return None
 
 class BuildDetailsAPIView(APIView):
     post_parser = RequestParser()
@@ -212,6 +229,7 @@ class BuildDetailsAPIView(APIView):
                 'tests': self.serialize(test_failures, extended_serializers),
             },
             'testChanges': self.serialize(changed_tests, extended_serializers),
+            'parentRevisionBuild': self.serialize(get_parent_revision_last_build(build)),
         })
 
         return self.respond(context)
