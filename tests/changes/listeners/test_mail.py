@@ -156,6 +156,58 @@ class SendTestCase(TestCase):
         assert msg.as_string()
 
     @mock.patch.object(MailNotificationHandler, 'get_recipients')
+    def test_subject_branch(self, get_recipients):
+        project = self.create_project(name='test', slug='test')
+        repo = project.repository
+        branches = ['master', 'branch1']
+        branch_str = '/(%s)' % ','.join(branches)
+        revision = self.create_revision(repository=repo, branches=branches)
+        source = self.create_source(
+            project=project,
+            revision=revision,
+        )
+        build = self.create_build(
+            project=project,
+            source=source,
+            label='Test diff',
+            target='D1234',
+        )
+        job = self.create_job(build=build, result=Result.failed)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+        logsource = self.create_logsource(
+            step=step,
+            name='console',
+        )
+        self.create_logchunk(
+            source=logsource,
+            text='hello world',
+        )
+
+        job_link = 'http://example.com/projects/test/builds/%s/jobs/%s/' % (build.id.hex, job.id.hex,)
+        log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
+
+        get_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+
+        handler = MailNotificationHandler()
+        handler.send(job, None)
+
+        assert len(self.outbox) == 1
+        msg = self.outbox[0]
+
+        assert msg.subject == '%s FAILED - %s%s %s #%s.%s' % (
+            job.build.target, job.project.name, branch_str, job.build.label, job.build.number, job.number)
+        assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
+        assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
+
+        assert job_link in msg.html
+        assert job_link in msg.body
+        assert log_link in msg.html
+        assert log_link in msg.body
+
+        assert msg.as_string()
+
+    @mock.patch.object(MailNotificationHandler, 'get_recipients')
     def test_multiple_sources(self, get_recipients):
         project = self.create_project(name='test', slug='test')
         build = self.create_build(project, target='D1234')

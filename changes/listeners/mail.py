@@ -41,12 +41,20 @@ class MailNotificationHandler(NotificationHandler):
         if result_label:
             result_label = result_label.upper()
 
-        subject = u"{target} {result} - {project} {name} #{number}".format(
+        branch_str = ''
+        if build.source.revision:
+            revision = build.source.revision
+            branches = revision.branches
+            if branches:
+                branch_str = '/(%s)' % ','.join(branches)
+
+        subject = u"{target} {result} - {project}{branches} {name} #{number}".format(
             name=build.label,
             number='{0}.{1}'.format(job.build.number, job.number),
             result=result_label,
             target=build.target or build.source.revision_sha or 'Build',
             project=job.project.name,
+            branches=branch_str,
         )
 
         build.uri = build_uri('/projects/{0}/builds/{1}/'.format(
