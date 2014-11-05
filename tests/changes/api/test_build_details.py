@@ -94,8 +94,6 @@ class BuildDetailsTest(APITestCase):
         assert len(data['jobs']) == 2
         assert data['jobs'][0]['id'] == job1.id.hex
         assert data['jobs'][1]['id'] == job2.id.hex
-        assert len(data['previousRuns']) == 1
-        assert data['previousRuns'][0]['id'] == previous_build.id.hex
         assert data['seenBy'] == []
         assert data['testFailures']['total'] == 0
         assert data['testFailures']['tests'] == []

@@ -71,7 +71,6 @@ define([
       $scope.build = buildData;
       $scope.eventList = new Collection(buildData.events);
       $scope.failureList = new Collection(buildData.failures);
-      $scope.previousRuns = buildData.previousRuns;
       $scope.testFailures = buildData.testFailures;
       $scope.testChanges = buildData.testChanges;
       $scope.seenBy = buildData.seenBy.slice(0, 14);

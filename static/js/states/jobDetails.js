@@ -65,7 +65,6 @@ define([
           }
       });
       $scope.testFailures = jobData.testFailures;
-      $scope.previousRuns = new Collection(jobData.previousRuns);
 
       PageTitle.set(getPageTitle(buildData, $scope.job));
 
@@ -79,7 +78,6 @@ define([
           }
           $.extend(true, $scope.job, response);
           $.extend(true, $scope.testFailures, response.testFailures);
-          $scope.previousRuns.extend(response.previousRuns);
         }
       });
       var phasesPoller = new CollectionPoller({

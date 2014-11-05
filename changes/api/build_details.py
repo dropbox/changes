@@ -9,7 +9,7 @@ from uuid import UUID
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
 from changes.config import db
-from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
+from changes.constants import Result, Status
 from changes.models import (
     Build, BuildPriority, Source, Event, FailureReason, Job, TestCase,
     BuildSeen, User
@@ -158,22 +158,20 @@ class BuildDetailsAPIView(APIView):
         if build is None:
             return '', 404
 
-        previous_runs = Build.query.filter(
-            Build.project == build.project,
-            Build.date_created < build.date_created,
-            Build.status == Status.finished,
-            Build.id != build.id,
-            Source.patch_id == None,  # NOQA
-        ).join(
-            Source, Build.source_id == Source.id,
-        ).options(
-            contains_eager('source').joinedload('revision'),
-            joinedload('author'),
-        ).order_by(Build.date_created.desc())[:NUM_PREVIOUS_RUNS]
-
-        if previous_runs:
-            most_recent_run = previous_runs[0]
-        else:
+        try:
+            most_recent_run = Build.query.filter(
+                Build.project == build.project,
+                Build.date_created < build.date_created,
+                Build.status == Status.finished,
+                Build.id != build.id,
+                Source.patch_id == None,  # NOQA
+            ).join(
+                Source, Build.source_id == Source.id,
+            ).options(
+                contains_eager('source').joinedload('revision'),
+                joinedload('author'),
+            ).order_by(Build.date_created.desc())[0]
+        except IndexError:
             most_recent_run = None
 
         jobs = list(Job.query.filter(
@@ -222,7 +220,6 @@ class BuildDetailsAPIView(APIView):
         context = self.serialize(build)
         context.update({
             'jobs': jobs,
-            'previousRuns': previous_runs,
             'seenBy': seen_by,
             'events': event_list,
             'failures': get_failure_reasons(build),

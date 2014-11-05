@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
-from changes.constants import Result, Status, NUM_PREVIOUS_RUNS
+from changes.constants import Result
 from changes.models import Job, TestCase, LogSource
 from changes.utils.originfinder import find_failure_origins
 
@@ -16,13 +16,6 @@ class JobDetailsAPIView(APIView):
         ).get(job_id)
         if job is None:
             return '', 404
-
-        previous_runs = Job.query.filter(
-            Job.project == job.project,
-            Job.date_created < job.date_created,
-            Job.status == Status.finished,
-            Job.id != job.id,
-        ).order_by(Job.date_created.desc())[:NUM_PREVIOUS_RUNS]
 
         test_failures = TestCase.query.filter(
             TestCase.job_id == job.id,
@@ -54,7 +47,6 @@ class JobDetailsAPIView(APIView):
                 'tests': self.serialize(test_failures, extended_serializers),
             },
             'logs': log_sources,
-            'previousRuns': previous_runs,
         })
 
         return self.respond(context)
