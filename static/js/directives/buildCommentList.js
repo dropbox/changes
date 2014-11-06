@@ -6,6 +6,7 @@
       var Comment = function(data) {
         this.html = $filter('linkify')($filter('escape')(data.text));
         this.user = data.user;
+        this.dateCreated = data.dateCreated;
       };
 
       return {
