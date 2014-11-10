@@ -68,6 +68,24 @@ define([
         }
       };
 
+      // TODO (stefan): move to build-info directive
+      $scope.getBuildResult = function() {
+          var parentBuild = $scope.build.parentRevisionBuild;
+          if (parentBuild) {
+              return parentBuild.result.id;
+          }
+          return 'unknown';
+      };
+
+      // TODO (stefan): move to build-info directive
+      $scope.getParentBuildMessage = function() {
+          var parentBuild = $scope.build.parentRevisionBuild;
+          if (parentBuild) {
+              return "Parent revision build " + parentBuild.result.id;
+          }
+          return "No build for parent revision";
+      };
+
       $scope.build = buildData;
       $scope.eventList = new Collection(buildData.events);
       $scope.failureList = new Collection(buildData.failures);

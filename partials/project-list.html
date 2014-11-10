@@ -3,7 +3,7 @@
       ng-class="projectList.length <= 16 ? 'project-list-wide' : ''">
     <li ng-repeat="project in projects"
         slyEvaluateOnlyWhen="project.lastPassingBuild.dateModified"
-        class="{{getProjectClass(project)}}">
+        class="result {{getProjectClass(project)}}">
       <a ui-sref="project_commits({project_id: project.slug})">
         <span class="indicator"></span>
         <h4 bind-once>{{project.name}}</h4>

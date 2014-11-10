@@ -125,8 +125,8 @@ def get_failure_reasons(build):
     ]
 
 
-def get_parent_revision_last_build(build):
-    if build.source.revision.parents:
+def _get_patch_parent_last_build(build):
+    if build.source.patch:
         parent_revision_builds = list(Build.query.filter(
             Build.project == build.project,
             Build.status == Status.finished,
@@ -137,7 +137,7 @@ def get_parent_revision_last_build(build):
         ).options(
             contains_eager('source').joinedload('revision'),
         ).filter(
-            Source.revision_sha == build.source.revision.parents[0]
+            Source.revision_sha == build.source.patch.parent_revision_sha
         ).order_by(Build.date_created.desc()))
         if parent_revision_builds:
             return parent_revision_builds[0]
@@ -228,7 +228,7 @@ class BuildDetailsAPIView(APIView):
                 'tests': self.serialize(test_failures, extended_serializers),
             },
             'testChanges': self.serialize(changed_tests, extended_serializers),
-            'parentRevisionBuild': self.serialize(get_parent_revision_last_build(build)),
+            'parentRevisionBuild': self.serialize(_get_patch_parent_last_build(build)),
         })
 
         return self.respond(context)

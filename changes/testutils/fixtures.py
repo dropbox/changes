@@ -206,9 +206,10 @@ class Fixtures(object):
     def create_patch(self, **kwargs):
         kwargs.setdefault('diff', SAMPLE_DIFF)
         kwargs.setdefault('parent_revision_sha', uuid4().hex)
-        if not kwargs.get('repository'):
-            kwargs['repository'] = self.create_repo()
-        kwargs['repository_id'] = kwargs['repository'].id
+        if not kwargs.get('repository_id'):
+            if not kwargs.get('repository'):
+                kwargs['repository'] = self.create_repo()
+            kwargs['repository_id'] = kwargs['repository'].id
 
         patch = Patch(
             **kwargs

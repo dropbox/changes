@@ -531,9 +531,22 @@ input, select, textarea {
   border-radius: 3px;
   width: auto;
   height: auto;
+  display: inline-block;
 }
+
+.indicator-sm {
+  height: 12px;
+  width: 12px;
+  border-radius: 12px;
+  padding: 0;
+}
+
 a.indicator {
   text-decoration: none;
+}
+
+.result {
+    display: inline-block;
 }
 
 .result-aborted .indicator {

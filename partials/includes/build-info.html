@@ -1,3 +1,4 @@
+<!-- TODO (stefan): move this to a directive -->
 <div class="panel panel-danger" ng-if="failureList">
     <div class="panel-heading">
         <h3 class="panel-title">Build Failed</h3>
@@ -46,6 +47,11 @@
                 <dt ng-if="build.source.revision">Parent:</dt>
                 <dd ng-if="build.source.revision">
                     <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0, 12)}}</a>
+                    <a class="result result-{{getBuildResult()}}"
+                            ng-show="build.parentRevisionBuild"
+                            ui-sref="build_details({project_id: build.project.id, build_id: build.parentRevisionBuild.id})">
+                        <span class="indicator indicator-sm" title="{{getParentBuildMessage()}}"></span>
+                    </a>
                 </dd>
                 <dt>Patch:</dt>
                 <dd><a href="/api/0/patches/{{build.source.patch.id}}/?raw=1" target="_self">{{build.source.patch.id}}</a></dd>

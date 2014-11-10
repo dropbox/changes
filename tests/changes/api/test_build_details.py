@@ -116,10 +116,9 @@ class BuildDetailsTest(APITestCase):
             project, status=Status.finished)
         parent_sha = parent_revision_build.source.revision_sha
 
-        revision = self.create_revision(repository_id=project.repository_id,
-                                        parents=[parent_sha],)
-        source = self.create_source(project,
-                                    revision_sha=revision.sha)
+        patch = self.create_patch(repository_id=project.repository_id,
+                                  parent_revision_sha=parent_sha,)
+        source = self.create_source(project, patch=patch, data={})
 
         build = self.create_build(project, source=source)
         path = '/api/0/builds/{0}/'.format(build.id.hex)
@@ -130,10 +129,9 @@ class BuildDetailsTest(APITestCase):
 
     def test_parent_revision_has_no_build(self):
         project = self.create_project()
-        revision = self.create_revision(repository_id=project.repository_id,
-                                        parents=['random-sha-with-no-build-for-it'],)
-        source = self.create_source(project,
-                                    revision_sha=revision.sha)
+        patch = self.create_patch(repository_id=project.repository_id,
+                                  parent_revision_sha='random-sha-with-no-build-for-it',)
+        source = self.create_source(project, patch=patch, data={})
 
         build = self.create_build(project, source=source)
         path = '/api/0/builds/{0}/'.format(build.id.hex)
