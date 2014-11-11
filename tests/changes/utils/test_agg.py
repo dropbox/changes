@@ -7,7 +7,7 @@ def test_aggregate_result():
     assert aggregate_result(status_list) == Result.failed
 
     status_list = [Result.passed, Result.unknown]
-    assert aggregate_result(status_list) == Result.passed
+    assert aggregate_result(status_list) == Result.unknown
 
     status_list = [Result.passed, Result.skipped]
     assert aggregate_result(status_list) == Result.passed
