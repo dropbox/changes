@@ -32,9 +32,21 @@ def _aggregate_constant(item_list, priority_list, default):
     return value
 
 
+def _aggregate_constant_result(item_list, priority_list, default):
+    value = default
+    priority = sys.maxint
+    for item_value in item_list:
+        idx = priority_list.index(item_value)
+        if idx < priority:
+            value = item_value
+            priority = idx
+
+    return value
+
+
 def aggregate_status(status_list):
     return _aggregate_constant(status_list, STATUS_PRIORITY, Status.unknown)
 
 
 def aggregate_result(result_list):
-    return _aggregate_constant(result_list, RESULT_PRIORITY, Result.unknown)
+    return _aggregate_constant_result(result_list, RESULT_PRIORITY, Result.unknown)

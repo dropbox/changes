@@ -91,6 +91,7 @@ RESULT_LABELS = {
 RESULT_PRIORITY = (
     Result.aborted,
     Result.failed,
+    Result.unknown,
     Result.passed,
     Result.skipped,
 )
