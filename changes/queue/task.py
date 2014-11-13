@@ -15,7 +15,7 @@ from changes.utils.locking import lock
 
 
 BASE_RETRY_COUNTDOWN = 60
-CONTINUE_COUNTDOWN = 5
+CONTINUE_COUNTDOWN = 30
 
 RUN_TIMEOUT = timedelta(minutes=60)
 EXPIRE_TIMEOUT = timedelta(minutes=120)
