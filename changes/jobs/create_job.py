@@ -3,7 +3,7 @@ from flask import current_app
 from changes.backends.base import UnrecoverableException
 from changes.config import db
 from changes.constants import Status, Result
-from changes.experimental.stats import decr, incr
+from changes.experimental.stats import RCount
 from changes.jobs.sync_job import sync_job
 from changes.models import Job, JobPlan, ProjectStatus
 from changes.queue.task import tracked_task
@@ -20,47 +20,46 @@ def abort_create(task):
 
 @tracked_task(on_abort=abort_create, max_retries=10)
 def create_job(job_id):
-    incr('create_job')
-    job = Job.query.get(job_id)
-    if not job:
-        return
+    with RCount('create_job'):
+        job = Job.query.get(job_id)
+        if not job:
+            return
 
-    if job.project.status == ProjectStatus.inactive:
-        current_app.logger.warn('Project is not active: %s', job.project.slug)
-        job.status = Status.finished
-        job.result = Result.failed
-        db.session.add(job)
-        db.session.flush()
-        return
+        if job.project.status == ProjectStatus.inactive:
+            current_app.logger.warn('Project is not active: %s', job.project.slug)
+            job.status = Status.finished
+            job.result = Result.failed
+            db.session.add(job)
+            db.session.flush()
+            return
 
-    # we might already be marked as finished for various reasons
-    # (such as aborting the task)
-    if job.status == Status.finished:
-        return
+        # we might already be marked as finished for various reasons
+        # (such as aborting the task)
+        if job.status == Status.finished:
+            return
 
-    jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
-    if implementation is None:
-        # TODO(dcramer): record a FailureReason?
-        job.status = Status.finished
-        job.result = Result.failed
-        db.session.add(job)
-        db.session.flush()
-        current_app.logger.exception('No build plan set %s', job_id)
-        return
+        jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
+        if implementation is None:
+            # TODO(dcramer): record a FailureReason?
+            job.status = Status.finished
+            job.result = Result.failed
+            db.session.add(job)
+            db.session.flush()
+            current_app.logger.exception('No build plan set %s', job_id)
+            return
 
-    try:
-        implementation.execute(job=job)
-    except UnrecoverableException:
-        job.status = Status.finished
-        job.result = Result.aborted
-        db.session.add(job)
-        db.session.flush()
-        current_app.logger.exception('Unrecoverable exception creating %s', job_id)
-        return
+        try:
+            implementation.execute(job=job)
+        except UnrecoverableException:
+            job.status = Status.finished
+            job.result = Result.aborted
+            db.session.add(job)
+            db.session.flush()
+            current_app.logger.exception('Unrecoverable exception creating %s', job_id)
+            return
 
-    sync_job.delay(
-        job_id=job.id.hex,
-        task_id=job.id.hex,
-        parent_task_id=job.build_id.hex,
-    )
-    decr('create_job')
+        sync_job.delay(
+            job_id=job.id.hex,
+            task_id=job.id.hex,
+            parent_task_id=job.build_id.hex,
+        )

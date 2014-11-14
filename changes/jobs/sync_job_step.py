@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 from changes.constants import Status, Result
 from changes.config import db
 from changes.db.utils import try_create
-from changes.experimental.stats import incr, decr
+from changes.experimental.stats import RCount
 from changes.models import (
     ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
     FileCoverage, FailureReason
@@ -123,95 +123,91 @@ def record_coverage_stats(step):
 
 @tracked_task(on_abort=abort_step, max_retries=100)
 def sync_job_step(step_id):
-    incr('sync_job_step')
-    step = JobStep.query.get(step_id)
-    if not step:
-        decr('sync_job_step')
-        return
+    with RCount('sync_job_step'):
+        step = JobStep.query.get(step_id)
+        if not step:
+            return
 
-    jobplan, implementation = JobPlan.get_build_step_for_job(job_id=step.job_id)
+        jobplan, implementation = JobPlan.get_build_step_for_job(job_id=step.job_id)
 
-    # only synchronize if upstream hasn't suggested we're finished
-    if step.status != Status.finished:
-        implementation.update_step(step=step)
+        # only synchronize if upstream hasn't suggested we're finished
+        if step.status != Status.finished:
+            implementation.update_step(step=step)
 
-    db.session.flush()
+        db.session.flush()
 
-    if step.status != Status.finished:
-        is_finished = False
-    else:
-        is_finished = sync_job_step.verify_all_children() == Status.finished
+        if step.status != Status.finished:
+            is_finished = False
+        else:
+            is_finished = sync_job_step.verify_all_children() == Status.finished
 
-    if not is_finished:
-        if has_timed_out(step, jobplan):
-            implementation.cancel_step(step=step)
+        if not is_finished:
+            if has_timed_out(step, jobplan):
+                implementation.cancel_step(step=step)
 
+                step.result = Result.failed
+                db.session.add(step)
+
+                job = step.job
+                try_create(FailureReason, {
+                    'step_id': step.id,
+                    'job_id': job.id,
+                    'build_id': job.build_id,
+                    'project_id': job.project_id,
+                    'reason': 'timeout'
+                })
+
+                db.session.flush()
+            raise sync_job_step.NotFinished
+
+        # ignore any 'failures' if its aborted
+        if step.result == Result.aborted:
+            return
+
+        try:
+            record_coverage_stats(step)
+        except Exception:
+            current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
+
+        missing_tests = is_missing_tests(step, jobplan)
+
+        try_create(ItemStat, where={
+            'item_id': step.id,
+            'name': 'tests_missing',
+        }, defaults={
+            'value': int(missing_tests)
+        })
+
+        if step.result == Result.passed and missing_tests:
             step.result = Result.failed
             db.session.add(step)
 
-            job = step.job
+        if missing_tests:
+            if step.result != Result.failed:
+                step.result = Result.failed
+                db.session.add(step)
+
             try_create(FailureReason, {
                 'step_id': step.id,
-                'job_id': job.id,
-                'build_id': job.build_id,
-                'project_id': job.project_id,
-                'reason': 'timeout'
+                'job_id': step.job_id,
+                'build_id': step.job.build_id,
+                'project_id': step.project_id,
+                'reason': 'missing_tests'
             })
+            db.session.commit()
 
-            db.session.flush()
-        decr('sync_job_step')
-        raise sync_job_step.NotFinished
+        db.session.flush()
 
-    # ignore any 'failures' if its aborted
-    if step.result == Result.aborted:
-        decr('sync_job_step')
-        return
+        if has_test_failures(step):
+            if step.result != Result.failed:
+                step.result = Result.failed
+                db.session.add(step)
 
-    try:
-        record_coverage_stats(step)
-    except Exception:
-        current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
-
-    missing_tests = is_missing_tests(step, jobplan)
-
-    try_create(ItemStat, where={
-        'item_id': step.id,
-        'name': 'tests_missing',
-    }, defaults={
-        'value': int(missing_tests)
-    })
-
-    if step.result == Result.passed and missing_tests:
-        step.result = Result.failed
-        db.session.add(step)
-
-    if missing_tests:
-        if step.result != Result.failed:
-            step.result = Result.failed
-            db.session.add(step)
-
-        try_create(FailureReason, {
-            'step_id': step.id,
-            'job_id': step.job_id,
-            'build_id': step.job.build_id,
-            'project_id': step.project_id,
-            'reason': 'missing_tests'
-        })
-        db.session.commit()
-
-    db.session.flush()
-
-    if has_test_failures(step):
-        if step.result != Result.failed:
-            step.result = Result.failed
-            db.session.add(step)
-
-        try_create(FailureReason, {
-            'step_id': step.id,
-            'job_id': step.job_id,
-            'build_id': step.job.build_id,
-            'project_id': step.project_id,
-            'reason': 'test_failures'
-        })
-        db.session.commit()
-    decr('sync_job_step')
+            try_create(FailureReason, {
+                'step_id': step.id,
+                'job_id': step.job_id,
+                'build_id': step.job.build_id,
+                'project_id': step.project_id,
+                'reason': 'test_failures'
+            })
+            db.session.commit()
