@@ -80,7 +80,7 @@ class JenkinsBuilder(BaseBackend):
         if self.token is not None:
             params.setdefault('token', self.token)
 
-        self.logger.warn('Fetching %r', url)
+        self.logger.error('Fetching %r', url)
         resp = getattr(requests, method.lower())(url, params=params, **kwargs)
         print url, params
 
