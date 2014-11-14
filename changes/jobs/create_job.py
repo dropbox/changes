@@ -3,6 +3,7 @@ from flask import current_app
 from changes.backends.base import UnrecoverableException
 from changes.config import db
 from changes.constants import Status, Result
+from changes.experimental.stats import decr, incr
 from changes.jobs.sync_job import sync_job
 from changes.models import Job, JobPlan, ProjectStatus
 from changes.queue.task import tracked_task
@@ -19,6 +20,7 @@ def abort_create(task):
 
 @tracked_task(on_abort=abort_create, max_retries=10)
 def create_job(job_id):
+    incr('create_job')
     job = Job.query.get(job_id)
     if not job:
         return
@@ -61,3 +63,4 @@ def create_job(job_id):
         task_id=job.id.hex,
         parent_task_id=job.build_id.hex,
     )
+    decr('create_job')

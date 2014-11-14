@@ -5,6 +5,7 @@ from sqlalchemy.sql import func
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import try_create
+from changes.experimental.stats import decr, incr
 from changes.jobs.signals import fire_signal
 from changes.models import Build, ItemStat, Job
 from changes.utils.agg import aggregate_result, aggregate_status, safe_agg
@@ -51,6 +52,7 @@ def sync_build(build_id):
     - Aborting/retrying them if they're beyond limits
     - Aggregating the results from jobs into the build itself
     """
+    incr('sync_build')
     build = Build.query.get(build_id)
     if not build:
         return
@@ -124,3 +126,4 @@ def sync_build(build_id):
     queue.delay('update_project_stats', kwargs={
         'project_id': build.project_id.hex,
     }, countdown=1)
+    decr('sync_build')

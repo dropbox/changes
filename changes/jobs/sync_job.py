@@ -8,6 +8,7 @@ from changes.backends.base import UnrecoverableException
 from changes.config import db, queue
 from changes.constants import Status, Result
 from changes.db.utils import try_create
+from changes.experimental.stats import incr, decr
 from changes.jobs.signals import fire_signal
 from changes.models import ItemStat, Job, JobPhase, JobPlan, JobStep, TestCase
 from changes.queue.task import tracked_task
@@ -84,6 +85,7 @@ def abort_job(task):
 
 @tracked_task(on_abort=abort_job)
 def sync_job(job_id):
+    incr('sync_job')
     job = Job.query.get(job_id)
     if not job:
         return
@@ -178,3 +180,4 @@ def sync_job(job_id):
             'project_id': job.project_id.hex,
             'plan_id': jobplan.plan_id.hex,
         }, countdown=1)
+    decr('sync_job')

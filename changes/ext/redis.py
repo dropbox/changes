@@ -62,5 +62,11 @@ class _Redis(object):
             except Exception as e:
                 self.logger.exception(e)
 
+    def incr(self, key):
+        self.redis.incr(key)
+
+    def decr(self, key):
+        self.redis.decr(key)
+
 
 Redis = lambda **o: Container(_Redis, o, name='redis')

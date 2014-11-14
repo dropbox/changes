@@ -3,12 +3,14 @@ from flask import current_app
 from changes.artifacts import manager
 from changes.backends.base import UnrecoverableException
 from changes.constants import Result
+from changes.experimental.stats import decr, incr
 from changes.models import Artifact, JobPlan
 from changes.queue.task import tracked_task
 
 
 @tracked_task
 def sync_artifact(artifact_id=None, **kwargs):
+    incr('sync_artifact')
     artifact = Artifact.query.get(artifact_id)
     if artifact is None:
         return
@@ -32,3 +34,4 @@ def sync_artifact(artifact_id=None, **kwargs):
             current_app.logger.exception(
                 'Unrecoverable exception fetching artifact %s: %s',
                 artifact.step_id, artifact)
+    decr('sync_artifact')

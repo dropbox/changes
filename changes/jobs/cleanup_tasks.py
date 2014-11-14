@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from changes.config import queue
 from changes.constants import Status
+from changes.experimental.stats import incr, decr
 from changes.models import Task
 from changes.queue.task import TrackedTask, tracked_task
 
@@ -12,6 +13,7 @@ CHECK_TIME = timedelta(minutes=60)
 
 @tracked_task
 def cleanup_tasks():
+    incr('cleanup_tasks')
     """
     Find any tasks which haven't checked in within a reasonable time period and
     requeue them if necessary.
@@ -31,3 +33,4 @@ def cleanup_tasks():
             parent_task_id=task.parent_id.hex if task.parent_id else None,
             **task.data['kwargs']
         )
+    decr('cleanup_tasks')

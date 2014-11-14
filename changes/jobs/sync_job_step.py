@@ -8,6 +8,7 @@ from sqlalchemy.sql import func
 from changes.constants import Status, Result
 from changes.config import db
 from changes.db.utils import try_create
+from changes.experimental.stats import incr, decr
 from changes.models import (
     ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
     FileCoverage, FailureReason
@@ -122,6 +123,7 @@ def record_coverage_stats(step):
 
 @tracked_task(on_abort=abort_step, max_retries=100)
 def sync_job_step(step_id):
+    incr('sync_job_step')
     step = JobStep.query.get(step_id)
     if not step:
         return
@@ -209,3 +211,4 @@ def sync_job_step(step_id):
             'reason': 'test_failures'
         })
         db.session.commit()
+    decr('sync_job_step')

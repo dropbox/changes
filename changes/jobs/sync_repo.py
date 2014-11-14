@@ -5,6 +5,7 @@ import logging
 from datetime import datetime
 
 from changes.config import db
+from changes.experimental.stats import incr, decr
 from changes.jobs.signals import fire_signal
 from changes.models import Repository, RepositoryStatus
 from changes.queue.task import tracked_task
@@ -14,6 +15,7 @@ logger = logging.getLogger('repo.sync')
 
 @tracked_task(max_retries=None)
 def sync_repo(repo_id, continuous=True):
+    incr('sync_repo')
     repo = Repository.query.get(repo_id)
     if not repo:
         logger.error('Repository %s not found', repo_id)
@@ -72,3 +74,4 @@ def sync_repo(repo_id, continuous=True):
 
     if continuous:
         raise sync_repo.NotFinished
+    decr('sync_repo')

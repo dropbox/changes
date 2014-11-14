@@ -5,6 +5,7 @@ import logging
 from datetime import datetime
 
 from changes.config import db
+from changes.experimental.stats import incr, decr
 from changes.models import Repository, RepositoryStatus
 from changes.queue.task import tracked_task
 
@@ -13,6 +14,7 @@ logger = logging.getLogger('repo.sync')
 
 @tracked_task(max_retries=None)
 def import_repo(repo_id, parent=None):
+    incr('import_repo')
     repo = Repository.query.get(repo_id)
     if not repo:
         logger.error('Repository %s not found', repo_id)
@@ -58,3 +60,4 @@ def import_repo(repo_id, parent=None):
             task_id=repo.id.hex,
             parent=parent,
         )
+    decr('import_repo')
