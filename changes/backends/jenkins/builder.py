@@ -80,8 +80,9 @@ class JenkinsBuilder(BaseBackend):
         if self.token is not None:
             params.setdefault('token', self.token)
 
-        self.logger.info('Fetching %r', url)
+        self.logger.warn('Fetching %r', url)
         resp = getattr(requests, method.lower())(url, params=params, **kwargs)
+        print url, params
 
         if resp.status_code == 404:
             raise NotFound
