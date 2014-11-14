@@ -126,6 +126,7 @@ def sync_job_step(step_id):
     incr('sync_job_step')
     step = JobStep.query.get(step_id)
     if not step:
+        decr('sync_job_step')
         return
 
     jobplan, implementation = JobPlan.get_build_step_for_job(job_id=step.job_id)
@@ -158,10 +159,12 @@ def sync_job_step(step_id):
             })
 
             db.session.flush()
+        decr('sync_job_step')
         raise sync_job_step.NotFinished
 
     # ignore any 'failures' if its aborted
     if step.result == Result.aborted:
+        decr('sync_job_step')
         return
 
     try:
