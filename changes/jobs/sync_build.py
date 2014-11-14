@@ -55,9 +55,11 @@ def sync_build(build_id):
     incr('sync_build')
     build = Build.query.get(build_id)
     if not build:
+        decr('sync_build')
         return
 
     if build.status == Status.finished:
+        decr('sync_build')
         return
 
     all_jobs = list(Job.query.filter(
@@ -103,6 +105,7 @@ def sync_build(build_id):
         db.session.commit()
 
     if not is_finished:
+        decr('sync_build')
         raise sync_build.NotFinished
 
     try:
