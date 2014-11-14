@@ -1,6 +1,6 @@
 from changes.config import redis
 
-PREFIX = 'changes:stats:'
+PREFIX = 'CHANGES:STATS:'
 
 
 def incr(key):
