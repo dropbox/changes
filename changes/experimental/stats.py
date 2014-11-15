@@ -4,11 +4,13 @@ PREFIX = 'CHANGES:STATS:v1:'
 
 
 def incr(key):
-    redis.incr(PREFIX + key)
+    if redis.app:
+        redis.incr(PREFIX + key)
 
 
 def decr(key):
-    redis.decr(PREFIX + key)
+    if redis.app:
+        redis.decr(PREFIX + key)
 
 
 class RCount(object):
