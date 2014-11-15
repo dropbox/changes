@@ -10,7 +10,6 @@ from uuid import uuid4
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
-from changes.experimental.stats import incr, decr
 from changes.models import Task
 from changes.utils.locking import lock
 
@@ -56,7 +55,6 @@ class TrackedTask(local):
     NotFinished = NotFinished
 
     def __init__(self, func, max_retries=MAX_RETRIES, on_abort=None):
-        incr('task_construct')
         self.func = lock(func)
         self.task_name = func.__name__
         self.parent_id = None
@@ -73,12 +71,8 @@ class TrackedTask(local):
         self.__code__ = getattr(func, '__code__', None)
 
     def __call__(self, **kwargs):
-        incr('task_lock_wait')
         with self.lock:
-            decr('task_lock_wait')
-            incr('task_run')
             self._run(kwargs)
-            decr('task_run')
 
     def __repr__(self):
         return '<%s: task_name=%s>' % (type(self), self.task_name)
