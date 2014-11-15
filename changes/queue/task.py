@@ -57,6 +57,7 @@ class TrackedTask(local):
 
     def __init__(self, func, max_retries=MAX_RETRIES, on_abort=None):
         incr('task_construct')
+        incr('untracked_task')
         self.func = lock(func)
         self.task_name = func.__name__
         self.parent_id = None
@@ -123,12 +124,14 @@ class TrackedTask(local):
                     Task.result: Result.failed,
                 })
                 self.logger.exception(unicode(exc))
-                decr('task_construct')
 
                 if self.on_abort:
                     self.on_abort(self)
+                decr('task_construct')
             except Exception as exc:
                 self.logger.exception(unicode(exc))
+                decr('task_construct')
+                incr('task_run_exn')
                 raise
 
         else:
@@ -296,6 +299,9 @@ class TrackedTask(local):
             'status': Status.queued,
         })
 
+        if created:
+            decr('untracked_task')
+
         if created or self.needs_requeued(task):
             if not created:
                 task.date_modified = datetime.utcnow()
@@ -339,6 +345,8 @@ class TrackedTask(local):
         if not created:
             task.date_modified = datetime.utcnow()
             db.session.add(task)
+        else:
+            decr('untracked_task')
 
         db.session.commit()
 
