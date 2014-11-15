@@ -63,19 +63,10 @@ class _Redis(object):
                 self.logger.exception(e)
 
     def incr(self, key):
-        return self.redis.incr(key)
+        self.redis.incr(key)
 
     def decr(self, key):
-        return self.redis.decr(key)
-
-    def get(self, key):
-        return self.redis.get(key)
-
-    def set(self, key, value):
-        return self.redis.set(key, value)
-
-    def delete(self, key):
-        return self.redis.delete(key)
+        self.redis.decr(key)
 
 
 Redis = lambda **o: Container(_Redis, o, name='redis')
