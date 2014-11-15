@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+import time
 
 from datetime import datetime, timedelta
 from functools import wraps
@@ -10,7 +11,7 @@ from uuid import uuid4
 from changes.config import db, queue
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
-from changes.experimental.stats import incr, decr
+from changes.experimental.stats import incr, decr, exp_task_delete, exp_task_put, stats_get, stats_counter_get
 from changes.models import Task
 from changes.utils.locking import lock
 
@@ -57,7 +58,7 @@ class TrackedTask(local):
 
     def __init__(self, func, max_retries=MAX_RETRIES, on_abort=None):
         incr('task_construct')
-        incr('untracked_task')
+        incr('untracked_task_v1')
         self.func = lock(func)
         self.task_name = func.__name__
         self.parent_id = None
@@ -72,19 +73,49 @@ class TrackedTask(local):
         self.__doc__ = func.__doc__
         self.__wraps__ = getattr(func, '__wraps__', func)
         self.__code__ = getattr(func, '__code__', None)
+        self.tracking_id = 0
 
     def __call__(self, **kwargs):
-        incr('task_lock_wait')
         with self.lock:
-            decr('task_lock_wait')
-            incr('task_run')
             self._run(kwargs)
-            decr('task_run')
 
     def __repr__(self):
         return '<%s: task_name=%s>' % (type(self), self.task_name)
 
+    def get_tracker(self):
+        if not self.tracking_id:
+            cur_time = time.time()
+            self.tracking_id = str(uuid4().hex) + ':' + str(cur_time)
+
+        return self.tracking_id
+
+    def _notify_presence(self, kwargs):
+        try:
+            t_id = self.get_tracker()
+            if not stats_get(t_id):
+                incr('untracked_v2')
+                sz = incr('dict_size')
+                if len(str(sz)) >= 3:
+                    return
+                payload = str(self.task_name) + ':' + str(kwargs)
+                exp_task_put(t_id, payload)
+        except Exception:
+            self.logger.exception("Failed to notify presence")
+
+    def _notify_db_create(self):
+        try:
+            decr('untracked_v2')
+            sz = stats_counter_get('dict_size')
+            if len(str(sz)) >= 3:
+                return
+            t_id = self.get_tracker()
+            exp_task_delete(t_id)
+            decr('dict_size')
+        except Exception:
+            self.logger.exception("Failed to notify db")
+
     def _run(self, kwargs):
+        self._notify_presence(kwargs)
         self.task_id = kwargs.pop('task_id', None)
         if self.task_id is None:
             self.task_id = uuid4().hex
@@ -300,7 +331,8 @@ class TrackedTask(local):
         })
 
         if created:
-            decr('untracked_task')
+            self._notify_db_create()
+            decr('untracked_task_v1')
 
         if created or self.needs_requeued(task):
             if not created:
@@ -346,7 +378,8 @@ class TrackedTask(local):
             task.date_modified = datetime.utcnow()
             db.session.add(task)
         else:
-            decr('untracked_task')
+            self._notify_db_create()
+            decr('untracked_task_v1')
 
         db.session.commit()
 
