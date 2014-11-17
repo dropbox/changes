@@ -106,7 +106,7 @@ class MercurialVcs(Vcs):
         # Build the -r parameter value into r_str with branch, parent and author
         r_str = None
         if branch:
-            r_str = ('branch({1}) or ancestors({1})'.format(r_str, branch))
+            r_str = ('branch({0}) or ancestors({0})'.format(branch))
         if parent:
             r_str = ('ancestors(%s)' % parent)
         if author:
