@@ -137,14 +137,12 @@ class MercurialVcsTest(TestCase, VcsAsserts):
                             branches=[vcs.get_default_revision()])
 
         # Ensure git log with B3 only
+        # XXX: in mercurial it *does not* show ancestor commits
         revisions = list(vcs.log(branch='B3'))
-        assert len(revisions) == 3
+        assert len(revisions) == 1
         self.assertRevision(revisions[0],
                             message='3rd branch',
                             branches=['B3'])
-        self.assertRevision(revisions[2],
-                            message='test',
-                            branches=[vcs.get_default_revision()])
 
         # Sanity check master
         check_call('cd %s && hg update %s' % (
