@@ -9,21 +9,23 @@ from changes.models import Task
 from changes.queue.task import TrackedTask, tracked_task
 
 CHECK_TIME = timedelta(minutes=60)
+EXPIRE_TIME = timedelta(days=7)
 
 
 @tracked_task
 def cleanup_tasks():
+    """
+    Find any tasks which haven't checked in within a reasonable time period and
+    requeue them if necessary.
+
+    Additionally remove any old Task entries which are completed.
+    """
     with RCount('cleanup_tasks'):
-        """
-        Find any tasks which haven't checked in within a reasonable time period and
-        requeue them if necessary.
-        """
         now = datetime.utcnow()
-        cutoff = now - CHECK_TIME
 
         pending_tasks = Task.query.filter(
             Task.status != Status.finished,
-            Task.date_modified < cutoff,
+            Task.date_modified < now - CHECK_TIME,
         )
 
         for task in pending_tasks:
@@ -34,3 +36,8 @@ def cleanup_tasks():
                 parent_task_id=task.parent_id.hex if task.parent_id else None,
                 **task.data['kwargs']
             )
+
+        Task.query.filter(
+            Task.status == Status.finished,
+            Task.date_modified < now - EXPIRE_TIME,
+        ).delete()
