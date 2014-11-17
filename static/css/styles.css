@@ -500,6 +500,7 @@ input, select, textarea {
   content: "";
 }
 .page-header .crumb .indicator {
+  line-height: 46px;
   padding: 0 10px;
 }
 .page-header .indicator {
