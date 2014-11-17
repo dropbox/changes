@@ -46,7 +46,7 @@ class MailNotificationHandler(NotificationHandler):
             revision = build.source.revision
             branches = revision.branches
             if branches:
-                branch_str = '/(%s)' % ','.join(branches)
+                branch_str = ' (%s)' % ','.join(branches)
 
         subject = u"{target} {result} - {project}{branches} {name} #{number}".format(
             name=build.label,

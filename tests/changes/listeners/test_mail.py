@@ -160,7 +160,7 @@ class SendTestCase(TestCase):
         project = self.create_project(name='test', slug='test')
         repo = project.repository
         branches = ['master', 'branch1']
-        branch_str = '/(%s)' % ','.join(branches)
+        branch_str = ' (%s)' % ','.join(branches)
         revision = self.create_revision(repository=repo, branches=branches)
         source = self.create_source(
             project=project,
