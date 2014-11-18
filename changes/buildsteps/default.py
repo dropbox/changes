@@ -30,7 +30,9 @@ DEFAULT_PATH = './source/'
 # for now we're only stuffing it into JobStep.data
 DEFAULT_RELEASE = 'precise'
 
-DEFAULT_ENV = {}
+DEFAULT_ENV = {
+    'CHANGES': '1',
+}
 
 
 class DefaultBuildStep(BuildStep):
