@@ -1,6 +1,6 @@
 requirejs.config({
   paths: {
-    'ace': '../vendor/ace-builds/src-min-noconflict',
+    'ace': '../vendor/ace-builds/src-min-noconflict/ace',
     'angular': '../vendor/angular/angular.min',
     'angularAce': '../vendor/angular-ui-ace/ui-ace',
     'angularAnimate': '../vendor/angular-animate/angular-animate.min',
@@ -28,7 +28,7 @@ requirejs.config({
         deps: ['jquery']
     },
     'angularAce': {
-        deps: ['ace/ace', 'ace/mode-json', 'ace/worker-json', 'angular'],
+        deps: ['ace', 'angular'],
     },
     'angularAnimate': ['angular'],
     'angularBootstrap': ['angular'],
