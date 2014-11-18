@@ -23,7 +23,12 @@ def sync_artifact(artifact_id=None, **kwargs):
         # TODO(dcramer): we eventually want to abstract the entirety of Jenkins
         # artifact syncing so that we pull files and then process them
         if artifact.file:
-            manager.process(artifact)
+            try:
+                manager.process(artifact)
+            except Exception:
+                current_app.logger.exception(
+                    'Unrecoverable exception processing artifact %s: %s',
+                    artifact.step_id, artifact)
         else:
             jobplan, implementation = JobPlan.get_build_step_for_job(job_id=step.job_id)
 
