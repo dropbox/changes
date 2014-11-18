@@ -22,7 +22,7 @@
   "author": "Dropbox, Inc.",
   "license": "Apache 2.0",
   "readmeFilename": "README.rst",
-  "devDependencies": {
+  "dependencies": {
     "bower": "~1.3.7",
     "chai": "~1.9.1",
     "grunt": "~0.4.2",
