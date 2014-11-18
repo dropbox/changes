@@ -16,12 +16,13 @@ requirejs.config({
   paths: {
     'chai': '../../node_modules/chai/chai',
     'angularMocks': '../vendor/angular-mocks/angular-mocks',
+    'lolex': '../../node_modules/lolex/lolex',
     'sinon': '../../node_modules/sinon/lib/sinon'
   },
 
   shim: {
     'angularMocks': ['angular'],
-    'sinon': {exports: 'sinon'}
+    'sinon': {exports: 'sinon', deps: ['lolex']}
   }
 });
 
