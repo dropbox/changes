@@ -140,6 +140,10 @@ class CoverageHandler(ArtifactHandler):
         results = []
         for node in root.iter('class'):
             filename = node.get('filename')
+            if not filename:
+                self.logger.warn('Coverage node has no filename: %s', node)
+                continue
+
             file_coverage = []
             for lineset in node.iterchildren('lines'):
                 lineno = 0
