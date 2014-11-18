@@ -82,6 +82,10 @@ Bootstrap your environment:
     # install basic dependencies (npm, bower, python)
     $ make develop
 
+    # if not launched automatically, manually start the needed servers
+    $ postgres -D /usr/local/var/postgres &
+    $ redis-server /usr/local/etc/redis.conf &
+
     # perform any data migrations
     $ make upgrade
 
