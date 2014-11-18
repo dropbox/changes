@@ -107,18 +107,6 @@ define(['app'], function(app) {
           $scope.planSettingsForm.$setPristine();
       };
 
-      $scope.aceLoaded = function(editor){
-        var session = editor.getSession();
-        var renderer = editor.renderer;
-
-        session.setMode("ace/mode/json");
-        session.setTabSize(2);
-        session.setUseSoftTabs(true);
-
-        renderer.setShowGutter(false);
-        renderer.setShowPrintMargin(false);
-      };
-
       $scope.plan = planData;
       $scope.projectList = new Collection(planData.projects);
       $scope.stepList = new Collection(planData.steps);
