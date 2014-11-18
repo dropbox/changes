@@ -6,7 +6,7 @@ from urlparse import urlparse
 from changes.utils.cache import memoize
 from changes.utils.http import build_uri
 
-from .base import Vcs, RevisionResult, BufferParser, CommandError
+from .base import Vcs, RevisionResult, BufferParser, CommandError, UnknownRevision
 
 LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
 
@@ -116,7 +116,17 @@ class GitVcs(Vcs):
 
     def run(self, cmd, **kwargs):
         cmd = [self.binary_path] + cmd
-        return super(GitVcs, self).run(cmd, **kwargs)
+        try:
+            return super(GitVcs, self).run(cmd, **kwargs)
+        except CommandError as e:
+            if 'unknown revision or path' in e.stderr:
+                raise UnknownRevision(
+                    cmd=e.cmd,
+                    retcode=e.retcode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                )
+            raise
 
     def clone(self):
         self.run(['clone', '--mirror', self.remote_url, self.path])

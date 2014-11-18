@@ -25,6 +25,10 @@ class CommandError(Exception):
         return self.__unicode__().encode('utf-8')
 
 
+class UnknownRevision(CommandError):
+    pass
+
+
 class BufferParser(object):
     def __init__(self, fp, delim):
         self.fp = fp
