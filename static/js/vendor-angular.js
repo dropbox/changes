@@ -1,5 +1,6 @@
 define([
   'angular',
+  'angularAce',
   'angularAnimate',
   'angularBootstrap',
   'angularHighlightjs',

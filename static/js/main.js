@@ -1,14 +1,16 @@
 requirejs.config({
   paths: {
+    'ace': '../vendor/ace-builds/src-min-noconflict/ace',
     'angular': '../vendor/angular/angular.min',
+    'angularAce': '../vendor/angular-ui-ace/ui-ace',
     'angularAnimate': '../vendor/angular-animate/angular-animate.min',
     'angularBootstrap': '../vendor/angular-bootstrap/ui-bootstrap-tpls',
     'angularHighlightjs': '../vendor/angular-highlightjs/angular-highlightjs',
     'angularLinkify': '../vendor/angular-linkify/angular-linkify.min',
+    'angularLoadingBar': '../vendor/angular-loading-bar/build/loading-bar.min',
     'angularRaven': '../vendor/angular-raven/angular-raven',
     'angularRoute': '../vendor/angular-route/angular-route.min',
     'angularSanitize': '../vendor/angular-sanitize/angular-sanitize.min',
-    'angularLoadingBar': '../vendor/angular-loading-bar/build/loading-bar.min',
     'angularUIRouter': '../vendor/angular-ui-router/release/angular-ui-router.min',
     'bootstrap': '../vendor/bootstrap/js',
     'bloodhound': '../vendor/typeahead.js/dist/bloodhound.min',
@@ -24,6 +26,9 @@ requirejs.config({
     'angular': {
         exports: 'angular',
         deps: ['jquery']
+    },
+    'angularAce': {
+        deps: ['ace', 'angular'],
     },
     'angularAnimate': ['angular'],
     'angularBootstrap': ['angular'],

@@ -1,5 +1,6 @@
 define([
   'angular',
+  'angularAce',
   'angularAnimate',
   'angularBootstrap',
   'angularHighlightjs',
@@ -39,6 +40,7 @@ define([
       'ngRoute',
       'ngSanitize',
       'sly',
+      'ui.ace',
       'ui.bootstrap',
       'ui.router'
     ]);
