@@ -147,6 +147,9 @@ def sync_job(job_id):
             new_status = aggregate_status((j.status for j in all_phases))
             if new_status != Status.finished:
                 job.status = new_status
+            elif job.status == Status.finished:
+                job.status = Status.in_progress
+                current_app.logger.exception('Job incorrectly marked as finished: %s', job.id)
 
         if db.session.is_modified(job):
             job.date_modified = datetime.utcnow()
