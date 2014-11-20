@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  define(['app', 'jquery'], function(app, jQuery) {
+  define(['app'], function(app) {
     app.directive('buildCommentList', function($filter, $http, $timeout) {
       var Comment = function(data) {
         this.html = $filter('linkify')($filter('escape')(data.text));
