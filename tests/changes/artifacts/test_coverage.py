@@ -53,7 +53,7 @@ class CoverageHandlerTest(TestCase):
         assert type(r1) == FileCoverage
         assert r1.job_id == jobstep.job.id
         assert r1.project_id == jobstep.job.project_id
-        assert r1.filename == 'src/java/com/dropbox/apx/onyx/api/resource/stats/StatsResource.java'
+        assert r1.filename == 'src/main/java/com/dropbox/apx/onyx/api/resource/stats/StatsResource.java'
         assert r1.data == 'NNNNCCCCNNCCUU'
 
     @patch.object(CoverageHandler, 'get_coverage')
