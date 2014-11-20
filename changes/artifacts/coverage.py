@@ -132,16 +132,23 @@ class CoverageHandler(ArtifactHandler):
         - U: uncovered
         - C: covered
         """
+        root = etree.fromstring(fp.read())
+
+        if root.tag == 'coverage':
+            return self.get_cobertura_coverage(root)
+        elif root.tag == 'report':
+            return self.get_jacoco_coverage(root)
+        raise NotImplementedError('Unsupported coverage format')
+
+    def get_cobertura_coverage(self, root):
         step = self.step
         job = self.step.job
-
-        root = etree.fromstring(fp.read())
 
         results = []
         for node in root.iter('class'):
             filename = node.get('filename')
             if not filename:
-                self.logger.warn('Coverage node has no filename: %s', node)
+                self.logger.warn('Unable to determine filename for node: %s', node)
                 continue
 
             file_coverage = []
@@ -168,5 +175,45 @@ class CoverageHandler(ArtifactHandler):
             self.add_file_stats(result)
 
             results.append(result)
+
+        return results
+
+    def get_jacoco_coverage(self, root):
+        step = self.step
+        job = self.step.job
+
+        results = []
+        for package in root.iter('package'):
+            package_path = 'src/java/{}'.format(package.get('name'))
+            for sourcefile in package.iter('sourcefile'):
+                # node name resembles 'com/example/foo/bar/Resource'
+                filename = '{filepath}/{filename}'.format(
+                    filepath=package_path,
+                    filename=sourcefile.get('name'),
+                )
+
+                file_coverage = []
+                lineno = 0
+                for line in sourcefile.iterchildren('line'):
+                    number, hits = int(line.get('nr')), int(line.get('ci'))
+                    if lineno < number - 1:
+                        for lineno in range(lineno, number - 1):
+                            file_coverage.append('N')
+                    if hits > 0:
+                        file_coverage.append('C')
+                    else:
+                        file_coverage.append('U')
+                    lineno = number
+
+                result = FileCoverage(
+                    step_id=step.id,
+                    job_id=job.id,
+                    project_id=job.project_id,
+                    filename=filename,
+                    data=''.join(file_coverage),
+                )
+                self.add_file_stats(result)
+
+                results.append(result)
 
         return results

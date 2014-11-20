@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE report PUBLIC "-//JACOCO//DTD Report 1.0//EN" "report.dtd">
+<report name="apxbe">
+  <sessioninfo id="cf94e24aed9547d699c8c7f76534c79e-d7b8f3c3" start="1416444510516" dump="1416444575404" />
+  <package name="com/dropbox/apx/onyx/api/resource/stats">
+    <class name="com/dropbox/apx/onyx/api/resource/stats/StatsResource">
+      <method name="&lt;init&gt;" desc="(Lcom/dropbox/apx/onyx/recurring/JobManager;)V" line="35">
+        <counter type="INSTRUCTION" missed="0" covered="12" />
+        <counter type="LINE" missed="0" covered="4" />
+        <counter type="COMPLEXITY" missed="0" covered="1" />
+        <counter type="METHOD" missed="0" covered="1" />
+      </method>
+      <method name="makeStatsRequest" desc="(Ljava/lang/String;Ljava/lang/String;Lcom/dropbox/apx/onyx/api/auth/User;Lcom/dropbox/apx/topaz/Stats;Ljava/lang/Boolean;)Lcom/dropbox/apx/onyx/api/resource/TopazRequestCreatedResponse;" line="48">
+        <counter type="INSTRUCTION" missed="6" covered="31" />
+        <counter type="BRANCH" missed="0" covered="2" />
+        <counter type="LINE" missed="2" covered="4" />
+        <counter type="COMPLEXITY" missed="0" covered="2" />
+        <counter type="METHOD" missed="0" covered="1" />
+      </method>
+      <method name="getTopazResponse" desc="(Ljava/lang/String;Ljava/lang/String;Lcom/dropbox/apx/onyx/api/auth/User;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Integer;)Ljava/util/Map;" line="71">
+        <counter type="INSTRUCTION" missed="6" covered="63" />
+        <counter type="LINE" missed="2" covered="12" />
+        <counter type="COMPLEXITY" missed="0" covered="1" />
+        <counter type="METHOD" missed="0" covered="1" />
+      </method>
+      <method name="deleteStats" desc="(Ljava/lang/String;Ljava/lang/String;Lcom/dropbox/apx/onyx/api/auth/User;)Ljavax/ws/rs/core/Response;" line="105">
+        <counter type="INSTRUCTION" missed="0" covered="24" />
+        <counter type="LINE" missed="0" covered="8" />
+        <counter type="COMPLEXITY" missed="0" covered="1" />
+        <counter type="METHOD" missed="0" covered="1" />
+      </method>
+      <counter type="INSTRUCTION" missed="12" covered="130" />
+      <counter type="BRANCH" missed="0" covered="2" />
+      <counter type="LINE" missed="4" covered="28" />
+      <counter type="COMPLEXITY" missed="0" covered="5" />
+      <counter type="METHOD" missed="0" covered="4" />
+      <counter type="CLASS" missed="0" covered="1" />
+    </class>
+    <sourcefile name="StatsResource.java">
+      <line nr="5" mi="0" ci="2" mb="0" cb="0" />
+      <line nr="6" mi="0" ci="5" mb="0" cb="0" />
+      <line nr="7" mi="0" ci="4" mb="0" cb="0" />
+      <line nr="8" mi="0" ci="1" mb="0" cb="0" />
+      <line nr="11" mi="0" ci="8" mb="0" cb="2" />
+      <line nr="12" mi="0" ci="8" mb="0" cb="0" />
+      <line nr="13" mi="1" ci="0" mb="0" cb="0" />
+      <line nr="14" mi="5" ci="0" mb="0" cb="0" />
+      <counter type="INSTRUCTION" missed="12" covered="130" />
+      <counter type="BRANCH" missed="0" covered="2" />
+      <counter type="LINE" missed="4" covered="28" />
+      <counter type="COMPLEXITY" missed="0" covered="5" />
+      <counter type="METHOD" missed="0" covered="4" />
+      <counter type="CLASS" missed="0" covered="1" />
+    </sourcefile>
+    <counter type="INSTRUCTION" missed="12" covered="130" />
+    <counter type="BRANCH" missed="0" covered="2" />
+    <counter type="LINE" missed="4" covered="28" />
+    <counter type="COMPLEXITY" missed="0" covered="5" />
+    <counter type="METHOD" missed="0" covered="4" />
+    <counter type="CLASS" missed="0" covered="1" />
+  </package>
+  <package name="com/dropbox/apx/onyx/api">
+    <class name="com/dropbox/apx/onyx/api/OnyxService$5$1">
+      <method name="&lt;init&gt;" desc="(Lcom/dropbox/apx/onyx/api/OnyxService$5;)V" line="154">
+        <counter type="INSTRUCTION" missed="0" covered="6" />
+        <counter type="LINE" missed="0" covered="1" />
+        <counter type="COMPLEXITY" missed="0" covered="1" />
+        <counter type="METHOD" missed="0" covered="1" />
+      </method>
+      <method name="lifeCycleStopping" desc="(Lorg/eclipse/jetty/util/component/LifeCycle;)V" line="158">
+        <counter type="INSTRUCTION" missed="26" covered="23" />
+        <counter type="BRANCH" missed="1" covered="3" />
+        <counter type="LINE" missed="3" covered="7" />
+        <counter type="COMPLEXITY" missed="1" covered="2" />
+        <counter type="METHOD" missed="0" covered="1" />
+      </method>
+      <counter type="INSTRUCTION" missed="26" covered="29" />
+      <counter type="BRANCH" missed="1" covered="3" />
+      <counter type="LINE" missed="3" covered="8" />
+      <counter type="COMPLEXITY" missed="1" covered="3" />
+      <counter type="METHOD" missed="0" covered="2" />
+      <counter type="CLASS" missed="0" covered="1" />
+    </class>
+  </package>
+  <counter type="INSTRUCTION" missed="4096" covered="13897" />
+  <counter type="BRANCH" missed="444" covered="837" />
+  <counter type="LINE" missed="684" covered="2819" />
+  <counter type="COMPLEXITY" missed="601" covered="1140" />
+  <counter type="METHOD" missed="233" covered="865" />
+  <counter type="CLASS" missed="15" covered="171" />
+</report>
