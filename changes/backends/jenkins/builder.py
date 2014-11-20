@@ -57,7 +57,10 @@ class JenkinsBuilder(BaseBackend):
     def __init__(self, master_urls=None, job_name=None, token=None, auth=None,
                  sync_phase_artifacts=True, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
-        self.master_urls = master_urls or [self.app.config['JENKINS_URL']]
+        self.master_urls = master_urls
+
+        if not self.master_urls and self.app.config['JENKINS_URL']:
+            self.master_urls = [self.app.config['JENKINS_URL']]
 
         assert self.master_urls, 'No Jenkins masters specified'
 

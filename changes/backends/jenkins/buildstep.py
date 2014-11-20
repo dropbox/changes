@@ -22,7 +22,10 @@ class JenkinsBuildStep(BuildStep):
     def __init__(self, job_name=None, jenkins_url=None, token=None, auth=None):
         # we support a string or a list of strings for master server urls
         if not isinstance(jenkins_url, (list, tuple)):
-            jenkins_url = [jenkins_url]
+            if jenkins_url:
+                jenkins_url = [jenkins_url]
+            else:
+                jenkins_url = []
 
         self.job_name = job_name
         self.jenkins_urls = jenkins_url
