@@ -184,7 +184,7 @@ class CoverageHandler(ArtifactHandler):
 
         results = []
         for package in root.iter('package'):
-            package_path = 'src/java/{}'.format(package.get('name'))
+            package_path = 'src/main/java/{}'.format(package.get('name'))
             for sourcefile in package.iter('sourcefile'):
                 # node name resembles 'com/example/foo/bar/Resource'
                 filename = '{filepath}/{filename}'.format(
