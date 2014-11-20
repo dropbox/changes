@@ -14,6 +14,10 @@
         <div ng-include="'partials/includes/job-info.html'"></div>
     </div>
 
+    <div ng-if="build.result.id == 'aborted'" class="alert alert-warning alert-block">
+        <p>This build was aborted. You can retry it by selecting "Recreate Build" within the build actions menu.</p>
+    </div>
+
     <div ng-if="!isFinished && job.result.id != 'unknown'" class="alert alert-info alert-block">
         <p>Hold tight! This build is still in progress, but we're collecting results and reporting them as quickly as we get them.</p>
     </div>
