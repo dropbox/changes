@@ -2,8 +2,10 @@ from __future__ import absolute_import, division
 
 import json
 import logging
+import random
 import re
 import requests
+import sys
 import time
 
 from cStringIO import StringIO
@@ -52,10 +54,13 @@ class NotFound(Exception):
 class JenkinsBuilder(BaseBackend):
     provider = 'jenkins'
 
-    def __init__(self, base_url=None, job_name=None, token=None, auth=None,
+    def __init__(self, master_urls=None, job_name=None, token=None, auth=None,
                  sync_phase_artifacts=True, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
-        self.base_url = base_url or self.app.config['JENKINS_URL']
+        self.master_urls = master_urls or [self.app.config['JENKINS_URL']]
+
+        assert self.master_urls, 'No Jenkins masters specified'
+
         self.token = token or self.app.config['JENKINS_TOKEN']
         self.auth = auth or self.app.config['JENKINS_AUTH']
         self.logger = logging.getLogger('jenkins')
@@ -68,8 +73,8 @@ class JenkinsBuilder(BaseBackend):
         self.sync_file_artifacts = self.app.config.get('JENKINS_SYNC_FILE_ARTIFACTS', True)
         self.http_session = requests.Session()
 
-    def _get_raw_response(self, path, method='GET', params=None, **kwargs):
-        url = '{}/{}'.format(self.base_url, path.lstrip('/'))
+    def _get_raw_response(self, base_url, path, method='GET', params=None, **kwargs):
+        url = '{}/{}'.format(base_url, path.lstrip('/'))
 
         kwargs.setdefault('allow_redirects', False)
         kwargs.setdefault('timeout', 30)
@@ -91,10 +96,10 @@ class JenkinsBuilder(BaseBackend):
 
         return resp.text
 
-    def _get_json_response(self, path, *args, **kwargs):
+    def _get_json_response(self, base_url, path, *args, **kwargs):
         path = '{}/api/json/'.format(path.strip('/'))
 
-        data = self._get_raw_response(path, *args, **kwargs)
+        data = self._get_raw_response(base_url, path, *args, **kwargs)
         if not data:
             return
 
@@ -114,23 +119,16 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _create_job_step(self, phase, job_name=None, build_no=None,
-                         label=None, uri=None, **kwargs):
+    def _create_job_step(self, phase, data, **defaults):
         # TODO(dcramer): we make an assumption that the job step label is unique
         # but its not guaranteed to be the case. We can ignore this assumption
         # by guaranteeing that the JobStep.id value is used for builds instead
         # of the Job.id value.
-        defaults = {
-            'data': {
-                'job_name': job_name,
-                'build_no': build_no,
-                'uri': uri,
-            },
-        }
-        defaults.update(kwargs)
+        assert 'master' in data
+        assert 'job_name' in data
+        assert 'build_no' in data or 'item_id' in data
 
-        data = defaults['data']
-        if data['job_name'] and not label:
+        if not defaults.get('label'):
             label = '{0} #{1}'.format(data['job_name'], data['build_no'] or data['item_id'])
 
         assert label
@@ -140,13 +138,14 @@ class JenkinsBuilder(BaseBackend):
             'project': phase.project,
             'phase': phase,
             'label': label,
+            'data': data,
         }, defaults=defaults)
 
         return step
 
     def fetch_artifact(self, jobstep, artifact_data):
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url,
+            base=jobstep.data['master'],
             job=jobstep.data['job_name'],
             build=jobstep.data['build_no'],
             artifact=artifact_data['relativePath'],
@@ -212,7 +211,7 @@ class JenkinsBuilder(BaseBackend):
         })
 
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=self.base_url,
+            base=jobstep.data['master'],
             job=jobstep.data['job_name'],
             build=jobstep.data['build_no'],
             artifact=artifact.data['relativePath'],
@@ -251,7 +250,7 @@ class JenkinsBuilder(BaseBackend):
             offset = jobstep.data.get('log_offset', 0)
 
         url = '{base}/job/{job}/{build}/logText/progressiveText/'.format(
-            base=self.base_url,
+            base=jobstep.data['master'],
             job=job_name,
             build=build_no,
         )
@@ -331,7 +330,42 @@ class JenkinsBuilder(BaseBackend):
                 test_list.append(test_result)
         return test_list
 
-    def _find_job(self, job_name, job_id):
+    def _pick_master(self, job_name):
+        """
+        Identify a master to run the given job on.
+
+        The master with the lowest queue for the given job is chosen. By random
+        sorting the first empty queue will be prioritized.
+        """
+        if len(self.master_urls) == 1:
+            return self.master_urls[0]
+
+        master_urls = self.master_urls[:]
+        random.shuffle(master_urls)
+
+        best_match = (sys.maxint, None)
+        for url in master_urls:
+            queued_jobs = self._count_queued_jobs(url, job_name)
+
+            if queued_jobs == 0:
+                return url
+
+            if best_match[0] > queued_jobs:
+                best_match = (queued_jobs, url)
+
+        return best_match[1]
+
+    def _count_queued_jobs(self, base_url, job_name):
+        response = self._get_json_response(
+            base_url=base_url,
+            path='/queue/',
+        )
+        return sum((
+            1 for i in response['items']
+            if i['task']['name'] == job_name
+        ))
+
+    def _find_job(self, base_url, job_name, job_id):
         """
         Given a job identifier, we attempt to poll the various endpoints
         for a limited amount of time, trying to match up either a queued item
@@ -351,20 +385,24 @@ class JenkinsBuilder(BaseBackend):
         """
         # Check the queue first to ensure that we don't miss a transition
         # from queue -> active jobs
-        item = self._find_job_in_queue(job_name, job_id)
+        item = self._find_job_in_queue(base_url, job_name, job_id)
         if item:
             return item
-        return self._find_job_in_active(job_name, job_id)
+        return self._find_job_in_active(base_url, job_name, job_id)
 
-    def _find_job_in_queue(self, job_name, job_id):
+    def _find_job_in_queue(self, base_url, job_name, job_id):
         xpath = QUEUE_ID_XPATH.format(
             job_id=job_id,
         )
         try:
-            response = self._get_raw_response('/queue/api/xml/', params={
-                'xpath': xpath,
-                'wrapper': 'x',
-            })
+            response = self._get_raw_response(
+                base_url=base_url,
+                path='/queue/api/xml/',
+                params={
+                    'xpath': xpath,
+                    'wrapper': 'x',
+                },
+            )
         except NotFound:
             return
 
@@ -385,18 +423,20 @@ class JenkinsBuilder(BaseBackend):
             'uri': None,
         }
 
-    def _find_job_in_active(self, job_name, job_id):
+    def _find_job_in_active(self, base_url, job_name, job_id):
         xpath = BUILD_ID_XPATH.format(
             job_id=job_id,
         )
         try:
-            response = self._get_raw_response('/job/{job_name}/api/xml/'.format(
-                job_name=job_name,
-            ), params={
-                'depth': 1,
-                'xpath': xpath,
-                'wrapper': 'x',
-            })
+            response = self._get_raw_response(
+                base_url=base_url,
+                path='/job/{job_name}/api/xml/'.format(job_name=job_name),
+                params={
+                    'depth': 1,
+                    'xpath': xpath,
+                    'wrapper': 'x',
+                },
+            )
         except NotFound:
             return
 
@@ -416,15 +456,16 @@ class JenkinsBuilder(BaseBackend):
             'uri': None,
         }
 
-    def _get_node(self, label):
+    def _get_node(self, base_url, label):
         node, created = get_or_create(Node, {'label': label})
         if not created:
             return node
 
         try:
-            response = self._get_raw_response('/computer/{}/config.xml'.format(
-                label
-            ))
+            response = self._get_raw_response(
+                base_url=base_url,
+                path='/computer/{}/config.xml'.format(label),
+            )
         except NotFound:
             return node
 
@@ -449,8 +490,10 @@ class JenkinsBuilder(BaseBackend):
         # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
         # doesnt explicitly mean that the job doesnt exist
         try:
-            item = self._get_response('/queue/item/{}'.format(
-                step.data['item_id']))
+            item = self._get_response(
+                step.data['master'],
+                '/queue/item/{}'.format(step.data['item_id']),
+            )
         except NotFound:
             step.status = Status.finished
             step.result = Result.unknown
@@ -482,8 +525,10 @@ class JenkinsBuilder(BaseBackend):
             raise UnrecoverableException('Missing Jenkins job information')
 
         try:
-            item = self._get_response('/job/{}/{}'.format(
-                job_name, build_no))
+            item = self._get_response(
+                step.data['master'],
+                '/job/{}/{}'.format(job_name, build_no),
+            )
         except NotFound:
             raise UnrecoverableException('Unable to find job in Jenkins')
 
@@ -492,7 +537,7 @@ class JenkinsBuilder(BaseBackend):
 
         # TODO(dcramer): we're doing a lot of work here when we might
         # not need to due to it being sync'd previously
-        node = self._get_node(item['builtOn'])
+        node = self._get_node(step.data['master'], item['builtOn'])
 
         step.node = node
         step.date_started = datetime.utcfromtimestamp(
@@ -587,6 +632,7 @@ class JenkinsBuilder(BaseBackend):
             'job_name': step.data['job_name'],
             'build_no': step.data['build_no'],
             'generated': True,
+            'master': self._pick_master(step.data['job_name']),
         }
 
         phases = set()
@@ -732,15 +778,20 @@ class JenkinsBuilder(BaseBackend):
             url = '/queue/cancelItem?id={}'.format(step.data['item_id'])
             method = 'POST'
 
-        try:
-            self._get_raw_response(url, method=method)
-        except NotFound:
-            pass
-
         step.status = Status.finished
         step.result = Result.aborted
         step.date_finished = datetime.utcnow()
         db.session.add(step)
+        db.session.flush()
+
+        try:
+            self._get_raw_response(
+                base_url=step.data['master'],
+                path=url,
+                method=method,
+            )
+        except NotFound:
+            pass
 
     def get_job_parameters(self, job, target_id=None):
         if target_id is None:
@@ -776,25 +827,34 @@ class JenkinsBuilder(BaseBackend):
             'parameter': params
         }
 
+        master = self._pick_master(job_name)
+
         # TODO: Jenkins will return a 302 if it cannot queue the job which I
         # believe implies that there is already a job with the same parameters
         # queued.
-        self._get_response('/job/{}/build'.format(job_name), method='POST', data={
-            'json': json.dumps(json_data),
-        })
+        self._get_response(
+            base_url=master,
+            path='/job/{}/build'.format(job_name),
+            method='POST',
+            data={
+                'json': json.dumps(json_data),
+            },
+        )
 
         # we retry for a period of time as Jenkins doesn't have strong consistency
         # guarantees and the job may not show up right away
         t = time.time() + 5
         job_data = None
         while time.time() < t:
-            job_data = self._find_job(job_name, target_id)
+            job_data = self._find_job(master, job_name, target_id)
             if job_data:
                 break
             time.sleep(0.3)
 
         if job_data is None:
             raise Exception('Unable to find matching job after creation. GLHF')
+
+        job_data['master'] = master
 
         return job_data
 

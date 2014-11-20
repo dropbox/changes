@@ -7,7 +7,7 @@ from .test_builder import BaseTestCase
 class JenkinsGenericBuilderTest(BaseTestCase):
     builder_cls = JenkinsGenericBuilder
     builder_options = {
-        'base_url': 'http://jenkins.example.com',
+        'master_urls': ['http://jenkins.example.com'],
         'job_name': 'server',
         'script': 'py.test',
         'cluster': 'default',

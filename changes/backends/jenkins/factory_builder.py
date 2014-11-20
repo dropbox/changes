@@ -23,13 +23,17 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
             upstream_job=step.data['job_name'],
             build_no=step.data['build_no']
         )
-        response = self._get_raw_response('/job/{job_name}/api/xml/'.format(
-            job_name=downstream_job_name,
-        ), params={
-            'depth': 1,
-            'xpath': xpath,
-            'wrapper': 'a',
-        })
+        response = self._get_raw_response(
+            base_url=step.data['master'],
+            path='/job/{job_name}/api/xml/'.format(
+                job_name=downstream_job_name,
+            ),
+            params={
+                'depth': 1,
+                'xpath': xpath,
+                'wrapper': 'a',
+            },
+        )
         if not response:
             return []
 
@@ -61,7 +65,13 @@ class JenkinsFactoryBuilder(JenkinsBuilder):
                 # but because we dont want to rely on an XML parser, we're doing
                 # a second http request for build details
                 downstream_step = self._create_job_step(
-                    phase, downstream_job_name, build_no)
+                    phase, data={
+                        'job_name': downstream_job_name,
+                        'build_no': build_no,
+                        'queued': False,
+                        'master': step.data['master']
+                    }
+                )
 
                 db.session.commit()
 

@@ -25,7 +25,7 @@ class BaseTestCase(BackendTestCase):
     provider = 'jenkins'
     builder_cls = JenkinsBuilder
     builder_options = {
-        'base_url': 'http://jenkins.example.com',
+        'master_urls': ['http://jenkins.example.com'],
         'job_name': 'server',
     }
 
@@ -83,6 +83,7 @@ class CreateBuildTest(BaseTestCase):
             'job_name': 'server',
             'queued': True,
             'uri': None,
+            'master': 'http://jenkins.example.com',
         }
 
     @responses.activate
@@ -119,6 +120,7 @@ class CreateBuildTest(BaseTestCase):
             'job_name': 'server',
             'queued': False,
             'uri': None,
+            'master': 'http://jenkins.example.com',
         }
 
     @responses.activate
@@ -134,6 +136,7 @@ class CreateBuildTest(BaseTestCase):
             'item_id': None,
             'job_name': 'server',
             'queued': False,
+            'master': 'http://jenkins.example.com',
         }
 
         patch = Patch(
@@ -153,6 +156,50 @@ class CreateBuildTest(BaseTestCase):
         builder = self.get_builder()
         builder.create_job(job)
 
+    @responses.activate
+    def test_multi_master(self):
+        responses.add(
+            responses.GET, 'http://jenkins-2.example.com/queue/api/json/',
+            body=self.load_fixture('fixtures/GET/queue_list_other_jobs.json'),
+            status=200)
+
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/api/json/',
+            body=self.load_fixture('fixtures/GET/queue_list.json'),
+            status=200)
+
+        responses.add(
+            responses.POST, 'http://jenkins-2.example.com/job/server/build/api/json/',
+            body='',
+            status=201)
+
+        responses.add(
+            responses.GET, 'http://jenkins-2.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid&wrapper=x',
+            status=404,
+            match_querystring=True)
+
+        responses.add(
+            responses.GET, 'http://jenkins-2.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fnumber&depth=1&wrapper=x',
+            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
+            match_querystring=True)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('f9481a17aac446718d7893b6e1c6288b'),
+        )
+
+        builder = self.get_builder()
+        builder.master_urls = [
+            'http://jenkins.example.com',
+            'http://jenkins-2.example.com',
+        ]
+        builder.create_job(job)
+
+        step = job.phases[0].steps[0]
+
+        assert step.data['master'] == 'http://jenkins-2.example.com'
+
 
 class CancelStepTest(BaseTestCase):
     @responses.activate
@@ -170,6 +217,7 @@ class CancelStepTest(BaseTestCase):
         step = self.create_jobstep(phase, data={
             'item_id': 13,
             'job_name': 'server',
+            'master': 'http://jenkins.example.com',
         }, status=Status.queued)
 
         builder = self.get_builder()
@@ -193,6 +241,7 @@ class CancelStepTest(BaseTestCase):
         step = self.create_jobstep(phase, data={
             'build_no': 2,
             'job_name': 'server',
+            'master': 'http://jenkins.example.com',
         }, status=Status.in_progress)
 
         builder = self.get_builder()
@@ -220,6 +269,7 @@ class SyncStepTest(BaseTestCase):
             'item_id': 13,
             'job_name': 'server',
             'queued': True,
+            'master': 'http://jenkins.example.com',
         })
 
         builder = self.get_builder()
@@ -244,6 +294,7 @@ class SyncStepTest(BaseTestCase):
             'item_id': 13,
             'job_name': 'server',
             'queued': True,
+            'master': 'http://jenkins.example.com',
         })
 
         builder = self.get_builder()
@@ -280,6 +331,7 @@ class SyncStepTest(BaseTestCase):
             'item_id': 13,
             'job_name': 'server',
             'queued': True,
+            'master': 'http://jenkins.example.com',
         })
         builder = self.get_builder()
         builder.sync_step(step)
@@ -304,15 +356,15 @@ class SyncStepTest(BaseTestCase):
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': 2,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': False,
-            },
         )
         phase = self.create_jobphase(job)
-        step = self.create_jobstep(phase, data=job.data)
+        step = self.create_jobstep(phase, data={
+            'build_no': 2,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': False,
+            'master': 'http://jenkins.example.com',
+        })
 
         builder = self.get_builder()
         builder.sync_step(step)
@@ -345,6 +397,7 @@ class SyncStepTest(BaseTestCase):
                 'item_id': 13,
                 'job_name': 'server',
                 'queued': False,
+                'master': 'http://jenkins.example.com',
             },
         )
         phase = self.create_jobphase(job)
@@ -383,6 +436,7 @@ class SyncGenericResultsTest(BaseTestCase):
                 'item_id': 13,
                 'job_name': 'server',
                 'queued': False,
+                'master': 'http://jenkins.example.com',
             },
         )
         phase = self.create_jobphase(job)
@@ -428,15 +482,16 @@ class SyncGenericResultsTest(BaseTestCase):
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': 2,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': False,
-            },
         )
         phase = self.create_jobphase(job)
-        step = self.create_jobstep(phase, data=job.data)
+        step = self.create_jobstep(phase, data={
+            'build_no': 2,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': False,
+            'master': 'http://jenkins.example.com',
+        })
+
         builder = self.get_builder()
         builder.sync_step(step)
 
@@ -508,15 +563,15 @@ class SyncPhasedResultsTest(BaseTestCase):
         job = self.create_job(
             build=build,
             id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-            data={
-                'build_no': 2,
-                'item_id': 13,
-                'job_name': 'server',
-                'queued': False,
-            },
         )
         phase = self.create_jobphase(job)
-        step = self.create_jobstep(phase, data=job.data)
+        step = self.create_jobstep(phase, data={
+            'build_no': 2,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': False,
+            'master': 'http://jenkins.example.com',
+        })
 
         builder = self.get_builder()
         builder.sync_step(step)
@@ -562,6 +617,7 @@ class SyncPhasedResultsTest(BaseTestCase):
             'job_name': 'server',
             'build_no': 2,
             'generated': True,
+            'master': 'http://jenkins.example.com',
         }
         assert test_step.date_started == test_phase.date_started
         assert test_step.date_finished == test_phase.date_finished
@@ -594,6 +650,7 @@ class SyncArtifactTest(BaseTestCase):
                 'item_id': 13,
                 'job_name': 'server',
                 'queued': False,
+                'master': 'http://jenkins.example.com',
             },
         )
         phase = self.create_jobphase(job)
@@ -641,6 +698,7 @@ class SyncArtifactTest(BaseTestCase):
                 'item_id': 13,
                 'job_name': 'server',
                 'queued': False,
+                'master': 'http://jenkins.example.com',
             },
         )
         phase = self.create_jobphase(job)
@@ -676,6 +734,7 @@ class SyncArtifactTest(BaseTestCase):
                 'item_id': 13,
                 'job_name': 'server',
                 'queued': False,
+                'master': 'http://jenkins.example.com',
             },
         )
         phase = self.create_jobphase(job)
@@ -712,6 +771,7 @@ class SyncArtifactTest(BaseTestCase):
                 'item_id': 13,
                 'job_name': 'server',
                 'queued': False,
+                'master': 'http://jenkins.example.com',
             },
         )
         phase = self.create_jobphase(job)
@@ -774,6 +834,7 @@ class JenkinsIntegrationTest(BaseTestCase):
         self.create_step(
             plan, order=0, implementation='changes.backends.jenkins.buildstep.JenkinsBuildStep', data={
                 'job_name': 'server',
+                'jenkins_url': 'http://jenkins.example.com',
             },
         )
         self.create_job_plan(job, plan)
@@ -821,6 +882,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             'job_name': 'server',
             'build_no': 2,
             'uri': 'https://jenkins.build.itc.dropbox.com/job/server/2/',
+            'master': 'http://jenkins.example.com',
         }
 
         node = step_list[0].node

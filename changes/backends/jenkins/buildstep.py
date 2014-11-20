@@ -20,8 +20,12 @@ class JenkinsBuildStep(BuildStep):
     logger = logging.getLogger('jenkins')
 
     def __init__(self, job_name=None, jenkins_url=None, token=None, auth=None):
+        # we support a string or a list of strings for master server urls
+        if not isinstance(jenkins_url, (list, tuple)):
+            jenkins_url = [jenkins_url]
+
         self.job_name = job_name
-        self.jenkins_url = jenkins_url
+        self.jenkins_urls = jenkins_url
         self.token = token
         self.auth = auth
 
@@ -30,7 +34,7 @@ class JenkinsBuildStep(BuildStep):
 
     def get_builder_options(self):
         return {
-            'base_url': self.jenkins_url,
+            'master_urls': self.jenkins_urls,
             'token': self.token,
             'auth': self.auth,
             'job_name': self.job_name,

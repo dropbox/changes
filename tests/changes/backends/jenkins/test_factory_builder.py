@@ -13,7 +13,7 @@ from .test_builder import BaseTestCase
 class SyncBuildTest(BaseTestCase):
     builder_cls = JenkinsFactoryBuilder
     builder_options = {
-        'base_url': 'http://jenkins.example.com',
+        'master_urls': ['http://jenkins.example.com'],
         'job_name': 'server',
         'downstream_job_names': ['server-downstream'],
     }
@@ -52,6 +52,7 @@ class SyncBuildTest(BaseTestCase):
             'item_id': 13,
             'job_name': 'server',
             'queued': False,
+            'master': 'http://jenkins.example.com',
         })
 
         builder = self.get_builder()
