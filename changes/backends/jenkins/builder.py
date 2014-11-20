@@ -66,6 +66,7 @@ class JenkinsBuilder(BaseBackend):
         self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
         self.sync_coverage_artifacts = self.app.config.get('JENKINS_SYNC_COVERAGE_ARTIFACTS', True)
         self.sync_file_artifacts = self.app.config.get('JENKINS_SYNC_FILE_ARTIFACTS', True)
+        self.http_session = requests.Session()
 
     def _get_raw_response(self, path, method='GET', params=None, **kwargs):
         url = '{}/{}'.format(self.base_url, path.lstrip('/'))
@@ -81,7 +82,7 @@ class JenkinsBuilder(BaseBackend):
             params.setdefault('token', self.token)
 
         self.logger.info('Fetching %r', url)
-        resp = getattr(requests, method.lower())(url, params=params, **kwargs)
+        resp = getattr(self.http_session, method.lower())(url, params=params, **kwargs)
 
         if resp.status_code == 404:
             raise NotFound
@@ -150,7 +151,7 @@ class JenkinsBuilder(BaseBackend):
             build=jobstep.data['build_no'],
             artifact=artifact_data['relativePath'],
         )
-        return requests.get(url, stream=True, timeout=15)
+        return self.http_session.get(url, stream=True, timeout=15)
 
     def _sync_artifact_as_file(self, artifact):
         jobstep = artifact.step
@@ -218,7 +219,7 @@ class JenkinsBuilder(BaseBackend):
         )
 
         offset = 0
-        session = requests.Session()
+        session = self.http_session
         with closing(session.get(url, stream=True, timeout=15)) as resp:
             iterator = resp.iter_content()
             for chunk in chunked(iterator, LOG_CHUNK_SIZE):
@@ -255,7 +256,7 @@ class JenkinsBuilder(BaseBackend):
             build=build_no,
         )
 
-        session = requests.Session()
+        session = self.http_session
         with closing(session.get(url, params={'start': offset}, stream=True, timeout=15)) as resp:
             log_length = int(resp.headers['X-Text-Size'])
 
