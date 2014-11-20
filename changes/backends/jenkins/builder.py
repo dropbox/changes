@@ -776,10 +776,8 @@ class JenkinsBuilder(BaseBackend):
         if step.data.get('build_no'):
             url = '/job/{}/{}/stop/'.format(
                 step.data['job_name'], step.data['build_no'])
-            method = 'GET'
         else:
             url = '/queue/cancelItem?id={}'.format(step.data['item_id'])
-            method = 'POST'
 
         step.status = Status.finished
         step.result = Result.aborted
@@ -791,7 +789,7 @@ class JenkinsBuilder(BaseBackend):
             self._get_raw_response(
                 base_url=step.data['master'],
                 path=url,
-                method=method,
+                method='POST',
             )
         except NotFound:
             pass
