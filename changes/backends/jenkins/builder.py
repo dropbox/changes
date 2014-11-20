@@ -795,6 +795,8 @@ class JenkinsBuilder(BaseBackend):
             )
         except NotFound:
             pass
+        except Exception:
+            self.logger.exception('Unable to cancel build upstream')
 
     def get_job_parameters(self, job, target_id=None):
         if target_id is None:
