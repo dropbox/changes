@@ -1,5 +1,14 @@
 <!-- TODO (stefan): move this to a directive -->
-<div class="panel panel-danger" ng-if="failureList">
+<div class="panel panel-warning" ng-if="build.result.id == 'aborted'">
+    <div class="panel-heading">
+        <h3 class="panel-title">Build Aborted</h3>
+    </div>
+    <div class="panel-body">
+        <p>This build was aborted. You can retry it by selecting "Recreate Build" within the build actions menu.</p>
+    </div>
+</div>
+
+<div class="panel panel-danger" ng-if="failureList && build.result.id != 'aborted'">
     <div class="panel-heading">
         <h3 class="panel-title">Build Failed</h3>
     </div>
