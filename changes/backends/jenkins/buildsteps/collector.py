@@ -127,7 +127,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
 
             success = False
             exn = None
-            for retry_cnt in range(0, 3):
+            for _ in range(0, 3):
                 try:
                     job_data = builder.create_job_from_params(
                         target_id=step.id.hex,
@@ -140,18 +140,14 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
                     success = True
                     break
                 except Exception as ex:
+                    logging.exception("Failed to create jobstep")
                     exn = ex
 
             if not success:
-                phase.status = Status.finished
-                phase.result = Result.failed
-                phase.job.status = Status.finished
-                phase.job.result = Result.failed
-
-                db.session.add(phase)
+                step.status = Status.finished
+                step.result = Result.failed
+                db.session.add(step)
                 db.session.commit()
-                logging.error("Failed to create jobsteps")
-
                 if exn:
                     raise exn
 
