@@ -1,13 +1,23 @@
+from __future__ import absolute_import
+
+from flask import current_app
+
 from .builder import JenkinsBuilder
 
 
 class JenkinsGenericBuilder(JenkinsBuilder):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, master_urls=None, *args, **kwargs):
         self.script = kwargs.pop('script')
         self.cluster = kwargs.pop('cluster')
         self.path = kwargs.pop('path', '')
         self.workspace = kwargs.pop('workspace', '')
-        super(JenkinsGenericBuilder, self).__init__(*args, **kwargs)
+
+        if not master_urls:
+            # if we haven't specified master urls, lets try to take the default
+            # for this given cluster
+            master_urls = current_app.config['JENKINS_CLUSTERS'].get(self.cluster)
+
+        super(JenkinsGenericBuilder, self).__init__(master_urls, *args, **kwargs)
 
     def get_job_parameters(self, job, script=None, target_id=None, path=None):
         params = super(JenkinsGenericBuilder, self).get_job_parameters(
