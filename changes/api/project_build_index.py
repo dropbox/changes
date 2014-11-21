@@ -28,6 +28,8 @@ class ProjectBuildIndexAPIView(APIView):
     get_parser.add_argument('source', type=unicode, location='args')
     get_parser.add_argument('result', type=unicode, location='args',
                             choices=('failed', 'passed', 'aborted', 'unknown', ''))
+    get_parser.add_argument('patches_only', type=lambda x: bool(int(x)), location='args',
+                            default=False)
 
     def get(self, project_id):
         project = Project.get(project_id)
@@ -55,7 +57,9 @@ class ProjectBuildIndexAPIView(APIView):
         if args.result:
             filters.append(Build.result == Result[args.result])
 
-        if not args.include_patches:
+        if args.patches_only:
+            filters.append(Source.patch_id != None)  # NOQA
+        elif not args.include_patches:
             filters.append(Source.patch_id == None)  # NOQA
 
         queryset = Build.query.options(

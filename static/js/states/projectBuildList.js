@@ -33,12 +33,16 @@ define([
       url += '&author=' + $stateParams.author;
     }
 
+    if ($stateParams.patches_only) {
+      url += '&patches_only=' + $stateParams.patches_only;
+    }
+
     return url;
   }
 
   return {
     parent: 'project_details',
-    url: 'builds/?query&result&source&author',
+    url: 'builds/?query&result&source&author&patches_only',
     templateUrl: 'partials/project-build-list.html',
     controller: function($scope, $state, $stateParams, flash,
                          Collection, CollectionPoller, Paginator, PageTitle, projectData) {
@@ -143,6 +147,10 @@ define([
         } else {
           $scope.authorName = $stateParams.author;
         }
+      }
+
+      if ($stateParams.patches_only == '1') {
+        $scope.patchesOnly = true;
       }
 
       $scope.selectChart = selectChart;

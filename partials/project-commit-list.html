@@ -23,10 +23,14 @@
                         {{branch}} <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a ui-sref="project_builds()"
+                        <li><a ui-sref="project_builds({patches_only: null, author: null})"
                                ui-sref-active="active">All Builds</a></li>
-                        <li><a ui-sref="project_builds({author: 'me'})"
+                        <li><a ui-sref="project_builds({patches_only: 1, author: null})"
+                               ui-sref-active="active">All Patch Builds</a></li>
+                        <li><a ui-sref="project_builds({patches_only: null, author: 'me'})"
                                ui-sref-active="active">My Builds</a></li>
+                        <li><a ui-sref="project_builds({patches_only: 1, author: 'me'})"
+                               ui-sref-active="active">My Patch Builds</a></li>
                         <li class="divider"></li>
                         <li><a ng-repeat="branch_item in projectData.repository.branches" href="#"
                              ui-sref="project_commits({branch: '{{branch_item.name | lowercase}}'})"
