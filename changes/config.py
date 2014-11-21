@@ -184,6 +184,7 @@ def create_app(_read_config=True, **config):
     app.config['JENKINS_AUTH'] = None
     app.config['JENKINS_URL'] = None
     app.config['JENKINS_TOKEN'] = None
+    app.config['JENKINS_CLUSTERS'] = {}
 
     app.config['KOALITY_URL'] = None
     app.config['KOALITY_API_KEY'] = None
