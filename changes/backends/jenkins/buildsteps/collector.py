@@ -7,6 +7,7 @@ from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create, try_create
+from changes.experimental.stats import incr
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import FailureReason, JobPhase, JobStep
 
@@ -127,6 +128,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
 
             success = False
             exn = None
+            master = None
             for _ in range(0, 3):
                 try:
                     job_data = builder.create_job_from_params(
@@ -134,6 +136,8 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
                         params=params,
                         job_name=step.data['job_name'],
                     )
+
+                    master = job_data.get('master')
                     step.data.update(job_data)
                     db.session.add(step)
                     db.session.commit()
@@ -141,6 +145,9 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
                     break
                 except Exception as ex:
                     logging.exception("Failed to create jobstep")
+                    if master:
+                        master_key = 'JM:%s' % master
+                        incr(master_key)
                     exn = ex
 
             if not success:
