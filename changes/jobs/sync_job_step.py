@@ -16,6 +16,9 @@ from changes.models import (
 from changes.queue.task import tracked_task
 
 
+QUEUED_RETRY_DELAY = 30
+
+
 def abort_step(task):
     step = JobStep.query.get(task.kwargs['step_id'])
     step.status = Status.finished
@@ -158,7 +161,11 @@ def sync_job_step(step_id):
                 })
 
                 db.session.flush()
-            raise sync_job_step.NotFinished
+            if step.status != Status.in_progress:
+                retry_after = QUEUED_RETRY_DELAY
+            else:
+                retry_after = None
+            raise sync_job_step.NotFinished(retry_after=retry_after)
 
         # ignore any 'failures' if its aborted
         if step.result == Result.aborted:

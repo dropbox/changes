@@ -26,7 +26,9 @@ MAX_RETRIES = 10
 
 
 class NotFinished(Exception):
-    pass
+    def __init__(self, message=None, retry_after=None):
+        super(NotFinished, self).__init__(message)
+        self.retry_after = retry_after or CONTINUE_COUNTDOWN
 
 
 class TooManyRetries(Exception):
@@ -101,11 +103,11 @@ class TrackedTask(local):
         try:
             self.func(**kwargs)
 
-        except NotFinished:
+        except NotFinished as e:
             self.logger.info(
                 'Task marked as not finished: %s %s', self.task_name, self.task_id)
 
-            self._continue(kwargs)
+            self._continue(kwargs, e.retry_after)
 
         except Exception as exc:
             db.session.rollback()
@@ -173,7 +175,7 @@ class TrackedTask(local):
             Task.parent_id == self.parent_id,
         ).update(kwargs, synchronize_session=False)
 
-    def _continue(self, kwargs):
+    def _continue(self, kwargs, retry_after=CONTINUE_COUNTDOWN):
         kwargs['task_id'] = self.task_id
         kwargs['parent_task_id'] = self.parent_id
 
@@ -187,7 +189,7 @@ class TrackedTask(local):
         queue.delay(
             self.task_name,
             kwargs=kwargs,
-            countdown=CONTINUE_COUNTDOWN,
+            countdown=retry_after,
         )
 
     def _retry(self):
