@@ -95,7 +95,10 @@ class JenkinsBuilder(BaseBackend):
         if resp.status_code == 404:
             raise NotFound
         elif not (200 <= resp.status_code < 400):
-            raise Exception('Invalid response. Status code was %s' % resp.status_code)
+            exception_msg = 'Invalid response. Status code for %s was %s'
+            attrs = url, resp.status_code
+            self.logger.exception(exception_msg, *attrs)
+            raise Exception(exception_msg % attrs)
 
         return resp.text
 
