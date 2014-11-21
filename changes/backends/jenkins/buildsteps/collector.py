@@ -10,6 +10,8 @@ from changes.db.utils import get_or_create, try_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import FailureReason, JobPhase, JobStep
 
+import logging
+
 
 class JenkinsCollectorBuilder(JenkinsGenericBuilder):
     def get_default_job_phase_label(self, job, job_data):
@@ -123,14 +125,35 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
             params = builder.get_job_parameters(
                 step.job, script=step.data['cmd'], target_id=step.id.hex)
 
-            job_data = builder.create_job_from_params(
-                target_id=step.id.hex,
-                params=params,
-                job_name=step.data['job_name'],
-            )
-            step.data.update(job_data)
-            db.session.add(step)
-            db.session.commit()
+            success = False
+            exn = None
+            for retry_cnt in range(0, 3):
+                try:
+                    job_data = builder.create_job_from_params(
+                        target_id=step.id.hex,
+                        params=params,
+                        job_name=step.data['job_name'],
+                    )
+                    step.data.update(job_data)
+                    db.session.add(step)
+                    db.session.commit()
+                    success = True
+                    break
+                except Exception as ex:
+                    exn = ex
+
+            if not success:
+                phase.status = Status.finished
+                phase.result = Result.failed
+                phase.job.status = Status.finished
+                phase.job.result = Result.failed
+
+                db.session.add(phase)
+                db.session.commit()
+                logging.error("Failed to create jobsteps")
+
+                if exn:
+                    raise exn
 
         sync_job_step.delay_if_needed(
             step_id=step.id.hex,

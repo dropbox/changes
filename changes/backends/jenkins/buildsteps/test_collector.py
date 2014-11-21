@@ -180,6 +180,9 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         })
         db.session.commit()
 
+        assert len(group_tests) == self.max_shards
+        assert len(group_weights) == self.max_shards
+
         for test_list, weight in itertools.izip(group_tests, group_weights):
             self._expand_job(phase, {
                 'tests': test_list,
