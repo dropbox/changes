@@ -20,7 +20,7 @@ from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
-from changes.experimental.stats import RCount
+from changes.experimental.stats import incr, decr
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
@@ -78,31 +78,32 @@ class JenkinsBuilder(BaseBackend):
         self.http_session = requests.Session()
 
     def _get_raw_response(self, base_url, path, method='GET', params=None, **kwargs):
-        with RCount('JenkinsMaster:%s' % base_url):
-            url = '{}/{}'.format(base_url, path.lstrip('/'))
+        incr('JenkinsMaster:%s' % base_url)
+        url = '{}/{}'.format(base_url, path.lstrip('/'))
 
-            kwargs.setdefault('allow_redirects', False)
-            kwargs.setdefault('timeout', 30)
-            kwargs.setdefault('auth', self.auth)
+        kwargs.setdefault('allow_redirects', False)
+        kwargs.setdefault('timeout', 30)
+        kwargs.setdefault('auth', self.auth)
 
-            if params is None:
-                params = {}
+        if params is None:
+            params = {}
 
-            if self.token is not None:
-                params.setdefault('token', self.token)
+        if self.token is not None:
+            params.setdefault('token', self.token)
 
-            self.logger.info('Fetching %r', url)
-            resp = getattr(self.http_session, method.lower())(url, params=params, **kwargs)
+        self.logger.info('Fetching %r', url)
+        resp = getattr(self.http_session, method.lower())(url, params=params, **kwargs)
 
-            if resp.status_code == 404:
-                raise NotFound
-            elif not (200 <= resp.status_code < 400):
-                exception_msg = 'Invalid response. Status code for %s was %s'
-                attrs = url, resp.status_code
-                self.logger.exception(exception_msg, *attrs)
-                raise Exception(exception_msg % attrs)
+        if resp.status_code == 404:
+            raise NotFound
+        elif not (200 <= resp.status_code < 400):
+            exception_msg = 'Invalid response. Status code for %s was %s'
+            attrs = url, resp.status_code
+            self.logger.exception(exception_msg, *attrs)
+            raise Exception(exception_msg % attrs)
 
-            return resp.text
+        decr('JenkinsMaster:%s' % base_url)
+        return resp.text
 
     def _get_json_response(self, base_url, path, *args, **kwargs):
         path = '{}/api/json/'.format(path.strip('/'))
