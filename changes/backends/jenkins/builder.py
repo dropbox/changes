@@ -142,12 +142,13 @@ class JenkinsBuilder(BaseBackend):
 
         assert label
 
+        defaults['data'] = data
+
         step, created = get_or_create(JobStep, where={
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
             'label': label,
-            'data': data,
         }, defaults=defaults)
 
         return step
