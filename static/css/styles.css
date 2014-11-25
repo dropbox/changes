@@ -242,16 +242,26 @@ input, select, textarea {
 }
 
 .branch {
+  color: #333;
+  background: #eee;
+}
+
+.patch-label {
+  color: white;
+  background: #9e91c7;
+}
+
+.branch,
+.patch-label {
   margin-top: 0;
   border-radius: 2px;
-  background: #eee;
-  color: #333;
   padding: 0 3px;
   text-transform: uppercase;
   font-size: 0.7em;
   margin-right: 3px;
   vertical-align: text-middle;
 }
+
 .branch:nth-child(2) {
   background: #d3d1ff;
 }
