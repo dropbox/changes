@@ -9,7 +9,7 @@ from sqlalchemy.sql import func
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update
-from changes.models import ItemStat, TestCase
+from changes.models import ItemStat, TestCase, TestArtifact
 
 logger = logging.getLogger('changes.testresult')
 
@@ -21,7 +21,7 @@ class TestResult(object):
     """
     def __init__(self, step, name, message=None, package=None,
                  result=None, duration=None, date_created=None,
-                 reruns=None):
+                 reruns=None, artifacts=None):
         self.step = step
         self._name = name
         self._package = package
@@ -30,6 +30,7 @@ class TestResult(object):
         self.duration = duration  # ms
         self.date_created = date_created or datetime.utcnow()
         self.reruns = reruns or 0
+        self.artifacts = artifacts
 
     @property
     def sep(self):
@@ -93,6 +94,15 @@ class TestResultManager(object):
                 reruns=test.reruns
             )
             db.session.add(testcase)
+
+            if test.artifacts:
+                for ta in test.artifacts:
+                    testartifact = TestArtifact(
+                        name=ta['name'],
+                        type=ta['type'],
+                        test=testcase,)
+                    testartifact.save_base64_content(ta['base64'])
+                    db.session.add(testartifact)
 
         db.session.commit()
 

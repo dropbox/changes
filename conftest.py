@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 alembic_cfg = Config(os.path.join(root, 'alembic.ini'))
 
 from changes.config import create_app, db
+from changes.storage.mock import FileStorageCache
 
 
 @pytest.fixture(scope='session')
@@ -44,7 +45,7 @@ def app(request, session_config):
         GOOGLE_CLIENT_ID='a' * 12,
         GOOGLE_CLIENT_SECRET='b' * 40,
         HIPCHAT_TOKEN='abc',
-        DEFAULT_FILE_STORAGE='changes.storage.dummy.DummyFileStorage',
+        DEFAULT_FILE_STORAGE='changes.storage.mock.FileStorageCache',
         LXC_PRE_LAUNCH='echo pre',
         LXC_POST_LAUNCH='echo post',
         SNAPSHOT_S3_BUCKET='snapshot-bucket'
@@ -90,3 +91,7 @@ def redis_session(request, app):
     import redis
     conn = redis.from_url(app.config['REDIS_URL'])
     conn.flushdb()
+
+
+def pytest_runtest_setup(item):
+    FileStorageCache.clear()

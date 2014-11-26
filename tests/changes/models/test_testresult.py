@@ -1,3 +1,5 @@
+from base64 import b64encode
+
 from changes.constants import Result
 from changes.models import ItemStat
 from changes.models.testresult import TestResult, TestResultManager
@@ -22,7 +24,10 @@ class TestResultManagerTestCase(TestCase):
                 result=Result.failed,
                 message='collection failed',
                 duration=156,
-            ),
+                artifacts=[{
+                    'name': 'artifact_name',
+                    'type': 'text',
+                    'base64': b64encode('sample content')}]),
             TestResult(
                 step=jobstep,
                 name='test_foo',
@@ -56,6 +61,10 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[1].message == 'collection failed'
         assert testcase_list[1].duration == 156
         assert testcase_list[1].reruns is 0
+
+        testartifacts = testcase_list[1].artifacts
+        assert len(testartifacts) == 1
+        assert testartifacts[0].file.get_file().read() == 'sample content'
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_count',

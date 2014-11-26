@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 from changes.models.latest_green_build import LatestGreenBuild
 
-__all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT')
+__all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
+           'SAMPLE_XUNIT_TESTARTIFACTS')
 
+from base64 import b64encode
 from loremipsum import get_paragraphs, get_sentences
 from uuid import uuid4
 
@@ -61,6 +63,19 @@ E   ImportError: No module named mock</failure>
     </testcase>
     <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
 </testsuite>"""
+
+SAMPLE_XUNIT_TESTARTIFACTS = """<?xml version="1.0" encoding="utf-8"?>
+<testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.077">
+    <testcase classname="" name="tests.test_report" time="0">
+        <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
+&gt;   import mock
+E   ImportError: No module named mock</failure>
+        <test-artifacts>
+            <artifact name="sample_name.txt" type="text" base64="%s"/>
+        </test-artifacts>
+    </testcase>
+    <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+</testsuite>""" % b64encode('sample_content')
 
 
 class Fixtures(object):

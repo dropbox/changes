@@ -115,7 +115,19 @@ class XunitHandler(ArtifactHandler):
                 duration=duration,
                 result=result,
                 message=message,
-                reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None
+                reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None,
+                artifacts=self._get_testartifacts(node)
             ))
 
+        return results
+
+    def _get_testartifacts(self, node):
+        test_artifacts_node = node.find('test-artifacts')
+        if test_artifacts_node is None:
+            return None
+
+        results = []
+        for artifact_node in node.iter('artifact'):
+            attrs = dict(artifact_node.items())
+            results.append(attrs)
         return results

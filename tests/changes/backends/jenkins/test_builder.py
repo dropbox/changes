@@ -13,11 +13,13 @@ from uuid import UUID
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import (
-    Artifact, TestCase, Patch, LogSource, LogChunk, Job, JobPhase, FileCoverage
+    Artifact, TestCase, Patch, LogSource, LogChunk, Job, JobPhase, FileCoverage,
+    TestArtifact
 )
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.testutils import (
-    BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT, SAMPLE_COVERAGE
+    BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT, SAMPLE_COVERAGE,
+    SAMPLE_XUNIT_TESTARTIFACTS
 )
 
 
@@ -785,6 +787,48 @@ class SyncArtifactTest(BaseTestCase):
 
         builder = self.get_builder()
         builder.sync_artifact(artifact)
+
+
+class SyncTestArtifactsTest(BaseTestCase):
+    @responses.activate
+    def test_sync_testartifacts(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/xunit.xml',
+            body=SAMPLE_XUNIT_TESTARTIFACTS,
+            stream=True)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+            },
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
+        artifact = self.create_artifact(step, name='xunit.xml', data={
+            "displayPath": "xunit.xml",
+            "fileName": "xunit.xml",
+            "relativePath": "artifacts/xunit.xml"
+        })
+
+        builder = self.get_builder()
+        builder.sync_artifact(artifact)
+
+        test_artifacts = list(TestArtifact.query)
+        test = TestCase.query.first()
+
+        assert len(test_artifacts) == 1
+
+        test_artifact = test_artifacts[0]
+        assert test_artifact.file.get_file().read() == "sample_content"
+        assert test_artifact.name == "sample_name.txt"
+        assert str(test_artifact.type) == "Text"
+        assert test_artifact.test == test
 
 
 class JenkinsIntegrationTest(BaseTestCase):
