@@ -806,6 +806,7 @@ class SyncTestArtifactsTest(BaseTestCase):
                 'item_id': 13,
                 'job_name': 'server',
                 'queued': False,
+                'master': 'http://jenkins.example.com',
             },
         )
         phase = self.create_jobphase(job)
