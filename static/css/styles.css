@@ -684,8 +684,8 @@ a.indicator {
   min-height: 1px;
   padding: 0 0.5px;
   margin-bottom: 1px;
-  float: left;
-  display: block;
+  display: inline-block;
+  vertical-align: top
 }
 
 .project-list > li .indicator {
