@@ -12,7 +12,9 @@ from changes.config import db, mail
 from changes.constants import Result
 from changes.db.utils import try_create
 from changes.listeners.notification_base import NotificationHandler
-from changes.models import Event, EventType, JobPlan, ProjectOption
+from changes.models import (
+    Event, EventType, JobPlan, ProjectOption, ProjectOptionsHelper
+)
 from changes.utils.http import build_uri
 
 
@@ -66,6 +68,9 @@ class MailNotificationHandler(NotificationHandler):
 
         is_failure = job.result == Result.failed
 
+        project_options = ProjectOptionsHelper.get_options(
+            [job.project], ['project.owners', 'project.notes'])[job.project_id]
+
         context = {
             'title': subject,
             'job': job,
@@ -76,6 +81,8 @@ class MailNotificationHandler(NotificationHandler):
             'total_test_failures': num_test_failures,
             'test_failures': test_failures,
             'failure_reasons': get_failure_reasons(build),
+            'owners': project_options.get('project.owners'),
+            'notes': project_options.get('project.notes'),
         }
 
         if is_failure:

@@ -19,3 +19,7 @@ def chunked(iterator, chunk_size):
             result = result[newline_pos:]
     if result:
         yield result
+
+
+def nl2br(value):
+    return value.replace('\n', '<br>\n')

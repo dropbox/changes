@@ -29,6 +29,19 @@
 		  </select>
 		</div>
 
+		<div class="form-group">
+			<label>Owner:</label>
+			<input type="email" class="form-control" ng-model="options['project.owners']"
+			       placeholder="my-project@example.com">
+			<div class="help-block">An email address for whom should be contacted in case of questions about this project.</div>
+		</div>
+
+		<div class="form-group">
+			<label>Notes:</label>
+			<textarea class="form-control" ng-model="options['project.notes']"></textarea>
+			<div class="help-block">A blurb of text to give additional context around this project. This will be shown in various places, such as in email notifications.</div>
+		</div>
+
 	</fieldset>
 
 	<fieldset>

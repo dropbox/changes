@@ -34,6 +34,8 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('hipchat.token')
     parser.add_argument('phabricator.diff-trigger')
     parser.add_argument('phabricator.notify')
+    parser.add_argument('project.owners')
+    parser.add_argument('project.notes')
     parser.add_argument('ui.show-coverage')
     parser.add_argument('ui.show-tests')
     # Validate the passed-in Snapshot id.

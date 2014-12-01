@@ -193,6 +193,18 @@
       cursor: pointer;
       text-transform: uppercase;
     }
+
+    .about {
+      margin-top: 20px;
+      font-size: 12px;
+      border: 1px solid #eee;
+      background: #f9f9f9;
+      padding: 10px 10px 0;
+      border-radius: 4px;
+    }
+    .about p {
+      margin: 0 0 10px;
+    }
     </style>
 </head>
 <body><div class="container">
@@ -250,6 +262,18 @@
     </h3>
 
     <pre class="build-log">{{ build_log.text }}</pre>
+{% endif %}
+
+{% if notes or owners %}
+  <div class="about">
+    {% if notes %}
+     <p>{{ notes|nl2br }}</p>
+    {% endif %}
+
+    {% if owners %}
+      <p>For more information regarding this build please contact <a href="mailto:{{ owners }}">{{ owners }}</a></p>
+    {% endif %}
+  </div>
 {% endif %}
 
 </div></body></html>

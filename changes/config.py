@@ -278,8 +278,10 @@ def configure_debug_toolbar(app):
 
 def configure_templates(app):
     from changes.utils.times import duration
+    from changes.utils.text import nl2br
 
     app.jinja_env.filters['duration'] = duration
+    app.jinja_env.filters['nl2br'] = nl2br
 
 
 def configure_api_routes(app):
