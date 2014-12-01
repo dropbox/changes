@@ -17,7 +17,7 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, Build, Job, JobPlan, Repository, RepositoryStatus, Patch,
-    ProjectOption, ItemOption, Source, PlanStatus, Revision
+    ItemOption, Source, PlanStatus, Revision
 )
 
 
@@ -218,10 +218,6 @@ def get_repository_by_url(url):
     ).first()
 
 
-# TODO(vishal): Remove this once we separate out the Phabricator endpoint for diffs
-ORIGIN_CHOICES = {'cli', 'ui', 'tool'}
-
-
 class BuildIndexAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('sha', type=str, required=True)
@@ -239,8 +235,6 @@ class BuildIndexAPIView(APIView):
     parser.add_argument('message', type=unicode)
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
     parser.add_argument('patch[data]', type=unicode, dest='patch_data')
-    parser.add_argument('origin', type=unicode,
-                        choices=ORIGIN_CHOICES, default='tool')
 
     def get(self):
         queryset = Build.query.options(
@@ -302,27 +296,6 @@ class BuildIndexAPIView(APIView):
 
         if not projects:
             return error("Unable to find project(s).")
-
-        if args.patch_file and args.origin == 'tool':
-            # eliminate projects without automated diff builds
-            options = dict(
-                db.session.query(
-                    ProjectOption.project_id, ProjectOption.value
-                ).filter(
-                    ProjectOption.project_id.in_([p.id for p in projects]),
-                    ProjectOption.name.in_([
-                        'phabricator.diff-trigger',
-                    ])
-                )
-            )
-
-            projects = [
-                p for p in projects
-                if options.get(p.id, '1') == '1'
-            ]
-
-            if not projects:
-                return self.respond([])
 
         label = args.label
         author = args.author

@@ -4,7 +4,7 @@ from mock import patch, Mock
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Job, JobPlan, ProjectOption
+from changes.models import Job, JobPlan
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
 from changes.vcs.base import Vcs, RevisionResult
 
@@ -357,37 +357,3 @@ class BuildCreateTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 2
-
-    def test_with_patch_without_diffs_enabled(self):
-        po = ProjectOption(
-            project=self.project,
-            name='phabricator.diff-trigger',
-            value='0',
-        )
-        db.session.add(po)
-        db.session.commit()
-
-        # Default to not creating a build (for tools)
-        resp = self.client.post(self.path, data={
-            'sha': 'a' * 40,
-            'project': self.project.slug,
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'patch[label]': 'D1234',
-        })
-        assert resp.status_code == 200, resp.data
-        data = self.unserialize(resp)
-        assert len(data) == 0
-
-        # Create a build for cli invocations
-        resp = self.client.post(self.path, data={
-            'sha': 'a' * 40,
-            'project': self.project.slug,
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'patch[label]': 'D1234',
-            'origin': 'cli',
-        })
-        assert resp.status_code == 200, resp.data
-        data = self.unserialize(resp)
-        assert len(data) == 1
-        assert data[0]['id']
-        assert data[0]['project']
