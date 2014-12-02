@@ -44,7 +44,7 @@ PATCH_URL=%(patch_url)s
 pushd $LOCAL_PATH
 PATCH_PATH=/tmp/$(mktemp patch.XXXXXXXXXX)
 curl -o $PATCH_PATH $PATCH_URL
-hg import --no-commit $PATCH_PATCH
+hg import --no-commit $PATCH_PATH
 """.strip()
 
 
