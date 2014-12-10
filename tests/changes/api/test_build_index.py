@@ -4,7 +4,7 @@ from mock import patch, Mock
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Job, JobPlan
+from changes.models import Job, JobPlan, ProjectOption
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
 from changes.vcs.base import Vcs, RevisionResult
 
@@ -256,11 +256,8 @@ class BuildCreateTest(APITestCase):
         assert 'problems' in data
         assert 'sha' in data['problems']
 
-    @patch('changes.api.build_index.find_green_parent_sha')
-    def test_with_full_params(self, mock_find_green_parent_sha):
-        mock_find_green_parent_sha.return_value = 'b' * 40
-
-        resp = self.client.post(self.path, data={
+    def post_sample_patch(self):
+        return self.client.post(self.path, data={
             'project': self.project.slug,
             'sha': 'a' * 40,
             'target': 'D1234',
@@ -270,6 +267,40 @@ class BuildCreateTest(APITestCase):
             'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
             'patch[data]': '{"foo": "bar"}',
         })
+
+    def test_when_not_in_whitelist(self):
+        po = ProjectOption(
+            project=self.project,
+            name='build.file-whitelist',
+            value='nonexisting_directory',
+        )
+        db.session.add(po)
+        db.session.commit()
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
+    def test_when_in_whitelist(self):
+        po = ProjectOption(
+            project=self.project,
+            name='build.file-whitelist',
+            value='ci/*',
+        )
+        db.session.add(po)
+        db.session.commit()
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.api.build_index.find_green_parent_sha')
+    def test_with_full_params(self, mock_find_green_parent_sha):
+        mock_find_green_parent_sha.return_value = 'b' * 40
+
+        resp = self.post_sample_patch()
         assert resp.status_code == 200, resp.data
 
         # TODO(dcramer): re-enable test when find_green_parent_sha is turned

@@ -16,9 +16,11 @@ from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
-    Project, Build, Job, JobPlan, Repository, RepositoryStatus, Patch,
-    ItemOption, Source, PlanStatus, Revision
+    Project, ProjectOptionsHelper, Build, Job, JobPlan, Repository,
+    RepositoryStatus, Patch, ItemOption, Source, PlanStatus, Revision
 )
+from changes.utils.diff_parser import DiffParser
+from changes.utils.whitelist import in_project_files_whitelist
 
 
 class MissingRevision(Exception):
@@ -357,6 +359,13 @@ class BuildIndexAPIView(APIView):
         else:
             patch = None
 
+        project_options = ProjectOptionsHelper.get_options(projects, ['build.file-whitelist'])
+        if patch:
+            diff_parser = DiffParser(patch.diff)
+            files_changed = diff_parser.get_changed_files()
+        else:
+            files_changed = None
+
         builds = []
         for project in projects:
             plan_list = get_build_plans(project)
@@ -372,6 +381,10 @@ class BuildIndexAPIView(APIView):
             #         project=project,
             #         sha=sha,
             #     )
+
+            if files_changed and not in_project_files_whitelist(project_options[project.id], files_changed):
+                logging.info('No changed files matched build.file-whitelist for project %s', project.slug)
+                continue
 
             builds.append(create_build(
                 project=project,
