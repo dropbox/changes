@@ -42,6 +42,7 @@ class BuildSerializer(Serializer):
             'author': item.author,
             'source': item.source,
             'message': item.message,
+            'tags': item.tags or [],
             'duration': item.duration,
             'estimatedDuration': avg_build_time,
             'dateCreated': item.date_created.isoformat(),

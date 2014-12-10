@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
 from sqlalchemy.sql import func, select
@@ -46,6 +47,7 @@ class Build(db.Model):
     cause = Column(EnumType(Cause), nullable=False, default=Cause.unknown)
     label = Column(String(128), nullable=False)
     target = Column(String(128))
+    tags = Column(ARRAY(String(16)), nullable=True)
     status = Column(EnumType(Status), nullable=False, default=Status.unknown)
     result = Column(EnumType(Result), nullable=False, default=Result.unknown)
     message = Column(Text)

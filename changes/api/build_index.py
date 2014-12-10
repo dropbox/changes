@@ -96,7 +96,7 @@ def find_green_parent_sha(project, sha):
 
 def create_build(project, label, target, message, author, change=None,
                  patch=None, cause=None, source=None, sha=None,
-                 source_data=None):
+                 source_data=None, tag=None):
     assert sha or source
 
     repository = project.repository
@@ -132,6 +132,7 @@ def create_build(project, label, target, message, author, change=None,
         target=target,
         message=message,
         cause=cause,
+        tags=[tag] if tag else [],
     )
 
     db.session.add(build)
@@ -235,6 +236,7 @@ class BuildIndexAPIView(APIView):
     parser.add_argument('message', type=unicode)
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
     parser.add_argument('patch[data]', type=unicode, dest='patch_data')
+    parser.add_argument('tag', type=unicode)
 
     def get(self):
         queryset = Build.query.options(
@@ -300,6 +302,10 @@ class BuildIndexAPIView(APIView):
         label = args.label
         author = args.author
         message = args.message
+        tag = args.tag
+
+        if not tag and args.patch_file:
+            tag = 'patch'
 
         try:
             revision = identify_revision(repository, args.sha)
@@ -376,6 +382,7 @@ class BuildIndexAPIView(APIView):
                 author=author,
                 patch=patch,
                 source_data=patch_data,
+                tag=tag,
             ))
 
         return self.respond(builds)

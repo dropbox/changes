@@ -246,13 +246,13 @@ input, select, textarea {
   background: #eee;
 }
 
-.patch-label {
+.build-tag {
   color: white;
   background: #9e91c7;
 }
 
 .branch,
-.patch-label {
+.build-tag {
   margin-top: 0;
   border-radius: 2px;
   padding: 0 3px;
