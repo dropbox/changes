@@ -62,6 +62,11 @@ define([
               return [new Date(object.dateStarted || object.dateCreated)];
             }
             return sortArray(arr, getScore);
+          },
+          onUpdate: function(collection, phase) {
+            if (phase) {
+              processPhase(phase);
+            }
           }
       });
       $scope.testFailures = jobData.testFailures;
@@ -83,11 +88,7 @@ define([
       var phasesPoller = new CollectionPoller({
         $scope: $scope,
         collection: $scope.phaseList,
-        endpoint: '/api/0/jobs/' + jobData.id + '/phases/',
-        update: function(response) {
-          $scope.phaseList.extend(response);
-          $.map($scope.phaseList, processPhase);
-        }
+        endpoint: '/api/0/jobs/' + jobData.id + '/phases/'
       });
     },
     resolve: {

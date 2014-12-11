@@ -2,17 +2,17 @@ define(['angular'], function(angular) {
   'use strict';
 
   angular.module('collection', [])
-    .factory('Collection', function(){
+    .factory('Collection', function() {
       var defaults = {
         sortFunc: null,
         limit: null,
         equals: function(item, other) {
           return item.id == other.id;
         },
-        onUpdate: function(data){
+        onUpdate: function(data) {
           return data;
         },
-        transform: function(data){
+        transform: function(data) {
           return data;
         }
       };
@@ -112,7 +112,7 @@ define(['angular'], function(angular) {
 
         if (existing !== -1) {
           $.extend(true, this[existing], data);
-          this.options.onUpdate(this);
+          this.options.onUpdate(this, this[existing]);
           return;
         }
         if (create_missing) {
