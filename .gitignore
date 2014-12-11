@@ -13,5 +13,6 @@ npm-debug.log
 /node_modules
 /dist
 /static/vendor
+/static/js/generated
 /static-built
 .vagrant
