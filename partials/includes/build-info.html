@@ -55,7 +55,7 @@
             <dl class="flat" ng-hide="build.source.isCommit">
                 <dt ng-if="build.source.revision">Parent:</dt>
                 <dd ng-if="build.source.revision">
-                    <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0, 12)}}</a>
+                    <a ui-sref="project_commit_details({project_id: build.project.id, commit_id: build.source.revision.id})">{{build.source.revision.sha.substr(0, 12)}}</a>
                     <a class="result result-{{getBuildResult()}}"
                             ng-show="build.parentRevisionBuild"
                             ui-sref="build_details({project_id: build.project.id, build_id: build.parentRevisionBuild.id})">

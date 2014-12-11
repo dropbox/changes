@@ -59,7 +59,7 @@
         </small>
         <small ng-if="!build.source.isCommit">
             Patch build <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.target}}</a>
-            on <a ui-sref="project_source_details({project_id: build.project.id, source_id: build.source.id})">{{build.source.revision.sha.substr(0,12)}}
+            on <a ui-sref="project_commit_details({project_id: build.project.id, commit_id: build.source.revision.id})">{{build.source.revision.sha.substr(0,12)}}
         </small>
     </h2>
 </div>
