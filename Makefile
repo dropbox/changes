@@ -46,6 +46,7 @@ setup-git:
 
 install-requirements:
 	@# XXX: Can any of these run in parallel?
+	npm cache clean
 	npm install
 	pip install pip==1.5.6
 	pip install -e . --use-mirrors --allow-external=argparse
