@@ -10,6 +10,16 @@ define([
     controller: function($scope, buildData, testData) {
       $scope.testCase = testData;
       $scope.testCase.build = buildData;
+
+      var filterArtifactsType = function(typeId) {
+        return testData.artifacts.filter(function(a) {
+          return a.type.id == typeId;
+        });
+      };
+
+      $scope.testCase.textArtifacts = filterArtifactsType('text');
+      $scope.testCase.htmlArtifacts = filterArtifactsType('html');
+      $scope.testCase.imageArtifacts = filterArtifactsType('image');
     },
     resolve: {
       testData: function($http, $stateParams) {

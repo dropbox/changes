@@ -14,10 +14,63 @@
 	</div>
 </section>
 
+<!-- TODO(stefan): expand/contract button if log is too big -->
 <section class="section" bind-once>
 	<div class="section-header">
 		<h4>Captured Output</h4>
 	</div>
 	<pre class="build-message" ng-if="testCase.message">{{testCase.message}}</pre>
 	<div ng-if="!testCase.message">No output was recorded for this test.</div>
+</section>
+
+<section class="section" ng-if="testCase.textArtifacts">
+	<div class="section-header">
+		<h4>Other Logs</h4>
+	</div>
+    <div class="section-body">
+        <ul>
+            <li ng-repeat="artifact in testCase.textArtifacts"
+                    class="testartifact-text">
+                <a ng-href="{{artifact.url}}" target="_blank"
+                    ng-bind="artifact.name">
+                </a>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<section class="section" ng-if="testCase.htmlArtifacts">
+	<div class="section-header">
+		<h4>HTML files</h4>
+	</div>
+    <div class="section-body">
+        <ul>
+            <li ng-repeat="artifact in testCase.htmlArtifacts"
+                    class="testartifact-text">
+                <a ng-href="{{artifact.url}}" target="_blank"
+                    ng-bind="artifact.name">
+                </a>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<!-- TODO(stefan): better handling of multiple images, ex: horizontal gallery -->
+<section class="section" ng-if="testCase.imageArtifacts">
+	<div class="section-header">
+		<h4>Images</h4>
+	</div>
+    <div class="section-body">
+        <div ng-repeat="artifact in testCase.imageArtifacts"
+                class="testartifact-image">
+            <a ng-href="{{artifact.url}}" target="_blank">
+                <img ng-src="{{artifact.url}}"></img>
+            </a>
+            <div class="image-info">
+                <a ng-href="{{artifact.url}}" download="{{artifact.name}}">
+                    <i class="glyphicon glyphicon-download download-icon"></i>{{artifact.name}}
+                </a>
+            </div>
+        </div>
+    </div>
 </section>

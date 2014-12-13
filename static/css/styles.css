@@ -534,6 +534,30 @@ input, select, textarea {
   position: relative;
 }
 
+.testartifact-text {
+    margin-bottom: 10px;
+}
+
+.testartifact-image {
+    color: #434343;
+    margin-bottom: 10px;
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
+.testartifact-image img {
+    border: solid 1px #434343;
+    height: 200px;
+}
+
+.testartifact-image .image-info {
+    margin-top: 10px;
+}
+
+.testartifact-image .image-info .download-icon {
+    padding-right: 5px;
+}
+
 .indicator {
   font-weight: 300;
   color: #aaa;
