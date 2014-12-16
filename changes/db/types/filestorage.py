@@ -39,19 +39,24 @@ class FileData(Mutable):
             return
         return self.get_storage().url_for(self.filename)
 
-    def save(self, fp, filename=None):
+    def save(self, fp, filename=None, content_type=None):
         if filename:
             self.filename = filename
         elif self.filename is None:
             raise ValueError('Missing filename')
 
-        self.get_storage().save(self.filename, fp)
+        self.get_storage().save(self.filename, fp, content_type)
         self.changed()
 
     def get_file(self):
         if self.filename is None:
             raise ValueError('Missing filename')
         return self.get_storage().get_file(self.filename)
+
+    def get_content_type(self):
+        if self.filename is None:
+            raise ValueError('Missing filename')
+        return self.get_storage().get_content_type(self.filename)
 
     @classmethod
     def coerce(cls, key, value):

@@ -1,5 +1,6 @@
 import uuid
 import logging
+import mimetypes
 
 from base64 import b64decode
 from cStringIO import StringIO
@@ -76,7 +77,17 @@ class TestArtifact(db.Model):
     def save_base64_content(self, base64):
         content = b64decode(base64)
         self.file.save(
-            StringIO(content), '{0}/{1}_{2}'.format(
+            StringIO(content),
+            '{0}/{1}_{2}'.format(
                 self.test_id, self.id.hex, self.name
-            )
+            ),
+            self._get_content_type()
         )
+
+    def _get_content_type(self):
+        content_type, encoding = mimetypes.guess_type(self.name)
+        if content_type == 'text/html':
+            # upload html artifacts as plain text so the browser doesn't try to
+            # render them when viewing them raw
+            content_type = 'text/plain'
+        return content_type

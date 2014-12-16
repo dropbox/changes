@@ -38,8 +38,10 @@ class S3FileStorage(FileStorage):
     def get_file_path(self, filename):
         return '/'.join([self.path.rstrip('/'), filename])
 
-    def save(self, filename, fp):
+    def save(self, filename, fp, content_type=None):
         key = self.bucket.new_key(self.get_file_path(filename))
+        if content_type:
+            key.content_type = content_type
         key.set_contents_from_file(fp)
         key.set_acl('private')
 
@@ -49,3 +51,6 @@ class S3FileStorage(FileStorage):
 
     def get_file(self, filename):
         return self.bucket.get_key(self.get_file_path(filename))
+
+    def get_content_type(self, filename):
+        return self.bucket.get_key(self.get_file_path(filename)).content_type
