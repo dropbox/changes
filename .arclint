@@ -10,6 +10,13 @@
     },
     "spelling": {
       "type": "spelling"
+    },
+    "python": {
+      "type": "flake8",
+      "include": [
+        "(tests/*)",
+        "(changes/*)"
+      ]
     }
   }
 }
