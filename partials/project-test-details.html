@@ -33,7 +33,7 @@
         <table class="grid-list">
             <thead>
                 <tr class="grid-list-header">
-                    <th class="result">Result</th>
+                    <th>Result</th>
                     <th>Source</th>
                     <th class="column">When</th>
                     <th class="column">Duration</th>
@@ -41,7 +41,7 @@
                 </tr>
             </thead>
             <tr ng-repeat="result in results" class="result-{{result.result.id}}">
-                <td class="result">
+                <td>
                     <a class="indicator"
                        ui-sref="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})">
                         #{{result.job.build.number}}.{{result.job.number}}

@@ -818,27 +818,6 @@ a.indicator {
   }
 }
 
-table > tbody > tr > td.result {
-  vertical-align: middle;
-  width: 12px;
-}
-table > tbody > tr > td.result span {
-  width: 12px;
-  height: 12px;
-  display: inline-block;
-  background: #aaa;
-}
-
-table > tbody > tr.result-failed > td.result span {
-  background-color: #d9322d;
-}
-table > tbody > tr.result-passed > td.result span {
-  background-color: rgb(114, 194, 114);
-}
-table > tbody > tr.result-skipped > td.result span {
-  background-color: gold;
-}
-
 .grid-list {
   width: 100%;
 }
