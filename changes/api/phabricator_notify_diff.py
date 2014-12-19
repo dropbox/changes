@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 import logging
+import uuid
 
 from flask_restful.reqparse import RequestParser
 
@@ -148,6 +149,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
         diff_parser = DiffParser(patch.diff)
         files_changed = diff_parser.get_changed_files()
 
+        collection_id = uuid.uuid4()
         builds = []
         for project in projects:
             plan_list = get_build_plans(project)
@@ -161,6 +163,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
 
             builds.append(create_build(
                 project=project,
+                collection_id=collection_id,
                 sha=sha,
                 target=target,
                 label=label,

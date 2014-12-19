@@ -32,6 +32,7 @@ class BuildSerializer(Serializer):
 
         return {
             'id': item.id.hex,
+            'collection_id': item.collection_id,
             'number': item.number,
             'name': item.label,
             'target': target,

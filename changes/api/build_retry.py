@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -16,8 +18,10 @@ class BuildRetryAPIView(APIView):
         if build is None:
             return '', 404
 
+        collection_id = uuid.uuid4()
         new_build = create_build(
             project=build.project,
+            collection_id=collection_id,
             label=build.label,
             target=build.target,
             message=build.message,

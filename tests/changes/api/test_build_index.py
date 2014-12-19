@@ -1,12 +1,13 @@
 from cStringIO import StringIO
-from mock import patch, Mock
 
+from mock import patch, Mock
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import Job, JobPlan, ProjectOption
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
 from changes.vcs.base import Vcs, RevisionResult
+from changes.testutils.build import CreateBuildsMixin
 
 
 class FindGreenParentShaTest(TestCase):
@@ -170,7 +171,7 @@ class BuildListTest(APITestCase):
         assert data[1]['id'] == build.id.hex
 
 
-class BuildCreateTest(APITestCase):
+class BuildCreateTest(APITestCase, CreateBuildsMixin):
     path = '/api/0/builds/'
 
     def setUp(self):
@@ -350,30 +351,25 @@ class BuildCreateTest(APITestCase):
         assert jobplans[0].plan_id == self.plan.id
         assert jobplans[0].project_id == self.project.id
 
-    def test_with_repository(self):
-        repo = self.create_repo()
-
-        project1 = self.create_project(repository=repo)
-        project2 = self.create_project(repository=repo)
-        self.create_plan(project1)
-        self.create_plan(project2)
-        db.session.commit()
-
-        resp = self.client.post(self.path, data={
+    def _post_for_repo(self, repo):
+        return self.client.post(self.path, data={
             'repository': repo.url,
             'sha': 'a' * 40,
         })
-        assert resp.status_code == 200
-        data = self.unserialize(resp)
-        assert len(data) == 2
+
+    def test_with_repository(self):
+        repo = self.create_repo_with_projects(count=2)
+        resp = self._post_for_repo(repo)
+        self.assert_resp_has_multiple_items(resp, count=2)
+
+    def test_collection_id(self):
+        repo = self.create_repo_with_projects(count=3)
+        resp = self._post_for_repo(repo)
+        builds = self.assert_resp_has_multiple_items(resp, count=3)
+        self.assert_collection_id_across_builds(builds)
 
     def test_with_repository_callsign(self):
-        repo = self.create_repo()
-
-        project1 = self.create_project(repository=repo)
-        project2 = self.create_project(repository=repo)
-        self.create_plan(project1)
-        self.create_plan(project2)
+        repo = self.create_repo_with_projects(count=2)
         self.create_option(
             item_id=repo.id,
             name='phabricator.callsign',

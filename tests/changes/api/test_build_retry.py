@@ -22,6 +22,7 @@ class BuildRetryTest(APITestCase):
         new_build = Build.query.get(data['id'])
 
         assert new_build.id != build.id
+        assert new_build.collection_id != build.collection_id
         assert new_build.project_id == project.id
         assert new_build.cause == Cause.retry
         assert new_build.author_id == build.author_id

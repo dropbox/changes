@@ -5,9 +5,10 @@ from cStringIO import StringIO
 from changes.config import db
 from changes.models import Job, JobPlan, ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF
+from changes.testutils.build import CreateBuildsMixin
 
 
-class PhabricatorNotifyDiffTest(APITestCase):
+class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
     path = '/api/0/phabricator/notify-diff/'
 
     def post_sample_patch(self):
@@ -154,3 +155,15 @@ class PhabricatorNotifyDiffTest(APITestCase):
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 1
+
+    def test_collection_id(self):
+        repo = self.create_repo_with_projects(count=3)
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+        db.session.commit()
+        resp = self.post_sample_patch()
+        builds = self.assert_resp_has_multiple_items(resp, count=3)
+        self.assert_collection_id_across_builds(builds)

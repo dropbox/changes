@@ -42,6 +42,7 @@ class Build(db.Model):
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     number = Column(Integer)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    collection_id = Column(GUID)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
     author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
     cause = Column(EnumType(Cause), nullable=False, default=Cause.unknown)

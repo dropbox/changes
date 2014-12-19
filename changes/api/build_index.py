@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 import json
 import logging
+import uuid
 
 from cStringIO import StringIO
 from flask.ext.restful import reqparse
@@ -96,8 +97,8 @@ def find_green_parent_sha(project, sha):
     return sha
 
 
-def create_build(project, label, target, message, author, change=None,
-                 patch=None, cause=None, source=None, sha=None,
+def create_build(project, collection_id, label, target, message, author,
+                 change=None, patch=None, cause=None, source=None, sha=None,
                  source_data=None, tag=None):
     assert sha or source
 
@@ -125,6 +126,7 @@ def create_build(project, label, target, message, author, change=None,
     build = Build(
         project=project,
         project_id=project.id,
+        collection_id=collection_id,
         source=source,
         source_id=source.id if source else None,
         status=Status.queued,
@@ -366,6 +368,7 @@ class BuildIndexAPIView(APIView):
         else:
             files_changed = None
 
+        collection_id = uuid.uuid4()
         builds = []
         for project in projects:
             plan_list = get_build_plans(project)
@@ -388,6 +391,7 @@ class BuildIndexAPIView(APIView):
 
             builds.append(create_build(
                 project=project,
+                collection_id=collection_id,
                 sha=forced_sha,
                 target=target,
                 label=label,
