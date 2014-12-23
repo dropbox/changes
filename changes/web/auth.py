@@ -5,6 +5,7 @@ from flask import current_app, redirect, request, session, url_for
 from flask.views import MethodView
 from oauth2client.client import OAuth2WebServerFlow
 
+from changes.config import db
 from changes.db.utils import get_or_create
 from changes.models import User
 
@@ -68,6 +69,10 @@ class AuthorizedView(MethodView):
         user, _ = get_or_create(User, where={
             'email': resp.id_token['email'],
         })
+
+        if current_app.config['DEBUG']:
+            user.is_admin = True
+            db.session.add(user)
 
         session['uid'] = user.id.hex
         session['access_token'] = resp.access_token
