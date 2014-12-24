@@ -8,7 +8,7 @@ import sys
 from changes.config import create_app, db
 from changes.db.utils import create_or_update
 from changes.jobs.sync_repo import sync_repo
-from changes.models import ItemOption, Repository, RepositoryBackend
+from changes.models import ItemOption, Repository, RepositoryBackend, RepositoryStatus
 
 
 def abort():
@@ -65,6 +65,7 @@ parser_edit.add_argument('--url', dest='url', help='repository url')
 parser_edit.add_argument(
     '--backend', metavar='backend', dest='backend',
     help='repository backend', choices=('git', 'hg', 'unknown'))
+parser_edit.add_argument('--activate', dest='activate', action='store_true')
 
 parser_show = subparsers.add_parser('show', help='show repository details')
 parser_show.add_argument('id', help='repository ID or url')
@@ -113,6 +114,9 @@ elif args.command == 'edit':
 
     if args.backend:
         repo.backend = RepositoryBackend[args.backend]
+
+    if args.activate:
+        repo.status = RepositoryStatus.active
 
     db.session.add(repo)
 
