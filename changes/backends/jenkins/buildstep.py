@@ -102,10 +102,11 @@ class JenkinsFactoryBuildStep(JenkinsBuildStep):
 class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
-    def __init__(self, job_name, script, cluster, path='', workspace='',
+    def __init__(self, job_name, script, cluster, diff_cluster='', path='', workspace='',
                  **kwargs):
         self.script = script
         self.cluster = cluster
+        self.diff_cluster = diff_cluster
         self.path = path
         self.workspace = workspace
         super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, **kwargs)
@@ -117,5 +118,6 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'cluster': self.cluster,
             'path': self.path,
             'workspace': self.workspace,
+            'diff_cluster': self.diff_cluster,
         })
         return options
