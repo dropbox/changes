@@ -54,10 +54,11 @@ class NotFound(Exception):
 class JenkinsBuilder(BaseBackend):
     provider = 'jenkins'
 
-    def __init__(self, master_urls=None, job_name=None, token=None, auth=None,
-                 sync_phase_artifacts=True, *args, **kwargs):
+    def __init__(self, master_urls=None, diff_urls=None, job_name=None, token=None,
+                 auth=None, sync_phase_artifacts=True, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.master_urls = master_urls
+        self.diff_urls = diff_urls
 
         if not self.master_urls and self.app.config['JENKINS_URL']:
             self.master_urls = [self.app.config['JENKINS_URL']]
@@ -337,17 +338,21 @@ class JenkinsBuilder(BaseBackend):
                 test_list.append(test_result)
         return test_list
 
-    def _pick_master(self, job_name):
+    def _pick_master(self, job_name, is_diff=False):
         """
         Identify a master to run the given job on.
 
         The master with the lowest queue for the given job is chosen. By random
         sorting the first empty queue will be prioritized.
         """
-        if len(self.master_urls) == 1:
-            return self.master_urls[0]
+        candidate_urls = self.master_urls
+        if is_diff and self.diff_urls:
+            candidate_urls = self.diff_urls
 
-        master_urls = self.master_urls[:]
+        if len(candidate_urls) == 1:
+            return candidate_urls[0]
+
+        master_urls = candidate_urls[:]
         random.shuffle(master_urls)
 
         best_match = (sys.maxint, None)
@@ -626,6 +631,7 @@ class JenkinsBuilder(BaseBackend):
         # insight into the actual steps a build process takes and unfortunately
         # the best way to do this is to rewrite history within Changes
         job = step.job
+        is_diff = not job.source.is_commit()
         project = step.project
 
         artifacts_by_name = dict(
@@ -639,7 +645,7 @@ class JenkinsBuilder(BaseBackend):
             'job_name': step.data['job_name'],
             'build_no': step.data['build_no'],
             'generated': True,
-            'master': self._pick_master(step.data['job_name']),
+            'master': self._pick_master(step.data['job_name'], is_diff),
         }
 
         phases = set()
@@ -823,7 +829,7 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def create_job_from_params(self, target_id, params, job_name=None):
+    def create_job_from_params(self, target_id, params, job_name=None, is_diff=False):
         if job_name is None:
             job_name = self.job_name
 
@@ -834,7 +840,7 @@ class JenkinsBuilder(BaseBackend):
             'parameter': params
         }
 
-        master = self._pick_master(job_name)
+        master = self._pick_master(job_name, is_diff)
 
         # TODO: Jenkins will return a 302 if it cannot queue the job which I
         # believe implies that there is already a job with the same parameters
@@ -879,9 +885,11 @@ class JenkinsBuilder(BaseBackend):
           or a finalized build number.
         """
         params = self.get_job_parameters(job)
+        is_diff = not job.source.is_commit()
         job_data = self.create_job_from_params(
             target_id=job.id.hex,
             params=params,
+            is_diff=is_diff
         )
 
         if job_data['queued']:

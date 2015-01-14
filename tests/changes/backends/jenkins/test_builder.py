@@ -28,6 +28,7 @@ class BaseTestCase(BackendTestCase):
     builder_cls = JenkinsBuilder
     builder_options = {
         'master_urls': ['http://jenkins.example.com'],
+        'diff_urls': ['http://jenkins-diff.example.com'],
         'job_name': 'server',
     }
 
@@ -129,7 +130,7 @@ class CreateBuildTest(BaseTestCase):
     @mock.patch.object(JenkinsBuilder, '_find_job')
     def test_patch(self, find_job):
         responses.add(
-            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+            responses.POST, 'http://jenkins-diff.example.com/job/server/build/api/json/',
             body='',
             status=201)
 
@@ -138,7 +139,7 @@ class CreateBuildTest(BaseTestCase):
             'item_id': None,
             'job_name': 'server',
             'queued': False,
-            'master': 'http://jenkins.example.com',
+            'master': 'http://jenkins-diff.example.com',
         }
 
         patch = Patch(
