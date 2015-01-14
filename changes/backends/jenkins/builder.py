@@ -20,7 +20,6 @@ from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
-from changes.experimental.stats import incr, decr
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
@@ -78,7 +77,6 @@ class JenkinsBuilder(BaseBackend):
         self.http_session = requests.Session()
 
     def _get_raw_response(self, base_url, path, method='GET', params=None, **kwargs):
-        incr('JenkinsMaster:%s' % base_url)
         url = '{}/{}'.format(base_url, path.lstrip('/'))
 
         kwargs.setdefault('allow_redirects', False)
@@ -102,7 +100,6 @@ class JenkinsBuilder(BaseBackend):
             self.logger.exception(exception_msg, *attrs)
             raise Exception(exception_msg % attrs)
 
-        decr('JenkinsMaster:%s' % base_url)
         return resp.text
 
     def _get_json_response(self, base_url, path, *args, **kwargs):

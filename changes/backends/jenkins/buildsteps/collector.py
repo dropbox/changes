@@ -7,7 +7,6 @@ from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create, try_create
-from changes.experimental.stats import incr
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import FailureReason, JobPhase, JobStep
 
@@ -145,9 +144,6 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
                     break
                 except Exception as ex:
                     logging.exception("Failed to create jobstep")
-                    if master:
-                        master_key = 'JM:%s' % master
-                        incr(master_key)
                     exn = ex
 
             if not success:

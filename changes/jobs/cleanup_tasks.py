@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 
 from changes.config import queue
 from changes.constants import Status
-from changes.experimental.stats import RCount, incr
 from changes.models import Task
 from changes.queue.task import TrackedTask, tracked_task
 
@@ -20,24 +19,22 @@ def cleanup_tasks():
 
     Additionally remove any old Task entries which are completed.
     """
-    with RCount('cleanup_tasks'):
-        now = datetime.utcnow()
+    now = datetime.utcnow()
 
-        pending_tasks = Task.query.filter(
-            Task.status != Status.finished,
-            Task.date_modified < now - CHECK_TIME,
+    pending_tasks = Task.query.filter(
+        Task.status != Status.finished,
+        Task.date_modified < now - CHECK_TIME,
+    )
+
+    for task in pending_tasks:
+        task_func = TrackedTask(queue.get_task(task.task_name))
+        task_func.delay(
+            task_id=task.task_id.hex,
+            parent_task_id=task.parent_id.hex if task.parent_id else None,
+            **task.data['kwargs']
         )
 
-        for task in pending_tasks:
-            incr('cleanup_unfinished')
-            task_func = TrackedTask(queue.get_task(task.task_name))
-            task_func.delay(
-                task_id=task.task_id.hex,
-                parent_task_id=task.parent_id.hex if task.parent_id else None,
-                **task.data['kwargs']
-            )
-
-        Task.query.filter(
-            Task.status == Status.finished,
-            Task.date_modified < now - EXPIRE_TIME,
-        ).delete()
+    Task.query.filter(
+        Task.status == Status.finished,
+        Task.date_modified < now - EXPIRE_TIME,
+    ).delete()
