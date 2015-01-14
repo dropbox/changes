@@ -9,6 +9,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, *args, **kwargs):
         self.script = kwargs.pop('script')
         self.cluster = kwargs.pop('cluster')
+        self.diff_cluster = kwargs.pop('diff_cluster', None)
         self.path = kwargs.pop('path', '')
         self.workspace = kwargs.pop('workspace', '')
 
@@ -38,12 +39,17 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         else:
             repo_url = repository.url
 
+        cluster = self.cluster
+        is_diff = not job.source.is_commit()
+        if is_diff and self.diff_cluster:
+            cluster = self.diff_cluster
+
         params.extend([
             {'name': 'CHANGES_PID', 'value': project.slug},
             {'name': 'REPO_URL', 'value': repo_url},
             {'name': 'SCRIPT', 'value': script},
             {'name': 'REPO_VCS', 'value': repository.backend.name},
-            {'name': 'CLUSTER', 'value': self.cluster},
+            {'name': 'CLUSTER', 'value': cluster},
             {'name': 'WORK_PATH', 'value': path},
             {'name': 'C_WORKSPACE', 'value': self.workspace},
         ])

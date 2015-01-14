@@ -11,6 +11,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         'job_name': 'server',
         'script': 'py.test',
         'cluster': 'default',
+        'diff_cluster': 'diff_cluster',
     }
 
     def test_get_job_parameters(self):
@@ -35,3 +36,15 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         result = builder.get_job_parameters(job)
         assert {'name': 'WORK_PATH', 'value': ''} in result
         assert {'name': 'C_WORKSPACE', 'value': ''} in result
+
+    def test_get_job_parameters_diff(self):
+        project = self.create_project()
+        patch = self.create_patch()
+        source = self.create_source(project, patch=patch)
+        build = self.create_build(project, source=source)
+        job = self.create_job(build)
+
+        builder = self.get_builder()
+
+        result = builder.get_job_parameters(job, path='foo')
+        assert {'name': 'CLUSTER', 'value': self.builder_options['diff_cluster']} in result
