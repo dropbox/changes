@@ -228,10 +228,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 path=step.data['path'],
             )
 
+            is_diff = not step.job.source.is_commit()
             job_data = builder.create_job_from_params(
                 target_id=step.id.hex,
                 params=params,
                 job_name=step.data['job_name'],
+                is_diff=is_diff
             )
             step.data.update(job_data)
             db.session.add(step)
