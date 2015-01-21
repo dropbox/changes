@@ -34,8 +34,8 @@ define([
           return;
         }
 
-        $scope.hasTests = (features.tests && buildData.stats.test_count);
-        $scope.isFinished = (buildData.status.id == 'finished');
+        $scope.hasTests = (features.tests && data.stats.test_count);
+        $scope.isFinished = (data.status.id == 'finished');
         $scope.build = data;
       }
 
