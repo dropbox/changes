@@ -11,7 +11,7 @@ from werkzeug.datastructures import FileStorage
 
 from changes.api.base import APIView, error
 from changes.api.validators.author import AuthorValidator
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.constants import Result, Status, ProjectStatus
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
@@ -122,6 +122,8 @@ def create_build(project, collection_id, label, target, message, author,
             }, defaults={
                 'data': source_data or {},
             })
+
+    statsreporter.stats().incr('new_api_build')
 
     build = Build(
         project=project,

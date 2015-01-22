@@ -20,6 +20,7 @@ from changes.constants import PROJECT_ROOT
 from changes.api.controller import APIController, APICatchall
 from changes.ext.celery import Celery
 from changes.ext.redis import Redis
+from changes.ext.statsreporter import StatsReporter
 from changes.url_converters.uuid import UUIDConverter
 
 # because foo.in_([]) ever executing is a bad idea
@@ -55,6 +56,7 @@ api = APIController(prefix='/api/0')
 mail = Mail()
 queue = Celery()
 redis = Redis()
+statsreporter = StatsReporter()
 sentry = Sentry(logging=True, level=logging.WARN)
 
 
@@ -250,6 +252,8 @@ def create_app(_read_config=True, **config):
     mail.init_app(app)
     queue.init_app(app)
     redis.init_app(app)
+    statsreporter.init_app(app)
+
     configure_debug_toolbar(app)
 
     from raven.contrib.celery import register_signal, register_logger_signal

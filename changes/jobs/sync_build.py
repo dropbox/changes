@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import current_app
 from sqlalchemy.sql import func
 
-from changes.config import db, queue
+from changes.config import db, queue, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
@@ -40,6 +40,10 @@ def abort_build(task):
     current_app.logger.exception('Unrecoverable exception syncing build %s', build.id)
 
 
+def _timedelta_to_millis(td):
+    return int(td.total_seconds() * 1000)
+
+
 @tracked_task(on_abort=abort_build)
 def sync_build(build_id):
     """
@@ -66,8 +70,15 @@ def sync_build(build_id):
     if any(p.status != Status.finished for p in all_jobs):
         is_finished = False
 
+    prev_started = build.date_started
     build.date_started = safe_agg(
         min, (j.date_started for j in all_jobs if j.date_started))
+
+    # We want to report how long we waited for the build to start once and only once,
+    # so we do it at the transition from not started to started.
+    if not prev_started and build.date_started:
+        queued_time = build.date_started - build.date_created
+        statsreporter.stats().log_timing('build_start_latency', _timedelta_to_millis(queued_time))
 
     if is_finished:
         build.date_finished = safe_agg(
@@ -76,7 +87,7 @@ def sync_build(build_id):
         build.date_finished = None
 
     if build.date_started and build.date_finished:
-        build.duration = int((build.date_finished - build.date_started).total_seconds() * 1000)
+        build.duration = _timedelta_to_millis(build.date_finished - build.date_started)
     else:
         build.duration = None
 
