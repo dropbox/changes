@@ -1,4 +1,4 @@
-<section class="section" ng-if="testFailures.total">
+<section class="section job-test-failures" ng-if="testFailures.total">
     <div class="section-header">
         <h3>
             Failing Tests
@@ -25,20 +25,26 @@
                     <td>
                         <span class="indicator indicator-sm"></span>
 
-                        <a ui-sref="test_details({job_id: testCase.job.id, test_id: testCase.id})">{{testCase.name|truncate:80}}</a><br>
-                        <small>
-                            <a ui-sref="project_test_details({test_id: testCase.hash})">History</a>
-                            <!-- <span ng-if="testCase.origin">
-                                &mdash; This failure likely originated in
-                                    <span ng-if="testCase.origin.source.id == build.source.id">
-                                        this changeset
-                                    </span>
-                                    <span ng-if="testCase.origin.source.id != build.source.id">
-                                        <a href="{{testCase.origin.link}}">{{testCase.origin.target}}</a>
-                                        <span ng-if="testCase.origin.author"> &mdash; {{testCase.origin.author.name}}</span>
-                                    </span>
-                            </span> -->
-                        </small>
+                        <span class="test-item-content">
+                            <a ui-sref="test_details({job_id: testCase.job.id, test_id: testCase.id})"
+                                    ng-bind="testCase.shortName">
+                            </a>
+                            <small>
+                                <div class="test-item-package" ng-bind="testCase.package">
+                                </div>
+                                <a ui-sref="project_test_details({test_id: testCase.hash})">History</a>
+                                <!-- <span ng-if="testCase.origin">
+                                    &mdash; This failure likely originated in
+                                        <span ng-if="testCase.origin.source.id == build.source.id">
+                                            this changeset
+                                        </span>
+                                        <span ng-if="testCase.origin.source.id != build.source.id">
+                                            <a href="{{testCase.origin.link}}">{{testCase.origin.target}}</a>
+                                            <span ng-if="testCase.origin.author"> &mdash; {{testCase.origin.author.name}}</span>
+                                        </span>
+                                </span> -->
+                            </small>
+                        </span>
                     </td>
                     <td class="column" duration="testCase.duration"></td>
                 </tr>

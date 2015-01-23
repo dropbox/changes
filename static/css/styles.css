@@ -1564,6 +1564,16 @@ d3barchart {
   font-size: 1.3em;
 }
 
+.job-test-failures .grid-list {
+  table-layout: fixed;
+}
+
+.test-item-content, .test-item-content .test-item-package  {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .build-log-container {
   background: #fff;
 }
