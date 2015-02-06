@@ -7,7 +7,6 @@ import requests
 from flask import current_app
 
 from changes.config import db
-from changes.constants import Result
 from changes.models import Build, ProjectOption
 from changes.utils.http import build_uri
 
@@ -83,9 +82,6 @@ def build_finished_handler(build_id, **kwargs):
     is_diff_build = target and target.startswith(u'D')
     if not is_diff_build:
         # Not a diff build
-        return
-
-    if build.result != Result.failed:
         return
 
     options = get_options(build.project_id)
