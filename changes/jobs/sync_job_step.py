@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.sql import func
 
 from changes.constants import Status, Result
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.models import (
     ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
@@ -159,6 +159,7 @@ def sync_job_step(step_id):
             })
 
             db.session.flush()
+            statsreporter.stats().incr('job_step_timed_out')
         if step.status != Status.in_progress:
             retry_after = QUEUED_RETRY_DELAY
         else:
