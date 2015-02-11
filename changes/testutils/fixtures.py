@@ -1,9 +1,6 @@
 from __future__ import absolute_import
 from changes.models.latest_green_build import LatestGreenBuild
 
-__all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
-           'SAMPLE_XUNIT_TESTARTIFACTS')
-
 from base64 import b64encode
 from loremipsum import get_paragraphs, get_sentences
 from uuid import uuid4
@@ -17,6 +14,9 @@ from changes.models import (
     PlanStatus
 )
 from changes.utils.slugs import slugify
+
+__all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
+           'SAMPLE_XUNIT_TESTARTIFACTS')
 
 
 SAMPLE_COVERAGE = """<?xml version="1.0" ?>

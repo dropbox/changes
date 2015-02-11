@@ -66,4 +66,5 @@ class _Celery(object):
         self.tasks[name] = self.celery.task(func, name=name, **kwargs)
 
 
-Celery = lambda **o: Container(_Celery, o, name='celery')
+def Celery(**o):
+    return Container(_Celery, o, name='celery')

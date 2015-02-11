@@ -69,4 +69,5 @@ class _Redis(object):
         self.redis.decr(key)
 
 
-Redis = lambda **o: Container(_Redis, o, name='redis')
+def Redis(**o):
+    return Container(_Redis, o, name='redis')

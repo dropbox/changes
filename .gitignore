@@ -1,4 +1,5 @@
 .arcconfig
+.arc_lib
 .coverage
 .DS_Store
 .idea

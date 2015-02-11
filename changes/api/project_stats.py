@@ -51,6 +51,14 @@ def decr_week(dt):
     return dt - timedelta(days=7)
 
 
+def decr_hour(dt):
+    return dt - timedelta(hours=1)
+
+
+def decr_day(dt):
+    return dt - timedelta(days=1)
+
+
 class ProjectStatsAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('resolution', type=unicode, location='args',
@@ -82,11 +90,11 @@ class ProjectStatsAPIView(APIView):
 
         if args.resolution == '1h':
             grouper = func.date_trunc('hour', Build.date_created)
-            decr_res = lambda x: x - timedelta(hours=1)
+            decr_res = decr_hour
         elif args.resolution == '1d':
             grouper = func.date_trunc('day', Build.date_created)
             date_end = date_end.replace(hour=0)
-            decr_res = lambda x: x - timedelta(days=1)
+            decr_res = decr_day
         elif args.resolution == '1w':
             grouper = func.date_trunc('week', Build.date_created)
             date_end = date_end.replace(hour=0)
