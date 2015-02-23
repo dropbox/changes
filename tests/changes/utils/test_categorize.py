@@ -13,11 +13,6 @@ class TestCategorize(unittest.TestCase):
 
     def test_parse_rule(self):
         self.assertEqual(_parse_rule('tag::regex'), ('tag', '', 'regex'))
-        self.assertEqual(_parse_rule(' tag : proj : regex '), ('tag', 'proj', 'regex'))
-        self.assertEqual(_parse_rule(' tag : proj : regex :: '), ('tag', 'proj', 'regex ::'))
-
-    def test_parse_rule(self):
-        self.assertEqual(_parse_rule('tag::regex'), ('tag', '', 'regex'))
         self.assertEqual(_parse_rule(' x-fail : proj : test error '),
                          ('x-fail', 'proj', 'test error'))
         self.assertEqual(_parse_rule(' tag : proj-2 : regex :: '), ('tag', 'proj-2', 'regex ::'))
