@@ -438,6 +438,7 @@ class SyncJobStepTest(BaseTestCase):
         )
 
         assert step.result == Result.failed
+        assert step.status == Status.finished
 
         assert FailureReason.query.filter(
             FailureReason.step_id == step.id,

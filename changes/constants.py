@@ -21,6 +21,12 @@ class Status(Enum):
 
 class Result(Enum):
     unknown = 0
+    # 'aborted' indicates intentional cancellation or an unrecoverable error.
+    #
+    # Operations that time out are not considered aborted, even though the timeout
+    # may result in intentional cancellation or be the result of an infrastructural failure.
+    # This is because we don't usually know the cause of timeouts, so we assume build failure to
+    # be safe.
     aborted = 5
     passed = 1
     skipped = 3

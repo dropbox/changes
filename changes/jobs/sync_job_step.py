@@ -146,6 +146,14 @@ def sync_job_step(step_id):
         if has_timed_out(step, jobplan):
             implementation.cancel_step(step=step)
 
+            # Not all implementations can actually cancel, but it's dead to us as of now
+            # so we mark it as finished.
+            step.status = Status.finished
+            step.date_finished = datetime.utcnow()
+
+            # Implementations default to marking canceled steps as aborted,
+            # but we're not canceling on good terms (it should be done by now)
+            # so we consider it a failure here.
             step.result = Result.failed
             db.session.add(step)
 
