@@ -145,7 +145,7 @@ class SendTestCase(TestCase):
         handler = MailNotificationHandler()
         context = handler.get_collection_context([build])
         msg = handler.get_msg(context)
-        handler.send(msg, build.collection_id)
+        handler.send(msg, build)
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
@@ -200,7 +200,7 @@ class SendTestCase(TestCase):
         handler = MailNotificationHandler()
         context = handler.get_collection_context([build])
         msg = handler.get_msg(context)
-        handler.send(msg, build.collection_id)
+        handler.send(msg, build)
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
@@ -257,7 +257,7 @@ class SendTestCase(TestCase):
         handler = MailNotificationHandler()
         context = handler.get_collection_context([build])
         msg = handler.get_msg(context)
-        handler.send(msg, build.collection_id)
+        handler.send(msg, build)
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]

@@ -76,19 +76,23 @@ def aggregate_count(items, key):
 class MailNotificationHandler(object):
     logger = logging.getLogger('mail')
 
-    def send(self, msg, collection_id):
+    def send(self, msg, build):
         if not msg.recipients:
-            self.logger.info('Exiting for collection_id={} because its message has no recipients.'.format(collection_id))
+            self.logger.info(
+                'Exiting for collection_id={} because its message has no '
+                'recipients.'.format(build.collection_id))
             return
 
         event = try_create(Event, where={
             'type': EventType.email,
-            'item_id': collection_id,
+            'item_id': build.collection_id,
             'data': {
+                'triggering_build_id': build.id.hex,
                 'recipients': msg.recipients,
             }
         })
-        assert event, 'An email has already been sent for this build collection.'
+        assert event, 'An email has already been sent for collection_id={} (build_id={}).'.format(
+            build.collection_id, build.id.hex)
 
         mail.send(msg)
 
@@ -425,4 +429,4 @@ def build_finished_handler(build_id, *args, **kwargs):
     msg = notification_handler.get_msg(context)
 
     if context['result'] != Result.passed:
-        notification_handler.send(msg, build.collection_id)
+        notification_handler.send(msg, build)
