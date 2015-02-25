@@ -426,18 +426,3 @@ def build_finished_handler(build_id, *args, **kwargs):
 
     if context['result'] != Result.passed:
         notification_handler.send(msg, build.collection_id)
-
-
-def job_finished_handler(job_id, *args, **kwargs):
-    """
-    This handler is temporary and calls the build handler for each finished
-    job. A finished job does not necessarily mean that the corresponding build
-    has finished, but that's ok because build_finished_handler will only
-    proceed if all builds in a collection have finished. Additionally, in
-    cases where the build_finished_handler is invoked twice, once on its own
-    when a build finishes, and a second time when it's called by
-    job_finished_handler, MailNotificationHandler.send will ensure that only
-    one email is sent.
-    """
-    job = Job.query.get(job_id)
-    build_finished_handler(job.build.id, *args, **kwargs)
