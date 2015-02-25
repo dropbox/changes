@@ -7,6 +7,7 @@ import requests
 from flask import current_app
 
 from changes.config import db
+from changes.constants import Result
 from changes.models import Build, ProjectOption
 from changes.utils.http import build_uri
 
@@ -88,7 +89,16 @@ def build_finished_handler(build_id, **kwargs):
     if options.get('phabricator.notify', '0') != '1':
         return
 
-    message = u'Build {result} - {project} #{number} ({target}). Build Results: [link]({link})'.format(
+    result_image = ''
+    if build.result == Result.passed:
+        result_image = 'green-check'
+    elif build.result == Result.failed:
+        result_image = 'red-x'
+    else:
+        result_image = 'yellow-question'
+
+    message = u'{image}\nBuild {result} - {project} #{number} ({target}). Build Results: [link]({link})'.format(
+        image=result_image,
         number='{0}'.format(build.number),
         result=unicode(build.result),
         target=build.target or build.source.revision_sha or 'Unknown',
