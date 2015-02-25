@@ -1,28 +1,67 @@
-{{ job.label }} {{ job.result }} - {{ build.target or build.source.revision_sha }} ({{ job.project.name }})
+{%- if target -%}
+    {{ target }}: {{ label }}
+{%- else -%}
+    {{label}}
+{%- endif %}
+Author: {{ author.name }} <{{ author.email }}>
+Date:   {{ date_started.strftime('%a %b %d %H:%M:%S %Y') }}
 
-Build:
-  {{ build.uri }}
-Job:
-  {{ job.uri }}{% if build.author %}
-Author:
-  {{ build.author.name }}{% endif %}
+{{
+    commit_message|break_long_lines(
+       width=75,
+       initial_indent=' '*4,
+       subsequent_indent=' '*4,
+       break_long_words=False
+    )
+}}
 
-{% if test_failures %}
-Test Failures
--------------
-{% for test in test_failures %}
-* {{ test.label }} - {{ test.uri }}{% endfor %}
 
-{% endif %}{% if relevant_logs %}
-Relevant Logs
--------------
-{% for source in relevant_logs %}
-* {{ source.name }} - {{ source.uri }}{% endfor %}
-{% elif build_log %}
-Build Log
----------
+{% for build in builds -%}
+{{ build.build.project.name }} build {{ build.result_string }}:
+{{ build.uri }}
+{%- if build.parent_build %}
 
-Full Log: {{ build_log.uri }}
+    Parent build {{ build.parent_build.result_string }}:
+    {{ build.parent_build.uri}}
+{%- endif -%}
 
-{{ build_log.text }}
+{%- if build.failing_tests_count or build.failing_logs_count -%}
+  {%- for job in build.jobs %}
+    {%- if job.failing_tests %}
+
+
+    Failing tests:
+    {% for test_case in job.failing_tests %}
+    Path: {{ test_case.test_case.name }}:
+    Url:  {{ test_case.uri }}
+
+{{
+    test_case.test_case.message|break_long_lines(
+        width=75,
+        initial_indent=' '*4,
+        subsequent_indent=' '*4
+    )
+}}
+
+    {% endfor -%}
+    {%- endif -%}
+    {%- if job.failing_logs %}
+
+
+    Build logs:
+    {% for log in job.failing_logs %}
+    Name: {{ job.job.label }} {{ log.name }}:
+    Url:  {{ log.uri }}
+
+{{
+    log.text|break_long_lines(
+        width=75,
+        initial_indent=' '*4,
+        subsequent_indent=' '*4
+    )
+}}
+    {% endfor -%}
+    {%- endif -%}
+  {% endfor %}
 {% endif %}
+{% endfor %}

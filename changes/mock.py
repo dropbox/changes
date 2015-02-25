@@ -129,6 +129,7 @@ def change(project, **kwargs):
 
 
 def build(project, **kwargs):
+    kwargs.setdefault('collection_id', uuid4().hex)
     kwargs.setdefault('label', get_sentences(1)[0][:128])
     kwargs.setdefault('status', Status.finished)
     kwargs.setdefault('result', Result.passed)
@@ -314,11 +315,12 @@ def logchunk(source, **kwargs):
     return logchunk
 
 
-def revision(repository, author):
+def revision(repository, author, message=None):
+    message = message or '\n\n'.join(get_paragraphs(2))
     result = Revision(
         repository=repository, sha=uuid4().hex, author=author,
         repository_id=repository.id, author_id=author.id,
-        message='\n\n'.join(get_paragraphs(2)),
+        message=message,
         branches=['default', 'foobar'],
     )
     db.session.add(result)

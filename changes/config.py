@@ -153,6 +153,7 @@ def create_app(_read_config=True, **config):
 
     app.config['EVENT_LISTENERS'] = (
         ('changes.listeners.mail.job_finished_handler', 'job.finished'),
+        ('changes.listeners.mail.build_finished_handler', 'build.finished'),
         ('changes.listeners.green_build.build_finished_handler', 'build.finished'),
         ('changes.listeners.hipchat.build_finished_handler', 'build.finished'),
         ('changes.listeners.build_revision.revision_created_handler', 'revision.created'),
@@ -282,9 +283,10 @@ def configure_debug_toolbar(app):
 
 def configure_templates(app):
     from changes.utils.times import duration
-    from changes.utils.text import nl2br
+    from changes.utils.text import break_long_lines, nl2br
 
     app.jinja_env.filters['duration'] = duration
+    app.jinja_env.filters['break_long_lines'] = break_long_lines
     app.jinja_env.filters['nl2br'] = nl2br
 
 
@@ -472,12 +474,12 @@ def configure_web_routes(app):
 
 def configure_debug_routes(app):
     from changes.debug.reports.build import BuildReportMailView
-    from changes.debug.mail.job_result import JobResultMailView
+    from changes.debug.mail.build_result import BuildResultMailView
 
     app.add_url_rule(
         '/debug/mail/report/build/', view_func=BuildReportMailView.as_view('debug-build-report'))
     app.add_url_rule(
-        '/debug/mail/result/job/<job_id>/', view_func=JobResultMailView.as_view('debug-build-result'))
+        '/debug/mail/result/build/<build_id>/', view_func=BuildResultMailView.as_view('debug-build-result'))
 
 
 def configure_jobs(app):

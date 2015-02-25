@@ -1,1 +1,19 @@
-{{ html_content }}
+<html>
+<head>
+    <link href="{{ url_for('static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
+</head>
+<body style="margin: 0 20%; background: #fff;">
+Subject: {{ subject }}<br>
+Recipients: {{ recipients }}<br><br>
+
+Html email:
+<div class="html-email">
+    {{ html_content }}
+</div>
+<br>
+Text email:
+<div class="text-email">
+    <pre>{{ text_content }}</pre>
+</div>
+</body>
+</html>

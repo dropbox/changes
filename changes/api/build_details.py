@@ -125,7 +125,7 @@ def get_failure_reasons(build):
     ]
 
 
-def _get_patch_parent_last_build(build):
+def get_patch_parent_last_build(build):
     if build.source.patch:
         parent_revision_builds = list(Build.query.filter(
             Build.project == build.project,
@@ -228,7 +228,7 @@ class BuildDetailsAPIView(APIView):
                 'tests': self.serialize(test_failures, extended_serializers),
             },
             'testChanges': self.serialize(changed_tests, extended_serializers),
-            'parentRevisionBuild': self.serialize(_get_patch_parent_last_build(build)),
+            'parentRevisionBuild': self.serialize(get_patch_parent_last_build(build)),
         })
 
         return self.respond(context)

@@ -3,277 +3,231 @@
     <title>{{ title }}</title>
     <style type="text/css">
     body {
-      font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
-      font-size: 15px;
-      background: #fff;
+        font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+        font-size: 16px;
+        font-weight: 300;
+        background: #fff;
     }
 
-    h1, h2, h3, h4, h5, h6 {
-      font-weight: 300;
-      font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
-    }
-    h1 small,
-    h2 small,
-    h3 small,
-    h4 small {
-      font-weight: 300;
-    }
-
-    h3 {
-      line-height: 22px;
-      font-size: 20px;
-    }
-
-    h3 small,
-    h3 .pull-right {
-      color: #999;
-      font-weight: 300;
-      font-size: 13px;
-    }
-
-    h2 {
-      font-size: 1.6em;
-    }
-
-    h1, h2, h3, h4, h5, h6,
     a, a:hover, a:active, a:focus {
-      color: #6e5baa;
+        color: #268bd2;
+        text-decoration: none;
+    }
+    p {
+        margin: 0;
+    }
+    h1, h2, h3, h4, h5 {
+        font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+        font-weight: 300;
+        margin: 0;
+        border-radius: 3px;
+
+    }
+    h1 { font-size: 24px; }
+    h2 { font-size: 16px; }
+    h3 { font-size: 14px; }
+
+
+    .dark-link {
+        color: #000;
+    }
+    .dark-link .link-cue {
+        color: #268bd2;
     }
 
-    pre {
-      border: 0;
-      padding: 5px;
-      color: #333;
-      background: #f7f5fa;
-      font-family: monospace;
-      white-space: pre-wrap;
-      font-size: 12px;
-      line-height: 16px;
-      border-radius: 4px;
+    .patch-info {
+        margin-bottom: 50px;
+    }
+    .summary {
+        margin-bottom: 20px;
+    }
+    .summary strong {
+        font-weight: bold;
     }
 
-    .pull-right {
-      float: right;
+
+    .build-item-header {
+        margin-bottom: 20px;
+    }
+    .build-item-header h1 {
+        margin-bottom: 5px;
     }
 
-    .container {
-        width: 600px;
+    .build-item .build-item-header-title {
+        padding: 1px 9px;
+        border-radius: 5px;
+        border: 1px solid #268bd2;
+    }
+    .build-item.passed .build-item-header-title,
+    .build-item.failed .build-item-header-title {
+        padding: 2px 10px;
+        color: #fff;
+        border: none;
+    }
+    .build-item.passed .build-item-header-title {
+        background: #72c272;
+    }
+    .build-item.failed .build-item-header-title {
+        color: #fff;
+        background: #d9322d;
     }
 
-    .page-header {
-      margin-top: 0;
-      border-bottom: 0;
-      height: 48px;
-      position: relative;
+    .build-item-parent {
+        font-size: 14px;
+    }
+    .build-item-parent strong {
+        font-weight: bold;
+    }
+    .build-item-parent.passed strong {
+        color: #72c272;
+    }
+    .build-item-parent.failed strong {
+        color: #d9322d;
     }
 
-    .page-header h2 {
-      font-size: 22px;
-      line-height: 24px;
+    .build-item-content {
+        padding-left: 20px;
+        margin-bottom: 40px;
+    }
+    .build-item-content h3 {
+        margin-top: 20px;
+    }
+    .build-item-content h3 a {
+        color: #000;
     }
 
-    .page-header .crumb {
-      float: left;
-      font-size: 34px;
-      height: 48px;
-      line-height: 48px;
-      font-weight: 300;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
+    .build-item-tests-see-remaining {
+        padding-top: 10px;
     }
-    .page-header .crumb li {
-      display: inline-block;
-      margin-left: 0;
+    .build-item-logs-following-tests {
+        margin-top: 50px;
     }
-    .page-header .crumb li.sep {
-      color: #ddd;
-      margin-right: 10px;
-    }
-    .page-header .crumb .indicator {
-      padding: 2px 10px;
-    }
-    .page-header .indicator {
-      padding: 1px 8px;
-    }
-    .page-header .branch {
-      font-size: 0.7em;
-      line-height: 22px;
-    }
-    .indicator {
-      font-weight: 300;
-      border-radius: 3px;
-      width: auto;
-      height: auto;
-      border-width: 1px;
-      border-style: solid;
-    }
-    a.indicator {
-      text-decoration: none;
-    }
-    .result-aborted .indicator {
-      color: #fff;
-      background: #aaa;
-      border-color: #aaa;
-    }
-    .result-passed .indicator {
-      color: #fff;
-      background: #72c272;
-      border-color: #72c272;
-    }
-    .result-failed .indicator {
-      color: #fff;
-      background: #d9322d;
-      border-color: #d9322d;
-    }
-    .result-unknown .indicator {
-      color: #aaa;
-      background: #fff;
-      border-color: #ccc;
-    }
-    .build-header h2 {
-      font-size: 1.4em;
-      overflow: hidden;
-      white-space: nowrap;
-      padding-right: 44px;
-      min-height: 48px;
-      margin-bottom: 0;
-    }
-    .build-header h2 small {
-      font-size: 0.7em;
-    }
-    .branch {
-      margin-top: 0;
-      border-radius: 2px;
-      background: #eee;
-      color: #333;
-      padding: 0 3px;
-      text-transform: uppercase;
-      margin-right: 3px;
-      vertical-align: text-top;
-    }
-    .build-log {
-      background: #333;
-      color: #ddd;
-      padding: 9.5px;
-      min-height: 50px;
-    }
-    .test-list, .failure-list, .log-list {
-      margin-left: 30px;
-      padding-left: 0;
-      list-style: disc;
-    }
-    .test-list li {
-      position: relative;
-      margin-bottom: 5px;
-    }
-    .test-list li a {
-      color: inherit;
-      text-decoration: none;
-      display: block;
-      font-size: 12px;
-      font-family: monospace;
+    .build-item-logs-header {
+        margin-bottom: 10px;
     }
 
-    .btn {
-      border: 1px solid #c7c0de;
-      color: #58488a;
-      text-decoration: none;
-      display: inline-block;
-      padding: 3px 8px;
-      font-size: 10px;
-      line-height: 1.5;
-      border-radius: 3px;
-      margin-bottom: 0;
-      font-weight: normal;
-      text-align: center;
-      white-space: nowrap;
-      vertical-align: middle;
-      cursor: pointer;
-      text-transform: uppercase;
+
+
+    .log {
+        min-height: 50px;
+        padding: 5px;
+        margin: 0;
+        color: #667b83;
+        background: #fcf5e4;
+        font-family: monospace;
+        white-space: pre-wrap;
+        font-size: 12px;
+        line-height: 16px;
+        border-radius: 4px;
+        border: 1px solid #eee8d5;
     }
 
     .about {
-      margin-top: 20px;
-      font-size: 12px;
-      border: 1px solid #eee;
-      background: #f9f9f9;
-      padding: 10px 10px 0;
-      border-radius: 4px;
+        margin-top: 20px;
+        font-size: 12px;
+        border: 1px solid #eee;
+        background: #f9f9f9;
+        padding: 10px 10px 0;
+        border-radius: 4px;
     }
+
     .about p {
       margin: 0 0 10px;
     }
     </style>
 </head>
-<body><div class="container">
-<div class="page-header build-header status-{{ job.status.name }} result-{{ job.result.name }}">
-    <ul class="crumb">
-        <li class="status-{{ build.status.name }} result-{{ build.result.name }}">
-            <a href="{{ build.uri }}" class="indicator">#{{ build.number }}</a>
-        </li>
-        <li class="sep">/</li>
-    </ul>
-    <h2>
-        {{ build.label }}<br>
-        <small>
-            <a href="{{ job.uri }}" class="indicator">#{{ build.number }}.{{ job.number }}</a></span> {{ job.label|truncate(60, True) }}</small>
-    </h2>
+<body>
+
+<pre class="patch-info">
+<a href="{{ target_uri }}" class="dark-link">{% if target %}{{ target }}{% else %}Source{% endif %}: <span class="link-cue">{{ label }}</span></a>
+Author: {{ author.name }} &lt;<a href="mailto:{{ author.email }}?subject={{ target }}: {{ label}}">{{ author.email }}</a>&gt;
+Started: {{ date_started.strftime('%a %b %d %H:%M:%S %Y') }}
+
+{{
+    commit_message|break_long_lines(
+       width=80,
+       initial_indent=' '*4,
+       subsequent_indent=' '*4,
+       break_long_words=False
+    )
+}}
+</pre>
+
+<p class="summary">
+    {% if total_failing_tests_count == 1 %}
+        There is 1 failing test.
+    {% elif total_failing_tests_count > 1 %}
+        Showing {{ failing_tests_count }} out of <strong>{{ total_failing_tests_count }}</strong> failing tests.
+    {% endif %}
+</p>
+
+{% for build in builds %}
+<div class="build-item {{ build.result_string }}">
+    <div class="build-item-header">
+        <h1>
+            <a href="{{ build.uri }}" class="build-item-header-title" title="Result: {{ build.result_string }}">
+                {{ build.build.project.name }} build {{ build.result_string }}
+            </a>
+        </h1>
+        {% if build.parent_build %}
+            <a href="{{ build.parent_build.uri }}" class="build-item-parent dark-link {{ build.parent_build.result_string }}">
+                Parent build <span class="link-cue">{{ build.parent_build.build.id.hex[:7]}}</span>
+                <strong>{{ build.parent_build.result_string }}</strong>.
+            </a>
+        {% endif %}
+    </div>
+
+    {% if build.failing_tests_count or build.failing_logs_count %}
+        <div class="build-item-content">
+            <div class="build-item-tests">
+                {% for job in build.jobs %}
+                    {% for test_case in job.failing_tests %}
+                        <div class="test-item">
+                            <h3>
+                                <a href="{{ test_case.uri }}" class="dark-link">
+                                    {{ test_case.test_case.name }}
+                                    <span class="link-cue">(view full log)</span>
+                                </a>
+                            </h3>
+                            {% if test_case.test_case.message %}
+                                <pre class="log">{{ test_case.test_case.message }}</pre>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% if build.failing_tests_count < build.total_failing_tests_count %}
+                    <p class="build-item-tests-see-remaining">
+                        <a href="{{ build.uri }}" >
+                            See all failing tests ({{ build.total_failing_tests_count-build.failing_tests_count }} remaining)
+                        </a>
+                    </p>
+                {% endif %}
+            </div>
+            {% if build.failing_logs_count %}
+                <div class="build-item-logs {% if build.failing_tests_count %}build-item-logs-following-tests{% endif %}">
+                    {% if build.failing_tests_count %}
+                        <div class="build-item-logs-header">
+                            <h2>Other build logs:</h2>
+                        </div>
+                    {% endif %}
+                    {% for job in build.jobs %}
+                        {% for log in job.failing_logs %}
+                            <div class="log-item">
+                                <h3>
+                                    <a href="{{ log.uri }}" class="dark-link">
+                                        {{ job.job.label }} {{ log.name }}
+                                        <span class="link-cue">(view full log)</span>
+                                    </a>
+                                </h3>
+                                <pre class="log">{{ log.text }}</pre>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
+{% endfor %}
 
-{% if is_passing %}
-    <p><strong>OMG your build passed!</strong></p>
-{% elif failure_reasons %}
-    <h3>Build Failed</h3>
-
-    <ul class="failure-list">
-        {% for failure in failure_reasons %}
-            <li>{{ failure.reason }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-{% if test_failures %}
-    <h3>Test Failures <small>{{ total_test_failures }} total</small></h3>
-
-    <ul class="test-list">
-        {% for test in test_failures %}
-            <li>
-              <a href="{{ test.uri }}">{{ test.name|truncate(75, True) }}</a>
-            </li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-{% if relevant_logs %}
-    <h3>Relevant Logs <small>{{ relevant_logs|length }} logs containing failures</small></h3>
-    <ul class="log-list">
-        {% for source in relevant_logs %}
-            <li><a href="{{ source.uri }}">{{ source.name }}</a></li>
-        {% endfor %}
-    </ul>
-{% elif build_log %}
-    <h3>
-      <span class="pull-right">
-        <a href="{{ build_log.uri }}" class="btn">view full log</a>
-      </span>
-      Build Log <small>{{ build_log.name }}</small>
-    </h3>
-
-    <pre class="build-log">{{ build_log.text }}</pre>
-{% endif %}
-
-{% if notes or owners %}
-  <div class="about">
-    {% if notes %}
-     <p>{{ notes|nl2br }}</p>
-    {% endif %}
-
-    {% if owners %}
-      <p>For more information regarding this build please contact <a href="mailto:{{ owners }}">{{ owners }}</a></p>
-    {% endif %}
-  </div>
-{% endif %}
-
-</div></body></html>
+</body></html>

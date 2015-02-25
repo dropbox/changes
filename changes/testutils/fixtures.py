@@ -190,6 +190,12 @@ class Fixtures(object):
         if 'revision_sha' not in kwargs:
             revision = self.create_revision(repository=project.repository)
             kwargs['revision_sha'] = revision.sha
+        if 'data' not in kwargs:
+            data = {
+                'phabricator.revisionID': '1234',
+                'phabricator.revisionURL': 'https://tails.corp.dropbox.com/D1234'
+            }
+            kwargs['data'] = data
 
         source = Source(
             repository_id=project.repository_id,
@@ -203,6 +209,8 @@ class Fixtures(object):
     def create_build(self, project, **kwargs):
         if 'source' not in kwargs:
             kwargs['source'] = self.create_source(project)
+        if 'collection_id' not in kwargs:
+            kwargs['collection_id'] = uuid4()
 
         kwargs['source_id'] = kwargs['source'].id
 
