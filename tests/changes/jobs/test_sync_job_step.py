@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import mock
 
 from datetime import datetime, timedelta
+from flask import current_app
 
 from changes.config import db
 from changes.constants import Result, Status
@@ -36,35 +37,45 @@ class HasTimedOutTest(BaseTestCase):
 
         db.session.commit()
 
+        # for use as defaults, an instant timeout and one 1k+ years in the future.
+        default_always, default_never = 0, 1e9
+
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
 
-        assert not has_timed_out(jobstep, jobplan)
+        assert not has_timed_out(jobstep, jobplan, default_always)
 
         jobstep.status = Status.in_progress
         jobstep.date_started = datetime.utcnow()
         db.session.add(jobstep)
         db.session.commit()
 
-        assert not has_timed_out(jobstep, jobplan)
+        assert not has_timed_out(jobstep, jobplan, default_always)
 
-        jobstep.date_started = datetime.utcnow() - timedelta(seconds=400)
+        # make it so the job started 6 minutes ago.
+        jobstep.date_started = datetime.utcnow() - timedelta(minutes=6)
         db.session.add(jobstep)
         db.session.commit()
 
-        assert has_timed_out(jobstep, jobplan)
+        # Based on config value of 5, should time out.
+        assert has_timed_out(jobstep, jobplan, default_never)
 
         jobplan.data['snapshot']['steps'][0]['options'][option.name] = '0'
         db.session.add(jobplan)
         db.session.commit()
 
-        assert not has_timed_out(jobstep, jobplan)
+        # The timeout option is unset, so default is used.
+        assert has_timed_out(jobstep, jobplan, 4)
+        assert not has_timed_out(jobstep, jobplan, 7)
 
-        jobplan.data['snapshot']['steps'][0]['options'][option.name] = '500'
+        # Make sure we don't ignore 0 as default like we do with the option.
+        assert has_timed_out(jobstep, jobplan, 0)
+
+        jobplan.data['snapshot']['steps'][0]['options'][option.name] = '7'
         db.session.add(jobplan)
         db.session.commit()
 
-        assert not has_timed_out(jobstep, jobplan)
+        assert not has_timed_out(jobstep, jobplan, default_always)
 
 
 class IsMissingTestsTest(BaseTestCase):
@@ -424,13 +435,15 @@ class SyncJobStepTest(BaseTestCase):
 
         mock_has_timed_out.return_value = True
 
+        current_app.config['DEFAULT_JOB_TIMEOUT_MIN'] = 99
+
         sync_job_step(
             step_id=step.id.hex,
             task_id=step.id.hex,
             parent_task_id=job.id.hex
         )
 
-        mock_has_timed_out.assert_called_once_with(step, jobplan)
+        mock_has_timed_out.assert_called_once_with(step, jobplan, default_timeout=99)
 
         get_implementation.assert_called_once_with()
         implementation.cancel_step.assert_called_once_with(

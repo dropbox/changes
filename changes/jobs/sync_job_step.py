@@ -74,7 +74,13 @@ def has_test_failures(step):
     ).exists()).scalar()
 
 
-def has_timed_out(step, jobplan):
+def has_timed_out(step, jobplan, default_timeout):
+    """
+    Args:
+        default_timeout (int): Timeout in minutes to be used when
+            no timeout is specified for this build. Required because
+            nothing is expected to run forever.
+    """
     if step.status != Status.in_progress:
         return False
 
@@ -84,9 +90,7 @@ def has_timed_out(step, jobplan):
     # TODO(dcramer): we make an assumption that there is a single step
     options = jobplan.get_steps()[0].options
 
-    timeout = int(options.get('build.timeout') or 0)
-    if not timeout:
-        return False
+    timeout = int(options.get('build.timeout', '0')) or default_timeout
 
     # timeout is in minutes
     timeout = timeout * 60
@@ -123,6 +127,12 @@ def record_coverage_stats(step):
         })
 
 
+# In minutes, the timeout applied to jobs without a timeout specified at build time.
+# If the job legitimately takes more than an hour, the build
+# should specify an appropriate timeout.
+DEFAULT_TIMEOUT_MIN = 60
+
+
 @tracked_task(on_abort=abort_step, max_retries=100)
 def sync_job_step(step_id):
     step = JobStep.query.get(step_id)
@@ -143,7 +153,8 @@ def sync_job_step(step_id):
         is_finished = sync_job_step.verify_all_children() == Status.finished
 
     if not is_finished:
-        if has_timed_out(step, jobplan):
+        default_timeout = current_app.config['DEFAULT_JOB_TIMEOUT_MIN']
+        if has_timed_out(step, jobplan, default_timeout=default_timeout):
             implementation.cancel_step(step=step)
 
             # Not all implementations can actually cancel, but it's dead to us as of now

@@ -209,6 +209,11 @@ def create_app(_read_config=True, **config):
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
     app.config['BASE_URI'] = 'http://localhost:5000'
 
+    # In minutes, the timeout applied to jobs without a timeout specified at build time.
+    # A timeout should nearly always be specified; this is just a safeguard so that
+    # unspecified timeout doesn't mean "is allowed to run indefinitely".
+    app.config['DEFAULT_JOB_TIMEOUT_MIN'] = 60
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
