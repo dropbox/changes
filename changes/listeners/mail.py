@@ -122,6 +122,10 @@ class MailNotificationHandler(object):
             return "Build {verb} - {label}".format(**format_dict)
 
     def get_collection_context(self, builds):
+        """
+        Given a non-empty list of finished builds, returns a context for
+        rendering the build results email.
+        """
 
         def sort_builds(builds_context):
             result_priority_order = (
@@ -153,8 +157,7 @@ class MailNotificationHandler(object):
         build = builds[0]
         target, target_uri = self.get_build_target(build)
 
-        # The start time of the build that started first in this collection.
-        date_started = min([_build.date_started for _build in builds])
+        date_started = min([_build.date_created for _build in builds])
 
         return {
             'title': self.get_subject(target, build.label, result),

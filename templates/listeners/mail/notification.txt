@@ -4,7 +4,7 @@
     {{label}}
 {%- endif %}
 Author: {{ author.name }} <{{ author.email }}>
-Date:   {{ date_started.strftime('%a %b %d %H:%M:%S %Y') }}
+{% if date_started %}Started: {{ date_started.strftime('%a %b %d %H:%M:%S %Y') }}{% endif %}
 
 {{
     commit_message|break_long_lines(
