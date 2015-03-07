@@ -91,13 +91,13 @@ def build_finished_handler(build_id, **kwargs):
 
     result_image = ''
     if build.result == Result.passed:
-        result_image = 'green-check'
+        result_image = '{icon check, color=green}'
     elif build.result == Result.failed:
-        result_image = 'red-x'
+        result_image = '{icon times, color=red}'
     else:
-        result_image = 'yellow-question'
+        result_image = '{icon question, color=orange}'
 
-    message = u'{image}\nBuild {result} - {project} #{number} ({target}). Build Results: [link]({link})'.format(
+    message = u'Build {result} {image} - [{project} #{number}]({link}) ({target}).'.format(
         image=result_image,
         number='{0}'.format(build.number),
         result=unicode(build.result),

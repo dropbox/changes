@@ -47,7 +47,7 @@ class PhabricatorListenerTest(TestCase):
         get_options.assert_called_once_with(project.id)
         build_link = build_uri('/projects/{0}/builds/{1}/'.format(
             build.project.slug, build.id.hex))
-        expected_msg = "red-x\nBuild Failed - test #1 (D1). Build Results: [link]({0})".format(
+        expected_msg = "Build Failed {{icon times, color=red}} - [test #1]({0}) (D1).".format(
             build_link)
 
         phab.assert_called_once_with('1', expected_msg)
