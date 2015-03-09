@@ -45,11 +45,21 @@ class HasTimedOutTest(BaseTestCase):
 
         assert not has_timed_out(jobstep, jobplan, default_always)
 
+        jobstep.status = Status.allocated
+        jobstep.date_created = datetime.utcnow() - timedelta(minutes=6)
+        db.session.add(jobstep)
+        db.session.commit()
+
+        # No date_started, but based on config value of 5 and date_created from
+        # 6 minutes ago, should time out.
+        assert has_timed_out(jobstep, jobplan, default_never)
+
         jobstep.status = Status.in_progress
         jobstep.date_started = datetime.utcnow()
         db.session.add(jobstep)
         db.session.commit()
 
+        # Now we have a recent date_started, shouldn't time out.
         assert not has_timed_out(jobstep, jobplan, default_always)
 
         # make it so the job started 6 minutes ago.
@@ -58,6 +68,13 @@ class HasTimedOutTest(BaseTestCase):
         db.session.commit()
 
         # Based on config value of 5, should time out.
+        assert has_timed_out(jobstep, jobplan, default_never)
+
+        jobstep.status = Status.allocated
+        db.session.add(jobstep)
+        db.session.commit()
+
+        # Doesn't require 'in_progress' to time out.
         assert has_timed_out(jobstep, jobplan, default_never)
 
         jobplan.data['snapshot']['steps'][0]['options'][option.name] = '0'

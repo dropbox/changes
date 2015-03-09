@@ -82,10 +82,16 @@ def has_timed_out(step, jobplan, default_timeout):
             nothing is expected to run forever.
     """
     if step.status != Status.in_progress:
-        return False
+        # HACK: We don't really want to timeout jobsteps that are
+        # stuck for infrastructural reasons here, but we don't yet
+        # have code to handle other cases well.
+        # To be sure that jobsteps can die, we cast a wide net here.
+        if step.status == Status.finished:
+            return False
 
-    if not step.date_started:
-        return False
+    # date_started is preferred if available, but we fall back to
+    # date_created (always set) so jobsteps that never start don't get to run forever.
+    start_time = step.date_started or step.date_created
 
     # TODO(dcramer): we make an assumption that there is a single step
     options = jobplan.get_steps()[0].options
@@ -95,7 +101,7 @@ def has_timed_out(step, jobplan, default_timeout):
     # timeout is in minutes
     timeout = timeout * 60
 
-    delta = datetime.utcnow() - step.date_started
+    delta = datetime.utcnow() - start_time
     if delta.total_seconds() > timeout:
         return True
 
@@ -155,6 +161,7 @@ def sync_job_step(step_id):
     if not is_finished:
         default_timeout = current_app.config['DEFAULT_JOB_TIMEOUT_MIN']
         if has_timed_out(step, jobplan, default_timeout=default_timeout):
+            old_status = step.status
             implementation.cancel_step(step=step)
 
             # Not all implementations can actually cancel, but it's dead to us as of now
@@ -179,6 +186,11 @@ def sync_job_step(step_id):
 
             db.session.flush()
             statsreporter.stats().incr('job_step_timed_out')
+            # If we timeout something that isn't in progress, that's our fault, and we should know.
+            if old_status != Status.in_progress:
+                current_app.logger.warning(
+                        "Timed out jobstep that wasn't in progress: %s (was %s)", step.id, old_status)
+
         if step.status != Status.in_progress:
             retry_after = QUEUED_RETRY_DELAY
         else:
