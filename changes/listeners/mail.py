@@ -110,6 +110,12 @@ class MailNotificationHandler(object):
         return msg
 
     def get_subject(self, target, label, result):
+        # Use the first label line for multi line labels.
+        if label:
+            lines = label.splitlines()
+            if len(lines) > 1:
+                label = u"{}...".format(lines[0])
+
         format_dict = {
             'target': target,
             'label': label,
@@ -117,9 +123,9 @@ class MailNotificationHandler(object):
         }
 
         if target:
-            return "{target} {verb} - {label}".format(**format_dict)
+            return u"{target} {verb} - {label}".format(**format_dict)
         else:
-            return "Build {verb} - {label}".format(**format_dict)
+            return u"Build {verb} - {label}".format(**format_dict)
 
     def get_collection_context(self, builds):
         """
@@ -157,7 +163,7 @@ class MailNotificationHandler(object):
         build = builds[0]
         target, target_uri = self.get_build_target(build)
 
-        date_started = min([_build.date_created for _build in builds])
+        date_created = min([_build.date_created for _build in builds])
 
         return {
             'title': self.get_subject(target, build.label, result),
@@ -166,7 +172,7 @@ class MailNotificationHandler(object):
             'target_uri': target_uri,
             'target': target,
             'label': build.label,
-            'date_started': date_started,
+            'date_created': date_created,
             'author': build.author,
             'commit_message': build.message or '',
             'failing_tests_count': aggregate_count(builds_context, 'failing_tests_count'),

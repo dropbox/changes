@@ -141,7 +141,7 @@
 <pre class="patch-info">
 <a href="{{ target_uri }}" class="dark-link">{% if target %}{{ target }}{% else %}Source{% endif %}: <span class="link-cue">{{ label }}</span></a>
 Author: {{ author.name }} &lt;<a href="mailto:{{ author.email }}?subject={{ target }}: {{ label}}">{{ author.email }}</a>&gt;
-{% if date_started %}Started: {{ date_started.strftime('%a %b %d %H:%M:%S %Y') }}{% endif %}
+Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
 
 {{
     commit_message|break_long_lines(

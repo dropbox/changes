@@ -11,6 +11,27 @@ from changes.listeners.mail import filter_recipients, MailNotificationHandler
 from changes.testutils.cases import TestCase
 
 
+class MailNotificationHandlerTestCase(TestCase):
+    def test_get_subject(self):
+        handler = MailNotificationHandler()
+
+        self.assertEqual(
+            'D123 passed - My \u00fcnicode diff',
+            handler.get_subject('D123', 'My \u00fcnicode diff', Result.passed),
+        )
+
+        self.assertEqual(
+            'Build passed - My \u00fcnicode diff',
+            handler.get_subject(None, 'My \u00fcnicode diff', Result.passed),
+        )
+
+        self.assertEqual(
+            'Build passed - My \u00fcnicode diff...',
+            handler.get_subject(
+                None, 'My \u00fcnicode diff\nwith many lines', Result.passed),
+        )
+
+
 class FilterRecipientsTestCase(TestCase):
     def test_simple(self):
         results = filter_recipients(
