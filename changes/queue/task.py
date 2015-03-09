@@ -7,7 +7,7 @@ from functools import wraps
 from threading import local, Lock
 from uuid import uuid4
 
-from changes.config import db, queue
+from changes.config import db, queue, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.models import Task
@@ -302,6 +302,9 @@ class TrackedTask(local):
                 countdown=CONTINUE_COUNTDOWN,
             )
 
+        if created:
+            self._report_created()
+
     def delay(self, **kwargs):
         """
         Enqueue this task.
@@ -334,6 +337,9 @@ class TrackedTask(local):
             db.session.add(task)
 
         db.session.commit()
+
+        if created:
+            self._report_created()
 
         queue.delay(
             self.task_name,
@@ -399,6 +405,10 @@ class TrackedTask(local):
             status = Status.finished
 
         return status
+
+    def _report_created(self):
+        """Reports to monitoring that a new Task was created."""
+        statsreporter.stats().incr('new_task_created_' + self.task_name)
 
 
 # bind to a decorator-like naming scheme
