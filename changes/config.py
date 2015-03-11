@@ -157,6 +157,7 @@ def create_app(_read_config=True, **config):
         ('changes.listeners.hipchat.build_finished_handler', 'build.finished'),
         ('changes.listeners.build_revision.revision_created_handler', 'revision.created'),
         ('changes.listeners.phabricator_listener.build_finished_handler', 'build.finished'),
+        ('changes.listeners.analytics_notifier.build_finished_handler', 'build.finished'),
     )
 
     # restrict outbound notifications to the given domains

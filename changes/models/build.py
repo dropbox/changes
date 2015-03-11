@@ -46,7 +46,9 @@ class Build(db.Model):
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
     author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
     cause = Column(EnumType(Cause), nullable=False, default=Cause.unknown)
+    # label is a short description, typically from the title of the change that triggered the build.
     label = Column(String(128), nullable=False)
+    # short indicator of what is being built, typically the sha or the Phabricator revision ID like 'D90885'.
     target = Column(String(128))
     tags = Column(ARRAY(String(16)), nullable=True)
     status = Column(EnumType(Status), nullable=False, default=Status.unknown)
