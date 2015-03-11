@@ -59,7 +59,7 @@ def post_build_data(url, data):
         # NB: We send an array of JSON objects rather than a single object
         # so the interface doesn't need to change if we later want to do batch
         # posting.
-        resp = requests.post(url, data=json.dumps([data]))
+        resp = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps([data]))
         resp.raise_for_status()
         # Should probably retry here so that transient failures don't result in
         # missing data.
