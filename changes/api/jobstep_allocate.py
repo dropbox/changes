@@ -9,6 +9,7 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView, error
 from changes.constants import Status, Result
 from changes.config import db, redis
+from changes.ext.redis import UnableToGetLock
 from changes.models import Build, Job, JobPlan, JobStep
 
 
@@ -119,7 +120,7 @@ class JobStepAllocateAPIView(APIView):
                     return self.respond([])
 
                 db.session.flush()
-        except redis.UnableToGetLock:
+        except UnableToGetLock:
             return error('Another allocation is in progress', http_code=503)
 
         context = []

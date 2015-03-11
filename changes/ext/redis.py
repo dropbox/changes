@@ -15,7 +15,6 @@ class UnableToGetLock(Exception):
 
 
 class _Redis(object):
-    UnableToGetLock = UnableToGetLock
 
     def __init__(self, app, options):
         self.app = app
@@ -50,7 +49,7 @@ class _Redis(object):
         self.logger.info('Acquiring lock on %s', lock_key)
 
         if not got_lock:
-            raise self.UnableToGetLock('Unable to fetch lock on %s' % (lock_key,))
+            raise UnableToGetLock('Unable to fetch lock on %s' % (lock_key,))
 
         try:
             yield

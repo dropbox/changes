@@ -6,6 +6,7 @@ from mock import patch
 
 from changes.testutils import APITestCase
 from changes.constants import Status
+from changes.ext.redis import UnableToGetLock
 
 
 class JobStepAllocateTest(APITestCase):
@@ -32,6 +33,19 @@ class JobStepAllocateTest(APITestCase):
         resp = self.post_simple()
         assert resp.status_code == 200, resp
         assert resp.data == '[]', resp.data
+
+    @patch('changes.config.redis.lock',)
+    def test_cant_allocate(self, mock_allocate):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+
+        self.create_jobstep(jobphase, status=Status.unknown)
+
+        mock_allocate.side_effect = UnableToGetLock("Can't get lock")
+        resp = self.post_simple()
+        assert resp.status_code == 503
 
     @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
     def test_several_queued(self, mock_get_allocation_command):
