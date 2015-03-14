@@ -2,6 +2,8 @@ import logging
 import time
 import hashlib
 import json
+from changes.models.job import Job
+from changes.models.test import TestCase
 import requests
 
 from flask import current_app
@@ -10,6 +12,7 @@ from changes.config import db
 from changes.constants import Result
 from changes.models import Build, ProjectOption
 from changes.utils.http import build_uri
+from sqlalchemy.orm import joinedload
 
 logger = logging.getLogger('phabricator-listener')
 
@@ -97,19 +100,64 @@ def build_finished_handler(build_id, **kwargs):
     else:
         result_image = '{icon question, color=orange}'
 
-    message = u'Build {result} {image} - [{project} #{number}]({link}) ({target}).'.format(
-        image=result_image,
-        number='{0}'.format(build.number),
-        result=unicode(build.result),
-        target=build.target or build.source.revision_sha or 'Unknown',
+    message = u'{project} build {result} {image} - ([results]({link})).'.format(
         project=build.project.name,
+        image=result_image,
+        result=unicode(build.result),
         link=build_uri('/projects/{0}/builds/{1}/'.format(build.project.slug, build.id.hex))
     )
 
-    if build.author:
-        message += ' - {author}'.format(author=build.author.email,)
+    jobs = list(Job.query.filter(
+        Job.build_id == build_id,
+    ))
+
+    test_failures = TestCase.query.options(
+        joinedload('job', innerjoin=True),
+        ).filter(
+        TestCase.job_id.in_([j.id for j in jobs]),
+        TestCase.result == Result.failed,
+        ).order_by(TestCase.name.asc())
+    num_test_failures = test_failures.count()
+
+    if num_test_failures > 0:
+        message += ' There were [{num_failures} test failures]({link})'.format(
+            num_failures=num_test_failures,
+            link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex))
+        )
+
+        message += '\n'
+        message += get_remarkup_test_failure_table(build, test_failures)
 
     post_comment(target, message)
+
+
+def get_remarkup_test_failure_table(build, tests):
+    did_truncate = False
+    num_failures = tests.count()
+    if num_failures > 10:
+        tests = tests[:10]
+        did_truncate = True
+
+    table = ['|Test Name | Package|',
+             '|--|--|']
+    for test in tests:
+        pkg = test.package
+        name = test.name
+        if name.startswith(pkg):
+            name = name[len(pkg) + 1:]
+
+        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
+            build.project.slug,
+            build.id.hex,
+            test.job_id.hex,
+            test.id.hex
+        ))
+        table = table + ['|[%s](%s)|%s|' % (name, test_link, pkg)]
+
+    if did_truncate:
+        table += ['|...more...|...|']
+
+    return '\n'.join(table)
 
 
 def post_comment(target, message):
