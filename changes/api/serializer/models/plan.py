@@ -40,7 +40,9 @@ class StepSerializer(Serializer):
             'implementation': instance.implementation,
             'name': instance.implementation.rsplit('.', 1)[-1],
             'order': instance.order,
-            'data': json.dumps(dict(instance.data or {})),
+            # 'data' is rendered as JSON string for human reading/editing,
+            # so we make it pretty.
+            'data': _pretty_json_dump(dict(instance.data or {})),
             'dateCreated': instance.date_created,
             'options': attrs['options'],
         }
@@ -55,6 +57,13 @@ class HistoricalImmutableStepSerializer(Serializer):
             'id': instance.id.hex,
             'implementation': instance.implementation,
             'name': implementation.get_label() if implementation else '',
-            'data': json.dumps(dict(instance.data or {})),
+            # 'data' is rendered as JSON string for human reading/editing,
+            # so we make it pretty.
+            'data': _pretty_json_dump(dict(instance.data or {})),
             'options': instance.options,
         }
+
+
+def _pretty_json_dump(d):
+    """Returns a human-readable JSON serialization of a value."""
+    return json.dumps(d, sort_keys=True, indent=3)
