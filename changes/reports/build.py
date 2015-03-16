@@ -2,15 +2,16 @@ from __future__ import absolute_import, division
 
 from collections import defaultdict
 from datetime import datetime, timedelta
-from hashlib import sha1
 from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Build, FailureReason, TestCase, Source
+from changes.models import Build, FailureReason, TestCase, Source, Job
 from changes.utils.http import build_uri
 
 
+MAX_FLAKY_TESTS = 5
+MAX_SLOW_TESTS = 10
 SLOW_TEST_THRESHOLD = 3000  # ms
 
 ONE_DAY = 60 * 60 * 24
@@ -102,6 +103,7 @@ class BuildReport(object):
                 },
             })
 
+        flaky_tests = self.get_flaky_tests(start_period, end_period)
         slow_tests = self.get_slow_tests(start_period, end_period)
 
         title = 'Build Report ({0} through {1})'.format(
@@ -117,6 +119,7 @@ class BuildReport(object):
             'failure_stats': failure_stats,
             'project_stats': project_stats,
             'tests': {
+                'flaky_list': flaky_tests,
                 'slow_list': slow_tests,
             },
         }
@@ -226,7 +229,7 @@ class BuildReport(object):
             slow_tests.extend(self.get_slow_tests_for_project(
                 project, start_period, end_period))
         slow_tests.sort(key=lambda x: x['duration_raw'], reverse=True)
-        return slow_tests[:10]
+        return slow_tests[:MAX_SLOW_TESTS]
 
     def get_slow_tests_for_project(self, project, start_period, end_period):
         latest_build = Build.query.filter(
@@ -246,27 +249,74 @@ class BuildReport(object):
         if not job_list:
             return []
 
-        queryset = db.session.query(
-            TestCase.name, TestCase.duration,
-        ).filter(
+        queryset = TestCase.query.filter(
             TestCase.job_id.in_(j.id for j in job_list),
             TestCase.result == Result.passed,
             TestCase.date_created > start_period,
             TestCase.date_created <= end_period,
-        ).group_by(
-            TestCase.name, TestCase.duration,
-        ).order_by(TestCase.duration.desc())
+        ).order_by(
+            TestCase.duration.desc()
+        ).limit(MAX_SLOW_TESTS)
 
         slow_list = []
-        for name, duration in queryset[:10]:
+        for test in queryset:
             slow_list.append({
                 'project': project,
-                'name': name,
-                'package': '',  # TODO
-                'duration': '%.2f s' % (duration / 1000.0,),
-                'duration_raw': duration,
+                'name': test.short_name,
+                'package': test.package,
+                'duration': '%.2f s' % (test.duration / 1000.0,),
+                'duration_raw': test.duration,
                 'link': build_uri('/projects/{0}/tests/{1}/'.format(
-                    project.slug, sha1(name).hexdigest())),
+                    project.slug, test.name_sha)),
             })
 
         return slow_list
+
+    def get_flaky_tests(self, start_period, end_period):
+        test_queryset = TestCase.query.join(
+            Job, Job.id == TestCase.job_id,
+        ).join(
+            Build, Build.id == Job.build_id,
+        ).filter(
+            Build.project_id.in_(p.id for p in self.projects),
+            TestCase.result == Result.passed,
+            Build.date_created >= start_period,
+            Build.date_created < end_period,
+        ).join(
+            Source, Source.id == Build.source_id,
+        ).filter(
+            Source.patch_id == None,  # NOQA
+        )
+
+        flaky_test_queryset = test_queryset.with_entities(
+            TestCase.name,
+            func.sum(TestCase.reruns).label('reruns'),
+            func.avg(TestCase.reruns).label('rerun_avg'),
+        ).group_by(
+            TestCase.name
+        ).order_by(
+            func.sum(TestCase.reruns).desc()
+        ).limit(MAX_FLAKY_TESTS)
+
+        flaky_list = []
+        for name, reruns, rerun_avg in flaky_test_queryset:
+            if reruns == 0:
+                continue
+
+            rerun = test_queryset.filter(
+                TestCase.name == name,
+                TestCase.reruns > 0,
+            ).first()
+
+            flaky_list.append({
+                'name': rerun.short_name,
+                'package': rerun.package,
+                'reruns': '%d (%.1f%%)' % (reruns, 100 * rerun_avg),
+                'link': build_uri('/projects/{0}/builds/{1}/jobs/{2}/logs/{3}/'.format(
+                    rerun.project.slug,
+                    rerun.job.build.id.hex,
+                    rerun.job.id.hex,
+                    rerun.step.logsources[0].id.hex)),
+            })
+
+        return flaky_list

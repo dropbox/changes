@@ -34,8 +34,8 @@ table {
 }
 td, th {
 	font-size: 0.95em;
-	padding: 5px 8px;
-	line-height: 24px;
+	padding: 10px 8px;
+	line-height: 14px;
 	vertical-align: middle;
 }
 th {
@@ -45,6 +45,7 @@ th {
 thead th {
 	color: #6e5baa;
 	font-weight: 500;
+	vertical-align: bottom;
 }
 
 tbody th a {
@@ -107,12 +108,14 @@ tbody th a {
 	color: #999;
 }
 
-tbody td.duration {
-	width: 30px;
+table .value {
 	text-align: right;
+	white-space: nowrap;
+}
+
+tbody td.value {
 	vertical-align: top;
 	font-size: 12px;
-	white-space: nowrap;
 }
 
 tr.odd th {
@@ -304,6 +307,45 @@ tr.odd td {
 		</table>
 	</div>
 
+	{% if tests.flaky_list %}
+		<div id="flakiest-tests">
+			<div class="subheader">
+				<h2>Flakiest Tests</h2>
+			</div>
+
+			<p>
+				<small>
+					A flaky run for a test is one in which the test failed initially,
+					and then passed when re-run.
+				</small>
+			</p>
+
+			<table>
+				<thead>
+					<tr>
+						<th>Test</th>
+						<th class="value">
+							Flaky runs<br>(% of passing runs)
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for test in tests.flaky_list %}
+					<tr class="{{ loop.cycle('odd', 'even') }}">
+						<th>
+							<a href="{{ test.link }}" class="truncate">{{ test.name }}</a><br>
+							{% if test.package %}
+								<small class="truncate">{{ test.package }}</small>
+							{% endif %}
+						</th>
+						<td class="value">{{ test.reruns }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% endif %}
+
 	{% if tests.slow_list %}
 		<div id="slowest-tests">
 			<div class="subheader">
@@ -311,6 +353,14 @@ tr.odd td {
 			</div>
 
 			<table>
+				<thead>
+					<tr>
+						<th>Test</th>
+						<th class="value">
+							Duration in<br>latest green build
+						</th>
+					</tr>
+				</thead>
 				<tbody>
 					{% for test in tests.slow_list %}
 					<tr class="{{ loop.cycle('odd', 'even') }}">
@@ -320,7 +370,7 @@ tr.odd td {
 								<small class="truncate">{{ test.package }}</small>
 							{% endif %}
 						</th>
-						<td class="duration">{{ test.duration }}</td>
+						<td class="value">{{ test.duration }}</td>
 					</tr>
 					{% endfor %}
 				</tbody>
