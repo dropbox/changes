@@ -77,24 +77,25 @@ def _parse_regexp(regexp):
     return regexp
 
 
-def categorize(project, rules, output, default_tag=None):
+def categorize(project, rules, output):
     """Categorize test output based on rules.
 
-    Arguments:
+    Args:
       project (str): name of the project
       rules (iterable of (str, str, str) tuples):
           each rule is a tuple (tag, project, regexp) that is matched against output
       output (str): output of a (partial) test run / build
-      default_tag: if not None, consider this tag matched if no rule matches
 
-    Returns a set of matched tags.
+    Returns:
+      A tuple of sets with (matched_categories, applicable_categories), where
+      applicable_categories are the names of rules that apply to the provided project.
+      applicable_categories is a superset of matched_categories.
     """
     output = output.replace('\r\n', '\n')
-    tags = set()
+    matched, applicable = set(), set()
     for tag, rule_project, regexp in rules:
-        if (not rule_project or rule_project == project) and (
-                re.search(regexp, output, re.MULTILINE | re.DOTALL)):
-            tags.add(tag)
-    if not tags and default_tag:
-        tags.add(default_tag)
-    return tags
+        if not rule_project or rule_project == project:
+            applicable.add(tag)
+            if re.search(regexp, output, re.MULTILINE | re.DOTALL):
+                matched.add(tag)
+    return (matched, applicable)

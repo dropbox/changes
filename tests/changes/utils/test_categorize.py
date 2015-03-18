@@ -38,43 +38,37 @@ class TestCategorize(unittest.TestCase):
 
     def test_categorize_general_rule(self):
         rules = [('tag', '', 'error')]
-        self.assertEqual(categorize('proj', rules, '.. error ..'), {'tag'})
-        self.assertEqual(categorize('proj', rules, '.. Error ..'), set())
+        self.assertEqual(categorize('proj', rules, '.. error ..'), ({'tag'}, {'tag'}))
+        self.assertEqual(categorize('proj', rules, '.. Error ..'), (set(), {'tag'}))
 
     def test_categorize_general_rule_two_tags(self):
         rules = [('tag', '', 'error'),
                  ('tag2', '', 'fail')]
-        self.assertEqual(categorize('proj', rules, '.. error .. fail'), {'tag', 'tag2'})
-        self.assertEqual(categorize('proj', rules, '.. fail ..'), {'tag2'})
-        self.assertEqual(categorize('proj', rules, '.. error ..'), {'tag'})
-        self.assertEqual(categorize('proj', rules, '.. ok ..'), set())
+        tags = {'tag', 'tag2'}
+        self.assertEqual(categorize('proj', rules, '.. error .. fail'), ({'tag', 'tag2'}, tags))
+        self.assertEqual(categorize('proj', rules, '.. fail ..'), ({'tag2'}, tags))
+        self.assertEqual(categorize('proj', rules, '.. error ..'), ({'tag'}, tags))
+        self.assertEqual(categorize('proj', rules, '.. ok ..'), (set(), tags))
 
     def test_categorize_project_rule(self):
         rules = [('tag2', 'proj', 'error')]
-        self.assertEqual(categorize('proj', rules, '.. error ..'), {'tag2'})
-        self.assertEqual(categorize('proj2', rules, '.. error ..'), set())
+        self.assertEqual(categorize('proj', rules, '.. error ..'), ({'tag2'}, {'tag2'}))
+        self.assertEqual(categorize('proj2', rules, '.. error ..'), (set(), set()))
 
     def test_categorize_full_line_regexp(self):
         rules = [('tag2', 'proj', '^error$')]
-        self.assertEqual(categorize('proj', rules, 'error'), {'tag2'})
-        self.assertEqual(categorize('proj', rules, '\nerror\n'), {'tag2'})
-        self.assertEqual(categorize('proj', rules, 'xerror'), set())
-        self.assertEqual(categorize('proj', rules, '\nerrorx\n'), set())
+        self.assertEqual(categorize('proj', rules, 'error'), ({'tag2'}, {'tag2'}))
+        self.assertEqual(categorize('proj', rules, '\nerror\n'), ({'tag2'}, {'tag2'}))
+        self.assertEqual(categorize('proj', rules, 'xerror'), (set(), {'tag2'}))
+        self.assertEqual(categorize('proj', rules, '\nerrorx\n'), (set(), {'tag2'}))
 
     def test_categorize_full_line_regexp_cr_lf(self):
         rules = [('tag', 'proj', '^error$')]
-        self.assertEqual(categorize('proj', rules, '\r\nerror\r\n'), {'tag'})
+        self.assertEqual(categorize('proj', rules, '\r\nerror\r\n'), ({'tag'}, {'tag'}))
 
     def test_categorize_match_newline(self):
         rules = [('atag', 'aproj', 'line1.*line2')]
-        self.assertEqual(categorize('aproj', rules, 'line1\n\nline2'), {'atag'})
-
-    def test_categorize_default_tag(self):
-        rules = [('tag-x', '', 'an error')]
-        self.assertEqual(categorize('proj', rules, '.. an error ..', default_tag='def'),
-                         {'tag-x'})
-        self.assertEqual(categorize('proj', rules, '.. an Error ..', default_tag='def'),
-                         {'def'})
+        self.assertEqual(categorize('aproj', rules, 'line1\n\nline2'), ({'atag'}, {'atag'}))
 
     def test_parse_error(self):
         with self.assertRaisesRegexp(ParseError, 'file.ext, line 2: syntax error'):
