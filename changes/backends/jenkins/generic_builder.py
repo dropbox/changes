@@ -8,6 +8,7 @@ from .builder import JenkinsBuilder
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, *args, **kwargs):
         self.script = kwargs.pop('script')
+        self.reset_script = kwargs.pop('reset_script', '')
         self.cluster = kwargs.pop('cluster')
         self.diff_cluster = kwargs.pop('diff_cluster', None)
         self.path = kwargs.pop('path', '')
@@ -48,6 +49,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             {'name': 'CHANGES_PID', 'value': project.slug},
             {'name': 'REPO_URL', 'value': repo_url},
             {'name': 'SCRIPT', 'value': script},
+            {'name': 'RESET_SCRIPT', 'value': self.reset_script},
             {'name': 'REPO_VCS', 'value': repository.backend.name},
             {'name': 'CLUSTER', 'value': cluster},
             {'name': 'WORK_PATH', 'value': path},

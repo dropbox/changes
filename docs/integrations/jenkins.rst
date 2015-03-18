@@ -10,9 +10,11 @@ This changes rapidly and documentation is not maintained for the internals of th
 
 .. literalinclude:: /examples/jenkins-generic-job.xml
    :language: xml
-   :emphasize-lines: 85-88
+   :emphasize-lines: 96-99
 
-Example scripts based on git are included for reference. Note that REPO_PATH is a global variables that is assumed to exist.
+Example scripts based on git are included for reference. Note that REPO_PATH is a global variable that is assumed to exist.
+The reset-generic job here is an optional, sample downstream job that can be run to execute cleanup tasks passed through the RESET_SCRIPT parameter.
+Running cleanup tasks outside the generic job has the advantage of not delaying build results from the generic job being posted back to Changes.
 
 
 Master Build Step
