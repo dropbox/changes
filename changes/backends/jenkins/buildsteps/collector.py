@@ -127,7 +127,6 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
 
             success = False
             exn = None
-            master = None
             for _ in range(0, 3):
                 try:
                     job_data = builder.create_job_from_params(
@@ -136,7 +135,6 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
                         job_name=step.data['job_name'],
                     )
 
-                    master = job_data.get('master')
                     step.data.update(job_data)
                     db.session.add(step)
                     db.session.commit()
