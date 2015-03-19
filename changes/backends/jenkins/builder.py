@@ -17,7 +17,7 @@ from lxml import etree, objectify
 from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.xunit import XunitHandler
 from changes.backends.base import BaseBackend, UnrecoverableException
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_artifact import sync_artifact
@@ -77,6 +77,11 @@ class JenkinsBuilder(BaseBackend):
         self.sync_file_artifacts = self.app.config.get('JENKINS_SYNC_FILE_ARTIFACTS', True)
         self.http_session = requests.Session()
 
+        def report_response_status(r, *args, **kwargs):
+            statsreporter.stats().incr('jenkins_api_response_{}'.format(r.status_code))
+
+        self.http_session.hooks['response'].append(report_response_status)
+
     def _get_raw_response(self, base_url, path, method='GET', params=None, **kwargs):
         url = '{}/{}'.format(base_url, path.lstrip('/'))
 
@@ -107,6 +112,8 @@ class JenkinsBuilder(BaseBackend):
         path = '{}/api/json/'.format(path.strip('/'))
 
         data = self._get_raw_response(base_url, path, *args, **kwargs)
+        # TODO(kylec): If we get back an empty string, we probably want
+        # to fail; this method should only return parsed JSON.
         if not data:
             return
 
