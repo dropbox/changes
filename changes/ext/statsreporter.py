@@ -1,6 +1,8 @@
 import statsd
 import re
+import time
 import logging
+from contextlib import contextmanager
 
 logger = logging.getLogger('statsreporter')
 
@@ -92,6 +94,16 @@ class Stats(object):
         Stats._check_key(key)
         if self._client:
             self._client.timing(key, duration_ms)
+
+    @contextmanager
+    def timer(self, key):
+        """A contextmanager that reports the duration in milliseconds on exit."""
+        t0 = time.time()
+        try:
+            yield
+        finally:
+            duration_ms = int(1000 * (time.time() - t0))
+            self.log_timing(key, duration_ms)
 
     _KEY_RE = re.compile(r'^[A-Za-z0-9_-]+$')
 

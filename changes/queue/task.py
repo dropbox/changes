@@ -73,8 +73,9 @@ class TrackedTask(local):
         self.__code__ = getattr(func, '__code__', None)
 
     def __call__(self, **kwargs):
-        with self.lock:
-            self._run(kwargs)
+        with statsreporter.stats().timer('task_duration_' + self.task_name):
+            with self.lock:
+                self._run(kwargs)
 
     def __repr__(self):
         return '<%s: task_name=%s>' % (type(self), self.task_name)
