@@ -517,6 +517,7 @@ class JenkinsBuilder(BaseBackend):
             step.status = Status.finished
             step.result = Result.unknown
             db.session.add(step)
+            self.logger.warning("Queued step not found in queue: {} (build: {})".format(step.id, step.job.build_id))
             return
 
         if item.get('executable'):
