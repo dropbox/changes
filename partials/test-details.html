@@ -23,6 +23,13 @@
 	<div ng-if="!testCase.message">No output was recorded for this test.</div>
 </section>
 
+<section class="section" bind-once>
+	<div class="section-header">
+		<h4>Console Log</h4>
+	</div>
+	<div>See the <a ui-sref="log_details({source_id: testCase.logSource.id})">console log</a> from this run.</div>
+</section>
+
 <section class="section" ng-if="testCase.textArtifacts">
 	<div class="section-header">
 		<h4>Other Logs</h4>
