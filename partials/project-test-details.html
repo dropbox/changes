@@ -41,10 +41,10 @@
                 </tr>
             </thead>
             <tr ng-repeat="result in results" class="result-{{result.result.id}}">
-                <td>
+                <td class="build-list"> <!-- nasty hack for indicator styling -->
                     <a class="indicator"
-                       ui-sref="build_details({project_id: result.job.build.project.slug, build_id: result.job.build.id})">
-                        #{{result.job.build.number}}.{{result.job.number}}
+                       ui-sref="test_details({project_id: result.job.build.project.slug, build_id: result.job.build.id, job_id: result.job.id, test_id: result.id})">
+                       {{result.result.id}}
                     </a>
                 </td>
                 <td ng-if="result.job.build.source.isCommit">
