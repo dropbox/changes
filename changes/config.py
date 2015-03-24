@@ -18,6 +18,7 @@ from werkzeug.contrib.fixers import ProxyFix
 
 from changes.constants import PROJECT_ROOT
 from changes.api.controller import APIController, APICatchall
+from changes.experimental import categorize
 from changes.ext.celery import Celery
 from changes.ext.redis import Redis
 from changes.ext.statsreporter import StatsReporter
@@ -158,6 +159,7 @@ def create_app(_read_config=True, **config):
         ('changes.listeners.build_revision.revision_created_handler', 'revision.created'),
         ('changes.listeners.phabricator_listener.build_finished_handler', 'build.finished'),
         ('changes.listeners.analytics_notifier.build_finished_handler', 'build.finished'),
+        ('changes.listeners.log_processing.job_finished_handler', 'job.finished'),
     )
 
     # restrict outbound notifications to the given domains
@@ -277,6 +279,11 @@ def create_app(_read_config=True, **config):
     configure_web_routes(app)
 
     configure_jobs(app)
+
+    rules_file = app.config.get('CATEGORIZE_RULES_FILE')
+    if rules_file:
+        # Fail at startup if we have a bad rules file.
+        categorize.load_rules(rules_file)
 
     return app
 
@@ -410,7 +417,8 @@ def configure_api_routes(app):
     api.add_resource(ProjectIndexAPIView, '/projects/')
     api.add_resource(ProjectDetailsAPIView, '/projects/<project_id>/')
     api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/')
-    api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/search/', endpoint='projectbuildsearchapiview')
+    api.add_resource(ProjectBuildIndexAPIView, '/projects/<project_id>/builds/search/',
+                     endpoint='projectbuildsearchapiview')
     api.add_resource(ProjectLatestGreenBuildsAPIView, '/projects/<project_id>/latest_green_builds/')
     api.add_resource(ProjectCommitIndexAPIView, '/projects/<project_id>/commits/')
     api.add_resource(ProjectCommitDetailsAPIView, '/projects/<project_id>/commits/<commit_id>/')
@@ -469,7 +477,9 @@ def configure_web_routes(app):
     app.add_url_rule(
         '/auth/logout/', view_func=LogoutView.as_view('logout', complete_url='index'))
     app.add_url_rule(
-        '/auth/complete/', view_func=AuthorizedView.as_view('authorized', authorized_url='authorized', complete_url='index'))
+        '/auth/complete/', view_func=AuthorizedView.as_view('authorized',
+                                                            authorized_url='authorized',
+                                                            complete_url='index'))
 
     app.add_url_rule(
         '/<path:path>', view_func=IndexView.as_view('index-path'))
