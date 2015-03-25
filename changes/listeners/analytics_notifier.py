@@ -7,6 +7,7 @@ object representing a completed build.
 
 import logging
 import json
+import re
 import requests
 from datetime import datetime
 
@@ -20,6 +21,30 @@ logger = logging.getLogger('analytics_notifier')
 def _datetime_to_timestamp(dt):
     """Convert a datetime to unix epoch time in seconds."""
     return int((dt - datetime.utcfromtimestamp(0)).total_seconds())
+
+
+_REV_URL_RE = re.compile(r'^\s*Differential Revision:\s+(http.*/D[0-9]+)\s*$', re.MULTILINE)
+
+
+def _get_phabricator_revision_url(build):
+    """Returns the Phabricator Revision URL for a Build.
+
+    Args:
+      build (Build): The Build.
+
+    Returns:
+      A str with the Phabricator Revision URL, or None if we couldn't find one (or found
+      multiple).
+    """
+    source_data = build.source.data or {}
+    rev_url = source_data.get('phabricator.revisionURL')
+    if rev_url:
+        return rev_url
+    matches = _REV_URL_RE.findall(build.message)
+    # only return if there's a clear choice.
+    if matches and len(matches) == 1:
+        return matches[0]
+    return None
 
 
 def build_finished_handler(build_id, **kwargs):
@@ -47,6 +72,10 @@ def build_finished_handler(build_id, **kwargs):
         'date_created': maybe_ts(build.date_created),
         'date_started': maybe_ts(build.date_started),
         'date_finished': maybe_ts(build.date_finished),
+        # Revision URL rather than just revision id because the URL should
+        # be globally unique, whereas the id is only certain to be unique for
+        # a single Phabricator instance.
+        'phab_revision_url': _get_phabricator_revision_url(build),
     }
     if build.author:
         data['author'] = build.author.email

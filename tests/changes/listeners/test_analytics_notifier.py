@@ -7,7 +7,7 @@ import mock
 
 from changes.constants import Result
 from changes.testutils import TestCase
-from changes.listeners.analytics_notifier import build_finished_handler
+from changes.listeners.analytics_notifier import build_finished_handler, _get_phabricator_revision_url
 
 
 class AnalyticsNotifierTest(TestCase):
@@ -44,7 +44,9 @@ class AnalyticsNotifierTest(TestCase):
                                   label='Some sweet diff', duration=duration,
                                   date_created=ts_to_datetime(created), date_started=ts_to_datetime(started),
                                   date_finished=ts_to_datetime(finished))
-        build_finished_handler(build_id=build.id.hex)
+        with mock.patch('changes.listeners.analytics_notifier._get_phabricator_revision_url') as mock_get_phab:
+            mock_get_phab.return_value = 'https://example.com/D1'
+            build_finished_handler(build_id=build.id.hex)
 
         expected_data = {
             'build_id': build.id.hex,
@@ -58,5 +60,61 @@ class AnalyticsNotifierTest(TestCase):
             'date_created': created,
             'date_started': started,
             'date_finished': finished,
+            'phab_revision_url': 'https://example.com/D1',
         }
         post_fn.assert_called_once_with(URL, expected_data)
+
+    def test_get_phab_revision_url_diff(self):
+        project = self.create_project(name='test', slug='test')
+        source_data = {'phabricator.revisionURL': 'https://tails.corp.dropbox.com/D6789'}
+        source = self.create_source(project, data=source_data)
+        build = self.create_build(project, result=Result.failed, source=source, message='Some commit')
+        self.assertEquals(_get_phabricator_revision_url(build), 'https://tails.corp.dropbox.com/D6789')
+
+    def test_get_phab_revision_url_commit(self):
+        project = self.create_project(name='test', slug='test')
+        source_data = {}
+        source = self.create_source(project, data=source_data)
+        msg = """
+        Some fancy commit.
+
+        Summary: Fixes T33417.
+
+        Test Plan: Added tests.
+
+        Reviewers: mickey
+
+        Reviewed By: mickey
+
+        Subscribers: changesbot
+
+        Maniphest Tasks: T33417
+
+        Differential Revision: https://tails.corp.dropbox.com/D6789"""
+        build = self.create_build(project, result=Result.failed, source=source, message=msg)
+        self.assertEquals(_get_phabricator_revision_url(build), 'https://tails.corp.dropbox.com/D6789')
+
+    def test_get_phab_revision_url_commit_conflict(self):
+        project = self.create_project(name='test', slug='test')
+        source_data = {}
+        source = self.create_source(project, data=source_data)
+        msg = """
+        Some fancy commit.
+
+        Summary: Fixes T33417.
+          Adds messages like:
+             Differential Revision: https://tails.corp.dropbox.com/D1234
+
+        Test Plan: Added tests.
+
+        Reviewers: mickey
+
+        Reviewed By: mickey
+
+        Subscribers: changesbot
+
+        Maniphest Tasks: T33417
+
+        Differential Revision: https://tails.corp.dropbox.com/D6789"""
+        build = self.create_build(project, result=Result.failed, source=source, message=msg)
+        self.assertEquals(_get_phabricator_revision_url(build), None)
