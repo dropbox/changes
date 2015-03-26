@@ -185,11 +185,11 @@ def get_test_failure_remarkup(build, tests):
         new_failures=len(new_failures),
         link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex))
     )
-    message += '\n\n'
-    message += '**New failures ({new_failure_count}):**\n'.format(
-        new_failure_count=len(new_failures)
-    )
-    message += _generate_remarkup_table_for_tests(build, new_failures)
+    if new_failures:
+        message += '\n\n**New failures ({new_failure_count}):**\n'.format(
+            new_failure_count=len(new_failures)
+        )
+        message += _generate_remarkup_table_for_tests(build, new_failures)
 
     if failures_in_parent:
         message += '\n\n**Failures in parent revision ({parent_failure_count}):**\n'.format(
