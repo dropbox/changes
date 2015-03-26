@@ -10,7 +10,7 @@ from flask import current_app
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import Build, ProjectOption
+from changes.models import Build, ProjectOption, Source
 from changes.utils.http import build_uri
 from sqlalchemy.orm import joinedload
 
@@ -100,7 +100,7 @@ def build_finished_handler(build_id, **kwargs):
     else:
         result_image = '{icon question, color=orange}'
 
-    message = u'{project} build {result} {image} - ([results]({link})).'.format(
+    message = u'{project} build {result} {image} ([results]({link})).'.format(
         project=build.project.name,
         image=result_image,
         result=unicode(build.result),
@@ -120,20 +120,35 @@ def build_finished_handler(build_id, **kwargs):
     num_test_failures = test_failures.count()
 
     if num_test_failures > 0:
-        message += ' There were [{num_failures} test failures]({link})'.format(
-            num_failures=num_test_failures,
-            link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex))
-        )
-
-        message += '\n'
-        message += get_remarkup_test_failure_table(build, test_failures)
+        message += get_test_failure_remarkup(build, test_failures)
 
     post_comment(target, message)
 
 
-def get_remarkup_test_failure_table(build, tests):
+def get_test_failures_in_base_commit(build):
+    commit_sources = [s.id for s in Source.query.filter(
+            Source.revision_sha == build.source.revision_sha) if s.is_commit()]
+
+    base_builds = Build.query.filter(
+        Build.source_id.in_(commit_sources),
+        Build.project_id == build.project_id
+    )
+    jobs = list(Job.query.filter(
+        Job.build_id.in_([b.id for b in base_builds])
+    ))
+    test_failures = TestCase.query.options(
+        joinedload('job', innerjoin=True),
+    ).filter(
+        TestCase.job_id.in_([j.id for j in jobs]),
+        TestCase.result == Result.failed,
+    )
+
+    return {test.name for test in test_failures}
+
+
+def _generate_remarkup_table_for_tests(build, tests):
+    num_failures = len(tests)
     did_truncate = False
-    num_failures = tests.count()
     if num_failures > 10:
         tests = tests[:10]
         did_truncate = True
@@ -158,6 +173,30 @@ def get_remarkup_test_failure_table(build, tests):
         table += ['|...more...|...|']
 
     return '\n'.join(table)
+
+
+def get_test_failure_remarkup(build, tests):
+    base_commit_failures = get_test_failures_in_base_commit(build)
+    new_failures = [t for t in tests if t.name not in base_commit_failures]
+    failures_in_parent = [t for t in tests if t.name in base_commit_failures]
+
+    message = ' There were {new_failures} new [test failures]({link})'.format(
+        num_failures=tests.count(),
+        new_failures=len(new_failures),
+        link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex))
+    )
+    message += '\n\n'
+    message += '**New failures ({new_failure_count}):**\n'.format(
+        new_failure_count=len(new_failures)
+    )
+    message += _generate_remarkup_table_for_tests(build, new_failures)
+
+    if failures_in_parent:
+        message += '\n\n**Failures in parent revision ({parent_failure_count}):**\n'.format(
+            parent_failure_count=len(failures_in_parent)
+        )
+        message += _generate_remarkup_table_for_tests(build, failures_in_parent)
+    return message
 
 
 def post_comment(target, message):

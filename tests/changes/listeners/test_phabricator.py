@@ -47,7 +47,7 @@ class PhabricatorListenerTest(UnitTestCase):
         get_options.assert_called_once_with(project.id)
         build_link = build_uri('/projects/{0}/builds/{1}/'.format(
             build.project.slug, build.id.hex))
-        expected_msg = "test build Failed {{icon times, color=red}} - ([results]({0})).".format(
+        expected_msg = "test build Failed {{icon times, color=red}} ([results]({0})).".format(
             build_link
         )
 
@@ -61,7 +61,9 @@ class PhabricatorListenerTest(UnitTestCase):
         }
         project = self.create_project(name='Server', slug='project-slug')
         self.assertEquals(phab.call_count, 0)
-        build = self.create_build(project, result=Result.failed, target='D1')
+        patch = self.create_patch()
+        source = self.create_source(project, revision_sha='1235', patch=patch)
+        build = self.create_build(project, result=Result.failed, target='D1', source=source)
         job = self.create_job(build=build)
         testcase = self.create_test(
             package='test.group.ClassName',
@@ -86,7 +88,9 @@ class PhabricatorListenerTest(UnitTestCase):
             testcase.id.hex
         ))
         test_desc = "[test_foo](%s)" % test_link
-        expected_msg = """Server build Failed {{icon times, color=red}} - ([results]({0})). There were [1 test failures]({1})
+        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
+
+**New failures (1):**
 |Test Name | Package|
 |--|--|
 |{2}|test.group.ClassName|"""
