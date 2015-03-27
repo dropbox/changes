@@ -20,7 +20,7 @@ tests_require = [
     'pytest-cov>=1.6,<1.7',
     'pytest-timeout>=0.3,<0.4',
     'pytest-xdist>=1.9,<1.10',
-    'responses>=0.2.0,<0.3.0',
+    'responses>=0.3.0,<0.4.0',
     'unittest2>=0.5.1,<0.6.0',
     'moto>=0.3.0,<0.4.0',
 ]

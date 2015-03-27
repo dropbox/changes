@@ -46,6 +46,8 @@ COVERAGE_FILENAMES = ('coverage.xml',)
 
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
 
+LOG_SYNC_TIMEOUT_SECS = 30
+
 
 class NotFound(Exception):
     pass
@@ -270,6 +272,8 @@ class JenkinsBuilder(BaseBackend):
             build=build_no,
         )
 
+        start_time = time.time()
+
         session = self.http_session
         with closing(session.get(url, params={'start': offset}, stream=True, timeout=15)) as resp:
             log_length = int(resp.headers['X-Text-Size'])
@@ -295,6 +299,26 @@ class JenkinsBuilder(BaseBackend):
                     'text': chunk,
                 })
                 offset += chunk_size
+
+                if time.time() > start_time + LOG_SYNC_TIMEOUT_SECS:
+                    warning = ("\nTRUNCATED LOG: TOOK TOO LONG TO DOWNLOAD FROM JENKINS. SEE FULL LOG AT "
+                               "{base}/job/{job}/{build}/consoleText\n").format(
+                                   base=jobstep.data['master'],
+                                   job=job_name,
+                                   build=build_no,
+                               )
+                    create_or_update(LogChunk, where={
+                        'source': logsource,
+                        'offset': offset,
+                    }, values={
+                        'job': job,
+                        'project': job.project,
+                        'size': len(warning),
+                        'text': warning,
+                    })
+                    offset += chunk_size
+                    self.logger.warning('log download took too long')
+                    break
 
             # Jenkins will suggest to us that there is more data when the job has
             # yet to complete

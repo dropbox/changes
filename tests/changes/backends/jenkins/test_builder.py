@@ -5,6 +5,7 @@ import mock
 import os.path
 import responses
 import pytest
+import time
 
 from datetime import datetime
 from flask import current_app
@@ -413,6 +414,54 @@ class SyncStepTest(BaseTestCase):
         assert step.status == Status.finished
         assert step.result == Result.failed
         assert step.date_finished is not None
+
+    @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.time')
+    def test_result_slow_log(self, mock_time):
+        mock_time.time.return_value = time.time()
+
+        def log_text_callback(request):
+            # Zoom 10 minutes into the future; this should cause the console
+            # downloading code to bail
+            mock_time.time.return_value += 10 * 60
+            data = "log\n" * 10000
+            return (200, {'X-Text-Size': str(len(data))}, data)
+
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_failed.json'))
+        responses.add_callback(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
+            match_querystring=True,
+            callback=log_text_callback)
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+                'master': 'http://jenkins.example.com',
+            },
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
+
+        builder = self.get_builder()
+        builder.sync_step(step)
+
+        assert len(step.logsources) == 1
+        chunks = list(LogChunk.query.filter_by(
+            source=step.logsources[0],
+        ).order_by(LogChunk.offset.asc()))
+        assert len(chunks) == 2
+        assert "TOO LONG TO DOWNLOAD" in chunks[1].text
 
 
 class SyncGenericResultsTest(BaseTestCase):
