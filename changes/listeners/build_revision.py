@@ -8,6 +8,7 @@ from changes.api.build_index import BuildIndexAPIView
 from changes.models import ProjectStatus, Project, ProjectOptionsHelper, Revision
 from changes.utils.diff_parser import DiffParser
 from changes.utils.whitelist import in_project_files_whitelist
+from changes.vcs.base import UnknownRevision
 
 
 def revision_created_handler(revision_sha, repository_id, **kwargs):
@@ -48,8 +49,20 @@ class CommitTrigger(object):
         vcs = self.repository.get_vcs()
         if not vcs:
             raise NotImplementedError
+        # Make sure the repo exists on disk.
+        if not vcs.exists():
+            vcs.clone()
 
-        diff = vcs.export(self.revision.sha)
+        diff = None
+        try:
+            diff = vcs.export(self.revision.sha)
+        except UnknownRevision:
+            # Maybe the repo is stale; update.
+            vcs.update()
+            # If it doesn't work this time, we have
+            # a problem. Let the exception escape.
+            diff = vcs.export(self.revision.sha)
+
         diff_parser = DiffParser(diff)
         return diff_parser.get_changed_files()
 

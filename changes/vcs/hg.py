@@ -141,6 +141,14 @@ class MercurialVcs(Vcs):
             )
 
     def export(self, id):
+        """Get the textual diff for a revision.
+        Args:
+            id (str): The id of the revision.
+        Returns:
+            A string with the text of the diff for the revision.
+        Raises:
+            UnknownRevision: If the revision wasn't found.
+        """
         cmd = ['diff', '-g', '-c %s' % (id,)]
         result = self.run(cmd)
         return result

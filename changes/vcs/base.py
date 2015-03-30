@@ -26,6 +26,8 @@ class CommandError(Exception):
 
 
 class UnknownRevision(CommandError):
+    """Indicates that an operation was attempted on a
+    revision that doesn't appear to exist."""
     pass
 
 
@@ -123,6 +125,14 @@ class Vcs(object):
         raise NotImplementedError
 
     def export(self, id):
+        """Get the textual diff for a revision.
+        Args:
+            id (str): The id of the revision.
+        Returns:
+            A string with the text of the diff for the revision.
+        Raises:
+            UnknownRevision: If the revision wasn't found.
+        """
         raise NotImplementedError
 
     def get_default_revision(self):
