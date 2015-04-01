@@ -91,8 +91,11 @@ class MailNotificationHandler(object):
                 'recipients': msg.recipients,
             }
         })
-        assert event, 'An email has already been sent for collection_id={} (build_id={}).'.format(
-            build.collection_id, build.id.hex)
+        # If we were unable to create the Event, we must've done so (and thus sent the mail) already.
+        if not event:
+            self.logger.warning('An email has already been sent for collection_id={} (build_id={}).'.format(
+                build.collection_id, build.id.hex))
+            return
 
         mail.send(msg)
 
