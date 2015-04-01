@@ -62,7 +62,7 @@ class JobStep(db.Model):
         if self.result is None:
             self.result = Result.unknown
         if self.status is None:
-            self.status = Result.unknown
+            self.status = Status.unknown
         if self.date_created is None:
             self.date_created = datetime.utcnow()
         if self.data is None:
