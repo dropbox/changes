@@ -50,6 +50,7 @@ LOG_SYNC_TIMEOUT_SECS = 30
 
 
 class NotFound(Exception):
+    """Indicates a 404 response from the Jenkins API."""
     pass
 
 
@@ -531,7 +532,7 @@ class JenkinsBuilder(BaseBackend):
     def _sync_step_from_queue(self, step):
         # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
         # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
-        # doesnt explicitly mean that the job doesnt exist
+        # doesn't explicitly mean that the job doesn't exist.
         try:
             item = self._get_response(
                 step.data['master'],
@@ -541,7 +542,8 @@ class JenkinsBuilder(BaseBackend):
             step.status = Status.finished
             step.result = Result.unknown
             db.session.add(step)
-            self.logger.warning("Queued step not found in queue: {} (build: {})".format(step.id, step.job.build_id))
+            self.logger.exception("Queued step not found in queue: {} (build: {})".format(step.id, step.job.build_id))
+            statsreporter.stats().incr('jenkins_item_not_found_in_queue')
             return
 
         if item.get('executable'):
