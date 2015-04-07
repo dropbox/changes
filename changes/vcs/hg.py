@@ -6,7 +6,7 @@ from urlparse import urlparse
 
 from changes.utils.http import build_uri
 
-from .base import Vcs, RevisionResult, BufferParser
+from .base import Vcs, RevisionResult, BufferParser, CommandError, UnknownRevision
 
 LOG_FORMAT = '{node}\x01{author}\x01{date|rfc822date}\x01{p1node} {p2node}\x01{branches}\x01{desc}\x02'
 
@@ -81,7 +81,17 @@ class MercurialVcs(Vcs):
             '--config',
             'ui.ssh={0}'.format(self.ssh_connect_path)
         ] + cmd
-        return super(MercurialVcs, self).run(cmd, **kwargs)
+        try:
+            return super(MercurialVcs, self).run(cmd, **kwargs)
+        except CommandError as e:
+            if "abort: unknown revision '" in e.stderr:
+                raise UnknownRevision(
+                    cmd=e.cmd,
+                    retcode=e.retcode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                )
+            raise
 
     def clone(self):
         self.run(['clone', '--uncompressed', self.remote_url, self.path])

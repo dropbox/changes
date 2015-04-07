@@ -7,6 +7,7 @@ from datetime import datetime
 from subprocess import check_call
 
 from changes.testutils import TestCase
+from changes.vcs.base import UnknownRevision
 from changes.vcs.hg import MercurialVcs
 
 from tests.changes.vcs.asserts import VcsAsserts
@@ -215,3 +216,10 @@ new file mode 100644
         branches = vcs.get_known_branches()
         self.assertEquals(2, len(branches))
         self.assertIn('test_branch', branches)
+
+    def test_export_unknown_revision(self):
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+        with self.assertRaises(UnknownRevision):
+            vcs.export('4444444444444444444444444444444444444444')
