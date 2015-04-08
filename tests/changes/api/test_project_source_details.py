@@ -24,5 +24,5 @@ class ProjectSourceDetailsTest(APITestCase):
         coverage[54] = 'C'
         coverage_dict = {'ci/run_with_retries.py': coverage}
         result = view._filter_coverage_for_added_lines(diff, coverage_dict)
-        assert len(result) == 23  # 23 additions
-        assert result == ['N', 'N', 'C', 'C', 'C', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N']
+        assert len(result) == 24  # 24 additions
+        assert result == (['N'] * 2) + (['C'] * 3) + (['N'] * 19)

@@ -78,6 +78,9 @@ class ProjectSourceDetailsAPIView(APIView):
             elif line.startswith('@@'):
                 # Jump to new lines within the file
                 line_num_info = line.split('+')[1]
+                # Strip off the trailing ' @@' so that when only the line is specified
+                # and there is no comma, we can just parse as a number.
+                line_num_info = line_num_info.rstrip("@ ")
                 line_number = int(line_num_info.split(',')[0]) - 1
             elif current_file is not None and line_number is not None:
                 # Iterate through the file.

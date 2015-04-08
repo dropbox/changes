@@ -83,3 +83,9 @@ diff -r 3142efbcdcdb -r 28720876f4a2 ci/server-collect
          'xunit': 'tests.xml',
      },
  }
+diff -r 3142efbcdcdb -r 28720876f4a2 ci/not-real
+--- a/ci/not-real	Sun May 04 19:51:19 2014 -0700
++++ b/ci/not-real	Mon May 05 22:27:56 2014 +0000
+@@ -1 +1 @@
+-Single Line
++Single Line!
