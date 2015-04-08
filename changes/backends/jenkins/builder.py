@@ -39,7 +39,8 @@ RESULT_MAP = {
 }
 
 QUEUE_ID_XPATH = '/queue/item[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/id'
-BUILD_ID_XPATH = '/freeStyleProject/build[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/number'
+BUILD_ID_XPATH = ('/freeStyleProject/build[action/parameter/name="CHANGES_BID" and '
+                  'action/parameter/value="{job_id}"]/number')
 
 XUNIT_FILENAMES = ('junit.xml', 'xunit.xml', 'nosetests.xml')
 COVERAGE_FILENAMES = ('coverage.xml',)
@@ -112,6 +113,13 @@ class JenkinsBuilder(BaseBackend):
         return resp.text
 
     def _get_json_response(self, base_url, path, *args, **kwargs):
+        """Makes a Jenkins API request and returns the JSON response
+        Args:
+            base_url (str): Base of the URL; typically the scheme://host of the Jenkins master.
+            path (str): Path relative to base_url (excluding api and encoding suffixes)
+        Returns:
+            Parsed JSON from the request.
+        """
         path = '{}/api/json/'.format(path.strip('/'))
 
         data = self._get_raw_response(base_url, path, *args, **kwargs)
@@ -124,8 +132,6 @@ class JenkinsBuilder(BaseBackend):
             return json.loads(data)
         except ValueError:
             raise Exception('Invalid JSON data')
-
-    _get_response = _get_json_response
 
     def _parse_parameters(self, json):
         params = {}
@@ -534,7 +540,7 @@ class JenkinsBuilder(BaseBackend):
         # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
         # doesn't explicitly mean that the job doesn't exist.
         try:
-            item = self._get_response(
+            item = self._get_json_response(
                 step.data['master'],
                 '/queue/item/{}'.format(step.data['item_id']),
             )
@@ -571,7 +577,7 @@ class JenkinsBuilder(BaseBackend):
             raise UnrecoverableException('Missing Jenkins job information')
 
         try:
-            item = self._get_response(
+            item = self._get_json_response(
                 step.data['master'],
                 '/job/{}/{}'.format(job_name, build_no),
             )
@@ -879,7 +885,7 @@ class JenkinsBuilder(BaseBackend):
         # TODO: Jenkins will return a 302 if it cannot queue the job which I
         # believe implies that there is already a job with the same parameters
         # queued.
-        self._get_response(
+        self._get_json_response(
             base_url=master,
             path='/job/{}/build'.format(job_name),
             method='POST',
