@@ -11,7 +11,6 @@ from changes.config import db
 from changes.constants import Status
 
 from .builder import JenkinsBuilder
-from .factory_builder import JenkinsFactoryBuilder
 from .generic_builder import JenkinsGenericBuilder
 
 
@@ -84,19 +83,6 @@ class JenkinsBuildStep(BuildStep):
     def fetch_artifact(self, artifact, **kwargs):
         builder = self.get_builder()
         builder.sync_artifact(artifact, **kwargs)
-
-
-class JenkinsFactoryBuildStep(JenkinsBuildStep):
-    builder_cls = JenkinsFactoryBuilder
-
-    def __init__(self, downstream_job_names=(), **kwargs):
-        self.downstream_job_names = downstream_job_names
-        super(JenkinsFactoryBuildStep, self).__init__(**kwargs)
-
-    def get_builder_options(self):
-        options = super(JenkinsFactoryBuildStep, self).get_builder_options()
-        options['downstream_job_names'] = self.downstream_job_names
-        return options
 
 
 class JenkinsGenericBuildStep(JenkinsBuildStep):
