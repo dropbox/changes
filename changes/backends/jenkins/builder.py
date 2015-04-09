@@ -168,13 +168,25 @@ class JenkinsBuilder(BaseBackend):
         return step
 
     def fetch_artifact(self, jobstep, artifact_data):
+        """
+        Fetch an artifact from a Jenkins job.
+
+        Args:
+            jobstep (JobStep): The JobStep associated with the artifact.
+            artifact_data (dict): Jenkins job artifact metadata dictionary.
+        Returns:
+            A streamed requests Response object.
+        Raises:
+            HTTPError: if the response code didn't indicate success.
+            Timeout: if the server took too long to respond.
+        """
         url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
             base=jobstep.data['master'],
             job=jobstep.data['job_name'],
             build=jobstep.data['build_no'],
             artifact=artifact_data['relativePath'],
         )
-        return self.http_session.get(url, stream=True, timeout=15)
+        return self._streaming_get(url)
 
     def _sync_artifact_as_file(self, artifact):
         jobstep = artifact.step
@@ -182,6 +194,8 @@ class JenkinsBuilder(BaseBackend):
 
         step_id = jobstep.id.hex
 
+        # NB: Accesssing Response.content results in the entire artifact
+        # being loaded into memory.
         artifact.file.save(
             StringIO(resp.content), '{0}/{1}/{2}_{3}'.format(
                 step_id[:4], step_id[4:], artifact.id.hex, artifact.name
@@ -242,8 +256,7 @@ class JenkinsBuilder(BaseBackend):
         )
 
         offset = 0
-        session = self.http_session
-        with closing(session.get(url, stream=True, timeout=15)) as resp:
+        with closing(self._streaming_get(url)) as resp:
             iterator = resp.iter_content()
             for chunk in chunked(iterator, LOG_CHUNK_SIZE):
                 chunk_size = len(chunk)
@@ -281,8 +294,7 @@ class JenkinsBuilder(BaseBackend):
 
         start_time = time.time()
 
-        session = self.http_session
-        with closing(session.get(url, params={'start': offset}, stream=True, timeout=15)) as resp:
+        with closing(self._streaming_get(url, params={'start': offset})) as resp:
             log_length = int(resp.headers['X-Text-Size'])
 
             # When you request an offset that doesnt exist in the build log, Jenkins
@@ -963,3 +975,20 @@ class JenkinsBuilder(BaseBackend):
             task_id=step.id.hex,
             parent_task_id=job.id.hex,
         )
+
+    def _streaming_get(self, url, params=None):
+        """
+        Perform an HTTP GET request with a streaming response.
+
+        Args:
+            url (str): The url to fetch.
+            params (dict): Optional dictionary of query parameters.
+        Returns:
+            A streamed requests Response object.
+        Raises:
+            HTTPError: if the response code didn't indicate success.
+            Timeout: if the server took too long to respond.
+        """
+        resp = self.http_session.get(url, stream=True, timeout=15, params=params)
+        resp.raise_for_status()
+        return resp
