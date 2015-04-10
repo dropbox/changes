@@ -86,12 +86,22 @@ class JenkinsBuilder(BaseBackend):
 
         self.http_session.hooks['response'].append(report_response_status)
 
-    def _get_raw_response(self, base_url, path, method='GET', params=None, **kwargs):
-        url = '{}/{}'.format(base_url, path.lstrip('/'))
+    def _get_text_response(self, base_url, path, method='GET', params=None, data=None):
+        """Make an HTTP request and return a text response.
 
-        kwargs.setdefault('allow_redirects', False)
-        kwargs.setdefault('timeout', 30)
-        kwargs.setdefault('auth', self.auth)
+        Params:
+            base_url (str): Base of the HTTP URL; typically scheme://host of the Jenkins master.
+            path (str): Path relative to base_url.
+            method (str): HTTP verb to use; Either 'GET' or 'POST'; 'GET' is the default.
+            params (dict): Optional dictionary of URL parameters to append to the URL.
+            data (dict): Optional body to attach to the request. If a dict is provided, it will be form-encoded.
+        Returns:
+            Content of the response, in unicode.
+        Raises:
+            NotFound if the server responded with a 404 status.
+            Exception for other error status codes.
+        """
+        url = '{}/{}'.format(base_url, path.lstrip('/'))
 
         if params is None:
             params = {}
@@ -100,7 +110,8 @@ class JenkinsBuilder(BaseBackend):
             params.setdefault('token', self.token)
 
         self.logger.info('Fetching %r', url)
-        resp = getattr(self.http_session, method.lower())(url, params=params, **kwargs)
+        resp = getattr(self.http_session, method.lower())(url, params=params, data=data,
+                                                          allow_redirects=False, timeout=30, auth=self.auth)
 
         if resp.status_code == 404:
             raise NotFound
@@ -112,24 +123,30 @@ class JenkinsBuilder(BaseBackend):
 
         return resp.text
 
-    def _get_json_response(self, base_url, path, *args, **kwargs):
+    def _get_json_response(self, base_url, path, method='GET', data=None):
         """Makes a Jenkins API request and returns the JSON response
+
         Args:
             base_url (str): Base of the URL; typically the scheme://host of the Jenkins master.
             path (str): Path relative to base_url (excluding api and encoding suffixes)
+            method (str): HTTP verb to use; Either 'GET' or 'POST'; 'GET' is the default.
+            data (dict): Optional body to attach to the request. If a dict is provided, it will be form-encoded.
         Returns:
             Parsed JSON from the request.
+        Raises:
+            NotFound if the server responded with a 404 status.
+            Exception for other error status codes.
         """
         path = '{}/api/json/'.format(path.strip('/'))
 
-        data = self._get_raw_response(base_url, path, *args, **kwargs)
+        text = self._get_text_response(base_url, path, method=method, data=data)
         # TODO(kylec): If we get back an empty string, we probably want
         # to fail; this method should only return parsed JSON.
-        if not data:
+        if not text:
             return
 
         try:
-            return json.loads(data)
+            return json.loads(text)
         except ValueError:
             raise Exception('Invalid JSON data')
 
@@ -457,7 +474,7 @@ class JenkinsBuilder(BaseBackend):
             job_id=job_id,
         )
         try:
-            response = self._get_raw_response(
+            response = self._get_text_response(
                 base_url=base_url,
                 path='/queue/api/xml/',
                 params={
@@ -490,7 +507,7 @@ class JenkinsBuilder(BaseBackend):
             job_id=job_id,
         )
         try:
-            response = self._get_raw_response(
+            response = self._get_text_response(
                 base_url=base_url,
                 path='/job/{job_name}/api/xml/'.format(job_name=job_name),
                 params={
@@ -524,7 +541,7 @@ class JenkinsBuilder(BaseBackend):
             return node
 
         try:
-            response = self._get_raw_response(
+            response = self._get_text_response(
                 base_url=base_url,
                 path='/computer/{}/config.xml'.format(label),
             )
@@ -848,7 +865,7 @@ class JenkinsBuilder(BaseBackend):
         db.session.flush()
 
         try:
-            self._get_raw_response(
+            self._get_text_response(
                 base_url=step.data['master'],
                 path=url,
                 method='POST',
