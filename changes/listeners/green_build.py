@@ -107,7 +107,7 @@ def build_finished_handler(build_id, **kwargs):
             'build_url': build_uri('/projects/{0}/builds/{1}/'.format(
                 build.project.slug, build.id.hex)),
             'build_server': 'changes',
-        })
+        }).raise_for_status()
     except Exception:
         logger.exception('Failed to report green build')
         status = 'fail'
