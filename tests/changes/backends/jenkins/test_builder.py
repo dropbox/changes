@@ -57,7 +57,7 @@ class CreateBuildTest(BaseTestCase):
     @responses.activate
     def test_queued_creation(self):
         responses.add(
-            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+            responses.POST, 'http://jenkins.example.com/job/server/build',
             body='',
             status=201)
 
@@ -93,7 +93,7 @@ class CreateBuildTest(BaseTestCase):
     @responses.activate
     def test_active_creation(self):
         responses.add(
-            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+            responses.POST, 'http://jenkins.example.com/job/server/build',
             body='',
             status=201)
 
@@ -131,7 +131,7 @@ class CreateBuildTest(BaseTestCase):
     @mock.patch.object(JenkinsBuilder, '_find_job')
     def test_patch(self, find_job):
         responses.add(
-            responses.POST, 'http://jenkins-diff.example.com/job/server/build/api/json/',
+            responses.POST, 'http://jenkins-diff.example.com/job/server/build',
             body='',
             status=201)
 
@@ -173,7 +173,7 @@ class CreateBuildTest(BaseTestCase):
             status=200)
 
         responses.add(
-            responses.POST, 'http://jenkins-2.example.com/job/server/build/api/json/',
+            responses.POST, 'http://jenkins-2.example.com/job/server/build',
             body='',
             status=201)
 
@@ -898,7 +898,7 @@ class JenkinsIntegrationTest(BaseTestCase):
 
         # TODO: move this out of this file and integrate w/ buildstep
         responses.add(
-            responses.POST, 'http://jenkins.example.com/job/server/build/api/json/',
+            responses.POST, 'http://jenkins.example.com/job/server/build',
             body='',
             status=201)
         responses.add(

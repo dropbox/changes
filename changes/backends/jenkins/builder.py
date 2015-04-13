@@ -914,7 +914,7 @@ class JenkinsBuilder(BaseBackend):
         # TODO: Jenkins will return a 302 if it cannot queue the job which I
         # believe implies that there is already a job with the same parameters
         # queued.
-        self._get_json_response(
+        self._get_text_response(
             base_url=master,
             path='/job/{}/build'.format(job_name),
             method='POST',
