@@ -136,19 +136,11 @@ class JenkinsBuilder(BaseBackend):
         Raises:
             NotFound if the server responded with a 404 status.
             Exception for other error status codes.
+            ValueError if the response wasn't valid JSON.
         """
         path = '{}/api/json/'.format(path.strip('/'))
-
         text = self._get_text_response(base_url, path, method=method, data=data)
-        # TODO(kylec): If we get back an empty string, we probably want
-        # to fail; this method should only return parsed JSON.
-        if not text:
-            return
-
-        try:
-            return json.loads(text)
-        except ValueError:
-            raise Exception('Invalid JSON data')
+        return json.loads(text)
 
     def _parse_parameters(self, json):
         params = {}
