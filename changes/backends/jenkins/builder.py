@@ -86,12 +86,12 @@ class JenkinsBuilder(BaseBackend):
 
         self.http_session.hooks['response'].append(report_response_status)
 
-    def _get_text_response(self, base_url, path, method='GET', params=None, data=None):
+    def _get_text_response(self, master_base_url, path, method='GET', params=None, data=None):
         """Make an HTTP request and return a text response.
 
         Params:
-            base_url (str): Base of the HTTP URL; typically scheme://host of the Jenkins master.
-            path (str): Path relative to base_url.
+            master_base_url (str): Jenkins master URL, in scheme://host form.
+            path (str): URL path on the master to access.
             method (str): HTTP verb to use; Either 'GET' or 'POST'; 'GET' is the default.
             params (dict): Optional dictionary of URL parameters to append to the URL.
             data (dict): Optional body to attach to the request. If a dict is provided, it will be form-encoded.
@@ -101,7 +101,7 @@ class JenkinsBuilder(BaseBackend):
             NotFound if the server responded with a 404 status.
             Exception for other error status codes.
         """
-        url = '{}/{}'.format(base_url, path.lstrip('/'))
+        url = '{}/{}'.format(master_base_url, path.lstrip('/'))
 
         if params is None:
             params = {}
@@ -123,12 +123,12 @@ class JenkinsBuilder(BaseBackend):
 
         return resp.text
 
-    def _get_json_response(self, base_url, path, method='GET', data=None):
+    def _get_json_response(self, master_base_url, path, method='GET', data=None):
         """Makes a Jenkins API request and returns the JSON response
 
         Args:
-            base_url (str): Base of the URL; typically the scheme://host of the Jenkins master.
-            path (str): Path relative to base_url (excluding api and encoding suffixes)
+            master_base_url (str): Jenkins master URL, in scheme://host form.
+            path (str): URL path on the master to access.
             method (str): HTTP verb to use; Either 'GET' or 'POST'; 'GET' is the default.
             data (dict): Optional body to attach to the request. If a dict is provided, it will be form-encoded.
         Returns:
@@ -139,7 +139,7 @@ class JenkinsBuilder(BaseBackend):
             ValueError if the response wasn't valid JSON.
         """
         path = '{}/api/json/'.format(path.strip('/'))
-        text = self._get_text_response(base_url, path, method=method, data=data)
+        text = self._get_text_response(master_base_url, path, method=method, data=data)
         return json.loads(text)
 
     def _parse_parameters(self, json):
@@ -426,9 +426,9 @@ class JenkinsBuilder(BaseBackend):
 
         return best_match[1]
 
-    def _count_queued_jobs(self, base_url, job_name):
+    def _count_queued_jobs(self, master_base_url, job_name):
         response = self._get_json_response(
-            base_url=base_url,
+            master_base_url=master_base_url,
             path='/queue/',
         )
         return sum((
@@ -436,7 +436,7 @@ class JenkinsBuilder(BaseBackend):
             if i['task']['name'] == job_name
         ))
 
-    def _find_job(self, base_url, job_name, job_id):
+    def _find_job(self, master_base_url, job_name, job_id):
         """
         Given a job identifier, we attempt to poll the various endpoints
         for a limited amount of time, trying to match up either a queued item
@@ -456,18 +456,18 @@ class JenkinsBuilder(BaseBackend):
         """
         # Check the queue first to ensure that we don't miss a transition
         # from queue -> active jobs
-        item = self._find_job_in_queue(base_url, job_name, job_id)
+        item = self._find_job_in_queue(master_base_url, job_name, job_id)
         if item:
             return item
-        return self._find_job_in_active(base_url, job_name, job_id)
+        return self._find_job_in_active(master_base_url, job_name, job_id)
 
-    def _find_job_in_queue(self, base_url, job_name, job_id):
+    def _find_job_in_queue(self, master_base_url, job_name, job_id):
         xpath = QUEUE_ID_XPATH.format(
             job_id=job_id,
         )
         try:
             response = self._get_text_response(
-                base_url=base_url,
+                master_base_url=master_base_url,
                 path='/queue/api/xml/',
                 params={
                     'xpath': xpath,
@@ -494,13 +494,13 @@ class JenkinsBuilder(BaseBackend):
             'uri': None,
         }
 
-    def _find_job_in_active(self, base_url, job_name, job_id):
+    def _find_job_in_active(self, master_base_url, job_name, job_id):
         xpath = BUILD_ID_XPATH.format(
             job_id=job_id,
         )
         try:
             response = self._get_text_response(
-                base_url=base_url,
+                master_base_url=master_base_url,
                 path='/job/{job_name}/api/xml/'.format(job_name=job_name),
                 params={
                     'depth': 1,
@@ -527,14 +527,14 @@ class JenkinsBuilder(BaseBackend):
             'uri': None,
         }
 
-    def _get_node(self, base_url, label):
+    def _get_node(self, master_base_url, label):
         node, created = get_or_create(Node, {'label': label})
         if not created:
             return node
 
         try:
             response = self._get_text_response(
-                base_url=base_url,
+                master_base_url=master_base_url,
                 path='/computer/{}/config.xml'.format(label),
             )
         except NotFound:
@@ -858,7 +858,7 @@ class JenkinsBuilder(BaseBackend):
 
         try:
             self._get_text_response(
-                base_url=step.data['master'],
+                master_base_url=step.data['master'],
                 path=url,
                 method='POST',
             )
@@ -907,7 +907,7 @@ class JenkinsBuilder(BaseBackend):
         # believe implies that there is already a job with the same parameters
         # queued.
         self._get_text_response(
-            base_url=master,
+            master_base_url=master,
             path='/job/{}/build'.format(job_name),
             method='POST',
             data={
