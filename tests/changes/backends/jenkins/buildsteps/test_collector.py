@@ -3,11 +3,59 @@ from __future__ import absolute_import
 import mock
 import responses
 
+from uuid import UUID
+
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
-from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuildStep
-from changes.constants import Status
+from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
+from changes.constants import Result, Status
 from changes.models import JobPhase, JobStep
 from changes.testutils import TestCase
+from ..test_builder import BaseTestCase
+
+
+class JenkinsCollectorBuilderTest(BaseTestCase):
+    builder_cls = JenkinsCollectorBuilder
+    builder_options = {
+        'master_urls': ['http://jenkins.example.com'],
+        'diff_urls': ['http://jenkins-diff.example.com'],
+        'job_name': 'server',
+        'script': 'echo hello',
+        'cluster': 'server-runner',
+    }
+
+    @responses.activate
+    def test_no_jobs_collected(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_success.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
+            match_querystring=True,
+            adding_headers={'X-Text-Size': '0'},
+            body='')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'build_no': 2,
+            'item_id': 13,
+            'job_name': 'server',
+            'queued': False,
+            'master': 'http://jenkins.example.com',
+        })
+
+        builder = self.get_builder()
+        builder.sync_step(step)
+
+        # No jobs.json collected should cause the step to fail.
+        assert step.result == Result.failed
 
 
 class JenkinsCollectorBuildStepTest(TestCase):

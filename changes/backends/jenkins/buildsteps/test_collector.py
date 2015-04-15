@@ -6,20 +6,27 @@ from hashlib import md5
 from operator import itemgetter
 
 from changes.api.client import api_client
-from changes.backends.jenkins.buildsteps.collector import (
-    JenkinsCollectorBuilder, JenkinsCollectorBuildStep
-)
+from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.config import db
-from changes.constants import Result, Status
-from changes.db.utils import get_or_create, try_create
+from changes.constants import Status
+from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import FailureReason, Job, JobPhase, JobStep, TestCase
+from changes.models import Job, JobPhase, JobStep, TestCase
 from changes.utils.trees import build_flat_tree
 
 
 class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
     def get_default_job_phase_label(self, job, job_data):
         return 'Collect Tests'
+
+    def get_required_artifact_suffix(self):
+        """The initial (collect) step must return at least one artifact with
+        this suffix, or it will be marked as failed.
+
+        Returns:
+            str: the required suffix
+        """
+        return 'tests.json'
 
 
 class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
@@ -110,26 +117,6 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             avg_test_time = 0
 
         return test_stats, avg_test_time
-
-    def _sync_results(self, step, item):
-        super(JenkinsTestCollectorBuilder, self)._sync_results(step, item)
-
-        if step.data.get('expanded'):
-            return
-
-        artifacts = item.get('artifacts', ())
-        if not any(a['fileName'].endswith('tests.json') for a in artifacts):
-            step.result = Result.failed
-            db.session.add(step)
-
-            job = step.job
-            try_create(FailureReason, {
-                'step_id': step.id,
-                'job_id': job.id,
-                'build_id': job.build_id,
-                'project_id': job.project_id,
-                'reason': 'missing_artifact'
-            })
 
     def _normalize_test_segments(self, test_name):
         sep = TestCase(name=test_name).sep

@@ -17,6 +17,36 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
     def get_default_job_phase_label(self, job, job_data):
         return 'Collect Jobs'
 
+    def get_required_artifact_suffix(self):
+        """The initial (collect) step must return at least one artifact with
+        this suffix, or it will be marked as failed.
+
+        Returns:
+            str: the required suffix
+        """
+        return 'jobs.json'
+
+    def _sync_results(self, step, item):
+        super(JenkinsCollectorBuilder, self)._sync_results(step, item)
+
+        if step.data.get('expanded'):
+            return
+
+        artifacts = item.get('artifacts', ())
+        required_artifact_suffix = self.get_required_artifact_suffix()
+        if not any(a['fileName'].endswith(required_artifact_suffix) for a in artifacts):
+            step.result = Result.failed
+            db.session.add(step)
+
+            job = step.job
+            try_create(FailureReason, {
+                'step_id': step.id,
+                'job_id': job.id,
+                'build_id': job.build_id,
+                'project_id': job.project_id,
+                'reason': 'missing_artifact'
+            })
+
 
 class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
     """
@@ -59,26 +89,6 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
         else:
             builder = self.get_builder()
             builder.sync_artifact(artifact, **kwargs)
-
-    def _sync_results(self, step, item):
-        super(JenkinsCollectorBuilder, self)._sync_results(step, item)
-
-        if step.data.get('expanded'):
-            return
-
-        artifacts = item.get('artifacts', ())
-        if not any(a['fileName'].endswith('jobs.json') for a in artifacts):
-            step.result = Result.failed
-            db.session.add(step)
-
-            job = step.job
-            try_create(FailureReason, {
-                'step_id': step.id,
-                'job_id': job.id,
-                'build_id': job.build_id,
-                'project_id': job.project_id,
-                'reason': 'missing_artifact'
-            })
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
