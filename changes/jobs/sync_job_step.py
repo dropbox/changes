@@ -128,7 +128,6 @@ def record_coverage_stats(step):
         try_create(ItemStat, where={
             'item_id': step.id,
             'name': stat_name,
-        }, defaults={
             'value': getattr(coverage_stats, stat_name, 0) or 0,
         })
 
@@ -211,8 +210,7 @@ def sync_job_step(step_id):
     try_create(ItemStat, where={
         'item_id': step.id,
         'name': 'tests_missing',
-    }, defaults={
-        'value': int(missing_tests)
+        'value': int(missing_tests),
     })
 
     if step.result == Result.passed and missing_tests:

@@ -1,22 +1,26 @@
+import itertools
+
 from changes.config import db
 
 from sqlalchemy.exc import IntegrityError
 
 
-def try_create(model, where, defaults=None):
-    if defaults is None:
-        defaults = {}
-
+def try_create(model, where):
+    """Try to create an object in the database and return it if successful.
+    Args:
+        model (Model): DB model class to instantiate.
+        where (dict): Values for fields to be populated in the new instance.
+    Returns:
+        A new instance of the Model if creation was successful, or None if there was a conflict.
+    """
     instance = model()
-    for key, value in defaults.iteritems():
-        setattr(instance, key, value)
     for key, value in where.iteritems():
         setattr(instance, key, value)
     try:
         with db.session.begin_nested():
             db.session.add(instance)
     except IntegrityError:
-        return
+        return None
     return instance
 
 
@@ -25,6 +29,18 @@ def try_update(model, where, values):
         **where
     ).update(values, synchronize_session=False)
     return result.rowcount > 0
+
+
+def _merge_dicts(first, second):
+    """Merge two dicts into a new one
+    Args:
+        first (dict): Primary dict; if a key is present in both, the value from this
+            dict is used.
+        second (dict): Other dict to merge.
+    Returns:
+        dict: Union of provided dicts, with value from first used in the case of overlap.
+    """
+    return {k: v for k, v in itertools.chain(second.iteritems(), first.iteritems())}
 
 
 def get_or_create(model, where, defaults=None):
@@ -37,7 +53,7 @@ def get_or_create(model, where, defaults=None):
     if instance is not None:
         return instance, created
 
-    instance = try_create(model, where, defaults)
+    instance = try_create(model, _merge_dicts(where, defaults))
     if instance is None:
         instance = model.query.filter_by(**where).limit(1).first()
     else:
@@ -58,16 +74,16 @@ def create_or_update(model, where, values=None):
 
     instance = model.query.filter_by(**where).limit(1).first()
     if instance is None:
-        instance = try_create(model, where, values)
+        instance = try_create(model, _merge_dicts(where, values))
         if instance is None:
             instance = model.query.filter_by(**where).limit(1).first()
             if instance is None:
                 raise Exception('Unable to create or update instance')
-            update(instance, values)
+            _update(instance, values)
         else:
             created = True
     else:
-        update(instance, values)
+        _update(instance, values)
 
     return instance, created
 
@@ -80,7 +96,7 @@ def create_or_get(model, where, values=None):
 
     instance = model.query.filter_by(**where).limit(1).first()
     if instance is None:
-        instance = try_create(model, where, values)
+        instance = try_create(model, _merge_dicts(where, values))
         if instance is None:
             instance = model.query.filter_by(**where).limit(1).first()
         else:
@@ -92,7 +108,9 @@ def create_or_get(model, where, values=None):
     return instance, created
 
 
-def update(instance, values):
+# Not exported because most code should just assign to the properties
+# and not create an intermediate dictionary.
+def _update(instance, values):
     for key, value in values.iteritems():
         if getattr(instance, key) != value:
             setattr(instance, key, value)

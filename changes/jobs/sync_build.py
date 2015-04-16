@@ -26,8 +26,7 @@ def aggregate_build_stat(build, name, func_=func.sum):
     try_create(ItemStat, where={
         'item_id': build.id,
         'name': name,
-    }, defaults={
-        'value': value
+        'value': value,
     })
 
 

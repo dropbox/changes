@@ -29,8 +29,7 @@ def aggregate_job_stat(job, name, func_=func.sum):
     try_create(ItemStat, where={
         'item_id': job.id,
         'name': name,
-    }, defaults={
-        'value': value
+        'value': value,
     })
 
 
