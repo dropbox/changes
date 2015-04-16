@@ -110,6 +110,11 @@ class PhabricatorNotifyDiffAPIView(APIView):
         try:
             identify_revision(repository, sha)
         except MissingRevision:
+            # This may just be a broken request (which is why we respond with a 400) but
+            # it also might indicate Phabricator and Changes being out of sync somehow,
+            # so we err on the side of caution and log it as an error.
+            logging.error("Diff %s was posted for an unknown revision (%s, %s)",
+                          target, sha, repository.url)
             return error("Unable to find commit %s in %s." % (
                 sha, repository.url), problems=['sha', 'repository'])
 
