@@ -25,7 +25,8 @@ class XunitHandler(ArtifactHandler):
         try:
             root = etree.fromstring(fp.read())
         except Exception:
-            self.logger.exception('Failed to parse XML')
+            # Record the JobStep ID so we have any hope of tracking these down.
+            self.logger.exception('Failed to parse XML; (step={})'.format(self.step.id.hex))
             return []
 
         if root.tag == 'unittest-results':
