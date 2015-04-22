@@ -13,7 +13,7 @@ from changes.api.build_index import (
     create_build, get_build_plans, identify_revision, MissingRevision
 )
 from changes.api.validators.author import AuthorValidator
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.models import (
     ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectOptionsHelper, ProjectStatus,
@@ -101,6 +101,8 @@ class PhabricatorNotifyDiffAPIView(APIView):
         if not projects:
             return self.respond([])
 
+        statsreporter.stats().incr('diffs_posted_from_phabricator')
+
         label = args.label[:128]
         author = args.author
         message = args.message
@@ -147,7 +149,8 @@ class PhabricatorNotifyDiffAPIView(APIView):
             'source': source,
         })
         if phabricatordiff is None:
-            logging.error("Diff %s, Revision %s already exists", args['phabricator.diffID'], args['phabricator.revisionID'])
+            logging.error("Diff %s, Revision %s already exists",
+                          args['phabricator.diffID'], args['phabricator.revisionID'])
             return error("Diff already exists within Changes")
 
         project_options = ProjectOptionsHelper.get_options(projects, ['build.file-whitelist'])
