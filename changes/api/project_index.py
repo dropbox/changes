@@ -7,7 +7,7 @@ from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.api.auth import requires_admin
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.constants import Result, Status, ProjectStatus
 from changes.models import Project, Repository, Build, Source
 
@@ -69,61 +69,65 @@ class ProjectIndexAPIView(APIView):
     def get(self):
         args = self.get_parser.parse_args()
 
-        queryset = Project.query
+        # This project index generation is a prerequisite for rendering
+        # the homepage and the admin page; worth tracking both for user
+        # experience and to keep an eye on database responsiveness.
+        with statsreporter.stats().timer('generate_project_index'):
+            queryset = Project.query
 
-        if args.query:
-            queryset = queryset.filter(
-                or_(
-                    func.lower(Project.name).contains(args.query.lower()),
-                    func.lower(Project.slug).contains(args.query.lower()),
-                ),
-            )
-
-        if args.status:
-            queryset = queryset.filter(
-                Project.status == ProjectStatus[args.status]
-            )
-
-        if args.sort == 'name':
-            queryset = queryset.order_by(Project.name.asc())
-        elif args.sort == 'date':
-            queryset = queryset.order_by(Project.date_created.asc())
-
-        project_list = list(queryset)
-
-        context = []
-        if project_list:
-            latest_build_results = get_latest_builds_query(project_list)
-            latest_build_map = dict(
-                zip([b.project_id for b in latest_build_results],
-                    self.serialize(latest_build_results))
-            )
-
-            passing_build_map = {}
-            missing_passing_builds = set()
-            for build in latest_build_results:
-                if build.result == Result.passed:
-                    passing_build_map[build.project_id] = build
-                else:
-                    passing_build_map[build.project_id] = None
-                    missing_passing_builds.add(build.project_id)
-
-            if missing_passing_builds:
-                passing_build_results = get_latest_builds_query(
-                    project_list, result=Result.passed,
+            if args.query:
+                queryset = queryset.filter(
+                    or_(
+                        func.lower(Project.name).contains(args.query.lower()),
+                        func.lower(Project.slug).contains(args.query.lower()),
+                    ),
                 )
-                passing_build_map.update(dict(
-                    zip([b.project_id for b in passing_build_results],
-                        self.serialize(passing_build_results))
-                ))
 
-            for project, data in zip(project_list, self.serialize(project_list)):
-                # TODO(dcramer): build serializer is O(N) for stats
-                data['lastBuild'] = latest_build_map.get(project.id)
-                data['lastPassingBuild'] = passing_build_map.get(project.id)
-                context.append(data)
+            if args.status:
+                queryset = queryset.filter(
+                    Project.status == ProjectStatus[args.status]
+                )
 
-        return self.respond(context)
+            if args.sort == 'name':
+                queryset = queryset.order_by(Project.name.asc())
+            elif args.sort == 'date':
+                queryset = queryset.order_by(Project.date_created.asc())
+
+            project_list = list(queryset)
+
+            context = []
+            if project_list:
+                latest_build_results = get_latest_builds_query(project_list)
+                latest_build_map = dict(
+                    zip([b.project_id for b in latest_build_results],
+                        self.serialize(latest_build_results))
+                )
+
+                passing_build_map = {}
+                missing_passing_builds = set()
+                for build in latest_build_results:
+                    if build.result == Result.passed:
+                        passing_build_map[build.project_id] = build
+                    else:
+                        passing_build_map[build.project_id] = None
+                        missing_passing_builds.add(build.project_id)
+
+                if missing_passing_builds:
+                    passing_build_results = get_latest_builds_query(
+                        project_list, result=Result.passed,
+                    )
+                    passing_build_map.update(dict(
+                        zip([b.project_id for b in passing_build_results],
+                            self.serialize(passing_build_results))
+                    ))
+
+                for project, data in zip(project_list, self.serialize(project_list)):
+                    # TODO(dcramer): build serializer is O(N) for stats
+                    data['lastBuild'] = latest_build_map.get(project.id)
+                    data['lastPassingBuild'] = passing_build_map.get(project.id)
+                    context.append(data)
+
+            return self.respond(context)
 
     @requires_admin
     def post(self):
