@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 
 from changes.api.base import APIView, error
 from changes.constants import Status, Result
-from changes.config import db, redis
+from changes.config import db, redis, statsreporter
 from changes.ext.redis import UnableToGetLock
 from changes.models import Build, Job, JobPlan, JobStep
 
@@ -96,57 +96,58 @@ class JobStepAllocateAPIView(APIView):
         total_cpus = int(resources['cpus'])
         total_mem = int(resources['mem'])  # MB
 
-        try:
-            with redis.lock('jobstep:allocate', nowait=True):
-                available_allocations = self.find_next_jobsteps(limit=10)
-                to_allocate = []
-                for jobstep in available_allocations:
-                    req_cpus = jobstep.data.get('cpus', 4)
-                    req_mem = jobstep.data.get('mem', 8 * 1024)
-
-                    if total_cpus >= req_cpus and total_mem >= req_mem:
-                        total_cpus -= req_cpus
-                        total_mem -= req_mem
-
-                        jobstep.status = Status.allocated
-                        db.session.add(jobstep)
-
-                        to_allocate.append(jobstep)
-                    else:
-                        logging.info('Not allocating %s due to lack of offered resources', jobstep.id.hex)
-
-                if not to_allocate:
-                    # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
-                    return self.respond([])
-
-                db.session.flush()
-        except UnableToGetLock:
-            return error('Another allocation is in progress', http_code=503)
-
-        context = []
-
-        for jobstep, jobstep_data in zip(to_allocate, self.serialize(to_allocate)):
+        with statsreporter.stats().timer('jobstep_allocate'):
             try:
-                jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
+                with redis.lock('jobstep:allocate', nowait=True):
+                    available_allocations = self.find_next_jobsteps(limit=10)
+                    to_allocate = []
+                    for jobstep in available_allocations:
+                        req_cpus = jobstep.data.get('cpus', 4)
+                        req_mem = jobstep.data.get('mem', 8 * 1024)
 
-                assert jobplan and buildstep
+                        if total_cpus >= req_cpus and total_mem >= req_mem:
+                            total_cpus -= req_cpus
+                            total_mem -= req_mem
 
-                jobstep_data['project'] = self.serialize(jobstep.project)
-                jobstep_data['resources'] = {
-                    'cpus': jobstep.data.get('cpus', 4),
-                    'mem': jobstep.data.get('mem', 8 * 1024),
-                }
-                jobstep_data['cmd'] = buildstep.get_allocation_command(jobstep)
-            except Exception:
-                jobstep.status = Status.finished
-                jobstep.result = Result.aborted
-                db.session.add(jobstep)
-                db.session.flush()
+                            jobstep.status = Status.allocated
+                            db.session.add(jobstep)
 
-                logging.exception(
-                    'Exception occurred while allocating job step %s for project %s',
-                    jobstep.id.hex, jobstep.project.slug)
-            else:
-                context.append(jobstep_data)
+                            to_allocate.append(jobstep)
+                        else:
+                            logging.info('Not allocating %s due to lack of offered resources', jobstep.id.hex)
 
-        return self.respond(context)
+                    if not to_allocate:
+                        # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
+                        return self.respond([])
+
+                    db.session.flush()
+            except UnableToGetLock:
+                return error('Another allocation is in progress', http_code=503)
+
+            context = []
+
+            for jobstep, jobstep_data in zip(to_allocate, self.serialize(to_allocate)):
+                try:
+                    jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
+
+                    assert jobplan and buildstep
+
+                    jobstep_data['project'] = self.serialize(jobstep.project)
+                    jobstep_data['resources'] = {
+                        'cpus': jobstep.data.get('cpus', 4),
+                        'mem': jobstep.data.get('mem', 8 * 1024),
+                    }
+                    jobstep_data['cmd'] = buildstep.get_allocation_command(jobstep)
+                except Exception:
+                    jobstep.status = Status.finished
+                    jobstep.result = Result.aborted
+                    db.session.add(jobstep)
+                    db.session.flush()
+
+                    logging.exception(
+                        'Exception occurred while allocating job step %s for project %s',
+                        jobstep.id.hex, jobstep.project.slug)
+                else:
+                    context.append(jobstep_data)
+
+            return self.respond(context)
