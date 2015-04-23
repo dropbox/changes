@@ -18,6 +18,7 @@ define(['app', 'utils'], function(app, utils) {
       var value = scope.$eval(attrs.timeSince);
       element.addClass('ng-timesince');
       element.data('datetime', value);
+      element.attr('title', new Date(value));
       element.text(utils.time.timeSince(value));
     };
   }]);
