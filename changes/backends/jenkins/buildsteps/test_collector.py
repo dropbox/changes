@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 
-import itertools
+import heapq
 
 from hashlib import md5
-from operator import itemgetter
 
 from changes.api.client import api_client
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
@@ -62,8 +61,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     # TODO(dcramer): longer term we'd rather have this create a new phase which
     # actually executes a different BuildStep (e.g. of order + 1), but at the
     # time of writing the system only supports a single build step.
-    def __init__(self, max_shards=10, **kwargs):
-        self.max_shards = max_shards
+    def __init__(self, shards=None, max_shards=10, **kwargs):
+        # TODO(josiah): migrate existing step configs to use "shards" and remove max_shards
+        if shards:
+            self.num_shards = shards
+        else:
+            self.num_shards = max_shards
         super(JenkinsTestCollectorBuildStep, self).__init__(**kwargs)
 
     def get_label(self):
@@ -128,6 +131,43 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         return tuple(segments)
 
+    def _shard_tests(self, tests, num_shards, test_stats, avg_test_time):
+        """
+        Breaks a set of tests into shards.
+
+        Args:
+            tests (list): A list of test names.
+            num_shards (int): How many shards over which to distribute the tests.
+            test_stats (dict): A mapping from normalized test name to duration.
+            avg_test_time (int): Average duration of a single test.
+
+        Returns:
+            list: Shards. Each element is a pair containing the weight for that
+                shard and the test names assigned to that shard.
+        """
+
+        def get_test_duration(test_name):
+            segments = self._normalize_test_segments(test_name)
+            result = test_stats.get(segments)
+            if result is None:
+                if test_stats:
+                    self.logger.info('No existing duration found for test %r', test_name)
+                result = avg_test_time
+            return result
+
+        # Each element is a pair (weight, tests).
+        groups = [(0, []) for _ in range(num_shards)]
+        # Groups is already a proper heap, but we'll call this to guarantee it.
+        heapq.heapify(groups)
+        weighted_tests = [(get_test_duration(t), t) for t in tests]
+        for weight, test in sorted(weighted_tests, reverse=True):
+            group_weight, group_tests = heapq.heappop(groups)
+            group_weight += 1 + weight
+            group_tests.append(test)
+            heapq.heappush(groups, (group_weight, group_tests))
+
+        return groups
+
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
         artifact_data = builder.fetch_artifact(step, artifact.data)
@@ -139,24 +179,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         test_stats, avg_test_time = self.get_test_stats(step.project)
 
-        def get_test_duration(test_name):
-            segments = self._normalize_test_segments(test_name)
-            result = test_stats.get(segments)
-            if result is None:
-                if test_stats:
-                    self.logger.info('No existing duration found for test %r', test_name)
-                result = avg_test_time
-            return result
-
-        group_tests = [[] for _ in range(self.max_shards)]
-        group_weights = [0 for _ in range(self.max_shards)]
-        weights = [0] * self.max_shards
-        weighted_tests = [(get_test_duration(t), t) for t in phase_config['tests']]
-        for weight, test in sorted(weighted_tests, reverse=True):
-            low_index, _ = min(enumerate(weights), key=itemgetter(1))
-            weights[low_index] += 1 + weight
-            group_tests[low_index].append(test)
-            group_weights[low_index] += 1 + weight
+        groups = self._shard_tests(phase_config['tests'], self.num_shards, test_stats, avg_test_time)
 
         phase, created = get_or_create(JobPhase, where={
             'job': step.job,
@@ -167,10 +190,9 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         })
         db.session.commit()
 
-        assert len(group_tests) == self.max_shards
-        assert len(group_weights) == self.max_shards
+        assert len(groups) == self.num_shards
 
-        for test_list, weight in itertools.izip(group_tests, group_weights):
+        for weight, test_list in groups:
             self._expand_job(phase, {
                 'tests': test_list,
                 'cmd': phase_config['cmd'],

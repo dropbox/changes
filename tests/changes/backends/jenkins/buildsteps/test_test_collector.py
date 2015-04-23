@@ -158,6 +158,50 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert results[('foo', 'bar', 'test_baz')] == 50
         assert results[('foo', 'bar', 'test_bar')] == 25
 
+    def test_sharding(self):
+        """
+        Unit test for the test sharding logic.
+        """
+        tests = [
+            'foo/bar.py',
+            'foo/baz.py',
+            'foo.bar.test_biz',
+            'foo.bar.test_buz',
+        ]
+        test_weights = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+            ('foo', 'bar', 'test_biz'): 10,
+            ('foo', 'bar', 'test_buz'): 200,
+        }
+        avg_test_time = sum(test_weights.values()) / len(test_weights)
+
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+        buildstep = self.get_buildstep()
+
+        groups = buildstep._shard_tests(tests, 2, test_weights, avg_test_time)
+        assert len(groups) == 2
+        groups.sort()
+        assert groups[0] == (78, ['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
+        assert groups[1] == (201, ['foo.bar.test_buz'])
+
+        groups = buildstep._shard_tests(tests, 3, test_weights, avg_test_time)
+        assert len(groups) == 3
+        groups.sort()
+        assert groups[0] == (27, ['foo/baz.py', 'foo.bar.test_biz'])
+        assert groups[1] == (51, ['foo/bar.py'])
+        assert groups[2] == (201, ['foo.bar.test_buz'])
+
     @responses.activate
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')
@@ -223,7 +267,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
         new_steps = sorted(JobStep.query.filter(
             JobStep.phase_id == phase2.id
-        ), key=lambda x: x.date_created)
+        ), key=lambda x: x.data['weight'], reverse=True)
 
         assert len(new_steps) == 2
         # assert new_steps[0].label == '790ed83d37c20fd5178ddb4f20242ef6'
