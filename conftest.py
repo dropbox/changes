@@ -44,7 +44,6 @@ def app(request, session_config):
         PHABRICATOR_HOST='http://phabricator.example.com',
         GOOGLE_CLIENT_ID='a' * 12,
         GOOGLE_CLIENT_SECRET='b' * 40,
-        HIPCHAT_TOKEN='abc',
         DEFAULT_FILE_STORAGE='changes.storage.mock.FileStorageCache',
         LXC_PRE_LAUNCH='echo pre',
         LXC_POST_LAUNCH='echo post',

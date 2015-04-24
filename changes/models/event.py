@@ -14,7 +14,6 @@ from changes.db.utils import model_repr
 
 class EventType(object):
     email = 'email_notification'
-    hipchat = 'hipchat_notification'
     green_build = 'green_build_notification'
     aborted_build = 'aborted_build'
 
