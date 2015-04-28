@@ -8,4 +8,4 @@ app = create_app()
 app_context = app.app_context()
 app_context.push()
 
-script.make_shell(lambda: {"app": app})()
+script.make_shell(lambda: {"app": app}, use_ipython=True)()

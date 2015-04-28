@@ -3,6 +3,7 @@
 .coverage
 .DS_Store
 .idea
+*.iml
 *.db
 *.egg-info
 *.pyc
