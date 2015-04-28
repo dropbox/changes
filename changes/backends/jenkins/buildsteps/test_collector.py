@@ -1,16 +1,18 @@
 from __future__ import absolute_import
 
 import heapq
+import logging
 
 from hashlib import md5
 
 from changes.api.client import api_client
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.config import db
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import Job, JobPhase, JobStep, TestCase
+from changes.utils.agg import aggregate_result
 from changes.utils.trees import build_flat_tree
 
 
@@ -78,6 +80,33 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         else:
             builder = self.get_builder()
             builder.sync_artifact(artifact, **kwargs)
+
+    def _validate_shards(self, phase_steps):
+        """This returns passed/unknown based on whether the correct number of
+        shards were run."""
+        step_expanded_flags = [step.data.get('expanded', False) for step in phase_steps]
+        assert all(step_expanded_flags) or not any(step_expanded_flags), "Mixed expanded and non-expanded steps in phase!"
+        expanded = step_expanded_flags[0]
+        if not expanded:
+            # This was the initial phase, not the expanded phase. No need to
+            # check shards.
+            return Result.passed
+
+        if len(phase_steps) != self.num_shards:
+            # TODO(josiah): we'd like to be able to record a FailureReason
+            # here, but currently a FailureReason must correspond to a JobStep.
+            logging.error("Build failed due to incorrect number of shards: expected %d, got %d", self.num_shards, len(phase_steps))
+            return Result.unknown
+        return Result.passed
+
+    def validate_phase(self, phase):
+        """Called when a job phase is ready to be finished.
+
+        This is responsible for setting the phases's final result. We verify
+        that the proper number of steps were created in the second (i.e.
+        expanded) phase."""
+        phase.result = aggregate_result([s.result for s in phase.steps] +
+                                        [self._validate_shards(phase.steps)])
 
     def get_test_stats(self, project):
         response = api_client.get('/projects/{project}/'.format(

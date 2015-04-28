@@ -5,6 +5,7 @@ from datetime import datetime
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import JobStep
+from changes.utils.agg import aggregate_result
 
 
 class BuildStep(object):
@@ -26,6 +27,41 @@ class BuildStep(object):
 
     def update_step(self, step):
         raise NotImplementedError
+
+    def validate(self, job):
+        """Called when a job is ready to be finished.
+
+        This is responsible for setting the job's final result. The base
+        implementation simply aggregates the phase results.
+
+        Args:
+            job (Job): The job being finished.
+        Returns:
+            None
+        """
+        # TODO(josiah): ideally, we could record a FailureReason.
+        # Currently FailureReason must be per-step.
+
+        job.result = aggregate_result((p.result for p in job.phases))
+
+    def validate_phase(self, phase):
+        """Called when a job phase is ready to be finished.
+
+        This is responsible for setting the phases's final result. The base
+        implementation simply aggregates the jobstep results.
+
+        Args:
+            phase (JobPhase): The phase being finished.
+        Returns:
+            None
+        """
+        # TODO(josiah): ideally, we could record a FailureReason.
+        # Currently FailureReason must be per-step.
+
+        phase.result = aggregate_result((s.result for s in phase.steps))
+
+    # There's no finish_step because steps are only marked as finished/passed
+    # by update().
 
     def cancel(self, job):
         # XXX: this makes the assumption that sync_job will take care of

@@ -202,6 +202,111 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert groups[1] == (51, ['foo/bar.py'])
         assert groups[2] == (201, ['foo.bar.test_buz'])
 
+    def test_validate_shards(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+
+        buildstep = self.get_buildstep()
+
+        # Non-expanded phase
+        phase = self.create_jobphase(job, label='collect')
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+
+        assert buildstep._validate_shards([step]) == Result.passed
+
+        # Expanded phase
+        phase2 = self.create_jobphase(job, label='run tests')
+        step2_1 = self.create_jobstep(phase2, data={
+            'expanded': True,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+        step2_2 = self.create_jobstep(phase2, data={
+            'expanded': True,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+
+        assert buildstep._validate_shards([step2_1]) == Result.unknown
+        assert buildstep._validate_shards([step2_1, step2_2]) == Result.passed
+
+    def test_validate_phase(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+
+        # Non-expanded phase
+        phase = self.create_jobphase(job, label='collect')
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+        step.result = Result.passed
+
+        buildstep = self.get_buildstep()
+        buildstep.validate_phase(phase)
+        assert phase.result == Result.passed
+
+        # Expanded phase
+        phase2 = self.create_jobphase(job, label='run tests')
+        step2_1 = self.create_jobstep(phase2, data={
+            'expanded': True,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+        step2_2 = self.create_jobstep(phase2, data={
+            'expanded': True,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+        step2_1.result = Result.passed
+        step2_2.result = Result.passed
+
+        buildstep = self.get_buildstep()
+        buildstep.validate_phase(phase2)
+        assert phase2.result == Result.passed
+
+        # Expanded phase with missing step
+        phase3 = self.create_jobphase(job, label='run tests 2')
+        step3_1 = self.create_jobstep(phase3, data={
+            'expanded': True,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+
+        buildstep = self.get_buildstep()
+        buildstep.validate_phase(phase3)
+        assert phase3.result == Result.unknown
+
+        # Expanded phase with failing step
+        phase4 = self.create_jobphase(job, label='run tests 3')
+        step4_1 = self.create_jobstep(phase4, data={
+            'expanded': True,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+        step4_2 = self.create_jobstep(phase4, data={
+            'expanded': True,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+        step4_1.result = Result.passed
+        step4_2.result = Result.failed
+
+        buildstep = self.get_buildstep()
+        buildstep.validate_phase(phase4)
+        assert phase4.result == Result.failed
+
     @responses.activate
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')

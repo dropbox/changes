@@ -11,7 +11,7 @@ from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
 from changes.models import ItemStat, Job, JobPhase, JobPlan, JobStep, TestCase
 from changes.queue.task import tracked_task
-from changes.utils.agg import aggregate_result, aggregate_status, safe_agg
+from changes.utils.agg import aggregate_status, safe_agg
 
 
 def aggregate_job_stat(job, name, func_=func.sum):
@@ -33,15 +33,18 @@ def aggregate_job_stat(job, name, func_=func.sum):
     })
 
 
-def sync_job_phases(job, phases=None):
+def sync_job_phases(job, phases=None, implementation=None):
     if phases is None:
         phases = JobPhase.query.filter(JobPhase.job_id == job.id)
 
+    if implementation is None:
+        _, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
+
     for phase in phases:
-        sync_phase(phase)
+        sync_phase(phase, implementation)
 
 
-def sync_phase(phase):
+def sync_phase(phase, implementation):
     phase_steps = list(phase.steps)
 
     if phase.date_started is None:
@@ -61,8 +64,9 @@ def sync_phase(phase):
         if any(s.result is Result.failed for s in phase_steps):
             phase.result = Result.failed
 
-        elif phase.status == Status.finished:
-            phase.result = aggregate_result((s.result for s in phase_steps))
+        if phase.status == Status.finished:
+            # Sets the final phase result.
+            implementation.validate_phase(phase=phase)
 
     if db.session.is_modified(phase):
         phase.date_modified = datetime.utcnow()
@@ -105,7 +109,7 @@ def sync_job(job_id):
 
     # propagate changes to any phases as they live outside of the
     # normalize synchronization routines
-    sync_job_phases(job, all_phases)
+    sync_job_phases(job, all_phases, implementation)
 
     is_finished = sync_job.verify_all_children() == Status.finished
     if any(p.status != Status.finished for p in all_phases):
@@ -133,7 +137,8 @@ def sync_job(job_id):
         job.result = Result.failed
     # if we've finished all phases, use the best result available
     elif is_finished:
-        job.result = aggregate_result((j.result for j in all_phases))
+        # Sets the final job result.
+        implementation.validate(job=job)
     else:
         job.result = Result.unknown
 

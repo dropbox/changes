@@ -61,6 +61,9 @@ class SyncJobTest(TestCase):
             job=self.job,
         )
 
+        assert implementation.validate_phase.call_count == 0
+        assert implementation.validate.call_count == 0
+
         queue_delay.assert_any_call('sync_job', kwargs={
             'job_id': job.id.hex,
             'task_id': job.id.hex,
@@ -107,6 +110,9 @@ class SyncJobTest(TestCase):
             task_id=job.id.hex,
             parent_task_id=build.id.hex,
         )
+
+        implementation.validate_phase.assert_called_once_with(phase=self.job.phases[0])
+        implementation.validate.assert_called_once_with(job=self.job)
 
         job = Job.query.get(job.id)
 
