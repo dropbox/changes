@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.schema import Index
 
 from changes.config import db
 from changes.constants import Status, Result
@@ -33,6 +34,10 @@ class FutureJobStep(object):
 class JobStep(db.Model):
     # TODO(dcramer): make duration a column
     __tablename__ = 'jobstep'
+
+    __table_args__ = (
+            Index('idx_jobstep_status', 'status'),
+    )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
