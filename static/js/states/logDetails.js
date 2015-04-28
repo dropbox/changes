@@ -3,6 +3,12 @@ define([
 ], function(app) {
   'use strict';
 
+  // Disable livescroll if log lines is larger than 10K.
+  var MAX_LIVESCROLL_LOG_LINES = 10240;
+
+  // Disable log altogether if #logLines >= 40K.
+  var MAX_LOG_LINES = 40960;
+
   function getEndpoint(params) {
     return '/api/0/jobs/' + params.job_id + '/logs/' + params.source_id + '?limit=0';
   }
@@ -14,7 +20,8 @@ define([
     controller: function($scope, $timeout, $http, $stateParams, jobData, logData, flash) {
       var logChunkData = {
             size: 0,
-            nextOffset: 0
+            nextOffset: 0,
+            lines: 0
           },
           liveScroll = false;
 
@@ -32,13 +39,26 @@ define([
 
         // add each additional new line
         $.each(data.text.split('\n'), function(_, line){
+          // Don't add new rows if we already have too many on screen
+          if (logChunkData.lines >= MAX_LOG_LINES) {
+            $(document.body).addClass('build-log-viewer-disabled');
+            return;
+          }
+
           var div = document.createElement('div');
           div.className = 'line';
           div.innerHTML = line;
           frag.appendChild(div);
+          logChunkData.lines += 1;
         });
 
         $el.append(frag);
+
+        // Disable livescroll if log file is too large.
+        if (liveScroll && logChunkData.lines >= MAX_LIVESCROLL_LOG_LINES) {
+          liveScroll = false;
+          $(document.body).addClass('build-log-stream-disabled');
+        }
 
         if (liveScroll) {
           window.scrollTo(0, document.body.scrollHeight);
@@ -69,6 +89,7 @@ define([
 
       $scope.logSource = logData.source;
       $scope.step = logData.source.step;
+      $scope.MAX_LOG_LINES = MAX_LOG_LINES;
 
       $timeout(function(){
         $.each(logData.chunks, function(_, chunk){
@@ -121,6 +142,8 @@ define([
     onExit: function(){
       $(document.body).removeClass('build-log-container');
       $(document.body).removeClass('build-log-stream-inactive');
+      $(document.body).removeClass('build-log-stream-disabled');
+      $(document.body).removeClass('build-log-viewer-disabled');
     }
   };
 });

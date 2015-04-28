@@ -1631,13 +1631,49 @@ d3barchart {
   margin-left: 10px;
 }
 
-.build-log-stream-inactive .build-log-controls {
+.build-log-viewer-disabled-warning {
   display: none;
 }
-.build-log-stream-inactive .log-spinner {
+
+.build-log-viewer-disabled .build-log-viewer-disabled-warning {
+  background: red;
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 20px;
+  height: 40px;
+  border-top: 1px solid #eee;
+  color: white;
+}
+
+.build-log-stream-disabled .build-log-streaming-disabled-warning {
+  background: red;
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 20px;
+  height: 55px;
+  border-top: 1px solid #eee;
+  color: white;
+  opacity: 0.9;
+}
+
+
+.build-log-viewer-disabled .build-log-streaming-disabled-warning, .build-log-streaming-disabled-warning {
   display: none;
 }
-.build-log-stream-inactive .build-log-wrapper {
+
+.build-log-stream-inactive .build-log-controls, .build-log-viewer-disabled .build-log-controls {
+  display: none;
+}
+.build-log-stream-inactive .log-spinner, .build-log-viewer-disabled .log-spinner {
+  display: none;
+}
+.build-log-stream-inactive .build-log-wrapper, .build-log-viewer-disabled .build-log-wrapper {
   margin-bottom: 0;
 }
 
