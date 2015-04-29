@@ -34,7 +34,8 @@ class JenkinsCollectorBuilderTest(BaseTestCase):
             adding_headers={'X-Text-Size': '0'},
             body='')
         responses.add(
-            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            responses.GET,
+            'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
             body=self.load_fixture('fixtures/GET/node_config.xml'))
 
         build = self.create_build(self.project)
@@ -180,11 +181,11 @@ class JenkinsCollectorBuildStepTest(TestCase):
         builder.fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
-            target_id=new_steps[0].id.hex,
+            changes_bid=new_steps[0].id.hex,
             params=builder.get_job_parameters.return_value,
         )
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
-            target_id=new_steps[1].id.hex,
+            changes_bid=new_steps[1].id.hex,
             params=builder.get_job_parameters.return_value,
         )

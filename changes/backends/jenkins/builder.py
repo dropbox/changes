@@ -436,7 +436,7 @@ class JenkinsBuilder(BaseBackend):
             if i['task']['name'] == job_name
         ))
 
-    def _find_job(self, master_base_url, job_name, job_id):
+    def _find_job(self, master_base_url, job_name, changes_bid):
         """
         Given a job identifier, we attempt to poll the various endpoints
         for a limited amount of time, trying to match up either a queued item
@@ -445,7 +445,7 @@ class JenkinsBuilder(BaseBackend):
         This is nescesary because Jenkins does not give us any identifying
         information when we create a job initially.
 
-        The job_id parameter should be the corresponding value to look for in
+        The changes_bid parameter should be the corresponding value to look for in
         the CHANGES_BID parameter.
 
         The result is a mapping with the following keys:
@@ -456,14 +456,14 @@ class JenkinsBuilder(BaseBackend):
         """
         # Check the queue first to ensure that we don't miss a transition
         # from queue -> active jobs
-        item = self._find_job_in_queue(master_base_url, job_name, job_id)
+        item = self._find_job_in_queue(master_base_url, job_name, changes_bid)
         if item:
             return item
-        return self._find_job_in_active(master_base_url, job_name, job_id)
+        return self._find_job_in_active(master_base_url, job_name, changes_bid)
 
-    def _find_job_in_queue(self, master_base_url, job_name, job_id):
+    def _find_job_in_queue(self, master_base_url, job_name, changes_bid):
         xpath = QUEUE_ID_XPATH.format(
-            job_id=job_id,
+            job_id=changes_bid,
         )
         try:
             response = self._get_text_response(
@@ -494,9 +494,9 @@ class JenkinsBuilder(BaseBackend):
             'uri': None,
         }
 
-    def _find_job_in_active(self, master_base_url, job_name, job_id):
+    def _find_job_in_active(self, master_base_url, job_name, changes_bid):
         xpath = BUILD_ID_XPATH.format(
-            job_id=job_id,
+            job_id=changes_bid,
         )
         try:
             response = self._get_text_response(
@@ -867,12 +867,12 @@ class JenkinsBuilder(BaseBackend):
         except Exception:
             self.logger.exception('Unable to cancel build upstream')
 
-    def get_job_parameters(self, job, target_id=None):
-        if target_id is None:
-            target_id = job.id.hex
+    def get_job_parameters(self, job, changes_bid=None):
+        if changes_bid is None:
+            changes_bid = job.id.hex
 
         params = [
-            {'name': 'CHANGES_BID', 'value': target_id},
+            {'name': 'CHANGES_BID', 'value': changes_bid},
         ]
 
         if job.build.source.revision_sha:
@@ -890,7 +890,7 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def create_job_from_params(self, target_id, params, job_name=None, is_diff=False):
+    def create_job_from_params(self, changes_bid, params, job_name=None, is_diff=False):
         if job_name is None:
             job_name = self.job_name
 
@@ -920,7 +920,7 @@ class JenkinsBuilder(BaseBackend):
         t = time.time() + 5
         job_data = None
         while time.time() < t:
-            job_data = self._find_job(master, job_name, target_id)
+            job_data = self._find_job(master, job_name, changes_bid)
             if job_data:
                 break
             time.sleep(0.3)
@@ -948,7 +948,7 @@ class JenkinsBuilder(BaseBackend):
         params = self.get_job_parameters(job)
         is_diff = not job.source.is_commit()
         job_data = self.create_job_from_params(
-            target_id=job.id.hex,
+            changes_bid=job.id.hex,
             params=params,
             is_diff=is_diff
         )
