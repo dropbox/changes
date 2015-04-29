@@ -2,7 +2,7 @@ define([
   'angular',
   'jquery',
   'bootstrap/tooltip'
-], function(angular, $) {
+], function(angular, $, tooltip_func) {
   'use strict';
 
   angular.module('barChart', [])
@@ -90,13 +90,21 @@ define([
           });
         }
 
-        innerNode.data({
-          title: getTooltipContent(this, item),
-          placement: 'bottom',
-          html: true
-        });
+        innerNode.attr('data-title', getTooltipContent(this, item));
+        innerNode.attr('title', getTooltipContent(this, item));
+        innerNode.attr('data-placement', 'bottom');
+        innerNode.attr('data-html', 'true');
 
-        innerNode.tooltip();
+        // Because we use angular, jquery, bootstrap, and requirejs, we're in
+        // this situation where there are multiple jquery objects floating
+        // around, not all of them augmented with bootstrap. The solution is to
+        // explicitly include bootstrap functions and call them directly via
+        // bind. Make sure to use data attributes over jquery.data, as each
+        // jquery has its own data store.
+        //
+        // There are internet fixes for requirejs/jquery/bootstrap, but none for
+        // all four libraries (angular has its own relation with jquery.)
+        tooltip_func.bind(innerNode)();
 
         node.append(innerNode);
 
