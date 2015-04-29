@@ -111,6 +111,32 @@ define([
     // send 404s to /
     $urlRouterProvider.otherwise("/projects/");
 
+    // urls without trailing slashes should go to the right place. newer 
+    // versions of angular-ui-router have a strictMode parameter that does 
+    // this, but at the time this comment was written said parameter didn't
+    // work 100% (it broke for urls that included query parameters, like
+    // projectBuildList.js.) It also would require us to rewrite all of our 
+    // links to not end in a trailing slash.
+    //
+    // This code snippet is provided by the angular-ui-router documentation.
+    // It doesn't handle urls with hashbangs or urls like www.site.com/page.html
+    // https://github.com/angular-ui/ui-router/wiki/Frequently-Asked-Questions
+    //   #how-to-make-a-trailing-slash-optional-for-all-routes
+    $urlRouterProvider.rule(function ($injector, $location) {
+      var url = $location.url();
+
+      // check to see if the url already has a slash where it should be
+      if (url[url.length - 1] === '/' || url.indexOf('/?') > -1) {
+        return;
+      }
+
+      if (url.indexOf('?') > -1) {
+        return url.replace('?', '/?');
+      }
+
+      return url + '/';
+    });
+
     // revert to default scrolling behavior as autoscroll is broken
     $uiViewScrollProvider.useAnchorScroll();
 
