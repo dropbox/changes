@@ -12,6 +12,20 @@ from changes.db.types.guid import GUID
 
 
 class JobPhase(db.Model):
+    """A JobPhase is a grouping of one or more JobSteps performing the same basic task.
+    The phases of a Job are intended to be executed sequentially, though that isn't necesarily
+    enforced.
+
+    One example of phase usage: a Job may have a test collection phase and a test execution phase,
+    with a single JobStep collecting tests in the first phase and an arbitrary number
+    of JobSteps executing shards of the collected tests in the second phase.
+    By using two phases, the types of JobSteps can be tracked and managed independently.
+
+    Though JobPhases are typically created to group newly created JobSteps, they
+    can also be constructed retroactively once a JobStep has finished based on
+    phased artifacts. This is convenient but a little confusing, and perhaps
+    should be handled by another mechanism.
+    """
     # TODO(dcramer): add order column rather than implicity date_started ordering
     # TODO(dcramer): make duration a column
     __tablename__ = 'jobphase'
