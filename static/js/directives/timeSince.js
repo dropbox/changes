@@ -1,4 +1,8 @@
-define(['app', 'utils'], function(app, utils) {
+define([
+  'app', 
+  'utils', 
+  'bootstrap/tooltip'
+], function(app, utils, tooltip_func) {
   'use strict';
 
   // we use a shared timeout for the page loop to avoid
@@ -18,8 +22,10 @@ define(['app', 'utils'], function(app, utils) {
       var value = scope.$eval(attrs.timeSince);
       element.addClass('ng-timesince');
       element.data('datetime', value);
-      element.attr('title', new Date(value));
-      element.text(utils.time.timeSince(value));
+
+      element.attr('title', (new Date(value)).toUTCString());
+      element.attr('data-placement', 'left');
+      tooltip_func.bind(element)();
     };
   }]);
 });
