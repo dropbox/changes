@@ -60,7 +60,7 @@ define(['app', 'utils/createBuild'], function(app, createBuild) {
 
       var flash = sinon.spy();
       var state = {
-        go: sinon.spy(),
+        go: sinon.spy()
       };
       createBuild($http, state, flash, {});
       $httpBackend.flush();

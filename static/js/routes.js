@@ -3,6 +3,8 @@ define([
 
   'states/adminHome',
   'states/adminLayout',
+  'states/adminMessageDetails',
+  'states/adminMessageList',
   'states/adminProjectCreate',
   'states/adminProjectDetails',
   'states/adminProjectList',
@@ -60,6 +62,8 @@ define([
 
   AdminHomeState,
   AdminLayoutState,
+  AdminMessageDetailsState,
+  AdminMessageListState,
   AdminProjectCreateState,
   AdminProjectDetailsState,
   AdminProjectListState,
@@ -195,6 +199,8 @@ define([
     $stateProvider
       .state('admin_layout', AdminLayoutState)
       .state('admin_home', AdminHomeState)
+      .state('admin_message_details', AdminMessageDetailsState)
+      .state('admin_message_list', AdminMessageListState)
       .state('admin_project_create', AdminProjectCreateState)
       .state('admin_project_details', AdminProjectDetailsState)
       .state('admin_project_settings', AdminProjectSettingsState)

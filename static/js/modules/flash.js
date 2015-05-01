@@ -59,7 +59,7 @@ define(['angular'], function(angular) {
             '<li ng-repeat="m in messages" class="alert alert-{{m.type}} alert-dismissable">' +
               '<div class="container">' +
                 '<button type="button" class="close" ng-click=close($index)>&times;</button>' +
-                '{{m.text}}' +
+                '<div ng-bind-html="m.text"></div>' +
               '</div>' +
             '</li>' +
           '</ol>',
