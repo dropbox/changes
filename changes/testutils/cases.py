@@ -37,6 +37,7 @@ class AuthMixin(object):
         with self.client.session_transaction() as session:
             session['uid'] = user.id.hex
             session['email'] = user.email
+        return user
 
     def login_default(self):
         return self.login(self.default_user)

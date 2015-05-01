@@ -11,7 +11,7 @@ from changes.models import (
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
     RepositoryStatus, User, ItemOption, Command, Snapshot, SnapshotImage,
-    PlanStatus
+    PlanStatus, AdminMessage
 )
 from changes.utils.slugs import slugify
 
@@ -445,3 +445,11 @@ class Fixtures(object):
         db.session.add(image)
         db.session.commit()
         return image
+
+    def create_adminmessage(self, **kwargs):
+        message = AdminMessage(
+            **kwargs
+        )
+        db.session.add(message)
+        db.session.commit()
+        return message

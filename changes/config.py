@@ -335,6 +335,7 @@ def configure_api_routes(app):
     from changes.api.node_details import NodeDetailsAPIView
     from changes.api.node_index import NodeIndexAPIView
     from changes.api.node_job_index import NodeJobIndexAPIView
+    from changes.api.adminmessage_index import AdminMessageIndexAPIView
     from changes.api.patch_details import PatchDetailsAPIView
     from changes.api.phabricator_notify_diff import PhabricatorNotifyDiffAPIView
     from changes.api.plan_details import PlanDetailsAPIView
@@ -347,6 +348,7 @@ def configure_api_routes(app):
     from changes.api.project_coverage_index import ProjectCoverageIndexAPIView
     from changes.api.project_coverage_group_index import ProjectCoverageGroupIndexAPIView
     from changes.api.project_index import ProjectIndexAPIView
+    from changes.api.project_latest_green_builds import ProjectLatestGreenBuildsAPIView
     from changes.api.project_options_index import ProjectOptionsIndexAPIView
     from changes.api.project_plan_index import ProjectPlanIndexAPIView
     from changes.api.project_snapshot_index import ProjectSnapshotIndexAPIView
@@ -373,7 +375,6 @@ def configure_api_routes(app):
     from changes.api.testcase_details import TestCaseDetailsAPIView
     from changes.api.user_details import UserDetailsAPIView
     from changes.api.user_index import UserIndexAPIView
-    from changes.api.project_latest_green_builds import ProjectLatestGreenBuildsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
@@ -408,6 +409,7 @@ def configure_api_routes(app):
     api.add_resource(NodeDetailsAPIView, '/nodes/<uuid:node_id>/')
     api.add_resource(NodeIndexAPIView, '/nodes/')
     api.add_resource(NodeJobIndexAPIView, '/nodes/<uuid:node_id>/jobs/')
+    api.add_resource(AdminMessageIndexAPIView, '/messages/')
     api.add_resource(PatchDetailsAPIView, '/patches/<uuid:patch_id>/')
     api.add_resource(PhabricatorNotifyDiffAPIView, '/phabricator/notify-diff/')
     api.add_resource(PlanDetailsAPIView, '/plans/<uuid:plan_id>/')
