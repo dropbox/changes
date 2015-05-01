@@ -49,10 +49,7 @@ define([
           if (adminMessage.dateCreated) {
               msgTxt += ' (' + time.timeSince(adminMessage.dateCreated) + ')';
           }
-          flash('warning', msgTxt);
-
-          // Clear the message so it doesn't appear again unless reloaded
-          adminMessage = null;
+          flash('warning', msgTxt, false);
         }
       });
 

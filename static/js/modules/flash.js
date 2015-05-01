@@ -4,6 +4,7 @@ define(['angular'], function(angular) {
   angular.module('flash', [])
     .factory('flash', ['$rootScope', '$timeout', function($rootScope, $timeout){
       var messages = [],
+          dismissible = true,
           reset,
           default_message = 'something happened, but we are not sure what';
 
@@ -15,7 +16,7 @@ define(['angular'], function(angular) {
       };
 
       var emit = function() {
-        $rootScope.$emit('flash:message', messages, cleanup);
+        $rootScope.$emit('flash:message', messages, dismissible, cleanup);
       };
 
       $rootScope.$on('$routeChangeSuccess', emit);
@@ -46,10 +47,29 @@ define(['angular'], function(angular) {
         return [asMessage(level, text)];
       };
 
-      return function(level, text) {
-        emit(messages = asArrayOfMessages(level, text));
+      return function(level, text, isDismissible) {
+        messages = asArrayOfMessages(level, text);
+        if (isDismissible === false) {
+          dismissible = false;
+        }
+        emit();
       };
     }])
+    .controller('FlashCtrl', function($scope, $rootScope) {
+        $scope.close = function(index) {
+          $scope.messages.splice(index, 1);
+        };
+
+        $rootScope.$on('flash:message', function(_, messages, dismissible, done) {
+          $scope.messages = messages;
+          $scope.dismissible = dismissible;
+          done();
+        });
+
+        $rootScope.$on('$stateChangeSuccess', function(_u1, _u2, $stateParams) {
+          $scope.messages = [];
+        });
+    })
     .directive('flashMessages', function() {
       return {
         restrict: 'E',
@@ -58,25 +78,12 @@ define(['angular'], function(angular) {
           '<ol class="alert-list" id="flash-messages">' +
             '<li ng-repeat="m in messages" class="alert alert-{{m.type}} alert-dismissable">' +
               '<div class="container">' +
-                '<button type="button" class="close" ng-click=close($index)>&times;</button>' +
+                '<button ng-show=dismissible type="button" class="close" ng-click=close($index)>&times;</button>' +
                 '<div ng-bind-html="m.text"></div>' +
               '</div>' +
             '</li>' +
           '</ol>',
-        controller: function($scope, $rootScope) {
-          $scope.close = function(index){
-            $scope.messages.splice(index, 1);
-          };
-
-          $rootScope.$on('flash:message', function(_, messages, done) {
-            $scope.messages = messages;
-            done();
-          });
-
-          $rootScope.$on('$stateChangeSuccess', function(_u1, _u2, $stateParams){
-            $scope.messages = [];
-          });
-        }
+        controller: 'FlashCtrl'
       };
     });
 });
