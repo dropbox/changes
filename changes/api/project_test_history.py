@@ -6,7 +6,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.base import APIView
 from changes.constants import Status
-from changes.models import Project, TestCase, Job, Source
+from changes.models import Project, TestCase, Job, Source, Revision
 
 
 class ProjectTestHistoryAPIView(APIView):
@@ -49,13 +49,14 @@ class ProjectTestHistoryAPIView(APIView):
             job_sq, TestCase.job_id == job_sq.c.id,
         ).join(
             Source, job_sq.c.source_id == Source.id,
+        ).join(
+            Revision, Source.revision
         ).filter(
             Source.repository_id == project.repository_id,
             Source.patch_id == None,  # NOQA
             Source.revision_sha != None,  # NOQA
             TestCase.name_sha == test.name_sha,
-        ).order_by(job_sq.c.date_created.desc()))
-
+        ).order_by(Revision.date_committed.desc()))
         jobs = set(r.job for r in recent_runs)
         builds = set(j.build for j in jobs)
 
