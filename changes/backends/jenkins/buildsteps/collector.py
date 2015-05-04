@@ -156,7 +156,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
 
             if not success:
                 step.status = Status.finished
-                step.result = Result.failed
+                step.result = Result.infra_failed
                 db.session.add(step)
                 db.session.commit()
                 if exn:

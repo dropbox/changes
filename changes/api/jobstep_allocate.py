@@ -140,7 +140,7 @@ class JobStepAllocateAPIView(APIView):
                     jobstep_data['cmd'] = buildstep.get_allocation_command(jobstep)
                 except Exception:
                     jobstep.status = Status.finished
-                    jobstep.result = Result.aborted
+                    jobstep.result = Result.infra_failed
                     db.session.add(jobstep)
                     db.session.flush()
 

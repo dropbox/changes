@@ -31,6 +31,11 @@ class Result(Enum):
     passed = 1
     skipped = 3
     failed = 2
+    # 'infra_failed' indicates that a build encountered a problem in Changes or
+    # backends and has no meaningful result. Not all builds which fail for
+    # infrastructural reasons will be reported as 'infra_failed', but we should
+    # do our best to identify internal failures and use this Result.
+    infra_failed = 6
 
     def __str__(self):
         return RESULT_LABELS[self]
@@ -92,11 +97,13 @@ RESULT_LABELS = {
     Result.failed: 'Failed',
     Result.skipped: 'Skipped',
     Result.aborted: 'Aborted',
+    Result.infra_failed: 'Infrastructure failed',
 }
 
 RESULT_PRIORITY = (
     Result.aborted,
     Result.failed,
+    Result.infra_failed,
     Result.unknown,
     Result.passed,
     Result.skipped,

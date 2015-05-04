@@ -567,7 +567,7 @@ class JenkinsBuilder(BaseBackend):
             )
         except NotFound:
             step.status = Status.finished
-            step.result = Result.unknown
+            step.result = Result.infra_failed
             db.session.add(step)
             self.logger.exception("Queued step not found in queue: {} (build: {})".format(step.id, step.job.build_id))
             statsreporter.stats().incr('jenkins_item_not_found_in_queue')

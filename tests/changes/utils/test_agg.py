@@ -12,6 +12,12 @@ def test_aggregate_result():
     status_list = [Result.passed, Result.skipped]
     assert aggregate_result(status_list) == Result.passed
 
+    status_list = [Result.passed, Result.infra_failed]
+    assert aggregate_result(status_list) == Result.infra_failed
+
+    status_list = [Result.failed, Result.infra_failed]
+    assert aggregate_result(status_list) == Result.failed
+
 
 def test_aggregate_status():
     status_list = [Status.finished, Status.queued, Status.in_progress, Status.unknown]

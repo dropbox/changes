@@ -599,6 +599,11 @@ a.indicator {
   background: #d9322d;
   border-color: #d9322d;
 }
+.result-infra_failed .indicator {
+  color: #fff;
+  background: #000;
+  border-color: #000;
+}
 .result-skipped .indicator {
   color: #fff;
   background: rgb(255, 215, 0);
@@ -1477,6 +1482,9 @@ chart {
 }
 .barchart li.result-failed a .count {
   background: #EB6D69;
+}
+.barchart li.result-infra_failed a .count {
+  background: #000;
 }
 .barchart li.result-skipped a .count {
   background: rgb(255, 215, 0);

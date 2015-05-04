@@ -26,7 +26,7 @@ def create_job(job_id):
     if job.project.status == ProjectStatus.inactive:
         current_app.logger.warn('Project is not active: %s', job.project.slug)
         job.status = Status.finished
-        job.result = Result.failed
+        job.result = Result.aborted
         db.session.add(job)
         db.session.flush()
         return
@@ -40,7 +40,7 @@ def create_job(job_id):
     if implementation is None:
         # TODO(dcramer): record a FailureReason?
         job.status = Status.finished
-        job.result = Result.failed
+        job.result = Result.aborted
         db.session.add(job)
         db.session.flush()
         current_app.logger.exception('No build plan set %s', job_id)
@@ -50,7 +50,7 @@ def create_job(job_id):
         implementation.execute(job=job)
     except UnrecoverableException:
         job.status = Status.finished
-        job.result = Result.aborted
+        job.result = Result.infra_failed
         db.session.add(job)
         db.session.flush()
         current_app.logger.exception('Unrecoverable exception creating %s', job_id)

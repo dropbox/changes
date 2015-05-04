@@ -19,6 +19,8 @@ class JobStepHeartbeatAPIView(APIView):
         if jobstep is None:
             return '', 404
 
+        # NOTE(josiah): we think this is okay as is, but it might be better to
+        # report infra_failure the same way as aborted.
         if jobstep.result == Result.aborted:
             return '', 410
 

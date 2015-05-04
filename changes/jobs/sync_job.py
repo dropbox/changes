@@ -102,7 +102,7 @@ def sync_job(job_id):
 
     except UnrecoverableException:
         job.status = Status.finished
-        job.result = Result.aborted
+        job.result = Result.infra_failed
         current_app.logger.exception('Unrecoverable exception syncing %s', job.id)
 
     all_phases = list(job.phases)
