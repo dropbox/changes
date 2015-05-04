@@ -2100,3 +2100,21 @@ label.btn input[type=checkbox] {
 .twitter-typeahead {
   width: 100%;
 }
+
+/* 404 styles */
+.container_404 {
+  text-align: center;
+}
+
+.header_404 {
+  font-size: 10em;
+  margin-bottom: 20px;
+}
+
+.url_404 {
+  font-family: monospace;
+}
+
+.text_404 {
+  margin-bottom: 10px;
+}

@@ -24,6 +24,7 @@ define([
   'states/buildTestList',
   'states/clusterDetails',
   'states/clusterList',
+  'states/fourohfour',
   'states/jobArtifactList',
   'states/jobDetails',
   'states/jobPhaseList',
@@ -83,6 +84,7 @@ define([
   BuildTestListState,
   ClusterDetailsState,
   ClusterListState,
+  FourOhFourState,
   JobArtifactListState,
   JobDetailsState,
   JobPhaseListState,
@@ -112,8 +114,18 @@ define([
     // use html5 location rather than hashes
     $locationProvider.html5Mode(true);
 
+    // homepage is projects/
+    $urlRouterProvider.when("", "/projects/");
+    $urlRouterProvider.when("/", "/projects/");
+
     // send 404s to /
-    $urlRouterProvider.otherwise("/projects/");
+    $urlRouterProvider.otherwise(function ($injector, $location) {
+      var url = $location.url();
+      // either angular or ui-router automagically unencodes standard 
+      // url escaping :/. Use base64 instead, replacing /s
+      var encoded_url = btoa(url).replace("/", "-");
+      return "/404/" + encoded_url;
+    });
 
     // urls without trailing slashes should go to the right place. newer 
     // versions of angular-ui-router have a strictMode parameter that does 
@@ -173,6 +185,7 @@ define([
       .state('build_test_list', BuildTestListState)
       .state('cluster_details', ClusterDetailsState)
       .state('clusters', ClusterListState)
+      .state('fourohfour', FourOhFourState)
       .state('job_details', JobDetailsState)
       .state('job_artifact_list', JobArtifactListState)
       .state('job_phase_list', JobPhaseListState)
