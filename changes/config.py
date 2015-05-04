@@ -265,7 +265,7 @@ def create_app(_read_config=True, **config):
 
     from raven.contrib.celery import register_signal, register_logger_signal
     register_signal(sentry.client)
-    register_logger_signal(sentry.client)
+    register_logger_signal(sentry.client, loglevel=logging.INFO)
 
     # configure debug routes first
     if app.debug:
