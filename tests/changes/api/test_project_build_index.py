@@ -4,8 +4,10 @@ from urllib import quote
 from changes.constants import Result
 from changes.testutils import APITestCase
 
+# flake8: noqa
 
 class ProjectBuildListTest(APITestCase):
+
     def test_simple(self):
 
         fake_project_id = uuid4()
@@ -75,6 +77,52 @@ class ProjectBuildListTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 0
 
+    def test_more_searches(self):
+        project1 = self.create_project()
+
+        # all hashes are 8 characters, followed by abcd
+        build1 = self.create_build(project1, label='First commit!',
+                                   target='deadbeefabcd')
+        build2 = self.create_build(project1, label='Second commit!',
+                                   target='dabbad00abcd')
+        build3 = self.create_build(project1, label='rThird commit!',
+                                   target='facefeedabcd')
+
+        path = '/api/0/projects/{0}/builds/'.format(project1.id.hex)
+
+        queries_to_results = [
+            # search by label
+            ("First",           [build1]),
+            ("rThird",          [build3]),
+            ("Fifth",           []),
+            ("commit",          [build1, build2, build3]),
+
+            # search by hex, the first few hex characters, and a longer hex
+            # phrase
+            ("deadbeefabcd",    [build1]),
+            ("dabba",           [build2]),
+            ("facefeedabcdef",  [build3]),
+
+            # only prefix matches
+            ("abcd",            []),
+
+            # phabricator test
+            ("rREPOdeadbeefabcd",    [build1]),
+            ("rMEPOdabbad00",        [build2]),
+            ("rZEPOfacefeedabcdef",  [build3]),
+        ]
+
+        errmsg = "test_more_searches failed with search term %s"
+
+        for term, expected_builds in queries_to_results:
+            resp = self.client.get(path + '?query=' + term)
+            assert resp.status_code == 200, errmsg % term
+            data = self.unserialize(resp)
+            assert len(data) == len(expected_builds), errmsg.format(term)
+            assert (set([d['id'] for d in data]) ==
+                    set([b.id.hex for b in expected_builds]),
+                    errmsg % term)
+
     def test_include_patches(self):
         project = self.create_project()
         patch = self.create_patch(repository=project.repository)
@@ -83,7 +131,8 @@ class ProjectBuildListTest(APITestCase):
         self.create_build(project, source=source)
 
         # ensure include_patches correctly references Source.patch
-        path = '/api/0/projects/{0}/builds/?include_patches=0'.format(project.id.hex)
+        path = '/api/0/projects/{0}/builds/?include_patches=0'.format(
+            project.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
@@ -91,7 +140,8 @@ class ProjectBuildListTest(APITestCase):
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
 
-        path = '/api/0/projects/{0}/builds/?include_patches=1'.format(project.id.hex)
+        path = '/api/0/projects/{0}/builds/?include_patches=1'.format(
+            project.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
@@ -105,7 +155,8 @@ class ProjectBuildListTest(APITestCase):
         build = self.create_build(project)
         patch_build = self.create_build(project, source=source)
 
-        path = '/api/0/projects/{0}/builds/?patches_only=1'.format(project.id.hex)
+        path = '/api/0/projects/{0}/builds/?patches_only=1'.format(
+            project.id.hex)
 
         resp = self.client.get(path)
         assert resp.status_code == 200
@@ -129,7 +180,8 @@ class ProjectBuildListTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-        resp = self.client.get(path + '?author=' + quote(self.default_user.email))
+        resp = self.client.get(
+            path + '?author=' + quote(self.default_user.email))
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 1

@@ -9,6 +9,9 @@ from changes.api.base import APIView
 from changes.constants import Result
 from changes.models import Author, Project, Source, Build
 
+from changes.utils.phabricator_utils import (might_be_diffusion_iden,
+                                             get_hash_from_diffusion_iden)
+
 
 def validate_author(author_id):
     current_user = get_current_user()
@@ -48,11 +51,28 @@ class ProjectBuildIndexAPIView(APIView):
         if args.source:
             filters.append(Build.target.startswith(args.source))
 
+        # is this from the search bar
         if args.query:
-            filters.append(or_(
-                Build.label.contains(args.query),
-                Build.target.startswith(args.query),
-            ))
+            clauses = []
+            # search by revision title
+            clauses.append(Build.label.contains(args.query))
+            # search by prefix
+            clauses.append(Build.target.startswith(args.query))
+            # allows users to paste a full commit hash and still
+            # find the relevant build(s). Should be fine for mercurial/git,
+            # and svn will never have long enough strings
+            if len(args.query) > 12:
+                clauses.append(Build.target.startswith(args.query[0:12]))
+            # if they searched for something that looks like a phabricator
+            # identifier, try to find it
+            if might_be_diffusion_iden(args.query):
+                possible_hash = get_hash_from_diffusion_iden(args.query)
+                if possible_hash:
+                    # the query should always be at least as long or longer than
+                    # our commit identifiers
+                    clauses.append(
+                        Build.target.startswith(possible_hash[0:12]))
+            filters.append(or_(*clauses))
 
         if args.result:
             filters.append(Build.result == Result[args.result])
