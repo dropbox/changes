@@ -133,7 +133,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
         if not step.data.get('build_no'):
             builder = self.get_builder()
             params = builder.get_job_parameters(
-                step.job, script=step.data['cmd'], changes_bid=step.id.hex)
+                step.job, changes_bid=step.id.hex, script=step.data['cmd'])
 
             success = False
             exn = None

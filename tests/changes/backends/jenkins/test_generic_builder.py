@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from uuid import uuid4
+
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from .test_builder import BaseTestCase
 
@@ -20,9 +22,10 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         job = self.create_job(build)
 
         builder = self.get_builder()
+        changes_bid = '5a9d18bb87ff12835dc844883c5c3ebe'  # arbitrary
 
-        result = builder.get_job_parameters(job, path='foo')
-        assert {'name': 'CHANGES_BID', 'value': job.id.hex} in result
+        result = builder.get_job_parameters(job, changes_bid, path='foo')
+        assert {'name': 'CHANGES_BID', 'value': changes_bid} in result
         assert {'name': 'CHANGES_PID', 'value': job.project.slug} in result
         assert {'name': 'REPO_URL', 'value': job.project.repository.url} in result
         assert {'name': 'REPO_VCS', 'value': job.project.repository.backend.name} in result
@@ -33,7 +36,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert len(result) == 10
 
         # test optional values
-        result = builder.get_job_parameters(job)
+        result = builder.get_job_parameters(job, uuid4().hex)
         assert {'name': 'WORK_PATH', 'value': ''} in result
         assert {'name': 'C_WORKSPACE', 'value': ''} in result
         assert {'name': 'RESET_SCRIPT', 'value': ''} in result
@@ -45,7 +48,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         builder = self.get_builder(reset_script='reset_me.sh')
 
-        result = builder.get_job_parameters(job, path='foo')
+        result = builder.get_job_parameters(job, uuid4().hex, path='foo')
         assert {'name': 'RESET_SCRIPT', 'value': 'reset_me.sh'} in result
 
     def test_get_job_parameters_diff(self):
@@ -57,5 +60,5 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         builder = self.get_builder()
 
-        result = builder.get_job_parameters(job, path='foo')
+        result = builder.get_job_parameters(job, uuid4().hex, path='foo')
         assert {'name': 'CLUSTER', 'value': self.builder_options['diff_cluster']} in result

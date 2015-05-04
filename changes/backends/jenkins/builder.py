@@ -867,10 +867,8 @@ class JenkinsBuilder(BaseBackend):
         except Exception:
             self.logger.exception('Unable to cancel build upstream')
 
-    def get_job_parameters(self, job, changes_bid=None):
-        if changes_bid is None:
-            changes_bid = job.id.hex
-
+    def get_job_parameters(self, job, changes_bid):
+        # TODO(kylec): Take a Source rather than a Job; we don't need a Job.
         params = [
             {'name': 'CHANGES_BID', 'value': changes_bid},
         ]
@@ -945,7 +943,7 @@ class JenkinsBuilder(BaseBackend):
         - Polling for the newly created job to associate either a queue ID
           or a finalized build number.
         """
-        params = self.get_job_parameters(job)
+        params = self.get_job_parameters(job, changes_bid=job.id.hex)
         is_diff = not job.source.is_commit()
         job_data = self.create_job_from_params(
             changes_bid=job.id.hex,

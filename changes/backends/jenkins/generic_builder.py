@@ -21,7 +21,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
 
         super(JenkinsGenericBuilder, self).__init__(master_urls, *args, **kwargs)
 
-    def get_job_parameters(self, job, script=None, changes_bid=None, path=None):
+    def get_job_parameters(self, job, changes_bid, script=None, path=None):
         params = super(JenkinsGenericBuilder, self).get_job_parameters(
             job, changes_bid=changes_bid)
 

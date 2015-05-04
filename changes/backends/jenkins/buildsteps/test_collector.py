@@ -85,7 +85,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         """This returns passed/unknown based on whether the correct number of
         shards were run."""
         step_expanded_flags = [step.data.get('expanded', False) for step in phase_steps]
-        assert all(step_expanded_flags) or not any(step_expanded_flags), "Mixed expanded and non-expanded steps in phase!"
+        assert all(step_expanded_flags) or not any(step_expanded_flags), \
+            "Mixed expanded and non-expanded steps in phase!"
         expanded = step_expanded_flags[0]
         if not expanded:
             # This was the initial phase, not the expanded phase. No need to
@@ -95,7 +96,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         if len(phase_steps) != self.num_shards:
             # TODO(josiah): we'd like to be able to record a FailureReason
             # here, but currently a FailureReason must correspond to a JobStep.
-            logging.error("Build failed due to incorrect number of shards: expected %d, got %d", self.num_shards, len(phase_steps))
+            logging.error("Build failed due to incorrect number of shards: expected %d, got %d",
+                          self.num_shards, len(phase_steps))
             return Result.unknown
         return Result.passed
 
@@ -259,10 +261,10 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             builder = self.get_builder()
             params = builder.get_job_parameters(
                 step.job,
+                changes_bid=step.id.hex,
                 script=step.data['cmd'].format(
                     test_names=test_names,
                 ),
-                changes_bid=step.id.hex,
                 path=step.data['path'],
             )
 
