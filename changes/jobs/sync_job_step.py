@@ -28,6 +28,10 @@ def abort_step(task):
 
 
 def is_missing_tests(step, jobplan):
+    return _expects_tests(jobplan) and _is_in_last_phase(step) and not _has_tests(step)
+
+
+def _expects_tests(jobplan):
     if 'snapshot' in jobplan.data:
         options = jobplan.data['snapshot']['options']
     else:
@@ -38,15 +42,10 @@ def is_missing_tests(step, jobplan):
             ItemOption.name == 'build.expect-tests',
         ))
 
-    if options.get('build.expect-tests') != '1':
-        return False
+    return options.get('build.expect-tests') == '1'
 
-    # if the phase hasn't started (at least according to metadata)
-    # we can't accurately make comparisons
-    if not step.phase.date_started:
-        return False
 
-    # if this is not the final phase then ignore it
+def _is_in_last_phase(step):
     # TODO(dcramer): there is probably a better way we can be explicit about
     # this?
     jobphase_query = JobPhase.query.filter(
@@ -57,14 +56,16 @@ def is_missing_tests(step, jobplan):
             JobPhase.date_started == None,  # NOQA
         )
     )
-    if db.session.query(jobphase_query.exists()).scalar():
-        return False
 
+    return not db.session.query(jobphase_query.exists()).scalar()
+
+
+def _has_tests(step):
     has_tests = db.session.query(TestCase.query.filter(
         TestCase.step_id == step.id,
     ).exists()).scalar()
 
-    return not has_tests
+    return has_tests
 
 
 def has_test_failures(step):
@@ -214,6 +215,19 @@ def sync_job_step(step_id):
         record_coverage_stats(step)
     except Exception:
         current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
+
+    # We need the start time of this step's phase to determine if we're part of
+    # the last phase. So, if date_started is empty, wait for sync_phase to catch
+    # up and try again.
+    if _expects_tests(jobplan) and not step.phase.date_started:
+        current_app.logger.warning(
+                "Phase[%s].date_started is missing. Retrying Step", step.phase.id)
+
+        # Reset result to unknown to reduce window where test might be incorrectly green.
+        # Set status to in_progress so that the next sync_job_step will fetch status from Jenkins again.
+        step.result = Result.unknown
+        step.status = Status.in_progress
+        raise sync_job_step.NotFinished(retry_after=QUEUED_RETRY_DELAY)
 
     missing_tests = is_missing_tests(step, jobplan)
 
