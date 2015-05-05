@@ -175,7 +175,7 @@ def create_app(_read_config=True, **config):
         },
         'check-repos': {
             'task': 'check_repos',
-            'schedule': timedelta(minutes=5),
+            'schedule': timedelta(minutes=2),
         },
     }
     app.config['CELERY_TIMEZONE'] = 'UTC'
