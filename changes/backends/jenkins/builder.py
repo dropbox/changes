@@ -257,15 +257,8 @@ class JenkinsBuilder(BaseBackend):
             'date_created': job.date_started,
         })
 
-        url = '{base}/job/{job}/{build}/artifact/{artifact}'.format(
-            base=jobstep.data['master'],
-            job=jobstep.data['job_name'],
-            build=jobstep.data['build_no'],
-            artifact=artifact.data['relativePath'],
-        )
-
         offset = 0
-        with closing(self._streaming_get(url)) as resp:
+        with closing(self.fetch_artifact(jobstep, artifact.data)) as resp:
             iterator = resp.iter_content()
             for chunk in chunked(iterator, LOG_CHUNK_SIZE):
                 chunk_size = len(chunk)
