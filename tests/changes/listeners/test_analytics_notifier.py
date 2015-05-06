@@ -159,3 +159,10 @@ class AnalyticsNotifierTest(TestCase):
         Differential Revision: https://tails.corp.dropbox.com/D6789"""
         build = self.create_build(project, result=Result.failed, source=source, message=msg)
         self.assertEquals(_get_phabricator_revision_url(build), None)
+
+    def test_get_phab_revision_url_no_message(self):
+        project = self.create_project(name='test', slug='test')
+        source_data = {}
+        source = self.create_source(project, data=source_data)
+        build = self.create_build(project, result=Result.failed, source=source, message=None)
+        self.assertEquals(_get_phabricator_revision_url(build), None)

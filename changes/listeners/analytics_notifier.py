@@ -42,10 +42,11 @@ def _get_phabricator_revision_url(build):
     rev_url = source_data.get('phabricator.revisionURL')
     if rev_url:
         return rev_url
-    matches = _REV_URL_RE.findall(build.message)
-    # only return if there's a clear choice.
-    if matches and len(matches) == 1:
-        return matches[0]
+    if build.message:
+        matches = _REV_URL_RE.findall(build.message)
+        # only return if there's a clear choice.
+        if matches and len(matches) == 1:
+            return matches[0]
     return None
 
 
