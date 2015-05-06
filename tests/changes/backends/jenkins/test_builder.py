@@ -9,7 +9,7 @@ import time
 
 from datetime import datetime
 from flask import current_app
-from uuid import UUID
+from uuid import uuid5, UUID
 
 from changes.config import db
 from changes.constants import Status, Result
@@ -50,30 +50,47 @@ class BaseTestCase(BackendTestCase):
             return fp.read()
 
 
+def uuid5_from(s):
+    """
+    Get a new UUID from an existing hex-encoded Job UUID.
+
+    Args:
+        s (str): Hex-encoded UUID of a Job.
+    Returns:
+        str: Hex-encoded UUID derived from the original.
+    """
+    from changes.backends.jenkins.builder import JOB_NAMESPACE_UUID
+    return uuid5(JOB_NAMESPACE_UUID, s).hex
+
+
 # TODO(dcramer): these tests need to ensure we're passing the right parameters
 # to jenkins
 class CreateBuildTest(BaseTestCase):
     @responses.activate
     def test_queued_creation(self):
+        job_id = '81d1596fd4d642f4a6bdf86c45e014e8'
+        jobstep_id = uuid5_from(job_id)
         responses.add(
             responses.POST, 'http://jenkins.example.com/job/server/build',
             body='',
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid&wrapper=x',
+            responses.GET,
+            'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
             body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
             match_querystring=True)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?depth=1&xpath=/queue/item[action/parameter/name=%22CHANGES_BID%22%20and%20action/parameter/value=%2281d1596fd4d642f4a6bdf86c45e014e8%22]/id',
+            responses.GET,
+            'http://jenkins.example.com/job/server/api/xml/?depth=1&xpath=/queue/item[action/parameter/name=%22CHANGES_BID%22%20and%20action/parameter/value=%22{}%22]/id'.format(jobstep_id),
             status=404,
             match_querystring=True)
 
         build = self.create_build(self.project)
         job = self.create_job(
             build=build,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+            id=UUID(job_id))
 
         builder = self.get_builder()
         builder.create_job(job)
@@ -91,25 +108,29 @@ class CreateBuildTest(BaseTestCase):
 
     @responses.activate
     def test_active_creation(self):
+        job_id = 'f9481a17aac446718d7893b6e1c6288b'
+        jobstep_id = uuid5_from(job_id)
         responses.add(
             responses.POST, 'http://jenkins.example.com/job/server/build',
             body='',
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid&wrapper=x',
+            responses.GET,
+            'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
             status=404,
             match_querystring=True)
 
         responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fnumber&depth=1&wrapper=x',
+            responses.GET,
+            'http://jenkins.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fnumber&depth=1&wrapper=x'.format(jobstep_id),
             body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
             match_querystring=True)
 
         build = self.create_build(self.project)
         job = self.create_job(
             build=build,
-            id=UUID('f9481a17aac446718d7893b6e1c6288b'),
+            id=UUID(hex=job_id),
         )
 
         builder = self.get_builder()
@@ -161,6 +182,8 @@ class CreateBuildTest(BaseTestCase):
 
     @responses.activate
     def test_multi_master(self):
+        job_id = 'f9481a17aac446718d7893b6e1c6288b'
+        jobstep_id = uuid5_from(job_id)
         responses.add(
             responses.GET, 'http://jenkins-2.example.com/queue/api/json/',
             body=self.load_fixture('fixtures/GET/queue_list_other_jobs.json'),
@@ -177,19 +200,21 @@ class CreateBuildTest(BaseTestCase):
             status=201)
 
         responses.add(
-            responses.GET, 'http://jenkins-2.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fid&wrapper=x',
+            responses.GET,
+            'http://jenkins-2.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
             status=404,
             match_querystring=True)
 
         responses.add(
-            responses.GET, 'http://jenkins-2.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22f9481a17aac446718d7893b6e1c6288b%22%5D%2Fnumber&depth=1&wrapper=x',
+            responses.GET,
+            'http://jenkins-2.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fnumber&depth=1&wrapper=x'.format(jobstep_id),
             body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
             match_querystring=True)
 
         build = self.create_build(self.project)
         job = self.create_job(
             build=build,
-            id=UUID('f9481a17aac446718d7893b6e1c6288b'),
+            id=UUID(hex=job_id),
         )
 
         builder = self.get_builder()
@@ -894,6 +919,8 @@ class JenkinsIntegrationTest(BaseTestCase):
     @responses.activate
     def test_full(self):
         from changes.jobs.create_job import create_job
+        job_id = '81d1596fd4d642f4a6bdf86c45e014e8'
+        jobstep_id = uuid5_from(job_id)
 
         # TODO: move this out of this file and integrate w/ buildstep
         responses.add(
@@ -901,7 +928,8 @@ class JenkinsIntegrationTest(BaseTestCase):
             body='',
             status=201)
         responses.add(
-            responses.GET, 'http://jenkins.example.com/queue/api/xml/?wrapper=x&xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%2281d1596fd4d642f4a6bdf86c45e014e8%22%5D%2Fid',
+            responses.GET,
+            'http://jenkins.example.com/queue/api/xml/?wrapper=x&xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid'.format(jobstep_id),
             body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
             match_querystring=True)
         responses.add(
@@ -922,7 +950,7 @@ class JenkinsIntegrationTest(BaseTestCase):
         build = self.create_build(self.project)
         job = self.create_job(
             build=build,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'))
+            id=UUID(job_id))
 
         plan = self.create_plan(self.project)
         self.create_step(

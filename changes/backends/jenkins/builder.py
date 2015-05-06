@@ -7,6 +7,7 @@ import re
 import requests
 import sys
 import time
+import uuid
 
 from cStringIO import StringIO
 from contextlib import closing
@@ -48,6 +49,10 @@ COVERAGE_FILENAMES = ('coverage.xml',)
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
 
 LOG_SYNC_TIMEOUT_SECS = 30
+
+# Namespace UUID for version 3 or 5 UUIDs generated from Job IDs.
+# Value generated randomly.
+JOB_NAMESPACE_UUID = uuid.UUID('35cd8c37-9f2b-4b0e-846b-0e88a4c930ac')
 
 
 class NotFound(Exception):
@@ -150,7 +155,18 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _create_job_step(self, phase, data, **defaults):
+    def _create_job_step(self, id, phase, data, **defaults):
+        """
+        Gets or creates the primary JobStep for a Jenkins Job.
+
+        Args:
+            id (uuid.UUID): ID to use for the JobStep.
+            phase (JobPhase): JobPhase the JobStep should be part of.
+            data (dict): JSON-serializable data associated with the Jenkins build. Must
+              contain 'master', 'job_name', and either 'build_no' or 'item_id'.
+        Returns:
+            JobStep: The JobStep that was retrieved or created.
+        """
         # TODO(dcramer): we make an assumption that the job step label is unique
         # but its not guaranteed to be the case. We can ignore this assumption
         # by guaranteeing that the JobStep.id value is used for builds instead
@@ -159,6 +175,7 @@ class JenkinsBuilder(BaseBackend):
         assert 'job_name' in data
         assert 'build_no' in data or 'item_id' in data
 
+        # TODO(kylec): Get rid of the kwargs.
         if not defaults.get('label'):
             label = '{0} #{1}'.format(data['job_name'], data['build_no'] or data['item_id'])
 
@@ -166,7 +183,8 @@ class JenkinsBuilder(BaseBackend):
 
         defaults['data'] = data
 
-        step, created = get_or_create(JobStep, where={
+        step, _ = get_or_create(JobStep, where={
+            'id': id,
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
@@ -935,10 +953,19 @@ class JenkinsBuilder(BaseBackend):
         - Polling for the newly created job to associate either a queue ID
           or a finalized build number.
         """
-        params = self.get_job_parameters(job, changes_bid=job.id.hex)
+        # We want to use the JobStep ID for the CHANGES_BID so that JobSteps can be easily
+        # associated with Jenkins builds, but the JobStep probably doesn't exist yet and
+        # requires information about the Jenkins build to be created.
+        # So, we generate the JobStep ID before we create the build on Jenkins, and we deterministically derive
+        # it from the Job ID to be sure that we don't create new builds/JobSteps when this
+        # method is retried.
+        # TODO(kylec): The process described above seems too complicated. Try to fix that so we
+        # can delete the comment.
+        jobstep_id = uuid.uuid5(JOB_NAMESPACE_UUID, job.id.hex)
+        params = self.get_job_parameters(job, changes_bid=jobstep_id.hex)
         is_diff = not job.source.is_commit()
         job_data = self.create_job_from_params(
-            changes_bid=job.id.hex,
+            changes_bid=jobstep_id.hex,
             params=params,
             is_diff=is_diff
         )
@@ -963,6 +990,7 @@ class JenkinsBuilder(BaseBackend):
         # TODO(dcramer): due to no unique constraints this section of code
         # presents a race condition when run concurrently
         step = self._create_job_step(
+            id=jobstep_id,
             phase=phase,
             status=job.status,
             data=job_data,
