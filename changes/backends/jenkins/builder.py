@@ -56,7 +56,6 @@ class NotFound(Exception):
 
 
 class JenkinsBuilder(BaseBackend):
-    provider = 'jenkins'
 
     def __init__(self, master_urls=None, diff_urls=None, job_name=None, token=None,
                  auth=None, sync_phase_artifacts=True, *args, **kwargs):

@@ -25,7 +25,6 @@ from changes.testutils import (
 
 
 class BaseTestCase(BackendTestCase):
-    provider = 'jenkins'
     builder_cls = JenkinsBuilder
     builder_options = {
         'master_urls': ['http://jenkins.example.com'],

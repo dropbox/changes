@@ -65,7 +65,6 @@ class TestCase(Exam, unittest.TestCase, Fixtures, AuthMixin):
 class BackendTestCase(TestCase):
     backend_cls = None
     backend_options = {}
-    provider = None
 
     def get_backend(self):
         return self.backend_cls(
