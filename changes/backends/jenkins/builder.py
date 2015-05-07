@@ -452,7 +452,7 @@ class JenkinsBuilder(BaseBackend):
         for a limited amount of time, trying to match up either a queued item
         or a running job that has the CHANGES_BID parameter.
 
-        This is nescesary because Jenkins does not give us any identifying
+        This is necessary because Jenkins does not give us any identifying
         information when we create a job initially.
 
         The changes_bid parameter should be the corresponding value to look for in
@@ -466,15 +466,35 @@ class JenkinsBuilder(BaseBackend):
         """
         # Check the queue first to ensure that we don't miss a transition
         # from queue -> active jobs
-        item = self._find_job_in_queue(master_base_url, job_name, changes_bid)
-        if item:
-            return item
-        return self._find_job_in_active(master_base_url, job_name, changes_bid)
+        item_id = self._find_queue_item_id(master_base_url, changes_bid)
+        build_no = None
+        if item_id:
+            # Saw it in the queue, so we don't know the build number yet.
+            build_no = None
+        else:
+            # Didn't see it in the queue, look for the build number on the assumption that it has begun.
+            build_no = self._find_build_no(master_base_url, job_name, changes_bid)
 
-    def _find_job_in_queue(self, master_base_url, job_name, changes_bid):
-        xpath = QUEUE_ID_XPATH.format(
-            job_id=changes_bid,
-        )
+        if build_no or item_id:
+            # If we found either, we know the Jenkins build exists and we can probably find it again.
+            return {
+                'job_name': job_name,
+                'queued': bool(item_id),
+                'item_id': item_id,
+                'build_no': build_no,
+                'uri': None,
+            }
+        return None
+
+    def _find_queue_item_id(self, master_base_url, changes_bid):
+        """Looks in a Jenkins master's queue for an item, and returns the ID if found.
+        Args:
+            master_base_url (str): Jenkins master URL, in scheme://host form.
+            changes_bid (str): The identifier for this Jenkins build, typically the JobStep ID.
+        Returns:
+            str: Queue item id if found, otherwise None.
+        """
+        xpath = QUEUE_ID_XPATH.format(job_id=changes_bid)
         try:
             response = self._get_text_response(
                 master_base_url=master_base_url,
@@ -485,29 +505,28 @@ class JenkinsBuilder(BaseBackend):
                 },
             )
         except NotFound:
-            return
+            return None
 
         # it's possible that we managed to create multiple jobs in certain
         # situations, so let's just get the newest one
         try:
             match = etree.fromstring(response).iter('id').next()
         except StopIteration:
-            return
-        item_id = match.text
+            return None
+        return match.text
 
-        # TODO: it's possible this isnt queued when this gets run
-        return {
-            'job_name': job_name,
-            'queued': True,
-            'item_id': item_id,
-            'build_no': None,
-            'uri': None,
-        }
+    def _find_build_no(self, master_base_url, job_name, changes_bid):
+        """Looks in a Jenkins master's list of current/recent builds for one with the given CHANGES_BID,
+        and returns the build number if found.
 
-    def _find_job_in_active(self, master_base_url, job_name, changes_bid):
-        xpath = BUILD_ID_XPATH.format(
-            job_id=changes_bid,
-        )
+        Args:
+            master_base_url (str): Jenkins master URL, in scheme://host form.
+            job_name (str): Name of the Jenkins project/job to look for the build in; ex: 'generic_build'.
+            changes_bid (str): The identifier for this Jenkins build, typically the JobStep ID.
+        Returns:
+            str: build number of the build if found, otherwise None.
+        """
+        xpath = BUILD_ID_XPATH.format(job_id=changes_bid)
         try:
             response = self._get_text_response(
                 master_base_url=master_base_url,
@@ -519,23 +538,15 @@ class JenkinsBuilder(BaseBackend):
                 },
             )
         except NotFound:
-            return
+            return None
 
         # it's possible that we managed to create multiple jobs in certain
         # situations, so let's just get the newest one
         try:
             match = etree.fromstring(response).iter('number').next()
         except StopIteration:
-            return
-        build_no = match.text
-
-        return {
-            'job_name': job_name,
-            'queued': False,
-            'item_id': None,
-            'build_no': build_no,
-            'uri': None,
-        }
+            return None
+        return match.text
 
     def _get_node(self, master_base_url, label):
         node, created = get_or_create(Node, {'label': label})
