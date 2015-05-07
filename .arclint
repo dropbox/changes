@@ -14,8 +14,8 @@
     "python": {
       "type": "flake8",
       "include": [
-        "(tests/*)",
-        "(changes/*)"
+        "(^tests/.*\\.py$)",
+        "(^changes/.*\\.py$)"
       ]
     }
   }
