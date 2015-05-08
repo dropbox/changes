@@ -223,38 +223,20 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         assert len(groups) == self.num_shards
 
-        # Create all of the job steps and commit them together.
-        steps = [self._create_jobstep(phase, phase_config, weight, test_list)
-                 for weight, test_list in groups]
-        db.session.commit()
+        for weight, test_list in groups:
+            self._expand_job(phase, {
+                'tests': test_list,
+                'cmd': phase_config['cmd'],
+                'path': phase_config.get('path', ''),
+                'weight': weight,
+            })
 
-        # Now that that database transaction is done, we'll do the slow work of
-        # creating jenkins builds.
-        for step in steps:
-            self._create_jenkins_build(phase, step)
-            sync_job_step.delay_if_needed(
-                step_id=step.id.hex,
-                task_id=step.id.hex,
-                parent_task_id=phase.job.id.hex,
-            )
+    def _expand_job(self, phase, job_config):
+        assert job_config['tests']
 
-    def _create_jobstep(self, phase, phase_config, weight, test_list):
-        """
-        Create a JobStep in the database for a single shard.
-
-        This creates the JobStep, but does not commit the transaction.
-
-        Args:
-            phase (JobPhase): The phase this step will be part of.
-            phase_config (dict): Configuration data gathered the collection step.
-            weight (int): The weight of this shard.
-            test_list (list): The list of tests names for this shard.
-
-        Returns:
-            JobStep: the (possibly-newly-created) JobStep.
-        """
-        test_names = ' '.join(test_list)
+        test_names = ' '.join(job_config['tests'])
         label = md5(test_names).hexdigest()
+
         step, created = get_or_create(JobStep, where={
             'job': phase.job,
             'project': phase.project,
@@ -262,53 +244,44 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             'label': label,
         }, defaults={
             'data': {
-                'cmd': phase_config['cmd'],
-                'path': phase_config.get('path', ''),
-                'tests': test_list,
+                'cmd': job_config['cmd'],
+                'path': job_config['path'],
+                'tests': job_config['tests'],
                 'expanded': True,
                 'job_name': self.job_name,
                 'build_no': None,
-                'weight': weight
+                'weight': job_config['weight']
             },
             'status': Status.queued,
         })
-        db.session.add(step)
-        return step
 
-    def _create_jenkins_build(self, phase, step):
-        """
-        Create a jenkins build for the given phase and jobstep.
-
-        If the given step already has a jenkins build associated with it, this
-        will not perform any work. If not, this creates the build, updates the
-        step to refer to the new build, and commits the change to the database.
-
-        Args:
-            phase (JobPhase): The phase being expanded.
-            step (JobStep): The shard we'd like to launch a jenkins build for.
-        """
         # TODO(dcramer): due to no unique constraints this section of code
         # presents a race condition when run concurrently
-        if step.data.get('build_no'):
-            return
+        if not step.data.get('build_no'):
+            builder = self.get_builder()
+            params = builder.get_job_parameters(
+                step.job,
+                changes_bid=step.id.hex,
+                script=step.data['cmd'].format(
+                    test_names=test_names,
+                ),
+                path=step.data['path'],
+            )
 
-        builder = self.get_builder()
-        params = builder.get_job_parameters(
-            step.job,
-            changes_bid=step.id.hex,
-            script=step.data['cmd'].format(
-                test_names=step.data['tests'],
-            ),
-            path=step.data['path'],
-        )
+            is_diff = not step.job.source.is_commit()
+            job_data = builder.create_job_from_params(
+                changes_bid=step.id.hex,
+                params=params,
+                job_name=step.data['job_name'],
+                is_diff=is_diff
+            )
+            step.data.update(job_data)
+            db.session.add(step)
 
-        is_diff = not step.job.source.is_commit()
-        job_data = builder.create_job_from_params(
-            changes_bid=step.id.hex,
-            params=params,
-            job_name=step.data['job_name'],
-            is_diff=is_diff
-        )
-        step.data.update(job_data)
-        db.session.add(step)
         db.session.commit()
+
+        sync_job_step.delay_if_needed(
+            step_id=step.id.hex,
+            task_id=step.id.hex,
+            parent_task_id=phase.job.id.hex,
+        )
