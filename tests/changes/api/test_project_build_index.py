@@ -6,6 +6,7 @@ from changes.testutils import APITestCase
 
 # flake8: noqa
 
+
 class ProjectBuildListTest(APITestCase):
 
     def test_simple(self):
@@ -119,9 +120,8 @@ class ProjectBuildListTest(APITestCase):
             assert resp.status_code == 200, errmsg % term
             data = self.unserialize(resp)
             assert len(data) == len(expected_builds), errmsg.format(term)
-            assert (set([d['id'] for d in data]) ==
-                    set([b.id.hex for b in expected_builds]),
-                    errmsg % term)
+            assert set([d['id'] for d in data]) == \
+                set([b.id.hex for b in expected_builds]), errmsg % term
 
     def test_include_patches(self):
         project = self.create_project()
@@ -152,7 +152,7 @@ class ProjectBuildListTest(APITestCase):
         project = self.create_project()
         patch = self.create_patch(repository=project.repository)
         source = self.create_source(project, patch=patch)
-        build = self.create_build(project)
+        self.create_build(project)
         patch_build = self.create_build(project, source=source)
 
         path = '/api/0/projects/{0}/builds/?patches_only=1'.format(
