@@ -1,4 +1,4 @@
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 import logging
 
@@ -111,10 +111,8 @@ class CommitTrigger(object):
                 try:
                     response = BuildIndexAPIView().post()
                 except Exception as e:
-                    print(e)
                     self.logger.exception('Failed to create build: %s' % (e,))
                 else:
-                    print(response)
                     if isinstance(response, (list, tuple)):
                         response, status = response
                         if status != 200:
