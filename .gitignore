@@ -7,6 +7,8 @@
 *.db
 *.egg-info
 *.pyc
+*.swp
+*.swo
 npm-debug.log
 /env
 /*.xml
