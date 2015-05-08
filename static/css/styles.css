@@ -591,13 +591,13 @@ a.indicator {
 }
 .result-passed .indicator {
   color: #fff;
-  background: rgb(114, 194, 114);
-  border-color: rgb(114, 194, 114);
+  background: #390;
+  border-color: #390;
 }
 .result-failed .indicator {
   color: #fff;
-  background: #d9322d;
-  border-color: #d9322d;
+  background: #f60;
+  border-color: #f60;
 }
 .result-infra_failed .indicator {
   color: #fff;
@@ -775,14 +775,14 @@ a.indicator {
 }
 .project-list-wide > li.result-passed > a {
   color: #fff;
-  background: rgb(114, 194, 114);
+  background: #390;
 }
 .project-list-wide > li.result-passed > a small {
   color: rgb(208, 255, 208);
 }
 .project-list-wide > li.result-failed > a {
   color: #fff;
-  background: #d9322d;
+  background: #f60;
 }
 .project-list-wide > li.result-failed > a small {
   color: #FFCAC8;
@@ -1010,11 +1010,11 @@ table.build-list {
 }
 
 .progress-bar-passed {
-  background: rgb(114, 194, 114);
+  background: #390;
 }
 
 .progress-bar-failed {
-  background: #d9322d;
+  background: #f60;
 }
 
 .well {
@@ -1084,13 +1084,13 @@ table.build-list {
 
 .phase-list > li.status-finished.result-passed > a {
   color: #fff;
-  background: rgb(114, 194, 114);
-  border-color: rgb(114, 194, 114);
+  background: #390;
+  border-color: #390;
 }
 .phase-list > li.result-failed > a {
-  background: #d9322d;
+  background: #f60;
   color: #fff;
-  border-color: #d9322d;
+  border-color: #f60;
 }
 
 .phase-list > li > a:before {
@@ -1149,14 +1149,14 @@ table.build-list {
   color: #6e5baa;
 }
 .nav-pills > li.result-failed > a {
-  color: #d9322d;
+  color: #f60;
 }
 .nav-pills > li.active.result-passed > a {
-  background: rgb(114, 194, 114);
+  background: #390;
   color: #fff;
 }
 .nav-pills > li.active.result-failed > a {
-  background: #d9322d;
+  background: #f60;
   color: #fff;
 }
 
@@ -1187,10 +1187,10 @@ table.build-list {
   border-color: #6e5baa;
 }
 .nav-links > li.result-failed > a {
-  color: #d9322d;
+  color: #f60;
 }
 .nav-links > li.result-failed > a:hover {
-  border-color: #d9322d;
+  border-color: #f60;
 }
 
 .nav-links-sm > li > a {
@@ -1244,7 +1244,7 @@ table.build-list {
   color: green;
 }
 .test-list > li.test-removed {
-  color: #d9322d;
+  color: #f60;
 }
 .test-list li a {
   color: inherit;
@@ -1257,7 +1257,7 @@ table.build-list {
   border: 0;
 }
 .test-results > tbody > tr.status-failed > td {
-  color: #d9322d;
+  color: #f60;
 }
 .test-results > tbody > tr.status-skipped > td {
   color: orange;
@@ -1478,10 +1478,10 @@ chart {
 }
 
 .barchart li.result-passed a .count {
-  background: rgb(114, 194, 114);
+  background: #390;
 }
 .barchart li.result-failed a .count {
-  background: #EB6D69;
+  background: #f60;
 }
 .barchart li.result-infra_failed a .count {
   background: #000;
@@ -1999,13 +1999,13 @@ label.btn input[type=checkbox] {
 .event-list .result-success .indicator,
 .indicated-list .result-success .indicator,
 .indicated-list .result-passed .indicator {
-  background: rgb(114, 194, 114);
+  background: #390;
 }
 .event-list .result-fail .indicator,
 .failure-list .indicator,
 .indicated-list .result-fail .indicator,
 .indicated-list .result-failed .indicator {
-  background: #d9322d;
+  background: #f60;
 }
 .event-list .event-label,
 .failure-list .failure-label,
