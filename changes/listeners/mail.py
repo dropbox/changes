@@ -142,6 +142,7 @@ class MailNotificationHandler(object):
                 Result.skipped,
                 Result.unknown,
                 Result.aborted,
+                Result.infra_failed,
                 Result.failed,
             )
 
