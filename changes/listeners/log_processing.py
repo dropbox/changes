@@ -80,7 +80,16 @@ def job_finished_handler(job_id, **kwargs):
         _incr("failing-log-processed")
         if not tags and applicable:
             _incr("failing-log-uncategorized")
-            logger.warning("Uncategorized log: {} ({})".format(ls.id.hex, _log_uri(ls)))
+            logger.warning("Uncategorized log", extra={
+                # Supplying the 'data' this way makes it available in log handlers
+                # like Sentry while keeping the warnings grouped together.
+                # See https://github.com/getsentry/raven-python/blob/master/docs/integrations/logging.rst#usage
+                # for Sentry's interpretation.
+                'data': {
+                    'logsource.id': ls.id.hex,
+                    'log.url': _log_uri(ls),
+                }
+            })
         else:
             for tag in tags:
                 _incr("failing-log-category-{}".format(tag))

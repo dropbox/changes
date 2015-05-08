@@ -64,7 +64,7 @@ class LogProcessingTest(TestCase):
         with mock.patch('changes.listeners.log_processing._incr') as incr:
             with mock.patch('changes.listeners.log_processing.logger.warning') as warn:
                 job_finished_handler(job_id=job.id.hex)
-                warn.assert_any_call(mock.ANY)
+                warn.assert_any_call(mock.ANY, extra=mock.ANY)
                 incr.assert_any_call("failing-log-uncategorized")
 
         categorize_fn.assert_called_with('project-slug', fake_rules, 'Some log text')
