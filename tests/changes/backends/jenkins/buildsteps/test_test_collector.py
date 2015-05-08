@@ -398,11 +398,23 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert new_steps[1].data['weight'] == 78
 
         builder.fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
+        builder.get_job_parameters.assert_any_call(
+            job,
+            changes_bid=new_steps[0].id.hex,
+            script='py.test --junit=junit.xml foo.bar.test_buz',
+            path='',
+        )
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
             changes_bid=new_steps[0].id.hex,
             is_diff=False,
             params=builder.get_job_parameters.return_value,
+        )
+        builder.get_job_parameters.assert_any_call(
+            job,
+            changes_bid=new_steps[1].id.hex,
+            script='py.test --junit=junit.xml foo/bar.py foo/baz.py foo.bar.test_biz',
+            path='',
         )
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
