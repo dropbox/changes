@@ -164,24 +164,24 @@ def sync_job_step(step_id):
             old_status = step.status
             implementation.cancel_step(step=step)
 
-            # Implementations default to marking canceled steps as aborted,
-            # but we're not canceling on good terms (it should be done by now)
-            # so we consider it a failure here.
-            #
-            # We check whether the step is marked as in_progress to make a best
-            # guess as to whether this is an infrastructure failure, or the
-            # repository under test is just taking too long. This won't be 100%
-            # reliable, but is probably good enough.
-            if step.status == Status.in_progress:
-                step.result = Result.failed
-            else:
-                step.result = Result.infra_failed
-            db.session.add(step)
-
             # Not all implementations can actually cancel, but it's dead to us as of now
             # so we mark it as finished.
             step.status = Status.finished
             step.date_finished = datetime.utcnow()
+
+            # Implementations default to marking canceled steps as aborted,
+            # but we're not canceling on good terms (it should be done by now)
+            # so we consider it a failure here.
+            #
+            # We check whether the step was marked as in_progress to make a best
+            # guess as to whether this is an infrastructure failure, or the
+            # repository under test is just taking too long. This won't be 100%
+            # reliable, but is probably good enough.
+            if old_status == Status.in_progress:
+                step.result = Result.failed
+            else:
+                step.result = Result.infra_failed
+            db.session.add(step)
 
             job = step.job
             try_create(FailureReason, {
