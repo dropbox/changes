@@ -109,6 +109,12 @@ def create_app(_read_config=True, **config):
     app.config['CELERYD_PREFETCH_MULTIPLIER'] = 1
     app.config['CELERYD_MAX_TASKS_PER_CHILD'] = 10000
 
+    # By default, Celery logs writes to stdout/stderr as WARNING, which
+    # is a bit harsh considering that some of the code is code we don't
+    # own calling 'print'. This flips the default back to INFO, which seems
+    # more appropriate. Can be overridden by the Changes config.
+    app.config['CELERY_REDIRECT_STDOUTS_LEVEL'] = 'INFO'
+
     app.config['CELERY_QUEUES'] = (
         Queue('job.sync', routing_key='job.sync'),
         Queue('job.create', routing_key='job.create'),
