@@ -34,7 +34,8 @@ class ImportRepoTest(TestCase):
             status=RepositoryStatus.importing,
         )
 
-        import_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
+        with mock.patch.object(import_repo, 'allow_absent_from_db', True):
+            import_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
 
         get_vcs_backend.assert_called_once_with()
         vcs_backend.log.assert_called_once_with(parent=None)

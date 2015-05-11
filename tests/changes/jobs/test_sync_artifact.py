@@ -28,7 +28,8 @@ class SyncArtifactTest(TestCase):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
-        sync_artifact(artifact_id=self.artifact.id.hex)
+        with mock.patch.object(sync_artifact, 'allow_absent_from_db', True):
+            sync_artifact(artifact_id=self.artifact.id.hex)
 
         implementation.fetch_artifact.assert_called_once_with(
             artifact=self.artifact,

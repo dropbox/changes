@@ -39,7 +39,8 @@ class CleanupTasksTest(TestCase):
             status=Status.finished,
         )
 
-        cleanup_tasks()
+        with patch.object(cleanup_tasks, 'allow_absent_from_db', True):
+            cleanup_tasks()
 
         mock_delay.assert_called_once_with(
             'cleanup_tasks',

@@ -71,6 +71,12 @@ class TrackedTask(local):
         self.max_retries = max_retries
         self.on_abort = on_abort
 
+        # Whether to continue running the task even if we don't find it in the DB.
+        # Intended for testing. Allowing this to be disabled makes it possible for
+        # tests that have no interaction with the Task infrastructure to ignore the
+        # TrackedTask wrapping.
+        self.allow_absent_from_db = False
+
         self.__name__ = func.__name__
         self.__doc__ = func.__doc__
         self.__wraps__ = getattr(func, '__wraps__', func)
@@ -94,9 +100,13 @@ class TrackedTask(local):
 
         date_started = datetime.utcnow()
 
-        self._update({
+        updated = self._update({
             Task.date_modified: datetime.utcnow(),
         })
+        if not updated and not self.allow_absent_from_db:
+            self.logger.error("Tried up update a Task that doesn't exist in the database; {}, {}".format(
+                self.task_name, kwargs))
+            return
 
         try:
             with self._report_slow(_SLOW_RUN_THRESHOLD, self.task_name):
@@ -160,14 +170,18 @@ class TrackedTask(local):
         Update's the state of this Task.
 
         >>> task._update(status=Status.finished)
+
+        Returns:
+           bool: Whether anything was updated.
         """
         assert self.task_id
 
-        Task.query.filter(
+        count = Task.query.filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,
             Task.parent_id == self.parent_id,
         ).update(kwargs, synchronize_session=False)
+        return bool(count)
 
     def _continue(self, kwargs, retry_after=CONTINUE_COUNTDOWN):
         kwargs['task_id'] = self.task_id

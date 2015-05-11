@@ -409,11 +409,12 @@ class SyncJobStepTest(BaseTestCase):
         )
         step = self.create_jobstep(phase)
 
-        sync_job_step(
-            step_id=step.id.hex,
-            task_id=step.id.hex,
-            parent_task_id=job.id.hex,
-        )
+        with mock.patch.object(sync_job_step, 'allow_absent_from_db', True):
+            sync_job_step(
+                step_id=step.id.hex,
+                task_id=step.id.hex,
+                parent_task_id=job.id.hex,
+            )
 
         db.session.expire(step)
 
@@ -454,11 +455,12 @@ class SyncJobStepTest(BaseTestCase):
 
         current_app.config['DEFAULT_JOB_TIMEOUT_MIN'] = 99
 
-        sync_job_step(
-            step_id=step.id.hex,
-            task_id=step.id.hex,
-            parent_task_id=job.id.hex
-        )
+        with mock.patch.object(sync_job_step, 'allow_absent_from_db', True):
+            sync_job_step(
+                step_id=step.id.hex,
+                task_id=step.id.hex,
+                parent_task_id=job.id.hex
+            )
 
         mock_has_timed_out.assert_called_once_with(step, jobplan, default_timeout=99)
 

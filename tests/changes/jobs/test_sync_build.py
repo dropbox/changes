@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 
-import mock
-
 from datetime import datetime
+from mock import patch
 
 from changes.constants import Status, Result
 from changes.config import db
@@ -12,7 +11,7 @@ from changes.testutils import TestCase
 
 
 class SyncBuildTest(TestCase):
-    @mock.patch('changes.config.queue.delay')
+    @patch('changes.config.queue.delay')
     def test_simple(self, queue_delay):
         project = self.create_project()
         build = self.create_build(
@@ -54,7 +53,8 @@ class SyncBuildTest(TestCase):
         db.session.add(ItemStat(item_id=job_b.id, name='tests_missing', value=0))
         db.session.commit()
 
-        sync_build(build_id=build.id.hex, task_id=build.id.hex)
+        with patch.object(sync_build, 'allow_absent_from_db', True):
+            sync_build(build_id=build.id.hex, task_id=build.id.hex)
 
         build = Build.query.get(build.id)
 
@@ -67,7 +67,8 @@ class SyncBuildTest(TestCase):
         db.session.add(job_b)
         db.session.commit()
 
-        sync_build(build_id=build.id.hex, task_id=build.id.hex)
+        with patch.object(sync_build, 'allow_absent_from_db', True):
+            sync_build(build_id=build.id.hex, task_id=build.id.hex)
 
         build = Build.query.get(build.id)
 

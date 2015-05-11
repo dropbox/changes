@@ -23,7 +23,8 @@ class SignalTestBase(TestCase):
 class FireSignalTest(SignalTestBase):
     @patch('changes.jobs.signals.run_event_listener')
     def test_simple(self, mock_run_event_listener):
-        fire_signal(signal='test.signal', kwargs={'foo': 'bar'})
+        with patch.object(fire_signal, 'allow_absent_from_db', True):
+            fire_signal(signal='test.signal', kwargs={'foo': 'bar'})
 
         mock_run_event_listener.delay.assert_called_once_with(
             listener='mock.Mock',
@@ -38,11 +39,12 @@ class RunEventListenerTest(SignalTestBase):
         mock_listener = Mock()
         mock_import_string.return_value = mock_listener
 
-        run_event_listener(
-            listener='mock.Mock',
-            signal='test.signal',
-            kwargs={'foo': 'bar'},
-        )
+        with patch.object(run_event_listener, 'allow_absent_from_db', True):
+            run_event_listener(
+                listener='mock.Mock',
+                signal='test.signal',
+                kwargs={'foo': 'bar'},
+            )
 
         mock_import_string.assert_called_once_with('mock.Mock')
 

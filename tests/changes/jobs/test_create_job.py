@@ -21,11 +21,12 @@ class CreateJobTest(TestCase):
         self.create_step(plan)
         self.create_job_plan(job, plan)
 
-        create_job(
-            job_id=job.id.hex,
-            task_id=job.id.hex,
-            parent_task_id=build.id.hex,
-        )
+        with mock.patch.object(create_job, 'allow_absent_from_db', True):
+            create_job(
+                job_id=job.id.hex,
+                task_id=job.id.hex,
+                parent_task_id=build.id.hex,
+            )
 
         get_implementation.assert_called_once_with()
 
