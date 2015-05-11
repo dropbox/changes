@@ -158,7 +158,7 @@ class SendTestCase(TestCase):
         )
 
         job_link = 'http://example.com/projects/%s/builds/%s/jobs/%s/' % (
-            project.id.hex, build.id.hex, job.id.hex,)
+            project.slug, build.id.hex, job.id.hex,)
         log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
 
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
@@ -213,7 +213,7 @@ class SendTestCase(TestCase):
         )
 
         job_link = 'http://example.com/projects/%s/builds/%s/jobs/%s/' % (
-            project.id.hex, build.id.hex, job.id.hex,)
+            project.slug, build.id.hex, job.id.hex,)
         log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
 
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
@@ -269,7 +269,7 @@ class SendTestCase(TestCase):
         )
 
         job_link = 'http://example.com/projects/%s/builds/%s/jobs/%s/' % (
-            project.id.hex, build.id.hex, job.id.hex,)
+            project.slug, build.id.hex, job.id.hex,)
         log_link1 = '%slogs/%s/' % (job_link, logsource.id.hex)
         log_link2 = '%slogs/%s/' % (job_link, logsource2.id.hex)
 

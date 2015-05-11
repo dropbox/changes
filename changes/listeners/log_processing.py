@@ -53,7 +53,7 @@ def _log_uri(logsource):
     build = job.build
     project = build.project
     return "/projects/{}/builds/{}/jobs/{}/logs/{}/".format(
-            project.id.hex, build.id.hex, job.id.hex, logsource.id.hex)
+            project.slug, build.id.hex, job.id.hex, logsource.id.hex)
 
 
 def _incr(name):

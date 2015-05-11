@@ -42,7 +42,7 @@ def filter_recipients(email_list, domain_whitelist=None):
 
 
 def get_project_uri(build):
-    return '/projects/{}/'.format(build.project.id.hex)
+    return '/projects/{}/'.format(build.project.slug)
 
 
 def get_source_uri(build, source):
