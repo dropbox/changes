@@ -6,13 +6,15 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.base import APIView
 from changes.constants import Status
-from changes.models import Project, TestCase, Job, Source
+from changes.models import Repository, Project, TestCase, Job, Source
 
 
 class ProjectTestHistoryAPIView(APIView):
     get_parser = reqparse.RequestParser()
     get_parser.add_argument('per_page', type=int, location='args',
                             default=100)
+    get_parser.add_argument('branch', type=str, location='args',
+                            default="master")
 
     def get(self, project_id, test_hash):
         project = Project.get(project_id)
@@ -29,7 +31,13 @@ class ProjectTestHistoryAPIView(APIView):
 
         args = self.get_parser.parse_args()
 
+        repo = Repository.query.get(project.repository_id)
+        vcs = repo.get_vcs()
         num_results = args.per_page
+
+        log = vcs.log(offset=0, limit=num_results * 10, branch=args.branch)
+
+        revs = [rev.id for rev in log]
 
         # restrict the join to the last N jobs otherwise this can get
         # significantly expensive as we have to seek quite a ways
@@ -52,10 +60,18 @@ class ProjectTestHistoryAPIView(APIView):
         ).filter(
             Source.repository_id == project.repository_id,
             Source.patch_id == None,  # NOQA
-            Source.revision_sha != None,  # NOQA
+            Source.revision_sha.in_(revs),
             TestCase.name_sha == test.name_sha,
-        ).order_by(job_sq.c.date_created.desc()))
-
+        ))
+        # I wish we could sort this in the query, but it appears that to
+        # do so we'd need to put the vcs.log in *another* table so we could
+        # join against =/
+        #
+        # http://stackoverflow.com/questions/23381644/how-to-order-data-in-sqlalchemy-by-list
+        recent_runs = sorted(
+            recent_runs,
+            key=lambda k: revs.index(k.job.build.source.revision_sha)
+        )
         jobs = set(r.job for r in recent_runs)
         builds = set(j.build for j in jobs)
 

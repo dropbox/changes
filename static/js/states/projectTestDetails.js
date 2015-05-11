@@ -10,7 +10,7 @@ define([
 
   return {
     parent: 'project_details',
-    url: 'tests/:test_id/',
+    url: 'tests/:test_id/?branch',
     templateUrl: 'partials/project-test-details.html',
     controller: function($scope, $state, $stateParams, flash, Collection, Paginator, projectData, testData) {
       var chart_options = {
@@ -41,8 +41,16 @@ define([
           limit: HISTORICAL_ITEMS
         };
 
+      $scope.branches = projectData.repository.branches.map(function(x){return x.name;});
+
+      if ($stateParams.branch) $scope.branch = $stateParams.branch;
+      else if ($scope.branches.indexOf("master") != -1) $scope.branch = "master";
+      else if ($scope.branches.indexOf("default") != -1) $scope.branch = "default";
+      else $scope.branch = $scope.branches[0];
+
       var historicalData = new Collection();
-      var endpoint = '/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/history/?per_page=' + HISTORICAL_ITEMS;
+      var endpoint = '/api/0/projects/' + projectData.id + '/tests/' + $stateParams.test_id + '/history/?per_page=' + HISTORICAL_ITEMS + "&branch=" + $scope.branch;
+        
       var paginator = new Paginator(endpoint, {
         collection: historicalData,
         onLoadSuccess: function(url, data) {
@@ -70,3 +78,4 @@ define([
     }
   };
 });
+

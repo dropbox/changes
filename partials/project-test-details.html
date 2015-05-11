@@ -40,6 +40,22 @@
                     <th class="column">Retries</th>
                 </tr>
             </thead>
+            <span class="branch-selector"> Branch
+                <span>
+                    <a class="dropdown-toggle" data-toggle="action-dropdown">
+                        {{branch}} <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li>
+                            <a ng-repeat="branch in branches" href="#"
+                               ui-sref="project_test_details({branch: '{{branch | lowercase}}'})"
+                               ui-sref-active="active">
+                                {{branch}}
+                            </a>
+                        </li>
+                    </ul>
+                </span>
+            </span>
             <tr ng-repeat="result in results" class="result-{{result.result.id}}">
                 <td class="build-list"> <!-- nasty hack for indicator styling -->
                     <a class="indicator"

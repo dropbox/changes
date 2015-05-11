@@ -1,26 +1,64 @@
+from datetime import datetime
 from uuid import uuid4
 
 from changes.constants import Result, Status
+from mock import patch, Mock
+from changes.vcs.base import Vcs, RevisionResult
 from changes.testutils import APITestCase
 
 
 class ProjectTestHistoryTest(APITestCase):
-    def test_simple(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_simple(self, get_vcs):
+
+        def log_results(parent=None, branch=None, offset=0, limit=1):
+            # assert not branch
+            return iter([
+                RevisionResult(
+                    id='a' * 40,
+                    message='hello world',
+                    author='Foo <foo@example.com>',
+                    author_date=datetime(2013, 9, 19, 22, 15, 21),
+                    ),
+                RevisionResult(
+                    id='b' * 40,
+                    message='hello world',
+                    author='Foo <foo@example.com>',
+                    author_date=datetime(2013, 9, 19, 22, 15, 21),
+
+                )
+            ])
+
+        # Fake having a VCS and stub the returned commit log
+        fake_vcs = Mock(spec=Vcs)
+        fake_vcs.log.side_effect = log_results
+        get_vcs.return_value = fake_vcs
+
         fake_id = uuid4()
 
         project = self.create_project()
 
+        previous_source = self.create_source(
+            project=project,
+            revision_sha='b' * 40,
+        )
         previous_build = self.create_build(
             project=project,
             status=Status.finished,
             result=Result.passed,
+            source=previous_source
         )
         previous_job = self.create_job(previous_build)
 
+        source = self.create_source(
+            project=project,
+            revision_sha='a' * 40,
+        )
         build = self.create_build(
             project=project,
             status=Status.finished,
             result=Result.passed,
+            source=source
         )
         job = self.create_job(build)
 
@@ -53,6 +91,7 @@ class ProjectTestHistoryTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
+
         assert len(data) == 2
         assert data[1]['id'] == previous_parent_group.id.hex
         assert data[0]['id'] == parent_group.id.hex
