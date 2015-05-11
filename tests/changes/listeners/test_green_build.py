@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import mock
 import responses
+import urlparse
 from uuid import uuid4
 
 from changes.constants import Result
@@ -67,10 +68,16 @@ class GreenBuildTest(TestCase):
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == 'https://foo.example.com/'
-        assert responses.calls[0].request.body == 'project={project_slug}&build_server=changes&build_url=http%3A%2F%2Fexample.com%2Fprojects%2F{project_slug}%2Fbuilds%2F{build_id}%2F&id=134%3Aasdadfadf'.format(
-            project_slug=build.project.slug,
-            build_id=build.id.hex,
-        )
+
+        body = urlparse.parse_qs(responses.calls[0].request.body)
+        assert body['project'][0] == build.project.slug
+        assert body['build_server'][0] == 'changes'
+        assert body['build_url'][0] == "http://example.com/projects/%s/builds/%s/" % (build.project.slug, build.id.hex)
+        assert body['id'][0] == '134:asdadfadf'
+        assert 'author_name' in body
+        assert 'author_email' in body
+        assert 'revision_message' in body
+        assert 'commit_timestamp' in body
 
         event = Event.query.filter(
             Event.type == EventType.green_build,

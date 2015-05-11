@@ -1,3 +1,4 @@
+import calendar
 import logging
 import requests
 
@@ -98,6 +99,7 @@ def build_finished_handler(build_id, **kwargs):
     release_id = get_release_id(source, vcs)
 
     project = options.get('green-build.project') or build.project.slug
+    committed_timestamp_sec = calendar.timegm(source.revision.date_committed.utctimetuple())
 
     logging.info('Making green_build request to %s', url)
     try:
@@ -107,6 +109,10 @@ def build_finished_handler(build_id, **kwargs):
             'build_url': build_uri('/projects/{0}/builds/{1}/'.format(
                 build.project.slug, build.id.hex)),
             'build_server': 'changes',
+            'author_name': source.revision.author.name,
+            'author_email': source.revision.author.email,
+            'commit_timestamp': committed_timestamp_sec,
+            'revision_message': source.revision.message,
         }).raise_for_status()
     except Exception:
         logger.exception('Failed to report green build')
