@@ -10,7 +10,7 @@ from flask import current_app, render_template
 from flask_mail import Message, sanitize_address
 from jinja2 import Markup
 
-from changes.api.build_details import get_patch_parent_last_build
+from changes.api.build_details import get_parents_last_builds
 from changes.config import db, mail
 from changes.constants import Result, Status
 from changes.db.utils import try_create
@@ -208,10 +208,10 @@ class MailNotificationHandler(object):
 
         parent_build_context = None
         if get_parent:
-            parent_build = get_patch_parent_last_build(build)
+            parent_build = get_parents_last_builds(build)
             if parent_build:
                 parent_build_context = self.get_build_context(
-                    parent_build, get_parent=False)
+                    parent_build[0], get_parent=False)
 
         return {
             'build': build,

@@ -18,7 +18,7 @@ def might_be_diffusion_iden(text):
     Returns:
         bool: true if its probably a diffusion identifier
     """
-    return DIFFUSION_REGEX.match(text) != None
+    return DIFFUSION_REGEX.match(text) is not None
 
 
 def get_hash_from_diffusion_iden(text):

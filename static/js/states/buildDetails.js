@@ -69,19 +69,17 @@ define([
       };
 
       // TODO (stefan): move to build-info directive
-      $scope.getBuildResult = function() {
-          var parentBuild = $scope.build.parentRevisionBuild;
-          if (parentBuild) {
-              return parentBuild.result.id;
+      $scope.getBuildResult = function(build) {
+          if (build && build.result) {
+              return build.result.id;
           }
           return 'unknown';
       };
 
       // TODO (stefan): move to build-info directive
-      $scope.getParentBuildMessage = function() {
-          var parentBuild = $scope.build.parentRevisionBuild;
-          if (parentBuild) {
-              return "Parent revision build " + parentBuild.result.id;
+      $scope.getParentBuildMessage = function(build) {
+          if (build && build.result) {
+              return "Parent revision build " + build.result.id;
           }
           return "No build for parent revision";
       };

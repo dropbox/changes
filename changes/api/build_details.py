@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
+from itertools import groupby
 from flask_restful.reqparse import RequestParser
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
 from sqlalchemy.sql import func
@@ -125,9 +126,15 @@ def get_failure_reasons(build):
     ]
 
 
-def get_patch_parent_last_build(build):
+def get_parents_last_builds(build):
+    # A patch have only one parent, while a revision can have more.
     if build.source.patch:
-        parent_revision_builds = list(Build.query.filter(
+        parents = [build.source.patch.parent_revision_sha]
+    elif build.source.revision:
+        parents = build.source.revision.parents
+
+    if parents:
+        parent_builds = list(Build.query.filter(
             Build.project == build.project,
             Build.status == Status.finished,
             Build.id != build.id,
@@ -137,11 +144,18 @@ def get_patch_parent_last_build(build):
         ).options(
             contains_eager('source').joinedload('revision'),
         ).filter(
-            Source.revision_sha == build.source.patch.parent_revision_sha
+            Source.revision_sha.in_(parents)
         ).order_by(Build.date_created.desc()))
-        if parent_revision_builds:
-            return parent_revision_builds[0]
-    return None
+        if parent_builds:
+            # This returns a list with the last build of each revision.
+            return [
+                list(builds)[0]
+                for sha, builds in groupby(
+                    parent_builds,
+                    lambda rev: rev.source.revision_sha
+                )
+            ]
+    return []
 
 
 class BuildDetailsAPIView(APIView):
@@ -228,7 +242,7 @@ class BuildDetailsAPIView(APIView):
                 'tests': self.serialize(test_failures, extended_serializers),
             },
             'testChanges': self.serialize(changed_tests, extended_serializers),
-            'parentRevisionBuild': self.serialize(get_patch_parent_last_build(build)),
+            'parents': self.serialize(get_parents_last_builds(build)),
         })
 
         return self.respond(context)

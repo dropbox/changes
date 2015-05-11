@@ -125,7 +125,8 @@ class BuildDetailsTest(APITestCase):
         resp = self.client.get(path)
         data = self.unserialize(resp)
 
-        assert data['parentRevisionBuild']['source']['revision']['sha'] == parent_sha
+        assert len(data['parents']) == 1
+        assert data['parents'][0]['source']['revision']['sha'] == parent_sha
 
     def test_parent_revision_has_no_build(self):
         project = self.create_project()
@@ -138,7 +139,7 @@ class BuildDetailsTest(APITestCase):
         resp = self.client.get(path)
         data = self.unserialize(resp)
 
-        assert data['parentRevisionBuild'] is None
+        assert len(data['parents']) == 0
 
 
 class BuildUpdateTest(APITestCase):
