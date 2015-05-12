@@ -5,13 +5,13 @@ from datetime import datetime, timedelta
 from changes.config import queue
 from changes.constants import Status
 from changes.models import Task
-from changes.queue.task import TrackedTask, tracked_task
+from changes.queue.task import TrackedTask
 
 CHECK_TIME = timedelta(minutes=60)
 EXPIRE_TIME = timedelta(days=7)
 
 
-@tracked_task
+# NOTE: This isn't itself a TrackedTask, but probably should be.
 def cleanup_tasks():
     """
     Find any tasks which haven't checked in within a reasonable time period and
