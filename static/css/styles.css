@@ -596,8 +596,9 @@ a.indicator {
 }
 .result-failed .indicator {
   color: #fff;
-  background: #f60;
-  border-color: #f60;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
+  border-color: red;
 }
 .result-infra_failed .indicator {
   color: #fff;
@@ -782,7 +783,8 @@ a.indicator {
 }
 .project-list-wide > li.result-failed > a {
   color: #fff;
-  background: #f60;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 .project-list-wide > li.result-failed > a small {
   color: #FFCAC8;
@@ -1014,7 +1016,8 @@ table.build-list {
 }
 
 .progress-bar-failed {
-  background: #f60;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 
 .well {
@@ -1088,9 +1091,10 @@ table.build-list {
   border-color: #390;
 }
 .phase-list > li.result-failed > a {
-  background: #f60;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
   color: #fff;
-  border-color: #f60;
+  border-color: red;
 }
 
 .phase-list > li > a:before {
@@ -1149,14 +1153,16 @@ table.build-list {
   color: #6e5baa;
 }
 .nav-pills > li.result-failed > a {
-  color: #f60;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 .nav-pills > li.active.result-passed > a {
   background: #390;
   color: #fff;
 }
 .nav-pills > li.active.result-failed > a {
-  background: #f60;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
   color: #fff;
 }
 
@@ -1187,10 +1193,10 @@ table.build-list {
   border-color: #6e5baa;
 }
 .nav-links > li.result-failed > a {
-  color: #f60;
+  color: red;
 }
 .nav-links > li.result-failed > a:hover {
-  border-color: #f60;
+  border-color: red;
 }
 
 .nav-links-sm > li > a {
@@ -1244,7 +1250,7 @@ table.build-list {
   color: green;
 }
 .test-list > li.test-removed {
-  color: #f60;
+  color: red;
 }
 .test-list li a {
   color: inherit;
@@ -1257,7 +1263,7 @@ table.build-list {
   border: 0;
 }
 .test-results > tbody > tr.status-failed > td {
-  color: #f60;
+  color: red;
 }
 .test-results > tbody > tr.status-skipped > td {
   color: orange;
@@ -1481,7 +1487,8 @@ chart {
   background: #390;
 }
 .barchart li.result-failed a .count {
-  background: #f60;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 .barchart li.result-infra_failed a .count {
   background: #000;
@@ -2005,7 +2012,7 @@ label.btn input[type=checkbox] {
 .failure-list .indicator,
 .indicated-list .result-fail .indicator,
 .indicated-list .result-failed .indicator {
-  background: #f60;
+  background: red;
 }
 .event-list .event-label,
 .failure-list .failure-label,
