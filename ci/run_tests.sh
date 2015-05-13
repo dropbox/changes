@@ -1,3 +1,4 @@
-#!/bin/bash -eux
+#!/bin/bash -ex
 
-PATH=`pwd`/env/bin:$PATH make test-full
+source `pwd`/env/bin/activate
+make test-full
