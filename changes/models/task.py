@@ -35,18 +35,6 @@ class Task(db.Model):
     Tasks can fire signals, e.g. build xxx has finished. There's a table that
     maps signal types to tasks that should be created. Signals/listeners are
     not tracked as children of other tasks.
-
-    super-brief descriptions for every value of task_name:
-        sync_job_step: Polls a jenkins build for updates. May have sync_artifact children.
-        import_repo:
-        sync_artifact: Downloads an artifact from jenkins.
-        sync_repo: Polls repositories for new commits, and fires signals for revisions.
-        sync_job: Updates jobphase and job statuses based on the status of the constituent jobsteps.
-        sync_build: Updates build status based on status of constituent jobs.
-        run_event_listener: Actually run the listener (see fire_signal)
-        fire_signal: Tasks fire signals by spawning fire_signal tasks; they grab every associated listener and spawn run_event_listener tasks for each
-        create_job: Kicks off a newly created job within a build; enqueued for each job within a new build.
-
     """
     __tablename__ = 'task'
     __table_args__ = (

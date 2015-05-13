@@ -58,24 +58,24 @@ class ProjectOption(db.Model):
     Key/value table storing configuration information for projects. Here
     is an incomplete list of possible keys:
 
-        mail.notify-addresses-revisions
-        build.expect-tests
-        build.commit-trigger
-        ui.show-coverage
-        project.owners
-        mail.notify-addresses
-        snapshot.current
-        mail.notify
-        build.test-duration-warning
-        green-build.notify
-        phabricator.notify
-        mail.notify-author
-        project.notes
-        ui.show-tests
-        green-build.project
-        build.file-whitelist
-        build.branch-names
-        phabricator.diff-trigger
+        - build.branch-names
+        - build.commit-trigger
+        - build.expect-tests
+        - build.file-whitelist
+        - build.test-duration-warning
+        - green-build.notify
+        - green-build.project
+        - mail.notify
+        - mail.notify-addresses
+        - mail.notify-addresses-revisions
+        - mail.notify-author
+        - phabricator.diff-trigger
+        - phabricator.notify
+        - project.notes
+        - project.owners
+        - snapshot.current
+        - ui.show-coverage
+        - ui.show-tests
     """
     __tablename__ = 'projectoption'
     __table_args__ = (

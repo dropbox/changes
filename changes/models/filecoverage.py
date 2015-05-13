@@ -16,9 +16,9 @@ class FileCoverage(db.Model):
     Unique to file/job/project. Contains a data-blob-string, where each
     character is either
 
-    U Unconvered
-    C Covered
-    N No Info
+    - U Unconvered
+    - C Covered
+    - N No Info
 
     filled in when file coverage artifacts are collected (updated with
     additional lines for each new artifact in a job)

@@ -31,6 +31,7 @@ Developers
 
    contributing
    internals/snapshots
+   models
 
 
 Resources
