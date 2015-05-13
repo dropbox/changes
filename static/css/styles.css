@@ -211,7 +211,8 @@ input, select, textarea {
   background: rgb(156, 207, 156);;
 }
 .navbar-stats .stat .change.bad {
-  background: #EB9B99;
+  background: #EB9B99 linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 .navbar-stats .stat .change .arrow {
   position: relative;
@@ -1843,7 +1844,8 @@ label.btn input[type=checkbox] {
   border-color: rgb(175, 224, 175);
 }
 .notifyjs-plain-error {
-  background: #E78987;
+  background: #E78987 linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
   border-color: #E78987;
 }
 
@@ -1947,7 +1949,8 @@ label.btn input[type=checkbox] {
 
 .negative-coverage .coverage-info,
 .negative-coverage .tooltip-inner {
-  background-color: #da4f49;
+  background: #da4f49 linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 .negative-coverage .tooltip-arrow {
   border-right-color: #da4f49 !important;
@@ -1955,7 +1958,8 @@ label.btn input[type=checkbox] {
 
 .positive-coverage .coverage-info,
 .positive-coverage .tooltip-inner {
-  background-color: #5bb75b;
+  background: #5bb75b linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 .positive-coverage .tooltip-arrow {
   border-right-color: #5bb75b !important;
@@ -2012,7 +2016,8 @@ label.btn input[type=checkbox] {
 .failure-list .indicator,
 .indicated-list .result-fail .indicator,
 .indicated-list .result-failed .indicator {
-  background: red;
+  background: red linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%);
+  background-size: 1px 4px;
 }
 .event-list .event-label,
 .failure-list .failure-label,
