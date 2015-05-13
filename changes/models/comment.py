@@ -8,14 +8,6 @@ from changes.db.types.guid import GUID
 
 
 class Comment(db.Model):
-    """
-    Comments on test runs in changes. You can go into the GUI and leave
-    messages, and this table keeps track of those. There is a job_id but it is
-    always null, despite the UI showing you the comment only on the job page.
-
-    Due to this, the UI will show an identical set of comments on every job
-    page of a build.
-    """
     __tablename__ = 'comment'
 
     id = Column(GUID, primary_key=True, default=uuid4)

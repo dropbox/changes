@@ -14,12 +14,6 @@ from changes.utils.slugs import slugify
 
 
 class Project(db.Model):
-    """
-    The way we organize changes. Each project is linked to one repository, and
-    usually kicks off builds for it when new revisions come it (or just for
-    some revisions based on filters.) Projects use build plans (see plan) to
-    describe the work to be done for a build.
-    """
     __tablename__ = 'project'
 
     id = Column(GUID, primary_key=True, default=uuid4)
@@ -54,29 +48,6 @@ class Project(db.Model):
 
 
 class ProjectOption(db.Model):
-    """
-    Key/value table storing configuration information for projects. Here
-    is an incomplete list of possible keys:
-
-        mail.notify-addresses-revisions
-        build.expect-tests
-        build.commit-trigger
-        ui.show-coverage
-        project.owners
-        mail.notify-addresses
-        snapshot.current
-        mail.notify
-        build.test-duration-warning
-        green-build.notify
-        phabricator.notify
-        mail.notify-author
-        project.notes
-        ui.show-tests
-        green-build.project
-        build.file-whitelist
-        build.branch-names
-        phabricator.diff-trigger
-    """
     __tablename__ = 'projectoption'
     __table_args__ = (
         UniqueConstraint('project_id', 'name', name='unq_projectoption_name'),

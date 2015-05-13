@@ -12,17 +12,6 @@ from changes.db.types.guid import GUID
 
 
 class FileCoverage(db.Model):
-    """
-    Unique to file/job/project. Contains a data-blob-string, where each
-    character is either
-
-    U Unconvered
-    C Covered
-    N No Info
-
-    filled in when file coverage artifacts are collected (updated with
-    additional lines for each new artifact in a job)
-    """
     __tablename__ = 'filecoverage'
     __table_args__ = (
         Index('idx_filecoverage_job_id', 'job_id'),

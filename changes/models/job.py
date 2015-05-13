@@ -15,11 +15,6 @@ from changes.db.utils import model_repr
 
 
 class Job(db.Model):
-    """
-    An instantiation of a plan for a particular build. We run the code specified
-    by the appropriate plan. That code creates and farms out a bunch of jobsteps
-    to do the actual work.
-    """
     __tablename__ = 'job'
     __table_args__ = (
         Index('idx_build_project_id', 'project_id'),

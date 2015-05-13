@@ -28,10 +28,7 @@ STATUS_LABELS = {
 
 class Plan(db.Model):
     """
-    What work should we do for our new revision? A project may have multiple
-    plans, e.g. whenever a diff comes in, test it on both mac and windows
-    (each being its own plan.) In theory, a plan consists of a sequence of
-    steps; in practice, a plan is just a wrapper around a single step.
+    Represents one of N build plans for a project.
     """
     id = Column(GUID, primary_key=True, default=uuid4)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)

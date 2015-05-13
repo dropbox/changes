@@ -19,10 +19,6 @@ def abort_create(task):
 
 @tracked_task(on_abort=abort_create, max_retries=10)
 def create_job(job_id):
-    """
-    Kicks off a newly created job within a build;
-    enqueued for each job within a new build.
-    """
     job = Job.query.get(job_id)
     if not job:
         return

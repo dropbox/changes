@@ -35,8 +35,7 @@ STATUS_LABELS = {
 
 class Snapshot(db.Model):
     """
-    Snapshots are container images used by LXC (Currently, only used in the
-    Mesos environment). This table stores the snapshots associated with a project
+    Represents a snapshot used as a base in builds.
 
     This is primarily used to indicate status and contains a collection of
     SnapshotImage's.

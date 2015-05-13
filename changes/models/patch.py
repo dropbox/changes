@@ -11,13 +11,6 @@ from changes.db.types.guid import GUID
 
 
 class Patch(db.Model):
-    """
-    A patch that can be applied to a revision. Refers to a parent revision on
-    which the patch is based, and contains a diff text field with the contents
-    of the patch (in unified diff form? 2x check.)
-
-    Used by builds from phabricator diffs: see source for more details.
-    """
     # TODO(dcramer): a patch is repo specific, not project specific, and the
     # label/message/etc aren't super useful
     __tablename__ = 'patch'

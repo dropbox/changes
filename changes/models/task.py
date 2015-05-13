@@ -15,39 +15,6 @@ from changes.db.utils import model_repr
 
 
 class Task(db.Model):
-    """
-    When we enqueue a task, we also write a db row to keep track of the task’s
-    metadata (e.g. number of times retried.) There is a slightly icky custom
-    data column that each task type uses in its own way. This db represents
-    serialized version of tracked_task you see in the changes python codebase.
-
-    Tasks can have parent tasks. Parent tasks have the option of waiting for
-    their children to complete (in practice, that always happens.)
-
-    Example: sync_job with sync_jobstep children
-
-    Tasks can throw a NotFinished exception, which will just mean that we try
-    running it again after some interval (but this has nothing to do with
-    retrying tasks that error!) Examples: Tasks with children will check to
-    see if their children are finished; the sync_jobstep task will query
-    jenkins to see if its finished.
-
-    Tasks can fire signals, e.g. build xxx has finished. There’s a table that
-    maps signal types to tasks that should be created. Signals/listeners are
-    not tracked as children of other tasks.
-
-    super-brief descriptions for every value of task_name:
-        sync_job_step: Polls a jenkins build for updates. May have sync_artifact children.
-        import_repo:
-        sync_artifact: Downloads an artifact from jenkins.
-        sync_repo: Polls repositories for new commits, and fires signals for revisions.
-        sync_job: Updates jobphase and job statuses based on the status of the constituent jobsteps.
-        sync_build: Updates build status based on status of constituent jobs.
-        run_event_listener: Actually run the listener (see fire_signal)
-        fire_signal: Tasks fire signals by spawning fire_signal tasks; they grab every associated listener and spawn run_event_listener tasks for each
-        create_job: Kicks off a newly created job within a build; enqueued for each job within a new build.
-
-    """
     __tablename__ = 'task'
     __table_args__ = (
         Index('idx_task_parent_id', 'parent_id', 'task_name'),
