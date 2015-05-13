@@ -11,11 +11,18 @@ from changes.db.types.guid import GUID
 
 class PhabricatorDiff(db.Model):
     """
-    A source represents the canonical parameters that a build is running against.
+    Whenever phabricator sends us a diff to do a build against (see source/patch
+    for more info), we write an entry to this table with the details.
+    revision_id and diff_id refer to the phabricator versions of this
+    terminology: revision_id is the number in D145201 and diff_id represents
+    a particular diff within that differential revision (the id in the
+    revision update history table.)
 
-    It always implies a revision to build off (though until we have full repo
-    integration this is considered optional, and defaults to tip/master), and
-    an optional patch_id to apply on top of it.
+    This is 80% convenient logging. It also does light deduplication: we make
+    sure to never kick off more than one build for a particular
+    revision_id/diff_id from the api called by phabricator. Phabricator can
+    occasionally fire a herald rule more than once, so its nice to have this.
+
     """
     id = Column(GUID, primary_key=True, default=uuid4)
     diff_id = Column(Integer, unique=True)

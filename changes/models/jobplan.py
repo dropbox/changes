@@ -59,9 +59,9 @@ class HistoricalImmutableStep(object):
 
 class JobPlan(db.Model):
     """
-    A link to all Job + Plan's for a Build.
-
-    TODO(dcramer): this should include a snapshot of the plan at build time.
+    A snapshot of a plan and its constituent steps, taken at job creation time.
+    This exists so that running jobs are not impacted by configuration changes.
+    Note that this table combines the data from the plan and step tables.
     """
     __tablename__ = 'jobplan'
     __table_args__ = (

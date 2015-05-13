@@ -19,7 +19,14 @@ from changes.db.utils import model_repr
 
 class TestCase(db.Model):
     """
-    An individual test result.
+    A single run of a single test, together with any captured output, retry-count
+    and its return value.
+
+    Every test that gets run ever has a row in this table.
+
+    At the time this was written, it seems to have 400-500M rows
+
+    (how is this still surviving?)
     """
     __tablename__ = 'test'
     __table_args__ = (

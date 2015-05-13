@@ -9,6 +9,11 @@ from changes.db.utils import model_repr
 
 
 class ItemStat(db.Model):
+    """
+    Also a key/value table, tailored towards statistics generated
+    by tests and code coverage. Examples: test_rerun_count,
+    test_duration, lines_covered
+    """
     __tablename__ = 'itemstat'
     __table_args__ = (
         UniqueConstraint('item_id', 'name', name='unq_itemstat_name'),

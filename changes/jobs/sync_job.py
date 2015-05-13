@@ -87,6 +87,9 @@ def abort_job(task):
 
 @tracked_task(on_abort=abort_job)
 def sync_job(job_id):
+    """
+    Updates jobphase and job statuses based on the status of the constituent jobsteps.
+    """
     job = Job.query.get(job_id)
     if not job:
         return

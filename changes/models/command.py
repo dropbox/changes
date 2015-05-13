@@ -54,6 +54,16 @@ class FutureCommand(object):
 
 
 class Command(db.Model):
+    """
+    The information of the script run on one node within a jobstep: the contents
+    of the script are included, and later the command can be updated
+    with status/return code.
+
+    changes-client has no real magic beyond running commands, so the list
+    of commands it ran basically tells you everything that happened.
+
+    Looks like only mesos/lxc builds (DefaultBuildStep)
+    """
     __tablename__ = 'command'
     __table_args__ = (
         UniqueConstraint('jobstep_id', 'order', name='unq_command_order'),

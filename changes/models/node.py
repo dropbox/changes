@@ -12,6 +12,15 @@ from changes.db.utils import model_repr
 
 
 class Cluster(db.Model):
+    """
+    A group of nodes. We refer to clusters in the step configurations
+    (where should we run our tests?) Clusters are automatically
+    added when we see them from jenkins results.
+
+    Apparently, clusters are only used in jenkins (not lxc, although
+    nodes are used for both.) A cluster does not correspond to one master
+
+    """
     __tablename__ = 'cluster'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
@@ -24,6 +33,10 @@ class Cluster(db.Model):
 
 
 class ClusterNode(db.Model):
+    """
+    Which cluster does each node belong to? This is populated
+    at the same time as cluster.
+    """
     __tablename__ = 'cluster_node'
 
     cluster_id = Column(GUID, ForeignKey('cluster.id', ondelete="CASCADE"),
@@ -44,6 +57,15 @@ class ClusterNode(db.Model):
 
 
 class Node(db.Model):
+    """
+    A machine that runs jobsteps.
+
+    This is populated by observing the machines picked by the
+    jenkins masters (which themselves are configured by BuildStep
+    params in the changes UI) when they're asked to run task, and
+    is not configured manually. Node machines have tags (not stored
+    in the changes db)
+    """
     __tablename__ = 'node'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

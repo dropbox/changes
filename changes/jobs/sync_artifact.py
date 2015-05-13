@@ -9,6 +9,9 @@ from changes.queue.task import tracked_task
 
 @tracked_task
 def sync_artifact(artifact_id=None, **kwargs):
+    """
+    Downloads an artifact from jenkins.
+    """
     artifact = Artifact.query.get(artifact_id)
     if artifact is None:
         return

@@ -18,6 +18,12 @@ ARTIFACT_STORAGE_OPTIONS = {
 
 
 class Artifact(db.Model):
+    """
+    The artifact produced by one job/step, produced on a single machine.
+    Sometimes this is a JSON dict referencing a file in S3, sometimes
+    it is Null, sometimes it is an empty dict. It is basically any file
+    left behind after a run for changes to pick up
+    """
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), nullable=False)

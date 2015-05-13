@@ -9,6 +9,11 @@ from changes.db.types.guid import GUID
 
 
 class Author(db.Model):
+    """
+    A list of every person who has written a revision parsed by changes.
+    Keyed by email. Automatically updated when new authors are seen by
+    changes in diffs etc.
+    """
     __tablename__ = 'author'
 
     id = Column(GUID, primary_key=True, default=uuid4)

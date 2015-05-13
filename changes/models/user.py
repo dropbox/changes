@@ -8,6 +8,9 @@ from changes.db.types.guid import GUID
 
 
 class User(db.Model):
+    """
+    A table of the people who use changes.
+    """
     __tablename__ = 'user'
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)

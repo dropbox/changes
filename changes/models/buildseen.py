@@ -13,6 +13,10 @@ from changes.db.utils import model_repr
 
 
 class BuildSeen(db.Model):
+    """
+    Keeps track of when users have viewed builds in the ui.
+    Not sure we expose this to users in the ui right now.
+    """
     __tablename__ = 'buildseen'
     __table_args__ = (
         UniqueConstraint('build_id', 'user_id', name='unq_buildseen_entity'),

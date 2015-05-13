@@ -43,6 +43,9 @@ STATUS_LABELS = {
 
 
 class Repository(db.Model):
+    """
+    Represents a VCS repository that Changes will watch for new commits.
+    """
     __tablename__ = 'repository'
 
     id = Column(GUID, primary_key=True, default=uuid4)

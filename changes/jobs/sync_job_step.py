@@ -141,6 +141,9 @@ DEFAULT_TIMEOUT_MIN = 60
 
 @tracked_task(on_abort=abort_step, max_retries=100)
 def sync_job_step(step_id):
+    """
+    Polls a jenkins build for updates. May have sync_artifact children.
+    """
     step = JobStep.query.get(step_id)
     if not step:
         return

@@ -19,6 +19,14 @@ class EventType(object):
 
 
 class Event(db.Model):
+    """
+    "No component of the system depends on event existing"
+
+    its just for logging and displaying to the user. We log whenever we email
+    a user about a broken build (or a green build, if that option is set in
+    the ui.) Technically, the type column only has two distinct values:
+    [email_notification, green_build_notification]. Contains a JSON data-blob
+    """
     __tablename__ = 'event'
     __table_args__ = (
         Index('idx_event_item_id', 'item_id'),

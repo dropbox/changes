@@ -21,7 +21,12 @@ STEP_OPTIONS = {
 
 class Step(db.Model):
     """
-    Represents one of N build steps for a plan.
+    A specific description of how to do some work for a build.
+
+    In theory, a plan can have multiple steps. In practice, every plan has only
+    one step and plan is just a thin wrapper around step. Steps are not
+    freeform, rather, each step is just configuration data for specific step
+    implementations that are hard-coded in python.
     """
     # TODO(dcramer): only a single step is currently supported
     id = Column(GUID, primary_key=True, default=uuid4)
