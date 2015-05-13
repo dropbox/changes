@@ -10,6 +10,8 @@ from changes.db.types.guid import GUID
 class LatestGreenBuild(db.Model):
     """
     Represents the latest green build for a given branch of a given project
+
+    A project with multiple latest_green_builds is because it has multiple branches
     """
     __tablename__ = 'latest_green_build'
     __table_args__ = (

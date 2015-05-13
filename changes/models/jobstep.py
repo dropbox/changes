@@ -32,6 +32,18 @@ class FutureJobStep(object):
 
 
 class JobStep(db.Model):
+    """
+    The most granular unit of work; run on a particular node, has a status and
+    a result.
+
+    But Hark! There’s a hack that allows jobstep, once its run, to rewrite
+    history to say that it was actually multiple jobsteps (even organized into
+    separate job phases.) It does this by creating an artifact, which the
+    python code picks up and then retroactively alters the db to say that this
+    jobstep had multiple steps (I think it purely appends new jobsteps after
+    the original.) xplat uses this to very nicely display the different parts
+    of their jobstep.
+    """
     # TODO(dcramer): make duration a column
     __tablename__ = 'jobstep'
 

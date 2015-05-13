@@ -13,6 +13,10 @@ LOG_CHUNK_SIZE = 4096
 
 
 class LogSource(db.Model):
+    """
+    We log the console output for each jobstep. logsource is an
+    entity table for these “logfiles”. logchunk contains the actual text.
+    """
     __tablename__ = 'logsource'
     __table_args__ = (
         UniqueConstraint('step_id', 'name', name='unq_logsource_key2'),
@@ -39,6 +43,12 @@ class LogSource(db.Model):
 
 
 class LogChunk(db.Model):
+    """
+    Chunks of text. Each row in logchunk is associated with a particular
+    logsource entry, and has an offset and blob of text. By grabbing all
+    logchunks for a given logsource id, you can combine them to get the
+    full log.
+    """
     __tablename__ = 'logchunk'
     __table_args__ = (
         Index('idx_logchunk_project_id', 'project_id'),

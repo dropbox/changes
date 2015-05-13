@@ -12,11 +12,22 @@ from changes.db.types.json import JSONEncodedDict
 
 class Source(db.Model):
     """
-    A source represents the canonical parameters that a build is running against.
+    This is the object that actually represents the code we run builds against.
 
-    It always implies a revision to build off (though until we have full repo
-    integration this is considered optional, and defaults to tip/master), and
-    an optional patch_id to apply on top of it.
+    Essentially its a revision, with a UUID, and a possible patch_id. Rows
+    with null patch_ids are just revisions, and rows with patch_ids apply
+    the linked patch on top of the revision and run builds against the
+    resulting code.
+
+    Why the indirection? This is how we handle phabricator diffs: when we
+    want to create a build for a new diff, we add a row here with the diff’s
+    parent revision sha (NOT the sha of the commit phabricator is trying to
+    land, since that will change every time we update the diff) and a row
+    to the patch table that contains the contents of the diff.
+
+    Side note: Whenever we create a source row from a phabricator diff, we
+    log json text to the data field with information like the diff id.
+
     """
     id = Column(GUID, primary_key=True, default=uuid4)
     repository_id = Column(GUID, ForeignKey('repository.id'), nullable=False)

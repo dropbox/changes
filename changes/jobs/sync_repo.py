@@ -14,6 +14,9 @@ logger = logging.getLogger('repo.sync')
 
 @tracked_task(max_retries=None)
 def sync_repo(repo_id, continuous=True):
+    """
+    Polls repositories for new commits, and fires signals for revisions.
+    """
     repo = Repository.query.get(repo_id)
     if not repo:
         logger.error('Repository %s not found', repo_id)

@@ -26,8 +26,8 @@ class BuildPriority(Enum):
 
 class Build(db.Model):
     """
-    Represents a collection of builds for a single target, as well as the sum
-    of their results.
+    Represents the work we do (e.g. running tests) for one diff or commit (an
+    entry in the source table) in one particular project
 
     Each Build contains many Jobs (usually linked to a JobPlan).
     """

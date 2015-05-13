@@ -8,6 +8,15 @@ from changes.db.types.guid import GUID
 
 
 class Revision(db.Model):
+    """
+    Represents a commit in a repository, including some metadata. Author and
+    committer are stored as references to the author table. Ideally there
+    will be one revision row for every commit in every repository tracked by
+    changes, though this is not always true, and some code tries to degrade
+    gracefully when this happens.
+
+    Revisions are keyed by repository, sha. They do not have unique UUIDs
+    """
     __tablename__ = 'revision'
 
     repository_id = Column(GUID, ForeignKey('repository.id'), primary_key=True)
