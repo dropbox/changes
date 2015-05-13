@@ -8,9 +8,9 @@ sudo easy_install -U pip
 sudo easy_install virtualenv
 
 
-virtualenv `pwd`/env
+virtualenv ~/env
 sudo -u postgres createuser -s `whoami` --no-password || true
 sudo -u postgres createdb changes || true
 sudo chown -R `whoami` `npm config get cache`
-source `pwd`/env/bin/activate
-make install-test-requirements
+source ~/env/bin/activate
+time make install-test-requirements
