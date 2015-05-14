@@ -4,8 +4,10 @@ import logging
 
 from lxml import etree
 
+from changes.config import db
 from changes.constants import Result
-from changes.models import TestResult, TestResultManager
+from changes.db.utils import try_create
+from changes.models import TestResult, TestResultManager, FailureReason
 
 from .base import ArtifactHandler
 
@@ -27,6 +29,14 @@ class XunitHandler(ArtifactHandler):
         except Exception:
             # Record the JobStep ID so we have any hope of tracking these down.
             self.logger.exception('Failed to parse XML; (step={})'.format(self.step.id.hex))
+            try_create(FailureReason, {
+                'step_id': self.step.id,
+                'job_id': self.step.job_id,
+                'build_id': self.step.job.build_id,
+                'project_id': self.step.project_id,
+                'reason': 'malformed_artifact'
+            })
+            db.session.commit()
             return []
 
         if root.tag == 'unittest-results':

@@ -15,7 +15,7 @@ class FailureReason(db.Model):
     """
     Always associated with a single jobstep. failurereason is not required to
     fail a build. But if a jobstep fails, it can record why here. reason
-    column can be: [test_failures, missing_test, missing_artifact, timeout]
+    column can be: [test_failures, missing_test, missing_artifact, timeout, malformed_artifact]
     """
     __tablename__ = 'failurereason'
     __table_args__ = (
