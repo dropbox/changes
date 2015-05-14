@@ -10,7 +10,7 @@ from changes.models import Build, FailureReason, TestCase, Source, Job
 from changes.utils.http import build_uri
 
 
-MAX_FLAKY_TESTS = 5
+MAX_FLAKY_TESTS = 10
 MAX_SLOW_TESTS = 10
 SLOW_TEST_THRESHOLD = 3000  # ms
 
