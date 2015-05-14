@@ -19,7 +19,7 @@
             </span>
         </dd>
         <dt>Discovered:</dt>
-        <dd time-since="source.dateCreated"></dd>
+        <dd><span time-since="source.dateCreated"></span></dd>
     </dl>
     <dl class="flat" ng-show="source.isCommit">
         <dt>Commit:</dt>
@@ -35,7 +35,7 @@
                ng-repeat="parent in source.revision.parents">{{parent.substr(0, 12)}}</a>
         </dd>
         <dt>Discovered:</dt>
-        <dd time-since="source.dateCreated"></dd>
+        <dd><span time-since="source.dateCreated"></span></dd>
         <dt ng-if="source.revision.author">Author:</dt>
         <dd ng-if="source.revision.author">
             <span ng-show="source.revision.author.email">{{source.revision.author.email}}</span>

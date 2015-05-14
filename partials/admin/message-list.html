@@ -16,7 +16,7 @@
           {{messageData.message}}</a></td>
       <td><a ui-sref="admin_user_details({user_id: messageData.user.id})">
           {{messageData.user.email}}</a></td>
-      <td class="column" time-since="messageData.dateCreated"></td>
+      <td class="column"><span time-since="messageData.dateCreated"></span></td>
     </tr></tbody>
   </table>
 </section>

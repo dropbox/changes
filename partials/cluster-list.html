@@ -13,7 +13,9 @@
         <tbody>
             <tr ng-repeat="cluster in clusterList">
                 <td><a ui-sref="cluster_details({cluster_id: cluster.id})">{{cluster.name}}</a></td>
-                <td class="column" time-since="cluster.dateCreated" bind-once></td>
+                <td class="column">
+                  <span time-since="cluster.dateCreated" bind-once></span>
+                </td>
             </tr>
         </tbody>
     </table>

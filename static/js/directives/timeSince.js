@@ -19,6 +19,13 @@ define([
 
   app.directive('timeSince', ['$timeout', function($timeout) {
     return function timeSince(scope, element, attrs) {
+      var tagname = element[0].tagName.toLowerCase();
+      if (tagname == 'td' || tagname == 'dd') {
+        var err = "applying the timeSince directive to <" + tagname + "> tags" +
+          " can cause rendering issues. Instead, please put this on an" +
+          " inner <span> tag";
+        console.warn(err);
+      }
       var value = scope.$eval(attrs.timeSince);
       element.addClass('ng-timesince');
       element.data('datetime', value);

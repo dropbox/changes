@@ -32,7 +32,7 @@
         <td><a ui-sref="admin_repository_details({repository_id: repository.id})">{{repository.url}}</a></td>
         <td class="column">{{repository.status.name}}</td>
         <td class="column">{{repository.backend.name}}</td>
-        <td class="column" time-since="repository.dateCreated"></td>
+        <td class="column"><span time-since="repository.dateCreated"></span></td>
       </tr>
     </tbody>
   </table>

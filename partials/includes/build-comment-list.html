@@ -20,7 +20,9 @@
             <li ng-repeat="comment in commentList">
                 <div class="comment-author">
                     <img src="{{comment.user.avatar}}&amp;s=16" class="avatar">
-                    <span class="comment-author-name">{{comment.user.email}}</span> &mdash; <span time-since="comment.dateCreated"></span>
+                    <span class="comment-author-name">{{comment.user.email}}</span>
+                    &mdash;
+                    <span time-since="comment.dateCreated"></span>
                 </div>
                 <pre class="comment-body" ng-bind-html="comment.html"></pre>
             </li>

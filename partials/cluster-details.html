@@ -8,7 +8,7 @@
         <dd>{{cluster.numNodes}}</dd>
 
         <dt>First Seen:</dt>
-        <dd time-since="cluster.dateCreated"></dd>
+        <dd><span time-since="cluster.dateCreated"></span></dd>
     </dl>
 </section>
 
@@ -29,7 +29,9 @@
         <tbody>
             <tr ng-repeat="node in nodeList">
                 <td><a ui-sref="node_details({node_id: node.id})">{{node.name}}</a></td>
-                <td class="column" time-since="node.dateCreated"></td>
+                <td class="column">
+                  <span time-since="node.dateCreated"></span>
+                </td>
             </tr>
         </tbody>
     </table>

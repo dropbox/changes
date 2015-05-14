@@ -9,7 +9,7 @@
                ng-repeat="cluster in node.clusters">{{cluster.name}}</a>
         </dd>
         <dt>First Seen:</dt>
-        <dd time-since="node.dateCreated"></dd>
+        <dd><span time-since="node.dateCreated"></span></dd>
     </dl>
 </section>
 
@@ -41,7 +41,7 @@
                       value="job|buildEstimatedProgress"
                       progressbar>&nbsp;</span>
             </td>
-            <td class="date" time-since="job.dateCreated"></td>
+            <td class="date"><span time-since="job.dateCreated"></span></td>
         </tr>
     </table>
 

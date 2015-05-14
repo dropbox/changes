@@ -18,8 +18,8 @@
                     <code><a ui-sref="task_details({task_id: task.id})">{{task.name}} ({{task.objectID}})</a></code>
                 </td>
                 <td class="column">{{task.status.name}}</td>
-                <td class="column" time-since="task.dateModified"></td>
-                <td class="column" time-since="task.dateCreated"></td>
+                <td class="column"><span time-since="task.dateModified"></span></td>
+                <td class="column"><span time-since="task.dateCreated"></span></td>
             </tr>
         </tbody>
     </table>

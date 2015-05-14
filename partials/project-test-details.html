@@ -69,7 +69,9 @@
                 <td ng-if="!result.job.build.source.isCommit">
                     <a ui-sref="project_source_details({source_id: result.job.build.source.id})">{{result.job.build.target}}</a>
                 </td>
-                <td class="column" time-since="result.job.build.dateCreated"></td>
+                <td class="column">
+                  <span time-since="result.job.build.dateCreated"></span>
+                </td>
                 <td class="column" duration="result.duration"></td>
                 <td class="column">{{ result.numRetries}}</td>
             </tr>

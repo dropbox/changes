@@ -11,7 +11,7 @@
       <tr ng-repeat="plan in planList">
         <td><a ui-sref="admin_project_plan_details({plan_id: plan.id})">{{plan.name}}</a></td>
         <td class="column">{{plan.status.name}}</td>
-        <td class="column" time-since="plan.dateCreated"></td>
+        <td class="column"><span time-since="plan.dateCreated"></span></td>
       </tr>
     </tbody>
   </table>

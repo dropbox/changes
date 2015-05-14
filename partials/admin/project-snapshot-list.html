@@ -19,7 +19,7 @@
         <td class="column" ng-if="!snapshot.source.revision.sha">
           &mdash;
         </td>
-        <td class="column" time-since="snapshot.dateCreated"></td>
+        <td class="column"><span time-since="snapshot.dateCreated"></span></td>
         <td class="column" ng-if="snapshot.status.id == 'active'">
           <a ng-if="snapshot.id == currentSnapshotId"
              ng-click="deactivateSnapshot(snapshot.id)">Deactivate</a>

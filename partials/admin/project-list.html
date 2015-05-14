@@ -30,7 +30,7 @@
       <tr ng-repeat="project in projectList">
         <td><a ui-sref="admin_project_settings({project_id: project.slug})">{{project.name}}</a></td>
         <td class="column">{{project.status.name}}</td>
-        <td class="column" time-since="project.dateCreated"></td>
+        <td class="column"><span time-since="project.dateCreated"></span></td>
       </tr>
     </tbody>
   </table>
