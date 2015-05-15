@@ -81,6 +81,12 @@ define(['angular', 'jquery'], function(angular, jQuery) {
 
         self.options.onLoadBegin(url);
 
+        if (self.options.poller) {
+          // stop polling before we transition, since otherwise we could clobber
+          // the results on the new page
+          self.options.poller.stop();
+        }
+
         return $http.get(url)
           .success(function(data, status, headers){
             self.collection.empty();
@@ -92,6 +98,10 @@ define(['angular', 'jquery'], function(angular, jQuery) {
           .error(function(data){
             self.options.onLoadError(url, data);
             self.options.onLoadComplete(url);
+
+            if (!this.previousPage && self.options.poller) {
+              self.options.poller.start();
+            }
           });
       };
 
