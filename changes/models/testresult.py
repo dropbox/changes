@@ -4,12 +4,13 @@ import logging
 import re
 
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import create_or_update
-from changes.models import ItemStat, TestCase, TestArtifact
+from changes.db.utils import create_or_update, try_create
+from changes.models import FailureReason, ItemStat, TestCase, TestArtifact
 
 logger = logging.getLogger('changes.testresult')
 
@@ -104,7 +105,19 @@ class TestResultManager(object):
                     testartifact.save_base64_content(ta['base64'])
                     db.session.add(testartifact)
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            logger.exception('Duplicate test name; (step={})'.format(step.id.hex))
+            try_create(FailureReason, {
+                'step_id': step.id,
+                'job_id': step.job_id,
+                'build_id': step.job.build_id,
+                'project_id': step.project_id,
+                'reason': 'duplicate_test_name'
+            })
+            db.session.commit()
 
         try:
             self._record_test_counts(test_list)

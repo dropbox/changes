@@ -13,3 +13,4 @@ registry.add('missing_tests', MissingTests)  # NOQA
 registry.add('timeout', Timeout)  # NOQA
 registry.add('missing_artifact', MissingArtifact)  # NOQA
 registry.add('malformed_artifact', MalformedArtifact)  # NOQA
+registry.add('duplicate_test_name', DuplicateTestName)  # NOQA
