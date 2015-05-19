@@ -142,3 +142,33 @@ class PhabricatorListenerTest(UnitTestCase):
 |{2}|test.group.ClassName|"""
 
         phab.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc))
+
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.listeners.phabricator_listener.get_options')
+    def test_slug_escape(self, get_options, phab):
+        get_options.return_value = {
+            'phabricator.notify': '1'
+        }
+        project = self.create_project(name='Server', slug='project-(slug)')
+        self.assertEquals(phab.call_count, 0)
+        patch = self.create_patch()
+        source = self.create_source(project, revision_sha='1235', patch=patch)
+        build = self.create_build(project, result=Result.passed, target='D1', source=source)
+        job = self.create_job(build=build)
+        testcase = self.create_test(
+            package='test.group.ClassName',
+            name='test.group.ClassName.test_foo',
+            job=job,
+            duration=134,
+            result=Result.passed,
+        )
+
+        build_finished_handler(build_id=build.id.hex)
+
+        get_options.assert_called_once_with(project.id)
+        safe_slug = 'project-%28slug%29'
+        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
+            safe_slug, build.id.hex))
+
+        expected_msg = 'Server build Passed {{icon check, color=green}} ([results]({0})).'
+        phab.assert_called_once_with('1', expected_msg.format(build_link))

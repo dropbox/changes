@@ -5,6 +5,7 @@ import json
 from changes.models.job import Job
 from changes.models.test import TestCase
 import requests
+import urllib
 
 from flask import current_app
 
@@ -102,11 +103,12 @@ def build_finished_handler(build_id, **kwargs):
     else:
         result_image = '{icon question, color=orange}'
 
+    safe_slug = urllib.quote_plus(build.project.slug)
     message = u'{project} build {result} {image} ([results]({link})).'.format(
         project=build.project.name,
         image=result_image,
         result=unicode(build.result),
-        link=build_uri('/projects/{0}/builds/{1}/'.format(build.project.slug, build.id.hex))
+        link=build_uri('/projects/{0}/builds/{1}/'.format(safe_slug, build.id.hex))
     )
 
     jobs = list(Job.query.filter(
@@ -164,7 +166,7 @@ def _generate_remarkup_table_for_tests(build, tests):
             name = name[len(pkg) + 1:]
 
         test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-            build.project.slug,
+            urllib.quote_plus(build.project.slug),
             build.id.hex,
             test.job_id.hex,
             test.id.hex
@@ -182,10 +184,11 @@ def get_test_failure_remarkup(build, tests):
     new_failures = [t for t in tests if t.name not in base_commit_failures]
     failures_in_parent = [t for t in tests if t.name in base_commit_failures]
 
+    safe_slug = urllib.quote_plus(build.project.slug)
     message = ' There were {new_failures} new [test failures]({link})'.format(
         num_failures=tests.count(),
         new_failures=len(new_failures),
-        link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex))
+        link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(safe_slug, build.id.hex))
     )
     if new_failures:
         message += '\n\n**New failures ({new_failure_count}):**\n'.format(
