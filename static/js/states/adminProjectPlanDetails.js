@@ -14,7 +14,7 @@ define(['app'], function(app) {
     parent: 'admin_project_details',
     url: 'plans/:plan_id/',
     templateUrl: 'partials/admin/project-plan-details.html',
-    controller: function($http, $scope, planData, planOptionData, Collection, flash) {
+    controller: function($http, $scope, $window, planData, planOptionData, Collection, flash) {
       var booleans = {
         "build.expect-tests": 1,
         "snapshot.allow": 1
@@ -75,6 +75,9 @@ define(['app'], function(app) {
       };
 
       $scope.removeStep = function(step) {
+        if (!$window.confirm("Are you sure you want to delete this step?")) {
+          return;
+        }
         if (step.saving === true) {
           return;
         }
