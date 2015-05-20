@@ -20,6 +20,13 @@ class IndexView(MethodView):
         else:
             dsn = None
 
+        # use new react code
+        if path.startswith("experimental"):
+            return render_template('experimental.html', **{
+                'SENTRY_PUBLIC_DSN': dsn,
+                'VERSION': changes.get_version(),
+            })
+
         return render_template('index.html', **{
             'SENTRY_PUBLIC_DSN': dsn,
             'VERSION': changes.get_version(),
