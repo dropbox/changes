@@ -6,7 +6,8 @@ from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Build, FailureReason, TestCase, Source, Job
+from changes.models import Build, FailureReason, TestCase, Source
+from changes.lib.flaky_tests import get_flaky_tests
 from changes.utils.http import build_uri
 
 
@@ -103,7 +104,8 @@ class BuildReport(object):
                 },
             })
 
-        flaky_tests = self.get_flaky_tests(start_period, end_period)
+        flaky_tests = get_flaky_tests(
+            start_period, end_period, self.projects, MAX_FLAKY_TESTS)
         slow_tests = self.get_slow_tests(start_period, end_period)
 
         title = 'Build Report ({0} through {1})'.format(
@@ -271,52 +273,3 @@ class BuildReport(object):
             })
 
         return slow_list
-
-    def get_flaky_tests(self, start_period, end_period):
-        test_queryset = TestCase.query.join(
-            Job, Job.id == TestCase.job_id,
-        ).join(
-            Build, Build.id == Job.build_id,
-        ).filter(
-            Build.project_id.in_(p.id for p in self.projects),
-            TestCase.result == Result.passed,
-            Build.date_created >= start_period,
-            Build.date_created < end_period,
-        ).join(
-            Source, Source.id == Build.source_id,
-        ).filter(
-            Source.patch_id == None,  # NOQA
-        )
-
-        flaky_test_queryset = test_queryset.with_entities(
-            TestCase.name,
-            func.sum(TestCase.reruns).label('reruns'),
-            func.avg(TestCase.reruns).label('rerun_avg'),
-        ).group_by(
-            TestCase.name
-        ).order_by(
-            func.sum(TestCase.reruns).desc()
-        ).limit(MAX_FLAKY_TESTS)
-
-        flaky_list = []
-        for name, reruns, rerun_avg in flaky_test_queryset:
-            if reruns == 0:
-                continue
-
-            rerun = test_queryset.filter(
-                TestCase.name == name,
-                TestCase.reruns > 0,
-            ).first()
-
-            flaky_list.append({
-                'name': rerun.short_name,
-                'package': rerun.package,
-                'reruns': '%d (%.1f%%)' % (reruns, 100 * rerun_avg),
-                'link': build_uri('/projects/{0}/builds/{1}/jobs/{2}/logs/{3}/'.format(
-                    rerun.project.slug,
-                    rerun.job.build.id.hex,
-                    rerun.job.id.hex,
-                    rerun.step.logsources[0].id.hex)),
-            })
-
-        return flaky_list

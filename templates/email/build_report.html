@@ -333,12 +333,15 @@ tr.odd td {
 					{% for test in tests.flaky_list %}
 					<tr class="{{ loop.cycle('odd', 'even') }}">
 						<th>
-							<a href="{{ test.link }}" class="truncate">{{ test.name }}</a><br>
+							<a href="{{ test.link }}" class="truncate">{{ test.short_name }}</a><br>
 							{% if test.package %}
 								<small class="truncate">{{ test.package }}</small>
 							{% endif %}
 						</th>
-						<td class="value">{{ test.reruns }}</td>
+						<td class="value">
+							{{ test.flaky_runs }}
+							({{ "%.2f" % (100*test.flaky_runs/test.passing_runs) }}%)
+						</td>
 					</tr>
 					{% endfor %}
 				</tbody>
