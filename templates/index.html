@@ -13,6 +13,11 @@
       }).install();
       </script>
     {% endif %}
+    {% if DEV_JS_SHOULD_HIT_HOST %}
+      <script type="text/javascript">
+        window.DEV_JS_SHOULD_HIT_HOST = '{{ DEV_JS_SHOULD_HIT_HOST }}'
+      </script>
+    {% endif %}
     <link href="{{ url_for('static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
     <link href="{{ url_for('static', filename='vendor/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet" media="screen">

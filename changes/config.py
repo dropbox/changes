@@ -217,6 +217,13 @@ def create_app(_read_config=True, **config):
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
     app.config['BASE_URI'] = 'http://localhost:5000'
 
+    # if set to a string, most (all?) of the frontend js will make API calls
+    # to the host this string is set to (e.g. http://changes.bigcompany.com)
+    # You'll want to use --disable-web-security in chrome to make this work
+    # useful for development and override this this in your changes.conf.py
+    # file
+    app.config['DEV_JS_SHOULD_HIT_HOST'] = None
+
     # In minutes, the timeout applied to jobs without a timeout specified at build time.
     # A timeout should nearly always be specified; this is just a safeguard so that
     # unspecified timeout doesn't mean "is allowed to run indefinitely".

@@ -178,6 +178,27 @@ define([
     }];
     $httpProvider.responseInterceptors.push(logInUserOn401);
 
+    $httpProvider.interceptors.push(['$window', '$q', function($window, $q) {
+      return {
+        'request' : function(config) {
+          if ($window.DEV_JS_SHOULD_HIT_HOST) {
+            // for safety, default behavior is to only redirect non-post 
+            // api calls
+            var is_get = config.method.toLowerCase() === 'get';
+            if (is_get && (config.url.indexOf("api/0/") !== -1)) {
+              config.url = ($window.DEV_JS_SHOULD_HIT_HOST +
+                (config.url.charAt(0) === '/' ? '' : '/') +
+                config.url);
+            }
+          }
+          return config;
+        },
+        'response' : function(response) {
+          return response;
+        }
+      };
+    }]);
+
     // Base routes
     $stateProvider
       .state('layout', LayoutState)

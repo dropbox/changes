@@ -20,14 +20,18 @@ class IndexView(MethodView):
         else:
             dsn = None
 
+        dev_js_should_hit_host = current_app.config['DEV_JS_SHOULD_HIT_HOST']
+
         # use new react code
         if path.startswith("experimental"):
             return render_template('experimental.html', **{
                 'SENTRY_PUBLIC_DSN': dsn,
                 'VERSION': changes.get_version(),
+                'DEV_JS_SHOULD_HIT_HOST': dev_js_should_hit_host
             })
 
         return render_template('index.html', **{
             'SENTRY_PUBLIC_DSN': dsn,
             'VERSION': changes.get_version(),
+            'DEV_JS_SHOULD_HIT_HOST': dev_js_should_hit_host
         })
