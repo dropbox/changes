@@ -1,0 +1,48 @@
+<section class="section">
+    <div class="section-header">
+        <h2 class="pull-left">Tests</h2>
+        <div class="btn-group" class="pull-left" style="margin-left: 20px;">
+            <a class="btn btn-sm btn-default" ui-sref-active="active" ui-sref="project_tests()">Overview</a>
+            <a class="btn btn-sm btn-default" ui-sref-active="active" ui-sref="project_test_search()">All Tests</a>
+            <a class="btn btn-sm btn-default" ui-sref-active="active" ui-sref="project_flaky_tests()">Flaky Tests</a>
+        </div>
+    </div>
+
+    <div ng-if="flakyTests.length">
+        <p>
+            A flaky run for a test is one in which the test failed initially,
+            and then passed when re-run.
+        </p>
+
+        <table class="grid-list">
+            <thead>
+                <tr class="grid-list-header">
+                    <th>Test</th>
+                    <th class="column">Flaky runs<br />(% of passing runs)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="test in flakyTests track by test.hash">
+                    <td>
+                        <a ui-sref="project_test_details({test_id: test.hash})">{{test.name}}</a><br />
+                        <small ng-if="test.package">{{test.package}}</small>
+                    </td>
+                    <td class="column">
+                        {{test.flaky_runs}}
+                        ({{(100*test.flaky_runs/test.passing_runs).toFixed(2)}}%)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p ng-if="!flakyTests.length">
+        There are no flaky tests at the moment.
+    </p>
+
+    <p style="margin-top: 20px;">
+        <small>
+            Last update: <strong>{{lastUpdate}}</strong>
+        </small>
+    </p>
+</section>

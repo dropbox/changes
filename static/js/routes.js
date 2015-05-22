@@ -39,6 +39,7 @@ define([
   'states/projectCreateBuild',
   'states/projectDetails',
   'states/projectList',
+  'states/projectFlakyTests',
   'states/projectSourceDetails',
   'states/projectTestDetails',
   'states/projectTestList',
@@ -99,6 +100,7 @@ define([
   ProjectCreateBuildState,
   ProjectDetailsState,
   ProjectListState,
+  ProjectFlakyTestsState,
   ProjectSourceDetailsState,
   ProjectTestDetailsState,
   ProjectTestListState,
@@ -221,6 +223,7 @@ define([
       .state('project_commits', ProjectCommitListState)
       .state('project_commit_details', ProjectCommitDetailsState)
       .state('project_coverage', ProjectCoverageListState)
+      .state('project_flaky_tests', ProjectFlakyTestsState)
       .state('project_tests', ProjectTestListState)
       .state('project_test_details', ProjectTestDetailsState)
       .state('project_test_search', ProjectTestSearchState)

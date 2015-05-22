@@ -360,6 +360,7 @@ def configure_api_routes(app):
     from changes.api.project_commit_index import ProjectCommitIndexAPIView
     from changes.api.project_coverage_index import ProjectCoverageIndexAPIView
     from changes.api.project_coverage_group_index import ProjectCoverageGroupIndexAPIView
+    from changes.api.project_flaky_tests import ProjectFlakyTestsAPIView
     from changes.api.project_index import ProjectIndexAPIView
     from changes.api.project_latest_green_builds import ProjectLatestGreenBuildsAPIView
     from changes.api.project_options_index import ProjectOptionsIndexAPIView
@@ -438,6 +439,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectCommitBuildsAPIView, '/projects/<project_id>/commits/<commit_id>/builds/')
     api.add_resource(ProjectCoverageIndexAPIView, '/projects/<project_id>/coverage/')
     api.add_resource(ProjectCoverageGroupIndexAPIView, '/projects/<project_id>/coveragegroups/')
+    api.add_resource(ProjectFlakyTestsAPIView, '/projects/<project_id>/flaky_tests/')
     api.add_resource(ProjectOptionsIndexAPIView, '/projects/<project_id>/options/')
     api.add_resource(ProjectPlanIndexAPIView, '/projects/<project_id>/plans/')
     api.add_resource(ProjectSnapshotIndexAPIView, '/projects/<project_id>/snapshots/')
