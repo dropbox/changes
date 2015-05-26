@@ -30,29 +30,25 @@ app_context.push()
 parser = argparse.ArgumentParser(description='Compute and store flaky tests')
 
 parser.add_argument(
-    '-e',
-    '--end-date',
-    dest='end_date',
+    '-d',
+    '--date',
+    dest='date',
     type=valid_date,
-    help='end date (default: today)',
-    default=date.today()
+    help='date (default: yesterday)',
+    default=date.today()-timedelta(days=1)
 )
 
 args = parser.parse_args()
 
 try:
     projects = Project.query.all()
-
-    end_period = args.end_date
-    start_period = end_period - timedelta(days=1)
-
-    tests = get_flaky_tests(start_period, end_period, projects, MAX_FLAKY_TESTS)
+    tests = get_flaky_tests(args.date, args.date+timedelta(days=1), projects, MAX_FLAKY_TESTS)
 
     for test in tests:
         try_create(FlakyTestStat, {
             'name': test['name'],
             'project_id': test['project_id'],
-            'end_date': end_period,
+            'date': args.date,
             'last_flaky_run_id': test['id'],
             'flaky_runs': test['flaky_runs'],
             'passing_runs': test['passing_runs']

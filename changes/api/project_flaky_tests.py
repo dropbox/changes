@@ -16,9 +16,9 @@ class ProjectFlakyTestsAPIView(APIView):
             return '', 404
 
         last_date = db.session.query(
-            FlakyTestStat.end_date
+            FlakyTestStat.date
         ).order_by(
-            FlakyTestStat.end_date.desc()
+            FlakyTestStat.date.desc()
         ).limit(1).scalar()
 
         query = db.session.query(
@@ -26,7 +26,7 @@ class ProjectFlakyTestsAPIView(APIView):
         ).join(
             TestCase
         ).filter(
-            FlakyTestStat.end_date == last_date,
+            FlakyTestStat.date == last_date,
             FlakyTestStat.project_id == project_id
         ).order_by(
             FlakyTestStat.flaky_runs.desc()
