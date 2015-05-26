@@ -24,22 +24,22 @@ def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
     )
 
     flaky_test_queryset = test_queryset.with_entities(
-        TestCase.name,
+        TestCase.name_sha,
         func.sum(case([(TestCase.reruns > 0, 1)], else_=0)).label('reruns'),
         func.count('*').label('count')
     ).group_by(
-        TestCase.name
+        TestCase.name_sha
     ).order_by(
         func.sum(TestCase.reruns).desc()
     ).limit(maxFlakyTests)
 
     flaky_list = []
-    for name, reruns, count in flaky_test_queryset:
+    for name_sha, reruns, count in flaky_test_queryset:
         if reruns == 0:
             continue
 
         rerun = test_queryset.filter(
-            TestCase.name == name,
+            TestCase.name_sha == name_sha,
             TestCase.reruns > 0,
         ).order_by(
             TestCase.date_created.desc()
@@ -47,10 +47,10 @@ def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
 
         flaky_list.append({
             'id': rerun.id,
-            'name': name,
+            'name': rerun.name,
             'short_name': rerun.short_name,
             'package': rerun.package,
-            'hash': rerun.name_sha,
+            'hash': name_sha,
             'project_id': rerun.project_id,
             'flaky_runs': reruns,
             'passing_runs': count,

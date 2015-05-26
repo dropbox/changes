@@ -13,7 +13,7 @@ from changes.lib.flaky_tests import get_flaky_tests
 from changes.models import FlakyTestStat, Project
 
 
-MAX_FLAKY_TESTS = 500
+MAX_FLAKY_TESTS = 200
 
 
 def valid_date(s):
@@ -44,7 +44,7 @@ try:
     projects = Project.query.all()
 
     end_period = args.end_date
-    start_period = end_period - timedelta(days=7)
+    start_period = end_period - timedelta(days=1)
 
     tests = get_flaky_tests(start_period, end_period, projects, MAX_FLAKY_TESTS)
 
