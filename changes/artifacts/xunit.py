@@ -125,7 +125,7 @@ class XunitHandler(ArtifactHandler):
                 package=attrs.get('classname') or None,
                 duration=duration,
                 result=result,
-                message=message,
+                message=(message or attrs.get("last_failure_output") or ""),
                 reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None,
                 artifacts=self._get_testartifacts(node)
             ))
