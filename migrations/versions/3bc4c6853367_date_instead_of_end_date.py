@@ -15,18 +15,14 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.drop_constraint('unq_name_per_project_per_day', 'flakyteststat')
     op.drop_index('idx_flakyteststat_end_date', 'flakyteststat')
     op.execute('ALTER TABLE flakyteststat RENAME COLUMN end_date TO date')
     op.execute('UPDATE flakyteststat SET date=date-1')
     op.create_index('idx_flakyteststat_date', 'flakyteststat', ['date'])
-    op.create_unique_constraint('unq_name_per_project_per_day', 'flakyteststat', ['name', 'project_id', 'date'])
 
 
 def downgrade():
-    op.drop_constraint('unq_name_per_project_per_day', 'flakyteststat')
     op.drop_index('idx_flakyteststat_date', 'flakyteststat')
     op.execute('ALTER TABLE flakyteststat RENAME COLUMN date TO end_date')
     op.execute('UPDATE flakyteststat SET end_date=end_date+1')
     op.create_index('idx_flakyteststat_end_date', 'flakyteststat', ['end_date'])
-    op.create_unique_constraint('unq_name_per_project_per_day', 'flakyteststat', ['name', 'project_id', 'end_date'])
