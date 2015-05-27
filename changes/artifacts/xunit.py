@@ -110,6 +110,10 @@ class XunitHandler(ArtifactHandler):
 
                 message = r_node.text
 
+            # If there's a previous failure in addition to stdout or stderr,
+            # prioritize showing the previous failure because that's what's
+            # useful for debugging flakiness.
+            message = attrs.get("last_failure_output") or message
             # no matching status tags were found
             if result is None:
                 result = Result.passed
@@ -125,7 +129,7 @@ class XunitHandler(ArtifactHandler):
                 package=attrs.get('classname') or None,
                 duration=duration,
                 result=result,
-                message=(message or attrs.get("last_failure_output") or ""),
+                message=message,
                 reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None,
                 artifacts=self._get_testartifacts(node)
             ))
