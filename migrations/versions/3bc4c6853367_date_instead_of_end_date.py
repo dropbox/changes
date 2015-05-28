@@ -1,14 +1,14 @@
 """date instead of end_date
 
 Revision ID: 3bc4c6853367
-Revises: 2f12902f7f55
+Revises: 1c537486cef7
 Create Date: 2015-05-26 13:15:57.630974
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '3bc4c6853367'
-down_revision = '2f12902f7f55'
+down_revision = '1c537486cef7'
 
 from alembic import op
 import sqlalchemy as sa
