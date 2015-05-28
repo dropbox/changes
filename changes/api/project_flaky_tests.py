@@ -56,6 +56,10 @@ class ProjectFlakyTestsAPIView(APIView):
         flaky_map = {}
         for flaky_test, test_run in flakytests_query:
             flaky_map[test_run.name_sha] = {
+                'id': test_run.id,
+                'job_id': test_run.job_id,
+                'build_id': test_run.job.build_id,
+                'project_id': test_run.project_id,
                 'name': test_run.short_name,
                 'package': test_run.package,
                 'hash': test_run.name_sha,
