@@ -5,6 +5,7 @@ import os
 import os.path
 import warnings
 
+from celery.schedules import crontab
 from celery.signals import task_postrun
 from datetime import timedelta
 from flask import request, session
@@ -182,6 +183,10 @@ def create_app(_read_config=True, **config):
         'check-repos': {
             'task': 'check_repos',
             'schedule': timedelta(minutes=2),
+        },
+        'aggregate-flaky-tests': {
+            'task': 'aggregate_flaky_tests',
+            'schedule': crontab(hour=0, minute=0),
         },
     }
     app.config['CELERY_TIMEZONE'] = 'UTC'
@@ -512,6 +517,7 @@ def configure_debug_routes(app):
 
 
 def configure_jobs(app):
+    from changes.jobs.flaky_tests import aggregate_flaky_tests
     from changes.jobs.check_repos import check_repos
     from changes.jobs.cleanup_tasks import cleanup_tasks
     from changes.jobs.create_job import create_job
@@ -527,6 +533,7 @@ def configure_jobs(app):
     from changes.jobs.update_project_stats import (
         update_project_stats, update_project_plan_stats)
 
+    queue.register('aggregate_flaky_tests', aggregate_flaky_tests)
     queue.register('check_repos', check_repos)
     queue.register('cleanup_tasks', cleanup_tasks)
     queue.register('create_job', create_job)
