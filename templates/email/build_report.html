@@ -128,7 +128,7 @@ tr.odd td {
 .truncate {
 	overflow: hidden;
 	white-space: nowrap;
-	width: 400px;
+	max-width: 400px;
 	display: inline-block;
 }
 
@@ -325,6 +325,9 @@ tr.odd td {
 					<tr>
 						<th>Test</th>
 						<th class="value">
+							Project
+						</th>
+						<th class="value">
 							Flaky runs<br>(% of passing runs)
 						</th>
 					</tr>
@@ -338,6 +341,9 @@ tr.odd td {
 								<small class="truncate">{{ test.package }}</small>
 							{% endif %}
 						</th>
+						<td class="value">
+							{{ test.project_name }}
+						</td>
 						<td class="value">
 							{{ test.flaky_runs }}
 							({{ "%.2f" % (100*test.flaky_runs/test.passing_runs) }}%)
