@@ -1590,6 +1590,21 @@ d3barchart {
   overflow: hidden;
 }
 
+.test-item-barchart {
+    display: block;
+    height: 30px;
+    text-align: left;
+    width: 600px;
+}
+.test-item-barchart > .barchart {
+    border: 0;
+    height: 100%;
+    margin: 0;
+}
+.test-item-barchart > .barchart > li {
+    border: 0;
+}
+
 .build-log-container {
   background: #fff;
 }

@@ -8,6 +8,15 @@
         </div>
     </div>
 
+    <barchart
+        data="chartData.data"
+        options="chartData.options"
+        style="height: 130px; margin-bottom: 30px;"
+        class="hidden-xs">
+    </barchart>
+
+    <h3>Flaky tests in {{date}}</h3>
+
     <div ng-if="flakyTests.length">
         <p>
             A flaky run for a test is one in which the test failed initially,
@@ -18,6 +27,7 @@
             <thead>
                 <tr class="grid-list-header">
                     <th>Test</th>
+                    <th class="column">History</th>
                     <th class="column">Flaky runs<br />(% of passing runs)</th>
                 </tr>
             </thead>
@@ -26,6 +36,13 @@
                     <td>
                         <a ui-sref="project_test_details({test_id: test.hash})">{{test.name}}</a><br />
                         <small ng-if="test.package">{{test.package}}</small>
+                    </td>
+                    <td class="column">
+                        <barchart
+                            class="test-item-barchart"
+                            data="test.chartData.data"
+                            options="test.chartData.options">
+                        </barchart>
                     </td>
                     <td class="column">
                         {{test.flaky_runs}}
@@ -37,12 +54,6 @@
     </div>
 
     <p ng-if="!flakyTests.length">
-        There are no flaky tests at the moment.
-    </p>
-
-    <p style="margin-top: 20px;">
-        <small>
-            Last update: <strong>{{lastUpdate}}</strong>
-        </small>
+        There were no flaky tests in {{date}}.
     </p>
 </section>
