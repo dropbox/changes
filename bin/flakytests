@@ -42,7 +42,7 @@ parser.add_argument(
     '--max',
     dest='max',
     type=int,
-    help='max number of flaky tests',
+    help='max number of flaky tests per project',
     default=MAX_FLAKY_TESTS
 )
 
@@ -50,17 +50,19 @@ args = parser.parse_args()
 
 try:
     projects = Project.query.all()
-    tests = get_flaky_tests(args.date, args.date+timedelta(days=1), projects, args.max)
 
-    for test in tests:
-        try_create(FlakyTestStat, {
-            'name': test['name'],
-            'project_id': test['project_id'],
-            'date': args.date,
-            'last_flaky_run_id': test['id'],
-            'flaky_runs': test['flaky_runs'],
-            'passing_runs': test['passing_runs']
-        })
+    for project in projects:
+        tests = get_flaky_tests(args.date, args.date+timedelta(days=1), [project], args.max)
+
+        for test in tests:
+            try_create(FlakyTestStat, {
+                'name': test['name'],
+                'project_id': test['project_id'],
+                'date': args.date,
+                'last_flaky_run_id': test['id'],
+                'flaky_runs': test['flaky_runs'],
+                'passing_runs': test['passing_runs']
+            })
 
     db.session.commit()
 except Exception as err:
