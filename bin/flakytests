@@ -37,12 +37,20 @@ parser.add_argument(
     help='date (default: yesterday)',
     default=date.today()-timedelta(days=1)
 )
+parser.add_argument(
+    '-m',
+    '--max',
+    dest='max',
+    type=int,
+    help='max number of flaky tests',
+    default=MAX_FLAKY_TESTS
+)
 
 args = parser.parse_args()
 
 try:
     projects = Project.query.all()
-    tests = get_flaky_tests(args.date, args.date+timedelta(days=1), projects, MAX_FLAKY_TESTS)
+    tests = get_flaky_tests(args.date, args.date+timedelta(days=1), projects, args.max)
 
     for test in tests:
         try_create(FlakyTestStat, {
