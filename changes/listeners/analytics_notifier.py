@@ -10,12 +10,15 @@ import json
 import re
 import requests
 from sqlalchemy import distinct
+from collections import defaultdict
 from datetime import datetime
 
 from flask import current_app
 
-from changes.config import db
-from changes.models import Build, FailureReason
+from changes.config import db, statsreporter
+from changes.constants import Result
+from changes.models import Build, FailureReason, Job, JobStep, LogSource, LogChunk
+from changes.experimental import categorize
 
 logger = logging.getLogger('analytics_notifier')
 
@@ -50,7 +53,7 @@ def _get_phabricator_revision_url(build):
     return None
 
 
-def _get_failure_reasons(build):
+def _get_build_failure_reasons(build):
     """Return the names of all the FailureReasons associated with a build.
     Args:
         build (Build): The build to return reasons for.
@@ -68,6 +71,12 @@ def _get_failure_reasons(build):
     return sorted(failure_reasons)
 
 
+def maybe_ts(dt):
+    if dt:
+        return _datetime_to_timestamp(dt)
+    return None
+
+
 def build_finished_handler(build_id, **kwargs):
     url = current_app.config.get('ANALYTICS_POST_URL')
     if not url:
@@ -76,12 +85,7 @@ def build_finished_handler(build_id, **kwargs):
     if build is None:
         return
 
-    failure_reasons = _get_failure_reasons(build)
-
-    def maybe_ts(dt):
-        if dt:
-            return _datetime_to_timestamp(dt)
-        return None
+    failure_reasons = _get_build_failure_reasons(build)
 
     data = {
         'build_id': build.id.hex,
@@ -104,17 +108,159 @@ def build_finished_handler(build_id, **kwargs):
     if build.author:
         data['author'] = build.author.email
 
-    post_build_data(url, data)
+    post_analytics_data(url, [data])
 
 
-def post_build_data(url, data):
+def post_analytics_data(url, data):
+    """
+    Args:
+        url (str): HTTP URL to POST to.
+        data (list): Records to POST as JSON.
+    """
     try:
-        # NB: We send an array of JSON objects rather than a single object
-        # so the interface doesn't need to change if we later want to do batch
-        # posting.
-        resp = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps([data]))
+        resp = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(data))
         resp.raise_for_status()
         # Should probably retry here so that transient failures don't result in
         # missing data.
     except Exception:
         logger.exception("Failed to post to Analytics")
+
+
+def job_finished_handler(job_id, **kwargs):
+    job = Job.query.get(job_id)
+    if job is None:
+        return
+
+    tags_by_step = _categorize_step_logs(job)
+
+    url = current_app.config.get('ANALYTICS_JOBSTEP_POST_URL')
+    if not url:
+        return
+    records = []
+    failure_reasons_by_jobstep = _get_job_failure_reasons_by_jobstep(job)
+    for jobstep in JobStep.query.filter(JobStep.job == job):
+        data = {
+                'jobstep_id': jobstep.id.hex,
+                'job_id': jobstep.job_id.hex,
+                'phase_id': jobstep.phase_id.hex,
+                'build_id': job.build_id.hex,
+                'label': jobstep.label,
+                'result': unicode(jobstep.result),
+                'date_started': maybe_ts(jobstep.date_started),
+                'date_finished': maybe_ts(jobstep.date_finished),
+                'date_created': maybe_ts(jobstep.date_created),
+                'data': jobstep.data,
+                'log_categories': sorted(list(tags_by_step[jobstep.id])),
+                'failure_reasons': failure_reasons_by_jobstep[jobstep.id],
+                # TODO: Node? Duration (to match build, for efficiency)?
+        }
+        records.append(data)
+    post_analytics_data(url, records)
+
+
+def _categorize_step_logs(job):
+    """
+    Args:
+        job (Job): The Job to categorize logs for.
+    Returns:
+        Dict[UUID, Set[str]]: Mapping from JobStep ID to the categories observed for its logs.
+    """
+    tags_by_step = defaultdict(set)
+    rules = _get_rules()
+    if rules:
+        for ls in _get_failing_log_sources(job):
+            logdata = _get_log_data(ls)
+            tags, applicable = categorize.categorize(job.project.slug, rules, logdata)
+            tags_by_step[ls.step_id].update(tags)
+            _incr("failing-log-processed")
+            if not tags and applicable:
+                _incr("failing-log-uncategorized")
+                logger.warning("Uncategorized log", extra={
+                    # Supplying the 'data' this way makes it available in log handlers
+                    # like Sentry while keeping the warnings grouped together.
+                    # See https://github.com/getsentry/raven-python/blob/master/docs/integrations/logging.rst#usage
+                    # for Sentry's interpretation.
+                    'data': {
+                        'logsource.id': ls.id.hex,
+                        'log.url': _log_uri(ls),
+                    }
+                })
+            else:
+                for tag in tags:
+                    _incr("failing-log-category-{}".format(tag))
+    return tags_by_step
+
+
+def _get_job_failure_reasons_by_jobstep(job):
+    """Return dict mapping jobstep ids to names of all associated FailureReasons.
+    Args:
+        job (Job): The job to return failure reasons for.
+    Returns:
+        dict: A dict mapping from jobstep id to a sorted list of failure reasons
+    """
+    reasons = [r for r in db.session.query(
+                FailureReason.reason, FailureReason.step_id
+            ).filter(
+                FailureReason.job_id == job.id
+            ).all()]
+
+    reasons_by_jobsteps = defaultdict(list)
+    for reason in reasons:
+        reasons_by_jobsteps[reason.step_id].append(reason.reason)
+
+    # The order isn't particularly meaningful; the sorting is primarily
+    # to make the same set of reasons reliably result in the same JSON.
+    for step_id in reasons_by_jobsteps:
+        reasons_by_jobsteps[step_id].sort()
+    return reasons_by_jobsteps
+
+
+def _get_failing_log_sources(job):
+    return list(LogSource.query.filter(
+        LogSource.job_id == job.id,
+    ).join(
+        JobStep, LogSource.step_id == JobStep.id,
+    ).filter(
+        JobStep.result.in_([Result.failed, Result.infra_failed]),
+    ).order_by(JobStep.date_created))
+
+
+def _get_log_data(source):
+    queryset = LogChunk.query.filter(
+        LogChunk.source_id == source.id,
+    ).order_by(LogChunk.offset.asc())
+    return ''.join(l.text for l in queryset)
+
+
+def _get_rules():
+    """Return the current rules to be used with categorize.categorize.
+    NB: Reloads the rules file at each call.
+    """
+    rules_file = current_app.config.get('CATEGORIZE_RULES_FILE')
+    if not rules_file:
+        return None
+    return categorize.load_rules(rules_file)
+
+
+def _log_uri(logsource):
+    """
+    Args:
+        logsource (LogSource): The LogSource to return URI for.
+
+    Returns:
+        str with relative URI of the provided LogSource.
+    """
+    job = logsource.job
+    build = job.build
+    project = build.project
+    return "/projects/{}/builds/{}/jobs/{}/logs/{}/".format(
+            project.slug, build.id.hex, job.id.hex, logsource.id.hex)
+
+
+def _incr(name):
+    """Helper to increments a stats counter.
+    Mostly exists to ease mocking in tests.
+    Args:
+        name (str): Name of counter to increment.
+    """
+    statsreporter.stats().incr(name)

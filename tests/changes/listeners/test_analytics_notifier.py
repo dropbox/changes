@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from collections import defaultdict
 from datetime import datetime
 
 from flask import current_app
@@ -10,7 +11,12 @@ from changes.constants import Result, Status
 from changes.testutils import TestCase
 from changes.models import FailureReason
 from changes.listeners.analytics_notifier import (
-        build_finished_handler, _get_phabricator_revision_url, _get_failure_reasons
+        build_finished_handler,
+        job_finished_handler,
+        _categorize_step_logs,
+        _get_build_failure_reasons,
+        _get_phabricator_revision_url,
+        _get_job_failure_reasons_by_jobstep,
 )
 
 
@@ -23,10 +29,11 @@ class AnalyticsNotifierTest(TestCase):
     def setUp(self):
         super(AnalyticsNotifierTest, self).setUp()
 
-    def _set_config_url(self, url):
-        current_app.config['ANALYTICS_POST_URL'] = url
+    def _set_config_url(self, build_url, jobstep_url=None):
+        current_app.config['ANALYTICS_POST_URL'] = build_url
+        current_app.config['ANALYTICS_JOBSTEP_POST_URL'] = jobstep_url
 
-    @mock.patch('changes.listeners.analytics_notifier.post_build_data')
+    @mock.patch('changes.listeners.analytics_notifier.post_analytics_data')
     def test_no_url(self, post_fn):
         self._set_config_url(None)
         project = self.create_project(name='test', slug='test')
@@ -34,7 +41,7 @@ class AnalyticsNotifierTest(TestCase):
         build_finished_handler(build_id=build.id.hex)
         self.assertEquals(post_fn.call_count, 0)
 
-    @mock.patch('changes.listeners.analytics_notifier.post_build_data')
+    @mock.patch('changes.listeners.analytics_notifier.post_analytics_data')
     def test_failed_build(self, post_fn):
         URL = "https://analytics.example.com/report?source=changes"
         self._set_config_url(URL)
@@ -59,7 +66,7 @@ class AnalyticsNotifierTest(TestCase):
 
         with mock.patch('changes.listeners.analytics_notifier._get_phabricator_revision_url') as mock_get_phab:
             mock_get_phab.return_value = 'https://example.com/D1'
-            with mock.patch('changes.listeners.analytics_notifier._get_failure_reasons') as mock_get_failures:
+            with mock.patch('changes.listeners.analytics_notifier._get_build_failure_reasons') as mock_get_failures:
                 mock_get_failures.return_value = ['aborted', 'missing_tests']
                 build_finished_handler(build_id=build.id.hex)
 
@@ -78,15 +85,15 @@ class AnalyticsNotifierTest(TestCase):
             'phab_revision_url': 'https://example.com/D1',
             'failure_reasons': ['aborted', 'missing_tests'],
         }
-        post_fn.assert_called_once_with(URL, expected_data)
+        post_fn.assert_called_once_with(URL, [expected_data])
 
-    def test_get_failure_reasons_no_failures(self):
+    def test_get_build_failure_reasons_no_failures(self):
         project = self.create_project(name='test', slug='project-slug')
         build = self.create_build(project, result=Result.passed, target='D1',
                                   label='Some sweet diff')
-        self.assertEquals(_get_failure_reasons(build), [])
+        self.assertEquals(_get_build_failure_reasons(build), [])
 
-    def test_get_failure_reasons_multiple_failures(self):
+    def test_get_build_failure_reasons_multiple_failures(self):
         project = self.create_project(name='test', slug='project-slug')
         build = self.create_build(project, result=Result.failed, target='D1',
                                   label='Some sweet diff')
@@ -102,7 +109,7 @@ class AnalyticsNotifierTest(TestCase):
                                          reason=reason))
         db.session.commit()
 
-        self.assertEquals(_get_failure_reasons(build),
+        self.assertEquals(_get_build_failure_reasons(build),
                           ['aborted', 'insufficient_politeness', 'missing_tests', 'timeout'])
 
     def test_get_phab_revision_url_diff(self):
@@ -166,3 +173,191 @@ class AnalyticsNotifierTest(TestCase):
         source = self.create_source(project, data=source_data)
         build = self.create_build(project, result=Result.failed, source=source, message=None)
         self.assertEquals(_get_phabricator_revision_url(build), None)
+
+    @mock.patch('changes.listeners.analytics_notifier.categorize.categorize')
+    @mock.patch('changes.listeners.analytics_notifier._get_rules')
+    def test_tagged_log(self, get_rules_fn, categorize_fn):
+        project = self.create_project(name='test', slug='project-slug')
+
+        build = self.create_build(project, result=Result.failed, target='D1',
+                                  label='Some sweet diff')
+        job = self.create_job(build=build, result=Result.failed, status=Status.finished)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+        logsource = self.create_logsource(step=step, name='loglog')
+        chunks = ['Some log text\n', 'Hey, some more log text.']
+        offset = 0
+        for c in chunks:
+            self.create_logchunk(source=logsource, text=c, offset=offset)
+            offset += len(c)
+
+        fake_rules = object()
+        get_rules_fn.return_value = fake_rules
+
+        categorize_fn.return_value = ({"tag1", "tag2"}, {'tag1', 'tag2'})
+
+        tags_by_step = None
+        with mock.patch('changes.listeners.analytics_notifier._incr') as incr:
+            tags_by_step = _categorize_step_logs(job)
+            incr.assert_any_call("failing-log-processed")
+            incr.assert_any_call("failing-log-category-tag1")
+            incr.assert_any_call("failing-log-category-tag2")
+
+        categorize_fn.assert_called_with('project-slug', fake_rules, ''.join(chunks))
+        self.assertSetEqual(tags_by_step[step.id], {'tag1', 'tag2'})
+
+    @mock.patch('changes.listeners.analytics_notifier.categorize.categorize')
+    @mock.patch('changes.listeners.analytics_notifier._get_rules')
+    def test_no_tags(self, get_rules_fn, categorize_fn):
+        project = self.create_project(name='test', slug='project-slug')
+
+        build = self.create_build(project, result=Result.failed, target='D1',
+                                  label='Some sweet diff')
+        job = self.create_job(build=build, result=Result.failed, status=Status.finished)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+        logsource = self.create_logsource(step=step, name='loglog')
+        self.create_logchunk(source=logsource, text='Some log text')
+
+        fake_rules = object()
+        get_rules_fn.return_value = fake_rules
+
+        # one tag was applicable, but none matched.
+        categorize_fn.return_value = (set(), {'tag1'})
+
+        tags_by_step = None
+        with mock.patch('changes.listeners.analytics_notifier._incr') as incr:
+            with mock.patch('changes.listeners.analytics_notifier.logger.warning') as warn:
+                tags_by_step = _categorize_step_logs(job)
+                warn.assert_any_call(mock.ANY, extra=mock.ANY)
+                incr.assert_any_call("failing-log-uncategorized")
+
+        categorize_fn.assert_called_with('project-slug', fake_rules, 'Some log text')
+        self.assertSetEqual(tags_by_step[step.id], set())
+
+    def test_get_job_failure_reasons_by_jobstep_passed(self):
+        project = self.create_project(name='test', slug='project-slug')
+        build = self.create_build(project, result=Result.passed, target='D1',
+                                  label='Some sweet diff')
+        job = self.create_job(build=build, result=Result.passed)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase, status=Status.finished, result=Result.passed)
+        self.assertEquals(_get_job_failure_reasons_by_jobstep(job)[jobstep.id], [])
+
+    def test_get_job_failure_reasons_by_jobstep_failures(self):
+        project = self.create_project(name='test', slug='project-slug')
+
+        build = self.create_build(project, result=Result.failed, target='D1', label='Some sweet diff')
+        job = self.create_job(build=build, result=Result.failed)
+        jobphase = self.create_jobphase(job)
+        jobstep_a = self.create_jobstep(jobphase, status=Status.finished, result=Result.failed, label='Step A')
+        jobstep_b = self.create_jobstep(jobphase, status=Status.finished, result=Result.failed, label='Step B')
+
+        db.session.add(FailureReason(step_id=jobstep_a.id, job_id=job.id, build_id=build.id, project_id=project.id,
+                                     reason='missing_tests'))
+        db.session.add(FailureReason(step_id=jobstep_a.id, job_id=job.id, build_id=build.id, project_id=project.id,
+                                     reason='aborted'))
+        db.session.add(FailureReason(step_id=jobstep_b.id, job_id=job.id, build_id=build.id, project_id=project.id,
+                                     reason='aborted'))
+        db.session.commit()
+
+        expected_data = defaultdict(list)
+        expected_data[jobstep_a.id] = ['aborted', 'missing_tests']
+        expected_data[jobstep_b.id] = ['aborted']
+        self.assertEquals(_get_job_failure_reasons_by_jobstep(job), expected_data)
+
+    @mock.patch('changes.listeners.analytics_notifier.post_analytics_data')
+    def test_failed_job(self, post_fn):
+        URL = "https://analytics.example.com/report?source=changes_jobstep"
+        self._set_config_url(build_url=None, jobstep_url=URL)
+        project = self.create_project(name='test', slug='project-slug')
+        self.assertEquals(post_fn.call_count, 0)
+        duration = 1234
+        created = 1424998888
+        started = created + 10
+        finished = started + duration
+
+        build = self.create_build(project, result=Result.failed, target='D1',
+                                  label='Some sweet diff', duration=duration,
+                                  date_created=ts_to_datetime(created), date_started=ts_to_datetime(started),
+                                  date_finished=ts_to_datetime(finished))
+        job = self.create_job(build=build, result=Result.failed)
+        jobphase = self.create_jobphase(job)
+        node = self.create_node()
+        jobstep = self.create_jobstep(jobphase, status=Status.finished, result=Result.failed,
+                                      label='Step 1',
+                                      date_created=ts_to_datetime(created),
+                                      date_started=ts_to_datetime(started),
+                                      date_finished=ts_to_datetime(finished),
+                                      node_id=node.id)
+        db.session.add(FailureReason(step_id=jobstep.id, job_id=job.id, build_id=build.id, project_id=project.id,
+                                     reason='missing_tests'))
+        db.session.add(FailureReason(step_id=jobstep.id, job_id=job.id, build_id=build.id, project_id=project.id,
+                                     reason='aborted'))
+        db.session.commit()
+
+        with mock.patch('changes.listeners.analytics_notifier._get_job_failure_reasons_by_jobstep') as mock_get_failures:
+            mock_get_failures.return_value = defaultdict(list)
+            mock_get_failures.return_value[jobstep.id] = ['aborted', 'missing_tests']
+            job_finished_handler(job_id=job.id.hex)
+
+        expected_data = {
+            'jobstep_id': jobstep.id.hex,
+            'phase_id': jobphase.id.hex,
+            'build_id': build.id.hex,
+            'job_id': job.id.hex,
+            'result': 'Failed',
+            'label': 'Step 1',
+            'data': {},
+            'date_created': created,
+            'date_started': started,
+            'date_finished': finished,
+            'failure_reasons': ['aborted', 'missing_tests'],
+            'log_categories': [],
+        }
+        post_fn.assert_called_once_with(URL, [expected_data])
+
+    @mock.patch('changes.listeners.analytics_notifier.post_analytics_data')
+    def test_success_job(self, post_fn):
+        URL = "https://analytics.example.com/report?source=changes_jobstep"
+        self._set_config_url(build_url=None, jobstep_url=URL)
+        project = self.create_project(name='test', slug='project-slug')
+        self.assertEquals(post_fn.call_count, 0)
+        duration = 1234
+        created = 1424998888
+        started = created + 10
+        finished = started + duration
+
+        build = self.create_build(project, result=Result.passed, target='D1',
+                                  label='Some sweet diff', duration=duration,
+                                  date_created=ts_to_datetime(created), date_started=ts_to_datetime(started),
+                                  date_finished=ts_to_datetime(finished))
+        job = self.create_job(build=build, result=Result.failed)
+        jobphase = self.create_jobphase(job)
+        node = self.create_node()
+        jobstep = self.create_jobstep(jobphase, status=Status.finished, result=Result.passed,
+                                      label='Step 1',
+                                      date_created=ts_to_datetime(created),
+                                      date_started=ts_to_datetime(started),
+                                      date_finished=ts_to_datetime(finished),
+                                      node_id=node.id)
+
+        with mock.patch('changes.listeners.analytics_notifier._get_job_failure_reasons_by_jobstep') as mock_get_failures:
+            mock_get_failures.return_value = defaultdict(list)
+            job_finished_handler(job_id=job.id.hex)
+
+        expected_data = {
+            'jobstep_id': jobstep.id.hex,
+            'phase_id': jobphase.id.hex,
+            'build_id': build.id.hex,
+            'job_id': job.id.hex,
+            'result': 'Passed',
+            'label': 'Step 1',
+            'data': {},
+            'date_created': created,
+            'date_started': started,
+            'date_finished': finished,
+            'failure_reasons': [],
+            'log_categories': [],
+        }
+        post_fn.assert_called_once_with(URL, [expected_data])
