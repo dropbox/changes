@@ -23,28 +23,28 @@
             and then passed when re-run.
         </p>
 
-        <table class="grid-list">
+        <table class="grid-list flaky-test-table">
             <thead>
                 <tr class="grid-list-header">
-                    <th>Test</th>
-                    <th class="column">History</th>
-                    <th class="column">Flaky runs<br />(% of passing runs)</th>
+                    <th class="flaky-test-col-name">Test</th>
+                    <th class="column flaky-test-col-history">History</th>
+                    <th class="column flaky-test-col-runs">Flaky runs<br />(% of passing runs)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="test in flakyTests track by test.hash">
-                    <td>
+                    <td class="flaky-test-col-name">
                         <a ui-sref="test_details({project_id: test.project_id, build_id: test.build_id, job_id: test.job_id, test_id: test.id})">{{test.name}}</a><br />
-                        <small ng-if="test.package">{{test.package}}</small>
+                        <small ng-if="test.package" class="flaky-test-package">{{test.package}}</small>
                     </td>
-                    <td class="column">
+                    <td class="column flaky-test-col-history">
                         <barchart
-                            class="test-item-barchart"
+                            class="flaky-test-barchart"
                             data="test.chartData.data"
                             options="test.chartData.options">
                         </barchart>
                     </td>
-                    <td class="column">
+                    <td class="column flaky-test-col-runs">
                         {{test.flaky_runs}}
                         ({{(100*test.flaky_runs/test.passing_runs).toFixed(2)}}%)
                     </td>

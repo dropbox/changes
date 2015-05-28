@@ -1590,19 +1590,39 @@ d3barchart {
   overflow: hidden;
 }
 
-.test-item-barchart {
+.flaky-test-table {
+    table-layout: fixed;
+}
+
+.flaky-test-col-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.flaky-test-package {
+    font-size: 75%;
+}
+
+.flaky-test-table .flaky-test-col-history {
+    width: 320px;
+}
+.flaky-test-barchart {
     display: block;
     height: 30px;
     text-align: left;
-    width: 600px;
+    width: 300px;
 }
-.test-item-barchart > .barchart {
+.flaky-test-barchart > .barchart {
     border: 0;
     height: 100%;
     margin: 0;
 }
-.test-item-barchart > .barchart > li {
+.flaky-test-barchart > .barchart > li {
     border: 0;
+}
+
+.flaky-test-table .flaky-test-col-runs {
+    width: 150px;
 }
 
 .build-log-container {
