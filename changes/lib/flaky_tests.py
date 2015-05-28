@@ -60,11 +60,11 @@ def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
             'project_name': project_names[rerun.project_id],
             'flaky_runs': reruns,
             'passing_runs': count,
-            'link': build_uri('/projects/{0}/builds/{1}/jobs/{2}/logs/{3}/'.format(
+            'link': build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
                 rerun.project.slug,
                 rerun.job.build.id.hex,
                 rerun.job.id.hex,
-                rerun.step.logsources[0].id.hex)),
+                rerun.id.hex)),
         })
 
     return flaky_list
