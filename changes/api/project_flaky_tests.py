@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from datetime import date, datetime, timedelta
 from flask.ext.restful import reqparse
 from sqlalchemy.sql import func
+from sqlalchemy import and_
 
 from changes.api.base import APIView
 from changes.config import db
@@ -115,7 +116,11 @@ class ProjectFlakyTestsAPIView(APIView):
             func.coalesce(func.sum(FlakyTestStat.flaky_runs), 0),
             func.coalesce(func.sum(FlakyTestStat.passing_runs), 0)
         ).outerjoin(
-            FlakyTestStat, calendar.c.day == FlakyTestStat.date
+            FlakyTestStat,
+            and_(
+                calendar.c.day == FlakyTestStat.date,
+                FlakyTestStat.project_id == project_id
+            )
         ).order_by(
             calendar.c.day.desc()
         ).group_by(
