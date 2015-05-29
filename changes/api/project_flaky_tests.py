@@ -59,7 +59,8 @@ class ProjectFlakyTestsAPIView(APIView):
                 'job_id': test_run.job_id,
                 'build_id': test_run.job.build_id,
                 'project_id': test_run.project_id,
-                'name': test_run.short_name,
+                'name': flaky_test.name,
+                'short_name': test_run.short_name,
                 'package': test_run.package,
                 'hash': test_run.name_sha,
                 'flaky_runs': flaky_test.flaky_runs,
@@ -71,7 +72,7 @@ class ProjectFlakyTestsAPIView(APIView):
             history_query = subquery.filter(
                 FlakyTestStat.date <= query_date,
                 FlakyTestStat.date > (query_date - timedelta(days=CHART_DATA_LIMIT)),
-                TestCase.name_sha.in_(flaky_map)
+                FlakyTestStat.name.in_([flaky_test['name'] for flaky_test in flaky_map.values()])
             )
 
             # Create dict with keys in range ]today-CHART_DATA_LIMIT, today]
