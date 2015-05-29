@@ -43,13 +43,14 @@ class ProjectFlakyTestsAPIView(APIView):
         subquery = db.session.query(
             FlakyTestStat,
             TestCase
+        ).filter(
+            FlakyTestStat.project_id == project_id
         ).join(
             TestCase
         )
 
         flakytests_query = subquery.filter(
-            FlakyTestStat.date == query_date,
-            FlakyTestStat.project_id == project_id
+            FlakyTestStat.date == query_date
         )
 
         flaky_map = {}
