@@ -149,7 +149,9 @@ def job_finished_handler(job_id, **kwargs):
                 'date_started': maybe_ts(jobstep.date_started),
                 'date_finished': maybe_ts(jobstep.date_finished),
                 'date_created': maybe_ts(jobstep.date_created),
-                'data': jobstep.data,
+                # jobstep.data is a changes.db.types.json.MutableDict.
+                # It is not directly jsonable but its value should be a jsonable dict.
+                'data': jobstep.data.value,
                 'log_categories': sorted(list(tags_by_step[jobstep.id])),
                 'failure_reasons': failure_reasons_by_jobstep[jobstep.id],
                 # TODO: Node? Duration (to match build, for efficiency)?

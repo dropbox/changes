@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import json
+
 from collections import defaultdict
 from datetime import datetime
 
@@ -316,6 +318,7 @@ class AnalyticsNotifierTest(TestCase):
             'log_categories': [],
         }
         post_fn.assert_called_once_with(URL, [expected_data])
+        json.dumps(post_fn.call_args[0][1])
 
     @mock.patch('changes.listeners.analytics_notifier.post_analytics_data')
     def test_success_job(self, post_fn):
@@ -361,3 +364,4 @@ class AnalyticsNotifierTest(TestCase):
             'log_categories': [],
         }
         post_fn.assert_called_once_with(URL, [expected_data])
+        json.dumps(post_fn.call_args[0][1])
