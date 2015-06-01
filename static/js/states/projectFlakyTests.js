@@ -41,6 +41,12 @@ define([
 
             flakyTestsData.flakyTests.map(function(test) {
                 test.chartData = genChartData(test.history);
+
+                // We create an element and get its outerHTML to escape the output.
+                var text = document.createTextNode(test.output);
+                var pre = document.createElement('pre');
+                pre.appendChild(text);
+                test.tooltip = pre.outerHTML;
             });
             $scope.flakyTests = flakyTestsData.flakyTests;
 

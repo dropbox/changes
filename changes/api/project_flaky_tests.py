@@ -66,6 +66,7 @@ class ProjectFlakyTestsAPIView(APIView):
                 'hash': test_run.name_sha,
                 'flaky_runs': flaky_test.flaky_runs,
                 'passing_runs': flaky_test.passing_runs,
+                'output': test_run.message,
                 'history': []
             }
 

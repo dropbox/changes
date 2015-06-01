@@ -38,7 +38,7 @@
             <tbody>
                 <tr ng-repeat="test in flakyTests track by test.hash">
                     <td class="flaky-test-col-name">
-                        <a ui-sref="test_details({project_id: test.project_id, build_id: test.build_id, job_id: test.job_id, test_id: test.id})">{{test.short_name}}</a><br />
+                        <a ui-sref="test_details({project_id: test.project_id, build_id: test.build_id, job_id: test.job_id, test_id: test.id})" tooltip-html-unsafe="{{test.tooltip}}" tooltip-placement="right">{{test.short_name}}</a><br />
                         <small ng-if="test.package" class="flaky-test-package">{{test.package}}</small>
                     </td>
                     <td class="column flaky-test-col-history">

@@ -1599,6 +1599,15 @@ d3barchart {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.flaky-test-col-name .tooltip-inner {
+    max-width: none;
+}
+.flaky-test-col-name .tooltip-inner > pre {
+    background: none;
+    color: inherit;
+    font-size: 90%;
+    text-align: left;
+}
 .flaky-test-package {
     font-size: 75%;
 }
