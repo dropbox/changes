@@ -15,12 +15,16 @@
         class="hidden-xs">
     </barchart>
 
-    <h3>Flaky tests in {{date}}</h3>
+    <h3>Flakiest tests on {{date}}</h3>
 
     <div ng-if="flakyTests.length">
         <p>
             A flaky run for a test is one in which the test failed initially,
             and then passed when re-run.
+        </p>
+
+        <p>
+            We store and show up to 200 flaky tests per day.
         </p>
 
         <table class="grid-list flaky-test-table">
@@ -54,6 +58,7 @@
     </div>
 
     <p ng-if="!flakyTests.length">
-        There were no flaky tests in {{date}}.
+        There were no flaky tests on {{date}}.
+        Click in the graph to see flaky tests on other dates.
     </p>
 </section>
