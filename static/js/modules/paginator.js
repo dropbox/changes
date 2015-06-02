@@ -106,13 +106,17 @@ define(['angular', 'jquery'], function(angular, jQuery) {
       };
 
       Paginator.prototype.loadPreviousPage = function loadPreviousPage() {
-        jQuery(document.body).scrollTop(0);
-        this.loadResults(this.pageLinks.previous);
+        if (this.pageLinks.previous) {
+          jQuery(document.body).scrollTop(0);
+          this.loadResults(this.pageLinks.previous);
+        }
       };
 
       Paginator.prototype.loadNextPage = function loadNextPage() {
-        jQuery(document.body).scrollTop(0);
-        this.loadResults(this.pageLinks.next);
+        if (this.pageLinks.next) {
+          jQuery(document.body).scrollTop(0);
+          this.loadResults(this.pageLinks.next);
+        }
       };
 
       return Paginator;
