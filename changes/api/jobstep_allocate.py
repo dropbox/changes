@@ -93,8 +93,10 @@ class JobStepAllocateAPIView(APIView):
         except KeyError:
             return error('Missing resources attribute')
 
-        total_cpus = int(resources['cpus'])
-        total_mem = int(resources['mem'])  # MB
+        # cpu and mem as 0 are treated by changes-client
+        # as having no enforced limit
+        total_cpus = int(resources.get('cpus', 0))
+        total_mem = int(resources.get('mem', 0))  # MB
 
         with statsreporter.stats().timer('jobstep_allocate'):
             try:
