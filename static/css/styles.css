@@ -1590,6 +1590,22 @@ d3barchart {
   overflow: hidden;
 }
 
+.grg-build-triple {
+    border-bottom: solid 5px #e7e7e7;
+}
+.grg-build-sibling {
+    font-size: 0.8em;
+    opacity: 0.65;
+}
+.build-list .grg-build-sibling .indicator {
+    font-size: 13px;
+    height: 33px;
+    line-height: 33px;
+}
+.build-list .grg-build-sibling h5 {
+    font-size: 12px;
+}
+
 .flaky-test-table {
     table-layout: fixed;
 }

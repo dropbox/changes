@@ -9,6 +9,7 @@ define([
   'use strict';
 
   var PER_PAGE = 50;
+  var GRG_PER_PAGE = 200;
   var MASTER_REPOSITORY = 'master';
   var DEFAULT_REPOSITORY = 'default';
 
@@ -47,10 +48,19 @@ define([
       ensureDefaults: ensureDefaults,
     },
     parent: 'project_details',
-    url: 'commits/?branch',
+    url: 'commits/?branch&grg',
     templateUrl: 'partials/project-commit-list.html',
     controller: function($scope, $http, $state, $stateParams, flash,
                          Collection, CollectionPoller, Paginator, PageTitle, projectData) {
+      $scope.grg = ($stateParams.grg == "true");
+
+      var perPage = PER_PAGE;
+      if ($scope.grg) {
+          perPage = GRG_PER_PAGE;
+      }
+
+      $scope.perPage = perPage;
+
       var chartOptions = {
         linkFormatter: function(item) {
           if (item.build) {
@@ -113,8 +123,10 @@ define([
         }
       };
 
+      $scope.commitList = [];
+
       var collection = new Collection([], {
-        limit: PER_PAGE,
+        limit: perPage,
         transform: function(data) {
           data.subject = getCommitSubject(data);
           return data;
@@ -122,15 +134,33 @@ define([
         equals: function(item, other) {
           return item.repository_id == other.repository_id && item.sha == other.sha;
         },
-        onUpdate: function(value) {
-          $scope.chartData = chartHelpers.getChartData(value, null, chartOptions);
+        onUpdate: function(list) {
+          if ($scope.grg) {
+            var commitList = [];
+            for (var i = 1; i < list.length-1; i++) {
+              var build = list[i].build;
+              var prev_build = list[i+1].build;
+              var next_build = list[i-1].build;
+              if (prev_build && prev_build.result.id == 'passed' &&
+                  build && build.result.id == 'failed' &&
+                  next_build && next_build.result.id == 'passed') {
+                list[i].prev_build = prev_build;
+                list[i].next_build = next_build;
+                commitList.push(list[i]);
+              }
+            }
+            $scope.commitList = commitList;
+          } else {
+            $scope.commitList = collection;
+            $scope.chartData = chartHelpers.getChartData(list, null, chartOptions);
+          }
         }
       });
 
       var poller = new CollectionPoller({
         $scope: $scope,
         collection: collection,
-        endpoint: getEndpoint($stateParams, 25),
+        endpoint: getEndpoint($stateParams, perPage/2),
         shouldUpdate: function(item, existing) {
           if (!item.build) {
             return false;
@@ -145,7 +175,7 @@ define([
         }
       });
 
-      var paginator = new Paginator(getEndpoint($stateParams, PER_PAGE), {
+      var paginator = new Paginator(getEndpoint($stateParams, perPage), {
         collection: collection,
         poller: poller,
         onLoadBegin: function(){
@@ -180,9 +210,11 @@ define([
         $scope.selectedChart = chart;
         $scope.chartData = chartHelpers.getChartData(collection, null, chartOptions);
       };
-      $scope.selectChart('duration');
+      // We don't want to have a chart for G-R-G builds
+      if (!$scope.grg) {
+        $scope.selectChart('duration');
+      }
 
-      $scope.commitList = collection;
       $scope.commitPaginator = paginator;
     },
     onEnter: function($filter, $stateParams, repositoryData) {

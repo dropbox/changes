@@ -11,11 +11,20 @@
                             <span>Create Build</span><br>
                             <small>A page for creating new builds.</small>
                         </a></li>
+                        <li ng-hide="grg"><a ui-sref="project_commits({grg: true})">
+                            <span>Filter G-R-G Builds</span><br>
+                            <small>A page to see only Green-Red-Green builds.</small>
+                        </a></li>
+                        <li ng-show="grg"><a ui-sref="project_commits({grg: false})">
+                            <span>All Builds</span><br>
+                            <small>A page to see all builds.</small>
+                        </a></li>
                     </ul>
                 </nav>
             </div>
         </div>
         <h2 bind-once>
+            <acronym ng-if="grg" title="Green-Red-Green">G-R-G</acronym>
             Builds
             <span ng-if="projectData.repository.branches.length > 0" class="branch-selector"> on
                 <span>
@@ -24,14 +33,14 @@
                     </a>
                     <ul class="dropdown-menu" role="menu">
                         <li><a ui-sref="project_builds({patches_only: null, author: null})"
-                               ui-sref-active="active">All Builds</a></li>
+                               ui-sref-active="active" ng-hide="grg">All Builds</a></li>
                         <li><a ui-sref="project_builds({patches_only: 1, author: null})"
-                               ui-sref-active="active">All Patch Builds</a></li>
+                               ui-sref-active="active" ng-hide="grg">All Patch Builds</a></li>
                         <li><a ui-sref="project_builds({patches_only: null, author: 'me'})"
-                               ui-sref-active="active">My Builds</a></li>
+                               ui-sref-active="active" ng-hide="grg">My Builds</a></li>
                         <li><a ui-sref="project_builds({patches_only: 1, author: 'me'})"
-                               ui-sref-active="active">My Patch Builds</a></li>
-                        <li class="divider"></li>
+                               ui-sref-active="active" ng-hide="grg">My Patch Builds</a></li>
+                        <li class="divider" ng-hide="grg"></li>
                         <li><a ng-repeat="branch_item in projectData.repository.branches" href="#"
                              ui-sref="project_commits({branch: '{{branch_item.name | lowercase}}'})"
                              ui-sref-active="active">
@@ -67,7 +76,15 @@
     <div ng-show="loading" class="loading">
         <div class="spinner-icon spinner-large"></div>
     </div>
-    <table class="build-list">
+    <p ng-if="grg && !loading">
+        <strong ng-show="commitList.length == 0">
+            There are no G-R-G builds in this batch.
+        </strong>
+
+        This page filters G-R-G builds among batches of {{perPage}}
+        commits. Click "Next" button to go to the next batch.
+    </p>
+    <table class="build-list" ng-if="commitList.length > 0">
         <tr class="build-list-header">
             <th>Build</th>
             <th class="duration">Duration</th>
@@ -77,10 +94,19 @@
         </tr>
 
         <tbody ng-repeat-start="commit in commitList"
-               ng-hide="loading">
+                ng-hide="loading"
+                ng-class="{'grg-build-triple': grg}">
+            <tr buildrow="commit.next_build"
+                features="features"
+                ng-if="commit.next_build"
+                class="grg-build-sibling"></tr>
             <tr buildrow="commit.build"
                 features="features"
                 ng-if="commit.build"></tr>
+            <tr buildrow="commit.prev_build"
+                features="features"
+                ng-if="commit.prev_build"
+                class="grg-build-sibling"></tr>
             <tr ng-if="!commit.build">
                 <td class="name">
                     <a class="btn btn-xs indicator" ng-if="commit.sha" ng-click="startBuild(commit)">#Start</a>
