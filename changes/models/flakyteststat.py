@@ -1,9 +1,9 @@
 from uuid import uuid4
 
-from datetime import date
 from sqlalchemy import Column, Date, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
+import datetime
 
 from changes.config import db
 from changes.db.types.guid import GUID
@@ -27,10 +27,11 @@ class FlakyTestStat(db.Model):
     id = Column(GUID, primary_key=True, default=uuid4)
     name = Column(Text, nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
-    date = Column(Date, default=date.today, nullable=False)
+    date = Column(Date, default=datetime.date.today, nullable=False)
     last_flaky_run_id = Column(GUID, ForeignKey('test.id', ondelete="CASCADE"), nullable=False)
     flaky_runs = Column(Integer, default=0, nullable=False)
     passing_runs = Column(Integer, default=0, nullable=False)
+    first_run = Column(Date, default=datetime.date.today, nullable=False)
 
     project = relationship('Project')
     last_flaky_run = relationship('TestCase')

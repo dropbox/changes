@@ -13,8 +13,13 @@ define([
             var genChartData = function(data) {
                 return {
                     data: data.map(function(day) {
+                        var className = 'result-unknown';
+                        if (data.isOverallGraph || day.test_existed) {
+                            className = day.flaky_runs > 0 ? 'result-failed' : 'result-passed';
+                        }
+
                         return {
-                            className: day.flaky_runs > 0 ? 'result-failed' : 'result-passed',
+                            className: className,
                             value: day.flaky_runs,
                             data: day
                         };
@@ -37,6 +42,9 @@ define([
                 };
             };
 
+            // We set isOverallGraph so genChartData can differentiate individual test
+            // history graph from the overall graph
+            flakyTestsData.chartData.isOverallGraph = true;
             $scope.chartData = genChartData(flakyTestsData.chartData);
 
             flakyTestsData.flakyTests.map(function(test) {

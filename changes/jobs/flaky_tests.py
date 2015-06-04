@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from changes.config import db
 from changes.db.utils import try_create
 from changes.lib.flaky_tests import get_flaky_tests
-from changes.models import FlakyTestStat, Project
+from changes.models import FlakyTestStat, Project, TestCase
 import urllib2
 
 
@@ -40,6 +40,15 @@ def aggregate_flaky_tests(day=None, max_flaky_tests=200):
             tests = get_flaky_tests(day, day + timedelta(days=1), [project], max_flaky_tests)
 
             for test in tests:
+                first_run = db.session.query(
+                    TestCase.date_created
+                ).filter(
+                    TestCase.project_id == test['project_id'],
+                    TestCase.name_sha == test['hash']
+                ).order_by(
+                    TestCase.date_created
+                ).limit(1).scalar()
+
                 log_metrics(
                     "flaky_test_reruns",
                     flaky_test_reruns_name=test['name'],
@@ -53,7 +62,8 @@ def aggregate_flaky_tests(day=None, max_flaky_tests=200):
                     'date': day,
                     'last_flaky_run_id': test['id'],
                     'flaky_runs': test['flaky_runs'],
-                    'passing_runs': test['passing_runs']
+                    'passing_runs': test['passing_runs'],
+                    'first_run': first_run
                 })
 
         db.session.commit()
