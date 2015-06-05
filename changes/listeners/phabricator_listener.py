@@ -2,18 +2,25 @@ import logging
 import time
 import hashlib
 import json
+import itertools
+
 from changes.models.job import Job
 from changes.models.test import TestCase
+
 import requests
 import urllib
 
 from flask import current_app
 
 from changes.config import db
-from changes.constants import Result
+from changes.constants import Result, Status
+from changes.db.utils import try_create
+from changes.lib import build_context_lib
 from changes.models import Build, ProjectOption, Source
+from changes.models.event import Event, EventType
 from changes.utils.http import build_uri
 from sqlalchemy.orm import joinedload
+
 
 logger = logging.getLogger('phabricator-listener')
 
@@ -80,6 +87,17 @@ def post_diff_comment(diff_id, comment):
     comment_resp.raise_for_status()
 
 
+def _comment_posted_for_collection_of_build(build):
+    event = try_create(Event, where={
+        'type': EventType.phabricator_comment,
+        'item_id': build.collection_id,
+        'data': {
+            'triggering_build_id': build.id.hex,
+        }
+    })
+    return not event
+
+
 def build_finished_handler(build_id, **kwargs):
     build = Build.query.get(build_id)
     if build is None:
@@ -95,14 +113,34 @@ def build_finished_handler(build_id, **kwargs):
     if options.get('phabricator.notify', '0') != '1':
         return
 
-    result_image = ''
-    if build.result == Result.passed:
+    builds = list(
+        Build.query.filter(Build.collection_id == build.collection_id))
+
+    # Exit if there are no builds for the given build_id, or any build hasn't
+    # finished.
+    if not builds or any(map(lambda b: b.status != Status.finished, builds)):
+        return
+
+    # if comment has already been posted for this set of builds, don't do anything
+    if _comment_posted_for_collection_of_build(build):
+        return
+
+    context = build_context_lib.get_collection_context(builds)
+
+    message = '\n\n'.join([_get_message_for_build_context(x) for x in context['builds']])
+
+    post_comment(target, message)
+
+
+def _get_message_for_build_context(build_context):
+    build = build_context['build']
+    result = build.result
+    if result == Result.passed:
         result_image = '{icon check, color=green}'
-    elif build.result == Result.failed:
+    elif result == Result.failed:
         result_image = '{icon times, color=red}'
     else:
         result_image = '{icon question, color=orange}'
-
     safe_slug = urllib.quote_plus(build.project.slug)
     message = u'{project} build {result} {image} ([results]({link})).'.format(
         project=build.project.name,
@@ -111,22 +149,13 @@ def build_finished_handler(build_id, **kwargs):
         link=build_uri('/projects/{0}/builds/{1}/'.format(safe_slug, build.id.hex))
     )
 
-    jobs = list(Job.query.filter(
-        Job.build_id == build_id,
-    ))
-
-    test_failures = TestCase.query.options(
-        joinedload('job', innerjoin=True),
-        ).filter(
-        TestCase.job_id.in_([j.id for j in jobs]),
-        TestCase.result == Result.failed,
-        ).order_by(TestCase.name.asc())
-    num_test_failures = test_failures.count()
+    test_failures = list(itertools.chain(*[j['failing_tests'] for j in build_context['jobs']]))
+    test_failures = [t['test_case'] for t in test_failures]
+    num_test_failures = len(test_failures)
 
     if num_test_failures > 0:
         message += get_test_failure_remarkup(build, test_failures)
-
-    post_comment(target, message)
+    return message
 
 
 def get_test_failures_in_base_commit(build):
@@ -186,7 +215,7 @@ def get_test_failure_remarkup(build, tests):
 
     safe_slug = urllib.quote_plus(build.project.slug)
     message = ' There were {new_failures} new [test failures]({link})'.format(
-        num_failures=tests.count(),
+        num_failures=len(tests),
         new_failures=len(new_failures),
         link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(safe_slug, build.id.hex))
     )

@@ -3,8 +3,9 @@ from __future__ import absolute_import
 from flask import current_app
 
 import mock
+import uuid
 
-from changes.constants import Result
+from changes.constants import Result, Status
 from changes.testutils import TestCase as UnitTestCase
 from changes.listeners.phabricator_listener import build_finished_handler
 from changes.utils.http import build_uri
@@ -19,7 +20,7 @@ class PhabricatorListenerTest(UnitTestCase):
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_no_target(self, get_options, phab):
         project = self.create_project(name='test', slug='test')
-        build = self.create_build(project, result=Result.failed)
+        build = self.create_build(project, result=Result.failed, status=Status.finished)
         build_finished_handler(build_id=build.id.hex)
         self.assertEquals(phab.call_count, 0)
 
@@ -28,7 +29,7 @@ class PhabricatorListenerTest(UnitTestCase):
     def test_blacklisted_project(self, get_options, phab):
         project = self.create_project(name='test', slug='test')
         self.assertEquals(phab.call_count, 0)
-        build = self.create_build(project, result=Result.failed, target='D1')
+        build = self.create_build(project, result=Result.failed, target='D1', status=Status.finished)
         build_finished_handler(build_id=build.id.hex)
         self.assertEquals(phab.call_count, 0)
         get_options.assert_called_once_with(project.id)
@@ -41,7 +42,7 @@ class PhabricatorListenerTest(UnitTestCase):
         }
         project = self.create_project(name='test', slug='project-slug')
         self.assertEquals(phab.call_count, 0)
-        build = self.create_build(project, result=Result.failed, target='D1')
+        build = self.create_build(project, result=Result.failed, target='D1', status=Status.finished)
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
@@ -63,7 +64,7 @@ class PhabricatorListenerTest(UnitTestCase):
         self.assertEquals(phab.call_count, 0)
         patch = self.create_patch()
         source = self.create_source(project, revision_sha='1235', patch=patch)
-        build = self.create_build(project, result=Result.failed, target='D1', source=source)
+        build = self.create_build(project, result=Result.failed, target='D1', source=source, status=Status.finished)
         job = self.create_job(build=build)
         testcase = self.create_test(
             package='test.group.ClassName',
@@ -108,7 +109,7 @@ class PhabricatorListenerTest(UnitTestCase):
         self.assertEquals(phab.call_count, 0)
         patch = self.create_patch()
         source = self.create_source(project, revision_sha='1235', patch=patch)
-        build = self.create_build(project, result=Result.failed, target='D1', source=source)
+        build = self.create_build(project, result=Result.failed, target='D1', source=source, status=Status.finished)
         job = self.create_job(build=build)
         testcase = self.create_test(
             package='test.group.ClassName',
@@ -145,6 +146,61 @@ class PhabricatorListenerTest(UnitTestCase):
 
     @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
+    def test_multiple_builds(self, get_options, phab):
+        get_options.return_value = {
+            'phabricator.notify': '1'
+        }
+        project1 = self.create_project(name='Server', slug='project-slug')
+        project2 = self.create_project(name='Server2', slug='project-slug2')
+        self.assertEquals(phab.call_count, 0)
+        collection_id = uuid.uuid4()
+
+        def create_build(result, project):
+            patch = self.create_patch()
+            source = self.create_source(project, revision_sha='1235', patch=patch)
+            build = self.create_build(project, result=result, target='D1', source=source, status=Status.finished, collection_id=collection_id)
+            job = self.create_job(build=build)
+            testcase = self.create_test(
+                package='test.group.ClassName',
+                name='test.group.ClassName.test_foo',
+                job=job,
+                duration=134,
+                result=result,
+                )
+            return build, testcase
+
+        build1, testcase1 = create_build(Result.failed, project1)
+        build2, testcase2 = create_build(Result.passed, project2)
+
+        build_finished_handler(build_id=build1.id.hex)
+
+        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
+            build1.project.slug, build1.id.hex))
+        build2_link = build_uri('/projects/{0}/builds/{1}/'.format(
+            build2.project.slug, build2.id.hex))
+        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
+            build1.project.slug, build1.id.hex))
+
+        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
+            build1.project.slug,
+            build1.id.hex,
+            testcase1.job_id.hex,
+            testcase1.id.hex
+        ))
+        test_desc = "[test_foo](%s)" % test_link
+        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
+
+**New failures (1):**
+|Test Name | Package|
+|--|--|
+|{2}|test.group.ClassName|
+
+Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
+
+        phab.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc, build2_link))
+
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_slug_escape(self, get_options, phab):
         get_options.return_value = {
             'phabricator.notify': '1'
@@ -153,7 +209,7 @@ class PhabricatorListenerTest(UnitTestCase):
         self.assertEquals(phab.call_count, 0)
         patch = self.create_patch()
         source = self.create_source(project, revision_sha='1235', patch=patch)
-        build = self.create_build(project, result=Result.passed, target='D1', source=source)
+        build = self.create_build(project, result=Result.passed, target='D1', source=source, status=Status.finished)
         job = self.create_job(build=build)
         testcase = self.create_test(
             package='test.group.ClassName',

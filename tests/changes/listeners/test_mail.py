@@ -11,27 +11,6 @@ from changes.listeners.mail import filter_recipients, MailNotificationHandler
 from changes.testutils.cases import TestCase
 
 
-class MailNotificationHandlerTestCase(TestCase):
-    def test_get_subject(self):
-        handler = MailNotificationHandler()
-
-        self.assertEqual(
-            'D123 passed - My \u00fcnicode diff',
-            handler.get_subject('D123', 'My \u00fcnicode diff', Result.passed),
-        )
-
-        self.assertEqual(
-            'Build passed - My \u00fcnicode diff',
-            handler.get_subject(None, 'My \u00fcnicode diff', Result.passed),
-        )
-
-        self.assertEqual(
-            'Build passed - My \u00fcnicode diff...',
-            handler.get_subject(
-                None, 'My \u00fcnicode diff\nwith many lines', Result.passed),
-        )
-
-
 class FilterRecipientsTestCase(TestCase):
     def test_simple(self):
         results = filter_recipients(
@@ -164,8 +143,7 @@ class SendTestCase(TestCase):
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
 
         handler = MailNotificationHandler()
-        context = handler.get_collection_context([build])
-        msg = handler.get_msg(context)
+        msg = handler.get_msg([build])
         handler.send(msg, build)
 
         assert len(self.outbox) == 1
@@ -219,8 +197,7 @@ class SendTestCase(TestCase):
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
 
         handler = MailNotificationHandler()
-        context = handler.get_collection_context([build])
-        msg = handler.get_msg(context)
+        msg = handler.get_msg([build])
         handler.send(msg, build)
 
         assert len(self.outbox) == 1
@@ -276,8 +253,7 @@ class SendTestCase(TestCase):
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
 
         handler = MailNotificationHandler()
-        context = handler.get_collection_context([build])
-        msg = handler.get_msg(context)
+        msg = handler.get_msg([build])
         handler.send(msg, build)
 
         assert len(self.outbox) == 1
@@ -395,47 +371,3 @@ class GetBuildOptionsTestCase(TestCase):
             'mail.notify-addresses-revisions': set(),
             'mail.notify-author': True,
         }
-
-
-class GetLogClippingTestCase(TestCase):
-    def test_simple(self):
-        project = self.create_project()
-        build = self.create_build(project)
-        job = self.create_job(build)
-
-        logsource = LogSource(
-            project=project,
-            job=job,
-            name='console',
-        )
-        db.session.add(logsource)
-
-        logchunk = LogChunk(
-            project=project,
-            job=job,
-            source=logsource,
-            offset=0,
-            size=11,
-            text='hello\nworld\n',
-        )
-        db.session.add(logchunk)
-        logchunk = LogChunk(
-            project=project,
-            job=job,
-            source=logsource,
-            offset=11,
-            size=11,
-            text='hello\nworld\n',
-        )
-        db.session.add(logchunk)
-        db.session.commit()
-
-        handler = MailNotificationHandler()
-        result = handler.get_log_clipping(logsource, max_size=200, max_lines=3)
-        assert result == "world\r\nhello\r\nworld"
-
-        result = handler.get_log_clipping(logsource, max_size=200, max_lines=1)
-        assert result == "world"
-
-        result = handler.get_log_clipping(logsource, max_size=5, max_lines=3)
-        assert result == "world"

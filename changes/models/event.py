@@ -16,6 +16,7 @@ class EventType(object):
     email = 'email_notification'
     green_build = 'green_build_notification'
     aborted_build = 'aborted_build'
+    phabricator_comment = 'phabricator_comment_notification'
 
 
 class Event(db.Model):
