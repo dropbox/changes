@@ -52,6 +52,7 @@ install-requirements:
 	pip install -e . --use-mirrors --allow-external=argparse
 
 install-test-requirements: install-requirements
+	pip install setuptools==17.0
 	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
 
 test: lint test-python test-js
