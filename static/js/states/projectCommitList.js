@@ -135,9 +135,36 @@ define([
           return item.repository_id == other.repository_id && item.sha == other.sha;
         },
         onUpdate: function(list) {
+          var i;
+
+          if (list.length) {
+            var startDate, endDate;
+
+            for (i = 0; i < list.length; i++) {
+              if (list[i].build) {
+                endDate = new Date(list[i].build.dateCreated);
+                break;
+              }
+            }
+
+            for (i = list.length-1; i >= 0; i--) {
+              if (list[i].build) {
+                startDate = new Date(list[i].build.dateCreated);
+                break;
+              }
+            }
+
+            if (startDate && endDate) {
+                $scope.startDate = moment(startDate).format('llll');
+                $scope.endDate = moment(endDate).format('llll');
+                $scope.intervalHours =
+                  Math.round((endDate.getTime() - startDate.getTime()) / (60*60));
+            }
+          }
+
           if ($scope.grg) {
             var commitList = [];
-            for (var i = 1; i < list.length-1; i++) {
+            for (i = 1; i < list.length-1; i++) {
               var build = list[i].build;
               var prev_build = list[i+1].build;
               var next_build = list[i-1].build;

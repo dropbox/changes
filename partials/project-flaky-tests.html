@@ -17,14 +17,16 @@
 
     <h3>Flakiest tests on {{date}}</h3>
 
+    <p>
+        A test is called flaky if its first run failed, but some of its reruns passed.
+        The goal of this page is to show the flakiest tests of this project so engineers
+        can investigate why they are flaky and fix them.
+    </p>
+
     <div ng-if="flakyTests.length">
         <p>
-            A flaky run for a test is one in which the test failed initially,
-            and then passed when re-run.
-        </p>
-
-        <p>
             We store and show up to 200 flaky tests per day.
+            Click in the graph to see flaky tests on other dates.
         </p>
 
         <table class="grid-list flaky-test-table">
