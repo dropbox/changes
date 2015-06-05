@@ -36,7 +36,8 @@ define([
                             }
                             return '<h5>' + item.date + '</h5>' +
                                 '<p>Flaky runs: ' + item.flaky_runs +
-                                ' (' + ratio + '% of passing runs)</p>';
+                                ' (' + ratio + '% of passing runs)<br />' +
+                                'Double flakes: ' + item.double_reruns + '</p>';
                         }
                      }
                 };

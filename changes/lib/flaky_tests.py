@@ -27,6 +27,7 @@ def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
         TestCase.name_sha,
         TestCase.project_id,
         func.sum(case([(TestCase.reruns > 0, 1)], else_=0)).label('reruns'),
+        func.sum(case([(TestCase.reruns > 1, 1)], else_=0)).label('double_reruns'),
         func.count('*').label('count')
     ).group_by(
         TestCase.name_sha,
@@ -38,7 +39,7 @@ def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
     project_names = {p.id: p.name for p in projects}
 
     flaky_list = []
-    for name_sha, project_id, reruns, count in flaky_test_queryset:
+    for name_sha, project_id, reruns, double_reruns, count in flaky_test_queryset:
         if reruns == 0:
             continue
 
@@ -59,6 +60,7 @@ def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
             'project_id': rerun.project_id,
             'project_name': project_names[rerun.project_id],
             'flaky_runs': reruns,
+            'double_reruns': double_reruns,
             'passing_runs': count,
             'link': build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
                 rerun.project.slug,

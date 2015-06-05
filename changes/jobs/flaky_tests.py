@@ -62,6 +62,7 @@ def aggregate_flaky_tests(day=None, max_flaky_tests=200):
                     'date': day,
                     'last_flaky_run_id': test['id'],
                     'flaky_runs': test['flaky_runs'],
+                    'double_reruns': test['double_reruns'],
                     'passing_runs': test['passing_runs'],
                     'first_run': first_run
                 })

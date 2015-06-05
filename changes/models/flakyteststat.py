@@ -30,6 +30,7 @@ class FlakyTestStat(db.Model):
     date = Column(Date, default=datetime.date.today, nullable=False)
     last_flaky_run_id = Column(GUID, ForeignKey('test.id', ondelete="CASCADE"), nullable=False)
     flaky_runs = Column(Integer, default=0, nullable=False)
+    double_reruns = Column(Integer, default=0, nullable=False)
     passing_runs = Column(Integer, default=0, nullable=False)
     first_run = Column(Date, default=datetime.date.today, nullable=False)
 

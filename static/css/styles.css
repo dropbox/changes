@@ -1646,6 +1646,10 @@ d3barchart {
     border: 0;
 }
 
+.flaky-test-table .flaky-test-col-double-reruns {
+    width: 100px;
+}
+
 .flaky-test-table .flaky-test-col-runs {
     width: 150px;
 }

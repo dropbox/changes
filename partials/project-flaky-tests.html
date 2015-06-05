@@ -32,6 +32,7 @@
                 <tr class="grid-list-header">
                     <th class="flaky-test-col-name">Test</th>
                     <th class="column flaky-test-col-history">History</th>
+                    <th class="column flaky-test-col-double-reruns">Double flakes</th>
                     <th class="column flaky-test-col-runs">Flaky runs<br />(% of passing runs)</th>
                 </tr>
             </thead>
@@ -47,6 +48,9 @@
                             data="test.chartData.data"
                             options="test.chartData.options">
                         </barchart>
+                    </td>
+                    <td class="column flaky-test-col-double-reruns">
+                        {{test.double_reruns}}
                     </td>
                     <td class="column flaky-test-col-runs">
                         {{test.flaky_runs}}

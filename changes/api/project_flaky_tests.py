@@ -65,6 +65,7 @@ class ProjectFlakyTestsAPIView(APIView):
                 'package': test_run.package,
                 'hash': test_run.name_sha,
                 'flaky_runs': flaky_test.flaky_runs,
+                'double_reruns': flaky_test.double_reruns,
                 'passing_runs': flaky_test.passing_runs,
                 'first_run': str(flaky_test.first_run),
                 'output': test_run.message,
@@ -89,6 +90,7 @@ class ProjectFlakyTestsAPIView(APIView):
                 history[str(flaky_test.date)][test_run.name_sha] = {
                     'date': str(flaky_test.date),
                     'flaky_runs': flaky_test.flaky_runs,
+                    'double_reruns': flaky_test.double_reruns,
                     'passing_runs': flaky_test.passing_runs,
                     'test_existed': True
                 }
@@ -100,6 +102,7 @@ class ProjectFlakyTestsAPIView(APIView):
                     default_data = {
                         'date': day,
                         'flaky_runs': 0,
+                        'double_reruns': 0,
                         'passing_runs': 0,
                         'test_existed': test_existed
                     }
@@ -120,6 +123,7 @@ class ProjectFlakyTestsAPIView(APIView):
         historical_data = db.session.query(
             calendar.c.day,
             func.coalesce(func.sum(FlakyTestStat.flaky_runs), 0),
+            func.coalesce(func.sum(FlakyTestStat.double_reruns), 0),
             func.coalesce(func.sum(FlakyTestStat.passing_runs), 0)
         ).outerjoin(
             FlakyTestStat,
@@ -134,10 +138,11 @@ class ProjectFlakyTestsAPIView(APIView):
         )
 
         chart_data = []
-        for d, flaky_runs, passing_runs in historical_data:
+        for d, flaky_runs, double_reruns, passing_runs in historical_data:
             chart_data.append({
                 'date': str(d.date()),
                 'flaky_runs': flaky_runs,
+                'double_reruns': double_reruns,
                 'passing_runs': passing_runs
             })
 
