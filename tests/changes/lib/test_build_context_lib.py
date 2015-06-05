@@ -1,12 +1,8 @@
 from datetime import datetime
 
-import mock
-
 from changes.config import db
 from changes.constants import Result
 from changes.models.log import LogSource, LogChunk
-from changes.models.option import ItemOption
-from changes.models.project import ProjectOption
 from changes.lib import build_context_lib
 from changes.testutils.cases import TestCase
 

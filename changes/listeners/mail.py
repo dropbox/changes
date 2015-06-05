@@ -10,7 +10,6 @@ from flask import current_app, render_template
 from flask_mail import Message, sanitize_address
 from jinja2 import Markup
 
-from changes.api.build_details import get_parents_last_builds
 from changes.config import db, mail
 from changes.constants import Result, Status
 from changes.db.utils import try_create
@@ -18,11 +17,7 @@ from changes.lib import build_context_lib
 from changes.models.event import Event, EventType
 from changes.models.build import Build
 from changes.models.job import Job
-from changes.models.jobstep import JobStep
-from changes.models.log import LogSource, LogChunk
 from changes.models.project import ProjectOption
-from changes.models.test import TestCase
-from changes.utils.http import build_uri
 
 
 def filter_recipients(email_list, domain_whitelist=None):
@@ -70,6 +65,8 @@ class MailNotificationHandler(object):
 
     def get_msg(self, builds):
         context = build_context_lib.get_collection_context(builds)
+        if context['result'] == Result.passed:
+            return None
         recipients = self.get_collection_recipients(context)
 
         msg = Message(context['title'], recipients=recipients, extra_headers={
@@ -223,5 +220,5 @@ def build_finished_handler(build_id, *args, **kwargs):
     notification_handler = MailNotificationHandler()
     msg = notification_handler.get_msg(builds)
 
-    if context['result'] != Result.passed:
+    if msg is not None:
         notification_handler.send(msg, build)

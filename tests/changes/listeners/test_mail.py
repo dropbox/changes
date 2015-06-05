@@ -3,11 +3,10 @@ from datetime import datetime
 import mock
 
 from changes.config import db
-from changes.constants import Result
-from changes.models.log import LogSource, LogChunk
+from changes.constants import Result, Status
 from changes.models.option import ItemOption
 from changes.models.project import ProjectOption
-from changes.listeners.mail import filter_recipients, MailNotificationHandler
+from changes.listeners.mail import filter_recipients, MailNotificationHandler, build_finished_handler
 from changes.testutils.cases import TestCase
 
 
@@ -123,6 +122,7 @@ class SendTestCase(TestCase):
             label='Test diff',
             date_started=datetime.utcnow(),
             result=Result.failed,
+            status=Status.finished
         )
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
@@ -142,9 +142,7 @@ class SendTestCase(TestCase):
 
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
 
-        handler = MailNotificationHandler()
-        msg = handler.get_msg([build])
-        handler.send(msg, build)
+        build_finished_handler(build.id)
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
@@ -177,6 +175,7 @@ class SendTestCase(TestCase):
             label='Test diff',
             date_started=datetime.utcnow(),
             result=Result.failed,
+            status=Status.finished
         )
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
@@ -196,9 +195,7 @@ class SendTestCase(TestCase):
 
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
 
-        handler = MailNotificationHandler()
-        msg = handler.get_msg([build])
-        handler.send(msg, build)
+        build_finished_handler(build.id)
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]
@@ -222,6 +219,7 @@ class SendTestCase(TestCase):
             project,
             date_started=datetime.utcnow(),
             result=Result.failed,
+            status=Status.finished
         )
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
@@ -252,9 +250,7 @@ class SendTestCase(TestCase):
 
         get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
 
-        handler = MailNotificationHandler()
-        msg = handler.get_msg([build])
-        handler.send(msg, build)
+        build_finished_handler(build.id)
 
         assert len(self.outbox) == 1
         msg = self.outbox[0]

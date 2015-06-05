@@ -1,13 +1,10 @@
 from itertools import imap
-from changes.models.jobplan import JobPlan
 
 from changes.api.build_details import get_parents_last_builds
-from changes.config import db, mail
 from changes.constants import Result
 from changes.models.job import Job
 from changes.models.jobstep import JobStep
 from changes.models.log import LogSource, LogChunk
-from changes.models.project import ProjectOption
 from changes.models.test import TestCase
 from changes.utils.http import build_uri
 
