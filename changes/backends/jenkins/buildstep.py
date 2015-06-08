@@ -89,13 +89,19 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
     def __init__(self, job_name, script, cluster, diff_cluster='', path='',
-                 workspace='', reset_script='', **kwargs):
+                 workspace='', reset_script='', build_type='legacy', **kwargs):
+        """
+        build_type describes how to use changes-client, but 'legacy'
+        defaults to not using it at all. See configuration file
+        for more details [CHANGES_CLIENT_BUILD_TYPES]
+        """
         self.script = script
         self.reset_script = reset_script
         self.cluster = cluster
         self.diff_cluster = diff_cluster
         self.path = path
         self.workspace = workspace
+        self.build_type = build_type
 
         super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, **kwargs)
 
@@ -108,5 +114,6 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'path': self.path,
             'workspace': self.workspace,
             'diff_cluster': self.diff_cluster,
+            'build_type': self.build_type
         })
         return options

@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 
+from flask import current_app
+
 from uuid import uuid4
 
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
+from changes.config import db
 from .test_builder import BaseTestCase
 
 
@@ -14,7 +17,24 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         'script': 'py.test',
         'cluster': 'default',
         'diff_cluster': 'diff_cluster',
+        'build_type': 'test_harness'
     }
+
+    def setUp(self):
+        super(JenkinsGenericBuilderTest, self).setUp()
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['test_harness'] = {
+            'use_client': True,
+            'adapter': 'basic',
+            'jenkins-command': 'command',
+            'commands': [
+                {'script': 'script1'},
+                {'script': 'script2'}
+            ]
+        }
+
+    def tearDown(self):
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES'].pop('test_harness', None)
+        super(JenkinsGenericBuilderTest, self).tearDown()
 
     def test_get_job_parameters(self):
         project = self.create_project()
@@ -40,6 +60,24 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'WORK_PATH', 'value': ''} in result
         assert {'name': 'C_WORKSPACE', 'value': ''} in result
         assert {'name': 'RESET_SCRIPT', 'value': ''} in result
+
+    def test_commands(self):
+        builder = self.get_builder()
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        params = builder.get_job_parameters(job, jobstep.id.hex, path='foo')
+        builder.create_commands(jobstep, params)
+        db.session.commit()
+
+        assert len(jobstep.commands) == 2
+        assert jobstep.commands[0].script == 'script1'
+        assert jobstep.commands[1].script == 'script2'
+        assert jobstep.commands[0].env == jobstep.commands[1].env
+        assert jobstep.commands[0].env['SCRIPT'] == 'py.test'
 
     def test_get_job_parameters_with_reset_script(self):
         project = self.create_project()

@@ -1006,6 +1006,11 @@ class JenkinsBuilder(BaseBackend):
             status=job.status,
             data=job_data,
         )
+
+        # Hook that allows other builders to add commands for the jobstep
+        # which tells changes-client what to run
+        self.create_commands(step, params)
+
         db.session.commit()
 
         sync_job_step.delay(
@@ -1013,6 +1018,9 @@ class JenkinsBuilder(BaseBackend):
             task_id=step.id.hex,
             parent_task_id=job.id.hex,
         )
+
+    def create_commands(self, step, params):
+        pass
 
     def _streaming_get(self, url, params=None):
         """
