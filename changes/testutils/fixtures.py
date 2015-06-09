@@ -11,7 +11,7 @@ from changes.models import (
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
     RepositoryStatus, User, ItemOption, Command, Snapshot, SnapshotImage,
-    PlanStatus, AdminMessage
+    PlanStatus, AdminMessage, PhabricatorDiff
 )
 from changes.utils.slugs import slugify
 
@@ -205,6 +205,15 @@ class Fixtures(object):
         db.session.commit()
 
         return source
+
+    def create_diff(self, diff_id, **kwargs):
+        diff = PhabricatorDiff(
+            diff_id=diff_id,
+            **kwargs
+        )
+        db.session.add(diff)
+        db.session.commit()
+        return diff
 
     def create_build(self, project, **kwargs):
         if 'source' not in kwargs:
