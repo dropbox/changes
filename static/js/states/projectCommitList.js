@@ -158,7 +158,7 @@ define([
                 $scope.startDate = moment(startDate).format('llll');
                 $scope.endDate = moment(endDate).format('llll');
                 $scope.intervalHours =
-                  Math.round((endDate.getTime() - startDate.getTime()) / (60*60));
+                  Math.round((endDate.getTime() - startDate.getTime()) / (1000*60*60));
             }
           }
 
