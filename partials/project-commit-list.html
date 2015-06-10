@@ -76,17 +76,17 @@
         <div class="spinner-icon spinner-large"></div>
     </div>
     <div ng-if="grg && !loading">
-        <p style="font-weight: bold;">
-            In the {{perPage}} commits between {{startDate}} and {{endDate}}
-            (~{{intervalHours}} hours), there were
-            <span ng-show="commitList.length == 0">
-                no
-            </span>
-            <span ng-show="commitList.length > 0">
-                {{commitList.length}}
-                ({{(100*commitList.length/perPage).toFixed(2)}}%)
-            </span>
-            flaky builds.
+        <p>
+            <strong ng-show="commitList.length == 0">
+                No flaky builds
+            </strong>
+            <strong ng-show="commitList.length > 0">
+                {{commitList.length}} ({{(100*commitList.length/perPage).toFixed(2)}}%) flaky builds
+            </strong>
+            <small>
+                in the {{perPage}} commits between {{startDate}} and {{endDate}}
+                (~{{intervalHours}} hours)
+            </small>
         </p>
 
         <p>
