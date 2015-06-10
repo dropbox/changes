@@ -3,6 +3,10 @@
  * No RequireJS since we directly include this on the template page.
  */
 
+/*
+ * Keeps track of when and how long it takes us to make ajax requests 
+ * and sends that data to a server endpoint for logging.
+ */
 var changesPerf = {
 
   // Keeps track of perf data. Once the page is loaded, we flush the data 
