@@ -9,6 +9,7 @@ define([
     templateUrl: 'partials/layout.html',
     controller: function($scope, $rootScope, $location, $window, authData,
                          projectList, adminMessage, flash, PageTitle) {
+
       PageTitle.set('Changes');
 
       $scope.appVersion = $window.APP_VERSION;
@@ -57,6 +58,19 @@ define([
         flash('error', 'There was an error loading the page you requested :(');
         // this should really be default behavior
         throw error;
+      });
+
+      // hooks for perf logging
+      $rootScope.$on('$stateChangeStart',function(event, toState, toParams, 
+          fromState, fromParams){
+        if ($window.changesPerf) {
+          $window.changesPerf.transitionPageLoadStart();
+        }
+      });
+      $rootScope.$on('$viewContentLoaded', function(event) {
+        if ($window.changesPerf) { 
+          $window.changesPerf.pageLoadEnd();
+        }
       });
 
       $('.navbar .container').show();
