@@ -24,9 +24,11 @@
     "d3-tip": "https://github.com/deciob/d3-tip.git#amd",
     "jquery": "~2.0.3",
     "moment": "~2.1.0",
+    "react": "~0.13.3",
     "requirejs": "~2.1.11",
     "requirejs-babel": "~0.0.6",
-    "typeahead.js": "~0.10.2"
+    "typeahead.js": "~0.10.2",
+    "underscore": "~1.8.3"
   },
   "resolutions": {
     "angular": "1.2.14",

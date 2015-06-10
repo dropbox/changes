@@ -1,4 +1,16 @@
 import re
+import hashlib
+import time
+import json
+import requests
+import logging
+
+from flask import current_app
+
+# eh, just use the same logger as the listener code
+logger = logging.getLogger('phabricator-listener')
+
+# Functions to locally recognize/parse diffusion ids
 
 DIFFUSION_REGEX = re.compile(r'^r[A-Z]+([a-z0-9]+)$')
 
@@ -37,3 +49,74 @@ def get_hash_from_diffusion_iden(text):
     if match is None:
         return None
     return match.group(1)
+
+
+class PhabricatorRequest:
+    """
+    Implements the logic of talking to phabricator. Always call connect first
+    """
+
+    def __init__(self):
+        self.auth_params = None
+
+    def connect(self, force=False):
+        if self.auth_params and not force:
+            raise RuntimeError("already connected to phabricator!")
+
+        self.user = current_app.config.get('PHABRICATOR_USERNAME')
+        self.host = current_app.config.get('PHABRICATOR_HOST')
+        self.cert = current_app.config.get('PHABRICATOR_CERT')
+
+        if not self.cert:
+            logger.error(
+                "Couldn't find phabricator credentials user: %s host: %s cert: %s",
+                self.user, self.host, self.cert)
+            return
+
+        token = int(time.time())
+
+        connect_args = {
+            'authSignature': hashlib.sha1(str(token) + self.cert).hexdigest(),
+            'authToken': token,
+            'client': 'changes-phabricator',
+            'clientVersion': 1,
+            'host': self.host,
+            'user': self.user,
+        }
+
+        connect_url = "%s/api/conduit.connect" % self.host
+        resp = requests.post(connect_url, {
+            '__conduit__': True,
+            'output': 'json',
+            'params': json.dumps(connect_args),
+        })
+        resp.raise_for_status()
+
+        resp = json.loads(resp.content)['result']
+
+        # we're connected. Save connection params
+        self.auth_params = {
+            'connectionID': resp['connectionID'],
+            'sessionKey': resp['sessionKey'],
+        }
+
+    def call(self, method_name, params):
+        if '__conduit__' in params:
+            raise ValueError('phabricator params should not have __conduit__!')
+
+        if not self.auth_params:
+            raise RuntimeError('not connected to phabricator')
+
+        params['__conduit__'] = self.auth_params
+        args = {
+            'params': json.dumps(params),
+            'output': 'json',
+        }
+
+        url = "%s/api/%s" % (self.host, method_name)
+
+        resp = requests.post(url, args)
+        resp.raise_for_status()
+
+        content = json.loads(resp.content)['result']
+        return content

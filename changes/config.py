@@ -342,6 +342,7 @@ def configure_templates(app):
 def configure_api_routes(app):
     from changes.api.auth_index import AuthIndexAPIView
     from changes.api.author_build_index import AuthorBuildIndexAPIView
+    from changes.api.author_diffs import AuthorPhabricatorDiffsAPIView
     from changes.api.build_comment_index import BuildCommentIndexAPIView
     from changes.api.build_details import BuildDetailsAPIView
     from changes.api.build_index import BuildIndexAPIView
@@ -418,6 +419,7 @@ def configure_api_routes(app):
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
     api.add_resource(AuthorBuildIndexAPIView, '/authors/<author_id>/builds/')
+    api.add_resource(AuthorPhabricatorDiffsAPIView, '/authors/<author_id>/diffs/')
     api.add_resource(BuildCommentIndexAPIView, '/builds/<uuid:build_id>/comments/')
     api.add_resource(BuildDetailsAPIView, '/builds/<uuid:build_id>/')
     api.add_resource(BuildMarkSeenAPIView, '/builds/<uuid:build_id>/mark_seen/')
