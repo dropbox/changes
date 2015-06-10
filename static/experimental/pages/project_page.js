@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { TimeText } from 'es6!components/time';
-import { StatusDot } from 'es6!components/status_indicators';
+import { StatusDot, status_dots } from 'es6!components/status_indicators';
 import Grid from 'es6!components/grid';
 import NotLoaded from 'es6!components/not_loaded';
 import { RandomLoadingMessage } from 'es6!components/loading';
@@ -143,7 +143,7 @@ var Commits = React.createClass({
 
   statics: {
     getDataToLoad: function(project_slug) {
-      var endpoint = `/api/0/projects/${project_slug}/commits/?branch=master`;
+      var endpoint = `/api/0/projects/${project_slug}/commits/?branch=master&all_builds=1`;
       return {'commits': endpoint};
     }
   },
@@ -186,7 +186,6 @@ var Commits = React.createClass({
   },
 
   renderTable: function(commits, project_info) {
-    console.log(commits);
     var grid_data = _.map(commits, c => 
       this.turnIntoRow(c, project_info)
     );
@@ -202,16 +201,15 @@ var Commits = React.createClass({
   },
 
   turnIntoRow: function(c, project_info) {
-    var sha_start = c.sha.substr(0,5);
+    var sha_abbr = c.sha.substr(0,5) + '...';
     var message_lines = c.message.split("\n");
     var title = message_lines[0];
 
     // TODO: we want every build associated with a commit, not just one
 
-    var has_result = c.build && c.build.result;
-    var status_dot = null;
-    if (has_result) {
-      status_dot = <StatusDot result={c.build.result.id} />;
+    var build_dots = null;
+    if (c.builds && c.builds.length > 0) {
+      build_dots = status_dots(c.builds);
     }
 
     var author = 'unknown', author_page = null;
@@ -223,19 +221,18 @@ var Commits = React.createClass({
 
     // TODO: just first n characters of sha?
     var commit_page = null;
-    if (c.build) {
+
+    if (c.builds && c.builds.length > 0) {
       var commit_page = '/experimental/project_commit/' +
         project_info.slug + '/' +
-        c.build.source.id;
+        c.builds[0].source.id;
     }
 
     // TODO: if there are any comments, show a comment icon on the right
     return [
-      status_dot,
+      build_dots,
       author_page ? <a href={author_page}>{author}</a> : author,
-      c.build ? 
-        <a href={commit_page}>{sha_start + '...'}</a> 
-        : sha_start + '...',
+      commit_page ? <a href={commit_page}>{sha_abbr}</a> : sha_abbr,
       title,
       <TimeText time={c.dateCreated} />
     ];

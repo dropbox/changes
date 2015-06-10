@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 import itertools
+from collections import defaultdict
 
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, contains_eager
@@ -18,6 +19,7 @@ class ProjectCommitIndexAPIView(APIView):
                             default=50)
     get_parser.add_argument('parent', location='args')
     get_parser.add_argument('branch', location='args')
+    get_parser.add_argument('all_builds', location='args', default=0)
 
     def get(self, project_id):
         project = Project.get(project_id)
@@ -101,16 +103,27 @@ class ProjectCommitIndexAPIView(APIView):
                 Source.patch == None,  # NOQA
             ).order_by(Build.date_created.asc()))
 
-            builds_map = dict(
-                (b.source.revision_sha, d)
-                for b, d in itertools.izip(builds_qs, self.serialize(builds_qs))
-            )
+            if not args.all_builds:
+                # this implicitly only keeps the last build for a revision
+                builds_map = dict(
+                    (b.source.revision_sha, d)
+                    for b, d in itertools.izip(builds_qs, self.serialize(builds_qs))
+                )
+            else:
+                builds_map = defaultdict(list)
+                for b, d in itertools.izip(builds_qs, self.serialize(builds_qs)):
+                    builds_map[b.source.revision_sha].append(d)
+
         else:
             builds_map = {}
 
         results = []
         for result in commits:
-            result['build'] = builds_map.get(result['id'])
+            if args.all_builds:
+                result['builds'] = builds_map.get(result['id'], [])
+            else:
+                result['build'] = builds_map.get(result['id'])
+
             results.append(result)
 
         return self.respond(results, serialize=False, links=page_links)
