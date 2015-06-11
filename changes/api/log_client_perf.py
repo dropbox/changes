@@ -39,7 +39,7 @@ class LogClientPerfAPIView(APIView):
     def post(self):
         perf_stats = request.get_json(True)
 
-        key_prefix = []
+        key_prefix = ['client_perf']
         if current_app.config['DEBUG']:
             key_prefix.append('dev')
         key_prefix.append('initial' if perf_stats['initial'] else 'switch')
