@@ -350,7 +350,7 @@ def _generate_sample_coverage_data(diff):
     line_number = None
     max_line_for_current_file = 0
 
-    # For each file in the diff, generate random coverage info for lines up to 
+    # For each file in the diff, generate random coverage info for lines up to
     # the maximum line present in the diff.
     for line in diff_lines:
         if line.startswith('diff'):
