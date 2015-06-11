@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 from flask import current_app
 
+from copy import deepcopy
+from pytest import raises
 from uuid import uuid4
 
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
@@ -22,8 +24,9 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
     def setUp(self):
         super(JenkinsGenericBuilderTest, self).setUp()
+        self.old_config = deepcopy(current_app.config)
         current_app.config['CHANGES_CLIENT_BUILD_TYPES']['test_harness'] = {
-            'use_client': True,
+            'uses_client': True,
             'adapter': 'basic',
             'jenkins-command': 'command',
             'commands': [
@@ -31,9 +34,25 @@ class JenkinsGenericBuilderTest(BaseTestCase):
                 {'script': 'script2'}
             ]
         }
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['test_harness_invalid_1'] = {
+            'uses_client': True,
+            'jenkins-command': 'command',
+            'commands': [
+                {'script': 'script1'},
+                {'script': 'script2'}
+            ]
+        }
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['test_harness_invalid_2'] = {
+            'uses_client': True,
+            'adapter': 'basic',
+            'commands': [
+                {'script': 'script1'},
+                {'script': 'script2'}
+            ]
+        }
 
     def tearDown(self):
-        current_app.config['CHANGES_CLIENT_BUILD_TYPES'].pop('test_harness', None)
+        current_app.config = self.old_config
         super(JenkinsGenericBuilderTest, self).tearDown()
 
     def test_get_job_parameters(self):
@@ -42,6 +61,8 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         job = self.create_job(build)
 
         builder = self.get_builder()
+        assert builder.build_type == 'test_harness'
+
         changes_bid = '5a9d18bb87ff12835dc844883c5c3ebe'  # arbitrary
 
         result = builder.get_job_parameters(job, changes_bid, path='foo')
@@ -53,7 +74,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'SCRIPT', 'value': self.builder_options['script']} in result
         assert {'name': 'CLUSTER', 'value': self.builder_options['cluster']} in result
         assert {'name': 'WORK_PATH', 'value': 'foo'} in result
-        assert len(result) == 10
+        assert len(result) == 18
 
         # test optional values
         result = builder.get_job_parameters(job, uuid4().hex)
@@ -100,3 +121,19 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         result = builder.get_job_parameters(job, uuid4().hex, path='foo')
         assert {'name': 'CLUSTER', 'value': self.builder_options['diff_cluster']} in result
+
+    def validate_build_type(self, build_type):
+        builder = self.get_builder()
+        build_desc = current_app.config['CHANGES_CLIENT_BUILD_TYPES'][build_type]
+        builder.validate_build_desc(build_type, build_desc)
+
+    def test_valid_build_desc(self):
+        self.validate_build_type("test_harness")
+
+    def test_invalid_build_desc_missing_adapter(self):
+        with raises(ValueError):
+            self.validate_build_type("test_harness_invalid_1")
+
+    def test_invalid_build_desc_missing_jcommand(self):
+        with raises(ValueError):
+            self.validate_build_type("test_harness_invalid_2")

@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 
+from flask import current_app
+
 import mock
 import responses
 
+from copy import deepcopy
 from uuid import UUID
 
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
@@ -21,6 +24,7 @@ class JenkinsCollectorBuilderTest(BaseTestCase):
         'job_name': 'server',
         'script': 'echo hello',
         'cluster': 'server-runner',
+        'build_type': 'legacy'
     }
 
     @responses.activate
@@ -99,16 +103,42 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             script='exit 0',
             cluster='default',
             max_shards=2,
+            collection_build_type='legacy',
+            build_type='legacy_2'
         )
 
     def get_mock_builder(self):
         return mock.Mock(spec=JenkinsGenericBuilder)
+
+    def setUp(self):
+        super(JenkinsTestCollectorBuildStepTest, self).setUp()
+        self.old_config = deepcopy(current_app.config)
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['legacy_2'] = {
+            'uses_client': False}
+
+    def tearDown(self):
+        current_app.config = self.old_config
+        super(JenkinsTestCollectorBuildStepTest, self).tearDown()
 
     def test_get_builder(self):
         builder = self.get_buildstep().get_builder()
         assert builder.job_name == 'foo-bar'
         assert builder.script == 'exit 0'
         assert builder.cluster == 'default'
+
+    def test_collection_build_type(self):
+        step = self.get_buildstep()
+        builder = step.get_builder()
+
+        assert step.build_type == 'legacy'
+        assert builder.build_type == 'legacy'
+
+    def test_shard_build_type(self):
+        step = self.get_buildstep()
+        builder = step.get_builder(build_type=step.shard_build_type)
+
+        assert step.shard_build_type == 'legacy_2'
+        assert builder.build_type == 'legacy_2'
 
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
     def test_default_artifact_handling(self, get_builder):

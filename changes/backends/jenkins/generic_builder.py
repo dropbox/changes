@@ -22,14 +22,13 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         # legacy which sets up no additional configuration.
         self.build_type = kwargs.pop('build_type',
             current_app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE'])
-        self.build_desc = current_app.config['CHANGES_CLIENT_BUILD_TYPES'][self.build_type]
-        if self.build_desc.get('uses_client', False):
-            if 'jenkins-command' not in self.build_desc:
-                raise ValueError('build type %s missing required key: jenkins-command' % self.build_type)
-            if 'adapter' not in self.build_desc:
-                raise ValueError('build type %s missing required key: adapter' % self.build_type)
+        if self.build_type is None:
+            self.build_type = current_app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE']
 
-        self.commands = self.build_desc.get('commands', [])
+        # we do this as early as possible in order to propagate the
+        # error faster. The build description is simply the configuration
+        # key'd by the build_type, documented in config.py
+        self.build_desc = self.load_build_desc(self.build_type)
 
         if not master_urls:
             # if we haven't specified master urls, lets try to take the default
@@ -37,6 +36,20 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             master_urls = current_app.config['JENKINS_CLUSTERS'].get(self.cluster)
 
         super(JenkinsGenericBuilder, self).__init__(master_urls, *args, **kwargs)
+
+    def load_build_desc(self, build_type):
+        build_desc = current_app.config['CHANGES_CLIENT_BUILD_TYPES'][build_type]
+        self.validate_build_desc(build_type, build_desc)
+        return build_desc
+
+    # TODO validate configuration at start of application or use a linter to validate
+    # configuration before pushing/deploying
+    def validate_build_desc(self, build_type, build_desc):
+        if build_desc.get('uses_client', False):
+            if 'jenkins-command' not in build_desc:
+                raise ValueError('[CHANGES_CLIENT_BUILD_TYPES INVALID] build type %s missing required key: jenkins-command' % build_type)
+            if 'adapter' not in build_desc:
+                raise ValueError('[CHANGES_CLIENT_BUILD_TYPES INVALID] build type %s missing required key: adapter' % build_type)
 
     def get_job_parameters(self, job, changes_bid, script=None, path=None):
         params = super(JenkinsGenericBuilder, self).get_job_parameters(
@@ -99,13 +112,15 @@ class JenkinsGenericBuilder(JenkinsBuilder):
     def params_to_env(self, params):
         return {param['name']: param['value'] for param in params}
 
-    def get_future_commands(self, params):
+    def get_future_commands(self, params, commands):
         return map(lambda command: FutureCommand(command['script'],
                                     env=self.params_to_env(params)),
-                   self.commands)
+                   commands)
 
     def create_commands(self, jobstep, params):
+        commands = self.build_desc.get('commands', [])
+
         index = 0
-        for future_command in self.get_future_commands(params):
+        for future_command in self.get_future_commands(params, commands):
             db.session.add(future_command.as_command(jobstep, index))
             index += 1

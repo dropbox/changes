@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from flask import current_app
+
 import heapq
 import logging
 
@@ -63,13 +65,25 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     # TODO(dcramer): longer term we'd rather have this create a new phase which
     # actually executes a different BuildStep (e.g. of order + 1), but at the
     # time of writing the system only supports a single build step.
-    def __init__(self, shards=None, max_shards=10, **kwargs):
+    def __init__(self, shards=None, max_shards=10, collection_build_type=None,
+                 build_type=None, **kwargs):
         # TODO(josiah): migrate existing step configs to use "shards" and remove max_shards
         if shards:
             self.num_shards = shards
         else:
             self.num_shards = max_shards
-        super(JenkinsTestCollectorBuildStep, self).__init__(**kwargs)
+
+        # its fairly normal that the collection script is simple and so LXC is a waste
+        # of time, so we support running the shards and the collector in different
+        # environments
+        self.shard_build_type = build_type
+
+        if self.shard_build_type is None:
+            self.shard_build_type = current_app.config[
+                'CHANGES_CLIENT_DEFAULT_BUILD_TYPE']
+
+        super(JenkinsTestCollectorBuildStep, self).__init__(
+            build_type=collection_build_type, **kwargs)
 
     def get_label(self):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)
@@ -292,7 +306,11 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         if step.data.get('build_no'):
             return
 
-        builder = self.get_builder()
+        # we also have to inject the correct build_type here in order
+        # to generate the correct params and to generate the correct
+        # commands later on
+        builder = self.get_builder(build_type=self.shard_build_type)
+
         params = builder.get_job_parameters(
             step.job,
             changes_bid=step.id.hex,
@@ -311,4 +329,9 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         )
         step.data.update(job_data)
         db.session.add(step)
+
+        # if this build uses changes-client, we need to inject the commands here
+        # because create_job never gets called on it to create them.
+        builder.create_commands(step, params)
+
         db.session.commit()

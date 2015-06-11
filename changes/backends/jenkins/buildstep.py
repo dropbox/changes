@@ -38,8 +38,15 @@ class JenkinsBuildStep(BuildStep):
         self.token = token
         self.auth = auth
 
-    def get_builder(self, app=current_app):
-        return self.builder_cls(app=app, **self.get_builder_options())
+    def get_builder(self, app=current_app, **kwargs):
+        """
+        Any arguments passed in as kwargs will get passed in to the constructor
+        for the builder associated with the buildstep. In particular we use this
+        to override build_type.
+        """
+        args = self.get_builder_options().copy()
+        args.update(kwargs)
+        return self.builder_cls(app=app, **args)
 
     def get_builder_options(self):
         return {
@@ -89,7 +96,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
     def __init__(self, job_name, script, cluster, diff_cluster='', path='',
-                 workspace='', reset_script='', build_type='legacy', **kwargs):
+                 workspace='', reset_script='', build_type=None, **kwargs):
         """
         build_type describes how to use changes-client, but 'legacy'
         defaults to not using it at all. See configuration file
