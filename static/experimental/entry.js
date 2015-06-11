@@ -7,7 +7,7 @@ requirejs.config({
     // mostly just for jquery.ajax
     jquery: "../vendor/jquery/jquery",
     // time library
-    moment: "../vendor/moment/moment",
+    moment: "../vendor/moment/min/moment.min",
     // core libraries we use
     react: '../vendor/react/react-with-addons',
     requirejs: '../vendor/requirejs/require',
