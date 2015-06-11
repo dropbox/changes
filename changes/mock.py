@@ -350,10 +350,13 @@ def _generate_sample_coverage_data(diff):
     line_number = None
     max_line_for_current_file = 0
 
+    # For each file in the diff, generate random coverage info for lines up to 
+    # the maximum line present in the diff.
     for line in diff_lines:
         if line.startswith('diff'):
             if current_file is not None:
-                cov_data[current_file] = _generate_random_coverage_string(max_line_for_current_file)
+                cov_data[current_file] = _generate_random_coverage_string(
+                    max_line_for_current_file)
             max_line_for_current_file = 0
             current_file = None
             line_number = None
@@ -363,14 +366,22 @@ def _generate_sample_coverage_data(diff):
                 current_file = unicode(line[6:])
         elif line.startswith('@@'):
             line_num_info = line.split('+')[1]
-            line_number = int(line_num_info.split(',')[0])
-            additional_lines = int(line_num_info.split(',')[1].split(' ')[0])
-            max_line_for_current_file = line_number + additional_lines
+            line_num_info = line_num_info.replace('@@', '')
+
+            if ',' in line_num_info:
+                line_number = int(line_num_info.split(',')[0])
+                additional_lines = int(line_num_info.split(',')[1])
+                max_line_for_current_file = line_number + additional_lines
+            else:
+                line_number = int(line_num_info)
+                max_line_for_current_file = line_number
+
         else:
             # Just keep truckin...
             pass
 
-    cov_data[current_file] = _generate_random_coverage_string(max_line_for_current_file)
+    cov_data[current_file] = _generate_random_coverage_string(
+        max_line_for_current_file)
     return cov_data
 
 
