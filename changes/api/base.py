@@ -8,6 +8,9 @@ from flask.ext.restful import Resource
 
 from changes.api.serializer import serialize as serialize_func
 from changes.config import db
+from changes.config import statsreporter
+
+from time import time
 
 LINK_HEADER = '<{uri}&page={page}>; rel="{name}"'
 
@@ -77,7 +80,16 @@ class ParamError(APIError):
 
 
 class APIView(Resource):
+
+    def __init__(self, *args, **kwargs):
+        super(APIView, self).__init__(*args, **kwargs)
+
+        self.start_time = 0  # used for logging performance stats
+
     def dispatch_request(self, *args, **kwargs):
+
+        self.start_time = time()
+
         try:
             response = super(APIView, self).dispatch_request(*args, **kwargs)
         except Exception:
@@ -151,9 +163,12 @@ class APIView(Resource):
             mimetype='application/json',
             status=status_code,
         )
-
         if links:
             response.headers['Link'] = ', '.join(links)
+
+        timer_name = "http-method-{}_api-view-class-{}".format(request.method,
+                                                               self.__class__.__name__)
+        statsreporter.stats().log_timing(timer_name, time() - self.start_time)
 
         return response
 
