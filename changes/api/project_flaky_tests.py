@@ -109,7 +109,11 @@ class ProjectFlakyTestsAPIView(APIView):
                     flaky_map[sha]['history'].append(history[day].get(sha, default_data))
 
         flaky_tests = [flaky_map[sha] for sha in flaky_map]
-        return sorted(flaky_tests, key=lambda x: x['flaky_runs'], reverse=True)
+        return sorted(
+            flaky_tests,
+            key=lambda x: (x['double_reruns'], x['flaky_runs']),
+            reverse=True
+        )
 
     def get_chart_data(self, project_id, query_date):
         calendar = db.session.query(
