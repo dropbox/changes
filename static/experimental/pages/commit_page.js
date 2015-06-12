@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 
-import { ChangesPage, ChangesPageHeader } from 'es6!components/page_chrome';
+import ChangesPage from 'es6!components/page_chrome';
 import { fetch_data } from 'es6!utils/data_fetching';
 import NotLoaded from 'es6!components/not_loaded';
 import * as utils from 'es6!utils/utils';
@@ -188,7 +188,6 @@ var CommitPage = React.createClass({
     var icon = <i className="fa fa-caret-right marginLeftS marginRightS" />;
 
     return <ChangesPage bodyPadding={false}>
-      <ChangesPageHeader />
       <div>
         <div style={header_style}>
           <div className="marginBottomM">

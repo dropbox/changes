@@ -3,6 +3,8 @@ import React from 'react';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
+// Two classes: Error, AjaxError
+
 /*
  * Renders a red error box
  */

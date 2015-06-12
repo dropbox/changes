@@ -5,7 +5,7 @@ import Grid from 'es6!components/grid';
 import { StatusDot, status_dots } from 'es6!components/status_indicators';
 import SectionHeader from 'es6!components/section_header';
 import { InlineLoading, RandomLoadingMessage } from 'es6!components/loading';
-import { ChangesPage, ChangesPageHeader } from 'es6!components/page_chrome';
+import ChangesPage from 'es6!components/page_chrome';
 import { TimeText } from 'es6!components/time';
 
 import { fetch_data } from 'es6!utils/data_fetching';
@@ -52,7 +52,6 @@ var HomePage = React.createClass({
     }
 
     return <ChangesPage>
-      <ChangesPageHeader />
       {this.renderContent()}
     </ChangesPage>;
   },
@@ -124,9 +123,6 @@ var Diffs = React.createClass({
     }
 
     // index changes by diff id (e.g. D123511)
-    console.log('dsec');
-    console.log(this.props.diffs);
-    console.log(this.props.changes);
     var changes_by_diff_id = {};
     this.props.changes.forEach(c => {
       if (!c.isCommit) {

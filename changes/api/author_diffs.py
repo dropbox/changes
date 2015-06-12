@@ -18,9 +18,10 @@ class AuthorPhabricatorDiffsAPIView(APIView):
     def get(self, author_id):
         authors = Author.find(author_id, get_current_user())
         if not authors and author_id == 'me':
-            return '', 401
+            return '''Either there is no current user or you are not in the
+              author table''', 401
         elif not authors:
-            return 'no author found', 404
+            return 'author not found', 404
 
         author_email = authors[0].email
         request = PhabricatorRequest()
@@ -37,6 +38,6 @@ class AuthorPhabricatorDiffsAPIView(APIView):
             'status': "status-open"
         })
 
-        diff_info.sort(key=lambda k: -1 * int(k['dateCreated']))
+        diff_info.sort(key=lambda k: -1 * int(k['dateModified']))
 
         return diff_info

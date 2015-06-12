@@ -3,6 +3,8 @@ import React from 'react';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
+// Two classes: Menu1, Menu2
+
 /*
  * Menu 1. Simple, items separated with |.
  * Commits | Every Build | Tests | More Information

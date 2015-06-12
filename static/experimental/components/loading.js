@@ -3,6 +3,8 @@ import React from 'react';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
+// Two classes: RandomLoadingMessage, InlineLoading
+
 // Some playful loading messages
 var loading_messages = [
   'Waiting for them bits',

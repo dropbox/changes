@@ -4,6 +4,8 @@ import Moment from 'moment';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
+// 1 class (TimeText), 1 function (display_duration)
+
 /*
  * Renders times, usually for tables. We do something similar to gmail:
  *  If today: 2:35pm, 11:22am

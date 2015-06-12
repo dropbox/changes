@@ -5,6 +5,8 @@ import * as utils from 'es6!utils/utils';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
+// Two classes: StatusDot, StatusMark
+
 /*
  * Renders a square patch based on build status (passed is green,
  * failed is red, unknown is gray, error/weird is brown.)

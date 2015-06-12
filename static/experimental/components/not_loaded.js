@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AjaxError } from 'es6!components/errors';
-import { RandomLoadingMessage } from 'es6!components/loading';
+import { InlineLoading, RandomLoadingMessage } from 'es6!components/loading';
 
 import * as utils from 'es6!utils/utils';
 
@@ -18,13 +18,24 @@ var NotLoaded = React.createClass({
     // is the status still loading or error?
     loadStatus: proptype.oneOf(['loading', 'error']).isRequired,
     // if error, use this to populate error data
-    errorData: proptype.object
+    errorData: proptype.object,
+    // if true, show InlineLoading instead of RandomLoading
+    isInline: proptype.bool,
+  },
+
+  getDefaultProps: function() {
+    return {
+      isInline: false 
+    }
   },
 
   render: function() {
     var { loadStatus, errorData, ...props} = this.props;
 
     if (loadStatus === 'loading') {
+      if (this.props.isInline) {
+        return <InlineLoading {...props} />;
+      }
       return <RandomLoadingMessage {...props} />;
     } else if (loadStatus === 'error') {
       return <AjaxError {...props} response={errorData.response} />;

@@ -5,7 +5,7 @@ import { StatusDot, status_dots } from 'es6!components/status_indicators';
 import Grid from 'es6!components/grid';
 import NotLoaded from 'es6!components/not_loaded';
 import { RandomLoadingMessage } from 'es6!components/loading';
-import { ChangesPage, ChangesPageHeader } from 'es6!components/page_chrome';
+import ChangesPage from 'es6!components/page_chrome';
 import { Menu1, Menu2 } from 'es6!components/menus';
 
 import { fetch_data } from 'es6!utils/data_fetching';
@@ -105,12 +105,12 @@ var ProjectPage = React.createClass({
       component = <NotLoaded 
         loadStatus={selectedStatus}
         errorData={selectedError}
+        isInline={true}
       />;
     }
 
     var padding_classes = 'paddingLeftM paddingRightM';
     return <ChangesPage bodyPadding={false}>
-      <ChangesPageHeader />
       {this.renderProjectInfo(this.state.projectData)}
       <div className={padding_classes}>
         {menu}
@@ -166,19 +166,21 @@ var Commits = React.createClass({
       */
     return <div style={{marginBottom: 5, marginTop: 10}}>
       <input 
-        placeholder="Search by name or SHA [TODO]"
+        disabled={true}
+        placeholder="Search by name or SHA"
         style={{minWidth: 170, marginRight: 5}}
       />
-      <select>
+      <select disabled={true}>
         <option value="master">Branch: Master</option>
       </select>
       <label style={{float: 'right', paddingTop: 3}}>
-        <span style={{color: '#565656', fontSize: 'small'}}>
+        <span style={/* disabled color */ {color: '#aaa', fontSize: 'small'}}>
           Live update
           <input
             type="checkbox" 
             checked={false}
             className="noRightMargin"
+            disabled={true}
           />
         </span>
       </label>
@@ -261,9 +263,9 @@ var ProjectDetails = React.createClass({
     var markup = _.map(plan, p =>
       <div>
         <b>{p.name}</b><br />
-        Type: {p.steps[0].name}<br />
+        Type: {!_.isEmpty(p.steps) && p.steps[0].name}<br />
         Build Parameters:
-        <pre>{p.steps[0].data}</pre>
+        <pre>{!_.isEmpty(p.steps) && p.steps[0].data}</pre>
       </div>
     );
 
