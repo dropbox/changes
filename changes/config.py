@@ -376,6 +376,7 @@ def configure_api_routes(app):
     from changes.api.node_details import NodeDetailsAPIView
     from changes.api.node_index import NodeIndexAPIView
     from changes.api.node_job_index import NodeJobIndexAPIView
+    from changes.api.node_status import NodeStatusAPIView
     from changes.api.adminmessage_index import AdminMessageIndexAPIView
     from changes.api.patch_details import PatchDetailsAPIView
     from changes.api.phabricator_notify_diff import PhabricatorNotifyDiffAPIView
@@ -453,6 +454,7 @@ def configure_api_routes(app):
     api.add_resource(NodeDetailsAPIView, '/nodes/<uuid:node_id>/')
     api.add_resource(NodeIndexAPIView, '/nodes/')
     api.add_resource(NodeJobIndexAPIView, '/nodes/<uuid:node_id>/jobs/')
+    api.add_resource(NodeStatusAPIView, '/nodes/<uuid:node_id>/status/')
     api.add_resource(AdminMessageIndexAPIView, '/messages/')
     api.add_resource(PatchDetailsAPIView, '/patches/<uuid:patch_id>/')
     api.add_resource(PhabricatorNotifyDiffAPIView, '/phabricator/notify-diff/')

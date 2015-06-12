@@ -1,5 +1,9 @@
 <section class="section">
     <div class="page-header">
+        <a class="pull-right btn btn-default" ng-click="toggle_offline()" ng-if="offline !== undefined">
+            <span ng-if="!offline">Mark this node temporarily offline</span>
+            <span ng-if="offline">Bring this back node online</span>
+        </a>
         <h2>{{node.name}}</h2>
     </div>
 
