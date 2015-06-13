@@ -12,7 +12,8 @@ class BuildMarkSeenAPIView(APIView):
             return '', 404
 
         if not session.get('uid'):
-            return '', 401
+            # don't do anything if they aren't logged in
+            return '', 200
 
         try_create(BuildSeen, where={
             'build_id': build.id,

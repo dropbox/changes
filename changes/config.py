@@ -525,8 +525,9 @@ def configure_web_routes(app):
         '/auth/logout/', view_func=LogoutView.as_view('logout', complete_url='index'))
     app.add_url_rule(
         '/auth/complete/', view_func=AuthorizedView.as_view('authorized',
+                                                            complete_url='index',
                                                             authorized_url='authorized',
-                                                            complete_url='index'))
+                                                            ))
 
     app.add_url_rule(
         '/<path:path>', view_func=IndexView.as_view('index-path'))

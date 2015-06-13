@@ -116,15 +116,29 @@ define([
     // use html5 location rather than hashes
     $locationProvider.html5Mode(true);
 
-    // homepage is projects/
-    $urlRouterProvider.when("", "/projects/");
-    $urlRouterProvider.when("/", "/projects/");
-
-    // send 404s to /
+    // redirect / to projects, other paths to 404
     $urlRouterProvider.otherwise(function ($injector, $location) {
-      var url = $location.url();
+      // use /projects/ for homepage
+      if ($location.path() === '' || $location.path() === '/') {
+        // propogate any query parameters we were given
+        var query_params = $location.search();
+        var query_string_pieces = [];
+        for (var p in query_params) {
+          query_string_pieces.push(p + '=' + query_params[p]);
+        }
+        var query_string = '';
+        if (query_string_pieces.length > 0) { 
+          query_string = '?' + query_string_pieces.join('&'); 
+        }
+
+        return '/projects/' + query_string;
+      }
+
+      // send 404s to /
+
       // either angular or ui-router automagically unencodes standard 
       // url escaping :/. Use base64 instead, replacing /s
+      var url = $location.url();
       var encoded_url = btoa(url).replace("/", "-");
       return "/404/" + encoded_url;
     });
@@ -166,7 +180,8 @@ define([
 
         function error(response) {
             if(response.status === 401) {
-                $window.location.href = '/auth/login/';
+                var current_location = encodeURIComponent($window.location.href);
+                $window.location.href = '/auth/login/?orig_url=' + current_location;
                 return $q.reject(response);
             }
             else {

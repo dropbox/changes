@@ -29,9 +29,7 @@
     </div>
     <div ng-if="!activeUser">
       <ul class="nav navbar-nav navbar-right changes-navbar-small hidden-xs">
-        <li id="my-builds"><a href="/my/builds/" title="My Builds">
-          Log in
-        </a></li>
+        <li><a href="/auth/login/" target="_self">Log in</a></li>
       </ul>
     </div>
     <div ng-if="activeUser">
@@ -86,8 +84,6 @@
     </div>
   </div>
 </nav>
-
-<flash-messages></flash-messages>
 
 <section class="body">
   <div class="row container">

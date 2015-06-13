@@ -68,7 +68,7 @@ export var fetch_data = function(elem, fetch_map) {
             fetched_data[child_label+"Data"] = JSON.parse(response.responseText);
           } else {
             fetched_data[child_label+"Status"] = "error";
-            state_to_set[child_label+"Error"] = {
+            fetched_data[child_label+"Error"] = {
               status: response.status,
               responseText: response.responseText,
               response: response
