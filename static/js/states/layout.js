@@ -54,15 +54,15 @@ define([
         }
 
         var query_params = $location.search();
-        if (query_params["finished_login"]) {
-          var finished_login = query_params["finished_login"];
+        if (query_params.finished_login) {
+          var finished_login = query_params.finished_login;
           if (finished_login === 'success') {
             flash('success', 'You were successfully logged in.');
           } else if (finished_login === 'error') {
             flash('error', 'There was an error logging you in.');
           } else {
-            console.warn('unknown value for query param finished_login: ' 
-              + finished_login);
+            console.warn('unknown value for query param finished_login: ' +
+              finished_login);
           }
       }
 
