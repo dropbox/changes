@@ -58,7 +58,7 @@ class LogClientPerfAPIView(APIView):
 
             start_time = times['startTime'] - perf_stats['startTime']
             # this can happen when we get a 404 from an api endpoint
-            if not times['endTime']:
+            if 'endTime' not in times:
                 continue
             duration = times['endTime'] - times['startTime']
             statsreporter.stats().log_timing(key, duration)
