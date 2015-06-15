@@ -82,7 +82,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'C_WORKSPACE', 'value': ''} in result
         assert {'name': 'RESET_SCRIPT', 'value': ''} in result
 
-    def test_commands(self):
+    def test_create_commands(self):
         builder = self.get_builder()
         project = self.create_project()
         build = self.create_build(project)
