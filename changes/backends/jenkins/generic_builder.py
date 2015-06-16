@@ -77,6 +77,10 @@ class JenkinsGenericBuilder(JenkinsBuilder):
 
         snapshot_bucket = current_app.config.get('SNAPSHOT_S3_BUCKET', '') or ''
 
+        default_pre = current_app.config.get('LXC_PRE_LAUNCH', '') or ''
+        default_post = current_app.config.get('LXC_POST_LAUNCH', '') or ''
+        default_release = current_app.config.get('LXC_RELEASE', 'trusty') or ''
+
         # CHANGES_BID, the jobstep id, is provided by superclass
         params.extend([
             {'name': 'CHANGES_PID', 'value': project.slug},
@@ -100,11 +104,11 @@ class JenkinsGenericBuilder(JenkinsBuilder):
                  'value': snapshot_bucket},
                 {'name': 'CHANGES_CLIENT_SNAPSHOT_ID', 'value': ''},
                 {'name': 'CHANGES_CLIENT_LXC_PRE_LAUNCH',
-                 'value': self.build_desc.get('pre-launch', '')},
+                 'value': self.build_desc.get('pre-launch', default_pre)},
                 {'name': 'CHANGES_CLIENT_LXC_POST_LAUNCH',
-                 'value': self.build_desc.get('post-launch', '')},
+                 'value': self.build_desc.get('post-launch', default_post)},
                 {'name': 'CHANGES_CLIENT_LXC_RELEASE',
-                 'value': self.build_desc.get('release', 'trusty')},
+                 'value': self.build_desc.get('release', default_release)},
             ])
 
         return params

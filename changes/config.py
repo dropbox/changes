@@ -98,7 +98,7 @@ def create_app(_read_config=True, **config):
     # This is a hash from each build type (string identifiers used in
     # build step configuration) to a "build spec", a definition of
     # how to use changes-client to build. To use changes-client, the key
-    # 'use_client' must be set to True.
+    # 'uses_client' must be set to True.
     #
     # Required build spec keys for client:
     #   adapter -> basic or lxc
@@ -110,7 +110,7 @@ def create_app(_read_config=True, **config):
     #   post-launch -> lxc post-launch script
     #   release -> lxc release
     app.config['CHANGES_CLIENT_BUILD_TYPES'] = {
-        'legacy': {'use_client': False},
+        'legacy': {'uses_client': False},
     }
 
     app.config['CELERY_ACCEPT_CONTENT'] = ['changes_json']

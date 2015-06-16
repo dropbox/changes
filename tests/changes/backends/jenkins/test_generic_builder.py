@@ -25,6 +25,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
     def setUp(self):
         super(JenkinsGenericBuilderTest, self).setUp()
         self.old_config = deepcopy(current_app.config)
+        current_app.config['LXC_RELEASE'] = 'release'
         current_app.config['CHANGES_CLIENT_BUILD_TYPES']['test_harness'] = {
             'uses_client': True,
             'adapter': 'basic',
@@ -74,7 +75,16 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'SCRIPT', 'value': self.builder_options['script']} in result
         assert {'name': 'CLUSTER', 'value': self.builder_options['cluster']} in result
         assert {'name': 'WORK_PATH', 'value': 'foo'} in result
+
+        # magic number that is simply the current number of parameters. Ensures that
+        # there is nothing "extra"
         assert len(result) == 18
+
+        # test defaulting for lxc
+        # pre/post are defined in conftest.py
+        assert {'name': 'CHANGES_CLIENT_LXC_PRE_LAUNCH', 'value': 'echo pre'} in result
+        assert {'name': 'CHANGES_CLIENT_LXC_POST_LAUNCH', 'value': 'echo post'} in result
+        assert {'name': 'CHANGES_CLIENT_LXC_RELEASE', 'value': 'release'} in result
 
         # test optional values
         result = builder.get_job_parameters(job, uuid4().hex)
