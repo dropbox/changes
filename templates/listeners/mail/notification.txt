@@ -34,7 +34,7 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
     {% for test_case in job.failing_tests %}
     Path: {{ test_case.test_case.name }}:
     Url:  {{ test_case.uri }}
-
+    {%- if test_case.test_case.message -%}
 {{
     test_case.test_case.message|break_long_lines(
         width=75,
@@ -42,6 +42,7 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
         subsequent_indent=' '*4
     )
 }}
+    {%- endif -%}
 
     {% endfor -%}
     {%- endif -%}
