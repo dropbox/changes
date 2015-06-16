@@ -23,8 +23,9 @@ if [ ! -d $LOCAL_PATH/.git ]; then
     git clone $REMOTE_URL $LOCAL_PATH
     pushd $LOCAL_PATH
 else
-    pushd $LOCAL_PATH && git fetch --all
-    git remote prune origin
+    pushd $LOCAL_PATH
+    git remote set-url origin $REPO_URL
+    git fetch --all -p
 fi
 
 git clean -fdx
@@ -132,6 +133,7 @@ class GitVcs(Vcs):
         self.run(['clone', '--mirror', self.remote_url, self.path])
 
     def update(self):
+        self.run(['remote', 'set-url', 'origin', self.remote_url])
         self.run(['fetch', '--all', '-p'])
 
     def log(self, parent=None, branch=None, author=None, offset=0, limit=100):

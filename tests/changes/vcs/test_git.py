@@ -20,27 +20,32 @@ class GitVcsTest(TestCase, VcsAsserts):
         else:
             return revisions[1], revisions[0]
 
-    def _set_author(self, name, email):
-        check_call('cd {0} && git config --replace-all "user.name" "{1}"'
-                   .format(self.remote_path, name), shell=True)
-        check_call('cd {0} && git config --replace-all "user.email" "{1}"'
-                   .format(self.remote_path, email), shell=True)
+    def _set_author(self, name, email, path=None):
+        if not path:
+            path = self.remote_path
+        path = "%s/.git" % (path,)
+        check_call(['git', '--git-dir', path, 'config', '--replace-all',
+                   'user.name', name])
+        check_call(['git', '--git-dir', path, 'config', '--replace-all',
+                   'user.email', email])
 
     def setUp(self):
         self.reset()
-        self.addCleanup(check_call, 'rm -rf %s' % (self.root,), shell=True)
+        self.addCleanup(check_call, ['rm', '-rf', self.root],)
 
     def reset(self):
-        check_call('rm -rf %s' % (self.root,), shell=True)
-        check_call('mkdir -p %s %s' % (self.path, self.remote_path), shell=True)
-        check_call('git init %s' % (self.remote_path,), shell=True)
+        check_call(['rm', '-rf', self.root])
+        check_call(['mkdir', '-p', self.path, self.remote_path])
+        check_call(['git', 'init', self.remote_path])
         self._set_author('Foo Bar', 'foo@example.com')
-        check_call('cd %s && touch FOO && git add FOO && git commit -m "test\nlol\n"' % (
-            self.remote_path,
-        ), shell=True)
-        check_call('cd %s && touch BAR && git add BAR && git commit -m "biz\nbaz\n"' % (
-            self.remote_path,
-        ), shell=True)
+
+        self._add_file('FOO', self.remote_path, commit_msg="test\nlol\n")
+        self._add_file('BAR', self.remote_path, commit_msg="biz\nbaz\n")
+
+    def _add_file(self, filename, repo_path, commit_msg=None):
+        check_call(['touch', filename], cwd=repo_path)
+        check_call(['git', 'add', filename], cwd=repo_path)
+        check_call(['git', 'commit', '-m', commit_msg], cwd=repo_path)
 
     def get_vcs(self):
         return GitVcs(
@@ -57,8 +62,8 @@ class GitVcsTest(TestCase, VcsAsserts):
 
         # Create a commit with a new author
         self._set_author('Another Committer', 'ac@d.not.zm.exist')
-        check_call('cd %s && touch BAZ && git add BAZ && git commit -m "bazzy"'
-                   % self.remote_path, shell=True)
+        self._add_file('BAZ', self.remote_path, commit_msg="bazzy")
+
         vcs.clone()
         vcs.update()
         revisions = list(vcs.log())
@@ -93,19 +98,14 @@ class GitVcsTest(TestCase, VcsAsserts):
         vcs = self.get_vcs()
 
         # Create another branch and move it ahead of the master branch
-        check_call('cd %s && git checkout -b B2' % self.remote_path, shell=True)
-        check_call('cd %s && touch BAZ && git add BAZ && git commit -m "second branch commit"' % (
-            self.remote_path,
-        ), shell=True)
+        check_call('git checkout -b B2'.split(' '), cwd=self.remote_path)
+        self._add_file('BAZ', self.remote_path, commit_msg='second branch commit')
 
         # Create a third branch off master with a commit not in B2
-        check_call('cd %s && git checkout %s' % (
-            self.remote_path, vcs.get_default_revision(),
-        ), shell=True)
-        check_call('cd %s && git checkout -b B3' % self.remote_path, shell=True)
-        check_call('cd %s && touch IPSUM && git add IPSUM && git commit -m "3rd branch"' % (
-            self.remote_path,
-        ), shell=True)
+        check_call(['git', 'checkout', vcs.get_default_revision()], cwd=self.remote_path)
+        check_call('git checkout -b B3'.split(' '), cwd=self.remote_path)
+        self._add_file('IPSUM', self.remote_path, commit_msg='3rd branch')
+
         vcs.clone()
         vcs.update()
 
@@ -143,9 +143,7 @@ class GitVcsTest(TestCase, VcsAsserts):
                             branches=[vcs.get_default_revision(), 'B2', 'B3'])
 
         # Sanity check master
-        check_call('cd %s && git checkout %s' % (
-            self.remote_path, vcs.get_default_revision(),
-        ), shell=True)
+        check_call(['git', 'checkout', vcs.get_default_revision()], cwd=self.remote_path)
         revisions = list(vcs.log(branch=vcs.get_default_revision()))
         assert len(revisions) == 2
 
@@ -205,9 +203,35 @@ index 0000000..e69de29
         self.assertEquals(1, len(branches))
         self.assertIn('master', branches)
 
-        check_call('cd %s && git checkout -B test_branch' % self.remote_path,
-                   shell=True)
+        check_call('git checkout -B test_branch'.split(), cwd=self.remote_path)
         vcs.update()
         branches = vcs.get_known_branches()
         self.assertEquals(2, len(branches))
         self.assertIn('test_branch', branches)
+
+    def test_update_repo_url(self):
+        # Create a second remote
+        remote_path2 = '%s/remote2/' % (self.root,)
+        check_call(['mkdir', '-p', remote_path2])
+        check_call(['git', 'clone', self.remote_path, remote_path2], cwd=self.root)
+        self._set_author('Remote2 Committer', 'Remote2Committer@example.com', path=remote_path2)
+        self._add_file('BAZ', remote_path2, commit_msg='bazzy')
+
+        # Clone original remote
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+        revisions = list(vcs.log())
+        assert len(revisions) == 2
+
+        # Update to new remote
+        vcs.url = remote_path2
+        vcs.update()
+        revisions = list(vcs.log())
+        assert len(revisions) == 3
+
+        # Revert to original
+        vcs.url = self.remote_path
+        vcs.update()
+        revisions = list(vcs.log())
+        assert len(revisions) == 2
