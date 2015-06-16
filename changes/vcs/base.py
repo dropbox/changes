@@ -220,9 +220,9 @@ class RevisionResult(object):
 
         # we also want to create a source for this item as it's the canonical
         # representation in the UI
-        try_create(Source, {
+        source = try_create(Source, {
             'revision_sha': self.id,
             'repository': repository,
         })
 
-        return (revision, created)
+        return (revision, created, source)

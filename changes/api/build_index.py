@@ -52,7 +52,7 @@ def identify_revision(repository, treeish):
         # commits so we should really cache the failed lookups
         raise MissingRevision('Unable to find revision %s' % (treeish,))
 
-    revision, _ = commit.save(repository)
+    revision, _, __ = commit.save(repository)
 
     return revision
 

@@ -182,7 +182,7 @@ def gen(project):
     return build
 
 
-def add(project, revision):
+def add(project, revision, source):
     """ Similar to gen, except uses an existing revision for the project
     :return: A new build that's been saved.
     """
@@ -196,8 +196,6 @@ def add(project, revision):
         patch = mock.patch(project)
     else:
         patch = None
-    source = mock.source(
-        project.repository, revision_sha=revision.sha, patch=patch)
     return create_new_build(change, source, patch, project)
 
 
@@ -279,9 +277,9 @@ def simulate_local_repository():
     print 'Creating data based on {0} repository in {1}'.format(backend, os.getcwd())
     vcs = get_vcs(repository)
     for lazy_revision in vcs.log(limit=10):
-        revision, created = lazy_revision.save(repository)
+        revision, created, source = lazy_revision.save(repository)
         print '    Created revision {0} in {1}'.format(revision.sha, revision.branches)
-        build = add(project, revision)
+        build = add(project, revision, source)
         print '    Inserted build {0} into {1}'.format(build.id, project.slug)
 
 

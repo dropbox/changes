@@ -18,7 +18,7 @@ class RevisionResultTestCase(TestCase):
             parents=['a' * 40, 'b' * 40],
 
         )
-        revision, created = result.save(repo)
+        revision, created, _ = result.save(repo)
 
         assert created
 

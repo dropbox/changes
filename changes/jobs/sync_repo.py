@@ -52,7 +52,7 @@ def sync_repo(repo_id, continuous=True):
     while might_have_more:
         might_have_more = False
         for commit in vcs.log(parent=parent):
-            revision, created = commit.save(repo)
+            revision, created, _ = commit.save(repo)
             db.session.commit()
             if not created:
                 break
