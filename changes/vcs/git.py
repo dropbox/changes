@@ -24,7 +24,7 @@ if [ ! -d $LOCAL_PATH/.git ]; then
     pushd $LOCAL_PATH
 else
     pushd $LOCAL_PATH
-    git remote set-url origin $REPO_URL
+    git remote set-url origin $REMOTE_URL
     git fetch --all -p
 fi
 
