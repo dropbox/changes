@@ -1,5 +1,6 @@
 import mock
 
+from base64 import urlsafe_b64decode
 from datetime import datetime
 from flask import current_app
 from oauth2client import GOOGLE_REVOKE_URI, GOOGLE_TOKEN_URI
@@ -26,6 +27,13 @@ class LoginViewTest(TestCase):
             'client_id': ['aaaaaaaaaaaa'],
             'access_type': ['offline']
         }
+
+    def test_with_state(self):
+        resp = self.client.get('/auth/login/?orig_url=nowhere')
+        parsed_location = urlparse(resp.headers['Location'])
+        query_params = parse_qs(parsed_location.query)
+        assert "state" in query_params
+        assert urlsafe_b64decode(query_params['state'][0]) == 'nowhere'
 
 
 class AuthorizedViewTest(TestCase):

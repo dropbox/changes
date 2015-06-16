@@ -32,7 +32,7 @@ def get_auth_flow(redirect_uri=None):
     if 'orig_url' in request.args:
         # we'll later redirect the user back the page they were on after
         # logging in
-        state = base64.b64encode(request.args['orig_url'])
+        state = base64.urlsafe_b64encode(request.args['orig_url'])
 
     return OAuth2WebServerFlow(
         client_id=current_app.config['GOOGLE_CLIENT_ID'],
@@ -92,7 +92,7 @@ class AuthorizedView(MethodView):
         session['email'] = resp.id_token['email']
 
         if 'state' in request.args:
-            originating_url = base64.b64decode(request.args['state'])
+            originating_url = base64.urlsafe_b64decode(request.args['state'])
             # add a query parameter. It shouldn't be this cumbersome...
             url_parts = list(urlparse.urlparse(originating_url))
             query = dict(urlparse.parse_qsl(url_parts[4]))
