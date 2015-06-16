@@ -11,15 +11,20 @@ define([
       $window.location.href = '/auth/login/';
       return;
     }
-    if (!authData.user.isAdmin) {
-      return $location.path('/');
-    }
 
     PageTitle.set('Changes Admin');
 
     $scope.appVersion = $window.APP_VERSION;
     $scope.user = authData.user;
     $scope.authenticated = authData.authenticated;
+
+    $scope.$on('$stateChangeSuccess', function(_u1, _u2, $stateParams) {
+      if (!authData.user.isAdmin) {
+        flash('warning', 
+          'Read-only mode: you can view everything, but only admins can make changes', 
+          false);
+      }
+    });
 
     $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error){
       flash('error', 'There was an error loading the page you requested :(');
