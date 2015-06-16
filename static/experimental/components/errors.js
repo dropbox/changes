@@ -42,7 +42,11 @@ export var AjaxError = React.createClass({
     var { response, ...props} = this.props;
     var response_status = response.status;
     var response_text = response.responseText.trim();
-    if (response_text === '""') {
+    // get rid of " at beginning and end
+    var quote_trim = /^"+|"+$/g;
+    response_text = response_text.replace(quote_trim, '');
+
+    if (response_text === '') {
       response_text = null;
     }
 

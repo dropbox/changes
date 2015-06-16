@@ -6,6 +6,8 @@ from changes.models import Author
 
 from changes.utils.phabricator_utils import PhabricatorRequest
 
+import requests
+
 
 class AuthorPhabricatorDiffsAPIView(APIView):
     """
@@ -23,21 +25,24 @@ class AuthorPhabricatorDiffsAPIView(APIView):
         elif not authors:
             return 'author not found', 404
 
-        author_email = authors[0].email
-        request = PhabricatorRequest()
-        request.connect()
-        user_info = request.call('user.query', {'emails': [author_email]})
+        try:
+            author_email = authors[0].email
+            request = PhabricatorRequest()
+            request.connect()
+            user_info = request.call('user.query', {'emails': [author_email]})
 
-        if not user_info:
-            return 'phabricator: %s not found' % author_email, 404
+            if not user_info:
+                return 'phabricator: %s not found' % author_email, 404
 
-        author_phid = user_info[0]["phid"]
+            author_phid = user_info[0]["phid"]
 
-        diff_info = request.call('differential.query', {
-            'authors': [author_phid],
-            'status': "status-open"
-        })
+            diff_info = request.call('differential.query', {
+                'authors': [author_phid],
+                'status': "status-open"
+            })
 
-        diff_info.sort(key=lambda k: -1 * int(k['dateModified']))
+            diff_info.sort(key=lambda k: -1 * int(k['dateModified']))
 
-        return diff_info
+            return diff_info
+        except requests.exceptions.ConnectionError:
+            return 'Unable to connect to Phabricator', 503
