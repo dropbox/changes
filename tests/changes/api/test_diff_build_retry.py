@@ -56,6 +56,59 @@ class DiffBuildRetryTest(APITestCase):
         new_job = jobs[0]
         assert new_job.id != job.id
 
+    def test_simple_multiple_diffs(self):
+        diff_id = 123
+        project = self.create_project()
+        patch = self.create_patch(
+            repository_id=project.repository_id,
+            diff=SAMPLE_DIFF
+            )
+        source = self.create_source(
+            project,
+            patch=patch,
+            )
+        diff = self.create_diff(diff_id, source=source)
+        diff2 = self.create_diff(124, source=source)
+        build = self.create_build(
+            project=project,
+            source=source,
+            status=Status.finished,
+            result=Result.failed
+            )
+        job = self.create_job(build=build)
+
+        self.create_plan(project)
+
+        path = '/api/0/phabricator_diffs/{0}/retry/'.format(diff_id)
+        resp = self.client.post(path, follow_redirects=True)
+
+        assert resp.status_code == 200
+
+        data = self.unserialize(resp)
+
+        assert len(data) == 1
+
+        new_build = Build.query.get(data[0]['id'])
+
+        assert new_build.id != build.id
+        assert new_build.collection_id != build.collection_id
+        assert new_build.project_id == project.id
+        assert new_build.cause == Cause.retry
+        assert new_build.author_id == build.author_id
+        assert new_build.source_id == build.source_id
+        assert new_build.label == build.label
+        assert new_build.message == build.message
+        assert new_build.target == build.target
+
+        jobs = list(Job.query.filter(
+            Job.build_id == new_build.id,
+        ))
+
+        assert len(jobs) == 1
+
+        new_job = jobs[0]
+        assert new_job.id != job.id
+
     def test_simple_passed(self):
         diff_id = 123
         project = self.create_project()

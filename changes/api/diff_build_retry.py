@@ -56,7 +56,7 @@ class DiffBuildRetryAPIView(APIView):
         diffs = list(PhabricatorDiff.query.options(
             joinedload('source').joinedload('patch')
         ).filter(
-            diff_id == diff_id
+            PhabricatorDiff.diff_id == diff_id
         ))
         if not diffs:
             return None
