@@ -1,5 +1,6 @@
 import json
 
+from base64 import urlsafe_b64encode, urlsafe_b64decode
 from functools import wraps
 from urllib import quote
 
@@ -71,6 +72,7 @@ class APIError(Exception):
 
 
 class ParamError(APIError):
+
     def __init__(self, key, msg):
         self.key = key
         self.msg = msg
@@ -150,6 +152,130 @@ class APIView(Resource):
                 name=name,
             ))
         return link_values
+
+    def cursor_paginate(self, queryset, id_func=lambda e: e.id, **kwargs):
+        """
+        Paginates results using a cursor:
+          next page url: ?after=<id_of_last_elem>
+          previous page url: ?before=<id_of_first_elem>
+        This is more stable than offset pagination, especially for real-time
+        datasets (people can share static links to builds, for example.)
+
+        queryset: all the data (seems kind of inefficient...)
+        id_func (function): maps a single queryset entry to a unique id used
+        for pagination.
+        **kwargs:
+          fake_request (dict): used by unittest code: items within it
+                               override request.args
+          all other kwargs are passed directly to self.respond
+        """
+
+        my_request_args = request.args.copy()
+        if 'fake_request' in kwargs:
+            my_request_args.update(kwargs['fake_request'])
+            del kwargs['fake_request']
+
+        after = my_request_args.get('after')
+        before = my_request_args.get('before')
+
+        # TODO: don't crash if this isn't a number?
+        per_page = int(my_request_args.get('per_page', 25))
+
+        # per_page=0 means unlimited: don't paginate
+        if per_page == 0:
+            return self.respond(queryset, **kwargs)
+
+        start_pos = None
+        stop_pos = None
+        if after and before:
+            return "Paging Error: cannot pass both after and before as args!", 400
+        elif after or before:
+            # used for error message strings
+            which_token = "after" if after else "before"
+
+            encoded_item_id = after if after else before
+            item_id = urlsafe_b64decode(str(encoded_item_id))
+
+            if not item_id:
+                return "Paging Error: %s has an invalid value!" % (which_token), 400
+
+            position = next(
+                (idx for idx, e in enumerate(queryset)
+                 if id_func(e) == item_id),
+                -1
+            )
+
+            if position == -1:
+                return "Paging Error: could not find %s token in list!" % (which_token), 400
+            elif position == len(queryset) - 1 and after:
+                return "Paging Error: cannot get values after the last element!", 400
+            # if position == 0 and before, fall through to the code below
+            # (which will just return the first page)
+
+            links = None
+            if before:
+                # the behavior is if per_page is 5 and you request elements
+                # before item #3, we'll return the first 5 elements. I think
+                # this is the most natural thing to do (note that after doesn't
+                # do this, which is also natural IMO)
+                start_pos = max(0, position - per_page)
+                stop_pos = start_pos + per_page
+            else:
+                start_pos = position + 1
+                # may be greater than len(queryset)
+                stop_pos = position + 1 + per_page
+
+        else:
+            # neither after nor before: the user is on the first page and
+            # hasn't paginated yet
+            start_pos = 0
+            stop_pos = per_page
+
+        page_of_results = queryset[start_pos:stop_pos]
+        links = self.make_cursor_links(
+            id_func(queryset[start_pos]) if start_pos > 0 else None,
+            id_func(queryset[stop_pos - 1]) if stop_pos < len(queryset) else None,
+        )
+        return self.respond(page_of_results, links=links, **kwargs)
+
+    def make_cursor_links(self, before_id=None, after_id=None):
+        """
+        Creates the next/previous links using a specific format. Will
+        not create a previous link if before_id is None (same with after_id)
+        """
+
+        # create base url to add pagination to
+        querystring = u'&'.join(
+            u'{0}={1}'.format(quote(k), quote(v))
+            for k, v in request.args.iteritems()
+            if (k != 'before' and k != 'after')
+        )
+
+        if querystring:
+            base_url = '{0}?{1}&'.format(request.base_url, querystring)
+        else:
+            base_url = request.base_url + '?'
+
+        # create links
+        link_template = '<{uri}{pointer}={encoded_id}>; rel="{name}"'
+        links = []
+        if before_id:
+            links.append(link_template.format(
+                uri=base_url,
+                pointer='before',
+                encoded_id=urlsafe_b64encode(before_id),
+                name='previous',
+            ))
+
+        if after_id:
+            links.append(link_template.format(
+                uri=base_url,
+                pointer='after',
+                encoded_id=urlsafe_b64encode(after_id),
+                name='next',
+            ))
+
+        return links
 
     def respond(self, context, status_code=200, serialize=True, serializers=None,
                 links=None):
