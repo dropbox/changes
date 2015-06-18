@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import os.path
+
 from hashlib import md5
 
 from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
@@ -17,7 +19,7 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
     def get_default_job_phase_label(self, job, job_data):
         return 'Collect Jobs'
 
-    def get_required_artifact_suffix(self):
+    def get_required_artifact(self):
         """The initial (collect) step must return at least one artifact with
         this suffix, or it will be marked as failed.
 
@@ -27,14 +29,29 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
         return 'jobs.json'
 
     def _sync_results(self, step, item):
+        """
+        At this point, we have already collected all of the artifacts, so if
+        this is the initial collection phase and we did not collect a
+        critical artifact then we error.
+        """
         super(JenkinsCollectorBuilder, self)._sync_results(step, item)
 
+        # We annotate the "expanded" jobs with this tag, so the individual
+        # shards will no longer require the critical artifact
         if step.data.get('expanded'):
             return
 
+        expected_image = self.get_expected_image(step.job_id)
+
+        # if this is a snapshot build then we don't have to worry about
+        # sanity checking the normal artifacts
+        if expected_image:
+            return
+
         artifacts = item.get('artifacts', ())
-        required_artifact_suffix = self.get_required_artifact_suffix()
-        if not any(a['fileName'].endswith(required_artifact_suffix) for a in artifacts):
+        required_artifact = self.get_required_artifact()
+
+        if not any(os.path.basename(a['fileName']) == required_artifact for a in artifacts):
             step.result = Result.failed
             db.session.add(step)
 
@@ -84,11 +101,10 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
         return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
 
     def fetch_artifact(self, artifact, **kwargs):
-        if artifact.data['fileName'].endswith('jobs.json'):
+        if os.path.basename(artifact.data['fileName']) == self.get_builder().get_required_artifact():
             self._expand_jobs(artifact.step, artifact)
         else:
-            builder = self.get_builder()
-            builder.sync_artifact(artifact, **kwargs)
+            super(JenkinsCollectorBuildStep, self).fetch_artifact(artifact, **kwargs)
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()

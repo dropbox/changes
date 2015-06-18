@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+import os.path
 
 from datetime import datetime, timedelta
 from flask import current_app
@@ -9,6 +10,7 @@ from changes.backends.base import UnrecoverableException
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Status
+from changes.models import SnapshotImage, SnapshotStatus
 
 from .builder import JenkinsBuilder
 from .generic_builder import JenkinsGenericBuilder
@@ -91,18 +93,24 @@ class JenkinsBuildStep(BuildStep):
         builder = self.get_builder()
         builder.sync_artifact(artifact, **kwargs)
 
+    def can_snapshot(self):
+        return self.get_builder().can_snapshot()
+
 
 class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
     def __init__(self, job_name, script, cluster, diff_cluster='', path='',
-                 workspace='', reset_script='', build_type=None, **kwargs):
+                 workspace='', reset_script='', build_type=None,
+                 setup_script='', teardown_script='', **kwargs):
         """
         build_type describes how to use changes-client, but 'legacy'
         defaults to not using it at all. See configuration file
         for more details [CHANGES_CLIENT_BUILD_TYPES]
         """
+        self.setup_script = setup_script
         self.script = script
+        self.teardown_script = teardown_script
         self.reset_script = reset_script
         self.cluster = cluster
         self.diff_cluster = diff_cluster
@@ -115,7 +123,9 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
     def get_builder_options(self):
         options = super(JenkinsGenericBuildStep, self).get_builder_options()
         options.update({
+            'setup_script': self.setup_script,
             'script': self.script,
+            'teardown_script': self.teardown_script,
             'reset_script': self.reset_script,
             'cluster': self.cluster,
             'path': self.path,
@@ -124,3 +134,26 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'build_type': self.build_type
         })
         return options
+
+    def fetch_artifact(self, artifact, **kwargs):
+        # we receive the snapshot images as a json file instead of through
+        # the api endpoint because it lets us guarantee that we actually
+        # receive the status and we can properly propagate an error
+        # if this is not actually the case.
+        #
+        # we have access to the jobstep in _sync_results so we can determine
+        # if the step is a snapshot build or not and from that derive if this
+        # json file is required, and give an error if we never find it
+        if os.path.basename(artifact.data['fileName']) == 'snapshot_status.json':
+            self.update_snapshot_image_status(artifact)
+        else:
+            super(JenkinsGenericBuildStep, self).fetch_artifact(artifact, **kwargs)
+
+    def update_snapshot_image_status(self, artifact):
+        artifact_data = self.get_builder().fetch_artifact(artifact.step, artifact.data)
+        status_json = artifact_data.json()
+        image_id = status_json['image']
+        status = status_json['status']
+
+        image = SnapshotImage.query.get(image_id)
+        image.update_status(SnapshotStatus[status])

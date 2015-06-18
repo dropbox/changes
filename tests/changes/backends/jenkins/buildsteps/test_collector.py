@@ -5,7 +5,6 @@ import responses
 
 from uuid import UUID
 
-from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.constants import Result, Status
 from changes.models import JobPhase, JobStep
@@ -68,7 +67,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
         )
 
     def get_mock_builder(self):
-        return mock.Mock(spec=JenkinsGenericBuilder)
+        return mock.Mock(spec=JenkinsCollectorBuilder)
 
     def test_get_builder(self):
         builder = self.get_buildstep().get_builder()
@@ -78,6 +77,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsCollectorBuildStep, 'get_builder')
     def test_default_artifact_handling(self, get_builder):
         builder = self.get_mock_builder()
+        builder.get_required_artifact.return_value = 'required.json'
         get_builder.return_value = builder
 
         project = self.create_project()
@@ -124,6 +124,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'job_name': 'foo-bar',
             'build_no': 23,
         }
+        builder.get_required_artifact.return_value = 'jobs.json'
 
         get_builder.return_value = builder
 

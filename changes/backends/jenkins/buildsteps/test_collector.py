@@ -19,10 +19,29 @@ from changes.utils.trees import build_flat_tree
 
 
 class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
+    def __init__(self, shard_build_type=None, shard_setup_script=None, shard_teardown_script=None,
+                 *args, **kwargs):
+        self.shard_build_desc = self.load_build_desc(shard_build_type)
+        self.shard_setup_script = shard_setup_script
+        self.shard_teardown_script = shard_teardown_script
+        super(JenkinsTestCollectorBuilder, self).__init__(*args, **kwargs)
+
+    def can_snapshot(self):
+        return self.shard_build_desc.get('can_snapshot', False)
+
+    def get_snapshot_build_desc(self):
+        return self.shard_build_desc
+
+    def get_snapshot_setup_script(self):
+        return self.shard_setup_script
+
+    def get_snapshot_teardown_script(self):
+        return self.shard_teardown_script
+
     def get_default_job_phase_label(self, job, job_data):
         return 'Collect Tests'
 
-    def get_required_artifact_suffix(self):
+    def get_required_artifact(self):
         """The initial (collect) step must return at least one artifact with
         this suffix, or it will be marked as failed.
 
@@ -66,7 +85,20 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     # actually executes a different BuildStep (e.g. of order + 1), but at the
     # time of writing the system only supports a single build step.
     def __init__(self, shards=None, max_shards=10, collection_build_type=None,
-                 build_type=None, **kwargs):
+                 build_type=None, setup_script='', teardown_script='',
+                 collection_setup_script='', collection_teardown_script='',
+                 **kwargs):
+        """
+        Arguments:
+            shards = number of shards to use
+            max_shards = legacy option, same as shards
+            collection_build_type = build type to use for the collection phase
+            collection_setup_script = setup to use for the collection phase
+            collection_teardown_script = teardown to use for the collection phase
+            build_type = build type to use for the shard phase
+            setup_script = setup to use for the shard phase
+            teardown_script = teardown to use for the shard phase
+        """
         # TODO(josiah): migrate existing step configs to use "shards" and remove max_shards
         if shards:
             self.num_shards = shards
@@ -83,17 +115,25 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 'CHANGES_CLIENT_DEFAULT_BUILD_TYPE']
 
         super(JenkinsTestCollectorBuildStep, self).__init__(
-            build_type=collection_build_type, **kwargs)
+            build_type=collection_build_type,
+            setup_script=collection_setup_script,
+            teardown_script=collection_teardown_script,
+            **kwargs)
+
+        self.shard_setup_script = setup_script
+        self.shard_teardown_script = teardown_script
+
+    def get_builder_options(self):
+        options = super(JenkinsTestCollectorBuildStep, self).get_builder_options()
+        options.update({
+            'shard_build_type': self.shard_build_type,
+            'shard_setup_script': self.shard_setup_script,
+            'shard_teardown_script': self.shard_teardown_script
+        })
+        return options
 
     def get_label(self):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)
-
-    def fetch_artifact(self, artifact, **kwargs):
-        if artifact.data['fileName'].endswith('tests.json'):
-            self._expand_jobs(artifact.step, artifact)
-        else:
-            builder = self.get_builder()
-            builder.sync_artifact(artifact, **kwargs)
 
     def _validate_shards(self, phase_steps):
         """This returns passed/unknown based on whether the correct number of
@@ -317,6 +357,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             script=step.data['cmd'].format(
                 test_names=' '.join(step.data['tests']),
             ),
+            setup_script=self.shard_setup_script,
+            teardown_script=self.shard_teardown_script,
             path=step.data['path'],
         )
 

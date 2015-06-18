@@ -16,7 +16,9 @@ class JenkinsGenericBuilderTest(BaseTestCase):
     builder_options = {
         'master_urls': ['http://jenkins.example.com'],
         'job_name': 'server',
+        'setup_script': 'setup',
         'script': 'py.test',
+        'teardown_script': 'teardown',
         'cluster': 'default',
         'diff_cluster': 'diff_cluster',
         'build_type': 'test_harness'
@@ -30,6 +32,16 @@ class JenkinsGenericBuilderTest(BaseTestCase):
             'uses_client': True,
             'adapter': 'basic',
             'jenkins-command': 'command',
+            'commands': [
+                {'script': 'script1'},
+                {'script': 'script2'}
+            ]
+        }
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['test_harness_2'] = {
+            'use_client': True,
+            'adapter': 'basic',
+            'jenkins-command': 'command',
+            'can_snapshot': True,
             'commands': [
                 {'script': 'script1'},
                 {'script': 'script2'}
@@ -72,13 +84,15 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'REPO_URL', 'value': job.project.repository.url} in result
         assert {'name': 'REPO_VCS', 'value': job.project.repository.backend.name} in result
         assert {'name': 'REVISION', 'value': job.source.revision_sha} in result
+        assert {'name': 'SETUP_SCRIPT', 'value': self.builder_options['setup_script']} in result
         assert {'name': 'SCRIPT', 'value': self.builder_options['script']} in result
+        assert {'name': 'TEARDOWN_SCRIPT', 'value': self.builder_options['teardown_script']} in result
         assert {'name': 'CLUSTER', 'value': self.builder_options['cluster']} in result
         assert {'name': 'WORK_PATH', 'value': 'foo'} in result
 
         # magic number that is simply the current number of parameters. Ensures that
         # there is nothing "extra"
-        assert len(result) == 18
+        assert len(result) == 20
 
         # test defaulting for lxc
         # pre/post are defined in conftest.py
@@ -109,6 +123,36 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert jobstep.commands[1].script == 'script2'
         assert jobstep.commands[0].env == jobstep.commands[1].env
         assert jobstep.commands[0].env['SCRIPT'] == 'py.test'
+
+    def test_commands_snapshot(self):
+        builder = self.get_builder()
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        plan = self.create_plan(project)
+        self.create_job_plan(job, plan)
+        snapshot = self.create_snapshot(project)
+        snapshot_image = self.create_snapshot_image(snapshot, plan, job=job)
+        db.session.commit()
+
+        params = builder.get_job_parameters(job, jobstep.id.hex, path='foo')
+        assert {'name': 'SETUP_SCRIPT', 'value': self.builder_options['setup_script']} in params
+        assert {'name': 'SCRIPT', 'value': ':'} in params
+        assert {'name': 'TEARDOWN_SCRIPT', 'value': self.builder_options['teardown_script']} in params
+
+        builder.create_commands(jobstep, params)
+        db.session.commit()
+
+        for command in jobstep.commands:
+            assert command.env['SETUP_SCRIPT'] == self.builder_options['setup_script']
+            assert command.env['SCRIPT'] == ':'
+            assert command.env['TEARDOWN_SCRIPT'] == self.builder_options['teardown_script']
+
+    def test_can_snapshot(self):
+        assert not self.get_builder().can_snapshot()
+        assert self.get_builder(build_type="test_harness_2").can_snapshot()
 
     def test_get_job_parameters_with_reset_script(self):
         project = self.create_project()
@@ -147,3 +191,24 @@ class JenkinsGenericBuilderTest(BaseTestCase):
     def test_invalid_build_desc_missing_jcommand(self):
         with raises(ValueError):
             self.validate_build_type("test_harness_invalid_2")
+
+    def test_get_expected_image_none(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+
+        builder = self.get_builder()
+        assert builder.get_expected_image(job.id) is None
+
+    def test_get_expected_image(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        plan = self.create_plan(project)
+        snapshot = self.create_snapshot(project)
+        job = self.create_job(build)
+        snapshot_image = self.create_snapshot_image(snapshot, plan, job=job)
+        self.create_job_plan(job, plan)
+
+        db.session.commit()
+        builder = self.get_builder()
+        assert builder.get_expected_image(job.id) == snapshot_image.id

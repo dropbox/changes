@@ -8,8 +8,7 @@ import responses
 from copy import deepcopy
 from uuid import UUID
 
-from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
-from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, JenkinsTestCollectorBuildStep
+from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, JenkinsTestCollectorBuildStep, JenkinsCollectorBuilder
 from changes.constants import Result, Status
 from changes.models import JobPhase, JobStep
 from changes.testutils import TestCase
@@ -24,7 +23,8 @@ class JenkinsCollectorBuilderTest(BaseTestCase):
         'job_name': 'server',
         'script': 'echo hello',
         'cluster': 'server-runner',
-        'build_type': 'legacy'
+        'build_type': 'legacy',
+        'shard_build_type': 'legacy'
     }
 
     @responses.activate
@@ -108,7 +108,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         )
 
     def get_mock_builder(self):
-        return mock.Mock(spec=JenkinsGenericBuilder)
+        return mock.Mock(spec=JenkinsCollectorBuilder)
 
     def setUp(self):
         super(JenkinsTestCollectorBuildStepTest, self).setUp()
@@ -143,6 +143,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
     def test_default_artifact_handling(self, get_builder):
         builder = self.get_mock_builder()
+        builder.get_required_artifact.return_value = 'required.json'
         get_builder.return_value = builder
 
         project = self.create_project()
@@ -361,6 +362,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'job_name': 'foo-bar',
             'build_no': 23,
         }
+        builder.get_required_artifact.return_value = 'tests.json'
 
         get_builder.return_value = builder
         get_test_stats.return_value = {
@@ -433,6 +435,8 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             changes_bid=new_steps[0].id.hex,
             script='py.test --junit=junit.xml foo.bar.test_buz',
             path='',
+            setup_script='',
+            teardown_script='',
         )
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',
@@ -445,6 +449,8 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             changes_bid=new_steps[1].id.hex,
             script='py.test --junit=junit.xml foo/bar.py foo/baz.py foo.bar.test_biz',
             path='',
+            setup_script='',
+            teardown_script='',
         )
         builder.create_job_from_params.assert_any_call(
             job_name='foo-bar',

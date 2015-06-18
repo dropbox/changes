@@ -1022,6 +1022,9 @@ class JenkinsBuilder(BaseBackend):
     def create_commands(self, step, params):
         pass
 
+    def can_snapshot(self):
+        return False
+
     def _streaming_get(self, url, params=None):
         """
         Perform an HTTP GET request with a streaming response.

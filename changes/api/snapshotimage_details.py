@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
-from changes.config import db
 from changes.models import SnapshotImage, SnapshotStatus
 
 
@@ -26,24 +25,6 @@ class SnapshotImageDetailsAPIView(APIView):
         args = self.parser.parse_args()
 
         if args.status:
-            image.status = SnapshotStatus[args.status]
-
-        db.session.add(image)
-        db.session.flush()
-
-        if image.status == SnapshotStatus.active:
-            snapshot = image.snapshot
-            inactive_image_query = SnapshotImage.query.filter(
-                SnapshotImage.status != SnapshotStatus.active,
-                SnapshotImage.snapshot_id == snapshot.id,
-            ).exists()
-            if not db.session.query(inactive_image_query).scalar():
-                snapshot.status = SnapshotStatus.active
-                db.session.add(snapshot)
-            elif snapshot.status == SnapshotStatus.active:
-                snapshot.status = SnapshotStatus.inactive
-            db.session.add(snapshot)
-
-        db.session.commit()
+            image.update_status(SnapshotStatus[args.status])
 
         return self.respond(image)

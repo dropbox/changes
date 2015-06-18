@@ -154,3 +154,38 @@ class SnapshotImage(db.Model):
         super(SnapshotImage, self).__init__(**kwargs)
         if self.id is None:
             self.id = uuid4()
+
+    def update_status(self, status):
+        """
+        The status field of snapshot is a redundant field that has to
+        be maintained. Its essentially a cached aggregate over
+        snapshot_image.status. This means that whenever we update
+        snapshot_image.status we have to update snapshot.status.
+
+        XXX(jhance)
+        Is this a sign of a defective schema? Computing snapshot.status
+        should be possible in-query although I'm not sure to do it from
+        within sqlalchemy.
+        """
+        self.status = status
+
+        db.session.add(self)
+
+        # We need to update the current database with the status of the
+        # new image, but we don't commit completely until we have found
+        # the status of the overall status and update it atomically
+        db.session.flush()
+
+        if self.status == SnapshotStatus.active:
+            inactive_image_query = SnapshotImage.query.filter(
+                SnapshotImage.status != SnapshotStatus.active,
+                SnapshotImage.snapshot_id == self.snapshot.id,
+            ).exists()
+            if not db.session.query(inactive_image_query).scalar():
+                self.snapshot.status = SnapshotStatus.active
+                db.session.add(self.snapshot)
+            elif self.snapshot.status == SnapshotStatus.active:
+                self.snapshot.status = SnapshotStatus.inactive
+            db.session.add(self.snapshot)
+
+        db.session.commit()
