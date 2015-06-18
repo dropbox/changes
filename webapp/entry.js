@@ -41,6 +41,7 @@ require(["react", "es6", "babel"], function(React) {
     "es6!pages/home_page",
     "es6!pages/project_page",
     "es6!pages/commit_page",
+    "es6!pages/all_projects_page",
     "es6!pages/error_page",
     "es6!pages/test_page",
     "es6!pages/ui_test_page"
@@ -48,6 +49,7 @@ require(["react", "es6", "babel"], function(React) {
     HomePage,
     ProjectPage,
     CommitPage,
+    AllProjectsPage,
     ErrorPage,
     TestPage,
     UITestPage
@@ -59,6 +61,7 @@ require(["react", "es6", "babel"], function(React) {
     var path_parts = _.compact(path.split('/'));
 
     var url_contains = {
+      'projects': [AllProjectsPage],
       'project': [ProjectPage, 'project'],
       'project_commit': [CommitPage, 'project', 'sourceUUID'],
       // TODO: don't just use the homepage for this
@@ -91,7 +94,7 @@ require(["react", "es6", "babel"], function(React) {
 
     // HACK: always send an auth/ api call
     require(['es6!utils/data_fetching'], function(data_fetching) {
-      data_fetching.make_api_ajax_call('/auth');
+      data_fetching.make_api_ajax_call('/api/0/auth');
     });
 
     React.render(

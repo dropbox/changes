@@ -46,6 +46,9 @@ var ChangesPageHeader = React.createClass({
         <a className="headerLinkBlock" href="/v2/">
           My Changes
         </a>
+        <a className="headerLinkBlock" href="/v2/projects/">
+          All Projects
+        </a>
         <div className="headerBlock" style={{float: 'right', color: '#959ca1'}}>
           Log in
         </div>
