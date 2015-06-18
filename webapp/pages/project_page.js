@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { TimeText } from 'es6!components/time';
-import { StatusDot, status_dots } from 'es6!components/status_indicators';
-import Grid from 'es6!components/grid';
-import NotLoaded from 'es6!components/not_loaded';
-import { RandomLoadingMessage } from 'es6!components/loading';
-import ChangesPage from 'es6!components/page_chrome';
-import { Menu1, Menu2 } from 'es6!components/menus';
+import { TimeText } from 'es6!display/time';
+import { StatusDot, status_dots } from 'es6!display/status_indicators';
+import Grid from 'es6!display/grid';
+import NotLoaded from 'es6!display/not_loaded';
+import { RandomLoadingMessage } from 'es6!display/loading';
+import ChangesPage from 'es6!display/page_chrome';
+import { Menu1, Menu2 } from 'es6!display/menus';
 
 import { fetch_data } from 'es6!utils/data_fetching';
 import colors from 'es6!utils/colors';
@@ -218,14 +218,14 @@ var Commits = React.createClass({
     var author_email = c.author && c.author.email;
     if (author_email) {
       author = author_email.substring(0, author_email.indexOf('@'));
-      author_page = `/experimental/author/${c.author.email}`;
+      author_page = `/v2/author/${c.author.email}`;
     }
 
     // TODO: just first n characters of sha?
     var commit_page = null;
 
     if (c.builds && c.builds.length > 0) {
-      var commit_page = '/experimental/project_commit/' +
+      var commit_page = '/v2/project_commit/' +
         project_info.slug + '/' +
         c.builds[0].source.id;
     }

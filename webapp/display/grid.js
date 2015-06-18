@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Error } from 'es6!components/errors';
+import { Error } from 'es6!display/errors';
 
 import * as utils from 'es6!utils/utils';
 

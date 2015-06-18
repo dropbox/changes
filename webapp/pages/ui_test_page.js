@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { TimeText, display_duration } from 'es6!components/time';
-import { StatusDot, StatusMark } from 'es6!components/status_indicators';
-import { Error } from 'es6!components/errors';
-import Grid from 'es6!components/grid';
-import { InlineLoading, RandomLoadingMessage } from 'es6!components/loading';
-import { Menu1, Menu2 } from 'es6!components/menus';
-import SectionHeader from 'es6!components/section_header';
+import { TimeText, display_duration } from 'es6!display/time';
+import { StatusDot, StatusMark } from 'es6!display/status_indicators';
+import { Error } from 'es6!display/errors';
+import Grid from 'es6!display/grid';
+import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
+import { Menu1, Menu2 } from 'es6!display/menus';
+import SectionHeader from 'es6!display/section_header';
 
 import colors from 'es6!utils/colors';
 
@@ -116,7 +116,7 @@ var UITestPage = React.createClass({
     );
 
     return <div>
-      Examples for stuff in components
+      Examples for stuff in display
       {content}
     </div>;
   }

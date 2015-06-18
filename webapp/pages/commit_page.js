@@ -1,16 +1,16 @@
 import React from 'react';
 import moment from 'moment';
 
-import ChangesPage from 'es6!components/page_chrome';
+import ChangesPage from 'es6!display/page_chrome';
 import { fetch_data } from 'es6!utils/data_fetching';
-import NotLoaded from 'es6!components/not_loaded';
+import NotLoaded from 'es6!display/not_loaded';
 import * as utils from 'es6!utils/utils';
 
-import { TimeText, display_duration } from 'es6!components/time';
-import { StatusDot } from 'es6!components/status_indicators';
-import Grid from 'es6!components/grid';
-import SectionHeader from 'es6!components/section_header';
-import { Menu1, Menu2 } from 'es6!components/menus';
+import { TimeText, display_duration } from 'es6!display/time';
+import { StatusDot } from 'es6!display/status_indicators';
+import Grid from 'es6!display/grid';
+import SectionHeader from 'es6!display/section_header';
+import { Menu1, Menu2 } from 'es6!display/menus';
 import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
@@ -176,7 +176,7 @@ var CommitPage = React.createClass({
     var commit_author = utils.email_localpart(
       source.revision.author.email);
 
-    var project_href = `/experimental/project/${builds[0].project.slug}`;
+    var project_href = `/v2/project/${builds[0].project.slug}`;
 
     var header_style = {
       padding: 10,

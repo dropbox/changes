@@ -43,7 +43,7 @@ var ChangesPageHeader = React.createClass({
     return <div>
       <div className="pageHeader">
         <div className="headerBlock"><b>Changes</b></div>
-        <a className="headerLinkBlock" href="/experimental/">
+        <a className="headerLinkBlock" href="/v2/">
           My Changes
         </a>
         <div className="headerBlock" style={{float: 'right', color: '#959ca1'}}>

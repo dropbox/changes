@@ -1,0 +1,3 @@
+This is a separate frontend (accessible via <your host>.com/v2/) that we're
+building to replace the original one. Look in static/ and templates/ for the UI
+currently being used.

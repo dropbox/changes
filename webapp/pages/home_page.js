@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { AjaxError } from 'es6!components/errors';
-import Grid from 'es6!components/grid';
-import { StatusDot, status_dots } from 'es6!components/status_indicators';
-import SectionHeader from 'es6!components/section_header';
-import { InlineLoading, RandomLoadingMessage } from 'es6!components/loading';
-import ChangesPage from 'es6!components/page_chrome';
-import { TimeText } from 'es6!components/time';
+import { AjaxError } from 'es6!display/errors';
+import Grid from 'es6!display/grid';
+import { StatusDot, status_dots } from 'es6!display/status_indicators';
+import SectionHeader from 'es6!display/section_header';
+import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
+import ChangesPage from 'es6!display/page_chrome';
+import { TimeText } from 'es6!display/time';
 
 import { fetch_data } from 'es6!utils/data_fetching';
 import colors from 'es6!utils/colors';
@@ -200,14 +200,14 @@ var Commits = React.createClass({
 
       var source_uuid = c.commitBuild.source.id;
       var sha_href = 
-        `/experimental/project_commit/${c.projectSlug}/${source_uuid}`;
+        `/v2/project_commit/${c.projectSlug}/${source_uuid}`;
 
       var sha = c.commitBuild.source.revision.sha;
       var sha_link = <a href={sha_href}>
         {sha.substr(0,5) + "..."}
       </a>;
 
-      var project_href = "/experimental/project/" + c.projectSlug;
+      var project_href = "/v2/project/" + c.projectSlug;
       var project_link = <a href={project_href}>
         {c.projectName}
       </a>;
@@ -267,7 +267,7 @@ var Projects = React.createClass({
         var [slug, changes] = pair;
 
         var name = changes[0].projectName;
-        var url = "/experimental/project/" + slug;
+        var url = "/v2/project/" + slug;
         project_links.push(
           [<a href={url}>{name}</a>,
            "TODO: show build history of proj"]

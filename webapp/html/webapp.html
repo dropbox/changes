@@ -18,25 +18,21 @@
         window.DEV_JS_SHOULD_HIT_HOST = '{{ DEV_JS_SHOULD_HIT_HOST }}'
       </script>
     {% endif %}
-    <link href="{{ url_for('static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
-    <!--
-    <link href="{{ url_for('static', filename='vendor/highlightjs/styles/tomorrow-night-bright.css') }}" rel="stylesheet" media="screen">
-    <link href="{{ url_for('static', filename='css/ansi.css') }}?1" rel="stylesheet" media="screen">
-    -->
+    <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-    <link href="{{ url_for('static', filename='experimental/css/styles.css') }}?4" rel="stylesheet" media="screen">
+    <link href="{{ url_for('webapp_v2.static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
   </head>
   <body>
     <div id="reactRoot">
       Downloading and transpiling javascript...
     </div>
     <script 
-      data-main="{{ url_for('static', filename='experimental/entry') }}" 
-      src="{{ url_for('static', filename='vendor/requirejs/require.js') }}">
+      data-main="{{ url_for('webapp_v2.static', filename='entry') }}" 
+      src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
     </script>
     <script>
       requirejs.config({
-        baseUrl: '{{ url_for('static', filename='experimental/') }}'
+        baseUrl: '{{ url_for('webapp_v2.static', filename='') }}'
       });
       window.APP_VERSION = '{{ VERSION }}';
     </script>

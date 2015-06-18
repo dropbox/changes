@@ -1,17 +1,17 @@
+/* some RequireJS config before we start */
+
 requirejs.config({
   // TODO: use minified versions in prod
   paths: {
     // code is written in jsx/es6 syntax and converted using babel
-    es6: "../vendor/requirejs-babel/es6",
-    babel: "../vendor/requirejs-babel/babel-4.6.6.min",
-    // mostly just for jquery.ajax
-    jquery: "../vendor/jquery/jquery",
+    babel: "vendor/requirejs-babel/babel-4.6.6.min",
+    es6: "vendor/requirejs-babel/es6", // the requirejs babel loader
     // time library
-    moment: "../vendor/moment/min/moment.min",
+    moment: "vendor/moment/min/moment.min",
     // core libraries we use
-    react: '../vendor/react/react-with-addons',
-    requirejs: '../vendor/requirejs/require',
-    underscore: '../vendor/underscore/underscore'
+    react: 'vendor/react/react-with-addons',
+    requirejs: 'vendor/requirejs/require',
+    underscore: 'vendor/underscore/underscore'
   },
   config: {
     'es6': {
@@ -25,7 +25,11 @@ requirejs.config({
   }
 });
 
-require(["react", "es6", "babel"], function(React, Route) {
+/* 
+ * essentially main(). Routes the user to the right page
+ */
+
+require(["react", "es6", "babel"], function(React) {
   'use strict';
 
   // TODO: all of this is terrible and temporary just to get something working.
@@ -50,7 +54,7 @@ require(["react", "es6", "babel"], function(React, Route) {
   ) {
 
     var url = window.location.href;
-    var path_start = url.indexOf('experimental/') + 'experimental/'.length;
+    var path_start = url.indexOf('v2/') + 'v2/'.length;
     var path = url.substr(path_start);
     var path_parts = _.compact(path.split('/'));
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { AjaxError } from 'es6!components/errors';
-import { InlineLoading, RandomLoadingMessage } from 'es6!components/loading';
+import { AjaxError } from 'es6!display/errors';
+import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 
 import * as utils from 'es6!utils/utils';
 

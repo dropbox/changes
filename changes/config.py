@@ -8,7 +8,7 @@ import warnings
 from celery.schedules import crontab
 from celery.signals import task_postrun
 from datetime import timedelta
-from flask import request, session
+from flask import request, session, Blueprint
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
@@ -313,7 +313,11 @@ def create_app(_read_config=True, **config):
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
-    configure_web_routes(app)
+    app_static_root = configure_web_routes(app)
+
+    # blueprint for our new v2 webapp
+    blueprint = create_v2_blueprint(app, app_static_root)
+    app.register_blueprint(blueprint, url_prefix='/v2')
 
     configure_jobs(app)
 
@@ -323,6 +327,43 @@ def create_app(_read_config=True, **config):
         categorize.load_rules(rules_file)
 
     return app
+
+
+def create_v2_blueprint(app, app_static_root):
+    blueprint = Blueprint(
+        'webapp_v2',
+        __name__,
+        template_folder=os.path.join(PROJECT_ROOT, 'webapp/html')
+    )
+
+    from changes.web.index import IndexView
+    from changes.web.static import StaticView
+
+    # TODO: set revision to the current git hash once we add prod static 
+    # resource compilation back in to v2
+    static_root = os.path.join(PROJECT_ROOT, 'webapp')
+    revision = '0'
+
+    # TODO: have non-debug mode use webapp/dist, once I figure out how to
+    # compile with babel
+
+    # all of these urls are automatically prefixed with v2
+    # (see the register_blueprint call above)
+
+    blueprint.add_url_rule(
+        '/static/' + revision + '/<path:filename>',
+        view_func=StaticView.as_view(
+            'static',
+            root=static_root,
+            hacky_vendor_root=app_static_root)
+    )
+
+    # no need to set up our own login/logout urls
+
+    blueprint.add_url_rule('/<path:path>',
+      view_func=IndexView.as_view('index-path', use_v2=True))
+    blueprint.add_url_rule('/', view_func=IndexView.as_view('index', use_v2=True))
+    return blueprint
 
 
 def configure_debug_toolbar(app):
@@ -505,6 +546,10 @@ def configure_web_routes(app):
     from changes.web.index import IndexView
     from changes.web.static import StaticView
 
+    # the path used by the webapp for static resources uses the current app
+    # version (which is a git hash) so that browsers don't use an old, cached
+    # versions of those resources
+
     if app.debug:
         static_root = os.path.join(PROJECT_ROOT, 'static')
         revision = '0'
@@ -533,6 +578,9 @@ def configure_web_routes(app):
         '/<path:path>', view_func=IndexView.as_view('index-path'))
     app.add_url_rule(
         '/', view_func=IndexView.as_view('index'))
+
+    # bit of a hack: we use this for creating the v2 blueprint
+    return static_root
 
 
 def configure_debug_routes(app):
