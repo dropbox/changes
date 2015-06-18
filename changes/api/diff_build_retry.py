@@ -73,9 +73,9 @@ class DiffBuildRetryAPIView(APIView):
         project_options = ProjectOptionsHelper.get_options(projects, ['build.file-whitelist', 'phabricator.diff-trigger'])
         projects = [
             x for x in projects
-            if get_build_plans(x)
-            and project_options[x.id].get('phabricator.diff-trigger', '1') == '1'
-            and in_project_files_whitelist(project_options[x.id], files_changed)
+            if get_build_plans(x) and
+            project_options[x.id].get('phabricator.diff-trigger', '1') == '1' and
+            in_project_files_whitelist(project_options[x.id], files_changed)
             ]
         return projects
 

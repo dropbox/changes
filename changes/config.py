@@ -339,7 +339,7 @@ def create_v2_blueprint(app, app_static_root):
     from changes.web.index import IndexView
     from changes.web.static import StaticView
 
-    # TODO: set revision to the current git hash once we add prod static 
+    # TODO: set revision to the current git hash once we add prod static
     # resource compilation back in to v2
     static_root = os.path.join(PROJECT_ROOT, 'webapp')
     revision = '0'
