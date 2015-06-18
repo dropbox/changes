@@ -555,7 +555,8 @@ def configure_web_routes(app):
         revision = '0'
     else:
         static_root = os.path.join(PROJECT_ROOT, 'static-built')
-        revision = changes.get_revision() or '0'
+        revision_facts = changes.get_revision_info() or {}
+        revision = revision_facts.get('hash', '0')
 
     app.add_url_rule(
         '/static/' + revision + '/<path:filename>',
