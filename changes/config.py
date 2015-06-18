@@ -244,10 +244,16 @@ def create_app(_read_config=True, **config):
 
     # if set to a string, most (all?) of the frontend js will make API calls
     # to the host this string is set to (e.g. http://changes.bigcompany.com)
-    # You'll want to use --disable-web-security in chrome to make this work
-    # useful for development and override this this in your changes.conf.py
-    # file
-    app.config['DEV_JS_SHOULD_HIT_HOST'] = None
+    # THIS IS JUST FOR EASIER TESTING IN DEVELOPMENT. Although it won't even
+    # work in prod: you'll have to start chrome with --disable-web-security to
+    # make this work. Override this this in your changes.conf.py file
+    app.config['WEBAPP_USE_ANOTHER_HOST'] = None
+
+    # points to a file with custom changes content unique to your deployment.
+    # Link to internal tools, provide inline contextual help on your development
+    # process, etc.
+    # e.g. /mycompany/config/changes_content.js
+    app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE'] = None
 
     # In minutes, the timeout applied to jobs without a timeout specified at build time.
     # A timeout should nearly always be specified; this is just a safeguard so that
@@ -357,6 +363,17 @@ def create_v2_blueprint(app, app_static_root):
             root=static_root,
             hacky_vendor_root=app_static_root)
     )
+
+    if app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE']:
+        content_dir = os.path.dirname(app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE'])
+        # StaticView wants a filename, so we send the filename down to js
+        # and have it request this path
+        blueprint.add_url_rule(
+            '/customized_content/<path:filename>',
+            view_func=StaticView.as_view(
+                'custom_content',
+                root=content_dir)
+        )
 
     # no need to set up our own login/logout urls
 

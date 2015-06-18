@@ -32,6 +32,17 @@ requirejs.config({
 require(["react", "es6", "babel"], function(React) {
   'use strict';
 
+  // if we have custom content to use in changes, grab and store it
+  if (window.changesGlobals['CUSTOMIZED_CONTENT_FILENAME']) {
+    var moduleName = "es6!../../customized_content/" + 
+        window.changesGlobals['CUSTOMIZED_CONTENT_FILENAME'].replace('.js', '');
+
+    require([moduleName], function(CustomContentMap) {
+      window.changesCustomContent = CustomContentMap;
+    });
+  }
+
+  // routing
   // TODO: all of this is terrible and temporary just to get something working.
   // replace with a routing library. Probably not react-router, though... its 
   // too template-y. Or at least don't use nesting with react-router

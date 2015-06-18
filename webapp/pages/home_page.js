@@ -10,6 +10,7 @@ import { TimeText } from 'es6!display/time';
 
 import { fetch_data } from 'es6!utils/data_fetching';
 import colors from 'es6!utils/colors';
+import custom_content_hook from 'es6!utils/custom_content';
 import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
@@ -232,9 +233,23 @@ var Commits = React.createClass({
       'Committed'
     ];
 
-    // TODO: if a commit is from a major repo, link to our internal tool
-    // that can be used to see whether the diff is already out.
+    // custom content link for a tool to show whether commits have been 
+    // pushed to prod
+    var is_it_out_markup = null;
+
+    var project_slugs = _.chain(commits)
+      .map(commits, c => c.projectSlug)
+      .uniq()
+      .values();
+    var is_it_out_link = custom_content_hook('isItOutLink', null, project_slugs);
+    if (is_it_out_link) {
+      is_it_out_markup = <div style={{float: 'right', marginTop: 9}}>
+        <a href={is_it_out_link}>Is it out?</a>
+      </div>;
+    }
+
     return <div className="paddingBottomM">
+      {is_it_out_markup}
       <SectionHeader>Commits</SectionHeader>
       <Grid 
         data={grid_data} 

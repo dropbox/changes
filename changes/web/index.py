@@ -1,4 +1,5 @@
 import changes
+import os
 import urlparse
 
 from changes.config import statsreporter
@@ -24,18 +25,25 @@ class IndexView(MethodView):
         else:
             dsn = None
 
-        dev_js_should_hit_host = current_app.config['DEV_JS_SHOULD_HIT_HOST']
+        # variables to ship down to the webapp
+        webapp_use_another_host = current_app.config['WEBAPP_USE_ANOTHER_HOST']
+        # note that we're only shipping down the filename!
+        webapp_customized_content_filename = None
+        if current_app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE']:
+            webapp_customized_content_filename = os.path.basename(
+                current_app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE'])
 
         # use new react code
         if self.use_v2:
             return render_template('webapp.html', **{
                 'SENTRY_PUBLIC_DSN': dsn,
                 'VERSION': changes.get_version(),
-                'DEV_JS_SHOULD_HIT_HOST': dev_js_should_hit_host
+                'WEBAPP_USE_ANOTHER_HOST': webapp_use_another_host,
+                'WEBAPP_CUSTOMIZED_CONTENT_FILENAME': webapp_customized_content_filename
             })
 
         return render_template('index.html', **{
             'SENTRY_PUBLIC_DSN': dsn,
             'VERSION': changes.get_version(),
-            'DEV_JS_SHOULD_HIT_HOST': dev_js_should_hit_host
+            'WEBAPP_USE_ANOTHER_HOST': webapp_use_another_host
         })

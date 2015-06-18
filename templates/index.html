@@ -18,9 +18,9 @@
         }).install();
       </script>
     {% endif %}
-    {% if DEV_JS_SHOULD_HIT_HOST %}
+    {% if WEBAPP_USE_ANOTHER_HOST %}
       <script type="text/javascript">
-        window.DEV_JS_SHOULD_HIT_HOST = '{{ DEV_JS_SHOULD_HIT_HOST }}'
+        window.WEBAPP_USE_ANOTHER_HOST = '{{ WEBAPP_USE_ANOTHER_HOST }}'
       </script>
     {% endif %}
     <link href="{{ url_for('static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
