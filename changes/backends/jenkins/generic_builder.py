@@ -155,6 +155,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             {'name': 'WORK_PATH', 'value': path},
             {'name': 'C_WORKSPACE', 'value': self.workspace},
         ])
+
         if build_desc.get('uses_client', False):
             params.extend([
                 {'name': 'JENKINS_COMMAND',
@@ -168,11 +169,11 @@ class JenkinsGenericBuilder(JenkinsBuilder):
                 {'name': 'CHANGES_CLIENT_SNAPSHOT_ID',
                  'value': snapshot_id},
                 {'name': 'CHANGES_CLIENT_LXC_PRE_LAUNCH',
-                 'value': self.build_desc.get('pre-launch', default_pre)},
+                 'value': build_desc.get('pre-launch', default_pre)},
                 {'name': 'CHANGES_CLIENT_LXC_POST_LAUNCH',
-                 'value': self.build_desc.get('post-launch', default_post)},
+                 'value': build_desc.get('post-launch', default_post)},
                 {'name': 'CHANGES_CLIENT_LXC_RELEASE',
-                 'value': self.build_desc.get('release', default_release)},
+                 'value': build_desc.get('release', default_release)},
             ])
 
         return params
