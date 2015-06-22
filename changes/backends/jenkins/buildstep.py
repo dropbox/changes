@@ -156,4 +156,4 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         status = status_json['status']
 
         image = SnapshotImage.query.get(image_id)
-        image.update_status(SnapshotStatus[status])
+        image.change_status(SnapshotStatus[status])

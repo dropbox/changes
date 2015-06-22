@@ -33,7 +33,10 @@ class SnapshotStatus(Enum):
     # Snapshot build failed
     # TODO (jukka): Not sure if this is set anywhere
     failed = 2
-    # TODO (jukka): Not sure if this is set anywhere
+    # Used when a snapshot was marked as active but then a snapshot image
+    # This implies that the snapshot (or image) was once marked as active
+    # but was later marked as bad for some reason. This is the only state
+    # that an active snapshot/image should ever be switched to.
     invalidated = 3
     # Waiting for snapshot build to finish
     pending = 4
@@ -155,12 +158,19 @@ class SnapshotImage(db.Model):
         if self.id is None:
             self.id = uuid4()
 
-    def update_status(self, status):
+    def change_status(self, status):
         """
         The status field of snapshot is a redundant field that has to
         be maintained. Its essentially a cached aggregate over
         snapshot_image.status. This means that whenever we update
         snapshot_image.status we have to update snapshot.status.
+
+        This method updates the current status to the new status given
+        as a parameter.
+
+        TODO we should probably verify that if the current status is
+        active and we are tring to move it to a new status that is
+        not "invalidated" we should give some error.
 
         XXX(jhance)
         Is this a sign of a defective schema? Computing snapshot.status
@@ -176,16 +186,15 @@ class SnapshotImage(db.Model):
         # the status of the overall status and update it atomically
         db.session.flush()
 
-        if self.status == SnapshotStatus.active:
-            inactive_image_query = SnapshotImage.query.filter(
-                SnapshotImage.status != SnapshotStatus.active,
-                SnapshotImage.snapshot_id == self.snapshot.id,
-            ).exists()
-            if not db.session.query(inactive_image_query).scalar():
-                self.snapshot.status = SnapshotStatus.active
-                db.session.add(self.snapshot)
-            elif self.snapshot.status == SnapshotStatus.active:
-                self.snapshot.status = SnapshotStatus.inactive
+        inactive_image_query = SnapshotImage.query.filter(
+            SnapshotImage.status != SnapshotStatus.active,
+            SnapshotImage.snapshot_id == self.snapshot.id,
+        ).exists()
+        if not db.session.query(inactive_image_query).scalar():
+            self.snapshot.status = SnapshotStatus.active
             db.session.add(self.snapshot)
+        elif self.snapshot.status == SnapshotStatus.active:
+            self.snapshot.status = SnapshotStatus.invalidated
+        db.session.add(self.snapshot)
 
         db.session.commit()

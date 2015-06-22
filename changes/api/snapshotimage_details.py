@@ -25,6 +25,6 @@ class SnapshotImageDetailsAPIView(APIView):
         args = self.parser.parse_args()
 
         if args.status:
-            image.update_status(SnapshotStatus[args.status])
+            image.change_status(SnapshotStatus[args.status])
 
         return self.respond(image)
