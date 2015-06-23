@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import logging
 
 from flask import current_app
-from fnmatch import fnmatch
 from changes.api.build_index import BuildIndexAPIView
 from changes.models import ProjectStatus, Project, ProjectOptionsHelper, Revision
 from changes.utils.diff_parser import DiffParser
@@ -35,15 +34,6 @@ class CommitTrigger(object):
             Project.repository_id == self.revision.repository_id,
             Project.status == ProjectStatus.active,
         ))
-
-    def should_build_branch(self, allowed_branches):
-        if not self.revision.branches and '*' in allowed_branches:
-            return True
-
-        for branch in self.revision.branches:
-            if any(fnmatch(branch, pattern) for pattern in allowed_branches):
-                return True
-        return False
 
     def get_changed_files(self):
         vcs = self.repository.get_vcs()
@@ -91,7 +81,7 @@ class CommitTrigger(object):
                 continue
 
             branch_names = filter(bool, options[project.id].get('build.branch-names', '*').split(' '))
-            if not self.should_build_branch(branch_names):
+            if not revision.should_build_branch(branch_names):
                 self.logger.info('No branches matched build.branch-names for project %s', project.slug)
                 continue
 

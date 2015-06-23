@@ -54,8 +54,27 @@ class GreenBuildTest(TestCase):
 
         assert len(responses.calls) == 0
 
-        # test with passing build
+        # test with passing build but not on correct branch:
+
         build.result = Result.passed
+
+        get_options.return_value = {
+            'green-build.notify': '1',
+            'build.branch-names': 'some_other_branch',
+        }
+
+        build_finished_handler(build_id=build.id.hex)
+
+        get_options.assert_called_once_with(build.project_id)
+
+        assert len(responses.calls) == 0
+
+        # test with passing build
+
+        # (remove the branch filter)
+        get_options.return_value = {
+            'green-build.notify': '1',
+        }
 
         build_finished_handler(build_id=build.id.hex)
 
@@ -63,8 +82,6 @@ class GreenBuildTest(TestCase):
             'log', '-r %s' % sha, '--limit=1',
             '--template={rev}:{node|short}'
         ])
-
-        get_options.assert_called_once_with(build.project_id)
 
         assert len(responses.calls) == 1
         assert responses.calls[0].request.url == 'https://foo.example.com/'

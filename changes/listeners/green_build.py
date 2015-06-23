@@ -27,7 +27,7 @@ def get_options(project_id):
         ).filter(
             ProjectOption.project_id == project_id,
             ProjectOption.name.in_([
-                'green-build.notify', 'green-build.project',
+                'green-build.notify', 'green-build.project', 'build.branch-names'
             ])
         )
     )
@@ -88,6 +88,10 @@ def build_finished_handler(build_id, **kwargs):
     vcs = source.repository.get_vcs()
     if vcs is None:
         logger.info('Repository has no VCS set: %s', source.repository.id)
+        return
+
+    branch_names = filter(bool, options.get('build.branch-names', '*').split(' '))
+    if not source.revision.should_build_branch(branch_names):
         return
 
     # ensure we have the latest changes

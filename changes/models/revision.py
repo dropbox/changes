@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
+from fnmatch import fnmatch
 
 from changes.config import db
 from changes.db.types.guid import GUID
@@ -43,3 +44,12 @@ class Revision(db.Model):
     @property
     def subject(self):
         return self.message.splitlines()[0]
+
+    def should_build_branch(self, allowed_branches):
+        if not self.branches and '*' in allowed_branches:
+            return True
+
+        for branch in self.branches:
+            if any(fnmatch(branch, pattern) for pattern in allowed_branches):
+                return True
+        return False
