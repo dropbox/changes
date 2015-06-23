@@ -14,6 +14,8 @@ define([
       $scope.features = features;
       $scope.project = projectData;
 
+      $scope.filteredCommits = projectData.options['build.file-whitelist'];
+
       var stats = projectData.stats;
       if (stats.greenPercent && stats.previousGreenPercent !== null) {
         stats.greenPercentChange = stats.greenPercent - stats.previousGreenPercent;
