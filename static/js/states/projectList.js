@@ -8,6 +8,9 @@ define([
     url: "/projects/",
     templateUrl: 'partials/project-list.html',
     controller: function(projectList, $scope, Collection, CollectionPoller) {
+      // projects that haven't run a build recently are considered stale
+      var STALE_MAX_AGE = 60*60*24*7; // one week
+
       function sortByDateCreated(a, b){
         if (a.dateCreated < b.dateCreated) {
           return 1;
@@ -71,6 +74,12 @@ define([
 
       projectList = projectList.data;
       $.each(projectList, function(_, project){
+        var age = null;
+        if (project.lastBuild) {
+          age = moment.utc().format('X') - moment.utc(project.lastBuild.dateCreated).format('X');
+        }
+        project.isStale = !project.lastBuild || age > STALE_MAX_AGE;
+
         var lastPassingBuild = project.lastPassingBuild;
         if (!lastPassingBuild) {
           return;
@@ -82,14 +91,22 @@ define([
       });
 
       $scope.getProjectClass = getProjectClass;
-      $scope.projects = new Collection(projectList);
+      $scope.projects = new Collection(
+        projectList.filter(function(p) { return !p.isStale; })
+      );
+
+      $scope.staleProjects = new Collection(
+        projectList.filter(function(p) { return p.isStale; })
+      );
 
       var poller = new CollectionPoller({
         $scope: $scope,
-        collection: $scope.projects,
+        collection: projectList,
         endpoint: '/api/0/projects/',
         shouldUpdate: function(item, existing) {
-          if (!existing.lastBuild && !item.lastBuild) {
+          if (existing.isStale) {
+            return false;
+          } else if (!existing.lastBuild && !item.lastBuild) {
             return false;
           } else if (!existing.lastBuild) {
             return true;

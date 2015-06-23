@@ -24,4 +24,38 @@
       </a>
     </li>
   </ul>
+
+  <div ng-if="staleProjects">
+  <h3>Stale Projects</h3>
+  <ul class="project-list indicated-list"
+      ng-class="projectList.length <= 16 ? 'project-list-wide' : ''">
+    <li ng-repeat="project in staleProjects"
+        slyEvaluateOnlyWhen="project.lastPassingBuild.dateModified"
+        class="result {{getProjectClass(project)}}">
+      <a ui-sref="project_commits({project_id: project.slug})">
+        <span class="indicator"></span>
+        <h4 bind-once>{{project.name}}</h4>
+        <span ng-if="project.lastPassingBuild">
+          <small>
+            <span ng-if="project.lastPassingBuild.stats.test_count" class="stat stat-tests">
+              {{project.lastPassingBuild.stats.test_count}} tests <span class="sep">/</span>
+            </span>
+            <span ng-if="project.hasCoverage" class="stat stat-coverage">
+              {{project.coveragePercent}}% coverage <span class="sep">/</span>
+            </span>
+            <span duration="project.lastPassingBuild.duration"></span>
+          </small>
+        </span>
+        <span ng-if="!project.lastPassingBuild">
+          <small>No build information available</small>
+        </span>
+        <span ng-if="project.lastBuild">
+          <small style="color: #aa6708">
+            Last build was 
+            <span time-since="project.lastBuild.dateCreated"></span>
+          </small>
+        </span>
+      </a>
+    </li>
+  </ul>
 </section>
