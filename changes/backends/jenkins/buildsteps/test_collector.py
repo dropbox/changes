@@ -264,8 +264,6 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         test_stats, avg_test_time = self.get_test_stats(step.project)
 
-        groups = self._shard_tests(phase_config['tests'], self.num_shards, test_stats, avg_test_time)
-
         phase, created = get_or_create(JobPhase, where={
             'job': step.job,
             'project': step.project,
@@ -275,12 +273,22 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         })
         db.session.commit()
 
-        assert len(groups) == self.num_shards
-
-        # Create all of the job steps and commit them together.
-        steps = [self._create_jobstep(phase, phase_config, weight, test_list)
-                 for weight, test_list in groups]
-        db.session.commit()
+        # Check for whether a previous run of this task has already
+        # created JobSteps for us, since doing it again would create a
+        # double-sharded build.
+        steps = JobStep.query.filter_by(phase_id=phase.id).all()
+        if steps:
+            assert len(steps) == self.num_shards
+        else:
+            # Create all of the job steps and commit them together.
+            groups = self._shard_tests(phase_config['tests'], self.num_shards,
+                                       test_stats, avg_test_time)
+            steps = [
+                self._create_jobstep(phase, phase_config, weight, test_list)
+                for weight, test_list in groups
+                ]
+            assert len(steps) == len(groups) == self.num_shards
+            db.session.commit()
 
         # Now that that database transaction is done, we'll do the slow work of
         # creating jenkins builds.

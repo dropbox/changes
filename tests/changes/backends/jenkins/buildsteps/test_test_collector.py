@@ -458,3 +458,19 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             is_diff=False,
             params=builder.get_job_parameters.return_value,
         )
+
+        # If fetch_artifact() is called again with different weights so
+        # that it divvies up the tests differently, does a broken
+        # double-shard build result?
+
+        get_test_stats.return_value = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+            ('foo', 'bar', 'test_biz'): 10,
+            ('foo', 'bar', 'test_buz'): 55,
+        }, 68
+
+        buildstep.fetch_artifact(artifact)
+
+        all_steps = JobStep.query.filter_by(phase_id=phase2.id).all()
+        assert len(all_steps) == 2
