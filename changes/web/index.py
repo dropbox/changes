@@ -37,7 +37,7 @@ class IndexView(MethodView):
         if self.use_v2:
             return render_template('webapp.html', **{
                 'SENTRY_PUBLIC_DSN': dsn,
-                'VERSION': changes.get_version(),
+                'RELEASE_INFO': changes.get_revision_info(),
                 'WEBAPP_USE_ANOTHER_HOST': webapp_use_another_host,
                 'WEBAPP_CUSTOMIZED_CONTENT_FILENAME': webapp_customized_content_filename
             })

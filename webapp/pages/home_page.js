@@ -243,12 +243,12 @@ var Commits = React.createClass({
       .values();
     var is_it_out_link = custom_content_hook('isItOutLink', null, project_slugs);
     if (is_it_out_link) {
-      is_it_out_markup = <div style={{float: 'right', marginTop: 9}}>
+      is_it_out_markup = <div style={{float: 'right'}}>
         <a href={is_it_out_link}>Is it out?</a>
       </div>;
     }
 
-    return <div className="paddingBottomM">
+    return <div className="marginTopM">
       {is_it_out_markup}
       <SectionHeader>Commits</SectionHeader>
       <Grid 
@@ -292,7 +292,7 @@ var Projects = React.createClass({
     var headers = ['Name', 'Data'];
     var cellClasses = ['nowrap', 'wide'];
 
-    return <div>
+    return <div className="marginTopM">
       <SectionHeader>Projects</SectionHeader>
       <Grid 
         data={project_links} 

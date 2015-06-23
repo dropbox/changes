@@ -30,10 +30,10 @@ var NotLoaded = React.createClass({
   },
 
   render: function() {
-    var { loadStatus, errorData, ...props} = this.props;
+    var { loadStatus, errorData, isInline, ...props} = this.props;
 
     if (loadStatus === 'loading') {
-      if (this.props.isInline) {
+      if (isInline) {
         return <InlineLoading {...props} />;
       }
       return <RandomLoadingMessage {...props} />;
