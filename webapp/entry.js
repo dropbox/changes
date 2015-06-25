@@ -29,7 +29,7 @@ requirejs.config({
  * essentially main(). Routes the user to the right page
  */
 
-require(["react", "es6", "babel"], function(React) {
+require(["react", "underscore", "es6", "babel"], function(React, _) {
   'use strict';
 
   // if we have custom content to use in changes, grab and store it
@@ -67,8 +67,7 @@ require(["react", "es6", "babel"], function(React) {
   ) {
 
     var url = window.location.href;
-    var path_start = url.indexOf('v2/') + 'v2/'.length;
-    var path = url.substr(path_start);
+    var path = _.last(url.split('/v2/', 2)).trim();
     var path_parts = _.compact(path.split('/'));
 
     var url_contains = {
@@ -81,7 +80,8 @@ require(["react", "es6", "babel"], function(React) {
       'ui_examples': [UITestPage]
     };
 
-    var page = HomePage;
+    var page = ErrorPage;
+
     var params = {};
     for (var str in url_contains) {
       if (path_parts[0] === str) {
@@ -100,6 +100,8 @@ require(["react", "es6", "babel"], function(React) {
         break;
       }
     }
+
+    if (path === "") { page = HomePage; }
 
     // TODO: pages should set window.document.title
 
