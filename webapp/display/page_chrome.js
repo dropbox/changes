@@ -60,8 +60,7 @@ var ChangesPageHeader = React.createClass({
     var feedback_href = custom_content_hook('feedbackHref');
     var feedback_link = null;
     if (feedback_href) {
-      feedback_link = <a className="headerLinkBlock"
-        style={{float: 'right'}}
+      feedback_link = <a className="headerLinkBlock floatR"
         target="_blank"
         href={feedback_href}>
         Give Feedback!
@@ -77,9 +76,7 @@ var ChangesPageHeader = React.createClass({
         <a className="headerLinkBlock" href="/v2/projects/">
           All Projects
         </a>
-        <div className="headerBlock" style={{float: 'right', color: '#959ca1'}}>
-          Log in
-        </div>
+        <ChangesLogin />
         <ChangesInlinePerf />
         {feedback_link}
       </div>
@@ -154,16 +151,16 @@ var ChangesInlinePerf = React.createClass({
     var classes = cx({
       headerBlock: true,
       inlinePerf: true,
+      floatR: true,
       inlinePerfExpanded: this.state.expanded
     });
 
     return <div 
       className={classes}
-      style={{float: 'right', position: 'relative'}}>
+      style={{position: 'relative'}}>
       <div onClick={onclick}>
         {perf_markup}
         <i className="fa fa-caret-down" style={{marginLeft: 4}} />
-        <ChangesLogin />
       </div>
       {expanded_info}
     </div>;
