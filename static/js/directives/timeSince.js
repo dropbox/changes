@@ -1,8 +1,9 @@
 define([
   'app', 
   'utils', 
+  'moment',
   'bootstrap/tooltip'
-], function(app, utils, tooltip_func) {
+], function(app, utils, moment, tooltip_func) {
   'use strict';
 
   // we use a shared timeout for the page loop to avoid
@@ -30,7 +31,7 @@ define([
       element.addClass('ng-timesince');
       element.data('datetime', value);
 
-      element.attr('title', (new Date(value)).toUTCString());
+      element.attr('title', moment.utc(value).toString());
       element.attr('data-placement', 'left');
       tooltip_func.bind(element)();
     };
