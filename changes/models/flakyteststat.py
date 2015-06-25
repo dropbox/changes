@@ -3,10 +3,14 @@ from uuid import uuid4
 from sqlalchemy import Column, Date, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index, UniqueConstraint
-import datetime
+from datetime import datetime
 
 from changes.config import db
 from changes.db.types.guid import GUID
+
+
+def today():
+    return datetime.utcnow().date()
 
 
 class FlakyTestStat(db.Model):
@@ -27,12 +31,12 @@ class FlakyTestStat(db.Model):
     id = Column(GUID, primary_key=True, default=uuid4)
     name = Column(Text, nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
-    date = Column(Date, default=datetime.date.today, nullable=False)
+    date = Column(Date, default=today, nullable=False)
     last_flaky_run_id = Column(GUID, ForeignKey('test.id', ondelete="CASCADE"), nullable=False)
     flaky_runs = Column(Integer, default=0, nullable=False)
     double_reruns = Column(Integer, default=0, nullable=False)
     passing_runs = Column(Integer, default=0, nullable=False)
-    first_run = Column(Date, default=datetime.date.today, nullable=False)
+    first_run = Column(Date, default=today, nullable=False)
 
     project = relationship('Project')
     last_flaky_run = relationship('TestCase')

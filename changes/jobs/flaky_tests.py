@@ -4,7 +4,7 @@ from __future__ import absolute_import, print_function
 
 import logging
 
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from changes.config import db
 from changes.db.utils import try_create
@@ -31,7 +31,7 @@ def log_metrics(key, **kws):
 
 def aggregate_flaky_tests(day=None, max_flaky_tests=200):
     if day is None:
-        day = date.today() - timedelta(days=1)
+        day = datetime.utcnow().date() - timedelta(days=1)
 
     try:
         projects = Project.query.all()

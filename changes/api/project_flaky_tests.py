@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from flask.ext.restful import reqparse
 from sqlalchemy.sql import func
 from sqlalchemy import and_
@@ -29,7 +29,7 @@ class ProjectFlakyTestsAPIView(APIView):
             except:
                 return 'Can\'t parse date "%s"' % (args.date), 500
         else:
-            query_date = date.today() - timedelta(days=1)
+            query_date = datetime.utcnow().date() - timedelta(days=1)
 
         data = {
             'date': str(query_date),
