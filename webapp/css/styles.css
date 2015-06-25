@@ -190,6 +190,10 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
   display: inline;
 }
 
+.floatR {
+  float: right;
+}
+
 .nowrap {
   white-space: nowrap;
 }

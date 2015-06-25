@@ -113,4 +113,11 @@ class LogoutView(MethodView):
         session.pop('uid', None)
         session.pop('access_token', None)
         session.pop('email', None)
+        # if the url contains ?return, go back to the referrer page
+        if 'return' in request.args and request.referrer:
+            is_same_host = (urlparse.urlparse(request.referrer).netloc ==
+                urlparse.urlparse(request.host_url).netloc)
+            if is_same_host:
+                return redirect(request.referrer)
+
         return redirect(url_for(self.complete_url))

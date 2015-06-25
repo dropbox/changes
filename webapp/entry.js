@@ -103,15 +103,16 @@ require(["react", "es6", "babel"], function(React) {
 
     // TODO: pages should set window.document.title
 
-    // HACK: always send an auth/ api call
     require(['es6!utils/data_fetching'], function(data_fetching) {
-      data_fetching.make_api_ajax_call('/api/0/auth');
-    });
+      data_fetching.make_api_ajax_call('/api/0/auth', function(response) {
+        window.changesAuthData = JSON.parse(response.responseText);
 
-    React.render(
-      React.createElement(page, params),
-      document.getElementById('reactRoot')
-    );
+        React.render(
+          React.createElement(page, params),
+          document.getElementById('reactRoot')
+        );
+      });
+    });
   });
 });
 

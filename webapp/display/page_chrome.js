@@ -3,6 +3,7 @@ import Grid from 'es6!display/grid';
 import SectionHeader from 'es6!display/section_header';
 import { TimeText } from 'es6!display/time';
 import _ from 'underscore';
+import * as utils from 'es6!utils/utils';
 
 import custom_content_hook from 'es6!utils/custom_content';
 import { email_localpart } from 'es6!utils/utils';
@@ -67,7 +68,6 @@ var ChangesPageHeader = React.createClass({
       </a>;
     }
 
-    // Log In not implemented yet, graying it out
     return <div>
       <div className="pageHeader">
         <div className="headerBlock"><b>Changes</b></div>
@@ -163,6 +163,7 @@ var ChangesInlinePerf = React.createClass({
       <div onClick={onclick}>
         {perf_markup}
         <i className="fa fa-caret-down" style={{marginLeft: 4}} />
+        <ChangesLogin />
       </div>
       {expanded_info}
     </div>;
@@ -274,6 +275,30 @@ var ChangesInlinePerf = React.createClass({
     // clear the timer, if in use (e.g. the widget is expanded)
     if (this.refreshTimer) {
       clearInterval(this.refreshTimer);
+    }
+  }
+});
+
+var ChangesLogin = React.createClass({
+
+  // no properties
+
+  render: function() {
+    if (!window.changesAuthData || !window.changesAuthData.user) {
+      var current_location = encodeURIComponent(window.location.href);
+      var login_href = '/auth/login/?orig_url=' + current_location;
+      return <a className="headerLinkBlock floatR" href={login_href}>
+        Log in
+      </a>;
+    } else {
+      return <div className="floatR">
+        <div className="headerBlock">
+          {utils.email_localpart(window.changesAuthData.user.email)}
+        </div>
+        <a className="headerLinkBlock" href="/auth/logout?return=1">
+          <i className="fa fa-sign-out"></i>
+        </a>
+      </div>;
     }
   }
 });
