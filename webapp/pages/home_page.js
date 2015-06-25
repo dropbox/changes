@@ -241,10 +241,10 @@ var Commits = React.createClass({
       .map(commits, c => c.projectSlug)
       .uniq()
       .values();
-    var is_it_out_link = custom_content_hook('isItOutLink', null, project_slugs);
+    var is_it_out_link = custom_content_hook('isItOutHref', null, project_slugs);
     if (is_it_out_link) {
       is_it_out_markup = <div style={{float: 'right'}}>
-        <a href={is_it_out_link}>Is it out?</a>
+        <a href={is_it_out_link} target="_blank">Is it out?</a>
       </div>;
     }
 

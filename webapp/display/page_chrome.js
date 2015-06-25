@@ -56,6 +56,17 @@ var ChangesPageHeader = React.createClass({
   // no properties
 
   render: function() {
+    var feedback_href = custom_content_hook('feedbackHref');
+    var feedback_link = null;
+    if (feedback_href) {
+      feedback_link = <a className="headerLinkBlock"
+        style={{float: 'right'}}
+        target="_blank"
+        href={feedback_href}>
+        Give Feedback!
+      </a>;
+    }
+
     // Log In not implemented yet, graying it out
     return <div>
       <div className="pageHeader">
@@ -70,6 +81,7 @@ var ChangesPageHeader = React.createClass({
           Log in
         </div>
         <ChangesInlinePerf />
+        {feedback_link}
       </div>
     </div>;
   }
