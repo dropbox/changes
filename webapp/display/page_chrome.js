@@ -33,7 +33,9 @@ var ChangesPage = React.createClass({
     if (this.props.isPageLoaded) {
       // NOTE: once browsers support it, we could start using 
       // window.performance.mark
-      window.changesPageLoaded = window.changesPageLoaded || new Date().getTime();
+      window.changesPageLoaded = window.changesPageLoaded || 
+        new Date().getTime(); // We want to compare to this window.performance,
+                              // so want to use new Date() rather than moment.
     }
 
     var style = this.props.bodyPadding ? {padding: '10px'} : {};
@@ -172,6 +174,7 @@ var ChangesInlinePerf = React.createClass({
     if (is_expanded && !this.refreshTimer) {
       // TODO: only when visible
       this.refreshTimer = setInterval(arg => {
+        // this just has to be monotonically increasing, so new Date is fine
         this.setState({lastUpdated: new Date().getTime()});
       }, 500);
     } else if (!is_expanded && this.refreshTimer) {

@@ -328,7 +328,6 @@ var CommitPage = React.createClass({
         'lt-green': j.result.id === "passed",
         'fa-minus-circle': j.result.id === "failed",
         'lt-red': j.result.id === "failed",
-        'fa-minus-circle': j.result.id === "failed",
         'fa-clock-o': j['status'].id === "in_progress"
       });
 

@@ -16,7 +16,10 @@ var UITestPage = React.createClass({
     
     // TimeText
     renderables["TimeText"] = <div>
-      <TimeText className="block paddingBottomS" time={(new Date()).getTime()} />
+      <TimeText 
+        className="block paddingBottomS" 
+        time={moment.utc().local().toString()} 
+      />
       <TimeText className="block" time="September 1, 2008 3:14 PM" />
       <div className="paddingTopS">
         {display_duration(57)}, 

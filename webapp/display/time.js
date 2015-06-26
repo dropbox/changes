@@ -4,6 +4,15 @@ import Moment from 'moment';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
+/*
+ * Contains a bunch of components for dealing with time. We also use the
+ * moment library. Some notes:
+ * - new Date().getTime() uses local time in firefox and utc time in chrome.
+ *   So its better to avoid this in favor of moment.utc.
+ * - We assume that all timestamps from the server/api are utc. We may
+ *   want to display them using local time, though.
+ */
+
 // 1 class (TimeText), 1 function (display_duration)
 
 /*
@@ -40,10 +49,11 @@ export var TimeText = React.createClass({
     var { time, format, ...others } = this.props;
     var time_text = '';
     if (time) {
+      // parse in utc, display in local time
       if (format) {
-        var time = moment(time, format);
+        var time = moment.utc(time, format).local();
       } else {
-        var time = moment(time);
+        var time = moment.utc(time).local();
       }
       var now = moment();
       var is_same_year = time.year() === now.year();
