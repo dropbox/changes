@@ -19,9 +19,9 @@ var HomePage = React.createClass({
 
   getInitialState: function() {
     return {
-      buildsStatus: 'loading',
-      buildsData: null,
-      buildsError: null,
+      commitsStatus: 'loading',
+      commitsData: null,
+      commitsError: null,
 
       diffsStatus: 'loading',
       diffsData: null,
@@ -32,23 +32,22 @@ var HomePage = React.createClass({
   componentDidMount: function() {
     var author = this.props.author || 'me';
 
-    // TODO: figure out why this 404s for author != me
     // TODO: handle user not logged in
     var diffs_endpoint = `/api/0/authors/${author}/diffs/`;
-    var builds_endpoint = `/api/0/authors/${author}/builds/?per_page=100`;
+    var commits_endpoint = `/api/0/authors/${author}/commits/`;
 
     fetch_data(this, {
       diffs: diffs_endpoint,
-      builds: builds_endpoint
+      commits: commits_endpoint
     });
   },
 
   render: function() {
-    // we can't render anything until we get build data. If we have build data
+    // we can't render anything until we get commit data. If we have commit data
     // but not diffs data, render as much of the page as we can.
     // TODO: its super-easy to do a partial render, but is it better to just
     // wait for everything?
-    if (this.state.buildsStatus === "loading") {
+    if (this.state.commitsStatus === "loading") {
       return <div><RandomLoadingMessage /></div>;
     }
 
@@ -58,21 +57,19 @@ var HomePage = React.createClass({
   },
 
   renderContent: function() {
-    if (this.state.buildsStatus === "error") {
+    if (this.state.commitsStatus === "error") {
       return <AjaxError response={this.state.buildsError.response} />;
     }
 
-    var build_list = this.state.buildsData;
+    var commits = this.state.commitsData;
 
-    if (!build_list) {
+    if (!commits) {
       // TODO: maybe show all projects or something?
-      return <div>I don{"'"}t see any builds!</div>;
+      return <div>I don{"'"}t see any commits!</div>;
     }
 
     var diffs = this.state.diffsStatus === "loaded" ?
       this.state.diffsData : [];
-
-    var changes = DEPRECATE_ME_combine_builds_into_changes(build_list);
 
     var header_markup = null;
     if (this.props.author) {
@@ -90,28 +87,25 @@ var HomePage = React.createClass({
       <div>
         <Diffs
           loadStatus={this.state.diffsStatus}
-          changes={changes}
           diffs={diffs}
           errorResponse={this.state.diffsError.response}
         />
-        <Commits
-          changes={changes}
-        />
+        <Commits commits={commits} />
       </div>
       <div>
         <Projects
-          changes={changes}
+          commits={commits}
         />
       </div>
     </div>;
   },
 });
 
+// Render list of the user's diffs currently in review / uncommitted
 var Diffs = React.createClass({
   
   propTypes: {
     loadStatus: React.PropTypes.string,
-    changes: React.PropTypes.array,
     diffs: React.PropTypes.array
     // errorResponse
   },
@@ -120,27 +114,15 @@ var Diffs = React.createClass({
     if (this.props.loadStatus === 'loading') {
       return <InlineLoading className="marginBottomM" />;
     } else if (this.props.loadStatus === 'error') {
-      return <AjaxError className="marginBottomM" response={this.props.errorResponse} />;
+      return <AjaxError 
+        className="marginBottomM" 
+        response={this.props.errorResponse} 
+      />;
     }
 
-    // index changes by diff id (e.g. D123511)
-    var changes_by_diff_id = {};
-    this.props.changes.forEach(c => {
-      if (!c.isCommit) {
-        // TODO: this isn't guaranteed to be consistent with every build.
-        // I really need to deprecate that changes method...
-        var diff_data = c.builds[0].source.data;
-        if (changes_by_diff_id[diff_data["phabricator.revisionID"]]) {
-          console.warn("tried to insert builds for the same change twice!");
-        }
-        changes_by_diff_id[diff_data["phabricator.revisionID"]] = c;
-      }
-    });
-
     var grid_data = _.map(this.props.diffs, d => {
-      var change = changes_by_diff_id[d.id] || {};
       return [
-        status_dots(change.builds),
+        status_dots(d.builds),
         <a href={d['uri']}>{"D"+d.id}</a>,
         d['statusName'],
         d['title'],
@@ -168,60 +150,65 @@ var Diffs = React.createClass({
   }
 });
 
+// List of user's recent commits
 var Commits = React.createClass({
   
   propTypes: {
-    changes: React.PropTypes.array.isRequired,
+    commits: React.PropTypes.array.isRequired,
   },
 
   render: function() {
-    // NOTE: This class takes different data than the commits pane on the 
-    // project page. That class consumes data directly from the api (which 
-    // just has builds associated with commits), this class takes "changes"
-
-    if (this.props.changes.length === 0) {
+    if (this.props.commits.length === 0) {
       // TODO: transfer props?
+      // TODO: Show something
       return <div />;
     }
 
-    var commits = _.chain(this.props.changes)
-      .filter(c => c.isCommit)
-      .sortBy(c => c.commitBuild.source.revision.dateCreated)
-      .value()
-      .reverse();
-
     var grid_data = [];
-    commits.forEach(c => {
-      var status_results = null;
-      if (c.multipleCommits) {
-        status_results = <StatusDot result="weird" />;
-      } else {
-        status_results = status_dots(c.builds);
-      }
+    this.props.commits.forEach(c => {
 
-      var source_uuid = c.commitBuild.source.id;
-      var sha_href = 
-        `/v2/project_commit/${c.projectSlug}/${source_uuid}`;
+      // we want to render a separate row per project
+      var project_slugs = _.chain(c.builds)
+        .map(b => b.project.slug)
+        .compact()
+        .uniq()
+        .value();
+      
+      _.each(project_slugs, slug => {
+        var matching_builds = _.filter(c.builds,
+          b => b.project.slug === slug
+        );
 
-      var sha = c.commitBuild.source.revision.sha;
-      var sha_link = <a href={sha_href}>
-        {sha.substr(0,5) + "..."}
-      </a>;
+        var project = matching_builds[0].project;
 
-      var project_href = "/v2/project/" + c.projectSlug;
-      var project_link = <a href={project_href}>
-        {c.projectName}
-      </a>;
+        var status_results = status_dots(matching_builds);
 
-      grid_data.push(
-        [
-          status_results,
-          {sha_link},
-          project_link,
-          c.name,
-          <TimeText time={c.commitBuild.source.revision.dateCreated} />
-        ]
-      );
+        var source_uuid = c.id;
+        var sha = c.revision.sha;
+
+        var sha_href = `/v2/project_commit/${slug}/${source_uuid}`;
+        var sha_link = <a href={sha_href}>
+          {sha.substr(0,5) + "..."}
+        </a>;
+
+
+        var project_href = "/v2/project/" + slug;
+        var project_link = <a href={project_href}>
+          {project.name}
+        </a>;
+
+        // TODO: do i need this? If I do, need a boundary between commits
+        grid_data = grid_data.slice(0, 50);
+        grid_data.push(
+          [
+            status_results,
+            {sha_link},
+            project_link,
+            utils.truncate(c.revision.message.split("\n")[0]),
+            <TimeText time={c.revision.dateCreated} />
+          ]
+        );
+      });
     });
 
     var cellClasses = ['nowrap center', 'nowrap', 'nowrap', 'wide', 'nowrap'];
@@ -237,11 +224,15 @@ var Commits = React.createClass({
     // pushed to prod
     var is_it_out_markup = null;
 
-    var project_slugs = _.chain(commits)
-      .map(commits, c => c.projectSlug)
+    var all_project_slugs = _.chain(this.props.commits)
+      .pluck('builds')
+      .flatten()
+      .map(b => b.project.slug) 
+      .compact()
       .uniq()
-      .values();
-    var is_it_out_link = custom_content_hook('isItOutHref', null, project_slugs);
+      .value();
+
+    var is_it_out_link = custom_content_hook('isItOutHref', null, all_project_slugs);
     if (is_it_out_link) {
       is_it_out_markup = <div style={{float: 'right'}}>
         <a href={is_it_out_link} target="_blank">Is it out?</a>
@@ -260,33 +251,33 @@ var Commits = React.createClass({
   }
 });
 
+// List of projects. Right now, its a list of all projects the user has
+// committed to
 var Projects = React.createClass({
   propTypes: {
-    changes: React.PropTypes.array.required,
+    commits: React.PropTypes.array.required,
   },
 
   render: function() {
-    if (this.props.changes.length === 0) {
+    if (this.props.commits.length === 0) {
       // TODO: transfer props?
       return <div />;
     }
 
-    var changes_by_project = _.groupBy(this.props.changes,
-      c => c.projectSlug);
+    var projects = _.chain(this.props.commits)
+      .pluck('builds')
+      .flatten()
+      .pluck('project') 
+      .compact()
+      .uniq(false, p => p.slug)
+      .value();
 
-    var project_links = [];
-    _.chain(changes_by_project)
-      .pairs()
-      .sortBy(p => p[0])
-      .each(pair => {
-        var [slug, changes] = pair;
-
-        var name = changes[0].projectName;
-        var url = "/v2/project/" + slug;
-        project_links.push(
-          [<a href={url}>{name}</a>,
-           "TODO: show build history of proj"]
-        );
+    var project_links = _.map(projects, p => {
+      var url = "/v2/project/" + p.slug;
+      return [
+        <a href={url}>{p.name}</a>,
+        "TODO: show build history of proj"
+      ];
     });
 
     var headers = ['Name', 'Data'];
@@ -302,76 +293,5 @@ var Projects = React.createClass({
     </div>;
   }
 });
-
-// unify builds into individual changes. A single change will have builds 
-// from its time in phabricator, as well as the final build from when its 
-// committed. Changes are uniquely identified by their name and project.
-// (while in phabricator, a change doesn't have the sha that commits will have)
-// TODO: we have to do this server-side...most people will have too many 
-// builds to send them all to the client
-// TODO: this data structure might be completely unnecessary...
-var DEPRECATE_ME_combine_builds_into_changes = function(build_list) {
-
-  var changes = [];
-
-  // searches through the changes array to see if this build is part of 
-  // an existing change. -1 if its not found
-  var change_get_index = (build) => {
-    for (var i = 0; i < changes.length; i++) {
-      if (_.first(changes[i].builds).name === build.name &&
-          _.first(changes[i].builds).project.slug === build.project.slug) {
-        return i;
-      }
-    }
-    return -1;
-  };
-
-  build_list.forEach(b => {
-    var i = change_get_index(b);
-    if (i === -1) { // a new change we've never seen before
-      changes.push({builds: [b]});
-    } else {
-      changes[i].builds.push(b);
-    }
-  });
-
-  // fill in each change with a bunch of data before returning it
-  changes.forEach(c => {
-    // warn the user if it seems like we've combinged two changes into one.
-    // right now we just see if we have builds for two different commit shas
-    // TODO: check phabricator diffs to see if there are commits from two 
-    // different parents
-    var commit_shas = _.chain(c.builds)
-      .filter(b => b.source.isCommit)
-      .map(b => b.source.revision.sha)
-      .uniq()
-      .value();
-
-    var num_commits = commit_shas.length;
-
-    var multiple_commits = num_commits > 1;
-
-    var commit_build = null;
-    if (num_commits) {
-      var commit_build = _.find(c.builds, 
-        b => b.source.isCommit);
-    }
-
-    c = _.extend(c, 
-      _.pick({
-        name: c.builds[0].name,
-        projectSlug: c.builds[0].project.slug,
-        projectName: c.builds[0].project.name,
-        // TODO: if this is false, _.pick doesn't add it. nbd, but...
-        isCommit: num_commits > 0,
-        commitBuild: commit_build,
-        multipleCommits: num_commits > 1, // if true, name/proj key wasn't unique
-        // builds: [...]
-      }, _.identity)
-    );
-  }); // end changes.forEach(c =>
-
-  return changes;
-}
 
 export default HomePage;
