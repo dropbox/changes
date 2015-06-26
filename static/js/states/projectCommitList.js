@@ -52,10 +52,14 @@ define([
     templateUrl: 'partials/project-commit-list.html',
     controller: function($scope, $http, $state, $stateParams, flash,
                          Collection, CollectionPoller, Paginator, PageTitle, projectData) {
-      $scope.grg = ($stateParams.grg == "true");
+      if (['none', 'flaky', 'streaks'].indexOf($stateParams.grg) !== -1) {
+          $scope.grg = $stateParams.grg;
+      } else {
+          $scope.grg = 'none';
+      }
 
       var perPage = PER_PAGE;
-      if ($scope.grg) {
+      if ($scope.grg != 'none') {
           perPage = GRG_PER_PAGE;
       }
 
@@ -162,21 +166,30 @@ define([
             }
           }
 
-          if ($scope.grg) {
-            var commitList = [];
-            for (i = 1; i < list.length-1; i++) {
-              var build = list[i].build;
-              var prev_build = list[i+1].build;
-              var next_build = list[i-1].build;
-              if (prev_build && prev_build.result.id == 'passed' &&
-                  build && build.result.id == 'failed' &&
-                  next_build && next_build.result.id == 'passed') {
-                list[i].prev_build = prev_build;
-                list[i].next_build = next_build;
-                commitList.push(list[i]);
+          if ($scope.grg != 'none') {
+            var failures = [];
+            var flakesList = [];
+            var lastPassed = null;
+
+            for (i = 0; i <= list.length; i++) {
+              var build = i < list.length ? list[i].build : null;
+
+              if (i === list.length || (build && build.result.id !== 'failed')) {
+                if (($scope.grg == 'streaks' && failures.length > 0) || failures.length == 1) {
+                  flakesList.push({
+                    next: lastPassed,
+                    builds: failures,
+                    prev: build
+                  });
+                }
+                lastPassed = build;
+                failures = [];
+              } else if (build) {
+                failures.push(build);
               }
             }
-            $scope.commitList = commitList;
+
+            $scope.flakesList = flakesList;
           } else {
             $scope.commitList = collection;
             $scope.chartData = chartHelpers.getChartData(list, null, chartOptions);
@@ -238,7 +251,7 @@ define([
         $scope.chartData = chartHelpers.getChartData(collection, null, chartOptions);
       };
       // We don't want to have a chart for G-R-G builds
-      if (!$scope.grg) {
+      if ($scope.grg == 'none') {
         $scope.selectChart('duration');
       }
 

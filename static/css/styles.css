@@ -1605,6 +1605,12 @@ d3barchart {
 .build-list .grg-build-sibling h5 {
     font-size: 12px;
 }
+.build-list .grg-expand {
+    background: #f8f8f8;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.8em;
+}
 
 .flaky-test-table {
     table-layout: fixed;
