@@ -11,7 +11,7 @@ from changes.models import (
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
     RepositoryStatus, User, ItemOption, Command, Snapshot, SnapshotImage,
-    PlanStatus, AdminMessage, PhabricatorDiff
+    CachedSnapshotImage, PlanStatus, AdminMessage, PhabricatorDiff
 )
 from changes.utils.slugs import slugify
 
@@ -454,6 +454,14 @@ class Fixtures(object):
         db.session.add(image)
         db.session.commit()
         return image
+
+    def create_cached_snapshot_image(self, snapshot_image, **kwargs):
+        cached_snapshot_image = CachedSnapshotImage(
+            id=snapshot_image.id,
+            **kwargs)
+        db.session.add(cached_snapshot_image)
+        db.session.commit()
+        return cached_snapshot_image
 
     def create_adminmessage(self, **kwargs):
         message = AdminMessage(
