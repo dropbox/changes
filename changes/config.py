@@ -261,6 +261,11 @@ def create_app(_read_config=True, **config):
     # unspecified timeout doesn't mean "is allowed to run indefinitely".
     app.config['DEFAULT_JOB_TIMEOUT_MIN'] = 60
 
+    # Set whether to send performance logs every time we process a request, which is a subclass
+    # of ApiView (i.e most user requests). There is a suspicion that these logs might overwhelm the
+    # system, so we allow to disable them via a config.
+    app.config['LOG_API_VIEW_PERFORMANCE'] = False
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
