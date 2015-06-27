@@ -412,6 +412,7 @@ def configure_api_routes(app):
     from changes.api.build_test_index import BuildTestIndexAPIView
     from changes.api.build_test_index_failures import BuildTestIndexFailuresAPIView
     from changes.api.build_test_index_counts import BuildTestIndexCountsAPIView
+    from changes.api.cached_snapshot_cluster_details import CachedSnapshotClusterDetailsAPIView
     from changes.api.change_details import ChangeDetailsAPIView
     from changes.api.change_index import ChangeIndexAPIView
     from changes.api.cluster_details import ClusterDetailsAPIView
@@ -548,6 +549,7 @@ def configure_api_routes(app):
     api.add_resource(SnapshotIndexAPIView, '/snapshots/')
     api.add_resource(SnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/')
     api.add_resource(SnapshotImageDetailsAPIView, '/snapshotimages/<uuid:image_id>/')
+    api.add_resource(CachedSnapshotClusterDetailsAPIView, '/snapshots/cache/clusters/<cluster>/')
     api.add_resource(SystemStatsAPIView, '/systemstats/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')
