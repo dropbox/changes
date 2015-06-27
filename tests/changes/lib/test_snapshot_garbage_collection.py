@@ -204,3 +204,63 @@ class TestSnapshotGCTestCase(TestCase):
 
         # and is the only snapshot in existence
         assert CachedSnapshotImage.query.count() == 1
+
+    @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
+    def test_get_relevant_snapshot_images_simple(self, get_current_datetime):
+        project = self.create_project()
+        plan1 = self.create_plan(project, data={'cluster': 'cluster1'})
+        plan2 = self.create_plan(project, data={'cluster': 'cluster1'})
+        plan3 = self.create_plan(project, data={'cluster': 'cluster2'})
+        plan4 = self.create_plan(project, data={})
+        plan5 = self.create_plan(project)
+
+        snapshot = self.create_snapshot(project)
+        snapshot_image1 = self.create_snapshot_image(snapshot, plan1)
+        snapshot_image2 = self.create_snapshot_image(snapshot, plan2)
+        snapshot_image3 = self.create_snapshot_image(snapshot, plan3)
+        snapshot_image4 = self.create_snapshot_image(snapshot, plan4)
+        snapshot_image5 = self.create_snapshot_image(snapshot, plan5)
+
+        get_current_datetime.return_value = self.mock_datetime
+        gc.cache_snapshot(snapshot)
+
+        images = gc.get_relevant_snapshot_images(snapshot.id)
+        assert len(images) == 2
+        assert 'cluster1' in images
+        assert 'cluster2' in images
+        assert len(images['cluster1']) == 2
+        assert snapshot_image1 in images['cluster1']
+        assert snapshot_image2 in images['cluster1']
+        assert len(images['cluster2']) == 1
+        assert snapshot_image3 in images['cluster2']
+
+    @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
+    def test_get_relevant_snapshot_images_across_projects(self, get_current_datetime):
+        project1 = self.create_project()
+        project2 = self.create_project()
+        plan1_1 = self.create_plan(project1, data={'cluster': 'cluster1'})
+        plan1_2 = self.create_plan(project1, data={'cluster': 'cluster2'})
+        plan2_1 = self.create_plan(project2, data={'cluster': 'cluster2'})
+        plan2_2 = self.create_plan(project2, data={'cluster': 'cluster3'})
+
+        snapshot1 = self.create_snapshot(project1)
+        snapshot2 = self.create_snapshot(project2)
+
+        snapshot_image1_1 = self.create_snapshot_image(snapshot1, plan1_1)
+        snapshot_image1_2 = self.create_snapshot_image(snapshot1, plan1_2)
+        snapshot_image2_1 = self.create_snapshot_image(snapshot2, plan2_1)
+        snapshot_image2_2 = self.create_snapshot_image(snapshot2, plan2_2)
+
+        get_current_datetime.return_value = self.mock_datetime
+        gc.cache_snapshot(snapshot2)
+        gc.cache_snapshot(snapshot1)
+
+        images = gc.get_relevant_snapshot_images(snapshot1.id)
+        assert len(images) == 2
+        assert 'cluster1' in images
+        assert 'cluster2' in images
+        assert len(images['cluster1']) == 1
+        assert snapshot_image1_1 in images['cluster1']
+        assert len(images['cluster2']) == 2
+        assert snapshot_image1_2 in images['cluster2']
+        assert snapshot_image2_1 in images['cluster2']

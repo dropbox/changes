@@ -134,3 +134,24 @@ def cache_snapshot(snapshot):
     db.session.add_all(cached_snapshot_images)
 
     db.session.commit()
+
+
+def get_relevant_snapshot_images(snapshot_id):
+    """Given a snapshot id, detect the relevant clusters and find their
+    cached snapshot images.
+
+    Returns a dict whose keys are clusters that need to be synced
+    based on the new snapshot and values are the list of snapshot
+    images associated with the snapshot.
+    """
+    plans = Plan.query.filter(
+        Plan.id == SnapshotImage.plan_id,
+        SnapshotImage.snapshot_id == snapshot_id
+    ).all()
+
+    clusters = set()
+    for plan in plans:
+        if plan.data and 'cluster' in plan.data:
+            clusters.add(plan.data['cluster'])
+
+    return dict([(cluster, get_cached_snapshot_images(cluster)) for cluster in clusters])
