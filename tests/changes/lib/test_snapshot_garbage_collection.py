@@ -264,3 +264,34 @@ class TestSnapshotGCTestCase(TestCase):
         assert len(images['cluster2']) == 2
         assert snapshot_image1_2 in images['cluster2']
         assert snapshot_image2_1 in images['cluster2']
+
+    @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
+    def test_clear_expired(self, get_current_datetime):
+        project = self.create_project()
+        plan1 = self.create_plan(project)
+        plan2 = self.create_plan(project)
+        plan3 = self.create_plan(project)
+
+        snapshot = self.create_snapshot(project)
+        snapshot_image1 = self.create_snapshot_image(snapshot, plan1)
+        snapshot_image2 = self.create_snapshot_image(snapshot, plan2)
+        snapshot_image3 = self.create_snapshot_image(snapshot, plan3)
+
+        # only the third image has expired. (This is a bit awkward as in a normal
+        # situation all images for a snapshot would actually expire simultaneously)
+        # since they would have been superceded at the same time, but its easier
+        # to only use a single snapshot for testing and the behavior is independent
+        # of what snapshot owns them.
+        cached_snapshot_image1 = self.create_cached_snapshot_image(snapshot_image1)
+        cached_snapshot_image2 = self.create_cached_snapshot_image(snapshot_image2,
+            expiration_date=self.mock_datetime + datetime.timedelta(0, 1))
+        cached_snapshot_image3 = self.create_cached_snapshot_image(snapshot_image3,
+            expiration_date=self.mock_datetime - datetime.timedelta(0, 1))
+
+        get_current_datetime.return_value = self.mock_datetime
+        gc.clear_expired()
+
+        assert len(CachedSnapshotImage.query.all()) == 2
+        assert CachedSnapshotImage.query.get(cached_snapshot_image1.id) is not None
+        assert CachedSnapshotImage.query.get(cached_snapshot_image2.id) is not None
+        assert CachedSnapshotImage.query.get(cached_snapshot_image3.id) is None

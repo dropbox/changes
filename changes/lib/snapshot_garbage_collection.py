@@ -155,3 +155,15 @@ def get_relevant_snapshot_images(snapshot_id):
             clusters.add(plan.data['cluster'])
 
     return dict([(cluster, get_cached_snapshot_images(cluster)) for cluster in clusters])
+
+
+def clear_expired():
+    """Utility function that deletes all expired rows.
+    """
+    now = get_current_datetime()
+
+    CachedSnapshotImage.query.filter(
+        CachedSnapshotImage.expiration_date < now
+    ).delete()
+
+    db.session.commit()
