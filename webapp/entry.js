@@ -10,6 +10,7 @@ requirejs.config({
     moment: "vendor/moment/min/moment.min",
     // core libraries we use
     react: 'vendor/react/react-with-addons',
+    react_bootstrap: 'vendor/react-bootstrap/react-bootstrap',
     requirejs: 'vendor/requirejs/require',
     underscore: 'vendor/underscore/underscore'
   },

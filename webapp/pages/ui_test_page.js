@@ -7,6 +7,7 @@ import Grid from 'es6!display/grid';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import { Menu1, Menu2 } from 'es6!display/menus';
 import SectionHeader from 'es6!display/section_header';
+import { Popover, OverlayTrigger } from 'react_bootstrap';
 
 import colors from 'es6!utils/colors';
 
@@ -14,6 +15,19 @@ var UITestPage = React.createClass({
   render: function() {
     var renderables = {};
     
+    var popover = <Popover>
+      <strong>Holy guacamole!</strong> Check this info.
+    </Popover>;
+
+    renderables["Popover"] = <div>
+      <OverlayTrigger 
+        trigger='hover' 
+        placement='bottom' 
+        overlay={popover}>
+        <div className="inlineBlock">Hover over me!</div>
+      </OverlayTrigger>
+    </div>;
+
     // TimeText
     renderables["TimeText"] = <div>
       <TimeText 
