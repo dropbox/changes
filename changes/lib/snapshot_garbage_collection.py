@@ -32,10 +32,12 @@ This api abstracts away cached snapshot images so that no other parts of
 changes have to know about their existance as a table separate from
 snapshot imagese.
 """
-import sqlalchemy
 from changes.config import db
-from changes.models import CachedSnapshotImage, Plan, SnapshotImage
+from changes.models import CachedSnapshotImage, Plan, Snapshot, SnapshotImage
 from datetime import datetime
+from flask import current_app
+
+import sqlalchemy
 
 
 def get_current_datetime():
@@ -86,3 +88,49 @@ def get_cached_snapshot_images(cluster):
         CachedSnapshotImage.id == SnapshotImage.id,
         SnapshotImage.plan_id.in_(plan_ids)
     ).all()
+
+
+def _cache_image(snapshot_image):
+    """Creates a cached image for a given snapshot image.
+
+    We transparently update any existing images with the same id
+    in case we are caching a snaphsot that used to be cached but is
+    no longer cached. This is useful for example if a snapshot is
+    determined to not work and so you need to rewind to a previous
+    snapshot that has already expired.
+    """
+    # The explicit expiration date is necessary because an existing
+    # item might already exist with an expiration date, and in that
+    # case the expiration date will not change.
+    return db.session.merge(
+        CachedSnapshotImage(id=snapshot_image.id, expiration_date=None)
+    )
+
+
+def cache_snapshot(snapshot):
+    """Update the cache with a newly generated snapshot.
+
+    Caches a new snapshot (by caching all of its images).
+    This creates expirations for all cached
+    snapshots with no expiration and adds a new cached snapshot
+    with no expiration.
+    """
+    now = get_current_datetime()
+
+    # Query: All cached snapshot images sharing the same project
+    CachedSnapshotImage.query.filter(
+        CachedSnapshotImage.expiration_date == None,  # NOQA
+        CachedSnapshotImage.id == SnapshotImage.id,
+        SnapshotImage.snapshot_id == Snapshot.id,
+        Snapshot.project_id == snapshot.project_id
+    ).update(dict(expiration_date=now + current_app.config['CACHED_SNAPSHOT_EXPIRATION_DELTA']))
+
+    images = SnapshotImage.query.filter(SnapshotImage.snapshot_id == snapshot.id)
+
+    # mark all of the individual snapshot images as cached
+    # while transparently updating any snapshot images that
+    # were already cached to have no expiration date
+    cached_snapshot_images = [_cache_image(image) for image in images]
+    db.session.add_all(cached_snapshot_images)
+
+    db.session.commit()

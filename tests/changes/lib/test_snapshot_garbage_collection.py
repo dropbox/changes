@@ -1,8 +1,11 @@
+from changes.config import db
 from changes.testutils.cases import TestCase
+from changes.models import CachedSnapshotImage
 import changes.lib.snapshot_garbage_collection as gc
 
 import datetime
 import mock
+import sqlalchemy
 
 
 class TestSnapshotGCTestCase(TestCase):
@@ -111,3 +114,93 @@ class TestSnapshotGCTestCase(TestCase):
         assert len(cached_snapshot_ids) == 2
         assert snapshot_image1.id in cached_snapshot_ids
         assert snapshot_image2.id in cached_snapshot_ids
+
+    @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
+    def test_cache_snapshot_images_have_no_expiration(self, get_current_datetime):
+        project = self.create_project()
+        snapshot = self.create_snapshot(project)
+        plans = [self.create_plan(project) for _ in range(3)]
+        snapshot_images = [self.create_snapshot_image(snapshot, plan) for plan in plans]
+        snapshot_image_ids = [image.id for image in snapshot_images]
+
+        get_current_datetime.return_value = self.mock_datetime
+
+        gc.cache_snapshot(snapshot)
+        assert not db.session.query(CachedSnapshotImage.query.filter(
+            CachedSnapshotImage.id.in_(snapshot_image_ids),
+            CachedSnapshotImage.expiration_date != None,  # NOQA
+        ).exists()).scalar()
+
+    @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
+    def test_cache_snapshot_images_have_no_expiration_with_old(self, get_current_datetime):
+        project = self.create_project()
+        old_snapshot = self.create_snapshot(project)
+        snapshot = self.create_snapshot(project)
+        plans = [self.create_plan(project) for _ in range(3)]
+
+        for plan in plans:
+            old_snapshot_image = self.create_snapshot_image(old_snapshot, plan)
+            self.create_cached_snapshot_image(old_snapshot_image)
+
+        snapshot_images = [self.create_snapshot_image(snapshot, plan) for plan in plans]
+        snapshot_image_ids = [image.id for image in snapshot_images]
+
+        get_current_datetime.return_value = self.mock_datetime
+
+        gc.cache_snapshot(snapshot)
+        assert not db.session.query(CachedSnapshotImage.query.filter(
+            CachedSnapshotImage.id.in_(snapshot_image_ids),
+            CachedSnapshotImage.expiration_date != None,  # NOQA
+        ).exists()).scalar()
+
+    @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
+    def test_cache_snapshot_expires_old_snapshot(self, get_current_datetime):
+        project = self.create_project()
+        plans = [self.create_plan(project) for _ in range(3)]
+
+        old_snapshot = self.create_snapshot(project)
+        old_snapshot_images = [self.create_snapshot_image(old_snapshot, plan) for plan in plans]
+        old_snapshot_image_ids = [image.id for image in old_snapshot_images]
+
+        snapshot = self.create_snapshot(project)
+        snapshot_images = [self.create_snapshot_image(snapshot, plan) for plan in plans]
+
+        for old_snapshot_image in old_snapshot_images:
+            self.create_cached_snapshot_image(old_snapshot_image)
+
+        get_current_datetime.return_value = self.mock_datetime
+
+        gc.cache_snapshot(snapshot)
+        # Ensure that the old snapshots now expire sometime in the future
+        assert not db.session.query(CachedSnapshotImage.query.filter(
+            CachedSnapshotImage.id.in_(old_snapshot_image_ids),
+            sqlalchemy.or_(
+                CachedSnapshotImage.expiration_date == None,  # NOQA
+                CachedSnapshotImage.expiration_date <= self.mock_datetime
+            )
+        ).exists()).scalar()
+
+    @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
+    def test_recache_existing_cached_snapshot(self, get_current_datetime):
+        """
+        In some cases we may want to re-cache an existing snapshot that
+        already has an entry in the cache. This should be transparent.
+        """
+        project = self.create_project()
+        plan = self.create_plan(project)
+        snapshot = self.create_snapshot(project)
+        snapshot_image = self.create_snapshot_image(snapshot, plan)
+
+        get_current_datetime.return_value = self.mock_datetime
+
+        self.create_cached_snapshot_image(snapshot_image,
+            expiration_date=self.mock_datetime - datetime.timedelta(0, 1))
+        gc.cache_snapshot(snapshot)
+
+        # The old snapshot now has no expiration
+        cached_snapshot_image = CachedSnapshotImage.query.get(snapshot_image.id)
+        assert cached_snapshot_image is not None
+        assert cached_snapshot_image.expiration_date is None
+
+        # and is the only snapshot in existence
+        assert CachedSnapshotImage.query.count() == 1
