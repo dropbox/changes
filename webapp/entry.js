@@ -1,16 +1,17 @@
 /* some RequireJS config before we start */
 
 requirejs.config({
-  // TODO: use minified versions in prod
+  // NOTE: if you add something here, update the Gruntfile 'compile2' task
   paths: {
-    // code is written in jsx/es6 syntax and converted using babel
+    // all of our code is written in jsx/es6 syntax and converted using babel
     babel: "vendor/requirejs-babel/babel-4.6.6.min",
     es6: "vendor/requirejs-babel/es6", // the requirejs babel loader
     // time library
     moment: "vendor/moment/min/moment.min",
+    // some extra react components
+    react_bootstrap: 'vendor/react-bootstrap/react-bootstrap',
     // core libraries we use
     react: 'vendor/react/react-with-addons',
-    react_bootstrap: 'vendor/react-bootstrap/react-bootstrap',
     requirejs: 'vendor/requirejs/require',
     underscore: 'vendor/underscore/underscore'
   },
