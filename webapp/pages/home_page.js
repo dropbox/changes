@@ -58,7 +58,7 @@ var HomePage = React.createClass({
 
   renderContent: function() {
     if (this.state.commitsStatus === "error") {
-      return <AjaxError response={this.state.buildsError.response} />;
+      return <AjaxError response={this.state.commitsError.response} />;
     }
 
     var commits = this.state.commitsData;

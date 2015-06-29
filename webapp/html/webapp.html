@@ -21,20 +21,30 @@
           window.changesGlobals['USE_ANOTHER_HOST'] = 
             '{{ WEBAPP_USE_ANOTHER_HOST }}';
         {% endif %}
-        {% if WEBAPP_CUSTOMIZED_CONTENT_FILENAME %}
-          window.changesGlobals['CUSTOMIZED_CONTENT_FILENAME'] = 
-            '{{ WEBAPP_CUSTOMIZED_CONTENT_FILENAME }}';
-        {% endif %}
         {% if RELEASE_INFO %}
           window.changesGlobals['RELEASE_INFO'] = {{ RELEASE_INFO|tojson|safe }}
         {% endif %}
       </script>
+    {% if WEBAPP_CUSTOMIZED_CONTENT %}
+      <script type="text/javascript">
+        {{ WEBAPP_CUSTOMIZED_CONTENT|safe }}
+      </script>
+    {% endif %}
     <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href="{{ url_for('webapp_v2.static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
     <link href="{{ url_for('webapp_v2.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
   </head>
   <body>
+    {% if USE_PACKAGED_JS %}
+    <div id="reactRoot">
+      Loading...
+      <script 
+        data-main="{{ url_for('webapp_v2.static', filename='dist/built') }}" 
+        src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
+      </script>
+    </div>
+    {% else %}
     <div id="reactRoot">
       Downloading and transpiling javascript...
     </div>
@@ -47,5 +57,6 @@
         baseUrl: '{{ url_for('webapp_v2.static', filename='') }}'
       });
     </script>
+    {% endif %}
   </body>
 </html>

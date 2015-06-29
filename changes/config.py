@@ -351,17 +351,15 @@ def create_v2_blueprint(app, app_static_root):
     from changes.web.index import IndexView
     from changes.web.static import StaticView
 
-    # TODO: set revision to the current git hash once we add prod static
-    # resource compilation back in to v2
     static_root = os.path.join(PROJECT_ROOT, 'webapp')
-    revision = '0'
-
-    # TODO: have non-debug mode use webapp/dist, once I figure out how to
-    # compile with babel
+    revision_facts = changes.get_revision_info() or {}
+    revision = revision_facts.get('hash', '0') if not app.debug else '0'
 
     # all of these urls are automatically prefixed with v2
     # (see the register_blueprint call above)
 
+    # static file paths contain the current revision so that users
+    # don't hit outdated static resources
     blueprint.add_url_rule(
         '/static/' + revision + '/<path:filename>',
         view_func=StaticView.as_view(
@@ -369,17 +367,6 @@ def create_v2_blueprint(app, app_static_root):
             root=static_root,
             hacky_vendor_root=app_static_root)
     )
-
-    if app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE']:
-        content_dir = os.path.dirname(app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE'])
-        # StaticView wants a filename, so we send the filename down to js
-        # and have it request this path
-        blueprint.add_url_rule(
-            '/customized_content/<path:filename>',
-            view_func=StaticView.as_view(
-                'custom_content',
-                root=content_dir)
-        )
 
     # no need to set up our own login/logout urls
 

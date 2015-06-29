@@ -185,13 +185,16 @@ var ChangesInlinePerf = React.createClass({
 
   // Add a custom content hook to allow an errors dashboard link to be added
   renderErrorsDashboardLink: function() {
-    var errors_link = custom_content_hook('errorsLink');
-    if (!errors_link) {
+    var errors_href = custom_content_hook('errorsHref');
+    var errors_name = custom_content_hook('errorsName');
+    if (!errors_href || !errors_name) {
       return <div />;
     }
     return <div className="marginTopM">
       <b>Link to Error Dashboard:{" "}</b>
-      {errors_link}
+      <a href={errors_href}>
+        {errors_name}
+      </a>
     </div>;
   },
 

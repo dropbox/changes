@@ -29,7 +29,7 @@ module.exports = function(grunt) {
       }
     },
     requirejs: {
-      compile: {
+      compile1: {
         options: {
           baseUrl: "js/",
           mainConfigFile: "static/js/main.js",
@@ -59,6 +59,49 @@ module.exports = function(grunt) {
           optimizeCss: "none",
           useSourceUrl: true,
           wrapShim: true
+        }
+      },
+      compile2: {
+        options: {
+          baseUrl: "webapp/",
+          name: "entry", // assumes a production build using almond
+          out: "webapp/dist/built.js",
+
+          // the paths config attribute in entry.js uses URL paths (which are 
+          // completely controlled by the flask app.) This attribute uses the
+          // actual file locations on disk
+          'paths': {
+              'babel': '../static/vendor/requirejs-babel/babel-4.6.6.min',
+              'es6': '../static/vendor/requirejs-babel/es6',
+              'moment': "../static/vendor/moment/min/moment.min",
+              'react': '../static/vendor/react/react-with-addons',
+              'requirejs': '../static/vendor/requirejs/require',
+              'underscore': '../static/vendor/underscore/underscore'
+          },
+
+          config: {
+            'es6': {
+              'optional': ['es7.objectRestSpread'],
+            }
+          },
+
+          shim: {
+            underscore: {
+              exports: '_'
+            },
+          },
+
+          'stubModules': ['es6', 'babel'],
+
+          // uglify would cut the final file size by 50%, but make debugging 
+          // more difficult. Not to mention that we rely on window.* globals 
+          // a fair amount
+          'optimize': 'none',
+
+          // hmm..I've completely forgetten what this does
+          'pragmasOnSave': {
+              'excludeBabel': true
+          }
         }
       }
     }

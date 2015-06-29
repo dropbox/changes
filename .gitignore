@@ -19,4 +19,5 @@ npm-debug.log
 /static/vendor
 /static/js/generated
 /static-built
+/webapp/dist
 .vagrant
