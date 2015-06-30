@@ -1,9 +1,11 @@
-from changes.constants import Result, Status
+from changes.constants import Cause, Result, Status
 from changes.models import Project
 from changes.testutils import APITestCase
 
 
 class ProjectListTest(APITestCase):
+    endpoint_path = '/api/0/projects/'
+
     def test_simple(self):
         project_1 = self.create_project(name='test1')
         project_2 = self.create_project(name='test2')
@@ -14,9 +16,7 @@ class ProjectListTest(APITestCase):
         build_2 = self.create_build(
             project_2, status=Status.finished, result=Result.failed)
 
-        path = '/api/0/projects/'
-
-        resp = self.client.get(path)
+        resp = self.client.get(self.endpoint_path)
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 3
@@ -29,6 +29,19 @@ class ProjectListTest(APITestCase):
         assert data[2]['id'] == project_3.id.hex
         assert data[2]['lastBuild'] is None
         assert data[2]['lastPassingBuild'] is None
+
+    def test_excludes_snapshots(self):
+        project = self.create_project()
+        build1 = self.create_build(project, status=Status.finished, result=Result.failed)
+        build2 = self.create_build(project, status=Status.finished, result=Result.passed, cause=Cause.snapshot)
+
+        resp = self.client.get(self.endpoint_path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == project.id.hex
+        assert data[0]['lastBuild']['id'] == build1.id.hex
+        assert data[0]['lastPassingBuild'] is None
 
 
 class ProjectCreateTest(APITestCase):

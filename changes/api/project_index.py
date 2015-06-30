@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView
 from changes.api.auth import requires_admin
 from changes.config import db, statsreporter
-from changes.constants import Result, Status, ProjectStatus
+from changes.constants import Cause, Result, Status, ProjectStatus
 from changes.models import Project, Repository, Build, Source
 
 
@@ -25,6 +25,7 @@ def get_latest_builds_query(project_list, result=None):
     ).filter(
         Source.patch_id == None,  # NOQA
         Build.status == Status.finished,
+        Build.cause != Cause.snapshot,
         Build.result.in_([Result.passed, Result.failed]),
     ).order_by(
         Build.date_created.desc(),
