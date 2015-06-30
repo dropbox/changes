@@ -295,9 +295,6 @@ var ChangesLogin = React.createClass({
       </a>;
     } else {
       return <div className="floatR">
-        <div className="headerBlock">
-          {utils.email_localpart(window.changesAuthData.user.email)}
-        </div>
         <a className="headerLinkBlock" href="/auth/logout?return=1">
           <i className="fa fa-sign-out"></i>
         </a>

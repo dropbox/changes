@@ -75,7 +75,7 @@ var HomePage = React.createClass({
     if (this.props.author) {
       // hack to use homepage as user page
       // TODO: not this
-      var author_info = changes[0].builds[0].author; 
+      var author_info = commits[0].builds[0].author; 
       header_markup = <div style={{paddingBottom: 10}}>
         User page for {author_info.name}. Right now its just a crappy copy 
         of the home page...I{"'"}ll improve this soon.
