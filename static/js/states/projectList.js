@@ -91,6 +91,8 @@ define([
       });
 
       $scope.getProjectClass = getProjectClass;
+      $scope.allProjects = new Collection(projectList);
+
       $scope.projects = new Collection(
         projectList.filter(function(p) { return !p.isStale; })
       );
@@ -101,7 +103,7 @@ define([
 
       var poller = new CollectionPoller({
         $scope: $scope,
-        collection: projectList,
+        collection: $scope.allProjects,
         endpoint: '/api/0/projects/',
         shouldUpdate: function(item, existing) {
           if (existing.isStale) {
