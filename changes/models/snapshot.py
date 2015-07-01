@@ -25,18 +25,29 @@ from changes.db.types.guid import GUID
 
 
 class SnapshotStatus(Enum):
-    """Used to track whether a snapshot or an image is ready to be used."""
+    """Used to track whether a snapshot or an image is ready to be used.
+
+    State transitions that should be allowed:
+    unknown -> anything
+    pending -> failed, active
+    active -> invalidated
+
+    failed and inactivate are terminal states.
+    """
     # Unknown status (default, but should not normally be used as a status)
     unknown = 0
-    # Snapshot/image ready to be used
+    # Snapshot/image ready to be used. Can only become active from
+    # pending, and can only becoming invalidated from active.
     active = 1
-    # Snapshot build failed
-    # TODO (jukka): Not sure if this is set anywhere
+    # Snapshot build failed. This is a terminal state that is reached
+    # if the snapshot was never marked active.
     failed = 2
-    # Used when a snapshot was marked as active but then a snapshot image
     # This implies that the snapshot (or image) was once marked as active
     # but was later marked as bad for some reason. This is the only state
     # that an active snapshot/image should ever be switched to.
+    #
+    # This is a terminal state that is reached for snapshots that were
+    # at one point activate
     invalidated = 3
     # Waiting for snapshot build to finish
     pending = 4
@@ -93,7 +104,7 @@ class Snapshot(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # The build that generated this snapshot.
-    build = relationship('Build')
+    build = relationship('Build', backref=backref('snapshot', uselist=False))
     project = relationship('Project', innerjoin=True)
     # The source that was used to generate the snapshot.
     source = relationship('Source')
@@ -191,10 +202,13 @@ class SnapshotImage(db.Model):
             SnapshotImage.snapshot_id == self.snapshot.id,
         ).exists()
         if not db.session.query(inactive_image_query).scalar():
-            self.snapshot.status = SnapshotStatus.active
-            db.session.add(self.snapshot)
+            # If the snapshot status isn't pending for whatever reason, then we
+            # refuse to update its status to active because clearly some other
+            # error occurred elsewhere in the pipeline (for example, the
+            # snapshot build itself failing)
+            if self.snapshot.status == SnapshotStatus.pending:
+                self.snapshot.status = SnapshotStatus.active
         elif self.snapshot.status == SnapshotStatus.active:
             self.snapshot.status = SnapshotStatus.invalidated
-        db.session.add(self.snapshot)
 
         db.session.commit()

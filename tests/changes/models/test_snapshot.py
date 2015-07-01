@@ -7,14 +7,14 @@ class TestSnapshotTestCase(TestCase):
         project = self.create_project()
         plan_1 = self.create_plan(project)
         plan_2 = self.create_plan(project)
-        snapshot = self.create_snapshot(project)
+        snapshot = self.create_snapshot(project, status=SnapshotStatus.pending)
         snapshot_image_1 = self.create_snapshot_image(snapshot, plan_1)
         snapshot_image_2 = self.create_snapshot_image(snapshot, plan_2)
 
-        assert Snapshot.query.get(snapshot.id).status == SnapshotStatus.unknown
+        assert Snapshot.query.get(snapshot.id).status == SnapshotStatus.pending
 
         snapshot_image_1.change_status(SnapshotStatus.active)
-        assert Snapshot.query.get(snapshot.id).status == SnapshotStatus.unknown
+        assert Snapshot.query.get(snapshot.id).status == SnapshotStatus.pending
 
         snapshot_image_2.change_status(SnapshotStatus.active)
         assert Snapshot.query.get(snapshot.id).status == SnapshotStatus.active
@@ -23,7 +23,7 @@ class TestSnapshotTestCase(TestCase):
         project = self.create_project()
         plan_1 = self.create_plan(project)
         plan_2 = self.create_plan(project)
-        snapshot = self.create_snapshot(project)
+        snapshot = self.create_snapshot(project, status=SnapshotStatus.pending)
         snapshot_image_1 = self.create_snapshot_image(snapshot, plan_1)
         snapshot_image_2 = self.create_snapshot_image(snapshot, plan_2)
 
@@ -32,3 +32,16 @@ class TestSnapshotTestCase(TestCase):
         snapshot_image_1.change_status(SnapshotStatus.invalidated)
 
         assert Snapshot.query.get(snapshot.id).status == SnapshotStatus.invalidated
+
+    def test_snapshot_failed(self):
+        project = self.create_project()
+        plan_1 = self.create_plan(project)
+        plan_2 = self.create_plan(project)
+        snapshot = self.create_snapshot(project, status=SnapshotStatus.failed)
+        snapshot_image_1 = self.create_snapshot_image(snapshot, plan_1)
+        snapshot_image_2 = self.create_snapshot_image(snapshot, plan_2)
+
+        snapshot_image_1.change_status(SnapshotStatus.active)
+        snapshot_image_2.change_status(SnapshotStatus.active)
+
+        assert Snapshot.query.get(snapshot.id).status == SnapshotStatus.failed
