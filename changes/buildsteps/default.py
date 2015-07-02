@@ -237,6 +237,7 @@ class DefaultBuildStep(BuildStep):
 
     def get_allocation_params(self, jobstep):
         params = {
+            'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
             'server': build_uri('/api/0/'),
             'jobstep_id': jobstep.id.hex,
@@ -260,7 +261,8 @@ class DefaultBuildStep(BuildStep):
         if expected_image:
             params['save-snapshot'] = expected_image.hex
 
-        return params
+        # Filter out any None-valued parameter
+        return dict((k, v) for k, v in params.iteritems() if v is not None)
 
     def get_allocation_command(self, jobstep):
         params = self.get_allocation_params(jobstep)

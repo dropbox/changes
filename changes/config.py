@@ -98,6 +98,10 @@ def create_app(_read_config=True, **config):
     app.config['LXC_PRE_LAUNCH'] = None
     app.config['LXC_POST_LAUNCH'] = None
 
+    # Location of artifacts server that is passed to changes-client
+    # (include http:// or https://)
+    app.config['ARTIFACTS_SERVER'] = None
+
     app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE'] = 'legacy'
 
     # This is a hash from each build type (string identifiers used in
