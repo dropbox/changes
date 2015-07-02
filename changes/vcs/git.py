@@ -20,11 +20,13 @@ LOCAL_PATH=%(local_path)s
 REVISION=%(revision)s
 
 if [ ! -d $LOCAL_PATH/.git ]; then
+    GIT_SSH_COMMAND="ssh -v" \
     git clone $REMOTE_URL $LOCAL_PATH
     pushd $LOCAL_PATH
 else
     pushd $LOCAL_PATH
     git remote set-url origin $REMOTE_URL
+    GIT_SSH_COMMAND="ssh -v" \
     git fetch --all -p
 fi
 
