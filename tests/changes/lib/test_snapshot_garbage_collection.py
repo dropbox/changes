@@ -20,10 +20,14 @@ class TestSnapshotGCTestCase(TestCase):
     def test_get_plans_for_cluster(self):
         project1 = self.create_project()
         project2 = self.create_project()
-        plan1_1 = self.create_plan(project1, data={'cluster': 'cluster1'})
-        plan1_2 = self.create_plan(project1, data={'cluster': 'cluster2'})
-        plan2_1 = self.create_plan(project2, data={'cluster': 'cluster1'})
+        plan1_1 = self.create_plan(project1)
+        plan1_2 = self.create_plan(project1)
+        plan2_1 = self.create_plan(project2)
         plan2_2 = self.create_plan(project2)
+
+        self.create_step(plan1_1, data={'cluster': 'cluster1'})
+        self.create_step(plan1_2, data={'cluster': 'cluster2'})
+        self.create_step(plan2_1, data={'cluster': 'cluster1'})
 
         plans = gc.get_plans_for_cluster('cluster1')
         assert len(plans) == 2
@@ -42,7 +46,7 @@ class TestSnapshotGCTestCase(TestCase):
         snapshot_image = self.create_snapshot_image(snapshot, plan)
         cached_snapshot_image = self.create_cached_snapshot_image(snapshot_image)
 
-        get_plans.return_value = []
+        get_plans.return_value = set()
         gc.get_cached_snapshot_images('cluster')
         get_plans.assert_called_with('cluster')
 
@@ -55,7 +59,7 @@ class TestSnapshotGCTestCase(TestCase):
         snapshot_image = self.create_snapshot_image(snapshot, plan)
         cached_snapshot_image = self.create_cached_snapshot_image(snapshot_image)
 
-        get_plans.return_value = []
+        get_plans.return_value = set()
 
         assert gc.get_cached_snapshot_images('cluster') == []
 
@@ -72,7 +76,7 @@ class TestSnapshotGCTestCase(TestCase):
         snapshot_image = self.create_snapshot_image(snapshot, plan)
         cached_snapshot_image = self.create_cached_snapshot_image(snapshot_image)
 
-        get_plans.return_value = []
+        get_plans.return_value = set()
         get_current_datetime.return_value = self.mock_datetime
         gc.get_cached_snapshot_images('cluster')
         get_current_datetime.assert_any_call()
@@ -94,7 +98,7 @@ class TestSnapshotGCTestCase(TestCase):
         plan4 = self.create_plan(project)
 
         get_current_datetime.return_value = self.mock_datetime
-        get_plans.return_value = [plan1, plan2, plan3]
+        get_plans.return_value = {plan1, plan2, plan3}
 
         snapshot = self.create_snapshot(project)
         snapshot_image1 = self.create_snapshot_image(snapshot, plan1)
@@ -208,11 +212,17 @@ class TestSnapshotGCTestCase(TestCase):
     @mock.patch('changes.lib.snapshot_garbage_collection.get_current_datetime')
     def test_get_relevant_snapshot_images_simple(self, get_current_datetime):
         project = self.create_project()
-        plan1 = self.create_plan(project, data={'cluster': 'cluster1'})
-        plan2 = self.create_plan(project, data={'cluster': 'cluster1'})
-        plan3 = self.create_plan(project, data={'cluster': 'cluster2'})
-        plan4 = self.create_plan(project, data={})
+        plan1 = self.create_plan(project)
+        plan2 = self.create_plan(project)
+        plan3 = self.create_plan(project)
+        plan4 = self.create_plan(project)
         plan5 = self.create_plan(project)
+
+        self.create_step(plan1, data={'cluster': 'cluster1'})
+        self.create_step(plan2, data={'cluster': 'cluster1'})
+        self.create_step(plan3, data={'cluster': 'cluster2'})
+        self.create_step(plan4, data={})
+        self.create_step(plan5)
 
         snapshot = self.create_snapshot(project)
         snapshot_image1 = self.create_snapshot_image(snapshot, plan1)
@@ -238,10 +248,15 @@ class TestSnapshotGCTestCase(TestCase):
     def test_get_relevant_snapshot_images_across_projects(self, get_current_datetime):
         project1 = self.create_project()
         project2 = self.create_project()
-        plan1_1 = self.create_plan(project1, data={'cluster': 'cluster1'})
-        plan1_2 = self.create_plan(project1, data={'cluster': 'cluster2'})
-        plan2_1 = self.create_plan(project2, data={'cluster': 'cluster2'})
-        plan2_2 = self.create_plan(project2, data={'cluster': 'cluster3'})
+        plan1_1 = self.create_plan(project1)
+        plan1_2 = self.create_plan(project1)
+        plan2_1 = self.create_plan(project2)
+        plan2_2 = self.create_plan(project2)
+
+        self.create_step(plan1_1, data={'cluster': 'cluster1'})
+        self.create_step(plan1_2, data={'cluster': 'cluster2'})
+        self.create_step(plan2_1, data={'cluster': 'cluster2'})
+        self.create_step(plan2_2, data={'cluster': 'cluster3'})
 
         snapshot1 = self.create_snapshot(project1)
         snapshot2 = self.create_snapshot(project2)

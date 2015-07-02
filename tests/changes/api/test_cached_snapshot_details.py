@@ -31,7 +31,8 @@ class CachedSnapshotClusterDetailsAPITestCase(APITestCase):
         snapshots/cached snapshots, the simplest possible case.
         """
         project = self.create_project()
-        plan = self.create_plan(project, data={'cluster': 'cluster'})
+        plan = self.create_plan(project)
+        self.create_step(plan, data={'cluster': 'cluster'})
         snapshot = self.create_snapshot(project)
         snapshot_image = self.create_snapshot_image(snapshot, plan)
 
@@ -47,7 +48,8 @@ class CachedSnapshotClusterDetailsAPITestCase(APITestCase):
         same project.
         """
         project = self.create_project()
-        plan = self.create_plan(project, data={'cluster': 'cluster'})
+        plan = self.create_plan(project)
+        self.create_step(plan, data={'cluster': 'cluster'})
         old_snapshot = self.create_snapshot(project)
         old_snapshot_image = self.create_snapshot_image(old_snapshot, plan)
         self.create_cached_snapshot_image(old_snapshot_image)
@@ -78,11 +80,16 @@ class CachedSnapshotClusterDetailsAPITestCase(APITestCase):
         """
         project1 = self.create_project()
         project2 = self.create_project()
-        plan1_1 = self.create_plan(project1, data={'cluster': 'cluster1'})
-        plan1_2 = self.create_plan(project1, data={'cluster': 'cluster2'})
-        plan1_3 = self.create_plan(project1)  # without any cluster
-        plan2_1 = self.create_plan(project2, data={'cluster': 'cluster2'})
-        plan2_2 = self.create_plan(project2, data={'cluster': 'cluster3'})
+        plan1_1 = self.create_plan(project1)
+        plan1_2 = self.create_plan(project1)
+        plan1_3 = self.create_plan(project1)
+        plan2_1 = self.create_plan(project2)
+        plan2_2 = self.create_plan(project2)
+
+        self.create_step(plan1_1, data={'cluster': 'cluster1'})
+        self.create_step(plan1_2, data={'cluster': 'cluster2'})
+        self.create_step(plan2_1, data={'cluster': 'cluster2'})
+        self.create_step(plan2_2, data={'cluster': 'cluster3'})
 
         snapshot1 = self.create_snapshot(project1)
         snapshot2 = self.create_snapshot(project2)

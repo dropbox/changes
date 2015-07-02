@@ -33,7 +33,7 @@ changes have to know about their existance as a table separate from
 snapshot imagese.
 """
 from changes.config import db
-from changes.models import CachedSnapshotImage, Plan, Snapshot, SnapshotImage
+from changes.models import CachedSnapshotImage, Plan, Snapshot, SnapshotImage, Step
 from datetime import datetime
 from flask import current_app
 
@@ -57,10 +57,10 @@ def get_plans_for_cluster(cluster):
     store jenkins-specific things in the database is that we can't
     do natural operations on the database.
     """
-    plans = []
-    for plan in db.session.query(Plan).all():
-        if plan.data and plan.data.get('cluster', None) == cluster:
-            plans.extend([plan])
+    plans = set()
+    for plan, step in db.session.query(Plan, Step).filter(Plan.id == Step.plan_id).all():
+        if step.data and step.data.get('cluster', None) == cluster:
+            plans.add(plan)
     return plans
 
 
@@ -77,7 +77,7 @@ def get_cached_snapshot_images(cluster):
 
     # Although performance isn't critical here, this shuts up a warning
     # from sqlalchemy
-    if plan_ids == []:
+    if not plan_ids:
         return []
 
     return db.session.query(SnapshotImage).filter(
@@ -144,15 +144,16 @@ def get_relevant_snapshot_images(snapshot_id):
     based on the new snapshot and values are the list of snapshot
     images associated with the snapshot.
     """
-    plans = Plan.query.filter(
+    steps = Step.query.filter(
         Plan.id == SnapshotImage.plan_id,
+        Step.plan_id == Plan.id,
         SnapshotImage.snapshot_id == snapshot_id
     ).all()
 
     clusters = set()
-    for plan in plans:
-        if plan.data and 'cluster' in plan.data:
-            clusters.add(plan.data['cluster'])
+    for step in steps:
+        if step.data and 'cluster' in step.data:
+            clusters.add(step.data['cluster'])
 
     return dict([(cluster, get_cached_snapshot_images(cluster)) for cluster in clusters])
 

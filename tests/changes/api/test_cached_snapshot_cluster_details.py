@@ -35,11 +35,16 @@ class CachedSnapshotClusterDetailsAPITestCase(APITestCase):
         """
         project1 = self.create_project()
         project2 = self.create_project()
-        plan1_1 = self.create_plan(project1, data={'cluster': 'cluster1'})
-        plan1_2 = self.create_plan(project1, data={'cluster': 'cluster2'})
-        plan2_1 = self.create_plan(project2, data={'cluster': 'cluster2'})
-        plan2_2 = self.create_plan(project2, data={'cluster': 'cluster2'})
+        plan1_1 = self.create_plan(project1)
+        plan1_2 = self.create_plan(project1)
+        plan2_1 = self.create_plan(project2)
+        plan2_2 = self.create_plan(project2)
         plan2_3 = self.create_plan(project2)
+
+        self.create_step(plan1_1, data={'cluster': 'cluster1'})
+        self.create_step(plan1_2, data={'cluster': 'cluster2'})
+        self.create_step(plan2_1, data={'cluster': 'cluster2'})
+        self.create_step(plan2_2, data={'cluster': 'cluster2'})
 
         snapshot1 = self.create_snapshot(project1)
         snapshot2 = self.create_snapshot(project2)
