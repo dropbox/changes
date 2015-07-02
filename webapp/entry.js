@@ -66,6 +66,8 @@ require([
 
   var url = window.location.href;
   var path = _.last(url.split('/v2/', 2)).trim();
+  // ignore # and ?
+  var path = path.split(/[\?#]/, 1)[0];
   var path_parts = _.compact(path.split('/'));
 
   var url_contains = {

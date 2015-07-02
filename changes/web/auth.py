@@ -17,22 +17,13 @@ GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'
 GOOGLE_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
 
 
-def get_auth_flow(redirect_uri=None):
+def get_auth_flow(redirect_uri=None, state=""):
     # XXX(dcramer): we have to generate this each request because oauth2client
     # doesn't want you to set redirect_uri as part of the request, which causes
     # a lot of runtime issues.
-    # Addendum (mkedia): An even more fun twist is that the auth uri is different
-    # for step 1 and 2: in step 1, we pass a state parameter using a query parameter,
-    # but in step 2 we no longer know what that parameter is...
     auth_uri = GOOGLE_AUTH_URI
     if current_app.config['GOOGLE_DOMAIN']:
         auth_uri = auth_uri + '?hd=' + current_app.config['GOOGLE_DOMAIN']
-
-    state = ""
-    if 'orig_url' in request.args:
-        # we'll later redirect the user back the page they were on after
-        # logging in
-        state = base64.urlsafe_b64encode(request.args['orig_url'])
 
     return OAuth2WebServerFlow(
         client_id=current_app.config['GOOGLE_CLIENT_ID'],
@@ -57,7 +48,14 @@ class LoginView(MethodView):
 
     def get(self):
         redirect_uri = url_for(self.authorized_url, _external=True)
-        flow = get_auth_flow(redirect_uri=redirect_uri)
+
+        state = ""
+        if 'orig_url' in request.args:
+            # we'll later redirect the user back the page they were on after
+            # logging in
+            state = base64.urlsafe_b64encode(request.args['orig_url'].encode('utf-8'))
+
+        flow = get_auth_flow(redirect_uri=redirect_uri, state=state)
         auth_uri = flow.step1_get_authorize_url()
         return redirect(auth_uri)
 
@@ -70,7 +68,8 @@ class AuthorizedView(MethodView):
 
     def get(self):
         redirect_uri = url_for(self.authorized_url, _external=True)
-        flow = get_auth_flow(redirect_uri=redirect_uri)
+        state = request.args.get("state", "")
+        flow = get_auth_flow(redirect_uri=redirect_uri, state=state)
         resp = flow.step2_exchange(request.args['code'])
 
         if current_app.config['GOOGLE_DOMAIN']:
@@ -92,7 +91,7 @@ class AuthorizedView(MethodView):
         session['email'] = resp.id_token['email']
 
         if 'state' in request.args:
-            originating_url = base64.urlsafe_b64decode(request.args['state'])
+            originating_url = base64.urlsafe_b64decode(request.args['state'].encode('utf-8'))
             # add a query parameter. It shouldn't be this cumbersome...
             url_parts = list(urlparse.urlparse(originating_url))
             query = dict(urlparse.parse_qsl(url_parts[4]))
