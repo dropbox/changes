@@ -134,6 +134,7 @@ class XunitHandler(ArtifactHandler):
                 artifacts=self._get_testartifacts(node)
             ))
 
+        results = _deduplicate_testresults(results)
         return results
 
     def _get_testartifacts(self, node):
@@ -146,3 +147,50 @@ class XunitHandler(ArtifactHandler):
             attrs = dict(artifact_node.items())
             results.append(attrs)
         return results
+
+
+def _deduplicate_testresults(results):
+    """Combine TestResult objects until every package+name is unique.
+
+    The traditions surrounding jUnit do not prohibit a single test from
+    producing two or more <testcase> elements.  In fact, py.test itself
+    will produce two such elements for a single test if the test both
+    fails and then hits an error during tear-down.  To impedance-match
+    this situation with the Changes constraint of one result per test,
+    we combine <testcase> elements that belong to the same test.
+
+    """
+    result_dict = {}
+    deduped = []
+
+    for result in results:
+        key = (result.package, result.name)
+        existing_result = result_dict.get(key)
+
+        if existing_result is not None:
+            e, r = existing_result, result
+            e.duration = _careful_add(e.duration, r.duration)
+            either_result = (e.result, r.result)
+            e.result = (
+                Result.infra_failed if (Result.infra_failed in either_result)
+                else Result.aborted if (Result.aborted in either_result)
+                else Result.failed if (Result.failed in either_result)
+                else max(either_result)
+                )
+            e.message += '\n\n' + r.message
+            e.reruns = _careful_add(e.reruns, r.reruns)
+            e.artifacts = _careful_add(e.artifacts, r.artifacts)
+        else:
+            result_dict[key] = result
+            deduped.append(result)
+
+    return deduped
+
+
+def _careful_add(a, b):
+    """Return the sum `a + b`, else whichever is not `None`, else `None`."""
+    if a is None:
+        return b
+    if b is None:
+        return a
+    return a + b
