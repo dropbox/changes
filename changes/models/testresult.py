@@ -3,6 +3,7 @@ from __future__ import absolute_import, division
 import logging
 import re
 
+from collections import defaultdict
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
@@ -79,6 +80,8 @@ class TestResultManager(object):
         job = step.job
         project = job.project
         # agg_groups_by_id = {}
+
+        test_list = _detect_duplicate_tests(test_list)
 
         # create all test cases
         for test in test_list:
@@ -170,3 +173,37 @@ class TestResultManager(object):
                 TestCase.reruns > 0,
             ).as_scalar(),
         })
+
+
+def _detect_duplicate_tests(test_list):
+    """Return a new `test_list` where any duplicates are marked as failures.
+
+    The new list will be in the same order as the original, but with the
+    second and subsequent instances of a given test removed.
+
+    """
+    groups = defaultdict(list)
+    for test in test_list:
+        groups[test.name_sha].append(test)
+    new_list = []
+    for test in test_list:
+        group = groups.pop(test.name_sha, None)
+        if group is None:
+            pass
+        elif len(group) == 1:
+            new_list.append(test)
+        elif len(group) > 1:
+            result = TestResult(
+                step=test.step,
+                name=test._name,
+                package=test._package,
+                message='Duplicate test. Ran {} times in steps {}.'.format(
+                    len(group), ', '.join(str(t.step.id) for t in group)),
+                result=Result.failed,
+                duration=sum((t.duration or 0) for t in group),
+                reruns=sum((t.reruns or 0) for t in group),
+                artifacts=sum([(t.artifacts or []) for t in group], []),
+                )
+            new_list.append(result)
+
+    return new_list
