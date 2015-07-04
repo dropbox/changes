@@ -123,14 +123,14 @@ class TestResultManager(object):
             db.session.commit()
 
         try:
-            self._record_test_counts(test_list)
-            self._record_test_failures(test_list)
-            self._record_test_duration(test_list)
-            self._record_test_rerun_counts(test_list)
+            self._record_test_counts()
+            self._record_test_failures()
+            self._record_test_duration()
+            self._record_test_rerun_counts()
         except Exception:
             logger.exception('Failed to record aggregate test statistics')
 
-    def _record_test_counts(self, test_list):
+    def _record_test_counts(self):
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
             'name': 'test_count',
@@ -141,7 +141,7 @@ class TestResultManager(object):
         })
         db.session.commit()
 
-    def _record_test_failures(self, test_list):
+    def _record_test_failures(self):
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
             'name': 'test_failures',
@@ -153,7 +153,7 @@ class TestResultManager(object):
         })
         db.session.commit()
 
-    def _record_test_duration(self, test_list):
+    def _record_test_duration(self):
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
             'name': 'test_duration',
@@ -163,7 +163,7 @@ class TestResultManager(object):
             ).as_scalar(),
         })
 
-    def _record_test_rerun_counts(self, test_list):
+    def _record_test_rerun_counts(self):
         create_or_update(ItemStat, where={
             'item_id': self.step.id,
             'name': 'test_rerun_count',
