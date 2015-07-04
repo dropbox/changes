@@ -84,6 +84,8 @@ class TestResultManager(object):
         test_list = _detect_duplicate_tests(test_list)
 
         # create all test cases
+        testcase_list = []
+
         for test in test_list:
             testcase = TestCase(
                 job=job,
@@ -97,8 +99,17 @@ class TestResultManager(object):
                 date_created=test.date_created,
                 reruns=test.reruns
             )
-            db.session.add(testcase)
+            testcase_list.append(testcase)
 
+        # Try an optimistic commit of all cases at once.
+        for testcase in testcase_list:
+            db.session.add(testcase)
+        db.session.commit()
+
+        # Test artifacts do not operate under a unique constraint, so
+        # they should insert cleanly without an integrity error.
+
+        for test, testcase in zip(test_list, testcase_list):
             if test.artifacts:
                 for ta in test.artifacts:
                     testartifact = TestArtifact(
@@ -110,17 +121,10 @@ class TestResultManager(object):
 
         try:
             db.session.commit()
-        except IntegrityError:
+        except Exception:
             db.session.rollback()
-            logger.exception('Duplicate test name; (step={})'.format(step.id.hex))
-            try_create(FailureReason, {
-                'step_id': step.id,
-                'job_id': step.job_id,
-                'build_id': step.job.build_id,
-                'project_id': step.project_id,
-                'reason': 'duplicate_test_name'
-            })
-            db.session.commit()
+            logger.exception('Failed to save artifacts'
+                             ' for step {}'.format(step.id.hex))
 
         try:
             self._record_test_counts()
@@ -128,7 +132,8 @@ class TestResultManager(object):
             self._record_test_duration()
             self._record_test_rerun_counts()
         except Exception:
-            logger.exception('Failed to record aggregate test statistics')
+            logger.exception('Failed to record aggregate test statistics'
+                             ' for step {}'.format(step.id.hex))
 
     def _record_test_counts(self):
         create_or_update(ItemStat, where={
