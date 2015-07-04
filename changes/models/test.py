@@ -51,10 +51,6 @@ class TestCase(db.Model):
     job = relationship('Job')
     step = relationship('JobStep')
     project = relationship('Project')
-    artifacts = relationship('TestArtifact',
-                         primaryjoin='TestCase.id == TestArtifact.test_id',
-                         foreign_keys=[id],
-                         uselist=True)
 
     __repr__ = model_repr('name', '_package', 'result')
 

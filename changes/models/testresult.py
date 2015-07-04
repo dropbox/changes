@@ -79,11 +79,8 @@ class TestResultManager(object):
         step = self.step
         job = step.job
         project = job.project
-        # agg_groups_by_id = {}
 
-        test_list = _detect_duplicate_tests(test_list)
-
-        # create all test cases
+        # Create all test cases.
         testcase_list = []
 
         for test in test_list:
@@ -104,7 +101,21 @@ class TestResultManager(object):
         # Try an optimistic commit of all cases at once.
         for testcase in testcase_list:
             db.session.add(testcase)
-        db.session.commit()
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+
+            # Slowly make separate commits, to uncover duplicate test cases:
+            for i, testcase in enumerate(testcase_list):
+                db.session.add(testcase)
+                try:
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    testcase_list[i] = _find_and_update_duplicate(testcase)
+                    db.session.commit()
 
         # Test artifacts do not operate under a unique constraint, so
         # they should insert cleanly without an integrity error.
@@ -132,6 +143,7 @@ class TestResultManager(object):
             self._record_test_duration()
             self._record_test_rerun_counts()
         except Exception:
+            db.session.rollback()
             logger.exception('Failed to record aggregate test statistics'
                              ' for step {}'.format(step.id.hex))
 
@@ -180,35 +192,16 @@ class TestResultManager(object):
         })
 
 
-def _detect_duplicate_tests(test_list):
-    """Return a new `test_list` where any duplicates are marked as failures.
+def _find_and_update_duplicate(testcase):
+    """Find the duplicate that already exists for `testcase` and update it."""
+    filter_by = TestCase.query.filter_by
+    matches = filter_by(job_id=testcase.job_id, name_sha=testcase.name_sha)
+    duplicate = matches.limit(1).first()
 
-    The new list will be in the same order as the original, but with the
-    second and subsequent instances of a given test removed.
+    duplicate.message = 'Duplicate test - also ran in step {}'.format(
+        testcase.step.id.hex)
+    duplicate.result = Result.failed
+    duplicate.duration += testcase.duration or 0
+    duplicate.reruns += testcase.reruns or 0
 
-    """
-    groups = defaultdict(list)
-    for test in test_list:
-        groups[test.name_sha].append(test)
-    new_list = []
-    for test in test_list:
-        group = groups.pop(test.name_sha, None)
-        if group is None:
-            pass
-        elif len(group) == 1:
-            new_list.append(test)
-        elif len(group) > 1:
-            result = TestResult(
-                step=test.step,
-                name=test._name,
-                package=test._package,
-                message='Duplicate test. Ran {} times in steps {}.'.format(
-                    len(group), ', '.join(str(t.step.id) for t in group)),
-                result=Result.failed,
-                duration=sum((t.duration or 0) for t in group),
-                reruns=sum((t.reruns or 0) for t in group),
-                artifacts=sum([(t.artifacts or []) for t in group], []),
-                )
-            new_list.append(result)
-
-    return new_list
+    return duplicate
