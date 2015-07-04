@@ -3,15 +3,14 @@ from __future__ import absolute_import, division
 import logging
 import re
 
-from collections import defaultdict
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import create_or_update, try_create
-from changes.models import FailureReason, ItemStat, TestCase, TestArtifact
+from changes.db.utils import create_or_update
+from changes.models import ItemStat, TestCase, TestArtifact
 
 logger = logging.getLogger('changes.testresult')
 
