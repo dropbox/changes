@@ -193,9 +193,9 @@ class TestResultManager(object):
 
 def _update_duplicate(testcase):
     """Find the duplicate that already exists for `testcase` and update it."""
-    filter_by = TestCase.query.filter_by
-    matches = filter_by(job_id=testcase.job_id, name_sha=testcase.name_sha)
-    duplicate = matches.limit(1).first()
+    duplicate = (TestCase.query
+                 .filter_by(job_id=testcase.job_id, name_sha=testcase.name_sha)
+                 .with_for_update().first())
 
     if duplicate.step is testcase.step:
         label = testcase.step.label
