@@ -198,16 +198,21 @@ def _update_duplicate(testcase):
     duplicate = matches.limit(1).first()
 
     if duplicate.step is testcase.step:
-        duplicate.message = ('Duplicate test - ran twice in step {}'
-                             .format(testcase.step.label))
+        label = testcase.step.label
+        duplicate.message = 'Duplicate test in step {}'.format(label)
         duplicate.duration += testcase.duration or 0
         duplicate.reruns += testcase.reruns or 0
     else:
-        duplicate.message = ('Duplicate test - ran in both steps {} and {}'
-                             .format(duplicate.step.label, testcase.step.label))
+        old = duplicate.message
+        if (old is None) or not old.startswith('Duplicate test, in step '):
+            old = 'Duplicate test in step {}'.format(duplicate.step.label)
 
-        # The duplicate - the only copy that can exist - must now be
-        # moved over to the new step, for when its stats are tallied:
+        duplicate.message = '{} and {}'.format(old, testcase.step.label)
+
+        # So that this new step gets tallied properly, we point the
+        # original test record - the only copy of the test that can
+        # exist - at this new step, and give it the data from this
+        # duplicate run:
         duplicate.step = testcase.step
         duplicate.duration = testcase.duration
         duplicate.reruns = testcase.reruns

@@ -154,8 +154,7 @@ class TestResultManagerTestCase(TestCase):
 
         assert testcase_list[1].name == 'project.tests.test_foo'
         assert testcase_list[1].result == Result.failed
-        assert testcase_list[1].message.startswith(
-            'Duplicate test - ran twice in step STEP1')
+        assert testcase_list[1].message == 'Duplicate test in step STEP1'
         assert testcase_list[1].duration == 23
         assert testcase_list[1].reruns == 0
 
@@ -326,8 +325,8 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[2].step_id == jobstep2.id
         assert testcase_list[2].name == 'project.tests.test_foo'
         assert testcase_list[2].result == Result.failed
-        assert testcase_list[2].message.startswith(
-            'Duplicate test - ran ')
+        assert testcase_list[2].message == (
+            'Duplicate test in step STEP1 and STEP2')
         assert testcase_list[2].duration == 11
         assert testcase_list[2].reruns == 0
 
