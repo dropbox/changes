@@ -113,7 +113,7 @@ class TestResultManager(object):
                     db.session.commit()
                 except IntegrityError:
                     db.session.rollback()
-                    testcase_list[i] = _find_and_update_duplicate(testcase)
+                    testcase_list[i] = _update_duplicate(testcase)
                     db.session.commit()
 
         # Test artifacts do not operate under a unique constraint, so
@@ -191,16 +191,26 @@ class TestResultManager(object):
         })
 
 
-def _find_and_update_duplicate(testcase):
+def _update_duplicate(testcase):
     """Find the duplicate that already exists for `testcase` and update it."""
     filter_by = TestCase.query.filter_by
     matches = filter_by(job_id=testcase.job_id, name_sha=testcase.name_sha)
     duplicate = matches.limit(1).first()
 
-    duplicate.message = 'Duplicate test - also ran in step {}'.format(
-        testcase.step.id.hex)
-    duplicate.result = Result.failed
-    duplicate.duration += testcase.duration or 0
-    duplicate.reruns += testcase.reruns or 0
+    if duplicate.step is testcase.step:
+        duplicate.message = ('Duplicate test - ran twice in step {}'
+                             .format(testcase.step.label))
+        duplicate.duration += testcase.duration or 0
+        duplicate.reruns += testcase.reruns or 0
+    else:
+        duplicate.message = ('Duplicate test - ran in both steps {} and {}'
+                             .format(duplicate.step.label, testcase.step.label))
 
+        # The duplicate - the only copy that can exist - must now be
+        # moved over to the new step, for when its stats are tallied:
+        duplicate.step = testcase.step
+        duplicate.duration = testcase.duration
+        duplicate.reruns = testcase.reruns
+
+    duplicate.result = Result.failed
     return duplicate

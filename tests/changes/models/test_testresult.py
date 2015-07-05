@@ -97,7 +97,7 @@ class TestResultManagerTestCase(TestCase):
         build = self.create_build(project)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
-        jobstep = self.create_jobstep(jobphase)
+        jobstep = self.create_jobstep(jobphase, label='STEP1')
 
         results = [
             TestResult(
@@ -155,7 +155,7 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[1].name == 'project.tests.test_foo'
         assert testcase_list[1].result == Result.failed
         assert testcase_list[1].message.startswith(
-            'Duplicate test - also ran in step ')
+            'Duplicate test - ran twice in step STEP1')
         assert testcase_list[1].duration == 23
         assert testcase_list[1].reruns == 0
 
@@ -196,7 +196,7 @@ class TestResultManagerTestCase(TestCase):
         build = self.create_build(project)
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
-        jobstep = self.create_jobstep(jobphase)
+        jobstep = self.create_jobstep(jobphase, label='STEP1')
 
         results = [
             TestResult(
@@ -274,9 +274,11 @@ class TestResultManagerTestCase(TestCase):
         )[0]
         assert teststat.value == 0
 
+        jobstep2 = self.create_jobstep(jobphase, label='STEP2')
+
         results = [
             TestResult(
-                step=jobstep,
+                step=jobstep2,
                 name='test_foo',
                 package='project.tests',
                 result=Result.passed,
@@ -287,37 +289,55 @@ class TestResultManagerTestCase(TestCase):
                     'type': 'text',
                     'base64': b64encode('second artifact')}]
             ),
+            TestResult(
+                step=jobstep2,
+                name='test_baz',
+                package='project.tests',
+                result=Result.passed,
+                duration=18,
+                reruns=2,
+            ),
         ]
-        manager = TestResultManager(jobstep)
+        manager = TestResultManager(jobstep2)
         manager.save(results)
 
         testcase_list = sorted(TestCase.query.all(), key=lambda x: x.name)
 
-        assert len(testcase_list) == 2
+        assert len(testcase_list) == 3
 
         for test in testcase_list:
             assert test.job_id == job.id
-            assert test.step_id == jobstep.id
             assert test.project_id == project.id
 
+        assert testcase_list[0].step_id == jobstep.id
         assert testcase_list[0].name == 'project.tests.test_bar'
         assert testcase_list[0].result == Result.passed
         assert testcase_list[0].message is None
         assert testcase_list[0].duration == 13
         assert testcase_list[0].reruns == 0
 
-        assert testcase_list[1].name == 'project.tests.test_foo'
-        assert testcase_list[1].result == Result.failed
-        assert testcase_list[1].message.startswith(
-            'Duplicate test - also ran in step ')
-        assert testcase_list[1].duration == 23
-        assert testcase_list[1].reruns == 0
+        assert testcase_list[1].step_id == jobstep2.id
+        assert testcase_list[1].name == 'project.tests.test_baz'
+        assert testcase_list[1].result == Result.passed
+        assert testcase_list[1].message is None
+        assert testcase_list[1].duration == 18
+        assert testcase_list[1].reruns == 2
 
-        testartifacts = testcase_list[1].artifacts
+        assert testcase_list[2].step_id == jobstep2.id
+        assert testcase_list[2].name == 'project.tests.test_foo'
+        assert testcase_list[2].result == Result.failed
+        assert testcase_list[2].message.startswith(
+            'Duplicate test - ran ')
+        assert testcase_list[2].duration == 11
+        assert testcase_list[2].reruns == 0
+
+        testartifacts = testcase_list[2].artifacts
         assert len(testartifacts) == 2
         a1 = testartifacts[0].file.get_file().read()
         a2 = testartifacts[1].file.get_file().read()
         assert {a1, a2} == {'first artifact', 'second artifact'}
+
+        # Stats for original step are unharmed:
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_count',
@@ -329,16 +349,42 @@ class TestResultManagerTestCase(TestCase):
             ItemStat.name == 'test_failures',
             ItemStat.item_id == jobstep.id,
         )[0]
-        assert teststat.value == 1
+        assert teststat.value == 0
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_duration',
             ItemStat.item_id == jobstep.id,
         )[0]
-        assert teststat.value == 36
+        assert teststat.value == 25
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_rerun_count',
             ItemStat.item_id == jobstep.id,
         )[0]
         assert teststat.value == 0
+
+        # Stats for new step:
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_count',
+            ItemStat.item_id == jobstep2.id,
+        )[0]
+        assert teststat.value == 2
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_failures',
+            ItemStat.item_id == jobstep2.id,
+        )[0]
+        assert teststat.value == 1
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_duration',
+            ItemStat.item_id == jobstep2.id,
+        )[0]
+        assert teststat.value == 29
+
+        teststat = ItemStat.query.filter(
+            ItemStat.name == 'test_rerun_count',
+            ItemStat.item_id == jobstep2.id,
+        )[0]
+        assert teststat.value == 1
