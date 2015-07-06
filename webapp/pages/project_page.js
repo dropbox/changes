@@ -75,9 +75,6 @@ var ProjectPage = React.createClass({
       });
     });
 
-    // TODO: rather than unmounting and remounting (causing a new data fetch),
-    // just use display: none. OR, push the state up to the page component,
-    // so that we can just ship it down using props (better).
     var menu = <Menu2 
       items={menu_items} 
       selectedItem={selected_item} 

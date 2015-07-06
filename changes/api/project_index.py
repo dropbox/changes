@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
+from collections import defaultdict
+
 from flask.ext.restful import reqparse
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
@@ -9,7 +11,7 @@ from changes.api.base import APIView
 from changes.api.auth import requires_admin
 from changes.config import db, statsreporter
 from changes.constants import Cause, Result, Status, ProjectStatus
-from changes.models import Project, Repository, Build, Source
+from changes.models import Project, Repository, Build, Source, Plan, PlanStatus, ProjectOption
 
 
 STATUS_CHOICES = ('', 'active', 'inactive')
@@ -61,6 +63,8 @@ class ProjectIndexAPIView(APIView):
                             choices=STATUS_CHOICES, default='active')
     get_parser.add_argument('sort', type=unicode, location='args',
                             choices=SORT_CHOICES, default='name')
+    # grabs extra data to show a richer ui in the new changes ui
+    get_parser.add_argument('fetch_extra', type=unicode, location='args', default=0)
 
     post_parser = reqparse.RequestParser()
     post_parser.add_argument('name', type=unicode, required=True)
@@ -94,6 +98,31 @@ class ProjectIndexAPIView(APIView):
             elif args.sort == 'date':
                 queryset = queryset.order_by(Project.date_created.asc())
 
+            plans = []
+            if args.fetch_extra:
+                queryset = queryset.options(
+                    joinedload(Project.repository, innerjoin=True)
+                )
+
+                # fetch plans separately to avoid many lazy database fetches
+                plans_list = self.serialize(list(Plan.query.filter(
+                    Plan.status == PlanStatus.active
+                ).options(
+                    joinedload(Plan.steps)
+                )))
+
+                plans = defaultdict(list)
+                for p in plans_list:
+                    plans[p['project_id']].append(p)
+
+                # we could use the option names whitelist from
+                # project_details.py
+                options_list = list(ProjectOption.query)
+                options_dict = defaultdict(dict)
+
+                for o in options_list:
+                    options_dict[o.project_id][o.name] = o.value
+
             project_list = list(queryset)
 
             context = []
@@ -126,6 +155,11 @@ class ProjectIndexAPIView(APIView):
                     # TODO(dcramer): build serializer is O(N) for stats
                     data['lastBuild'] = latest_build_map.get(project.id)
                     data['lastPassingBuild'] = passing_build_map.get(project.id)
+                    if args.fetch_extra:
+                        data['repository'] = self.serialize(project.repository)
+                        data['options'] = options_dict[project.id]
+                        # we have to use the serialized version of the id
+                        data['plans'] = plans[data['id']]
                     context.append(data)
 
             return self.respond(context)

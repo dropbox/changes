@@ -9,6 +9,7 @@ class PlanSerializer(Serializer):
     def serialize(self, instance, attrs):
         return {
             'id': instance.id.hex,
+            'project_id': instance.project_id,
             'name': instance.label,
             'steps': list(instance.steps),
             'status': instance.status,

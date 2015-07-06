@@ -11,22 +11,39 @@ var proptype = React.PropTypes;
  * TODO: not used currently
  */
 export var Menu1 = React.createClass({
-  // TODO: proptypes, if I ever use this
+
+  propTypes: {
+    // Names of the menu items
+    items: proptype.arrayOf(proptype.string).isRequired,
+    // which one is selected
+    selectedItem: proptype.string,
+    // callback when an item is clicked. params are selectedItem, clickEvent
+    onClick: proptype.func
+  },
+
   getDefaultProps: function() {
     return {
-      'items': [],
-      'selectedItem': ''
+      items: [],
+      selectedItem: '',
+      onClick: null
     }
   },
 
   render: function() {
+    var onClick = (item, clickEvent) => this.props.onClick(item, clickEvent);
+
     var item_markup = _.map(this.props.items, (text, index) => {
       var classes = cx({
         menuItem: true,
         firstMenuItem: index === 0,
         selectedMenuItem: this.props.selectedItem === text
       });
-      return <div className={classes}>{text}</div>;
+      
+      return <div 
+        className={classes}
+        onClick={_.partial(onClick, text)}>
+        {text}
+      </div>;
     });
 
     return <div>{item_markup}</div>;

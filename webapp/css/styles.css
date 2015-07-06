@@ -83,6 +83,7 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
   padding: 0px 5px;
   border-left: 1px solid #333;
   margin: 5px 0;
+  cursor: pointer;
 }
 
 .firstMenuItem {
