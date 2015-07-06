@@ -1,7 +1,7 @@
 from base64 import b64encode
 
 from changes.constants import Result
-from changes.models import ItemStat
+from changes.models import FailureReason, ItemStat
 from changes.models.testresult import TestResult, TestResultManager
 from changes.testutils.cases import TestCase
 
@@ -75,6 +75,9 @@ class TestResultManagerTestCase(TestCase):
         assert _stat(jobstep, 'test_failures') == 1
         assert _stat(jobstep, 'test_duration') == 168
         assert _stat(jobstep, 'test_rerun_count') == 1
+
+        failures = FailureReason.query.filter_by(step_id=jobstep.id).all()
+        assert failures == []
 
     def test_duplicate_tests_in_same_result_list(self):
         from changes.models import TestCase
@@ -154,6 +157,10 @@ class TestResultManagerTestCase(TestCase):
         assert _stat(jobstep, 'test_failures') == 1
         assert _stat(jobstep, 'test_duration') == 25
         assert _stat(jobstep, 'test_rerun_count') == 0
+
+        failures = FailureReason.query.filter_by(step_id=jobstep.id).all()
+        assert len(failures) == 1
+        assert failures[0].reason == 'duplicate_test_name'
 
     def test_duplicate_tests_in_different_result_lists(self):
         from changes.models import TestCase
@@ -297,3 +304,10 @@ class TestResultManagerTestCase(TestCase):
         assert _stat(jobstep2, 'test_failures') == 0
         assert _stat(jobstep2, 'test_duration') == 18
         assert _stat(jobstep2, 'test_rerun_count') == 1
+
+        failures = FailureReason.query.filter_by(step_id=jobstep.id).all()
+        assert len(failures) == 0
+
+        failures = FailureReason.query.filter_by(step_id=jobstep2.id).all()
+        assert len(failures) == 1
+        assert failures[0].reason == 'duplicate_test_name'

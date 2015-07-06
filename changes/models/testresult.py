@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update
-from changes.models import ItemStat, TestCase, TestArtifact
+from changes.models import FailureReason, ItemStat, TestCase, TestArtifact
 
 logger = logging.getLogger('changes.testresult')
 
@@ -105,6 +105,16 @@ class TestResultManager(object):
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
+
+            create_or_update(FailureReason, where={
+                'step_id': step.id,
+                'reason': 'duplicate_test_name',
+            }, values={
+                'project_id': step.project_id,
+                'build_id': step.job.build_id,
+                'job_id': step.job_id,
+            })
+            db.session.commit()
 
             # Slowly make separate commits, to uncover duplicate test cases:
             for i, testcase in enumerate(testcase_list):
