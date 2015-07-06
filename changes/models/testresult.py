@@ -113,8 +113,10 @@ class TestResultManager(object):
                     db.session.commit()
                 except IntegrityError:
                     db.session.rollback()
-                    testcase_list[i] = _update_duplicate(testcase)
+                    original = _record_duplicate_testcase(testcase)
                     db.session.commit()
+                    testcase_list[i] = original  # so artifacts get stored
+                    _record_test_failures(original.step)  # so count is right
 
         # Test artifacts do not operate under a unique constraint, so
         # they should insert cleanly without an integrity error.
@@ -137,85 +139,83 @@ class TestResultManager(object):
                              ' for step {}'.format(step.id.hex))
 
         try:
-            self._record_test_counts()
-            self._record_test_failures()
-            self._record_test_duration()
-            self._record_test_rerun_counts()
+            _record_test_counts(self.step)
+            _record_test_failures(self.step)
+            _record_test_duration(self.step)
+            _record_test_rerun_counts(self.step)
         except Exception:
             db.session.rollback()
             logger.exception('Failed to record aggregate test statistics'
                              ' for step {}'.format(step.id.hex))
 
-    def _record_test_counts(self):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_count',
-        }, values={
-            'value': db.session.query(func.count(TestCase.id)).filter(
-                TestCase.step_id == self.step.id,
-            ).as_scalar(),
-        })
-        db.session.commit()
 
-    def _record_test_failures(self):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_failures',
-        }, values={
-            'value': db.session.query(func.count(TestCase.id)).filter(
-                TestCase.step_id == self.step.id,
-                TestCase.result == Result.failed,
-            ).as_scalar(),
-        })
-        db.session.commit()
-
-    def _record_test_duration(self):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_duration',
-        }, values={
-            'value': db.session.query(func.coalesce(func.sum(TestCase.duration), 0)).filter(
-                TestCase.step_id == self.step.id,
-            ).as_scalar(),
-        })
-
-    def _record_test_rerun_counts(self):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_rerun_count',
-        }, values={
-            'value': db.session.query(func.count(TestCase.id)).filter(
-                TestCase.step_id == self.step.id,
-                TestCase.reruns > 0,
-            ).as_scalar(),
-        })
+def _record_test_counts(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_count',
+    }, values={
+        'value': db.session.query(func.count(TestCase.id)).filter(
+            TestCase.step_id == step.id,
+        ).as_scalar(),
+    })
+    db.session.commit()
 
 
-def _update_duplicate(testcase):
-    """Find the duplicate that already exists for `testcase` and update it."""
-    duplicate = (TestCase.query
-                 .filter_by(job_id=testcase.job_id, name_sha=testcase.name_sha)
-                 .with_for_update().first())
+def _record_test_failures(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_failures',
+    }, values={
+        'value': db.session.query(func.count(TestCase.id)).filter(
+            TestCase.step_id == step.id,
+            TestCase.result == Result.failed,
+        ).as_scalar(),
+    })
+    db.session.commit()
 
-    if duplicate.step is testcase.step:
-        label = testcase.step.label
-        duplicate.message = 'Duplicate test in step {}'.format(label)
-        duplicate.duration += testcase.duration or 0
-        duplicate.reruns += testcase.reruns or 0
-    else:
-        old = duplicate.message
-        if (old is None) or not old.startswith('Duplicate test, in step '):
-            old = 'Duplicate test in step {}'.format(duplicate.step.label)
 
-        duplicate.message = '{} and {}'.format(old, testcase.step.label)
+def _record_test_duration(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_duration',
+    }, values={
+        'value': db.session.query(func.coalesce(func.sum(TestCase.duration), 0)).filter(
+            TestCase.step_id == step.id,
+        ).as_scalar(),
+    })
 
-        # So that this new step gets tallied properly, we point the
-        # original test record - the only copy of the test that can
-        # exist - at this new step, and give it the data from this
-        # duplicate run:
-        duplicate.step = testcase.step
-        duplicate.duration = testcase.duration
-        duplicate.reruns = testcase.reruns
 
-    duplicate.result = Result.failed
-    return duplicate
+def _record_test_rerun_counts(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_rerun_count',
+    }, values={
+        'value': db.session.query(func.count(TestCase.id)).filter(
+            TestCase.step_id == step.id,
+            TestCase.reruns > 0,
+        ).as_scalar(),
+    })
+
+
+def _record_duplicate_testcase(duplicate):
+    """Find the TestCase that already exists for `duplicate` and update it.
+
+    Because of the unique constraint on TestCase, we cannot record the
+    `duplicate`.  Instead, we go back and mark the first instance as
+    having failed because of the duplication, but discard all of the
+    other data delivered with the `duplicate`.
+
+    """
+    original = TestCase.query.filter_by(
+            job_id=duplicate.job_id, name_sha=duplicate.name_sha
+        ).with_for_update().first()
+
+    prefix = 'Duplicate test in step'
+    if (original.message is None) or not original.message.startswith(prefix):
+        original.message = '{} {}'.format(prefix, original.step.label)
+        original.result = Result.failed
+
+    if duplicate.step.label not in original.message:
+        original.message += ' and {}'.format(duplicate.step.label)
+
+    return original

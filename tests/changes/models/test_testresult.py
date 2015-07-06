@@ -155,7 +155,7 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[1].name == 'project.tests.test_foo'
         assert testcase_list[1].result == Result.failed
         assert testcase_list[1].message == 'Duplicate test in step STEP1'
-        assert testcase_list[1].duration == 23
+        assert testcase_list[1].duration == 12
         assert testcase_list[1].reruns == 0
 
         testartifacts = testcase_list[1].artifacts
@@ -180,7 +180,7 @@ class TestResultManagerTestCase(TestCase):
             ItemStat.name == 'test_duration',
             ItemStat.item_id == jobstep.id,
         )[0]
-        assert teststat.value == 36
+        assert teststat.value == 25
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_rerun_count',
@@ -322,12 +322,12 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[1].duration == 18
         assert testcase_list[1].reruns == 2
 
-        assert testcase_list[2].step_id == jobstep2.id
+        assert testcase_list[2].step_id == jobstep.id
         assert testcase_list[2].name == 'project.tests.test_foo'
         assert testcase_list[2].result == Result.failed
         assert testcase_list[2].message == (
             'Duplicate test in step STEP1 and STEP2')
-        assert testcase_list[2].duration == 11
+        assert testcase_list[2].duration == 12
         assert testcase_list[2].reruns == 0
 
         testartifacts = testcase_list[2].artifacts
@@ -348,7 +348,7 @@ class TestResultManagerTestCase(TestCase):
             ItemStat.name == 'test_failures',
             ItemStat.item_id == jobstep.id,
         )[0]
-        assert teststat.value == 0
+        assert teststat.value == 1
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_duration',
@@ -368,19 +368,19 @@ class TestResultManagerTestCase(TestCase):
             ItemStat.name == 'test_count',
             ItemStat.item_id == jobstep2.id,
         )[0]
-        assert teststat.value == 2
+        assert teststat.value == 1
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_failures',
             ItemStat.item_id == jobstep2.id,
         )[0]
-        assert teststat.value == 1
+        assert teststat.value == 0
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_duration',
             ItemStat.item_id == jobstep2.id,
         )[0]
-        assert teststat.value == 29
+        assert teststat.value == 18
 
         teststat = ItemStat.query.filter(
             ItemStat.name == 'test_rerun_count',
