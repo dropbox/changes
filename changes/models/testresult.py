@@ -206,9 +206,11 @@ def _record_duplicate_testcase(duplicate):
     other data delivered with the `duplicate`.
 
     """
-    original = TestCase.query.filter_by(
-            job_id=duplicate.job_id, name_sha=duplicate.name_sha
-        ).with_for_update().first()
+    original = (
+        TestCase.query
+        .filter_by(job_id=duplicate.job_id, name_sha=duplicate.name_sha)
+        .with_for_update().first()
+        )
 
     prefix = 'Duplicate test in step'
     if (original.message is None) or not original.message.startswith(prefix):
