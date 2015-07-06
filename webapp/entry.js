@@ -40,6 +40,7 @@ require([
   "es6!pages/home_page",
   "es6!pages/project_page",
   "es6!pages/commit_page",
+  "es6!pages/test_history_page",
   "es6!pages/all_projects_page",
   "es6!pages/error_page",
   "es6!pages/test_page",
@@ -52,6 +53,7 @@ require([
   HomePage,
   ProjectPage,
   CommitPage,
+  TestHistoryPage,
   AllProjectsPage,
   ErrorPage,
   TestPage,
@@ -74,6 +76,7 @@ require([
     'projects': [AllProjectsPage],
     'project': [ProjectPage, 'project'],
     'project_commit': [CommitPage, 'project', 'sourceUUID'],
+    'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     // TODO: don't just use the homepage for this
     'author': [HomePage, 'author'],
     'test': [TestPage],

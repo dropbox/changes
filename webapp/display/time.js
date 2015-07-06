@@ -74,6 +74,10 @@ export var TimeText = React.createClass({
  * Converts 136 [in seconds] to a string like "2m16s"
  */
 export var display_duration = function(total_seconds) {
+  if (total_seconds < 1) {
+    return "<1s";
+  }
+
   var seconds = 0, minutes = 0, hours = 0, days = 0;
   minutes = Math.floor(total_seconds / 60);
   seconds = Math.floor(total_seconds % 60);

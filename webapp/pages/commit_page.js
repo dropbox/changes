@@ -40,7 +40,6 @@ var CommitPage = React.createClass({
   },
 
   componentDidMount: function() {
-    // TODO: something goes wrong when we have a hash in the url
     var slug = this.props.project;
     var uuid = this.props.sourceUUID;
 
@@ -300,8 +299,10 @@ var CommitPage = React.createClass({
 
     var rows = _.map(build.testFailures.tests, test => {
       var simple_name = _.last(test.name.split("."));
+      var href = `/v2/project_test/${test.project.id}/${test.hash}`;
+
       return [
-        <a href="$">History</a>,
+        <a href={href}>History</a>,
         simple_name,
         test.name
       ]
@@ -326,9 +327,8 @@ var CommitPage = React.createClass({
         // what the server calls a jobstep is actually a shard
         return _.map(phase.steps, (shard, index) => {
           var log_id = shard.logSources[0].id;
-          var raw_log_uri = `/api/0/jobs/${j.id}/logs/${log_id}`;
+          var raw_log_uri = `/api/0/jobs/${j.id}/logs/${log_id}/?raw=1`;
 
-          console.log(shard);
           return [
             index === 0 ? <b>{phase.name}</b> : "",
             <StatusDot state={shard.result.id} />,
@@ -513,8 +513,6 @@ var SideItems = React.createClass({
       color: '#333'
     };
 
-    console.log(build);
-    console.log(jobs);
     var main_item = <a href={hash_href(build.id)} className="commitSideItem">
       <b style={{color: get_build_state_color(build), display: 'block'}}>
         Build #{build.number}
