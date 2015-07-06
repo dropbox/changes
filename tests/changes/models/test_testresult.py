@@ -6,6 +6,11 @@ from changes.models.testresult import TestResult, TestResultManager
 from changes.testutils.cases import TestCase
 
 
+def _stat(jobstep, name):
+    id = jobstep.id
+    return ItemStat.query.filter_by(name=name, item_id=id)[0].value
+
+
 class TestResultManagerTestCase(TestCase):
     def test_simple(self):
         from changes.models import TestCase
@@ -66,29 +71,10 @@ class TestResultManagerTestCase(TestCase):
         assert len(testartifacts) == 1
         assert testartifacts[0].file.get_file().read() == 'sample content'
 
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 2
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_failures',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 1
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 168
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 1
+        assert _stat(jobstep, 'test_count') == 2
+        assert _stat(jobstep, 'test_failures') == 1
+        assert _stat(jobstep, 'test_duration') == 168
+        assert _stat(jobstep, 'test_rerun_count') == 1
 
     def test_duplicate_tests_in_same_result_list(self):
         from changes.models import TestCase
@@ -164,29 +150,10 @@ class TestResultManagerTestCase(TestCase):
         a2 = testartifacts[1].file.get_file().read()
         assert {a1, a2} == {'first artifact', 'second artifact'}
 
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 2
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_failures',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 1
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 25
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 0
+        assert _stat(jobstep, 'test_count') == 2
+        assert _stat(jobstep, 'test_failures') == 1
+        assert _stat(jobstep, 'test_duration') == 25
+        assert _stat(jobstep, 'test_rerun_count') == 0
 
     def test_duplicate_tests_in_different_result_lists(self):
         from changes.models import TestCase
@@ -249,29 +216,10 @@ class TestResultManagerTestCase(TestCase):
         a1 = testartifacts[0].file.get_file().read()
         assert a1 == 'first artifact'
 
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 2
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_failures',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 0
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 25
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 0
+        assert _stat(jobstep, 'test_count') == 2
+        assert _stat(jobstep, 'test_failures') == 0
+        assert _stat(jobstep, 'test_duration') == 25
+        assert _stat(jobstep, 'test_rerun_count') == 0
 
         jobstep2 = self.create_jobstep(jobphase, label='STEP2')
 
@@ -338,52 +286,14 @@ class TestResultManagerTestCase(TestCase):
 
         # Stats for original step are unharmed:
 
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 2
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_failures',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 1
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 25
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == jobstep.id,
-        )[0]
-        assert teststat.value == 0
+        assert _stat(jobstep, 'test_count') == 2
+        assert _stat(jobstep, 'test_failures') == 1
+        assert _stat(jobstep, 'test_duration') == 25
+        assert _stat(jobstep, 'test_rerun_count') == 0
 
         # Stats for new step:
 
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_count',
-            ItemStat.item_id == jobstep2.id,
-        )[0]
-        assert teststat.value == 1
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_failures',
-            ItemStat.item_id == jobstep2.id,
-        )[0]
-        assert teststat.value == 0
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_duration',
-            ItemStat.item_id == jobstep2.id,
-        )[0]
-        assert teststat.value == 18
-
-        teststat = ItemStat.query.filter(
-            ItemStat.name == 'test_rerun_count',
-            ItemStat.item_id == jobstep2.id,
-        )[0]
-        assert teststat.value == 1
+        assert _stat(jobstep2, 'test_count') == 1
+        assert _stat(jobstep2, 'test_failures') == 0
+        assert _stat(jobstep2, 'test_duration') == 18
+        assert _stat(jobstep2, 'test_rerun_count') == 1
