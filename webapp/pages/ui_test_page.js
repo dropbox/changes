@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { TimeText, display_duration } from 'es6!display/time';
-import { StatusDot, StatusMark } from 'es6!display/status_indicators';
+import { StatusDot } from 'es6!display/builds';
 import { Error } from 'es6!display/errors';
 import Grid from 'es6!display/grid';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
@@ -43,24 +43,14 @@ var UITestPage = React.createClass({
 
     // StatusDot
     renderables["StatusDot"] = <div>
-      <statusdot result="passed" />
-      <StatusDot result="failed" />
-      <StatusDot result="unknown" />
-      <StatusDot result="error" />
-      <StatusDot result="passed" num={2} />
+      <statusdot state="passed" />
+      <StatusDot state="failed" />
+      <StatusDot state="waiting" />
+      <StatusDot state="nothing" />
+      <StatusDot state="unknown" />
+      <StatusDot state="passed" num={2} />
       <div>
-        <StatusDot result="failed" size="big" />
-      </div>
-    </div>;
-
-    renderables["StatusMark"] = <div>
-      <StatusMark result="passed" />
-      <StatusMark result="failed" />
-      <StatusMark result="unknown" />
-      <StatusMark result="error" />
-      <StatusMark result="passed" num={2} />
-      <div>
-        <StatusMark result="failed" size="big" />
+        <StatusDot state="failed" size="big" />
       </div>
     </div>;
 

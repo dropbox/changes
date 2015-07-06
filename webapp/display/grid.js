@@ -96,7 +96,7 @@ var Grid = React.createClass({
 
   // row_type can be header, even, or odd
   renderRow: function(row, row_type) {
-    if (!utils.is_one_of(row_type, ["header", "even", "odd"])) {
+    if (!_.contains(["header", "even", "odd"], row_type)) {
       throw `Misused renderRow in grid: row_type is ${row_type}`;
     }
 

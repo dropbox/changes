@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AjaxError } from 'es6!display/errors';
 import Grid from 'es6!display/grid';
-import { StatusDot, status_dots } from 'es6!display/status_indicators';
+import { StatusDot, status_dots } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import ChangesPage from 'es6!display/page_chrome';

@@ -1,8 +1,8 @@
 body {
   color: #333;
 /*font-family: Georgia, Times, 'Times New Roman', serif;*/
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 14px;
+  font-family: 'Lato', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
   margin: 0
 }
 
@@ -43,6 +43,7 @@ a, a#visited {
   padding: 10px;
   min-width: 150px;
   top: 32px;
+  z-index: 10;
 }
 
 .headerLinkBlock:hover, .inlinePerf:hover {
@@ -124,8 +125,9 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
 .commitMsg {
   background-color: #d0ffd0;
   border: 1px solid #00853e;
+  line-height: normal;
   margin-top: 5px;
-  padding: 2px;
+  padding: 5px;
   white-space: pre-wrap;
 }
 
@@ -172,6 +174,22 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
 .shardLinks, .phaseLogLinks {
   min-width: 50px;
   display: inline-block;
+}
+
+.commitSideItem {
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  color: #333;
+}
+
+.commitSideItem:hover {
+  background-color: #d9d8d8;
+}
+
+.commitSideSection {
+  margin-left: 5px;
+  margin-bottom: 5px;
 }
 
 /*
@@ -236,10 +254,10 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
 .marginBottomL { margin-bottom: 20px; }
 .marginLeftL { margin-left: 20px; }
 
-.noLeftMargin { margin-left: 0px; }
-.noRightMargin { margin-right: 0px; }
-.noTopMargin { margin-top: 0px; }
-.noBottomMargin { margin-bottom: 0px; }
+.noLeftMargin { margin-left: 0px !important; }
+.noRightMargin { margin-right: 0px !important; }
+.noTopMargin { margin-top: 0px !important; }
+.noBottomMargin { margin-bottom: 0px !important; }
 
 /* SECTION: Components */
 
@@ -260,7 +278,7 @@ div.grid {
 
 .gridCell {
   display: table-cell;
-  padding: 3px;
+  padding: 4px;
   padding-right: 10px;
 }
 
@@ -318,6 +336,11 @@ div.grid {
   opacity: 1;
 }
 
+.dotBase.mediumDot {
+  width: 20px;
+  height: 20px;
+}
+
 .dotBase.bigDot {
   width: 35px;
   height: 35px;
@@ -348,6 +371,13 @@ div.grid {
     1px -1px 0 #000, 
     -1px 1px 0 #000, 
     1px 1px 0 #000;
+}
+
+.statusNumBase {
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 4px;
+  opacity: 1;
 }
 
 /*

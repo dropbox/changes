@@ -7,7 +7,8 @@ import NotLoaded from 'es6!display/not_loaded';
 import * as utils from 'es6!utils/utils';
 
 import { TimeText, display_duration } from 'es6!display/time';
-import { StatusDot } from 'es6!display/status_indicators';
+import { StatusDot, get_build_state, get_build_state_color, get_build_cause } from 'es6!display/builds';
+import { Error } from 'es6!display/errors';
 import Grid from 'es6!display/grid';
 import SectionHeader from 'es6!display/section_header';
 import { Menu1, Menu2 } from 'es6!display/menus';
@@ -15,6 +16,11 @@ import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
 
+/**
+ * Page that shows the builds associated with a single commit within a project
+ * (since multiple projects can share a repository, they would each have their
+ * own version of this page)
+ */
 var CommitPage = React.createClass({
 
   getInitialState: function() {
@@ -34,6 +40,7 @@ var CommitPage = React.createClass({
   },
 
   componentDidMount: function() {
+    // TODO: something goes wrong when we have a hash in the url
     var slug = this.props.project;
     var uuid = this.props.sourceUUID;
 
@@ -49,7 +56,10 @@ var CommitPage = React.createClass({
     });
   },
 
-  render: function() {
+  finishFetchingData: function() {
+    // This function is called by render to finish fetching all of the 
+    // needed data
+
     var slug = this.props.project, 
       uuid = this.props.sourceUUID;
 
@@ -64,6 +74,8 @@ var CommitPage = React.createClass({
 
     // hey, we need to do more data fetching. One call per build, then one 
     // call per job (!) Joy.
+    // TODO: Rather than sketchily do this in render, I should have my data
+    // fetching code use a callback...
     // TODO: combine this all into one server-side api call
 
     // the process of data fetching doesn't influence rendering, so using 
@@ -100,6 +112,8 @@ var CommitPage = React.createClass({
     });
 
     // alright, we have a list of builds. Now for jobs.
+    // this api returns data about each phase within a job, but not any info
+    // about the job itself (that was already fetched in builds above)
 
     if (!this.fetchedJobs) {
       var endpoint_map = {};
@@ -136,7 +150,21 @@ var CommitPage = React.createClass({
     });
 
     var source = builds[0].source;
-    
+
+    return [builds, jobs, source];
+  },
+
+  render: function() {
+    var result = this.finishFetchingData();
+    if (!_.isArray(result)) {
+      return result;
+    } else{
+      var [builds, jobs, source] = result;
+    }
+
+    var slug = this.props.project, 
+      uuid = this.props.sourceUUID;
+
     // Our rendering is basically a timeline: build, build, build, commit_info
     // The sequence should be sorted by time started/committed...so hopefully
     // commit_info will always be the last item rendered
@@ -146,116 +174,82 @@ var CommitPage = React.createClass({
       ({
         type: 'build', 
         date: b.dateCreated,
-        data: b
+        build: b,
+        jobPhases: _.pick(jobs, _.pluck(b.jobs, 'id')),
+        id: "s_" + b.id
       })
     );
 
     renderables.push({
       type: 'commit', 
       date: source.revision.dateCreated, 
-      data: source
+      commit: source,
+      id: "s_" + source.revision.sha
     });
 
-    // TODO: not needed right now, but I really want a dateCreated data field
+    // TODO: not needed yet, but I really want a dateCreated data field
     // for phabricator diff sources...
 
     renderables = _.sortBy(renderables, p => p.date).reverse();
 
     var markup = _.map(renderables, r => {
-      if (r.type === 'commit') {
-        return this.renderCommit(r.data);
-      } else if (r.type === 'build') {
-        return this.renderBuild(r.data, jobs);
-      } else {
-        console.warn('unknown renderable: ' + r.type);
+      switch (r.type) {
+        case 'commit': return this.renderCommit(r);
+        case 'build': return this.renderBuild(r);
+        default: console.warn('unknown renderable: ' + r.type);
       }
     });
 
-    // render a gray header
-    var commit_title = source.revision.message.split("\n")[0];
-    var commit_author = utils.email_localpart(
-      source.revision.author.email);
+    markup = _.map(markup, m => this.renderSection(m));
 
-    var project_href = `/v2/project/${builds[0].project.slug}`;
+    var breadcrumbs = this.renderBreadcrumbs(source, builds[0].project);
 
-    var header_style = {
-      padding: 10,
-      backgroundColor: colors.lightestGray,
-      marginBottom: 10
-    };
-
-
-    var icon = <i className="fa fa-caret-right marginLeftS marginRightS" />;
-
+    // TODO: cleanup!
+    // padding: "10px 35px", 
     return <ChangesPage bodyPadding={false}>
       <div>
-        <div style={header_style}>
-          <div className="marginBottomM">
-            <a href={project_href}>{builds[0].project.name}</a> 
-            {icon}
-            Commit {source.revision.sha.substr(0,12)}
-            {" "}
-            (<a href={`/projects/${slug}/sources/${uuid}`}>old ui</a>)
+        {breadcrumbs}
+        <div>
+          <div style={{display: 'table', borderTop: "1px solid #bbb", width: "100%"}}>
+            <div style={{display: 'table-cell', width: 190, paddingLeft: 10, paddingTop: 10, borderRight: "1px solid #bbb", verticalAlign: "top"}}>
+              <SideItems renderables={renderables} />
+            </div>
+            <div style={{display: 'table-cell', verticalAlign: "top", lineHeight: "19px"}} >
+              {markup}
+            </div>
           </div>
-          <div><b>{commit_title} ({commit_author})</b></div>
-        </div>
-        <div className="paddingRightM">
-          <div className="marginLeftM marginBottomM">
-            <a href="#">Create new build [TODO]</a>
-          </div>
-          {markup}
         </div>
       </div>
     </ChangesPage>;
   },
 
-  renderBuild: function(build, job_data) {
-    // possible results: unknown, aborted, passed, skipped, failed, infra_failed
-    // possible statuses: unknown, queued, in_progress, finished
-    // TODO: handle not-yet-completed
+  renderBreadcrumbs: function(source, project) {
+    var commit_title = source.revision.message.split("\n")[0];
+    var commit_author = utils.email_head(
+      source.revision.author.email);
 
-    // brief sentences at top about what's going on.
-    // Ex: Build #57 ran two jobs in 12m3s. 1 job failed: windows.
-    var intro_sentence = '';
-    if (build.status.id === 'finished') {
-      intro_sentence = `
-        Build #${build.number} 
-        ran
-        ${build.jobs.length} 
-        ${build.jobs.length === 1 ? "job" : "jobs"}
-        and
-        ${build.stats.test_count}
-        ${build.stats.test_count === 1 ? "test" : "tests"}
-        in 
-        ${display_duration(build.duration/1000)}`;
-    } else if (build.status.id === 'in_progress' || 
-               build.status.id === "queued") {
-      intro_sentence = `
-        Build #${build.number} 
-        ${build.status.id === 'in_progress' ? 'is running' : 'will run'}
-        ${build.jobs.length} 
-        ${build.jobs.length === 1 ? "job" : "jobs"}`;
-    } else {
-      intro_sentence = `unknown status ${build.status.id}`;
-    }
-    intro_sentence = intro_sentence.trim();
+    var project_href = `/v2/project/${project.slug}`;
 
-    var failure_sentence = '';
-    if (build.result.id === 'failed') {
-      var failed_jobs = _.filter(build.jobs, j => (j.result.id === 'failed'));
+    var icon = <i className="fa fa-caret-right marginLeftS marginRightS" />;
+    return <div style={{padding: 10}}>
+      <div>
+        <a href={project_href}>{project.name}</a> 
+        {icon}
+        {source.revision.sha.substr(0,12)}
+        {": "}
+        {utils.truncate(commit_title)}
+      </div>
+    </div>;
+  },
 
-      failure_sentence = `. 
-        ${failed_jobs.length} 
-        ${failed_jobs.length > 1 ? 'jobs' : 'job'} 
-        failed:
-        ${_.pluck(failed_jobs, 'name').join(", ")}
-      `;
-    }
-    failure_sentence = failure_sentence.trim();
+  renderBuild: function(renderable) {
+    // note: build.jobs contains information about the job. job_phases
+    // contains lists of phases data for each job
+    var build = renderable.build;
+    var job_phases = renderable.jobPhases;
 
     // the backend may alert us that weird things happened (e.g. unable to 
     // collect a test artifact.) Show it here.
-
     var alerts_markup = [];
     _.each(build.failures, f => {
       // don't show the test failures reason...its already part of the normal ui
@@ -263,33 +257,43 @@ var CommitPage = React.createClass({
         return;
       }
 
-      var icon_classes = "fa fa-exclamation-triangle lt-magenta";
-
       alerts_markup.push(
-        <div>
-          <span className={icon_classes} />
+        <Error>
           {f.reason}
-        </div>
+        </Error>
       );
     });
 
-    return this.renderItem(
-      <StatusDot result={build.result.id} size="big" />,
-      moment(build.dateFinished || build.dateStarted).format('llll'),
+    // TODO: write code to figure out how a build was kicked off
+    var build_cause= {
+      // TODO: "autocommit": "Build automatically triggered"
+      // TODO: "manual": "Build kicked off by " + build.author
+      // "unknown" - handled below
+    }[get_build_cause(build)] || " (unknown trigger)"
+
+    var header = this.renderHeader(
       <div>
-        <div>
-          {intro_sentence}
-          {failure_sentence}
-        </div>
+        Build
+        {" #"}
+        {build.number}
+        {build_cause}
+      </div>,
+      moment.utc(build.dateFinished || build.dateStarted)
+    );
+
+    return this.renderSection2(
+      hash_id(build.id),
+      <div>
+        {header}
         {alerts_markup}
-        {this.renderFailedTests(build, job_data)}
-        {this.renderBuildWork(build, job_data)}
+        {this.renderFailedTests(build, job_phases)}
+        {this.renderJobs(build, job_phases)}
       </div>
     );
   },
 
   // which tests caused the build to fail?
-  renderFailedTests: function(build, job_data) {
+  renderFailedTests: function(build, job_phases) {
     if (build.testFailures.total <= 0) {
       return null;
     }
@@ -304,11 +308,9 @@ var CommitPage = React.createClass({
     });
 
     return <div>
-      <SectionHeader className="marginBottomS marginTopS">
-        Failed Tests
-      </SectionHeader>
+      {this.renderSubheader("Failed Tests")}
       <Grid 
-        className="lightweight marginBottomM" 
+        className="marginBottomM" 
         data={rows} 
         headers={['Links', 'Name', 'Path']} 
       />
@@ -316,101 +318,61 @@ var CommitPage = React.createClass({
   },
 
   // what did the build actually do?
-  renderBuildWork: function(build, job_data) {
-    var markup = [];
+  renderJobs: function(build, job_phases) {
+    var markup = _.map(build.jobs, (j, index) => {
 
-    build.jobs.forEach((j, index) => {
-      // TODO: add status === finished check
-      var icon_classes = cx({
-        'fa': true,
-        'marginRightS': true,
-        'fa-check-circle': j.result.id === "passed",
-        'lt-green': j.result.id === "passed",
-        'fa-minus-circle': j.result.id === "failed",
-        'lt-red': j.result.id === "failed",
-        'fa-clock-o': j['status'].id === "in_progress"
-      });
-
-      var desc = null;
-      if (j.status.id === 'finished') {
-        var test_passes = j.stats.test_count - j.stats.test_failures;
-        var duration = display_duration(j.stats.test_duration/1000);
-
-        desc = `(${test_passes}/${j.stats.test_count} in ${duration})`;
-      }
-
-      var phases_markup = _.map(job_data[j.id], phase => {
-        // using the name "shard" for steps, since its a more accurate name
-        var shards_markup = _.map(phase.steps, shard => {
+      // we'll render a table with content from each phase
+      var phases_rows = _.map(job_phases[j.id], (phase, index) => {
+        // what the server calls a jobstep is actually a shard
+        return _.map(phase.steps, (shard, index) => {
           var log_id = shard.logSources[0].id;
           var raw_log_uri = `/api/0/jobs/${j.id}/logs/${log_id}`;
 
-          // TODO: use the contents of the data array
-          return <span className="shardRow">
-            <span className="shardNode">
-              {shard.node.name}
-            </span>
-            <span className="shardDuration">
-              {display_duration(shard.duration/1000)}
-            </span>
-            <span className="shardLinks">
-              <a href={raw_log_uri}>log</a>
-            </span>
-          </span>;
+          console.log(shard);
+          return [
+            index === 0 ? <b>{phase.name}</b> : "",
+            <StatusDot state={shard.result.id} />,
+            shard.node.name,
+            <a href={raw_log_uri} target="_blank">Log</a>,
+            display_duration(shard.duration/1000)
+          ];
         });
-
-        var header_row = null;
-        if (index === 0) {
-          header_row = <span className="phaseRow phaseRowHeader">
-            <span className="phaseName">
-            </span>
-            <span className="phaseDuration">
-              Duration
-            </span>
-            <span className="phaseLogLinks">
-              Links
-            </span>
-          </span>;
-        }
-
-        return <div>
-          {header_row}
-          <span className="phaseRow">
-            <span className="phaseName">
-              {phase.name}
-            </span>
-            <span className="phaseDuration">
-              {display_duration(phase.duration/1000)}
-            </span>
-            <span className="phaseLogLinks">
-            </span>
-          </span>
-          {shards_markup}
-        </div>;
       });
 
-      markup.push(
-        <div>
-          <div className="marginBottomS">
-            <span className={icon_classes} />
-            {j.name}
-            {" "}
-            {desc}
-          </div>
-          <div>{phases_markup}</div>
-        </div>
-      );
+      var job_headers = [
+        'Phase',
+        'Result',
+        'Machine',
+        'Links',
+        'Duration'
+      ];
+
+      var cellClasses = [
+        'nowrap', 'nowrap center', 'wide', 'nowrap', 'nowrap'
+      ];
+
+      // TODO: change grid background
+      var job_grid = <Grid
+        className="marginTopS"
+        data={_.flatten(phases_rows, true)}
+        headers={job_headers}
+        cellClasses={cellClasses}
+      />;
+
+      return <div>
+        <div id={hash_id(j.id)} />
+        {this.renderSubheader(j.name)}
+        {job_grid}
+      </div>;
     });
 
     return <div>
-      <SectionHeader className="marginBottomS marginTopS">
-        Build Details
-      </SectionHeader>
       {markup}
     </div>;
   },
 
-  renderCommit: function(commit) {
+  renderCommit: function(renderable) {
+    var commit = renderable.commit;
     var commit_time = commit.revision.dateCreated;
 
     var icon_style = {
@@ -420,13 +382,14 @@ var CommitPage = React.createClass({
       padding: "3px 3px 4px 2px",
     };
 
-    return this.renderItem(
-      <i style={icon_style} className="fa fa-code fa-2x" />,
-      moment(commit_time).format('llll'),
+    var header = this.renderHeader(
+      `Committed ${commit.revision.sha.substr(0,12)}`,
+      moment(commit_time));
+
+    return this.renderSection2(
+      hash_id(commit.revision.sha),
       <div>
-        <div>
-          <b>Committed {commit.revision.sha.substr(0,12)}</b>
-        </div>
+        {header}
         <pre className="commitMsg">
           {commit.revision.message}
         </pre>
@@ -434,21 +397,175 @@ var CommitPage = React.createClass({
     );
   },
 
-  renderItem: function(icon, timetext, content) {
-    return <div className="eventWrap">
-      <div className="eventTimestamp">
-        {timetext}
+  renderSection: function(content) {
+    var style = {
+      borderBottom: "1px solid #d9d8d8",
+      padding: "20px"
+    };
+
+    return <div style={style}>
+      {content}
+    </div>;
+  },
+
+  renderSection2: function(id, content) {
+    return <div id={id}>
+      <div>
+        {content}
       </div>
-      <div className="event">
-        <div className="eventIcon">
-          {icon}
-        </div>
-        <div className="eventContent">
-          {content}
-        </div>
+    </div>;
+  },
+
+  renderHeader: function(text, moment_time) {
+    var header_style = {
+      paddingBottom: 4,
+    };
+
+    var header_text_style = {
+      fontSize: 22,
+      fontWeight: "bold"
+    };
+    
+    var time_style = {
+      color: "#5a5758",
+      fontSize: "smaller",
+      marginBottom: 15
+    };
+
+    // TODO: cleanup
+    return <div>
+      <div style={header_style}>
+        <div style={header_text_style}>{text}</div>
       </div>
+      <div style={time_style}>
+        {moment_time.format('llll')}
+        {" ("}
+        {moment_time.fromNow()}
+        {")"}
+      </div>
+    </div>;
+  },
+
+  renderSubheader: function(text) {
+    var style = {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginTop: 10
+    };
+
+    return <div style={style}>
+      {text}
     </div>;
   }
 });
+
+var SideItems = React.createClass({
+  
+  propTypes: {
+    // look at the render function of CommitPage to see the format of this
+    renderables: React.PropTypes.array,
+  },
+
+  render: function() {
+    var renderables = this.props.renderables;
+    var history_items = _.map(renderables, r => {
+      switch (r.type) {
+        case 'build': return this.renderBuildEntry(r);
+        case 'commit': return this.renderCommitEntry(r);
+        default: console.warn('unknown renderable: ' + r.type);
+      }
+    });
+
+    var header_style = {
+      fontWeight: "bold", 
+      textTransform: "uppercase", 
+      fontSize: 12, 
+      marginBottom: 5
+    };
+
+    // TODO: history hashes don't work on initial page load
+    return <div>
+      <div style={header_style}>
+        History
+      </div>
+      {history_items}
+      <div style={{marginTop: 20}}>
+        <div style={header_style}>
+          Other Actions
+        </div>
+        <div style={{marginLeft: 5}}>
+          <a href="#" className="commitSideItem">
+            Create New Build [TODO]
+          </a>
+        </div>
+      </div>
+    </div>;
+
+  },
+
+  renderBuildEntry: function(renderable) {
+    var build = renderable.build;
+    var jobs = renderable.jobPhases;
+
+    var time_style = {
+      float: 'right',
+      marginRight: 10,
+      color: '#333'
+    };
+
+    console.log(build);
+    console.log(jobs);
+    var main_item = <a href={hash_href(build.id)} className="commitSideItem">
+      <b style={{color: get_build_state_color(build), display: 'block'}}>
+        Build #{build.number}
+        <div style={time_style}>{display_duration(build.duration / 1000)}</div>
+      </b>
+    </a>;
+
+    var job_items = _.map(build.jobs, j => {
+      var color = {
+        'passed': colors.green,
+        'failed': colors.red,
+      }[j.result.id] || '#ccc';
+
+      var style = {
+        color: color
+      };
+
+      return <a href={hash_href(j.id)} className="commitSideItem">
+        <span style={style}>{utils.truncate(j.name, 40)}</span>
+        <div style={time_style}>{display_duration(j.duration / 1000)}</div>
+      </a>;
+    });
+
+    return <div className="commitSideSection">
+      {main_item}
+      {job_items}
+    </div>;
+  },
+
+  renderCommitEntry: function(renderable) {
+    var commit = renderable.commit;
+
+    var icon_style = {
+      backgroundColor: "black",
+      borderRadius: 2,
+      color: "white",
+      padding: "3px 3px 4px 2px",
+    };
+
+    var icon = <i style={icon_style} className="fa fa-code" />;
+
+    return <div className="commitSideSection">
+      <a href={hash_href(commit.revision.sha)} className="commitSideItem">
+        <b style={{color: colors.darkGray}}>Committed</b>
+      </a>
+    </div>;
+  },
+});
+
+// generate # links/div ids for in-page navigation
+var hash_id = function(id) { return "s_" + id; }
+var hash_href = function(id) { return "#" + hash_id(id); }
 
 export default CommitPage;

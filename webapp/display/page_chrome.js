@@ -6,7 +6,7 @@ import _ from 'underscore';
 import * as utils from 'es6!utils/utils';
 
 import custom_content_hook from 'es6!utils/custom_content';
-import { email_localpart } from 'es6!utils/utils';
+import { email_head } from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
@@ -71,7 +71,9 @@ var ChangesPageHeader = React.createClass({
 
     return <div>
       <div className="pageHeader">
-        <div className="headerBlock"><b>Changes</b></div>
+        <div className="headerBlock" style={{fontWeight: 900}}>
+          Changes
+        </div>
         <a className="headerLinkBlock" href="/v2/">
           My Changes
         </a>
@@ -269,7 +271,7 @@ var ChangesInlinePerf = React.createClass({
         {" "}committed{" "}
         <TimeText format="X" time={release_info['author_time']} />
         {" "}by{" "}
-        {email_localpart(release_info['author_email'])}.
+        {email_head(release_info['author_email'])}.
       </div>
     </div>;
   },
