@@ -611,6 +611,25 @@ a.indicator {
   background: rgb(255, 215, 0);
   border-color: rgb(255, 215, 0);
 }
+.result-quarantined_passed .indicator {
+  color: #fff;
+  background: #390 linear-gradient(90deg, transparent 50%, rgba(255, 255, 255, .6) 50%);
+  background-size: 4px 4px;
+  border-color: #390;
+}
+.result-quarantined_failed .indicator {
+  color: #fff;
+  background-color: red;
+  background-image: linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%), linear-gradient(90deg, transparent 50%, rgba(255, 255, 255, .6) 50%);
+  background-size: 4px 4px;
+  border-color: red;
+}
+.result-quarantined_skipped .indicator {
+  color: #fff;
+  background: rgb(255, 215, 0) linear-gradient(90deg, transparent 50%, rgba(255, 255, 255, .6) 50%);
+  background-size: 4px 4px;
+  border-color: rgb(255, 215, 0);
+}
 .result-unknown .indicator {
   color: #aaa;
   background: #fff;
@@ -1502,6 +1521,19 @@ chart {
 }
 .barchart li.result-unknown a .count {
   background: #ddd;
+}
+.barchart li.result-quarantined_passed a .count {
+  background: #390 linear-gradient(90deg, transparent 50%, rgba(255, 255, 255, .6) 50%);
+  background-size: 4px 4px;
+}
+.barchart li.result-quarantined_failed a .count {
+  background-color: red;
+  background-image: linear-gradient(transparent 75%, rgba(255, 255, 255, .6) 75%), linear-gradient(90deg, transparent 50%, rgba(255, 255, 255, .6) 50%);
+  background-size: 4px 4px;
+}
+.barchart li.result-quarantined_skipped a .count {
+  background: rgb(255, 215, 0) linear-gradient(90deg, transparent 50%, rgba(255, 255, 255, .6) 50%);
+  background-size: 4px 4px;
 }
 
 d3barchart {

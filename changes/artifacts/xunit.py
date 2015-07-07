@@ -118,6 +118,14 @@ class XunitHandler(ArtifactHandler):
             if result is None:
                 result = Result.passed
 
+            if attrs.get('quarantined'):
+                if result == Result.passed:
+                    result = Result.quarantined_passed
+                elif result == Result.failed:
+                    result = Result.quarantined_failed
+                elif result == Result.skipped:
+                    result = Result.quarantined_skipped
+
             if attrs.get('time'):
                 duration = float(attrs['time']) * 1000
             else:
@@ -172,9 +180,7 @@ def _deduplicate_testresults(results):
             e.duration = _careful_add(e.duration, r.duration)
             either_result = (e.result, r.result)
             e.result = (
-                Result.infra_failed if (Result.infra_failed in either_result)
-                else Result.aborted if (Result.aborted in either_result)
-                else Result.failed if (Result.failed in either_result)
+                Result.failed if (Result.failed in either_result)
                 else max(either_result)
                 )
             e.message += '\n\n' + r.message

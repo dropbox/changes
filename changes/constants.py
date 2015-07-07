@@ -36,6 +36,10 @@ class Result(Enum):
     # infrastructural reasons will be reported as 'infra_failed', but we should
     # do our best to identify internal failures and use this Result.
     infra_failed = 6
+    # these indicate results for tests that are quarantined
+    quarantined_passed = 11
+    quarantined_failed = 12
+    quarantined_skipped = 13
 
     def __str__(self):
         return RESULT_LABELS[self]
@@ -98,6 +102,9 @@ RESULT_LABELS = {
     Result.skipped: 'Skipped',
     Result.aborted: 'Aborted',
     Result.infra_failed: 'Infrastructure failed',
+    Result.quarantined_passed: 'Passed (quarantine)',
+    Result.quarantined_failed: 'Failed (quarantine)',
+    Result.quarantined_skipped: 'Skipped (quarantine)',
 }
 
 RESULT_PRIORITY = (
@@ -107,6 +114,9 @@ RESULT_PRIORITY = (
     Result.unknown,
     Result.passed,
     Result.skipped,
+    Result.quarantined_passed,
+    Result.quarantined_failed,
+    Result.quarantined_skipped,
 )
 
 CAUSE_LABELS = {
