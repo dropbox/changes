@@ -230,7 +230,7 @@ var ChangesInlinePerf = React.createClass({
       }
 
       var name_markup = api_has_query_params ?
-        <div>{api_name}<div className="perfParams">{query_params}</div></div> :
+        <div>{api_name}<div className="subText">{query_params}</div></div> :
         <div>{api_name}</div>;
 
       // url to trace api call
@@ -264,7 +264,7 @@ var ChangesInlinePerf = React.createClass({
         {" "}
       </b>
       {release_info.subject}
-      <div className="perfParams">
+      <div className="subText">
         <a href={release_href} target="_blank">
         {release_info.hash.substr(0, 7)}
         </a>

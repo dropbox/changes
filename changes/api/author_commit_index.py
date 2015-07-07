@@ -47,7 +47,7 @@ class AuthorCommitIndexAPIView(APIView):
             Revision.author_id.in_([a.id for a in authors]),
             Source.patch_id.is_(None),
         ).order_by(
-            Revision.date_created.desc(),
+            Revision.date_committed.desc(),
             Build.date_created.desc(),
             Build.date_started.desc()
         )))
@@ -68,4 +68,7 @@ class AuthorCommitIndexAPIView(APIView):
         for (sha, revision) in revision_list.items():
             revision['builds'] = builds_map[sha]
 
-        return self.respond(revision_list.values(), serialize=False)
+        return self.cursor_paginate(
+            revision_list.values(),
+            lambda s: s['revision']['sha'],
+            serialize=False)

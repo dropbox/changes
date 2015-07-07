@@ -126,14 +126,17 @@ var AllProjectsPage = React.createClass({
    * Clusters projects together by repo
    */
   renderByRepo(projects_data) {
-    var markup = [];
+    var rows = [];
     var by_repo = _.groupBy(projects_data, p => p.repository.id);
     _.each(by_repo, repo_projects => {
-      var header = <SectionHeader>
-        {repo_projects[0].repository.url}
-      </SectionHeader>;
+      var repo_url = repo_projects[0].repository.url;
+      var repo_name = _.last(repo_url.split(/:|\//));
+      var repo_markup = <div>
+        <b>{repo_name}</b>
+        <div className="subText">{repo_url}</div>
+      </div>;
 
-      var rows = _.map(repo_projects, p => {
+      var repo_rows = _.map(repo_projects, (p, index) => {
         var triggers = _.compact([
           p.options["phabricator.diff-trigger"] ? "Diffs" : "",
           p.options["build.commit-trigger"] ? "Commits" : ""
@@ -148,29 +151,26 @@ var AllProjectsPage = React.createClass({
         }
 
         return [
+          index === 0 ? repo_markup : '',
           p.name, 
           triggers,
           p.options['build.branch-names'],
           whitelist
         ];
       });
-
-      var headers = ['Name', 'Builds for', 'With branches', 'With paths'];
-      var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide'];
-
-      markup.push(
-        <div className="marginBottomL">
-          {header}
-          <Grid 
-            data={rows} 
-            headers={headers} 
-            cellClasses={cellClasses} 
-          />
-        </div>
-      );
+      rows = rows.concat(repo_rows);
     });
     
-    return <div>{markup}</div>;
+    var headers = ['Repo', 'Project', 'Builds for', 'With branches', 'With paths'];
+    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide'];
+
+    return <div className="marginBottomL">
+      <Grid 
+        data={rows} 
+        headers={headers} 
+        cellClasses={cellClasses} 
+      />
+    </div>;
   },
 
   /*

@@ -34,7 +34,8 @@ var HomePage = React.createClass({
 
     // TODO: handle user not logged in
     var diffs_endpoint = `/api/0/authors/${author}/diffs/`;
-    var commits_endpoint = `/api/0/authors/${author}/commits/`;
+    // TODO: we may not render all 20...some commits may kick off like 4 builds
+    var commits_endpoint = `/api/0/authors/${author}/commits/?per_page=20`;
 
     fetch_data(this, {
       diffs: diffs_endpoint,
