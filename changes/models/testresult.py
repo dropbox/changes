@@ -9,7 +9,7 @@ from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Result
-from changes.db.utils import create_or_update, try_create
+from changes.db.utils import create_or_update
 from changes.models import FailureReason, ItemStat, TestCase, TestArtifact
 
 logger = logging.getLogger('changes.testresult')
@@ -78,9 +78,10 @@ class TestResultManager(object):
         step = self.step
         job = step.job
         project = job.project
-        # agg_groups_by_id = {}
 
-        # create all test cases
+        # Create all test cases.
+        testcase_list = []
+
         for test in test_list:
             testcase = TestCase(
                 job=job,
@@ -94,8 +95,43 @@ class TestResultManager(object):
                 date_created=test.date_created,
                 reruns=test.reruns
             )
+            testcase_list.append(testcase)
+
+        # Try an optimistic commit of all cases at once.
+        for testcase in testcase_list:
             db.session.add(testcase)
 
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+
+            create_or_update(FailureReason, where={
+                'step_id': step.id,
+                'reason': 'duplicate_test_name',
+            }, values={
+                'project_id': step.project_id,
+                'build_id': step.job.build_id,
+                'job_id': step.job_id,
+            })
+            db.session.commit()
+
+            # Slowly make separate commits, to uncover duplicate test cases:
+            for i, testcase in enumerate(testcase_list):
+                db.session.add(testcase)
+                try:
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    original = _record_duplicate_testcase(testcase)
+                    db.session.commit()
+                    testcase_list[i] = original  # so artifacts get stored
+                    _record_test_failures(original.step)  # so count is right
+
+        # Test artifacts do not operate under a unique constraint, so
+        # they should insert cleanly without an integrity error.
+
+        for test, testcase in zip(test_list, testcase_list):
             if test.artifacts:
                 for ta in test.artifacts:
                     testartifact = TestArtifact(
@@ -107,66 +143,113 @@ class TestResultManager(object):
 
         try:
             db.session.commit()
-        except IntegrityError:
+        except Exception:
             db.session.rollback()
-            logger.exception('Duplicate test name; (step={})'.format(step.id.hex))
-            try_create(FailureReason, {
-                'step_id': step.id,
-                'job_id': step.job_id,
-                'build_id': step.job.build_id,
-                'project_id': step.project_id,
-                'reason': 'duplicate_test_name'
-            })
-            db.session.commit()
+            logger.exception('Failed to save artifacts'
+                             ' for step {}'.format(step.id.hex))
 
         try:
-            self._record_test_counts(test_list)
-            self._record_test_failures(test_list)
-            self._record_test_duration(test_list)
-            self._record_test_rerun_counts(test_list)
+            _record_test_counts(self.step)
+            _record_test_failures(self.step)
+            _record_test_duration(self.step)
+            _record_test_rerun_counts(self.step)
         except Exception:
-            logger.exception('Failed to record aggregate test statistics')
+            db.session.rollback()
+            logger.exception('Failed to record aggregate test statistics'
+                             ' for step {}'.format(step.id.hex))
 
-    def _record_test_counts(self, test_list):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_count',
-        }, values={
-            'value': db.session.query(func.count(TestCase.id)).filter(
-                TestCase.step_id == self.step.id,
-            ).as_scalar(),
-        })
-        db.session.commit()
 
-    def _record_test_failures(self, test_list):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_failures',
-        }, values={
-            'value': db.session.query(func.count(TestCase.id)).filter(
-                TestCase.step_id == self.step.id,
-                TestCase.result == Result.failed,
-            ).as_scalar(),
-        })
-        db.session.commit()
+def _record_test_counts(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_count',
+    }, values={
+        'value': db.session.query(func.count(TestCase.id)).filter(
+            TestCase.step_id == step.id,
+        ).as_scalar(),
+    })
+    db.session.commit()
 
-    def _record_test_duration(self, test_list):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_duration',
-        }, values={
-            'value': db.session.query(func.coalesce(func.sum(TestCase.duration), 0)).filter(
-                TestCase.step_id == self.step.id,
-            ).as_scalar(),
-        })
 
-    def _record_test_rerun_counts(self, test_list):
-        create_or_update(ItemStat, where={
-            'item_id': self.step.id,
-            'name': 'test_rerun_count',
-        }, values={
-            'value': db.session.query(func.count(TestCase.id)).filter(
-                TestCase.step_id == self.step.id,
-                TestCase.reruns > 0,
-            ).as_scalar(),
-        })
+def _record_test_failures(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_failures',
+    }, values={
+        'value': db.session.query(func.count(TestCase.id)).filter(
+            TestCase.step_id == step.id,
+            TestCase.result == Result.failed,
+        ).as_scalar(),
+    })
+    db.session.commit()
+
+
+def _record_test_duration(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_duration',
+    }, values={
+        'value': db.session.query(func.coalesce(func.sum(TestCase.duration), 0)).filter(
+            TestCase.step_id == step.id,
+        ).as_scalar(),
+    })
+
+
+def _record_test_rerun_counts(step):
+    create_or_update(ItemStat, where={
+        'item_id': step.id,
+        'name': 'test_rerun_count',
+    }, values={
+        'value': db.session.query(func.count(TestCase.id)).filter(
+            TestCase.step_id == step.id,
+            TestCase.reruns > 0,
+        ).as_scalar(),
+    })
+
+
+_DUPLICATE_TEST_COMPLAINT = """Error: Duplicate Test
+
+Your test suite is reporting multiple results for this test, but Changes
+can only store a single success or failure for each test.
+
+  * If you did not intend to run this test several times, simply repair
+    your scripts so that this test is only discovered and invoked once.
+
+  * If you intended to run this test several times and then report a
+    single success or failure, then run it inside of a loop yourself,
+    aggregate the results, and deliver a single verdict to Changes.
+
+  * If you want to invoke this test several times and have each result
+    reported separately, then give each run a unique name.  Many testing
+    frameworks will do this automatically, appending a unique suffix
+    like "#1" or "[1]", when a test is invoked through a fixture.
+
+Here are the job steps that reported a result for this test:
+
+"""
+
+
+def _record_duplicate_testcase(duplicate):
+    """Find the TestCase that already exists for `duplicate` and update it.
+
+    Because of the unique constraint on TestCase, we cannot record the
+    `duplicate`.  Instead, we go back and mark the first instance as
+    having failed because of the duplication, but discard all of the
+    other data delivered with the `duplicate`.
+
+    """
+    original = (
+        TestCase.query
+        .filter_by(job_id=duplicate.job_id, name_sha=duplicate.name_sha)
+        .with_for_update().first()
+        )
+
+    prefix = _DUPLICATE_TEST_COMPLAINT
+    if (original.message is None) or not original.message.startswith(prefix):
+        original.message = '{}{}\n'.format(prefix, original.step.label)
+        original.result = Result.failed
+
+    if duplicate.step.label not in original.message:
+        original.message += '{}\n'.format(duplicate.step.label)
+
+    return original

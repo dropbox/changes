@@ -63,7 +63,7 @@ class TestArtifact(db.Model):
     file = Column(FileStorage(**TESTARTIFACT_STORAGE_OPTIONS))
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    test = relationship('TestCase')
+    test = relationship('TestCase', backref='artifacts')
 
     __repr__ = model_repr('name', 'type', 'file')
 
