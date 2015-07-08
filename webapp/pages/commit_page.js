@@ -210,7 +210,7 @@ var CommitPage = React.createClass({
         {breadcrumbs}
         <div>
           <div style={{display: 'table', borderTop: "1px solid #bbb", width: "100%"}}>
-            <div style={{display: 'table-cell', width: 190, paddingLeft: 10, paddingTop: 10, borderRight: "1px solid #bbb", verticalAlign: "top"}}>
+            <div style={{display: 'table-cell', width: 240, minWidth: 240, paddingLeft: 10, paddingTop: 10, borderRight: "1px solid #bbb", verticalAlign: "top"}}>
               <SideItems renderables={renderables} />
             </div>
             <div style={{display: 'table-cell', verticalAlign: "top", lineHeight: "19px"}} >
@@ -556,7 +556,7 @@ var SideItems = React.createClass({
 
     return <div className="commitSideSection">
       <a href={hash_href(commit.revision.sha)} className="commitSideItem">
-        <b style={{color: colors.darkGray}}>Committed</b>
+        <b style={{color: colors.darkGray}}>Committed {commit.revision.sha.substr(0,12)}{"..."}</b>
       </a>
     </div>;
   },
