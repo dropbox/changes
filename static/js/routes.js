@@ -150,10 +150,16 @@ define([
     // projectBuildList.js.) It also would require us to rewrite all of our 
     // links to not end in a trailing slash.
     //
-    // This code snippet is provided by the angular-ui-router documentation.
-    // It doesn't handle urls with hashbangs or urls like www.site.com/page.html
+    // This code snippet is slightly modified from one provided by the 
+    // angular-ui-router documentation found here:
+    // 
     // https://github.com/angular-ui/ui-router/wiki/Frequently-Asked-Questions
     //   #how-to-make-a-trailing-slash-optional-for-all-routes
+    // 
+    // Both snippets fail to handle urls with hashbangs or urls like
+    // www.site.com/page.html. The modification is to actually redirect the
+    // browser using window.location.href rather than just changing the url
+    // via the angular infrastructure - this prevents an infinite redirect bug.
     $urlRouterProvider.rule(function ($injector, $location) {
       var url = $location.url();
 
@@ -162,11 +168,17 @@ define([
         return;
       }
 
-      if (url.indexOf('?') > -1) {
-        return url.replace('?', '/?');
-      }
+      // it doesn't, so let's redirect the user
+      $injector.invoke(['$window', function($window) {
+        if (url.indexOf('?') > -1) {
+          $window.location.href = url.replace('?', '/?');
+        }
 
-      return url + '/';
+        $window.location.href = url + '/';
+      }]);
+      // we need this because this javascript code keeps running even after 
+      // changing window.location. Without it, we'd immediately 404.
+      return url;
     });
 
     // revert to default scrolling behavior as autoscroll is broken
@@ -179,7 +191,7 @@ define([
         }
 
         function error(response) {
-            if(response.status === 401) {
+            if (response.status === 401) {
                 var current_location = encodeURIComponent($window.location.href);
                 $window.location.href = '/auth/login/?orig_url=' + current_location;
                 return $q.reject(response);

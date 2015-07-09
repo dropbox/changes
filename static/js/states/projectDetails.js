@@ -41,9 +41,7 @@ define([
     },
     resolve: {
       projectData: function($http, $location, $stateParams) {
-        return $http.get('/api/0/projects/' + $stateParams.project_id + '/').error(function(){
-          $location.path('/');
-        }).then(function(response){
+        return $http.get('/api/0/projects/' + $stateParams.project_id + '/').then(function(response) {
           return response.data;
         });
       },
