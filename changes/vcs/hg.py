@@ -99,7 +99,7 @@ class MercurialVcs(Vcs):
     def update(self):
         self.run(['pull'])
 
-    def log(self, parent=None, branch=None, author=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, author=None, offset=0, limit=100, paths=None):
         """ Gets the commit log for the repository.
 
         Each revision returned has exactly one branch name associated with it.
@@ -127,6 +127,10 @@ class MercurialVcs(Vcs):
 
         if limit:
             cmd.append('--limit=%d' % (offset + limit,))
+
+        if paths:
+            cmd.extend(["glob:" + p.strip() for p in paths])
+
         result = self.run(cmd)
 
         for idx, chunk in enumerate(BufferParser(result, '\x02')):

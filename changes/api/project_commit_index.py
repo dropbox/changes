@@ -7,8 +7,9 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView, error
+from changes.config import db
 from changes.constants import Cause, Status
-from changes.models import Build, Project, Revision, Source
+from changes.models import Build, Project, Revision, Source, ProjectOption
 
 
 class ProjectCommitIndexAPIView(APIView):
@@ -19,6 +20,7 @@ class ProjectCommitIndexAPIView(APIView):
                             default=50)
     get_parser.add_argument('parent', location='args')
     get_parser.add_argument('branch', location='args')
+    get_parser.add_argument('every_commit', location='args', default=0)
     get_parser.add_argument('all_builds', location='args', default=0)
 
     def get(self, project_id):
@@ -34,6 +36,18 @@ class ProjectCommitIndexAPIView(APIView):
         offset = (args.page - 1) * args.per_page
         limit = args.per_page + 1
 
+        paths = None
+        if not args.every_commit:
+            whitelist = db.session.query(
+                ProjectOption.project_id, ProjectOption.name, ProjectOption.value
+            ).filter(
+                ProjectOption.project_id.in_([project.id]),
+                ProjectOption.name.in_(['build.file-whitelist'])
+            ).first()
+
+            if whitelist:
+                paths = whitelist.value.strip().splitlines()
+
         if vcs:
             try:
                 vcs_log = list(vcs.log(
@@ -41,6 +55,7 @@ class ProjectCommitIndexAPIView(APIView):
                     limit=limit,
                     parent=args.parent,
                     branch=args.branch,
+                    paths=paths
                 ))
             except ValueError as err:
                 return error(err.message)

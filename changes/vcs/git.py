@@ -140,7 +140,7 @@ class GitVcs(Vcs):
         self.run(['remote', 'set-url', 'origin', self.remote_url])
         self.run(['fetch', '--all', '-p'])
 
-    def log(self, parent=None, branch=None, author=None, offset=0, limit=100):
+    def log(self, parent=None, branch=None, author=None, offset=0, limit=100, paths=None):
         """ Gets the commit log for the repository.
 
         Each revision returned includes all the branches with which this commit
@@ -169,6 +169,10 @@ class GitVcs(Vcs):
             cmd.append('--all')
         if parent:
             cmd.append(parent)
+
+        if paths:
+            cmd.append("--")
+            cmd.extend([p.strip() for p in paths])
 
         try:
             result = self.run(cmd)

@@ -55,8 +55,8 @@
             </span>
         </h2>
         <div ng-if="filteredCommits" style="margin-top: 5px">
-          This project is configured to only run builds on a subset of 
-          repository commits
+          This project only runs builds on commits
+          that affect the following paths: {{filteredCommits}}
         </div>
     </div>
 

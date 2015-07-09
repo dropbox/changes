@@ -85,14 +85,70 @@ class GitVcsTest(TestCase, VcsAsserts):
                                  author='Foo'))
         assert len(revisions) == 2
 
-    def test_log_throws_errors_when_needed(self):
+    def test_log_with_paths(self):
         vcs = self.get_vcs()
 
-        try:
-            vcs.log(parent='HEAD', branch='master').next()
-            self.fail('log passed with both branch and master specified')
-        except ValueError:
-            pass
+        # Create a third commit
+        self._set_author('Another Committer', 'ac@d.not.zm.exist')
+        self._add_file('BAZ', self.remote_path, commit_msg="bazzy")
+
+        vcs.clone()
+        vcs.update()
+        revisions = list(vcs.log())
+        assert len(revisions) == 3
+
+        # one revision
+        revisions = list(vcs.log(paths=["BAZ"]))
+        assert len(revisions) == 1, "one path, len " + len(revisions)
+
+        self.assertRevision(revisions[0],
+                            message='bazzy')
+
+        # multiple revisions
+        revisions = list(vcs.log(paths=["FOO", "BAZ"]))
+        assert len(revisions) == 2, "two paths without wildcard, len " + len(revisions)
+
+        revisions = list(vcs.log(paths=["FO*", "BAZ"]))
+        assert len(revisions) == 2, "two paths with wildcards, len " + len(revisions)
+
+        self.assertRevision(revisions[0],
+                            message='bazzy')
+
+        self.assertRevision(revisions[1],
+                            message="test\nlol\n")
+
+        # TODO: and a different branch!
+
+    def test_log_with_paths_and_branches(self):
+        # branch is also a bare parameter in git, so let's make sure branches
+        # and paths play nicely together. Not as important to test this in hg
+        vcs = self.get_vcs()
+
+        # Create another branch and move it ahead of the master branch
+        check_call('git checkout -b B2'.split(' '), cwd=self.remote_path)
+        self._add_file('BAZ', self.remote_path, commit_msg='second branch commit')
+
+        # Create a third branch off master with a commit not in B2
+        check_call(['git', 'checkout', vcs.get_default_revision()], cwd=self.remote_path)
+        check_call('git checkout -b B3'.split(' '), cwd=self.remote_path)
+        self._add_file('IPSUM', self.remote_path, commit_msg='3rd branch')
+
+        vcs.clone()
+        vcs.update()
+
+        # Ensure git log normally includes commits from all branches
+        revisions = list(vcs.log())
+        assert len(revisions) == 4
+
+        # While in B3, do a git log on B2. FOO and BAZ should show up, but not
+        # IPSUM
+        revisions = list(vcs.log(branch='B2', paths=["FOO", "BAZ", "IPSUM"]))
+        assert len(revisions) == 2
+
+        # Sanity check master
+        check_call(['git', 'checkout', vcs.get_default_revision()], cwd=self.remote_path)
+        revisions = list(vcs.log(branch=vcs.get_default_revision()))
+        assert len(revisions) == 2
 
     def test_log_with_branches(self):
         vcs = self.get_vcs()
@@ -146,6 +202,15 @@ class GitVcsTest(TestCase, VcsAsserts):
         check_call(['git', 'checkout', vcs.get_default_revision()], cwd=self.remote_path)
         revisions = list(vcs.log(branch=vcs.get_default_revision()))
         assert len(revisions) == 2
+
+    def test_log_throws_errors_when_needed(self):
+        vcs = self.get_vcs()
+
+        try:
+            vcs.log(parent='HEAD', branch='master').next()
+            self.fail('log passed with both branch and master specified')
+        except ValueError:
+            pass
 
     def test_simple(self):
         vcs = self.get_vcs()

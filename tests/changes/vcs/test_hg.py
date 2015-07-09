@@ -92,6 +92,40 @@ class MercurialVcsTest(TestCase, VcsAsserts):
                                  author='Foo'))
         assert len(revisions) == 2
 
+    def test_log_with_paths(self):
+        vcs = self.get_vcs()
+
+        # Create a commit with a new author
+        self._set_author('Another Committer <ac@d.not.zm.exist>')
+        check_call('cd %s && touch BAZ && hg add BAZ && hg commit -m "bazzy"' % (
+            self.remote_path,
+        ), shell=True)
+        vcs.clone()
+        vcs.update()
+        revisions = list(vcs.log())
+        assert len(revisions) == 3
+
+        revisions = list(vcs.log(paths=["FOO"]))
+        assert len(revisions) == 1
+        self.assertRevision(revisions[0],
+                            message='test\nlol')
+
+        revisions = list(vcs.log(paths=["FOO", "BAZ"]))
+        assert len(revisions) == 2
+        self.assertRevision(revisions[0],
+                            message='bazzy')
+
+        self.assertRevision(revisions[1],
+                            message='test\nlol')
+
+        revisions = list(vcs.log(paths=["FO*", "BAZ"]))
+        assert len(revisions) == 2
+        self.assertRevision(revisions[0],
+                            message='bazzy')
+
+        self.assertRevision(revisions[1],
+                            message='test\nlol')
+
     def test_log_throws_errors_when_needed(self):
         vcs = self.get_vcs()
 

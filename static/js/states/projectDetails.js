@@ -14,7 +14,12 @@ define([
       $scope.features = features;
       $scope.project = projectData;
 
-      $scope.filteredCommits = projectData.options['build.file-whitelist'];
+      if (projectData.options['build.file-whitelist']) {
+        // split newlines
+        var whitelist_list = projectData.options['build.file-whitelist']
+          .match(/[^\r\n]+/g);
+        $scope.filteredCommits = whitelist_list.join(", ");
+      }
 
       var stats = projectData.stats;
       if (stats.greenPercent && stats.previousGreenPercent !== null) {
