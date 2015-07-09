@@ -42,6 +42,7 @@ class Plan(db.Model):
     status = Column(EnumType(PlanStatus),
                     default=PlanStatus.inactive,
                     nullable=False, server_default='1')
+    snapshot_plan_id = Column(GUID, ForeignKey('plan.id', ondelete="SET NULL"), nullable=True)
     avg_build_time = Column(Integer)
 
     project = relationship('Project', backref=backref('plans'))
