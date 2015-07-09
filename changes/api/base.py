@@ -4,7 +4,7 @@ from base64 import urlsafe_b64encode, urlsafe_b64decode
 from functools import wraps
 from urllib import quote
 
-from flask import Response, request, current_app
+from flask import Response, request
 
 from flask.ext.restful import Resource
 
@@ -292,12 +292,13 @@ class APIView(Resource):
         )
         if links:
             response.headers['Link'] = ', '.join(links)
+        response.headers['changes-api-class'] = self.__class__.__name__
 
-        # we default to False, until we find a configuration that says otherwise
-        if current_app.config.get("LOG_API_VIEW_PERFORMANCE", False):
-            timer_name = "http-method-{}_api-view-class-{}".format(request.method,
-                                                                   self.__class__.__name__)
-            statsreporter.stats().log_timing(timer_name, time() - self.start_time)
+        timer_name = "changes_api_server_perf_method_{}_class_{}".format(
+            request.method, self.__class__.__name__)
+        time_taken = time() - self.start_time
+        statsreporter.stats().log_timing(timer_name, time_taken * 1000)
+        response.headers['changes-server-time'] = time_taken
 
         return response
 

@@ -15,7 +15,7 @@ var changesPerf = {
 
   fullPageLoadStart: function() {
     'use strict';
-    // differentiate between the initial page load
+    // differentiate between the initial full page load
     // and angular state transitions
     this._start(true);
   },
@@ -25,10 +25,10 @@ var changesPerf = {
     this._start(false);
   },
 
-  _start: function(is_initial) {
+  _start: function(is_full_pageload) {
     'use strict';
     this.currentPage = {
-      initial: is_initial,
+      fullPageLoad: is_full_pageload,
       startTime: (new Date()).getTime(),
       apiCalls: {}
     };
@@ -83,6 +83,11 @@ var changesPerf = {
       }
       this.currentPage.apiCalls[response.config.url].endTime = (
         new Date()).getTime();
+
+      this.currentPage.apiCalls[response.config.url].apiName = (
+        response.headers()["changes-api-class"]);
+      this.currentPage.apiCalls[response.config.url].apiMethod = (
+        response.config.method);
     }
     return response;
   }

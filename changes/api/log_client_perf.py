@@ -1,4 +1,4 @@
-from flask import request, current_app
+from flask import request
 
 from changes.api.base import APIView
 
@@ -11,57 +11,51 @@ import urlparse
 class LogClientPerfAPIView(APIView):
     """
     Record client-side statistics to statsd
-    TODO: and hive
     """
 
-    def url_to_key(self, url, prefixes=None):
+    def make_fuzzy_url(self, url):
         """
-        create a key from a url (relative or absolute.) We want a low
-        cardinality of keys, so we get rid of query parameters and uuids.
+        If we tried to log a perf key for every unique url, they'd be useless.
+        This slightly-sketchy function deletes uuids/hashes and query params
+        from the url, and joins together the remaining path parts with _.
+        e.g. /api/0/project/changes/commit/134deadbeef -> project_changes_commit
         """
-        prefixes = prefixes if prefixes else []
-
         path = urlparse.urlparse(url).path
         url_parts = path.split('/')
-        key_parts = prefixes[:]
+        fuzzy_parts = []
         for part in url_parts:
             part = part.strip()
-            if part == '' or part == '0':
+            if part == '' or part == '0' or part == 'api':
                 continue
-            is_hex = all(c in string.hexdigits for c in part)
+            is_hex = all(c in string.hexdigits for c in part.replace('-', ''))
             if len(part) > 10 and is_hex:
                 # its a uuid or hash
                 continue
-            key_parts.append(part)
-        key = '_'.join(key_parts)
-        return key
+            fuzzy_parts.append(part)
+        return '_'.join(fuzzy_parts)
 
     def post(self):
         perf_stats = request.get_json(True)
-
-        key_prefix = ['client_perf']
-        if current_app.config['DEBUG']:
-            key_prefix.append('dev')
-        key_prefix.append('initial' if perf_stats['initial'] else 'switch')
-
-        # record total time per page
-        page_key_prefix = key_prefix[:]
-        page_key_prefix.append('page')
-        page_key = self.url_to_key(perf_stats['url'], page_key_prefix)
-        page_duration = perf_stats['endTime'] - perf_stats['startTime']
-        statsreporter.stats().log_timing(page_key, page_duration)
-
-        # record stats for each api call
-        url_key_prefix = key_prefix[:]  # don't append api, already there
-        for url, times in perf_stats['apiCalls'].iteritems():
-            key = self.url_to_key(url, url_key_prefix)
-
-            start_time = times['startTime'] - perf_stats['startTime']
-            # this can happen when we get a 404 from an api endpoint
-            if 'endTime' not in times:
-                continue
-            duration = times['endTime'] - times['startTime']
-            statsreporter.stats().log_timing(key, duration)
-            statsreporter.stats().set_gauge(key + '_start', start_time)
-
+        self.log_page_perf(perf_stats)
+        self.log_api_perf(perf_stats)
         return '', 200
+
+    def log_page_perf(self, perf_stats):
+        page_load = 'full' if perf_stats['fullPageLoad'] else 'ajax'
+        key = "changes_page_perf_load_{}_name_{}".format(
+            page_load,
+            self.make_fuzzy_url(perf_stats['url']))
+        statsreporter.stats().log_timing(
+            key,
+            perf_stats['endTime'] - perf_stats['startTime'])
+
+    def log_api_perf(self, perf_stats):
+        api_key = "changes_api_client_perf_method_{}_class_{}"
+        for _, api_data in perf_stats['apiCalls'].iteritems():
+            # this can happen when we get a 404 from an api endpoint
+            if 'endTime' not in api_data:
+                continue
+            duration = api_data['endTime'] - api_data['startTime']
+            statsreporter.stats().log_timing(
+                api_key.format(api_data['apiMethod'], api_data['apiName']),
+                duration)

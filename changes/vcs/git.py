@@ -8,6 +8,8 @@ from changes.utils.http import build_uri
 
 from .base import Vcs, RevisionResult, BufferParser, CommandError, UnknownRevision
 
+from time import time
+
 LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
 
 ORIGIN_PREFIX = 'remotes/origin/'
@@ -103,6 +105,8 @@ class GitVcs(Vcs):
             specified, returns all branch names for this repository.
         :return: List of branches for the commit, or all branches for the repo.
         """
+        start_time = time()
+
         results = []
         command_parameters = ['branch', '-a']
         if commit_id:
@@ -117,6 +121,7 @@ class GitVcs(Vcs):
             if result == 'HEAD':
                 continue
             results.append(result)
+        self.log_timing('get_known_branches', start_time)
         return list(set(results))
 
     def run(self, cmd, **kwargs):
@@ -148,6 +153,8 @@ class GitVcs(Vcs):
 
         See documentation for the base for general information on this function.
         """
+        start_time = time()
+
         # TODO(dcramer): we should make this streaming
         cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,)]
 
@@ -186,6 +193,8 @@ class GitVcs(Vcs):
                 raise ValueError('Unable to fetch commit log for branch "{0}".'
                                  .format(branch))
             raise
+
+        self.log_timing('log', start_time)
 
         for chunk in BufferParser(result, '\x02'):
             (sha, author, author_date, committer, committer_date,

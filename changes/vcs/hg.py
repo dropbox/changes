@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 from datetime import datetime
 from rfc822 import parsedate_tz, mktime_tz
 from urlparse import urlparse
+from time import time
 
 from changes.utils.http import build_uri
 
@@ -107,6 +108,8 @@ class MercurialVcs(Vcs):
 
         See documentation for the base for general information on this function.
         """
+        start_time = time()
+
         # TODO(dcramer): we should make this streaming
         cmd = ['log', '--template=%s' % (LOG_FORMAT,)]
 
@@ -132,6 +135,8 @@ class MercurialVcs(Vcs):
             cmd.extend(["glob:" + p.strip() for p in paths])
 
         result = self.run(cmd)
+
+        self.log_timing('log', start_time)
 
         for idx, chunk in enumerate(BufferParser(result, '\x02')):
             if idx < offset:
@@ -176,6 +181,8 @@ class MercurialVcs(Vcs):
         """ Gets all the named branches.
         :return: A list of unique names for the branches.
         """
+        start_time = time()
+
         cmd = ['branches']
         results = self.run(cmd)
 
@@ -186,6 +193,7 @@ class MercurialVcs(Vcs):
                 if name[0]:
                     branch_names.add(name[0])
 
+        self.log_timing('get_known_branches', start_time)
         return list(branch_names)
 
     def get_buildstep_clone(self, source, workspace):

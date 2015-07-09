@@ -8,6 +8,9 @@ from subprocess import Popen, PIPE
 from changes.constants import PROJECT_ROOT
 from changes.db.utils import create_or_update, get_or_create, try_create
 from changes.models import Author, Revision, Source
+from changes.config import statsreporter
+
+from time import time
 
 
 class CommandError(Exception):
@@ -153,6 +156,20 @@ class Vcs(object):
 
     def get_buildstep_patch(self, source, workspace):
         raise NotImplementedError
+
+    def log_timing(self, command, start_time):
+        repo_type = 'unknown'
+        classname = self.__class__.__name__
+        if "Git" in classname:
+            repo_type = 'git'
+        elif "Mercurial" in classname:
+            repo_type = 'hg'
+
+        timer_name = "changes_vcs_perf_{}_command_{}".format(
+            repo_type, command)
+        time_taken = time() - start_time
+
+        statsreporter.stats().log_timing(timer_name, time_taken * 1000)
 
 
 class RevisionResult(object):
