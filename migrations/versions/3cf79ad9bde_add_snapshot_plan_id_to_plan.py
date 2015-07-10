@@ -17,10 +17,8 @@ import sqlalchemy as sa
 def upgrade():
     op.add_column('plan', sa.Column('snapshot_plan_id', sa.GUID(), nullable=True))
     op.create_foreign_key('plan_snapshot_plan_id_fkey', 'plan', 'plan', ['snapshot_plan_id'], ['id'], ondelete='SET NULL')
-    pass
 
 
 def downgrade():
-    op.drop_constraint('plan_snapshot_plan_id_fkey')
-    op.drop_column('plan')
-    pass
+    op.drop_constraint('plan_snapshot_plan_id_fkey', 'plan')
+    op.drop_column('plan', 'snapshot_plan_id')
