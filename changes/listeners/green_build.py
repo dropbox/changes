@@ -79,19 +79,9 @@ def build_finished_handler(build_id, **kwargs):
         logger.debug('Ignoring build due to non-commit: %s', build.id)
         return
 
-    options = get_options(build.project_id)
-
-    if options.get('green-build.notify', '1') != '1':
-        logger.info('green-build.notify disabled for project: %s', build.project_id)
-        return
-
     vcs = source.repository.get_vcs()
     if vcs is None:
         logger.info('Repository has no VCS set: %s', source.repository.id)
-        return
-
-    branch_names = filter(bool, options.get('build.branch-names', '*').split(' '))
-    if not source.revision.should_build_branch(branch_names):
         return
 
     # ensure we have the latest changes
@@ -99,6 +89,19 @@ def build_finished_handler(build_id, **kwargs):
         vcs.update()
     else:
         vcs.clone()
+
+    # set latest_green_build if latest for each branch:
+    _set_latest_green_build_for_each_branch(build, source, vcs)
+
+    options = get_options(build.project_id)
+
+    if options.get('green-build.notify', '1') != '1':
+        logger.info('green-build.notify disabled for project: %s', build.project_id)
+        return
+
+    branch_names = filter(bool, options.get('build.branch-names', '*').split(' '))
+    if not source.revision.should_build_branch(branch_names):
+        return
 
     release_id = get_release_id(source, vcs)
 
@@ -133,9 +136,6 @@ def build_finished_handler(build_id, **kwargs):
         },
         'date_modified': datetime.utcnow(),
     })
-
-    # set latest_green_build if latest for each branch:
-    _set_latest_green_build_for_each_branch(build, source, vcs)
 
 
 def _set_latest_green_build_for_each_branch(build, source, vcs):

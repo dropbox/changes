@@ -102,6 +102,58 @@ class GreenBuildTest(TestCase):
         assert event
         assert event.item_id == build.id
 
+    def _get_latest_green_build(self, project_id, branch):
+        return LatestGreenBuild.query.filter(
+            LatestGreenBuild.project_id == project_id,
+            LatestGreenBuild.branch == branch).first()
+
+    @responses.activate
+    @mock.patch('changes.listeners.green_build.get_options')
+    @mock.patch('changes.models.Repository.get_vcs')
+    def test_set_latest_green_build(self, vcs, get_options):
+        responses.add(responses.POST, 'https://foo.example.com')
+
+        repository = self.create_repo(
+            backend=RepositoryBackend.hg,
+        )
+
+        project = self.create_project(repository=repository)
+
+        sha = uuid4().hex
+        source = self.create_source(
+            project=project,
+            revision_sha=sha,
+            revision=self.create_revision(repository=repository,
+                                          branches=['default'],
+                                          sha=sha
+            )
+        )
+        vcs = repository.get_vcs.return_value
+        vcs.is_child_parent.return_value = True
+
+        # Ensure latest green build set even if notify is false.
+        build = self.create_build(project=project, source=source)
+        get_options.return_value = {'green-build.notify': '0'}
+        vcs.run.return_value = '134:asdadfadf'
+        build.result = Result.passed
+        build_finished_handler(build_id=build.id.hex)
+        assert self._get_latest_green_build(project.id, 'default').build == build
+
+        # Ensure latest green build not set even if failed.
+        failed_build = self.create_build(project=project, source=source)
+        get_options.return_value = {'green-build.notify': '0'}
+        vcs.run.return_value = '135:asdadfadf'
+        failed_build.result = Result.failed
+        build_finished_handler(build_id=failed_build.id.hex)
+        assert self._get_latest_green_build(project.id, 'default').build == build
+
+        build2 = self.create_build(project=project, source=source)
+        get_options.return_value = {'green-build.notify': '1'}
+        vcs.run.return_value = '136:asdadfadf'
+        build2.result = Result.passed
+        build_finished_handler(build_id=build2.id.hex)
+        assert self._get_latest_green_build(project.id, 'default').build == build2
+
     @responses.activate
     @mock.patch('changes.models.Repository.get_vcs')
     def test_latest_green_build(self, vcs):
