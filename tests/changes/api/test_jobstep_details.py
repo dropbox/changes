@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from changes.api.jobstep_details import JobStepDetailsAPIView
 from changes.config import db
 from changes.constants import Cause, Result, Status
 from changes.models import CommandType, JobStep, ProjectOption
@@ -293,3 +294,49 @@ class UpdateJobStepTest(APITestCase):
         assert jobstep.result == Result.failed
         assert jobstep.date_started is not None
         assert jobstep.date_finished is not None
+
+    def test_dependent_snapshot(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        plan_1 = self.create_plan(project)
+        plan_2 = self.create_plan(project)
+        plan_1.snapshot_plan_id = plan_2.id
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        self.create_job_plan(job, plan_1)
+        snapshot = self.create_snapshot(project)
+        image_1 = self.create_snapshot_image(snapshot, plan_1)
+        image_2 = self.create_snapshot_image(snapshot, plan_2)
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='snapshot.current',
+            value=snapshot.id.hex,
+        ))
+        db.session.commit()
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['snapshot']['id'] == image_2.id.hex
+
+    def test_get_snapshot_image_independent(self):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        snapshot = self.create_snapshot(project)
+        snapshot_image = self.create_snapshot_image(snapshot, plan)
+        assert snapshot_image == JobStepDetailsAPIView.get_snapshot_image(snapshot.id, plan.id)
+
+    def test_get_snapshot_image_dependent(self):
+        project = self.create_project()
+        plan_1 = self.create_plan(project)
+        plan_2 = self.create_plan(project)
+        plan_1.snapshot_plan_id = plan_2.id
+        snapshot = self.create_snapshot(project)
+        snapshot_image_1 = self.create_snapshot_image(snapshot, plan_1)
+        snapshot_image_2 = self.create_snapshot_image(snapshot, plan_2)
+
+        assert snapshot_image_2 == JobStepDetailsAPIView.get_snapshot_image(snapshot.id, plan_1.id)
+        assert snapshot_image_2 == JobStepDetailsAPIView.get_snapshot_image(snapshot.id, plan_2.id)
