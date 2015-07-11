@@ -6,7 +6,6 @@ from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.models import Plan, PlanStatus
-import uuid
 
 STATUS_CHOICES = ('active', 'inactive')
 
@@ -15,7 +14,6 @@ class PlanDetailsAPIView(APIView):
     post_parser = reqparse.RequestParser()
     post_parser.add_argument('name', type=unicode)
     post_parser.add_argument('status', choices=STATUS_CHOICES)
-    post_parser.add_argument('snapshot_plan_id', type=unicode)
 
     def get(self, plan_id):
         plan = Plan.query.get(plan_id)
@@ -41,9 +39,7 @@ class PlanDetailsAPIView(APIView):
         if args.status:
             plan.status = PlanStatus[args.status]
 
-        if args.snapshot_plan_id:
-            plan.snapshot_plan_id = uuid.UUID(hex=args.snapshot_plan_id)
-
+        db.session.add(plan)
         db.session.commit()
 
         return self.respond(plan)

@@ -50,19 +50,3 @@ class UpdatePlanTest(APITestCase):
 
         plan = Plan.query.get(plan.id)
         assert plan.label == 'Bar'
-
-    def test_set_snapshot_plan_id(self):
-        project = self.create_project()
-        plan = self.create_plan(project, label='Foo')
-        other_plan = self.create_plan(project, label='Bar')
-
-        path = '/api/0/plans/{0}/'.format(plan.id.hex)
-
-        self.login_default_admin()
-        resp = self.client.post(path, data={
-            'snapshot_plan_id': other_plan.id.hex,
-        })
-        assert resp.status_code == 200
-
-        plan = Plan.query.get(plan.id)
-        assert plan.snapshot_plan_id == other_plan.id

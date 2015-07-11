@@ -12,7 +12,7 @@ from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job import sync_job
 from changes.models import (
-    Command, FailureReason, JobPhase, JobPlan, JobStep, Node, Plan, Snapshot, SnapshotImage,
+    Command, FailureReason, JobPhase, JobPlan, JobStep, Node, Snapshot, SnapshotImage
 )
 
 
@@ -33,25 +33,6 @@ class JobStepDetailsAPIView(APIView):
     post_parser.add_argument('result', choices=RESULT_CHOICES)
     post_parser.add_argument('node')
     post_parser.add_argument('heartbeat', type=bool)
-
-    @classmethod
-    def get_snapshot_image(self, current_snapshot_id, plan_id):
-        """
-        Get the snapshot image that should be used for a given plan.
-
-        If the plan uses a dependent snapshot (that is, it uses a snapshot
-        created by a different plan for its own build) then it returns
-        the snapshot image associated with the plan it depends on, else
-        it returns the snapshot image associated with the plan itself.
-        """
-        snapshot_plan_id = Plan.query.get(plan_id).snapshot_plan_id
-        if snapshot_plan_id is None:
-            snapshot_plan_id = plan_id
-
-        return SnapshotImage.query.filter(
-                    SnapshotImage.snapshot_id == current_snapshot_id,
-                    SnapshotImage.plan_id == snapshot_plan_id,
-               ).scalar()
 
     def _is_final_jobphase(self, jobphase):
         return not db.session.query(
@@ -82,7 +63,10 @@ class JobStepDetailsAPIView(APIView):
         if not expected_image:
             current_snapshot = Snapshot.get_current(jobstep.project_id)
             if current_snapshot and jobplan:
-                current_image = self.get_snapshot_image(current_snapshot.id, jobplan.plan_id)
+                current_image = SnapshotImage.query.filter(
+                    SnapshotImage.snapshot_id == current_snapshot.id,
+                    SnapshotImage.plan_id == jobplan.plan_id,
+                ).first()
             elif current_app.config['DEFAULT_SNAPSHOT']:
                 current_image = {
                     'id': current_app.config['DEFAULT_SNAPSHOT'],

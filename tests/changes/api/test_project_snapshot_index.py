@@ -24,20 +24,6 @@ class GetSnapshottablePlansTest(APITestCase):
         assert result == []
 
     @patch('changes.models.Step.get_implementation')
-    def test_dependent_snapshot_plan(self, mock_get_implementation):
-        project = self.create_project()
-        plan_1 = self.create_plan(project)
-        plan_2 = self.create_plan(project)
-        plan_1.snapshot_plan_id = plan_2.id
-
-        mock_get_implementation.return_value = SnapshottableBuildStep()
-        self.create_option(item_id=plan_1.id, name='snapshot.allow', value='1')
-        self.create_step(plan_1)
-
-        result = get_snapshottable_plans(project)
-        assert result == []
-
-    @patch('changes.models.Step.get_implementation')
     def test_unsnapshottable_buildstep(self, mock_get_implementation):
         project = self.create_project()
         plan = self.create_plan(project)
