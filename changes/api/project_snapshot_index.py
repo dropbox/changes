@@ -38,6 +38,11 @@ def get_snapshottable_plans(project):
                          plan.id)
             continue
 
+        if plan.snapshot_plan_id is not None:
+            logging.info('Disallowing snapshot on plan [%s] because it depends on another plan for its snapshot',
+                         plan.id)
+            continue
+
         if options.get(plan.id, '1') == '0':
             logging.info('Disallowing snapshot on plan [%s] due to snapshot.allow setting',
                          plan.id)
