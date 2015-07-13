@@ -4,11 +4,11 @@ import Grid from 'es6!display/grid';
 import { StatusDot, status_dots } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import ChangesPage from 'es6!display/page_chrome';
-import NotLoaded from 'es6!display/not_loaded';
+import APINotLoaded from 'es6!display/not_loaded';
 import { TimeText } from 'es6!display/time';
 import { Menu1 } from 'es6!display/menus';
 
-import { fetch_data } from 'es6!utils/data_fetching';
+import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
@@ -17,30 +17,22 @@ var AllProjectsPage = React.createClass({
 
   getInitialState: function() {
     return {
-      projectsStatus: 'loading',
-      projectsData: null,
-      projectsError: {},
-
+      projects: null,
       selectedItem: 'Latest Project Builds'
     }
   },
 
   componentDidMount: function() {
-    var projects_endpoint = '/api/0/projects/?fetch_extra=1';
-
-    fetch_data(this, {
-      projects: projects_endpoint,
+    api.fetch(this, {
+      projects: '/api/0/projects/?fetch_extra=1'
     });
   },
 
   render: function() {
-    if (this.state.projectsStatus !== "loaded") {
-      return <NotLoaded
-        loadStatus={this.state.projectsStatus}
-        errorData={this.state.projectsError}
-      />;
+    if (!api.isLoaded(this.state.projects)) {
+      return <APINotLoaded state={this.state.projects} />;
     }
-    var projects_data = this.state.projectsData;
+    var projects_data = this.state.projects.getReturnedData();
 
     // render menu
     var menu_items = [
@@ -49,9 +41,9 @@ var AllProjectsPage = React.createClass({
       'Plans',
       'Plans by Type'
     ];
-
     var selected_item = this.state.selectedItem;
 
+    // TODO: can move this to Menu elements
     var onClick = (item => {
       if (item === selected_item) {
         return;

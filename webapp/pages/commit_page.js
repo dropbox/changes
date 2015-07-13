@@ -2,8 +2,8 @@ import React from 'react';
 import moment from 'moment';
 
 import ChangesPage from 'es6!display/page_chrome';
-import { fetch_data } from 'es6!utils/data_fetching';
-import NotLoaded from 'es6!display/not_loaded';
+import * as api from 'es6!server/api';
+import APINotLoaded from 'es6!display/not_loaded';
 import * as utils from 'es6!utils/utils';
 
 import { TimeText, display_duration } from 'es6!display/time';
@@ -25,17 +25,9 @@ var CommitPage = React.createClass({
 
   getInitialState: function() {
     return {
-      commitbuildsStatus: 'loading',
-      commitbuildsData: null,
-      commitbuildsError: null,
-
-      buildsStatus: 'loading',
-      buildsData: null,
-      buildsError: null,
-
-      jobsStatus: 'loading',
-      jobsData: null,
-      jobsError: null,
+      commitBuilds: null,
+      builds: {},
+      jobs: {},
     }
   },
 
@@ -50,102 +42,82 @@ var CommitPage = React.createClass({
 
     // This gets all the builds associated with a commit. But it doesn't give
     // us enough data, so we'll have to fetch individual data per build later...
-    fetch_data(this, {
-      commitbuilds: endpoint
+    api.fetch(this, {
+      commitBuilds: endpoint
     });
   },
 
   finishFetchingData: function() {
-    // This function is called by render to finish fetching all of the 
-    // needed data
+    // Hey, we need to do more data fetching. One call per build, then one 
+    // call per job (!) Joy. Called from render(), returns either a react 
+    // component (loading message) or the fetched data
+    // TODO: combine this all into one server-side api call
+
+    // We're using instance variables here to ensure we dispatch these api
+    // fetches exactly once. Its a rare but legitimate use of them.
 
     var slug = this.props.project, 
       uuid = this.props.sourceUUID;
 
-    if (this.state.commitbuildsStatus !== 'loaded') {
-      return <NotLoaded 
-        loadStatus={this.state.commitbuildsStatus}
-        errorData={this.state.commitbuildsError}
-      />;
+    if (!api.isLoaded(this.state.commitBuilds)) {
+      return <APINotLoaded state={this.state.commitBuilds} />;
     }
 
-    var build_ids = _.map(this.state.commitbuildsData, b => b.id);
+    var build_ids = _.map(this.state.commitBuilds.getReturnedData(), b => b.id);
 
-    // hey, we need to do more data fetching. One call per build, then one 
-    // call per job (!) Joy.
-    // TODO: Rather than sketchily do this in render, I should have my data
-    // fetching code use a callback...
-    // TODO: combine this all into one server-side api call
-
-    // the process of data fetching doesn't influence rendering, so using 
-    // instance variables instead of state
+    // Fetch more information about each build
 
     if (!this.fetchedBuilds) {
       var endpoint_map = {};
       _.each(build_ids, id => {
         endpoint_map[id] = `/api/0/builds/${id}`;
       });
-      fetch_data(this, {
-        'builds': endpoint_map
-      });
+      api.asyncFetchMap(this, 'builds', endpoint_map);
 
       this.fetchedBuilds = true;
     }
 
-    if (this.state.buildsStatus !== 'loaded') {
+    if (!api.mapIsLoaded(this.state.builds, build_ids)) {
       return <div>
         (1/3){" "}
-        <NotLoaded 
-          className="inline"
-          loadStatus={this.state.buildsStatus}
-          errorData={this.state.buildsError}
-        />
+        <APINotLoaded stateMap={this.state.builds} />
       </div>;
     }
       
-    var builds = [];
-    _.each(this.state.buildsData, (v, k) => {
-      if (k.substr(-4) === 'Data') {
-        builds.push(v);
-      }
-    });
-
-    // alright, we have a list of builds. Now for jobs.
+    var builds = _.map(this.state.builds, (v, k) => v.getReturnedData());
+    
+    // Alright, we have a list of builds. Now for jobs.
     // this api returns data about each phase within a job, but not any info
     // about the job itself (that was already fetched in builds above)
 
+    var job_ids = [];
+    _.each(builds, b => {
+      _.each(b.jobs, j => {
+        job_ids.push(j.id);
+      });
+    });
+
     if (!this.fetchedJobs) {
       var endpoint_map = {};
-      _.each(builds, b => {
-        _.each(b.jobs, j => {
-          endpoint_map[j.id] = `/api/0/jobs/${j.id}/phases`;
-        });
+      _.each(job_ids, id => {
+        endpoint_map[id] = `/api/0/jobs/${id}/phases`;
       });
 
-      fetch_data(this, {
-        'jobs': endpoint_map
-      });
+      api.asyncFetchMap(this, 'jobs', endpoint_map);
 
       this.fetchedJobs = true;
     }
 
-    if (this.state.jobsStatus !== 'loaded') {
+    if (!api.mapIsLoaded(this.state.jobs, job_ids)) {
       return <div>
         (2/3){" "}
-        <NotLoaded 
-          className="inline"
-          loadStatus={this.state.jobsStatus}
-          errorData={this.state.jobsStatus}
-        />
+        <APINotLoaded stateMap={this.state.jobs} />
       </div>;
     }
 
     var jobs = {};
-    _.each(this.state.jobsData, (v, k) => {
-      if (k.substr(-4) === 'Data') {
-        var job_id = k.substr(0, k.length - 4);
-        jobs[job_id] = v;
-      }
+    _.each(this.state.jobs, (v, k) => {
+      jobs[k] = v.getReturnedData();
     });
 
     var source = builds[0].source;
@@ -157,7 +129,7 @@ var CommitPage = React.createClass({
     var result = this.finishFetchingData();
     if (!_.isArray(result)) {
       return result;
-    } else{
+    } else {
       var [builds, jobs, source] = result;
     }
 

@@ -60,7 +60,7 @@ var UITestPage = React.createClass({
       <Error>An error has occurred. Let{"'"}s be cryptic.</Error>
     </div>;
 
-    // TODO: AjaxError, NotLoaded, maybe. They're just wrappers...
+    // TODO: AjaxError, APINotLoaded, maybe. They're just wrappers...
 
     // Grid, SectionHeader
 

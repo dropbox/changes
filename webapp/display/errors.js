@@ -27,6 +27,7 @@ export var Error = React.createClass({
 
 /*
  * Convenience class that takes an ajax response and renders an <Error />
+ * TODO: handle multiple ajax responses?
  */
 export var AjaxError = React.createClass({
   
@@ -62,5 +63,26 @@ export var AjaxError = React.createClass({
       <b>{response_status}{status_title}</b>
       <div>{response_text}</div>
     </Error>;
+  },
+});
+
+/*
+ * Renders a purple error box. Use this in a react component as an assert 
+ * failure
+ */
+export var ProgrammingError = React.createClass({
+
+  propTypes: {
+    // ...
+    // transfers all properties to rendered <div />
+  },
+
+  render: function() {
+    var { className, ...props} = this.props;
+    className = (className || "") + " programmingError";
+
+    return <div {...props} className={className}>
+      {this.props.children}
+    </div>;
   },
 });

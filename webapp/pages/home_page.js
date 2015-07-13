@@ -8,7 +8,7 @@ import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import ChangesPage from 'es6!display/page_chrome';
 import { TimeText } from 'es6!display/time';
 
-import { fetch_data } from 'es6!utils/data_fetching';
+import * as api from 'es6!server/api';
 import colors from 'es6!utils/colors';
 import custom_content_hook from 'es6!utils/custom_content';
 import * as utils from 'es6!utils/utils';
@@ -19,13 +19,8 @@ var HomePage = React.createClass({
 
   getInitialState: function() {
     return {
-      commitsStatus: 'loading',
-      commitsData: null,
-      commitsError: null,
-
-      diffsStatus: 'loading',
-      diffsData: null,
-      diffsError: {},
+      commits: null,
+      diffs: null
     }
   },
 
@@ -37,7 +32,7 @@ var HomePage = React.createClass({
     // TODO: we may not render all 20...some commits may kick off like 4 builds
     var commits_endpoint = `/api/0/authors/${author}/commits/?per_page=20`;
 
-    fetch_data(this, {
+    api.fetch(this, {
       diffs: diffs_endpoint,
       commits: commits_endpoint
     });
@@ -48,7 +43,7 @@ var HomePage = React.createClass({
     // but not diffs data, render as much of the page as we can.
     // TODO: its super-easy to do a partial render, but is it better to just
     // wait for everything?
-    if (this.state.commitsStatus === "loading") {
+    if (!api.isLoaded(this.state.commits)) {
       return <div><RandomLoadingMessage /></div>;
     }
 
@@ -58,19 +53,20 @@ var HomePage = React.createClass({
   },
 
   renderContent: function() {
-    if (this.state.commitsStatus === "error") {
-      return <AjaxError response={this.state.commitsError.response} />;
+    if (this.state.commits.condition === "error") {
+      return <AjaxError response={this.state.commits.response} />;
     }
 
-    var commits = this.state.commitsData;
+    var commits = this.state.commits.getReturnedData();
 
     if (!commits) {
       // TODO: maybe show all projects or something?
       return <div>I don{"'"}t see any commits!</div>;
     }
 
-    var diffs = this.state.diffsStatus === "loaded" ?
-      this.state.diffsData : [];
+    var diffs = api.isLoaded(this.state.diffs) ? 
+      this.state.diffs.getReturnedData() : 
+      [];
 
     var header_markup = null;
     if (this.props.author) {
@@ -87,9 +83,9 @@ var HomePage = React.createClass({
       {header_markup}
       <div>
         <Diffs
-          loadStatus={this.state.diffsStatus}
+          loadStatus={this.state.diffs.condition}
           diffs={diffs}
-          errorResponse={this.state.diffsError.response}
+          errorResponse={this.state.diffs.response}
         />
         <Commits commits={commits} />
       </div>

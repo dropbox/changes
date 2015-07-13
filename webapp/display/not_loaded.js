@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { AjaxError } from 'es6!display/errors';
+import { AjaxError, ProgrammingError } from 'es6!display/errors';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
+import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
@@ -9,16 +10,15 @@ var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
 /*
- * Convenience wrapper that takes the output of fetch_data and renders either
- * <AjaxError /> or <RandomLoadingMessage />
+ * Convenience wrapper that takes the contents of the state variable used for 
+ * an api fetch and renders either <AjaxError /> or <RandomLoadingMessage />.
  */
-var NotLoaded = React.createClass({
+var APINotLoaded = React.createClass({
 
   propTypes: {
-    // is the status still loading or error?
-    loadStatus: proptype.oneOf(['loading', 'error']).isRequired,
-    // if error, use this to populate error data
-    errorData: proptype.object,
+    state: proptype.object,
+    stateMap: proptype.objectOf.object,
+    stateMapKeys: proptype.array,
     // if true, show InlineLoading instead of RandomLoading
     isInline: proptype.bool,
   },
@@ -29,18 +29,46 @@ var NotLoaded = React.createClass({
     }
   },
 
+  // note: we'll treat missing APIResponse objects (before api.fetch is called)
+  // as "loading"
   render: function() {
-    var { loadStatus, errorData, isInline, ...props} = this.props;
+    var { state, stateMap, stateMapKeys, isInline, ...props} = this.props;
+    
+    if (state && stateMapKeys) {
+      return <ProgrammingError>
+        APINotLoaded: passed both state and stateMapKeys/stateMap
+      </ProgrammingError>;
+    }
 
-    if (loadStatus === 'loading') {
+    var responseForError = null; // ignored unless condition is error
+
+    if (stateMapKeys) {
+      var condition = 'loading';
+      if (api.mapAnyErrors(stateMap, stateMapKeys)) {
+        condition = 'error';
+        responseForError = _.first(api.mapGetErrorResponses(
+          stateMap, stateMapKeys));
+      } else if (api.mapIsLoaded(stateMap, stateMapKeys)) {
+        var condition = 'loaded';
+      }
+    } else {
+      var condition = (state && state.condition) || 'loading';
+      responseForError = state && state.response;
+    }
+
+    if (condition === 'loading') {
       if (isInline) {
         return <InlineLoading {...props} />;
       }
       return <RandomLoadingMessage {...props} />;
-    } else if (loadStatus === 'error') {
-      return <AjaxError {...props} response={errorData.response} />;
+    } else if (condition === 'error') {
+      return <AjaxError {...props} response={responseForError} />;
+    } else {
+      return <ProgrammingError>
+        APINotLoaded: Unknown condition {condition}
+      </ProgrammingError>;
     }
   },
 });
 
-export default NotLoaded;
+export default APINotLoaded;

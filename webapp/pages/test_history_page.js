@@ -4,10 +4,10 @@ import Grid from 'es6!display/grid';
 import { StatusDot, status_dots } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import ChangesPage from 'es6!display/page_chrome';
-import NotLoaded from 'es6!display/not_loaded';
+import APINotLoaded from 'es6!display/not_loaded';
 import { TimeText, display_duration } from 'es6!display/time';
 
-import { fetch_data } from 'es6!utils/data_fetching';
+import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
@@ -16,13 +16,8 @@ var TestHistoryPage = React.createClass({
 
   getInitialState: function() {
     return {
-      infoStatus: 'loading',
-      infoData: null,
-      infoError: {},
-
-      historyStatus: 'loading',
-      historyData: null,
-      historyError: {},
+      info: null,
+      history: null
     }
   },
 
@@ -34,18 +29,15 @@ var TestHistoryPage = React.createClass({
     var history_endpoint = `/api/0/projects/${project_id}/tests/${test_hash}/history/` +
       '?per_page=100&branch=master';
 
-    fetch_data(this, {
+    api.fetch(this, {
       info: info_endpoint,
       history: history_endpoint
     });
   },
 
-  render: function() {
-    if (this.state.infoStatus !== "loaded") {
-      return <NotLoaded
-        loadStatus={this.state.infoStatus}
-        errorData={this.state.infoStatus}
-      />;
+  render() {
+    if (!api.isLoaded(this.state.info)) {
+      return <APINotLoaded state={this.state.info} />;
     }
 
     var history_content = this.renderHistory();
@@ -57,15 +49,14 @@ var TestHistoryPage = React.createClass({
   },
 
   renderHistory() {
-    if (this.state.historyStatus !== "loaded") {
-      return <NotLoaded 
-        loadStatus={this.state.historyStatus}
-        errorData={this.state.historyError}
+    if (!api.isLoaded(this.state.history)) {
+      return <APINotLoaded 
+        state={this.state.history}
         isInline={true}
       />;
     }
 
-    var rows = _.map(this.state.historyData, t => {
+    var rows = _.map(this.state.history.getReturnedData(), t => {
       var build = t.job.build;
       var revision = build.source.revision;
 

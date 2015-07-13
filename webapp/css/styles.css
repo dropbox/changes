@@ -309,6 +309,14 @@ div.grid {
   padding: 5px;
 }
 
+.programmingError {
+  background-color: #d30081; /* shade from http://www.colorhexa.com/98005d */
+  border: 1px solid #5a5758;
+  color: #fff;
+  display: block;
+  padding: 5px;
+}
+
 /*
  * Inline Loading
  */ 

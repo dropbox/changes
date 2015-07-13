@@ -34,7 +34,7 @@ requirejs.config({
 require([
   "react", 
   "underscore",
-  "es6!utils/data_fetching",
+  "es6!server/api",
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",

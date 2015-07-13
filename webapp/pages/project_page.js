@@ -3,12 +3,12 @@ import React from 'react';
 import { TimeText } from 'es6!display/time';
 import { StatusDot, status_dots } from 'es6!display/builds';
 import Grid from 'es6!display/grid';
-import NotLoaded from 'es6!display/not_loaded';
+import APINotLoaded from 'es6!display/not_loaded';
 import { RandomLoadingMessage } from 'es6!display/loading';
 import ChangesPage from 'es6!display/page_chrome';
 import { Menu1, Menu2 } from 'es6!display/menus';
 
-import { fetch_data } from 'es6!utils/data_fetching';
+import * as api from 'es6!server/api';
 import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
@@ -18,10 +18,10 @@ var ProjectPage = React.createClass({
   getInitialState: function() {
     return {
       selectedItem: 'Commits', // duplicated in componentDidMount
-      projectStatus: 'loading',
-      commitsStatus: 'loading',
-      detailsStatus: 'loading',
-      todoStatus: 'loading'
+      project: null,
+      commits: null,
+      details: null,
+      todo: null
     }
   },
 
@@ -40,20 +40,18 @@ var ProjectPage = React.createClass({
 
     // we'll just grab everything in parallel now. Its easy enough to later
     // switch this to trigger on menu click
-    fetch_data(this, {
+    api.fetch(this, {
       'project': `/api/0/projects/${slug}`,
-      'commits': Commits.getDataToLoad(slug),
-      'details': ProjectDetails.getDataToLoad(slug),
       'todo': '/api/0/authors/me/diffs/'
     });
+
+    api.fetchMap(this, 'commits', Commits.getDataToLoad(slug));
+    api.fetchMap(this, 'details', ProjectDetails.getDataToLoad(slug));
   },
 
   render: function() {
-    if (this.state['projectStatus'] !== 'loaded') {
-      return <NotLoaded
-        loadStatus={this.state.projectStatus}
-        errorData={this.state.projectError}
-      />;
+    if (!api.isLoaded(this.state.project)) {
+      return <APINotLoaded state={this.state.projects} />;
     }
 
     // render menu
@@ -82,33 +80,31 @@ var ProjectPage = React.createClass({
     />;
 
     // grab data for currently selected section and render it
-    var all_prefixes = {
+    var data_keys = {
       'Commits': 'commits',
       'Project Details': 'details'
     }
-    var prefix = all_prefixes[this.state.selectedItem] || 'todo';
-
-    var selectedStatus = this.state[prefix+"Status"],
-      selectedData = this.state[prefix+"Data"], 
-      selectedError = this.state[prefix+"Error"];
+    var selected_data_key = data_keys[this.state.selectedItem] || 'todo';
+    var selected_data = this.state[selected_data_key];
 
     var component = null;
-    if (selectedStatus === 'loaded') {
+    var data_to_load = this.getComponentClassForSelection(this.state.selectedItem)
+      .getDataToLoad();
+    if (api.mapIsLoaded(selected_data, _.keys(data_to_load))) {
       component = React.createElement(
         this.getComponentClassForSelection(this.state.selectedItem), 
-        {data: selectedData, projectData: this.state.projectData}
+        {data: selected_data, projectData: this.state.project}
       );
     } else {
-      component = <NotLoaded 
-        loadStatus={selectedStatus}
-        errorData={selectedError}
+      component = <APINotLoaded 
+        state={selected_data}
         isInline={true}
       />;
     }
 
     var padding_classes = 'paddingLeftM paddingRightM';
     return <ChangesPage bodyPadding={false}>
-      {this.renderProjectInfo(this.state.projectData)}
+      {this.renderProjectInfo(this.state.project.getReturnedData())}
       <div className={padding_classes}>
         {menu}
         {component}
@@ -134,7 +130,7 @@ var Commits = React.createClass({
 
   getDefaultProps: function() {
     return {
-      data: []
+      data: {}
     };
   },
 
@@ -146,8 +142,9 @@ var Commits = React.createClass({
   },
 
   render: function() {
-    var commits = this.props.data.commitsData;
-    var project_info = this.props.projectData;
+    console.log(this.props);
+    var commits = this.props.data.commits.getReturnedData();
+    var project_info = this.props.projectData.getReturnedData();
 
     return <div>
       {this.renderTableControls()}
@@ -255,7 +252,7 @@ var ProjectDetails = React.createClass({
   },
 
   render: function() {
-    var plan = this.props.data.detailsData;
+    var plan = this.props.data.details;
 
     var markup = _.map(plan, p =>
       <div>
