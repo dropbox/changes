@@ -139,8 +139,6 @@ var CommitPage = React.createClass({
     // Our rendering is basically a timeline: build, build, build, commit_info
     // The sequence should be sorted by time started/committed...so hopefully
     // commit_info will always be the last item rendered
-    // TODO: that revision dateCreated field better be the date the revision was
-    // created and not the date the db row about the revision was created...
     var renderables = _.map(builds, b =>
       ({
         type: 'build', 
@@ -151,6 +149,7 @@ var CommitPage = React.createClass({
       })
     );
 
+    // TODO: dateCreated or dateCommitted
     renderables.push({
       type: 'commit', 
       date: source.revision.dateCreated, 
@@ -275,8 +274,10 @@ var CommitPage = React.createClass({
 
       return [
         <a href={href}>History</a>,
-        simple_name,
-        test.name
+        <div>
+          {simple_name}
+          <div className="subText">{test.name}</div>
+        </div>
       ]
     });
 
@@ -285,7 +286,7 @@ var CommitPage = React.createClass({
       <Grid 
         className="marginBottomM" 
         data={rows} 
-        headers={['Links', 'Name', 'Path']} 
+        headers={['Links', 'Name']} 
       />
     </div>;
   },
@@ -298,14 +299,26 @@ var CommitPage = React.createClass({
       var phases_rows = _.map(job_phases[j.id], (phase, index) => {
         // what the server calls a jobstep is actually a shard
         return _.map(phase.steps, (shard, index) => {
-          var log_id = shard.logSources[0].id;
-          var raw_log_uri = `/api/0/jobs/${j.id}/logs/${log_id}/?raw=1`;
+          if (!shard.node) {
+            return [
+              index === 0 ? <b>{phase.name}</b> : "",
+              <StatusDot state={shard.result.id} />,
+              '',
+              '',
+              shard.duration ? display_duration(shard.duration/1000) : ''
+            ];
+          }
+
+          var log_id = shard.logSources[0] && shard.logSources[0].id;
+          var raw_log_uri = log_id ?
+            `/api/0/jobs/${j.id}/logs/${log_id}/?raw=1` :
+            '';
 
           return [
             index === 0 ? <b>{phase.name}</b> : "",
             <StatusDot state={shard.result.id} />,
             shard.node.name,
-            <a href={raw_log_uri} target="_blank">Log</a>,
+            raw_log_uri ? <a href={raw_log_uri} target="_blank">Log</a> : '',
             display_duration(shard.duration/1000)
           ];
         });

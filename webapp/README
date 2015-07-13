@@ -1,3 +1,29 @@
 This is a separate frontend (accessible via <your host>.com/v2/) that we're
 building to replace the original one. Look in static/ and templates/ for the UI
 currently being used.
+
+Style notes:
+
+- Times from the server should always be in UTC form, although they may not
+  contain timezone info. By default, chrome and firefox will parse dates
+  differently, so to be on the safe side you
+
+- Don't use the abbreviated function as object attribute syntax, i.e.
+
+  BAD:  {
+          render() {
+        }
+  GOOD: {
+          render: function() {
+        }
+
+  Makes it much easier to find functions in the file
+
+- (TODO) variables should be camelCase, since the object spread syntax in display/ 
+  components uses the same name for variables and object attributes, e.g.
+
+  EX: var { data, headers, className, ...props} = this.props;
+
+  Right now I mostly used under_scores :(. At least its easy to automatically fix
+
+- (TODO) Add and enable ESLint

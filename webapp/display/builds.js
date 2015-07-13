@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { display_duration_pieces } from 'es6!display/time';
+
 import colors from 'es6!utils/colors';
 import * as utils from 'es6!utils/utils';
 
@@ -10,7 +12,65 @@ var proptype = React.PropTypes;
  * Functions and classes for displaying information about builds
  */
 
-// Two classes: StatusDot, StatusMark
+export var BuildWidget = React.createClass({
+  
+  propTypes: {
+    build: proptype.object.isRequired
+  },
+
+  render: function() {
+    var build = this.props.build;
+    var build_state = get_build_state(build);
+
+    var dot = <StatusDot state={build_state} />;
+
+    var content = null;
+    var content_style = {
+      color: '#777',
+      display: 'inline-block',
+      fontSize: 'smaller',
+      fontWeight: 'bold',
+      verticalAlign: 'top'
+    };
+    switch (build_state) {
+      case 'passed':
+      case 'failed':
+      case 'nothing':
+        var day_hour_style = {
+          fontWeight: 900
+        };
+        if (!build.duration) {
+          content = '---';
+        } else {
+          var duration = display_duration_pieces(build.duration / 1000)
+          content = <div style={content_style}>
+            <span style={day_hour_style}>{duration.slice(0, 2)}</span>
+            {duration.slice(2)}
+          </div>;
+        }
+        break;
+      case 'unknown':
+        content = "?";
+        break;
+      case 'waiting':
+        var style = _.extend({}, content_style, { verticalAlign: 'middle', marginLeft: 5});
+        // I thought about rendering a timer about how long the build has been
+        // running, but if it keeps increasing, people will expect this to 
+        // be live / update once the build is done
+        content = <div style={style}>
+          Running
+        </div>;
+    }
+
+    var href = '/v2/project_commit/' +
+      build.project.slug + '/' +
+      build.source.id;
+    return <a href={href} className="buildWidget">
+      {dot}
+      {content}
+    </a>
+  }
+});
 
 /*
  * Renders a square patch based on build state (passed is green,
@@ -201,6 +261,5 @@ export var get_build_cause = function(build) {
   // TODO: This would be a very useful function, but we don't store good
   // metadata about this. This will have to execute some fairly complex
   // logic...
-  console.log(build);
   return 'unknown';
 }

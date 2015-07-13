@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AjaxError } from 'es6!display/errors';
 import Grid from 'es6!display/grid';
-import { StatusDot, status_dots } from 'es6!display/builds';
+import { StatusDot, status_dots, BuildWidget } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import ChangesPage from 'es6!display/page_chrome';
@@ -43,7 +43,7 @@ var HomePage = React.createClass({
     // but not diffs data, render as much of the page as we can.
     // TODO: its super-easy to do a partial render, but is it better to just
     // wait for everything?
-    if (!api.isLoaded(this.state.commits)) {
+    if (!api.isLoaded(this.state.commits) && !api.isError(this.state.commits)) {
       return <div><RandomLoadingMessage /></div>;
     }
 
@@ -119,7 +119,7 @@ var Diffs = React.createClass({
 
     var grid_data = _.map(this.props.diffs, d => {
       return [
-        status_dots(d.builds),
+        d.builds.length > 0 ? <BuildWidget build={_.first(d.builds)} /> : null,
         <a href={d['uri']}>{"D"+d.id}</a>,
         d['statusName'],
         d['title'],
@@ -127,10 +127,10 @@ var Diffs = React.createClass({
       ];
     });
 
-    var cellClasses = ['nowrap center', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
-      'Builds',
-      'Diff',
+      'Last Build',
+      'Phab.',
       'Status',
       'Name',
       'Updated'
@@ -178,7 +178,8 @@ var Commits = React.createClass({
 
         var project = matching_builds[0].project;
 
-        var status_results = status_dots(matching_builds);
+        var last_build = _.extend({}, matching_builds[0], {source: c});
+        var widget = <BuildWidget build={last_build} />;
 
         var source_uuid = c.id;
         var sha = c.revision.sha;
@@ -188,7 +189,6 @@ var Commits = React.createClass({
           {sha.substr(0,5) + "..."}
         </a>;
 
-
         var project_href = "/v2/project/" + slug;
         var project_link = <a href={project_href}>
           {project.name}
@@ -196,8 +196,8 @@ var Commits = React.createClass({
 
         grid_data.push(
           [
-            status_results,
-            {sha_link},
+            widget,
+            sha_link,
             project_link,
             utils.truncate(c.revision.message.split("\n")[0]),
             <TimeText time={c.revision.dateCreated} />
@@ -206,9 +206,9 @@ var Commits = React.createClass({
       });
     });
 
-    var cellClasses = ['nowrap center', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
-      'Builds',
+      'Last Build',
       'Commit',
       'Project',
       'Name',
@@ -229,14 +229,18 @@ var Commits = React.createClass({
 
     var is_it_out_link = custom_content_hook('isItOutHref', null, all_project_slugs);
     if (is_it_out_link) {
-      is_it_out_markup = <div style={{float: 'right'}}>
+      is_it_out_markup = <span>
+        {" ["}
         <a href={is_it_out_link} target="_blank">Is it out?</a>
-      </div>;
+        {"]"}
+      </span>;
     }
 
     return <div className="marginTopM">
-      {is_it_out_markup}
-      <SectionHeader>Commits</SectionHeader>
+      <div className="marginBottomS">
+        <SectionHeader className="inline">Commits</SectionHeader>
+        {is_it_out_markup}
+      </div>
       <Grid 
         data={grid_data} 
         cellClasses={cellClasses} 

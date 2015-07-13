@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Error } from 'es6!display/errors';
+import { Error, ProgrammingError } from 'es6!display/errors';
 
 import * as utils from 'es6!utils/utils';
 
@@ -71,11 +71,11 @@ var Grid = React.createClass({
 
     var [data_is_good, error_data] = this.verifyData();
     if (!data_is_good) {
-      return <Error>
+      return <ProgrammingError>
         {error_data.num_rows_bad} of {data.length} row(s) has/have the 
-        wrong length. Expected {error_data.expected_length}, there was a bad
+        wrong length. Expected {error_data.expected_length}, ran into a bad
         row with length {error_data.bad_row_length}.
-      </Error>;
+      </ProgrammingError>;
     }
 
     var header_row = null;
@@ -103,8 +103,13 @@ var Grid = React.createClass({
     var classes = this.props.cellClasses;
 
     var cells = _.map(row, (cell, index) => {
-      var className = (classes && classes[index]) || "";
-      className += ' gridCell';
+      if (row_type !== "header") {
+        var className = (classes && classes[index]) || "";
+        className += ' gridCell';
+      } else {
+        className = 'nowrap gridCell';
+      }
+
       return <div className={className}>
         {cell}
       </div>;

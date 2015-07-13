@@ -1,3 +1,8 @@
+/* 
+ * TODO: split up css, have flask web always concatenate css into a single 
+ * bundle 
+ */
+
 body {
   color: #333;
 /*font-family: Georgia, Times, 'Times New Roman', serif;*/
@@ -132,20 +137,12 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
   white-space: pre-wrap;
 }
 
-.grid.lightweight {
-  border: none;
-  margin-left: -2px;
-  margin-top: 9px;
+.invisibleTable {
+  border-spacing: 0
 }
 
-.grid.lightweight .gridHeader .gridCell {
-  background-color: #fff;
-  border: none;
-  color: #5a5758;
-  font-size: x-small;
-  font-weight: bold;
-  line-height: 0px;
-  text-transform: uppercase;
+.invisibleTable td {
+  padding: 2px 8px 0 0;
 }
 
 /* markup for commit page */
@@ -387,6 +384,25 @@ div.grid {
   display: inline-block;
   margin-right: 4px;
   opacity: 1;
+}
+
+.buildWidget {
+  color: #333;
+  display: block;
+  text-decoration: none;
+}
+
+.gridCell.buildWidgetCell {
+  padding: 0;
+  padding-right: 6px;
+}
+
+.gridCell.buildWidgetCell .buildWidget {
+  padding: 4px;
+}
+
+.buildWidget:hover {
+  background-color: #d9d8d8;
 }
 
 /*

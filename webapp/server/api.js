@@ -1,3 +1,5 @@
+import * as utils from 'es6!utils/utils';
+
 /**
  * Data structure for the data received from the changes API.
  */
@@ -11,8 +13,25 @@ export var APIResponse = function(endpoint) {
 }
 
 var APIResponsePrototype = {
-  getReturnedData() { 
+  // for API calls that return json
+  getReturnedData: function() { 
     return JSON.parse(this.response.responseText); 
+  },
+  
+  // api calls with pagination return their links as a response header.
+  getLinksFromHeader: function() {
+    var header = this.response.getResponseHeader('Link');
+    if (header === null) {
+      return {};
+    }
+
+    var links = {};
+    _.each(header.split(','), str => {
+      var match = /<([^>]+)>; rel="([^"]+)"/g.exec(str);
+      links[match[2]] = match[1];
+    });
+
+    return links;
   }
 }
 
@@ -31,14 +50,27 @@ export var fetch = function(elem, endpoint_map) {
  */
 export var fetchMap = function(elem, map_key, endpoint_map) {
   // add a bunch of "loading" APIResponse objects to the element state
-  var state_to_set = _.mapObject(endpoint_map, (endpoint, map_key) => {
-    return APIResponse(endpoint);
-  });
   if (map_key) { 
-    state_to_set = {};
-    state_to_set[map_key] = _.mapObject(endpoint_map, e => APIResponse(e));
+    // we preserve other elements in the map
+    elem.setState((previous_state, props) => {
+      var new_map = _.extend({}, 
+        previous_state[map_key], 
+        _.mapObject(endpoint_map, (endpoint) => {
+          return APIResponse(endpoint);
+        }));
+      var state_to_set = {};
+      state_to_set[map_key] = new_map;
+      return state_to_set;
+    });
+  } else {
+    elem.setState(
+      _.mapObject(endpoint_map, (endpoint) => {
+        return APIResponse(endpoint);
+      })
+    );
   }
-  elem.setState(state_to_set);
+  
+  //state_to_set);
 
   _.each(endpoint_map, (endpoint, state_key) => {
     var ajax_response = function(response, was_success) {
@@ -55,15 +87,8 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
         state_to_set[state_key] = api_response;
         elem.setState(state_to_set);
       } else {
-        elem.setState((previous_state, current_props) => {
-          // we have to set the entire map, not just the single key that changed
-          var fetch_map = _.clone(elem.state[map_key]);
-          fetch_map[state_key] = api_response;
-
-          var state_to_set = {};
-          state_to_set[map_key] = fetch_map;
-          return state_to_set;
-        });
+        elem.setState(utils.update_state_key(
+          map_key, state_key, api_response));
       }
     }
     make_api_ajax_call(endpoint, ajax_response, ajax_response);
@@ -80,24 +105,44 @@ export var asyncFetchMap = function(elem, map_key, endpoint_map) {
   }, 0);
 }
 
+/*
+ * Has an api call finished yet? Handles null (false)
+ */
 export var isLoaded = function(possible) {
   return _.isObject(possible) && possible.condition === 'loaded'
 }
 
+/*
+ * Did an api call return an error?
+ */
+export var isError = function(possible) {
+  return _.isObject(possible) && possible.condition === 'error'
+}
+
+/*
+ * For keys in map, are all of the api calls finished?
+ */
 export var mapIsLoaded = function(map, keys) {
   if (!keys) {
     throw "You must provide a list of keys to check!";
   }
-  return _.every(_.map(keys, k => isLoaded(map[k])));
+  return map && _.every(_.map(keys, k => isLoaded(map[k])));
 }
 
+/*
+ * For keys in map, did any of the api calls return an error?
+ */
 export var mapAnyErrors = function(map, keys) {
   if (!keys) {
     throw "You must provide a list of keys!";
   }
-  return _.any(_.map(keys, k => map[k] && map[k].condition === 'error'));
+  return map && _.any(_.map(keys, k => map[k] && map[k].condition === 'error'));
 }
 
+/*
+ * For keys in map, return all XMLHTTPRequest objects for api calls that
+ * returned an error
+ */
 export var mapGetErrorResponses = function(map, keys) {
   if (!keys) {
     throw "You must provide a list of keys!";
@@ -128,7 +173,8 @@ export var make_api_ajax_call = function(
   var url = endpoint;
 
   // useful during development, to redirect API calls to a prod frontend
-  if (window.changesGlobals['USE_ANOTHER_HOST']) {
+  var url_is_absolute = url && url.indexOf('http') === 0;
+  if (window.changesGlobals['USE_ANOTHER_HOST'] && !url_is_absolute) {
     url = window.changesGlobals['USE_ANOTHER_HOST'] + url;
   }
 

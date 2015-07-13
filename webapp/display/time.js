@@ -1,6 +1,7 @@
 import React from 'react';
 import Moment from 'moment';
 
+import * as utils from 'es6!utils/utils';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
@@ -74,8 +75,16 @@ export var TimeText = React.createClass({
  * Converts 136 [in seconds] to a string like "2m16s"
  */
 export var display_duration = function(total_seconds) {
+  return display_duration_pieces(total_seconds).join("");
+}
+
+/* 
+ * as display_duration, but returns a 4-tuple of durations. Useful if you 
+ * want to emphasize hour/day 
+ */
+export var display_duration_pieces = function(total_seconds) {
   if (total_seconds < 1) {
-    return "<1s";
+    return [null, null, null, "<1s"];
   }
 
   var seconds = 0, minutes = 0, hours = 0, days = 0;
@@ -92,10 +101,10 @@ export var display_duration = function(total_seconds) {
     hours = hours % 24;
   }
 
-  return (
-    (days ? `${days}d` : "") +
-    (hours ? `${hours}h` : "") +
-    (minutes ? `${minutes}m` : "") +
-    `${seconds}s` // show even if 0s TODO: if (minutes || seconds)
-  );
+  return [
+    (days ? `${days}d` : null),
+    (hours ? `${hours}h` : null),
+    (minutes ? `${utils.pad(minutes)}m` : null),
+    `${minutes ? utils.pad(seconds, 2) : seconds}s`
+  ];
 }
