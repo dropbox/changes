@@ -50,5 +50,6 @@ class RevisionSerializer(Serializer):
             'parents': instance.parents,
             'branches': instance.branches,
             'dateCreated': instance.date_created,
+            'dateCommitted': instance.date_committed,
             'external': external,
         }

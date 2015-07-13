@@ -11,5 +11,6 @@ class RevisionSerializer(Serializer):
             'message': instance.message,
             'author': None,  # We don't return author information
             'dateCreated': instance.author_date,
+            'dateCommitted': instance.committer_date,
             'branches': instance.branches,
         }

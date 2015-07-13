@@ -194,8 +194,6 @@ var Commits = React.createClass({
           {project.name}
         </a>;
 
-        // TODO: do i need this? If I do, need a boundary between commits
-        grid_data = grid_data.slice(0, 50);
         grid_data.push(
           [
             status_results,
