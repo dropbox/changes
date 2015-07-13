@@ -172,6 +172,7 @@ def sync_job_step(step_id):
         default_timeout = current_app.config['DEFAULT_JOB_TIMEOUT_MIN']
         if has_timed_out(step, jobplan, default_timeout=default_timeout):
             old_status = step.status
+            step.data['timed_out'] = True
             implementation.cancel_step(step=step)
 
             # Not all implementations can actually cancel, but it's dead to us as of now

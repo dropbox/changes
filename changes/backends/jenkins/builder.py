@@ -611,7 +611,7 @@ class JenkinsBuilder(BaseBackend):
         elif item.get('executable'):
             return self._sync_step_from_active(step)
 
-    def _sync_step_from_active(self, step):
+    def _get_jenkins_job(self, step):
         try:
             job_name = step.data['job_name']
             build_no = step.data['build_no']
@@ -619,12 +619,15 @@ class JenkinsBuilder(BaseBackend):
             raise UnrecoverableException('Missing Jenkins job information')
 
         try:
-            item = self._get_json_response(
+            return self._get_json_response(
                 step.data['master'],
                 '/job/{}/{}'.format(job_name, build_no),
             )
         except NotFound:
             raise UnrecoverableException('Unable to find job in Jenkins')
+
+    def _sync_step_from_active(self, step):
+        item = self._get_jenkins_job(step)
 
         if not step.data.get('uri'):
             step.data['uri'] = item['url']
@@ -865,6 +868,7 @@ class JenkinsBuilder(BaseBackend):
         db.session.commit()
 
     def cancel_step(self, step):
+        # The Jenkins build_no won't exist if the job is still queued.
         if step.data.get('build_no'):
             url = '/job/{}/{}/stop/'.format(
                 step.data['job_name'], step.data['build_no'])
@@ -884,9 +888,26 @@ class JenkinsBuilder(BaseBackend):
                 method='POST',
             )
         except NotFound:
-            pass
+            return
         except Exception:
             self.logger.exception('Unable to cancel build upstream')
+
+        # If the build timed out and is in progress (off the Jenkins queue),
+        # try to grab the logs.
+        if not step.data.get('queued') and step.data.get('timed_out', False):
+            try:
+                job_name = step.data['job_name']
+                build_no = step.data['build_no']
+                self._sync_log(
+                    jobstep=step,
+                    name=step.label,
+                    job_name=job_name,
+                    build_no=build_no,
+                )
+            except Exception:
+                self.logger.exception(
+                    'Unable to fully sync console log for job step %r',
+                    step.id.hex)
 
     def get_job_parameters(self, job, changes_bid):
         # TODO(kylec): Take a Source rather than a Job; we don't need a Job.

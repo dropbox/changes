@@ -278,6 +278,63 @@ class CancelStepTest(BaseTestCase):
         assert step.status == Status.finished
         assert step.result == Result.aborted
 
+    @responses.activate
+    def test_timeouts_sync_log(self):
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
+            body=self.load_fixture('fixtures/GET/job_details_building.json'))
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
+            match_querystring=True,
+            adding_headers={'X-Text-Size': '7'},
+            body='Foo bar')
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
+            body=self.load_fixture('fixtures/GET/node_config.xml'))
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
+            data={
+                'build_no': 2,
+                'item_id': 13,
+                'job_name': 'server',
+                'queued': False,
+                'master': 'http://jenkins.example.com',
+            },
+        )
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data=job.data)
+
+        builder = self.get_builder()
+
+        # The job is not yet complete after this sync step so no logs yet.
+        builder.sync_step(step)
+        source = LogSource.query.filter_by(job=job).first()
+        assert source is None
+
+        step.data['timed_out'] = True
+        builder.cancel_step(step)
+
+        source = LogSource.query.filter_by(job=job).first()
+        assert source.step == step
+        assert source.name == step.label
+        assert source.project == self.project
+        assert source.date_created == step.date_started
+
+        chunks = list(LogChunk.query.filter_by(
+            source=source,
+        ).order_by(LogChunk.date_created.asc()))
+        assert len(chunks) == 1
+        assert chunks[0].job_id == job.id
+        assert chunks[0].project_id == self.project.id
+        assert chunks[0].offset == 0
+        assert chunks[0].size == 7
+        assert chunks[0].text == 'Foo bar'
+
+        assert step.data.get('log_offset') == 7
+
 
 class SyncStepTest(BaseTestCase):
     @responses.activate
