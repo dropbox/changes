@@ -190,6 +190,14 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
   margin-bottom: 10px;
 }
 
+.grid.errorGrid {
+  border-color: #ee2e24;
+}
+
+.errorGrid .gridHeader .gridCell {
+  background-color: #ee2e24;
+}
+
 /*
  * SECTION: convenience
  */

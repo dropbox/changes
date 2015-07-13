@@ -13,6 +13,7 @@ import Grid from 'es6!display/grid';
 import SectionHeader from 'es6!display/section_header';
 import { Menu1, Menu2 } from 'es6!display/menus';
 import colors from 'es6!utils/colors';
+import custom_content_hook from 'es6!utils/custom_content';
 
 var cx = React.addons.classSet;
 
@@ -28,6 +29,8 @@ var CommitPage = React.createClass({
       commitBuilds: null,
       builds: {},
       jobs: {},
+
+      showRevertInstructions: {},
     }
   },
 
@@ -281,10 +284,29 @@ var CommitPage = React.createClass({
       ]
     });
 
+    var revert_instructions = custom_content_hook('revertInstructions');
+    var revert_markup = null, revert_link = null;
+    if (revert_instructions) {
+      var on_click = __ => { 
+        this.setState((prevStat, props) => {
+          var instr = _.clone(prevStat.showRevertInstructions);
+          instr[build.id] = !instr[build.id];
+          return {showRevertInstructions: instr};
+        });
+      };
+      revert_link = <a onClick={on_click}>How do I revert this?</a>;
+      if (this.state.showRevertInstructions[build.id]) {
+        revert_markup = <pre style={{ backgroundColor: "#fdf3da", border: "1px solid #c9b8a8" }}>
+          {custom_content_hook('revertInstructions')}
+        </pre>;
+      }
+    }
+
     return <div>
-      {this.renderSubheader("Failed Tests")}
+      {this.renderSubheader("Failed Tests", revert_link)}
+      {revert_markup}
       <Grid 
-        className="marginBottomM" 
+        className="errorGrid marginBottomM"
         data={rows} 
         headers={['Links', 'Name']} 
       />
@@ -431,15 +453,20 @@ var CommitPage = React.createClass({
     </div>;
   },
 
-  renderSubheader: function(text) {
+  renderSubheader: function(text, extra_link) {
     var style = {
       fontSize: 18,
       fontWeight: "bold",
-      marginTop: 10
     };
 
-    return <div style={style}>
-      {text}
+    var extra_markup = [];
+    if (extra_link) {
+      extra_markup = [" (", extra_link, ")"];
+    }
+
+    return <div className="marginTopM">
+      <span style={style}>{text}</span>
+      {extra_markup}
     </div>;
   }
 });
