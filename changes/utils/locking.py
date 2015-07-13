@@ -9,7 +9,8 @@ from changes.config import redis
 def lock(func):
     @wraps(func)
     def wrapped(**kwargs):
-        key = '{0}:{1}'.format(
+        key = '{0}:{1}:{2}'.format(
+            func.__module__,
             func.__name__,
             md5(
                 '&'.join('{0}={1}'.format(k, repr(v))
