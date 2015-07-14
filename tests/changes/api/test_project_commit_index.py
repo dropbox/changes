@@ -143,11 +143,8 @@ class ProjectCommitIndexTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 2
-        assert data[0]['branches'] == ['first', '2nd']
-        assert data[1]['branches'] == ['first']
 
         resp = self.client.get(path + '?branch=2nd')
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 1
-        assert data[0]['branches'] == ['first', '2nd']

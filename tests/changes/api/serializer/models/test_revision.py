@@ -25,7 +25,6 @@ class RevisionTest(TestCase):
         assert result['message'] == 'hello world'
         assert result['dateCreated'] == '2013-09-19T22:15:22'
         assert result['parents'] == ['a' * 40]
-        assert result['branches'] == ['master']
         assert result['external'] is None
 
     def test_phabricator_links(self):

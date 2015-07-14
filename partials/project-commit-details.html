@@ -20,8 +20,6 @@
         <dd>{{repository.url}}</dd>
         <dt>Date:</dt>
         <dd><span time-since="commit.dateCreated"></span></dd>
-        <dt>Branch:</dt>
-        <dd><span ng-repeat="branch in commit.branches">{{branch}}</span></dd>
         <dt ng-if="commit.external">Browse:</dt>
         <dd ng-if="commit.external"><a href="{{commit.external.link}}">{{commit.external.label}}</a></dd>
     </dl>
