@@ -408,6 +408,7 @@ def configure_api_routes(app):
     from changes.api.author_diffs import AuthorPhabricatorDiffsAPIView
     from changes.api.build_comment_index import BuildCommentIndexAPIView
     from changes.api.build_details import BuildDetailsAPIView
+    from changes.api.build_flaky_tests import BuildFlakyTestsAPIView
     from changes.api.build_index import BuildIndexAPIView
     from changes.api.build_mark_seen import BuildMarkSeenAPIView
     from changes.api.build_cancel import BuildCancelAPIView
@@ -490,6 +491,7 @@ def configure_api_routes(app):
     api.add_resource(AuthorPhabricatorDiffsAPIView, '/authors/<author_id>/diffs/')
     api.add_resource(BuildCommentIndexAPIView, '/builds/<uuid:build_id>/comments/')
     api.add_resource(BuildDetailsAPIView, '/builds/<uuid:build_id>/')
+    api.add_resource(BuildFlakyTestsAPIView, '/builds/<uuid:build_id>/flaky_tests/')
     api.add_resource(BuildMarkSeenAPIView, '/builds/<uuid:build_id>/mark_seen/')
     api.add_resource(BuildCancelAPIView, '/builds/<uuid:build_id>/cancel/')
     api.add_resource(BuildRestartAPIView, '/builds/<uuid:build_id>/restart/')
