@@ -10,7 +10,7 @@ from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.models import (
     ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
-    FileCoverage, FailureReason
+    FileCoverage, FailureReason, SnapshotImage
 )
 from changes.queue.task import tracked_task
 
@@ -39,6 +39,22 @@ def _has_failure_reasons(step):
 
 
 def _expects_tests(jobplan):
+    """Check whether a jobplan expects tests or not.
+
+    Usually this is encoded within the jobplan itself under a snapshot
+    of the ItemOptions associated with the plan, but if not we fall
+    back to looking at the plan itself.
+
+    Since snapshot builds never return tests, we override this for
+    snapshot builds and never expect tests for them (which allows
+    building a snapshot for a plan that has buld.expect-tests enabled)
+    """
+    is_snapshot_build = db.session.query(SnapshotImage.query.filter(
+        SnapshotImage.job_id == jobplan.job_id
+    ).exists()).scalar()
+    if is_snapshot_build:
+        return False
+
     if 'snapshot' in jobplan.data:
         options = jobplan.data['snapshot']['options']
     else:

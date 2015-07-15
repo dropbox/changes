@@ -207,6 +207,36 @@ class IsMissingTestsTest(BaseTestCase):
 
         assert not is_missing_tests(jobstep2, jobplan)
 
+    def test_snapshot_build(self):
+        """
+        Test that a snapshot build is not missing tests, even if
+        there are no test results reported from the jobstep.
+        """
+        project = self.create_project()
+        plan = self.create_plan(project)
+
+        option = ItemOption(
+            item_id=plan.id,
+            name='build.expect-tests',
+            value='1',
+        )
+        db.session.add(option)
+        db.session.commit()
+
+        build = self.create_build(project=project)
+        job = self.create_job(build=build)
+        jobplan = self.create_job_plan(job, plan)
+        jobphase = self.create_jobphase(
+            job=job,
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+        )
+        jobstep = self.create_jobstep(jobphase)
+
+        assert is_missing_tests(jobstep, jobplan)
+        snapshot = self.create_snapshot(project)
+        snapshot_image = self.create_snapshot_image(snapshot, plan, job_id=job.id)
+        assert not is_missing_tests(jobstep, jobplan)
+
 
 class SyncJobStepTest(BaseTestCase):
     @mock.patch('changes.config.queue.delay')
