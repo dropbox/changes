@@ -1,4 +1,5 @@
 from cStringIO import StringIO
+from mock import MagicMock
 
 from mock import patch, Mock
 from changes.api.build_index import find_green_parent_sha
@@ -6,7 +7,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import Job, JobPlan, ProjectOption
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
-from changes.vcs.base import Vcs, RevisionResult
+from changes.vcs.base import Vcs, UnknownRevision
 from changes.testutils.build import CreateBuildsMixin
 
 
@@ -233,13 +234,12 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
     @patch('changes.models.Repository.get_vcs')
     def test_error_on_invalid_revision(self, get_vcs):
         def log_results(parent=None, branch=None, offset=0, limit=1):
+            def throw():
+                raise UnknownRevision(cmd="test command", retcode=128)
             assert not branch
-            return iter([
-                RevisionResult(
-                    id='a' * 40,
-                    message='hello world',
-                    author='Foo <foo@example.com>',
-                )])
+            ret = MagicMock()
+            ret.next.side_effect = throw
+            return ret
 
         # Fake having a VCS and stub the returned commit log
         fake_vcs = Mock(spec=Vcs)

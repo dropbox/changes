@@ -22,6 +22,7 @@ from changes.models import (
 )
 from changes.utils.diff_parser import DiffParser
 from changes.utils.whitelist import in_project_files_whitelist
+from changes.vcs.base import UnknownRevision
 
 
 class MissingRevision(Exception):
@@ -47,7 +48,7 @@ def identify_revision(repository, treeish):
 
     try:
         commit = vcs.log(parent=treeish, limit=1).next()
-    except Exception:
+    except UnknownRevision:
         # TODO(dcramer): it's possible to DOS the endpoint by passing invalid
         # commits so we should really cache the failed lookups
         raise MissingRevision('Unable to find revision %s' % (treeish,))
@@ -225,6 +226,45 @@ def get_repository_by_url(url):
     ).first()
 
 
+def try_get_projects_and_repository(args):
+    """Given a set of HTTP POST arguments, try and find the appropriate
+    projects and repository.
+
+    Possible inputs:
+        project
+        Returns: (A list containing only this project) * its repository
+
+        repository
+        Returns: All active projects for this repo * repo
+
+        repository living at key 'repository[phabricator.callsign]'
+        Returns: All active projects for this repo * repo
+    """
+    if args.project:
+        repository = Repository.query.get(args.project.repository_id)
+        return [args.project], repository
+    elif args.repository:
+        repository = args.repository
+        projects = list(Project.query.options(
+            subqueryload_all('plans'),
+        ).filter(
+            Project.status == ProjectStatus.active,
+            Project.repository_id == repository.id,
+        ))
+        return projects, repository
+    elif args['repository[phabricator.callsign]']:
+        repository = args['repository[phabricator.callsign]']
+        projects = list(Project.query.options(
+            subqueryload_all('plans'),
+        ).filter(
+            Project.status == ProjectStatus.active,
+            Project.repository_id == repository.id,
+        ))
+        return projects, repository
+    else:
+        return None, None
+
+
 class BuildIndexAPIView(APIView):
     parser = reqparse.RequestParser()
     parser.add_argument('sha', type=str, required=True)
@@ -280,27 +320,7 @@ class BuildIndexAPIView(APIView):
         else:
             patch_data = None
 
-        if args.project:
-            projects = [args.project]
-            repository = Repository.query.get(args.project.repository_id)
-
-        elif args.repository:
-            repository = args.repository
-            projects = list(Project.query.options(
-                subqueryload_all('plans'),
-            ).filter(
-                Project.status == ProjectStatus.active,
-                Project.repository_id == repository.id,
-            ))
-
-        elif args['repository[phabricator.callsign]']:
-            repository = args['repository[phabricator.callsign]']
-            projects = list(Project.query.options(
-                subqueryload_all('plans'),
-            ).filter(
-                Project.status == ProjectStatus.active,
-                Project.repository_id == repository.id,
-            ))
+        projects, repository = try_get_projects_and_repository(args)
 
         if not projects:
             return error("Unable to find project(s).")
