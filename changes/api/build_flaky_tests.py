@@ -17,22 +17,17 @@ class BuildFlakyTestsAPIView(APIView):
         ))
 
         flaky_tests_query = db.session.query(
-            TestCase.name,
-            TestCase.reruns
+            TestCase.name
         ).filter(
             TestCase.job_id.in_([j.id for j in jobs]),
             TestCase.result == Result.passed,
             TestCase.reruns > 1
         ).order_by(TestCase.name.asc())
 
-        flaky_tests = []
-        for name, reruns in flaky_tests_query:
-            flaky_tests.append({
-                'name': name,
-                'reruns': reruns
-            })
+        flaky_tests = map(lambda test: {'name': test.name}, flaky_tests_query)
 
         context = {
+            'repositoryUrl': build.project.repository.url,
             'flakyTests': {
                 'count': len(flaky_tests),
                 'items': flaky_tests
