@@ -91,7 +91,7 @@ def build_finished_handler(build_id, **kwargs):
         'build_id': build.id.hex,
         'result': unicode(build.result),
         'project_slug': build.project.slug,
-        'is_commit': bool(build.source.is_commit()),
+        'is_commit': build.source.is_commit(),
         'label': build.label,
         'number': build.number,
         'duration': build.duration,

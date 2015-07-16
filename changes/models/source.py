@@ -73,4 +73,4 @@ class Source(db.Model):
         return None
 
     def is_commit(self):
-        return self.patch_id is None and self.revision_sha
+        return bool(self.patch_id is None and self.revision_sha)
