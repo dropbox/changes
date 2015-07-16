@@ -29,7 +29,11 @@ class ProjectFlakyTestsAPIView(APIView):
             except:
                 return 'Can\'t parse date "%s"' % (args.date), 500
         else:
-            query_date = datetime.utcnow().date() - timedelta(days=1)
+            # This `7` is hard-coded to match the code in config.py which kicks
+            # off the cron job 7 hours past midnight GMT (which corresponds to
+            # midnight PST)
+            delta = timedelta(days=2 if datetime.utcnow().hour < 7 else 1)
+            query_date = datetime.utcnow().date() - delta
 
         data = {
             'date': str(query_date),
