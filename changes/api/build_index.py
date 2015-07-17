@@ -22,7 +22,7 @@ from changes.models import (
 )
 from changes.utils.diff_parser import DiffParser
 from changes.utils.whitelist import in_project_files_whitelist
-from changes.vcs.base import UnknownRevision
+from changes.vcs.base import CommandError
 
 
 class MissingRevision(Exception):
@@ -48,7 +48,7 @@ def identify_revision(repository, treeish):
 
     try:
         commit = vcs.log(parent=treeish, limit=1).next()
-    except UnknownRevision:
+    except CommandError:
         # TODO(dcramer): it's possible to DOS the endpoint by passing invalid
         # commits so we should really cache the failed lookups
         raise MissingRevision('Unable to find revision %s' % (treeish,))

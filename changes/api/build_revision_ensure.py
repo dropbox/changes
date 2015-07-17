@@ -10,11 +10,10 @@ from changes.api.build_index import (
     identify_revision, get_repository_by_callsign, get_repository_by_url, try_get_projects_and_repository, MissingRevision, get_build_plans, create_build
 )
 from changes.models import (
-    Project, ProjectOptionsHelper, Build, Source,
+    Project, ProjectOptionsHelper, Build,
 )
 from changes.utils.diff_parser import DiffParser
 from changes.utils.whitelist import in_project_files_whitelist
-from changes.vcs.base import UnknownRevision
 
 
 class BuildRevisionEnsureAPIView(APIView):
@@ -32,19 +31,8 @@ class BuildRevisionEnsureAPIView(APIView):
         vcs = repository.get_vcs()
         if not vcs:
             raise NotImplementedError
-        # Make sure the repo exists on disk.
-        if not vcs.exists():
-            vcs.clone()
 
-        diff = None
-        try:
-            diff = vcs.export(revision.sha)
-        except UnknownRevision:
-            # Maybe the repo is stale; update.
-            vcs.update()
-            # If it doesn't work this time, we have
-            # a problem. Let the exception escape.
-            diff = vcs.export(revision.sha)
+        diff = vcs.export(revision.sha)
 
         diff_parser = DiffParser(diff)
         return diff_parser.get_changed_files()
@@ -73,6 +61,15 @@ class BuildRevisionEnsureAPIView(APIView):
 
         if not projects:
             return error("Unable to find project(s).")
+
+        # first update the repo, otherwise we may not find the sha
+        vcs = repository.get_vcs()
+        if vcs is None:
+            return error('This project does not have a VCS backend')
+        if vcs.exists():
+            vcs.update()
+        else:
+            vcs.clone()
 
         try:
             revision = identify_revision(repository, args.sha)
@@ -117,7 +114,7 @@ class BuildRevisionEnsureAPIView(APIView):
             # created
             potentials = list(Build.query.filter(
                 Build.project_id == project.id,
-                Source.revision_sha == sha,
+                Build.source.has(revision_sha=sha),
             ).order_by(
                 Build.date_created.desc()  # newest first
             ).limit(1))

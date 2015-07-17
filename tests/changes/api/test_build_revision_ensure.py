@@ -212,3 +212,29 @@ class BuildEnsureTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
         assert data[0]['project']['slug'] == self.project.slug
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_existing_build_wrong_revision(self, get_vcs):
+        """Tests when other builds in the system exist"""
+        get_vcs.return_value = self.get_fake_vcs()
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        wrong_revision = self.create_revision(
+            repository=self.project.repository,
+            sha='b' * 40
+        )
+        source = self.create_source(self.project, revision=wrong_revision)
+
+        # this is older and won't be returned
+        self.create_build(self.project, source=source)
+        build = self.create_build(self.project, source=source)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] != build.id.hex
