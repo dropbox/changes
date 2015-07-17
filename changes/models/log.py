@@ -8,8 +8,9 @@ from sqlalchemy.schema import Index, UniqueConstraint
 from changes.config import db
 from changes.db.types.guid import GUID
 
-
-LOG_CHUNK_SIZE = 4096
+# The expected maximum log chunk size; chunks from incremental logs
+# and final chunks can certainly be smaller.
+LOG_CHUNK_SIZE = 4096 * 2
 
 
 class LogSource(db.Model):
