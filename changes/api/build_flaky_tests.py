@@ -27,6 +27,7 @@ class BuildFlakyTestsAPIView(APIView):
         flaky_tests = map(lambda test: {'name': test.name}, flaky_tests_query)
 
         context = {
+            'projectSlug': build.project.slug,
             'repositoryUrl': build.project.repository.url,
             'flakyTests': {
                 'count': len(flaky_tests),
