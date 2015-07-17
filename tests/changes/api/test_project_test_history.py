@@ -27,7 +27,7 @@ class ProjectTestHistoryTest(APITestCase):
                     author_date=datetime(2013, 9, 19, 22, 15, 21),
 
                 )
-            ])
+            ][offset:offset + limit])
 
         # Fake having a VCS and stub the returned commit log
         fake_vcs = Mock(spec=Vcs)
