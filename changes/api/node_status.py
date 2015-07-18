@@ -75,7 +75,7 @@ class NodeStatusAPIView(APIView):
                 if 'temporarilyOffline' in node_info:
                     context['offline'] = node_info['temporarilyOffline']
             else:
-                logging.warning('Unable to get node info (%s)' % (info_url))
+                logging.warning('Unable to get node info (%s)', info_url)
 
         return self.respond(context, serialize=False)
 

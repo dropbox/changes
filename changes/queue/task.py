@@ -104,8 +104,8 @@ class TrackedTask(local):
             Task.date_modified: datetime.utcnow(),
         })
         if not updated and not self.allow_absent_from_db:
-            self.logger.error("Tried up update a Task that doesn't exist in the database; {}, {}".format(
-                self.task_name, kwargs))
+            self.logger.error("Tried to update a Task that doesn't exist in the database; %s, %s",
+                self.task_name, kwargs)
             return
 
         try:
