@@ -64,6 +64,10 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
   color: #737171;
 }
 
+.bb {
+  font-weight: 900;
+}
+
 .leftrightCols {
   display: table;
   width: 100%;
@@ -397,6 +401,7 @@ div.grid {
 .buildWidget {
   color: #333;
   display: block;
+  position: relative;
   text-decoration: none;
 }
 

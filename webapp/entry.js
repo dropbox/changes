@@ -13,7 +13,10 @@ requirejs.config({
     // core libraries we use
     react: 'vendor/react/react-with-addons',
     requirejs: 'vendor/requirejs/require',
-    underscore: 'vendor/underscore/underscore'
+    underscore: 'vendor/underscore/underscore',
+    // library to deal with URIs. Per github repo, this version is published
+    // under a pure MIT license (despite the gpl v3 reference.)
+    uriJS: 'vendor/uri.js/src'
   },
   config: {
     'es6': {
@@ -34,12 +37,13 @@ requirejs.config({
 require([
   "react", 
   "underscore",
+  "uriJS/URI",
   "es6!server/api",
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",
   "es6!pages/project_page",
-  "es6!pages/commit_page",
+  "es6!pages/builds_results_page",
   "es6!pages/test_history_page",
   "es6!pages/all_projects_page",
   "es6!pages/error_page",
@@ -48,11 +52,12 @@ require([
 ], function(
   React, 
   _,
+  URI,
   data_fetching,
 
   HomePage,
   ProjectPage,
-  CommitPage,
+  BuildsResultsPages,
   TestHistoryPage,
   AllProjectsPage,
   ErrorPage,
@@ -60,6 +65,13 @@ require([
   UITestPage
 ) {
   'use strict';
+
+  // for some reason, import statements aren't working for the URI library
+  // TODO: figure out why
+  window.URI = URI;
+
+  var CommitPage = BuildsResultsPages.CommitPage;
+  var DiffPage = BuildsResultsPages.DiffPage;
 
   // routing
   // TODO: all of this is terrible and temporary just to get something working.
@@ -76,6 +88,7 @@ require([
     'projects': [AllProjectsPage],
     'project': [ProjectPage, 'project'],
     'project_commit': [CommitPage, 'project', 'sourceUUID'],
+    'diff': [DiffPage, 'diff_id'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     // TODO: don't just use the homepage for this
     'author': [HomePage, 'author'],
@@ -109,6 +122,7 @@ require([
   // TODO: pages should set window.document.title
 
   data_fetching.make_api_ajax_call('/api/0/auth', function(response) {
+    // TODO: use context?
     window.changesAuthData = JSON.parse(response.responseText);
 
     React.render(

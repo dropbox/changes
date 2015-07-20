@@ -33,11 +33,19 @@ export var update_state_key = function(map_key, key, value) {
   return (prev_state, current_props) => {
     var old_map = _.clone(prev_state[map_key]);
     old_map[key] = value;
-
-    var state_to_set = {};
-    state_to_set[map_key] = old_map;
-    return state_to_set;
+    return {
+      [ map_key ]: old_map
+    };
   }
+}
+
+/*
+ * Wraps func in window.setTimeout. This allows you to call functions 
+ * like setState from render() (yes, there's a legitimate reason we do this...)
+ * Make sure to call bind on func!
+ */
+export var async = function(func) {
+  window.setTimeout(func, 0);
 }
 
 // TODO: use this regex to write a function that wraps urls in anchor tags

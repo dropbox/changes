@@ -2,9 +2,10 @@ import React from 'react';
 
 import { AjaxError } from 'es6!display/errors';
 import Grid from 'es6!display/grid';
-import { StatusDot, status_dots, BuildWidget } from 'es6!display/builds';
+import { StatusDot, status_dots, BuildWidget, get_build_state } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
+import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
 import { TimeText } from 'es6!display/time';
 
@@ -31,16 +32,20 @@ var HomePage = React.createClass({
     var diffs_endpoint = `/api/0/authors/${author}/diffs/`;
     // TODO: we may not render all 20...some commits may kick off like 4 builds
     var commits_endpoint = `/api/0/authors/${author}/commits/?per_page=20`;
+    var projects_endpoint = '/api/0/projects/'; // no fetch_extra
 
     api.fetch(this, {
       diffs: diffs_endpoint,
-      commits: commits_endpoint
+      commits: commits_endpoint,
+      projects: projects_endpoint,
     });
   },
 
   render: function() {
     // we can't render anything until we get commit data. If we have commit data
     // but not diffs data, render as much of the page as we can.
+    // NOTE: so right now, this page still basically works even when
+    // phabricator is down. Keep it that way.
     // TODO: its super-easy to do a partial render, but is it better to just
     // wait for everything?
     if (!api.isLoaded(this.state.commits) && !api.isError(this.state.commits)) {
@@ -89,9 +94,10 @@ var HomePage = React.createClass({
         />
         <Commits commits={commits} />
       </div>
-      <div>
+      <div className="marginTopL">
         <Projects
           commits={commits}
+          projects={this.state.projects}
         />
       </div>
     </div>;
@@ -118,9 +124,14 @@ var Diffs = React.createClass({
     }
 
     var grid_data = _.map(this.props.diffs, d => {
+      var ident = "D" + d.id;
+      var href = `/v2/diff/${ident}/`;
+
       return [
-        d.builds.length > 0 ? <BuildWidget build={_.first(d.builds)} /> : null,
-        <a href={d['uri']}>{"D"+d.id}</a>,
+        d.builds.length > 0 ? 
+          <BuildWidget href={href} build={_.first(d.builds)} /> : 
+          null,
+        <a href={d['uri']} target="_blank">{ident}</a>,
         d['statusName'],
         d['title'],
         <TimeText time={d['dateModified']} format="X" />
@@ -184,10 +195,12 @@ var Commits = React.createClass({
         var source_uuid = c.id;
         var sha = c.revision.sha;
 
-        var sha_href = `/v2/project_commit/${slug}/${source_uuid}`;
-        var sha_link = <a href={sha_href}>
-          {sha.substr(0,5) + "..."}
-        </a>;
+        var sha_item = sha.substr(0,7);
+        if (c.revision.external && c.revision.external.link) {
+          sha_item = <a href={c.revision.external.link} target="_blank">
+            {sha_item}
+          </a>;
+        }
 
         var project_href = "/v2/project/" + slug;
         var project_link = <a href={project_href}>
@@ -197,10 +210,10 @@ var Commits = React.createClass({
         grid_data.push(
           [
             widget,
-            sha_link,
+            sha_item,
             project_link,
             utils.truncate(c.revision.message.split("\n")[0]),
-            <TimeText time={c.revision.dateCreated} />
+            <TimeText time={c.revision.dateCommitted} />
           ]
         );
       });
@@ -209,7 +222,7 @@ var Commits = React.createClass({
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
       'Last Build',
-      'Commit',
+      'Hash',
       'Project',
       'Name',
       'Committed'
@@ -254,41 +267,87 @@ var Commits = React.createClass({
 // committed to
 var Projects = React.createClass({
   propTypes: {
-    commits: React.PropTypes.array.required,
+    projects: React.PropTypes.object,
+    commits: React.PropTypes.array
   },
 
   render: function() {
-    if (this.props.commits.length === 0) {
-      // TODO: transfer props?
-      return <div />;
+    var projects_api = this.props.projects;
+
+    if (!api.isLoaded(projects_api)) {
+      return <APINotLoaded state={projects} isInline={true} />;
     }
 
-    var projects = _.chain(this.props.commits)
-      .pluck('builds')
-      .flatten()
-      .pluck('project') 
-      .compact()
-      .uniq(false, p => p.slug)
-      .value();
+    var projects = projects_api.getReturnedData();
 
-    var project_links = _.map(projects, p => {
+    var author_projects = [];
+    if (this.props.commits) {
+      // grab projects recently committed to by author
+      var author_projects = _.chain(this.props.commits)
+        .pluck('builds')
+        .flatten()
+        .pluck('project')
+        .compact()
+        .map(p => p.slug)
+        .uniq()
+        .value();
+    }
+
+    var color_cls = '';
+    var project_entries = _.compact(_.map(projects, p => {
+      if (p.lastBuild) {
+        // ignore projects over a week old
+        // TODO: centralize this logic with all projects page
+        var age = moment.utc().format('X') - 
+          moment.utc(p.lastBuild.dateCreated).format('X');
+        if (age > 60*60*24*7) { // one week
+          return null;
+        }
+        switch (get_build_state(p.lastBuild)) {
+          case 'passed':
+            color_cls = 'lt-green';
+            break;
+          case 'failed':
+          case 'nothing':
+            color_cls = 'lt-red';
+            break;
+        }
+      }
+
       var url = "/v2/project/" + p.slug;
-      return [
-        <a href={url}>{p.name}</a>,
-        "TODO: show build history of proj"
-      ];
+      var project_name = _.contains(author_projects, p.slug) ?
+        <span className="bb">{p.name}</span> :
+        p.name;
+      return <a className={color_cls} href={url}>{project_name}</a>;
+    }));
+
+    // render names in 3 columns
+    var num_per_column = Math.ceil(project_entries.length / 3);
+    var column1 = project_entries.slice(0, num_per_column);
+    var column2 = project_entries.slice(num_per_column, num_per_column * 2)
+    var column3 = project_entries.slice(num_per_column * 2)
+    var zipped = _.zip(column1, column2, column3);
+
+    var project_rows = _.map(zipped, items => {
+      var [v1, v2, v3] = items;
+      return <tr>
+        <td><span className="marginRightL">{v1}</span></td>
+        <td><span className="marginRightL">{v2}</span></td>
+        <td>{v3}</td>
+      </tr>
     });
+    var project_table = <table className="invisibleTable">{project_rows}</table>;
 
-    var headers = ['Name', 'Data'];
-    var cellClasses = ['nowrap', 'wide'];
-
-    return <div className="marginTopM">
-      <SectionHeader>Projects</SectionHeader>
-      <Grid 
-        data={project_links} 
-        headers={headers} 
-        cellClasses={cellClasses}
-      />
+    return <div>
+      <div style={{marginBottom: 3, borderBottom: "1px solid #d9d8d8", paddingBottom: 5}}>
+        <SectionHeader className="inline">Active Projects</SectionHeader>
+        <span>
+          {" ["}
+          <a href="/v2/projects/">More Info</a>
+          {"]"}
+        </span>
+      </div>
+      {project_table}
     </div>;
   }
 });

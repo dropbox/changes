@@ -78,7 +78,8 @@ class PhabricatorRequest:
         connect_args = {
             'authSignature': hashlib.sha1(str(token) + self.cert).hexdigest(),
             'authToken': token,
-            'client': 'changes-phabricator',
+            'client': 'changes',
+            'clientDescription': 'conduit calls from changes api server',
             'clientVersion': 1,
             'host': self.host,
             'user': self.user,
@@ -118,5 +119,8 @@ class PhabricatorRequest:
         resp = requests.post(url, args)
         resp.raise_for_status()
 
-        content = json.loads(resp.content)['result']
-        return content
+        content = json.loads(resp.content)
+        if content.get('error_code'):  # always present, but may be null
+            raise ValueError((content['error_code'], content['error_info']))
+
+        return content['result']

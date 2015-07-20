@@ -15,6 +15,7 @@ var UITestPage = React.createClass({
   render: function() {
     var renderables = {};
     
+    console.log(Popover);
     var popover = <Popover>
       <strong>Holy guacamole!</strong> Check this info.
     </Popover>;

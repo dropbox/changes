@@ -167,7 +167,7 @@ var AllProjectsPage = React.createClass({
     });
     
     var headers = ['Last Build', 'When', 'Name', 'Links'];
-    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide'];
 
     return <Grid 
       data={grid_data} 
@@ -194,10 +194,15 @@ var AllProjectsPage = React.createClass({
       </div>;
 
       var repo_rows = _.map(repo_projects, (p, index) => {
-        var triggers = _.chain([
-          p.options["phabricator.diff-trigger"] ? "Diffs" : "",
-          p.options["build.commit-trigger"] ? "Commits" : ""
-        ]).compact().map(t => <div>{t}</div>).value();
+        var triggers = "Never";
+        if (p.options["phabricator.diff-trigger"] &&
+            p.options["build.commit-trigger"]) {
+          triggers = "Diffs and Commits";
+        } else if (p.options["phabricator.diff-trigger"]) {
+          triggers = "Only Diffs";
+        } else if (p.options["build.commit-trigger"]) {
+          triggers = "Only Commits";
+        }
         
         var whitelist = "";
         if (p.options['build.file-whitelist']) {
@@ -236,18 +241,26 @@ var AllProjectsPage = React.createClass({
   renderPlans(projects_data) {
     var rows = [];
     _.each(projects_data, proj => {
+      var num_plans = proj.plans.length;
       _.each(proj.plans, (plan, index) => {
+        var proj_name = "";
+        if (index === 0) {
+          var proj_name = (num_plans > 1) ?
+            <b>{proj.name}{" ("}{num_plans}{")"}</b> :
+            <b>{proj.name}</b>;
+        }
         rows.push([
-          (index === 0) ? proj.name : "",
+          proj_name,
           plan.name,
-          plan.steps.length > 0 ? plan.steps[0].name : ""
+          plan.steps.length > 0 ? plan.steps[0].name : "",
+          <TimeText time={plan.dateModified} />
         ]);
       });
     });
 
     // TODO: snapshot config?
-    var headers = ['Project', 'Plan', 'Implementation'];
-    var cellClasses = ['nowrap', 'wide', 'nowrap'];
+    var headers = ['Project', 'Plan', 'Implementation', 'Modified'];
+    var cellClasses = ['nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <Grid 
       data={rows} 

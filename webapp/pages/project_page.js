@@ -8,6 +8,7 @@ import APINotLoaded from 'es6!display/not_loaded';
 import { RandomLoadingMessage } from 'es6!display/loading';
 import ChangesPage from 'es6!display/page_chrome';
 import { Menu1, Menu2 } from 'es6!display/menus';
+import { Popover, OverlayTrigger } from 'react_bootstrap';
 
 import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
@@ -36,11 +37,10 @@ var ProjectPage = React.createClass({
     // we'll just grab everything in parallel now. Its easy enough to later
     // switch this to trigger on menu click
     api.fetch(this, {
-      'project': `/api/0/projects/${slug}`,
+      project: `/api/0/projects/${slug}`,
+      commits: Commits.getAPIEndpoint(slug),
+      details: ProjectDetails.getAPIEndpoint(slug)
     });
-
-    api.fetchMap(this, 'commits', Commits.getDataToLoad(slug));
-    api.fetchMap(this, 'details', ProjectDetails.getDataToLoad(slug));
   },
 
   render: function() {
@@ -50,7 +50,7 @@ var ProjectPage = React.createClass({
 
     // render menu
     var menu_items = [
-      'Commits', 'Tests', 'Project Details'
+      'Commits', 'Tests [TODO]', 'Project Details'
     ];
     var selected_item = this.state.selectedItem;
 
@@ -75,8 +75,8 @@ var ProjectPage = React.createClass({
         content = <Commits
           project={this.state.project}
           data={this.state.commits}
-          commitsState={this.state.commitsState}
-          page={this}
+          myState={this.state.commitsState}
+          pageElem={this}
         />;
         break;
       case 'Tests':
@@ -157,69 +157,129 @@ var Commits = React.createClass({
     data: React.PropTypes.object,
     // the project api response
     project: React.PropTypes.object,
-    commitsState: React.PropTypes.object,
-    page: React.PropTypes.element.isRequired,
+    // branches api response
+    branches: React.PropTypes.object,
+
+    // state is handled by parent so that its preserved if someone selects 
+    // the tests or details tab
+    myState: React.PropTypes.object,
+
+    // parent elem that has state
+    pageElem: React.PropTypes.element.isRequired,
+  },
+
+  getInitialState: function() {
+    // powers on-hover list of failed tests. Easier to just do this rather 
+    // than using myState above (it doesn't really matter if this gets wiped
+    // out)
+    return { failedTests: [] };
   },
 
   statics: {
-    getDataToLoad: function(project_slug) {
-      var endpoint = `/api/0/projects/${project_slug}/commits/?branch=master&all_builds=1`;
-      return {'commits': endpoint};
-    }
+    getAPIEndpoint: function(project_slug) {
+      var params = URI(window.location.href).query(true);
+      return URI(`/api/0/projects/${project_slug}/commits/`)
+        .query(_.extend(params, { 'all_builds': 1 }))
+        .toString();
+    },
   },
 
   render: function() {
-    // state is handled by parent so that its preserved on tab navigation
-    var state = this.props.commitsState;
+    var state = this.props.myState;
 
-    // have we loaded the initial data that populates this class yet?
-    var data_keys = _.keys(Commits.getDataToLoad());
-    if (!api.mapIsLoaded(this.props.data, data_keys)) {
+    if (!api.isLoaded(this.props.data)) {
       return <APINotLoaded 
-        stateMap={this.props.data} 
-        stateMapKeys={data_keys} 
+        state={this.props.data} 
         isInline={true}
       />;
     }
-
-    // we may have fetched updated data...figure out which data to use
-    var has_new_data = api.isLoaded(state.newData);
-    var is_loading_new_data = state.newData !== undefined &&
-      !api.isLoaded(state.newData);
-    // copying a comment below: note that we might be called after we've
-    // updated oldData but before we've updated newData
-
-    if (has_new_data) {
-      var commits = state.newData;
-    } else {
-      var commits = (state.oldData && state.oldData) || this.props.data.commits;
+    if (!api.isLoaded(this.props.project)) {
+      return <APINotLoaded state={this.props.project} isInline={true} />;
     }
 
-    var project_info = this.props.project.getReturnedData();
+    // we also need a list of repo branches. Send that ajax call immediately 
+    // after we load
+    if (!state['sending_branches_ajax_call']) {
+      var repo_id = this.props.project.getReturnedData().repository.id;
+
+      utils.async(__ => {
+        this.props.pageElem.setState(
+          utils.update_state_key(
+            'commitsState', 
+            'sending_branches_ajax_call', 
+            true),
+          ___ => {
+            api.fetchMap(
+              this.props.pageElem,
+              'commitsState',
+              { 'branches': `/api/0/repositories/${repo_id}/branches` }
+            );
+          }
+        );
+      }.bind(this));
+    }
+
+    var is_loading_new_data = this.isLoadingNewData();
+    var commits = this.getCurrentData();
+    var project_data = this.props.project.getReturnedData();
 
     var style = is_loading_new_data ? {opacity: 0.5} : null;
     return <div style={style}>
       {this.renderTableControls()}
-      {this.renderTable(commits.getReturnedData(), project_info)}
+      {this.renderTable(commits.getReturnedData(), project_data)}
       {this.renderPaginationLinks(commits)}
     </div>;
   },
 
   renderTableControls: function() {
-      /*
-      <span className="paddingLeftS">
-        Showing most recent diffs since 0:00pm
-      </span>
-      */
+    var state = this.props.myState, 
+      project = this.props.project.getReturnedData();
+  
+    var branches = null;
+    if (project.repository.defaultBranch) {
+      var branches = <select disabled={true}>
+        <option value={project.defaultBranch}>{project.defaultBranch}</option>
+      </select>;
+    } else {
+      var branches = <select disabled={true}>
+        <option>Unknown branch</option>
+      </select>;
+    }
+
+    if (api.isLoaded(state.branches)) {
+      var selected = this.getNewestQueryParams()['branch'] || 
+        project.repository.defaultBranch;
+      
+      var options = _.chain(state.branches.getReturnedData())
+        .pluck('name')
+        .sortBy(_.identity)
+        .map(n => <option value={n}>{n}</option>)
+        .value();
+
+      var onChange = evt => {
+        this.updateData({ branch: evt.target.value });
+      };
+
+      branches = <select onChange={onChange} value={selected}>{options}</select>;
+    } else if (api.isError(state.branches) && 
+               state.branches.getStatusCode() + "" === '422') {
+      branches = <select disabled={true}>
+        <option>no branches</option>
+      </select>;
+    }
+
+    /*
+    <span className="paddingLeftS">
+      Showing most recent diffs since 0:00pm
+    </span>
+    */
     return <div style={{marginBottom: 5, marginTop: 10}}>
       <input 
         disabled={true}
-        placeholder="Search by name or SHA"
+        placeholder="Search by name or SHA [TODO]"
         style={{minWidth: 170, marginRight: 5}}
       />
-      <select disabled={true}>
-        <option value="master">Branch: Master</option>
-      </select>
+      {branches}
       <label style={{float: 'right', paddingTop: 3}}>
         <span style={/* disabled color */ {color: '#aaa', fontSize: 'small'}}>
           Live update
@@ -253,13 +313,18 @@ var Commits = React.createClass({
     var sha_abbr = c.sha.substr(0,5) + '...';
     var title = utils.first_line(c.message);
 
-    var last_build = null, prev_builds = null;
+    var build_widget = null, prev_builds = null;
     if (c.builds && c.builds.length > 0) {
-      last_build = <BuildWidget build={_.first(c.builds)} />;
+      var last_build = _.first(c.builds);
+      build_widget = <BuildWidget build={last_build} />;
       if (c.builds.length > 1) {
         prev_builds = <span style={{opacity: "0.5"}}>
           {status_dots(c.builds.slice(1))}
         </span>;
+      }
+
+      if (last_build.stats['test_failures'] > 0) {
+        build_widget = this.showFailuresOnHover(last_build, build_widget);
       }
     }
 
@@ -279,34 +344,81 @@ var Commits = React.createClass({
 
     // TODO: if there are any comments, show a comment icon on the right
     return [
-      last_build,
+      build_widget,
       author_page ? <a href={author_page}>{author}</a> : author,
       commit_page ? <a href={commit_page}>{sha_abbr}</a> : sha_abbr,
       title,
       prev_builds,
-      <TimeText time={c.dateCreated} />
+      <TimeText time={c.dateCommitted} />
     ];
+  },
+
+  showFailuresOnHover: function(build, build_widget) {
+    // we want to fetch more build information and show a list of failed
+    // tests on hover
+    var data_fetcher_defn = React.createClass({
+      // ok to use shortcut object syntax for this inner element
+      componentDidMount() {
+        var elem = this.props.elem,
+          build_id = this.props.buildID;
+        if (!elem.state.failedTests[build_id]) {
+          api.fetchMap(elem, 'failedTests', {
+            [ build_id ]: `/api/0/builds/${build_id}/`
+          });
+        }
+      },
+
+      render() {
+        return <span />;
+      }
+    });
+
+    var data_fetcher = React.createElement(
+      data_fetcher_defn, 
+      {elem: this, buildID: build.id}
+    );
+
+    var popover = <Popover>
+      {data_fetcher}
+      Loading failed test list
+    </Popover>;
+
+    if (api.isLoaded(this.state.failedTests[build.id])) {
+      var data = this.state.failedTests[build.id].getReturnedData();
+      var list = _.map(data.testFailures.tests, t => {
+        return <div>{_.last(t.name.split("."))}</div>;
+      });
+
+      var popover = <Popover>
+        <span className="bb">Failed Tests:</span>
+        {list}
+      </Popover>;
+    }
+
+    return <div>
+      <OverlayTrigger 
+        trigger='hover' 
+        placement='right' 
+        overlay={popover}>
+        <div>{build_widget}</div>
+      </OverlayTrigger>
+    </div>;
   },
 
   renderPaginationLinks: function(commits) {
     var hrefs = commits.getLinksFromHeader();
 
-    var on_click = href => {
-      // note that render() may be called after we've updated oldData but
-      // before we've updated newData
-      this.props.page.setState(utils.update_state_key(
-        'commitsState', 'oldData', commits));
-      // TODO: need to centralize this with api calls from table controls
-      api.fetchMap(this.props.page, 'commitsState', {newData: href});
-    };
+    // the pagination api should return the same endpoint that we're already 
+    // using, so we'll just grab the get params
+    var on_click = href => this.updateData(URI(href).query(true));
 
     var links = [];
     if (hrefs.previous) {
       links.push(
         <a 
           className="marginRightS"
-          href="#" 
-          onClick={_.bind(on_click, this, hrefs.previous)}>
+          href={'#' || hrefs.previous}
+          onClick={on_click.bind(this, hrefs.previous)}>
           Previous
         </a>
       );
@@ -316,14 +428,93 @@ var Commits = React.createClass({
       links.push(
         <a 
           className="marginRightS" 
-          href="#" 
-          onClick={_.bind(on_click, this, hrefs.next)}>
+          href={'#' || hrefs.next}
+          onClick={on_click.bind(this, hrefs.next)}>
           Next 
         </a>
       );
     }
     return <div className="marginBottomL marginTopS">{links}</div>;
-  }
+  },
+
+  updateData: function(new_params) {
+    window.history.replaceState(
+      new_params,
+      'updating commits page',
+      URI(window.location.href).query(_.omit(new_params, ['all_builds'])));
+
+    // note that render() may be called after we've updated oldData but
+    // before we've updated newData
+    this.props.pageElem.setState(utils.update_state_key(
+      'commitsState', 'preloadData', this.getCurrentData()));
+
+    var slug = this.props.project.getReturnedData().slug;
+    var href = URI(`/api/0/projects/${slug}/commits/`)
+      .query(_.extend(new_params, { 'all_builds': 1 }))
+      .toString();
+    api.fetchMap(this.props.pageElem, 'commitsState', {newestData: href});
+  },
+
+  hasEverUpdatedData: function() {
+    var state = this.props.myState;
+
+    return state.preloadData !== undefined;
+  },
+
+  isLoadingNewData: function() {
+    var state = this.props.myState;
+
+    return state.newestData !== undefined && !api.isLoaded(state.newestData);
+  }, 
+
+  getCurrentData: function() {
+    var state = this.props.myState;
+
+    if (state.newestData && api.isLoaded(state.newestData)) {
+      return state.newestData;
+    } else if (this.hasEverUpdatedData()) {
+      return state.preloadData;
+    }
+    return this.props.data;
+  },
+
+  getNewestQueryParams: function() {
+    var state = this.props.myState;
+
+    var endpoint = (state.newestData && state.newestData.endpoint) ||
+      (state.preloadData && state.preloadData.endpoint) ||
+      this.props.data.endpoint;
+    return URI(endpoint).query(true);
+  },
+
+
+
+/*
+    // copying a comment below: note that we might be called after we've
+    // updated oldData but before we've updated newData
+
+    if (has_new_data) {
+      var commits = state.newData;
+    } else {
+      var commits = (state.oldData && state.oldData) || this.props.data.commits;
+    }
+
+    // we may have fetched updated data...figure out which data to use
+    var has_new_data = api.isLoaded(state.newData);
+    var is_loading_new_data = state.newData !== undefined &&
+      !api.isLoaded(state.newData);
+    // copying a comment below: note that we might be called after we've
+    // updated oldData but before we've updated newData
+
+    if (has_new_data) {
+      debugger;
+      var commits = state.newData;
+    } else {
+      var commits = (state.oldData && state.oldData) || this.props.data.commits;
+    }
+  },
+*/
+
 });
 
 var TODO = React.createClass({
@@ -334,24 +525,25 @@ var TODO = React.createClass({
 
 var ProjectDetails = React.createClass({
 
+  propTypes: {
+    // the API response from getAPIEndpoint below
+    data: React.PropTypes.object,
+    // the project api response
+    project: React.PropTypes.object,
+  },
+
   statics: {
-    getDataToLoad: function(project_slug) {
-      return {
-        'details': `/api/0/projects/${project_slug}/plans/`
-      };
+    getAPIEndpoint: function(project_slug) {
+      return `/api/0/projects/${project_slug}/plans/`;
     }
   },
 
   render: function() {
-    var data_keys = _.keys(ProjectDetails.getDataToLoad());
-    if (!api.mapIsLoaded(this.props.data, data_keys)) {
-      return <APINotLoaded 
-        stateMap={this.props.data} 
-        stateMapKeys={data_keys} 
-      />;
+    if (!api.isLoaded(this.props.data)) {
+      return <APINotLoaded state={this.props.data} />;
     }
 
-    var plans = this.props.data.details.getReturnedData();
+    var plans = this.props.data.getReturnedData();
     var project = this.props.project.getReturnedData();
 
     var markup = _.map(plans, p =>
@@ -376,12 +568,6 @@ var ProjectDetails = React.createClass({
       {this.renderHeader(project, plans)}
       {markup}
     </div>;
-
-    /*
-      <!-- If just one, inline. Otherwise, one per line -->
-      <!-- stats -->
-      <!-- or add a stats section... --> !!!
-      */
   },
 
   renderHeader: function(project, plans) {

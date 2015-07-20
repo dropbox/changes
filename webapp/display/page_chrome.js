@@ -69,6 +69,11 @@ var ChangesPageHeader = React.createClass({
       </a>;
     }
 
+/* TODO:
+        <a className="headerLinkBlock" href="/v2/nodes/">
+          Machines
+        </a>
+*/
     return <div>
       <div className="pageHeader">
         <div className="headerBlock" style={{fontWeight: 900}}>
@@ -211,6 +216,8 @@ var ChangesInlinePerf = React.createClass({
       </div>;
     }
 
+    var fmt_time = t => Math.round(t) + "ms";
+
     var api_entries = _.chain(window.performance.getEntries())
       .filter(e => e.name.indexOf('api/0/') !== -1)
       .sortBy(e => e.startTime)
@@ -240,8 +247,19 @@ var ChangesInlinePerf = React.createClass({
       var trace_link = <a href={trace_href} target="_blank">(trace)</a>;
 
       // make data
-      var fmt_time = t => Math.round(t) + "ms";
       data.push([name_markup, fmt_time(e.startTime), fmt_time(e.duration), trace_link]);
+    });
+
+    // Also add in built.js
+    _.each(window.performance.getEntries(), e => {
+      if (e.name.indexOf('built.js') > 0) {
+        data.push([
+          <em>Compiled JS</em>,
+          <em>{fmt_time(e.startTime)}</em>, 
+          <em>{fmt_time(e.duration)}</em>,
+          ''
+        ]);
+      }
     });
 
     var headers = ["API Name", "Sent At", "Duration", "Links"];

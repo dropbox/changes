@@ -15,7 +15,9 @@ var proptype = React.PropTypes;
 export var BuildWidget = React.createClass({
   
   propTypes: {
-    build: proptype.object.isRequired
+    build: proptype.object.isRequired,
+    // override default href. TODO: something better
+    href: proptype.string,
   },
 
   render: function() {
@@ -25,13 +27,6 @@ export var BuildWidget = React.createClass({
     var dot = <StatusDot state={build_state} />;
 
     var content = null;
-    var content_style = {
-      color: '#777',
-      display: 'inline-block',
-      fontSize: 'smaller',
-      fontWeight: 'bold',
-      verticalAlign: 'top'
-    };
     switch (build_state) {
       case 'passed':
       case 'failed':
@@ -43,10 +38,10 @@ export var BuildWidget = React.createClass({
           content = '---';
         } else {
           var duration = display_duration_pieces(build.duration / 1000)
-          content = <div style={content_style}>
-            <span style={day_hour_style}>{duration.slice(0, 2)}</span>
-            {duration.slice(2)}
-          </div>;
+          content = [
+            <span style={day_hour_style}>{duration.slice(0, 2)}</span>,
+            duration.slice(2)
+          ];
         }
         break;
       case 'unknown':
@@ -57,18 +52,53 @@ export var BuildWidget = React.createClass({
         // I thought about rendering a timer about how long the build has been
         // running, but if it keeps increasing, people will expect this to 
         // be live / update once the build is done
-        content = <div style={style}>
-          Running
+        content = <span style={{verticalAlign: "middle", paddingLeft: 2}}>Running</span>;
+    }
+
+    var test_failures = null;
+    if (build.stats['test_failures'] > 0) {
+      var failure_style = {
+        color: '#ee2e24',
+        display: 'inline-block', 
+        fontSize: 'smaller', 
+        fontWeight: 'bold', 
+        marginLeft: 3,
+        marginBottom: 1
+      };
+
+      //<div style={{position: 'absolute', right: 0, top: 2, fontSize: 'smaller', fontWeight: 'bold', color: '#ee2e24'}}>
+      test_failures =
+        <div style={failure_style}>
+          {build.stats['test_failures']}
+          <i className="fa fa-times-circle-o"></i>
         </div>;
     }
 
-    var href = '/v2/project_commit/' +
-      build.project.slug + '/' +
-      build.source.id;
+    var content_style = {
+      color: '#777',
+      display: 'inline-block',
+      fontSize: 'smaller',
+      fontWeight: 'bold',
+      verticalAlign: 'top'
+    };
+
+    var href = this.props.href;
+    if (!href) {
+      var href = '/v2/project_commit/' +
+        build.project.slug + '/' +
+        build.source.id; 
+    }
     return <a href={href} className="buildWidget">
-      {dot}
-      {content}
-    </a>
+      <div style={{verticalAlign: 'middle', display: 'inline-block'}}>
+        {dot}
+      </div>
+      <div style={{verticalAlign: 'middle', display: 'inline-block'}}>
+        <div style={content_style}>
+          {content}
+          {test_failures}
+        </div>
+      </div>
+    </a>;
   }
 });
 

@@ -39,7 +39,8 @@ class IndexView(MethodView):
                 'RELEASE_INFO': changes.get_revision_info(),
                 'WEBAPP_USE_ANOTHER_HOST': webapp_use_another_host,
                 'WEBAPP_CUSTOMIZED_CONTENT': webapp_customized_content,
-                'USE_PACKAGED_JS': not current_app.debug
+                'USE_PACKAGED_JS': not current_app.debug,
+                'IS_DEBUG': current_app.debug
             })
 
         return render_template('index.html', **{

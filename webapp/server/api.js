@@ -18,6 +18,10 @@ var APIResponsePrototype = {
     return JSON.parse(this.response.responseText); 
   },
   
+  getStatusCode: function() {
+    return this.response.status;
+  },
+
   // api calls with pagination return their links as a response header.
   getLinksFromHeader: function() {
     var header = this.response.getResponseHeader('Link');
@@ -69,8 +73,6 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
       })
     );
   }
-  
-  //state_to_set);
 
   _.each(endpoint_map, (endpoint, state_key) => {
     var ajax_response = function(response, was_success) {
@@ -98,6 +100,8 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
 /*
  * Wraps fetchMap in window.setTimeout. This allows you to call it from 
  * render() (yes, there's a legitimate reason we do this...)
+ *
+ * TODO: replace with utils.async
  */
 export var asyncFetchMap = function(elem, map_key, endpoint_map) {
   window.setTimeout(_ => {

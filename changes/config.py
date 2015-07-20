@@ -429,6 +429,7 @@ def configure_api_routes(app):
     from changes.api.cluster_index import ClusterIndexAPIView
     from changes.api.cluster_nodes import ClusterNodesAPIView
     from changes.api.command_details import CommandDetailsAPIView
+    from changes.api.diff_builds import DiffBuildsIndexAPIView
     from changes.api.diff_build_retry import DiffBuildRetryAPIView
     from changes.api.job_artifact_index import JobArtifactIndexAPIView
     from changes.api.job_details import JobDetailsAPIView
@@ -508,6 +509,7 @@ def configure_api_routes(app):
     api.add_resource(ClusterDetailsAPIView, '/clusters/<uuid:cluster_id>/')
     api.add_resource(ClusterNodesAPIView, '/clusters/<uuid:cluster_id>/nodes/')
     api.add_resource(CommandDetailsAPIView, '/commands/<uuid:command_id>/')
+    api.add_resource(DiffBuildsIndexAPIView, '/phabricator_diffs/<diff_ident>/builds/')
     api.add_resource(DiffBuildRetryAPIView, '/phabricator_diffs/<diff_id>/retry/')
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
