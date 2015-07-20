@@ -156,7 +156,7 @@ class GitVcs(Vcs):
         start_time = time()
 
         # TODO(dcramer): we should make this streaming
-        cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,)]
+        cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,), '--first-parent']
 
         if author:
             cmd.append('--author=%s' % (author,))
