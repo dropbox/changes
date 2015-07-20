@@ -26,29 +26,38 @@ def get_serializer(item, registry):
     return serializer
 
 
+# Types for which serialization is a no-op.
+_PASSTHROUGH = (basestring, bool, int, long, type(None), float)
+
+
 def serialize(data, extended_registry=None):
     if extended_registry is None:
         extended_registry = {}
 
-    if data is None:
-        return None
-
-    if isinstance(data, (basestring, int, long, float, bool)):
+    if isinstance(data, _PASSTHROUGH):
         return data
 
     if isinstance(data, dict):
-        return dict(
-            (k, v) for k, v
-            in zip(serialize(data.keys(), extended_registry),
-                   serialize(data.values(), extended_registry))
-        )
+        for k, v in data.iteritems():
+            if not isinstance(v, _PASSTHROUGH) or not isinstance(k, _PASSTHROUGH):
+                # Gotta do it the hard way.
+                return dict(zip(serialize(data.keys(), extended_registry),
+                                serialize(data.values(), extended_registry)))
+        # All keys and values were passthrough, so the dict is already serialized.
+        return data
 
     if isinstance(data, (list, tuple, set, frozenset)):
         if not data:
             return []
 
         if len(set(type(g) for g in data)) == 1:
-            data = list(data)
+            # Make sure it is a list.
+            if not isinstance(data, list):
+                data = list(data)
+
+            # If we have a list of passthrough, we're done.
+            if isinstance(data[0], _PASSTHROUGH):
+                return data
 
             serializer = get_serializer(data[0], extended_registry)
 
