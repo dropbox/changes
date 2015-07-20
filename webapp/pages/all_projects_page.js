@@ -7,6 +7,7 @@ import ChangesPage from 'es6!display/page_chrome';
 import APINotLoaded from 'es6!display/not_loaded';
 import { TimeText } from 'es6!display/time';
 import { Menu1 } from 'es6!display/menus';
+import { Popover, OverlayTrigger } from 'react_bootstrap';
 
 import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
@@ -249,18 +250,55 @@ var AllProjectsPage = React.createClass({
             <b>{proj.name}{" ("}{num_plans}{")"}</b> :
             <b>{proj.name}</b>;
         }
-        rows.push([
-          proj_name,
-          plan.name,
-          plan.steps.length > 0 ? plan.steps[0].name : "",
-          <TimeText time={plan.dateModified} />
-        ]);
+
+        var build_timeout = plan.steps[0].options['build.timeout'];
+        var build_timeout_markup = null;
+        if (build_timeout !== undefined) {
+          build_timeout_markup = [
+            <b>Build Timeout: </b>,
+            build_timeout
+          ];
+        }
+
+        if (!plan.steps[0]) {
+          rows.push([
+            proj_name,
+            plan.name,
+            '',
+            '',
+            <TimeText time={plan.dateModified} />
+          ]);
+        } else {
+          var popover = <Popover className="popoverNoMaxWidth">
+            <b>{plan.name}{" Config ("}{plan.steps[0].name}{')'}</b>
+            <pre className="yellowPre">{plan.steps[0] && plan.steps[0].data}</pre>
+            {build_timeout_markup}
+          </Popover>;
+
+          var config_link = <div>
+            <OverlayTrigger 
+              trigger='click' 
+              placement='bottom' 
+              rootClose={true}
+              overlay={popover}>
+              <a>Config</a>
+            </OverlayTrigger>
+          </div>;
+
+          rows.push([
+            proj_name,
+            plan.name,
+            <span className="marginRightL">{plan.steps[0].name}</span>,
+            config_link,
+            <TimeText time={plan.dateModified} />
+          ]);
+        }
       });
     });
 
     // TODO: snapshot config?
-    var headers = ['Project', 'Plan', 'Implementation', 'Modified'];
-    var cellClasses = ['nowrap', 'nowrap', 'wide', 'nowrap'];
+    var headers = ['Project', 'Plan', 'Implementation', 'More', 'Modified'];
+    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <Grid 
       data={rows} 

@@ -11,6 +11,13 @@ body {
   margin: 0
 }
 
+/* default styles don't apply to anchors without hrefs, add them back in */
+a {
+  color: #1c3f95;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .pageHeader {
   background-color: #ffd204;
   border-bottom: 1px solid #fff;
@@ -135,6 +142,15 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
 .commitMsg {
   background-color: #d0ffd0;
   border: 1px solid #00853e;
+  line-height: normal;
+  margin-top: 5px;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+
+.yellowPre {
+  background-color: #fdf3da;
+  border: 1px solid #c9b8a8;
   line-height: normal;
   margin-top: 5px;
   padding: 5px;
@@ -478,6 +494,10 @@ div.grid {
 
 .oldEventContent {
   padding: 2px;
+}
+
+.popoverNoMaxWidth {
+  max-width: none;
 }
 
 /**

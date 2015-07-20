@@ -295,7 +295,7 @@ var BuildsResultsPage = React.createClass({
           }
           renderables.push({
             type: 'diff_update',
-            date: changes_data.dateCreated,
+            date: moment.utc(changes_data.dateCreated),
             update: changes_data
           });
         });
@@ -476,7 +476,7 @@ var BuildsResultsPage = React.createClass({
           markup.push(
             <div className="marginTopM">
               <b>Captured Output</b>
-              <pre style={{ backgroundColor: "#fdf3da", border: "1px solid #c9b8a8", marginTop: 0, padding: 5 }}>
+              <pre className="yellowPre">
               {data.message}
               </pre>
             </div>
@@ -502,7 +502,7 @@ var BuildsResultsPage = React.createClass({
       };
       revert_link = <a onClick={on_click}>How do I revert this?</a>;
       if (this.state.showRevertInstructions[build.id]) {
-        revert_markup = <pre style={{ backgroundColor: "#fdf3da", border: "1px solid #c9b8a8" }}>
+        revert_markup = <pre className="yellowPre">
           {custom_content_hook('revertInstructions')}
         </pre>;
       }
@@ -630,18 +630,14 @@ var BuildsResultsPage = React.createClass({
       moment.unix(diff_time));
 
     var content = [
-      <pre 
-        className="commitMsg" 
-        style={{backgroundColor: "#fdf3da", border: "1px solid #c9b8a8"}}>
+      <pre className="yellowPre">
         Its a diff! We don't have any info...is Phabricator down?
       </pre>
     ];
 
     if (diff_data.summary) {
       content = [
-        <pre 
-          className="commitMsg" 
-          style={{backgroundColor: "#fdf3da", border: "1px solid #c9b8a8"}}>
+        <pre className="yellowPre">
           {diff_data.summary}
         </pre>
       ];
@@ -704,9 +700,9 @@ var BuildsResultsPage = React.createClass({
         <div style={header_text_style}>{text}</div>
       </div>
       <div style={time_style}>
-        {moment_time.format('llll')}
+        {moment_time.local().format('llll')}
         {" ("}
-        {moment_time.fromNow()}
+        {moment_time.local().fromNow()}
         {")"}
       </div>
     </div>;
