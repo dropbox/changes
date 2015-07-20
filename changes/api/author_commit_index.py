@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
+from flask_restful.reqparse import RequestParser
+
 from sqlalchemy.orm import joinedload
 
 from collections import OrderedDict, defaultdict
@@ -10,7 +12,6 @@ from changes.models import Author, Build, Source, Revision
 
 
 class AuthorCommitIndexAPIView(APIView):
-
     """
     Gets a list of commits by an author, and their associated builds
 
@@ -21,6 +22,9 @@ class AuthorCommitIndexAPIView(APIView):
     Note that builds may come from different projects.
     """
 
+    get_parser = RequestParser()
+    get_parser.add_argument('num_revs', type=int, location='args', default=10)
+
     def get(self, author_id):
         authors = Author.find(author_id, get_current_user())
         if not authors and author_id == 'me':
@@ -28,47 +32,41 @@ class AuthorCommitIndexAPIView(APIView):
         elif not authors:
             return '', 404
 
-        # grab every build for every commit (by one author). We'll group
-        # them together: returning a list of revisions each with a builds
-        # attribute
-        # TODO: I assume this will become inefficient at some point.
+        args = self.get_parser.parse_args()
 
-        # serialize everything now so that we batch any needed data fetching
-        # we'll still rearrange things later
-        commit_builds_list = self.serialize(list(Build.query.join(
-            Source, Build.source_id == Source.id,
-        ).join(
+        # serialize everything when fetching so that we batch any needed data
+        # fetching. we'll still rearrange things later
+
+        # grab recent revisions by author (for any repository/project, which
+        # means we can't use vcs commands)
+        sources = self.serialize(list(Source.query.join(
             Revision, Source.revision_sha == Revision.sha
-        ).options(
-            joinedload('project'),
-            joinedload('author'),
-            joinedload('source').joinedload('revision'),
         ).filter(
             Revision.author_id.in_([a.id for a in authors]),
             Source.patch_id.is_(None),
         ).order_by(
             Revision.date_committed.desc(),
+        ).limit(args.num_revs)))
+
+        # grab builds for those revisions
+        commit_builds_list = self.serialize(list(Build.query.options(
+            joinedload('project'),
+            joinedload('author'),
+        ).filter(
+            Build.source_id.in_([s['id'] for s in sources]),
+        ).order_by(
             Build.date_created.desc(),
             Build.date_started.desc()
         )))
 
-        # rearrange to a list of sources, each with a builds attribute
+        # move builds into sources
         builds_map = defaultdict(list)
         revision_list = OrderedDict()
 
         for build in commit_builds_list:
-            sha = build['source']['revision']['sha']
-            source = build['source']
-            del build['source']
+            builds_map[build['source']['id']].append(build)
 
-            builds_map[sha].append(build)
-            if sha not in revision_list:
-                revision_list[sha] = source
+        for source in sources:
+            source['builds'] = builds_map[source['id']]
 
-        for (sha, revision) in revision_list.items():
-            revision['builds'] = builds_map[sha]
-
-        return self.cursor_paginate(
-            revision_list.values(),
-            lambda s: s['revision']['sha'],
-            serialize=False)
+        return self.respond(sources, serialize=False)

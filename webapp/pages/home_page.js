@@ -167,13 +167,20 @@ var Commits = React.createClass({
 
   render: function() {
     if (this.props.commits.length === 0) {
-      // TODO: transfer props?
       // TODO: Show something
       return <div />;
     }
 
     var grid_data = [];
     this.props.commits.forEach(c => {
+
+      var sha = c.revision.sha;
+      var sha_item = sha.substr(0,7);
+      if (c.revision.external && c.revision.external.link) {
+        sha_item = <a href={c.revision.external.link} target="_blank">
+          {sha_item}
+        </a>;
+      }
 
       // we want to render a separate row per project
       var project_slugs = _.chain(c.builds)
@@ -182,29 +189,33 @@ var Commits = React.createClass({
         .uniq()
         .value();
       
+      if (project_slugs.length === 0) {
+        grid_data.push(
+          [
+            <span style={{fontWeight: 'bold', fontStyle: 'italic', color: colors.darkGray, marginLeft: 3}}>
+              None
+            </span>,
+            sha_item,
+            '',
+            utils.truncate(utils.first_line(c.revision.message)),
+            <TimeText time={c.revision.dateCommitted} />
+          ]
+        );
+      }
+
       _.each(project_slugs, slug => {
         var matching_builds = _.filter(c.builds,
           b => b.project.slug === slug
         );
-
-        var project = matching_builds[0].project;
-
         var last_build = _.extend({}, matching_builds[0], {source: c});
+
+        var project = last_build.project;
+
         var widget = <BuildWidget build={last_build} />;
-
-        var source_uuid = c.id;
-        var sha = c.revision.sha;
-
-        var sha_item = sha.substr(0,7);
-        if (c.revision.external && c.revision.external.link) {
-          sha_item = <a href={c.revision.external.link} target="_blank">
-            {sha_item}
-          </a>;
-        }
 
         var project_href = "/v2/project/" + slug;
         var project_link = <a href={project_href}>
-          {project.name}
+          {last_build.project.name}
         </a>;
 
         grid_data.push(
@@ -212,7 +223,7 @@ var Commits = React.createClass({
             widget,
             sha_item,
             project_link,
-            utils.truncate(c.revision.message.split("\n")[0]),
+            utils.truncate(utils.first_line(c.revision.message)),
             <TimeText time={c.revision.dateCommitted} />
           ]
         );
