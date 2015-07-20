@@ -29,7 +29,8 @@
     "requirejs": "~2.1.11",
     "requirejs-babel": "~0.0.6",
     "typeahead.js": "~0.10.2",
-    "underscore": "~1.8.3"
+    "underscore": "~1.8.3",
+    "uri.js": "~1.15.2"
   },
   "resolutions": {
     "angular": "1.2.14",

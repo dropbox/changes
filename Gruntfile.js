@@ -77,7 +77,8 @@ module.exports = function(grunt) {
               'react': '../static/vendor/react/react-with-addons',
               'react_bootstrap': '../static/vendor/react-bootstrap/react-bootstrap',
               'requirejs': '../static/vendor/requirejs/require',
-              'underscore': '../static/vendor/underscore/underscore'
+              'underscore': '../static/vendor/underscore/underscore',
+              'uriJS': '../static/vendor/uri.js/src'
           },
 
           config: {
