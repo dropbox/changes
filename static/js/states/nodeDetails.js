@@ -4,8 +4,8 @@ define([
   'use strict';
 
   return {
-    parent: 'nodes',
-    url: ':node_id/',
+    parent: 'layout',
+    url: '/nodes/:node_id/',
     templateUrl: 'partials/node-details.html',
     controller: function($scope, $http, nodeData, Collection, PageTitle, Paginator, flash) {
       var collection = new Collection();
