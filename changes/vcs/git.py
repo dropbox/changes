@@ -31,8 +31,14 @@ else
     git remote set-url origin $REMOTE_URL
     GIT_SSH_COMMAND="ssh -v" \
     git fetch --all -p || \
+    GIT_SSH_COMMAND="ssh -v" \
     git fetch --all -p
 fi
+
+GIT_SSH_COMMAND="ssh -v" \
+git fetch origin +refs/*:refs/remotes-all-refs/origin/* || \
+GIT_SSH_COMMAND="ssh -v" \
+git fetch origin +refs/*:refs/remotes-all-refs/origin/*
 
 git clean -fdx
 
