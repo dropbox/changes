@@ -12,7 +12,7 @@ from changes.testutils import TestCase
 
 
 class DefaultBuildStepTest(TestCase):
-    def get_buildstep(self):
+    def get_buildstep(self, **kwargs):
         return DefaultBuildStep(commands=(
             dict(
                 script='echo "hello world 2"',
@@ -24,7 +24,7 @@ class DefaultBuildStepTest(TestCase):
             dict(
                 script='echo "hello world 1"',
             ),
-        ))
+        ), **kwargs)
 
     def test_execute(self):
         build = self.create_build(self.create_project())
@@ -120,6 +120,17 @@ class DefaultBuildStepTest(TestCase):
             'pre-launch': 'echo pre',
             'post-launch': 'echo post',
         }
+
+    def test_get_allocation_params_with_compression(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        buildstep = self.get_buildstep(compression='lz4')
+        result = buildstep.get_allocation_params(jobstep)
+        assert result['compression'] == 'lz4'
 
     def test_test_get_allocation_params_for_snapshotting(self):
         project = self.create_project()

@@ -46,6 +46,11 @@ class DefaultBuildStep(BuildStep):
 
     This build step is also responsible for generating appropriate commands
     in order for the client to obtain the source code.
+
+    Args:
+      - compression: Compression algorithm to use (xz, lz4)
+      - cpus: How many cpus to limit the container to (not applicable for basic)
+      - memory: How much memory to limit the container to (not applicable for basic)
     """
     # TODO(dcramer): we need to enforce ordering of setup/teardown commands
     # so that setup is always first and teardown is always last. Realistically
@@ -58,7 +63,8 @@ class DefaultBuildStep(BuildStep):
     # - teardown_commands
     def __init__(self, commands, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
-                 max_executors=20, cpus=4, memory=8 * 1024, **kwargs):
+                 max_executors=20, cpus=4, memory=8 * 1024,
+                 compression=None, **kwargs):
 
         if env is None:
             env = DEFAULT_ENV.copy()
@@ -81,6 +87,7 @@ class DefaultBuildStep(BuildStep):
             else:
                 command['type'] = CommandType.default
 
+        self.compression = compression
         self.env = env
         self.path = path
         self.release = release
@@ -240,6 +247,7 @@ class DefaultBuildStep(BuildStep):
             'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
             'server': build_uri('/api/0/'),
+            'compression': self.compression,
             'jobstep_id': jobstep.id.hex,
             's3-bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
             'pre-launch': current_app.config['LXC_PRE_LAUNCH'],
