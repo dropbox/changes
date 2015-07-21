@@ -8,6 +8,7 @@ from changes.config import db
 from changes.constants import Result
 from changes.db.utils import try_create
 from changes.models import TestResult, TestResultManager, FailureReason
+from changes.utils.agg import aggregate_result
 
 from .base import ArtifactHandler
 
@@ -178,11 +179,7 @@ def _deduplicate_testresults(results):
         if existing_result is not None:
             e, r = existing_result, result
             e.duration = _careful_add(e.duration, r.duration)
-            either_result = (e.result, r.result)
-            e.result = (
-                Result.failed if (Result.failed in either_result)
-                else max(either_result)
-                )
+            e.result = aggregate_result((e.result, r.result))
             e.message += '\n\n' + r.message
             e.reruns = _careful_add(e.reruns, r.reruns)
             e.artifacts = _careful_add(e.artifacts, r.artifacts)
