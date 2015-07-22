@@ -1,0 +1,31 @@
+/*
+ * page_specific.css
+ *
+ * Some pages (in pages/) need their own CSS
+ */
+
+/* builds_results_page */
+
+.commitSideItem {
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  color: #333;
+}
+
+.commitSideItem:hover {
+  background-color: #d9d8d8;
+}
+
+.commitSideSection {
+  margin-left: 5px;
+  margin-bottom: 10px;
+}
+
+.grid.errorGrid {
+  border-color: #ee2e24;
+}
+
+.errorGrid .gridHeader .gridCell {
+  background-color: #ee2e24;
+}

@@ -1,0 +1,59 @@
+/* 
+ * layout_helpers.css: Some helper css classes for spacing and positioning 
+ * (like marginTopM or floatR). This is mainly shorthand and all very generic.
+ */
+
+.paddingTopXS { padding-top: 2px; }
+.paddingRightXS { padding-right: 2px; }
+.paddingBottomXS { padding-bottom: 2px; }
+.paddingLeftXS { padding-left: 2px; }
+
+.paddingTopS { padding-top: 5px; }
+.paddingRightS { padding-right: 5px; }
+.paddingBottomS { padding-bottom: 5px; }
+.paddingLeftS { padding-left: 5px; }
+
+.paddingTopM { padding-top: 10px; }
+.paddingRightM { padding-right: 10px; }
+.paddingBottomM { padding-bottom: 10px; }
+.paddingLeftM { padding-left: 10px; }
+
+.paddingTopL { padding-top: 20px; }
+.paddingRightL { padding-right: 20px; }
+.paddingBottomL { padding-bottom: 20px; }
+.paddingLeftL { padding-left: 20px; }
+
+
+.marginTopXS { margin-top: 2px; }
+.marginRightXS { margin-right: 2px; }
+.marginBottomXS { margin-bottom: 2px; }
+.marginLeftXS { margin-left: 2px; }
+
+.marginTopS { margin-top: 5px; }
+.marginRightS { margin-right: 5px; }
+.marginBottomS { margin-bottom: 5px; }
+.marginLeftS { margin-left: 5px; }
+
+.marginTopM { margin-top: 10px; }
+.marginRightM { margin-right: 10px; }
+.marginBottomM { margin-bottom: 10px; }
+.marginLeftM { margin-left: 10px; }
+
+.marginTopL { margin-top: 20px; }
+.marginRightL { margin-right: 20px; }
+.marginBottomL { margin-bottom: 20px; }
+.marginLeftL { margin-left: 20px; }
+
+
+.noLeftMargin { margin-left: 0px !important; }
+.noRightMargin { margin-right: 0px !important; }
+.noTopMargin { margin-top: 0px !important; }
+.noBottomMargin { margin-bottom: 0px !important; }
+
+
+.block { display: block; }
+.inlineBlock { display: inline-block; }
+.inline { display: inline; }
+
+.floatL { float: left; }
+.floatR { float: right; }

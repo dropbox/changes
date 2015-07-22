@@ -10,6 +10,7 @@ from celery.signals import task_postrun
 from datetime import timedelta
 from flask import request, session, Blueprint
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.assets import Environment
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
 from kombu import Exchange, Queue
@@ -385,6 +386,16 @@ def create_v2_blueprint(app, app_static_root):
     blueprint.add_url_rule('/<path:path>',
       view_func=IndexView.as_view('index-path', use_v2=True))
     blueprint.add_url_rule('/', view_func=IndexView.as_view('index', use_v2=True))
+
+    # One last thing...v2 uses CSS bundling via flask-assets, so set that up on
+    # the main app object
+    assets = Environment(app)
+    assets.config['directory'] = os.path.join(PROJECT_ROOT, 'webapp')
+    assets.config['url'] = '/v2/static/' + revision + '/'
+    assets.load_path = [
+        os.path.join(PROJECT_ROOT, 'webapp')
+    ]
+
     return blueprint
 
 

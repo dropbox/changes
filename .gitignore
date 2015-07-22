@@ -20,4 +20,6 @@ npm-debug.log
 /static/js/generated
 /static-built
 /webapp/dist
+/webapp/css/bundled.css
+webapp/.webassets-cache
 .vagrant

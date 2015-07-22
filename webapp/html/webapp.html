@@ -60,7 +60,11 @@
     <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href="{{ url_for('webapp_v2.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
-    <link href="{{ url_for('webapp_v2.static', filename='css/styles.css') }}?4" rel="stylesheet" media="screen">
+    {% assets output="css/bundled.css", "css/colors.css", "css/layout_helpers.css", 
+              "css/basics.css", "css/display.css", "css/page_specific.css" 
+    %}
+    <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+    {% endassets %}
     <link href='https://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Slabo+13px' rel='stylesheet' type='text/css'>
   </head>

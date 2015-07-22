@@ -1,0 +1,76 @@
+/*
+ * basics.css
+ * 
+ * (1) this is where we set the font on <body />, override styles 
+ * on <a />, etc.
+ * 
+ * (2) Contains the css for the page chrome (e.g for the page 
+ * header, spacing, etc.)
+ */
+
+ body {
+  color: #333;
+/*font-family: Georgia, Times, 'Times New Roman', serif;*/
+  font-family: 'Lato', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  margin: 0
+}
+
+/* default styles don't apply to anchors without hrefs, add them back in */
+a {
+  color: #1c3f95;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+a, a#visited {
+  color: #1c3f95;
+}
+
+/* Page header stuff */
+
+.pageHeader {
+  background-color: #ffd204;
+  border-bottom: 1px solid #fff;
+/*  position: fixed; */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+}
+
+.headerBlock, .headerLinkBlock {
+  padding: 8px;
+  display: inline-block;
+}
+
+.headerLinkBlock {
+  text-decoration: none;
+  color: #333;
+}
+
+.headerLinkBlock:hover, .inlinePerf:hover {
+  background-color: #d0ab00;
+}
+
+/* inline perf widget */
+
+.inlinePerf {
+  cursor: pointer;
+  user-select: none;
+}
+
+.inlinePerfDropdown {
+  background-color: white;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+  position: absolute;
+  right: 0;
+  padding: 10px;
+  min-width: 150px;
+  top: 32px;
+  z-index: 10;
+}
+
+div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
+  background-color: white;
+}

@@ -40,6 +40,7 @@ install_requires = [
     'kombu>=3.0.8,<=3.0.24',
     'enum34>=0.9.18,<0.10.0',
     'flask>=0.10.1,<0.11.0',
+    'flask-assets>=0.10,<0.11',
     'flask-debugtoolbar>=0.9.0,<0.10.0',
     'flask-mail>=0.9.0,<0.10.0',
     'flask-restful>=0.2.10,<0.2.11',

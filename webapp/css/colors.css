@@ -1,0 +1,57 @@
+/*
+ * colors.css
+ *
+ *Colors from London Tube. Naming is original 
+ * (http://chriskempson.github.io/base16/#londontube) 
+ */
+
+.lt-black { color: #231f20; }
+.lt-darkblue { color: #1c3f95; }
+.lt-darkestgray { color: #5a5758; }
+.lt-darkgray { color: #737171; }
+.lt-metalgray { color: #959ca1; }
+.lt-lightgray { color: #d9d8d8; }
+.lt-lighestgray { color: #e7e7e8; }
+.lt-white { color: #ffffff; }
+.lt-red { color: #ee2e24; }
+.lt-pink { color: #f386a1; }
+.lt-yellow { color: #ffd204; }
+.lt-green { color: #00853e; }
+.lt-lightgreen { color: #85cebc; }
+.lt-lightblue { color: #009ddc; }
+.lt-magenta { color: #98005d; }
+.lt-brown { color: #b06110; }
+
+.lt-black-bg { background-color: #231f20; }
+.lt-darkblue-bg { background-color: #1c3f95; }
+.lt-darkestgray-bg { background-color: #5a5758; }
+.lt-darkgray-bg { background-color: #737171; }
+.lt-metalgray-bg { background-color: #959ca1; }
+.lt-lightgray-bg { background-color: #d9d8d8; }
+.lt-lighestgray-bg { background-color: #e7e7e8; }
+.lt-white-bg { background-color: #ffffff; }
+.lt-red-bg { background-color: #ee2e24; }
+.lt-pink-bg { background-color: #f386a1; }
+.lt-yellow-bg { background-color: #ffd204; }
+.lt-green-bg { background-color: #00853e; }
+.lt-lightgreen-bg { background-color: #85cebc; }
+.lt-lightblue-bg { background-color: #009ddc; }
+.lt-magenta-bg { background-color: #98005d; }
+.lt-brown-bg { background-color: #b06110; }
+
+div.lt-black-border { border-color: #231f20; }
+div.lt-darkblue-border { border-color: #1c3f95; }
+div.lt-darkestgray-border { border-color: #5a5758; }
+div.lt-darkgray-border { border-color: #737171; }
+div.lt-metalgray-border { border-color: #959ca1; }
+div.lt-lightgray-border { border-color: #d9d8d8; }
+div.lt-lighestgray-border { border-color: #e7e7e8; }
+div.lt-white-border { border-color: #ffffff; }
+div.lt-red-border { border-color: #ee2e24; }
+div.lt-pink-border { border-color: #f386a1; }
+div.lt-yellow-border { border-color: #ffd204; }
+div.lt-green-border { border-color: #00853e; }
+div.lt-lightgreen-border { border-color: #85cebc; }
+div.lt-lightblue-border { border-color: #009ddc; }
+div.lt-magenta-border { border-color: #98005d; }
+div.lt-brown-border { border-color: #b06110; }
