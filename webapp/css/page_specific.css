@@ -27,5 +27,13 @@
 }
 
 .errorGrid .gridHeader .gridCell {
-  background-color: #ee2e24;
+  color: #ee2e24;
+}
+
+.errorGrid .gridRow.gridHeader  {
+  border-color: #ee2e24;
+}
+
+.errorGrid .gridRow {
+  border-color: #e5cfcf; /* some random color similar to lightGray */
 }

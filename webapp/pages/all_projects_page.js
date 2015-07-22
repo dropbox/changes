@@ -1,13 +1,12 @@
 import React from 'react';
 
-import Grid from 'es6!display/grid';
+import { Grid, GridRow } from 'es6!display/grid';
 import { BuildWidget, StatusDot, status_dots } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import ChangesPage from 'es6!display/page_chrome';
 import APINotLoaded from 'es6!display/not_loaded';
 import { TimeText } from 'es6!display/time';
-import { Menu1 } from 'es6!display/menus';
-import { Popover, OverlayTrigger } from 'react_bootstrap';
+import { Menu1, MenuUtils } from 'es6!display/menus';
 
 import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
@@ -28,28 +27,18 @@ var AllProjectsPage = React.createClass({
   getInitialState: function() {
     return {
       projects: null,
-      selectedItem: 'Latest Project Builds'
+      selectedItem: 'Latest Project Builds',
+
+      expandedConfigs: {},
     }
   },
 
   componentWillMount: function() {
-    // change the initial selected item if there's a hash in the url
-    if (window.location.hash) {
-      var hash_to_menu_item = {};
-      _.each(this.menuItems, i => {
-        // let's accept a bunch of hash variants
-        hash_to_menu_item[i] = i;
-        hash_to_menu_item[i.toLowerCase()] = i;
-        hash_to_menu_item[i.replace(/ /g, "")] = i;
-        hash_to_menu_item[i.toLowerCase().replace(/ /g, "")] = i;
-      });
+    var selected_item_from_hash = MenuUtils.selectItemFromHash(
+      window.location.hash, this.menuItems);
 
-      var hash = window.location.hash.substring(1);
-      if (hash_to_menu_item[hash]) {
-        this.setState({
-          selectedItem: hash_to_menu_item[hash]
-        });
-      }
+    if (selected_item_from_hash) {
+      this.setState({ selectedItem: selected_item_from_hash });
     }
   },
 
@@ -68,19 +57,10 @@ var AllProjectsPage = React.createClass({
     // render menu
     var selected_item = this.state.selectedItem;
 
-    // TODO: can move this to Menu elements
-    var onClick = (item => {
-      if (item === selected_item) {
-        return;
-      }
-      window.location.hash = item.replace(/ /g, "");
-      this.setState({selectedItem: item});
-    });
-
     var menu = <Menu1 
       items={this.menuItems} 
       selectedItem={selected_item} 
-      onClick={onClick}
+      onClick={MenuUtils.onClick(this, selected_item)}
     />;
 
     // TODO: what is the snapshot.current option and should I display it?
@@ -113,7 +93,6 @@ var AllProjectsPage = React.createClass({
   /*
    * Default way to render projects. Shows the latest build.
    * TODO: do we have any stats we want to show?
-   * TODO: more stuff
    */
   renderDefault: function(projects_data) {
     var list = [], stale_list = [];
@@ -160,17 +139,19 @@ var AllProjectsPage = React.createClass({
         build_time,
         p.name,
         [<a href={"/v2/project/" + p.slug}>Commits</a>,
-         <a className="marginLeftS" href={"/v2/project/" + p.slug + "#Details"}>
+         <a className="marginLeftS" href={"/v2/project/" + p.slug + "#ProjectDetails"}>
            Details
          </a>
         ],
+        p.options["project.notes"]
       ];
     });
     
-    var headers = ['Last Build', 'When', 'Name', 'Links'];
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide'];
+    var headers = ['Last Build', 'When', 'Name', 'Links', 'Notes'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'nowrap', 'wide'];
 
     return <Grid 
+      colnum={5}
       data={grid_data} 
       headers={headers} 
       cellClasses={cellClasses} 
@@ -229,6 +210,7 @@ var AllProjectsPage = React.createClass({
 
     return <div className="marginBottomL">
       <Grid 
+        colnum={5}
         data={rows} 
         headers={headers} 
         cellClasses={cellClasses} 
@@ -251,15 +233,6 @@ var AllProjectsPage = React.createClass({
             <b>{proj.name}</b>;
         }
 
-        var build_timeout = plan.steps[0].options['build.timeout'];
-        var build_timeout_markup = null;
-        if (build_timeout !== undefined) {
-          build_timeout_markup = [
-            <b>Build Timeout: </b>,
-            build_timeout
-          ];
-        }
-
         if (!plan.steps[0]) {
           rows.push([
             proj_name,
@@ -269,29 +242,17 @@ var AllProjectsPage = React.createClass({
             <TimeText time={plan.dateModified} />
           ]);
         } else {
-          var popover = <Popover className="popoverNoMaxWidth">
-            <b>{plan.name}{" Config ("}{plan.steps[0].name}{')'}</b>
-            <pre className="yellowPre">{plan.steps[0] && plan.steps[0].data}</pre>
-            {build_timeout_markup}
-          </Popover>;
-
-          var config_link = <div>
-            <OverlayTrigger 
-              trigger='click' 
-              placement='bottom' 
-              rootClose={true}
-              overlay={popover}>
-              <a>Config</a>
-            </OverlayTrigger>
-          </div>;
-
           rows.push([
             proj_name,
             plan.name,
             <span className="marginRightL">{plan.steps[0].name}</span>,
-            config_link,
+            this.getSeeConfigLink(plan.id),
             <TimeText time={plan.dateModified} />
           ]);
+
+          if (this.isConfigExpanded(plan.id)) {
+            rows.push(this.getExpandedConfigRow(plan));
+          }
         }
       });
     });
@@ -301,6 +262,7 @@ var AllProjectsPage = React.createClass({
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <Grid 
+      colnum={5}
       data={rows} 
       headers={headers} 
       cellClasses={cellClasses} 
@@ -329,7 +291,11 @@ var AllProjectsPage = React.createClass({
       _.each(projects_data, proj => {
         _.each(proj.plans, (plan, index) => {
           if (plan.steps.length > 0 && plan.steps[0].name === type) {
-            plan_rows.push([null, proj.name, plan.name]);
+            plan_rows.push([null, proj.name, plan.name, this.getSeeConfigLink(plan.id)]);
+
+            if (this.isConfigExpanded(plan.id)) {
+              plan_rows.push(this.getExpandedConfigRow(plan));
+            }
           }
         });
       });
@@ -338,15 +304,53 @@ var AllProjectsPage = React.createClass({
       rows_lists.push(plan_rows);
     });
     
-    var headers = ['Infrastructure', 'Project Name', 'Plan Name'];
-    var cellClasses = ['nowrap', 'nowrap', 'nowrap'];
+    var headers = ['Infrastructure', 'Project Name', 'Plan Name', 'More'];
+    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap'];
 
     return <Grid 
+      colnum={4}
       data={_.flatten(rows_lists, true)}
       headers={headers} 
       cellClasses={cellClasses} 
      />;
   },
+
+  getSeeConfigLink: function(plan_id) {
+    var onClick = ___ => {
+      this.setState(
+        utils.update_state_key(
+          'expandedConfigs', 
+          plan_id, 
+          !this.state.expandedConfigs[plan_id])
+      );
+    }
+
+    return <a onClick={onClick}>See Config</a>;
+  },
+
+  isConfigExpanded: function(plan_id) {
+    return this.state.expandedConfigs[plan_id];
+  },
+
+  getExpandedConfigRow: function(plan) {
+    var build_timeout = plan.steps[0].options['build.timeout'];
+    var build_timeout_markup = null;
+    if (build_timeout !== undefined) {
+      build_timeout_markup = [
+        <span className="lb">Build Timeout: </span>,
+        build_timeout
+      ];
+    }
+
+    return GridRow.oneItem(
+      <div>
+        <pre className="yellowPre">
+          {plan.steps[0] && plan.steps[0].data}
+        </pre>
+        {build_timeout_markup}
+      </div>
+    );
+  }
 });
 
 export default AllProjectsPage;

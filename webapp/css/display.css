@@ -10,40 +10,52 @@
   * Grid. There are a couple of common cell classes at the end
   */
 
-div.grid {
+table.grid {
   border-collapse: collapse;
-  border: 1px solid #1c3f95;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #d9d9d8;
   display: table;
   width: 100%;
 }
 
 .gridRow {
   display: table-row;
+  border-top: 1px solid #d9d9d8;
+}
+
+.gridRow.gridFirstRow {
+  border-top: none;
+}
+
+.gridRow.gridRowOneItem {
+  border-top: none;
 }
 
 .gridCell {
   display: table-cell;
-  padding: 4px;
-  padding-right: 10px;
+  padding: 6px 10px 6px 4px;
 }
 
 .gridCell:last-child {
   padding-right: 2px;
 }
 
+tr.gridHeader {
+  border-bottom: 1px solid #333;
+  border-top: none;
+}
+
 .gridHeader .gridCell {
-  background-color: #1c3f95;
-  /*  border: 1px solid #fff; */
-  color: #fff;
+  font-weight: 500;
 }
 
 .gridEven .gridCell {
-  background-color: #e7e7e8;
 }
 
 /* 
  * Grid: cell classes. You'll usually want to use wide for one of your columns
  */ 
+
 .nowrap {
   white-space: nowrap;
 }
@@ -92,8 +104,9 @@ div.grid {
  */
 
 .sectionHeader {
-  font-weight: bold;
   margin-bottom: 3px;
+  font-size: 22px;
+  /* font-weight: 500; */
 }
 
 /*
@@ -233,6 +246,10 @@ div.grid {
 .subText {
   font-size: x-small;
   color: #737171;
+}
+
+.lb {
+  font-weight: 500;
 }
 
 .bb {

@@ -3,7 +3,7 @@ import React from 'react';
 import { TimeText, display_duration } from 'es6!display/time';
 import { StatusDot } from 'es6!display/builds';
 import { Error } from 'es6!display/errors';
-import Grid from 'es6!display/grid';
+import { Grid } from 'es6!display/grid';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import { Menu1, Menu2 } from 'es6!display/menus';
 import SectionHeader from 'es6!display/section_header';
@@ -70,7 +70,7 @@ var UITestPage = React.createClass({
 
     renderables["Grid"] = <div>
       <SectionHeader>Letters</SectionHeader>
-      <Grid headers={headers} data={data} />
+      <Grid colnum={2} headers={headers} data={data} />
     </div>;
 
     // Menus

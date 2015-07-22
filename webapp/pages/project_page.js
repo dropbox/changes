@@ -2,12 +2,12 @@ import React from 'react';
 
 import { TimeText } from 'es6!display/time';
 import { StatusDot, status_dots, BuildWidget } from 'es6!display/builds';
-import Grid from 'es6!display/grid';
+import { Grid } from 'es6!display/grid';
 import { ProgrammingError } from 'es6!display/errors';
 import APINotLoaded from 'es6!display/not_loaded';
 import { RandomLoadingMessage } from 'es6!display/loading';
 import ChangesPage from 'es6!display/page_chrome';
-import { Menu1, Menu2 } from 'es6!display/menus';
+import { Menu1, Menu2, MenuUtils } from 'es6!display/menus';
 import { Popover, OverlayTrigger } from 'react_bootstrap';
 
 import * as api from 'es6!server/api';
@@ -31,6 +31,21 @@ var ProjectPage = React.createClass({
     }
   },
 
+  menuItems: [
+    'Commits', 
+    'Tests [TODO]', 
+    'Project Details'
+  ],
+
+  componentWillMount: function() {
+    var selected_item_from_hash = MenuUtils.selectItemFromHash(
+      window.location.hash, this.menuItems);
+
+    if (selected_item_from_hash) {
+      this.setState({ selectedItem: selected_item_from_hash });
+    }
+  },
+
   componentDidMount: function() {
     var slug = this.props.project;
 
@@ -49,9 +64,6 @@ var ProjectPage = React.createClass({
     }
 
     // render menu
-    var menu_items = [
-      'Commits', 'Tests [TODO]', 'Project Details'
-    ];
     var selected_item = this.state.selectedItem;
 
     var onClick = (item => {
@@ -64,9 +76,9 @@ var ProjectPage = React.createClass({
     });
 
     var menu = <Menu2 
-      items={menu_items} 
+      items={this.menuItems} 
       selectedItem={selected_item} 
-      onClick={onClick}
+      onClick={MenuUtils.onClick(this, selected_item)}
     />;
 
     var content = null;
@@ -300,9 +312,10 @@ var Commits = React.createClass({
     );
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
-    var headers = ['Last Build', 'Author', 'Commit', 'Name', 'Prev. B.', 'Committed'];
+    var headers = ['Last Build', 'Author', 'Phab.', 'Name', 'Prev. B.', 'Committed'];
 
     return <Grid
+      colnum={6}
       data={grid_data}
       cellClasses={cellClasses}
       headers={headers}
@@ -310,7 +323,14 @@ var Commits = React.createClass({
   },
 
   turnIntoRow: function(c, project_info) {
-    var sha_abbr = c.sha.substr(0,5) + '...';
+    var sha_item = c.sha.substr(0,7);
+    console.log(c);
+    if (c.external && c.external.link) {
+      sha_item = <a href={c.external.link} target="_blank">
+        {sha_item}
+      </a>;
+    }
+
     var title = utils.first_line(c.message);
 
     var build_widget = null, prev_builds = null;
@@ -346,7 +366,7 @@ var Commits = React.createClass({
     return [
       build_widget,
       author_page ? <a href={author_page}>{author}</a> : author,
-      commit_page ? <a href={commit_page}>{sha_abbr}</a> : sha_abbr,
+      sha_item,
       title,
       prev_builds,
       <TimeText time={c.dateCommitted} />
@@ -388,8 +408,19 @@ var Commits = React.createClass({
       var list = _.map(data.testFailures.tests, t => {
         return <div>{_.last(t.name.split("."))}</div>;
       });
+      if (data.testFailures.tests.length < build.stats['test_failures']) {
+        list.push(
+          <div className="marginTopS"> <em>
+            Showing{" "}
+            {data.testFailures.tests.length} 
+            {" "}out of{" "}
+            {build.stats['test_failures']} 
+            {" "}test failures
+          </em> </div>
+        );
+      }
 
-      var popover = <Popover>
+      var popover = <Popover className="popoverNoMaxWidth">
         <span className="bb">Failed Tests:</span>
         {list}
       </Popover>;

@@ -9,7 +9,7 @@ import * as utils from 'es6!utils/utils';
 import { TimeText, display_duration } from 'es6!display/time';
 import { StatusDot, get_build_state, get_build_state_color, get_build_cause } from 'es6!display/builds';
 import { Error, ProgrammingError } from 'es6!display/errors';
-import Grid from 'es6!display/grid';
+import { Grid, GridRow } from 'es6!display/grid';
 import SectionHeader from 'es6!display/section_header';
 import { Menu1, Menu2 } from 'es6!display/menus';
 import colors from 'es6!utils/colors';
@@ -435,7 +435,8 @@ var BuildsResultsPage = React.createClass({
       return null;
     }
 
-    var rows = _.map(build.testFailures.tests, test => {
+    var rows = [];
+    _.each(build.testFailures.tests, test => {
       var simple_name = _.last(test.name.split("."));
       var href = `/v2/project_test/${test.project.id}/${test.hash}`;
 
@@ -457,37 +458,37 @@ var BuildsResultsPage = React.createClass({
 
       var markup = [
         <div>
-          {simple_name} <a onClick={onClick} href="#">Expand</a>
+          {simple_name} <a onClick={onClick}>Expand</a>
           <div className="subText">{test.name}</div>
         </div>
       ];
 
+      rows.push([
+        markup,
+        <a href={href}>History</a>,
+      ]);
+
       if (this.state.expandedTests[test.id]) {
         if (!api.isLoaded(this.state.tests[test.id])) {
-          markup.push(
+          rows.push(GridRow.oneItem(
             <APINotLoaded 
               className="marginTopM" 
               state={this.state.tests[test.id]} 
               isInline={true} 
             />
-          );
+          ));
         } else {
           var data = this.state.tests[test.id].getReturnedData();
-          markup.push(
+          rows.push(GridRow.oneItem(
             <div className="marginTopM">
               <b>Captured Output</b>
               <pre className="yellowPre">
               {data.message}
               </pre>
             </div>
-          );
+          ));
         }
       }
-
-      return [
-        markup,
-        <a href={href}>History</a>,
-      ]
     });
 
     var revert_instructions = custom_content_hook('revertInstructions');
@@ -512,6 +513,7 @@ var BuildsResultsPage = React.createClass({
       {this.renderSubheader("Failed Tests", revert_link)}
       {revert_markup}
       <Grid 
+        colnum={2}
         className="errorGrid marginBottomM"
         data={rows} 
         headers={['Name', 'Links']} 
@@ -584,6 +586,7 @@ var BuildsResultsPage = React.createClass({
 
       // TODO: change grid background
       var job_grid = <Grid
+        colnum={5}
         className="marginTopS"
         data={_.flatten(phases_rows, true)}
         headers={job_headers}
@@ -605,10 +608,11 @@ var BuildsResultsPage = React.createClass({
   renderCommit: function(renderable) {
     var commit = renderable.commit;
     var commit_time = commit.revision.dateCommitted;
+    console.log(commit.revision);
 
     var header = this.renderHeader(
       `Committed ${commit.revision.sha.substr(0,12)}`,
-      moment(commit_time));
+      moment.utc(commit_time));
 
     return this.renderSection(
       hash_id(commit.revision.sha),

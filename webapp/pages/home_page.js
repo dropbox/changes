@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AjaxError } from 'es6!display/errors';
-import Grid from 'es6!display/grid';
+import { Grid } from 'es6!display/grid';
 import { StatusDot, status_dots, BuildWidget, get_build_state } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
@@ -150,6 +150,7 @@ var Diffs = React.createClass({
     return <div className="paddingBottomM">
       <SectionHeader>In Review</SectionHeader>
       <Grid 
+        colnum={5}
         data={grid_data} 
         cellClasses={cellClasses} 
         headers={headers}
@@ -233,7 +234,7 @@ var Commits = React.createClass({
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
       'Last Build',
-      'Hash',
+      'Phab.',
       'Project',
       'Name',
       'Committed'
@@ -266,6 +267,7 @@ var Commits = React.createClass({
         {is_it_out_markup}
       </div>
       <Grid 
+        colnum={5}
         data={grid_data} 
         cellClasses={cellClasses} 
         headers={headers}

@@ -3,8 +3,6 @@ import React from 'react';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
-// Two classes: Menu1, Menu2
-
 /*
  * Menu 1. Simple, items separated with |.
  * Commits | Every Build | Tests | More Information
@@ -92,3 +90,44 @@ export var Menu2 = React.createClass({
     return <div>{item_markup}</div>;
   }
 });
+
+export var MenuUtils = {
+  // call this from componentWillMount: it looks at the window hash parameter and
+  // tells you whether you should use a different selectedTab
+  selectItemFromHash: function(window_hash, items) {
+    // change the initial selected item if there's a hash in the url
+    if (!window_hash) {
+      return;
+    }
+    var hash_to_menu_item = {};
+    _.each(items, i => {
+      // let's accept a bunch of hash variants
+      hash_to_menu_item[i] = i;
+      hash_to_menu_item[i.toLowerCase()] = i;
+      hash_to_menu_item[i.replace(/ /g, "")] = i;
+      hash_to_menu_item[i.toLowerCase().replace(/ /g, "")] = i;
+    });
+
+    var hash = window_hash.substring(1);
+    if (hash_to_menu_item[hash]) {
+      return hash_to_menu_item[hash];
+    }
+    return null;
+  },
+
+  // default onclick handler for menu items
+  onClick: function(elem, selected_item) { 
+    return item => {
+      if (item === selected_item) {
+        // one reason we'd want to be able to click on the same tab again is to
+        // refresh the data. functions like componentDidMount won't be called
+        // again, though, so this wouldn't work out of the box. Disabling for
+        // now, might revisit later (e.g. using key attribute to force remount)
+        return;
+      }
+
+      window.location.hash = item.replace(/ /g, "");
+      elem.setState({selectedItem: item});
+    };
+  }
+}

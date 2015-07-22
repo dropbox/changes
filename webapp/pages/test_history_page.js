@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Grid from 'es6!display/grid';
+import { Grid } from 'es6!display/grid';
 import { StatusDot, status_dots } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import ChangesPage from 'es6!display/page_chrome';
@@ -83,6 +83,7 @@ var TestHistoryPage = React.createClass({
       'nowrap', 'wide', 'nowrap'];
 
     return <Grid
+      colnum={6}
       data={rows}
       headers={headers}
       cellClasses={cellClasses}

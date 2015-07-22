@@ -1,5 +1,5 @@
 import React from 'react';
-import Grid from 'es6!display/grid';
+import { Grid } from 'es6!display/grid';
 import SectionHeader from 'es6!display/section_header';
 import { TimeText } from 'es6!display/time';
 import _ from 'underscore';
@@ -262,7 +262,7 @@ var ChangesInlinePerf = React.createClass({
     });
 
     var headers = ["API Name", "Sent At", "Duration", "Links"];
-    return <Grid headers={headers} data={data} />;
+    return <Grid colnum={4} headers={headers} data={data} />;
   }, 
 
   // Info about the latest revision in this changes deployment
