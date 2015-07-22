@@ -93,7 +93,7 @@ class BuildRevisionEnsureAPIView(APIView):
         label = label[:128]
 
         project_options = ProjectOptionsHelper.get_options(
-            projects, ['build.file-whitelist'])
+            projects, ['build.file-whitelist', 'build.commit-trigger'])
 
         collection_id = uuid.uuid4()
         builds = []
@@ -103,6 +103,10 @@ class BuildRevisionEnsureAPIView(APIView):
             if not plan_list:
                 logging.warning(
                     'No plans defined for project %s', project.slug)
+                continue
+
+            if project_options[project.id].get('build.commit-trigger', '1') != '1':
+                logging.info('build.commit-trigger is disabled for project %s', project.slug)
                 continue
 
             if files_changed and not in_project_files_whitelist(project_options[project.id], files_changed):
