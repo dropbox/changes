@@ -198,8 +198,9 @@ var ChangesInlinePerf = React.createClass({
       return <div />;
     }
     return <div className="marginTopM">
-      <a href={errors_href} target="_blank">
-        Is Changes Broken?
+      <b>Link to Error Dashboard:{" "}</b>
+      <a href={errors_href}>
+        {errors_name}
       </a>
     </div>;
   },
