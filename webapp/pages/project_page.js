@@ -115,7 +115,7 @@ var ProjectPage = React.createClass({
       project_info.options["build.commit-trigger"] ? "Commits" : null,
     ]);
 
-    var branches_option = project_info.options["build.branch-names"];
+    var branches_option = project_info.options["build.branch-names"] || '*';
     if (branches_option === "*") {
       var branches = "all branches";
     } else if (branches_option.split(" ").length === 1) {
@@ -583,7 +583,7 @@ var ProjectDetails = React.createClass({
       triggers = 'Only commits';
     }
 
-    var branches_option = project.options["build.branch-names"];
+    var branches_option = project.options["build.branch-names"] || '*';
     var branches = branches_option === "*" ? 
       'any' :
       branches_option.replace(/ /g, ", ");
