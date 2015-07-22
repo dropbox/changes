@@ -39,6 +39,58 @@ export var update_state_key = function(map_key, key, value) {
   }
 }
 
+export var ensureArray = function(item) {
+  if (!_.isArray(item)) {
+    item = [item];
+  }
+  return item;
+}
+
+// takes a list of strings and splits each of them into a three-tuple of common
+// prefix (across all strings), unique middle, and common suffix. Some parts 
+// may be ''.
+export var split_start_and_end = function(strings) {
+  var prefix = get_common_prefix(strings);
+  var suffix = get_common_suffix(strings);
+  var dict = {};
+  _.each(strings, s => {
+    dict[s] = [prefix,
+      s.substring(prefix.length, s.length - suffix.length),
+      suffix];
+  });
+  return dict;
+}
+
+export var get_common_prefix = function(strings) {
+  if (strings.length === 0) {
+    return '';
+  }
+
+  var common_prefix = '';
+  for (var i = 0; i < strings[0].length; i++) {
+    var char_to_check = strings[0].charAt(i);
+    var matches = true;
+    _.each(strings, s => {
+      if (s.length < i + 1 || s.charAt(i) !== char_to_check) {
+        matches = false;
+        return;
+      }
+    });
+    if (matches) {
+      common_prefix += char_to_check;
+    } else {
+      break;
+    }
+  }
+  return common_prefix;
+}
+
+export var get_common_suffix = function(strings) {
+  var reversed_strings = _.map(strings, s => s.split('').reverse().join(''));
+  var rcommon_prefix = get_common_prefix(reversed_strings);
+  return rcommon_prefix.split('').reverse().join('');
+}
+
 /*
  * Wraps func in window.setTimeout. This allows you to call functions 
  * like setState from render() (yes, there's a legitimate reason we do this...)

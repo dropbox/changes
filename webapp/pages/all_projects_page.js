@@ -19,7 +19,8 @@ var AllProjectsPage = React.createClass({
     'Latest Project Builds',
     'Projects By Repository',
     'Plans',
-    'Plans By Type'
+    'Plans By Type',
+    'Jenkins Plans By Master',
   ],
 
   STALE_MAX_AGE: 60*60*24*7, // one week
@@ -79,6 +80,9 @@ var AllProjectsPage = React.createClass({
       case 'Plans By Type':
         content = this.renderPlansByType(projects_data);
         break;
+      case 'Jenkins Plans By Master':
+        content = this.renderJenkinsPlansByMaster(projects_data);
+        break;
       default:
         throw 'unreachable';
     }
@@ -86,7 +90,7 @@ var AllProjectsPage = React.createClass({
     return <ChangesPage>
       <SectionHeader>All Projects</SectionHeader>
       {menu}
-      {content}
+      <div className="marginTopM">{content}</div>
     </ChangesPage>;
   },
 
@@ -161,7 +165,7 @@ var AllProjectsPage = React.createClass({
   /*
    * Clusters projects together by repo
    */
-  renderByRepo(projects_data) {
+  renderByRepo: function(projects_data) {
     var rows = [];
     var by_repo = _.groupBy(projects_data, p => p.repository.id);
     _.each(by_repo, repo_projects => {
@@ -221,7 +225,7 @@ var AllProjectsPage = React.createClass({
   /*
    * Renders individual build plans for projects
    */
-  renderPlans(projects_data) {
+  renderPlans: function(projects_data) {
     var rows = [];
     _.each(projects_data, proj => {
       var num_plans = proj.plans.length;
@@ -272,7 +276,7 @@ var AllProjectsPage = React.createClass({
   /*
    * Clusters build plans by type
    */
-  renderPlansByType(projects_data) {
+  renderPlansByType: function(projects_data) {
     var every_plan = _.flatten(
       _.map(projects_data, p => p.plans)
     );
@@ -313,6 +317,110 @@ var AllProjectsPage = React.createClass({
       headers={headers} 
       cellClasses={cellClasses} 
      />;
+  },
+
+  renderJenkinsPlansByMaster: function(projects_data) {
+    // keys are jenkins master urls. Values are two lists (master/diff) each of
+    // plans (since we have a separate jenkins_diff_urls)
+    var plans_by_master = {};
+    var jenkins_fallback_data = {};
+
+    // ignore trailing slash for urls
+    var del_trailing_slash = url => url.replace(/\/$/, '');
+
+    _.each(projects_data, proj => {
+      _.each(proj.plans, plan => {
+        plan.project = proj;
+
+        // is there a plan?
+        if (!plan.steps[0]) { return; }
+        // is it a jenkins plan?
+        if (plan.steps[0].name.toLowerCase().indexOf('jenkins') === -1) {
+          return;
+        }
+
+        if (plan['jenkins_fallback']) {
+          jenkins_fallback_data = plan['jenkins_fallback'];
+        }
+
+        var data = JSON.parse(plan.steps[0].data);
+
+        if (data['jenkins_url']) {
+          _.each(utils.ensureArray(data['jenkins_url']), u => {
+            u = del_trailing_slash(u);
+            plans_by_master[u] = plans_by_master[u] || {};
+            plans_by_master[u]['master'] = plans_by_master[u]['master'] || [];
+            plans_by_master[u]['master'].push(plan);
+          });
+        }
+        if (data['jenkins_diff_url']) {
+          _.each(utils.ensureArray(data['jenkins_diff_url']), u => {
+            u = del_trailing_slash(u);
+            plans_by_master[u] = plans_by_master[u] || {};
+            plans_by_master[u]['diff'] = plans_by_master[u]['diff'] || [];
+            plans_by_master[u]['diff'].push(plan);
+          });
+        }
+      });
+    });
+
+    var split_urls_for_display = utils.split_start_and_end(
+      _.keys(plans_by_master));
+
+    var rows = [];
+    _.each(_.keys(plans_by_master).sort(), url => {
+      var val = plans_by_master[url];
+      val.master = val.master || [];
+      val.diff = val.diff || [];
+
+      var is_first_row = true;
+      var first_row_text = <span className="paddingRightM">
+        {split_urls_for_display[url][0]}
+        <span className="bb">{split_urls_for_display[url][1]}</span>
+        {split_urls_for_display[url][2]}
+        {" ("}{val.master.length}{"/"}{val.diff.length}{")"}
+      </span>;
+
+      _.each(val.master, (plan, index) => {
+        rows.push([
+          is_first_row ? first_row_text : '',
+          index === 0 ? <span className="paddingRightM">Anything</span> : '',
+          plan.name,
+          plan.project.name,
+          <TimeText time={plan.dateModified} />
+        ]);
+        is_first_row = false;
+      });
+
+      _.each(val.diff, (plan, index) => {
+        rows.push([
+          is_first_row ? first_row_text : '',
+          index === 0 ? <span className="paddingRightM">Diffs-only</span> : '',
+          plan.name,
+          plan.project.name,
+          <TimeText time={plan.dateModified} />
+        ]);
+        is_first_row = false;
+      });
+    });
+
+    var headers = ['Master', 'Used for', 'Plan', 'Project', 'Modified'];
+    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+
+    return <div>
+      <div className="yellowPre marginBottomM">
+        Note: this chart only shows explicitly-configured master urls. Here are
+        the fallbacks we use when master is not configured.
+        <div><b>fallback_url: </b>{(jenkins_fallback_data['fallback_url'] || "None")}</div>
+        <div><b>fallback_cluster_machines: </b>{(jenkins_fallback_data['fallback_cluster_machines'] || "None")}</div>
+      </div>
+      <Grid 
+        colnum={5}
+        data={rows} 
+        headers={headers} 
+        cellClasses={cellClasses} 
+      />
+    </div>;
   },
 
   getSeeConfigLink: function(plan_id) {
