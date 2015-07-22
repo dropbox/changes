@@ -12,10 +12,14 @@ from .builder import JenkinsBuilder
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, setup_script='', teardown_script='',
                  reset_script='', diff_cluster=None, path='', workspace='',
-                 *args, **kwargs):
+                 snapshot_script=None, *args, **kwargs):
+        """Builder for JenkinsGenericBuildStep. See JenkinsGenericBuildStep
+        for information on most of these arguments.
+        """
         self.setup_script = setup_script
         self.script = kwargs.pop('script')
         self.teardown_script = teardown_script
+        self.snapshot_script = snapshot_script
         self.reset_script = reset_script
         self.cluster = kwargs.pop('cluster')
         self.diff_cluster = diff_cluster
@@ -123,6 +127,8 @@ class JenkinsGenericBuilder(JenkinsBuilder):
 
         build_desc = self.build_desc
 
+        # This is the image we are expected to produce or None
+        # if this is not a snapshot build.
         expected_image = self.get_expected_image(job.id)
 
         # Setting script to be empty essentially forces nothing
@@ -130,10 +136,14 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         snapshot_id = ''
         if expected_image:
             snapshot_id = expected_image.hex
+
             # this is a no-op command in sh, essentially equivalent
             # to '' except it tells changes-client that we are
-            # deliberately doing absolutely nothing
-            script = ':'
+            # deliberately doing absolutely nothing. However,
+            # if snapshot script is not None, then we just use
+            # that in place of script (so the normal script is
+            # never used).
+            script = self.snapshot_script or ':'
 
             # sharded builds will have different setup/teardown/build_desc
             # scripts between shards and collector so we need to

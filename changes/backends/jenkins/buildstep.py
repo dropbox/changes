@@ -102,16 +102,24 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
 
     def __init__(self, job_name, script, cluster, diff_cluster='', path='',
                  workspace='', reset_script='', build_type=None,
-                 setup_script='', teardown_script='', **kwargs):
+                 setup_script='', teardown_script='',
+                 snapshot_script=None, **kwargs):
         """
         build_type describes how to use changes-client, but 'legacy'
         defaults to not using it at all. See configuration file
         for more details [CHANGES_CLIENT_BUILD_TYPES]
+
+        Scripts:
+          - setup script: Runs before script
+          - teardown script: Runs after script
+          - reset script: Runs after build async
+          - snapshot cript: Replaces script for snapshot builds
         """
         self.setup_script = setup_script
         self.script = script
         self.teardown_script = teardown_script
         self.reset_script = reset_script
+        self.snapshot_script = snapshot_script
         self.cluster = cluster
         self.diff_cluster = diff_cluster
         self.path = path
@@ -127,6 +135,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'script': self.script,
             'teardown_script': self.teardown_script,
             'reset_script': self.reset_script,
+            'snapshot_script': self.snapshot_script,
             'cluster': self.cluster,
             'path': self.path,
             'workspace': self.workspace,

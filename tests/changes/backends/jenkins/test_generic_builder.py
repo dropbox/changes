@@ -135,7 +135,6 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         self.create_job_plan(job, plan)
         snapshot = self.create_snapshot(project)
         snapshot_image = self.create_snapshot_image(snapshot, plan, job=job)
-        db.session.commit()
 
         params = builder.get_job_parameters(job, jobstep.id.hex, path='foo')
         assert {'name': 'SETUP_SCRIPT', 'value': self.builder_options['setup_script']} in params
@@ -149,6 +148,30 @@ class JenkinsGenericBuilderTest(BaseTestCase):
             assert command.env['SETUP_SCRIPT'] == self.builder_options['setup_script']
             assert command.env['SCRIPT'] == ':'
             assert command.env['TEARDOWN_SCRIPT'] == self.builder_options['teardown_script']
+
+    def test_commands_snapshot_with_script(self):
+        """Test that we replace script with snapshot_script when
+        running a snapshot build, if snapshot_script is not None.
+        """
+        builder = self.get_builder(snapshot_script='cache-data')
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        plan = self.create_plan(project)
+        self.create_job_plan(job, plan)
+        snapshot = self.create_snapshot(project)
+        snapshot_image = self.create_snapshot_image(snapshot, plan, job=job)
+
+        params = builder.get_job_parameters(job, jobstep.id.hex, path='foo')
+        assert {'name': 'SCRIPT', 'value': 'cache-data'} in params
+
+        builder.create_commands(jobstep, params)
+        db.session.commit()
+
+        for command in jobstep.commands:
+            assert command.env['SCRIPT'] == 'cache-data'
 
     def test_can_snapshot(self):
         assert not self.get_builder().can_snapshot()
