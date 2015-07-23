@@ -1,8 +1,10 @@
+import celery
 import changes
 import logging
 import flask
 import os
 import os.path
+import time
 import warnings
 
 from celery.schedules import crontab
@@ -27,6 +29,8 @@ from changes.ext.redis import Redis
 from changes.ext.statsreporter import StatsReporter
 from changes.url_converters.uuid import UUIDConverter
 
+from sqlalchemy import event
+from sqlalchemy.orm import Session
 # because foo.in_([]) ever executing is a bad idea
 from sqlalchemy.exc import SAWarning
 warnings.simplefilter('error', SAWarning)
@@ -279,6 +283,9 @@ def create_app(_read_config=True, profiler_directory=None, **config):
     # unspecified timeout doesn't mean "is allowed to run indefinitely".
     app.config['DEFAULT_JOB_TIMEOUT_MIN'] = 60
 
+    # Number of milliseconds a transaction can run before triggering a warning.
+    app.config['TRANSACTION_MS_WARNING_THRESHOLD'] = 2500
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
@@ -345,6 +352,7 @@ def create_app(_read_config=True, profiler_directory=None, **config):
     app.register_blueprint(blueprint, url_prefix='/v2')
 
     configure_jobs(app)
+    configure_transaction_logging(app)
 
     rules_file = app.config.get('CATEGORIZE_RULES_FILE')
     if rules_file:
@@ -700,3 +708,45 @@ def configure_jobs(app):
                  content_encoding='utf-8')
 
     register_changes_json()
+
+
+def configure_transaction_logging(app):
+    """Add sqlalchemy transaction event listeners to detect long running transactions.
+
+    The timer starts after a transaction has started (and database resources are being used)
+    and ends after a commit or rollback.
+    This currently only warns if a transaction takes longer than `TRANSACTION_MS_WARNING_THRESHOLD`
+    in the app config but this can be extended to log stats or other information
+    about transactions.
+    """
+
+    @event.listens_for(Session, 'after_begin')
+    def log_transaction_begin(session, transaction, connection):
+        session.info['txn_start_time'] = time.time()
+
+    @event.listens_for(Session, 'after_commit')
+    def log_transaction_commit(session):
+        _log_transaction_end(session)
+
+    @event.listens_for(Session, 'after_rollback')
+    def log_transaction_rollback(session):
+        _log_transaction_end(session)
+
+    def _get_txn_context():
+        current_task = celery.current_task
+        if current_task:
+            return "task_%s" % (current_task.name,)
+        elif flask.has_request_context():
+            return "request_%s" % (request.endpoint,)
+        else:
+            return "unknown"
+
+    def _log_transaction_end(session):
+        context_name = _get_txn_context()
+        if 'txn_start_time' in session.info:
+            txn_start_time = session.info.pop('txn_start_time')
+            txn_end_time = time.time()
+            time_taken_ms = 1000 * (txn_end_time - txn_start_time)
+            if time_taken_ms > app.config['TRANSACTION_MS_WARNING_THRESHOLD']:
+                logging.warning("Long running transaction in %s took %dms.",
+                                context_name, time_taken_ms)
