@@ -22,7 +22,9 @@ var ChangesPage = React.createClass({
     // the first time you render the page with this set to true,
     // we record the time and show a widget with perf info in the header
     // TODO: handle transitions for a single-page app..
-    isPageLoaded: proptype.bool
+    isPageLoaded: proptype.bool,
+    // If you're on a page linked to in the top bar, highlight it
+    highlight: proptype.string,
   },
 
   getDefaultProps: function() {
@@ -41,7 +43,7 @@ var ChangesPage = React.createClass({
     var style = this.props.bodyPadding ? {padding: '10px'} : {};
 
     return <div>
-      <ChangesPageHeader />
+      <ChangesPageHeader highlight={this.props.highlight} />
       <div style={style}>
         {this.props.children}
       </div>
@@ -56,7 +58,9 @@ var ChangesPage = React.createClass({
  */
 var ChangesPageHeader = React.createClass({
   
-  // no properties
+  propTypes: {
+    highlight: proptype.string, // see ChangesPage
+  },
 
   render: function() {
     var feedback_href = custom_content_hook('feedbackHref');
@@ -74,15 +78,25 @@ var ChangesPageHeader = React.createClass({
           Machines
         </a>
 */
+
+    var highlight = this.props.highlight;
+    my_changes_classes = cx({
+      headerLinkBlock: true, headerHighlight: highlight === "My Changes"
+    });
+
+    all_projects_classes = cx({
+      headerLinkBlock: true, headerHighlight: highlight === "All Projects"
+    });
+
     return <div>
       <div className="pageHeader">
         <div className="headerBlock" style={{fontWeight: 900}}>
           Changes
         </div>
-        <a className="headerLinkBlock" href="/v2/">
+        <a className={my_changes_classes} href="/v2/">
           My Changes
         </a>
-        <a className="headerLinkBlock" href="/v2/projects/">
+        <a className={all_projects_classes} href="/v2/projects/">
           All Projects
         </a>
         <ChangesLogin />

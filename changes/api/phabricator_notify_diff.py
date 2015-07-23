@@ -178,6 +178,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
                 message=message,
                 author=author,
                 patch=patch,
+                tag="phabricator",
             ))
 
         return self.respond(builds)

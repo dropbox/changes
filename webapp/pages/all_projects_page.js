@@ -87,7 +87,7 @@ var AllProjectsPage = React.createClass({
         throw 'unreachable';
     }
     
-    return <ChangesPage>
+    return <ChangesPage highlight="All Projects">
       <SectionHeader>All Projects</SectionHeader>
       {menu}
       <div className="marginTopM">{content}</div>

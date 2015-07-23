@@ -48,7 +48,7 @@ a, a#visited {
   color: #333;
 }
 
-.headerLinkBlock:hover, .inlinePerf:hover {
+.headerLinkBlock:hover, .inlinePerf:hover, .headerHighlight {
   background-color: #d0ab00;
 }
 
