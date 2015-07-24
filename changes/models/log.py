@@ -42,6 +42,18 @@ class LogSource(db.Model):
         if self.date_created is None:
             self.date_created = datetime.utcnow()
 
+    def get_url(self):
+        """
+           Returns:
+                str: The relative URI on Changes at which this log can be viewed.
+        """
+        # TODO(kylec): Bad to have this UI knowledge in model code, but convenient.
+        job = self.job
+        build = job.build
+        project = build.project
+        return "/projects/{}/builds/{}/jobs/{}/logs/{}/".format(
+                project.slug, build.id.hex, job.id.hex, self.id.hex)
+
 
 class LogChunk(db.Model):
     """

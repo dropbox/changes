@@ -355,7 +355,7 @@ class JenkinsBuilder(BaseBackend):
                         'text': warning,
                     })
                     offset += chunk_size
-                    self.logger.warning('log download took too long')
+                    self.logger.warning('log download took too long: %s', logsource.get_url())
                     break
 
             # Jenkins will suggest to us that there is more data when the job has

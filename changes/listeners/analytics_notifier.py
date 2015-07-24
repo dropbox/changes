@@ -185,7 +185,7 @@ def _categorize_step_logs(job):
                     # for Sentry's interpretation.
                     'data': {
                         'logsource.id': ls.id.hex,
-                        'log.url': _log_uri(ls),
+                        'log.url': ls.get_url(),
                     }
                 })
             else:
@@ -243,21 +243,6 @@ def _get_rules():
     if not rules_file:
         return None
     return categorize.load_rules(rules_file)
-
-
-def _log_uri(logsource):
-    """
-    Args:
-        logsource (LogSource): The LogSource to return URI for.
-
-    Returns:
-        str with relative URI of the provided LogSource.
-    """
-    job = logsource.job
-    build = job.build
-    project = build.project
-    return "/projects/{}/builds/{}/jobs/{}/logs/{}/".format(
-            project.slug, build.id.hex, job.id.hex, logsource.id.hex)
 
 
 def _incr(name):
