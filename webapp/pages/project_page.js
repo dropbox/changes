@@ -324,7 +324,6 @@ var Commits = React.createClass({
 
   turnIntoRow: function(c, project_info) {
     var sha_item = c.sha.substr(0,7);
-    console.log(c);
     if (c.external && c.external.link) {
       sha_item = <a href={c.external.link} target="_blank">
         {sha_item}

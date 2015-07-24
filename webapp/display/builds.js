@@ -257,24 +257,25 @@ export var StatusWithNumber = React.createClass({
 
 var all_build_states = ['passed', 'failed', 'nothing', 'unknown', 'waiting'];
 
-export var get_build_state = function(build) {
-  var status = build.status.id, 
-    result = build.result.id;
+export var get_build_state = function(build) { 
+  return get_runnable_state(build.status.id, build.result.id);
+}
 
+// builds, jobsteps, etc.
+export var get_runnable_state = function(status, result) {
   if (status === 'in_progress' || status === "queued") {
     return 'waiting';
   }
 
   if (result === 'passed' || result === 'failed') {
     return result;
-  } else if (build.result.id === 'aborted' || build.result.id === 'infra_failed') {
+  } else if (result === 'aborted' || result === 'infra_failed') {
     return 'nothing';
   }
   return 'unknown';
 }
 
-export var get_build_state_color = function(build) {
-  var state = get_build_state(build);
+export var get_state_color = function(state) {
   switch (state) {
     case 'passed':
       return colors.green;

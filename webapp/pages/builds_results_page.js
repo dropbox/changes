@@ -7,7 +7,7 @@ import APINotLoaded from 'es6!display/not_loaded';
 import * as utils from 'es6!utils/utils';
 
 import { TimeText, display_duration } from 'es6!display/time';
-import { StatusDot, get_build_state, get_build_state_color, get_build_cause } from 'es6!display/builds';
+import { StatusDot, get_build_state, get_runnable_state, get_state_color, get_build_cause } from 'es6!display/builds';
 import { Error, ProgrammingError } from 'es6!display/errors';
 import { Grid, GridRow } from 'es6!display/grid';
 import SectionHeader from 'es6!display/section_header';
@@ -523,21 +523,27 @@ var BuildsResultsPage = React.createClass({
 
   // what did the build actually do?
   renderJobs: function(build, job_phases) {
-    var slug = this.props.project;
-
     var markup = _.map(build.jobs, (j, index) => {
+      var slug = build.project.slug;
 
       // we'll render a table with content from each phase
       var phases_rows = _.map(job_phases[j.id], (phase, index) => {
         // what the server calls a jobstep is actually a shard
         return _.map(phase.steps, (shard, index) => {
+          var shard_state = get_runnable_state(shard.status.id, shard.result.id);
+          var shard_duration = 'Running';
+          if (shard_state !== 'waiting') {
+            shard_duration = shard.duration ? 
+              display_duration(shard.duration/1000) : '';
+          }
+
           if (!shard.node) {
             return [
               index === 0 ? <b>{phase.name}</b> : "",
-              <StatusDot state={shard.result.id} />,
+              <StatusDot state={shard_state} />,
+              <i>Machine not yet assigned</i>,
               '',
-              '',
-              shard.duration ? display_duration(shard.duration/1000) : ''
+              shard_duration
             ];
           }
           var node_name = <a href={"/nodes/" + shard.node.id}>
@@ -564,10 +570,10 @@ var BuildsResultsPage = React.createClass({
 
           return [
             index === 0 ? <b>{phase.name}</b> : "",
-            <StatusDot state={shard.result.id} />,
+            <StatusDot state={shard_state} />,
             node_name,
             links,
-            display_duration(shard.duration/1000)
+            shard_duration
           ];
         });
       });
@@ -608,7 +614,6 @@ var BuildsResultsPage = React.createClass({
   renderCommit: function(renderable) {
     var commit = renderable.commit;
     var commit_time = commit.revision.dateCommitted;
-    console.log(commit.revision);
 
     var header = this.renderHeader(
       `Committed ${commit.revision.sha.substr(0,12)}`,
@@ -793,7 +798,7 @@ var SideItems = React.createClass({
       '';
 
     var main_item = <a href={hash_href(build.id)} className="commitSideItem">
-      <b style={{color: get_build_state_color(build), display: 'block'}}>
+      <b style={{color: get_state_color(get_build_state(build)), display: 'block'}}>
         {project_prefix}
         Build #{build.number}
         <div style={time_style}>{display_duration(build.duration / 1000)}</div>
@@ -801,10 +806,8 @@ var SideItems = React.createClass({
     </a>;
 
     var job_items = _.map(build.jobs, j => {
-      var color = {
-        'passed': colors.green,
-        'failed': colors.red,
-      }[j.result.id] || '#ccc';
+      var color = get_state_color(
+        get_runnable_state(j.status.id, j.result.id));
 
       var style = {
         color: color
