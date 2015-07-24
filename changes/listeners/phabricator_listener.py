@@ -64,7 +64,7 @@ def post_diff_comment(diff_id, comment):
         '__conduit__': True,
         'output': 'json',
         'params': json.dumps(connect_args),
-    })
+    }, timeout=10)
     resp.raise_for_status()
 
     resp = json.loads(resp.content)['result']
@@ -83,7 +83,7 @@ def post_diff_comment(diff_id, comment):
     }
 
     comment_url = "%s/api/differential.createcomment" % host
-    comment_resp = requests.post(comment_url, comment_args)
+    comment_resp = requests.post(comment_url, comment_args, timeout=10)
     comment_resp.raise_for_status()
 
 

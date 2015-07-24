@@ -52,7 +52,7 @@ class NodeStatusAPIView(APIView):
         data = {
             'offlineMessage': '[changes] Disabled by %s at %s' % (user.email, timestamp)
         }
-        response = requests.Session().post(toggle_url, data=data)
+        response = requests.Session().post(toggle_url, data=data, timeout=10)
 
         if response.status_code != 200:
             logging.warning('Unable to toggle offline status (%s)' % (toggle_url))
@@ -68,7 +68,7 @@ class NodeStatusAPIView(APIView):
         # If this is not a Jenkins node, we don't have master and return an empty dict.
         if master and node.label:
             info_url = '%s/api/json' % (self.get_jenkins_url(master, node.label))
-            response = requests.Session().get(info_url)
+            response = requests.Session().get(info_url, timeout=10)
 
             if response.status_code == 200:
                 node_info = json.loads(response.text)

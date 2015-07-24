@@ -90,7 +90,7 @@ class PhabricatorRequest:
             '__conduit__': True,
             'output': 'json',
             'params': json.dumps(connect_args),
-        })
+        }, timeout=10)
         resp.raise_for_status()
 
         resp = json.loads(resp.content)['result']
@@ -116,7 +116,7 @@ class PhabricatorRequest:
 
         url = "%s/api/%s" % (self.host, method_name)
 
-        resp = requests.post(url, args)
+        resp = requests.post(url, args, timeout=10)
         resp.raise_for_status()
 
         content = json.loads(resp.content)

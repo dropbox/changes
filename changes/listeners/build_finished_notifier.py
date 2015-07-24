@@ -33,6 +33,6 @@ def build_finished_handler(build_id, **kwargs):
     # celery tasks, for better isolation between requests to different hooks.
     for u in current_app.config.get('BUILD_FINISHED_URLS', []):
         try:
-            requests.post(u, data={'build_id': build.id})
+            requests.post(u, data={'build_id': build.id}, timeout=10)
         except Exception:
             logger.exception("problem posting build finished notification")

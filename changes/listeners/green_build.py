@@ -110,7 +110,7 @@ def build_finished_handler(build_id, **kwargs):
 
     logging.info('Making green_build request to %s', url)
     try:
-        requests.post(url, auth=auth, data={
+        requests.post(url, auth=auth, timeout=10, data={
             'project': project,
             'id': release_id,
             'build_url': build_uri('/projects/{0}/builds/{1}/'.format(

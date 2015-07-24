@@ -22,7 +22,8 @@ def log_metrics(key, **kws):
             "".join(
                 "&%s=%s" % (urllib2.quote(str(k)), urllib2.quote(str(v)))
                 for (k, v) in kws.items()
-            )
+            ),
+            timeout=10
         ).read()
     except Exception as e:
         print("Logging Failed", e)

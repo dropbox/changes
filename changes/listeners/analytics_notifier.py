@@ -118,7 +118,8 @@ def post_analytics_data(url, data):
         data (list): Records to POST as JSON.
     """
     try:
-        resp = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(data))
+        resp = requests.post(url, headers={'Content-Type': 'application/json'},
+                             data=json.dumps(data), timeout=10)
         resp.raise_for_status()
         # Should probably retry here so that transient failures don't result in
         # missing data.
