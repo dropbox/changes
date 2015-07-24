@@ -1,3 +1,4 @@
+# TODO: remove this API endpoint once we switch over to build_index
 from __future__ import absolute_import, division, unicode_literals
 
 import logging

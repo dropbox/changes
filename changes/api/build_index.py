@@ -49,13 +49,29 @@ def identify_revision(repository, treeish):
     try:
         commit = vcs.log(parent=treeish, limit=1).next()
     except CommandError:
-        # TODO(dcramer): it's possible to DOS the endpoint by passing invalid
-        # commits so we should really cache the failed lookups
-        raise MissingRevision('Unable to find revision %s' % (treeish,))
+        # update and try one more time
+        vcs.update()
+        try:
+            commit = vcs.log(parent=treeish, limit=1).next()
+        except CommandError:
+            # TODO(dcramer): it's possible to DOS the endpoint by passing invalid
+            # commits so we should really cache the failed lookups
+            raise MissingRevision('Unable to find revision %s' % (treeish,))
 
     revision, _, __ = commit.save(repository)
 
     return revision
+
+
+def _get_revision_changed_files(repository, revision):
+    vcs = repository.get_vcs()
+    if not vcs:
+        raise NotImplementedError
+
+    diff = vcs.export(revision.sha)
+
+    diff_parser = DiffParser(diff)
+    return diff_parser.get_changed_files()
 
 
 def find_green_parent_sha(project, sha):
@@ -283,6 +299,8 @@ class BuildIndexAPIView(APIView):
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
     parser.add_argument('patch[data]', type=unicode, dest='patch_data')
     parser.add_argument('tag', type=unicode)
+    parser.add_argument('project_whitelist', type=lambda x: json.loads(x))
+    parser.add_argument('apply_file_whitelist', type=bool)
 
     def get(self):
         queryset = Build.query.options(
@@ -299,6 +317,11 @@ class BuildIndexAPIView(APIView):
         base revision to apply the patch. It is **not** guaranteed to be the rev
         used to apply the patch. See ``find_green_parent_sha`` for the logic of
         identifying the correct revision.
+
+        Arguments:
+            `project_whitelist` - a JSON list of project slugs that will act
+                                  as a whitelist, meaning only projects with these
+                                  slugs will be created.
         """
         args = self.parser.parse_args()
 
@@ -387,8 +410,24 @@ class BuildIndexAPIView(APIView):
         if patch:
             diff_parser = DiffParser(patch.diff)
             files_changed = diff_parser.get_changed_files()
+        elif revision:
+            files_changed = _get_revision_changed_files(repository, revision)
         else:
+            # the only way that revision can be null is if this repo does not have a vcs backend
+            logging.warning('Revision and patch are both None for sha %s. This is because the repo %s does not have a VCS backend.', sha, repository.url)
             files_changed = None
+
+        if not patch:
+            is_commit_build = True
+        else:
+            is_commit_build = False
+
+        if args.apply_file_whitelist is not None:
+            apply_file_whitelist = args.apply_file_whitelist
+        elif is_commit_build:
+            apply_file_whitelist = False
+        else:
+            apply_file_whitelist = True
 
         collection_id = uuid.uuid4()
         builds = []
@@ -397,7 +436,9 @@ class BuildIndexAPIView(APIView):
             if not plan_list:
                 logging.warning('No plans defined for project %s', project.slug)
                 continue
-
+            if args.project_whitelist and project.slug not in args.project_whitelist:
+                logging.info('Project %s is not in the supplied whitelist', project.slug)
+                continue
             forced_sha = sha
             # TODO(dcramer): find_green_parent_sha needs to take branch
             # into account
@@ -407,7 +448,7 @@ class BuildIndexAPIView(APIView):
             #         sha=sha,
             #     )
 
-            if files_changed and not in_project_files_whitelist(project_options[project.id], files_changed):
+            if apply_file_whitelist and files_changed and not in_project_files_whitelist(project_options[project.id], files_changed):
                 logging.info('No changed files matched build.file-whitelist for project %s', project.slug)
                 continue
 

@@ -1,3 +1,4 @@
+# TODO: remove this API endpoint test once we switch over to build_index
 from datetime import datetime
 from mock import patch, Mock
 
