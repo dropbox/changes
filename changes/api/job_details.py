@@ -38,6 +38,7 @@ class JobDetailsAPIView(APIView):
             joinedload('step'),
         ).filter(
             LogSource.job_id == job.id,
+            LogSource.project_id == job.project_id,
         ).order_by(LogSource.date_created.asc()))
 
         context = self.serialize(job)

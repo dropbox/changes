@@ -178,12 +178,11 @@ def _get_job_context(job):
         return failing_tests, failing_tests_count
 
     def get_job_failing_log_sources(job):
-        failing_log_sources = LogSource.query.filter(
-            LogSource.job_id == job.id,
-        ).join(
+        failing_log_sources = LogSource.query.join(
             JobStep, LogSource.step_id == JobStep.id,
         ).filter(
             JobStep.result == Result.failed,
+            JobStep.job_id == job.id,
         ).order_by(JobStep.date_created)
         failing_log_sources_count = failing_log_sources.count()
 
