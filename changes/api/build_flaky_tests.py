@@ -50,11 +50,16 @@ class BuildFlakyTestsAPIView(APIView):
 
                 first_build = Build.query.options(
                     joinedload('author'),
+                    joinedload('source'),
                 ).filter(
                     Build.id == first_test.job.build_id,
                 ).first()
 
                 item['author'] = {'email': first_build.author.email}
+
+                if first_build.source.patch_id:
+                    # Use Phabricator revision ID without trailing D
+                    item['diff_id'] = first_build.target[1:]
 
             flaky_tests.append(item)
 
