@@ -562,10 +562,10 @@ var BuildsResultsPage = React.createClass({
             </a>);
 
             var raw_log_uri = `/api/0/jobs/${j.id}/logs/${log_id}/?raw=1`;
-            links.push(<a className="marginRightS" href={raw_log_uri} target="_blank">Raw</a>);
+            links.push(<a className="external marginRightS" href={raw_log_uri} target="_blank">Raw</a>);
           } 
           if (shard.data.uri) {
-            links.push(<a href={shard.data.uri} target="_blank">Jenkins</a>);
+            links.push(<a classname="external" href={shard.data.uri} target="_blank">Jenkins</a>);
           }
 
           return [

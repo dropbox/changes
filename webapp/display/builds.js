@@ -12,6 +12,7 @@ var proptype = React.PropTypes;
  * Functions and classes for displaying information about builds
  */
 
+// Show information about the latest build to a commit-in-project
 export var BuildWidget = React.createClass({
   
   propTypes: {
@@ -159,9 +160,42 @@ export var StatusDot = React.createClass({
   }
 });
 
+/*
+ * Show a list of icons for the latest builds to a diff
+ */
+export var status_dots_for_diff = function(builds) {
+  var builds_by_diff_id = {};
+  _.each(builds, b => {
+    var diff_update_id = b.source.data['phabricator.diffID'];
+    builds_by_diff_id[diff_update_id] = builds_by_diff_id[diff_update_id] || [];
+    builds_by_diff_id[diff_update_id].push(b);
+  });
+  var latest_diff_id = _.chain(builds_by_diff_id).keys().max().value();
+
+  var states = _.chain(builds_by_diff_id[latest_diff_id])
+    .map(get_build_state)
+    .countBy()
+    .value();
+
+  // treat nothing and failed the same
+  states['failed'] = (states['failed'] || 0) + (states['nothing'] || 0);
+  delete states['nothing'];
+
+  var dots = _.mapObject(states, (v,k) => <StatusDot state={k} num={v} />);
+
+  if (all_build_states.length != 5) { // I'm paranoid
+    return <ProgrammingError>
+      You need to update the return value of the status_dots_for_diff function
+    </ProgrammingError>;
+  }
+
+  // we want to return the statuses in a specific order
+  return _.compact([dots['waiting'], dots['failed'], dots['passed'], dots['unknown']]);
+}
+
 /* 
- * Given a list of builds, render status dots for each in a row (combining
- * adjacent ones with the same result into a single dot w/ number
+ * Given a list of builds, render status dots for each in an ordered row 
+ * (combining adjacent ones with the same result into a single dot w/ number
  */
 export var status_dots = function(builds) {
   if (!builds) { return null; }
@@ -252,7 +286,8 @@ export var StatusWithNumber = React.createClass({
 
 /*
  * Looks at the build's status and result fields to figure out what state the 
- * build is in
+ * build is in. For the most part I treat failed and nothing the same...someone
+ * with a better understanding of changes can differentiate these if they want
  */
 
 var all_build_states = ['passed', 'failed', 'nothing', 'unknown', 'waiting'];

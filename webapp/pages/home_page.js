@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AjaxError } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
-import { StatusDot, status_dots, BuildWidget, get_build_state } from 'es6!display/builds';
+import { StatusDot, status_dots, BuildWidget, status_dots_for_diff, get_build_state } from 'es6!display/builds';
 import SectionHeader from 'es6!display/section_header';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import APINotLoaded from 'es6!display/not_loaded';
@@ -91,13 +91,18 @@ var HomePage = React.createClass({
           loadStatus={this.state.diffs.condition}
           diffs={diffs}
           errorResponse={this.state.diffs.response}
+          isSelf={!this.props.author}
         />
-        <Commits commits={commits} />
+        <Commits 
+          commits={commits} 
+          isSelf={!this.props.author}
+        />
       </div>
       <div className="marginTopL">
         <Projects
           commits={commits}
           projects={this.state.projects}
+          isSelf={!this.props.author}
         />
       </div>
     </div>;
@@ -109,8 +114,10 @@ var Diffs = React.createClass({
   
   propTypes: {
     loadStatus: React.PropTypes.string,
-    diffs: React.PropTypes.array
+    diffs: React.PropTypes.array,
     // errorResponse
+
+    isSelf: React.PropTypes.bool
   },
 
   render: function() {
@@ -127,11 +134,15 @@ var Diffs = React.createClass({
       var ident = "D" + d.id;
       var href = `/v2/diff/${ident}/`;
 
+      var latest_builds = null;
+      if (d.builds.length > 0) {
+        latest_builds = <a className="diffBuildsWidget" href={href}>
+          {status_dots_for_diff(d.builds)}
+        </a>;
+      }
       return [
-        d.builds.length > 0 ? 
-          <BuildWidget href={href} build={_.first(d.builds)} /> : 
-          null,
-        <a href={d['uri']} target="_blank">{ident}</a>,
+        latest_builds,
+        <a className="external" href={d['uri']} target="_blank">{ident}</a>,
         d['statusName'],
         d['title'],
         <TimeText time={d['dateModified']} format="X" />
@@ -140,15 +151,17 @@ var Diffs = React.createClass({
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
-      'Last Build',
-      'Phab.',
+      'Latest Build(s)',
+      'Diff',
       'Status',
       'Name',
       'Updated'
     ];
 
+    var header_text = this.props.isSelf ?
+      'Your Diffs' : 'Diffs';
     return <div className="paddingBottomM">
-      <SectionHeader>In Review</SectionHeader>
+      <SectionHeader>{header_text}</SectionHeader>
       <Grid 
         colnum={5}
         data={grid_data} 
@@ -164,6 +177,8 @@ var Commits = React.createClass({
   
   propTypes: {
     commits: React.PropTypes.array.isRequired,
+
+    isSelf: React.PropTypes.bool
   },
 
   render: function() {
@@ -178,7 +193,10 @@ var Commits = React.createClass({
       var sha = c.revision.sha;
       var sha_item = sha.substr(0,7);
       if (c.revision.external && c.revision.external.link) {
-        sha_item = <a href={c.revision.external.link} target="_blank">
+        sha_item = <a 
+          className="external" 
+          href={c.revision.external.link} 
+          target="_blank">
           {sha_item}
         </a>;
       }
@@ -256,14 +274,16 @@ var Commits = React.createClass({
     if (is_it_out_link) {
       is_it_out_markup = <span>
         {" ["}
-        <a href={is_it_out_link} target="_blank">Is it out?</a>
+        <a className="external" href={is_it_out_link} target="_blank">Is it out?</a>
         {"]"}
       </span>;
     }
 
+    var header_text = this.props.isSelf ?
+      'Your Commits' : 'Commits';
     return <div className="marginTopM">
       <div className="marginBottomS">
-        <SectionHeader className="inline">Commits</SectionHeader>
+        <SectionHeader className="inline">{header_text}</SectionHeader>
         {is_it_out_markup}
       </div>
       <Grid 
@@ -281,7 +301,8 @@ var Commits = React.createClass({
 var Projects = React.createClass({
   propTypes: {
     projects: React.PropTypes.object,
-    commits: React.PropTypes.array
+    commits: React.PropTypes.array,
+    isSelf: React.PropTypes.bool
   },
 
   render: function() {

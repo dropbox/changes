@@ -37,3 +37,13 @@
 .errorGrid .gridRow {
   border-color: #e5cfcf; /* some random color similar to lightGray */
 }
+
+/* TODO: move this to a component */
+a.diffBuildsWidget {
+  display: block;
+  padding: 6px;
+}
+
+a.diffBuildsWidget:hover {
+  background-color: #d9d8d8;
+}

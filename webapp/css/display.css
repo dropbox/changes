@@ -232,7 +232,7 @@ tr.gridHeader {
 }
 
 .gridCell.buildWidgetCell .buildWidget {
-  padding: 4px;
+  padding: 6px;
 }
 
 .buildWidget:hover {
