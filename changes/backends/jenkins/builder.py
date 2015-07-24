@@ -343,8 +343,7 @@ class JenkinsBuilder(BaseBackend):
                                "{base}/job/{job}/{build}/consoleText\n").format(
                                    base=jobstep.data['master'],
                                    job=job_name,
-                                   build=build_no,
-                               )
+                                   build=build_no)
                     create_or_update(LogChunk, where={
                         'source': logsource,
                         'offset': offset,
@@ -426,7 +425,11 @@ class JenkinsBuilder(BaseBackend):
 
         best_match = (sys.maxint, None)
         for url in master_urls:
-            queued_jobs = self._count_queued_jobs(url, job_name)
+            try:
+                queued_jobs = self._count_queued_jobs(url, job_name)
+            except:
+                self.logger.exception("Couldn't count queued jobs on master %s", url)
+                continue
 
             if queued_jobs == 0:
                 return url
@@ -434,7 +437,10 @@ class JenkinsBuilder(BaseBackend):
             if best_match[0] > queued_jobs:
                 best_match = (queued_jobs, url)
 
-        return best_match[1]
+        best = best_match[1]
+        if not best:
+            raise Exception("Unable to successfully pick a master from {}.".format(master_urls))
+        return best
 
     def _count_queued_jobs(self, master_base_url, job_name):
         response = self._get_json_response(

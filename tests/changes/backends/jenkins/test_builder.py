@@ -228,6 +228,55 @@ class CreateBuildTest(BaseTestCase):
 
         assert step.data['master'] == 'http://jenkins-2.example.com'
 
+    @responses.activate
+    def test_multi_master_one_bad(self):
+        job_id = 'f9481a17aac446718d7893b6e1c6288b'
+        jobstep_id = uuid5_from(job_id)
+        responses.add(
+            responses.GET, 'http://jenkins-2.example.com/queue/api/json/',
+            body=self.load_fixture('fixtures/GET/queue_list_other_jobs.json'),
+            status=200)
+
+        # This one has a failure status.
+        responses.add(
+            responses.GET, 'http://jenkins.example.com/queue/api/json/',
+            body='',
+            status=503)
+
+        responses.add(
+            responses.POST, 'http://jenkins-2.example.com/job/server/build',
+            body='',
+            status=201)
+
+        responses.add(
+            responses.GET,
+            'http://jenkins-2.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
+            status=404,
+            match_querystring=True)
+
+        responses.add(
+            responses.GET,
+            'http://jenkins-2.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fnumber&depth=1&wrapper=x'.format(jobstep_id),
+            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
+            match_querystring=True)
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID(hex=job_id),
+        )
+
+        builder = self.get_builder()
+        builder.master_urls = [
+            'http://jenkins.example.com',
+            'http://jenkins-2.example.com',
+        ]
+        builder.create_job(job)
+
+        step = job.phases[0].steps[0]
+
+        assert step.data['master'] == 'http://jenkins-2.example.com'
+
 
 class CancelStepTest(BaseTestCase):
     @responses.activate
