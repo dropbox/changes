@@ -341,6 +341,10 @@ var AllProjectsPage = React.createClass({
 
         if (plan['jenkins_fallback']) {
           jenkins_fallback_data = plan['jenkins_fallback'];
+          jenkins_fallback_data['fallback_cluster_machines'] = 
+            jenkins_fallback_data['fallback_cluster_machines'] ?
+            JSON.stringify(jenkins_fallback_data['fallback_cluster_machines']) :
+            "None";
         }
 
         var data = JSON.parse(plan.steps[0].data);
@@ -375,9 +379,11 @@ var AllProjectsPage = React.createClass({
 
       var is_first_row = true;
       var first_row_text = <span className="paddingRightM">
-        {split_urls_for_display[url][0]}
-        <span className="bb">{split_urls_for_display[url][1]}</span>
-        {split_urls_for_display[url][2]}
+        <a className="subtle" href={url} target="_blank">
+          {split_urls_for_display[url][0]}
+          <span className="bb">{split_urls_for_display[url][1]}</span>
+          {split_urls_for_display[url][2]}
+        </a>
         {" ("}{val.master.length}{"/"}{val.diff.length}{")"}
       </span>;
 
@@ -412,7 +418,9 @@ var AllProjectsPage = React.createClass({
         Note: this chart only shows explicitly-configured master urls. Here are
         the fallbacks we use when master is not configured.
         <div><b>fallback_url: </b>{(jenkins_fallback_data['fallback_url'] || "None")}</div>
-        <div><b>fallback_cluster_machines: </b>{(jenkins_fallback_data['fallback_cluster_machines'] || "None")}</div>
+        <div><b>fallback_cluster_machines: </b>
+          {jenkins_fallback_data['fallback_cluster_machines']}
+        </div>
       </div>
       <Grid 
         colnum={5}
