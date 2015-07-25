@@ -5,6 +5,7 @@ from changes.api.base import APIView
 from changes.config import statsreporter
 
 import string
+import re
 import urlparse
 
 
@@ -12,6 +13,17 @@ class LogClientPerfAPIView(APIView):
     """
     Record client-side statistics to statsd
     """
+
+    _ILLEGAL_CHAR_RE = re.compile(r'[^a-zA-Z0-9-_]')
+
+    def strip_illegal_chars(self, stats_key):
+        """
+        statsreporter keys must be letters, numbers, or - / _. This function
+        ensures we're sending valid keys: first by optimistically converting
+        some characters to _, then by deleting all other characters
+        """
+        legal_str = stats_key.replace(':', '_')
+        return self._ILLEGAL_CHAR_RE.sub('', legal_str)
 
     def make_fuzzy_url(self, url):
         """
@@ -46,7 +58,7 @@ class LogClientPerfAPIView(APIView):
             page_load,
             self.make_fuzzy_url(perf_stats['url']))
         statsreporter.stats().log_timing(
-            key,
+            self.strip_illegal_chars(key),
             perf_stats['endTime'] - perf_stats['startTime'])
 
     def log_api_perf(self, perf_stats):
@@ -57,5 +69,7 @@ class LogClientPerfAPIView(APIView):
                 continue
             duration = api_data['endTime'] - api_data['startTime']
             statsreporter.stats().log_timing(
-                api_key.format(api_data['apiMethod'], api_data['apiName']),
+                self.strip_illegal_chars(
+                    api_key.format(api_data['apiMethod'], api_data['apiName'])
+                ),
                 duration)
