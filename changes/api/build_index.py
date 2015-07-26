@@ -22,7 +22,7 @@ from changes.models import (
 )
 from changes.utils.diff_parser import DiffParser
 from changes.utils.whitelist import in_project_files_whitelist
-from changes.vcs.base import CommandError
+from changes.vcs.base import CommandError, UnknownRevision
 
 
 class MissingRevision(Exception):
@@ -68,7 +68,11 @@ def _get_revision_changed_files(repository, revision):
     if not vcs:
         raise NotImplementedError
 
-    diff = vcs.export(revision.sha)
+    try:
+        diff = vcs.export(revision.sha)
+    except UnknownRevision:
+        vcs.update()
+        diff = vcs.export(revision.sha)
 
     diff_parser = DiffParser(diff)
     return diff_parser.get_changed_files()
