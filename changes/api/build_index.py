@@ -72,7 +72,10 @@ def _get_revision_changed_files(repository, revision):
         diff = vcs.export(revision.sha)
     except UnknownRevision:
         vcs.update()
-        diff = vcs.export(revision.sha)
+        try:
+            diff = vcs.export(revision.sha)
+        except UnknownRevision:
+            raise MissingRevision('Unable to find revision %s' % (revision.sha,))
 
     diff_parser = DiffParser(diff)
     return diff_parser.get_changed_files()
@@ -287,23 +290,79 @@ def try_get_projects_and_repository(args):
 
 class BuildIndexAPIView(APIView):
     parser = reqparse.RequestParser()
+
+    """The commit ID to base this build on. A patch may also be applied - see below.
+    """
     parser.add_argument('sha', type=str, required=True)
+
+    """The project slug to build.
+    Optional
+    """
     parser.add_argument('project', type=lambda x: Project.query.filter(
         Project.slug == x,
         Project.status == ProjectStatus.active,
     ).first())
+
     # TODO(dcramer): it might make sense to move the repository and callsign
     # options into something like a "repository builds index" endpoint
+    """The repository url for the repo to build with.
+    Optional
+    """
     parser.add_argument('repository', type=get_repository_by_url)
+
+    """The Phabricator callsign for the repo to build with.
+    Optional
+    """
     parser.add_argument('repository[phabricator.callsign]', type=get_repository_by_callsign)
+
+    """Optional author for this build. If nothing is passed in, the commit
+    author is used. See AuthorValidator for format.
+    """
     parser.add_argument('author', type=AuthorValidator())
+
+    """Optional label to store with this build. If nothing is passed in,
+    the commit subject for the revision is used.
+    """
     parser.add_argument('label', type=unicode)
+
+    """Optional indicator of what is being built, like a Phabricator revision
+    D1234. If nothing is passed in, parts of the sha is used.
+    """
     parser.add_argument('target', type=unicode)
+
+    """Optional message to tag along with the created builds. If nothing is passed
+    in, the commit message of the revision is used.
+    """
     parser.add_argument('message', type=unicode)
+
+    """The optional patch to apply to the given revision before building. This must
+    be the same format as a `git diff` for a git repo. This is attached as a file.
+
+    Use this to create a diff build. Omit to create a commit build.
+    """
     parser.add_argument('patch', type=FileStorage, dest='patch_file', location='files')
+
+    """Additional metadata to attach to the patch. This must be in serialized
+    JSON format, and will be stored in the Source model as the data column.
+
+    If nothing is passed in, then an empty dictionary is saved in the data column
+    """
     parser.add_argument('patch[data]', type=unicode, dest='patch_data')
+
+    """A tag that will get stored with created build. Can be used to track
+    the cause of this build (i.e. commit-queue)
+    """
     parser.add_argument('tag', type=unicode)
+
+    """A JSON list of project slugs that will act as a whitelist, meaning
+    only projects with these slugs will be created.
+    """
     parser.add_argument('project_whitelist', type=lambda x: json.loads(x))
+
+    """A flag to indicate whether the file whitelist should be used to filter
+    out projects. Defaults to true for diff builds and false for commit builds
+    for compatibility reasons
+    """
     parser.add_argument('apply_file_whitelist', type=bool)
 
     def get(self):
@@ -317,15 +376,31 @@ class BuildIndexAPIView(APIView):
 
     def post(self):
         """
+        Create a new commit or diff build. The API roughly goes like this:
+
+        1. Identify the project(s) to build for. This can be done by specifying
+        ``project``, ``repository``, or ``repository[callsign]``. If a repository is
+        specified somehow, then all projects for that repository are considered
+        for building.
+
+        2. Using the ``sha``, find the appropriate revision object. This may
+        involve updating the repo.
+
+        3. If ``patch`` is given, then apply the patch and mark this as a diff build.
+        Otherwise, this is a commit build.
+
+        4. Based on the flag ``apply_file_whitelist`` (see comment on the argument
+        itself for default values), decide whether or not to filter out projects
+        by file whitelist.
+
+        5. Attach metadata and create a build for each remaining projects.
+
         Note: If ``patch`` is specified ``sha`` is assumed to be the original
-        base revision to apply the patch. It is **not** guaranteed to be the rev
+        base revision to apply the patch.
+
+        Not relevant until we fix TODO: ``sha`` is **not** guaranteed to be the rev
         used to apply the patch. See ``find_green_parent_sha`` for the logic of
         identifying the correct revision.
-
-        Arguments:
-            `project_whitelist` - a JSON list of project slugs that will act
-                                  as a whitelist, meaning only projects with these
-                                  slugs will be created.
         """
         args = self.parser.parse_args()
 
@@ -334,6 +409,7 @@ class BuildIndexAPIView(APIView):
                          problems=["project", "repository",
                                    "repository[phabricator.callsign]"])
 
+        # read arguments
         if args.patch_data:
             try:
                 patch_data = json.loads(args.patch_data)
@@ -347,11 +423,13 @@ class BuildIndexAPIView(APIView):
         else:
             patch_data = None
 
+        # 1. identify project(s)
         projects, repository = try_get_projects_and_repository(args)
 
         if not projects:
             return error("Unable to find project(s).")
 
+        # read arguments
         label = args.label
         author = args.author
         message = args.message
@@ -360,6 +438,7 @@ class BuildIndexAPIView(APIView):
         if not tag and args.patch_file:
             tag = 'patch'
 
+        # 2. find revision
         try:
             revision = identify_revision(repository, args.sha)
         except MissingRevision:
@@ -368,6 +447,7 @@ class BuildIndexAPIView(APIView):
             return error("Unable to find commit %s in %s." % (
                 args.sha, repository.url), problems=['sha', 'repository'])
 
+        # get default values for arguments
         if revision:
             if not author:
                 author = revision.author
@@ -392,6 +472,7 @@ class BuildIndexAPIView(APIView):
                 label = 'A homeless build'
         label = label[:128]
 
+        # 3. Check for patch
         if args.patch_file:
             fp = StringIO()
             for line in args.patch_file:
@@ -415,12 +496,17 @@ class BuildIndexAPIView(APIView):
             diff_parser = DiffParser(patch.diff)
             files_changed = diff_parser.get_changed_files()
         elif revision:
-            files_changed = _get_revision_changed_files(repository, revision)
+            try:
+                files_changed = _get_revision_changed_files(repository, revision)
+            except MissingRevision:
+                return error("Unable to find commit %s in %s." % (
+                    args.sha, repository.url), problems=['sha', 'repository'])
         else:
             # the only way that revision can be null is if this repo does not have a vcs backend
             logging.warning('Revision and patch are both None for sha %s. This is because the repo %s does not have a VCS backend.', sha, repository.url)
             files_changed = None
 
+        # mark as commit or diff build
         if not patch:
             is_commit_build = True
         else:
@@ -452,10 +538,12 @@ class BuildIndexAPIView(APIView):
             #         sha=sha,
             #     )
 
+            # 4. apply file whitelist as appropriate
             if apply_file_whitelist and files_changed and not in_project_files_whitelist(project_options[project.id], files_changed):
                 logging.info('No changed files matched build.file-whitelist for project %s', project.slug)
                 continue
 
+            # 5. create build
             builds.append(create_build(
                 project=project,
                 collection_id=collection_id,

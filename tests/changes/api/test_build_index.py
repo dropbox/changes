@@ -184,8 +184,8 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         db.session.commit()
         super(BuildCreateTest, self).setUp()
 
-    def get_fake_vcs(self):
-        def log_results(parent=None, branch=None, offset=0, limit=1):
+    def get_fake_vcs(self, log_results=None):
+        def _log_results(parent=None, branch=None, offset=0, limit=1):
             assert not branch
             return iter([
                 RevisionResult(
@@ -194,11 +194,23 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
                     author='Foo <foo@example.com>',
                     author_date=datetime.utcnow(),
                 )])
+        if log_results is None:
+            log_results = _log_results
         # Fake having a VCS and stub the returned commit log
         fake_vcs = Mock(spec=Vcs)
-        fake_vcs.log.side_effect = log_results
         fake_vcs.exists.return_value = True
-        fake_vcs.export.return_value = SAMPLE_DIFF
+        fake_vcs.log.side_effect = UnknownRevision(cmd="test command", retcode=128)
+        fake_vcs.export.side_effect = UnknownRevision(cmd="test command", retcode=128)
+
+        def fake_update():
+            # this simulates the effect of calling update() on a repo,
+            # mainly that `export` and `log` now works.
+            fake_vcs.log.side_effect = log_results
+            fake_vcs.export.side_effect = None
+            fake_vcs.export.return_value = SAMPLE_DIFF
+
+        fake_vcs.update.side_effect = fake_update
+
         return fake_vcs
 
     def test_minimal(self):
@@ -254,21 +266,38 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert source.revision_sha == 'a' * 40
 
     @patch('changes.models.Repository.get_vcs')
+    def test_defaults_to_revision_not_found(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.update.side_effect = None
+        get_vcs.return_value = fake_vcs
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40,
+        )
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'apply_file_whitelist': 1,
+        })
+        assert resp.status_code == 400
+        data = self.unserialize(resp)
+        assert 'error' in data
+        assert 'problems' in data
+        assert 'sha' in data['problems']
+        assert 'repository' in data['problems']
+
+    @patch('changes.models.Repository.get_vcs')
     def test_error_on_invalid_revision(self, get_vcs):
         def log_results(parent=None, branch=None, offset=0, limit=1):
-            def throw():
-                raise UnknownRevision(cmd="test command", retcode=128)
             assert not branch
             ret = MagicMock()
-            ret.next.side_effect = throw
+            ret.next.side_effect = UnknownRevision(cmd="test command", retcode=128)
             return ret
 
         # Fake having a VCS and stub the returned commit log
-        fake_vcs = Mock(spec=Vcs)
-        fake_vcs.log.side_effect = log_results
-        get_vcs.return_value = fake_vcs
+        get_vcs.return_value = self.get_fake_vcs(log_results=log_results)
 
-        # Try a commit SHA that doesn't match the stub above
+        # try any commit sha, since we mocked out log_results
         resp = self.client.post(self.path, data={
             'sha': 'z' * 40,
             'project': self.project.slug,
@@ -279,17 +308,18 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert 'problems' in data
         assert 'sha' in data['problems']
 
-    def post_sample_patch(self):
-        return self.client.post(self.path, data={
-            'project': self.project.slug,
-            'sha': 'a' * 40,
-            'target': 'D1234',
-            'label': 'Foo Bar',
-            'message': 'Hello world!',
-            'author': 'David Cramer <dcramer@example.com>',
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
-            'patch[data]': '{"foo": "bar"}',
-        })
+    def post_sample_patch(self, data=None):
+        if data is None:
+            data = {}
+        data['project'] = self.project.slug
+        data['sha'] = 'a' * 40
+        data['target'] = 'D1234'
+        data['label'] = 'Foo Bar'
+        data['message'] = 'Hello world!'
+        data['author'] = 'David Cramer <dcramer@example.com>'
+        data['patch'] = (StringIO(SAMPLE_DIFF), 'foo.diff')
+        data['patch[data]'] = '{"foo": "bar"}'
+        return self.client.post(self.path, data=data)
 
     def test_when_not_in_whitelist_diff_build(self):
         po = ProjectOption(
@@ -300,12 +330,30 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         db.session.add(po)
         db.session.commit()
 
-        resp = self.post_sample_patch()
+        resp = self.post_sample_patch({
+            'apply_file_whitelist': 1,
+        })
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 0
 
     def test_when_in_whitelist_diff_build(self):
+        po = ProjectOption(
+            project=self.project,
+            name='build.file-whitelist',
+            value='ci/*',
+        )
+        db.session.add(po)
+        db.session.commit()
+
+        resp = self.post_sample_patch({
+            'apply_file_whitelist': 1,
+        })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    def test_when_in_whitelist_diff_build_default_true(self):
         po = ProjectOption(
             project=self.project,
             name='build.file-whitelist',
