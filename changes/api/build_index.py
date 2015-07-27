@@ -492,19 +492,6 @@ class BuildIndexAPIView(APIView):
             patch = None
 
         project_options = ProjectOptionsHelper.get_options(projects, ['build.file-whitelist'])
-        if patch:
-            diff_parser = DiffParser(patch.diff)
-            files_changed = diff_parser.get_changed_files()
-        elif revision:
-            try:
-                files_changed = _get_revision_changed_files(repository, revision)
-            except MissingRevision:
-                return error("Unable to find commit %s in %s." % (
-                    args.sha, repository.url), problems=['sha', 'repository'])
-        else:
-            # the only way that revision can be null is if this repo does not have a vcs backend
-            logging.warning('Revision and patch are both None for sha %s. This is because the repo %s does not have a VCS backend.', sha, repository.url)
-            files_changed = None
 
         # mark as commit or diff build
         if not patch:
@@ -518,6 +505,24 @@ class BuildIndexAPIView(APIView):
             apply_file_whitelist = False
         else:
             apply_file_whitelist = True
+
+        if apply_file_whitelist:
+            if patch:
+                diff_parser = DiffParser(patch.diff)
+                files_changed = diff_parser.get_changed_files()
+            elif revision:
+                try:
+                    files_changed = _get_revision_changed_files(repository, revision)
+                except MissingRevision:
+                    return error("Unable to find commit %s in %s." % (
+                        args.sha, repository.url), problems=['sha', 'repository'])
+            else:
+                # the only way that revision can be null is if this repo does not have a vcs backend
+                logging.warning('Revision and patch are both None for sha %s. This is because the repo %s does not have a VCS backend.', sha, repository.url)
+                files_changed = None
+        else:
+            # we won't be applying file whitelist, so there is no need to get the list of changed files.
+            files_changed = None
 
         collection_id = uuid.uuid4()
         builds = []
