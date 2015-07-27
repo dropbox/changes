@@ -26,7 +26,12 @@ class XunitHandler(ArtifactHandler):
 
     def get_tests(self, fp):
         try:
-            root = etree.fromstring(fp.read())
+            # libxml has a limit on the size of a text field by default, but we encode stdout/stderr.
+            #
+            # Its not good to have such huge text fields in the first place but we still want to
+            # avoid hard failing here if we do.
+            parser = etree.XMLParser(huge_tree=True)
+            root = etree.fromstring(fp.read(), parser=parser)
         except Exception:
             # Record the JobStep ID so we have any hope of tracking these down.
             self.logger.exception('Failed to parse XML; (step={})'.format(self.step.id.hex))
