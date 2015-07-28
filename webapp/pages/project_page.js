@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { TimeText } from 'es6!display/time';
-import { StatusDot, status_dots, BuildWidget } from 'es6!display/builds';
+import { StatusDot, status_dots, BuildWidget } from 'es6!display/changes/builds';
+import DisplayUtils from 'es6!display/changes/utils';
 import { Grid } from 'es6!display/grid';
 import { ProgrammingError } from 'es6!display/errors';
 import APINotLoaded from 'es6!display/not_loaded';
@@ -312,7 +313,7 @@ var Commits = React.createClass({
     );
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
-    var headers = ['Last Build', 'Author', 'Phab.', 'Name', 'Prev. B.', 'Committed'];
+    var headers = ['Last Build', 'Author', 'Commit', 'Name', 'Prev. B.', 'Committed'];
 
     return <Grid
       colnum={6}
@@ -347,13 +348,6 @@ var Commits = React.createClass({
       }
     }
 
-    var author = 'unknown', author_page = null;
-    var author_email = c.author && c.author.email;
-    if (author_email) {
-      author = utils.email_head(author_email);
-      author_page = `/v2/author/${c.author.email}`;
-    }
-
     var commit_page = null;
     if (c.builds && c.builds.length > 0) {
       var commit_page = '/v2/project_commit/' +
@@ -364,7 +358,7 @@ var Commits = React.createClass({
     // TODO: if there are any comments, show a comment icon on the right
     return [
       build_widget,
-      author_page ? <a href={author_page}>{author}</a> : author,
+      DisplayUtils.author_link(c.author),
       sha_item,
       title,
       prev_builds,

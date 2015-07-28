@@ -1,3 +1,10 @@
+/* 
+ * Collection of useful utils, e.g. string manipulation/parsing, some
+ * utils to make interacting with setState easier, etc.
+ * 
+ * More display-specific utils are in changes_utils.py in display
+ */
+
 // jondoe@company.com -> jondoe
 export var email_head = function(email) {
   return email.substring(0, email.indexOf('@'));
@@ -27,16 +34,6 @@ export var pad = function(num, size) {
     ret = "0" + ret;
   }
   return ret;
-}
-
-export var update_state_key = function(map_key, key, value) {
-  return (prev_state, current_props) => {
-    var old_map = _.clone(prev_state[map_key]);
-    old_map[key] = value;
-    return {
-      [ map_key ]: old_map
-    };
-  }
 }
 
 export var ensureArray = function(item) {
@@ -100,6 +97,12 @@ export var async = function(func) {
   window.setTimeout(func, 0);
 }
 
-// TODO: use this regex to write a function that wraps urls in anchor tags
-// var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]* \
-// [-A-Z0-9+&@#\/%=~_|])/ig;
+export var update_state_key = function(map_key, key, value) {
+  return (prev_state, current_props) => {
+    var old_map = _.clone(prev_state[map_key]);
+    old_map[key] = value;
+    return {
+      [ map_key ]: old_map
+    };
+  }
+}

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Grid } from 'es6!display/grid';
-import { StatusDot, status_dots } from 'es6!display/builds';
+import { StatusDot, status_dots } from 'es6!display/changes/builds';
 import SectionHeader from 'es6!display/section_header';
 import ChangesPage from 'es6!display/page_chrome';
 import APINotLoaded from 'es6!display/not_loaded';

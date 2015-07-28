@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Grid, GridRow } from 'es6!display/grid';
-import { BuildWidget, StatusDot, status_dots } from 'es6!display/builds';
+import { BuildWidget, StatusDot, status_dots } from 'es6!display/changes/builds';
 import SectionHeader from 'es6!display/section_header';
 import ChangesPage from 'es6!display/page_chrome';
 import APINotLoaded from 'es6!display/not_loaded';
@@ -87,7 +87,7 @@ var AllProjectsPage = React.createClass({
         throw 'unreachable';
     }
     
-    return <ChangesPage>
+    return <ChangesPage highlight="All Projects">
       <SectionHeader>All Projects</SectionHeader>
       {menu}
       <div className="marginTopM">{content}</div>

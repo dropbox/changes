@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { TimeText, display_duration } from 'es6!display/time';
-import { StatusDot } from 'es6!display/builds';
+import { StatusDot } from 'es6!display/changes/builds';
 import { Error } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';

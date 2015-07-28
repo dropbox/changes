@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AjaxError } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
-import { StatusDot, status_dots, BuildWidget, status_dots_for_diff, get_build_state } from 'es6!display/builds';
+import { StatusDot, status_dots, BuildWidget, status_dots_for_diff, get_build_state } from 'es6!display/changes/builds';
 import SectionHeader from 'es6!display/section_header';
 import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import APINotLoaded from 'es6!display/not_loaded';
@@ -46,13 +46,11 @@ var HomePage = React.createClass({
     // but not diffs data, render as much of the page as we can.
     // NOTE: so right now, this page still basically works even when
     // phabricator is down. Keep it that way.
-    // TODO: its super-easy to do a partial render, but is it better to just
-    // wait for everything?
     if (!api.isLoaded(this.state.commits) && !api.isError(this.state.commits)) {
       return <div><RandomLoadingMessage /></div>;
     }
 
-    return <ChangesPage>
+    return <ChangesPage highlight="My Changes">
       {this.renderContent()}
     </ChangesPage>;
   },
@@ -252,7 +250,7 @@ var Commits = React.createClass({
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
       'Last Build',
-      'Phab.',
+      'Commit',
       'Project',
       'Name',
       'Committed'

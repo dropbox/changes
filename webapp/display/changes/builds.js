@@ -324,8 +324,26 @@ export var get_state_color = function(state) {
 }
 
 export var get_build_cause = function(build) {
-  // TODO: This would be a very useful function, but we don't store good
-  // metadata about this. This will have to execute some fairly complex
-  // logic...
+  var tags = build.tags;
+  if (build.cause === 'retry') {
+    // manually triggered retry (either from phabricator or the changes ui)
+    return 'manual';
+  }
+
+  if (_.contains(tags, 'arc test')) {
+    // user ran build using arc test
+    return 'arc test';
+  }
+
+  if (_.contains(tags, 'commit')) {
+    // standard build that got kicked off due to a new commit
+    return 'commit';
+  }
+
+  if (_.contains(tags, 'phabricator')) {
+    // build for a diff that was created/updated in phabricator
+    return 'phabricator';
+  }
+
   return 'unknown';
 }

@@ -5,9 +5,10 @@ import ChangesPage from 'es6!display/page_chrome';
 import * as api from 'es6!server/api';
 import APINotLoaded from 'es6!display/not_loaded';
 import * as utils from 'es6!utils/utils';
+import * as display_utils from 'es6!display/changes/utils';
 
 import { TimeText, display_duration } from 'es6!display/time';
-import { StatusDot, get_build_state, get_runnable_state, get_state_color, get_build_cause } from 'es6!display/builds';
+import { StatusDot, get_build_state, get_runnable_state, get_state_color, get_build_cause } from 'es6!display/changes/builds';
 import { Error, ProgrammingError } from 'es6!display/errors';
 import { Grid, GridRow } from 'es6!display/grid';
 import SectionHeader from 'es6!display/section_header';
@@ -276,7 +277,6 @@ var BuildsResultsPage = React.createClass({
 
         renderables.push({
           type: 'diff', 
-          // in case phabricator is down, make sure this is at the end
           date: moment.unix(diff_data.dateCreated).toString(),
           diff: diff_data
         });
@@ -317,24 +317,37 @@ var BuildsResultsPage = React.createClass({
       }
     });
 
+    var sidebar_style = {
+      position: 'fixed',
+      top: 32,
+      left: 0,
+      bottom: 0,
+      width: 280,
+      'overflow-y': 'auto',
+      'overflow-x': 'hidden',
+      paddingLeft: 10,
+      paddingTop: 10,
+      borderRight: "1px solid #bbb",
+      verticalAlign: "top"
+    };
+
+    var content_style = {
+      marginLeft: 300,
+    };
+
     // TODO: cleanup!
     // padding: "10px 35px", 
-    return <ChangesPage bodyPadding={false}>
-      <div>
-        {this.renderBreadcrumbs(builds, source)}
-        <div>
-        <div style={{display: 'table', borderTop: "1px solid #bbb", width: "100%"}}>
-          <div style={{display: 'table-cell', width: 280, minWidth: 280, paddingLeft: 10, paddingTop: 10, borderRight: "1px solid #bbb", verticalAlign: "top"}}>
-            <SideItems 
-              renderables={renderables} 
-              showProjectNames={!this.props.specificProject} 
-            />
-          </div>
-          <div style={{display: 'table-cell', verticalAlign: "top", lineHeight: "19px"}} >
-            {_.map(this.warnings, w => <Error style={{margin: 10}}>{w}</Error>)}
-            {markup}
-          </div>
-        </div>
+    return <ChangesPage bodyPadding={false} fixed={true}>
+      <div style={sidebar_style}>
+        <SideItems 
+          renderables={renderables} 
+          showProjectNames={!this.props.specificProject} 
+        />
+      </div>
+      <div style={{paddingTop: 32}}>
+        <div style={content_style} >
+          {_.map(this.warnings, w => <Error style={{margin: 10}}>{w}</Error>)}
+          {markup}
         </div>
       </div>
     </ChangesPage>;
@@ -394,12 +407,13 @@ var BuildsResultsPage = React.createClass({
       );
     });
 
-    // TODO: write code to figure out how a build was kicked off
     var build_cause = {
-      // TODO: "autocommit": "Build automatically triggered"
-      // TODO: "manual": "Build kicked off by " + build.author
+      'commit': 'triggered by commit',
+      'diff': 'triggered by Phabricator',
+      'arc test': 'triggered by arc test',
+      'retry': 'triggered manually'
       // "unknown" - handled below
-    }[get_build_cause(build)] || " (unknown trigger)"
+    }[get_build_cause(build)] || "(unknown trigger)"
 
     // if there are multiple projects, prefix with project name
     var project_name = '';
@@ -413,7 +427,7 @@ var BuildsResultsPage = React.createClass({
         Build
         {" #"}
         {build.number}
-        {build_cause}
+        {" "}{build_cause}
       </div>,
       moment.utc(build.dateFinished || build.dateStarted)
     );
@@ -509,7 +523,7 @@ var BuildsResultsPage = React.createClass({
       }
     }
 
-    return <div>
+    return <div id={hash_id(build.id + "_tests")}>
       {this.renderSubheader("Failed Tests", revert_link)}
       {revert_markup}
       <Grid 
@@ -619,12 +633,13 @@ var BuildsResultsPage = React.createClass({
       `Committed ${commit.revision.sha.substr(0,12)}`,
       moment.utc(commit_time));
 
+
     return this.renderSection(
       hash_id(commit.revision.sha),
       <div>
         {header}
         <pre className="commitMsg">
-          {commit.revision.message}
+          {display_utils.linkify_urls(commit.revision.message)}
         </pre>
       </div>
     );
@@ -647,7 +662,7 @@ var BuildsResultsPage = React.createClass({
     if (diff_data.summary) {
       content = [
         <pre className="yellowPre">
-          {diff_data.summary}
+          {display_utils.linkify_urls(diff_data.summary)}
         </pre>
       ];
     }
@@ -703,16 +718,22 @@ var BuildsResultsPage = React.createClass({
       marginBottom: 15
     };
 
+    // right now, this is null if a build hasn't started
+    var time = "No time info";
+    if (moment_time) {
+      time = moment_time.local().format('llll') +
+        " (" +
+        moment_time.local().fromNow() +
+        ")";
+    }
+
     // TODO: cleanup
     return <div>
       <div style={header_style}>
         <div style={header_text_style}>{text}</div>
       </div>
       <div style={time_style}>
-        {moment_time.local().format('llll')}
-        {" ("}
-        {moment_time.local().fromNow()}
-        {")"}
+        {time}
       </div>
     </div>;
   },
@@ -805,6 +826,14 @@ var SideItems = React.createClass({
       </b>
     </a>;
 
+    var tests_item = null;
+    if (build.testFailures.total > 0) {
+      tests_item = <a href={hash_href(build.id + "_tests")} className="commitSideItem">
+        <span style={{color: colors.red}}>Failed Tests: {build.testFailures.total}</span>
+        <div style={time_style}>{''}</div>
+      </a>;
+    }
+
     var job_items = _.map(build.jobs, j => {
       var color = get_state_color(
         get_runnable_state(j.status.id, j.result.id));
@@ -821,6 +850,7 @@ var SideItems = React.createClass({
 
     return <div className="commitSideSection">
       {main_item}
+      {tests_item}
       {job_items}
     </div>;
   },

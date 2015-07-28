@@ -8,7 +8,7 @@
  * header, spacing, etc.)
  */
 
- body {
+body {
   color: #333;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 13px;
@@ -58,16 +58,22 @@ a.subtle:hover {
 .pageHeader {
   background-color: #ffd204;
   border-bottom: 1px solid #fff;
-/*  position: fixed; */
   top: 0;
   left: 0;
   right: 0;
   height: 32px;
 }
 
+.fixedPageHeader {
+  position: fixed;
+  z-index: 5;
+}
+
 .headerBlock, .headerLinkBlock {
   padding: 8px;
   display: inline-block;
+  vertical-align: top;
+  height: 16px;
 }
 
 .headerLinkBlock {
@@ -78,6 +84,11 @@ a.subtle:hover {
 .headerLinkBlock:hover, .inlinePerf:hover {
   background-color: #d0ab00;
 }
+
+.headerHighlight {
+  font-weight: bold;
+}
+
 
 /* inline perf widget */
 
