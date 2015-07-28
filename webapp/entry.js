@@ -46,6 +46,7 @@ require([
   "es6!pages/builds_results_page",
   "es6!pages/test_history_page",
   "es6!pages/all_projects_page",
+  "es6!pages/node_page",
   "es6!pages/error_page",
   "es6!pages/test_page",
   "es6!pages/ui_test_page",
@@ -60,6 +61,7 @@ require([
   BuildsResultsPages,
   TestHistoryPage,
   AllProjectsPage,
+  NodePage,
   ErrorPage,
   TestPage,
   UITestPage
@@ -92,6 +94,7 @@ require([
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     // TODO: don't just use the homepage for this
     'author': [HomePage, 'author'],
+    'node': [NodePage, 'node_id'],
     'test': [TestPage],
     'ui_examples': [UITestPage]
   };

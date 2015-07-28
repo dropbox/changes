@@ -560,9 +560,8 @@ var BuildsResultsPage = React.createClass({
               shard_duration
             ];
           }
-          var node_name = <a href={"/nodes/" + shard.node.id}>
+          var node_name = <a href={"/v2/node/" + shard.node.id}>
             {shard.node.name}
-            <i style={{marginLeft: 3, opacity: 0.5}} className="fa fa-backward" />
           </a>;
 
           var links = [];
