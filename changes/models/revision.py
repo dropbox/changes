@@ -41,6 +41,20 @@ class Revision(db.Model):
         if self.date_committed is None:
             self.date_committed = self.date_created
 
+    @classmethod
+    def get_by_sha_prefix(self, repository_id, sha_prefix):
+        """Gets a revision by a prefix. This allows for "short shas" which work
+        in the same way git's does - if it is ambiguous, then this will
+        throw an MultipleResultsFound (same as scalar).
+
+        This should only be used for sha prefixes from user input and not anything
+        obtained from our database.
+        """
+        return Revision.query.filter(
+            Revision.repository_id == repository_id,
+            Revision.sha.like('{}%'.format(sha_prefix)),
+        ).scalar()
+
     @property
     def subject(self):
         return self.message.splitlines()[0]
