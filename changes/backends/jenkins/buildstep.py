@@ -21,6 +21,17 @@ class JenkinsBuildStep(BuildStep):
     logger = logging.getLogger('jenkins')
 
     def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None, token=None, auth=None):
+        """
+        The JenkinsBuildStep constructor here, which is used as a base
+        for all Jenkins builds, only accepts parameters which are used
+        to determine where and how to schedule the builds and does not
+        deal with any of the logic regarding what to actually schedule
+        on those jenkins masters.
+
+        jenkins_url and jenkins_diff_url are either a single url or a list
+        of possible jenkins masters for use of queueing. We don't worry
+        about which slaves to schedule them on at this level.
+        """
         # we support a string or a list of strings for master server urls
         if not isinstance(jenkins_url, (list, tuple)):
             if jenkins_url:
@@ -51,6 +62,12 @@ class JenkinsBuildStep(BuildStep):
         return self.builder_cls(app=app, **args)
 
     def get_builder_options(self):
+        """
+        A dictionary that is used as kwargs for creating the builder (these can be
+        overwridden in the kwargs of get_builder but this is not done very commonly),
+        so most builder constructor values originate from the get_builder_options
+        of the corresponding buildstep or one of its superclasses.
+        """
         return {
             'master_urls': self.jenkins_urls,
             'diff_urls': self.jenkins_diff_urls,
@@ -63,6 +80,11 @@ class JenkinsBuildStep(BuildStep):
         return 'Execute job "{0}" on Jenkins'.format(self.job_name)
 
     def execute(self, job):
+        """
+        Creates a new job using the builder. This is where most of the
+        logic is implemented for a given buildstep, but in this case the
+        logic is handed to the builder.
+        """
         builder = self.get_builder()
         builder.create_job(job)
 
@@ -90,10 +112,23 @@ class JenkinsBuildStep(BuildStep):
         db.session.add(step)
 
     def fetch_artifact(self, artifact, **kwargs):
+        """
+        Processes a single artifact. Critical artifacts - that is, artifacts
+        that are somehow special and possibly required - can be specified
+        by overriding this method. It is not necessary to super all the way
+        to here for critical artifacts, so this implementation is typically only
+        used (and always used) for normal artifacts.
+        """
         builder = self.get_builder()
         builder.sync_artifact(artifact, **kwargs)
 
     def can_snapshot(self):
+        """
+        Since we do most of our build_type logic in the builder rather than
+        the buildstep, it makes sense to let the builder determine if it
+        can snapshot or not. In particular, this means we have no need to
+        actually look up and verify the buildtype from within the buildstep.
+        """
         return self.get_builder().can_snapshot()
 
 
@@ -108,12 +143,28 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         build_type describes how to use changes-client, but 'legacy'
         defaults to not using it at all. See configuration file
         for more details [CHANGES_CLIENT_BUILD_TYPES]
+        workspace can be used to override where to check out the
+        source tree and corresponds to the repository root
+        once the build starts.
 
-        Scripts:
-          - setup script: Runs before script
-          - teardown script: Runs after script
-          - reset script: Runs after build async
-          - snapshot cript: Replaces script for snapshot builds
+        The cluster and diff cluster arguments refer
+        to Jenkins tags that are used to run the builds, so
+        it should be made sure that slaves with these tags exist
+        for the masters that are being used (See JenkinsBuildStep).
+
+        path is relative to workspace and refers to where to change
+        directory to after checking out the repository.
+
+        setup_script, script, and teardown_script represent what to
+        actually run. setup_script and teardown_script are always
+        executed in the root of the repository (because of limitations
+        regarding sharded builds documented elsewhere) while script
+        is run from "path". teardown_script is always guaranteed
+        to run regardless of whether script runs, but script will not
+        run if setup_script fails. snapshot_script runs in place
+        of script for snapshot builds.
+
+        reset_script is used to asynchronously reset the workspace.
         """
         self.setup_script = setup_script
         self.script = script
@@ -159,6 +210,13 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             super(JenkinsGenericBuildStep, self).fetch_artifact(artifact, **kwargs)
 
     def update_snapshot_image_status(self, artifact):
+        """
+        Processes the result of obtaining snapshot_status.json, changing the status
+        of the image to what the artifact indicates. snapshot_status.json is expected
+        to be a json file with two elements, image (string) and status (string) indicating
+        the image id and new status of the image - which is almost always "active" for
+        what we use snapshot_status.json for.
+        """
         artifact_data = self.get_builder().fetch_artifact(artifact.step, artifact.data)
         status_json = artifact_data.json()
         image_id = status_json['image']

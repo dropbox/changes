@@ -74,6 +74,12 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         return self.teardown_script
 
     def get_expected_image(self, job_id):
+        """
+        Get the snapshot-image (filesystem tarball for this jobstep).
+        If this returns None, it is a normal build (the more common case),
+        otherwise it returns the id of the snapshot image, which indicates
+        to where the build agent should upload the snapshot onto s3.
+        """
         return db.session.query(
             SnapshotImage.id,
         ).filter(
@@ -189,14 +195,40 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         return params
 
     def params_to_env(self, params):
+        """
+        If the build is LXC, all of the environment will get wiped
+        as we actually run the command. However, it is still necessary
+        to pass SCRIPT and similar environment variables. As an easy
+        way of working around this, we just pass all the Jenkins
+        job parameters as environment variables. Thus, we simply
+        turn the Jenkins-parameters into a more normal dict
+        that represents environment variables that get passed to the
+        commands from the build type.
+        """
         return {param['name']: param['value'] for param in params}
 
     def get_future_commands(self, params, commands):
+        """Create future commands which are later created as comands.
+        See models/command.py.
+        """
         return map(lambda command: FutureCommand(command['script'],
                                     env=self.params_to_env(params)),
                    commands)
 
     def create_commands(self, jobstep, params):
+        """
+        This seems slightly redundant, but in fact is necessary for
+        changes-client to work. The issue is mainly that the client is
+        designed for the exact flow of information that mesos uses,
+        in which the commands are taken from changes through an api request.
+        We need to tell changes to run what would normally be ran through
+        the Jenkins configuration - so we move this from the Jenkins
+        configuration into the commands of the build type.
+
+        Arguments:
+          jobstep (JobStep): jobstep to create commands under
+          params (dict): Jenkins parameter dict
+        """
         commands = self.build_desc.get('commands', [])
 
         index = 0
@@ -205,4 +237,12 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             index += 1
 
     def can_snapshot(self):
+        """
+        Whether or not this build can snapshot is purely a function of the
+        build type. Right now the only adapter supporting this is the lxc
+        adapter, but in the scenario that another adapter is added (e.g.
+        docker?) then we would need for multiple adapters to supprt snapshots,
+        so we just encode whether it can or not as a field, defaulting to
+        false as most types don't support this operation.
+        """
         return self.build_desc.get('can_snapshot', False)

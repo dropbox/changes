@@ -21,10 +21,10 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
 
     def get_required_artifact(self):
         """The initial (collect) step must return at least one artifact with
-        this suffix, or it will be marked as failed.
+        this filename, or it will be marked as failed.
 
         Returns:
-            str: the required suffix
+            str: the required filename
         """
         return 'jobs.json'
 

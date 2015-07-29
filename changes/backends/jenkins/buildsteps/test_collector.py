@@ -27,15 +27,38 @@ class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
         super(JenkinsTestCollectorBuilder, self).__init__(*args, **kwargs)
 
     def can_snapshot(self):
+        """
+        For the case of a sharded build, whether we can snapshot or not
+        is determined solely by whether the shards use lxc - the collection
+        phase is irrelevant.
+        """
         return self.shard_build_desc.get('can_snapshot', False)
 
     def get_snapshot_build_desc(self):
+        """
+        We use the shard-phase build description in order to build the snapshot
+        since it is common that the collection phase description doesn't even
+        support snapshots, and we need the distribution/release to match otherwise
+        it won't be able to find the snapshot.
+        """
         return self.shard_build_desc
 
     def get_snapshot_setup_script(self):
+        """
+        Generally the collection phase doesn't need to do any setup, and we wish
+        to optimize the shard phase which is where the work lies, so we run the setup
+        phase of the shard (generally the provisioning of an individual shard).
+        """
         return self.shard_setup_script
 
     def get_snapshot_teardown_script(self):
+        """
+        Teardown is less useful for snapshot builds, but in the case that it actually
+        does something useful like remove logs (of, for example, services that started
+        during the snapshot build but then get killed because we destroy the container),
+        this could keep the actual snapshot cleaner as the teardown is run before the
+        snapshot itself is taken.
+        """
         return self.shard_teardown_script
 
     def get_default_job_phase_label(self, job, job_data):
@@ -43,10 +66,12 @@ class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
 
     def get_required_artifact(self):
         """The initial (collect) step must return at least one artifact with
-        this suffix, or it will be marked as failed.
+        this filename, or it will be marked as failed. This logic is checked in
+        JenkinsCollectorBuildStep, where it checks all artifacts to ensure
+        one with this filename was collected.
 
         Returns:
-            str: the required suffix
+            str: the required artifact
         """
         return 'tests.json'
 
