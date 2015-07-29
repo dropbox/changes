@@ -181,7 +181,11 @@ export var status_dots_for_diff = function(builds) {
   states['failed'] = (states['failed'] || 0) + (states['nothing'] || 0);
   delete states['nothing'];
 
-  var dots = _.mapObject(states, (v,k) => <StatusDot state={k} num={v} />);
+  var only_one_dot = null;
+  var dots = _.chain(states)
+    .pick(v => v > 0)
+    .mapObject((v,k) => <StatusDot state={k} num={v > 1 ? v : null} />)
+    .value();
 
   if (all_build_states.length != 5) { // I'm paranoid
     return <ProgrammingError>
