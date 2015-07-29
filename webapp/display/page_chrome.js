@@ -92,7 +92,7 @@ var ChangesPageHeader = React.createClass({
     });
 
     var all_projects_classes = cx({
-      headerLinkBlock: true, headerHighlight: highlight === "All Projects"
+      headerLinkBlock: true, headerHighlight: highlight === "Projects"
     });
 
     /*
@@ -110,7 +110,7 @@ var ChangesPageHeader = React.createClass({
           My Changes
         </a>
         <a className={all_projects_classes} href="/v2/projects/">
-          All Projects
+          Projects
         </a>
         <ChangesLogin />
         <ChangesInlinePerf />

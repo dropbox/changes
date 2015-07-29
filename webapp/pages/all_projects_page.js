@@ -87,8 +87,8 @@ var AllProjectsPage = React.createClass({
         throw 'unreachable';
     }
     
-    return <ChangesPage highlight="All Projects">
-      <SectionHeader>All Projects</SectionHeader>
+    return <ChangesPage highlight="Projects">
+      <SectionHeader>Projects</SectionHeader>
       {menu}
       <div className="marginTopM">{content}</div>
     </ChangesPage>;
@@ -203,18 +203,19 @@ var AllProjectsPage = React.createClass({
           <a href={"/v2/project/" + p.slug}>{p.name}</a>,
           triggers,
           p.options['build.branch-names'],
-          whitelist
+          whitelist,
+          <TimeText time={p.dateCreated} />
         ];
       });
       rows = rows.concat(repo_rows);
     });
     
-    var headers = ['Repo', 'Project', 'Builds for', 'With branches', 'With paths'];
-    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide'];
+    var headers = ['Repo', 'Project', 'Builds for', 'With branches', 'With paths', 'Created'];
+    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <div className="marginBottomL">
       <Grid 
-        colnum={5}
+        colnum={6}
         data={rows} 
         headers={headers} 
         cellClasses={cellClasses} 

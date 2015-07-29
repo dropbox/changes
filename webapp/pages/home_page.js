@@ -157,7 +157,7 @@ var Diffs = React.createClass({
     ];
 
     var header_text = this.props.isSelf ?
-      'Your Diffs' : 'Diffs';
+      'My Diffs' : 'Diffs';
     return <div className="paddingBottomM">
       <SectionHeader>{header_text}</SectionHeader>
       <Grid 
@@ -278,7 +278,7 @@ var Commits = React.createClass({
     }
 
     var header_text = this.props.isSelf ?
-      'Your Commits' : 'Commits';
+      'My Commits' : 'Commits';
     return <div className="marginTopM">
       <div className="marginBottomS">
         <SectionHeader className="inline">{header_text}</SectionHeader>
