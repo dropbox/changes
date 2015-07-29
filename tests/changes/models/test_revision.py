@@ -25,16 +25,16 @@ class RevisionTest(TestCase):
     def test_prefix_prefix(self):
         repository = self._create_repository()
         revision = self.create_revision(repository=repository, sha=self.sha)
-        assert Revision.get_by_sha_prefix(repository.id, '73a5') == revision
+        assert Revision.get_by_sha_prefix_query(repository.id, '73a5').scalar() == revision
 
     def test_prefix_full(self):
         repository = self._create_repository()
         revision = self.create_revision(repository=repository, sha=self.sha)
-        assert Revision.get_by_sha_prefix(repository.id, self.sha) == revision
+        assert Revision.get_by_sha_prefix_query(repository.id, self.sha).scalar() == revision
 
     def test_prefix_ambiguous(self):
         repository = self._create_repository()
         revision_1 = self.create_revision(repository=repository, sha=self.sha)
         revision_2 = self.create_revision(repository=repository, sha=self.sha_similiar)
         with pytest.raises(MultipleResultsFound):
-            Revision.get_by_sha_prefix(repository.id, '73a5')
+            Revision.get_by_sha_prefix_query(repository.id, '73a5').scalar()
