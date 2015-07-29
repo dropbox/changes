@@ -2,7 +2,7 @@ import React from 'react';
 
 import { TimeText } from 'es6!display/time';
 import { RandomLoadingMessage } from 'es6!display/loading';
-import { BuildWidget } from 'es6!display/builds';
+import { BuildWidget } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
