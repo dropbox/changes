@@ -90,6 +90,7 @@ define(['angular', 'jquery'], function(angular, jQuery) {
         return $http.get(url)
           .success(function(data, status, headers){
             self.collection.empty();
+            data = data.filter(function(x){return x !== null;});
             self.collection.extend(self.options.transform(data));
             self.updatePageLinks(headers('Link'));
             self.options.onLoadSuccess(url, data);

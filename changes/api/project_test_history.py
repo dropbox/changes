@@ -41,6 +41,8 @@ class HistorySliceable(object):
         log = vcs.log(offset=sliced.start, limit=sliced.stop - sliced.start, branch=self.branch)
 
         revs = [rev.id for rev in log]
+        if revs == []:
+            return []
 
         # restrict the join to the last N jobs otherwise this can get
         # significantly expensive as we have to seek quite a ways
@@ -60,26 +62,32 @@ class HistorySliceable(object):
             TestCase.name_sha == self.test.name_sha,
         ))
 
-        # I wish we could sort this in the query, but it appears that to
-        # do so we'd need to put the vcs.log in *another* table so we could
-        # join against =/
-        #
-        # http://stackoverflow.com/questions/23381644/how-to-order-data-in-sqlalchemy-by-list
-        recent_runs = sorted(
-            recent_runs,
-            key=lambda k: revs.index(k.job.build.source.revision_sha)
-        )
-        jobs = set(r.job for r in recent_runs)
+        # Sort by date created; this ensures the runs that end up in
+        # recent_runs_map are always the latest run for any given sha
+        recent_runs.sort(key=lambda run: run.date_created)
+        recent_runs_map = {
+            recent_run.job.build.source.revision_sha: recent_run
+            for recent_run in recent_runs
+        }
+
+        recent_runs = map(recent_runs_map.get, revs)
+
+        jobs = set(r.job for r in recent_runs if r)
         builds = set(j.build for j in jobs)
 
         serialized_jobs = dict(zip(jobs, self.serialize(jobs)))
         serialized_builds = dict(zip(builds, self.serialize(builds)))
 
         results = []
-        for recent_run, s_recent_run in zip(recent_runs, self.serialize(recent_runs)):
-            s_recent_run['job'] = serialized_jobs[recent_run.job]
-            s_recent_run['job']['build'] = serialized_builds[recent_run.job.build]
-            results.append(s_recent_run)
+
+        for recent_run in recent_runs:
+            if recent_run is not None:
+                s_recent_run = self.serialize(recent_run)
+                s_recent_run['job'] = serialized_jobs[recent_run.job]
+                s_recent_run['job']['build'] = serialized_builds[recent_run.job.build]
+                results.append(s_recent_run)
+            else:
+                results.append(None)
 
         return results
 
