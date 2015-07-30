@@ -23,9 +23,11 @@ class BuildFlakyTestsAPIView(APIView):
         ))
 
         flaky_tests_query = db.session.query(
+            TestCase.id,
             TestCase.name,
             TestCase.name_sha,
-            TestCase.message
+            TestCase.message,
+            TestCase.job_id
         ).filter(
             TestCase.job_id.in_([j.id for j in jobs]),
             TestCase.result == Result.passed,
@@ -35,8 +37,10 @@ class BuildFlakyTestsAPIView(APIView):
         flaky_tests = []
         for test in flaky_tests_query:
             item = {
+                'id': test.id,
                 'name': test.name,
                 'captured_output': test.message,
+                'job_id': test.job_id,
             }
 
             # Quarantine Keeper only needs the author if there are at most
