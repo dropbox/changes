@@ -6,10 +6,12 @@ from datetime import datetime
 
 from changes.config import db
 from changes.jobs.signals import fire_signal
-from changes.models import Repository, RepositoryStatus
+from changes.models import Repository, RepositoryStatus, Revision
 from changes.queue.task import tracked_task
 
 logger = logging.getLogger('repo.sync')
+
+NUM_RECENT_COMMITS = 30
 
 
 @tracked_task(max_retries=None)
@@ -43,23 +45,41 @@ def sync_repo(repo_id, continuous=True):
     else:
         vcs.clone()
 
+    # The loop below do two things:
+    # 1) adds new revisions to the database
+    # 2) fire off revision created signals for recent revisions
+    #
     # TODO(dcramer): this doesnt scrape everything, and really we wouldn't
     # want to do this all in a single job so we should split this into a
     # backfill task
-    # TODO(dcramer): this doesn't collect commits in non-default branches
-    might_have_more = True
-    parent = None
-    while might_have_more:
-        might_have_more = False
-        for commit in vcs.log(parent=parent):
-            revision, created, _ = commit.save(repo)
-            db.session.commit()
-            if not created:
-                break
+    for commit in vcs.log(parent=None, limit=NUM_RECENT_COMMITS):
+        known_revision = Revision.query.filter(
+            Revision.repository_id == repo_id,
+            Revision.sha == commit.id
+        ).with_for_update().scalar()
 
-            might_have_more = True
-            parent = commit.id
+        old_branches = None
+        if known_revision:
+            old_branches = set(known_revision.branches)
 
+        revision, created, _ = commit.save(repo)
+        new_branches = set(revision.branches)
+        db.session.commit()
+
+        # Below is logic for determining whether to fire a 'revision.created' signal.
+
+        # TODO: This is a hack to avoid triggering builds for commits without branches.
+        # This should be moved elsewhere if we want to keep this behavior.
+        if not new_branches:
+            continue
+
+        # Fire the signal if the revision was created or there was a change
+        # in its branches.
+        # The branches comparison is only valid if known_revision is not None.
+        # Otherwise, there's a race where old_branches is None because the revision
+        # doesn't exist but new_branches has something because something else just
+        # created the revision.
+        if created or (known_revision is not None and old_branches != new_branches):
             fire_signal.delay(
                 signal='revision.created',
                 kwargs={'repository_id': repo.id.hex,
