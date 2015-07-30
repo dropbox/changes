@@ -370,6 +370,13 @@ class BuildIndexAPIView(APIView):
     return the latest build. Only when there are no builds for a project is
     one created. This is done at the very end, after all the filters.
 
+    TODO: right now this only works with a commit build. The issue is that
+    for diff build, we are always creating a new Patch object. We can
+    change that behavior to instead retrieve an existing Patch object, but
+    that would be a potentially significant behavior change and should only
+    be done when we actually have a use case for ensure-only mode in a diff
+    build.
+
     Optional - defaults to False
     """
     parser.add_argument('ensure_only', type=bool, default=False)
@@ -420,6 +427,9 @@ class BuildIndexAPIView(APIView):
         identifying the correct revision.
         """
         args = self.parser.parse_args()
+
+        if args.patch_file and args.ensure_only:
+            return error("Ensure-only mode does not work with a diff build yet.", problems=["patch", "ensure_only"])
 
         if not (args.project or args.repository or args['repository[phabricator.callsign]']):
             return error("Project or repository must be specified",
@@ -570,7 +580,7 @@ class BuildIndexAPIView(APIView):
             if args.ensure_only:
                 potentials = list(Build.query.filter(
                     Build.project_id == project.id,
-                    Build.source.has(revision_sha=sha),
+                    Build.source.has(revision_sha=sha, patch=patch),
                 ).order_by(
                     Build.date_created.desc()  # newest first
                 ).limit(1))
