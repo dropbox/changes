@@ -435,7 +435,6 @@ def configure_api_routes(app):
     from changes.api.build_coverage import BuildTestCoverageAPIView
     from changes.api.build_coverage_stats import BuildTestCoverageStatsAPIView
     from changes.api.build_restart import BuildRestartAPIView
-    from changes.api.build_revision_ensure import BuildRevisionEnsureAPIView
     from changes.api.build_retry import BuildRetryAPIView
     from changes.api.build_test_index import BuildTestIndexAPIView
     from changes.api.build_test_index_failures import BuildTestIndexFailuresAPIView
@@ -523,7 +522,6 @@ def configure_api_routes(app):
     api.add_resource(BuildTestIndexCountsAPIView, '/builds/<uuid:build_id>/tests/counts')
     api.add_resource(BuildTestCoverageAPIView, '/builds/<uuid:build_id>/coverage/')
     api.add_resource(BuildTestCoverageStatsAPIView, '/builds/<uuid:build_id>/stats/coverage/')
-    api.add_resource(BuildRevisionEnsureAPIView, '/builds/revision/ensure/')
     api.add_resource(ClusterIndexAPIView, '/clusters/')
     api.add_resource(ClusterDetailsAPIView, '/clusters/<uuid:cluster_id>/')
     api.add_resource(ClusterNodesAPIView, '/clusters/<uuid:cluster_id>/nodes/')

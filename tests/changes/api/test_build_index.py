@@ -236,7 +236,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
     @patch('changes.models.Repository.get_vcs')
     def test_defaults_to_revision(self, get_vcs):
-        get_vcs.return_value = self.get_fake_vcs()
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.update.side_effect = None
+        get_vcs.return_value = fake_vcs
         revision = self.create_revision(
             repository=self.project.repository,
             sha='a' * 40,
@@ -244,6 +246,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
+            'apply_file_whitelist': '',  # file whitelist requires git, which we disabled
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
@@ -277,7 +280,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': 1,
+            'apply_file_whitelist': '1',  # This requires that git be updated
         })
         assert resp.status_code == 400
         data = self.unserialize(resp)
@@ -331,7 +334,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         db.session.commit()
 
         resp = self.post_sample_patch({
-            'apply_file_whitelist': 1,
+            'apply_file_whitelist': '1',
         })
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
@@ -347,7 +350,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         db.session.commit()
 
         resp = self.post_sample_patch({
-            'apply_file_whitelist': 1,
+            'apply_file_whitelist': '1',
         })
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
@@ -367,6 +370,20 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
+    def test_when_in_whitelist_diff_build_default_true_negative(self):
+        po = ProjectOption(
+            project=self.project,
+            name='build.file-whitelist',
+            value='nonexisting_directory',
+        )
+        db.session.add(po)
+        db.session.commit()
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
     @patch('changes.models.Repository.get_vcs')
     def test_when_not_in_whitelist_commit_build(self, get_vcs):
         po = ProjectOption(
@@ -382,7 +399,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             sha='a' * 40
         )
         resp = self.client.post(self.path, data={
-            'apply_file_whitelist': 1,
+            'apply_file_whitelist': '1',
             'sha': 'a' * 40,
             'repository': self.project.repository.url
         })
@@ -405,7 +422,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             sha='a' * 40
         )
         resp = self.client.post(self.path, data={
-            'apply_file_whitelist': 1,
+            'apply_file_whitelist': '1',
             'sha': 'a' * 40,
             'repository': self.project.repository.url
         })
@@ -454,6 +471,183 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
         assert job.project == self.project
         assert source.revision_sha == revision.sha
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_in_whitelist_commit_build_false(self, get_vcs):
+        po = ProjectOption(
+            project=self.project,
+            name='build.file-whitelist',
+            value='nonexisting_directory',
+        )
+        db.session.add(po)
+        db.session.commit()
+        get_vcs.return_value = self.get_fake_vcs()
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url,
+            'apply_file_whitelist': '',
+            'ensure_only': '1',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        job = Job.query.filter(
+            Job.build_id == data[0]['id']
+        ).first()
+        build = job.build
+        source = build.source
+
+        assert job.project == self.project
+        assert source.revision_sha == revision.sha
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_ensure_existing_build_complete(self, get_vcs):
+        """Tests when all builds have already been created"""
+        get_vcs.return_value = self.get_fake_vcs()
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        source = self.create_source(self.project, revision=revision)
+        build = self.create_build(self.project, source=source)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'apply_file_whitelist': '1',
+            'ensure_only': '1',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build.id.hex
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_ensure_existing_build_incomplete(self, get_vcs):
+        """Tests when only a subset of the builds have been created"""
+        project2 = self.create_project(repository=self.project.repository)
+        self.create_plan(project2)
+        db.session.commit()
+        get_vcs.return_value = self.get_fake_vcs()
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        source = self.create_source(self.project, revision=revision)
+        build = self.create_build(self.project, source=source)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url,
+            'apply_file_whitelist': '1',
+            'ensure_only': '1',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
+        assert len([x for x in data if x['id'] == build.id.hex]) == 1
+        assert len(
+            [x for x in data if x['project']['slug'] == self.project.slug]) == 1
+        assert len(
+            [x for x in data if x['project']['slug'] == project2.slug]) == 1
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_ensure_multiple_existing_build(self, get_vcs):
+        """Tests when only a subset of the builds have been created"""
+        get_vcs.return_value = self.get_fake_vcs()
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        source = self.create_source(self.project, revision=revision)
+
+        # this is older and won't be returned
+        self.create_build(self.project, source=source)
+        build = self.create_build(self.project, source=source)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url,
+            'apply_file_whitelist': '1',
+            'ensure_only': '1',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build.id.hex
+        assert data[0]['project']['slug'] == self.project.slug
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_ensure_existing_build_wrong_revision(self, get_vcs):
+        """Tests when other builds in the system exist"""
+        get_vcs.return_value = self.get_fake_vcs()
+        wrong_revision = self.create_revision(
+            repository=self.project.repository,
+            sha='b' * 40
+        )
+        source = self.create_source(self.project, revision=wrong_revision)
+
+        # this is older and won't be returned
+        self.create_build(self.project, source=source)
+        build = self.create_build(self.project, source=source)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url,
+            'apply_file_whitelist': '1',
+            'ensure_only': '1',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] != build.id.hex
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_ensure_existing_build_false(self, get_vcs):
+        """Tests when existing builds have been created,
+        but we don't want to run in ensure-only mode explicitly
+        """
+        get_vcs.return_value = self.get_fake_vcs()
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        source = self.create_source(self.project, revision=revision)
+        build = self.create_build(self.project, source=source)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'apply_file_whitelist': '1',
+            'ensure_only': '',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] != build.id.hex
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_ensure_existing_build_default_false(self, get_vcs):
+        """Tests when existing builds have been created,
+        but we don't want to run in ensure-only mode by default
+        """
+        get_vcs.return_value = self.get_fake_vcs()
+        revision = self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        source = self.create_source(self.project, revision=revision)
+        build = self.create_build(self.project, source=source)
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'apply_file_whitelist': '1',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] != build.id.hex
 
     @patch('changes.models.Repository.get_vcs')
     def test_existing_build_wrong_revision(self, get_vcs):
@@ -505,6 +699,25 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         build = job.build
 
         assert job.project == project2
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_with_project_whitelist_empty(self, get_vcs):
+        project2 = self.create_project(repository=self.project.repository)
+        self.create_plan(project2)
+        db.session.commit()
+        get_vcs.return_value = self.get_fake_vcs()
+        self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url,
+            'project_whitelist': json.dumps([]),
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 0
 
     @patch('changes.api.build_index.find_green_parent_sha')
     def test_with_full_params(self, mock_find_green_parent_sha):

@@ -356,6 +356,7 @@ class BuildIndexAPIView(APIView):
 
     """A JSON list of project slugs that will act as a whitelist, meaning
     only projects with these slugs will be created.
+    Optional - if nothing is given, no whitelisting is applied
     """
     parser.add_argument('project_whitelist', type=lambda x: json.loads(x))
 
@@ -364,6 +365,14 @@ class BuildIndexAPIView(APIView):
     for compatibility reasons
     """
     parser.add_argument('apply_file_whitelist', type=bool)
+
+    """A flag to indicate that for each project, if there is an existing build,
+    return the latest build. Only when there are no builds for a project is
+    one created. This is done at the very end, after all the filters.
+
+    Optional - defaults to False
+    """
+    parser.add_argument('ensure_only', type=bool, default=False)
 
     def get(self):
         queryset = Build.query.options(
@@ -389,13 +398,21 @@ class BuildIndexAPIView(APIView):
         3. If ``patch`` is given, then apply the patch and mark this as a diff build.
         Otherwise, this is a commit build.
 
-        4. Based on the flag ``apply_file_whitelist`` (see comment on the argument
+        4. If provided, apply project_whitelist, filtering out projects not in
+        this whitelist.
+
+        5. Based on the flag ``apply_file_whitelist`` (see comment on the argument
         itself for default values), decide whether or not to filter out projects
         by file whitelist.
 
-        5. Attach metadata and create a build for each remaining projects.
+        6. Attach metadata and create/ensure existence of a build for each project,
+        depending on the flag ``ensure_only``.
 
-        Note: If ``patch`` is specified ``sha`` is assumed to be the original
+        NOTE: In ensure-only mode, the collection_ids of the returned builds are
+        not necessarily identical, as we give new builds new collection IDs
+        and preserve the existing builds' collection IDs.
+
+        NOTE: If ``patch`` is specified ``sha`` is assumed to be the original
         base revision to apply the patch.
 
         Not relevant until we fix TODO: ``sha`` is **not** guaranteed to be the rev
@@ -531,7 +548,8 @@ class BuildIndexAPIView(APIView):
             if not plan_list:
                 logging.warning('No plans defined for project %s', project.slug)
                 continue
-            if args.project_whitelist and project.slug not in args.project_whitelist:
+            # 4. apply project whitelist as appropriate
+            if args.project_whitelist is not None and project.slug not in args.project_whitelist:
                 logging.info('Project %s is not in the supplied whitelist', project.slug)
                 continue
             forced_sha = sha
@@ -543,23 +561,46 @@ class BuildIndexAPIView(APIView):
             #         sha=sha,
             #     )
 
-            # 4. apply file whitelist as appropriate
+            # 5. apply file whitelist as appropriate
             if apply_file_whitelist and files_changed and not in_project_files_whitelist(project_options[project.id], files_changed):
                 logging.info('No changed files matched build.file-whitelist for project %s', project.slug)
                 continue
 
-            # 5. create build
-            builds.append(create_build(
-                project=project,
-                collection_id=collection_id,
-                sha=forced_sha,
-                target=target,
-                label=label,
-                message=message,
-                author=author,
-                patch=patch,
-                source_data=patch_data,
-                tag=tag,
-            ))
+            # 6. create/ensure build
+            if args.ensure_only:
+                potentials = list(Build.query.filter(
+                    Build.project_id == project.id,
+                    Build.source.has(revision_sha=sha),
+                ).order_by(
+                    Build.date_created.desc()  # newest first
+                ).limit(1))
+                if len(potentials) == 0:
+                    builds.append(create_build(
+                        project=project,
+                        collection_id=collection_id,
+                        sha=forced_sha,
+                        target=target,
+                        label=label,
+                        message=message,
+                        author=author,
+                        patch=patch,
+                        source_data=patch_data,
+                        tag=tag,
+                    ))
+                else:
+                    builds.append(potentials[0])
+            else:
+                builds.append(create_build(
+                    project=project,
+                    collection_id=collection_id,
+                    sha=forced_sha,
+                    target=target,
+                    label=label,
+                    message=message,
+                    author=author,
+                    patch=patch,
+                    source_data=patch_data,
+                    tag=tag,
+                ))
 
         return self.respond(builds)
