@@ -12,7 +12,7 @@ define([
 
       $scope.loading = true;
 
-      $scope.$on('$destory', function(){
+      $scope.$on('$destroy', function(){
         if (timeoutId) {
           window.cancelTimeout(timeoutId);
         }
@@ -30,7 +30,7 @@ define([
           $scope.loading = false;
         });
 
-        timeoutId = window.setTimeout(tick, 5000);
+        timeoutId = window.setTimeout(tick, 15000);
       }
 
       tick();
