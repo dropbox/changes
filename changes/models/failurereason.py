@@ -9,6 +9,7 @@ from sqlalchemy.schema import Index, UniqueConstraint
 
 from changes.config import db
 from changes.db.types.guid import GUID
+from changes.db.types.json import JSONEncodedDict
 
 
 class FailureReason(db.Model):
@@ -33,6 +34,7 @@ class FailureReason(db.Model):
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     reason = Column(String(32), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow, server_default='now()', nullable=False)
+    data = Column(JSONEncodedDict)  # extra metadata/info about the failure
 
     step = relationship('JobStep')
     job = relationship('Job')

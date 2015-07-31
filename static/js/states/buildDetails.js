@@ -86,7 +86,27 @@ define([
 
       $scope.build = buildData;
       $scope.eventList = new Collection(buildData.events);
-      $scope.failureList = new Collection(buildData.failures);
+
+      var failure_dict = {};
+      $.each(buildData.failures, function(index, failure) {
+        if (!failure_dict[failure.id]) {
+          failure_dict[failure.id] = {
+            id: failure.id,
+            reason: failure.reason,
+            count: 0,
+          };
+        }
+        failure_dict[failure.id].count += 1;
+      });
+
+      // dump all the failures into a list. Without underscore, I think we have
+      // to do this manually...
+      var failure_list = [];
+      $.each(failure_dict, function(key, value) {
+        failure_list.push(value);
+      });
+
+      $scope.failureList = new Collection(failure_list);
       $scope.testFailures = buildData.testFailures;
       $scope.testChanges = buildData.testChanges;
       $scope.seenBy = buildData.seenBy.slice(0, 14);

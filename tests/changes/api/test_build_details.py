@@ -106,7 +106,9 @@ class BuildDetailsTest(APITestCase):
                 project.slug,
                 build.id.hex,
             ),
-            'count': 1,
+            'data': {},
+            'job_id': job1.id.hex,
+            'step_id': step.id.hex
         }
 
     def test_last_parent_revision_build(self):

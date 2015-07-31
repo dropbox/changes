@@ -1,10 +1,9 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
-from itertools import groupby
 from flask_restful.reqparse import RequestParser
+from itertools import groupby
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
-from sqlalchemy.sql import func
 from uuid import UUID
 
 from changes.api.base import APIView
@@ -110,20 +109,21 @@ def find_changed_tests(current_build, previous_build, limit=25):
 def get_failure_reasons(build):
     from changes.buildfailures import registry
 
-    failure_reasons = db.session.query(
-        FailureReason.reason, func.count()
-    ).filter(
+    rows = FailureReason.query.filter(
         FailureReason.build_id == build.id,
-    ).group_by(FailureReason.reason)
+    )
 
-    return [
-        {
-            'id': k,
-            'reason': registry[k].get_html_label(build),
-            'count': v,
-        }
-        for k, v in failure_reasons
-    ]
+    failure_reasons = []
+    for row in rows:
+        failure_reasons.append({
+            'id': row.reason,
+            'reason': registry[row.reason].get_html_label(build),
+            'step_id': row.step_id,
+            'job_id': row.job_id,
+            'data': dict(row.data or {}),
+        })
+
+    return failure_reasons
 
 
 def get_parents_last_builds(build):
