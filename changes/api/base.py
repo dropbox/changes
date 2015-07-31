@@ -3,6 +3,7 @@ import json
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from functools import wraps
 from urllib import quote
+import logging
 
 from flask import Response, request
 
@@ -17,8 +18,13 @@ from time import time
 LINK_HEADER = '<{uri}&page={page}>; rel="{name}"'
 
 
-def as_json(context):
-    return json.dumps(serialize_func(context))
+def _as_json(context):
+    try:
+        return json.dumps(context)
+    except TypeError:
+        logging.error(
+            "unable to json-encode api response. Was the data not serialized?")
+        return json.dumps(serialize_func(context))
 
 
 def error(message, problems=None, http_code=400):
@@ -286,7 +292,7 @@ class APIView(Resource):
             data = context
 
         response = Response(
-            as_json(data),
+            _as_json(data),
             mimetype='application/json',
             status=status_code,
         )
