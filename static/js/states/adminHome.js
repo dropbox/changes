@@ -14,7 +14,7 @@ define([
 
       $scope.$on('$destroy', function(){
         if (timeoutId) {
-          window.cancelTimeout(timeoutId);
+          clearTimeout(timeoutId);
         }
       });
 
