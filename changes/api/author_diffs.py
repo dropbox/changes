@@ -49,6 +49,10 @@ class AuthorPhabricatorDiffsAPIView(APIView):
         except requests.exceptions.ConnectionError:
             return 'Unable to connect to Phabricator', 503
 
+        if not diff_info:
+            # No diffs, no point in trying to find builds.
+            return self.respond([])
+
         rows = list(db.session.query(
             PhabricatorDiff, Build
         ).join(
@@ -69,4 +73,4 @@ class AuthorPhabricatorDiffsAPIView(APIView):
         for d in diff_info:
             d['builds'] = builds_map[str(d['id'])]
 
-        return diff_info
+        return self.respond(diff_info)
