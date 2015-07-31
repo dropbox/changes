@@ -93,7 +93,7 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
           map_key, state_key, api_response));
       }
     }
-    make_api_ajax_call(endpoint, ajax_response, ajax_response);
+    make_api_ajax_get(endpoint, ajax_response, ajax_response);
   });
 }
 
@@ -161,6 +161,22 @@ export var mapGetErrorResponses = function(map, keys) {
 }
 
 /**
+ * Wrapper to make ajax GET request
+ */
+export var make_api_ajax_get = function(
+    endpoint, response_callback, error_callback) {
+  return make_api_ajax_call('get', endpoint, '', response_callback, error_callback);
+}
+
+/**
+ * Wrapper to make ajax POST request
+ */
+export var make_api_ajax_post = function(
+    endpoint, params, response_callback, error_callback) {
+  return make_api_ajax_call('post', endpoint, params, response_callback, error_callback);
+}
+
+/**
  * Makes an ajax request to the changes API and returns data. This function
  * may rewrite urls to a prod host if USE_ANOTHER_HOST was set from the server
  *
@@ -169,7 +185,7 @@ export var mapGetErrorResponses = function(map, keys) {
  * (was_success is optional - makes it easy to use the same func for both)
  */
 export var make_api_ajax_call = function(
-    endpoint, response_callback, error_callback) {
+    method, endpoint, params, response_callback, error_callback) {
 
   response_callback = response_callback || function() { };
   error_callback = response_callback || function() { };
@@ -183,7 +199,12 @@ export var make_api_ajax_call = function(
   }
 
   var req = new XMLHttpRequest();
-  req.open('get', url, true);
+  req.open(method, url, true);
+  if (params.length) {
+    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    req.setRequestHeader('Content-length', params.length);
+    req.setRequestHeader('Connection', 'close');
+  }
   // TODO: maybe just use a library for ajax calls
   req.onload = function() {
     // 2xx responses and 304 responses count as success
@@ -197,5 +218,5 @@ export var make_api_ajax_call = function(
       error_callback.call(this, this, false);
     }
   };
-  req.send();
+  req.send(params);
 }

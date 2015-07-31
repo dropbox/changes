@@ -124,7 +124,7 @@ require([
 
   // TODO: pages should set window.document.title
 
-  data_fetching.make_api_ajax_call('/api/0/auth', function(response) {
+  data_fetching.make_api_ajax_get('/api/0/auth', function(response) {
     // TODO: use context?
     window.changesAuthData = JSON.parse(response.responseText);
 
