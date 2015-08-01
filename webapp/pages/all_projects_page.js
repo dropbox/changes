@@ -30,7 +30,8 @@ var AllProjectsPage = React.createClass({
       projects: null,
       selectedItem: 'Latest Project Builds',
 
-      expandedConfigs: {},
+      expandedConfigsInPlans: {},
+      expandedConfigsInPlansByType: {},
     }
   },
 
@@ -251,11 +252,11 @@ var AllProjectsPage = React.createClass({
             proj_name,
             plan.name,
             <span className="marginRightL">{plan.steps[0].name}</span>,
-            this.getSeeConfigLink(plan.id),
+            this.getSeeConfigLink(plan.id, 'plans'),
             <TimeText time={plan.dateModified} />
           ]);
 
-          if (this.isConfigExpanded(plan.id)) {
+          if (this.isConfigExpanded(plan.id, 'plans')) {
             rows.push(this.getExpandedConfigRow(plan));
           }
         }
@@ -263,7 +264,12 @@ var AllProjectsPage = React.createClass({
     });
 
     // TODO: snapshot config?
-    var headers = ['Project', 'Plan', 'Implementation', 'More', 'Modified'];
+    var more_link = <span>More{" "}
+      <span style={{fontWeight: 'normal'}}>
+        {"("}{this.getExpandAllLink('plans')}{")"}
+      </span>
+    </span>;
+    var headers = ['Project', 'Plan', 'Implementation', more_link, 'Modified'];
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <Grid 
@@ -296,9 +302,14 @@ var AllProjectsPage = React.createClass({
       _.each(projects_data, proj => {
         _.each(proj.plans, (plan, index) => {
           if (plan.steps.length > 0 && plan.steps[0].name === type) {
-            plan_rows.push([null, proj.name, plan.name, this.getSeeConfigLink(plan.id)]);
+            plan_rows.push([
+              null, 
+              proj.name, 
+              plan.name, 
+              this.getSeeConfigLink(plan.id, 'plansByType')
+            ]);
 
-            if (this.isConfigExpanded(plan.id)) {
+            if (this.isConfigExpanded(plan.id, 'plansByType')) {
               plan_rows.push(this.getExpandedConfigRow(plan));
             }
           }
@@ -432,21 +443,55 @@ var AllProjectsPage = React.createClass({
     </div>;
   },
 
-  getSeeConfigLink: function(plan_id) {
+  getSeeConfigLink: function(plan_id, chart_name) {
+    var state_key = this.getConfigStateKey(chart_name);
+
     var onClick = ___ => {
       this.setState(
         utils.update_state_key(
-          'expandedConfigs', 
+          state_key,
           plan_id, 
-          !this.state.expandedConfigs[plan_id])
+          !this.state[state_key][plan_id])
       );
     }
 
-    return <a onClick={onClick}>See Config</a>;
+    var text = this.state[state_key][plan_id] ?
+      'Hide Config' : 'See Config';
+    return <a onClick={onClick}>{text}</a>;
   },
 
-  isConfigExpanded: function(plan_id) {
-    return this.state.expandedConfigs[plan_id];
+  getExpandAllLink: function(chart_name) {
+    var state_key = this.getConfigStateKey(chart_name);
+
+    var onClick = ___ => {
+      if (this.state[state_key]['all']) {
+        // delete all variables that expand a config
+        this.setState({ [ state_key ]: {}});
+      } else {
+        this.setState(
+          utils.update_state_key(state_key, 'all', true)
+        );
+      }
+    };
+
+    var text = this.state[state_key]['all'] ?
+      'Collapse All' : 'Expand All';
+
+    return <a onClick={onClick}>{text}</a>;
+  },
+
+  isConfigExpanded: function(plan_id, chart_name) {
+    var state_key = this.getConfigStateKey(chart_name);
+
+    return this.state[state_key][plan_id] || this.state[state_key]['all'];
+  },
+
+  getConfigStateKey: function(chart_name) {
+    switch (chart_name) {
+      case 'plans': return 'expandedConfigsInPlans';
+      case 'plansByType': return 'expandedConfigsInPlansByType';
+      default: throw `unknown chart name ${chart_name}`;
+    };
   },
 
   getExpandedConfigRow: function(plan) {
