@@ -16,12 +16,13 @@ from changes.models import (
 )
 
 
-RESULT_CHOICES = ('failed', 'passed', 'aborted', 'skipped')
+RESULT_CHOICES = ('failed', 'passed', 'aborted', 'skipped', 'infra_failed')
 STATUS_CHOICES = ('queued', 'in_progress', 'finished')
 
 # Choices should map to Result/Status names. We don't just use
 # the Enum names directly to make it harder to unintentionally
-# broaden the public API.
+# broaden the public API and because not all options necessarily
+# make sense for this interface.
 assert set(RESULT_CHOICES) <= set(Result.__members__.keys())
 assert set(STATUS_CHOICES) <= set(Status.__members__.keys())
 
