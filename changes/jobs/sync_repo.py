@@ -58,33 +58,32 @@ def sync_repo(repo_id, continuous=True):
             Revision.sha == commit.id
         ).with_for_update().scalar()
 
-        old_branches = None
-        if known_revision:
-            old_branches = set(known_revision.branches)
-
-        revision, created, _ = commit.save(repo)
-        new_branches = set(revision.branches)
-        db.session.commit()
-
-        # Below is logic for determining whether to fire a 'revision.created' signal.
-
-        # TODO: This is a hack to avoid triggering builds for commits without branches.
-        # This should be moved elsewhere if we want to keep this behavior.
-        if not new_branches:
+        if known_revision and known_revision.date_created_signal:
+            db.session.commit()
             continue
 
-        # Fire the signal if the revision was created or there was a change
-        # in its branches.
-        # The branches comparison is only valid if known_revision is not None.
-        # Otherwise, there's a race where old_branches is None because the revision
-        # doesn't exist but new_branches has something because something else just
-        # created the revision.
-        if created or (known_revision is not None and old_branches != new_branches):
+        revision, created, _ = commit.save(repo)
+        db.session.commit()
+
+        # Lock the revision.
+        revision = Revision.query.filter(
+            Revision.repository_id == repo_id,
+            Revision.sha == commit.id
+        ).with_for_update().scalar()
+
+        # Fire the signal if the revision was created or its branches were discovered.
+        #
+        # The `revision.branches` check is a hack right now to prevent builds from
+        # triggering on branchless commits.
+        if revision.branches and not revision.date_created_signal:
+            revision.date_created_signal = datetime.utcnow()
             fire_signal.delay(
                 signal='revision.created',
                 kwargs={'repository_id': repo.id.hex,
                         'revision_sha': revision.sha},
             )
+            db.session.commit()
+        db.session.commit()
 
     Repository.query.filter(
         Repository.id == repo.id,

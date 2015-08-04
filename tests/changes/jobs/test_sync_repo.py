@@ -70,8 +70,8 @@ class SyncRepoTest(TestCase):
     @mock.patch('changes.config.queue.delay')
     def test_with_existing_revision(self, queue_delay, get_vcs_backend, mock_fire_signal):
         """
-        Ensure that sync_repo creates and fires signals for existing revisions if
-        there was a change in the branches and branches exist.
+        Ensure that sync_repo creates and fires signals for existing revisions
+        only if we haven't done so before and there are branches.
         """
         vcs_backend = mock.MagicMock(spec=Vcs)
         get_vcs_backend.return_value = vcs_backend
@@ -92,10 +92,11 @@ class SyncRepoTest(TestCase):
             message='latest commit',
             author='Example <foo@example.com>',
             author_date=datetime(2013, 9, 19, 22, 15, 22),
-            branches=['b', 'c']
+            branches=['b'],
         )
-        existing_revision.save(repo)
-        existing_revision.branches = ['c', 'b']
+        r, _, _ = existing_revision.save(repo)
+        r.date_created_signal = datetime.utcnow()
+        db.session.commit()
 
         existing_revision_no_branches = RevisionResult(
             id=str(5) * 40,
@@ -145,3 +146,10 @@ class SyncRepoTest(TestCase):
             )
 
         assert mock_fire_signal.delay.call_count == 4
+
+        # Now all the revisions have been handled.
+        # Another call to sync_repo should do nothing.
+        mock_fire_signal.delay.call_count = 0
+        with mock.patch.object(sync_repo, 'allow_absent_from_db', True):
+            sync_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
+        assert mock_fire_signal.delay.call_count == 0

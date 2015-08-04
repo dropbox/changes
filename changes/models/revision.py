@@ -30,6 +30,9 @@ class Revision(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow)
     date_committed = Column(DateTime, default=datetime.utcnow)
 
+    # When 'revision.created' signal was fired, and null if it has not been fired.
+    date_created_signal = Column(DateTime, nullable=True)
+
     repository = relationship('Repository')
     author = relationship('Author', foreign_keys=[author_id], innerjoin=False)
     committer = relationship('Author', foreign_keys=[committer_id], innerjoin=False)
