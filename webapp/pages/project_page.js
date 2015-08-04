@@ -387,7 +387,7 @@ var Commits = React.createClass({
     // TODO: if there are any comments, show a comment icon on the right
     return [
       build_widget,
-      DisplayUtils.author_link(c.author),
+      DisplayUtils.authorLink(c.author),
       sha_item,
       title,
       prev_builds,
@@ -606,7 +606,7 @@ var Builds = React.createClass({
       return [
         <BuildWidget build={build} />,
         target,
-        DisplayUtils.author_link(build.author),
+        DisplayUtils.authorLink(build.author),
         build.name,
         get_build_cause(build),
         <TimeText time={build.dateStarted} />

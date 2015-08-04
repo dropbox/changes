@@ -6,6 +6,42 @@
 
 /* builds_results_page */
 
+.buildsSidebar {
+  position: fixed;
+  top: 32px;
+  left: 0;
+  bottom: 0;
+  width: 290px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  vertical-align: top;
+  border-right: 1px solid #bbb;
+}
+
+.buildsSideItem {
+  color: #333;
+  cursor: pointer;
+  display: block;
+  padding: 6px 0 6px 15px;
+  text-decoration: none;
+}
+
+.buildsSideItem:hover {
+  background-color: #d8d8d9;
+}
+
+.buildsSideSmallHeader {
+  padding: 6px 0 6px 15px;
+}
+
+.buildsSideSectionHeader {
+   font-size: 12px; 
+   font-weight: bold;
+   text-transform: uppercase;
+   margin-bottom: 5px;
+   padding-left: 10px;
+}
+
 .commitSideItem {
   cursor: pointer;
   display: block;

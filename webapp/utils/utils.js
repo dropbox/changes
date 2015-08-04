@@ -5,6 +5,8 @@
  * More display-specific utils are in changes_utils.py in display
  */
 
+// TODO: rename this generic.js
+
 // jondoe@company.com -> jondoe
 export var email_head = function(email) {
   return email.substring(0, email.indexOf('@'));
@@ -114,4 +116,9 @@ export var update_state_dict = function(map_key, updates) {
       [ map_key ]: old_map
     };
   }
+}
+
+// TODO: move out of this file
+export var get_short_repo_name = function(repo_url) {
+  return _.last(_.compact(repo_url.split(/:|\//)));
 }

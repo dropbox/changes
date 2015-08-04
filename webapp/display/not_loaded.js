@@ -20,6 +20,7 @@ var APINotLoaded = React.createClass({
     stateMap: proptype.objectOf.object,
     stateMapKeys: proptype.array,
     // if true, show InlineLoading instead of RandomLoading
+    // TODO: should always be true?
     isInline: proptype.bool,
   },
 

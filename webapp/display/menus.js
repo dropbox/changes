@@ -3,10 +3,11 @@ import React from 'react';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
+// TODO: menu should transfer props
+
 /*
  * Menu 1. Simple, items separated with |.
  * Commits | Every Build | Tests | More Information
- * TODO: not used currently
  */
 export var Menu1 = React.createClass({
 
@@ -23,7 +24,7 @@ export var Menu1 = React.createClass({
     return {
       items: [],
       selectedItem: '',
-      onClick: null
+      onClick: item => console.log('no onclick handler for menu')
     }
   },
 
@@ -66,7 +67,7 @@ export var Menu2 = React.createClass({
     return {
       items: [],
       selectedItem: '',
-      onClick: null
+      onClick: item => console.log('no onclick handler for menu')
     }
   },
 

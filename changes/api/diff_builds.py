@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Build, PhabricatorDiff
+from changes.models import Build, PhabricatorDiff, Job
 
 from changes.utils.phabricator_utils import PhabricatorRequest
 
@@ -44,12 +44,18 @@ class DiffBuildsIndexAPIView(APIView):
 
         # grab builds
         rows = list(db.session.query(
-            PhabricatorDiff, Build
+            Build, PhabricatorDiff
         ).join(
-            Build, Build.source_id == PhabricatorDiff.source_id
+            PhabricatorDiff, Build.source_id == PhabricatorDiff.source_id,
         ).filter(
             PhabricatorDiff.revision_id == diff_ident[1:]
         ))
+
+        build_ids = set([row.Build.id for row in rows])
+
+        jobs = self.serialize(list(Job.query.filter(
+            Job.build_id.in_(build_ids)
+        )))
 
         serialized_builds = zip(
             self.serialize([row.Build for row in rows]),
@@ -70,6 +76,7 @@ class DiffBuildsIndexAPIView(APIView):
                     'source_id': phabricator_diff.source_id,
                     'dateCreated': phabricator_diff.date_created
                 }
+            build['jobs'] = [j for j in jobs if j['build']['id'] == build['id']]
             build_info[single_diff_id]['builds'].append(build)
 
         phabricator_info['changes'] = build_info

@@ -497,6 +497,8 @@ def configure_api_routes(app):
     from changes.api.snapshot_details import SnapshotDetailsAPIView
     from changes.api.snapshot_index import SnapshotIndexAPIView
     from changes.api.snapshotimage_details import SnapshotImageDetailsAPIView
+    from changes.api.source_details import SourceDetailsAPIView
+    from changes.api.source_build_index import SourceBuildIndexAPIView
     from changes.api.step_details import StepDetailsAPIView
     from changes.api.system_stats import SystemStatsAPIView
     from changes.api.task_details import TaskDetailsAPIView
@@ -582,6 +584,8 @@ def configure_api_routes(app):
     api.add_resource(SnapshotImageDetailsAPIView, '/snapshotimages/<uuid:image_id>/')
     api.add_resource(CachedSnapshotClusterDetailsAPIView, '/snapshots/cache/clusters/<cluster>/')
     api.add_resource(CachedSnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/cache/')
+    api.add_resource(SourceDetailsAPIView, '/sources/<source_id>/')
+    api.add_resource(SourceBuildIndexAPIView, '/sources/<source_id>/builds/')
     api.add_resource(SystemStatsAPIView, '/systemstats/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')

@@ -7,16 +7,15 @@ var cx = React.addons.classSet;
 
 /*
  * A bunch of useful functions to render things like SHAs, author names, etc.
- * Naming is `changes_utils.js` since most utils are usually specific to the
- * changes UI, as opposed to most other components in this dir which are generic
- * for almost any tool.
+ * These are small enough that I just dumped them all in a utils class rather than
+ * making individual tags for each.
  */
 var DisplayUtils = {
   
   // If I want to be able to customize these (e.g. add a css class), they
   // should be tags instead
 
-  author_link: function(author) {
+  authorLink: function(author) {
     if (!author) {
       return 'unknown';
     }
@@ -24,6 +23,11 @@ var DisplayUtils = {
     return <a href={author_href}>
       {utils.email_head(author.email)}
     </a>;
+  },
+
+  projectLink: function(project) {
+    var href = `/v2/project/${project.slug}/`;
+    return <a href={href}>{project.name}</a>;
   },
 
   // takes a blob of text and wraps urls in anchor tags
@@ -53,7 +57,6 @@ var DisplayUtils = {
 
     return elements;
   }
-
 };
 
 export default DisplayUtils;

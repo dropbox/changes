@@ -209,7 +209,7 @@ var Commits = React.createClass({
       if (project_slugs.length === 0) {
         grid_data.push(
           [
-            <span style={{fontWeight: 'bold', fontStyle: 'italic', color: colors.darkGray, marginLeft: 3}}>
+            <span style={{fontStyle: 'italic', color: colors.darkGray, marginLeft: 3}}>
               None
             </span>,
             sha_item,

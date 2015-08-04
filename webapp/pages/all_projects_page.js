@@ -171,7 +171,7 @@ var AllProjectsPage = React.createClass({
     var by_repo = _.groupBy(projects_data, p => p.repository.id);
     _.each(by_repo, repo_projects => {
       var repo_url = repo_projects[0].repository.url;
-      var repo_name = _.last(_.compact(repo_url.split(/:|\//)));
+      var repo_name = utils.get_short_repo_name(repo_url);
       if (repo_projects.length > 1) {
         repo_name += ` (${repo_projects.length})`; // add # of projects
       }
@@ -469,7 +469,7 @@ var AllProjectsPage = React.createClass({
         this.setState({ [ state_key ]: {}});
       } else {
         this.setState(
-          utils.update_state_key(state_key, 'all', true)
+          utils.update_key_in_state_dict(state_key, 'all', true)
         );
       }
     };
