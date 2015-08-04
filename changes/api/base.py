@@ -7,6 +7,8 @@ import logging
 
 from flask import Response, request
 
+from flask.ext.sqlalchemy import get_debug_queries
+
 from flask.ext.restful import Resource
 
 from changes.api.serializer import serialize as serialize_func
@@ -298,13 +300,22 @@ class APIView(Resource):
         )
         if links:
             response.headers['Link'] = ', '.join(links)
+
         response.headers['changes-api-class'] = self.__class__.__name__
 
+        # do some performance logging / send perf data back to the client
         timer_name = "changes_api_server_perf_method_{}_class_{}".format(
             request.method, self.__class__.__name__)
         time_taken = time() - self.start_time
         statsreporter.stats().log_timing(timer_name, time_taken * 1000)
         response.headers['changes-server-time'] = time_taken
+
+        # how much time did we spend waiting on the db
+        db_time_in_sec = sum([q.duration for q in get_debug_queries()])
+        db_timer_name = "changes_api_total_db_time_method_{}_class_{}".format(
+            request.method, self.__class__.__name__)
+        statsreporter.stats().log_timing(db_timer_name, db_time_in_sec * 1000)
+        response.headers['changes-server-db-time'] = db_time_in_sec
 
         return response
 
