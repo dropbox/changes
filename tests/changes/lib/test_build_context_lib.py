@@ -71,7 +71,6 @@ class BuildingContextTestCase(TestCase):
             assert context['author'] == build.author
             assert context['commit_message'] == ''
             assert context['failing_tests_count'] == 0
-            assert context['total_failing_tests_count'] == 0
 
         test_with_result(Result.passed)
         test_with_result(Result.skipped)
@@ -134,7 +133,6 @@ class BuildingContextTestCase(TestCase):
         assert context['author'] == first_build.author
         assert context['commit_message'] == ''
         assert context['failing_tests_count'] == 0
-        assert context['total_failing_tests_count'] == 0
 
 
 class GetLogClippingTestCase(TestCase):

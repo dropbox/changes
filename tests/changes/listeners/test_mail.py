@@ -1,11 +1,14 @@
 from datetime import datetime
+from flask import current_app
 
 import mock
+import uuid
 
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models.option import ItemOption
 from changes.models.project import ProjectOption
+from changes.lib import build_context_lib
 from changes.listeners.mail import filter_recipients, MailNotificationHandler, build_finished_handler
 from changes.testutils.cases import TestCase
 
@@ -314,6 +317,116 @@ class SendTestCase(TestCase):
         assert log_link2 in msg.body
 
         assert msg.as_string()
+
+    @mock.patch.object(MailNotificationHandler, 'get_collection_recipients')
+    def test_max_shown(self, get_collection_recipients):
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(
+            project,
+            label='Test diff',
+            date_started=datetime.utcnow(),
+            result=Result.failed,
+            status=Status.finished
+        )
+        job = self.create_job(build=build, result=Result.failed)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+        max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_MAIL', 3)
+        total_test_count = max_shown + 1
+        test_cases = []
+        for i in range(total_test_count):
+            test_cases.append(self.create_test(
+                package='test.group.ClassName',
+                name='test.group.ClassName.test_foo{}'.format(i),
+                job=job,
+                duration=134,
+                result=Result.failed,
+                ))
+
+        get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+
+        build_finished_handler(build.id)
+
+        assert len(self.outbox) == 1
+        msg = self.outbox[0]
+
+        content = msg.as_string().split('text/html')
+        text_content = content[0]
+        html_content = content[1]
+        assert text_content
+        for test_case in test_cases:
+            test_link = build_context_lib._get_test_case_uri(test_case)
+            assert test_link in text_content
+
+        assert html_content
+        assert 'Showing {} out of <strong style="font-weight: bold">{}</strong>'.format(max_shown, total_test_count) in html_content
+        assert 'See all failing tests (1 remaining)' in html_content
+        shown_test_count = 0
+        for test_case in test_cases:
+            test_link = build_context_lib._get_test_case_uri(test_case)
+            if test_link in html_content:
+                shown_test_count += 1
+        assert shown_test_count == max_shown
+
+    @mock.patch.object(MailNotificationHandler, 'get_collection_recipients')
+    def test_max_shown_multiple_builds(self, get_collection_recipients):
+        collection_id = uuid.uuid4()
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(
+            project,
+            label='Test diff',
+            date_started=datetime.utcnow(),
+            result=Result.failed,
+            status=Status.finished,
+            collection_id=collection_id,
+        )
+        job = self.create_job(build=build, result=Result.failed)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+        max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_MAIL', 3)
+        total_test_count = max_shown + 1
+        test_cases = []
+        for i in range(total_test_count):
+            test_cases.append(self.create_test(
+                package='test.group.ClassName',
+                name='test.group.ClassName.test_foo{}'.format(i),
+                job=job,
+                duration=134,
+                result=Result.failed,
+                ))
+
+        build2 = self.create_build(
+            project,
+            label='Test diff 2',
+            date_started=datetime.utcnow(),
+            result=Result.failed,
+            status=Status.finished,
+            collection_id=collection_id,
+        )
+        job2 = self.create_job(build=build2, result=Result.failed)
+        phase2 = self.create_jobphase(job=job2)
+        step2 = self.create_jobstep(phase=phase2)
+        test_case2 = self.create_test(
+            package='test.group.ClassName',
+            name='test.group.ClassName.test_bar',
+            job=job2,
+            duration=134,
+            result=Result.failed,
+        )
+
+        get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+
+        build_finished_handler(build.id)
+
+        assert len(self.outbox) == 1
+        msg = self.outbox[0]
+
+        content = msg.as_string().split('text/html')
+        html_content = content[1]
+
+        assert html_content
+        assert 'Showing {} out of <strong style="font-weight: bold">{}</strong>'.format(max_shown + 1, total_test_count + 1) in html_content
+        assert 'See all failing tests (1 remaining)' in html_content
 
 
 class GetBuildOptionsTestCase(TestCase):

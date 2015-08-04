@@ -144,6 +144,116 @@ class PhabricatorListenerTest(UnitTestCase):
 
         phab.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc))
 
+    @mock.patch('changes.listeners.phabricator_listener.get_test_failures_in_base_commit')
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.listeners.phabricator_listener.get_options')
+    def test_parent_and_new_failures(self, get_options, phab, get_base_failures):
+        def get_test_desc(build, testcase, test_name):
+            test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
+                build.project.slug,
+                build.id.hex,
+                testcase.job_id.hex,
+                testcase.id.hex
+            ))
+            return "[%s](%s)" % (test_name, test_link)
+        get_options.return_value = {
+            'phabricator.notify': '1'
+        }
+        project = self.create_project(name='Server', slug='project-slug')
+        self.assertEquals(phab.call_count, 0)
+        patch = self.create_patch()
+        source = self.create_source(project, revision_sha='1235', patch=patch)
+        build = self.create_build(project, result=Result.failed, target='D1', source=source, status=Status.finished)
+        job = self.create_job(build=build)
+        testcase = self.create_test(
+            package='test.group.ClassName',
+            name='test.group.ClassName.test_foo',
+            job=job,
+            duration=134,
+            result=Result.failed,
+            )
+        testcase2 = self.create_test(
+            package='test.group.ClassName',
+            name='test.group.ClassName.test_foo2',
+            job=job,
+            duration=134,
+            result=Result.failed,
+            )
+        get_base_failures.return_value = {testcase.name}
+
+        build_finished_handler(build_id=build.id.hex)
+
+        get_options.assert_called_once_with(project.id)
+        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
+            build.project.slug, build.id.hex))
+        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
+            build.project.slug, build.id.hex))
+
+        test_desc = get_test_desc(build, testcase, 'test_foo')
+        test_desc2 = get_test_desc(build, testcase2, 'test_foo2')
+        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
+
+**New failures (1):**
+|Test Name | Package|
+|--|--|
+|{2}|test.group.ClassName|
+
+**Failures in parent revision (1):**
+|Test Name | Package|
+|--|--|
+|{3}|test.group.ClassName|"""
+
+        phab.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc2, test_desc))
+
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.listeners.phabricator_listener.get_options')
+    def test_max_shown_build_failures(self, get_options, phab):
+        get_options.return_value = {
+            'phabricator.notify': '1'
+        }
+        project = self.create_project(name='Server', slug='project-slug')
+        self.assertEquals(phab.call_count, 0)
+        patch = self.create_patch()
+        source = self.create_source(project, revision_sha='1235', patch=patch)
+        build = self.create_build(project, result=Result.failed, target='D1', source=source, status=Status.finished)
+        job = self.create_job(build=build)
+        max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_PHABRICATOR', 10)
+        total_test_count = max_shown + 1
+        testcases = []
+        for i in range(total_test_count):
+            testcases.append(self.create_test(
+                package='test.group.ClassName',
+                name='test.group.ClassName.test_foo{}'.format(i),
+                job=job,
+                duration=134,
+                result=Result.failed,
+                ))
+
+        build_finished_handler(build_id=build.id.hex)
+
+        get_options.assert_called_once_with(project.id)
+        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
+            build.project.slug, build.id.hex))
+        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
+            build.project.slug, build.id.hex))
+
+        assert phab.call_count == 1
+        (diff_id, comment), _ = phab.call_args
+        assert diff_id == '1'
+        shown_test_count = 0
+        for testcase in testcases:
+            test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
+                build.project.slug,
+                build.id.hex,
+                testcase.job_id.hex,
+                testcase.id.hex
+            ))
+            if test_link in comment:
+                shown_test_count += 1
+        assert shown_test_count == max_shown
+        assert 'Server build Failed {{icon times, color=red}} ([results]({0})). There were {2} new [test failures]({1})'.format(build_link, failure_link, total_test_count)
+        assert '|...more...|...|' in comment
+
     @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_multiple_builds(self, get_options, phab):

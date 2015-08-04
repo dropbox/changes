@@ -154,10 +154,10 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
 </pre>
 
 <p class="summary">
-    {% if total_failing_tests_count == 1 %}
+    {% if failing_tests_count == 1 %}
         There is 1 failing test.
-    {% elif total_failing_tests_count > 1 %}
-        Showing {{ failing_tests_count }} out of <strong>{{ total_failing_tests_count }}</strong> failing tests.
+    {% elif failing_tests_count > 1 %}
+        Showing {{ showing_failing_tests_count }} out of <strong>{{ failing_tests_count }}</strong> failing tests.
     {% endif %}
 </p>
 
@@ -180,25 +180,23 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
     {% if build.failing_tests_count or build.failing_logs_count %}
         <div class="build-item-content">
             <div class="build-item-tests">
-                {% for job in build.jobs %}
-                    {% for test_case in job.failing_tests %}
-                        <div class="test-item">
-                            <h3>
-                                <a href="{{ test_case.uri }}" class="dark-link">
-                                    {{ test_case.test_case.name }}
-                                    <span class="link-cue">(view full log)</span>
-                                </a>
-                            </h3>
-                            {% if test_case.test_case.message %}
-                                <pre class="log">{{ test_case.test_case.message }}</pre>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
+                {% for test_case in build.failing_tests[:MAX_SHOWN_FAILING_TESTS_PER_BUILD] %}
+                    <div class="test-item">
+                        <h3>
+                            <a href="{{ test_case.uri }}" class="dark-link">
+                                {{ test_case.test_case.name }}
+                                <span class="link-cue">(view full log)</span>
+                            </a>
+                        </h3>
+                        {% if test_case.test_case.message %}
+                            <pre class="log">{{ test_case.test_case.message }}</pre>
+                        {% endif %}
+                    </div>
                 {% endfor %}
-                {% if build.failing_tests_count < build.total_failing_tests_count %}
+                {% if build.failing_tests_count > MAX_SHOWN_FAILING_TESTS_PER_BUILD %}
                     <p class="build-item-tests-see-remaining">
                         <a href="{{ build.uri }}" >
-                            See all failing tests ({{ build.total_failing_tests_count-build.failing_tests_count }} remaining)
+                            See all failing tests ({{ build.failing_tests_count - MAX_SHOWN_FAILING_TESTS_PER_BUILD }} remaining)
                         </a>
                     </p>
                 {% endif %}

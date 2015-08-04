@@ -2,7 +2,6 @@ import logging
 import time
 import hashlib
 import json
-import itertools
 
 from changes.models.job import Job
 from changes.models.test import TestCase
@@ -149,11 +148,9 @@ def _get_message_for_build_context(build_context):
         link=build_uri('/projects/{0}/builds/{1}/'.format(safe_slug, build.id.hex))
     )
 
-    test_failures = list(itertools.chain(*[j['failing_tests'] for j in build_context['jobs']]))
-    test_failures = [t['test_case'] for t in test_failures]
-    num_test_failures = len(test_failures)
+    test_failures = [t['test_case'] for t in build_context['failing_tests']]
 
-    if num_test_failures > 0:
+    if build_context['failing_tests_count'] > 0:
         message += get_test_failure_remarkup(build, test_failures)
     return message
 
@@ -182,8 +179,9 @@ def get_test_failures_in_base_commit(build):
 def _generate_remarkup_table_for_tests(build, tests):
     num_failures = len(tests)
     did_truncate = False
-    if num_failures > 10:
-        tests = tests[:10]
+    max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_PHABRICATOR', 10)
+    if num_failures > max_shown:
+        tests = tests[:max_shown]
         did_truncate = True
 
     table = ['|Test Name | Package|',

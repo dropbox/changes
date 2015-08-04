@@ -1,4 +1,4 @@
-from itertools import imap
+from itertools import chain, imap
 
 from changes.api.build_details import get_parents_last_builds
 from changes.constants import Result
@@ -61,8 +61,8 @@ def get_collection_context(builds):
             builds_context,
             key=lambda build: (
                 result_priority_order.index(build['build'].result),
-                build['total_failing_tests_count'],
-                build['total_failing_logs_count']
+                build['failing_tests_count'],
+                build['failing_logs_count']
             ),
             reverse=True
         )
@@ -91,7 +91,6 @@ def get_collection_context(builds):
         'author': build.author,
         'commit_message': build.message or '',
         'failing_tests_count': _aggregate_count(builds_context, 'failing_tests_count'),
-        'total_failing_tests_count': _aggregate_count(builds_context, 'total_failing_tests_count'),
     }
 
 
@@ -153,10 +152,9 @@ def _get_build_context(build, get_parent=True):
         'is_passing': build.result == Result.passed,
         'is_failing': build.result == Result.failed,
         'result_string': str(build.result).lower(),
+        'failing_tests': list(chain(*[j['failing_tests'] for j in jobs_context])),
         'failing_tests_count': _aggregate_count(jobs_context, 'failing_tests_count'),
-        'total_failing_tests_count': _aggregate_count(jobs_context, 'total_failing_tests_count'),
         'failing_logs_count': _aggregate_count(jobs_context, 'failing_logs_count'),
-        'total_failing_logs_count': _aggregate_count(jobs_context, 'total_failing_logs_count'),
     }
 
 
@@ -166,14 +164,14 @@ def _get_job_context(job):
             TestCase.job_id == job.id,
             TestCase.result == Result.failed,
         ).order_by(TestCase.name.asc())
-        failing_tests_count = failing_tests.count()
 
         failing_tests = [
             {
                 'test_case': test_case,
                 'uri': build_uri(_get_test_case_uri(test_case)),
-            } for test_case in failing_tests[:3]
+            } for test_case in failing_tests
         ]
+        failing_tests_count = len(failing_tests)
 
         return failing_tests, failing_tests_count
 
@@ -184,17 +182,16 @@ def _get_job_context(job):
             JobStep.result == Result.failed,
             JobStep.job_id == job.id,
         ).order_by(JobStep.date_created)
-        failing_log_sources_count = failing_log_sources.count()
 
-        failing_logs = []
-        for log_source in failing_log_sources[:3]:
-            log_clipping = _get_log_clipping(
-                log_source, max_size=5000, max_lines=25)
-            failing_logs.append({
-                'text': log_clipping,
+        failing_logs = [
+            {
+                'text': _get_log_clipping(
+                    log_source, max_size=5000, max_lines=25),
                 'name': log_source.name,
                 'uri': build_uri(_get_log_uri(log_source)),
-            })
+            } for log_source in failing_log_sources
+        ]
+        failing_log_sources_count = len(failing_logs)
 
         return failing_logs, failing_log_sources_count
 
@@ -206,10 +203,8 @@ def _get_job_context(job):
         'uri': build_uri(_get_job_uri(job)),
         'failing_tests': failing_tests,
         'failing_tests_count': len(failing_tests),
-        'total_failing_tests_count': failing_tests_count,
         'failing_logs': failing_logs,
         'failing_logs_count': len(failing_logs),
-        'total_failing_logs_count': failing_logs_count,
     }
 
     return context
