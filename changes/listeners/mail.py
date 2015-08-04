@@ -215,8 +215,13 @@ def build_finished_handler(build_id, *args, **kwargs):
     if not build:
         return
 
-    builds = list(
-        Build.query.filter(Build.collection_id == build.collection_id))
+    if not build.collection_id:
+        # If there isn't a collection_id, assume the build stands alone.
+        # All builds should probably have collection_id set.
+        builds = [build]
+    else:
+        builds = list(
+            Build.query.filter(Build.collection_id == build.collection_id))
 
     # Exit if there are no builds for the given build_id, or any build hasn't
     # finished.
