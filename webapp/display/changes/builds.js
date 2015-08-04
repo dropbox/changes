@@ -181,7 +181,6 @@ export var status_dots_for_diff = function(builds) {
   states['failed'] = (states['failed'] || 0) + (states['nothing'] || 0);
   delete states['nothing'];
 
-  var only_one_dot = null;
   var dots = _.chain(states)
     .pick(v => v > 0)
     .mapObject((v,k) => <StatusDot state={k} num={v > 1 ? v : null} />)
@@ -347,6 +346,17 @@ export var get_build_cause = function(build) {
   if (_.contains(tags, 'phabricator')) {
     // build for a diff that was created/updated in phabricator
     return 'phabricator';
+  }
+
+  if (_.contains(tags, 'buildpoker')) {
+    // this is a very temporary hack inside of dropbox. Talk to dev-tools about
+    // it
+    return 'commit (hack)';
+  }
+
+  if (_.contains(tags, 'commit-queue')) {
+    // build by the commit queue infrastructure
+    return 'commit queue';
   }
 
   return 'unknown';

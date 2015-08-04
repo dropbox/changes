@@ -229,6 +229,7 @@ tr.gridHeader {
 .gridCell.buildWidgetCell {
   padding: 0;
   padding-right: 6px;
+  white-space: nowrap;
 }
 
 .gridCell.buildWidgetCell .buildWidget {

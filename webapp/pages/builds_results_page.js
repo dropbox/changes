@@ -456,7 +456,7 @@ var BuildsResultsPage = React.createClass({
 
       var onClick = __ => {
         this.setState(
-          utils.update_state_key('expandedTests', 
+          utils.update_key_in_state_dict('expandedTests', 
             test.id, 
             !this.state.expandedTests[test.id])
         );

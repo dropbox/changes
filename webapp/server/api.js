@@ -89,7 +89,7 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
         state_to_set[state_key] = api_response;
         elem.setState(state_to_set);
       } else {
-        elem.setState(utils.update_state_key(
+        elem.setState(utils.update_key_in_state_dict(
           map_key, state_key, api_response));
       }
     }

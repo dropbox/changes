@@ -88,7 +88,7 @@ require([
 
   var url_contains = {
     'projects': [AllProjectsPage],
-    'project': [ProjectPage, 'project'],
+    'project': [ProjectPage, 'projectSlug'],
     'project_commit': [CommitPage, 'project', 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],

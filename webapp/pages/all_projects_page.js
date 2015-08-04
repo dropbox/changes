@@ -448,7 +448,7 @@ var AllProjectsPage = React.createClass({
 
     var onClick = ___ => {
       this.setState(
-        utils.update_state_key(
+        utils.update_key_in_state_dict(
           state_key,
           plan_id, 
           !this.state[state_key][plan_id])

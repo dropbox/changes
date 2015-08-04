@@ -116,6 +116,8 @@ export var MenuUtils = {
   },
 
   // default onclick handler for menu items
+  // TODO: add a param to enable/disable the hash (some menus are small and
+  // unimportant)
   onClick: function(elem, selected_item) { 
     return item => {
       if (item === selected_item) {

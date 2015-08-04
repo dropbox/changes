@@ -97,10 +97,19 @@ export var async = function(func) {
   window.setTimeout(func, 0);
 }
 
-export var update_state_key = function(map_key, key, value) {
+// allows you to update a single key in a dict stored in a react elem's state.
+// Preserves prototype
+export var update_key_in_state_dict = function(map_key, key, value) {
+  return update_state_dict(map_key, {[ key ]: value});
+}
+
+// as above, but updates multiple keys
+export var update_state_dict = function(map_key, updates) {
   return (prev_state, current_props) => {
-    var old_map = _.clone(prev_state[map_key]);
-    old_map[key] = value;
+    var old_map = _.create(
+      Object.getPrototypeOf(prev_state[map_key]),
+      prev_state[map_key]);
+    old_map = _.extend(old_map, updates);
     return {
       [ map_key ]: old_map
     };

@@ -32,7 +32,7 @@ export var Error = React.createClass({
 export var AjaxError = React.createClass({
   
   propTypes: {
-    // the ajax response object
+    // the ajax response object (not the apiresponse wrapper! TODO: allow either?)
     response: proptype.object.isRequired,
 
     // ...
