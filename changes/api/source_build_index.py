@@ -7,6 +7,10 @@ from changes.models import Build, Source, Job
 
 
 class SourceBuildIndexAPIView(APIView):
+    """
+    Gets all the builds for a given source object
+    """
+
     def get(self, source_id):
         source = Source.query.filter(
             Source.id == source_id,
@@ -19,7 +23,6 @@ class SourceBuildIndexAPIView(APIView):
                 joinedload('author')
             ).filter(
                 Build.source_id == source.id,
-                Build.id == Job.build_id
             ).order_by(Build.date_created.desc())
         ))
         build_ids = [build['id'] for build in builds]
