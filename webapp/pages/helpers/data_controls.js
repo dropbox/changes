@@ -102,7 +102,7 @@ var DataControlsPrototype = {
         this.elemStateKey,
         {
           'hasRunKickoff': true,
-          'currentParams': initial_params
+          'currentParams': initial_params || {}
         }
       ),
       ___ => {

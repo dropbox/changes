@@ -42,8 +42,11 @@ class ProjectCommitIndexAPIView(APIView):
 
         vcs = repo.get_vcs()
         if vcs:
-            commits = self.get_commits_from_vcs(
-                repo, vcs, offset, limit, paths, args.parent, args.branch)
+            try:
+                commits = self.get_commits_from_vcs(
+                    repo, vcs, offset, limit, paths, args.parent, args.branch)
+            except ValueError as err:
+                return error(err.message)
         else:
             if args.parent or args.branch:
                 param = 'Branches' if args.branch else 'Parents'
@@ -65,7 +68,7 @@ class ProjectCommitIndexAPIView(APIView):
 
         builds_map = {}
         if commits:
-            builds_map = self.get_builds_for_commit(
+            builds_map = self.get_builds_for_commits(
                 commits, project, args.all_builds)
 
         results = []
@@ -91,17 +94,13 @@ class ProjectCommitIndexAPIView(APIView):
         return None
 
     def get_commits_from_vcs(self, repo, vcs, offset, limit, paths, parent, branch):
-        vcs_log = None
-        try:
-            vcs_log = list(vcs.log(
-                offset=offset,
-                limit=limit,
-                parent=parent,
-                branch=branch,
-                paths=paths
-            ))
-        except ValueError as err:
-            return error(err.message)
+        vcs_log = list(vcs.log(
+            offset=offset,
+            limit=limit,
+            parent=parent,
+            branch=branch,
+            paths=paths
+        ))
 
         if not vcs_log:
             return []
@@ -136,7 +135,7 @@ class ProjectCommitIndexAPIView(APIView):
             ).order_by(Revision.date_created.desc())[offset:offset + limit]
         ))
 
-    def get_builds_for_commit(self, commits, project, all_builds):
+    def get_builds_for_commits(self, commits, project, all_builds):
         builds_qs = list(Build.query.options(
             joinedload('author'),
             contains_eager('source'),
