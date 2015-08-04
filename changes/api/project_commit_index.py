@@ -87,7 +87,7 @@ class ProjectCommitIndexAPIView(APIView):
         ).first()
 
         if whitelist:
-            paths = whitelist.value.strip().splitlines()
+            return whitelist.value.strip().splitlines()
         return None
 
     def get_commits_from_vcs(self, repo, vcs, offset, limit, paths, parent, branch):
