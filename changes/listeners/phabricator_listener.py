@@ -179,7 +179,7 @@ def get_test_failures_in_base_commit(build):
 def _generate_remarkup_table_for_tests(build, tests):
     num_failures = len(tests)
     did_truncate = False
-    max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_PHABRICATOR', 10)
+    max_shown = current_app.config.get('MAX_SHOWN_ITEMS_PER_BUILD_PHABRICATOR', 10)
     if num_failures > max_shown:
         tests = tests[:max_shown]
         did_truncate = True

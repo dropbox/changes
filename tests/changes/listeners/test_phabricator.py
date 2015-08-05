@@ -217,7 +217,7 @@ class PhabricatorListenerTest(UnitTestCase):
         source = self.create_source(project, revision_sha='1235', patch=patch)
         build = self.create_build(project, result=Result.failed, target='D1', source=source, status=Status.finished)
         job = self.create_job(build=build)
-        max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_PHABRICATOR', 10)
+        max_shown = current_app.config.get('MAX_SHOWN_ITEMS_PER_BUILD_PHABRICATOR', 10)
         total_test_count = max_shown + 1
         testcases = []
         for i in range(total_test_count):

@@ -180,7 +180,7 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
     {% if build.failing_tests_count or build.failing_logs_count %}
         <div class="build-item-content">
             <div class="build-item-tests">
-                {% for test_case in build.failing_tests[:MAX_SHOWN_FAILING_TESTS_PER_BUILD] %}
+                {% for test_case in build.failing_tests[:MAX_SHOWN_ITEMS_PER_BUILD] %}
                     <div class="test-item">
                         <h3>
                             <a href="{{ test_case.uri }}" class="dark-link">
@@ -193,10 +193,10 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
                         {% endif %}
                     </div>
                 {% endfor %}
-                {% if build.failing_tests_count > MAX_SHOWN_FAILING_TESTS_PER_BUILD %}
+                {% if build.failing_tests_count > MAX_SHOWN_ITEMS_PER_BUILD %}
                     <p class="build-item-tests-see-remaining">
                         <a href="{{ build.uri }}" >
-                            See all failing tests ({{ build.failing_tests_count - MAX_SHOWN_FAILING_TESTS_PER_BUILD }} remaining)
+                            See all failing tests ({{ build.failing_tests_count - MAX_SHOWN_ITEMS_PER_BUILD }} remaining)
                         </a>
                     </p>
                 {% endif %}
@@ -209,7 +209,7 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
                         </div>
                     {% endif %}
                     {% for job in build.jobs %}
-                        {% for log in job.failing_logs %}
+                        {% for log in job.failing_logs[:MAX_SHOWN_ITEMS_PER_BUILD] %}
                             <div class="log-item">
                                 <h3>
                                     <a href="{{ log.uri }}" class="dark-link">

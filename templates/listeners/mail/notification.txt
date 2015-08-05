@@ -27,7 +27,7 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
 
 {%- if build.failing_tests_count or build.failing_logs_count %}
     Failing tests:
-  {% for test_case in build.failing_tests[:MAX_SHOWN_FAILING_TESTS_PER_BUILD] %}
+  {% for test_case in build.failing_tests[:MAX_SHOWN_ITEMS_PER_BUILD] %}
     Path: {{ test_case.test_case.name }}:
     Url:  {{ test_case.uri }}
     {%- if test_case.test_case.message -%}
@@ -40,8 +40,8 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
 }}
     {%- endif -%}
   {% endfor -%}
-  {% if build.failing_tests_count > MAX_SHOWN_FAILING_TESTS_PER_BUILD %}
-    See all failing tests ({{ build.failing_tests_count - MAX_SHOWN_FAILING_TESTS_PER_BUILD }} remaining):
+  {% if build.failing_tests_count > MAX_SHOWN_ITEMS_PER_BUILD %}
+    See all failing tests ({{ build.failing_tests_count - MAX_SHOWN_ITEMS_PER_BUILD }} remaining):
     {{ build.uri }}
   {% endif %}
   {%- if build.failing_logs_count -%}
@@ -49,7 +49,7 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
     Other build logs:
     {% endif %}
     {%- for job in build.jobs %}
-      {% for log in job.failing_logs %}
+      {% for log in job.failing_logs[:MAX_SHOWN_ITEMS_PER_BUILD] %}
       Name: {{ job.job.label }} {{ log.name }}:
       Url:  {{ log.uri }}
 

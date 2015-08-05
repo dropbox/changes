@@ -67,9 +67,9 @@ class MailNotificationHandler(object):
         context = build_context_lib.get_collection_context(builds)
         if context['result'] == Result.passed:
             return None
-        max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_MAIL', 3)
+        max_shown = current_app.config.get('MAX_SHOWN_ITEMS_PER_BUILD_MAIL', 3)
         context.update({
-            'MAX_SHOWN_FAILING_TESTS_PER_BUILD': max_shown,
+            'MAX_SHOWN_ITEMS_PER_BUILD': max_shown,
             'showing_failing_tests_count':
                 sum([min(b['failing_tests_count'], max_shown) for b in context['builds']])
         })

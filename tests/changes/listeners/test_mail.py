@@ -331,7 +331,7 @@ class SendTestCase(TestCase):
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
         step = self.create_jobstep(phase=phase)
-        max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_MAIL', 3)
+        max_shown = current_app.config.get('MAX_SHOWN_ITEMS_PER_BUILD_MAIL', 3)
         total_test_count = max_shown + 1
         test_cases = []
         for i in range(total_test_count):
@@ -385,7 +385,7 @@ class SendTestCase(TestCase):
         job = self.create_job(build=build, result=Result.failed)
         phase = self.create_jobphase(job=job)
         step = self.create_jobstep(phase=phase)
-        max_shown = current_app.config.get('MAX_SHOWN_FAILING_TESTS_PER_BUILD_MAIL', 3)
+        max_shown = current_app.config.get('MAX_SHOWN_ITEMS_PER_BUILD_MAIL', 3)
         total_test_count = max_shown + 1
         test_cases = []
         for i in range(total_test_count):
@@ -444,6 +444,58 @@ class SendTestCase(TestCase):
             if test_link in html_content:
                 shown_test_count += 1
         assert shown_test_count == max_shown
+
+    @mock.patch.object(MailNotificationHandler, 'get_collection_recipients')
+    def test_max_shown_log(self, get_collection_recipients):
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(
+            project,
+            label='Test diff',
+            date_started=datetime.utcnow(),
+            result=Result.failed,
+            status=Status.finished
+        )
+        job = self.create_job(build=build, result=Result.failed)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+        max_shown = current_app.config.get('MAX_SHOWN_ITEMS_PER_BUILD_MAIL', 3)
+        total_log_count = max_shown + 1
+        log_sources = []
+        for i in range(total_log_count):
+            log_source = self.create_logsource(
+                step=step,
+                name='console' + str(i),
+            )
+            self.create_logchunk(
+                source=log_source,
+                text='hello world',
+            )
+            log_sources.append(log_source)
+        get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+
+        build_finished_handler(build.id)
+
+        assert len(self.outbox) == 1
+        msg = self.outbox[0]
+
+        text_content = msg.body
+        html_content = msg.html
+
+        job_link = 'http://example.com/projects/%s/builds/%s/jobs/%s/' % (
+            project.slug, build.id.hex, job.id.hex,)
+        shown_log_count = 0
+        for log_source in log_sources:
+            log_link = '%slogs/%s/' % (job_link, log_source.id.hex)
+            if log_link in text_content:
+                shown_log_count += 1
+        assert shown_log_count == max_shown
+
+        shown_log_count = 0
+        for log_source in log_sources:
+            log_link = '%slogs/%s/' % (job_link, log_source.id.hex)
+            if log_link in html_content:
+                shown_log_count += 1
+        assert shown_log_count == max_shown
 
 
 class GetBuildOptionsTestCase(TestCase):
