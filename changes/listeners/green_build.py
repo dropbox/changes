@@ -2,6 +2,8 @@ import calendar
 import logging
 import requests
 
+from requests.exceptions import HTTPError
+
 from datetime import datetime
 from flask import current_app
 from time import time
@@ -121,6 +123,15 @@ def build_finished_handler(build_id, **kwargs):
             'commit_timestamp': committed_timestamp_sec,
             'revision_message': source.revision.message,
         }).raise_for_status()
+    except HTTPError as ex:
+        # Conflicts aren't necessarily failures; some green build receivers
+        # report conflict if they see out-of-order results (not uncommon in Changes).
+        # We want to track those situations independently of other non-success responses.
+        if ex.response and ex.response.status_code == 409:
+            logger.warning("Conflict when reporting green build", exc_info=True)
+        else:
+            logger.exception('Failed to report green build')
+        status = 'fail'
     except Exception:
         logger.exception('Failed to report green build')
         status = 'fail'
