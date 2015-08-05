@@ -350,13 +350,15 @@ class SendTestCase(TestCase):
         assert len(self.outbox) == 1
         msg = self.outbox[0]
 
-        content = msg.as_string().split('text/html')
-        text_content = content[0]
-        html_content = content[1]
+        text_content = msg.body
+        html_content = msg.html
         assert text_content
+        shown_test_count = 0
         for test_case in test_cases:
             test_link = build_context_lib._get_test_case_uri(test_case)
-            assert test_link in text_content
+            if test_link in text_content:
+                shown_test_count += 1
+        assert shown_test_count == max_shown
 
         assert html_content
         assert 'Showing {} out of <strong style="font-weight: bold">{}</strong>'.format(max_shown, total_test_count) in html_content
@@ -421,12 +423,27 @@ class SendTestCase(TestCase):
         assert len(self.outbox) == 1
         msg = self.outbox[0]
 
-        content = msg.as_string().split('text/html')
-        html_content = content[1]
+        text_content = msg.body
+        html_content = msg.html
+        assert 'See all failing tests (1 remaining)' in text_content
+        assert build_context_lib._get_test_case_uri(test_case2) in text_content
+        shown_test_count = 0
+        for test_case in test_cases:
+            test_link = build_context_lib._get_test_case_uri(test_case)
+            if test_link in text_content:
+                shown_test_count += 1
+        assert shown_test_count == max_shown
 
         assert html_content
         assert 'Showing {} out of <strong style="font-weight: bold">{}</strong>'.format(max_shown + 1, total_test_count + 1) in html_content
         assert 'See all failing tests (1 remaining)' in html_content
+        assert build_context_lib._get_test_case_uri(test_case2) in html_content
+        shown_test_count = 0
+        for test_case in test_cases:
+            test_link = build_context_lib._get_test_case_uri(test_case)
+            if test_link in html_content:
+                shown_test_count += 1
+        assert shown_test_count == max_shown
 
 
 class GetBuildOptionsTestCase(TestCase):

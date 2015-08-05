@@ -25,13 +25,9 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
     {{ build.parent_build.uri}}
 {%- endif -%}
 
-{%- if build.failing_tests_count or build.failing_logs_count -%}
-  {%- for job in build.jobs %}
-    {%- if job.failing_tests %}
-
-
+{%- if build.failing_tests_count or build.failing_logs_count %}
     Failing tests:
-    {% for test_case in job.failing_tests %}
+  {% for test_case in build.failing_tests[:MAX_SHOWN_FAILING_TESTS_PER_BUILD] %}
     Path: {{ test_case.test_case.name }}:
     Url:  {{ test_case.uri }}
     {%- if test_case.test_case.message -%}
@@ -43,26 +39,29 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
     )
 }}
     {%- endif -%}
+  {% endfor -%}
+  {% if build.failing_tests_count > MAX_SHOWN_FAILING_TESTS_PER_BUILD %}
+    See all failing tests ({{ build.failing_tests_count - MAX_SHOWN_FAILING_TESTS_PER_BUILD }} remaining):
+    {{ build.uri }}
+  {% endif %}
+  {%- if build.failing_logs_count -%}
+    {% if build.failing_tests_count %}
+    Other build logs:
+    {% endif %}
+    {%- for job in build.jobs %}
+      {% for log in job.failing_logs %}
+      Name: {{ job.job.label }} {{ log.name }}:
+      Url:  {{ log.uri }}
 
-    {% endfor -%}
-    {%- endif -%}
-    {%- if job.failing_logs %}
-
-
-    Build logs:
-    {% for log in job.failing_logs %}
-    Name: {{ job.job.label }} {{ log.name }}:
-    Url:  {{ log.uri }}
-
-{{
-    log.text|break_long_lines(
-        width=75,
-        initial_indent=' '*4,
-        subsequent_indent=' '*4
-    )
-}}
-    {% endfor -%}
-    {%- endif -%}
-  {% endfor %}
+  {{
+      log.text|break_long_lines(
+          width=75,
+          initial_indent=' '*4,
+          subsequent_indent=' '*4
+      )
+  }}
+      {% endfor -%}
+    {% endfor %}
+  {%- endif -%}
 {% endif %}
 {% endfor %}
