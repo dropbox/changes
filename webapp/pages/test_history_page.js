@@ -1,13 +1,14 @@
 import React from 'react';
 
-import { Grid } from 'es6!display/grid';
-import { StatusDot, status_dots } from 'es6!display/changes/builds';
-import SectionHeader from 'es6!display/section_header';
-import ChangesPage from 'es6!display/page_chrome';
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesPage from 'es6!display/page_chrome';
+import SectionHeader from 'es6!display/section_header';
+import { Grid } from 'es6!display/grid';
+import { StatusDot } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
+
 import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;

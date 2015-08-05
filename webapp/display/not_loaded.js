@@ -1,10 +1,9 @@
 import React from 'react';
 
 import { AjaxError, ProgrammingError } from 'es6!display/errors';
-import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
-import * as api from 'es6!server/api';
+import { RandomLoadingMessage, InlineLoading } from 'es6!display/loading';
 
-import * as utils from 'es6!utils/utils';
+import * as api from 'es6!server/api';
 
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;

@@ -1,6 +1,5 @@
 import React from 'react';
 
-import colors from 'es6!utils/colors';
 import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;

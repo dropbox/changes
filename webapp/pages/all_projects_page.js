@@ -1,14 +1,16 @@
 import React from 'react';
+import moment from 'moment';
 
-import { Grid, GridRow } from 'es6!display/grid';
-import { BuildWidget, StatusDot, status_dots } from 'es6!display/changes/builds';
-import SectionHeader from 'es6!display/section_header';
-import ChangesPage from 'es6!display/page_chrome';
 import APINotLoaded from 'es6!display/not_loaded';
-import { TimeText } from 'es6!display/time';
+import ChangesPage from 'es6!display/page_chrome';
+import SectionHeader from 'es6!display/section_header';
+import { BuildWidget } from 'es6!display/changes/builds';
+import { Grid, GridRow } from 'es6!display/grid';
 import { Menu1, MenuUtils } from 'es6!display/menus';
+import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
+
 import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;

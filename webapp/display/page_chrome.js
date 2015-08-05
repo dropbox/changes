@@ -1,9 +1,10 @@
 import React from 'react';
-import { Grid } from 'es6!display/grid';
+import moment from 'moment';
+
 import SectionHeader from 'es6!display/section_header';
+import { Error } from 'es6!display/errors';
+import { Grid } from 'es6!display/grid';
 import { TimeText } from 'es6!display/time';
-import _ from 'underscore';
-import * as utils from 'es6!utils/utils';
 
 import custom_content_hook from 'es6!utils/custom_content';
 import { email_head } from 'es6!utils/utils';

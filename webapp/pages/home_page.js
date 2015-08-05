@@ -1,18 +1,20 @@
 import React from 'react';
+import moment from 'moment';
 
-import { AjaxError } from 'es6!display/errors';
-import { Grid } from 'es6!display/grid';
-import { StatusDot, status_dots, BuildWidget, status_dots_for_diff, get_build_state } from 'es6!display/changes/builds';
-import SectionHeader from 'es6!display/section_header';
-import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
+import SectionHeader from 'es6!display/section_header';
+import { AjaxError } from 'es6!display/errors';
+import { BuildWidget, status_dots_for_diff, get_build_state } from 'es6!display/changes/builds';
+import { Grid } from 'es6!display/grid';
+import { RandomLoadingMessage, InlineLoading } from 'es6!display/loading';
 import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
+
+import * as utils from 'es6!utils/utils';
 import colors from 'es6!utils/colors';
 import custom_content_hook from 'es6!utils/custom_content';
-import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 

@@ -1,7 +1,8 @@
 import React from 'react';
-import Moment from 'moment';
+import moment from 'moment';
 
 import * as utils from 'es6!utils/utils';
+
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 

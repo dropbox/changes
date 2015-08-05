@@ -1,13 +1,15 @@
 import React from 'react';
-
-import { TimeText, display_duration } from 'es6!display/time';
-import { StatusDot } from 'es6!display/changes/builds';
-import { Error } from 'es6!display/errors';
-import { Grid } from 'es6!display/grid';
-import { InlineLoading, RandomLoadingMessage } from 'es6!display/loading';
-import { Menu1, Menu2 } from 'es6!display/menus';
-import SectionHeader from 'es6!display/section_header';
+import moment from 'moment';
 import { Popover, OverlayTrigger } from 'react_bootstrap';
+
+import APINotLoaded from 'es6!display/not_loaded';
+import SectionHeader from 'es6!display/section_header';
+import { Error, AjaxError } from 'es6!display/errors';
+import { Grid } from 'es6!display/grid';
+import { Menu1, Menu2 } from 'es6!display/menus';
+import { RandomLoadingMessage, InlineLoading } from 'es6!display/loading';
+import { StatusDot } from 'es6!display/changes/builds';
+import { TimeText, display_duration } from 'es6!display/time';
 
 import colors from 'es6!utils/colors';
 

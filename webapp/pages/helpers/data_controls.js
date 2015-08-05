@@ -1,19 +1,8 @@
 import React from 'react';
 
-import { TimeText } from 'es6!display/time';
-import { StatusDot, status_dots, BuildWidget, get_build_cause } from 'es6!display/changes/builds';
-import DisplayUtils from 'es6!display/changes/utils';
-import { Grid } from 'es6!display/grid';
-import { AjaxError, ProgrammingError } from 'es6!display/errors';
-import APINotLoaded from 'es6!display/not_loaded';
-import { RandomLoadingMessage } from 'es6!display/loading';
-import ChangesPage from 'es6!display/page_chrome';
-import { Menu1, Menu2, MenuUtils } from 'es6!display/menus';
-import { Popover, OverlayTrigger } from 'react_bootstrap';
-
 import * as api from 'es6!server/api';
+
 import * as utils from 'es6!utils/utils';
-import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
 

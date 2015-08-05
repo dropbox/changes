@@ -1,19 +1,17 @@
 import React from 'react';
 import moment from 'moment';
 
-import ChangesPage from 'es6!display/page_chrome';
-import * as api from 'es6!server/api';
 import APINotLoaded from 'es6!display/not_loaded';
-import * as utils from 'es6!utils/utils';
-import * as DisplayUtils from 'es6!display/changes/utils';
-
-import { TimeText, display_duration } from 'es6!display/time';
-import { StatusDot, get_build_state, get_runnable_state, get_state_color, get_build_cause } from 'es6!display/changes/builds';
-import { Error, ProgrammingError } from 'es6!display/errors';
-import { Grid, GridRow } from 'es6!display/grid';
+import ChangesPage from 'es6!display/page_chrome';
+import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
-import { Menu1, Menu2 } from 'es6!display/menus';
-import colors from 'es6!utils/colors';
+import { Grid, GridRow } from 'es6!display/grid';
+import { StatusDot, get_build_state, get_runnable_state, get_build_cause } from 'es6!display/changes/builds';
+import { TimeText, display_duration } from 'es6!display/time';
+
+import * as api from 'es6!server/api';
+
+import * as utils from 'es6!utils/utils';
 import custom_content_hook from 'es6!utils/custom_content';
 
 var cx = React.addons.classSet;

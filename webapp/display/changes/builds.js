@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { ProgrammingError } from 'es6!display/errors';
 import { display_duration_pieces } from 'es6!display/time';
 
 import colors from 'es6!utils/colors';
-import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;

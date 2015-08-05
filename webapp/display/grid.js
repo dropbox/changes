@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Error, ProgrammingError } from 'es6!display/errors';
+import { ProgrammingError } from 'es6!display/errors';
 
-import * as utils from 'es6!utils/utils';
+import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
@@ -198,4 +198,3 @@ export class GridRow {
   // see oneItem constructor
   isUsingColspan() { return this.useColspan; }
 }
-

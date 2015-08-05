@@ -1,14 +1,14 @@
 import React from 'react';
 
-import { TimeText } from 'es6!display/time';
-import { RandomLoadingMessage } from 'es6!display/loading';
-import { BuildWidget } from 'es6!display/changes/builds';
-import { Grid } from 'es6!display/grid';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
-import colors from 'es6!utils/colors';
+import { BuildWidget } from 'es6!display/changes/builds';
+import { Grid } from 'es6!display/grid';
+import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
+
+import colors from 'es6!utils/colors';
 
 /**
  * Page that shows the builds associated with a single node, across all projects.
