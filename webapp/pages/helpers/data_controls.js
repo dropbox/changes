@@ -4,8 +4,6 @@ import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
-var cx = React.addons.classSet;
-
 /*
  * A data structure that handles pagination and table controls. Its designed
  * to be stored in a key in an element's state object, and exposes methods

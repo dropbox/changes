@@ -11,8 +11,6 @@ import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
-var cx = React.addons.classSet;
-
 var TestHistoryPage = React.createClass({
 
   getInitialState: function() {

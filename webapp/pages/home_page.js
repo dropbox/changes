@@ -16,8 +16,6 @@ import * as utils from 'es6!utils/utils';
 import colors from 'es6!utils/colors';
 import custom_content_hook from 'es6!utils/custom_content';
 
-var cx = React.addons.classSet;
-
 var HomePage = React.createClass({
 
   getInitialState: function() {

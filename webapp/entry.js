@@ -42,8 +42,8 @@ require([
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",
-  "es6!pages/project_page",
-  "es6!pages/builds_results_page",
+  "es6!pages/project/project_page",
+  "es6!pages/builds/builds_pages",
   "es6!pages/test_history_page",
   "es6!pages/all_projects_page",
   "es6!pages/node_page",
@@ -58,7 +58,7 @@ require([
 
   HomePage,
   ProjectPage,
-  BuildsResultsPages,
+  buildsPages,
   TestHistoryPage,
   AllProjectsPage,
   NodePage,
@@ -72,8 +72,8 @@ require([
   // TODO: figure out why
   window.URI = URI;
 
-  var CommitPage = BuildsResultsPages.CommitPage;
-  var DiffPage = BuildsResultsPages.DiffPage;
+  var CommitPage = buildsPages.CommitPage;
+  var DiffPage = buildsPages.DiffPage;
 
   // routing
   // TODO: all of this is terrible and temporary just to get something working.
