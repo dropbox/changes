@@ -1,0 +1,66 @@
+{
+  // use a babel-compatible parser
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+  },
+  "ecmaFeatures": {
+    "jsx": true
+  },
+  "plugins": [
+    // eslint out of the box doesn't quite work properly with react (the
+    // no-unused-vars rule is broken.) We mainly need the plugin to fix
+    // that, but we also add some react-specific lint rules too.
+    "react"
+  ],
+  "rules": {
+    // don't warn about variable names that aren't in camelcase. Enough code
+    // has already been written with underscores that I'm just disabling this
+    // for now.
+    "camelcase": [0],
+    // don't warn about missing 'use strict'. I'm 90% sure the babel loader
+    // adds these automatically
+    "strict": [0],
+    // don't warn about always using double-quotes. TODO: hmm..maybe I should
+    // try to be consistent about quote use?
+    "quotes": [0],
+    // don't warn if we don't use args (we have some functions that
+    // deliberately ignore args)
+    "no-unused-vars": [2, {"args": "none"}],
+
+    /* more rules from the react plugin */
+
+    "react/jsx-boolean-value": 1,
+    "react/jsx-curly-spacing": 1,
+    "react/jsx-no-duplicate-props": 1,
+    "react/jsx-no-undef": 1,
+    "react/jsx-quotes": 1,
+    "react/jsx-uses-react": 1,
+    "react/jsx-uses-vars": 1,
+    "react/no-danger": 1,
+    "react/no-did-mount-set-state": 1,
+    "react/no-did-update-set-state": 1,
+    "react/no-unknown-property": 1,
+    "react/prop-types": 1,
+    "react/react-in-jsx-scope": 1,
+    "react/require-extension": 1,
+    "react/self-closing-comp": 1,
+    "react/sort-comp": 1,
+
+    /* disabled react rules */
+
+    // require a displayName param for every react component. unneeded.
+    "react/display-name": 0,
+    // seems broken
+    "react/jsx-max-props-per-line": 0,
+    // properties should be alphabetical. Usually not important, sometimes
+    // counter-productive
+    "react/jsx-sort-props": 0,
+    "react/jsx-sort-prop-types": 0,
+
+    // always use parenthesis for large expressions. Nope.
+    "react/wrap-multilines": 0,
+    // one component per file. We group similar components
+    "react/no-multi-comp": 0,
+  }
+}
