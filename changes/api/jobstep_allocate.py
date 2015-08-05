@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, unicode_literals
 import json
 import logging
 
+from datetime import datetime
+
 from flask import request
 from sqlalchemy.sql import func
 
@@ -115,6 +117,11 @@ class JobStepAllocateAPIView(APIView):
                             db.session.add(jobstep)
 
                             to_allocate.append(jobstep)
+                            # The JobSteps returned are pending_allocation, and the initial state for a Mesos JobStep is
+                            # pending_allocation, so we can determine how long it was pending by how long ago it was
+                            # created.
+                            pending_seconds = (datetime.utcnow() - jobstep.date_created).total_seconds()
+                            statsreporter.stats().log_timing('duration_pending_allocation', pending_seconds * 1000)
                         else:
                             logging.info('Not allocating %s due to lack of offered resources', jobstep.id.hex)
 
