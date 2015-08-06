@@ -68,14 +68,16 @@ class NodeStatusAPIView(APIView):
         # If this is not a Jenkins node, we don't have master and return an empty dict.
         if master and node.label:
             info_url = '%s/api/json' % (self.get_jenkins_url(master, node.label))
-            response = requests.Session().get(info_url, timeout=10)
-
-            if response.status_code == 200:
+            node_info = None
+            try:
+                response = requests.Session().get(info_url, timeout=10)
+                response.raise_for_status()
                 node_info = json.loads(response.text)
-                if 'temporarilyOffline' in node_info:
-                    context['offline'] = node_info['temporarilyOffline']
-            else:
-                logging.warning('Unable to get node info (%s)', info_url)
+            except:
+                logging.warning('Unable to get node info (%s)', info_url, exc_info=True)
+
+            if node_info and 'temporarilyOffline' in node_info:
+                context['offline'] = node_info['temporarilyOffline']
 
         return self.respond(context, serialize=False)
 
@@ -83,12 +85,14 @@ class NodeStatusAPIView(APIView):
         jobstep_data = db.session.query(
             JobStep.data
         ).filter(
-            JobStep.node_id == node_id
+            JobStep.node_id == node_id,
+            # Otherwise NULL date_finished would be first.
+            JobStep.date_finished != None  # NOQA
         ).order_by(
             JobStep.date_finished.desc()
         ).limit(1).scalar()
 
-        if jobstep_data and jobstep_data['master']:
+        if jobstep_data and jobstep_data.get('master'):
             return jobstep_data['master']
 
         return None
