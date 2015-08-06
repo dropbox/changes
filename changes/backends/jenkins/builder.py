@@ -127,14 +127,12 @@ class JenkinsBuilder(BaseBackend):
 
         return resp.text
 
-    def _get_json_response(self, master_base_url, path, method='GET', data=None):
+    def _get_json_response(self, master_base_url, path):
         """Makes a Jenkins API request and returns the JSON response
 
         Args:
             master_base_url (str): Jenkins master URL, in scheme://host form.
             path (str): URL path on the master to access.
-            method (str): HTTP verb to use; Either 'GET' or 'POST'; 'GET' is the default.
-            data (dict): Optional body to attach to the request. If a dict is provided, it will be form-encoded.
         Returns:
             Parsed JSON from the request.
         Raises:
@@ -143,7 +141,7 @@ class JenkinsBuilder(BaseBackend):
             ValueError if the response wasn't valid JSON.
         """
         path = '{}/api/json/'.format(path.strip('/'))
-        text = self._get_text_response(master_base_url, path, method=method, data=data)
+        text = self._get_text_response(master_base_url, path, method='GET')
         return json.loads(text)
 
     def _parse_parameters(self, json):
