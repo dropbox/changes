@@ -36,7 +36,7 @@ export var DiffPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.diffBuilds)) {
-      return <APINotLoaded state={this.state.diffBuilds} />;
+      return <APINotLoaded state={this.state.diffBuilds} isInline={false} />;
     }
     var diff_data = this.state.diffBuilds.getReturnedData();
 
@@ -83,6 +83,7 @@ export var CommitPage = React.createClass({
 
     if (!api.mapIsLoaded(this.state, ['commitBuilds', 'source'])) {
       return <APINotLoaded
+        isInline={false}
         stateMap={this.state}
         stateMapKeys={['commitBuilds', 'source']}
       />;

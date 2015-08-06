@@ -2,16 +2,19 @@
  * Collection of useful utils, e.g. string manipulation/parsing, some
  * utils to make interacting with setState easier, etc.
  *
- * More display-specific utils are in changes_utils.py in display
+ * Some more changes-specific stuff is in display/changes/utils.py
  */
 
-// TODO: rename this generic.js
+//
+// Generic stuff
+//
 
 // jondoe@company.com -> jondoe
 export var email_head = function(email) {
   return email.substring(0, email.indexOf('@'));
 }
 
+// truncates a string to length-3 chars and adds ...
 export var truncate = function(str, length = 80) {
   if (str.length > length) {
     str = str.substr(0, length - 3) + "...";
@@ -19,6 +22,7 @@ export var truncate = function(str, length = 80) {
   return str;
 }
 
+// splits a string into an array of lines
 export var split_lines = function(text) {
   if (text === "") {
     return [text];
@@ -26,10 +30,12 @@ export var split_lines = function(text) {
   return text.match(/[^\r\n]+/g);
 }
 
+// gets the first line of a string
 export var first_line = function(text) {
   return _.first(split_lines(text));
 }
 
+// pads a number with leading zeroes up to size digits
 export var pad = function(num, size) {
   var ret = num + "";
   while (ret.length < size) {
@@ -38,6 +44,7 @@ export var pad = function(num, size) {
   return ret;
 }
 
+// if item is not an array, make it a one-element array
 export var ensureArray = function(item) {
   if (!_.isArray(item)) {
     item = [item];
@@ -60,6 +67,7 @@ export var split_start_and_end = function(strings) {
   return dict;
 }
 
+// given a list of strings, finds their longest common prefix
 export var get_common_prefix = function(strings) {
   if (strings.length === 0) {
     return '';
@@ -84,23 +92,24 @@ export var get_common_prefix = function(strings) {
   return common_prefix;
 }
 
+// as get_common_prefix, but for suffixes
 export var get_common_suffix = function(strings) {
   var reversed_strings = _.map(strings, s => s.split('').reverse().join(''));
   var rcommon_prefix = get_common_prefix(reversed_strings);
   return rcommon_prefix.split('').reverse().join('');
 }
 
-/*
- * Wraps func in window.setTimeout. This allows you to call functions
- * like setState from render() (yes, there's a legitimate reason we do this...)
- * Make sure to call bind on func!
- */
+// Wraps func in window.setTimeout. This allows you to call functions
+// like setState from render() (yes, there's a legitimate reason we do this...)
+// Make sure to call bind on func!
 export var async = function(func) {
   window.setTimeout(func, 0);
 }
 
 // allows you to update a single key in a dict stored in a react elem's state.
-// Preserves prototype
+// Preserves prototype, but doesn't play well with es6 classes
+// TODO: this may accidentally promote properties from the prototype to the
+// object
 export var update_key_in_state_dict = function(map_key, key, value) {
   return update_state_dict(map_key, {[ key ]: value});
 }
@@ -118,7 +127,6 @@ export var update_state_dict = function(map_key, updates) {
   }
 }
 
-// TODO: move out of this file
-export var get_short_repo_name = function(repo_url) {
-  return _.last(_.compact(repo_url.split(/:|\//)));
+export var to_underscore = function(camelcase) {
+  return this.replace(/([A-Z])/g, function($1){return "_"+$1.toLowerCase();});
 }

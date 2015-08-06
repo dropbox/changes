@@ -1,8 +1,5 @@
 import React from 'react';
 
-var cx = React.addons.classSet;
-var proptype = React.PropTypes;
-
 /*
  * Very simple text component designed to be the title above grid elements
  */

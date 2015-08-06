@@ -30,18 +30,14 @@ function custom_content_hook(name, default_content, extra_data) {
 export default custom_content_hook;
 
 /* Creating a custom content file.
- * - Use ES6 syntax and modules. You can import libraries like react
+ * - Don't use es6 / jsx syntax (keep it simple)
  * - You should export a dictionary that maps hook names to strings,
- *   functions, or react components. extra_data is only used funcs.
+ *   or functions. extra_data is only used funcs.
  *
  * Example:
  *
- * import React from 'react';
- *
  * var content = {
- *   errorLink: <a href='https://internal.bigcompany.com/error_dashboard/changes'>
- *     Errors
- *   </a>
+ *   errorHref: 'https://internal.bigcompany.com/error_dashboard/changes',
  * };
  *
  * export default content;

@@ -4,10 +4,8 @@ import moment from 'moment';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
 import SectionHeader from 'es6!display/section_header';
-import { AjaxError } from 'es6!display/errors';
 import { BuildWidget, status_dots_for_diff, get_build_state } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
-import { RandomLoadingMessage, InlineLoading } from 'es6!display/loading';
 import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
@@ -28,48 +26,31 @@ var HomePage = React.createClass({
   componentDidMount: function() {
     var author = this.props.author || 'me';
 
-    // TODO: handle user not logged in
-    var diffs_endpoint = `/api/0/authors/${author}/diffs/`;
-    // TODO: we may not render all 20...some commits may kick off like 4 builds
-    var commits_endpoint = `/api/0/authors/${author}/commits/?per_page=20`;
-    var projects_endpoint = '/api/0/projects/'; // no fetch_extra
-
     api.fetch(this, {
-      diffs: diffs_endpoint,
-      commits: commits_endpoint,
-      projects: projects_endpoint,
+      diffs: `/api/0/authors/${author}/diffs/`,
+      commits: `/api/0/authors/${author}/commits/?per_page=20`,
+      projects: '/api/0/projects/' // no fetch_extra
     });
   },
 
+
   render: function() {
-    // we can't render anything until we get commit data. If we have commit data
-    // but not diffs data, render as much of the page as we can.
     // NOTE: so right now, this page still basically works even when
     // phabricator is down. Keep it that way.
-    if (!api.isLoaded(this.state.commits) && !api.isError(this.state.commits)) {
-      return <div><RandomLoadingMessage /></div>;
+
+    // I want to display just a single loading indicator until we have content
+    // to show
+    if (!api.isLoaded(this.state.commits)) {
+      // special rendering for not logged in
+      if (api.isError(this.state.commits) && 
+          this.state.commits.getStatusCode() === '401') {
+        return this.renderNotLoggedIn();
+      }
+
+      return <ChangesPage highlight="My Changes" isPageLoaded={false}>
+        <APINotLoaded state={this.state.commits} isInline={true} />
+      </ChangesPage>;
     }
-
-    return <ChangesPage highlight="My Changes">
-      {this.renderContent()}
-    </ChangesPage>;
-  },
-
-  renderContent: function() {
-    if (this.state.commits.condition === "error") {
-      return <AjaxError response={this.state.commits.response} />;
-    }
-
-    var commits = this.state.commits.getReturnedData();
-
-    if (!commits) {
-      // TODO: maybe show all projects or something?
-      return <div>I don{"'"}t see any commits!</div>;
-    }
-
-    var diffs = api.isLoaded(this.state.diffs) ?
-      this.state.diffs.getReturnedData() :
-      [];
 
     var header_markup = null;
     if (this.props.author) {
@@ -82,62 +63,76 @@ var HomePage = React.createClass({
       </div>;
     }
 
-    return <div>
+    return <ChangesPage highlight="My Changes">
       {header_markup}
       <div>
         <Diffs
-          loadStatus={this.state.diffs.condition}
-          diffs={diffs}
-          errorResponse={this.state.diffs.response}
+          diffs={this.state.diffs}
           isSelf={!this.props.author}
         />
         <Commits
-          commits={commits}
+          commits={this.state.commits}
           isSelf={!this.props.author}
         />
       </div>
       <div className="marginTopL">
         <Projects
-          commits={commits}
+          commits={this.state.commits}
           projects={this.state.projects}
           isSelf={!this.props.author}
         />
       </div>
-    </div>;
+    </ChangesPage>;
   },
+
+  renderNotLoggedIn: function() {
+    var current_location = encodeURIComponent(window.location.href);
+    var login_href = '/auth/login/?orig_url=' + current_location;
+
+    return <ChangesPage highlight="My Changes">
+      <div className="marginBottomL">
+        <a href={login_href}>
+          Log in
+        </a>
+        {" "}
+        to see your recent diffs and commits.
+      </div>
+      <Projects projects={this.state.projects} />
+    </ChangesPage>;
+  }
 });
 
 // Render list of the user's diffs currently in review / uncommitted
 var Diffs = React.createClass({
 
   propTypes: {
-    loadStatus: React.PropTypes.string,
+    // diffs authored by the user (and associated builds)
     diffs: React.PropTypes.array,
-    // errorResponse
 
+    // isSelf = false when we're using this page as a makeshift user page
     isSelf: React.PropTypes.bool
   },
 
   render: function() {
-    if (this.props.loadStatus === 'loading') {
-      return <InlineLoading className="marginBottomM" />;
-    } else if (this.props.loadStatus === 'error') {
-      return <AjaxError
-        className="marginBottomM"
-        response={this.props.errorResponse}
-      />;
+    if (!api.isLoaded(this.props.diffs)) {
+      return <APINotLoaded state={this.props.diffs} isInline={true} />;
     }
 
-    var grid_data = _.map(this.props.diffs, d => {
+    var diffs = this.props.diffs.getReturnedData();
+
+    var grid_data = _.map(diffs, d => {
       var ident = "D" + d.id;
-      var href = `/v2/diff/${ident}/`;
+      var builds_href = `/v2/diff/${ident}/`;
 
       var latest_builds = null;
       if (d.builds.length > 0) {
-        latest_builds = <a className="diffBuildsWidget" href={href}>
+        // TODO: nit, but if there are no builds, let's render an invisible
+        // clickable widget
+        latest_builds = <a className="diffBuildsWidget" href={builds_href}>
           {status_dots_for_diff(d.builds)}
         </a>;
       }
+
       return [
         latest_builds,
         <a className="external" href={d['uri']} target="_blank">{ident}</a>,
@@ -149,15 +144,14 @@ var Diffs = React.createClass({
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
-      'Latest Build(s)',
+      'Build(s)',
       'Diff',
       'Status',
       'Name',
       'Updated'
     ];
 
-    var header_text = this.props.isSelf ?
-      'My Diffs' : 'Diffs';
+    var header_text = this.props.isSelf ?  'My Diffs' : 'Diffs';
     return <div className="paddingBottomM">
       <SectionHeader>{header_text}</SectionHeader>
       <Grid
@@ -174,22 +168,27 @@ var Diffs = React.createClass({
 var Commits = React.createClass({
 
   propTypes: {
-    commits: React.PropTypes.array.isRequired,
+    // commits authored by the user (and associated builds)
+    commits: React.PropTypes.object,
 
+    // isSelf = false when we're using this page as a makeshift user page
     isSelf: React.PropTypes.bool
   },
 
   render: function() {
-    if (this.props.commits.length === 0) {
-      // TODO: Show something
-      return <div />;
+    if (!api.isLoaded(this.props.commits)) {
+      return <APINotLoaded state={this.props.commits} isInline={true} />;
+    }
+
+    var commits = this.props.commits.getReturnedData();
+
+    if (commits.length === 0) {
+      return <div>I don{"'"}t see any commits!</div>;
     }
 
     var grid_data = [];
-    this.props.commits.forEach(c => {
-
-      var sha = c.revision.sha;
-      var sha_item = sha.substr(0,7);
+    commits.forEach(c => {
+      var sha_item = c.revision.sha.substr(0,7);
       if (c.revision.external && c.revision.external.link) {
         sha_item = <a
           className="external"
@@ -207,6 +206,7 @@ var Commits = React.createClass({
         .value();
 
       if (project_slugs.length === 0) {
+        // render the commit even if there are no builds for it (especially if!)
         grid_data.push(
           [
             <span style={{fontStyle: 'italic', color: colors.darkGray, marginLeft: 3}}>
@@ -218,6 +218,7 @@ var Commits = React.createClass({
             <TimeText time={c.revision.dateCommitted} />
           ]
         );
+        return;
       }
 
       _.each(project_slugs, slug => {
@@ -260,7 +261,7 @@ var Commits = React.createClass({
     // pushed to prod
     var is_it_out_markup = null;
 
-    var all_project_slugs = _.chain(this.props.commits)
+    var all_project_slugs = _.chain(commits)
       .pluck('builds')
       .flatten()
       .map(b => b.project.slug)
@@ -279,6 +280,7 @@ var Commits = React.createClass({
 
     var header_text = this.props.isSelf ?
       'My Commits' : 'Commits';
+
     return <div className="marginTopM">
       <div className="marginBottomS">
         <SectionHeader className="inline">{header_text}</SectionHeader>
@@ -294,13 +296,13 @@ var Commits = React.createClass({
   }
 });
 
-// List of projects. Right now, its a list of all projects the user has
-// committed to
+// List of projects. Color indicates if the latest build is green or red
 var Projects = React.createClass({
   propTypes: {
     projects: React.PropTypes.object,
-    commits: React.PropTypes.array,
-    isSelf: React.PropTypes.bool
+
+    // optional: we'll bold projects that the user has recently committed to
+    commits: React.PropTypes.object,
   },
 
   render: function() {
@@ -311,6 +313,8 @@ var Projects = React.createClass({
     }
 
     var projects = projects_api.getReturnedData();
+
+    var commits = this.props.commits && this.props.commits.getReturnedData();
 
     var author_projects = [];
     if (this.props.commits) {
@@ -372,14 +376,15 @@ var Projects = React.createClass({
 
     return <div>
       <div style={{marginBottom: 3, borderBottom: "1px solid #d9d8d8", paddingBottom: 5}}>
-        <SectionHeader className="inline">Active Projects</SectionHeader>
-        <span>
-          {" ["}
-          <a href="/v2/projects/">More Info</a>
-          {"]"}
-        </span>
+        <SectionHeader className="inline">Projects</SectionHeader>
       </div>
       {project_table}
+      <div className="lt-darkgray marginTopM">
+        Projects that haven{"'"}t run a build in the last week
+        are hidden.{" "}
+        <a href="/v2/projects/">See all</a>
+        {"."}
+      </div>
     </div>;
   }
 });

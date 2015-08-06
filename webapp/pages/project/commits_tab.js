@@ -125,7 +125,7 @@ var CommitsTab = React.createClass({
 
       branches = <select onChange={onChange} value={selected}>{options}</select>;
     } else if (api.isError(state.branches) &&
-               state.branches.getStatusCode() + "" === '422') {
+               state.branches.getStatusCode() === '422') {
       branches = <select disabled={true}>
         <option>no branches</option>
       </select>;

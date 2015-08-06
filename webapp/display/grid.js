@@ -5,22 +5,21 @@ import { ProgrammingError } from 'es6!display/errors';
 import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
-var proptype = React.PropTypes;
 
 export var Grid = React.createClass({
 
   propTypes: {
     // how many columns should this grid have?
-    colnum: proptype.number.isRequired,
+    colnum: React.PropTypes.number.isRequired,
     // matrix (array of arrays) of data. You can use GridRow in place of an array
-    data: proptype.array.isRequired,
+    data: React.PropTypes.array.isRequired,
     // a row (same length as other rows) used for blue header cells
-    headers: proptype.array,
+    headers: React.PropTypes.array,
     // same length as row, we add each css class to the row cells
-    cellClasses: proptype.arrayOf(proptype.string)
+    cellClasses: React.PropTypes.arrayOf(React.PropTypes.string)
 
     // ...
-    // transfers other properties to rendered <table /> or <div /> (right now table)
+    // transfers other properties to rendered <table /> (right now table)
   },
 
   getDefaultProps: function() {
@@ -171,7 +170,7 @@ export var Grid = React.createClass({
 /*
  * Sometimes we want more interesting rows in our table:
  * - A row that spans all columns
- * - TODO: more bullet points
+ * - TODO: more capabilities
  *
  * GridRow can be used in place of the row array above
  */

@@ -29,8 +29,15 @@ var DisplayUtils = {
     return <a href={href}>{project.name}</a>;
   },
 
+
+  // grabs the last path param or filename after : for a repo name
+  // TODO: move out of this file
+  getShortRepoName: function(repo_url) {
+    return _.last(_.compact(repo_url.split(/:|\//)));
+  },
+
   // takes a blob of text and wraps urls in anchor tags
-  linkify_urls: function(string, link_class = '') {
+  linkifyURLs: function(string, link_class = '') {
     var url_positions = [];
     URI.withinString(string, (url, start, end, source) => {
       url_positions.push([start, end]);

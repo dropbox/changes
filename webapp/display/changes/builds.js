@@ -6,7 +6,6 @@ import { display_duration_pieces } from 'es6!display/time';
 import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
-var proptype = React.PropTypes;
 
 /*
  * Functions and classes for displaying information about builds
@@ -16,9 +15,9 @@ var proptype = React.PropTypes;
 export var BuildWidget = React.createClass({
 
   propTypes: {
-    build: proptype.object.isRequired,
+    build: React.PropTypes.object.isRequired,
     // override default href. TODO: something better
-    href: proptype.string,
+    href: React.PropTypes.string,
   },
 
   render: function() {
@@ -112,11 +111,11 @@ export var StatusDot = React.createClass({
 
   propTypes: {
     // big makes it bigger
-    size: proptype.oneOf(['normal', 'medium', 'big']),
+    size: React.PropTypes.oneOf(['normal', 'medium', 'big']),
     // the build state to render (see get_build_state)
-    state: proptype.oneOf(all_build_states).isRequired,
+    state: React.PropTypes.oneOf(all_build_states).isRequired,
     // renders a small number at the lower-right corner
-    num: proptype.oneOfType(proptype.number, proptype.string)
+    num: React.PropTypes.oneOfType(React.PropTypes.number, React.PropTypes.string)
   },
 
   getDefaultProps: function() {
@@ -225,11 +224,11 @@ export var status_dots = function(builds) {
 export var StatusWithNumber = React.createClass({
   propTypes: {
     // big makes it bigger
-    size: proptype.oneOf(['normal', 'medium', 'big']),
+    size: React.PropTypes.oneOf(['normal', 'medium', 'big']),
     // the build state to render (see get_build_state)
-    state: proptype.oneOf(all_build_states).isRequired,
+    state: React.PropTypes.oneOf(all_build_states).isRequired,
     // renders a small number at the lower-right corner
-    text: proptype.string
+    text: React.PropTypes.string
   },
 
   getDefaultProps: function() {

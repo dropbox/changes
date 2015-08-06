@@ -75,7 +75,7 @@ var ProjectPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.project)) {
-      return <APINotLoaded state={this.state.projects} />;
+      return <APINotLoaded state={this.state.projects} isInline={false} />;
     }
 
     // render menu

@@ -6,26 +6,38 @@ import { RandomLoadingMessage, InlineLoading } from 'es6!display/loading';
 import * as api from 'es6!server/api';
 
 var cx = React.addons.classSet;
-var proptype = React.PropTypes;
 
 /*
  * Convenience wrapper that takes the contents of the state variable used for
- * an api fetch and renders either <AjaxError /> or <RandomLoadingMessage />.
+ * an api fetch and renders either an error message (using <AjaxError />)
+ * or <RandomLoadingMessage />.
+ *
+ * Example:
+ * if (!api.isLoaded(this.state.myData)) {
+ *   return <APINotLoaded state={this.state.myData} />;
+ * }
+ * ... (render the data from the api)
+ *
  */
 var APINotLoaded = React.createClass({
 
   propTypes: {
-    state: proptype.object,
-    stateMap: proptype.objectOf.object,
-    stateMapKeys: proptype.array,
+    state: React.PropTypes.object,
+
+    // you can use this for multiple API calls (making sure they've all loaded
+    // before proceeding.)
+    // TODO: just make this take a list...
+    stateMap: React.PropTypes.objectOf.object,
+    stateMapKeys: React.PropTypes.array,
+
     // if true, show InlineLoading instead of RandomLoading
     // TODO: should always be true?
-    isInline: proptype.bool,
+    isInline: React.PropTypes.bool,
   },
 
   getDefaultProps: function() {
     return {
-      isInline: false
+      isInline: true
     }
   },
 

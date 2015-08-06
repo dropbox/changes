@@ -100,10 +100,11 @@ a.subtle:hover {
 .inlinePerfDropdown {
   background-color: white;
   box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+  cursor: default;
+  min-width: 150px;
+  padding: 10px;
   position: absolute;
   right: 0;
-  padding: 10px;
-  min-width: 150px;
   top: 32px;
   z-index: 10;
 }

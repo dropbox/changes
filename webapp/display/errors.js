@@ -1,10 +1,5 @@
 import React from 'react';
 
-var cx = React.addons.classSet;
-var proptype = React.PropTypes;
-
-// Two classes: Error, AjaxError
-
 /*
  * Renders a red error box
  */
@@ -33,7 +28,7 @@ export var AjaxError = React.createClass({
 
   propTypes: {
     // the ajax response object (not the apiresponse wrapper! TODO: allow either?)
-    response: proptype.object.isRequired,
+    response: React.PropTypes.object.isRequired,
 
     // ...
     // transfers other properties to <Error /> (which transfers to <div />)
@@ -52,8 +47,8 @@ export var AjaxError = React.createClass({
     }
 
     var status_titles = {
-      401: " (NOT LOGGED IN)",
-      404: " (NOT FOUND)"
+      '401': " (NOT LOGGED IN)",
+      '404': " (NOT FOUND)"
     };
 
     var status_title = status_titles[response_status] || null;
@@ -67,8 +62,8 @@ export var AjaxError = React.createClass({
 });
 
 /*
- * Renders a purple error box. Use this in a react component as an assert
- * failure
+ * Renders a purple error box when someone is misuing a component. One of my
+ * favorite classes: use this in a react component as an assert failure
  */
 export var ProgrammingError = React.createClass({
 

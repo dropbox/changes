@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
+import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
 import { BuildWidget } from 'es6!display/changes/builds';
 import { Grid, GridRow } from 'es6!display/grid';
@@ -52,7 +53,7 @@ var AllProjectsPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.projects)) {
-      return <APINotLoaded state={this.state.projects} />;
+      return <APINotLoaded state={this.state.projects} isInline={false} />;
     }
     var projects_data = this.state.projects.getReturnedData();
 
@@ -171,7 +172,7 @@ var AllProjectsPage = React.createClass({
     var by_repo = _.groupBy(projects_data, p => p.repository.id);
     _.each(by_repo, repo_projects => {
       var repo_url = repo_projects[0].repository.url;
-      var repo_name = utils.get_short_repo_name(repo_url);
+      var repo_name = DisplayUtils.getShortRepoName(repo_url);
       if (repo_projects.length > 1) {
         repo_name += ` (${repo_projects.length})`; // add # of projects
       }

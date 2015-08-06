@@ -10,24 +10,20 @@ import custom_content_hook from 'es6!utils/custom_content';
 import { email_head } from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
-var proptype = React.PropTypes;
-
-// Exports ChangesPage. Helper classes: ChangesPageHeader,
-// ChangesInlinePerf
 
 var ChangesPage = React.createClass({
 
   propTypes: {
     // should we automatically add padding to the page content?
-    bodyPadding: proptype.bool,
+    bodyPadding: React.PropTypes.bool,
     // the first time you render the page with this set to true,
     // we record the time and show a widget with perf info in the header
     // TODO: handle transitions for a single-page app..
-    isPageLoaded: proptype.bool,
+    isPageLoaded: React.PropTypes.bool,
     // If you're on a page linked to in the top bar, highlight it
-    highlight: proptype.string,
+    highlight: React.PropTypes.string,
     // we have to use position: fixed for some pages
-    fixed: proptype.bool,
+    fixed: React.PropTypes.bool,
   },
 
   getDefaultProps: function() {
@@ -66,8 +62,8 @@ var ChangesPage = React.createClass({
 var ChangesPageHeader = React.createClass({
 
   propTypes: {
-    highlight: proptype.string, // see ChangesPage
-    fixed: proptype.bool
+    highlight: React.PropTypes.string, // see ChangesPage
+    fixed: React.PropTypes.bool
   },
 
   render: function() {

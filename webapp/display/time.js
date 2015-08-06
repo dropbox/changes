@@ -3,9 +3,6 @@ import moment from 'moment';
 
 import * as utils from 'es6!utils/utils';
 
-var cx = React.addons.classSet;
-var proptype = React.PropTypes;
-
 /*
  * Contains a bunch of components for dealing with time. We also use the
  * moment library. Some notes:
@@ -14,8 +11,6 @@ var proptype = React.PropTypes;
  * - We assume that all timestamps from the server/api are utc. We may
  *   want to display them using local time, though.
  */
-
-// 1 class (TimeText), 1 function (display_duration)
 
 /*
  * Renders times, usually for tables. We do something similar to gmail:
@@ -32,10 +27,10 @@ export var TimeText = React.createClass({
 
   propTypes: {
     // The time to show. If not ISO 8601, will do the same as new Date()
-    time: proptype.string.isRequired,
+    time: React.PropTypes.string.isRequired,
     // Manually specify time format. unix timestamp is example of when this is
     // needed (format='X', see http://momentjs.com/docs/#/parsing/string-format/)
-    format: proptype.string,
+    format: React.PropTypes.string,
 
     // ...
     // transfers other properties to rendered <span />

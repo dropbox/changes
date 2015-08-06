@@ -1,9 +1,6 @@
 import React from 'react';
 
 var cx = React.addons.classSet;
-var proptype = React.PropTypes;
-
-// TODO: menu should transfer props
 
 /*
  * Menu 1. Simple, items separated with |.
@@ -13,11 +10,11 @@ export var Menu1 = React.createClass({
 
   propTypes: {
     // Names of the menu items
-    items: proptype.arrayOf(proptype.string).isRequired,
+    items: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
     // which one is selected
-    selectedItem: proptype.string,
+    selectedItem: React.PropTypes.string,
     // callback when an item is clicked. params are selectedItem, clickEvent
-    onClick: proptype.func
+    onClick: React.PropTypes.func
   },
 
   getDefaultProps: function() {
@@ -29,23 +26,25 @@ export var Menu1 = React.createClass({
   },
 
   render: function() {
-    var onClick = (item, clickEvent) => this.props.onClick(item, clickEvent);
+    var { items, selectedItem, onClick, ...others} = this.props;
 
-    var item_markup = _.map(this.props.items, (text, index) => {
+    var item_onclick = (item, clickEvent) => onClick(item, clickEvent);
+
+    var item_markup = _.map(items, (text, index) => {
       var classes = cx({
         menuItem: true,
         firstMenuItem: index === 0,
-        selectedMenuItem: this.props.selectedItem === text
+        selectedMenuItem: selectedItem === text
       });
 
       return <div
         className={classes}
-        onClick={_.partial(onClick, text)}>
+        onClick={_.partial(item_onclick, text)}>
         {text}
       </div>;
     });
 
-    return <div>{item_markup}</div>;
+    return <div {...others}>{item_markup}</div>;
   }
 });
 
@@ -56,11 +55,11 @@ export var Menu2 = React.createClass({
 
   propTypes: {
     // Names of the menu items
-    items: proptype.arrayOf(proptype.string).isRequired,
+    items: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
     // which one is selected
-    selectedItem: proptype.string,
+    selectedItem: React.PropTypes.string,
     // callback when an item is clicked. params are selectedItem, clickEvent
-    onClick: proptype.func
+    onClick: React.PropTypes.func
   },
 
   getDefaultProps: function() {
@@ -72,7 +71,9 @@ export var Menu2 = React.createClass({
   },
 
   render: function() {
-    var onClick = (item, clickEvent) => this.props.onClick(item, clickEvent);
+    var { items, selectedItem, onClick, ...others} = this.props;
+
+    var item_onclick = (item, clickEvent) => this.props.onClick(item, clickEvent);
 
     var item_markup = _.map(this.props.items, (text, index) => {
       var classes = cx({
@@ -88,7 +89,7 @@ export var Menu2 = React.createClass({
       </div>;
     });
 
-    return <div>{item_markup}</div>;
+    return <div {...others}>{item_markup}</div>;
   }
 });
 

@@ -1,10 +1,5 @@
 import React from 'react';
 
-var cx = React.addons.classSet;
-var proptype = React.PropTypes;
-
-// Two classes: RandomLoadingMessage, InlineLoading
-
 // Some playful loading messages
 var loading_messages = [
   'Waiting for them bits',
@@ -23,8 +18,8 @@ var loading_messages = [
  * Which I actually like, since its a natural way to show progress.
  */
 export var RandomLoadingMessage = React.createClass({
-  proptypes: {
-    display: proptype.oneOf(['inline', 'block', 'inlineBlock'])
+  propTypes: {
+    display: React.PropTypes.oneOf(['inline', 'block', 'inlineBlock'])
 
     // ...
     // transfers other properties to rendered <div />
@@ -50,7 +45,6 @@ export var RandomLoadingMessage = React.createClass({
 
 /*
  * When you have a part of the page that hasn't yet loaded, show a loading box.
- * Doesn't use the random loading messages above.
  */
 export var InlineLoading = React.createClass({
 
@@ -63,9 +57,9 @@ export var InlineLoading = React.createClass({
     var { className, ...props} = this.props;
     className = (className || "") + " inlineLoading";
 
-    return <div {...this.props} className={className}>
+    return <div {...props} className={className}>
       <i className="fa fa-spinner fa-spin marginRightS" />
-      Still loading content
+      {_.sample(loading_messages)}
     </div>;
   },
 });

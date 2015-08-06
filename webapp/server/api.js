@@ -19,7 +19,7 @@ var APIResponsePrototype = {
   },
 
   getStatusCode: function() {
-    return this.response.status;
+    return this.response.status + "";
   },
 
   // api calls with pagination return their links as a response header.
