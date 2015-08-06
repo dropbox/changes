@@ -42,6 +42,10 @@ class Build(db.Model):
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     number = Column(Integer)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
+    # A unqiue identifier for a group of related Builds, such as all Builds created by a particular
+    # action. Used primarily for aggregation in result reporting.
+    # Note that this may be None for Builds that aren't grouped, and all such Builds should NOT
+    # be treated as a collection.
     collection_id = Column(GUID)
     source_id = Column(GUID, ForeignKey('source.id', ondelete="CASCADE"))
     author_id = Column(GUID, ForeignKey('author.id', ondelete="CASCADE"))
