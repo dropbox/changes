@@ -101,7 +101,7 @@ def create_app(_read_config=True, profiler_directory=None, **config):
     # Expiration delay between when a snapshot image becomes superceded and when
     # it becomes truly expired (and thus no longer included in the sync information
     # for any cluster that runs that particular image's plan)
-    app.config['CACHED_SNAPSHOT_EXPIRATION_DELTA'] = timedelta(hours=4)
+    app.config['CACHED_SNAPSHOT_EXPIRATION_DELTA'] = timedelta(hours=2)
 
     # default snapshot ID to use when no project-specific active image available
     app.config['DEFAULT_SNAPSHOT'] = None
