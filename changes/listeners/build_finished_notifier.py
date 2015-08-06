@@ -33,6 +33,24 @@ def build_finished_handler(build_id, **kwargs):
     # celery tasks, for better isolation between requests to different hooks.
     for u in current_app.config.get('BUILD_FINISHED_URLS', []):
         try:
-            requests.post(u, data={'build_id': build.id}, timeout=10)
+            url, verify = u
+            if verify is None or not isinstance(verify, basestring):
+                verify = True
+        except ValueError:
+            # TODO this only exists for compatibility reasons.
+            # once we are sure that the config value is a list of tuples,
+            # remove this.
+            url = u
+            verify = True
+        try:
+            requests.post(
+                url,
+                data={'build_id': build.id},
+                timeout=10,
+
+                # this is either a string path to the ca bundle or a boolean
+                # indicating that the ssl cert should be checked
+                verify=verify
+            )
         except Exception:
             logger.exception("problem posting build finished notification")

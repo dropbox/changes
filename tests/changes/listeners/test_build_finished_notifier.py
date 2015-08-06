@@ -21,7 +21,10 @@ class BuildFinishedNotifierTest(UnitTestCase):
 
     @responses.activate
     def test_two_urls(self):
-        current_app.config['BUILD_FINISHED_URLS'] = ['http://example.com/a', 'http://example.com/b']
+        current_app.config['BUILD_FINISHED_URLS'] = [
+            ('http://example.com/a', None),
+            ('http://example.com/b', None),
+        ]
         responses.add(responses.POST, 'http://example.com/a', status=200)
         responses.add(responses.POST, 'http://example.com/b', status=200)
 
@@ -34,9 +37,9 @@ class BuildFinishedNotifierTest(UnitTestCase):
     @responses.activate
     def test_ignore_failure(self):
         current_app.config['BUILD_FINISHED_URLS'] = [
-            'http://example.com/a',
-            'http://example.com/b',
-            'http://example.com/c',
+            ('http://example.com/a', None),
+            ('http://example.com/b', None),
+            ('http://example.com/c', None),
         ]
         responses.add(responses.POST, 'http://example.com/a', status=400)
         responses.add(responses.POST, 'http://example.com/b', status=500)
@@ -51,7 +54,7 @@ class BuildFinishedNotifierTest(UnitTestCase):
     @responses.activate
     def test_various_statuses(self):
         current_app.config['BUILD_FINISHED_URLS'] = [
-            'http://example.com/a',
+            ('http://example.com/a', None),
         ]
         responses.add(responses.POST, 'http://example.com/a', status=400)
 
@@ -70,3 +73,20 @@ class BuildFinishedNotifierTest(UnitTestCase):
         build_finished_handler(build.id)
 
         assert len(responses.calls) == 4
+
+    @responses.activate
+    def test_string_compatability(self):
+        current_app.config['BUILD_FINISHED_URLS'] = [
+            'http://example.com/a',
+            'http://example.com/b',
+            'http://example.com/c',
+        ]
+        responses.add(responses.POST, 'http://example.com/a', status=400)
+        responses.add(responses.POST, 'http://example.com/b', status=500)
+        responses.add(responses.POST, 'http://example.com/c', status=200)
+
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(project, result=Result.failed, status=Status.finished)
+        build_finished_handler(build.id)
+
+        assert len(responses.calls) == 3
