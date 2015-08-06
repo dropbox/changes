@@ -1,5 +1,5 @@
 import React from 'react';
-import { Popover, OverlayTrigger } from 'react_bootstrap';
+import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import DisplayUtils from 'es6!display/changes/utils';
@@ -182,6 +182,19 @@ var CommitsTab = React.createClass({
     }
 
     var title = utils.first_line(c.message);
+    if (c.message.indexOf("#skipthequeue") !== -1) {
+      // dropbox-specific logic. 
+      var tooltip = <Tooltip>
+        This commit bypassed the commit queue
+      </Tooltip>;
+
+      title = <span>
+        {title}
+        <OverlayTrigger placement="bottom" overlay={tooltip}>
+          <i className="fa fa-fast-forward lt-magenta marginLeftS" />
+        </OverlayTrigger>
+      </span>;
+    }
 
     var build_widget = null, prev_builds = null;
     if (c.builds && c.builds.length > 0) {
