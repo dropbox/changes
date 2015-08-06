@@ -40,7 +40,7 @@ var TestHistoryPage = React.createClass({
     }
 
     var history_content = this.renderHistory();
-    
+
     return <ChangesPage>
       <SectionHeader>Builds in master</SectionHeader>
       {history_content}
@@ -49,7 +49,7 @@ var TestHistoryPage = React.createClass({
 
   renderHistory() {
     if (!api.isLoaded(this.state.history)) {
-      return <APINotLoaded 
+      return <APINotLoaded
         state={this.state.history}
         isInline={true}
       />;
@@ -78,7 +78,7 @@ var TestHistoryPage = React.createClass({
       'Committed'
     ];
 
-    var cellClasses = ['nowrap center', 'nowrap center', 'nowrap', 
+    var cellClasses = ['nowrap center', 'nowrap center', 'nowrap',
       'nowrap', 'wide', 'nowrap'];
 
     return <Grid

@@ -30,12 +30,12 @@ requirejs.config({
   }
 });
 
-/* 
+/*
  * essentially main(). Routes the user to the right page
  */
 
 require([
-  "react", 
+  "react",
   "underscore",
   "uriJS/URI",
   "es6!server/api",
@@ -51,7 +51,7 @@ require([
   "es6!pages/test_page",
   "es6!pages/ui_test_page",
 ], function(
-  React, 
+  React,
   _,
   URI,
   data_fetching,
@@ -77,7 +77,7 @@ require([
 
   // routing
   // TODO: all of this is terrible and temporary just to get something working.
-  // replace with a routing library. Probably not react-router, though... its 
+  // replace with a routing library. Probably not react-router, though... its
   // too template-y. Or at least don't use nesting with react-router
 
   var url = window.location.href;

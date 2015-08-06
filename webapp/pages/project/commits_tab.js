@@ -23,7 +23,7 @@ var CommitsTab = React.createClass({
     // branches api response
     branches: React.PropTypes.object,
 
-    // state is handled by parent so that its preserved if someone selects 
+    // state is handled by parent so that its preserved if someone selects
     // the tests or details tab
     myState: React.PropTypes.object,
 
@@ -32,7 +32,7 @@ var CommitsTab = React.createClass({
   },
 
   getInitialState: function() {
-    // powers on-hover list of failed tests. Easier to just do this rather 
+    // powers on-hover list of failed tests. Easier to just do this rather
     // than using myState above (it doesn't really matter if this gets wiped
     // out)
     return { failedTests: [] };
@@ -51,8 +51,8 @@ var CommitsTab = React.createClass({
     var state = this.props.myState;
 
     if (!api.isLoaded(this.props.data)) {
-      return <APINotLoaded 
-        state={this.props.data} 
+      return <APINotLoaded
+        state={this.props.data}
         isInline={true}
       />;
     }
@@ -68,8 +68,8 @@ var CommitsTab = React.createClass({
       utils.async(__ => {
         this.props.pageElem.setState(
           utils.update_key_in_state_dict(
-            'commitsState', 
-            'sending_branches_ajax_call', 
+            'commitsState',
+            'sending_branches_ajax_call',
             true),
           ___ => {
             api.fetchMap(
@@ -95,9 +95,9 @@ var CommitsTab = React.createClass({
   },
 
   renderTableControls: function() {
-    var state = this.props.myState, 
+    var state = this.props.myState,
       project = this.props.project.getReturnedData();
-  
+
     var branches = null;
     if (project.repository.defaultBranch) {
       var branches = <select disabled={true}>
@@ -110,9 +110,9 @@ var CommitsTab = React.createClass({
     }
 
     if (api.isLoaded(state.branches)) {
-      var selected = this.getNewestQueryParams()['branch'] || 
+      var selected = this.getNewestQueryParams()['branch'] ||
         project.repository.defaultBranch;
-      
+
       var options = _.chain(state.branches.getReturnedData())
         .pluck('name')
         .sortBy(_.identity)
@@ -124,7 +124,7 @@ var CommitsTab = React.createClass({
       };
 
       branches = <select onChange={onChange} value={selected}>{options}</select>;
-    } else if (api.isError(state.branches) && 
+    } else if (api.isError(state.branches) &&
                state.branches.getStatusCode() + "" === '422') {
       branches = <select disabled={true}>
         <option>no branches</option>
@@ -137,7 +137,7 @@ var CommitsTab = React.createClass({
     </span>
     */
     return <div style={{marginBottom: 5, marginTop: 10}}>
-      <input 
+      <input
         disabled={true}
         placeholder="Search by name or SHA [TODO]"
         style={{minWidth: 170, marginRight: 5}}
@@ -147,7 +147,7 @@ var CommitsTab = React.createClass({
         <span style={/* disabled color */ {color: '#aaa', fontSize: 'small'}}>
           Live update
           <input
-            type="checkbox" 
+            type="checkbox"
             checked={false}
             className="noRightMargin"
             disabled={true}
@@ -158,7 +158,7 @@ var CommitsTab = React.createClass({
   },
 
   renderTable: function(commits, project_info) {
-    var grid_data = _.map(commits, c => 
+    var grid_data = _.map(commits, c =>
       this.turnIntoRow(c, project_info)
     );
 
@@ -237,7 +237,7 @@ var CommitsTab = React.createClass({
     });
 
     var data_fetcher = React.createElement(
-      data_fetcher_defn, 
+      data_fetcher_defn,
       {elem: this, buildID: build.id}
     );
 
@@ -255,9 +255,9 @@ var CommitsTab = React.createClass({
         list.push(
           <div className="marginTopS"> <em>
             Showing{" "}
-            {data.testFailures.tests.length} 
+            {data.testFailures.tests.length}
             {" "}out of{" "}
-            {build.stats['test_failures']} 
+            {build.stats['test_failures']}
             {" "}test failures
           </em> </div>
         );
@@ -270,9 +270,9 @@ var CommitsTab = React.createClass({
     }
 
     return <div>
-      <OverlayTrigger 
-        trigger='hover' 
-        placement='right' 
+      <OverlayTrigger
+        trigger='hover'
+        placement='right'
         overlay={popover}>
         <div>{build_widget}</div>
       </OverlayTrigger>
@@ -282,14 +282,14 @@ var CommitsTab = React.createClass({
   renderPaginationLinks: function(commits) {
     var hrefs = commits.getLinksFromHeader();
 
-    // the pagination api should return the same endpoint that we're already 
+    // the pagination api should return the same endpoint that we're already
     // using, so we'll just grab the get params
     var on_click = href => this.updateData(URI(href).query(true));
 
     var links = [];
     if (hrefs.previous) {
       links.push(
-        <a 
+        <a
           className="marginRightS"
           href={'#' || hrefs.previous}
           onClick={on_click.bind(this, hrefs.previous)}>
@@ -300,11 +300,11 @@ var CommitsTab = React.createClass({
 
     if (hrefs.next) {
       links.push(
-        <a 
-          className="marginRightS" 
+        <a
+          className="marginRightS"
           href={'#' || hrefs.next}
           onClick={on_click.bind(this, hrefs.next)}>
-          Next 
+          Next
         </a>
       );
     }
@@ -340,7 +340,7 @@ var CommitsTab = React.createClass({
     var state = this.props.myState;
 
     return state.newestData !== undefined && !api.isLoaded(state.newestData);
-  }, 
+  },
 
   getCurrentData: function() {
     var state = this.props.myState;

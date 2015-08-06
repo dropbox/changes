@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {% set ERROR_STYLE = "background-color: #c8190f; border: 1px solid #5a5758; " +
-           "color: #fff; padding: 5px; font-family: helvetica, arial" 
+           "color: #fff; padding: 5px; font-family: helvetica, arial"
     %}
     {% if IS_DEBUG %}
     <script type="text/javascript">
@@ -16,7 +16,7 @@
             '<b>Javascript Error (dev console has a more accurate error message/line #)</b>' +
             '<div style="font-size: smaller;">' + url + ': ' + lineNumber + '</div>' +
             '<pre>' + errorMsg + '</pre>' +
-            '</div>' 
+            '</div>'
           );
           return false;
         }
@@ -45,7 +45,7 @@
           APP_VERSION: '{{ VERSION }}'
         };
         {% if WEBAPP_USE_ANOTHER_HOST %}
-          window.changesGlobals['USE_ANOTHER_HOST'] = 
+          window.changesGlobals['USE_ANOTHER_HOST'] =
             '{{ WEBAPP_USE_ANOTHER_HOST }}';
         {% endif %}
         {% if RELEASE_INFO %}
@@ -60,8 +60,8 @@
     <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href="{{ url_for('webapp_v2.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
-    {% assets output="css/bundled.css", "css/colors.css", "css/layout_helpers.css", 
-              "css/basics.css", "css/display.css", "css/page_specific.css" 
+    {% assets output="css/bundled.css", "css/colors.css", "css/layout_helpers.css",
+              "css/basics.css", "css/display.css", "css/page_specific.css"
     %}
     <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
     {% endassets %}
@@ -75,8 +75,8 @@
     {% if USE_PACKAGED_JS %}
     <div id="reactRoot">
       Loading...
-      <script 
-        data-main="{{ url_for('webapp_v2.static', filename='dist/built') }}" 
+      <script
+        data-main="{{ url_for('webapp_v2.static', filename='dist/built') }}"
         src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
       </script>
     </div>
@@ -84,8 +84,8 @@
     <div id="reactRoot">
       Downloading and transpiling javascript...
     </div>
-    <script 
-      data-main="{{ url_for('webapp_v2.static', filename='entry') }}" 
+    <script
+      data-main="{{ url_for('webapp_v2.static', filename='entry') }}"
       src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
     </script>
     <script>

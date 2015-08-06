@@ -12,7 +12,7 @@ import { email_head } from 'es6!utils/utils';
 var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
-// Exports ChangesPage. Helper classes: ChangesPageHeader, 
+// Exports ChangesPage. Helper classes: ChangesPageHeader,
 // ChangesInlinePerf
 
 var ChangesPage = React.createClass({
@@ -31,18 +31,18 @@ var ChangesPage = React.createClass({
   },
 
   getDefaultProps: function() {
-    return { 
-      bodyPadding: true, 
-      isPageLoaded: true, 
-      fixed: false 
+    return {
+      bodyPadding: true,
+      isPageLoaded: true,
+      fixed: false
     };
   },
 
   render: function() {
     if (this.props.isPageLoaded) {
-      // NOTE: once browsers support it, we could start using 
+      // NOTE: once browsers support it, we could start using
       // window.performance.mark
-      window.changesPageLoaded = window.changesPageLoaded || 
+      window.changesPageLoaded = window.changesPageLoaded ||
         new Date().getTime(); // We want to compare to this window.performance,
                               // so want to use new Date() rather than moment.
     }
@@ -59,12 +59,12 @@ var ChangesPage = React.createClass({
 });
 
 /*
- * The header that shows up at the the top of every page. Decided against 
+ * The header that shows up at the the top of every page. Decided against
  * using fixed positioning: its not important enough (if it were the primary
  * means of navigation on the page, I'd have used it.)
  */
 var ChangesPageHeader = React.createClass({
-  
+
   propTypes: {
     highlight: proptype.string, // see ChangesPage
     fixed: proptype.bool
@@ -97,8 +97,8 @@ var ChangesPageHeader = React.createClass({
     });
 
     /*
-    var logo = <div 
-      className="headerBlock" 
+    var logo = <div
+      className="headerBlock"
       style={{fontWeight: 900}}>
       Changes
     </div>;
@@ -123,17 +123,17 @@ var ChangesPageHeader = React.createClass({
 
 /*
  * Renders inline performance info. When clicked, expands to show other
- * info as well: api timings, the latest revision, and possibly a link 
+ * info as well: api timings, the latest revision, and possibly a link
  * to an internal error page.
  *
  * Technically, this component does a few interesting things:
  * - It consumes global info on render (window.changesPageLoaded, and
  *   the resource timing API)
- * - It uses setInterval to constantly update and rerender itself when 
+ * - It uses setInterval to constantly update and rerender itself when
  *   expanded.
  */
 var ChangesInlinePerf = React.createClass({
-  
+
   componentWillMount: function() {
     this.refreshTimer = null;
   },
@@ -160,7 +160,7 @@ var ChangesInlinePerf = React.createClass({
     // render page load time once we have that info
     var perf_markup = '---';
     if (window.changesPageLoaded) {
-      var load_time = window.changesPageLoaded - 
+      var load_time = window.changesPageLoaded -
           window.performance.timing.navigationStart;
       perf_markup = `${load_time}ms`;
     }
@@ -192,7 +192,7 @@ var ChangesInlinePerf = React.createClass({
       inlinePerfExpanded: this.state.expanded
     });
 
-    return <div 
+    return <div
       className={classes}
       onClick={onclick}
       style={{position: 'relative'}}>
@@ -204,7 +204,7 @@ var ChangesInlinePerf = React.createClass({
     </div>;
   },
 
-  // When this widget is expanded, re-render it twice a second with the 
+  // When this widget is expanded, re-render it twice a second with the
   // latest data
   updateTimers: function(is_expanded) {
     if (is_expanded && !this.refreshTimer) {
@@ -240,7 +240,7 @@ var ChangesInlinePerf = React.createClass({
     // own version, but its most likely not worth the effort.
     if (!window.performance.getEntries) {
       return <div>
-        This browser doesn{"'"}t support individual performance metrics 
+        This browser doesn{"'"}t support individual performance metrics
         for resource requests.
       </div>;
     }
@@ -270,7 +270,7 @@ var ChangesInlinePerf = React.createClass({
         <div>{api_name}</div>;
 
       // url to trace api call
-      var trace_href = api_has_query_params ? 
+      var trace_href = api_has_query_params ?
         e.name + '&__trace__=1' :
         e.name + '?__trace__=1';
       var trace_link = <a href={trace_href} target="_blank">(trace)</a>;
@@ -284,7 +284,7 @@ var ChangesInlinePerf = React.createClass({
       if (e.name.indexOf('built.js') > 0) {
         data.push([
           <em>Compiled JS</em>,
-          <em>{fmt_time(e.startTime)}</em>, 
+          <em>{fmt_time(e.startTime)}</em>,
           <em>{fmt_time(e.duration)}</em>,
           ''
         ]);
@@ -293,7 +293,7 @@ var ChangesInlinePerf = React.createClass({
 
     var headers = ["API Name", "Sent At", "Duration", "Links"];
     return <Grid colnum={4} headers={headers} data={data} />;
-  }, 
+  },
 
   // Info about the latest revision in this changes deployment
   renderReleaseInfo: function() {

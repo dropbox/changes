@@ -7,17 +7,17 @@ export var APIResponse = function(endpoint) {
   return _.create(APIResponsePrototype, {
     endpoint: endpoint,
     condition: 'loading',  // 'loading', 'loaded', or 'error'
-    response: null         // this will be the browser's response 
+    response: null         // this will be the browser's response
                            // object from the ajax call
   });
 }
 
 var APIResponsePrototype = {
   // for API calls that return json
-  getReturnedData: function() { 
-    return JSON.parse(this.response.responseText); 
+  getReturnedData: function() {
+    return JSON.parse(this.response.responseText);
   },
-  
+
   getStatusCode: function() {
     return this.response.status;
   },
@@ -54,11 +54,11 @@ export var fetch = function(elem, endpoint_map) {
  */
 export var fetchMap = function(elem, map_key, endpoint_map) {
   // add a bunch of "loading" APIResponse objects to the element state
-  if (map_key) { 
+  if (map_key) {
     // we preserve other elements in the map
     elem.setState((previous_state, props) => {
-      var new_map = _.extend({}, 
-        previous_state[map_key], 
+      var new_map = _.extend({},
+        previous_state[map_key],
         _.mapObject(endpoint_map, (endpoint) => {
           return APIResponse(endpoint);
         }));
@@ -98,7 +98,7 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
 }
 
 /*
- * Wraps fetchMap in window.setTimeout. This allows you to call it from 
+ * Wraps fetchMap in window.setTimeout. This allows you to call it from
  * render() (yes, there's a legitimate reason we do this...)
  *
  * TODO: replace with utils.async
@@ -181,7 +181,7 @@ export var make_api_ajax_post = function(
  * may rewrite urls to a prod host if USE_ANOTHER_HOST was set from the server
  *
  * The response_callback/error_callback functions should have the sig:
- *   function(response, [was_success]) { ... } 
+ *   function(response, [was_success]) { ... }
  * (was_success is optional - makes it easy to use the same func for both)
  */
 export var make_api_ajax_call = function(
@@ -208,7 +208,7 @@ export var make_api_ajax_call = function(
   // TODO: maybe just use a library for ajax calls
   req.onload = function() {
     // 2xx responses and 304 responses count as success
-    var failed = this.status < 200 || 
+    var failed = this.status < 200 ||
       (this.status >= 300 && this.status !== 304);
 
     if (!failed) {

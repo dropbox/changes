@@ -10,7 +10,7 @@ var cx = React.addons.classSet;
  * making individual tags for each.
  */
 var DisplayUtils = {
-  
+
   // If I want to be able to customize these (e.g. add a css class), they
   // should be tags instead
 

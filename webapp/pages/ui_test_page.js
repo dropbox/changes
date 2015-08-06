@@ -16,15 +16,15 @@ import colors from 'es6!utils/colors';
 var UITestPage = React.createClass({
   render: function() {
     var renderables = {};
-    
+
     var popover = <Popover>
       <strong>Holy guacamole!</strong> Check this info.
     </Popover>;
 
     renderables["Popover"] = <div>
-      <OverlayTrigger 
-        trigger='hover' 
-        placement='bottom' 
+      <OverlayTrigger
+        trigger='hover'
+        placement='bottom'
         overlay={popover}>
         <div className="inlineBlock">Hover over me!</div>
       </OverlayTrigger>
@@ -32,13 +32,13 @@ var UITestPage = React.createClass({
 
     // TimeText
     renderables["TimeText"] = <div>
-      <TimeText 
-        className="block paddingBottomS" 
-        time={moment.utc().local().toString()} 
+      <TimeText
+        className="block paddingBottomS"
+        time={moment.utc().local().toString()}
       />
       <TimeText className="block" time="September 1, 2008 3:14 PM" />
       <div className="paddingTopS">
-        {display_duration(57)}, 
+        {display_duration(57)},
         {display_duration(3742)}
       </div>
     </div>;
@@ -96,7 +96,7 @@ var UITestPage = React.createClass({
         return React.createElement(this.props.cls, menu_props);
       }
     });
-    
+
     renderables["Menu1"] = <MenuRenderer cls={Menu1} />;
     renderables["Menu2"] = <MenuRenderer cls={Menu2} />;
 

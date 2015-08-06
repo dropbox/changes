@@ -32,7 +32,7 @@ var SingleBuild = React.createClass({
   componentDidMount: function() {
     // get richer information about the build
     console.log(this.props.build);
-    api.fetch(this, { 
+    api.fetch(this, {
       buildDetails : `/api/0/builds/${this.props.build.id}`
     });
 
@@ -64,16 +64,16 @@ var SingleBuild = React.createClass({
     var job_ids = _.map(build_prop.jobs, j => j.id);
 
     if (!api.mapIsLoaded(this.state.jobPhases, job_ids)) {
-      return <APINotLoaded 
+      return <APINotLoaded
         className="marginTopL"
         stateMap={this.state.jobs}
         stateMapKeys={job_ids}
         isInline={true}
       />;
     } else if (!api.isLoaded(this.state.buildDetails)) {
-      return <APINotLoaded 
+      return <APINotLoaded
         className="marginTopL"
-        state={this.state.buildDetails} 
+        state={this.state.buildDetails}
         isInline={true}
       />;
     }
@@ -145,14 +145,14 @@ var SingleBuild = React.createClass({
 
       var onClick = __ => {
         this.setState(
-          utils.update_key_in_state_dict('expandedTests', 
-            test.id, 
+          utils.update_key_in_state_dict('expandedTests',
+            test.id,
             !this.state.expandedTests[test.id])
         );
 
         if (!this.state.expandedTestsData[test.id]) {
           api.fetchMap(this, 'expandedTestsData', {
-            [ test.id ]: `/api/0/tests/${test.id}/` 
+            [ test.id ]: `/api/0/tests/${test.id}/`
           });
         }
       };
@@ -172,10 +172,10 @@ var SingleBuild = React.createClass({
       if (this.state.expandedTests[test.id]) {
         if (!api.isLoaded(this.state.expandedTestsData[test.id])) {
           rows.push(GridRow.oneItem(
-            <APINotLoaded 
-              className="marginTopM" 
-              state={this.state.expandedTestsData[test.id]} 
-              isInline={true} 
+            <APINotLoaded
+              className="marginTopM"
+              state={this.state.expandedTestsData[test.id]}
+              isInline={true}
             />
           ));
         } else {
@@ -195,7 +195,7 @@ var SingleBuild = React.createClass({
     var revert_instructions = custom_content_hook('revertInstructions');
     var revert_markup = null, revert_link = null;
     if (revert_instructions) {
-      var on_click = __ => { 
+      var on_click = __ => {
         this.setState((prevStat, props) => {
           var instr = _.clone(prevStat.showRevertInstructions);
           instr[build.id] = !instr[build.id];
@@ -219,11 +219,11 @@ var SingleBuild = React.createClass({
         {revert_link}
       </div>
       {revert_markup}
-      <Grid 
+      <Grid
         colnum={2}
         className="errorGrid marginBottomM"
-        data={rows} 
-        headers={['Name', 'Links']} 
+        data={rows}
+        headers={['Name', 'Links']}
       />
     </div>;
   },
@@ -253,7 +253,7 @@ var SingleBuild = React.createClass({
         var shard_state = get_runnable_state(shard.status.id, shard.result.id);
         var shard_duration = 'Running';
         if (shard_state !== 'waiting') {
-          shard_duration = shard.duration ? 
+          shard_duration = shard.duration ?
             display_duration(shard.duration/1000) : '';
         }
 
@@ -269,7 +269,7 @@ var SingleBuild = React.createClass({
         var node_name = <a href={"/v2/node/" + shard.node.id}>
           {shard.node.name}
         </a>;
-        
+
         var shard_failures = _.filter(failures, f => f.step_id == shard.id);
 
         var main_markup = node_name;
@@ -301,7 +301,7 @@ var SingleBuild = React.createClass({
 
           var raw_log_uri = `/api/0/jobs/${job.id}/logs/${log_id}/?raw=1`;
           links.push(<a className="external marginRightS" href={raw_log_uri} target="_blank">Raw</a>);
-        } 
+        }
         if (shard.data.uri) {
           links.push(<a className="external" href={shard.data.uri} target="_blank">Jenkins</a>);
         }
@@ -358,7 +358,7 @@ var render_header = function(text, moment_time) {
     fontSize: 22,
     fontWeight: "bold"
   };
-  
+
   var time_style = {
     color: "#5a5758",
     fontSize: "smaller",

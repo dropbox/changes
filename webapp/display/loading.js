@@ -37,7 +37,7 @@ export var RandomLoadingMessage = React.createClass({
   render: function() {
     var { className, ...props} = this.props;
 
-    if (this.props.display === 'inline' || 
+    if (this.props.display === 'inline' ||
         this.props.display === 'inlineBlock') {
       className = (className || "") + " " + this.props.display;
     }

@@ -36,9 +36,9 @@ var ProjectPage = React.createClass({
   },
 
   menuItems: [
-    'Commits', 
+    'Commits',
     'Builds',
-    'Tests [TODO]', 
+    'Tests [TODO]',
     'Project Details'
   ],
 
@@ -55,8 +55,8 @@ var ProjectPage = React.createClass({
     // till componentDidMount.
     this.setState({
       buildsControls: DataControls(
-        this, 
-        'buildsControls', 
+        this,
+        'buildsControls',
         BuildsTab.getEndpoint(this.props.projectSlug))
     });
   },
@@ -95,9 +95,9 @@ var ProjectPage = React.createClass({
       );
       this.setState({selectedItem: item});
     }
-    var menu = <Menu2 
-      items={this.menuItems} 
-      selectedItem={selected_item} 
+    var menu = <Menu2
+      items={this.menuItems}
+      selectedItem={selected_item}
       onClick={onClick}
     />;
 
@@ -168,7 +168,7 @@ var ProjectPage = React.createClass({
     if (whitelist_option) {
       var whitelist_paths = utils.split_lines(whitelist_option);
       whitelist_msg = <b>
-        Builds are only run for changes that touch 
+        Builds are only run for changes that touch
         {" "}
         <span style={{borderBottom: "2px dotted #ccc"}}>
           certain paths

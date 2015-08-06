@@ -8,7 +8,7 @@ import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 
-/* 
+/*
  * The sidebar on the builds page. Shows a list of builds for a single diff or
  * commit
  */
@@ -95,7 +95,7 @@ var Sidebar = React.createClass({
       Committed {"("}<TimeText time={source.revision.dateCommitted} />{")"}
     </span>;
     var content = this.renderBuilds(builds);
-    
+
     return this.renderSection(label, content);
   },
 

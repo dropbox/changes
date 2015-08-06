@@ -1,10 +1,10 @@
 /*
  * basics.css
- * 
- * (1) this is where we set the font on <body />, override styles 
+ *
+ * (1) this is where we set the font on <body />, override styles
  * on <a />, etc.
- * 
- * (2) Contains the css for the page chrome (e.g for the page 
+ *
+ * (2) Contains the css for the page chrome (e.g for the page
  * header, spacing, etc.)
  */
 
@@ -31,12 +31,12 @@ a.external {
   background-position: right;
   padding-right: 13px;
 
-  /* 
+  /*
    * This is just the external link icon used in mediawiki with some color
    * replacements (update this if you make any further modifications):
    *  #06c -> #1c3f95
    *  #06f -> #224db6 (two tints lighter)
-   * 
+   *
    * To create the data uri:
    * > cat wiki_external_link.svg | python -c 'import sys,urllib;print urllib.quote(sys.stdin.read().strip(), "")' | pbcopy
    */

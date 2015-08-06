@@ -18,7 +18,7 @@ var BuildsTab = React.createClass({
     // the project api response
     project: React.PropTypes.object,
 
-    // state is handled by parent so that its preserved if someone selects 
+    // state is handled by parent so that its preserved if someone selects
     // another tab
     myState: React.PropTypes.object,
 
@@ -49,9 +49,9 @@ var BuildsTab = React.createClass({
     var controls = this.props.controls;
 
     if (controls.hasNotLoadedInitialData()) {
-      return <APINotLoaded 
-        state={controls.getDataToShow()} 
-        isInline={true} 
+      return <APINotLoaded
+        state={controls.getDataToShow()}
+        isInline={true}
       />;
     }
 
@@ -62,8 +62,8 @@ var BuildsTab = React.createClass({
       if (_.contains(build.tags, 'arc test')) {
         target = '';
       } else if (build.source.patch) {
-        target = <a 
-          className="external" 
+        target = <a
+          className="external"
           href={build.source.data['phabricator.revisionURL']}
           target="_blank">
           {'D' + build.source.data['phabricator.revisionID']}
@@ -125,15 +125,15 @@ var BuildsTab = React.createClass({
     var params_for_items = {
       'All': {
         'include_patches': 1,
-        'patches_only': 0 
+        'patches_only': 0
       },
       'Commits Only': {
         'include_patches': 0,
-        'patches_only': 0 
+        'patches_only': 0
       },
       'Diffs/arc test only': {
         'include_patches': 1,
-        'patches_only': 1 
+        'patches_only': 1
       }
     };
 
@@ -155,7 +155,7 @@ var BuildsTab = React.createClass({
 
     return <Menu1
       items={items}
-      selectedItem={selected_item} 
+      selectedItem={selected_item}
       onClick={onclick}
     />;
   },

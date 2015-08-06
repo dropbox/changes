@@ -19,7 +19,7 @@ Style notes:
 
   Makes it much easier to find functions in the file
 
-- (TODO) variables should be camelCase, since the object spread syntax in display/ 
+- (TODO) variables should be camelCase, since the object spread syntax in display/
   components uses the same name for variables and object attributes, e.g.
 
   EX: var { data, headers, className, ...props} = this.props;

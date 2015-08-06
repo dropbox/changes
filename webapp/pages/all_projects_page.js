@@ -59,9 +59,9 @@ var AllProjectsPage = React.createClass({
     // render menu
     var selected_item = this.state.selectedItem;
 
-    var menu = <Menu1 
-      items={this.menuItems} 
-      selectedItem={selected_item} 
+    var menu = <Menu1
+      items={this.menuItems}
+      selectedItem={selected_item}
       onClick={MenuUtils.onClick(this, selected_item)}
     />;
 
@@ -69,7 +69,7 @@ var AllProjectsPage = React.createClass({
     // TODO: ordering
     var content = null;
     switch (selected_item) {
-      case 'Latest Project Builds': 
+      case 'Latest Project Builds':
         content = this.renderDefault(projects_data);
         break;
       case 'Projects By Repository':
@@ -87,7 +87,7 @@ var AllProjectsPage = React.createClass({
       default:
         throw 'unreachable';
     }
-    
+
     return <ChangesPage highlight="Projects">
       <SectionHeader>Projects</SectionHeader>
       {menu}
@@ -112,7 +112,7 @@ var AllProjectsPage = React.createClass({
       !is_stale ? list.push(p) : stale_list.push(p);
     });
 
-    var stale_header = stale_list ? 
+    var stale_header = stale_list ?
       <SectionHeader className="marginTopL">Stale Projects (>1 week)</SectionHeader> :
       null;
 
@@ -134,8 +134,8 @@ var AllProjectsPage = React.createClass({
         var build = p.lastBuild;
 
         widget = <BuildWidget build={build} />;
-        build_time = <TimeText 
-          time={build.dateFinished || build.dateCreated} 
+        build_time = <TimeText
+          time={build.dateFinished || build.dateCreated}
         />;
       }
 
@@ -151,15 +151,15 @@ var AllProjectsPage = React.createClass({
         p.options["project.notes"]
       ];
     });
-    
+
     var headers = ['Last Build', 'When', 'Name', 'Links', 'Notes'];
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'nowrap', 'wide'];
 
-    return <Grid 
+    return <Grid
       colnum={5}
-      data={grid_data} 
-      headers={headers} 
-      cellClasses={cellClasses} 
+      data={grid_data}
+      headers={headers}
+      cellClasses={cellClasses}
     />;
   },
 
@@ -190,7 +190,7 @@ var AllProjectsPage = React.createClass({
         } else if (p.options["build.commit-trigger"]) {
           triggers = "Only Commits";
         }
-        
+
         var whitelist = "";
         if (p.options['build.file-whitelist']) {
           whitelist = _.map(
@@ -210,16 +210,16 @@ var AllProjectsPage = React.createClass({
       });
       rows = rows.concat(repo_rows);
     });
-    
+
     var headers = ['Repo', 'Project', 'Builds for', 'With branches', 'With paths', 'Created'];
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <div className="marginBottomL">
-      <Grid 
+      <Grid
         colnum={6}
-        data={rows} 
-        headers={headers} 
-        cellClasses={cellClasses} 
+        data={rows}
+        headers={headers}
+        cellClasses={cellClasses}
       />
     </div>;
   },
@@ -272,11 +272,11 @@ var AllProjectsPage = React.createClass({
     var headers = ['Project', 'Plan', 'Implementation', more_link, 'Modified'];
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
-    return <Grid 
+    return <Grid
       colnum={5}
-      data={rows} 
-      headers={headers} 
-      cellClasses={cellClasses} 
+      data={rows}
+      headers={headers}
+      cellClasses={cellClasses}
     />;
   },
 
@@ -303,9 +303,9 @@ var AllProjectsPage = React.createClass({
         _.each(proj.plans, (plan, index) => {
           if (plan.steps.length > 0 && plan.steps[0].name === type) {
             plan_rows.push([
-              null, 
-              proj.name, 
-              plan.name, 
+              null,
+              proj.name,
+              plan.name,
               this.getSeeConfigLink(plan.id, 'plansByType')
             ]);
 
@@ -319,15 +319,15 @@ var AllProjectsPage = React.createClass({
       plan_rows[0][0] = <b>{[type, " (", plan_rows.length, ")"]}</b>;
       rows_lists.push(plan_rows);
     });
-    
+
     var headers = ['Infrastructure', 'Project Name', 'Plan Name', 'More'];
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap'];
 
-    return <Grid 
+    return <Grid
       colnum={4}
       data={_.flatten(rows_lists, true)}
-      headers={headers} 
-      cellClasses={cellClasses} 
+      headers={headers}
+      cellClasses={cellClasses}
      />;
   },
 
@@ -353,7 +353,7 @@ var AllProjectsPage = React.createClass({
 
         if (plan['jenkins_fallback']) {
           jenkins_fallback_data = plan['jenkins_fallback'];
-          jenkins_fallback_data['fallback_cluster_machines'] = 
+          jenkins_fallback_data['fallback_cluster_machines'] =
             jenkins_fallback_data['fallback_cluster_machines'] ?
             JSON.stringify(jenkins_fallback_data['fallback_cluster_machines']) :
             "None";
@@ -434,11 +434,11 @@ var AllProjectsPage = React.createClass({
           {jenkins_fallback_data['fallback_cluster_machines']}
         </div>
       </div>
-      <Grid 
+      <Grid
         colnum={5}
-        data={rows} 
-        headers={headers} 
-        cellClasses={cellClasses} 
+        data={rows}
+        headers={headers}
+        cellClasses={cellClasses}
       />
     </div>;
   },
@@ -450,7 +450,7 @@ var AllProjectsPage = React.createClass({
       this.setState(
         utils.update_key_in_state_dict(
           state_key,
-          plan_id, 
+          plan_id,
           !this.state[state_key][plan_id])
       );
     }

@@ -9,7 +9,7 @@ var cx = React.addons.classSet;
 var proptype = React.PropTypes;
 
 /*
- * Convenience wrapper that takes the contents of the state variable used for 
+ * Convenience wrapper that takes the contents of the state variable used for
  * an api fetch and renders either <AjaxError /> or <RandomLoadingMessage />.
  */
 var APINotLoaded = React.createClass({
@@ -25,7 +25,7 @@ var APINotLoaded = React.createClass({
 
   getDefaultProps: function() {
     return {
-      isInline: false 
+      isInline: false
     }
   },
 
@@ -33,7 +33,7 @@ var APINotLoaded = React.createClass({
   // as "loading"
   render: function() {
     var { state, stateMap, stateMapKeys, isInline, ...props} = this.props;
-    
+
     if (state && stateMapKeys) {
       return <ProgrammingError>
         APINotLoaded: passed both state and stateMapKeys/stateMap

@@ -27,7 +27,7 @@ class Exports:
   not in its export library
   """
 
-  def __init__(self): 
+  def __init__(self):
     self.items = {}
 
   def add(self, path, text):
@@ -59,7 +59,7 @@ class Exports:
 
   def replace_imports(self, path, text):
     # trash all of the import lines
-    start = -1 
+    start = -1
     for index, line in enumerate(text.splitlines()):
       if line.startswith("import"):
         start = index
@@ -83,14 +83,14 @@ class Exports:
         prefix_search = re.search("(\w*)\."+exp, without_comments)
         if prefix_search:
           export_prefixes.append(prefix_search.group(1))
-      
+
       if not exports_in_file:
         continue
 
       if len(set(export_prefixes)) > 1:
         raise ValueError("I don't know how to include the file %s for the file %s" %
           (item["path"], path))
-      
+
       export_prefix = None
       if len(export_prefixes) > 0:
         export_prefix = export_prefixes[0]
@@ -121,7 +121,7 @@ class Exports:
 
     if "moment(" in without_comments or "moment." in without_comments:
       other_imports += "import moment from 'moment';\n"
-    
+
     react_bootstrap_components = [c for c in REACT_BOOTSTRAP_COMPONENTS_USED
       if re.search("[^\w]%s[^\w]" % (c, ), without_comments)]
     if react_bootstrap_components:
@@ -134,7 +134,7 @@ class Exports:
     import_lines = ""
     directories = set([pair[1][:pair[1].find("/")] for pair in imports_to_add])
     for dir in sorted(directories):
-      import_lines += "\n".join(sorted([pair[0] for pair in imports_to_add 
+      import_lines += "\n".join(sorted([pair[0] for pair in imports_to_add
         if pair[1].startswith(dir)]))
       import_lines += "\n\n"
     return other_imports + import_lines + program

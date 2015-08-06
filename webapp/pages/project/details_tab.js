@@ -67,7 +67,7 @@ var DetailsTab = React.createClass({
     }
 
     var branches_option = project.options["build.branch-names"] || '*';
-    var branches = branches_option === "*" ? 
+    var branches = branches_option === "*" ?
       'any' :
       branches_option.replace(/ /g, ", ");
 
@@ -95,7 +95,7 @@ var DetailsTab = React.createClass({
       </tr>
       </table>
     </div>;
-    
+
     // TODO: how many tests? how many commits in the last week?
   }
 });

@@ -1,8 +1,8 @@
-/* 
+/*
  * display.css
  *
- * CSS for the tags in display/ (except page_chrome.) We 
- * also have a misc section at the end for classes that don't quite 
+ * CSS for the tags in display/ (except page_chrome.) We
+ * also have a misc section at the end for classes that don't quite
  * deserve their own tag (e.g. subtext)
  */
 
@@ -52,9 +52,9 @@ tr.gridHeader {
 .gridEven .gridCell {
 }
 
-/* 
+/*
  * Grid: cell classes. You'll usually want to use wide for one of your columns
- */ 
+ */
 
 .nowrap {
   white-space: nowrap;
@@ -70,7 +70,7 @@ tr.gridHeader {
 
 /*
  * Error Box
- */ 
+ */
 
 .error {
   background-color: #c8190f; /* shade from http://www.colorhexa.com/ee2e24 */
@@ -90,7 +90,7 @@ tr.gridHeader {
 
 /*
  * Inline Loading
- */ 
+ */
 
 .inlineLoading {
   background-color: #e7e7e8;
@@ -205,10 +205,10 @@ tr.gridHeader {
   margin-left: -8px;
   margin-top: 5px;
   position: absolute;
-  text-shadow: 
-    -1px -1px 0 #000, 
-    1px -1px 0 #000, 
-    -1px 1px 0 #000, 
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
     1px 1px 0 #000;
 }
 

@@ -37,8 +37,8 @@ export var Menu1 = React.createClass({
         firstMenuItem: index === 0,
         selectedMenuItem: this.props.selectedItem === text
       });
-      
-      return <div 
+
+      return <div
         className={classes}
         onClick={_.partial(onClick, text)}>
         {text}
@@ -80,8 +80,8 @@ export var Menu2 = React.createClass({
         firstMenu2Item: index === 0,
         selectedMenu2Item: this.props.selectedItem === text
       });
-      
-      return <div 
+
+      return <div
         className={classes}
         onClick={_.partial(onClick, text)}>
         {text}
@@ -119,7 +119,7 @@ export var MenuUtils = {
   // default onclick handler for menu items
   // TODO: add a param to enable/disable the hash (some menus are small and
   // unimportant)
-  onClick: function(elem, selected_item) { 
+  onClick: function(elem, selected_item) {
     return item => {
       if (item === selected_item) {
         // one reason we'd want to be able to click on the same tab again is to

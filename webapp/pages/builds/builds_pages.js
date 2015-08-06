@@ -10,7 +10,7 @@ import * as api from 'es6!server/api';
 
 var cx = React.addons.classSet;
 
-/* 
+/*
  * The pages that show the results of builds run on a commit or diff. They're
  * just wrappers around BuildsPage
  */
@@ -48,7 +48,7 @@ export var DiffPage = React.createClass({
       .pluck('builds')
       .flatten()
       .value();
-    
+
     return <BuildsPage
       type="diff"
       targetData={diff_data}
@@ -82,9 +82,9 @@ export var CommitPage = React.createClass({
     var slug = this.props.project;
 
     if (!api.mapIsLoaded(this.state, ['commitBuilds', 'source'])) {
-      return <APINotLoaded 
-        stateMap={this.state} 
-        stateMapKeys={['commitBuilds', 'source']} 
+      return <APINotLoaded
+        stateMap={this.state}
+        stateMapKeys={['commitBuilds', 'source']}
       />;
     }
 
@@ -131,7 +131,7 @@ var BuildsPage = React.createClass({
     this.updateWindowUrl();
 
     // TODO: cleanup!
-    // padding: "10px 35px", 
+    // padding: "10px 35px",
     return <ChangesPage bodyPadding={false} fixed={true}>
       <Sidebar
         builds={this.props.builds}
@@ -150,7 +150,7 @@ var BuildsPage = React.createClass({
 
   updateWindowUrl: function() {
     var query_params = URI(window.location.href).search(true);
-    if (this.state.activeBuildID && 
+    if (this.state.activeBuildID &&
         this.state.activeBuildID !== query_params['buildID']) {
       query_params['buildID'] = this.state.activeBuildID;
       window.history.replaceState(
@@ -184,7 +184,7 @@ var BuildsPage = React.createClass({
 
     if (this.props.type === 'diff') {
       var builds_by_diff_id = _.groupBy(
-        builds, 
+        builds,
         b => b.source.data['phabricator.diffID']);
 
       var latest_diff_id = _.chain(builds)

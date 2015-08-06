@@ -30,7 +30,7 @@ export var Error = React.createClass({
  * TODO: handle multiple ajax responses?
  */
 export var AjaxError = React.createClass({
-  
+
   propTypes: {
     // the ajax response object (not the apiresponse wrapper! TODO: allow either?)
     response: proptype.object.isRequired,
@@ -67,7 +67,7 @@ export var AjaxError = React.createClass({
 });
 
 /*
- * Renders a purple error box. Use this in a react component as an assert 
+ * Renders a purple error box. Use this in a react component as an assert
  * failure
  */
 export var ProgrammingError = React.createClass({

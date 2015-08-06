@@ -23,7 +23,7 @@ var proptype = React.PropTypes;
  *  If another day: May 11, April 5
  *  If another year: Feb 13, 2008
  * Timestamps aren't relative, so no need for live updates...
- *  TODO: do we need times for builds that aren't today? Also consider days 
+ *  TODO: do we need times for builds that aren't today? Also consider days
  *  of week?
  *  TODO: add 24 hour format support
  *  TODO: title with exact time? in UTC?
@@ -33,7 +33,7 @@ export var TimeText = React.createClass({
   propTypes: {
     // The time to show. If not ISO 8601, will do the same as new Date()
     time: proptype.string.isRequired,
-    // Manually specify time format. unix timestamp is example of when this is 
+    // Manually specify time format. unix timestamp is example of when this is
     // needed (format='X', see http://momentjs.com/docs/#/parsing/string-format/)
     format: proptype.string,
 
@@ -79,9 +79,9 @@ export var display_duration = function(total_seconds) {
   return display_duration_pieces(total_seconds).join("");
 }
 
-/* 
- * as display_duration, but returns a 4-tuple of durations. Useful if you 
- * want to emphasize hour/day 
+/*
+ * as display_duration, but returns a 4-tuple of durations. Useful if you
+ * want to emphasize hour/day
  */
 export var display_duration_pieces = function(total_seconds) {
   if (total_seconds < 1) {

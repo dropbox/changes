@@ -14,7 +14,7 @@ var proptype = React.PropTypes;
 
 // Show information about the latest build to a commit-in-project
 export var BuildWidget = React.createClass({
-  
+
   propTypes: {
     build: proptype.object.isRequired,
     // override default href. TODO: something better
@@ -51,7 +51,7 @@ export var BuildWidget = React.createClass({
       case 'waiting':
         var style = _.extend({}, content_style, { verticalAlign: 'middle', marginLeft: 5});
         // I thought about rendering a timer about how long the build has been
-        // running, but if it keeps increasing, people will expect this to 
+        // running, but if it keeps increasing, people will expect this to
         // be live / update once the build is done
         content = <span style={{verticalAlign: "middle", paddingLeft: 2}}>Running</span>;
     }
@@ -60,9 +60,9 @@ export var BuildWidget = React.createClass({
     if (build.stats['test_failures'] > 0) {
       var failure_style = {
         color: '#ee2e24',
-        display: 'inline-block', 
-        fontSize: 'smaller', 
-        fontWeight: 'bold', 
+        display: 'inline-block',
+        fontSize: 'smaller',
+        fontWeight: 'bold',
         marginLeft: 3,
         marginBottom: 1
       };
@@ -87,7 +87,7 @@ export var BuildWidget = React.createClass({
     if (!href) {
       var href = '/v2/project_commit/' +
         build.project.slug + '/' +
-        build.source.id; 
+        build.source.id;
     }
     return <a href={href} className="buildWidget">
       <div style={{verticalAlign: 'middle', display: 'inline-block'}}>
@@ -115,10 +115,10 @@ export var StatusDot = React.createClass({
     size: proptype.oneOf(['normal', 'medium', 'big']),
     // the build state to render (see get_build_state)
     state: proptype.oneOf(all_build_states).isRequired,
-    // renders a small number at the lower-right corner                              
+    // renders a small number at the lower-right corner
     num: proptype.oneOfType(proptype.number, proptype.string)
   },
-  
+
   getDefaultProps: function() {
     return {
       'size': 'normal',
@@ -196,8 +196,8 @@ export var status_dots_for_diff = function(builds) {
   return _.compact([dots['waiting'], dots['failed'], dots['passed'], dots['unknown']]);
 }
 
-/* 
- * Given a list of builds, render status dots for each in an ordered row 
+/*
+ * Given a list of builds, render status dots for each in an ordered row
  * (combining adjacent ones with the same result into a single dot w/ number
  */
 export var status_dots = function(builds) {
@@ -206,15 +206,15 @@ export var status_dots = function(builds) {
   builds.forEach(b => {
     var prev_result = _.last(dots_data) || {name: "none"};
     if (get_build_state(b) === prev_result['name']) {
-      prev_result['count'] += 1; 
+      prev_result['count'] += 1;
     } else {
       dots_data.push({name: get_build_state(b), count: 1});
     }
   });
   return _.map(dots_data, d =>
-    <StatusDot 
-      state={d.name} 
-      num={d.count > 1 ? d.count : null} 
+    <StatusDot
+      state={d.name}
+      num={d.count > 1 ? d.count : null}
     />
   );
 }
@@ -228,10 +228,10 @@ export var StatusWithNumber = React.createClass({
     size: proptype.oneOf(['normal', 'medium', 'big']),
     // the build state to render (see get_build_state)
     state: proptype.oneOf(all_build_states).isRequired,
-    // renders a small number at the lower-right corner                              
+    // renders a small number at the lower-right corner
     text: proptype.string
   },
-  
+
   getDefaultProps: function() {
     return {
       'size': 'normal',
@@ -288,14 +288,14 @@ export var StatusWithNumber = React.createClass({
 });
 
 /*
- * Looks at the build's status and result fields to figure out what state the 
+ * Looks at the build's status and result fields to figure out what state the
  * build is in. For the most part I treat failed and nothing the same...someone
  * with a better understanding of changes can differentiate these if they want
  */
 
 var all_build_states = ['passed', 'failed', 'nothing', 'unknown', 'waiting'];
 
-export var get_build_state = function(build) { 
+export var get_build_state = function(build) {
   return get_runnable_state(build.status.id, build.result.id);
 }
 
@@ -317,11 +317,11 @@ export var get_state_color = function(state) {
   switch (state) {
     case 'passed':
       return colors.green;
-    case 'failed': 
-    case 'nothing': 
+    case 'failed':
+    case 'nothing':
       return colors.red;
     case 'waiting':
-    case 'unknown': 
+    case 'unknown':
       return colors.darkGray;
   }
 }

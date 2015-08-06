@@ -1,7 +1,7 @@
-/* 
+/*
  * Collection of useful utils, e.g. string manipulation/parsing, some
  * utils to make interacting with setState easier, etc.
- * 
+ *
  * More display-specific utils are in changes_utils.py in display
  */
 
@@ -32,7 +32,7 @@ export var first_line = function(text) {
 
 export var pad = function(num, size) {
   var ret = num + "";
-  while (ret.length < size) { 
+  while (ret.length < size) {
     ret = "0" + ret;
   }
   return ret;
@@ -46,7 +46,7 @@ export var ensureArray = function(item) {
 }
 
 // takes a list of strings and splits each of them into a three-tuple of common
-// prefix (across all strings), unique middle, and common suffix. Some parts 
+// prefix (across all strings), unique middle, and common suffix. Some parts
 // may be ''.
 export var split_start_and_end = function(strings) {
   var prefix = get_common_prefix(strings);
@@ -91,7 +91,7 @@ export var get_common_suffix = function(strings) {
 }
 
 /*
- * Wraps func in window.setTimeout. This allows you to call functions 
+ * Wraps func in window.setTimeout. This allows you to call functions
  * like setState from render() (yes, there's a legitimate reason we do this...)
  * Make sure to call bind on func!
  */

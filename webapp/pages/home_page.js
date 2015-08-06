@@ -67,17 +67,17 @@ var HomePage = React.createClass({
       return <div>I don{"'"}t see any commits!</div>;
     }
 
-    var diffs = api.isLoaded(this.state.diffs) ? 
-      this.state.diffs.getReturnedData() : 
+    var diffs = api.isLoaded(this.state.diffs) ?
+      this.state.diffs.getReturnedData() :
       [];
 
     var header_markup = null;
     if (this.props.author) {
       // hack to use homepage as user page
       // TODO: not this
-      var author_info = commits[0].builds[0].author; 
+      var author_info = commits[0].builds[0].author;
       header_markup = <div style={{paddingBottom: 10}}>
-        User page for {author_info.name}. Right now its just a crappy copy 
+        User page for {author_info.name}. Right now its just a crappy copy
         of the home page...I{"'"}ll improve this soon.
       </div>;
     }
@@ -91,8 +91,8 @@ var HomePage = React.createClass({
           errorResponse={this.state.diffs.response}
           isSelf={!this.props.author}
         />
-        <Commits 
-          commits={commits} 
+        <Commits
+          commits={commits}
           isSelf={!this.props.author}
         />
       </div>
@@ -109,7 +109,7 @@ var HomePage = React.createClass({
 
 // Render list of the user's diffs currently in review / uncommitted
 var Diffs = React.createClass({
-  
+
   propTypes: {
     loadStatus: React.PropTypes.string,
     diffs: React.PropTypes.array,
@@ -122,9 +122,9 @@ var Diffs = React.createClass({
     if (this.props.loadStatus === 'loading') {
       return <InlineLoading className="marginBottomM" />;
     } else if (this.props.loadStatus === 'error') {
-      return <AjaxError 
-        className="marginBottomM" 
-        response={this.props.errorResponse} 
+      return <AjaxError
+        className="marginBottomM"
+        response={this.props.errorResponse}
       />;
     }
 
@@ -160,10 +160,10 @@ var Diffs = React.createClass({
       'My Diffs' : 'Diffs';
     return <div className="paddingBottomM">
       <SectionHeader>{header_text}</SectionHeader>
-      <Grid 
+      <Grid
         colnum={5}
-        data={grid_data} 
-        cellClasses={cellClasses} 
+        data={grid_data}
+        cellClasses={cellClasses}
         headers={headers}
       />
     </div>;
@@ -172,7 +172,7 @@ var Diffs = React.createClass({
 
 // List of user's recent commits
 var Commits = React.createClass({
-  
+
   propTypes: {
     commits: React.PropTypes.array.isRequired,
 
@@ -191,9 +191,9 @@ var Commits = React.createClass({
       var sha = c.revision.sha;
       var sha_item = sha.substr(0,7);
       if (c.revision.external && c.revision.external.link) {
-        sha_item = <a 
-          className="external" 
-          href={c.revision.external.link} 
+        sha_item = <a
+          className="external"
+          href={c.revision.external.link}
           target="_blank">
           {sha_item}
         </a>;
@@ -205,7 +205,7 @@ var Commits = React.createClass({
         .compact()
         .uniq()
         .value();
-      
+
       if (project_slugs.length === 0) {
         grid_data.push(
           [
@@ -256,14 +256,14 @@ var Commits = React.createClass({
       'Committed'
     ];
 
-    // custom content link for a tool to show whether commits have been 
+    // custom content link for a tool to show whether commits have been
     // pushed to prod
     var is_it_out_markup = null;
 
     var all_project_slugs = _.chain(this.props.commits)
       .pluck('builds')
       .flatten()
-      .map(b => b.project.slug) 
+      .map(b => b.project.slug)
       .compact()
       .uniq()
       .value();
@@ -284,10 +284,10 @@ var Commits = React.createClass({
         <SectionHeader className="inline">{header_text}</SectionHeader>
         {is_it_out_markup}
       </div>
-      <Grid 
+      <Grid
         colnum={5}
-        data={grid_data} 
-        cellClasses={cellClasses} 
+        data={grid_data}
+        cellClasses={cellClasses}
         headers={headers}
       />
     </div>;
@@ -330,7 +330,7 @@ var Projects = React.createClass({
       if (p.lastBuild) {
         // ignore projects over a week old
         // TODO: centralize this logic with all projects page
-        var age = moment.utc().format('X') - 
+        var age = moment.utc().format('X') -
           moment.utc(p.lastBuild.dateCreated).format('X');
         if (age > 60*60*24*7) { // one week
           return null;

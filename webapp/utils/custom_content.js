@@ -12,7 +12,7 @@
 function custom_content_hook(name, default_content, extra_data) {
   default_content = default_content || null;
 
-  var custom_content = window.changesCustomContent && 
+  var custom_content = window.changesCustomContent &&
     window.changesCustomContent[name];
 
   // empty string is a valid return value
@@ -35,7 +35,7 @@ export default custom_content_hook;
  *   functions, or react components. extra_data is only used funcs.
  *
  * Example:
- * 
+ *
  * import React from 'react';
  *
  * var content = {

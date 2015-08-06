@@ -108,7 +108,7 @@ export var Grid = React.createClass({
 
   // verify that we were passed in good data
   verifyData: function() {
-    var data = this.props.data, headers = this.props.headers, 
+    var data = this.props.data, headers = this.props.headers,
       cellClasses = this.props.cellClasses, colnum = this.props.colnum;
 
     // make sure headers/cellClasses have the right length
@@ -172,7 +172,7 @@ export var Grid = React.createClass({
  * Sometimes we want more interesting rows in our table:
  * - A row that spans all columns
  * - TODO: more bullet points
- * 
+ *
  * GridRow can be used in place of the row array above
  */
 export class GridRow {
