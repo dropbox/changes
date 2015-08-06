@@ -21,7 +21,7 @@ var ProjectPage = React.createClass({
 
   getInitialState: function() {
     return {
-      selectedItem: 'Commits', // duplicated in componentDidMount
+      selectedItem: null, // we set this in componentWillMount
       project: null,
       commits: null,
       details: null,
@@ -43,39 +43,43 @@ var ProjectPage = React.createClass({
   ],
 
   componentWillMount: function() {
-    // show the right menu tab if our url contains a hash
+    // if our url contains a hash, show that tab
     var selected_item_from_hash = MenuUtils.selectItemFromHash(
       window.location.hash, this.menuItems);
 
-    if (selected_item_from_hash) {
-      this.setState({ selectedItem: selected_item_from_hash });
-    }
+    this.setState({ selectedItem: selected_item_from_hash || 'Commits' });
 
-    // initialize our pagination object(s). Data fetching still doesn't happen
-    // till componentDidMount.
+    // initialize our pagination objects. Data fetching still doesn't happen
+    // till componentDidMount (either ours or the subcomponent.)
     this.setState({
       buildsControls: DataControls(
         this,
         'buildsControls',
-        BuildsTab.getEndpoint(this.props.projectSlug))
+        BuildsTab.getEndpoint(this.props.projectSlug)),
+
+      commitsControls: DataControls(
+        this,
+        'commitsControls',
+        CommitsTab.getEndpoint(this.props.projectSlug))
     });
   },
 
   componentDidMount: function() {
     var slug = this.props.projectSlug;
 
-    // we grab most everything in parallel now. Its easy enough to later
-    // switch this to trigger on menu click (which the builds tab does now)
+    // grab the initial project data needed to render anything. We also eagerly
+    // grab some data for our tabs so that they load faster
     api.fetch(this, {
       project: `/api/0/projects/${slug}`,
-      commits: CommitsTab.getAPIEndpoint(slug),
       details: DetailsTab.getAPIEndpoint(slug)
     });
+
+    CommitsTab.doDataFetching(this.state.commitsControls);
   },
 
   render: function() {
     if (!api.isLoaded(this.state.project)) {
-      return <APINotLoaded state={this.state.projects} isInline={false} />;
+      return <APINotLoaded state={this.state.project} isInline={false} />;
     }
 
     // render menu
@@ -106,8 +110,7 @@ var ProjectPage = React.createClass({
       case 'Commits':
         content = <CommitsTab
           project={this.state.project}
-          data={this.state.commits}
-          myState={this.state.commitsState}
+          controls={this.state.commitsControls}
           pageElem={this}
         />;
         break;
@@ -163,6 +166,7 @@ var ProjectPage = React.createClass({
       var branches = "branches: " + branches_option.replace(/ /g, ", ");
     }
 
+    // TODO: add tooltip to "certain paths"
     var whitelist_msg = "";
     var whitelist_option = project_info.options["build.file-whitelist"];
     if (whitelist_option) {

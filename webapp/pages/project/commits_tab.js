@@ -3,9 +3,12 @@ import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import DisplayUtils from 'es6!display/changes/utils';
+import { AjaxError } from 'es6!display/errors';
 import { BuildWidget, status_dots } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
 import { TimeText } from 'es6!display/time';
+
+import DataControls from 'es6!pages/helpers/data_controls';
 
 import * as api from 'es6!server/api';
 
@@ -14,120 +17,112 @@ import * as utils from 'es6!utils/utils';
 var CommitsTab = React.createClass({
 
   propTypes: {
-    // the data fetch specified in getAPIEndpoint
-    data: React.PropTypes.object,
-
     // the project api response. Always loaded
     project: React.PropTypes.object,
 
-    // branches api response
-    branches: React.PropTypes.object,
-
-    // state is handled by parent so that its preserved if someone selects
-    // the tests or details tab
-    myState: React.PropTypes.object,
+    // controls
+    controls: React.PropTypes.object,
 
     // parent elem that has state
     pageElem: React.PropTypes.element.isRequired,
   },
 
   getInitialState: function() {
-    // powers on-hover list of failed tests. Easier to just do this rather
-    // than using myState above (it doesn't really matter if this gets wiped
-    // out)
+    // powers on-hover list of failed tests. Its ok for this to get wiped out
+    // every time we switch tabs
     return { failedTests: [] };
   },
 
   statics: {
-    getAPIEndpoint: function(project_slug) {
-      var params = URI(window.location.href).query(true);
+    getEndpoint: function(project_slug) {
       return URI(`/api/0/projects/${project_slug}/commits/`)
-        .query(_.extend(params, { 'all_builds': 1 }))
+        .query({ 'all_builds': 1 })
         .toString();
+    },
+
+    doDataFetching: function(controls, is_selected_tab) {
+      // if the user is loading this tab on a new full page load, use the page url
+      // query params as the api parameters (allows link sharing)
+      var params = is_selected_tab ? DataControls.getParamsFromWindowUrl() : null;
+      params = params || {};
+
+      controls.initialize(params);
     },
   },
 
-  render: function() {
-    var state = this.props.myState;
+  componentDidMount: function() {
+    // if we're revisiting this tab, let's restore the window url to the
+    // current state
+    if (api.isLoaded(this.props.controls.getDataToShow())) {
+      this.props.controls.updateWindowUrl();
+    }
 
-    if (!api.isLoaded(this.props.data)) {
+    // TODO: maybe store this in parent state
+    var repo_id = this.props.project.getReturnedData().repository.id;
+    api.fetch(
+      this,
+      { 'branches': `/api/0/repositories/${repo_id}/branches` }
+    );
+  },
+
+  render: function() {
+    var controls = this.props.controls;
+
+    if (controls.hasNotLoadedInitialData()) {
       return <APINotLoaded
-        state={this.props.data}
+        state={controls.getDataToShow()}
         isInline={true}
       />;
     }
 
-    // we also need a list of repo branches, which we can't fetch on page load
-    // because we don't know the repo id.. Send that ajax call immediately
-    // after we load.
-
-    // TODO: just make the api more flexible...
-    if (!state['sending_branches_ajax_call']) {
-      var repo_id = this.props.project.getReturnedData().repository.id;
-
-      utils.async(__ => {
-        this.props.pageElem.setState(
-          utils.update_key_in_state_dict(
-            'commitsState',
-            'sending_branches_ajax_call',
-            true),
-          ___ => {
-            api.fetchMap(
-              this.props.pageElem,
-              'commitsState',
-              { 'branches': `/api/0/repositories/${repo_id}/branches` }
-            );
-          }
-        );
-      }.bind(this));
+    // we might be in the middle of / failed to load updated data
+    var error_message = null;
+    if (controls.failedToLoadUpdatedData()) {
+      error_message = <AjaxError response={controls.getDataForErrorMessage().response} />;
     }
 
-    var is_loading_new_data = this.isLoadingNewData();
-    var commits = this.getCurrentData();
-    var project_data = this.props.project.getReturnedData();
+    var style = controls.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
-    var style = is_loading_new_data ? {opacity: 0.5} : null;
     return <div style={style}>
       {this.renderTableControls()}
-      {this.renderTable(commits.getReturnedData(), project_data)}
-      {this.renderPaginationLinks(commits)}
+      {error_message}
+      {this.renderTable()}
+      {this.renderPagination()}
     </div>;
   },
 
   renderTableControls: function() {
-    var state = this.props.myState,
-      project = this.props.project.getReturnedData();
+    var default_branch = this.props.project.getReturnedData()
+      .repository.defaultBranch;
+    var current_params = this.props.controls.getCurrentParams();
+    var current_branch = current_params.branch || default_branch;
 
-    var branches = null;
-    if (project.repository.defaultBranch) {
-      var branches = <select disabled={true}>
-        <option value={project.defaultBranch}>{project.defaultBranch}</option>
+    var branch_dropdown = null;
+    if (api.isError(this.state.branches) &&
+        this.state.branches.getStatusCode() === '422') {
+
+      branch_dropdown = <select disabled={true}>
+        <option>No branches</option>
+      </select>;
+    } else if (!api.isLoaded(this.state.branches)) {
+      branch_dropdown = <select disabled={true}>
+        <option value={current_branch}>{current_branch}</option>
       </select>;
     } else {
-      var branches = <select disabled={true}>
-        <option>Unknown branch</option>
-      </select>;
-    }
-
-    if (api.isLoaded(state.branches)) {
-      var selected = this.getNewestQueryParams()['branch'] ||
-        project.repository.defaultBranch;
-
-      var options = _.chain(state.branches.getReturnedData())
+      var options = _.chain(this.state.branches.getReturnedData())
         .pluck('name')
         .sortBy(_.identity)
         .map(n => <option value={n}>{n}</option>)
         .value();
 
       var onChange = evt => {
-        this.updateData({ branch: evt.target.value });
+        this.props.controls.updateWithParams(
+          { branch: evt.target.value },
+          true); // reset to page 0
       };
 
-      branches = <select onChange={onChange} value={selected}>{options}</select>;
-    } else if (api.isError(state.branches) &&
-               state.branches.getStatusCode() === '422') {
-      branches = <select disabled={true}>
-        <option>no branches</option>
+      branch_dropdown = <select onChange={onChange} value={current_branch}>
+        {options}
       </select>;
     }
 
@@ -142,7 +137,7 @@ var CommitsTab = React.createClass({
         placeholder="Search by name or SHA [TODO]"
         style={{minWidth: 170, marginRight: 5}}
       />
-      {branches}
+      {branch_dropdown}
       <label style={{float: 'right', paddingTop: 3}}>
         <span style={/* disabled color */ {color: '#aaa', fontSize: 'small'}}>
           Live update
@@ -157,10 +152,11 @@ var CommitsTab = React.createClass({
     </div>;
   },
 
-  renderTable: function(commits, project_info) {
-    var grid_data = _.map(commits, c =>
-      this.turnIntoRow(c, project_info)
-    );
+  renderTable: function() {
+    var data_to_show = this.props.controls.getDataToShow().getReturnedData(),
+      project_info = this.props.project.getReturnedData();
+
+    var grid_data = _.map(data_to_show, c => this.turnIntoRow(c, project_info));
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
     var headers = ['Last Build', 'Author', 'Commit', 'Name', 'Prev. B.', 'Committed'];
@@ -183,7 +179,7 @@ var CommitsTab = React.createClass({
 
     var title = utils.first_line(c.message);
     if (c.message.indexOf("#skipthequeue") !== -1) {
-      // dropbox-specific logic. 
+      // dropbox-specific logic.
       var tooltip = <Tooltip>
         This commit bypassed the commit queue
       </Tooltip>;
@@ -230,35 +226,7 @@ var CommitsTab = React.createClass({
   },
 
   showFailuresOnHover: function(build, build_widget) {
-    // we want to fetch more build information and show a list of failed
-    // tests on hover
-    var data_fetcher_defn = React.createClass({
-      // ok to use shortcut object syntax for this inner element
-      componentDidMount() {
-        var elem = this.props.elem,
-          build_id = this.props.buildID;
-        if (!elem.state.failedTests[build_id]) {
-          api.fetchMap(elem, 'failedTests', {
-            [ build_id ]: `/api/0/builds/${build_id}/`
-          });
-        }
-      },
-
-      render() {
-        return <span />;
-      }
-    });
-
-    var data_fetcher = React.createElement(
-      data_fetcher_defn,
-      {elem: this, buildID: build.id}
-    );
-
-    var popover = <Popover>
-      {data_fetcher}
-      Loading failed test list
-    </Popover>;
-
+    var popover = null;
     if (api.isLoaded(this.state.failedTests[build.id])) {
       var data = this.state.failedTests[build.id].getReturnedData();
       var list = _.map(data.testFailures.tests, t => {
@@ -280,6 +248,35 @@ var CommitsTab = React.createClass({
         <span className="bb">Failed Tests:</span>
         {list}
       </Popover>;
+    } else {
+      // we want to fetch more build information and show a list of failed
+      // tests on hover. To do this, we'll create an anonymous react element
+      // that does data fetching on mount
+      var data_fetcher_defn = React.createClass({
+        componentDidMount() {
+          var elem = this.props.elem,
+            build_id = this.props.buildID;
+          if (!elem.state.failedTests[build_id]) {
+            api.fetchMap(elem, 'failedTests', {
+              [ build_id ]: `/api/0/builds/${build_id}/`
+            });
+          }
+        },
+
+        render() {
+          return <span />;
+        }
+      });
+
+      var data_fetcher = React.createElement(
+        data_fetcher_defn,
+        {elem: this, buildID: build.id}
+      );
+
+      var popover = <Popover>
+        {data_fetcher}
+        Loading failed test list
+      </Popover>;
     }
 
     return <div>
@@ -292,88 +289,9 @@ var CommitsTab = React.createClass({
     </div>;
   },
 
-  renderPaginationLinks: function(commits) {
-    var hrefs = commits.getLinksFromHeader();
-
-    // the pagination api should return the same endpoint that we're already
-    // using, so we'll just grab the get params
-    var on_click = href => this.updateData(URI(href).query(true));
-
-    var links = [];
-    if (hrefs.previous) {
-      links.push(
-        <a
-          className="marginRightS"
-          href={'#' || hrefs.previous}
-          onClick={on_click.bind(this, hrefs.previous)}>
-          Previous
-        </a>
-      );
-    }
-
-    if (hrefs.next) {
-      links.push(
-        <a
-          className="marginRightS"
-          href={'#' || hrefs.next}
-          onClick={on_click.bind(this, hrefs.next)}>
-          Next
-        </a>
-      );
-    }
-    return <div className="marginBottomL marginTopS">{links}</div>;
-  },
-
-  updateData: function(new_params) {
-    // TODO: straigten this out :(
-    window.history.replaceState(
-      null,
-      'updating commits page',
-      URI(window.location.href).query(_.omit(new_params, ['all_builds'])));
-
-    // note that render() may be called after we've updated oldData but
-    // before we've updated newData
-    this.props.pageElem.setState(utils.update_key_in_state_dict(
-      'commitsState', 'preloadData', this.getCurrentData()));
-
-    var slug = this.props.project.getReturnedData().slug;
-    var href = URI(`/api/0/projects/${slug}/commits/`)
-      .query(_.extend(new_params, { 'all_builds': 1 }))
-      .toString();
-    api.fetchMap(this.props.pageElem, 'commitsState', {newestData: href});
-  },
-
-  hasEverUpdatedData: function() {
-    var state = this.props.myState;
-
-    return state.preloadData !== undefined;
-  },
-
-  isLoadingNewData: function() {
-    var state = this.props.myState;
-
-    return state.newestData !== undefined && !api.isLoaded(state.newestData);
-  },
-
-  getCurrentData: function() {
-    var state = this.props.myState;
-
-    if (state.newestData && api.isLoaded(state.newestData)) {
-      return state.newestData;
-    } else if (this.hasEverUpdatedData()) {
-      return state.preloadData;
-    }
-    return this.props.data;
-  },
-
-  getNewestQueryParams: function() {
-    var state = this.props.myState;
-
-    var endpoint = (state.newestData && state.newestData.endpoint) ||
-      (state.preloadData && state.preloadData.endpoint) ||
-      this.props.data.endpoint;
-
-    return URI(endpoint).query(true);
+  renderPagination: function() {
+    var links = this.props.controls.getPaginationLinks();
+    return <div>{links}</div>;
   },
 });
 

@@ -42,7 +42,7 @@ var HomePage = React.createClass({
     // to show
     if (!api.isLoaded(this.state.commits)) {
       // special rendering for not logged in
-      if (api.isError(this.state.commits) && 
+      if (api.isError(this.state.commits) &&
           this.state.commits.getStatusCode() === '401') {
         return this.renderNotLoggedIn();
       }
