@@ -32,6 +32,18 @@ define(['app'], function(app) {
         if (step.saving === true) {
           return;
         }
+
+        try {
+          JSON.parse(step.data);
+        } catch (e) {
+          var message = "Your configuration doesn't seem to be valid JSON. " +
+            "Are you sure you want to save this?";
+
+          if (!$window.confirm(message)) {
+            return;
+          }
+        }
+
         step.saving = true;
 
         var url;
