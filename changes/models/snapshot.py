@@ -1,6 +1,6 @@
 """LXC snapshot related models.
 
-These are currently only used by Mesos builds.
+These are used by Mesos builds and Jenkins-LXC builds.
 
 See also:
 
@@ -28,11 +28,12 @@ class SnapshotStatus(Enum):
     """Used to track whether a snapshot or an image is ready to be used.
 
     State transitions that should be allowed:
-    unknown -> anything
-    pending -> failed, active
-    active -> invalidated
 
-    failed and inactivate are terminal states.
+      unknown -> anything
+      pending -> failed, active
+      active -> invalidated
+
+    'failed' and 'invalidated' are terminal states.
     """
     # Unknown status (default, but should not normally be used as a status)
     unknown = 0
@@ -67,18 +68,20 @@ STATUS_LABELS = {
 
 class Snapshot(db.Model):
     """
-    A snapshot is a set of LXC container images (one for each plan in a project).
+    A snapshot is a set of LXC container images (up to one for each plan in a project).
 
     Each project can have an arbitrary number of snapshots, but only up
     to one "current snapshot" is actually used by builds (stored as
     ProjectOption) at any time.
 
-    Currently, snapshots are only used in the Mesos environment.
+    Snapshots are used in the Mesos and Jenkins-LXC environments.
+    Snapshots are currently only used with changes-client.
 
     When running a build, the images of the current snapshot are used
-    for individual jobs that are part of a build.  There is currently no
-    way to share a snapshot image between multiple plans.  There is
-    always a separate image for each plan of a build.
+    for individual jobs that are part of a build.  A snapshot image
+    can be shared between multiple plans by setting snapshot_plan_id
+    of a Plan.  By default, there is a separate image for each plan
+    of a build.
 
     The status of a snapshot indicates whether it *can* be used for
     builds; it doesn't indicate whether the snapshot is actually used
@@ -136,8 +139,8 @@ class SnapshotImage(db.Model):
     An image is bound to a (snapshot, plan) and represents the low level base
     image that a snapshottable-job should be based on.
 
-    Note that a project with multiple plans will have multiple, independent
-    images per snapshot, as images aren't shared between plans.
+    Note that a project with multiple plans may have multiple, independent
+    images per snapshot, as images aren't always shared between plans.
     """
 
     __tablename__ = 'snapshot_image'

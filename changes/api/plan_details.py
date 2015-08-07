@@ -42,6 +42,10 @@ class PlanDetailsAPIView(APIView):
             plan.status = PlanStatus[args.status]
 
         if args.snapshot_plan_id:
+            # Use snapshot from another plan to allow sharing snapshots.
+            #
+            # TODO(jukka): Verify that the plans belong to the same project.
+            #   We can't share plans between projects.
             plan.snapshot_plan_id = uuid.UUID(hex=args.snapshot_plan_id)
 
         db.session.commit()

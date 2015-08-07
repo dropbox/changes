@@ -42,6 +42,12 @@ class Plan(db.Model):
     status = Column(EnumType(PlanStatus),
                     default=PlanStatus.inactive,
                     nullable=False, server_default='1')
+    # If not None, use snapshot from another plan. This allows us to share
+    # a single snapshot between multiple plans.
+    #
+    # This plan must be a plan from the same project (or else jobstep_details
+    # will fail) but this is not enforced by the database schema because we do
+    # not use a composite key.
     snapshot_plan_id = Column(GUID, ForeignKey('plan.id', ondelete="SET NULL"), nullable=True)
     avg_build_time = Column(Integer)
 
