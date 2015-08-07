@@ -459,6 +459,7 @@ def configure_api_routes(app):
     from changes.api.jobstep_details import JobStepDetailsAPIView
     from changes.api.jobstep_heartbeat import JobStepHeartbeatAPIView
     from changes.api.jobstep_log_append import JobStepLogAppendAPIView
+    from changes.api.kick_sync_repo import KickSyncRepoAPIView
     from changes.api.log_client_perf import LogClientPerfAPIView
     from changes.api.node_details import NodeDetailsAPIView
     from changes.api.node_index import NodeIndexAPIView
@@ -540,6 +541,7 @@ def configure_api_routes(app):
     api.add_resource(JobStepDeallocateAPIView, '/jobsteps/<uuid:step_id>/deallocate/')
     api.add_resource(JobStepHeartbeatAPIView, '/jobsteps/<uuid:step_id>/heartbeat/')
     api.add_resource(JobStepLogAppendAPIView, '/jobsteps/<uuid:step_id>/logappend/')
+    api.add_resource(KickSyncRepoAPIView, '/kick_sync_repo/')
     api.add_resource(LogClientPerfAPIView, '/perf/')
     api.add_resource(ChangeIndexAPIView, '/changes/')
     api.add_resource(ChangeDetailsAPIView, '/changes/<uuid:change_id>/')
