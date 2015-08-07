@@ -1,11 +1,11 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.api.serializer.models.user import get_gravatar_url
 from changes.models.author import Author
 
 
 @register(Author)
-class AuthorSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class AuthorCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'name': instance.name,

@@ -1,10 +1,10 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import Task
 
 
 @register(Task)
-class TaskSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class TaskCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         if instance.data:
             args = instance.data.get('kwargs') or {}
         else:

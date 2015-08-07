@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
+from changes.api.serializer.models.testcase import TestCaseWithOriginCrumbler
 from changes.constants import Result
 from changes.models import Job, TestCase, LogSource
 from changes.utils.originfinder import find_failure_origins
@@ -31,7 +31,7 @@ class JobDetailsAPIView(APIView):
                 test_failure.origin = failure_origins.get(test_failure)
 
         extended_serializers = {
-            TestCase: TestCaseWithOriginSerializer(),
+            TestCase: TestCaseWithOriginCrumbler(),
         }
 
         log_sources = list(LogSource.query.options(

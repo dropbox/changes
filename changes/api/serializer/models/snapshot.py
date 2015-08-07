@@ -3,14 +3,14 @@ from __future__ import absolute_import
 from collections import defaultdict
 from sqlalchemy.orm import joinedload
 
-from changes.api.serializer import Serializer, register, serialize
+from changes.api.serializer import Crumbler, register, serialize
 from changes.config import db
 from changes.models import Build, ProjectOption, Snapshot, SnapshotImage
 
 
 @register(Snapshot)
-class SnapshotSerializer(Serializer):
-    def get_attrs(self, item_list):
+class SnapshotCrumbler(Crumbler):
+    def get_extra_attrs_from_db(self, item_list):
         image_list = sorted(SnapshotImage.query.options(
             joinedload('plan'),
         ).filter(
@@ -50,7 +50,7 @@ class SnapshotSerializer(Serializer):
 
         return result
 
-    def serialize(self, instance, attrs):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'project': {

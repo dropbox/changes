@@ -1,10 +1,10 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import AdminMessage
 
 
 @register(AdminMessage)
-class AdminMessageSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class AdminMessageCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'user': instance.user,

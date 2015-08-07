@@ -1,7 +1,7 @@
 from hashlib import md5
 from urllib import urlencode
 
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import User
 
 
@@ -21,8 +21,8 @@ def get_gravatar_url(email, size=None, default='mm'):
 
 
 @register(User)
-class UserSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class UserCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'isAdmin': instance.is_admin,

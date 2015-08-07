@@ -1,11 +1,11 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models.project import Project
 from changes.utils.http import build_uri
 
 
 @register(Project)
-class ProjectSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class ProjectCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'slug': instance.slug,

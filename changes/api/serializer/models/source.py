@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import Source
 
 
 @register(Source)
-class SourceSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class SourceCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         if instance.patch_id:
             if instance.data.get('phabricator.revisionURL'):
                 external = {

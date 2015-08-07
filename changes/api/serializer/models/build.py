@@ -1,11 +1,11 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import Build, ItemStat
 from changes.utils.http import build_uri
 
 
 @register(Build)
-class BuildSerializer(Serializer):
-    def get_attrs(self, item_list):
+class BuildCrumbler(Crumbler):
+    def get_extra_attrs_from_db(self, item_list):
         stat_list = ItemStat.query.filter(
             ItemStat.item_id.in_(r.id for r in item_list),
         )
@@ -20,7 +20,7 @@ class BuildSerializer(Serializer):
 
         return result
 
-    def serialize(self, item, attrs):
+    def crumble(self, item, attrs):
         if item.project_id:
             avg_build_time = item.project.avg_build_time
         else:

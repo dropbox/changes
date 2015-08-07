@@ -1,10 +1,10 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import Event
 
 
 @register(Event)
-class EventSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class EventCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'type': instance.type,

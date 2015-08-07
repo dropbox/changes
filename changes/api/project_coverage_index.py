@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
-from changes.api.serializer import Serializer
+from changes.api.serializer import Crumbler
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import Build, Job, FileCoverage, Project, Source
@@ -15,8 +15,8 @@ SORT_CHOICES = (
 )
 
 
-class GeneralizedFileCoverage(Serializer):
-    def serialize(self, instance, attrs):
+class GeneralizedFileCoverage(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'filename': instance.filename,
             'linesCovered': instance.lines_covered,

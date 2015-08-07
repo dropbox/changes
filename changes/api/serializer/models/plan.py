@@ -1,12 +1,12 @@
 import json
 
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import HistoricalImmutableStep, ItemOption, Plan, Step
 
 
 @register(Plan)
-class PlanSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class PlanCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'project_id': instance.project_id,
@@ -19,8 +19,8 @@ class PlanSerializer(Serializer):
 
 
 @register(Step)
-class StepSerializer(Serializer):
-    def get_attrs(self, item_list):
+class StepCrumbler(Crumbler):
+    def get_extra_attrs_from_db(self, item_list):
         option_list = ItemOption.query.filter(
             ItemOption.item_id.in_(r.id for r in item_list),
         )
@@ -35,7 +35,7 @@ class StepSerializer(Serializer):
 
         return result
 
-    def serialize(self, instance, attrs):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'implementation': instance.implementation,
@@ -50,8 +50,8 @@ class StepSerializer(Serializer):
 
 
 @register(HistoricalImmutableStep)
-class HistoricalImmutableStepSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class HistoricalImmutableStepCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         implementation = instance.get_implementation()
 
         return {

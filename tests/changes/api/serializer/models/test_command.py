@@ -6,7 +6,7 @@ from changes.models import Command
 from changes.testutils import TestCase
 
 
-class CommandSerializerTest(TestCase):
+class CommandCrumblerTest(TestCase):
     def test_simple(self):
         project = self.create_project()
         build = self.create_build(project)

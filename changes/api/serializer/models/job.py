@@ -1,12 +1,12 @@
 from sqlalchemy.orm import joinedload
 
-from changes.api.serializer import Serializer, register, serialize
+from changes.api.serializer import Crumbler, register, serialize
 from changes.models import Build, ItemStat, Job
 
 
 @register(Job)
-class JobSerializer(Serializer):
-    def get_attrs(self, item_list):
+class JobCrumbler(Crumbler):
+    def get_extra_attrs_from_db(self, item_list):
         stat_list = ItemStat.query.filter(
             ItemStat.item_id.in_(r.id for r in item_list),
         )
@@ -21,7 +21,7 @@ class JobSerializer(Serializer):
 
         return result
 
-    def serialize(self, instance, attrs):
+    def crumble(self, instance, attrs):
         if instance.project_id:
             avg_build_time = instance.project.avg_build_time
         else:
@@ -58,9 +58,9 @@ class JobSerializer(Serializer):
         return data
 
 
-class JobWithBuildSerializer(JobSerializer):
-    def get_attrs(self, item_list):
-        result = super(JobWithBuildSerializer, self).get_attrs(item_list)
+class JobWithBuildCrumbler(JobCrumbler):
+    def get_extra_attrs_from_db(self, item_list):
+        result = super(JobWithBuildCrumbler, self).get_extra_attrs_from_db(item_list)
 
         build_list = list(Build.query.options(
             joinedload('project'),
@@ -78,8 +78,8 @@ class JobWithBuildSerializer(JobSerializer):
 
         return result
 
-    def serialize(self, instance, attrs):
-        data = super(JobWithBuildSerializer, self).serialize(instance, attrs)
+    def crumble(self, instance, attrs):
+        data = super(JobWithBuildCrumbler, self).crumble(instance, attrs)
         # TODO(dcramer): this is O(N) queries due to the attach helpers
         data['build'] = attrs['build']
         return data

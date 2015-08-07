@@ -1,10 +1,10 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models.test import TestCase
 
 
 @register(TestCase)
-class TestCaseSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class TestCaseCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'hash': instance.name_sha,
@@ -20,22 +20,22 @@ class TestCaseSerializer(Serializer):
         }
 
 
-class TestCaseWithJobSerializer(TestCaseSerializer):
-    def serialize(self, instance, attrs):
-        data = super(TestCaseWithJobSerializer, self).serialize(instance, attrs)
+class TestCaseWithJobCrumbler(TestCaseCrumbler):
+    def crumble(self, instance, attrs):
+        data = super(TestCaseWithJobCrumbler, self).crumble(instance, attrs)
         data['job'] = instance.job
         return data
 
 
-class TestCaseWithOriginSerializer(TestCaseSerializer):
-    def serialize(self, instance, attrs):
-        data = super(TestCaseWithOriginSerializer, self).serialize(instance, attrs)
+class TestCaseWithOriginCrumbler(TestCaseCrumbler):
+    def crumble(self, instance, attrs):
+        data = super(TestCaseWithOriginCrumbler, self).crumble(instance, attrs)
         data['origin'] = getattr(instance, 'origin', None)
         return data
 
 
-class GeneralizedTestCase(Serializer):
-    def serialize(self, instance, attrs):
+class GeneralizedTestCase(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'hash': instance.name_sha,
             'project': {'id': instance.project_id.hex},

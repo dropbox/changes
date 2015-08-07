@@ -2,14 +2,14 @@ from __future__ import absolute_import
 
 from flask import current_app
 
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.config import db
 from changes.models import ItemOption, Revision
 
 
 @register(Revision)
-class RevisionSerializer(Serializer):
-    def get_attrs(self, item_list):
+class RevisionCrumbler(Crumbler):
+    def get_extra_attrs_from_db(self, item_list):
         repo_ids = set(i.repository_id for i in item_list)
 
         callsigns = dict(db.session.query(
@@ -26,7 +26,7 @@ class RevisionSerializer(Serializer):
 
         return result
 
-    def serialize(self, instance, attrs):
+    def crumble(self, instance, attrs):
         callsign = attrs['phabricator.callsign']
         if callsign and current_app.config['PHABRICATOR_HOST']:
             label = 'r{}{}'.format(callsign, instance.sha[:12])

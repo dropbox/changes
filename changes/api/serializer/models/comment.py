@@ -1,10 +1,10 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import Comment
 
 
 @register(Comment)
-class CommentSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class CommentCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'user': instance.user,

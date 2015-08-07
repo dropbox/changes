@@ -2,13 +2,13 @@ from datetime import datetime
 
 from changes.api.serializer import serialize
 from changes.api.serializer.models.testcase import (
-    TestCaseWithJobSerializer, TestCaseWithOriginSerializer, GeneralizedTestCase
+    TestCaseWithJobCrumbler, TestCaseWithOriginCrumbler, GeneralizedTestCase
 )
 from changes.constants import Result
 from changes.testutils import TestCase
 
 
-class TestCaseSerializerTestCase(TestCase):
+class TestCaseCrumblerTestCase(TestCase):
     def test_simple(self):
         project = self.create_project()
         build = self.create_build(project=project)
@@ -65,7 +65,7 @@ class TestCaseSerializerTestCase(TestCase):
         assert result['package'] is None
 
 
-class TestCaseWithJobSerializerTestCase(TestCase):
+class TestCaseWithJobCrumblerTestCase(TestCase):
     def test_simple(self):
         from changes.models import TestCase
 
@@ -75,11 +75,11 @@ class TestCaseWithJobSerializerTestCase(TestCase):
         testcase = self.create_test(
             job=job,
         )
-        result = serialize(testcase, {TestCase: TestCaseWithJobSerializer()})
+        result = serialize(testcase, {TestCase: TestCaseWithJobCrumbler()})
         assert result['job']['id'] == str(job.id.hex)
 
 
-class TestCaseWithOriginSerializerTestCase(TestCase):
+class TestCaseWithOriginCrumblerTestCase(TestCase):
     def test_simple(self):
         from changes.models import TestCase
 
@@ -90,15 +90,15 @@ class TestCaseWithOriginSerializerTestCase(TestCase):
             job=job,
         )
 
-        result = serialize(testcase, {TestCase: TestCaseWithOriginSerializer()})
+        result = serialize(testcase, {TestCase: TestCaseWithOriginCrumbler()})
         assert result['origin'] is None
 
         testcase.origin = 'foobar'
-        result = serialize(testcase, {TestCase: TestCaseWithOriginSerializer()})
+        result = serialize(testcase, {TestCase: TestCaseWithOriginCrumbler()})
         assert result['origin'] == 'foobar'
 
 
-class GeneralizedTestCaseSerializerTestCase(TestCase):
+class GeneralizedTestCaseCrumblerTestCase(TestCase):
     def test_simple(self):
         from changes.models import TestCase
 

@@ -1,10 +1,10 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.models import JobStep
 
 
 @register(JobStep)
-class JobStepSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class JobStepCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id.hex,
             'name': instance.label,

@@ -1,10 +1,10 @@
-from changes.api.serializer import Serializer, register
+from changes.api.serializer import Crumbler, register
 from changes.vcs.base import RevisionResult
 
 
 @register(RevisionResult)
-class RevisionSerializer(Serializer):
-    def serialize(self, instance, attrs):
+class RevisionCrumbler(Crumbler):
+    def crumble(self, instance, attrs):
         return {
             'id': instance.id,
             'sha': instance.id,  # Having both id and sha is a bit distasteful. We should try to fix this.

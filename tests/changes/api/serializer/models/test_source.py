@@ -6,7 +6,7 @@ from changes.models import Source
 from changes.testutils import TestCase
 
 
-class SourceSerializerTest(TestCase):
+class SourceCrumblerTest(TestCase):
     def test_simple(self):
         repo = self.create_repo()
         revision = self.create_revision(repository=repo)

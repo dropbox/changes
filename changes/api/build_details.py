@@ -7,7 +7,7 @@ from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
 from uuid import UUID
 
 from changes.api.base import APIView
-from changes.api.serializer.models.testcase import TestCaseWithOriginSerializer
+from changes.api.serializer.models.testcase import TestCaseWithOriginCrumbler
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
@@ -224,7 +224,7 @@ class BuildDetailsAPIView(APIView):
         ))
 
         extended_serializers = {
-            TestCase: TestCaseWithOriginSerializer(),
+            TestCase: TestCaseWithOriginCrumbler(),
         }
 
         event_list = list(Event.query.filter(
