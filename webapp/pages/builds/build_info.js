@@ -213,6 +213,18 @@ var SingleBuild = React.createClass({
       }
     }
 
+    // TODO: see all
+    var more_markup = null;
+    if (build.testFailures.total > build.testFailures.tests.length) {
+      more_markup = <div className="lt-darkgray marginTopM">
+        Only showing 
+        {" "}{build.testFailures.tests.length}{" "}
+        out of 
+        {" "}{build.testFailures.total}{" "}
+        failed tests.
+      </div>
+    }
+
     return <div className="marginTopL">
       <div>
         <SectionHeader className="inlineBlock">Failed Tests</SectionHeader>
@@ -225,6 +237,7 @@ var SingleBuild = React.createClass({
         data={rows}
         headers={['Name', 'Links']}
       />
+      {more_markup}
     </div>;
   },
 

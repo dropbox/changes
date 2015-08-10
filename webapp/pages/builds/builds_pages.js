@@ -127,6 +127,7 @@ var BuildsPage = React.createClass({
   render: function() {
     var content_style = {
       marginLeft: 300,
+      paddingRight: 10
     };
 
     this.updateWindowUrl();

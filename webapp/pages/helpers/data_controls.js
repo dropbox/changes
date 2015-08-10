@@ -31,7 +31,7 @@ import * as utils from 'es6!utils/utils';
  *   current data, then use that to render what state your controls are in.
  *   When someone changes your controls, call updateWithParams with the
  *   query parameters you want to change.
- * - renderPaginationLinks renders pagination links.
+ * - getPaginationLinks returns a list of pagination links (at most 2)
  * - updateWindowUrl will update the current window href with the current
  *   controls state. Use this if, say, you have multiple tabs and you need to
  *   refresh the url every time you switch tabs.
@@ -50,8 +50,8 @@ var DataControls = function(elem, elem_state_key, base_api_uri) {
     // for search support, we can make this a function on params.
     baseAPIUri: base_api_uri,
 
-    // we make sure to only run kickoff once to fetch the initial data
-    hasRunKickoff: false,
+    // we make sure to only run iniitialize once to fetch the initial data
+    hasRunInit: false,
 
     // The data we show to the user
     currentParams: undefined,
@@ -80,7 +80,7 @@ var DataControlsPrototype = {
    * or be lazier about when to fetch the data. Will only run at most once
    */
   initialize(initial_params) {
-    if (this.hasRunKickoff) {
+    if (this.hasRunInit) {
       return;
     }
 
@@ -88,7 +88,7 @@ var DataControlsPrototype = {
       utils.update_state_dict(
         this.elemStateKey,
         {
-          'hasRunKickoff': true,
+          'hasRunInit': true,
           'currentParams': initial_params || {}
         }
       ),
@@ -102,6 +102,10 @@ var DataControlsPrototype = {
         );
       }
     );
+  },
+
+  hasRunInitialize() {
+    return this.hasRunInit;
   },
 
   /*

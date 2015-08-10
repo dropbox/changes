@@ -47,7 +47,11 @@ var ProjectPage = React.createClass({
     var selected_item_from_hash = MenuUtils.selectItemFromHash(
       window.location.hash, this.menuItems);
 
-    this.setState({ selectedItem: selected_item_from_hash || 'Commits' });
+    // when we first came to this page, which tab was shown? Used to do the
+    // initial data fetching within tabs
+    this.initialTab = selected_item_from_hash || 'Commits';
+
+    this.setState({ selectedItem: this.initialTab });
 
     // initialize our pagination objects. Data fetching still doesn't happen
     // till componentDidMount (either ours or the subcomponent.)
@@ -71,10 +75,7 @@ var ProjectPage = React.createClass({
     // grab some data for our tabs so that they load faster
     api.fetch(this, {
       project: `/api/0/projects/${slug}`,
-      details: DetailsTab.getAPIEndpoint(slug)
     });
-
-    CommitsTab.doDataFetching(this.state.commitsControls);
   },
 
   render: function() {
@@ -111,6 +112,7 @@ var ProjectPage = React.createClass({
         content = <CommitsTab
           project={this.state.project}
           controls={this.state.commitsControls}
+          isInitialTab={this.initialTab === 'Commits'}
           pageElem={this}
         />;
         break;
@@ -118,6 +120,7 @@ var ProjectPage = React.createClass({
         content = <BuildsTab
           project={this.state.project}
           controls={this.state.buildsControls}
+          isInitialTab={this.initialTab === 'Builds'}
           pageElem={this}
         />;
         break;
@@ -127,7 +130,8 @@ var ProjectPage = React.createClass({
       case 'Project Details':
         content = <DetailsTab
           project={this.state.project}
-          data={this.state.details}
+          details={this.state.details}
+          pageElem={this}
         />;
         break;
       default:

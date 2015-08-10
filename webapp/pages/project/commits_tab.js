@@ -38,19 +38,21 @@ var CommitsTab = React.createClass({
       return URI(`/api/0/projects/${project_slug}/commits/`)
         .query({ 'all_builds': 1 })
         .toString();
-    },
-
-    doDataFetching: function(controls, is_selected_tab) {
-      // if the user is loading this tab on a new full page load, use the page url
-      // query params as the api parameters (allows link sharing)
-      var params = is_selected_tab ? DataControls.getParamsFromWindowUrl() : null;
-      params = params || {};
-
-      controls.initialize(params);
-    },
+    }
   },
 
   componentDidMount: function() {
+    if (!this.props.controls.hasRunInitialize()) {
+      var params = this.props.isInitialTab ? DataControls.getParamsFromWindowUrl() : null;
+      params = params || {};
+      if (!params['branch']) {
+        params['branch'] = this.props.project.getReturnedData()
+          .repository.defaultBranch;
+      }
+
+      this.props.controls.initialize(params || {});
+    }
+
     // if we're revisiting this tab, let's restore the window url to the
     // current state
     if (api.isLoaded(this.props.controls.getDataToShow())) {
@@ -92,6 +94,9 @@ var CommitsTab = React.createClass({
   },
 
   renderTableControls: function() {
+    // TODO: don't do default branch logic here, since we might be showing all
+    // branches. If there's no branch, add a blank option to select
+
     var default_branch = this.props.project.getReturnedData()
       .repository.defaultBranch;
     var current_params = this.props.controls.getCurrentParams();
@@ -159,7 +164,14 @@ var CommitsTab = React.createClass({
     var grid_data = _.map(data_to_show, c => this.turnIntoRow(c, project_info));
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
-    var headers = ['Last Build', 'Author', 'Commit', 'Name', 'Prev. B.', 'Committed'];
+    var headers = [
+      'Last Build', 
+      'Author', 
+      'Commit', 
+      'Name', 
+      'Prev. B.', 
+      'Committed'
+    ];
 
     return <Grid
       colnum={6}
@@ -172,7 +184,7 @@ var CommitsTab = React.createClass({
   turnIntoRow: function(c, project_info) {
     var sha_item = c.sha.substr(0,7);
     if (c.external && c.external.link) {
-      sha_item = <a classname="external" href={c.external.link} target="_blank">
+      sha_item = <a className="external" href={c.external.link} target="_blank">
         {sha_item}
       </a>;
     }
@@ -291,7 +303,7 @@ var CommitsTab = React.createClass({
 
   renderPagination: function() {
     var links = this.props.controls.getPaginationLinks();
-    return <div>{links}</div>;
+    return <div className="marginBottomM marginTopM">{links}</div>;
   },
 });
 

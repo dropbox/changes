@@ -36,7 +36,12 @@ var BuildsTab = React.createClass({
   },
 
   componentDidMount: function() {
-    this.props.controls.initialize(DataControls.getParamsFromWindowUrl());
+    if (!this.props.controls.hasRunInitialize()) {
+      var params = this.props.isInitialTab ? DataControls.getParamsFromWindowUrl() : null;
+      params = params || {};
+
+      this.props.controls.initialize(params || {});
+    }
 
     // if this table has data to render, let's make sure the window url is
     // correct
@@ -154,6 +159,7 @@ var BuildsTab = React.createClass({
     var onclick = item => this.props.controls.updateWithParams(params_for_items[item], true);
 
     return <Menu1
+      className="marginBottomS"
       items={items}
       selectedItem={selected_item}
       onClick={onclick}
@@ -162,7 +168,7 @@ var BuildsTab = React.createClass({
 
   renderPagination: function(commits) {
     var links = this.props.controls.getPaginationLinks();
-    return <div>{links}</div>;
+    return <div className="marginTopM marginBottomM">{links}</div>;
   },
 });
 

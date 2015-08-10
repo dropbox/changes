@@ -4,10 +4,13 @@ import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 
-/*
- * A bunch of useful functions to render things like SHAs, author names, etc.
- * These are small enough that I just dumped them all in a utils class rather than
- * making individual tags for each.
+/* A variety of changes-specific functions:
+ * 1. Some formatters, e.g. creating a shorter name from a repository url
+ * 
+ * 2. Things that seemed too small to be worth making into tags, e.g. taking an
+ * author object and rendering a link for their username
+ *
+ * 3. TODO: links to other pages
  */
 var DisplayUtils = {
 

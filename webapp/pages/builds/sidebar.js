@@ -177,9 +177,18 @@ var Sidebar = React.createClass({
 
       var failed = null;
       if (build_state === 'failed' || build_state === 'nothing') {
-        failed = <div className="lt-red" style={{marginTop: 3}}>
-          {b.stats.test_failures} tests failed
-        </div>
+        if (b.stats.test_failures === 0) {
+          failed = <div className="lt-red" style={{marginTop: 3}}>
+            Failed
+          </div>;
+        } else {
+          var text = b.stats.test_failures === 1 ? 'test failed' : 
+            'tests failed';
+
+          failed = <div className="lt-red" style={{marginTop: 3}}>
+            {b.stats.test_failures}{" "}{text}
+          </div>;
+        }
       }
 
       return <div className={classes} onClick={on_click(b.id)}>
@@ -188,7 +197,8 @@ var Sidebar = React.createClass({
         <div className="subText">
           Triggered by {get_build_cause(b)}
           {", "}
-          {b.stats.test_count} tests
+          {b.stats.test_count}
+          {b.stats.test_count === 1 ? " test run" : " tests run"}
         </div>
         {failed}
       </div>

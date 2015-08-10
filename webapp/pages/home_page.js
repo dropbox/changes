@@ -383,7 +383,6 @@ var Projects = React.createClass({
         Projects that haven{"'"}t run a build in the last week
         are hidden.{" "}
         <a href="/v2/projects/">See all</a>
-        {"."}
       </div>
     </div>;
   }

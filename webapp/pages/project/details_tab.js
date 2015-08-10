@@ -9,24 +9,25 @@ import * as utils from 'es6!utils/utils';
 var DetailsTab = React.createClass({
 
   propTypes: {
-    // the API response from getAPIEndpoint below
-    data: React.PropTypes.object,
+    // the API response from the fetch below
+    details: React.PropTypes.object,
     // the project api response
     project: React.PropTypes.object,
   },
 
-  statics: {
-    getAPIEndpoint: function(project_slug) {
-      return `/api/0/projects/${project_slug}/plans/`;
-    }
+  componentDidMount: function() {
+    var slug = this.props.project.getReturnedData().slug;
+    api.fetch(this.props.pageElem, {
+      details: `/api/0/projects/${slug}/plans/`
+    });
   },
 
   render: function() {
-    if (!api.isLoaded(this.props.data)) {
-      return <APINotLoaded state={this.props.data} />;
+    if (!api.isLoaded(this.props.details)) {
+      return <APINotLoaded state={this.props.details} />;
     }
 
-    var plans = this.props.data.getReturnedData();
+    var plans = this.props.details.getReturnedData();
     var project = this.props.project.getReturnedData();
 
     var markup = _.map(plans, p =>
@@ -41,7 +42,7 @@ var DetailsTab = React.createClass({
           <td> </td>
         </tr>
         </table>
-        <pre className="commitMsg">
+        <pre className="yellowPre">
           {!_.isEmpty(p.steps) && p.steps[0].data}
         </pre>
       </div>
