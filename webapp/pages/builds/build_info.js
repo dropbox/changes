@@ -263,7 +263,7 @@ var SingleBuild = React.createClass({
     var phases_rows = _.map(phases[job.id], (phase, index) => {
       // what the server calls a jobstep is better named as shard
       return _.map(phase.steps, (shard, index) => {
-        var shard_state = get_runnable_state(shard.status.id, shard.result.id);
+        var shard_state = get_runnable_state(shard);
         var shard_duration = 'Running';
         if (shard_state !== 'waiting') {
           shard_duration = shard.duration ?

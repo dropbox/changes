@@ -4,7 +4,7 @@ import moment from 'moment';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
 import SectionHeader from 'es6!display/section_header';
-import { BuildWidget, status_dots_for_diff, get_build_state } from 'es6!display/changes/builds';
+import { BuildWidget, status_dots_for_diff, get_runnable_state } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
 import { TimeText } from 'es6!display/time';
 
@@ -56,7 +56,7 @@ var HomePage = React.createClass({
     if (this.props.author) {
       // hack to use homepage as user page
       // TODO: not this
-      var author_info = commits[0].builds[0].author;
+      var author_info = this.state.commits.getReturnedData()[0].builds[0].author;
       header_markup = <div style={{paddingBottom: 10}}>
         User page for {author_info.name}. Right now its just a crappy copy
         of the home page...I{"'"}ll improve this soon.
@@ -113,6 +113,10 @@ var Diffs = React.createClass({
     isSelf: React.PropTypes.bool
   },
 
+  getInitialState: function() {
+    return {};
+  },
+
   render: function() {
     if (!api.isLoaded(this.props.diffs)) {
       return <APINotLoaded state={this.props.diffs} isInline={true} />;
@@ -122,12 +126,17 @@ var Diffs = React.createClass({
 
     var grid_data = _.map(diffs, d => {
       var ident = "D" + d.id;
-      var builds_href = `/v2/diff/${ident}/`;
 
       var latest_builds = null;
       if (d.builds.length > 0) {
         // TODO: nit, but if there are no builds, let's render an invisible
         // clickable widget
+
+        // TODO: link to a summary of builds page
+        var builds_href = URI(`/v2/diff/${ident}/`)
+          .search({buildID: _.last(d.builds).id})
+          .toString();
+
         latest_builds = <a className="diffBuildsWidget" href={builds_href}>
           {status_dots_for_diff(d.builds)}
         </a>;
@@ -173,6 +182,10 @@ var Commits = React.createClass({
 
     // isSelf = false when we're using this page as a makeshift user page
     isSelf: React.PropTypes.bool
+  },
+
+  getInitialState: function() {
+    return {};
   },
 
   render: function() {
@@ -229,7 +242,7 @@ var Commits = React.createClass({
 
         var project = last_build.project;
 
-        var widget = <BuildWidget build={last_build} />;
+        var widget = <BuildWidget build={last_build} parentElem={this} />;
 
         var project_href = "/v2/project/" + slug;
         var project_link = <a href={project_href}>
@@ -339,7 +352,7 @@ var Projects = React.createClass({
         if (age > 60*60*24*7) { // one week
           return null;
         }
-        switch (get_build_state(p.lastBuild)) {
+        switch (get_runnable_state(p.lastBuild)) {
           case 'passed':
             color_cls = 'lt-green';
             break;

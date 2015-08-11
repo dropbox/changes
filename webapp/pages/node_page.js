@@ -47,7 +47,7 @@ var NodePage = React.createClass({
     var grid_data = _.map(this.state.nodeJobs.getReturnedData(), d => {
       var project_href = "/v2/project/" + d.project.slug;
       return [
-        <BuildWidget build={d.build}/>,
+        <BuildWidget build={d.build} parentElem={this} />,
         d.build.source.id.substr(0, 7),
         <a href={project_href}>{d.project.name}</a>,
         d.build.name,

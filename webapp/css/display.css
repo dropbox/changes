@@ -257,7 +257,7 @@ tr.gridHeader {
   font-weight: 900;
 }
 
-.popoverNoMaxWidth {
+div.popover {
   max-width: none;
 }
 

@@ -117,10 +117,9 @@ export var update_key_in_state_dict = function(map_key, key, value) {
 // as above, but updates multiple keys
 export var update_state_dict = function(map_key, updates) {
   return (prev_state, current_props) => {
-    var old_map = _.create(
-      Object.getPrototypeOf(prev_state[map_key]),
-      prev_state[map_key]);
-    old_map = _.extend(old_map, updates);
+    var prev_obj = prev_state[map_key] || {};
+    var old_map = _.create(Object.getPrototypeOf(prev_obj), {});
+    old_map = _.extendOwn(old_map, prev_obj, updates);
     return {
       [ map_key ]: old_map
     };

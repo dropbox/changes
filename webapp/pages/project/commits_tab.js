@@ -1,5 +1,5 @@
 import React from 'react';
-import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
+import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import DisplayUtils from 'es6!display/changes/utils';
@@ -207,23 +207,12 @@ var CommitsTab = React.createClass({
     var build_widget = null, prev_builds = null;
     if (c.builds && c.builds.length > 0) {
       var last_build = _.first(c.builds);
-      build_widget = <BuildWidget build={last_build} />;
+      build_widget = <BuildWidget build={last_build} parentElem={this} />;
       if (c.builds.length > 1) {
         prev_builds = <span style={{opacity: "0.5"}}>
           {status_dots(c.builds.slice(1))}
         </span>;
       }
-
-      if (last_build.stats['test_failures'] > 0) {
-        build_widget = this.showFailuresOnHover(last_build, build_widget);
-      }
-    }
-
-    var commit_page = null;
-    if (c.builds && c.builds.length > 0) {
-      var commit_page = '/v2/project_commit/' +
-        project_info.slug + '/' +
-        c.builds[0].source.id;
     }
 
     // TODO: if there are any comments, show a comment icon on the right
@@ -235,70 +224,6 @@ var CommitsTab = React.createClass({
       prev_builds,
       <TimeText time={c.dateCommitted} />
     ];
-  },
-
-  showFailuresOnHover: function(build, build_widget) {
-    var popover = null;
-    if (api.isLoaded(this.state.failedTests[build.id])) {
-      var data = this.state.failedTests[build.id].getReturnedData();
-      var list = _.map(data.testFailures.tests, t => {
-        return <div>{_.last(t.name.split("."))}</div>;
-      });
-      if (data.testFailures.tests.length < build.stats['test_failures']) {
-        list.push(
-          <div className="marginTopS"> <em>
-            Showing{" "}
-            {data.testFailures.tests.length}
-            {" "}out of{" "}
-            {build.stats['test_failures']}
-            {" "}test failures
-          </em> </div>
-        );
-      }
-
-      var popover = <Popover className="popoverNoMaxWidth">
-        <span className="bb">Failed Tests:</span>
-        {list}
-      </Popover>;
-    } else {
-      // we want to fetch more build information and show a list of failed
-      // tests on hover. To do this, we'll create an anonymous react element
-      // that does data fetching on mount
-      var data_fetcher_defn = React.createClass({
-        componentDidMount() {
-          var elem = this.props.elem,
-            build_id = this.props.buildID;
-          if (!elem.state.failedTests[build_id]) {
-            api.fetchMap(elem, 'failedTests', {
-              [ build_id ]: `/api/0/builds/${build_id}/`
-            });
-          }
-        },
-
-        render() {
-          return <span />;
-        }
-      });
-
-      var data_fetcher = React.createElement(
-        data_fetcher_defn,
-        {elem: this, buildID: build.id}
-      );
-
-      var popover = <Popover>
-        {data_fetcher}
-        Loading failed test list
-      </Popover>;
-    }
-
-    return <div>
-      <OverlayTrigger
-        trigger='hover'
-        placement='right'
-        overlay={popover}>
-        <div>{build_widget}</div>
-      </OverlayTrigger>
-    </div>;
   },
 
   renderPagination: function() {

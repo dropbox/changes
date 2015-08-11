@@ -134,7 +134,7 @@ var AllProjectsPage = React.createClass({
       if (p.lastBuild) {
         var build = p.lastBuild;
 
-        widget = <BuildWidget build={build} />;
+        widget = <BuildWidget build={build} parentElem={this} />;
         build_time = <TimeText
           time={build.dateFinished || build.dateCreated}
         />;

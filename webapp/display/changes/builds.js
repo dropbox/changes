@@ -1,28 +1,35 @@
 import React from 'react';
+import { Popover, OverlayTrigger } from 'react_bootstrap';
 
 import { ProgrammingError } from 'es6!display/errors';
 import { display_duration_pieces } from 'es6!display/time';
+
+import * as api from 'es6!server/api';
 
 import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
 
 /*
- * Functions and classes for displaying information about builds
+ * Functions and classes for displaying information about builds. A bunch of
+ * these functions work on "runnables": e.g. builds, jobs, or jobsteps (objects
+ * with a status and result)
  */
 
 // Show information about the latest build to a commit-in-project
 export var BuildWidget = React.createClass({
 
   propTypes: {
+    // the build to render the widget for
     build: React.PropTypes.object.isRequired,
-    // override default href. TODO: something better
-    href: React.PropTypes.string,
+    // we display a list of failed tests on hover. To do that, we need to fetch
+    // ajax data, which we store in parentElem's state
+    parentElem: React.PropTypes.element
   },
 
   render: function() {
     var build = this.props.build;
-    var build_state = get_build_state(build);
+    var build_state = get_runnable_state(build);
 
     var dot = <StatusDot state={build_state} />;
 
@@ -82,13 +89,22 @@ export var BuildWidget = React.createClass({
       verticalAlign: 'top'
     };
 
-    var href = this.props.href;
-    if (!href) {
-      var href = '/v2/project_commit/' +
-        build.project.slug + '/' +
-        build.source.id;
+    var href = null;
+    if (build.source.patch && build.source.data['phabricator.revisionID']) {
+      href = URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`)
+        .search({ buildID: build.id })
+        .toString();
+    } else if (!build.source.patch) {
+      href = URI(`/v2/commit/${build.source.id}/`)
+        .search({ buildID: build.id })
+        .toString();
+    } else {
+      // TODO
+      href = '';
     }
-    return <a href={href} className="buildWidget">
+
+    // return the widget, possibly showing failed tests on hover
+    var build_widget = <a href={href} className="buildWidget">
       <div style={{verticalAlign: 'middle', display: 'inline-block'}}>
         {dot}
       </div>
@@ -99,20 +115,105 @@ export var BuildWidget = React.createClass({
         </div>
       </div>
     </a>;
-  }
+
+    // TODO: show popover for any failure, not just test failures
+    if (build.stats['test_failures'] > 0) {
+
+      var popover = this.getFailedTestsPopover();
+      if (popover) {
+        return <div>
+          <OverlayTrigger
+            trigger={['hover', 'focus']}
+            placement='right'
+            overlay={popover}>
+            <div>{build_widget}</div>
+          </OverlayTrigger>
+        </div>;
+      }
+    }
+
+    return build_widget;
+  },
+
+  getFailedTestsPopover: function() {
+    var elem = this.props.parentElem, build = this.props.build;
+
+    var state_key = "_build_widget_failed_tests";
+
+    // make sure parentElem has a state object
+    // TODO: we could silently add this ourselves if missing
+    if (!elem.state && elem.state !== {}) {
+      return <Popover> <ProgrammingError>
+        Programming Error: The parentElem of BuildWidget must implement
+        getInitialState()! Just return {" {}"}
+      </ProgrammingError> </Popover>;
+    }
+
+    if (elem.state[state_key] &&
+        api.isLoaded(elem.state[state_key][build.id])) {
+      var data = elem.state[state_key][build.id].getReturnedData();
+      var list = _.map(data.testFailures.tests, t => {
+        return <div>{_.last(t.name.split("."))}</div>;
+      });
+
+      if (data.testFailures.tests.length < build.stats['test_failures']) {
+        list.push(
+          <div className="marginTopS"> <em>
+            Showing{" "}
+            {data.testFailures.tests.length}
+            {" "}out of{" "}
+            {build.stats['test_failures']}
+            {" "}test failures
+          </em> </div>
+        );
+      }
+
+      return <Popover>
+        <span className="bb">Failed Tests:</span>
+        {list}
+      </Popover>;
+    } else {
+      // we want to fetch more build information and show a list of failed
+      // tests on hover. To do this, we'll create an anonymous react element
+      // that does data fetching on mount
+      var data_fetcher_defn = React.createClass({
+        componentDidMount() {
+          if (!elem.state[state_key] ||
+              !elem.state[state_key][build.id]) {
+            api.fetchMap(elem, state_key, {
+              [ build.id ]: `/api/0/builds/${build.id}/`
+            });
+          }
+        },
+
+        render() {
+          return <span />;
+        }
+      });
+
+      var data_fetcher = React.createElement(
+        data_fetcher_defn,
+        {elem: elem, buildID: build.id}
+      );
+
+      return <Popover>
+        {data_fetcher}
+        Loading failed test list
+      </Popover>;
+    }
+  },
+
 });
 
 /*
- * Renders a square patch based on build state (passed is green,
- * failed is red, unknown is gray, error/weird is brown.) If state
- * is waiting, we render an icon instead.
+ * Renders a square patch based on runnable state (passed is green,
+ * failed is red, unknown is gray.) If state is waiting, we render 
+ * an icon instead.
  */
 export var StatusDot = React.createClass({
 
   propTypes: {
-    // big makes it bigger
-    size: React.PropTypes.oneOf(['normal', 'medium', 'big']),
-    // the build state to render (see get_build_state)
+    // the runnable state to render (see get_runnable_state)
     state: React.PropTypes.oneOf(all_build_states).isRequired,
     // renders a small number at the lower-right corner
     num: React.PropTypes.oneOfType(React.PropTypes.number, React.PropTypes.string)
@@ -120,13 +221,12 @@ export var StatusDot = React.createClass({
 
   getDefaultProps: function() {
     return {
-      'size': 'normal',
       'num': ''
     }
   },
 
   render: function() {
-    var state = this.props.state, size = this.props.size;
+    var state = this.props.state;
 
     var dot = null;
     if (state === 'waiting') {
@@ -134,15 +234,11 @@ export var StatusDot = React.createClass({
     } else {
       var classes = cx({
         'dotBase': true,
-        'mediumDot': size === 'medium',
-        'bigDot': size === 'big',
-        // NOTE: keep in sync with StatusWithNumber below
         'lt-green-bg': state === "passed",
         // TODO: use darker shade of red for atypical failures
         'lt-red-bg': state === "failed" || state === "nothing",
         'lt-darkestgray-bg': state === "unknown",
       });
-
       dot = <span className={classes} />;
     }
 
@@ -153,14 +249,14 @@ export var StatusDot = React.createClass({
     }
 
     return <span className="dotContainer">
-      {dot}
-      {num}
+      {dot}{num}
     </span>;
   }
 });
 
 /*
  * Show a list of icons for the latest builds to a diff
+ * TODO: unify this with BuildWidget
  */
 export var status_dots_for_diff = function(builds) {
   var builds_by_diff_id = {};
@@ -172,7 +268,7 @@ export var status_dots_for_diff = function(builds) {
   var latest_diff_id = _.chain(builds_by_diff_id).keys().max().value();
 
   var states = _.chain(builds_by_diff_id[latest_diff_id])
-    .map(get_build_state)
+    .map(get_runnable_state)
     .countBy()
     .value();
 
@@ -204,10 +300,10 @@ export var status_dots = function(builds) {
   var dots_data = [];
   builds.forEach(b => {
     var prev_result = _.last(dots_data) || {name: "none"};
-    if (get_build_state(b) === prev_result['name']) {
+    if (get_runnable_state(b) === prev_result['name']) {
       prev_result['count'] += 1;
     } else {
-      dots_data.push({name: get_build_state(b), count: 1});
+      dots_data.push({name: get_runnable_state(b), count: 1});
     }
   });
   return _.map(dots_data, d =>
@@ -219,74 +315,6 @@ export var status_dots = function(builds) {
 }
 
 /*
- * Renders the build status with the build number as inner text
- */
-export var StatusWithNumber = React.createClass({
-  propTypes: {
-    // big makes it bigger
-    size: React.PropTypes.oneOf(['normal', 'medium', 'big']),
-    // the build state to render (see get_build_state)
-    state: React.PropTypes.oneOf(all_build_states).isRequired,
-    // renders a small number at the lower-right corner
-    text: React.PropTypes.string
-  },
-
-  getDefaultProps: function() {
-    return {
-      'size': 'normal',
-      'text': ''
-    }
-  },
-
-  render: function() {
-    var state = this.props.state, text = this.props.text;
-
-    var classes = cx({
-      'statusNumBase': true,
-      // NOTE: keep in sync with StatusDot above
-      'lt-green-bg': state === "passed",
-      // TODO: use darker shade of red for atypical failures
-      'lt-red-bg': state === "failed" || state === "nothing",
-      'lt-darkestgray-bg': state === "unknown" || state === "waiting",
-    });
-
-    var text_markup = null;
-    if (this.props.text) {
-      switch (this.props.size) {
-        case 'normal':
-          console.warn("you can't use innerText with normal size...its too small!");
-          inner_style = {display: 'none'};
-          break;
-        case 'medium':
-          var inner_style = {
-            color: "white",
-            padding: 2,
-            display: "inline-block"
-          };
-          break;
-        case 'big':
-          var inner_style = {
-            color: "white",
-            display: "inline-block",
-            padding: "1px 5px",
-            fontSize: 21
-          };
-      }
-
-      text_markup = <span style={inner_style}>
-        {this.props.text}
-      </span>;
-    }
-
-    return <span className="dotContainer">
-      <span className={classes}>
-        {text_markup}
-      </span>
-    </span>;
-  }
-});
-
-/*
  * Looks at the build's status and result fields to figure out what state the
  * build is in. For the most part I treat failed and nothing the same...someone
  * with a better understanding of changes can differentiate these if they want
@@ -294,12 +322,10 @@ export var StatusWithNumber = React.createClass({
 
 var all_build_states = ['passed', 'failed', 'nothing', 'unknown', 'waiting'];
 
-export var get_build_state = function(build) {
-  return get_runnable_state(build.status.id, build.result.id);
-}
-
 // builds, jobsteps, etc.
-export var get_runnable_state = function(status, result) {
+export var get_runnable_state = function(runnable) {
+  var status = runnable.status.id, result = runnable.result.id;
+
   if (status === 'in_progress' || status === "queued") {
     return 'waiting';
   }
@@ -320,8 +346,9 @@ export var get_state_color = function(state) {
     case 'nothing':
       return colors.red;
     case 'waiting':
-    case 'unknown':
       return colors.darkGray;
+    case 'unknown':
+      return colors.black;
   }
 }
 
@@ -332,31 +359,25 @@ export var get_build_cause = function(build) {
     return 'manual';
   }
 
-  if (_.contains(tags, 'arc test')) {
+  var causes_from_tags = {
     // user ran build using arc test
-    return 'arc test';
-  }
-
-  if (_.contains(tags, 'commit')) {
+    'arc test': 'arc test',
     // standard build that got kicked off due to a new commit
-    return 'commit';
-  }
-
-  if (_.contains(tags, 'phabricator')) {
+    'commit': 'commit',
     // build for a diff that was created/updated in phabricator
-    return 'phabricator';
-  }
-
-  if (_.contains(tags, 'buildpoker')) {
+    'phabricator': 'phabricator',
     // this is a very temporary hack inside of dropbox. Talk to dev-tools about
     // it
-    return 'commit (hack)';
-  }
-
-  if (_.contains(tags, 'commit-queue')) {
+    'buildpoker': 'commit (hack)',
     // build by the commit queue infrastructure
-    return 'commit queue';
+    'commit-queue': 'commit queue',
   }
 
-  return 'unknown';
+  var cause = 'unknown';
+  _.each(causes_from_tags, (v, k) => {
+    if (_.contains(tags, k)) {
+      cause = v;
+    }
+  });
+  return cause;
 }

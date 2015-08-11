@@ -89,7 +89,7 @@ require([
   var url_contains = {
     'projects': [AllProjectsPage],
     'project': [ProjectPage, 'projectSlug'],
-    'project_commit': [CommitPage, 'project', 'sourceUUID'],
+    'commit': [CommitPage, 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     // TODO: don't just use the homepage for this

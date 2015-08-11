@@ -2,7 +2,7 @@ import React from 'react';
 import moment from 'moment';
 
 import { TimeText, display_duration } from 'es6!display/time';
-import { get_build_state, get_build_cause } from 'es6!display/changes/builds';
+import { get_runnable_state, get_build_cause } from 'es6!display/changes/builds';
 
 import * as utils from 'es6!utils/utils';
 
@@ -168,7 +168,7 @@ var Sidebar = React.createClass({
     };
 
     var entries = _.map(builds, b => {
-      var build_state = get_build_state(b);
+      var build_state = get_runnable_state(b);
 
       var classes = "buildsSideItem";
       if (this.props.activeBuildID === b.id) {

@@ -35,6 +35,10 @@ var BuildsTab = React.createClass({
     }
   },
 
+  getInitialState: function() {
+    return {};
+  },
+
   componentDidMount: function() {
     if (!this.props.controls.hasRunInitialize()) {
       var params = this.props.isInitialTab ? DataControls.getParamsFromWindowUrl() : null;
@@ -78,7 +82,7 @@ var BuildsTab = React.createClass({
       }
 
       return [
-        <BuildWidget build={build} />,
+        <BuildWidget build={build} parentElem={this} />,
         target,
         DisplayUtils.authorLink(build.author),
         build.name,
