@@ -259,3 +259,19 @@ class GitVcs(Vcs):
             patch_url=build_uri('/api/0/patches/{0}/?raw=1'.format(
                                 source.patch_id.hex)),
         )
+
+    def read_file(self, sha, file_path):
+        """Show the content of a file at a given revision.
+
+        Args:
+            sha (str): the sha identifying the revision
+            file_path (str): the path to the file from the root of the repo
+        Returns:
+            str - the content of the file
+        Raises:
+            CommandError - if the file or the revision cannot be found
+        """
+        cmd = ['show', '{revision}:{file_path}'.format(
+            revision=sha, file_path=file_path
+        )]
+        return self.run(cmd)

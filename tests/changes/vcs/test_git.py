@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 
+import pytest
+
 from subprocess import check_call
 
 from changes.testutils import TestCase
+from changes.vcs.base import CommandError
 from changes.vcs.git import GitVcs
 
 from tests.changes.vcs.asserts import VcsAsserts
@@ -300,3 +303,19 @@ index 0000000..e69de29
         vcs.update()
         revisions = list(vcs.log())
         assert len(revisions) == 2
+
+    def test_read_file(self):
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        # simple case
+        assert vcs.read_file('HEAD', 'FOO') == ''
+
+        # unknown file
+        with pytest.raises(CommandError):
+            vcs.read_file('HEAD', 'doesnotexist')
+
+        # unknown sha
+        with pytest.raises(CommandError):
+            vcs.read_file('a' * 40, 'FOO')

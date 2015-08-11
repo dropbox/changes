@@ -7,7 +7,7 @@ from datetime import datetime
 from subprocess import check_call
 
 from changes.testutils import TestCase
-from changes.vcs.base import UnknownRevision
+from changes.vcs.base import CommandError, UnknownRevision
 from changes.vcs.hg import MercurialVcs
 
 from tests.changes.vcs.asserts import VcsAsserts
@@ -257,3 +257,21 @@ new file mode 100644
         vcs.update()
         with self.assertRaises(UnknownRevision):
             vcs.export('4444444444444444444444444444444444444444')
+
+    def test_read_file(self):
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        sha = vcs.run(['id', '-i']).strip()
+
+        # simple case
+        assert vcs.read_file(sha, 'FOO') == ''
+
+        # unknown file
+        with pytest.raises(CommandError):
+            vcs.read_file(sha, 'doesnotexist')
+
+        # unknown sha
+        with pytest.raises(CommandError):
+            vcs.read_file('a' * 40, 'FOO')

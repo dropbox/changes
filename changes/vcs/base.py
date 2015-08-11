@@ -171,6 +171,19 @@ class Vcs(object):
 
         statsreporter.stats().log_timing(timer_name, time_taken * 1000)
 
+    def read_file(self, sha, file_path):
+        """Show the content of a file at a given revision.
+
+        Args:
+            sha (str): the sha identifying the revision
+            file_path (str): the path to the file from the root of the repo
+        Returns:
+            str - the content of the file
+        Raises:
+            CommandError - if the file or the revision cannot be found
+        """
+        raise NotImplementedError
+
 
 class RevisionResult(object):
     parents = None
