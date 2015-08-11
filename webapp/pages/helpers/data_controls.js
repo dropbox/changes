@@ -5,43 +5,51 @@ import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
 
 /*
- * A data structure that handles pagination and table controls. Its designed
- * to be stored in a key in an element's state object, and exposes methods
- * that you can use to re-render the associated data table when any of
- * the variables in DataControls change.
+ * A data structure that to help with pagination and table controls. It does
+ * several things.
+ * - Renders pagination links for you. It also keeps track of both the fetched
+ *   and not-yet-fetched data when getting new pages from the server.
+ * - Allows you to add controls, e.g. a dropdown for which branch to choose
+ *   when rendering a list of commits. You store the state of these controls 
+ *   as the get parameters sent to the api (and read from those parameters to 
+ *   properly render your controls.)
+ * - Syncs the current browser url with the above two bullets. This allows
+ *   people to share links.
  *
- * Here's generally how you use it:
+ * The control is slightly complex, partly due to the way changes is
+ * architected. Here's generally how you use it:
  * - Create it in componentWillMount inside your element's state object.
  *   Constructor params are the owner element and the state key being used,
- *   and the API url that returns different filtereds/sorteds views of the data
- * - Run initialize to get the initial data to populate your table. You should use
- *   getParamsFromWindowUrl() to get a set of parameters to send to the API
- *   endpoint: the idea here is that whenever we make an API request, we update
- *   the window href with the api parameters we're using. That way, people can
- *   share links with each other.
- * - Use an APINotLoaded component on controls.getDataToShow() if
- *   hasNotLoadedInitialData()
+ *   and the backing API url that returns different filtered/sorted views 
+ *   of the data
+ * - Run initialize to get the initial data to populate your table. You want to 
+ *   use getParamsFromWindowUrl() to get a set of parameters to send with this
+ *   initial API request (e.g. if this is a shared or copy/pasted link)...this
+ *   works based on the fact that the page url always has the same parameters 
+ *   as the API url.
+ * - Don't try rendering anything while hasNotLoadedInitialData()
  * - Render your data using getDataToShow(). Give your grid opacity
  *   0.5 if isLoadingUpdatedData (and ideally disable modifying controls): this
- *   is a loading indicator. Render an error message if failedToLoadUpdatedData
- *   (we tried and failed to load new data.)
+ *   is a loading indicator when we're waiting on new data. Render an error
+ *   message if failedToLoadUpdatedData (we tried and failed to load new data.)
  * - Add controls to let people change the data they're seeing. Controls state
  *   is encoded/decoded as the query params sent to the API: You can call
  *   getParamsToShow to get the query parameters used to render the
  *   current data, then use that to render what state your controls are in.
  *   When someone changes your controls, call updateWithParams with the
  *   query parameters you want to change.
- * - getPaginationLinks returns a list of pagination links (at most 2)
+ * - getPaginationLinks returns previous and next buttons (either might be
+ *   disabled)
  * - updateWindowUrl will update the current window href with the current
  *   controls state. Use this if, say, you have multiple tabs and you need to
  *   refresh the url every time you switch tabs.
  */
 var DataControls = function(elem, elem_state_key, base_api_uri) {
-  // TODO: we can't use classes right now because of the way ajax calls
-  // directly update state (using the util func that sets a single key)
+  // note: we can't use classes right now because of the way ajax calls
+  // directly update state themselves
   return _.create(DataControlsPrototype, {
     // this object is hosted in a react elem's state variable. We need
-    // this because we update ourself by calling
+    // to know who owns us and where because we update ourself by calling
     // setState(elem, { elemStateKey: ... })
     elem: elem,
     elemStateKey: elem_state_key,
@@ -104,6 +112,11 @@ var DataControlsPrototype = {
     );
   },
 
+  /*
+   * We may unmount/remount the owner element multiple times, and its useful to
+   * know if we've ever run the initialize function (although it is safe to run
+   * it multiple times)
+   */
   hasRunInitialize() {
     return this.hasRunInit;
   },
