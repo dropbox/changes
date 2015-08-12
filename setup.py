@@ -53,6 +53,7 @@ install_requires = [
     'phabricator>=0.3.0,<0.4.0',
     'psycopg2>=2.5.1,<2.6.0',
     'python-dateutil>=2.1,<2.2',
+    'PyYAML>=3.11',
     'simplejson>=3.3.0,<3.4.0',
     'sqlalchemy==0.9.4',
     'statprof',

@@ -1,3 +1,5 @@
+import yaml
+
 from datetime import datetime
 from uuid import uuid4
 from collections import defaultdict
@@ -11,6 +13,10 @@ from changes.constants import ProjectStatus
 from changes.db.types.guid import GUID
 from changes.db.types.enum import Enum
 from changes.utils.slugs import slugify
+
+
+class ProjectConfigError(Exception):
+    pass
 
 
 class Project(db.Model):
@@ -51,6 +57,68 @@ class Project(db.Model):
                 joinedload(cls.repository),
             ).get(id)
         return project
+
+    _default_config = {
+        'build.file-blacklist': []
+    }
+
+    def get_config_path(self):
+        # TODO in the future, get this file path from ProjectOption
+        return '{}.yaml'.format(self.slug)
+
+    def get_config(self, revision_sha, diff=None, config_path=None):
+        '''Get the config for this project.
+
+        Right now, the config lives at {slug}.yaml,
+        at the root of the repository. This will change
+        later on.
+
+        The supplied config is applied on top of the default config
+        (`_default_config`). In the case where the file is not found,
+        the default config is returned.
+
+        Args:
+            revision_sha (str): The sha identifying the revision,
+                                so the returned config is for that
+                                revision.
+            diff (str): The diff to apply before reading the config, used
+                        for diff builds. Optional.
+            config_path (str): The path of the config file
+
+        Returns:
+            dict - the config
+
+        Raises:
+            InvalidDiffError - When the supplied diff does not apply
+            ProjectConfigError - When the config file is in an invalid format.
+            NotImplementedError - When the project has no vcs backend
+        '''
+        # changes.vcs.base imports some models, which may lead to circular
+        # imports, so let's import on-demand
+        from changes.vcs.base import CommandError
+        if config_path is None:
+            config_path = self.get_config_path()
+        vcs = self.repository.get_vcs()
+        if vcs is None:
+            raise NotImplementedError
+        else:
+            try:
+                config_content = vcs.read_file(
+                    revision_sha, config_path, diff=diff)
+            except CommandError:
+                # this won't catch error when diff doesn't apply, which is good.
+                config_content = '{}'
+            try:
+                config = yaml.safe_load(config_content)
+                if not isinstance(config, dict):
+                    raise ProjectConfigError(
+                        'Invalid project config file {}'.format(config_path))
+            except yaml.YAMLError:
+                raise ProjectConfigError(
+                    'Invalid project config file {}'.format(config_path))
+        for k, v in self._default_config.iteritems():
+            config.setdefault(k, v)
+        return config
 
 
 class ProjectOption(db.Model):
