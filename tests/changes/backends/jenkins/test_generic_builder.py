@@ -92,7 +92,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         # magic number that is simply the current number of parameters. Ensures that
         # there is nothing "extra"
-        assert len(result) == 20
+        assert len(result) == 21
 
         # test defaulting for lxc
         # pre/post are defined in conftest.py

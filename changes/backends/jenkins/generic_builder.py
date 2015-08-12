@@ -33,6 +33,9 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         if self.build_type is None:
             self.build_type = current_app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE']
 
+        # If a server url is not provided (default: None), set it to a blank string
+        self.artifact_server_base_url = current_app.config['ARTIFACTS_SERVER'] or ''
+
         # we do this as early as possible in order to propagate the
         # error faster. The build description is simply the configuration
         # key'd by the build_type, documented in config.py
@@ -170,6 +173,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             {'name': 'CLUSTER', 'value': cluster},
             {'name': 'WORK_PATH', 'value': path},
             {'name': 'C_WORKSPACE', 'value': self.workspace},
+            {'name': 'ARTIFACTS_SERVER_BASE_URL', 'value': self.artifact_server_base_url}
         ])
 
         if build_desc.get('uses_client', False):
