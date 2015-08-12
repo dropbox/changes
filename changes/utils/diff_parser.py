@@ -51,7 +51,8 @@ class DiffParser(object):
         return (None, None), (None, None)
 
     def parse(self):
-        # TODO this does not handle files that don't end with new lines
+        # reference: unidiff format by Guido:
+        # https://www.artima.com/weblogs/viewpost.jsp?thread=164293
         in_header = True
         header = []
         lineiter = iter(self.lines)
@@ -123,13 +124,18 @@ class DiffParser(object):
 
                         old_line += affects_old
                         new_line += affects_new
-                        lines.append({
+                        line_dict = {
                             'old_lineno': affects_old and old_line or u'',
                             'new_lineno': affects_new and new_line or u'',
                             'action': action,
                             'line': line,
-                        })
+                            'ends_with_newline': True,
+                        }
+                        lines.append(line_dict)
                         line = lineiter.next()
+                        if line == '\ No newline at end of file':
+                            line_dict['ends_with_newline'] = False
+                            line = lineiter.next()
                 assert len(chunks) == len(chunk_markers)
 
         except StopIteration:
@@ -146,6 +152,11 @@ class DiffParser(object):
         Returns:
             str - the reconstructed diff
         """
+        def no_newline_marker(line):
+            if line['ends_with_newline']:
+                return ''
+            else:
+                return '\n\ No newline at end of file'
         action_character_dict = {
             'add': '+',
             'del': '-',
@@ -153,7 +164,7 @@ class DiffParser(object):
         }
         chunk_strings = []
         for chunk, chunk_marker in zip(file_dict['chunks'], file_dict['chunk_markers']):
-            lines = [action_character_dict[l['action']] + l['line']
+            lines = [action_character_dict[l['action']] + l['line'] + no_newline_marker(l)
                      for l in chunk]
 
             chunk_strings.append(

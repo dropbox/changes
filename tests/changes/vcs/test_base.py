@@ -70,6 +70,58 @@ index e69de29..d0c77a5 100644
 +blah
 """
 
+    PATCH_TEMPLATE_NO_NEWLINE_SOURCE = """diff --git a/{path} b/{path}
+index e69de29..d0c77a5 100644
+--- a/{path}
++++ b/{path}
+@@ -1 +1 @@
+-FOO
+\ No newline at end of file
++blah
+diff --git a/FOO1 b/FOO1
+index e69de29..d0c77a5 100644
+--- a/FOO1
++++ b/FOO1
+@@ -1,1 +1 @@
+-blah
++blah
+"""
+
+    PATCH_TEMPLATE_NO_NEWLINE_TARGET = """diff --git a/{path} b/{path}
+index e69de29..d0c77a5 100644
+--- a/{path}
++++ b/{path}
+@@ -1 +1 @@
+-FOO
++blah
+\ No newline at end of file
+diff --git a/FOO1 b/FOO1
+index e69de29..d0c77a5 100644
+--- a/FOO1
++++ b/FOO1
+@@ -1,1 +1 @@
+-blah
++blah
+"""
+
+    PATCH_TEMPLATE_NO_NEWLINE_BOTH = """diff --git a/{path} b/{path}
+index e69de29..d0c77a5 100644
+--- a/{path}
++++ b/{path}
+@@ -1 +1 @@
+-FOO
+\ No newline at end of file
++blah
+\ No newline at end of file
+diff --git a/FOO1 b/FOO1
+index e69de29..d0c77a5 100644
+--- a/FOO1
++++ b/FOO1
+@@ -1,1 +1 @@
+-blah
++blah
+"""
+
     def setUp(self):
         self.vcs = Vcs(None, None)
 
@@ -96,3 +148,21 @@ index e69de29..d0c77a5 100644
         patch = self.BAD_PATCH_TEMPLATE.format(path=path)
         with pytest.raises(InvalidDiffError):
             self.vcs._selectively_apply_diff(path, 'FOO\n', diff=patch)
+
+    def test_no_newline_source(self):
+        path = 'a.txt'
+        patch = self.PATCH_TEMPLATE_NO_NEWLINE_SOURCE.format(path=path)
+        content = self.vcs._selectively_apply_diff(path, 'FOO', diff=patch)
+        assert content == 'blah\n'
+
+    def test_no_newline_target(self):
+        path = 'a.txt'
+        patch = self.PATCH_TEMPLATE_NO_NEWLINE_TARGET.format(path=path)
+        content = self.vcs._selectively_apply_diff(path, 'FOO\n', diff=patch)
+        assert content == 'blah'
+
+    def test_no_newline_both(self):
+        path = 'a.txt'
+        patch = self.PATCH_TEMPLATE_NO_NEWLINE_BOTH.format(path=path)
+        content = self.vcs._selectively_apply_diff(path, 'FOO', diff=patch)
+        assert content == 'blah'

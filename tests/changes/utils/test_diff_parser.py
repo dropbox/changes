@@ -39,43 +39,50 @@ class DiffParserTest(TestCase):
                         'action': 'unmod',
                         'line': '',
                         'new_lineno': 71,
-                        'old_lineno': 71
+                        'old_lineno': 71,
+                        'ends_with_newline': True,
                     },
                     {
                         'action': 'unmod',
                         'line': '            in_header = False',
                         'new_lineno': 72,
-                        'old_lineno': 72
+                        'old_lineno': 72,
+                        'ends_with_newline': True,
                     },
                     {
                         'action': 'unmod',
                         'line': '            chunks = []',
                         'new_lineno': 73,
-                        'old_lineno': 73
+                        'old_lineno': 73,
+                        'ends_with_newline': True,
                     },
                     {
                         'action': 'add',
                         'line': '                chunk_markers = []',
                         'new_lineno': 74,
-                        'old_lineno': u''
+                        'old_lineno': u'',
+                        'ends_with_newline': True,
                     },
                     {
                         'action': 'unmod',
                         'line': '            old, new = self._extract_rev(line, lineiter.next())',
                         'new_lineno': 75,
-                        'old_lineno': 74
+                        'old_lineno': 74,
+                        'ends_with_newline': True,
                     },
                     {
                         'action': 'unmod',
                         'line': '            files.append({',
                         'new_lineno': 76,
-                        'old_lineno': 75
+                        'old_lineno': 75,
+                        'ends_with_newline': True,
                     },
                     {
                         'action': 'unmod',
                         'line': "                'is_header': False,",
                         'new_lineno': 77,
-                        'old_lineno': 76
+                        'old_lineno': 76,
+                        'ends_with_newline': True,
                     }
                 ]],
             }
@@ -221,3 +228,111 @@ class DiffParserTest(TestCase):
 """
         ])
         assert correct == diffs
+
+    def test_no_newline_source(self):
+        patch = """diff --git a/test b/test
+index d800886..190a180 100644
+--- a/test
++++ b/test
+@@ -1 +1 @@
+-123
+\ No newline at end of file
++123
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == """
+--- a/test
++++ b/test
+@@ -1 +1 @@
+-123
+\ No newline at end of file
++123
+"""
+
+    def test_no_newline_target(self):
+        patch = """diff --git a/test b/test
+index 190a180..d800886 100644
+--- a/test
++++ b/test
+@@ -1 +1 @@
+-123
++123
+\ No newline at end of file
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == """
+--- a/test
++++ b/test
+@@ -1 +1 @@
+-123
++123
+\ No newline at end of file
+"""
+
+    def test_no_newline_both(self):
+        patch = """diff --git a/test b/test
+index d800886..bed2d6a 100644
+--- a/test
++++ b/test
+@@ -1 +1 @@
+-123
+\ No newline at end of file
++123n
+\ No newline at end of file
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == """
+--- a/test
++++ b/test
+@@ -1 +1 @@
+-123
+\ No newline at end of file
++123n
+\ No newline at end of file
+"""
+
+    def test_no_newline_empty_source(self):
+        patch = """diff --git a/test b/test
+index e69de29..d800886 100644
+--- a/test
++++ b/test
+@@ -0,0 +1 @@
++123
+\ No newline at end of file
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == """
+--- a/test
++++ b/test
+@@ -0,0 +1 @@
++123
+\ No newline at end of file
+"""
+
+    def test_no_newline_empty_target(self):
+        patch = """diff --git a/test b/test
+index d800886..e69de29 100644
+--- a/test
++++ b/test
+@@ -1 +0,0 @@
+-123
+\ No newline at end of file
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == """
+--- a/test
++++ b/test
+@@ -1 +0,0 @@
+-123
+\ No newline at end of file
+"""
