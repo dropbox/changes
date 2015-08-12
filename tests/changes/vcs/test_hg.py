@@ -275,3 +275,24 @@ new file mode 100644
         # unknown sha
         with pytest.raises(CommandError):
             vcs.read_file('a' * 40, 'FOO')
+
+    def test_read_file_with_diff(self):
+        PATCH = """diff -r 2104491cf7a3 FOO
+--- a/FOO Mon Aug 10 13:49:52 2015 -0700
++++ b/FOO Mon Aug 10 16:23:11 2015 -0700
+@@ -0,0 +1,1 @@
++blah
+diff -r 2104491cf7a3 FOO1
+--- a/FOO1 Mon Aug 10 13:49:52 2015 -0700
++++ b/FOO1 Mon Aug 10 16:23:11 2015 -0700
+@@ -1,1 +1,1 @@
+-blah
++blah
+"""
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        sha = vcs.run(['id', '-i']).strip()
+
+        assert vcs.read_file(sha, 'FOO', diff=PATCH) == 'blah\n'

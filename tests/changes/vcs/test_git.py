@@ -319,3 +319,24 @@ index 0000000..e69de29
         # unknown sha
         with pytest.raises(CommandError):
             vcs.read_file('a' * 40, 'FOO')
+
+    def test_read_file_with_diff(self):
+        PATCH = """diff --git a/FOO b/FOO
+index e69de29..d0c77a5 100644
+--- a/FOO
++++ b/FOO
+@@ -0,0 +1 @@
++blah
+diff --git a/FOO1 b/FOO1
+index e69de29..d0c77a5 100644
+--- a/FOO1
++++ b/FOO1
+@@ -1,1 +1 @@
+-blah
++blah
+"""
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        assert vcs.read_file('HEAD', 'FOO', diff=PATCH) == 'blah\n'

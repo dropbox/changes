@@ -1,7 +1,9 @@
 from datetime import datetime
 
+import pytest
+
 from changes.models import Revision
-from changes.vcs.base import RevisionResult
+from changes.vcs.base import InvalidDiffError, RevisionResult, Vcs
 from changes.testutils.cases import TestCase
 
 
@@ -33,3 +35,64 @@ class RevisionResultTestCase(TestCase):
         assert revision.parents == ['a' * 40, 'b' * 40]
         assert revision.date_created == datetime(2013, 9, 19, 22, 15, 22)
         assert revision.date_committed == datetime(2013, 9, 19, 22, 15, 23)
+
+
+class SelectivelyApplyDiffTest(TestCase):
+    PATCH_TEMPLATE = """diff --git a/{path} b/{path}
+index e69de29..d0c77a5 100644
+--- a/{path}
++++ b/{path}
+@@ -1,1 +1 @@
+-FOO
++blah
+diff --git a/FOO1 b/FOO1
+index e69de29..d0c77a5 100644
+--- a/FOO1
++++ b/FOO1
+@@ -1,1 +1 @@
+-blah
++blah
+"""
+
+    BAD_PATCH_TEMPLATE = """diff --git a/{path} b/{path}
+index e69de29..d0c77a5 100644
+--- a/{path}
++++ b/{path}
+@@ -0,0 +1 @@
+-FOO
++blah
+diff --git a/FOO1 b/FOO1
+index e69de29..d0c77a5 100644
+--- a/FOO1
++++ b/FOO1
+@@ -1,1 +1 @@
+-blah
++blah
+"""
+
+    def setUp(self):
+        self.vcs = Vcs(None, None)
+
+    def test_simple(self):
+        path = 'a.txt'
+        patch = self.PATCH_TEMPLATE.format(path=path)
+        content = self.vcs._selectively_apply_diff(path, 'FOO\n', diff=patch)
+        assert content == 'blah\n'
+
+    def test_nested(self):
+        path = 'testing/a/b/c/a.txt'
+        patch = self.PATCH_TEMPLATE.format(path=path)
+        content = self.vcs._selectively_apply_diff(path, 'FOO\n', diff=patch)
+        assert content == 'blah\n'
+
+    def test_untouched(self):
+        path = 'a.txt'
+        patch = self.PATCH_TEMPLATE.format(path='b.txt')
+        content = self.vcs._selectively_apply_diff(path, 'FOO\n', diff=patch)
+        assert content == 'FOO\n'
+
+    def test_invalid_diff(self):
+        path = 'a.txt'
+        patch = self.BAD_PATCH_TEMPLATE.format(path=path)
+        with pytest.raises(InvalidDiffError):
+            self.vcs._selectively_apply_diff(path, 'FOO\n', diff=patch)

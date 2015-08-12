@@ -3,12 +3,16 @@ from __future__ import absolute_import, division, print_function
 import os
 import os.path
 import re
-from subprocess import Popen, PIPE
+import shutil
+import tempfile
+
+from subprocess import Popen, PIPE, check_call, CalledProcessError
 
 from changes.constants import PROJECT_ROOT
 from changes.db.utils import create_or_update, get_or_create, try_create
 from changes.models import Author, Revision, Source
 from changes.config import statsreporter
+from changes.utils.diff_parser import DiffParser
 
 from time import time
 
@@ -31,6 +35,12 @@ class CommandError(Exception):
 class UnknownRevision(CommandError):
     """Indicates that an operation was attempted on a
     revision that doesn't appear to exist."""
+    pass
+
+
+class InvalidDiffError(Exception):
+    """This is used when a diff is invalid and fails to apply. It is NOT
+    a subclass of CommandError, as it is not a vcs command"""
     pass
 
 
@@ -171,18 +181,84 @@ class Vcs(object):
 
         statsreporter.stats().log_timing(timer_name, time_taken * 1000)
 
-    def read_file(self, sha, file_path):
-        """Show the content of a file at a given revision.
+    def read_file(self, sha, file_path, diff=None):
+        """Read the content of a file at a given revision.
 
         Args:
             sha (str): the sha identifying the revision
             file_path (str): the path to the file from the root of the repo
+            diff (str): the optional patch to apply before reading the config
         Returns:
             str - the content of the file
         Raises:
             CommandError - if the file or the revision cannot be found
         """
         raise NotImplementedError
+
+    def _selectively_apply_diff(self, file_path, file_content, diff):
+        """A helper function that takes a diff, extract the parts of the diff
+        relating to `file_path`, and apply it to `file_content`.
+
+        If the diff does not involve `file_path`, then `file_content` is
+        returned, untouched.
+
+        Args:
+            file_path (str) - the path of the file to look for in the diff
+            file_content (str) - the content of the file to base on
+            diff (str) - diff in unidiff format
+        Returns:
+            str - `file_content` with the diff applied on top of it
+        Raises:
+            InvalidDiffError - when the supplied diff is invalid.
+        """
+        parser = DiffParser(diff)
+        selected_diff = None
+        for file_dict in parser.parse():
+            if file_dict['new_filename'] is not None and file_dict['new_filename'][2:] == file_path:
+                selected_diff = parser.reconstruct_file_diff(file_dict)
+        if selected_diff is None:
+            return file_content
+        temp_patch_file_path = None
+        temp_dir = None
+        try:
+            # create a temporary file to house the patch
+            fd, temp_patch_file_path = tempfile.mkstemp()
+            os.write(fd, selected_diff)
+            os.close(fd)
+
+            # create a temporary folder where we will mimic the structure of
+            # the repo, with only the config inside it
+            dir_name, _ = os.path.split(file_path)
+            temp_dir = tempfile.mkdtemp()
+            if len(dir_name) > 0:
+                os.makedirs(os.path.join(temp_dir, dir_name))
+            temp_file_path = os.path.join(temp_dir, file_path)
+
+            with open(temp_file_path, 'w') as f:
+                f.write(file_content)
+
+            # apply the patch
+            try:
+                check_call([
+                    'patch',
+                    '--strip=1',
+                    '--unified',
+                    '--directory={}'.format(temp_dir),
+                    '--input={}'.format(temp_patch_file_path),
+                ])
+            except CalledProcessError:
+                raise InvalidDiffError
+            with open(temp_file_path, 'r') as f:
+                patched_content = f.read()
+
+        finally:
+            # clean up
+            if temp_patch_file_path and os.path.exists(temp_patch_file_path):
+                os.remove(temp_patch_file_path)
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+        return patched_content
 
 
 class RevisionResult(object):

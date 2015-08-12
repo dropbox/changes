@@ -260,12 +260,13 @@ class GitVcs(Vcs):
                                 source.patch_id.hex)),
         )
 
-    def read_file(self, sha, file_path):
-        """Show the content of a file at a given revision.
+    def read_file(self, sha, file_path, diff=None):
+        """Read the content of a file at a given revision.
 
         Args:
             sha (str): the sha identifying the revision
             file_path (str): the path to the file from the root of the repo
+            diff (str): the optional patch to apply before reading the config
         Returns:
             str - the content of the file
         Raises:
@@ -274,4 +275,8 @@ class GitVcs(Vcs):
         cmd = ['show', '{revision}:{file_path}'.format(
             revision=sha, file_path=file_path
         )]
-        return self.run(cmd)
+        content = self.run(cmd)
+        if diff is None:
+            return content
+
+        return self._selectively_apply_diff(file_path, content, diff)
