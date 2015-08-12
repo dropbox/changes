@@ -51,6 +51,7 @@ class DiffParser(object):
         return (None, None), (None, None)
 
     def parse(self):
+        # TODO this does not handle files that don't end with new lines
         in_header = True
         header = []
         lineiter = iter(self.lines)
@@ -71,6 +72,7 @@ class DiffParser(object):
 
                 in_header = False
                 chunks = []
+                chunk_markers = []
                 old, new = self._extract_rev(line, lineiter.next())
                 files.append({
                     'is_header': False,
@@ -79,6 +81,7 @@ class DiffParser(object):
                     'new_filename': new[0],
                     'new_revision': new[1],
                     'chunks': chunks,
+                    'chunk_markers': chunk_markers,
                 })
 
                 line = lineiter.next()
@@ -90,6 +93,7 @@ class DiffParser(object):
 
                     lines = []
                     chunks.append(lines)
+                    chunk_markers.append(line)
 
                     old_line, old_end, new_line, new_end = [
                         int(x or 1) for x in match.groups()
@@ -126,11 +130,49 @@ class DiffParser(object):
                             'line': line,
                         })
                         line = lineiter.next()
+                assert len(chunks) == len(chunk_markers)
 
         except StopIteration:
             pass
 
         return files
+
+    def reconstruct_file_diff(self, file_dict):
+        """Given a file_dict dictionary in the same format returned by `parse`,
+        reconstruct the diff and return it as a string.
+
+        Args:
+            file_dict (dict) - the same format returned by `parse`
+        Returns:
+            str - the reconstructed diff
+        """
+        action_character_dict = {
+            'add': '+',
+            'del': '-',
+            'unmod': ' ',
+        }
+        chunk_strings = []
+        for chunk, chunk_marker in zip(file_dict['chunks'], file_dict['chunk_markers']):
+            lines = [action_character_dict[l['action']] + l['line']
+                     for l in chunk]
+
+            chunk_strings.append(
+                """{chunk_marker}
+{lines}""".format(
+                    chunk_marker=chunk_marker,
+                    lines='\n'.join(lines)
+                )
+            )
+        diff = """
+--- {old_filename}
++++ {new_filename}
+{chunks}
+""".format(
+            old_filename=file_dict['old_filename'],
+            new_filename=file_dict['new_filename'],
+            chunks='\n'.join(chunk_strings),
+        )
+        return diff
 
     def get_changed_files(self):
         results = set()
