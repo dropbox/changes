@@ -180,5 +180,9 @@ class PhabricatorNotifyDiffAPIView(APIView):
                 patch=patch,
                 tag="phabricator",
             ))
+        # This is the counterpoint to the above 'diffs_posted_from_phabricator';
+        # at this point we've successfully processed the diff, so comparing this
+        # stat to the above should give us the phabricator diff failure rate.
+        statsreporter.stats().incr('diffs_successfully_processed_from_phabricator')
 
         return self.respond(builds)
