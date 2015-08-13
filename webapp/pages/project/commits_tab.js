@@ -206,11 +206,12 @@ var CommitsTab = React.createClass({
 
     var build_widget = null, prev_builds = null;
     if (c.builds && c.builds.length > 0) {
-      var last_build = _.first(c.builds);
+      var sorted_builds = _.sortBy(c.builds, b => b.dateCreated).reverse();
+      var last_build = _.first(sorted_builds);
       build_widget = <BuildWidget build={last_build} parentElem={this} />;
-      if (c.builds.length > 1) {
+      if (sorted_builds.length > 1) {
         prev_builds = <span style={{opacity: "0.5"}}>
-          {status_dots(c.builds.slice(1))}
+          {status_dots(sorted_builds.slice(1))}
         </span>;
       }
     }
