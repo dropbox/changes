@@ -63,7 +63,7 @@ def greedily_try_to_batch_data_fetches(data, extended_registry):
         # ok, batch the data fetch for all of these child keys and run
         # serializer
         attrs = crumbler.get_extra_attrs_from_db(objs_to_crumble)
-        replacements = [crumbler(o, attrs=attrs.get(o))
+        replacements = [crumbler(o, attrs=attrs.get(o)) if o else None
                         for o in objs_to_crumble]
 
         # we've serialized the child data fetch. But it might also have
