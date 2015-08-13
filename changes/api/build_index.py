@@ -21,7 +21,7 @@ from changes.models import (
     RepositoryStatus, Patch, ItemOption, Source, PlanStatus, Revision
 )
 from changes.utils.diff_parser import DiffParser
-from changes.utils.whitelist import in_project_files_whitelist
+from changes.utils.project_trigger import in_project_files_whitelist
 from changes.vcs.base import CommandError, UnknownRevision
 
 

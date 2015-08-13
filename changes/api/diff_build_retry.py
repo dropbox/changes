@@ -10,7 +10,7 @@ from changes.models import (
     Build, PhabricatorDiff, Project, ProjectStatus, ProjectOptionsHelper
 )
 from changes.utils.diff_parser import DiffParser
-from changes.utils.whitelist import in_project_files_whitelist
+from changes.utils.project_trigger import in_project_files_whitelist
 
 
 class DiffBuildRetryAPIView(APIView):

@@ -6,7 +6,7 @@ from flask import current_app
 from changes.api.build_index import BuildIndexAPIView
 from changes.models import ProjectStatus, Project, ProjectOptionsHelper, Revision
 from changes.utils.diff_parser import DiffParser
-from changes.utils.whitelist import in_project_files_whitelist
+from changes.utils.project_trigger import in_project_files_whitelist
 from changes.vcs.base import UnknownRevision
 
 

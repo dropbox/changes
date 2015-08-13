@@ -19,7 +19,7 @@ from changes.models import (
     ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectOptionsHelper, ProjectStatus,
     Repository, RepositoryStatus, Source
 )
-from changes.utils.whitelist import in_project_files_whitelist
+from changes.utils.project_trigger import in_project_files_whitelist
 
 
 def get_repository_by_callsign(callsign):
