@@ -76,7 +76,7 @@ def test_greedy_fetching():
 
         parents.append(parent)
 
-    serialized = serialize(parents, extended_registry=extended_registry)
+    serialized = serialize(parents, extended_registry=extended_registry, use_greedy=True)
     assert num_extra_attrs_calls["value"] == 3, "should have batched 3 different objects"
 
     for index, parent in enumerate(serialized):

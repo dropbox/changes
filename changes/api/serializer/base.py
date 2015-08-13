@@ -35,6 +35,8 @@ from flask import request
 # that should be batched, but if it fails that won't break anything
 #
 # @param (data): a list of objects that have already had serializer run on them
+#
+# NOTE: right now, this function doesn't fully work
 
 
 def greedily_try_to_batch_data_fetches(data, extended_registry):
@@ -83,7 +85,7 @@ def greedily_try_to_batch_data_fetches(data, extended_registry):
 _PASSTHROUGH = (basestring, bool, int, long, type(None), float)
 
 
-def serialize(data, extended_registry=None):
+def serialize(data, extended_registry=None, use_greedy=False):
     """
     Converts a data structure of dicts, lists, SQLAlchemy objects, and other
     random python objects into something that can be passed to JSON.dumps. This
@@ -133,8 +135,8 @@ def serialize(data, extended_registry=None):
                 attrs = crumbler.get_extra_attrs_from_db(data)
                 data = [crumbler(o, attrs=attrs.get(o)) for o in data]
 
-                disable_greedy_batching = int(request.args.get('__nobatch__', 0))
-                if not disable_greedy_batching:
+                test_greedy_batching = use_greedy or int(request.args.get('__batch__', 0))
+                if test_greedy_batching:
                     greedily_try_to_batch_data_fetches(data, extended_registry)
 
         return [serialize(j, extended_registry) for j in data]
