@@ -582,15 +582,22 @@ class JenkinsBuilder(BaseBackend):
         return node
 
     def _sync_step_from_queue(self, step):
-        # TODO(dcramer): when we hit a NotFound in the queue, maybe we should
-        # attempt to scrape the list of jobs for a matching CHANGES_BID, as this
-        # doesn't explicitly mean that the job doesn't exist.
         try:
             item = self._get_json_response(
                 step.data['master'],
                 '/queue/item/{}'.format(step.data['item_id']),
             )
         except NotFound:
+            # The build might've left the Jenkins queue since we last checked; look for the build_no of the
+            # running build.
+            build_no = self._find_build_no(step.data['master'], step.data['job_name'], changes_bid=step.id.hex)
+            if build_no:
+                step.data['queued'] = False
+                step.data['build_no'] = build_no
+                db.session.add(step)
+                self._sync_step_from_active(step)
+                return
+
             step.status = Status.finished
             step.result = Result.infra_failed
             db.session.add(step)
@@ -613,7 +620,8 @@ class JenkinsBuilder(BaseBackend):
             step.result = Result.aborted
             db.session.add(step)
         elif item.get('executable'):
-            return self._sync_step_from_active(step)
+            self._sync_step_from_active(step)
+            return
 
     def _get_jenkins_job(self, step):
         try:
