@@ -9,6 +9,9 @@ import { TimeText } from 'es6!display/time';
 import custom_content_hook from 'es6!utils/custom_content';
 import { email_head } from 'es6!utils/utils';
 
+import APINotLoaded from 'es6!display/not_loaded';
+import * as api from 'es6!server/api';
+
 var cx = React.addons.classSet;
 
 var ChangesPage = React.createClass({
@@ -26,6 +29,13 @@ var ChangesPage = React.createClass({
     fixed: React.PropTypes.bool,
   },
 
+
+  getInitialState: function() {
+    return {
+      adminMessage: null,
+    }
+  },
+
   getDefaultProps: function() {
     return {
       bodyPadding: true,
@@ -34,7 +44,25 @@ var ChangesPage = React.createClass({
     };
   },
 
+  componentDidMount: function() {
+    var messageEndpoint = '/api/0/messages/';
+    api.fetch(this, {
+      adminMessage: messageEndpoint,
+    });
+  },
+
   render: function() {
+    if (!api.isLoaded(this.state.adminMessage)) {
+      return <APINotLoaded state={this.state.adminMessage} />;
+    }
+
+    var messageObject = this.state.adminMessage.getReturnedData();
+    var message = "";
+
+    if (messageObject.message) {
+      var message = messageObject.message + "  - " + messageObject.user.email;
+    }
+
     if (this.props.isPageLoaded) {
       // NOTE: once browsers support it, we could start using
       // window.performance.mark
@@ -47,6 +75,9 @@ var ChangesPage = React.createClass({
 
     return <div>
       <ChangesPageHeader highlight={this.props.highlight} fixed={this.props.fixed} />
+      <div className="persistentMessageHeader">
+        {message}
+      </div>
       <div style={style}>
         {this.props.children}
       </div>
