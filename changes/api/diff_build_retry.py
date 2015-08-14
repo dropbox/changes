@@ -7,10 +7,12 @@ from changes.api.base import APIView, error
 from changes.api.build_index import create_build, get_build_plans
 from changes.constants import Cause, Result, Status
 from changes.models import (
-    Build, PhabricatorDiff, Project, ProjectStatus, ProjectOptionsHelper
+    Build, PhabricatorDiff, Project, ProjectConfigError, ProjectStatus,
+    ProjectOptionsHelper
 )
 from changes.utils.diff_parser import DiffParser
-from changes.utils.project_trigger import in_project_files_whitelist
+from changes.utils.project_trigger import files_changed_should_trigger_project
+from changes.vcs.base import InvalidDiffError
 
 
 class DiffBuildRetryAPIView(APIView):
@@ -24,7 +26,12 @@ class DiffBuildRetryAPIView(APIView):
             return error("Diff with ID %s does not exist." % (diff_id,))
         diff_parser = DiffParser(diff.source.patch.diff)
         files_changed = diff_parser.get_changed_files()
-        projects = self._get_projects_for_diff(diff, files_changed)
+        try:
+            projects = self._get_projects_for_diff(diff, files_changed)
+        except InvalidDiffError:
+            return error('Patch does not apply')
+        except ProjectConfigError:
+            return error('Project config is not in a valid format.')
         collection_id = uuid.uuid4()
 
         builds = self._get_builds_for_diff(diff)
@@ -75,8 +82,8 @@ class DiffBuildRetryAPIView(APIView):
             x for x in projects
             if get_build_plans(x) and
             project_options[x.id].get('phabricator.diff-trigger', '1') == '1' and
-            in_project_files_whitelist(project_options[x.id], files_changed)
-            ]
+            files_changed_should_trigger_project(files_changed, x, project_options[x.id], diff.source.revision_sha, diff=diff.source.patch.diff)
+        ]
         return projects
 
     def _get_builds_for_diff(self, diff):

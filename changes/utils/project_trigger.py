@@ -1,7 +1,7 @@
 from fnmatch import fnmatch
 
 
-def in_project_files_whitelist(project_options, files_changed):
+def _in_project_files_whitelist(project_options, files_changed):
     file_whitelist = filter(bool, project_options.get('build.file-whitelist', '').splitlines())
     if file_whitelist:
         for filename in files_changed:
@@ -28,13 +28,18 @@ def files_changed_should_trigger_project(files_changed, project, project_options
 
     Returns:
         boolean - True if a build should be started.
+
+    Raises:
+        InvalidDiffError - When the supplied diff does not apply
+        ProjectConfigError - When the config file is in an invalid format.
+        NotImplementedError - When the project has no vcs backend
     """
     config_path = project.get_config_path()
     # if config file changed, then we always run the build
     if config_path in files_changed:
         return True
 
-    config = project.get_config(sha, config_path, diff)
+    config = project.get_config(sha, diff, config_path)
     blacklist = config['build.file-blacklist']
 
     # filter out files in blacklist
@@ -43,6 +48,6 @@ def files_changed_should_trigger_project(files_changed, project, project_options
 
     # apply whitelist, if there are still files left
     if len(files_changed) > 0:
-        return in_project_files_whitelist(project_options, files_changed)
+        return _in_project_files_whitelist(project_options, files_changed)
     else:
         return False

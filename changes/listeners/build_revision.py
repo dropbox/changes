@@ -4,9 +4,9 @@ import logging
 
 from flask import current_app
 from changes.api.build_index import BuildIndexAPIView
-from changes.models import ProjectStatus, Project, ProjectOptionsHelper, Revision
+from changes.models import ProjectStatus, Project, ProjectConfigError, ProjectOptionsHelper, Revision
 from changes.utils.diff_parser import DiffParser
-from changes.utils.project_trigger import in_project_files_whitelist
+from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import UnknownRevision
 
 
@@ -69,10 +69,7 @@ class CommitTrigger(object):
             'build.file-whitelist',
         ])
 
-        if any(o.get('build.file-whitelist') for o in options.values()):
-            files_changed = self.get_changed_files()
-        else:
-            files_changed = None
+        files_changed = self.get_changed_files()
 
         projects_to_build = []
         for project in project_list:
@@ -85,9 +82,15 @@ class CommitTrigger(object):
                 self.logger.info('No branches matched build.branch-names for project %s', project.slug)
                 continue
 
-            if not in_project_files_whitelist(options[project.id], files_changed):
-                self.logger.info('No changed files matched build.file-whitelist for project %s', project.slug)
-                continue
+            try:
+                if not files_changed_should_trigger_project(files_changed, project, options[project.id], revision.sha):
+                    self.logger.info('No changed files matched project trigger for project %s', project.slug)
+                    continue
+            except ProjectConfigError:
+                author_name = '(unknown)'
+                if revision.author_id:
+                    author_name = revision.author.name
+                self.logger.error('Project config for project %s is not in a valid format. Author is %s.', project.slug, author_name, exc_info=True)
 
             projects_to_build.append(project.slug)
 

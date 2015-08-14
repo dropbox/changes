@@ -18,11 +18,12 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, ProjectOptionsHelper, Build, Job, JobPlan, Repository,
-    RepositoryStatus, Patch, ItemOption, Source, PlanStatus, Revision
+    RepositoryStatus, Patch, ItemOption, Source, PlanStatus, Revision,
+    ProjectConfigError
 )
 from changes.utils.diff_parser import DiffParser
-from changes.utils.project_trigger import in_project_files_whitelist
-from changes.vcs.base import CommandError, UnknownRevision
+from changes.utils.project_trigger import files_changed_should_trigger_project
+from changes.vcs.base import CommandError, InvalidDiffError, UnknownRevision
 
 
 class MissingRevision(Exception):
@@ -360,11 +361,16 @@ class BuildIndexAPIView(APIView):
     """
     parser.add_argument('project_whitelist', type=lambda x: json.loads(x))
 
-    """A flag to indicate whether the file whitelist should be used to filter
-    out projects. Defaults to true for diff builds and false for commit builds
-    for compatibility reasons
+    """Deprecated. This means the same thing as `apply_project_files_trigger`,
+    and if both are present, `apply_project_files_trigger` is used.
     """
     parser.add_argument('apply_file_whitelist', type=bool)
+
+    """A flag to indicate whether the file blacklist and whitelist should be
+    used to filter out projects. Defaults to true for diff builds and false for
+    commit builds for compatibility reasons.
+    """
+    parser.add_argument('apply_project_files_trigger', type=bool)
 
     """A flag to indicate that for each project, if there is an existing build,
     return the latest build. Only when there are no builds for a project is
@@ -408,9 +414,9 @@ class BuildIndexAPIView(APIView):
         4. If provided, apply project_whitelist, filtering out projects not in
         this whitelist.
 
-        5. Based on the flag ``apply_file_whitelist`` (see comment on the argument
+        5. Based on the flag ``apply_project_files_trigger`` (see comment on the argument
         itself for default values), decide whether or not to filter out projects
-        by file whitelist.
+        by file blacklist and whitelist.
 
         6. Attach metadata and create/ensure existence of a build for each project,
         depending on the flag ``ensure_only``.
@@ -526,14 +532,16 @@ class BuildIndexAPIView(APIView):
         else:
             is_commit_build = False
 
-        if args.apply_file_whitelist is not None:
-            apply_file_whitelist = args.apply_file_whitelist
-        elif is_commit_build:
-            apply_file_whitelist = False
-        else:
-            apply_file_whitelist = True
+        apply_project_files_trigger = args.apply_project_files_trigger
+        if apply_project_files_trigger is None:
+            apply_project_files_trigger = args.apply_file_whitelist
+        if apply_project_files_trigger is None:
+            if is_commit_build:
+                apply_project_files_trigger = False
+            else:
+                apply_project_files_trigger = True
 
-        if apply_file_whitelist:
+        if apply_project_files_trigger:
             if patch:
                 diff_parser = DiffParser(patch.diff)
                 files_changed = diff_parser.get_changed_files()
@@ -572,9 +580,26 @@ class BuildIndexAPIView(APIView):
             #     )
 
             # 5. apply file whitelist as appropriate
-            if apply_file_whitelist and files_changed and not in_project_files_whitelist(project_options[project.id], files_changed):
-                logging.info('No changed files matched build.file-whitelist for project %s', project.slug)
-                continue
+            diff = None
+            if patch is not None:
+                diff = patch.diff
+            try:
+                if (
+                    apply_project_files_trigger
+                    and files_changed
+                    and not files_changed_should_trigger_project(
+                        files_changed, project, project_options[project.id], sha, diff)
+                ):
+                    logging.info('Changed files do not trigger build for project %s', project.slug)
+                    continue
+            except InvalidDiffError:
+                # ok, the build will fail and the user will be notified.
+                pass
+            except ProjectConfigError:
+                author_name = '(Unknown)'
+                if author:
+                    author_name = author.name
+                logging.error('Project config for project %s is not in a valid format. Author is %s.', project.slug, author_name, exc_info=True)
 
             # 6. create/ensure build
             if args.ensure_only:

@@ -17,9 +17,10 @@ from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.models import (
     ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectOptionsHelper, ProjectStatus,
-    Repository, RepositoryStatus, Source
+    Repository, RepositoryStatus, Source, ProjectConfigError,
 )
-from changes.utils.project_trigger import in_project_files_whitelist
+from changes.utils.project_trigger import files_changed_should_trigger_project
+from changes.vcs.base import InvalidDiffError
 
 
 def get_repository_by_callsign(callsign):
@@ -165,9 +166,15 @@ class PhabricatorNotifyDiffAPIView(APIView):
                 logging.warning('No plans defined for project %s', project.slug)
                 continue
 
-            if not in_project_files_whitelist(project_options[project.id], files_changed):
-                logging.info('No changed files matched build.file-whitelist for project %s', project.slug)
-                continue
+            try:
+                if not files_changed_should_trigger_project(files_changed, project, project_options[project.id], sha, diff=patch.diff):
+                    logging.info('No changed files matched project trigger for project %s', project.slug)
+                    continue
+            except InvalidDiffError:
+                # ok, the build will fail and the user will be notified
+                pass
+            except ProjectConfigError:
+                logging.error('Project config for project %s is not in a valid format. Author is %s.', project.slug, author.name, exc_info=True)
 
             builds.append(create_build(
                 project=project,

@@ -1,4 +1,5 @@
 import json
+import yaml
 
 from cStringIO import StringIO
 from datetime import datetime
@@ -10,7 +11,7 @@ from changes.config import db
 from changes.constants import Status, Result
 from changes.models import Job, JobPlan, Patch, ProjectOption
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
-from changes.vcs.base import RevisionResult, Vcs, UnknownRevision
+from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
 from changes.testutils.build import CreateBuildsMixin
 
 
@@ -198,6 +199,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             log_results = _log_results
         # Fake having a VCS and stub the returned commit log
         fake_vcs = Mock(spec=Vcs)
+        fake_vcs.read_file.side_effect = CommandError(cmd="test command", retcode=128)
         fake_vcs.exists.return_value = True
         fake_vcs.log.side_effect = UnknownRevision(cmd="test command", retcode=128)
         fake_vcs.export.side_effect = UnknownRevision(cmd="test command", retcode=128)
@@ -246,7 +248,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': '',  # file whitelist requires git, which we disabled
+            'apply_project_files_trigger': '',  # requires git, which we disabled
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
@@ -280,7 +282,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': '1',  # This requires that git be updated
+            'apply_project_files_trigger': '1',  # This requires that git be updated
         })
         assert resp.status_code == 400
         data = self.unserialize(resp)
@@ -324,7 +326,8 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data['patch[data]'] = '{"foo": "bar"}'
         return self.client.post(self.path, data=data)
 
-    def test_when_not_in_whitelist_diff_build(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_not_in_whitelist_diff_build(self, get_vcs):
         po = ProjectOption(
             project=self.project,
             name='build.file-whitelist',
@@ -332,15 +335,17 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         )
         db.session.add(po)
         db.session.commit()
+        get_vcs.return_value = self.get_fake_vcs()
 
         resp = self.post_sample_patch({
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
         })
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    def test_when_in_whitelist_diff_build(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_in_whitelist_diff_build(self, get_vcs):
         po = ProjectOption(
             project=self.project,
             name='build.file-whitelist',
@@ -348,15 +353,17 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         )
         db.session.add(po)
         db.session.commit()
+        get_vcs.return_value = self.get_fake_vcs()
 
         resp = self.post_sample_patch({
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
         })
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    def test_when_in_whitelist_diff_build_default_true(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_in_whitelist_diff_build_default_true(self, get_vcs):
         po = ProjectOption(
             project=self.project,
             name='build.file-whitelist',
@@ -364,13 +371,15 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         )
         db.session.add(po)
         db.session.commit()
+        get_vcs.return_value = self.get_fake_vcs()
 
         resp = self.post_sample_patch()
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    def test_when_in_whitelist_diff_build_default_true_negative(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_in_whitelist_diff_build_default_true_negative(self, get_vcs):
         po = ProjectOption(
             project=self.project,
             name='build.file-whitelist',
@@ -378,6 +387,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         )
         db.session.add(po)
         db.session.commit()
+        get_vcs.return_value = self.get_fake_vcs()
 
         resp = self.post_sample_patch()
         assert resp.status_code == 200, resp.data
@@ -399,7 +409,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             sha='a' * 40
         )
         resp = self.client.post(self.path, data={
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'sha': 'a' * 40,
             'repository': self.project.repository.url
         })
@@ -422,7 +432,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             sha='a' * 40
         )
         resp = self.client.post(self.path, data={
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'sha': 'a' * 40,
             'repository': self.project.repository.url
         })
@@ -489,7 +499,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'repository': self.project.repository.url,
-            'apply_file_whitelist': '',
+            'apply_project_files_trigger': '',
             'ensure_only': '1',
         })
         assert resp.status_code == 200
@@ -507,6 +517,116 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert source.revision_sha == revision.sha
 
     @patch('changes.models.Repository.get_vcs')
+    def test_when_in_blacklist_commit_build(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/*'],
+        })
+        get_vcs.return_value = fake_vcs
+        self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        resp = self.client.post(self.path, data={
+            'apply_project_files_trigger': '1',
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_not_all_in_blacklist_commit_build(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/not-real'],
+        })
+        get_vcs.return_value = fake_vcs
+        self.create_revision(
+            repository=self.project.repository,
+            sha='a' * 40
+        )
+        resp = self.client.post(self.path, data={
+            'apply_project_files_trigger': '1',
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_in_blacklist_diff_build(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/*'],
+        })
+        get_vcs.return_value = fake_vcs
+
+        resp = self.post_sample_patch({
+            'apply_project_files_trigger': '1',
+        })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_not_all_in_blacklist_diff_build(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/not-real'],
+        })
+        get_vcs.return_value = fake_vcs
+
+        resp = self.post_sample_patch({
+            'apply_project_files_trigger': '1',
+        })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_not_all_in_blacklist_diff_build_invalid_diff(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/*'],
+        })
+        get_vcs.return_value = fake_vcs
+
+        with patch('changes.api.build_index.files_changed_should_trigger_project') as mocked:
+            mocked.side_effect = InvalidDiffError
+            resp = self.post_sample_patch({
+                'apply_project_files_trigger': '1',
+            })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_not_all_in_blacklist_invalid_config(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/*'],
+        }) + '}'
+        get_vcs.return_value = fake_vcs
+
+        resp = self.client.post(self.path, data={
+            'apply_project_files_trigger': '1',
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url
+        })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.models.Repository.get_vcs')
     def test_ensure_existing_build_complete(self, get_vcs):
         """Tests when all builds have already been created"""
         get_vcs.return_value = self.get_fake_vcs()
@@ -519,7 +639,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'ensure_only': '1',
         })
         assert resp.status_code == 200
@@ -543,7 +663,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'repository': self.project.repository.url,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'ensure_only': '1',
         })
         assert resp.status_code == 200
@@ -571,7 +691,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'repository': self.project.repository.url,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'ensure_only': '1',
         })
         assert resp.status_code == 200
@@ -596,7 +716,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'repository': self.project.repository.url,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'ensure_only': '1',
         })
         assert resp.status_code == 200
@@ -619,7 +739,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'ensure_only': '',
         })
         assert resp.status_code == 200
@@ -642,7 +762,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
         })
         assert resp.status_code == 200
         data = self.unserialize(resp)
@@ -674,7 +794,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'ensure_only': '1',
         })
         assert resp.status_code == 200
@@ -688,7 +808,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'apply_file_whitelist': '1',
+            'apply_project_files_trigger': '1',
             'ensure_only': '1',
             'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
         })
@@ -767,9 +887,11 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
+    @patch('changes.models.Repository.get_vcs')
     @patch('changes.api.build_index.find_green_parent_sha')
-    def test_with_full_params(self, mock_find_green_parent_sha):
+    def test_with_full_params(self, mock_find_green_parent_sha, get_vcs):
         mock_find_green_parent_sha.return_value = 'b' * 40
+        get_vcs.return_value = self.get_fake_vcs()
 
         resp = self.post_sample_patch()
         assert resp.status_code == 200, resp.data

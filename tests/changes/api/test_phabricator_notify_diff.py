@@ -1,15 +1,50 @@
 from __future__ import absolute_import, division, unicode_literals
 
+import yaml
+
 from cStringIO import StringIO
+from datetime import datetime
+from mock import Mock, patch
 
 from changes.config import db
 from changes.models import Job, JobPlan, ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF
 from changes.testutils.build import CreateBuildsMixin
+from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
 
 
 class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
     path = '/api/0/phabricator/notify-diff/'
+
+    def get_fake_vcs(self, log_results=None):
+        def _log_results(parent=None, branch=None, offset=0, limit=1):
+            assert not branch
+            return iter([
+                RevisionResult(
+                    id='a' * 40,
+                    message='hello world',
+                    author='Foo <foo@example.com>',
+                    author_date=datetime.utcnow(),
+                )])
+        if log_results is None:
+            log_results = _log_results
+        # Fake having a VCS and stub the returned commit log
+        fake_vcs = Mock(spec=Vcs)
+        fake_vcs.read_file.side_effect = CommandError(cmd="test command", retcode=128)
+        fake_vcs.exists.return_value = True
+        fake_vcs.log.side_effect = UnknownRevision(cmd="test command", retcode=128)
+        fake_vcs.export.side_effect = UnknownRevision(cmd="test command", retcode=128)
+
+        def fake_update():
+            # this simulates the effect of calling update() on a repo,
+            # mainly that `export` and `log` now works.
+            fake_vcs.log.side_effect = log_results
+            fake_vcs.export.side_effect = None
+            fake_vcs.export.return_value = SAMPLE_DIFF
+
+        fake_vcs.update.side_effect = fake_update
+
+        return fake_vcs
 
     def post_sample_patch(self):
         return self.client.post(self.path, data={
@@ -24,7 +59,9 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
             'author': 'David Cramer <dcramer@example.com>',
         })
 
-    def test_valid_params(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_valid_params(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo()
 
         project = self.create_project(repository=repo)
@@ -108,7 +145,9 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    def test_when_not_in_whitelist(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_not_in_whitelist(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo()
 
         project = self.create_project(repository=repo)
@@ -132,7 +171,9 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    def test_when_in_whitelist(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_in_whitelist(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo()
 
         project = self.create_project(repository=repo)
@@ -156,7 +197,103 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    def test_collection_id(self):
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_in_blacklist(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/*'],
+        })
+        get_vcs.return_value = fake_vcs
+        repo = self.create_repo()
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+
+        project = self.create_project(repository=repo)
+        self.create_plan(project)
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 0
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_when_not_all_in_blacklist(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/not-real'],
+        })
+        get_vcs.return_value = fake_vcs
+        repo = self.create_repo()
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+
+        project = self.create_project(repository=repo)
+        self.create_plan(project)
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_invalid_diff(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/*'],
+        })
+        get_vcs.return_value = fake_vcs
+        repo = self.create_repo()
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+
+        project = self.create_project(repository=repo)
+        self.create_plan(project)
+
+        with patch('changes.api.phabricator_notify_diff.files_changed_should_trigger_project') as mocked:
+            mocked.side_effect = InvalidDiffError
+            resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_invalid_config(self, get_vcs):
+        fake_vcs = self.get_fake_vcs()
+        fake_vcs.read_file.side_effect = None
+        fake_vcs.read_file.return_value = yaml.safe_dump({
+            'build.file-blacklist': ['ci/*'],
+        }) + '}'
+        get_vcs.return_value = fake_vcs
+        repo = self.create_repo()
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+
+        project = self.create_project(repository=repo)
+        self.create_plan(project)
+
+        resp = self.post_sample_patch()
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_collection_id(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo_with_projects(count=3)
         self.create_option(
             item_id=repo.id,

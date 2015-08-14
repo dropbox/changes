@@ -40,7 +40,7 @@ class FilesChangedTest(TestCase):
                 {},
                 self.revision.sha,
             )
-            (sha, _, diff), _ = mocked.call_args
+            (sha, diff, _), _ = mocked.call_args
             assert sha == self.revision.sha
             assert diff is None
 
@@ -55,7 +55,7 @@ class FilesChangedTest(TestCase):
                 {},
                 self.revision.sha,
             )
-            (sha, _, diff), _ = mocked.call_args
+            (sha, diff, _), _ = mocked.call_args
             assert sha == self.revision.sha
             assert diff is None
 
@@ -70,7 +70,7 @@ class FilesChangedTest(TestCase):
                 {},
                 self.revision.sha,
             )
-            (sha, _, diff), _ = mocked.call_args
+            (sha, diff, _), _ = mocked.call_args
             assert sha == self.revision.sha
             assert diff is None
 
@@ -89,7 +89,7 @@ z
 """},
                 self.revision.sha,
             )
-            (sha, _, diff), _ = mocked.call_args
+            (sha, diff, _), _ = mocked.call_args
             assert sha == self.revision.sha
             assert diff is None
 
@@ -108,7 +108,7 @@ z
 """},
                 self.revision.sha,
             )
-            (sha, _, diff), _ = mocked.call_args
+            (sha, diff, _), _ = mocked.call_args
             assert sha == self.revision.sha
             assert diff is None
 
@@ -124,6 +124,6 @@ z
                 self.revision.sha,
                 self.patch.diff,
             )
-            (sha, _, diff), _ = mocked.call_args
+            (sha, diff, _), _ = mocked.call_args
             assert sha == self.revision.sha
             assert diff == self.patch.diff
