@@ -976,3 +976,22 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 2
+
+    @patch('changes.models.Repository.get_vcs')
+    def test_with_empty_changeset(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
+
+        resp = self.client.post(self.path, data={
+            'apply_project_files_trigger': '1',
+            'project': self.project.slug,
+            'sha': 'a' * 40,
+            'target': 'D1234',
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>',
+            'patch': (StringIO(""), 'foo.diff'),
+            'patch[data]': '{"foo": "bar"}'
+        })
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 0

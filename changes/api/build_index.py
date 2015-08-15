@@ -586,7 +586,7 @@ class BuildIndexAPIView(APIView):
             try:
                 if (
                     apply_project_files_trigger
-                    and files_changed
+                    and files_changed is not None
                     and not files_changed_should_trigger_project(
                         files_changed, project, project_options[project.id], sha, diff)
                 ):
