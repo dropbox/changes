@@ -77,9 +77,9 @@ class DiffParser(object):
                 old, new = self._extract_rev(line, lineiter.next())
                 files.append({
                     'is_header': False,
-                    'old_filename': old[0],
+                    'old_filename': old[0] if old[0] != '/dev/null' else None,
                     'old_revision': old[1],
-                    'new_filename': new[0],
+                    'new_filename': new[0] if new[0] != '/dev/null' else None,
                     'new_revision': new[1],
                     'chunks': chunks,
                     'chunk_markers': chunk_markers,
@@ -179,8 +179,8 @@ class DiffParser(object):
 +++ {new_filename}
 {chunks}
 """.format(
-            old_filename=file_dict['old_filename'],
-            new_filename=file_dict['new_filename'],
+            old_filename=file_dict['old_filename'] if file_dict['old_filename'] is not None else '/dev/null',
+            new_filename=file_dict['new_filename'] if file_dict['new_filename'] is not None else '/dev/null',
             chunks='\n'.join(chunk_strings),
         )
         return diff

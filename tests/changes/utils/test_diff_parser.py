@@ -336,3 +336,45 @@ index d800886..e69de29 100644
 -123
 \ No newline at end of file
 """
+
+    def test_dev_null_source(self):
+        patch = """diff --git a/whitelist/blacklist/a.txt b/whitelist/blacklist/a.txt
+new file mode 100644
+index 0000000..038d718
+--- /dev/null
++++ b/whitelist/blacklist/a.txt
+@@ -0,0 +1 @@
++testing
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == """
+--- /dev/null
++++ b/whitelist/blacklist/a.txt
+@@ -0,0 +1 @@
++testing
+"""
+        assert file_dict['old_filename'] is None
+        assert parser.get_changed_files() == set(['whitelist/blacklist/a.txt'])
+
+    def test_dev_null_target(self):
+        patch = """diff --git a/whitelist/blacklist/b.txt b/whitelist/blacklist/b.txt
+deleted file mode 100644
+index 038d718..0000000
+--- a/whitelist/blacklist/b.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-testing
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == """
+--- a/whitelist/blacklist/b.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-testing
+"""
+        assert file_dict['new_filename'] is None
+        assert parser.get_changed_files() == set(['whitelist/blacklist/b.txt'])
