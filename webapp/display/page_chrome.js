@@ -59,7 +59,7 @@ var ChangesPage = React.createClass({
     var messageObject = this.state.adminMessage.getReturnedData();
     var message = "";
 
-    if (messageObject.message) {
+    if (messageObject && messageObject.message) {
       var message = messageObject.message + "  - " + messageObject.user.email;
     }
 
