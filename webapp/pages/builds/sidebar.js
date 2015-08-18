@@ -182,7 +182,7 @@ var Sidebar = React.createClass({
             Failed
           </div>;
         } else {
-          var text = b.stats.test_failures === 1 ? 'test failed' : 
+          var text = b.stats.test_failures === 1 ? 'test failed' :
             'tests failed';
 
           failed = <div className="lt-red" style={{marginTop: 3}}>

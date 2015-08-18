@@ -165,11 +165,11 @@ var CommitsTab = React.createClass({
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
     var headers = [
-      'Last Build', 
-      'Author', 
-      'Commit', 
-      'Name', 
-      'Prev. B.', 
+      'Last Build',
+      'Author',
+      'Commit',
+      'Name',
+      'Prev. B.',
       'Committed'
     ];
 

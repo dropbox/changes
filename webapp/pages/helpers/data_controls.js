@@ -10,8 +10,8 @@ import * as utils from 'es6!utils/utils';
  * - Renders pagination links for you. It also keeps track of both the fetched
  *   and not-yet-fetched data when getting new pages from the server.
  * - Allows you to add controls, e.g. a dropdown for which branch to choose
- *   when rendering a list of commits. You store the state of these controls 
- *   as the get parameters sent to the api (and read from those parameters to 
+ *   when rendering a list of commits. You store the state of these controls
+ *   as the get parameters sent to the api (and read from those parameters to
  *   properly render your controls.)
  * - Syncs the current browser url with the above two bullets. This allows
  *   people to share links.
@@ -20,12 +20,12 @@ import * as utils from 'es6!utils/utils';
  * architected. Here's generally how you use it:
  * - Create it in componentWillMount inside your element's state object.
  *   Constructor params are the owner element and the state key being used,
- *   and the backing API url that returns different filtered/sorted views 
+ *   and the backing API url that returns different filtered/sorted views
  *   of the data
- * - Run initialize to get the initial data to populate your table. You want to 
+ * - Run initialize to get the initial data to populate your table. You want to
  *   use getParamsFromWindowUrl() to get a set of parameters to send with this
  *   initial API request (e.g. if this is a shared or copy/pasted link)...this
- *   works based on the fact that the page url always has the same parameters 
+ *   works based on the fact that the page url always has the same parameters
  *   as the API url.
  * - Don't try rendering anything while hasNotLoadedInitialData()
  * - Render your data using getDataToShow(). Give your grid opacity

@@ -207,7 +207,7 @@ export var BuildWidget = React.createClass({
 
 /*
  * Renders a square patch based on runnable state (passed is green,
- * failed is red, unknown is gray.) If state is waiting, we render 
+ * failed is red, unknown is gray.) If state is waiting, we render
  * an icon instead.
  */
 export var StatusDot = React.createClass({

@@ -217,9 +217,9 @@ var SingleBuild = React.createClass({
     var more_markup = null;
     if (build.testFailures.total > build.testFailures.tests.length) {
       more_markup = <div className="lt-darkgray marginTopM">
-        Only showing 
+        Only showing
         {" "}{build.testFailures.tests.length}{" "}
-        out of 
+        out of
         {" "}{build.testFailures.total}{" "}
         failed tests.
       </div>
