@@ -305,6 +305,7 @@ var Commits = React.createClass({
         cellClasses={cellClasses}
         headers={headers}
       />
+      <br /><div>Click <a href="/v2/builds">here</a> to see your builds!</div>
     </div>;
   }
 });
