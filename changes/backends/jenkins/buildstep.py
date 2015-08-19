@@ -20,7 +20,7 @@ class JenkinsBuildStep(BuildStep):
     builder_cls = JenkinsBuilder
     logger = logging.getLogger('jenkins')
 
-    def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None, token=None, auth=None):
+    def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None):
         """
         The JenkinsBuildStep constructor here, which is used as a base
         for all Jenkins builds, only accepts parameters which are used
@@ -48,8 +48,6 @@ class JenkinsBuildStep(BuildStep):
         self.job_name = job_name
         self.jenkins_urls = jenkins_url
         self.jenkins_diff_urls = jenkins_diff_url
-        self.token = token
-        self.auth = auth
 
     def get_builder(self, app=current_app, **kwargs):
         """
@@ -71,8 +69,6 @@ class JenkinsBuildStep(BuildStep):
         return {
             'master_urls': self.jenkins_urls,
             'diff_urls': self.jenkins_diff_urls,
-            'token': self.token,
-            'auth': self.auth,
             'job_name': self.job_name,
         }
 

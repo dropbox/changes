@@ -62,8 +62,8 @@ class NotFound(Exception):
 
 class JenkinsBuilder(BaseBackend):
 
-    def __init__(self, master_urls=None, diff_urls=None, job_name=None, token=None,
-                 auth=None, sync_phase_artifacts=True, *args, **kwargs):
+    def __init__(self, master_urls=None, diff_urls=None, job_name=None,
+                 sync_phase_artifacts=True, *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.master_urls = master_urls
         self.diff_urls = diff_urls
@@ -73,8 +73,6 @@ class JenkinsBuilder(BaseBackend):
 
         assert self.master_urls, 'No Jenkins masters specified'
 
-        self.token = token or self.app.config['JENKINS_TOKEN']
-        self.auth = auth or self.app.config['JENKINS_AUTH']
         self.logger = logging.getLogger('jenkins')
         self.job_name = job_name
         # disabled by default as it's expensive
@@ -110,12 +108,11 @@ class JenkinsBuilder(BaseBackend):
         if params is None:
             params = {}
 
-        if self.token is not None:
-            params.setdefault('token', self.token)
-
         self.logger.info('Fetching %r', url)
-        resp = getattr(self.http_session, method.lower())(url, params=params, data=data,
-                                                          allow_redirects=False, timeout=30, auth=self.auth)
+        resp = getattr(self.http_session, method.lower())(url, params=params,
+                                                          data=data,
+                                                          allow_redirects=False,
+                                                          timeout=30)
 
         if resp.status_code == 404:
             raise NotFound
