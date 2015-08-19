@@ -27,7 +27,7 @@
     "react": "~0.13.3",
     "react-bootstrap": "~0.24",
     "requirejs": "~2.1.11",
-    "requirejs-babel": "~0.0.6",
+    "requirejs-babel": "0.0.6",
     "typeahead.js": "~0.10.2",
     "underscore": "~1.8.3",
     "uri.js": "~1.15.2"
