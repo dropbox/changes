@@ -1,10 +1,9 @@
 import React from 'react';
 
-import ChangesPage from 'es6!display/page_chrome';
-import SectionHeader from 'es6!display/section_header';
-
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesPage from 'es6!display/page_chrome';
 import DisplayUtils from 'es6!display/changes/utils';
+import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { BuildWidget, get_build_cause } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
@@ -12,9 +11,7 @@ import { TimeText } from 'es6!display/time';
 
 import DataControls from 'es6!pages/helpers/data_controls';
 
-import * as api from 'es6!server/api';
-
-var BuildsPage = React.createClass({
+var MyBuildsPage = React.createClass({
 
   componentWillMount: function() {
     this.setState({
@@ -107,4 +104,4 @@ var BuildsPage = React.createClass({
   },
 });
 
-export default BuildsPage;
+export default MyBuildsPage;

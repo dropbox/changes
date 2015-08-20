@@ -1,7 +1,7 @@
 import React from 'react';
 import { Popover, OverlayTrigger } from 'react_bootstrap';
 
-import { ProgrammingError } from 'es6!display/errors';
+import { Error, ProgrammingError } from 'es6!display/errors';
 import { display_duration_pieces } from 'es6!display/time';
 
 import * as api from 'es6!server/api';

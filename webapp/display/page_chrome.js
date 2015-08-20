@@ -1,16 +1,16 @@
 import React from 'react';
 import moment from 'moment';
 
+import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
 import { Error } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
 import { TimeText } from 'es6!display/time';
 
+import * as api from 'es6!server/api';
+
 import custom_content_hook from 'es6!utils/custom_content';
 import { email_head } from 'es6!utils/utils';
-
-import APINotLoaded from 'es6!display/not_loaded';
-import * as api from 'es6!server/api';
 
 var cx = React.addons.classSet;
 
