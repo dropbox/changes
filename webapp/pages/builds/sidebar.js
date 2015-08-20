@@ -182,11 +182,8 @@ var Sidebar = React.createClass({
             Failed
           </div>;
         } else {
-          var text = b.stats.test_failures === 1 ? 'test failed' :
-            'tests failed';
-
           failed = <div className="lt-red" style={{marginTop: 3}}>
-            {b.stats.test_failures}{" "}{text}
+            {utils.plural(b.stats.test_failures, 'test(s) failed')}
           </div>;
         }
       }
@@ -197,8 +194,7 @@ var Sidebar = React.createClass({
         <div className="subText">
           Triggered by {get_build_cause(b)}
           {", "}
-          {b.stats.test_count}
-          {b.stats.test_count === 1 ? " test run" : " tests run"}
+          {utils.plural(b.stats.test_count, "test(s) run")}
         </div>
         {failed}
       </div>

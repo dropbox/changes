@@ -92,6 +92,21 @@ export var get_common_prefix = function(strings) {
   return common_prefix;
 }
 
+// plural(1, "test(s) passed") -> "1 test passed"
+// plural(2, "test(s) passed") -> "2 tests passed"
+// if use_no is set, No will be used in place of 0 (or no if not capitalize)
+export var plural = function(num, text, use_no = false, capitalize = false) {
+  if (num === 1) {
+    return num + " " + text.replace("(s)", "");
+  } 
+  text = text.replace("(s)", "s"); 
+
+  if (num === 0 && use_no) {
+    return (capitalize ? 'No ' : 'no ') + text;
+  }
+  return num + " " + text;
+}
+
 // as get_common_prefix, but for suffixes
 export var get_common_suffix = function(strings) {
   var reversed_strings = _.map(strings, s => s.split('').reverse().join(''));
