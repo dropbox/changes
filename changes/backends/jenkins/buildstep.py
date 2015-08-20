@@ -20,7 +20,8 @@ class JenkinsBuildStep(BuildStep):
     builder_cls = JenkinsBuilder
     logger = logging.getLogger('jenkins')
 
-    def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None):
+    def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None,
+                 auth_keyname=None, verify=True):
         """
         The JenkinsBuildStep constructor here, which is used as a base
         for all Jenkins builds, only accepts parameters which are used
@@ -31,6 +32,15 @@ class JenkinsBuildStep(BuildStep):
         jenkins_url and jenkins_diff_url are either a single url or a list
         of possible jenkins masters for use of queueing. We don't worry
         about which slaves to schedule them on at this level.
+
+        Args:
+            auth_keyname: A key in the Changes config file that specifies the
+                auth parameter to pass to the requests library. This could be
+                a (username, password) tuple, in which case the requests library
+                uses HTTPBasicAuth. For details, see http://docs.python-requests.org/en/latest/user/authentication/#basic-authentication
+            verify (str or bool): The verify parameter to pass to the requests
+                library for verifying SSL certificates. For details,
+                see http://docs.python-requests.org/en/latest/user/advanced/#ssl-cert-verification
         """
         # we support a string or a list of strings for master server urls
         if not isinstance(jenkins_url, (list, tuple)):
@@ -48,6 +58,8 @@ class JenkinsBuildStep(BuildStep):
         self.job_name = job_name
         self.jenkins_urls = jenkins_url
         self.jenkins_diff_urls = jenkins_diff_url
+        self.auth_keyname = auth_keyname
+        self.verify = verify
 
     def get_builder(self, app=current_app, **kwargs):
         """
@@ -62,7 +74,7 @@ class JenkinsBuildStep(BuildStep):
     def get_builder_options(self):
         """
         A dictionary that is used as kwargs for creating the builder (these can be
-        overwridden in the kwargs of get_builder but this is not done very commonly),
+        overridden in the kwargs of get_builder but this is not done very commonly),
         so most builder constructor values originate from the get_builder_options
         of the corresponding buildstep or one of its superclasses.
         """
@@ -70,6 +82,8 @@ class JenkinsBuildStep(BuildStep):
             'master_urls': self.jenkins_urls,
             'diff_urls': self.jenkins_diff_urls,
             'job_name': self.job_name,
+            'verify': self.verify,
+            'auth_keyname': self.auth_keyname,
         }
 
     def get_label(self):

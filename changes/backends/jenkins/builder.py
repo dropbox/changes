@@ -63,7 +63,8 @@ class NotFound(Exception):
 class JenkinsBuilder(BaseBackend):
 
     def __init__(self, master_urls=None, diff_urls=None, job_name=None,
-                 sync_phase_artifacts=True, *args, **kwargs):
+                 sync_phase_artifacts=True, auth_keyname=None, verify=True,
+                 *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.master_urls = master_urls
         self.diff_urls = diff_urls
@@ -82,13 +83,16 @@ class JenkinsBuilder(BaseBackend):
         self.sync_coverage_artifacts = self.app.config.get('JENKINS_SYNC_COVERAGE_ARTIFACTS', True)
         self.sync_file_artifacts = self.app.config.get('JENKINS_SYNC_FILE_ARTIFACTS', True)
         self.http_session = requests.Session()
+        self.auth = self.app.config[auth_keyname] if auth_keyname else None
+        self.verify = verify
 
         def report_response_status(r, *args, **kwargs):
             statsreporter.stats().incr('jenkins_api_response_{}'.format(r.status_code))
 
         self.http_session.hooks['response'].append(report_response_status)
 
-    def _get_text_response(self, master_base_url, path, method='GET', params=None, data=None):
+    def _get_text_response(self, master_base_url, path, method='GET',
+                           params=None, data=None):
         """Make an HTTP request and return a text response.
 
         Params:
@@ -112,7 +116,9 @@ class JenkinsBuilder(BaseBackend):
         resp = getattr(self.http_session, method.lower())(url, params=params,
                                                           data=data,
                                                           allow_redirects=False,
-                                                          timeout=30)
+                                                          timeout=30,
+                                                          auth=self.auth,
+                                                          verify=self.verify)
 
         if resp.status_code == 404:
             raise NotFound

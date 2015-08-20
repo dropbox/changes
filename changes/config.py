@@ -239,9 +239,7 @@ def create_app(_read_config=True, profiler_directory=None, **config):
         'changes',
     ]
 
-    app.config['JENKINS_AUTH'] = None
     app.config['JENKINS_URL'] = None
-    app.config['JENKINS_TOKEN'] = None
     app.config['JENKINS_CLUSTERS'] = {}
 
     app.config['KOALITY_URL'] = None
