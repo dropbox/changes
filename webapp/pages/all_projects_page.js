@@ -252,7 +252,7 @@ var AllProjectsPage = React.createClass({
           rows.push([
             proj_name,
             plan.name,
-            <span className="marginRightL">{plan.steps[0].name}</span>,
+            <span className="marginRightL">{this.getStepType(plan.steps[0])}</span>,
             this.getSeeConfigLink(plan.id, 'plans'),
             <TimeText time={plan.dateModified} />
           ]);
@@ -290,10 +290,11 @@ var AllProjectsPage = React.createClass({
     );
 
     var every_plan_type = _.chain(every_plan)
-      .map(p => p.steps.length > 0 ? p.steps[0].name : "")
+      .map(p => p.steps.length > 0 ? this.getStepType(p.steps[0]) : "")
       .compact()
       .uniq()
-      .sortBy(_.identity)
+      // sort, hoisting build types starting with [LXC] to the top
+      .sortBy(t => t.charAt(0) === "[" ? "0" + t : t)
       .value();
 
     var rows_lists = [];
@@ -302,7 +303,7 @@ var AllProjectsPage = React.createClass({
       var plan_rows = [];
       _.each(projects_data, proj => {
         _.each(proj.plans, (plan, index) => {
-          if (plan.steps.length > 0 && plan.steps[0].name === type) {
+          if (plan.steps.length > 0 && this.getStepType(plan.steps[0]) === type) {
             plan_rows.push([
               null,
               proj.name,
@@ -513,7 +514,23 @@ var AllProjectsPage = React.createClass({
         {build_timeout_markup}
       </div>
     );
+  },
+
+  getStepType: function(step) {
+    var is_lxc = false;
+    _.each(utils.split_lines(step.data), line => {
+      // look for a "build_type": "lxc" line
+      if (line.indexOf("build_type") >= 0 && line.indexOf("lxc") >= 0) {
+        is_lxc = true;
+      }
+    });
+
+    var is_jenkins_lxc = is_lxc && step.name.indexOf("Jenkins") >= 0;
+    return is_jenkins_lxc ?
+      "[LXC] " + step.name :
+      step.name;
   }
+
 });
 
 export default AllProjectsPage;
