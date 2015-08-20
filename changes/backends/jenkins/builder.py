@@ -1074,6 +1074,8 @@ class JenkinsBuilder(BaseBackend):
             HTTPError: if the response code didn't indicate success.
             Timeout: if the server took too long to respond.
         """
-        resp = self.http_session.get(url, stream=True, timeout=15, params=params)
+        resp = self.http_session.get(url, stream=True, timeout=15,
+                                     params=params, auth=self.auth,
+                                     verify=self.verify)
         resp.raise_for_status()
         return resp
