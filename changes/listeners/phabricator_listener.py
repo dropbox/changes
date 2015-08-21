@@ -156,6 +156,11 @@ def _get_message_for_build_context(build_context):
 
 
 def get_test_failures_in_base_commit(build):
+    """
+    Returns: None if there was a problem locating the base commit or base build.
+        Otherwise a dictionary of test names that failed in the most recent base
+        build.
+    """
     commit_sources = [s.id for s in Source.query.filter(
             Source.revision_sha == build.source.revision_sha) if s.is_commit()]
 
@@ -163,9 +168,19 @@ def get_test_failures_in_base_commit(build):
         Build.source_id.in_(commit_sources),
         Build.project_id == build.project_id
     )
+    if not list(base_builds):
+        logger.info("Unable to find base build for %s",
+                    build.source.revision_sha)
+        return None
+
     jobs = list(Job.query.filter(
         Job.build_id.in_([b.id for b in base_builds])
     ))
+    if not list(jobs):
+        logger.info("Unable to find jobs matching build for %s",
+                    build.source.revision_sha)
+        return None
+
     test_failures = TestCase.query.options(
         joinedload('job', innerjoin=True),
     ).filter(
@@ -207,21 +222,36 @@ def _generate_remarkup_table_for_tests(build, tests):
 
 
 def get_test_failure_remarkup(build, tests):
-    base_commit_failures = get_test_failures_in_base_commit(build)
-    new_failures = [t for t in tests if t.name not in base_commit_failures]
-    failures_in_parent = [t for t in tests if t.name in base_commit_failures]
-
     safe_slug = urllib.quote_plus(build.project.slug)
-    message = ' There were {new_failures} new [test failures]({link})'.format(
-        num_failures=len(tests),
-        new_failures=len(new_failures),
-        link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(safe_slug, build.id.hex))
-    )
-    if new_failures:
-        message += '\n\n**New failures ({new_failure_count}):**\n'.format(
-            new_failure_count=len(new_failures)
+
+    base_commit_failures = get_test_failures_in_base_commit(build)
+    if base_commit_failures is None:
+        total_failures = [t for t in tests]
+        failures_in_parent = []
+        message = ' There were a total of ' \
+                  '{num_failures} [test failures]({link}), but we could not ' \
+                  'determine if any of these tests were previously failing.'.format(
+                      num_failures=len(tests),
+                      link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(safe_slug, build.id.hex))
+                  )
+        message += '\n\n**All failures ({failure_count}):**\n'.format(
+            failure_count=len(total_failures)
         )
-        message += _generate_remarkup_table_for_tests(build, new_failures)
+        message += _generate_remarkup_table_for_tests(build, total_failures)
+
+    else:
+        new_failures = [t for t in tests if t.name not in base_commit_failures]
+        failures_in_parent = [t for t in tests if t.name in base_commit_failures]
+        message = ' There were {new_failures} new [test failures]({link})'.format(
+            new_failures=len(new_failures),
+            link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(safe_slug, build.id.hex))
+        )
+
+        if new_failures:
+            message += '\n\n**New failures ({new_failure_count}):**\n'.format(
+                new_failure_count=len(new_failures)
+            )
+            message += _generate_remarkup_table_for_tests(build, new_failures)
 
     if failures_in_parent:
         message += '\n\n**Failures in parent revision ({parent_failure_count}):**\n'.format(
