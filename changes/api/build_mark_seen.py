@@ -13,11 +13,11 @@ class BuildMarkSeenAPIView(APIView):
 
         if not session.get('uid'):
             # don't do anything if they aren't logged in
-            return '', 200
+            return self.respond({})
 
         try_create(BuildSeen, where={
             'build_id': build.id,
             'user_id': session['uid'],
         })
 
-        return '', 200
+        return self.respond({})
