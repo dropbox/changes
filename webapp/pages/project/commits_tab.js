@@ -190,8 +190,12 @@ var CommitsTab = React.createClass({
     }
 
     var title = utils.first_line(c.message);
-    if (c.message.indexOf("#skipthequeue") !== -1) {
-      // dropbox-specific logic.
+    if (c.message.indexOf("!!skipthequeue") !== -1 ||
+        c.message.indexOf("#skipthequeue") !== -1) { // we used to use this
+
+      // dropbox-specific logic: we have a commit queue (oh hey, you should
+      // build one of those too)
+
       var tooltip = <Tooltip>
         This commit bypassed the commit queue
       </Tooltip>;
