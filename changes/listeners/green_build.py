@@ -127,7 +127,9 @@ def build_finished_handler(build_id, **kwargs):
         # Conflicts aren't necessarily failures; some green build receivers
         # report conflict if they see out-of-order results (not uncommon in Changes).
         # We want to track those situations independently of other non-success responses.
-        if ex.response and ex.response.status_code == 409:
+        # NOTE: We compare `ex.response` to None explicitly because any non-200 response
+        # evaluates to `False`.
+        if ex.response is not None and ex.response.status_code == 409:
             logger.warning("Conflict when reporting green build", exc_info=True)
         else:
             logger.exception('Failed to report green build')
