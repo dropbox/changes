@@ -42,8 +42,10 @@ var TestHistoryPage = React.createClass({
     var history_content = this.renderHistory();
 
     return <ChangesPage>
-      <SectionHeader>Builds in master</SectionHeader>
-      {history_content}
+      <SectionHeader>Commits in master</SectionHeader>
+      <div className="marginTopM">
+        {history_content}
+      </div>
     </ChangesPage>;
   },
 
@@ -56,6 +58,14 @@ var TestHistoryPage = React.createClass({
     }
 
     var rows = _.map(this.state.history.getReturnedData(), t => {
+      if (!t) {
+        return [
+          null, null, null, null, 
+          <i>Not run for this commit</i>, 
+          null
+        ];
+      }
+
       var build = t.job.build;
       var revision = build.source.revision;
 
