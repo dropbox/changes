@@ -126,9 +126,9 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         """
         # TODO(josiah): migrate existing step configs to use "shards" and remove max_shards
         if shards:
-            self.num_shards = shards
+            self.max_shards = shards
         else:
-            self.num_shards = max_shards
+            self.max_shards = max_shards
 
         # its fairly normal that the collection script is simple and so LXC is a waste
         # of time, so we support running the shards and the collector in different
@@ -172,11 +172,14 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             # check shards.
             return Result.passed
 
-        if len(phase_steps) != self.num_shards:
+        step_shard_counts = [step.data.get('shard_count', 1) for step in phase_steps]
+        assert len(set(step_shard_counts)) == 1, "Mixed shard counts in phase!"
+        shard_count = step_shard_counts[0]
+        if len(phase_steps) != shard_count:
             # TODO(josiah): we'd like to be able to record a FailureReason
             # here, but currently a FailureReason must correspond to a JobStep.
             logging.error("Build failed due to incorrect number of shards: expected %d, got %d",
-                          self.num_shards, len(phase_steps))
+                          self.max_shards, len(phase_steps))
             return Result.unknown
         return Result.passed
 
@@ -241,13 +244,13 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         return tuple(segments)
 
-    def _shard_tests(self, tests, num_shards, test_stats, avg_test_time):
+    def _shard_tests(self, tests, max_shards, test_stats, avg_test_time):
         """
         Breaks a set of tests into shards.
 
         Args:
             tests (list): A list of test names.
-            num_shards (int): How many shards over which to distribute the tests.
+            max_shards (int): Maximum amount of shards over which to distribute the tests.
             test_stats (dict): A mapping from normalized test name to duration.
             avg_test_time (int): Average duration of a single test.
 
@@ -265,6 +268,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 result = avg_test_time
             return result
 
+        # don't use more shards than there are tests
+        num_shards = min(len(tests), max_shards)
         # Each element is a pair (weight, tests).
         groups = [(0, []) for _ in range(num_shards)]
         # Groups is already a proper heap, but we'll call this to guarantee it.
@@ -303,16 +308,18 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         # double-sharded build.
         steps = JobStep.query.filter_by(phase_id=phase.id).all()
         if steps:
-            assert len(steps) == self.num_shards
+            step_shard_counts = [s.data.get('shard_count', 1) for s in steps]
+            assert len(set(step_shard_counts)) == 1, "Mixed shard counts in phase!"
+            assert len(steps) == step_shard_counts[0]
         else:
             # Create all of the job steps and commit them together.
-            groups = self._shard_tests(phase_config['tests'], self.num_shards,
+            groups = self._shard_tests(phase_config['tests'], self.max_shards,
                                        test_stats, avg_test_time)
             steps = [
-                self._create_jobstep(phase, phase_config, weight, test_list)
+                self._create_jobstep(phase, phase_config, weight, test_list, len(groups))
                 for weight, test_list in groups
                 ]
-            assert len(steps) == len(groups) == self.num_shards
+            assert len(steps) == len(groups)
             db.session.commit()
 
         # Now that that database transaction is done, we'll do the slow work of
@@ -325,7 +332,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 parent_task_id=phase.job.id.hex,
             )
 
-    def _create_jobstep(self, phase, phase_config, weight, test_list):
+    def _create_jobstep(self, phase, phase_config, weight, test_list, shard_count=1):
         """
         Create a JobStep in the database for a single shard.
 
@@ -336,6 +343,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             phase_config (dict): Configuration data gathered the collection step.
             weight (int): The weight of this shard.
             test_list (list): The list of tests names for this shard.
+            shard_count (int): The total number of shards in this JobStep's phase.
 
         Returns:
             JobStep: the (possibly-newly-created) JobStep.
@@ -353,6 +361,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 'path': phase_config.get('path', ''),
                 'tests': test_list,
                 'expanded': True,
+                'shard_count': shard_count,
                 'job_name': self.job_name,
                 'build_no': None,
                 'weight': weight

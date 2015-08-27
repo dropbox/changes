@@ -233,6 +233,10 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert groups[1] == (51, ['foo/bar.py'])
         assert groups[2] == (201, ['foo.bar.test_buz'])
 
+        # more shards than tests
+        groups = buildstep._shard_tests(tests, len(tests) * 2, test_weights, avg_test_time)
+        assert len(groups) == len(tests)
+
     def test_validate_shards(self):
         project = self.create_project()
         build = self.create_build(project)
@@ -256,11 +260,13 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         phase2 = self.create_jobphase(job, label='run tests')
         step2_1 = self.create_jobstep(phase2, data={
             'expanded': True,
+            'shard_count': 2,
             'item_id': 13,
             'job_name': 'foo-bar',
         })
         step2_2 = self.create_jobstep(phase2, data={
             'expanded': True,
+            'shard_count': 2,
             'item_id': 13,
             'job_name': 'foo-bar',
         })
@@ -292,11 +298,13 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         phase2 = self.create_jobphase(job, label='run tests')
         step2_1 = self.create_jobstep(phase2, data={
             'expanded': True,
+            'shard_count': 2,
             'item_id': 13,
             'job_name': 'foo-bar',
         })
         step2_2 = self.create_jobstep(phase2, data={
             'expanded': True,
+            'shard_count': 2,
             'item_id': 13,
             'job_name': 'foo-bar',
         })
@@ -311,9 +319,11 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         phase3 = self.create_jobphase(job, label='run tests 2')
         step3_1 = self.create_jobstep(phase3, data={
             'expanded': True,
+            'shard_count': 2,
             'item_id': 13,
             'job_name': 'foo-bar',
         })
+        step3_1.result = Result.passed
 
         buildstep = self.get_buildstep()
         buildstep.validate_phase(phase3)
@@ -323,11 +333,13 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         phase4 = self.create_jobphase(job, label='run tests 3')
         step4_1 = self.create_jobstep(phase4, data={
             'expanded': True,
+            'shard_count': 2,
             'item_id': 13,
             'job_name': 'foo-bar',
         })
         step4_2 = self.create_jobstep(phase4, data={
             'expanded': True,
+            'shard_count': 2,
             'item_id': 13,
             'job_name': 'foo-bar',
         })
