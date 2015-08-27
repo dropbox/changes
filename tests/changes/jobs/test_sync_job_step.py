@@ -4,11 +4,13 @@ import mock
 
 from datetime import datetime, timedelta
 from flask import current_app
+from mock import patch
 
 from changes.config import db
 from changes.constants import Result, Status
 from changes.jobs.sync_job_step import (
-    sync_job_step, is_missing_tests, has_timed_out
+    sync_job_step, is_missing_tests, has_timed_out,
+    _SNAPSHOT_TIMEOUT_BONUS_MINUTES,
 )
 from changes.models import (
     ItemOption, ItemStat, JobStep, HistoricalImmutableStep, Task, FileCoverage,
@@ -93,6 +95,36 @@ class HasTimedOutTest(BaseTestCase):
         db.session.commit()
 
         assert not has_timed_out(jobstep, jobplan, default_always)
+
+    def test_snapshot(self):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        step = self.create_step(plan)
+
+        option = ItemOption(
+            item_id=step.id,
+            name='build.timeout',
+            value='5',
+        )
+        db.session.add(option)
+        db.session.flush()
+
+        build = self.create_build(project=project)
+        job = self.create_job(build=build, status=Status.in_progress)
+        jobplan = self.create_job_plan(job, plan)
+
+        db.session.commit()
+
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase,
+                status=Status.in_progress,
+                date_started=datetime.utcnow() - timedelta(minutes=4 + _SNAPSHOT_TIMEOUT_BONUS_MINUTES))
+
+        with patch('changes.jobs.sync_job_step._is_snapshot_job', return_value=False):
+            assert has_timed_out(jobstep, jobplan, 0)
+
+        with patch('changes.jobs.sync_job_step._is_snapshot_job', return_value=True):
+            assert not has_timed_out(jobstep, jobplan, 0)
 
 
 class IsMissingTestsTest(BaseTestCase):

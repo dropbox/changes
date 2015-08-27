@@ -38,6 +38,19 @@ def _has_failure_reasons(step):
     return count > 0
 
 
+def _is_snapshot_job(jobplan):
+    """
+    Args:
+        jobplan (JobPlan): The JobPlan to check.
+    Returns:
+        bool: Whether this plan is for a job that is creating a snapshot.
+    """
+    is_snapshot = db.session.query(SnapshotImage.query.filter(
+        SnapshotImage.job_id == jobplan.job_id
+    ).exists()).scalar()
+    return bool(is_snapshot)
+
+
 def _expects_tests(jobplan):
     """Check whether a jobplan expects tests or not.
 
@@ -49,10 +62,7 @@ def _expects_tests(jobplan):
     snapshot builds and never expect tests for them (which allows
     building a snapshot for a plan that has buld.expect-tests enabled)
     """
-    is_snapshot_build = db.session.query(SnapshotImage.query.filter(
-        SnapshotImage.job_id == jobplan.job_id
-    ).exists()).scalar()
-    if is_snapshot_build:
+    if _is_snapshot_job(jobplan):
         return False
 
     if 'snapshot' in jobplan.data:
@@ -98,6 +108,10 @@ def has_test_failures(step):
     ).exists()).scalar()
 
 
+# Extra time to allot snapshot builds, as they are expected to take longer.
+_SNAPSHOT_TIMEOUT_BONUS_MINUTES = 40
+
+
 def has_timed_out(step, jobplan, default_timeout):
     """
     Args:
@@ -124,6 +138,10 @@ def has_timed_out(step, jobplan, default_timeout):
 
     # timeout is in minutes
     timeout = timeout * 60
+
+    # Snapshots don't time out.
+    if _is_snapshot_job(jobplan):
+        timeout += 60 * _SNAPSHOT_TIMEOUT_BONUS_MINUTES
 
     delta = datetime.utcnow() - start_time
     if delta.total_seconds() > timeout:
@@ -224,7 +242,7 @@ def sync_job_step(step_id):
             # If we timeout something that isn't in progress, that's our fault, and we should know.
             if old_status != Status.in_progress:
                 current_app.logger.warning(
-                        "Timed out jobstep that wasn't in progress: %s (was %s)", step.id, old_status)
+                    "Timed out jobstep that wasn't in progress: %s (was %s)", step.id, old_status)
 
         if step.status != Status.in_progress:
             retry_after = QUEUED_RETRY_DELAY
@@ -248,7 +266,7 @@ def sync_job_step(step_id):
     # up and try again.
     if _expects_tests(jobplan) and not step.phase.date_started:
         current_app.logger.warning(
-                "Phase[%s].date_started is missing. Retrying Step", step.phase.id)
+            "Phase[%s].date_started is missing. Retrying Step", step.phase.id)
 
         # Reset result to unknown to reduce window where test might be incorrectly green.
         # Set status to in_progress so that the next sync_job_step will fetch status from Jenkins again.
