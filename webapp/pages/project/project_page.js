@@ -7,8 +7,8 @@ import { ProgrammingError } from 'es6!display/errors';
 
 import BuildsTab from 'es6!pages/project/builds_tab';
 import CommitsTab from 'es6!pages/project/commits_tab';
-import DataControls from 'es6!pages/helpers/data_controls';
 import DetailsTab from 'es6!pages/project/details_tab';
+import InteractiveData from 'es6!pages/helpers/interactive_data';
 
 import * as api from 'es6!server/api';
 
@@ -31,7 +31,7 @@ var ProjectPage = React.createClass({
       commitsState: {},
 
       // same, but for builds state
-      buildsControls: {}
+      buildsInteractive: {}
     }
   },
 
@@ -56,14 +56,14 @@ var ProjectPage = React.createClass({
     // initialize our pagination objects. Data fetching still doesn't happen
     // till componentDidMount (either ours or the subcomponent.)
     this.setState({
-      buildsControls: DataControls(
+      buildsInteractive: InteractiveData(
         this,
-        'buildsControls',
+        'buildsInteractive',
         BuildsTab.getEndpoint(this.props.projectSlug)),
 
-      commitsControls: DataControls(
+      commitsInteractive: InteractiveData(
         this,
-        'commitsControls',
+        'commitsInteractive',
         CommitsTab.getEndpoint(this.props.projectSlug))
     });
   },
@@ -111,7 +111,7 @@ var ProjectPage = React.createClass({
       case 'Commits':
         content = <CommitsTab
           project={this.state.project}
-          controls={this.state.commitsControls}
+          interactive={this.state.commitsInteractive}
           isInitialTab={this.initialTab === 'Commits'}
           pageElem={this}
         />;
@@ -119,7 +119,7 @@ var ProjectPage = React.createClass({
       case 'Builds':
         content = <BuildsTab
           project={this.state.project}
-          controls={this.state.buildsControls}
+          interactive={this.state.buildsInteractive}
           isInitialTab={this.initialTab === 'Builds'}
           pageElem={this}
         />;

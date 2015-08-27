@@ -8,7 +8,7 @@ import { Grid } from 'es6!display/grid';
 import { Menu1 } from 'es6!display/menus';
 import { TimeText } from 'es6!display/time';
 
-import DataControls from 'es6!pages/helpers/data_controls';
+import InteractiveData from 'es6!pages/helpers/interactive_data';
 
 import * as api from 'es6!server/api';
 
@@ -22,8 +22,8 @@ var BuildsTab = React.createClass({
     // another tab
     myState: React.PropTypes.object,
 
-    // The datacontrols object that handles dealing with data
-    controls: React.PropTypes.object,
+    // The InteractiveData object for this chart
+    interactive: React.PropTypes.object,
 
     // parent elem that has state
     pageElem: React.PropTypes.element.isRequired,
@@ -40,31 +40,31 @@ var BuildsTab = React.createClass({
   },
 
   componentDidMount: function() {
-    if (!this.props.controls.hasRunInitialize()) {
-      var params = this.props.isInitialTab ? DataControls.getParamsFromWindowUrl() : null;
+    if (!this.props.interactive.hasRunInitialize()) {
+      var params = this.props.isInitialTab ? InteractiveData.getParamsFromWindowUrl() : null;
       params = params || {};
 
-      this.props.controls.initialize(params || {});
+      this.props.interactive.initialize(params || {});
     }
 
     // if this table has data to render, let's make sure the window url is
     // correct
-    if (api.isLoaded(this.props.controls.getDataToShow())) {
-      this.props.controls.updateWindowUrl();
+    if (api.isLoaded(this.props.interactive.getDataToShow())) {
+      this.props.interactive.updateWindowUrl();
     }
   },
 
   render: function() {
-    var controls = this.props.controls;
+    var interactive = this.props.interactive;
 
-    if (controls.hasNotLoadedInitialData()) {
+    if (interactive.hasNotLoadedInitialData()) {
       return <APINotLoaded
-        state={controls.getDataToShow()}
+        state={interactive.getDataToShow()}
         isInline={true}
       />;
     }
 
-    var data_to_show = controls.getDataToShow();
+    var data_to_show = interactive.getDataToShow();
 
     var data = _.map(data_to_show.getReturnedData(), build => {
       var target = null;
@@ -103,11 +103,11 @@ var BuildsTab = React.createClass({
     ];
 
     var error_message = null;
-    if (controls.failedToLoadUpdatedData()) {
-      error_message = <AjaxError response={controls.getDataForErrorMessage().response} />;
+    if (interactive.failedToLoadUpdatedData()) {
+      error_message = <AjaxError response={interactive.getDataForErrorMessage().response} />;
     }
 
-    var style = controls.isLoadingUpdatedData() ? {opacity: 0.5} : null;
+    var style = interactive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
     return <div>
       {this.renderControls()}
@@ -146,7 +146,7 @@ var BuildsTab = React.createClass({
       }
     };
 
-    var current_params = this.props.controls.getCurrentParams();
+    var current_params = this.props.interactive.getCurrentParams();
     var selected_item = 'All';
     _.each(params_for_items, (params, item) => {
       var is_selected = true;
@@ -160,7 +160,7 @@ var BuildsTab = React.createClass({
       }
     });
 
-    var onclick = item => this.props.controls.updateWithParams(params_for_items[item], true);
+    var onclick = item => this.props.interactive.updateWithParams(params_for_items[item], true);
 
     return <Menu1
       className="marginBottomS"
@@ -171,7 +171,7 @@ var BuildsTab = React.createClass({
   },
 
   renderPagination: function(commits) {
-    var links = this.props.controls.getPaginationLinks();
+    var links = this.props.interactive.getPaginationLinks();
     return <div className="marginTopM marginBottomM">{links}</div>;
   },
 });

@@ -5,10 +5,11 @@ import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
 
 /*
- * A data structure that to help with pagination and table controls. It does
+ * A data structure for you to make a table of data interactive. It helps with
  * several things.
  * - Renders pagination links for you. It also keeps track of both the fetched
- *   and not-yet-fetched data when getting new pages from the server.
+ *   and not-yet-fetched data when getting new pages from the server, allowing
+ *   you to render the transition state.
  * - Allows you to add controls, e.g. a dropdown for which branch to choose
  *   when rendering a list of commits. You store the state of these controls
  *   as the get parameters sent to the api (and read from those parameters to
@@ -16,8 +17,9 @@ import * as utils from 'es6!utils/utils';
  * - Syncs the current browser url with the above two bullets. This allows
  *   people to share links.
  *
- * The control is slightly complex, partly due to the way changes is
- * architected. Here's generally how you use it:
+ * The control is slightly complex, partly due to all the power it gives you
+ * and also partly due to the way changes is architected. Here's generally how 
+ * to use it:
  * - Create it in componentWillMount inside your element's state object.
  *   Constructor params are the owner element and the state key being used,
  *   and the backing API url that returns different filtered/sorted views
@@ -41,13 +43,13 @@ import * as utils from 'es6!utils/utils';
  * - getPaginationLinks returns previous and next buttons (either might be
  *   disabled)
  * - updateWindowUrl will update the current window href with the current
- *   controls state. Use this if, say, you have multiple tabs and you need to
- *   refresh the url every time you switch tabs.
+ *   state in this component. Use this if, say, you have multiple tabs and you
+ *   need to refresh the url every time you switch tabs.
  */
-var DataControls = function(elem, elem_state_key, base_api_uri) {
+var InteractiveData = function(elem, elem_state_key, base_api_uri) {
   // note: we can't use classes right now because of the way ajax calls
   // directly update state themselves
-  return _.create(DataControlsPrototype, {
+  return _.create(InteractiveDataPrototype, {
     // this object is hosted in a react elem's state variable. We need
     // to know who owns us and where because we update ourself by calling
     // setState(elem, { elemStateKey: ... })
@@ -77,11 +79,11 @@ var DataControls = function(elem, elem_state_key, base_api_uri) {
  * allows specific data views to be shared, if you use this function to
  * populate initialize(...)
  */
-DataControls.getParamsFromWindowUrl = function() {
+InteractiveData.getParamsFromWindowUrl = function() {
   return URI(window.location.href).search(true);
 }
 
-var DataControlsPrototype = {
+var InteractiveDataPrototype = {
 
   /*
    * Kicks off the initial data fetch. You can put this in componentDidMount,
@@ -288,4 +290,4 @@ var DataControlsPrototype = {
   }
 };
 
-export default DataControls;
+export default InteractiveData;

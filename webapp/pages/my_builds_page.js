@@ -9,36 +9,36 @@ import { BuildWidget, get_build_cause } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
 import { TimeText } from 'es6!display/time';
 
-import DataControls from 'es6!pages/helpers/data_controls';
+import InteractiveData from 'es6!pages/helpers/interactive_data';
 
 var MyBuildsPage = React.createClass({
 
   componentWillMount: function() {
     this.setState({
-      buildsControls: DataControls(
+      buildsInteractive: InteractiveData(
         this,
-        'buildsControls',
+        'buildsInteractive',
         '/api/0/authors/me/builds/')
     });
   },
 
   componentDidMount: function() {
-    if (!this.state.buildsControls.hasRunInitialize()) {
-      this.state.buildsControls.initialize({});
+    if (!this.state.buildsInteractive.hasRunInitialize()) {
+      this.state.buildsInteractive.initialize({});
     }
   },
 
   render: function() {
-   var controls = this.state.buildsControls;
+   var interactive = this.state.buildsInteractive;
 
-    if (controls.hasNotLoadedInitialData()) {
+    if (interactive.hasNotLoadedInitialData()) {
       return <APINotLoaded
-        state={controls.getDataToShow()}
+        state={interactive.getDataToShow()}
         isInline={true}
       />;
     }
 
-    var data_to_show = controls.getDataToShow();
+    var data_to_show = interactive.getDataToShow();
 
     var data = _.map(data_to_show.getReturnedData(), build => {
       var target = null;
@@ -77,11 +77,11 @@ var MyBuildsPage = React.createClass({
     ];
 
     var error_message = null;
-    if (controls.failedToLoadUpdatedData()) {
-      error_message = <AjaxError response={controls.getDataForErrorMessage().response} />;
+    if (interactive.failedToLoadUpdatedData()) {
+      error_message = <AjaxError response={interactive.getDataForErrorMessage().response} />;
     }
 
-    var style = controls.isLoadingUpdatedData() ? {opacity: 0.5} : null;
+    var style = interactive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
     return <ChangesPage>
       {error_message}
@@ -99,7 +99,7 @@ var MyBuildsPage = React.createClass({
   },
 
   renderPagination: function(builds) {
-    var links = this.state.buildsControls.getPaginationLinks();
+    var links = this.state.buildsInteractive.getPaginationLinks();
     return <div className="marginTopM marginBottomM">{links}</div>;
   },
 });
