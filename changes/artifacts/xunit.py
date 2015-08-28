@@ -4,7 +4,7 @@ import logging
 
 from lxml import etree
 
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.constants import Result
 from changes.db.utils import try_create
 from changes.models import TestResult, TestResultManager, FailureReason
@@ -24,6 +24,7 @@ class XunitHandler(ArtifactHandler):
 
         return test_list
 
+    @statsreporter.timer('xunithandler_get_tests')
     def get_tests(self, fp):
         try:
             # libxml has a limit on the size of a text field by default, but we encode stdout/stderr.

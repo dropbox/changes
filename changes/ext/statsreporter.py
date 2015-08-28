@@ -1,8 +1,10 @@
-import statsd
 import re
 import time
 import logging
 from contextlib import contextmanager
+from functools import wraps
+
+import statsd
 
 logger = logging.getLogger('statsreporter')
 
@@ -51,6 +53,24 @@ class StatsReporter(object):
         if self._stats:
             return self._stats
         return Stats(client=None)
+
+    def timer(self, key):
+        """Decorator to report timing for a function.
+        The decorator method is on this class instead of Stats to ensure that the
+        current Stats instance at method invocation time is used instead of the
+        Stats instance available at decoration time (which may be the no-op instance).
+        Args:
+            key (str): Name to report the timing with.
+        """
+        Stats._check_key(key)  # fail early if it's a bad key.
+
+        def wrapper(fn):
+            @wraps(fn)
+            def inner(*args, **kwargs):
+                with self.stats().timer(key):
+                    return fn(*args, **kwargs)
+            return inner
+        return wrapper
 
 
 class Stats(object):
