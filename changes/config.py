@@ -19,7 +19,6 @@ from kombu import Exchange, Queue
 from raven.contrib.flask import Sentry
 from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
-from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from changes.constants import PROJECT_ROOT
 from changes.api.controller import APIController, APICatchall
@@ -68,18 +67,13 @@ statsreporter = StatsReporter()
 sentry = Sentry(logging=True, level=logging.WARN)
 
 
-def create_app(_read_config=True, profiler_directory=None, **config):
+def create_app(_read_config=True, **config):
     app = flask.Flask(__name__,
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
 
-    if profiler_directory:
-        app.config['PROFILE'] = True
-        app.wsgi_app = ProfilerMiddleware(
-            app.wsgi_app,
-            profile_dir=profiler_directory)
-
     app.wsgi_app = ProxyFix(app.wsgi_app)
+    # app.wsgi_app = TracerMiddleware(app.wsgi_app, app)
 
     # This key is insecure and you should override it on the server
     app.config['SECRET_KEY'] = 't\xad\xe7\xff%\xd2.\xfe\x03\x02=\xec\xaf\\2+\xb8=\xf7\x8a\x9aLD\xb1'
