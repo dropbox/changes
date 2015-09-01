@@ -11,7 +11,7 @@ from .builder import JenkinsBuilder
 
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, setup_script='', teardown_script='',
-                 reset_script='', diff_cluster=None, path='', workspace='',
+                 artifacts=[], reset_script='', diff_cluster=None, path='', workspace='',
                  snapshot_script=None, *args, **kwargs):
         """Builder for JenkinsGenericBuildStep. See JenkinsGenericBuildStep
         for information on most of these arguments.
@@ -25,6 +25,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         self.diff_cluster = diff_cluster
         self.path = path
         self.workspace = workspace
+        self.artifacts = artifacts
 
         # See configuration for more details; by default, the default build type is
         # legacy which sets up no additional configuration.
@@ -216,6 +217,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         See models/command.py.
         """
         return map(lambda command: FutureCommand(command['script'],
+                                    artifacts=self.artifacts,
                                     env=self.params_to_env(params)),
                    commands)
 

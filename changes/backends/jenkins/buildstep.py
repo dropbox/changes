@@ -12,7 +12,7 @@ from changes.config import db
 from changes.constants import Status
 from changes.models import SnapshotImage, SnapshotStatus
 
-from .builder import JenkinsBuilder
+from .builder import JenkinsBuilder, XUNIT_FILENAMES, COVERAGE_FILENAMES
 from .generic_builder import JenkinsGenericBuilder
 
 
@@ -148,7 +148,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
     def __init__(self, job_name, script, cluster, diff_cluster='', path='',
                  workspace='', reset_script='', build_type=None,
                  setup_script='', teardown_script='',
-                 snapshot_script=None, **kwargs):
+                 artifacts=XUNIT_FILENAMES + COVERAGE_FILENAMES, snapshot_script=None, **kwargs):
         """
         build_type describes how to use changes-client, but 'legacy'
         defaults to not using it at all. See configuration file
@@ -175,6 +175,9 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         of script for snapshot builds.
 
         reset_script is used to asynchronously reset the workspace.
+
+        artifacts is a list of file name patterns describing the artifacts
+        which need to be picked up.
         """
         self.setup_script = setup_script
         self.script = script
@@ -186,6 +189,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         self.path = path
         self.workspace = workspace
         self.build_type = build_type
+        self.artifacts = artifacts
 
         super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, **kwargs)
 
@@ -201,7 +205,8 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'path': self.path,
             'workspace': self.workspace,
             'diff_cluster': self.diff_cluster,
-            'build_type': self.build_type
+            'build_type': self.build_type,
+            'artifacts': self.artifacts,
         })
         return options
 
