@@ -1,121 +1,109 @@
 import React from 'react';
-import { Popover, OverlayTrigger } from 'react_bootstrap';
+import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
+import DisplayUtils from 'es6!display/changes/utils';
 import { Error, ProgrammingError } from 'es6!display/errors';
-import { display_duration_pieces } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
-
-import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
 
 /*
- * Functions and classes for displaying information about builds. A bunch of
- * these functions work on "runnables": e.g. builds, jobs, or jobsteps (objects
- * with a status and result)
+ * Shows the status of many builds run for a single code change (e.g. a commit
+ * or diff.) Despite the name, this widget can also handle showing a single
+ * build...you use this for any interface where you might be showing builds
+ * from more than one project.
  */
-
-// Show information about the latest build to a commit-in-project
-export var BuildWidget = React.createClass({
+export var ManyBuildsStatus = React.createClass({
 
   propTypes: {
-    // the build to render the widget for
-    build: React.PropTypes.object.isRequired,
-    // we display a list of failed tests on hover. To do that, we need to fetch
-    // ajax data, which we store in parentElem's state
-    parentElem: React.PropTypes.element
+    builds: React.PropTypes.array,
   },
 
   render: function() {
-    var build = this.props.build;
-    var build_state = get_runnable_state(build);
+    var builds = this.props.builds;
 
-    var dot = <StatusDot state={build_state} />;
-
-    var content = null;
-    switch (build_state) {
-      case 'passed':
-      case 'failed':
-      case 'nothing':
-        var day_hour_style = {
-          fontWeight: 900
-        };
-        if (!build.duration) {
-          content = '---';
-        } else {
-          var duration = display_duration_pieces(build.duration / 1000)
-          content = [
-            <span style={day_hour_style}>{duration.slice(0, 2)}</span>,
-            duration.slice(2)
-          ];
-        }
-        break;
-      case 'unknown':
-        content = "?";
-        break;
-      case 'waiting':
-        var style = _.extend({}, content_style, { verticalAlign: 'middle', marginLeft: 5});
-        // I thought about rendering a timer about how long the build has been
-        // running, but if it keeps increasing, people will expect this to
-        // be live / update once the build is done
-        content = <span style={{verticalAlign: "middle", paddingLeft: 2}}>Running</span>;
+    if (!builds) {
+      // TODO: we could render an empty widget that went to the empty build page
+      return <div />;
     }
 
-    var test_failures = null;
-    if (build.stats['test_failures'] > 0) {
-      var failure_style = {
-        color: '#ee2e24',
-        display: 'inline-block',
-        fontSize: 'smaller',
-        fontWeight: 'bold',
-        marginLeft: 3,
-        marginBottom: 1
-      };
+    // If this is a diff, we only want to look at builds that ran on the last
+    // code change
+    var builds_for_last_code_change = get_builds_for_last_change(builds);
 
-      //<div style={{position: 'absolute', right: 0, top: 2, fontSize: 'smaller', fontWeight: 'bold', color: '#ee2e24'}}>
-      test_failures =
-        <div style={failure_style}>
-          {build.stats['test_failures']}
-          <i className="fa fa-times-circle-o"></i>
-        </div>;
-    }
+    // grab the latest builds for each project
+    var builds_by_project = _.groupBy(builds_for_last_code_change,
+      b => b.project.slug);
+    var latest_builds = _.map(builds_by_project, builds => {
+      return _.chain(builds)
+        .sortBy(b => b.dateCreated)
+        .last()
+        .value();
+    });
 
-    var content_style = {
-      color: '#777',
-      display: 'inline-block',
-      fontSize: 'smaller',
-      fontWeight: 'bold',
-      verticalAlign: 'top'
-    };
+    // TOOD: how to order projects? Right now, I do it alphabetically by project name...
+    // I think that makes this easiest to instantly parse every time someone views this.
+    latest_builds = _.sortBy(latest_builds, b => b.project.name);
 
-    var href = null;
-    if (build.source.patch && build.source.data['phabricator.revisionID']) {
-      href = URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`)
-        .search({ buildID: build.id })
-        .toString();
-    } else if (!build.source.patch) {
-      href = URI(`/v2/commit/${build.source.id}/`)
-        .search({ buildID: build.id })
-        .toString();
-    } else {
-      // TODO
-      href = '';
-    }
+    var tooltip_markup = _.map(latest_builds, b => {
+      var subtext = '';
+      if (b.stats.test_count === 0) {
+        subtext = 'No tests run';
+      } else if (b.stats.test_failures > 0) {
+        subtext = `${b.stats.test_failures} of ${b.stats.test_count} tests failed`;
+      } else {
+        subtext = `All ${b.stats.test_count} tests passed`;
+      }
 
-    // return the widget, possibly showing failed tests on hover
-    var build_widget = <a href={href} className="buildWidget">
-      <div style={{verticalAlign: 'middle', display: 'inline-block'}}>
-        {dot}
-      </div>
-      <div style={{verticalAlign: 'middle', display: 'inline-block'}}>
-        <div style={content_style}>
-          {content}
-          {test_failures}
+      return <div style={{textAlign: "left"}}>
+        <div style={{ display: "inline-block", paddingTop: 10, paddingRight: 5}}>
+          <ConditionDot condition={get_runnable_condition(b)} />
+        </div>
+        <div style={{ verticalAlign: "top", display: "inline-block"}}>
+          <div>{b.project.name}</div>
+          <span className="mediumGray">{subtext}</span>
         </div>
       </div>
-    </a>;
+    });
 
+    var tooltip = <Tooltip>{tooltip_markup}</Tooltip>;
+
+    var summary_condition = get_runnables_summary_condition(latest_builds);
+
+    var glow = latest_builds.length > 1;
+
+    var builds_href = DisplayUtils.buildsHref(latest_builds);
+
+    return <OverlayTrigger
+      placement="right"
+      overlay={tooltip}>
+      <a className="buildStatus" href={builds_href}>
+        <ConditionDot condition={summary_condition} glow={glow} />
+      </a>
+    </OverlayTrigger>;
+  }
+});
+
+/*
+ * Shows the status of a single build. This tooltip can go into more details
+ * than ManyBuildsStatus
+ */
+export var SingleBuildStatus = React.createClass({
+
+  render: function() {
+    var build = this.props.build;
+    var condition = get_runnable_condition(build);
+
+    var num = null;
+    if (build.stats && build.stats.test_failures) {
+      num = build.stats.test_failures;
+    }
+    var dot = <ConditionDot condition={condition} num={num} />;
+
+    var href = DisplayUtils.buildHref(build);
+
+    /*
     // TODO: show popover for any failure, not just test failures
     if (build.stats['test_failures'] > 0) {
 
@@ -123,7 +111,6 @@ export var BuildWidget = React.createClass({
       if (popover) {
         return <div>
           <OverlayTrigger
-            trigger={['hover', 'focus']}
             placement='right'
             overlay={popover}>
             <div>{build_widget}</div>
@@ -131,8 +118,17 @@ export var BuildWidget = React.createClass({
         </div>;
       }
     }
+    */
 
-    return build_widget;
+    // TODO: more than this
+    var tooltip = <Tooltip>TODO</Tooltip>;
+    return <OverlayTrigger
+      placement="right"
+      overlay={tooltip}>
+      <a className="buildStatus" href={href}>
+        {dot}
+      </a>
+    </OverlayTrigger>;
   },
 
   getFailedTestsPopover: function() {
@@ -145,7 +141,7 @@ export var BuildWidget = React.createClass({
     if (!elem.state && elem.state !== {}) {
       return <Popover> <ProgrammingError>
         Programming Error: The parentElem of BuildWidget must implement
-        getInitialState()! Just return {" {}"}
+        getInitialState()! Just return{" {}"}
       </ProgrammingError> </Popover>;
     }
 
@@ -202,44 +198,99 @@ export var BuildWidget = React.createClass({
       </Popover>;
     }
   },
-
 });
 
+// if a list of builds is for a differential diff, filter them so that we only
+// have the builds for the latest update
+//
+// there's a slight bug where we won't know about the latest update if no
+// builds have run for it, but I think this is fine as-is
+var get_builds_for_last_change = function(builds) {
+  var revision_ids = [];
+  var diff_ids = [];
+
+  // we only do something if every build is from the same phabricator revision
+  // id
+  _.each(builds, build => {
+    var build_revision_id = build.source.patch &&
+      build.source.data['phabricator.revisionID'];
+
+    // must be from a phabricator revision
+    if (!build_revision_id) { return builds; }
+
+    revision_ids.push(build.source.data['phabricator.revisionID']);
+    diff_ids.push(build.source.data['phabricator.diffID']);
+  });
+
+  revision_ids = _.uniq(revision_ids);
+  diff_ids = _.uniq(diff_ids).sort().reverse();
+
+  if (revision_ids.length > 1) {
+    return builds;
+  }
+
+  var latest_diff_id = diff_ids[0];
+  return _.filter(builds,
+    b => b.source.data['phabricator.diffID'] === latest_diff_id);
+}
+
+
 /*
- * Renders a square patch based on runnable state (passed is green,
- * failed is red, unknown is gray.) If state is waiting, we render
- * an icon instead.
+ * General classes/functions for all runnables (objects with a status and a
+ * result.) Can use these for jobs, jobsteps, etc.
  */
-export var StatusDot = React.createClass({
+
+/*
+ * Renders a rounded square with a color that indicates the condition of the
+ * runnable (passed/failed/unknown/not yet run.) Shows a clock icon instead of
+ * the dot if the build hasn't finished yet.
+ */
+export var ConditionDot = React.createClass({
 
   propTypes: {
-    // the runnable state to render (see get_runnable_state)
-    state: React.PropTypes.oneOf(all_build_states).isRequired,
+    // the runnable condition to render (see get_runnable_condition)
+    condition: React.PropTypes.oneOf(all_build_conditions).isRequired,
     // renders a small number at the lower-right corner
-    num: React.PropTypes.oneOfType(React.PropTypes.number, React.PropTypes.string)
+    num: React.PropTypes.oneOfType(React.PropTypes.number, React.PropTypes.string),
+    // smaller = 12px, small = 16px
+    size: React.PropTypes.oneOf(["smaller", "small", "medium", "large"]),
+    // a glow is a ui indicator that this dot shows results from multiple items
+    glow: React.PropTypes.bool
   },
 
   getDefaultProps: function() {
     return {
-      'num': ''
+      num: '',
+      size: 'small',
+      glow: false
     }
   },
 
   render: function() {
-    var state = this.props.state;
+    var condition = this.props.condition;
 
     var dot = null;
-    if (state === 'waiting') {
-      dot = <i className="fa fa-clock-o" />;
+    if (condition === 'waiting') {
+      var font_sizes = {
+        smaller: 12,
+        small: 16,
+        medium: 26,
+        large: 45
+      };
+
+      dot = <i
+        className="fa fa-clock-o conditionDotIcon"
+        style={{ fontSize: font_sizes[this.props.size], color: "#007ee5" }}
+      />;
     } else {
-      var classes = cx({
-        'dotBase': true,
-        'lt-green-bg': state === "passed",
-        // TODO: use darker shade of red for atypical failures
-        'lt-red-bg': state === "failed" || state === "nothing",
-        'lt-darkestgray-bg': state === "unknown",
-      });
-      dot = <span className={classes} />;
+      var classes = [
+        'conditionDot',
+        this.props.size,
+        get_runnable_condition_color_cls(condition, true),
+        this.props.glow ? 'glow' : ''
+      ];
+
+      dot = <span className={classes.join(" ")} />;
     }
 
     var num = null;
@@ -254,76 +305,15 @@ export var StatusDot = React.createClass({
   }
 });
 
-/*
- * Show a list of icons for the latest builds to a diff
- * TODO: unify this with BuildWidget
- */
-export var status_dots_for_diff = function(builds) {
-  var builds_by_diff_id = {};
-  _.each(builds, b => {
-    var diff_update_id = b.source.data['phabricator.diffID'];
-    builds_by_diff_id[diff_update_id] = builds_by_diff_id[diff_update_id] || [];
-    builds_by_diff_id[diff_update_id].push(b);
-  });
-  var latest_diff_id = _.chain(builds_by_diff_id).keys().max().value();
-
-  var states = _.chain(builds_by_diff_id[latest_diff_id])
-    .map(get_runnable_state)
-    .countBy()
-    .value();
-
-  // treat nothing and failed the same
-  states['failed'] = (states['failed'] || 0) + (states['nothing'] || 0);
-  delete states['nothing'];
-
-  var dots = _.chain(states)
-    .pick(v => v > 0)
-    .mapObject((v,k) => <StatusDot state={k} num={v > 1 ? v : null} />)
-    .value();
-
-  if (all_build_states.length != 5) { // I'm paranoid
-    return <ProgrammingError>
-      You need to update the return value of the status_dots_for_diff function
-    </ProgrammingError>;
-  }
-
-  // we want to return the statuses in a specific order
-  return _.compact([dots['waiting'], dots['failed'], dots['passed'], dots['unknown']]);
-}
+var all_build_conditions = ['passed', 'failed', 'failed_unusual', 'unknown', 'waiting'];
 
 /*
- * Given a list of builds, render status dots for each in an ordered row
- * (combining adjacent ones with the same result into a single dot w/ number
+ * Looks at a build/job/jobstep's status and result fields to figure out what
+ * condition the build is in. For the most part I treat failed and failed_unusual
+ * the same...someone with a better understanding of changes can differentiate
+ * these if they want
  */
-export var status_dots = function(builds) {
-  if (!builds) { return null; }
-  var dots_data = [];
-  builds.forEach(b => {
-    var prev_result = _.last(dots_data) || {name: "none"};
-    if (get_runnable_state(b) === prev_result['name']) {
-      prev_result['count'] += 1;
-    } else {
-      dots_data.push({name: get_runnable_state(b), count: 1});
-    }
-  });
-  return _.map(dots_data, d =>
-    <StatusDot
-      state={d.name}
-      num={d.count > 1 ? d.count : null}
-    />
-  );
-}
-
-/*
- * Looks at the build's status and result fields to figure out what state the
- * build is in. For the most part I treat failed and nothing the same...someone
- * with a better understanding of changes can differentiate these if they want
- */
-
-var all_build_states = ['passed', 'failed', 'nothing', 'unknown', 'waiting'];
-
-// builds, jobsteps, etc.
-export var get_runnable_state = function(runnable) {
+export var get_runnable_condition = function(runnable) {
   var status = runnable.status.id, result = runnable.result.id;
 
   if (status === 'in_progress' || status === "queued") {
@@ -333,25 +323,52 @@ export var get_runnable_state = function(runnable) {
   if (result === 'passed' || result === 'failed') {
     return result;
   } else if (result === 'aborted' || result === 'infra_failed') {
-    return 'nothing';
+    return 'failed_unusual';
   }
   return 'unknown';
 }
 
-export var get_state_color = function(state) {
-  switch (state) {
+/*
+ * Combines the conditions of a bunch of runnables into a single summary
+ * condition: if any failed or haven't finished, returns failed/waiting, etc.
+ *
+ * NOTE: treats failed_unusual as failed
+ */
+export var get_runnables_summary_condition = function(runnables) {
+  var any_failed = _.any(runnables,
+    r => get_runnable_condition(r).indexOf('failed') === 0);
+
+  var any_waiting = _.any(runnables,
+    r => get_runnable_condition(r) === 'waiting');
+
+  var any_unknown = _.any(runnables,
+    r => get_runnable_condition(r) === 'unknown');
+
+  return (any_failed && 'failed') ||
+    (any_waiting && 'waiting') ||
+    (any_unknown && 'unknown') ||
+    'passed';
+}
+
+var get_runnable_condition_color_cls = function(condition, background = false) {
+  switch (condition) {
     case 'passed':
-      return colors.green;
+      return background ? 'greenBg' : 'green';
     case 'failed':
-    case 'nothing':
-      return colors.red;
+    case 'failed_unusual':
+      return background ? 'redBg' : 'red';
     case 'waiting':
-      return colors.darkGray;
+      return background ? 'bluishGrayBg' : 'bluishGray';
     case 'unknown':
-      return colors.black;
+      return background ? 'mediumGrayBg' : 'mediumGray';
   }
 }
 
+/*
+ * What caused the build to be kicked off? We can usually tell from the tags
+ * attribute, but we sometimes need to look at the almost always useless cause
+ * attribute.
+ */
 export var get_build_cause = function(build) {
   var tags = build.tags;
   if (build.cause === 'retry') {

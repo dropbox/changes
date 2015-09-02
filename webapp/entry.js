@@ -1,7 +1,10 @@
 /* some RequireJS config before we start */
 
 requirejs.config({
-  // NOTE: if you add something here, update the Gruntfile 'compile2' task
+
+  // IMPORTANT NOTE: if you add something here, update the Gruntfile
+  // 'compile2' task
+
   paths: {
     // all of our code is written in jsx/es6 syntax and converted using babel
     babel: "vendor/requirejs-babel/babel-4.6.6.min",
@@ -39,6 +42,7 @@ require([
   "underscore",
   "uriJS/URI",
   "es6!server/api",
+  "es6!utils/custom_content",
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",
@@ -48,14 +52,13 @@ require([
   "es6!pages/test_history_page",
   "es6!pages/all_projects_page",
   "es6!pages/node_page",
-  "es6!pages/error_page",
-  "es6!pages/test_page",
-  "es6!pages/ui_test_page",
+  "es6!pages/fourohfour_page",
 ], function(
   React,
   _,
   URI,
   data_fetching,
+  custom_content_hook,
 
   HomePage,
   ProjectPage,
@@ -64,9 +67,7 @@ require([
   TestHistoryPage,
   AllProjectsPage,
   NodePage,
-  ErrorPage,
-  TestPage,
-  UITestPage
+  FourOhFourPage
 ) {
   'use strict';
 
@@ -98,11 +99,9 @@ require([
     // TODO: don't just use the homepage for this
     'author': [HomePage, 'author'],
     'node': [NodePage, 'node_id'],
-    'test': [TestPage],
-    'ui_examples': [UITestPage]
   };
 
-  var page = ErrorPage;
+  var page = FourOhFourPage;
 
   var params = {};
   for (var str in url_contains) {
@@ -112,7 +111,8 @@ require([
       if (page_data.length > 1) {
         if (path_parts.length < page_data.length) {
           // path doesn't have enough parts...
-          page = ErrorPage;
+          page = FourOhFourPage;
+          params['badUrl'] = true;
           break;
         }
         for (var i = 1; i < page_data.length; i++) {
@@ -130,6 +130,14 @@ require([
   data_fetching.make_api_ajax_get('/api/0/auth', function(response) {
     // TODO: use context?
     window.changesAuthData = JSON.parse(response.responseText);
+
+    // add custom css class if present
+    var custom_css = custom_content_hook('rootClass', '');
+    var root_classes = (
+      (document.getElementById('reactRoot').className || '') + " " +
+      custom_css
+    );
+    document.getElementById('reactRoot').className = root_classes.trim()
 
     React.render(
       React.createElement(page, params),

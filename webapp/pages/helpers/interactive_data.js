@@ -4,6 +4,8 @@ import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
+var cx = React.addons.classSet;
+
 /*
  * A data structure for you to make a table of data interactive. It helps with
  * several things.
@@ -233,25 +235,34 @@ var InteractiveDataPrototype = {
     var on_click = params => this._paginate(params);
 
     var links = [];
-    if (hrefs.previous) {
-      links.push(
-        <a
-          className="marginRightS"
-          onClick={on_click.bind(this, params.previous)}>
-          Previous
-        </a>
-      );
-    }
 
-    if (hrefs.next) {
-      links.push(
-        <a
-          className="marginRightS"
-          onClick={on_click.bind(this, params.next)}>
-          Next
-        </a>
-      );
-    }
+    var prev_classes = cx({
+      paginationLink: true,
+      marginRightS: true,
+      disabled: !params.previous
+    });
+
+    links.push(
+      <a
+        className={prev_classes}
+        onClick={params.previous && on_click.bind(this, params.previous)}>
+        &laquo; Previous
+      </a>
+    );
+
+    var next_classes = cx({
+      paginationLink: true,
+      marginRightS: true,
+      disabled: !params.next
+    });
+
+    links.push(
+      <a
+        className={next_classes}
+        onClick={params.next && on_click.bind(this, params.next)}>
+        Next &raquo;
+      </a>
+    );
 
     return links;
   },

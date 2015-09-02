@@ -34,13 +34,21 @@ class DiffBuildsIndexAPIView(APIView):
                 return 404, '%s not found in phabricator' % diff_ident
             assert len(phabricator_info) == 1
             phabricator_info = phabricator_info[0]
+            phabricator_info["fetched_data_from_phabricator"] = True
         except Exception as e:
-            # If the phabricator call fails
-            # for whatever reason, we'll still return the builds info from
-            # changes
+            # If the phabricator call fails for whatever reason, we'll still
+            # return the builds info from changes. We don't want changes to
+            # be unusable if phabricator is down
             print e
-            phabricator_info = {}
+            phabricator_info = {
+                "fetched_data_from_phabricator": False
+            }
             pass
+
+        # TODO: if we want the name/email of the author of the diff, we'd have
+        # to make another conduit call. Instead, we'll let the frontend rely
+        # on the fact that any phabricator-tagged build always has the same
+        # author as the diff
 
         # grab builds
         rows = list(db.session.query(

@@ -31,14 +31,12 @@ export default custom_content_hook;
 
 /* Creating a custom content file.
  * - Don't use es6 / jsx syntax (keep it simple)
- * - You should export a dictionary that maps hook names to strings,
- *   or functions. extra_data is only used funcs.
+ * - Your dictionary should map hook names to strings, or 
+ *   functions. extra_data is only used funcs.
  *
  * Example:
  *
- * var content = {
+ * window.changesCustomContent = {
  *   errorHref: 'https://internal.bigcompany.com/error_dashboard/changes',
  * };
- *
- * export default content;
  */

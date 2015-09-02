@@ -3,9 +3,9 @@ import React from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import DisplayUtils from 'es6!display/changes/utils';
 import { AjaxError } from 'es6!display/errors';
-import { BuildWidget, get_build_cause } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
 import { Menu1 } from 'es6!display/menus';
+import { SingleBuildStatus, get_build_cause } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
@@ -82,7 +82,7 @@ var BuildsTab = React.createClass({
       }
 
       return [
-        <BuildWidget build={build} parentElem={this} />,
+        <SingleBuildStatus build={build} parentElem={this} />,
         target,
         DisplayUtils.authorLink(build.author),
         build.name,

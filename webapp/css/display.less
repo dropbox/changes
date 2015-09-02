@@ -1,0 +1,352 @@
+/*
+ * display.less
+ *
+ * CSS for the tags in display/ (except page_chrome.) We
+ * also have a misc section at the end for classes that don't quite
+ * deserve their own tag (e.g. subtext)
+ */
+
+ /*
+  * Grid. There are a couple of common cell classes at the end
+  */
+
+table.grid {
+  border-collapse: collapse;
+  display: table;
+  width: 100%;
+}
+
+.gridRow {
+  display: table-row;
+  border-top: 1px solid @lightBorder;
+}
+
+.noborder .gridRow {
+  border-top: none;
+}
+
+.gridRow.gridFirstRow {
+  border-top: none;
+}
+
+.gridRow.gridRowOneItem {
+  border-top: none;
+}
+
+.gridCell {
+  display: table-cell;
+  padding: 7px 15px 7px 4px;
+}
+
+.gridCell:last-child {
+  padding-right: 2px;
+}
+
+tr.gridHeader {
+  border-top: none;
+  color: @mediumGray;
+  font-size: 13px;
+}
+
+.gridHeader .gridCell {
+  padding-bottom: 0px;
+}
+
+.gridEven .gridCell {
+}
+
+/*
+ * Grid: cell classes. You'll usually want to use wide for one of your columns
+ */
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.wide {
+  width: 100%;
+}
+
+.center {
+  text-align: center;
+}
+
+/*
+ * Error Box
+ */
+
+.error {
+  /* may want to change these to be consistent with other colors */
+  background-color: #a00;
+  border: 1px solid #666;
+  color: #FFF;
+  display: block;
+  padding: 5px;
+}
+
+.programmingError {
+  background-color: #c09;
+  border: 1px solid #666;
+  color: #FFF;
+  display: block;
+  padding: 5px;
+}
+
+/*
+ * Inline Loading
+ */
+
+.inlineLoading {
+  padding: 12px;
+  vertical-align: middle;
+  text-align: center;
+}
+
+/*
+ * Section Header
+ */
+
+.sectionHeader {
+  border-bottom: 1px solid @fainterBorder;
+  font-size: 18px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+/*
+ * Menus
+ */
+
+.menuItem {
+  display: inline-block;
+  padding: 0px 5px;
+  border-left: 1px solid #333;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.firstMenuItem {
+  margin-left: 0px;
+  padding-left: 0px;
+  border-left: 0;
+}
+
+.selectedMenuItem {
+  color: #333;
+  font-weight: bold;
+}
+
+/* tabs */
+.tabs {
+  margin-bottom: 15px;
+}
+
+.tabsItem {
+  display: table-cell;
+  cursor: pointer;
+  color: @darkGray;
+
+  &:hover {
+    color: #333;
+  }
+
+  .tabsItemText {
+    margin: 0px 15px 5px;
+    padding-bottom: 10px;
+  }
+}
+
+.selectedTabsItem {
+  font-weight: 600;
+  color: #333;
+
+  .tabsItemText {
+    border-bottom: 3px solid @blue;
+  }
+}
+
+.leftmostTab {
+  .tabsItemText {
+    margin-left: 0;
+    padding-left: 0;
+  }
+}
+
+/*
+ * Builds/Status Dot
+ */
+
+.dotContainer {
+  position: relative;
+}
+
+.conditionDotIcon {
+  display: inline-block;
+  margin-right: 4px;
+  opacity: 1;
+}
+
+.conditionDot {
+  border-radius: 3px;
+  display: inline-block;
+  margin-right: 4px;
+  opacity: 1;
+}
+
+.conditionDot.small {
+  width: 16px;
+  height: 16px;
+}
+
+.conditionDot.smaller {
+  width: 12px;
+  height: 12px;
+}
+
+.conditionDot.medium {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+}
+
+.conditionDot.large {
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+}
+
+.dotText {
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: -8px;
+  margin-top: 5px;
+  position: absolute;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+.statusNumBase {
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 4px;
+  opacity: 1;
+}
+
+.buildWidget {
+  color: #333;
+  display: block;
+  position: relative;
+  text-decoration: none;
+}
+
+a.buildStatus {
+  display: block;
+  padding: 7px;
+}
+
+a.buildStatus:hover {
+  background-color: @selectedBg;
+}
+
+.gridCell.buildWidgetCell {
+  padding: 0;
+  padding-right: 7px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.gridCell.buildWidgetCell .buildWidget {
+  padding: 7px;
+}
+
+.buildWidget:hover {
+  background-color: @selectedBg;
+}
+
+/* invisible table lets you put things in tables without any markup/lines */
+
+.invisibleTable {
+  border-spacing: 0
+}
+
+.invisibleTable td {
+  padding: 2px 8px 0 0;
+}
+
+/* InfoList (property list with keys/values) */
+
+.infoList .infoLabel {
+  color: @mediumGray;
+  padding-right: 20px;
+  padding-top: 3px;
+}
+
+/* 
+ * pagination links
+ * TODO: make this a generic link-button in display
+ */
+
+.paginationLink {
+  background: #fff;
+  border: 1px solid @blue;
+  color: @blue;
+  display: inline-block;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: visible;
+  text-decoration: none;
+
+  padding: 5px 16px;
+  border-radius: 3px;
+
+  &:hover {
+    background-color: @blue;
+    color: #fff;
+    text-decoration: none;
+  }
+}
+
+
+.paginationLink.disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.paginationLink.disabled:hover {
+  background: #fff;
+  color: @blue;
+  cursor: default;
+}
+
+/*
+ * Misc: classes that didn't quite deserve their own tag
+ */
+
+.subText {
+  font-size: x-small;
+  color: @mediumGray;
+}
+
+.lb {
+  font-weight: 600;
+}
+
+.bb {
+  font-weight: 900;
+}
+
+.defaultPre {
+  background-color: @preBg;
+  border: 1px solid @preBorder;
+  line-height: normal;
+  margin-top: 5px;
+  padding: 5px;
+  white-space: pre-wrap;
+}

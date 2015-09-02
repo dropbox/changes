@@ -3,8 +3,8 @@ import React from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
 import SectionHeader from 'es6!display/section_header';
+import { ConditionDot } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
-import { StatusDot } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
@@ -70,7 +70,7 @@ var TestHistoryPage = React.createClass({
       var revision = build.source.revision;
 
       return [
-        <StatusDot state={t.result.id} />,
+        <ConditionDot condition={t.result.id} />,
         display_duration(t.duration / 1000),
         <a href="#">{utils.email_head(revision.author.email)}</a>,
         <a href="#">{utils.truncate(revision.sha, 8)}</a>,

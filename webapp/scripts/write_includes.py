@@ -1,7 +1,12 @@
-# this is super hacky because I didn't want to read through an entire parse
-# tree. This script generates a list of every single export in the codebase,
-# then goes file by file and replaces all of their imports by grepping for
-# all of the exported identifiers. It also adds import react.
+#!/usr/bin/env python
+
+# this is a super hacky script that rewrites all of the import statements at
+# the top of every javascript file. I didn't want to read through an entire
+# parse tree and handle all of the corner cases, so the way this works is the
+# script generates a list of every single export in the codebase, then goes
+# file by file, greps for all of the exported identifiers, and uses that to 
+# replace every import statement. It also manually adds import react, bootstrap
+# imports, and some other special cases (search for "special cases")
 
 REACT_BOOTSTRAP_COMPONENTS_USED = [
   'Popover',
@@ -112,6 +117,8 @@ class Exports:
             item['include_path']
           ))
     # end of for block
+
+    # special cases
 
     # if we have a closing html tag, we should probably import react.
     # todo: strip out comments from this search string

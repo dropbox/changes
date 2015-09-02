@@ -17,12 +17,13 @@ var DisplayUtils = {
   // If I want to be able to customize these (e.g. add a css class), they
   // should be tags instead
 
-  authorLink: function(author) {
+  authorLink: function(author, subtle = false) {
     if (!author) {
       return 'unknown';
     }
+    var classes = subtle ? "subtle" : "";
     var author_href = `/v2/author/${author.email}`;
-    return <a href={author_href}>
+    return <a href={author_href} className={classes}>
       {utils.email_head(author.email)}
     </a>;
   },
@@ -32,6 +33,40 @@ var DisplayUtils = {
     return <a href={href}>{project.name}</a>;
   },
 
+  // renders the permalink url for an arbitrary build
+  buildHref: function(build) {
+    // three possibilities: this is a plain commit build, this is a diff build
+    // from phabricator, or this is a build on an arbitrary code patch (e.g.
+    // from arc test)
+
+    if (!build.source.patch) {
+      return URI(`/v2/commit/${build.source.id}/`)
+        .search({ buildID: build.id })
+        .toString();
+    } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
+      return URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`)
+        .search({ buildID: build.id })
+        .toString();
+    } else {
+      // TODO
+      return '/404_me';
+    }
+  },
+
+  // as above, but for the case where we have many builds pointing to the same
+  // target
+  buildsHref: function(builds) {
+    var build = builds[0];
+
+    if (!build.source.patch) {
+      return URI(`/v2/commit/${build.source.id}/`).toString();
+    } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
+      return URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`).toString();
+    } else {
+      // TODO
+      return '/404_me';
+    }
+  },
 
   // grabs the last path param or filename after : for a repo name
   // TODO: move out of this file

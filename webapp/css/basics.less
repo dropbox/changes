@@ -1,0 +1,132 @@
+/*
+ * basics
+ *
+ * (1) this is where we set the font on <body />, override styles
+ * on <a />, etc.
+ *
+ * (2) Contains the css for the page chrome (e.g for the page
+ * header, spacing, etc.)
+ */
+
+body {
+  color: #333;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  margin: 0
+}
+
+/* default styles don't apply to anchors without hrefs, add them back in */
+a {
+  color: @anchorBlue;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:visited {
+    color: @anchorBlue;
+  }
+}
+
+a.external {
+  background-repeat: no-repeat;
+  background-position: right;
+  padding-right: 13px;
+
+  /*
+   * This is just the external link icon used in mediawiki with some color
+   * replacements (update this if you make any further modifications):
+   *  #06c -> #2980B9
+   *  #06f -> #136CB2
+   *
+   * To create the data uri:
+   * > cat wiki_external_link.svg | python -c 'import sys,urllib;print urllib.quote(sys.stdin.read().strip(), "")' | pbcopy
+   */
+
+  background-image: linear-gradient(transparent,transparent),url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%3E%0A%20%20%3Cg%20transform%3D%22translate%28-826.429%20-698.791%29%22%3E%0A%20%20%20%20%3Crect%20width%3D%225.982%22%20height%3D%225.982%22%20x%3D%22826.929%22%20y%3D%22702.309%22%20fill%3D%22%23fff%22%20stroke%3D%22%232980B9%22%2F%3E%0A%20%20%20%20%3Cg%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M831.194%20698.791h5.234v5.391l-1.571%201.545-1.31-1.31-2.725%202.725-2.689-2.689%202.808-2.808-1.311-1.311z%22%20fill%3D%22%23136CB2%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M835.424%20699.795l.022%204.885-1.817-1.817-2.881%202.881-1.228-1.228%202.881-2.881-1.851-1.851z%22%20fill%3D%22%23fff%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E);
+}
+
+a.subtle {
+  color: #333;
+  text-decoration: none;
+}
+
+a.subtle:hover {
+  text-decoration: underline;
+}
+
+/* Page header stuff */
+
+.pageHeader {
+  background-color: white;
+  border-bottom: 1px solid @lightBorder;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+}
+
+.fixedPageHeader {
+  position: fixed;
+  z-index: 5;
+}
+
+.headerBlock, .headerLinkBlock {
+  padding: 12px;
+  display: inline-block;
+  vertical-align: top;
+  height: 16px;
+}
+
+.headerLinkBlock {
+  text-decoration: none;
+  color: @anchorBlue;
+}
+
+.headerLinkBlock:hover, .inlinePerf:hover {
+  text-decoration: underline;
+}
+
+.headerHighlight {
+  font-weight: bold;
+}
+
+div.persistentMessageHeader {
+  background-color: @messageBg;
+  border-bottom: 1px solid @messageBorder;
+  padding: 10px;
+}
+
+/* inline perf widget */
+
+.inlinePerf {
+  cursor: pointer;
+  color: @anchorBlue;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+.inlinePerfDropdown {
+  background-color: white;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+  color: #333;
+  cursor: default;
+  min-width: 150px;
+  padding: 10px;
+  position: absolute;
+  right: 0;
+  top: 40px;
+  z-index: 10;
+}
+
+div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
+  background-color: white;
+}
+
+/* bootstrap popovers should have no max-width */
+div.popover {
+  max-width: none;
+}

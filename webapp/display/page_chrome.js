@@ -56,11 +56,13 @@ var ChangesPage = React.createClass({
       return <APINotLoaded state={this.state.adminMessage} />;
     }
 
-    var messageObject = this.state.adminMessage.getReturnedData();
-    var message = "";
+    var message_markup = null;
 
-    if (messageObject && messageObject.message) {
-      var message = messageObject.message + "  - " + messageObject.user.email;
+    var message_data = this.state.adminMessage.getReturnedData();
+    if (message_data && message_data.message) {
+      var message_markup = <div className="persistentMessageHeader">
+        {message_data.message}{"  - "}{message_data.user.email}
+      </div>;
     }
 
     if (this.props.isPageLoaded) {
@@ -71,13 +73,11 @@ var ChangesPage = React.createClass({
                               // so want to use new Date() rather than moment.
     }
 
-    var style = this.props.bodyPadding ? {padding: '10px'} : {};
+    var style = this.props.bodyPadding ? {padding: 20} : {};
 
     return <div>
+      {message_markup}
       <ChangesPageHeader highlight={this.props.highlight} fixed={this.props.fixed} />
-      <div className="persistentMessageHeader">
-        {message}
-      </div>
       <div style={style}>
         {this.props.children}
       </div>

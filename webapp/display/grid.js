@@ -2,8 +2,6 @@ import React from 'react';
 
 import { ProgrammingError } from 'es6!display/errors';
 
-import colors from 'es6!utils/colors';
-
 var cx = React.addons.classSet;
 
 export var Grid = React.createClass({
@@ -16,17 +14,20 @@ export var Grid = React.createClass({
     // a row (same length as other rows) used for blue header cells
     headers: React.PropTypes.array,
     // same length as row, we add each css class to the row cells
-    cellClasses: React.PropTypes.arrayOf(React.PropTypes.string)
+    cellClasses: React.PropTypes.arrayOf(React.PropTypes.string),
+    // whether to render dividers between rows
+    border: React.PropTypes.bool,
 
     // ...
-    // transfers other properties to rendered <table /> (right now table)
+    // transfers other properties to rendered <table />
   },
 
   getDefaultProps: function() {
     return {
       data: [],
       headers : [],
-      cellClasses: []
+      cellClasses: [],
+      border: true
     }
   },
 
@@ -51,6 +52,10 @@ export var Grid = React.createClass({
     var rows = _.map(data, this.renderRow);
 
     className = "grid " + (className || "");
+    if (!this.props.border) {
+      className += " noborder";
+    }
+
     return <table {...props} className={className}>
       {header_row}
       <tbody>
@@ -95,7 +100,7 @@ export var Grid = React.createClass({
       gridRow: true,
       gridHeader: row_index === -1,
       // we may sometimes/somday want different bg colors for even/odd rows
-      gridEven: (row_index+1) % 2 === 0,
+      gridEven: row_index !== 0 && (row_index+1) % 2 === 0,
       gridFirstRow: row_index === 0,
       gridRowOneItem: is_using_colspan,
     });

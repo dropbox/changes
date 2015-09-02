@@ -1,12 +1,12 @@
 import React from 'react';
-import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import DisplayUtils from 'es6!display/changes/utils';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 import { AjaxError } from 'es6!display/errors';
-import { BuildWidget, status_dots } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
-import { TimeText } from 'es6!display/time';
+import { SingleBuildStatus, get_runnable_condition } from 'es6!display/changes/builds';
+import { TimeText, display_duration } from 'es6!display/time';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -135,25 +135,15 @@ var CommitsTab = React.createClass({
     <span className="paddingLeftS">
       Showing most recent diffs since 0:00pm
     </span>
-    */
-    return <div style={{marginBottom: 5, marginTop: 10}}>
+
       <input
         disabled={true}
         placeholder="Search by name or SHA [TODO]"
         style={{minWidth: 170, marginRight: 5}}
       />
+    */
+    return <div style={{marginBottom: 5, marginTop: 10}}>
       {branch_dropdown}
-      <label style={{float: 'right', paddingTop: 3}}>
-        <span style={/* disabled color */ {color: '#aaa', fontSize: 'small'}}>
-          Live update
-          <input
-            type="checkbox"
-            checked={false}
-            className="noRightMargin"
-            disabled={true}
-          />
-        </span>
-      </label>
     </div>;
   },
 
@@ -163,18 +153,19 @@ var CommitsTab = React.createClass({
 
     var grid_data = _.map(data_to_show, c => this.turnIntoRow(c, project_info));
 
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
-      'Last Build',
-      'Author',
+      'Last B.',
+      'Time',
+      'Tests Ran',
       'Commit',
+      'Author',
       'Name',
-      'Prev. B.',
       'Committed'
     ];
 
     return <Grid
-      colnum={6}
+      colnum={7}
       data={grid_data}
       cellClasses={cellClasses}
       headers={headers}
@@ -189,44 +180,48 @@ var CommitsTab = React.createClass({
       </a>;
     }
 
-    var title = utils.first_line(c.message);
+    var title = utils.truncate(utils.first_line(c.message));
     if (c.message.indexOf("!!skipthequeue") !== -1 ||
         c.message.indexOf("#skipthequeue") !== -1) { // we used to use this
 
       // dropbox-specific logic: we have a commit queue (oh hey, you should
       // build one of those too)
 
-      var tooltip = <Tooltip>
-        This commit bypassed the commit queue
-      </Tooltip>;
-
       title = <span>
         {title}
-        <OverlayTrigger placement="bottom" overlay={tooltip}>
-          <i className="fa fa-fast-forward lt-magenta marginLeftS" />
-        </OverlayTrigger>
+        <SimpleTooltip label="This commit bypassed the commit queue">
+          <i className="fa fa-fast-forward blue marginLeftS" />
+        </SimpleTooltip>
       </span>;
     }
 
-    var build_widget = null, prev_builds = null;
+    var build_widget = null, prev_builds = null, duration = null, tests = null;
     if (c.builds && c.builds.length > 0) {
       var sorted_builds = _.sortBy(c.builds, b => b.dateCreated).reverse();
       var last_build = _.first(sorted_builds);
-      build_widget = <BuildWidget build={last_build} parentElem={this} />;
-      if (sorted_builds.length > 1) {
-        prev_builds = <span style={{opacity: "0.5"}}>
-          {status_dots(sorted_builds.slice(1))}
-        </span>;
-      }
+
+      build_widget = <SingleBuildStatus
+        build={last_build}
+        parentElem={this}
+      />;
+
+      duration = get_runnable_condition(last_build) !== 'waiting' ?
+        display_duration(last_build.duration / 1000) :
+        null;
+
+      tests = get_runnable_condition(last_build) !== 'waiting' ?
+        last_build.stats.test_count :
+        <span className="bluishGray">{last_build.stats.test_count}</span>;
     }
 
     // TODO: if there are any comments, show a comment icon on the right
     return [
       build_widget,
-      DisplayUtils.authorLink(c.author),
+      <span className="bluishGray">{duration}</span>,
+      <span className="bluishGray">{tests}</span>,
       sha_item,
+      DisplayUtils.authorLink(c.author),
       title,
-      prev_builds,
       <TimeText time={c.dateCommitted} />
     ];
   },

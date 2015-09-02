@@ -49,9 +49,9 @@ export var Menu1 = React.createClass({
 });
 
 /*
- * Lightweight tabs menu. Most search engines have a similar menu style
+ * Lightweight tabs menu
  */
-export var Menu2 = React.createClass({
+export var Tabs = React.createClass({
 
   propTypes: {
     // Names of the menu items
@@ -71,25 +71,30 @@ export var Menu2 = React.createClass({
   },
 
   render: function() {
-    var { items, selectedItem, onClick, ...others} = this.props;
+    var { items, selectedItem, onClick, className, ...others} = this.props;
 
     var item_onclick = (item, clickEvent) => this.props.onClick(item, clickEvent);
 
-    var item_markup = _.map(this.props.items, (text, index) => {
+    var item_markup = _.map(items, (text, index) => {
       var classes = cx({
-        menu2Item: true,
-        firstMenu2Item: index === 0,
-        selectedMenu2Item: this.props.selectedItem === text
+        tabsItem: true,
+        leftmostTab: index === 0,
+        rightmostTab: index === items.length - 1,
+        selectedTabsItem: this.props.selectedItem === text
       });
 
       return <div
         className={classes}
         onClick={_.partial(onClick, text)}>
-        {text}
+        <div className="tabsItemText">{text}</div>
       </div>;
     });
 
-    return <div {...others}>{item_markup}</div>;
+    className = (className || "") + " tabs";
+    return <div>
+      <div className={className} {...others}>{item_markup}</div>
+      <div className="tabsBottomBorder" />
+    </div>;
   }
 });
 

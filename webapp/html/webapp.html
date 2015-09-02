@@ -5,19 +5,19 @@
     <title ng-bind="pageTitle">Changes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    {% set ERROR_STYLE = "background-color: #c8190f; border: 1px solid #5a5758; " +
+    {% set ERROR_STYLE = "background-color: #a00; border: 1px solid #666; " +
            "color: #fff; padding: 5px; font-family: helvetica, arial"
     %}
     {% if IS_DEBUG %}
     <script type="text/javascript">
       window.onerror = function(errorMsg, url, lineNumber , column, errorObj) {
         if (errorMsg.indexOf("Load timeout for modules") === -1) {
-          document.write('<div style="{{ ERROR_STYLE }}">' +
+          document.getElementById('jsErrors').innerHTML = '<div>' +
             '<b>Javascript Error (dev console has a more accurate error message/line #)</b>' +
             '<div style="font-size: smaller;">' + url + ': ' + lineNumber + '</div>' +
             '<pre>' + errorMsg + '</pre>' +
-            '</div>'
-          );
+            '</div>';
+          document.getElementById('jsErrors').style.display = "block";
           return false;
         }
       };
@@ -60,10 +60,9 @@
     <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href="{{ url_for('webapp_v2.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
-    {% assets filters="less", output="css/bundled.css", "css/bundle_definition.less" %}
+    {% assets filters="less", output="css/bundled.css", depends="**/*.less", "css/bundle_definition.less" %}
     <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
     {% endassets %}
-    <link href='https://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Slabo+13px' rel='stylesheet' type='text/css'>
   </head>
   <body>

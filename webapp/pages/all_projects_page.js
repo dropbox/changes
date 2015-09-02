@@ -5,9 +5,9 @@ import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
 import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
-import { BuildWidget } from 'es6!display/changes/builds';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Menu1, MenuUtils } from 'es6!display/menus';
+import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
@@ -120,7 +120,9 @@ var AllProjectsPage = React.createClass({
     return <div>
       {this.renderProjectList(list)}
       {stale_header}
-      {this.renderProjectList(stale_list)}
+      <div className="bluishGray">
+        {this.renderProjectList(stale_list)}
+      </div>
     </div>;
   },
 
@@ -134,7 +136,7 @@ var AllProjectsPage = React.createClass({
       if (p.lastBuild) {
         var build = p.lastBuild;
 
-        widget = <BuildWidget build={build} parentElem={this} />;
+        widget = <SingleBuildStatus build={build} parentElem={this} />;
         build_time = <TimeText
           time={build.dateFinished || build.dateCreated}
         />;
@@ -145,7 +147,7 @@ var AllProjectsPage = React.createClass({
         build_time,
         p.name,
         [<a href={"/v2/project/" + p.slug}>Commits</a>,
-         <a className="marginLeftS" href={"/v2/project/" + p.slug + "#ProjectDetails"}>
+         <a className="marginLeftM" href={"/v2/project/" + p.slug + "#Details"}>
            Details
          </a>
         ],
@@ -395,7 +397,7 @@ var AllProjectsPage = React.createClass({
       var first_row_text = <span className="paddingRightM">
         <a className="subtle" href={url} target="_blank">
           {split_urls_for_display[url][0]}
-          <span className="bb">{split_urls_for_display[url][1]}</span>
+          <b>{split_urls_for_display[url][1]}</b>
           {split_urls_for_display[url][2]}
         </a>
         {" ("}{val.master.length}{"/"}{val.diff.length}{")"}
@@ -428,7 +430,7 @@ var AllProjectsPage = React.createClass({
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <div>
-      <div className="yellowPre marginBottomM">
+      <div className="defaultPre marginBottomM">
         Note: this chart only shows explicitly-configured master urls. Here are
         the fallbacks we use when master is not configured.
         <div><b>fallback_url: </b>{(jenkins_fallback_data['fallback_url'] || "None")}</div>
@@ -508,7 +510,7 @@ var AllProjectsPage = React.createClass({
 
     return GridRow.oneItem(
       <div>
-        <pre className="yellowPre">
+        <pre className="defaultPre">
           {plan.steps[0] && plan.steps[0].data}
         </pre>
         {build_timeout_markup}

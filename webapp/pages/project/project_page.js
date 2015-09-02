@@ -1,9 +1,10 @@
 import React from 'react';
+import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
-import { Menu2, MenuUtils } from 'es6!display/menus';
 import { ProgrammingError } from 'es6!display/errors';
+import { Tabs, MenuUtils } from 'es6!display/menus';
 
 import BuildsTab from 'es6!pages/project/builds_tab';
 import CommitsTab from 'es6!pages/project/commits_tab';
@@ -13,7 +14,6 @@ import InteractiveData from 'es6!pages/helpers/interactive_data';
 import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
-import colors from 'es6!utils/colors';
 
 var cx = React.addons.classSet;
 
@@ -39,7 +39,7 @@ var ProjectPage = React.createClass({
     'Commits',
     'Builds',
     'Tests [TODO]',
-    'Project Details'
+    'Details'
   ],
 
   componentWillMount: function() {
@@ -100,7 +100,7 @@ var ProjectPage = React.createClass({
       );
       this.setState({selectedItem: item});
     }
-    var menu = <Menu2
+    var menu = <Tabs
       items={this.menuItems}
       selectedItem={selected_item}
       onClick={onClick}
@@ -127,7 +127,7 @@ var ProjectPage = React.createClass({
       case 'Tests [TODO]':
         content = <div>TODO</div>;
         break;
-      case 'Project Details':
+      case 'Details':
         content = <DetailsTab
           project={this.state.project}
           details={this.state.details}
@@ -140,7 +140,7 @@ var ProjectPage = React.createClass({
         </ProgrammingError>;
     }
 
-    var padding_classes = 'paddingLeftM paddingRightM';
+    var padding_classes = 'paddingLeftL paddingRightL';
     return <ChangesPage bodyPadding={false}>
       {this.renderProjectInfo(this.state.project.getReturnedData())}
       <div className={padding_classes}>
@@ -151,11 +151,6 @@ var ProjectPage = React.createClass({
   },
 
   renderProjectInfo: function(project_info) {
-    var style = {
-      padding: 10,
-      backgroundColor: colors.lightestGray
-    };
-
     var triggers = _.compact([
       project_info.options["phabricator.diff-trigger"] ? "Diffs" : null,
       project_info.options["build.commit-trigger"] ? "Commits" : null,
@@ -170,24 +165,29 @@ var ProjectPage = React.createClass({
       var branches = "branches: " + branches_option.replace(/ /g, ", ");
     }
 
-    // TODO: add tooltip to "certain paths"
     var whitelist_msg = "";
     var whitelist_option = project_info.options["build.file-whitelist"];
     if (whitelist_option) {
       var whitelist_paths = utils.split_lines(whitelist_option);
-      whitelist_msg = <b>
+      var whitelist_tooltip = <Tooltip>
+        {_.map(whitelist_paths, p => <div>{p}</div>)}
+      </Tooltip>;
+
+      whitelist_msg = <span style={{fontWeight: 600}}>
         Builds are only run for changes that touch
         {" "}
-        <span style={{borderBottom: "2px dotted #ccc"}}>
-          certain paths
-        </span>
+        <OverlayTrigger placement="bottom" overlay={whitelist_tooltip}>
+          <span style={{borderBottom: "1px dotted #777"}}>
+            certain paths
+          </span>
+        </OverlayTrigger>
         {"."}
-      </b>
+      </span>
     }
 
-    return <div style={style}>
-      <div><span style={{fontWeight: 900}}>{project_info.name}</span></div>
-      <b>Repository:</b>
+    return <div style={{ padding: 20 }}>
+      <div><b>{project_info.name}</b></div>
+      <span style={{ fontWeight: 600 }}>Repository:</span>
         {" "}{project_info.repository.url}{" "}
         {" ("}
         {branches}

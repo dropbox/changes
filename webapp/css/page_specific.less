@@ -1,0 +1,92 @@
+/*
+ * page_specific.less
+ *
+ * Some pages (in pages/) need their own CSS
+ */
+
+/* builds_results_page */
+
+.buildsLabelHeader {
+  position: fixed;
+  top: 40px;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background-color: white;
+  border-bottom: 1px solid @fainterBorder;
+  font-size: 18px;
+  z-index: 2;
+  white-space: nowrap;
+  overflow-x: hidden;
+  padding-top: 20px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.buildsSidebar {
+  position: fixed;
+  top: 100px;
+  left: 10px;
+  bottom: 0;
+  width: 290px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  vertical-align: top;
+  padding-right: 15px;
+}
+
+.buildsSideItem {
+  color: #333;
+  cursor: pointer;
+  display: block;
+  padding: 6px 0 6px 15px;
+  text-decoration: none;
+  margin-left: 10px;
+  border: 1px solid white;
+
+  &:hover {
+    background-color: @selectedBg;
+    border-radius: 5px;
+    border: 1px solid @selectedBorder;
+  }
+}
+
+.buildsSideItem.selected {
+/* TODO: colors */
+  background-color: @selectedBg;
+  border-radius: 5px;
+  border: 1px solid @selectedBorder;
+}
+
+.sideItemDot {
+  float: left;
+  margin-left: -8px;
+  margin-top: 4px;
+  margin-right: 2px;
+}
+
+.buildsSideSectionHeader {
+   font-size: 12px;
+   color: @mediumGray;
+   margin-bottom: 5px;
+   padding-left: 10px;
+}
+
+/*
+.grid.errorGrid {
+  border-color: @red;
+}
+
+.errorGrid .gridHeader .gridCell {
+  color: #ee2e24;
+}
+
+.errorGrid .gridRow.gridHeader  {
+  border-color: #ee2e24;
+}
+
+.errorGrid .gridRow {
+  border-color: #e5cfcf; 
+}
+*/

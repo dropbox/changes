@@ -1,8 +1,8 @@
 import React from 'react';
 import moment from 'moment';
 
+import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
-import { get_runnable_state, get_build_cause } from 'es6!display/changes/builds';
 
 import * as utils from 'es6!utils/utils';
 
@@ -34,38 +34,8 @@ var Sidebar = React.createClass({
 
   render: function() {
     return <div className="buildsSidebar">
-      {this.renderHeader()}
       {this.renderBuildsList()}
       {this.renderSurroundingBuilds()}
-      {this.renderOtherActions()}
-    </div>;
-  },
-
-  renderHeader: function() {
-    var type = this.props.type;
-
-    var header = "No header yet";
-    if (type === 'commit') {
-      var source = this.props.targetData;
-      header = <div>
-        {source.revision.sha.substring(0,7)}{": "}
-        {utils.first_line(source.revision.message)}
-      </div>;
-    } else if (type === 'diff') {
-      var diff_data = this.props.targetData;
-      header = <div>
-        <a className="subtle" href={diff_data.uri} target="_blank">
-          D{diff_data.id}
-        </a>
-        {": "}
-        {diff_data.title}
-      </div>;
-    } else {
-      throw 'unreachable';
-    }
-
-    return <div style={{fontWeight: 'bold', padding: 10}}>
-      {header}
     </div>;
   },
 
@@ -90,13 +60,16 @@ var Sidebar = React.createClass({
     var builds = this.props.builds,
       source = this.props.targetData;
 
-    console.log(source);
     var label = <span>
       Committed {"("}<TimeText time={source.revision.dateCommitted} />{")"}
     </span>;
-    var content = this.renderBuilds(builds);
 
-    return this.renderSection(label, content);
+    return <div> 
+      <div className="marginTopL">
+        {this.renderLatestItem(builds)}
+      </div>
+      {this.renderSection(label, this.renderBuilds(builds))}
+    </div>;
   },
 
   renderBuildsForDiff: function() {
@@ -112,12 +85,16 @@ var Sidebar = React.createClass({
     // one of those diff updates is the original diff that was sent
     var original_single_diff_id = _.last(all_diff_ids);
 
-    var sections = [];
+    var sections = [], latest_item = null;
     _.each(all_diff_ids, (single_diff_id, index) => {
       var builds = builds_by_update[single_diff_id];
       var changes_data = diff_data.changes[single_diff_id];
 
       var diff_update_num = all_diff_ids.length - index - 1;
+
+      if (index === 0) {
+        latest_item = this.renderLatestItem(builds);
+      }
 
       if (single_diff_id > original_single_diff_id) {
         if (changes_data) {
@@ -141,7 +118,57 @@ var Sidebar = React.createClass({
 
       sections.push(this.renderSection(section_header, section_content));
     });
-    return sections;
+
+    return <div> 
+      <div className="marginTopL">
+        {latest_item}
+      </div>
+      {sections}
+    </div>;
+  },
+
+  renderLatestItem: function(builds) {
+    // we want the most recent build for each project
+    var latest_by_proj = _.chain(builds)
+      .groupBy(b => b.project.name)
+      .map(proj_builds => _.last(_.sortBy(proj_builds, b => b.dateCreated)))
+      .values()
+      .value();
+
+    var summary_condition = get_runnables_summary_condition(latest_by_proj);
+
+    var subtext = '';
+    var subtext_extra_class = '';
+    if (summary_condition.indexOf('failed') === 0) {
+      var failing = _.filter(latest_by_proj,
+        b => get_runnable_condition(b).indexOf('failed') === 0);
+      subtext = `${failing.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} failed`;
+      subtext_extra_class = 'redGrayMix';
+    } else if (summary_condition === 'waiting') {
+      var waiting = _.filter(latest_by_proj, 
+        b => get_runnable_condition(b) === 'waiting');
+      subtext = `${waiting.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} are still running`;
+    } else if (summary_condition === 'unknown') {
+      var unknown = _.filter(latest_by_proj, 
+        b => get_runnable_condition(b) === 'unknown');
+      subtext = `${unknown.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} have an unknown status`;
+    } else {
+      subtext = `${utils.plural(latest_by_proj.length, 'project(s)')} passed`;
+    }
+
+    return this.renderBuildSideItem(
+      <ConditionDot 
+        condition={summary_condition}
+        size="medium"
+        glow={latest_by_proj.length > 1}
+      />,
+      'Latest Builds',
+      '',
+      subtext,
+      subtext_extra_class,
+      !this.props.activeBuildID,
+      evt => this.props.pageElem.setState({ activeBuildID: null })
+    );
   },
 
   renderBuilds: function(builds) {
@@ -153,12 +180,6 @@ var Sidebar = React.createClass({
       .reverse()
       .value();
 
-    var time_style = {
-      float: 'right',
-      marginRight: 10,
-      color: '#333'
-    };
-
     var on_click = build_id => {
       return evt => {
         this.props.pageElem.setState({
@@ -168,40 +189,61 @@ var Sidebar = React.createClass({
     };
 
     var entries = _.map(builds, b => {
-      var build_state = get_runnable_state(b);
+      var build_state = get_runnable_condition(b);
 
-      var classes = "buildsSideItem";
-      if (this.props.activeBuildID === b.id) {
-        classes += " lt-lightgray-bg";
+      var subtext_extra_class = '';
+      var tests_text = null;
+      if (build_state.indexOf('failed') === 0) {
+        subtext_extra_class = 'redGrayMix';
+        tests_text = utils.plural(
+          b.stats.test_failures, 
+          'test(s) failed', 
+          true);
+      } else {
+        tests_text = utils.plural(b.stats.test_count, "test(s) run");
       }
 
-      var failed = null;
-      if (build_state === 'failed' || build_state === 'nothing') {
-        if (b.stats.test_failures === 0) {
-          failed = <div className="lt-red" style={{marginTop: 3}}>
-            Failed
-          </div>;
-        } else {
-          failed = <div className="lt-red" style={{marginTop: 3}}>
-            {utils.plural(b.stats.test_failures, 'test(s) failed')}
-          </div>;
-        }
-      }
-
-      return <div className={classes} onClick={on_click(b.id)}>
-        <div style={{display: 'inline-block'}}>{b.project.name}</div>
-        <div style={time_style}>{display_duration(b.duration / 1000)}</div>
-        <div className="subText">
-          Triggered by {get_build_cause(b)}
-          {", "}
-          {utils.plural(b.stats.test_count, "test(s) run")}
-        </div>
-        {failed}
-      </div>
+      return this.renderBuildSideItem(
+        <ConditionDot 
+          condition={get_runnable_condition(b)} 
+          size="medium"
+        />,
+        b.project.name,
+        display_duration(b.duration / 1000),
+        `Triggered by ${get_build_cause(b)}, ${tests_text}`,
+        subtext_extra_class, 
+        this.props.activeBuildID === b.id,
+        on_click(b.id));
     });
 
-    return <div>
-      {entries}
+    return <div>{entries}</div>;
+  },
+
+  renderBuildSideItem: function(condition_dot, text, time, subtext,
+    subtext_extra_class, is_selected, on_click) {
+
+    var time_style = {
+      float: 'right',
+      marginRight: 10,
+      color: '#333'
+    };
+
+    var classes = cx({
+      buildsSideItem: true,
+      selected: is_selected
+    });
+
+    return <div className={classes} onClick={on_click}>
+      <div className="sideItemDot">
+        {condition_dot}
+      </div>
+      <div>
+        <div className="inlineBlock">{text}</div>
+        <div style={time_style}>{time}</div>
+        <div className={"subText " + subtext_extra_class}>
+          {subtext}
+        </div>
+      </div>
     </div>;
   },
 
@@ -213,15 +255,6 @@ var Sidebar = React.createClass({
       return null;
     }
     return this.renderSection("Nearby Commits", <span>TODO</span>);
-  },
-
-  renderOtherActions: function() {
-    return this.renderSection(
-      'Other Actions',
-      <a className="buildsSideItem">
-        Create New Build [TODO]
-      </a>
-    );
   },
 
   renderSection: function(header, content) {

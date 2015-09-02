@@ -1,6 +1,7 @@
 import React from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
+import { InfoList, InfoItem } from 'es6!display/info_list';
 
 import * as api from 'es6!server/api';
 
@@ -32,17 +33,19 @@ var DetailsTab = React.createClass({
 
     var markup = _.map(plans, p =>
       <div className="marginBottomL">
-        <div style={{fontWeight: 900}}>{p.name}</div>
-        <table className="invisibleTable">
-        <tr>
-          <td><b>Infrastructure:</b></td>
-          <td>{!_.isEmpty(p.steps) && p.steps[0].name}</td>
-        </tr> <tr>
-          <td><b>Config:</b></td>
-          <td> </td>
-        </tr>
-        </table>
-        <pre className="yellowPre">
+        <b className="block">Build Plan:{" "}{p.name}</b>
+        <InfoList>
+          <InfoItem label="Infrastructure">
+            {!_.isEmpty(p.steps) && p.steps[0].name}
+          </InfoItem>
+          <InfoItem label="Timeout">
+            {!_.isEmpty(p.steps) && p.steps[0].options['build.timeout']}
+          </InfoItem>
+          <InfoItem label="Config:">
+            <span />
+          </InfoItem>
+        </InfoList>
+        <pre className="defaultPre">
           {!_.isEmpty(p.steps) && p.steps[0].data}
         </pre>
       </div>
@@ -81,20 +84,24 @@ var DetailsTab = React.createClass({
     }
 
     return <div className="marginBottomL">
-      <span style={{fontWeight: 900}}>{project.name}</span>
-      <table className="invisibleTable">
-      <tr>
-        <td><b>Repository:</b></td><td>{project.repository.url}</td>
-      </tr> <tr>
-        <td><b>Builds for:</b></td><td>{triggers}</td>
-      </tr> <tr>
-        <td><b>On branches:</b></td><td>{branches}</td>
-      </tr> <tr>
-        <td><b>Touching paths:</b></td><td>{whitelist_paths}</td>
-      </tr> <tr>
-        <td><b>Build plans</b></td><td>{plans.length}</td>
-      </tr>
-      </table>
+      <b>{project.name}</b>
+      <InfoList>
+        <InfoItem label="Repository">
+          {project.repository.url}
+        </InfoItem>
+        <InfoItem label="Builds for">
+          {triggers}
+        </InfoItem>
+        <InfoItem label="On branches">
+          {branches}
+        </InfoItem>
+        <InfoItem label="Touching paths">
+          {whitelist_paths}
+        </InfoItem>
+        <InfoItem label="Build plans">
+          {plans.length}
+        </InfoItem>
+      </InfoList>
     </div>;
 
     // TODO: how many tests? how many commits in the last week?

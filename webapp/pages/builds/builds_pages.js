@@ -2,11 +2,16 @@ import React from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
+import DisplayUtils from 'es6!display/changes/utils';
+import { Error } from 'es6!display/errors';
+import { get_build_cause } from 'es6!display/changes/builds';
 
 import Sidebar from 'es6!pages/builds/sidebar';
-import SingleBuild from 'es6!pages/builds/build_info';
+import { SingleBuild, LatestBuildsSummary } from 'es6!pages/builds/build_info';
 
 import * as api from 'es6!server/api';
+
+import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 
@@ -39,6 +44,12 @@ export var DiffPage = React.createClass({
       return <APINotLoaded state={this.state.diffBuilds} isInline={false} />;
     }
     var diff_data = this.state.diffBuilds.getReturnedData();
+    // Note: if the "fetched_data_from_phabricator" key is false, we weren't
+    // able to reach phabricator. We still have builds data that we want to
+    // render...just do our best to deal with the missing phabricator data.
+
+    // TODO: delete
+    diff_data['fetched_data_from_phabricator'] = true;
 
     // emergency backups in case phabricator is unreachable
     diff_data['revision_id'] = diff_data['revision_id'] || this.props.diff_id.substr(1);
@@ -126,8 +137,8 @@ var BuildsPage = React.createClass({
 
   render: function() {
     var content_style = {
-      marginLeft: 300,
-      paddingRight: 10
+      marginLeft: 310,
+      padding: 20
     };
 
     this.updateWindowUrl();
@@ -135,6 +146,9 @@ var BuildsPage = React.createClass({
     // TODO: cleanup!
     // padding: "10px 35px",
     return <ChangesPage bodyPadding={false} fixed={true}>
+      <div className="buildsLabelHeader">
+        {this.renderLabelHeader()}
+      </div>
       <Sidebar
         builds={this.props.builds}
         type={this.props.type}
@@ -142,8 +156,9 @@ var BuildsPage = React.createClass({
         activeBuildID={this.state.activeBuildID}
         pageElem={this}
       />
-      <div style={{paddingTop: 32}}>
+      <div style={{paddingTop: 100}}>
         <div style={content_style} >
+          {this.getErrorMessage()}
           {this.getContent()}
         </div>
       </div>
@@ -152,17 +167,28 @@ var BuildsPage = React.createClass({
 
   updateWindowUrl: function() {
     var query_params = URI(window.location.href).search(true);
-    if (this.state.activeBuildID &&
-        this.state.activeBuildID !== query_params['buildID']) {
+    if (this.state.activeBuildID !== query_params['buildID']) {
       query_params['buildID'] = this.state.activeBuildID;
       window.history.replaceState(
         null,
         'changed tab',
         URI(window.location.href)
-          .search(query_params)
+          .search(_.pick(query_params, value => !!value))
           .toString()
       );
     }
+  },
+
+  getErrorMessage: function() {
+    if (this.props.type === 'diff') {
+      var diff_data = this.props.targetData;
+      if (!diff_data["fetched_data_from_phabricator"]) {
+        return <Error className="marginBottomM">
+          Unable to get diff data from Phabricator!
+        </Error>;
+      }
+    }
+    return null;
   },
 
   getContent: function() {
@@ -198,6 +224,59 @@ var BuildsPage = React.createClass({
       latest_builds = builds_by_diff_id[latest_diff_id];
     }
 
-    return _.map(latest_builds, b => <SingleBuild build={b} />);
+    return <LatestBuildsSummary
+      builds={latest_builds} 
+      type={this.props.type}
+      targetData={this.props.targetData}
+      pageElem={this}
+    />;
+  },
+
+  renderLabelHeader: function() {
+    var type = this.props.type;
+
+    var header = "No header yet";
+    if (type === 'commit') {
+      var source = this.props.targetData;
+      var author_link = DisplayUtils.authorLink(source.revision.author, true);
+
+      header = <div>
+        {source.revision.sha.substring(0,7)}{": "}
+        {utils.first_line(source.revision.message)}
+        {" (by "}
+        {author_link}
+        {")"}
+      </div>;
+    } else if (type === 'diff') {
+      var diff_data = this.props.targetData;
+      var author_link = DisplayUtils.authorLink(
+        this.getAuthorForDiff(this.props.builds), true);
+      header = <div>
+        <a className="subtle" href={diff_data.uri} target="_blank">
+          D{diff_data.id}
+        </a>
+        {": "}
+        {diff_data.title}
+        {" (by "}
+        {author_link}
+        {")"}
+      </div>;
+    } else {
+      throw 'unreachable';
+    }
+
+    return header;
+  },
+
+  getAuthorForDiff: function(builds) {
+    // TODO: the author of any cause=phabricator build for a diff is always the
+    // same as the author of the diff. Display them here
+    var author = null;
+    _.each(builds, b => {
+      if (get_build_cause(b) === 'phabricator') {
+        author = b.author;
+      }
+    });
+    return author;
   }
 });

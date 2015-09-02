@@ -3,15 +3,15 @@ import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
+import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
-import { BuildWidget, status_dots_for_diff, get_runnable_state } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
+import { ManyBuildsStatus, get_runnable_condition } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
-import colors from 'es6!utils/colors';
 import custom_content_hook from 'es6!utils/custom_content';
 
 var HomePage = React.createClass({
@@ -89,13 +89,29 @@ var HomePage = React.createClass({
     var current_location = encodeURIComponent(window.location.href);
     var login_href = '/auth/login/?orig_url=' + current_location;
 
+    var login_markup = [
+      <a href={login_href}>
+        Log in
+      </a>,
+      " to see your recent diffs and commits."
+    ];
+
+    var custom_login_image = custom_content_hook('customLoginImage');
+    if (custom_login_image) {
+      var image_href = '/v2/custom_image/0/' + custom_login_image;
+      login_markup = <center style={{ marginTop: 24, display: "block" }}>
+        <img
+          className="block"
+          src={image_href}
+          style={{ width: "30%" }}
+        />
+        <div style={{fontSize: 18}}>{login_markup}</div>
+      </center>;
+    }
+
     return <ChangesPage highlight="My Changes">
       <div className="marginBottomL">
-        <a href={login_href}>
-          Log in
-        </a>
-        {" "}
-        to see your recent diffs and commits.
+        {login_markup}
       </div>
       <Projects projects={this.state.projects} />
     </ChangesPage>;
@@ -132,20 +148,15 @@ var Diffs = React.createClass({
         // TODO: nit, but if there are no builds, let's render an invisible
         // clickable widget
 
-        // TODO: link to a summary of builds page
-        var builds_href = URI(`/v2/diff/${ident}/`)
-          .search({buildID: _.last(d.builds).id})
-          .toString();
-
-        latest_builds = <a className="diffBuildsWidget" href={builds_href}>
-          {status_dots_for_diff(d.builds)}
-        </a>;
+        latest_builds = <ManyBuildsStatus builds={d.builds} />;
       }
 
       return [
         latest_builds,
         <a className="external" href={d['uri']} target="_blank">{ident}</a>,
-        d['statusName'],
+        <span className={this.getStatusColor(d['statusName'])}>
+          {d['statusName']}
+        </span>,
         d['title'],
         <TimeText time={d['dateModified']} format="X" />
       ];
@@ -170,6 +181,16 @@ var Diffs = React.createClass({
         headers={headers}
       />
     </div>;
+  },
+
+  getStatusColor: function(status) {
+    var color_map = {
+      'Needs Review': 'bluishGray',
+      'Needs Revision': 'red',
+      'Changes Planned': 'red',
+      'Accepted': 'green',
+    };
+    return color_map[status] || '';
   }
 });
 
@@ -211,61 +232,32 @@ var Commits = React.createClass({
         </a>;
       }
 
-      // we want to render a separate row per project
-      var project_slugs = _.chain(c.builds)
-        .map(b => b.project.slug)
-        .compact()
-        .uniq()
-        .value();
+    // Render links to the projects than ran builds. For user convenience...
+    var project_links = _.chain(c.builds)
+      .map(b => b.project)
+      .compact()
+      .uniq(p => p.slug)
+      .sortBy(p => p.name)
+      .map(p => <div>{DisplayUtils.projectLink(p)}</div>)
+      .flatten()
+      .value();
 
-      if (project_slugs.length === 0) {
-        // render the commit even if there are no builds for it (especially if!)
-        grid_data.push(
-          [
-            <span style={{fontStyle: 'italic', color: colors.darkGray, marginLeft: 3}}>
-              None
-            </span>,
-            sha_item,
-            '',
-            utils.truncate(utils.first_line(c.revision.message)),
-            <TimeText time={c.revision.dateCommitted} />
-          ]
-        );
-        return;
-      }
-
-      _.each(project_slugs, slug => {
-        var matching_builds = _.filter(c.builds,
-          b => b.project.slug === slug
-        );
-        var last_build = _.extend({}, matching_builds[0], {source: c});
-
-        var project = last_build.project;
-
-        var widget = <BuildWidget build={last_build} parentElem={this} />;
-
-        var project_href = "/v2/project/" + slug;
-        var project_link = <a href={project_href}>
-          {last_build.project.name}
-        </a>;
-
-        grid_data.push(
-          [
-            widget,
-            sha_item,
-            project_link,
-            utils.truncate(utils.first_line(c.revision.message)),
-            <TimeText time={c.revision.dateCommitted} />
-          ]
-        );
-      });
+      grid_data.push(
+        [
+          <ManyBuildsStatus builds={c.builds} />,
+          sha_item,
+          project_links,
+          utils.truncate(utils.first_line(c.revision.message)),
+          <TimeText time={c.revision.dateCommitted} />
+        ]
+      );
     });
 
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [
       'Last Build',
       'Commit',
-      'Project',
+      'Project(s)',
       'Name',
       'Committed'
     ];
@@ -274,21 +266,13 @@ var Commits = React.createClass({
     // pushed to prod
     var is_it_out_markup = null;
 
-    var all_project_slugs = _.chain(commits)
-      .pluck('builds')
-      .flatten()
-      .map(b => b.project.slug)
-      .compact()
-      .uniq()
-      .value();
-
-    var is_it_out_link = custom_content_hook('isItOutHref', null, all_project_slugs);
+    var is_it_out_link = custom_content_hook('isItOutHref');
     if (is_it_out_link) {
-      is_it_out_markup = <span>
-        {" ["}
-        <a className="external" href={is_it_out_link} target="_blank">Is it out?</a>
-        {"]"}
-      </span>;
+      is_it_out_markup = <div className="darkGray marginTopM">
+        Check to see if your commit is live in production:{" "}
+        <a className="external" href={is_it_out_link} target="_blank">is it out?</a>
+        {" "}
+      </div>;
     }
 
     var header_text = this.props.isSelf ?
@@ -296,8 +280,7 @@ var Commits = React.createClass({
 
     return <div className="marginTopM">
       <div className="marginBottomS">
-        <SectionHeader className="inline">{header_text}</SectionHeader>
-        {is_it_out_markup}
+        <SectionHeader>{header_text}</SectionHeader>
       </div>
       <Grid
         colnum={5}
@@ -306,6 +289,7 @@ var Commits = React.createClass({
         headers={headers}
       />
       <br /><div>Click <a href="/v2/builds">here</a> to see your builds!</div>
+      {is_it_out_markup}
     </div>;
   }
 });
@@ -331,9 +315,9 @@ var Projects = React.createClass({
     var commits = this.props.commits && this.props.commits.getReturnedData();
 
     var author_projects = [];
-    if (this.props.commits) {
+    if (commits) {
       // grab projects recently committed to by author
-      var author_projects = _.chain(this.props.commits)
+      var author_projects = _.chain(commits)
         .pluck('builds')
         .flatten()
         .pluck('project')
@@ -353,20 +337,20 @@ var Projects = React.createClass({
         if (age > 60*60*24*7) { // one week
           return null;
         }
-        switch (get_runnable_state(p.lastBuild)) {
+        switch (get_runnable_condition(p.lastBuild)) {
           case 'passed':
-            color_cls = 'lt-green';
+            color_cls = 'green';
             break;
           case 'failed':
           case 'nothing':
-            color_cls = 'lt-red';
+            color_cls = 'red';
             break;
         }
       }
 
       var url = "/v2/project/" + p.slug;
       var project_name = _.contains(author_projects, p.slug) ?
-        <span className="bb">{p.name}</span> :
+        <b>{p.name}</b> :
         p.name;
       return <a className={color_cls} href={url}>{project_name}</a>;
     }));
@@ -381,22 +365,20 @@ var Projects = React.createClass({
     var project_rows = _.map(zipped, items => {
       var [v1, v2, v3] = items;
       return <tr>
-        <td><span className="marginRightL">{v1}</span></td>
-        <td><span className="marginRightL">{v2}</span></td>
+        <td><span style={{ marginRight: 30 }}>{v1}</span></td>
+        <td><span style={{ marginRight: 30 }}>{v2}</span></td>
         <td>{v3}</td>
       </tr>
     });
     var project_table = <table className="invisibleTable">{project_rows}</table>;
 
     return <div>
-      <div style={{marginBottom: 3, borderBottom: "1px solid #d9d8d8", paddingBottom: 5}}>
-        <SectionHeader className="inline">Projects</SectionHeader>
-      </div>
+      <SectionHeader>Projects</SectionHeader>
       {project_table}
-      <div className="lt-darkgray marginTopM">
+      <div className="darkGray marginTopM">
         Projects that haven{"'"}t run a build in the last week
-        are hidden.{" "}
-        <a href="/v2/projects/">See all</a>
+        are not shown. See all on the{" "}
+        <a href="/v2/projects/">Projects page</a>
       </div>
     </div>;
   }

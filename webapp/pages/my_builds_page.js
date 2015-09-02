@@ -5,8 +5,8 @@ import ChangesPage from 'es6!display/page_chrome';
 import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
-import { BuildWidget, get_build_cause } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
+import { SingleBuildStatus, get_build_cause } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
@@ -56,7 +56,7 @@ var MyBuildsPage = React.createClass({
       }
 
       return [
-        <BuildWidget build={build} parentElem={this} />,
+        <SingleBuildStatus build={build} parentElem={this} />,
         target,
         DisplayUtils.authorLink(build.author),
         build.name,
@@ -85,7 +85,7 @@ var MyBuildsPage = React.createClass({
 
     return <ChangesPage>
       {error_message}
-      <SectionHeader className="inline">My Builds</SectionHeader>
+      <SectionHeader>My Builds</SectionHeader>
       <div style={style}>
         <Grid
           colnum={6}
