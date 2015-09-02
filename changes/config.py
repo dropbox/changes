@@ -277,6 +277,8 @@ def create_app(_read_config=True, **config):
     # SECURITY: ...which means that the web server can potentially serve any
     # file in the same directory as WEBAPP_CUSTOM_JS!
     app.config['WEBAPP_CUSTOM_JS'] = None
+    # This can be a .less file. We import it after the variables.less,
+    # so you can override them in your file
     app.config['WEBAPP_CUSTOM_CSS'] = None
 
     # In minutes, the timeout applied to jobs without a timeout specified at build time.
@@ -411,6 +413,17 @@ def create_v2_blueprint(app, app_static_root):
     assets = Environment(app)
     assets.config['directory'] = os.path.join(PROJECT_ROOT, 'webapp')
     assets.config['url'] = '/v2/static/' + revision + '/'
+    # path to the lessc binary.
+    assets.config['LESS_BIN'] = os.path.join(PROJECT_ROOT, 'node_modules/.bin/lessc')
+
+    # less needs to know where to find the WEBAPP_CUSTOM_CSS file. If we don't
+    # have one, import a placeholder file instead.
+    imported_custom_css = (app.config['WEBAPP_CUSTOM_CSS']
+        if app.config['WEBAPP_CUSTOM_CSS']
+        else os.path.join(PROJECT_ROOT, 'webapp/css/placeholder.less'))
+
+    assets.config['LESS_EXTRA_ARGS'] = ['--global-var=custom_css="%s"' % imported_custom_css]
+
     assets.load_path = [
         os.path.join(PROJECT_ROOT, 'webapp')
     ]

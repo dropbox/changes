@@ -8,7 +8,6 @@ from flask.views import MethodView
 
 class IndexView(MethodView):
     custom_js = None
-    custom_css = None
 
     def __init__(self, use_v2=False):
         self.use_v2 = use_v2
@@ -30,14 +29,13 @@ class IndexView(MethodView):
         # variables to ship down to the webapp
         use_another_host = current_app.config['WEBAPP_USE_ANOTHER_HOST']
 
-        # if we have custom js/css, we embed it in the html (making sure we
-        # only do one file read).
-        # TODO: we should link to files instead
-        if current_app.config['WEBAPP_CUSTOM_JS'] and not IndexView.custom_js:
-            IndexView.custom_js = open(current_app.config['WEBAPP_CUSTOM_JS']).read()
+        # if we have custom js, embed it in the html (making sure we
+        # only do one file read in prod).
+        fetch_custom_js = (current_app.config['WEBAPP_CUSTOM_JS'] and
+            current_app.debug or not IndexView.custom_js)
 
-        if current_app.config['WEBAPP_CUSTOM_CSS'] and not IndexView.custom_css:
-            IndexView.custom_css = open(current_app.config['WEBAPP_CUSTOM_CSS']).read()
+        if fetch_custom_js:
+            IndexView.custom_js = open(current_app.config['WEBAPP_CUSTOM_JS']).read()
 
         # use new react code
         if self.use_v2:
@@ -46,7 +44,6 @@ class IndexView(MethodView):
                 'RELEASE_INFO': changes.get_revision_info(),
                 'WEBAPP_USE_ANOTHER_HOST': use_another_host,
                 'WEBAPP_CUSTOM_JS': IndexView.custom_js,
-                'WEBAPP_CUSTOM_CSS': IndexView.custom_css,
                 'USE_PACKAGED_JS': not current_app.debug,
                 'IS_DEBUG': current_app.debug
             })
