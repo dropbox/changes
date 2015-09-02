@@ -32,7 +32,7 @@ class IndexView(MethodView):
         # if we have custom js, embed it in the html (making sure we
         # only do one file read in prod).
         fetch_custom_js = (current_app.config['WEBAPP_CUSTOM_JS'] and
-            current_app.debug or not IndexView.custom_js)
+            (current_app.debug or not IndexView.custom_js))
 
         if fetch_custom_js:
             IndexView.custom_js = open(current_app.config['WEBAPP_CUSTOM_JS']).read()
