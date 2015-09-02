@@ -204,7 +204,7 @@ def _generate_remarkup_table_for_tests(build, tests):
     for test in tests:
         pkg = test.package
         name = test.name
-        if name.startswith(pkg):
+        if pkg and name.startswith(pkg):
             name = name[len(pkg) + 1:]
 
         test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
