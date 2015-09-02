@@ -486,3 +486,58 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
         all_steps = JobStep.query.filter_by(phase_id=phase2.id).all()
         assert len(all_steps) == 2
+
+    @responses.activate
+    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
+    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')
+    def test_job_expansion_no_tests(self, get_test_stats, get_builder):
+        builder = self.get_mock_builder()
+        builder.fetch_artifact.return_value.json.return_value = {
+            'phase': 'Test',
+            'cmd': 'py.test --junit=junit.xml {test_names}',
+            'tests': [],
+        }
+        builder.create_job_from_params.return_value = {
+            'job_name': 'foo-bar',
+            'build_no': 23,
+        }
+        builder.get_required_artifact.return_value = 'tests.json'
+
+        get_builder.return_value = builder
+        get_test_stats.return_value = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+        }, 68
+
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+
+        artifact = self.create_artifact(
+            step=step,
+            name='tests.json',
+            data={'fileName': 'tests.json'},
+        )
+
+        buildstep = self.get_buildstep()
+        buildstep.fetch_artifact(artifact)
+
+        phase2 = JobPhase.query.filter(
+            JobPhase.job_id == job.id,
+            JobPhase.id != phase.id,
+        ).first()
+        assert phase2.status == Status.finished
+        assert phase2.result == Result.passed
+
+        new_steps = JobStep.query.filter(
+            JobStep.phase_id == phase2.id
+        )
+        assert len(list(new_steps)) == 0

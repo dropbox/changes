@@ -290,8 +290,9 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         assert phase_config['cmd']
         assert '{test_names}' in phase_config['cmd']
-        assert phase_config['tests']
+        assert 'tests' in phase_config
 
+        num_tests = len(phase_config['tests'])
         test_stats, avg_test_time = self.get_test_stats(step.project)
 
         phase, created = get_or_create(JobPhase, where={
@@ -299,9 +300,17 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             'project': step.project,
             'label': phase_config.get('phase') or 'Test',
         }, defaults={
-            'status': Status.queued,
+            'status': Status.queued
         })
         db.session.commit()
+
+        # If there are no tests to run, the phase is done.
+        if num_tests == 0:
+            phase.status = Status.finished
+            phase.result = Result.passed
+            db.session.add(phase)
+            db.session.commit()
+            return
 
         # Check for whether a previous run of this task has already
         # created JobSteps for us, since doing it again would create a
