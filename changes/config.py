@@ -264,11 +264,20 @@ def create_app(_read_config=True, **config):
     # make this work. Override this this in your changes.conf.py file
     app.config['WEBAPP_USE_ANOTHER_HOST'] = None
 
-    # points to a file with custom changes content unique to your deployment.
-    # Link to internal tools, provide inline contextual help on your development
-    # process, etc.
-    # e.g. /mycompany/config/changes_content.js
-    app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE'] = None
+    # Custom changes content unique to your deployment. This is intended to
+    # customize the look and feel, provide contextual help and add custom links
+    # to other internal tools
+    #
+    # e.g. /changes_path/webapp/custom/acmecorp-changes/changes.js
+    #
+    # Some of the custom_content hooks can show images. If your js file refers
+    # to custom images, the webserver attempts to serve them from the same
+    # directory as the JS file ...
+    #
+    # SECURITY: ...which means that the web server can potentially serve any
+    # file in the same directory as WEBAPP_CUSTOM_JS!
+    app.config['WEBAPP_CUSTOM_JS'] = None
+    app.config['WEBAPP_CUSTOM_CSS'] = None
 
     # In minutes, the timeout applied to jobs without a timeout specified at build time.
     # A timeout should nearly always be specified; this is just a safeguard so that
@@ -386,6 +395,16 @@ def create_v2_blueprint(app, app_static_root):
     blueprint.add_url_rule('/<path:path>',
       view_func=IndexView.as_view('index-path', use_v2=True))
     blueprint.add_url_rule('/', view_func=IndexView.as_view('index', use_v2=True))
+
+    # serve custom images if we have a custom content file
+    if app.config['WEBAPP_CUSTOM_JS']:
+        custom_dir = os.path.dirname(app.config['WEBAPP_CUSTOM_JS'])
+        blueprint.add_url_rule(
+            '/custom_image/' + revision + '/<path:filename>',
+            view_func=StaticView.as_view(
+                'custom_image',
+                root=custom_dir)
+        )
 
     # One last thing...v2 uses CSS bundling via flask-assets, so set that up on
     # the main app object

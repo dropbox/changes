@@ -7,6 +7,9 @@ from flask.views import MethodView
 
 
 class IndexView(MethodView):
+    custom_js = None
+    custom_css = None
+
     def __init__(self, use_v2=False):
         self.use_v2 = use_v2
         super(MethodView, self).__init__()
@@ -25,20 +28,25 @@ class IndexView(MethodView):
             dsn = None
 
         # variables to ship down to the webapp
-        webapp_use_another_host = current_app.config['WEBAPP_USE_ANOTHER_HOST']
-        # note that we're only shipping down the filename!
-        webapp_customized_content = None
-        if current_app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE']:
-            webapp_customized_content = open(current_app.config['WEBAPP_CUSTOMIZED_CONTENT_FILE']
-                ).read()
+        use_another_host = current_app.config['WEBAPP_USE_ANOTHER_HOST']
+
+        # if we have custom js/css, we embed it in the html (making sure we
+        # only do one file read).
+        # TODO: we should link to files instead
+        if current_app.config['WEBAPP_CUSTOM_JS'] and not IndexView.custom_js:
+            IndexView.custom_js = open(current_app.config['WEBAPP_CUSTOM_JS']).read()
+
+        if current_app.config['WEBAPP_CUSTOM_CSS'] and not IndexView.custom_css:
+            IndexView.custom_css = open(current_app.config['WEBAPP_CUSTOM_CSS']).read()
 
         # use new react code
         if self.use_v2:
             return render_template('webapp.html', **{
                 'SENTRY_PUBLIC_DSN': dsn,
                 'RELEASE_INFO': changes.get_revision_info(),
-                'WEBAPP_USE_ANOTHER_HOST': webapp_use_another_host,
-                'WEBAPP_CUSTOMIZED_CONTENT': webapp_customized_content,
+                'WEBAPP_USE_ANOTHER_HOST': use_another_host,
+                'WEBAPP_CUSTOM_JS': IndexView.custom_js,
+                'WEBAPP_CUSTOM_CSS': IndexView.custom_css,
                 'USE_PACKAGED_JS': not current_app.debug,
                 'IS_DEBUG': current_app.debug
             })
@@ -46,5 +54,5 @@ class IndexView(MethodView):
         return render_template('index.html', **{
             'SENTRY_PUBLIC_DSN': dsn,
             'VERSION': changes.get_version(),
-            'WEBAPP_USE_ANOTHER_HOST': webapp_use_another_host
+            'WEBAPP_USE_ANOTHER_HOST': use_another_host
         })

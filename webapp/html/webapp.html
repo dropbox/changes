@@ -52,10 +52,16 @@
           window.changesGlobals['RELEASE_INFO'] = {{ RELEASE_INFO|tojson|safe }}
         {% endif %}
       </script>
-    {% if WEBAPP_CUSTOMIZED_CONTENT %}
+    {% if WEBAPP_CUSTOM_JS %}
       <script type="text/javascript">
-        {{ WEBAPP_CUSTOMIZED_CONTENT|safe }}
+        {{ WEBAPP_CUSTOM_JS |safe }}
       </script>
+    {% endif %}
+    {# I should link to a file rather than putting all the custom css here #}
+    {% if WEBAPP_CUSTOM_CSS %}
+      <style type="text/css">
+        {{ WEBAPP_CUSTOM_CSS }}
+      </style>
     {% endif %}
     <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
