@@ -1,0 +1,3 @@
+This directory is for custom css or a js file containing custom content hooks.
+Ideally, just put your stuff in version control and check it out here, then
+change the config parameters in changes

@@ -19,8 +19,9 @@ npm-debug.log
 /static/vendor
 /static/js/generated
 /static-built
+/webapp/custom/*
+!/webapp/custom/README
 /webapp/dist
 /webapp/css/bundled.css
-/webapp/custom
 webapp/.webassets-cache
 .vagrant
