@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause } from 'es6!display/changes/builds';
@@ -17,19 +17,19 @@ var Sidebar = React.createClass({
 
   propTypes: {
     // list of builds to render in side bar
-    builds: React.PropTypes.array,
+    builds: PropTypes.array,
 
     // are we rendering for a diff or a commit
-    type: React.PropTypes.oneOf(['diff', 'commit']),
+    type: PropTypes.oneOf(['diff', 'commit']),
 
     // if its a diff, grab its information
-    targetData: React.PropTypes.object,
+    targetData: PropTypes.object,
 
     // which build are we currently showing, if any
-    activeBuildID: React.PropTypes.string,
+    activeBuildID: PropTypes.string,
 
     // the parent page element. Sidebar clicks change its state
-    pageElem: React.PropTypes.element,
+    pageElem: PropTypes.element,
   },
 
   render: function() {

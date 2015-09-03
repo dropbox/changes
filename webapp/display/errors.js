@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 /*
  * Renders a red error box
@@ -28,7 +28,7 @@ export var AjaxError = React.createClass({
 
   propTypes: {
     // the ajax response object (not the apiresponse wrapper! TODO: allow either?)
-    response: React.PropTypes.object.isRequired,
+    response: PropTypes.object.isRequired,
 
     // ...
     // transfers other properties to <Error /> (which transfers to <div />)

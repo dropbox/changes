@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import DisplayUtils from 'es6!display/changes/utils';
@@ -17,7 +17,7 @@ var cx = React.addons.classSet;
 export var ManyBuildsStatus = React.createClass({
 
   propTypes: {
-    builds: React.PropTypes.array,
+    builds: PropTypes.array,
   },
 
   render: function() {
@@ -249,13 +249,13 @@ export var ConditionDot = React.createClass({
 
   propTypes: {
     // the runnable condition to render (see get_runnable_condition)
-    condition: React.PropTypes.oneOf(all_build_conditions).isRequired,
+    condition: PropTypes.oneOf(all_build_conditions).isRequired,
     // renders a small number at the lower-right corner
-    num: React.PropTypes.oneOfType(React.PropTypes.number, React.PropTypes.string),
+    num: PropTypes.oneOfType(PropTypes.number, PropTypes.string),
     // smaller = 12px, small = 16px
-    size: React.PropTypes.oneOf(["smaller", "small", "medium", "large"]),
+    size: PropTypes.oneOf(["smaller", "small", "medium", "large"]),
     // a glow is a ui indicator that this dot shows results from multiple items
-    glow: React.PropTypes.bool
+    glow: PropTypes.bool
   },
 
   getDefaultProps: function() {

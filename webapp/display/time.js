@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import * as utils from 'es6!utils/utils';
@@ -27,10 +27,10 @@ export var TimeText = React.createClass({
 
   propTypes: {
     // The time to show. If not ISO 8601, will do the same as new Date()
-    time: React.PropTypes.string.isRequired,
+    time: PropTypes.string.isRequired,
     // Manually specify time format. unix timestamp is example of when this is
     // needed (format='X', see http://momentjs.com/docs/#/parsing/string-format/)
-    format: React.PropTypes.string,
+    format: PropTypes.string,
 
     // ...
     // transfers other properties to rendered <span />

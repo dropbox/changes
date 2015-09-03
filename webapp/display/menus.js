@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 var cx = React.addons.classSet;
 
@@ -10,11 +10,11 @@ export var Menu1 = React.createClass({
 
   propTypes: {
     // Names of the menu items
-    items: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+    items: PropTypes.arrayOf(PropTypes.string).isRequired,
     // which one is selected
-    selectedItem: React.PropTypes.string,
+    selectedItem: PropTypes.string,
     // callback when an item is clicked. params are selectedItem, clickEvent
-    onClick: React.PropTypes.func
+    onClick: PropTypes.func
   },
 
   getDefaultProps: function() {
@@ -55,11 +55,11 @@ export var Tabs = React.createClass({
 
   propTypes: {
     // Names of the menu items
-    items: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+    items: PropTypes.arrayOf(PropTypes.string).isRequired,
     // which one is selected
-    selectedItem: React.PropTypes.string,
+    selectedItem: PropTypes.string,
     // callback when an item is clicked. params are selectedItem, clickEvent
-    onClick: React.PropTypes.func
+    onClick: PropTypes.func
   },
 
   getDefaultProps: function() {

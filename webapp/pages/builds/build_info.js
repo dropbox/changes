@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
@@ -28,9 +28,9 @@ export var SingleBuild = React.createClass({
 
   propTypes: {
     // the build to render
-    build: React.PropTypes.object.isRequired,
+    build: PropTypes.object.isRequired,
     //
-    content: React.PropTypes.oneOf(['short', 'normal'])
+    content: PropTypes.oneOf(['short', 'normal'])
   },
 
   getDefaultProps: function() {
@@ -417,13 +417,13 @@ export var LatestBuildsSummary = React.createClass({
   propTypes: {
     // All builds for the commit or the latest update to a diff. We'll grab
     // the latest build per project
-    builds: React.PropTypes.object.isRequired,
+    builds: PropTypes.object.isRequired,
     // are we rendering for a diff or a commit
-    type: React.PropTypes.oneOf(['diff', 'commit']).isRequired,
+    type: PropTypes.oneOf(['diff', 'commit']).isRequired,
     // info about the commit (a changes source object) or diff (from phab.)
-    targetData: React.PropTypes.object,
+    targetData: PropTypes.object,
     // the parent page element.
-    pageElem: React.PropTypes.element,
+    pageElem: PropTypes.element,
   },
 
   render: function() {

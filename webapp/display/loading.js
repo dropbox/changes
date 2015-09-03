@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 // Some playful loading messages
 var loading_messages = [
@@ -19,7 +19,7 @@ var loading_messages = [
  */
 export var RandomLoadingMessage = React.createClass({
   propTypes: {
-    display: React.PropTypes.oneOf(['inline', 'block', 'inlineBlock'])
+    display: PropTypes.oneOf(['inline', 'block', 'inlineBlock'])
 
     // ...
     // transfers other properties to rendered <div />

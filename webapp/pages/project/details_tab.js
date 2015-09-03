@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -11,9 +11,9 @@ var DetailsTab = React.createClass({
 
   propTypes: {
     // the API response from the fetch below
-    details: React.PropTypes.object,
+    details: PropTypes.object,
     // the project api response
-    project: React.PropTypes.object,
+    project: PropTypes.object,
   },
 
   componentDidMount: function() {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import DisplayUtils from 'es6!display/changes/utils';
@@ -16,17 +16,17 @@ var BuildsTab = React.createClass({
 
   propTypes: {
     // the project api response
-    project: React.PropTypes.object,
+    project: PropTypes.object,
 
     // state is handled by parent so that its preserved if someone selects
     // another tab
-    myState: React.PropTypes.object,
+    myState: PropTypes.object,
 
     // The InteractiveData object for this chart
-    interactive: React.PropTypes.object,
+    interactive: PropTypes.object,
 
     // parent elem that has state
-    pageElem: React.PropTypes.element.isRequired,
+    pageElem: PropTypes.element.isRequired,
   },
 
   statics: {

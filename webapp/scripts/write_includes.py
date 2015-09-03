@@ -124,7 +124,7 @@ class Exports:
     # todo: strip out comments from this search string
     other_imports = ""
     if re.search("<\/\w", without_comments):
-      other_imports += "import React from 'react';\n"
+      other_imports += "import React, { PropTypes } from 'react';\n"
 
     if "moment(" in without_comments or "moment." in without_comments:
       other_imports += "import moment from 'moment';\n"

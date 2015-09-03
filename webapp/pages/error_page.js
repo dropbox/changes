@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 // TODO: trash me
 var ErrorPage = React.createClass({

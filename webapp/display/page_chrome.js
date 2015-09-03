@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
@@ -18,15 +18,15 @@ var ChangesPage = React.createClass({
 
   propTypes: {
     // should we automatically add padding to the page content?
-    bodyPadding: React.PropTypes.bool,
+    bodyPadding: PropTypes.bool,
     // the first time you render the page with this set to true,
     // we record the time and show a widget with perf info in the header
     // TODO: handle transitions for a single-page app..
-    isPageLoaded: React.PropTypes.bool,
+    isPageLoaded: PropTypes.bool,
     // If you're on a page linked to in the top bar, highlight it
-    highlight: React.PropTypes.string,
+    highlight: PropTypes.string,
     // we have to use position: fixed for some pages
-    fixed: React.PropTypes.bool,
+    fixed: PropTypes.bool,
   },
 
 
@@ -93,8 +93,8 @@ var ChangesPage = React.createClass({
 var ChangesPageHeader = React.createClass({
 
   propTypes: {
-    highlight: React.PropTypes.string, // see ChangesPage
-    fixed: React.PropTypes.bool
+    highlight: PropTypes.string, // see ChangesPage
+    fixed: PropTypes.bool
   },
 
   render: function() {

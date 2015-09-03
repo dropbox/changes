@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import { Error, ProgrammingError } from 'es6!display/errors';
 
@@ -52,7 +52,7 @@ export var InfoItem = React.createClass({
 
   propTypes: {
     // the label to use for the item
-    label: React.PropTypes.string
+    label: PropTypes.string
 
     // TODO: we could add tooltip support
 

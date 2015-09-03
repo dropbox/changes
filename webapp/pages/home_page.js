@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
@@ -123,10 +123,10 @@ var Diffs = React.createClass({
 
   propTypes: {
     // diffs authored by the user (and associated builds)
-    diffs: React.PropTypes.array,
+    diffs: PropTypes.array,
 
     // isSelf = false when we're using this page as a makeshift user page
-    isSelf: React.PropTypes.bool
+    isSelf: PropTypes.bool
   },
 
   getInitialState: function() {
@@ -199,10 +199,10 @@ var Commits = React.createClass({
 
   propTypes: {
     // commits authored by the user (and associated builds)
-    commits: React.PropTypes.object,
+    commits: PropTypes.object,
 
     // isSelf = false when we're using this page as a makeshift user page
-    isSelf: React.PropTypes.bool
+    isSelf: PropTypes.bool
   },
 
   getInitialState: function() {
@@ -299,10 +299,10 @@ var Commits = React.createClass({
 // List of projects. Color indicates if the latest build is green or red
 var Projects = React.createClass({
   propTypes: {
-    projects: React.PropTypes.object,
+    projects: PropTypes.object,
 
     // optional: we'll bold projects that the user has recently committed to
-    commits: React.PropTypes.object,
+    commits: PropTypes.object,
   },
 
   render: function() {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import { ProgrammingError } from 'es6!display/errors';
 
@@ -8,15 +8,15 @@ export var Grid = React.createClass({
 
   propTypes: {
     // how many columns should this grid have?
-    colnum: React.PropTypes.number.isRequired,
+    colnum: PropTypes.number.isRequired,
     // matrix (array of arrays) of data. You can use GridRow in place of an array
-    data: React.PropTypes.array.isRequired,
+    data: PropTypes.array.isRequired,
     // a row (same length as other rows) used for blue header cells
-    headers: React.PropTypes.array,
+    headers: PropTypes.array,
     // same length as row, we add each css class to the row cells
-    cellClasses: React.PropTypes.arrayOf(React.PropTypes.string),
+    cellClasses: PropTypes.arrayOf(PropTypes.string),
     // whether to render dividers between rows
-    border: React.PropTypes.bool,
+    border: PropTypes.bool,
 
     // ...
     // transfers other properties to rendered <table />

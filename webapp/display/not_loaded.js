@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import { AjaxError, ProgrammingError } from 'es6!display/errors';
 import { RandomLoadingMessage, InlineLoading } from 'es6!display/loading';
@@ -22,17 +22,17 @@ var cx = React.addons.classSet;
 var APINotLoaded = React.createClass({
 
   propTypes: {
-    state: React.PropTypes.object,
+    state: PropTypes.object,
 
     // you can use this for multiple API calls (making sure they've all loaded
     // before proceeding.)
     // TODO: just make this take a list...
-    stateMap: React.PropTypes.objectOf.object,
-    stateMapKeys: React.PropTypes.array,
+    stateMap: PropTypes.objectOf.object,
+    stateMapKeys: PropTypes.array,
 
     // if true, show InlineLoading instead of RandomLoading
     // TODO: should always be true?
-    isInline: React.PropTypes.bool,
+    isInline: PropTypes.bool,
   },
 
   getDefaultProps: function() {

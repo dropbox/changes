@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import ChangesPage from 'es6!display/page_chrome';
 
@@ -7,7 +7,7 @@ import custom_content_hook from 'es6!utils/custom_content';
 var FourOhFourPage = React.createClass({
 
   propTypes: {
-    badUrl: React.PropTypes.bool
+    badUrl: PropTypes.bool
   },
 
   getDefaultProps: function() {

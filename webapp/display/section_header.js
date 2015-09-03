@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 /*
  * Very simple text component designed to be the title above grid elements

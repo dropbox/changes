@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 /*
@@ -8,9 +8,9 @@ var SimpleTooltip = React.createClass({
 
   propTypes: {
     // the text for the tooltip
-    label: React.PropTypes.string,
+    label: PropTypes.string,
     // left, right, top, bottom
-    placement: React.PropTypes.string,
+    placement: PropTypes.string,
   },
 
   getDefaultProps() {

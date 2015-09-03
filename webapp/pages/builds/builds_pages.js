@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesPage from 'es6!display/page_chrome';
@@ -118,12 +118,12 @@ var BuildsPage = React.createClass({
 
   propTypes: {
     // are we rendering for a diff or a commit
-    type: React.PropTypes.oneOf(['diff', 'commit']).isRequired,
+    type: PropTypes.oneOf(['diff', 'commit']).isRequired,
     // info about the commit (a changes source object) or diff (from phab.)
-    targetData: React.PropTypes.object,
+    targetData: PropTypes.object,
     // the builds associated with this diff/commit. They may be more sparse
     // than a call to build_details...we use this to populate the sidebar
-    builds: React.PropTypes.array.isRequired,
+    builds: PropTypes.array.isRequired,
   },
 
   getInitialState: function() {
