@@ -11,6 +11,9 @@
     "spelling": {
       "type": "spelling"
     },
+    "text": {
+      "type": "text"
+    },
     "python": {
       "type": "flake8",
       "include": [
