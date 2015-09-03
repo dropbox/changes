@@ -134,10 +134,11 @@ require([
     // add custom css class if present
     var custom_css = custom_content_hook('rootClass', '');
     var root_classes = (
+      "reactRoot " +
       (document.getElementById('reactRoot').className || '') + " " +
       custom_css
-    );
-    document.getElementById('reactRoot').className = root_classes.trim()
+    ).trim();
+    document.getElementById('reactRoot').className = root_classes
 
     React.render(
       React.createElement(page, params),

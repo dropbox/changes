@@ -2,29 +2,30 @@
  * color_classes: Classes that set colors.
  */
 
-/* TODO: sort/clean */
+.body { /* color classes need to override pseudo-classes, e.g. a:visited */
 
-.bluishGray { color: @bluishGray; }
-.bluishGrayBg { background-color: @bluishGray; }
+  .bluishGray { color: @bluishGray; }
+  .bluishGrayBg { background-color: @bluishGray; }
 
-/* TODO: clarify medium vs dark */
+  /* TODO: clarify medium vs dark */
 
-.mediumGray { color: @mediumGray; }
-.mediumGrayBg { background-color: @mediumGray; }
+  .mediumGray { color: @mediumGray; }
+  .mediumGrayBg { background-color: @mediumGray; }
 
-.darkGray { color: @darkGray; }
+  .darkGray { color: @darkGray; }
 
-.redGrayMix { color: @redGrayMix; }
+  .redGrayMix { color: @redGrayMix; }
 
-.blue { color: @blue; }
-.red { color: @red; }
-.green { color: @green; }
+  .blue { color: @blue; }
+  .red { color: @red; }
+  .green { color: @green; }
 
-.redBg { background-color: @red; }
-.greenBg { background-color: @green; }
+  .redBg { background-color: @red; }
+  .greenBg { background-color: @green; }
 
-.redBg.glow { box-shadow: 0px 0px 10px 2px @redGlow; }
-.greenBg.glow { box-shadow: 0px 0px 10px 2px @greenGlow; }
-.bluishGrayBg.glow { box-shadow: 0px 0px 10px 2px @bluishGrayGlow; }
+  .redBg.glow { box-shadow: 0px 0px 10px 2px @redGlow; }
+  .greenBg.glow { box-shadow: 0px 0px 10px 2px @greenGlow; }
+  .bluishGrayBg.glow { box-shadow: 0px 0px 10px 2px @bluishGrayGlow; }
 
-.fainterBorderTop { border-top: 1px solid @fainterBorder; }
+  .fainterBorderTop { border-top: 1px solid @fainterBorder; }
+}

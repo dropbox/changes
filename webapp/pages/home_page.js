@@ -288,7 +288,9 @@ var Commits = React.createClass({
         cellClasses={cellClasses}
         headers={headers}
       />
-      <br /><div>Click <a href="/v2/builds">here</a> to see your builds!</div>
+      <div className="darkGray marginTopM">
+        See all of your <a href="/v2/builds">recent builds</a>{"."}
+      </div>
       {is_it_out_markup}
     </div>;
   }
