@@ -4,6 +4,7 @@ import logging
 import flask
 import os
 import os.path
+import shutil
 import time
 import warnings
 
@@ -27,6 +28,7 @@ from changes.ext.celery import Celery
 from changes.ext.redis import Redis
 from changes.ext.statsreporter import StatsReporter
 from changes.url_converters.uuid import UUIDConverter
+from changes.utils.dirs import enforce_is_subdir
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
@@ -266,16 +268,13 @@ def create_app(_read_config=True, **config):
 
     # Custom changes content unique to your deployment. This is intended to
     # customize the look and feel, provide contextual help and add custom links
-    # to other internal tools
+    # to other internal tools. You should put your files in webapp/custom and
+    # link them here.
     #
-    # e.g. /changes_path/webapp/custom/acmecorp-changes/changes.js
+    # e.g. /acmecorp-changes/changes.js
     #
-    # Some of the custom_content hooks can show images. If your js file refers
-    # to custom images, the webserver attempts to serve them from the same
-    # directory as the JS file ...
-    #
-    # SECURITY: ...which means that the web server can potentially serve any
-    # file in the same directory as WEBAPP_CUSTOM_JS!
+    # Some of the custom_content hooks can show images. Assume that the webserver
+    # is willing to serve any file within the directory of the js file
     app.config['WEBAPP_CUSTOM_JS'] = None
     # This can be a .less file. We import it after the variables.less,
     # so you can override them in your file
@@ -315,6 +314,25 @@ def create_app(_read_config=True, **config):
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 30
 
     app.url_map.converters['uuid'] = UUIDConverter
+
+    # now that config is set up, let's ensure the CUSTOM_JS / CUSTOM_CSS
+    # variables are safe (within the changes directory) and convert them to
+    # absolute paths
+    if app.config['WEBAPP_CUSTOM_CSS']:
+        app.config['WEBAPP_CUSTOM_CSS'] = os.path.join(
+            PROJECT_ROOT, 'webapp/custom/', app.config['WEBAPP_CUSTOM_CSS'])
+
+        enforce_is_subdir(
+            app.config['WEBAPP_CUSTOM_CSS'],
+            os.path.join(PROJECT_ROOT, 'webapp/custom'))
+
+    if app.config['WEBAPP_CUSTOM_JS']:
+        app.config['WEBAPP_CUSTOM_JS'] = os.path.join(
+            PROJECT_ROOT, 'webapp/custom/', app.config['WEBAPP_CUSTOM_JS'])
+
+        enforce_is_subdir(
+            app.config['WEBAPP_CUSTOM_JS'],
+            os.path.join(PROJECT_ROOT, 'webapp/custom'))
 
     # init sentry first
     sentry.init_app(app)
@@ -415,6 +433,19 @@ def create_v2_blueprint(app, app_static_root):
     assets.config['url'] = '/v2/static/' + revision + '/'
     # path to the lessc binary.
     assets.config['LESS_BIN'] = os.path.join(PROJECT_ROOT, 'node_modules/.bin/lessc')
+
+    # on startup we need to trash the webassets cache and the existing bundled
+    # css: the user could change WEBAPP_CUSTOM_CSS and we'd still serve the
+    # old, cached bundle
+    try:
+        shutil.rmtree(os.path.join(PROJECT_ROOT, 'webapp/.webassets-cache'))
+    except OSError:
+        pass  # throws if the dir doesn't exist, ignore that
+
+    try:
+        os.remove(os.path.join(PROJECT_ROOT, 'webapp/css/bundled.css'))
+    except OSError:
+        pass
 
     # less needs to know where to find the WEBAPP_CUSTOM_CSS file. If we don't
     # have one, import a placeholder file instead.
