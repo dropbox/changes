@@ -20,6 +20,8 @@ class _Redis(object):
         self.app = app
         self.redis = redis.from_url(app.config['REDIS_URL'])
         self.logger = logging.getLogger(app.name + '.redis')
+        # TODO(kylec): Version check to fail early if we're connected to a
+        # redis-server that doesn't support the operations we use.
 
     def __getattr__(self, name):
         return getattr(self.redis, name)
@@ -36,10 +38,7 @@ class _Redis(object):
         max_attempts = timeout / delay
         got_lock = None
         while not got_lock and attempt < max_attempts:
-            pipe = conn.pipeline()
-            pipe.setnx(lock_key, '')
-            pipe.expire(lock_key, expire)
-            got_lock = pipe.execute()[0]
+            got_lock = conn.set(lock_key, '', nx=True, ex=expire)
             if not got_lock:
                 if nowait:
                     break

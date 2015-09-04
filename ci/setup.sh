@@ -8,6 +8,7 @@ sudo easy_install -U pip
 sudo easy_install virtualenv
 
 
+redis-server -v
 virtualenv ~/env
 sudo -u postgres createuser -s `whoami` --no-password || true
 sudo -u postgres createdb changes || true
