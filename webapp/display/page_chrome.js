@@ -76,6 +76,12 @@ var ChangesPage = React.createClass({
     var style = this.props.bodyPadding ? {padding: 20} : {};
 
     return <div>
+      <div className="persistentMessageHeader">
+        You probably came here from clicking a link in Phabricator. This is
+        still not quite ready for primetime (I added the Phabricator extension
+        a bit early), but you{"'"}re welcome to test and email us feedback
+        (we'll add a feedback link to the header soon too.)
+      </div>
       {message_markup}
       <ChangesPageHeader highlight={this.props.highlight} fixed={this.props.fixed} />
       <div style={style}>
