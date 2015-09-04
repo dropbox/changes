@@ -208,7 +208,7 @@ var Sidebar = React.createClass({
           condition={get_runnable_condition(b)} 
           size="medium"
         />,
-        b.project.name,
+        utils.truncate(b.project.name, 26),
         display_duration(b.duration / 1000),
         `Triggered by ${get_build_cause(b)}, ${tests_text}`,
         subtext_extra_class, 

@@ -221,7 +221,7 @@ var BuildsPage = React.createClass({
         builds,
         b => b.source.data['phabricator.diffID']);
 
-      var latest_diff_id = _.chain(builds)
+      var latest_diff_id = _.chain(builds_by_diff_id)
         .keys()
         .sortBy()
         .last()
