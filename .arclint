@@ -12,7 +12,8 @@
       "type": "spelling"
     },
     "text": {
-      "type": "text"
+      "type": "text",
+      "text.max-line-length": 100
     },
     "python": {
       "type": "flake8",
