@@ -149,6 +149,12 @@ var BuildsPage = React.createClass({
       <div className="buildsLabelHeader">
         {this.renderLabelHeader()}
       </div>
+      <div className="persistentMessageHeader" style={{position: 'fixed', top: 40, zIndex: 20}}>
+        You probably came here from clicking a link in Phabricator. This is
+        still not quite ready for primetime (I added the Phabricator extension
+        a bit early), but you{"'"}re welcome to test and email us feedback
+        (we'll add a feedback link to the header soon too.)
+      </div>
       <Sidebar
         builds={this.props.builds}
         type={this.props.type}
@@ -156,7 +162,7 @@ var BuildsPage = React.createClass({
         activeBuildID={this.state.activeBuildID}
         pageElem={this}
       />
-      <div style={{paddingTop: 100}}>
+      <div style={{paddingTop: 150}}>
         <div style={content_style} >
           {this.getErrorMessage()}
           {this.getContent()}
