@@ -24,7 +24,7 @@ def _as_json(context):
     try:
         return json.dumps(context)
     except TypeError:
-        logging.error(
+        logging.warning(
             "unable to json-encode api response. Was the data not serialized?")
         return json.dumps(serialize_func(context))
 
