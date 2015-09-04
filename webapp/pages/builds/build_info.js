@@ -305,7 +305,7 @@ export var SingleBuild = React.createClass({
   renderJobs: function(build, phases) {
     var markup = _.map(build.jobs, (job, index) => {
       // we'll render a table with content from each phase
-      return <div className="marginTopM">
+      return <div className="marginTopL">
         Build Plan:{" " + job.name}
         {this.renderJobTable(job, build, phases)}
       </div>;
