@@ -306,7 +306,7 @@ export var SingleBuild = React.createClass({
     var markup = _.map(build.jobs, (job, index) => {
       // we'll render a table with content from each phase
       return <div className="marginTopL">
-        Build Plan:{" " + job.name}
+        <b>Build Plan:{" " + job.name}</b>
         {this.renderJobTable(job, build, phases)}
       </div>;
     });
@@ -317,9 +317,16 @@ export var SingleBuild = React.createClass({
     </div>;
   },
 
-  renderJobTable: function(job, build, phases) {
+  renderJobTable: function(job, build, all_phases) {
     var failures = _.filter(build.failures, f => f.job_id == job.id);
-    var phases_rows = _.map(phases[job.id], (phase, index) => {
+    var phases = all_phases[job.id];
+
+    // if there's only one row, let's skip rendering the phase name (less
+    // visual noise)
+    var only_one_row = phases.length === 1 &&
+      phases[0].steps && phases[0].steps.length === 1;
+
+    var phases_rows = _.map(phases, phase => {
       // what the server calls a jobstep is better named as shard
       return _.map(phase.steps, (shard, index) => {
         var shard_state = get_runnable_condition(shard);
@@ -331,7 +338,8 @@ export var SingleBuild = React.createClass({
 
         if (!shard.node) {
           return [
-            index === 0 ? <b>{phase.name}</b> : "",
+            index === 0 && !only_one_row ?
+              <span className="lb">{phase.name}</span> : "",
             <ConditionDot state={shard_state} />,
             <i>Machine not yet assigned</i>,
             '',
@@ -381,7 +389,8 @@ export var SingleBuild = React.createClass({
         }
 
         return [
-          index === 0 ? <b>{phase.name}</b> : "",
+          index === 0 && !only_one_row ?
+            <span className="lb">{phase.name}</span> : "",
           <ConditionDot condition={shard_state} />,
           main_markup,
           links,
