@@ -288,6 +288,9 @@ def create_app(_read_config=True, **config):
     # Number of milliseconds a transaction can run before triggering a warning.
     app.config['TRANSACTION_MS_WARNING_THRESHOLD'] = 2500
 
+    # Maximum number of jobsteps to retry for a given job
+    app.config['JOBSTEP_RETRY_MAX'] = 1
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):

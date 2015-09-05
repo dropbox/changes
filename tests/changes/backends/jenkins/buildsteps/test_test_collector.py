@@ -350,6 +350,36 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         buildstep.validate_phase(phase4)
         assert phase4.result == Result.failed
 
+        # Expanded phase with replaced step
+        phase5 = self.create_jobphase(job, label='run tests 4')
+        step5_1 = self.create_jobstep(phase5, data={
+            'expanded': True,
+            'shard_count': 2,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+        step5_2 = self.create_jobstep(phase5, data={
+            'expanded': True,
+            'shard_count': 2,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+        step5_3 = self.create_jobstep(phase5, data={
+            'expanded': True,
+            'shard_count': 2,
+            'item_id': 13,
+            'job_name': 'foo-bar',
+        })
+
+        step5_1.result = Result.passed
+        step5_2.result = Result.infra_failed
+        step5_3.result = Result.passed
+        step5_2.replacement_id = step5_3.id
+
+        buildstep = self.get_buildstep()
+        buildstep.validate_phase(phase5)
+        assert phase5.result == Result.passed
+
     @responses.activate
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')

@@ -41,6 +41,22 @@ class BuildStepTest(TestCase):
         buildstep.validate_phase(phase2)
         assert phase2.result == Result.failed
 
+        # Replaced
+        phase3 = self.create_jobphase(job, label="phase3")
+        step3_1 = self.create_jobstep(
+            phase3,
+            status=Status.finished,
+            result=Result.infra_failed,
+        )
+        step3_2 = self.create_jobstep(
+            phase3,
+            status=Status.finished,
+            result=Result.passed,
+        )
+        step3_1.replacement_id = step3_2.id
+        buildstep.validate_phase(phase3)
+        assert phase3.result == Result.passed
+
     def test_validate(self):
         project = self.create_project()
         build = self.create_build(

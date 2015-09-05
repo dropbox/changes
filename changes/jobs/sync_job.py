@@ -13,6 +13,9 @@ from changes.models import ItemStat, Job, JobPhase, JobPlan, JobStep, TestCase
 from changes.queue.task import tracked_task
 from changes.utils.agg import aggregate_status, safe_agg
 
+# Maximum duration of failed job that we will consider retrying (in seconds)
+MAX_DURATION_FOR_RETRY_SECS = 600
+
 
 def aggregate_job_stat(job, name, func_=func.sum):
     value = db.session.query(
@@ -21,6 +24,7 @@ def aggregate_job_stat(job, name, func_=func.sum):
         ItemStat.item_id.in_(
             db.session.query(JobStep.id).filter(
                 JobStep.job_id == job.id,
+                JobStep.replacement_id.is_(None),
             )
         ),
         ItemStat.name == name,
@@ -31,6 +35,29 @@ def aggregate_job_stat(job, name, func_=func.sum):
         'name': name,
         'value': value,
     })
+
+
+def _should_retry_jobstep(step):
+    return (step.result == Result.infra_failed and step.replacement_id is None
+            and (not step.duration or step.duration / 1000 < MAX_DURATION_FOR_RETRY_SECS)
+            # make sure this jobstep hasn't already been retried
+            and JobStep.query.filter(JobStep.replacement_id == step.id).first() is None)
+
+
+def _find_and_retry_jobsteps(phase, implementation):
+    # phase.steps is ordered by date_started, so we retry the oldest jobsteps first
+    should_retry = [s for s in phase.steps if _should_retry_jobstep(s)]
+    if not should_retry:
+        return
+    already_retried = JobStep.query.filter(JobStep.job == phase.job,
+                                           JobStep.replacement_id.isnot(None)).count()
+    max_retry = current_app.config['JOBSTEP_RETRY_MAX'] - already_retried
+    for step in should_retry:
+        if max_retry <= 0:
+            break
+        newstep = implementation.create_replacement_jobstep(step)
+        if newstep:
+            max_retry -= 1
 
 
 def sync_job_phases(job, phases=None, implementation=None):
@@ -45,6 +72,7 @@ def sync_job_phases(job, phases=None, implementation=None):
 
 
 def sync_phase(phase, implementation):
+    _find_and_retry_jobsteps(phase, implementation)
     phase_steps = list(phase.steps)
 
     if phase.date_started is None:

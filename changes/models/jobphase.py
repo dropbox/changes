@@ -67,3 +67,11 @@ class JobPhase(db.Model):
         else:
             duration = None
         return duration
+
+    @property
+    def current_steps(self):
+        """
+        Return only steps from this phase that have not been replaced.
+        """
+        # note that the self.steps property exists because of a backref in JobStep
+        return [s for s in self.steps if s.replacement_id is None]

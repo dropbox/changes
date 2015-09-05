@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Build, FailureReason, TestCase, Source
+from changes.models import Build, FailureReason, JobStep, TestCase, Source
 from changes.lib.flaky_tests import get_flaky_tests
 from changes.utils.http import build_uri
 
@@ -207,11 +207,14 @@ class BuildReport(object):
             Build, Build.id == FailureReason.build_id,
         ).join(
             Source, Source.id == Build.source_id,
+        ).join(
+            JobStep, JobStep.id == FailureReason.step_id,
         ).filter(
             Source.patch_id == None,  # NOQA
             Build.project_id == project.id,
             Build.date_created >= start_period,
             Build.date_created < end_period,
+            JobStep.replacement_id.is_(None),
         ).group_by(
             FailureReason.reason, FailureReason.build_id
         ).subquery()

@@ -22,6 +22,12 @@ class BuildStep(object):
         """
         raise NotImplementedError
 
+    def create_replacement_jobstep(self, step):
+        """Attempt to create a replacement of the given jobstep.
+
+        Returns new jobstep if successful, None otherwise."""
+        return None
+
     def update(self, job):
         raise NotImplementedError
 
@@ -58,7 +64,7 @@ class BuildStep(object):
         # TODO(josiah): ideally, we could record a FailureReason.
         # Currently FailureReason must be per-step.
 
-        phase.result = aggregate_result((s.result for s in phase.steps))
+        phase.result = aggregate_result((s.result for s in phase.current_steps))
 
     # There's no finish_step because steps are only marked as finished/passed
     # by update().

@@ -63,8 +63,11 @@ def _get_build_failure_reasons(build):
     """
     failure_reasons = [r for r, in db.session.query(
                 distinct(FailureReason.reason)
+            ).join(
+                JobStep, JobStep.id == FailureReason.step_id,
             ).filter(
-                FailureReason.build_id == build.id
+                FailureReason.build_id == build.id,
+                JobStep.replacement_id.is_(None),
             ).all()]
     # The order isn't particularly meaningful; the sorting is primarily
     # to make the same set of reasons reliably result in the same JSON.

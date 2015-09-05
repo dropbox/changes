@@ -59,6 +59,9 @@ class JobStep(db.Model):
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
     result = Column(Enum(Result), nullable=False, default=Result.unknown)
     node_id = Column(GUID, ForeignKey('node.id', ondelete="CASCADE"))
+    # id of JobStep that replaces this JobStep. Usually None, unless a JobStep
+    # fails and is retried.
+    replacement_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), unique=True)
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)

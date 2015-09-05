@@ -32,6 +32,8 @@ def is_missing_tests(step, jobplan):
 
 
 def _has_failure_reasons(step):
+    if step.replacement_id is not None:
+        return False
     count = db.session.query(FailureReason).filter(
         FailureReason.step_id == step.id
     ).count()

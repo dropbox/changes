@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import uuid
+
 from copy import deepcopy
 from flask import current_app
 from itertools import chain
@@ -136,10 +138,30 @@ class DefaultBuildStep(BuildStep):
             'project': job.project,
         })
 
-        step, created = get_or_create(JobStep, where={
+        self._setup_jobstep(phase, job)
+
+    def _setup_jobstep(self, phase, job, replaces=None):
+        """
+        Does the work of setting up (or recreating) the single jobstep for a build.
+
+        Args:
+            phase (JobPhase): phase this JobStep will be part of
+            job (Job): the job this JobStep will be part of
+            replaces (JobStep): None for new builds, otherwise the (failed)
+                                JobStep that this JobStep will replace.
+        Returns:
+            The newly created JobStep
+        """
+        where = {
             'phase': phase,
             'label': job.label,
-        }, defaults={
+        }
+        if replaces:
+            # if we're replacing an old jobstep, we specify new id in the where
+            # clause to ensure we create a new jobstep, not just get the old one
+            where['id'] = uuid.uuid4()
+
+        step, created = get_or_create(JobStep, where=where, defaults={
             'status': Status.pending_allocation,
             'job': phase.job,
             'project': phase.project,
@@ -178,6 +200,10 @@ class DefaultBuildStep(BuildStep):
         # TODO(dcramer): improve error handling here
         assert index != 0, "No commands were registered for build plan"
 
+        if replaces:
+            replaces.replacement_id = step.id
+            db.session.add(replaces)
+
         db.session.commit()
 
         sync_job_step.delay(
@@ -185,6 +211,15 @@ class DefaultBuildStep(BuildStep):
             task_id=step.id.hex,
             parent_task_id=job.id.hex,
         )
+
+        return step
+
+    def create_replacement_jobstep(self, step):
+        # don't support retrying expanded/generated jobsteps yet (for non-jenkins
+        # builds expanded jobsteps are just dead code right now anyway)
+        if step.data.get('generated', False):
+            return None
+        return self._setup_jobstep(step.phase, step.job, replaces=step)
 
     def update(self, job):
         pass

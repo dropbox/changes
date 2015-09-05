@@ -179,7 +179,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             # TODO(josiah): we'd like to be able to record a FailureReason
             # here, but currently a FailureReason must correspond to a JobStep.
             logging.error("Build failed due to incorrect number of shards: expected %d, got %d",
-                          self.max_shards, len(phase_steps))
+                          shard_count, len(phase_steps))
             return Result.unknown
         return Result.passed
 
@@ -189,8 +189,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         This is responsible for setting the phases's final result. We verify
         that the proper number of steps were created in the second (i.e.
         expanded) phase."""
-        phase.result = aggregate_result([s.result for s in phase.steps] +
-                                        [self._validate_shards(phase.steps)])
+        phase.result = aggregate_result([s.result for s in phase.current_steps] +
+                                        [self._validate_shards(phase.current_steps)])
 
     def get_test_stats(self, project):
         response = api_client.get('/projects/{project}/'.format(
@@ -315,7 +315,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         # Check for whether a previous run of this task has already
         # created JobSteps for us, since doing it again would create a
         # double-sharded build.
-        steps = JobStep.query.filter_by(phase_id=phase.id).all()
+        steps = JobStep.query.filter_by(phase_id=phase.id, replacement_id=None).all()
         if steps:
             step_shard_counts = [s.data.get('shard_count', 1) for s in steps]
             assert len(set(step_shard_counts)) == 1, "Mixed shard counts in phase!"

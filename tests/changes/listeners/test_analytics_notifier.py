@@ -109,6 +109,11 @@ class AnalyticsNotifierTest(TestCase):
         for reason in ('timeout', 'insufficient_politeness'):
             db.session.add(FailureReason(step_id=jobstep2.id, job_id=job.id, build_id=build.id, project_id=project.id,
                                          reason=reason))
+        jobstep3 = self.create_jobstep(jobphase, status=Status.finished, result=Result.infra_failed,
+                                       replacement_id=jobstep.id)
+        # shouldn't be included because jobstep3 is replaced
+        db.session.add(FailureReason(step_id=jobstep3.id, job_id=job.id, build_id=build.id,
+                                     project_id=project.id, reason='infra_reasons'))
         db.session.commit()
 
         self.assertEquals(_get_build_failure_reasons(build),

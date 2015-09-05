@@ -11,7 +11,7 @@ from changes.api.serializer.models.testcase import TestCaseWithOriginCrumbler
 from changes.config import db
 from changes.constants import Result, Status
 from changes.models import (
-    Build, BuildPriority, Source, Event, FailureReason, Job, TestCase,
+    Build, BuildPriority, Source, Event, FailureReason, Job, JobStep, TestCase,
     BuildSeen, User
 )
 from changes.utils.originfinder import find_failure_origins
@@ -109,8 +109,11 @@ def find_changed_tests(current_build, previous_build, limit=25):
 def get_failure_reasons(build):
     from changes.buildfailures import registry
 
-    rows = FailureReason.query.filter(
+    rows = FailureReason.query.join(
+        JobStep, JobStep.id == FailureReason.step_id,
+    ).filter(
         FailureReason.build_id == build.id,
+        JobStep.replacement_id.is_(None),
     )
 
     failure_reasons = []
