@@ -60,6 +60,15 @@ class PhabricatorNotifyDiffAPIView(APIView):
     parser.add_argument('phabricator.revisionURL', required=True)
 
     def post(self):
+        try:
+            return self.post_impl()
+        except Exception as e:
+            # catch everything so that we can tell phabricator
+            logging.exception("Error creating builds")
+            return error("Error creating builds (%s): %s" %
+                (type(e).__name__, e.message), http_code=500)
+
+    def post_impl(self):
         """
         Notify Changes of a newly created diff.
 
@@ -187,6 +196,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
                 patch=patch,
                 tag="phabricator",
             ))
+
         # This is the counterpoint to the above 'diffs_posted_from_phabricator';
         # at this point we've successfully processed the diff, so comparing this
         # stat to the above should give us the phabricator diff failure rate.
