@@ -38,6 +38,10 @@ table.grid {
   padding: 7px 15px 7px 4px;
 }
 
+.gridCell:first-child {
+  padding-left: 0px;
+}
+
 .gridCell:last-child {
   padding-right: 2px;
 }
@@ -46,10 +50,11 @@ tr.gridHeader {
   border-top: none;
   color: @mediumGray;
   font-size: 13px;
+  border-bottom: 2px solid @lightBorder;
 }
 
 .gridHeader .gridCell {
-  padding-bottom: 0px;
+  padding-bottom: 5px;
 }
 
 .gridEven .gridCell {
@@ -107,10 +112,8 @@ tr.gridHeader {
  */
 
 .sectionHeader {
-  border-bottom: 1px solid @fainterBorder;
   font-size: 18px;
   padding-bottom: 10px;
-  margin-bottom: 12px;
   font-weight: 600;
 }
 

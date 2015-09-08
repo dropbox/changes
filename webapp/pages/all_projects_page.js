@@ -179,7 +179,7 @@ var AllProjectsPage = React.createClass({
         repo_name += ` (${repo_projects.length})`; // add # of projects
       }
       var repo_markup = <div>
-        <b>{repo_name}</b>
+        <span className="lb">{repo_name}</span>
         <div className="subText">{repo_url}</div>
       </div>;
 
@@ -238,8 +238,8 @@ var AllProjectsPage = React.createClass({
         var proj_name = "";
         if (index === 0) {
           var proj_name = (num_plans > 1) ?
-            <b>{proj.name}{" ("}{num_plans}{")"}</b> :
-            <b>{proj.name}</b>;
+            <span className="lb">{proj.name}{" ("}{num_plans}{")"}</span> :
+            <span className="lb">{proj.name}</span>;
         }
 
         if (!plan.steps[0]) {
@@ -320,7 +320,9 @@ var AllProjectsPage = React.createClass({
         });
       });
       // add plan type label to first row
-      plan_rows[0][0] = <b>{[type, " (", plan_rows.length, ")"]}</b>;
+      plan_rows[0][0] = <span className="lb">
+        {[type, " (", plan_rows.length, ")"]}
+      </span>;
       rows_lists.push(plan_rows);
     });
 

@@ -57,7 +57,7 @@ var HomePage = React.createClass({
       // hack to use homepage as user page
       // TODO: not this
       var author_info = this.state.commits.getReturnedData()[0].builds[0].author;
-      header_markup = <div style={{paddingBottom: 10}}>
+      header_markup = <div style={{paddingBottom: 30, paddingTop: 10}}>
         User page for {author_info.name}. Right now its just a crappy copy
         of the home page...I{"'"}ll improve this soon.
       </div>;
@@ -278,10 +278,8 @@ var Commits = React.createClass({
     var header_text = this.props.isSelf ?
       'My Commits' : 'Commits';
 
-    return <div className="marginTopM">
-      <div className="marginBottomS">
-        <SectionHeader>{header_text}</SectionHeader>
-      </div>
+    return <div className="marginTopL">
+      <SectionHeader>{header_text}</SectionHeader>
       <Grid
         colnum={5}
         data={grid_data}
