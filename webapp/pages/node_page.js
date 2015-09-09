@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import APINotLoaded from 'es6!display/not_loaded';
-import ChangesPage from 'es6!display/page_chrome';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
@@ -34,7 +33,7 @@ var NodePage = React.createClass({
 
   render: function() {
     if (!api.allLoaded([this.state.nodeJobs, this.state.nodeDetails])) {
-      return <APINotLoaded
+      return <APINotLoadedPage
         calls={[this.state.nodeJobs, this.state.nodeDetails]}
       />;
     }

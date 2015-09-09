@@ -58,10 +58,7 @@ var BuildsTab = React.createClass({
     var interactive = this.props.interactive;
 
     if (interactive.hasNotLoadedInitialData()) {
-      return <APINotLoaded
-        calls={interactive.getDataToShow()}
-        isInline={true}
-      />;
+      return <APINotLoaded calls={interactive.getDataToShow()} />;
     }
 
     var data_to_show = interactive.getDataToShow();

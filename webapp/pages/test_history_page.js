@@ -1,8 +1,8 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import ChangesPage from 'es6!display/page_chrome';
 import SectionHeader from 'es6!display/section_header';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { ConditionDot } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
 import { TimeText, display_duration } from 'es6!display/time';
@@ -36,25 +36,20 @@ var TestHistoryPage = React.createClass({
 
   render() {
     if (!api.isLoaded(this.state.info)) {
-      return <APINotLoaded calls={this.state.info} />;
+      return <APINotLoadedPage calls={this.state.info} />;
     }
-
-    var history_content = this.renderHistory();
 
     return <ChangesPage>
       <SectionHeader>Commits in master</SectionHeader>
       <div className="marginTopM">
-        {history_content}
+        {this.renderHistory()}
       </div>
     </ChangesPage>;
   },
 
   renderHistory() {
     if (!api.isLoaded(this.state.history)) {
-      return <APINotLoaded
-        calls={this.state.history}
-        isInline={true}
-      />;
+      return <APINotLoaded calls={this.state.history} />;
     }
 
     var rows = _.map(this.state.history.getReturnedData(), t => {

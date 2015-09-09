@@ -1,8 +1,7 @@
 import React, { PropTypes } from 'react';
 
-import APINotLoaded from 'es6!display/not_loaded';
-import ChangesPage from 'es6!display/page_chrome';
 import DisplayUtils from 'es6!display/changes/utils';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error } from 'es6!display/errors';
 import { get_build_cause } from 'es6!display/changes/builds';
 
@@ -41,7 +40,7 @@ export var DiffPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.diffBuilds)) {
-      return <APINotLoaded calls={this.state.diffBuilds} isInline={false} />;
+      return <APINotLoadedPage calls={this.state.diffBuilds} />;
     }
     var diff_data = this.state.diffBuilds.getReturnedData();
     // Note: if the "fetched_data_from_phabricator" key is false, we weren't
@@ -93,8 +92,7 @@ export var CommitPage = React.createClass({
     var slug = this.props.project;
 
     if (!api.allLoaded([this.state.commitBuilds, this.state.source])) {
-      return <APINotLoaded
-        isInline={false}
+      return <APINotLoadedPage
         calls={[this.state.commitBuilds, this.state.source]}
       />;
     }

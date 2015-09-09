@@ -14,7 +14,7 @@ import { email_head } from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 
-var ChangesPage = React.createClass({
+export var ChangesPage = React.createClass({
 
   propTypes: {
     // should we automatically add padding to the page content?
@@ -83,6 +83,26 @@ var ChangesPage = React.createClass({
       </div>
     </div>;
   }
+});
+
+export var APINotLoadedPage = React.createClass({
+
+  propTypes: {
+    calls: PropTypes.oneOf(PropTypes.object, PropTypes.array).isRequired
+
+    // ...
+    // transfers other properties to rendered <ChangesPage />
+  },
+
+  render: function() {
+    var { calls, ...props} = this.props;
+    props['isPageLoaded'] = false;
+
+    return <ChangesPage {...props}>
+      <APINotLoaded calls={calls} />
+    </ChangesPage>;
+  }
+
 });
 
 /*
@@ -378,5 +398,3 @@ var ChangesLogin = React.createClass({
     }
   }
 });
-
-export default ChangesPage;

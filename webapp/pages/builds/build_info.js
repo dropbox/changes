@@ -77,15 +77,9 @@ export var SingleBuild = React.createClass({
       .values().value();
 
     if (!api.allLoaded(phasesCalls)) {
-      return <APINotLoaded
-        calls={phasesCalls}
-        isInline={true}
-      />;
+      return <APINotLoaded calls={phasesCalls} />;
     } else if (!api.isLoaded(this.state.buildDetails)) {
-      return <APINotLoaded
-        calls={this.state.buildDetails}
-        isInline={true}
-      />;
+      return <APINotLoaded calls={this.state.buildDetails} />;
     }
 
     var build = this.state.buildDetails.getReturnedData();
@@ -239,7 +233,6 @@ export var SingleBuild = React.createClass({
             <APINotLoaded
               className="marginTopM"
               calls={this.state.expandedTestsData[test.id]}
-              isInline={true}
             />
           ));
         } else {

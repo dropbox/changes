@@ -1,8 +1,7 @@
 import React, { PropTypes } from 'react';
 import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
-import APINotLoaded from 'es6!display/not_loaded';
-import ChangesPage from 'es6!display/page_chrome';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { ProgrammingError } from 'es6!display/errors';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 
@@ -80,7 +79,7 @@ var ProjectPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.project)) {
-      return <APINotLoaded calls={this.state.project} isInline={false} />;
+      return <APINotLoadedPage calls={this.state.project} />;
     }
 
     // render menu

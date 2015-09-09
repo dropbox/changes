@@ -1,10 +1,9 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 
-import APINotLoaded from 'es6!display/not_loaded';
-import ChangesPage from 'es6!display/page_chrome';
 import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Menu1, MenuUtils } from 'es6!display/menus';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
@@ -53,7 +52,7 @@ var AllProjectsPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.projects)) {
-      return <APINotLoaded calls={this.state.projects} isInline={false} />;
+      return <APINotLoadedPage calls={this.state.projects} />;
     }
     var projects_data = this.state.projects.getReturnedData();
 

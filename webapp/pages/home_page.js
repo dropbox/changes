@@ -2,9 +2,9 @@ import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import ChangesPage from 'es6!display/page_chrome';
 import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
 import { ManyBuildsStatus, get_runnable_condition } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
@@ -47,9 +47,10 @@ var HomePage = React.createClass({
         return this.renderNotLoggedIn();
       }
 
-      return <ChangesPage highlight="My Changes" isPageLoaded={false}>
-        <APINotLoaded calls={this.state.commits} isInline={true} />
-      </ChangesPage>;
+      return <APINotLoadedPage
+        highlight="My Changes"
+        calls={this.state.commits}
+      />;
     }
 
     var header_markup = null;
@@ -135,7 +136,7 @@ var Diffs = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.props.diffs)) {
-      return <APINotLoaded calls={this.props.diffs} isInline={true} />;
+      return <APINotLoaded calls={this.props.diffs} />;
     }
 
     var diffs = this.props.diffs.getReturnedData();
@@ -211,7 +212,7 @@ var Commits = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.props.commits)) {
-      return <APINotLoaded calls={this.props.commits} isInline={true} />;
+      return <APINotLoaded calls={this.props.commits} />;
     }
 
     var commits = this.props.commits.getReturnedData();
@@ -307,7 +308,7 @@ var Projects = React.createClass({
     var projects_api = this.props.projects;
 
     if (!api.isLoaded(projects_api)) {
-      return <APINotLoaded calls={projects} isInline={true} />;
+      return <APINotLoaded calls={projects} />;
     }
 
     var projects = projects_api.getReturnedData();

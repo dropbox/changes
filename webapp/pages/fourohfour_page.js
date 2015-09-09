@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import ChangesPage from 'es6!display/page_chrome';
+import { ChangesPage } from 'es6!display/page_chrome';
 
 import custom_content_hook from 'es6!utils/custom_content';
 

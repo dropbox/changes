@@ -71,10 +71,7 @@ var CommitsTab = React.createClass({
     var interactive = this.props.interactive;
 
     if (interactive.hasNotLoadedInitialData()) {
-      return <APINotLoaded
-        calls={interactive.getDataToShow()}
-        isInline={true}
-      />;
+      return <APINotLoaded calls={interactive.getDataToShow()} />;
     }
 
     // we might be in the middle of / failed to load updated data

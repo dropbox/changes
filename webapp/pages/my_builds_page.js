@@ -1,10 +1,9 @@
 import React, { PropTypes } from 'react';
 
-import APINotLoaded from 'es6!display/not_loaded';
-import ChangesPage from 'es6!display/page_chrome';
 import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
 import { SingleBuildStatus, get_build_cause } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
@@ -32,9 +31,8 @@ var MyBuildsPage = React.createClass({
    var interactive = this.state.buildsInteractive;
 
     if (interactive.hasNotLoadedInitialData()) {
-      return <APINotLoaded
+      return <APINotLoadedPage
         calls={interactive.getDataToShow()}
-        isInline={true}
       />;
     }
 

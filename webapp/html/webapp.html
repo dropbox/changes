@@ -76,17 +76,20 @@
     <div id="jsErrors" style="{{ ERROR_STYLE }}; display: none;">
       Encountered a javascript error. See console for details
     </div>
+    <div id="reactRoot">
+      <div class="pageHeader">
+        <a class="headerLinkBlock darkGray" href="#">My Changes</a>
+        <a class="headerLinkBlock darkGray" href="#">Projects</a>
+      </div>
     {% if USE_PACKAGED_JS %}
-    <div id="reactRoot">
-      Loading...
-      <script
-        data-main="{{ url_for('webapp_v2.static', filename='dist/built') }}"
-        src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
-      </script>
+      <div class="paddingTopL paddingLeftM">Loading...</div>
     </div>
+    <script
+      data-main="{{ url_for('webapp_v2.static', filename='dist/built') }}"
+      src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
+    </script>
     {% else %}
-    <div id="reactRoot">
-      Downloading and transpiling javascript... (dev only)
+      <div class="paddingTopL paddingLeftM">Downloading and transpiling javascript... (dev only)</div>
     </div>
     <script
       data-main="{{ url_for('webapp_v2.static', filename='entry') }}"
