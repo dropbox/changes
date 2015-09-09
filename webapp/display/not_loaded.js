@@ -14,7 +14,7 @@ var cx = React.addons.classSet;
  *
  * Example:
  * if (!api.isLoaded(this.state.myData)) {
- *   return <APINotLoaded state={this.state.myData} />;
+ *   return <APINotLoaded calls={this.state.myData} />;
  * }
  * ... (render the data from the api)
  *
@@ -22,13 +22,9 @@ var cx = React.addons.classSet;
 var APINotLoaded = React.createClass({
 
   propTypes: {
-    state: PropTypes.object,
-
-    // you can use this for multiple API calls (making sure they've all loaded
+    // you can pass multiple API calls as a list (making sure they've all loaded
     // before proceeding.)
-    // TODO: just make this take a list...
-    stateMap: PropTypes.objectOf.object,
-    stateMapKeys: PropTypes.array,
+    calls: PropTypes.oneOfType([PropTypes.object, PropTypes.list]),
 
     // if true, show InlineLoading instead of RandomLoading
     // TODO: should always be true?
@@ -44,28 +40,22 @@ var APINotLoaded = React.createClass({
   // note: we'll treat missing APIResponse objects (before api.fetch is called)
   // as "loading"
   render: function() {
-    var { state, stateMap, stateMapKeys, isInline, ...props} = this.props;
-
-    if (state && stateMapKeys) {
-      return <ProgrammingError>
-        APINotLoaded: passed both state and stateMapKeys/stateMap
-      </ProgrammingError>;
-    }
+    var { calls, isInline, ...props} = this.props;
+    var manyCalls = _.isArray(calls);
 
     var responseForError = null; // ignored unless condition is error
-
-    if (stateMapKeys) {
+    if (manyCalls) {
       var condition = 'loading';
-      if (api.mapAnyErrors(stateMap, stateMapKeys)) {
+      if (api.anyErrors(calls)) {
         condition = 'error';
-        responseForError = _.first(api.mapGetErrorResponses(
-          stateMap, stateMapKeys));
-      } else if (api.mapIsLoaded(stateMap, stateMapKeys)) {
+        // TODO: show multiple calls
+        responseForError = _.first(api.allErrorResponses(calls));
+      } else if (api.allLoaded(calls)) {
         var condition = 'loaded';
       }
     } else {
-      var condition = (state && state.condition) || 'loading';
-      responseForError = state && state.response;
+      var condition = (calls && calls.condition) || 'loading';
+      responseForError = calls && calls.response;
     }
 
     if (condition === 'loading') {

@@ -53,7 +53,7 @@ var AllProjectsPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.projects)) {
-      return <APINotLoaded state={this.state.projects} isInline={false} />;
+      return <APINotLoaded calls={this.state.projects} isInline={false} />;
     }
     var projects_data = this.state.projects.getReturnedData();
 

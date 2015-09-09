@@ -25,7 +25,7 @@ var DetailsTab = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.props.details)) {
-      return <APINotLoaded state={this.props.details} />;
+      return <APINotLoaded calls={this.props.details} />;
     }
 
     var plans = this.props.details.getReturnedData();

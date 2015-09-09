@@ -126,35 +126,26 @@ export var isError = function(possible) {
 /*
  * For keys in map, are all of the api calls finished?
  */
-export var mapIsLoaded = function(map, keys) {
-  if (!keys) {
-    throw "You must provide a list of keys to check!";
-  }
-  return map && _.every(_.map(keys, k => isLoaded(map[k])));
+export var allLoaded = function(list_of_calls) {
+  return _.every(list_of_calls, l => isLoaded(l));
 }
 
 /*
  * For keys in map, did any of the api calls return an error?
  */
-export var mapAnyErrors = function(map, keys) {
-  if (!keys) {
-    throw "You must provide a list of keys!";
-  }
-  return map && _.any(_.map(keys, k => map[k] && map[k].condition === 'error'));
+export var anyErrors = function(list_of_calls) {
+  return _.any(list_of_calls, l => l && l.condition === 'error');
 }
 
 /*
  * For keys in map, return all XMLHTTPRequest objects for api calls that
  * returned an error
  */
-export var mapGetErrorResponses = function(map, keys) {
-  if (!keys) {
-    throw "You must provide a list of keys!";
-  }
+export var allErrorResponses = function(list_of_calls) {
   var responses = [];
-  _.each(keys, k => {
-    if (map[k] && map[k].condition === 'error') {
-      responses.push(map[k].response);
+  _.each(list_of_calls, l => {
+    if (l && l.condition === 'error') {
+      responses.push(l.response);
     }
   });
   return responses;

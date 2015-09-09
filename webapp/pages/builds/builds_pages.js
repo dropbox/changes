@@ -41,7 +41,7 @@ export var DiffPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.diffBuilds)) {
-      return <APINotLoaded state={this.state.diffBuilds} isInline={false} />;
+      return <APINotLoaded calls={this.state.diffBuilds} isInline={false} />;
     }
     var diff_data = this.state.diffBuilds.getReturnedData();
     // Note: if the "fetched_data_from_phabricator" key is false, we weren't
@@ -92,11 +92,10 @@ export var CommitPage = React.createClass({
   render: function() {
     var slug = this.props.project;
 
-    if (!api.mapIsLoaded(this.state, ['commitBuilds', 'source'])) {
+    if (!api.allLoaded([this.state.commitBuilds, this.state.source])) {
       return <APINotLoaded
         isInline={false}
-        stateMap={this.state}
-        stateMapKeys={['commitBuilds', 'source']}
+        calls={[this.state.commitBuilds, this.state.source]}
       />;
     }
 

@@ -72,15 +72,18 @@ export var SingleBuild = React.createClass({
     // get job phases
     var job_ids = _.map(build_prop.jobs, j => j.id);
 
-    if (!api.mapIsLoaded(this.state.jobPhases, job_ids)) {
+    var phasesCalls = _.chain(this.state.jobPhases)
+      .pick(job_ids)
+      .values().value();
+
+    if (!api.allLoaded(phasesCalls)) {
       return <APINotLoaded
-        stateMap={this.state.jobs}
-        stateMapKeys={job_ids}
+        calls={phasesCalls}
         isInline={true}
       />;
     } else if (!api.isLoaded(this.state.buildDetails)) {
       return <APINotLoaded
-        state={this.state.buildDetails}
+        calls={this.state.buildDetails}
         isInline={true}
       />;
     }
@@ -235,7 +238,7 @@ export var SingleBuild = React.createClass({
           rows.push(GridRow.oneItem(
             <APINotLoaded
               className="marginTopM"
-              state={this.state.expandedTestsData[test.id]}
+              calls={this.state.expandedTestsData[test.id]}
               isInline={true}
             />
           ));

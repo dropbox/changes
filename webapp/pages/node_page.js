@@ -33,10 +33,9 @@ var NodePage = React.createClass({
   },
 
   render: function() {
-    if (!api.mapIsLoaded(this.state, ['nodeJobs', 'nodeDetails'])) {
+    if (!api.allLoaded([this.state.nodeJobs, this.state.nodeDetails])) {
       return <APINotLoaded
-        stateMap={this.state}
-        stateMapKeys={['nodeJobs', 'nodeDetails']}
+        calls={[this.state.nodeJobs, this.state.nodeDetails]}
       />;
     }
 

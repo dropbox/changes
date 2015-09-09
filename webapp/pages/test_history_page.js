@@ -36,7 +36,7 @@ var TestHistoryPage = React.createClass({
 
   render() {
     if (!api.isLoaded(this.state.info)) {
-      return <APINotLoaded state={this.state.info} />;
+      return <APINotLoaded calls={this.state.info} />;
     }
 
     var history_content = this.renderHistory();
@@ -52,7 +52,7 @@ var TestHistoryPage = React.createClass({
   renderHistory() {
     if (!api.isLoaded(this.state.history)) {
       return <APINotLoaded
-        state={this.state.history}
+        calls={this.state.history}
         isInline={true}
       />;
     }

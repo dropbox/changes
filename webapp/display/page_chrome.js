@@ -53,7 +53,7 @@ var ChangesPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.adminMessage)) {
-      return <APINotLoaded state={this.state.adminMessage} />;
+      return <APINotLoaded calls={this.state.adminMessage} />;
     }
 
     var message_markup = null;

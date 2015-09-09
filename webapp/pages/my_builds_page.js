@@ -33,7 +33,7 @@ var MyBuildsPage = React.createClass({
 
     if (interactive.hasNotLoadedInitialData()) {
       return <APINotLoaded
-        state={interactive.getDataToShow()}
+        calls={interactive.getDataToShow()}
         isInline={true}
       />;
     }

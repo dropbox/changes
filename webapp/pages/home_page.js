@@ -48,7 +48,7 @@ var HomePage = React.createClass({
       }
 
       return <ChangesPage highlight="My Changes" isPageLoaded={false}>
-        <APINotLoaded state={this.state.commits} isInline={true} />
+        <APINotLoaded calls={this.state.commits} isInline={true} />
       </ChangesPage>;
     }
 
@@ -135,7 +135,7 @@ var Diffs = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.props.diffs)) {
-      return <APINotLoaded state={this.props.diffs} isInline={true} />;
+      return <APINotLoaded calls={this.props.diffs} isInline={true} />;
     }
 
     var diffs = this.props.diffs.getReturnedData();
@@ -211,7 +211,7 @@ var Commits = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.props.commits)) {
-      return <APINotLoaded state={this.props.commits} isInline={true} />;
+      return <APINotLoaded calls={this.props.commits} isInline={true} />;
     }
 
     var commits = this.props.commits.getReturnedData();
@@ -307,7 +307,7 @@ var Projects = React.createClass({
     var projects_api = this.props.projects;
 
     if (!api.isLoaded(projects_api)) {
-      return <APINotLoaded state={projects} isInline={true} />;
+      return <APINotLoaded calls={projects} isInline={true} />;
     }
 
     var projects = projects_api.getReturnedData();
