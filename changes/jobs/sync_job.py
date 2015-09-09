@@ -5,7 +5,7 @@ from flask import current_app
 from sqlalchemy.sql import func
 
 from changes.backends.base import UnrecoverableException
-from changes.config import db, queue
+from changes.config import db, queue, statsreporter
 from changes.constants import Status, Result
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
@@ -57,6 +57,7 @@ def _find_and_retry_jobsteps(phase, implementation):
             break
         newstep = implementation.create_replacement_jobstep(step)
         if newstep:
+            statsreporter.stats().incr('jobstep_replaced')
             max_retry -= 1
 
 
