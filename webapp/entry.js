@@ -50,6 +50,7 @@ require([
   "es6!pages/my_builds_page",
   "es6!pages/builds/builds_pages",
   "es6!pages/test_history_page",
+  "es6!pages/log_page",
   "es6!pages/all_projects_page",
   "es6!pages/node_page",
   "es6!pages/fourohfour_page",
@@ -65,6 +66,7 @@ require([
   MyBuildsPage,
   buildsPages,
   TestHistoryPage,
+  LogPage,
   AllProjectsPage,
   NodePage,
   FourOhFourPage
@@ -96,6 +98,7 @@ require([
     'commit': [CommitPage, 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
+    'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],
     // TODO: don't just use the homepage for this
     'author': [HomePage, 'author'],
     'node': [NodePage, 'node_id'],

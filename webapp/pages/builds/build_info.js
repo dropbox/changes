@@ -4,7 +4,6 @@ import moment from 'moment';
 import APINotLoaded from 'es6!display/not_loaded';
 import DisplayUtils from 'es6!display/changes/utils';
 import SectionHeader from 'es6!display/section_header';
-import SimpleTooltip from 'es6!display/simple_tooltip';
 import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause } from 'es6!display/changes/builds';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -368,14 +367,8 @@ export var SingleBuild = React.createClass({
 
         var log_id = shard.logSources[0] && shard.logSources[0].id;
         if (log_id) {
-          var slug = build.project.slug;
-          var old_log_uri = `/projects/${slug}/builds/${build.id}/jobs/${job.id}/logs/${log_id}/`;
-          links.push(<a className="marginRightM" href={old_log_uri} target="_blank">
-            Log
-            <SimpleTooltip label="Takes you back to the original Changes UI">
-              <i style={{marginLeft: 3, opacity: 0.5}} className="fa fa-backward" />
-            </SimpleTooltip>
-          </a>);
+          var log_uri = `/v2/job_log/${build.id}/${job.id}/${log_id}/`;
+          links.push(<a className="marginRightM" href={log_uri}>Log</a>);
 
           var raw_log_uri = `/api/0/jobs/${job.id}/logs/${log_id}/?raw=1`;
           links.push(<a className="external marginRightM" href={raw_log_uri} target="_blank">Raw</a>);

@@ -52,7 +52,7 @@ export var AjaxError = React.createClass({
     };
 
     var status_title = status_titles[response_status] || null;
-    response_text = response_text || "Server sent no text";
+    response_text = response_text || "";
 
     return <Error {...props}>
       <b>{response_status}{status_title}</b>
