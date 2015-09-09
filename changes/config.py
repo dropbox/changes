@@ -4,7 +4,6 @@ import logging
 import flask
 import os
 import os.path
-import shutil
 import time
 import warnings
 
@@ -278,6 +277,8 @@ def create_app(_read_config=True, **config):
     app.config['WEBAPP_CUSTOM_JS'] = None
     # This can be a .less file. We import it after the variables.less,
     # so you can override them in your file
+    # Note: if you change this and nothing seems to happen, try deleting
+    # webapp/.webassets-cache and bundled.css. This probably won't happen, though
     app.config['WEBAPP_CUSTOM_CSS'] = None
 
     # In minutes, the timeout applied to jobs without a timeout specified at build time.
@@ -437,26 +438,9 @@ def create_v2_blueprint(app, app_static_root):
     # path to the lessc binary.
     assets.config['LESS_BIN'] = os.path.join(PROJECT_ROOT, 'node_modules/.bin/lessc')
 
-    # on startup we need to trash the webassets cache and the existing bundled
-    # css: the user could change WEBAPP_CUSTOM_CSS and we'd still serve the
-    # old, cached bundle
-    try:
-        shutil.rmtree(os.path.join(PROJECT_ROOT, 'webapp/.webassets-cache'))
-    except OSError:
-        pass  # throws if the dir doesn't exist, ignore that
-
-    try:
-        os.remove(os.path.join(PROJECT_ROOT, 'webapp/css/bundled.css'))
-    except OSError:
-        pass
-
-    # less needs to know where to find the WEBAPP_CUSTOM_CSS file. If we don't
-    # have one, import a placeholder file instead.
-    imported_custom_css = (app.config['WEBAPP_CUSTOM_CSS']
+    assets.config['LESS_EXTRA_ARGS'] = (['--global-var=custom_css="%s"' % app.config['WEBAPP_CUSTOM_CSS']]
         if app.config['WEBAPP_CUSTOM_CSS']
-        else os.path.join(PROJECT_ROOT, 'webapp/css/placeholder.less'))
-
-    assets.config['LESS_EXTRA_ARGS'] = ['--global-var=custom_css="%s"' % imported_custom_css]
+        else [])
 
     assets.load_path = [
         os.path.join(PROJECT_ROOT, 'webapp')

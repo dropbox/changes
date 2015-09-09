@@ -45,6 +45,7 @@ class IndexView(MethodView):
                 'WEBAPP_USE_ANOTHER_HOST': use_another_host,
                 'WEBAPP_CUSTOM_JS': IndexView.custom_js,
                 'USE_PACKAGED_JS': not current_app.debug,
+                'HAS_CUSTOM_CSS': current_app.config['WEBAPP_CUSTOM_CSS'],
                 'IS_DEBUG': current_app.debug
             })
 

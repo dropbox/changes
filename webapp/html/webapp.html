@@ -60,9 +60,16 @@
     <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href="{{ url_for('webapp_v2.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
-    {% assets filters="less", output="css/bundled.css", depends="**/*.less", "css/bundle_definition.less" %}
-    <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
-    {% endassets %}
+    {% if HAS_CUSTOM_CSS %}
+      {% assets filters="less", output="css/bundled.css", depends=["**/*.less", "custom/**/*.less"], "css/bundle_definition_custom.less" %}
+        <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+        <script type="text"></script>
+      {% endassets %}
+    {% else %}
+      {% assets filters="less", output="css/bundled.css", depends="**/*.less", "css/bundle_definition.less" %}
+        <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+      {% endassets %}
+    {% endif %}
     <link href='https://fonts.googleapis.com/css?family=Slabo+13px' rel='stylesheet' type='text/css'>
   </head>
   <body class="body">
