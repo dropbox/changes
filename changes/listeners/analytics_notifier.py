@@ -90,6 +90,13 @@ def build_finished_handler(build_id, **kwargs):
 
     failure_reasons = _get_build_failure_reasons(build)
 
+    jobsteps_replaced = JobStep.query.join(
+        Job, Job.id == JobStep.job_id,
+    ).filter(
+        Job.build_id == build.id,
+        JobStep.replacement_id.isnot(None)
+    ).count()
+
     data = {
         'build_id': build.id.hex,
         'result': unicode(build.result),
@@ -107,6 +114,7 @@ def build_finished_handler(build_id, **kwargs):
         # a single Phabricator instance.
         'phab_revision_url': _get_phabricator_revision_url(build),
         'failure_reasons': failure_reasons,
+        'jobsteps_replaced': jobsteps_replaced,
     }
     if build.author:
         data['author'] = build.author.email
@@ -150,6 +158,7 @@ def job_finished_handler(job_id, **kwargs):
                 'build_id': job.build_id.hex,
                 'label': jobstep.label,
                 'result': unicode(jobstep.result),
+                'replacement_id': jobstep.replacement_id.hex if jobstep.replacement_id else None,
                 'date_started': maybe_ts(jobstep.date_started),
                 'date_finished': maybe_ts(jobstep.date_finished),
                 'date_created': maybe_ts(jobstep.date_created),

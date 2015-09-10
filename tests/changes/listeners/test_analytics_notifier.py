@@ -62,6 +62,8 @@ class AnalyticsNotifierTest(TestCase):
         job = self.create_job(build=build, result=Result.failed)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase, status=Status.finished, result=Result.failed)
+        jobstep2 = self.create_jobstep(jobphase, status=Status.finished,
+                                       result=Result.infra_failed, replacement_id=jobstep.id)
         db.session.add(FailureReason(step_id=jobstep.id, job_id=job.id, build_id=build.id, project_id=project.id,
                                      reason='missing_tests'))
         db.session.commit()
@@ -81,6 +83,7 @@ class AnalyticsNotifierTest(TestCase):
             'label': 'Some sweet diff',
             'is_commit': True,
             'duration': 1234,
+            'jobsteps_replaced': 1,
             'date_created': created,
             'date_started': started,
             'date_finished': finished,
@@ -314,6 +317,7 @@ class AnalyticsNotifierTest(TestCase):
             'build_id': build.id.hex,
             'job_id': job.id.hex,
             'result': 'Failed',
+            'replacement_id': None,
             'label': 'Step 1',
             'data': {},
             'date_created': created,
@@ -360,6 +364,7 @@ class AnalyticsNotifierTest(TestCase):
             'build_id': build.id.hex,
             'job_id': job.id.hex,
             'result': 'Passed',
+            'replacement_id': None,
             'label': 'Step 1',
             'data': {},
             'date_created': created,
