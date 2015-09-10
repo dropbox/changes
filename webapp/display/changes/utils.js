@@ -5,10 +5,10 @@ import * as utils from 'es6!utils/utils';
 var cx = React.addons.classSet;
 
 /* A variety of changes-specific functions:
- * 1. Some formatters, e.g. creating a shorter name from a repository url
- *
- * 2. Things that seemed too small to be worth making into tags, e.g. taking an
+ * 1. Things that seemed too small to be worth making into tags, e.g. taking an
  * author object and rendering a link for their username
+ *
+ * 2. Some formatters, e.g. creating a shorter name from a repository url
  *
  * 3. TODO: links to other pages
  */
@@ -48,8 +48,7 @@ var DisplayUtils = {
         .search({ buildID: build.id })
         .toString();
     } else {
-      // TODO
-      return '/404_me';
+      return URI(`/v2/single_build/${build.id}/`);
     }
   },
 
@@ -63,13 +62,11 @@ var DisplayUtils = {
     } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
       return URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`).toString();
     } else {
-      // TODO
-      return '/404_me';
+      return URI(`/v2/single_build/${build.id}/`);
     }
   },
 
   // grabs the last path param or filename after : for a repo name
-  // TODO: move out of this file
   getShortRepoName: function(repo_url) {
     return _.last(_.compact(repo_url.split(/:|\//)));
   },

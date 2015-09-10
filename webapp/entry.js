@@ -79,6 +79,7 @@ require([
 
   var CommitPage = buildsPages.CommitPage;
   var DiffPage = buildsPages.DiffPage;
+  var SingleBuildPage = buildsPages.SingleBuildPage;
 
   // routing
   // TODO: all of this is terrible and temporary just to get something working.
@@ -97,6 +98,7 @@ require([
     'builds': [MyBuildsPage],
     'commit': [CommitPage, 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
+    'single_build': [SingleBuildPage, 'buildID'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],
     // TODO: don't just use the homepage for this

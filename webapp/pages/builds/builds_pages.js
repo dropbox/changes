@@ -141,7 +141,6 @@ var BuildsPage = React.createClass({
     this.updateWindowUrl();
 
     // TODO: cleanup!
-    // padding: "10px 35px",
     return <ChangesPage bodyPadding={false} fixed={true}>
       <div className="buildsLabelHeader">
         {this.renderLabelHeader()}
@@ -282,4 +281,29 @@ var BuildsPage = React.createClass({
     });
     return author;
   }
+});
+
+export var SingleBuildPage = React.createClass({
+
+  getInitialState: function() {
+    return {
+      build: null
+    };
+  },
+
+  componentDidMount: function() {
+    api.fetch(this, {
+      build: `/api/0/builds/${this.props.buildID}`
+    });
+  },
+
+  render: function() {
+    if (!api.isLoaded(this.state.build)) {
+      return <APINotLoadedPage calls={this.state.build} />;
+    }
+
+    return <ChangesPage>
+      <SingleBuild build={this.state.build.getReturnedData()} />
+    </ChangesPage>;
+  },
 });
