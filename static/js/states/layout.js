@@ -74,19 +74,6 @@ define([
         throw error;
       });
 
-      // hooks for perf logging
-      $rootScope.$on('$stateChangeStart',function(event, toState, toParams, 
-          fromState, fromParams){
-        if ($window.changesPerf) {
-          $window.changesPerf.transitionPageLoadStart();
-        }
-      });
-      $rootScope.$on('$viewContentLoaded', function(event) {
-        if ($window.changesPerf) { 
-          $window.changesPerf.pageLoadEnd();
-        }
-      });
-
       $('.navbar .container').show();
     },
     resolve: {

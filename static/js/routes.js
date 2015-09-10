@@ -229,21 +229,6 @@ define([
       };
     }]);
 
-    // keep track of every ajax request made (and timing.) We'll log this as 
-    // perf data
-    $httpProvider.interceptors.push(['$window', '$q', function($window, $q) {
-      return {
-        'request' : function(config) {
-          if ($window.changesPerf) { $window.changesPerf.ajaxStart(config); }
-          return config;
-        },
-        'response' : function(response) {
-          if ($window.changesPerf) { $window.changesPerf.ajaxEnd(response); }
-          return response;
-        }
-      };
-    }]);
-
     // Base routes
     $stateProvider
       .state('layout', LayoutState)
