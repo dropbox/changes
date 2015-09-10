@@ -13,7 +13,7 @@
     },
     "text": {
       "type": "text",
-      "text.max-line-length": 100
+      "text.max-line-length": 1000
     },
     "python": {
       "type": "flake8",
