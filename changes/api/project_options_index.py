@@ -1,6 +1,9 @@
+import logging
+
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload
 
+from changes.config import statsreporter
 from changes.api.base import APIView
 from changes.api.auth import requires_admin
 from changes.db.utils import create_or_update
@@ -59,6 +62,15 @@ class ProjectOptionsIndexAPIView(APIView):
         for name, value in args.iteritems():
             if value is None:
                 continue
+
+            # If we're rolling back a snapshot, take note.
+            if name == 'snapshot.current':
+                current = Snapshot.get_current(project.id)
+                if current:
+                    replacement = Snapshot.query.get(value)
+                    if replacement.date_created < current.date_created:
+                        _report_snapshot_downgrade(project)
+
             create_or_update(ProjectOption, where={
                 'project': project,
                 'name': name,
@@ -67,3 +79,13 @@ class ProjectOptionsIndexAPIView(APIView):
             })
 
         return '', 200
+
+
+def _report_snapshot_downgrade(project):
+    """Reports that we've downgraded a snapshot.
+    Mostly abstracted out to ease testing.
+    """
+    statsreporter.stats().incr("downgrade")
+    # Warning is arguable, since a downgrade isn't a problem, just needing one
+    # likely is. This is just the easiest way to surface this event at the moment.
+    logging.warning('Snapshot downgrade for project %s', project.slug)

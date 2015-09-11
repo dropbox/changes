@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+from mock import patch
+
 from changes.config import db
 from changes.models import ProjectOption, SnapshotStatus
 from changes.testutils import APITestCase
@@ -57,3 +60,31 @@ class ProjectOptionsTest(APITestCase):
         assert options.get('mail.notify-author') == '0'
         assert options.get('phabricator.diff-trigger') == '1'
         assert options.get('snapshot.current') == snapshot.id.hex
+
+    def test_report_rollback(self):
+        project = self.create_project()
+        path = '/api/0/projects/{0}/options/'.format(project.slug)
+        self.login_default_admin()
+
+        now = datetime(2013, 9, 19, 22, 15, 22)
+        earlier = now - timedelta(days=1)
+
+        older = self.create_snapshot(project, status=SnapshotStatus.active, date_created=earlier)
+
+        snapshot = self.create_snapshot(project, status=SnapshotStatus.active, date_created=now)
+
+        # To avoid duplication and as an offering to the line-length gods.
+        PATCH_PATH = 'changes.api.project_options_index._report_snapshot_downgrade'
+        with patch(PATCH_PATH) as report_downgrade:
+            resp = self.client.post(path, data={
+                'snapshot.current': snapshot.id.hex,
+            })
+            assert resp.status_code == 200
+            assert not report_downgrade.called
+
+        with patch(PATCH_PATH) as report_downgrade:
+            resp = self.client.post(path, data={
+                'snapshot.current': older.id.hex,
+            })
+            assert resp.status_code == 200
+            report_downgrade.assert_called_once_with(project)
