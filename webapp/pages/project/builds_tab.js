@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import { AjaxError } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
 import { Menu1 } from 'es6!display/menus';
@@ -81,7 +81,7 @@ var BuildsTab = React.createClass({
       return [
         <SingleBuildStatus build={build} parentElem={this} />,
         target,
-        DisplayUtils.authorLink(build.author),
+        ChangesLinks.author(build.author),
         build.name,
         get_build_cause(build),
         <TimeText time={build.dateStarted} />

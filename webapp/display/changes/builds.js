@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import { Error, ProgrammingError } from 'es6!display/errors';
 
 import * as api from 'es6!server/api';
@@ -73,7 +73,7 @@ export var ManyBuildsStatus = React.createClass({
 
     var glow = latest_builds.length > 1;
 
-    var builds_href = DisplayUtils.buildsHref(latest_builds);
+    var builds_href = ChangesLinks.buildsHref(latest_builds);
 
     return <OverlayTrigger
       placement="right"
@@ -101,7 +101,7 @@ export var SingleBuildStatus = React.createClass({
     }
     var dot = <ConditionDot condition={condition} num={num} />;
 
-    var href = DisplayUtils.buildHref(build);
+    var href = ChangesLinks.buildHref(build);
 
     /*
     // TODO: show popover for any failure, not just test failures

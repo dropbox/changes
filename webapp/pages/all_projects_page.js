@@ -1,7 +1,8 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
+import ChangesUI from 'es6!display/changes/ui';
 import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
@@ -145,8 +146,8 @@ var AllProjectsPage = React.createClass({
         widget,
         build_time,
         p.name,
-        [<a href={"/v2/project/" + p.slug}>Commits</a>,
-         <a className="marginLeftM" href={"/v2/project/" + p.slug + "#Details"}>
+        [<a href={ChangesLinks.projectHref(p)}>Commits</a>,
+         <a className="marginLeftM" href={ChangesLinks.projectHref(p, 'Details')}>
            Details
          </a>
         ],
@@ -173,7 +174,7 @@ var AllProjectsPage = React.createClass({
     var by_repo = _.groupBy(projects_data, p => p.repository.id);
     _.each(by_repo, repo_projects => {
       var repo_url = repo_projects[0].repository.url;
-      var repo_name = DisplayUtils.getShortRepoName(repo_url);
+      var repo_name = ChangesUI.getShortRepoName(repo_url);
       if (repo_projects.length > 1) {
         repo_name += ` (${repo_projects.length})`; // add # of projects
       }
@@ -203,7 +204,7 @@ var AllProjectsPage = React.createClass({
 
         return [
           index === 0 ? repo_markup : '',
-          <a href={"/v2/project/" + p.slug}>{p.name}</a>,
+          ChangesLinks.project(p),
           triggers,
           p.options['build.branch-names'],
           whitelist,

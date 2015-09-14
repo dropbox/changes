@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause } from 'es6!display/changes/builds';
 import { Grid, GridRow } from 'es6!display/grid';
@@ -155,9 +155,9 @@ export var SingleBuild = React.createClass({
   renderBuildDetails: function(build, job_phases) {
     // split attributes into a left and right column
     var attributes_left = {};
-    attributes_left['By'] = DisplayUtils.authorLink(build.author);
+    attributes_left['By'] = ChangesLinks.author(build.author);
     attributes_left['Trigger'] = get_build_cause(build);
-    attributes_left['Project'] = DisplayUtils.projectLink(build.project);
+    attributes_left['Project'] = ChangesLinks.project(build.project);
     attributes_left['Test Count'] = build.stats.test_count;
     attributes_left['Duration'] = display_duration(build.duration/1000);
 

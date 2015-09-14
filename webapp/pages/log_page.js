@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error, AjaxError } from 'es6!display/errors';
 
@@ -180,7 +180,7 @@ var LogComponent = React.createClass({
         {" "}
         &middot;
         {" "}
-        <a href={DisplayUtils.buildHref(build)}>
+        <a href={ChangesLinks.buildHref(build)}>
           Return to build
         </a>
       </div>

@@ -4,20 +4,13 @@ import * as utils from 'es6!utils/utils';
 
 var cx = React.addons.classSet;
 
-/* A variety of changes-specific functions:
- * 1. Things that seemed too small to be worth making into tags, e.g. taking an
- * author object and rendering a link for their username
- *
- * 2. Some formatters, e.g. creating a shorter name from a repository url
- *
- * 3. TODO: links to other pages
+/*
+ * Renders links to various pages. Usually returns anchor tags, but functions
+ * ending in Href just return the URI (in case you need to customize.)
  */
-var DisplayUtils = {
+var ChangesLinks = {
 
-  // If I want to be able to customize these (e.g. add a css class), they
-  // should be tags instead
-
-  authorLink: function(author, subtle = false) {
+  author: function(author, subtle = false) {
     if (!author) {
       return 'unknown';
     }
@@ -28,9 +21,17 @@ var DisplayUtils = {
     </a>;
   },
 
-  projectLink: function(project) {
-    var href = `/v2/project/${project.slug}/`;
+  project: function(project) {
+    var href = ChangesLinks.projectHref(project);
     return <a href={href}>{project.name}</a>;
+  },
+
+  projectHref: function(project, tab = null) {
+    var href = `/v2/project/${project.slug}/`;
+    if (tab) {
+      href += "#" + tab;
+    }
+    return href;
   },
 
   // renders the permalink url for an arbitrary build
@@ -65,39 +66,6 @@ var DisplayUtils = {
       return URI(`/v2/single_build/${build.id}/`);
     }
   },
-
-  // grabs the last path param or filename after : for a repo name
-  getShortRepoName: function(repo_url) {
-    return _.last(_.compact(repo_url.split(/:|\//)));
-  },
-
-  // takes a blob of text and wraps urls in anchor tags
-  linkifyURLs: function(string, link_class = '') {
-    var url_positions = [];
-    URI.withinString(string, (url, start, end, source) => {
-      url_positions.push([start, end]);
-      return url;
-    });
-
-    var elements = [];
-
-    // manual, sequential slicing
-    var current_pos = 0;
-    _.each(url_positions, pos => {
-      var [start, end] = pos;
-      elements.push(string.substring(current_pos, start));
-      var uri = string.substring(start, end);
-      elements.push(
-        <a className={link_class} href={uri} target="_blank">
-          {uri}
-        </a>
-      );
-      current_pos = end;
-    });
-    elements.push(string.substring(current_pos));
-
-    return elements;
-  }
 };
 
-export default DisplayUtils;
+export default ChangesLinks;

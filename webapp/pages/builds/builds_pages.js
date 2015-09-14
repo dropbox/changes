@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error } from 'es6!display/errors';
 import { get_build_cause } from 'es6!display/changes/builds';
@@ -240,7 +240,7 @@ var BuildsPage = React.createClass({
     var header = "No header yet";
     if (type === 'commit') {
       var source = this.props.targetData;
-      var author_link = DisplayUtils.authorLink(source.revision.author, true);
+      var author_link = ChangesLinks.author(source.revision.author, true);
 
       header = <div>
         {source.revision.sha.substring(0,7)}{": "}
@@ -251,7 +251,7 @@ var BuildsPage = React.createClass({
       </div>;
     } else if (type === 'diff') {
       var diff_data = this.props.targetData;
-      var author_link = DisplayUtils.authorLink(
+      var author_link = ChangesLinks.author(
         this.getAuthorForDiff(this.props.builds), true);
       header = <div>
         <a className="subtle" href={diff_data.uri} target="_blank">

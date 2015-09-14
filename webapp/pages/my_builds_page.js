@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
@@ -56,7 +56,7 @@ var MyBuildsPage = React.createClass({
       return [
         <SingleBuildStatus build={build} parentElem={this} />,
         target,
-        DisplayUtils.authorLink(build.author),
+        ChangesLinks.author(build.author),
         build.name,
         get_build_cause(build),
         <TimeText time={build.dateStarted} />

@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
@@ -239,7 +239,7 @@ var Commits = React.createClass({
       .compact()
       .uniq(p => p.slug)
       .sortBy(p => p.name)
-      .map(p => <div>{DisplayUtils.projectLink(p)}</div>)
+      .map(p => <div>{ChangesLinks.project(p)}</div>)
       .flatten()
       .value();
 

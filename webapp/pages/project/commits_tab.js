@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import DisplayUtils from 'es6!display/changes/utils';
+import ChangesLinks from 'es6!display/changes/links';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { AjaxError } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
@@ -217,7 +217,7 @@ var CommitsTab = React.createClass({
       <span className="bluishGray">{duration}</span>,
       <span className="bluishGray">{tests}</span>,
       sha_item,
-      DisplayUtils.authorLink(c.author),
+      ChangesLinks.author(c.author),
       title,
       <TimeText time={c.dateCommitted} />
     ];
