@@ -46,7 +46,8 @@ class IndexView(MethodView):
                 'WEBAPP_CUSTOM_JS': IndexView.custom_js,
                 'USE_PACKAGED_JS': not current_app.debug,
                 'HAS_CUSTOM_CSS': current_app.config['WEBAPP_CUSTOM_CSS'],
-                'IS_DEBUG': current_app.debug
+                'IS_DEBUG': current_app.debug,
+                'PHABRICATOR_HOST': current_app.config['PHABRICATOR_HOST']
             })
 
         return render_template('index.html', **{

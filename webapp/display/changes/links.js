@@ -66,6 +66,31 @@ var ChangesLinks = {
       return URI(`/v2/single_build/${build.id}/`);
     }
   },
+
+  phabCommit: function(revision) {
+    var label = revision.sha.substr(0,7);
+    return <a
+      className="external"
+      href={ChangesLinks.phabCommitHref(revision)}
+      target="_blank">
+      {label}
+    </a>;
+  },
+
+  phabCommitHref: function(revision) {
+    if (revision.external && revision.external.link) {
+      return revision.external.link;
+    }
+
+    // if we don't have a link, let's just let the phabricator search engine
+    // find the commit for us. It automatically redirects when only one commit
+    // matches the sha
+    var phab_host = window.changesGlobals['PHABRICATOR_HOST'];
+    return URI(phab_host)
+      .path('/search/')
+      .addSearch('query', revision.sha)
+      .toString();
+  }
 };
 
 export default ChangesLinks;

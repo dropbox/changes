@@ -170,13 +170,6 @@ var CommitsTab = React.createClass({
   },
 
   turnIntoRow: function(c, project_info) {
-    var sha_item = c.sha.substr(0,7);
-    if (c.external && c.external.link) {
-      sha_item = <a className="external" href={c.external.link} target="_blank">
-        {sha_item}
-      </a>;
-    }
-
     var title = utils.truncate(utils.first_line(c.message));
     if (c.message.indexOf("!!skipthequeue") !== -1 ||
         c.message.indexOf("#skipthequeue") !== -1) { // we used to use this
@@ -216,7 +209,7 @@ var CommitsTab = React.createClass({
       build_widget,
       <span className="bluishGray">{duration}</span>,
       <span className="bluishGray">{tests}</span>,
-      sha_item,
+      ChangesLinks.phabCommit(c),
       ChangesLinks.author(c.author),
       title,
       <TimeText time={c.dateCommitted} />

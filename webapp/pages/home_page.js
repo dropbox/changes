@@ -227,30 +227,20 @@ var Commits = React.createClass({
 
     var grid_data = [];
     commits.forEach(c => {
-      var sha_item = c.revision.sha.substr(0,7);
-      if (c.revision.external && c.revision.external.link) {
-        sha_item = <a
-          className="external"
-          href={c.revision.external.link}
-          target="_blank">
-          {sha_item}
-        </a>;
-      }
-
-    // Render links to the projects than ran builds. For user convenience...
-    var project_links = _.chain(c.builds)
-      .map(b => b.project)
-      .compact()
-      .uniq(p => p.slug)
-      .sortBy(p => p.name)
-      .map(p => <div>{ChangesLinks.project(p)}</div>)
-      .flatten()
-      .value();
+      // Render links to the projects that ran builds (for user convenience..)
+      var project_links = _.chain(c.builds)
+        .map(b => b.project)
+        .compact()
+        .uniq(p => p.slug)
+        .sortBy(p => p.name)
+        .map(p => <div>{ChangesLinks.project(p)}</div>)
+        .flatten()
+        .value();
 
       grid_data.push(
         [
           <ManyBuildsStatus builds={c.builds} />,
-          sha_item,
+          ChangesLinks.phabCommit(c.revision),
           project_links,
           utils.truncate(utils.first_line(c.revision.message)),
           <TimeText time={c.revision.dateCommitted} />

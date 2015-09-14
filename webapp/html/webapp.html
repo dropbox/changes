@@ -42,7 +42,8 @@
     {% endif %}
       <script type="text/javascript">
         window.changesGlobals = {
-          APP_VERSION: '{{ VERSION }}'
+          APP_VERSION: '{{ VERSION }}',
+          PHABRICATOR_HOST: '{{ PHABRICATOR_HOST }}'
         };
         {% if WEBAPP_USE_ANOTHER_HOST %}
           window.changesGlobals['USE_ANOTHER_HOST'] =
