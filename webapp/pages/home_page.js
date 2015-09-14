@@ -53,14 +53,24 @@ var HomePage = React.createClass({
       />;
     }
 
+    // hack to use homepage as user page
+    // TODO: not this
     var header_markup = null;
     if (this.props.author) {
-      // hack to use homepage as user page
-      // TODO: not this
       var author_info = this.state.commits.getReturnedData()[0].builds[0].author;
       header_markup = <div style={{paddingBottom: 30, paddingTop: 10}}>
-        User page for {author_info.name}. Right now its just a crappy copy
-        of the home page...I{"'"}ll improve this soon.
+        Diffs and Commits by {author_info.name}.
+      </div>;
+    }
+
+    var projects = null;
+    if (!this.props.author) {
+      projects = <div className="marginTopL">
+        <Projects
+          commits={this.state.commits}
+          projects={this.state.projects}
+          isSelf={!this.props.author}
+        />
       </div>;
     }
 
@@ -76,13 +86,7 @@ var HomePage = React.createClass({
           isSelf={!this.props.author}
         />
       </div>
-      <div className="marginTopL">
-        <Projects
-          commits={this.state.commits}
-          projects={this.state.projects}
-          isSelf={!this.props.author}
-        />
-      </div>
+      {projects}
     </ChangesPage>;
   },
 
@@ -268,7 +272,7 @@ var Commits = React.createClass({
     var is_it_out_markup = null;
 
     var is_it_out_link = custom_content_hook('isItOutHref');
-    if (is_it_out_link) {
+    if (is_it_out_link && this.props.isSelf) {
       is_it_out_markup = <div className="darkGray marginTopM">
         Check to see if your commit is live in production:{" "}
         <a className="external" href={is_it_out_link} target="_blank">is it out?</a>
@@ -279,6 +283,9 @@ var Commits = React.createClass({
     var header_text = this.props.isSelf ?
       'My Commits' : 'Commits';
 
+    var builds_sentence = this.props.isSelf ?
+      'See all of your ' : 'See all ';
+
     return <div className="marginTopL">
       <SectionHeader>{header_text}</SectionHeader>
       <Grid
@@ -288,7 +295,7 @@ var Commits = React.createClass({
         headers={headers}
       />
       <div className="darkGray marginTopM">
-        See all of your <a href="/v2/builds">recent builds</a>{"."}
+        {builds_sentence}<a href="/v2/builds">recent builds</a>{"."}
       </div>
       {is_it_out_markup}
     </div>;
