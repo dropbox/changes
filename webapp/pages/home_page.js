@@ -99,7 +99,7 @@ var HomePage = React.createClass({
 
     var custom_login_image = custom_content_hook('customLoginImage');
     if (custom_login_image) {
-      var image_href = '/v2/custom_image/0/' + custom_login_image;
+      var image_href = '/v2/custom_image/' + custom_login_image;
       login_markup = <center style={{ marginTop: 24, display: "block" }}>
         <img
           className="block"

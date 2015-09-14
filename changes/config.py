@@ -424,7 +424,7 @@ def create_v2_blueprint(app, app_static_root):
     if app.config['WEBAPP_CUSTOM_JS']:
         custom_dir = os.path.dirname(app.config['WEBAPP_CUSTOM_JS'])
         blueprint.add_url_rule(
-            '/custom_image/' + revision + '/<path:filename>',
+            '/custom_image/<path:filename>',
             view_func=StaticView.as_view(
                 'custom_image',
                 root=custom_dir)
