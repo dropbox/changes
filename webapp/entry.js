@@ -132,9 +132,26 @@ require([
 
   // TODO: pages should set window.document.title
 
-  data_fetching.make_api_ajax_get('/api/0/auth', function(response) {
+  // we fetch some initial data used by pages (e.g. are we logged in?)
+  var authResponse = null;
+  var messageResponse = null;
+
+  var handleInitialAPIs = function(whichAPI, response) {
+    if (whichAPI === 'auth') {
+      authResponse = response;
+    } else if (whichAPI === 'message') {
+      messageResponse = response;
+    } else {
+      throw new Error('unreachable: ' + whichAPI);
+    }
+
+    if (!(authResponse && messageResponse)) {
+      return;
+    }
+
     // TODO: use context?
-    window.changesAuthData = JSON.parse(response.responseText);
+    window.changesAuthData = JSON.parse(authResponse.responseText);
+    window.changesMessageData = JSON.parse(messageResponse.responseText);
 
     // add custom css class if present
     var custom_css = custom_content_hook('rootClass', '');
@@ -149,6 +166,13 @@ require([
       React.createElement(page, params),
       document.getElementById('reactRoot')
     );
-  });
+
+  };
+
+  data_fetching.make_api_ajax_get('/api/0/auth',
+    _.partial(handleInitialAPIs, 'auth'));
+
+  data_fetching.make_api_ajax_get('/api/0/messages',
+    _.partial(handleInitialAPIs, 'message'));
 });
 

@@ -21,19 +21,12 @@ export var ChangesPage = React.createClass({
     bodyPadding: PropTypes.bool,
     // the first time you render the page with this set to true,
     // we record the time and show a widget with perf info in the header
-    // TODO: handle transitions for a single-page app..
+    // TODO: handle non full-page-transitions, once we add them
     isPageLoaded: PropTypes.bool,
     // If you're on a page linked to in the top bar, highlight it
     highlight: PropTypes.string,
     // we have to use position: fixed for some pages
     fixed: PropTypes.bool,
-  },
-
-
-  getInitialState: function() {
-    return {
-      adminMessage: null,
-    }
   },
 
   getDefaultProps: function() {
@@ -44,24 +37,12 @@ export var ChangesPage = React.createClass({
     };
   },
 
-  componentDidMount: function() {
-    var messageEndpoint = '/api/0/messages/';
-    api.fetch(this, {
-      adminMessage: messageEndpoint,
-    });
-  },
-
   render: function() {
-    if (!api.isLoaded(this.state.adminMessage)) {
-      return <APINotLoaded calls={this.state.adminMessage} />;
-    }
-
-    var message_markup = null;
-
-    var message_data = this.state.adminMessage.getReturnedData();
-    if (message_data && message_data.message) {
-      var message_markup = <div className="persistentMessageHeader">
-        {message_data.message}{"  - "}{message_data.user.email}
+    var messageMarkup = null;
+    if (window.changesMessageData && window.changesMessageData.message) {
+      var messageData = window.changesMessageData;
+      messageMarkup = <div className="persistentMessageHeader">
+        {messageData.message}{"  - "}{messageData.user.email}
       </div>;
     }
 
@@ -76,7 +57,7 @@ export var ChangesPage = React.createClass({
     var style = this.props.bodyPadding ? {padding: 20} : {};
 
     return <div>
-      {message_markup}
+      {messageMarkup}
       <ChangesPageHeader highlight={this.props.highlight} fixed={this.props.fixed} />
       <div style={style}>
         {this.props.children}
