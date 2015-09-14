@@ -29,6 +29,11 @@
             "displayPath": "tests.json",
             "fileName": "tests.json",
             "relativePath": "artifacts/tests.json"
+        },
+        {
+            "displayPath": "manifest.json",
+            "fileName": "manifest.json",
+            "relativePath": "artifacts/manifest.json"
         }
     ],
     "building": false,

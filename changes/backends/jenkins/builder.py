@@ -2,6 +2,7 @@ from __future__ import absolute_import, division
 
 import json
 import logging
+import os
 import random
 import re
 import requests
@@ -17,6 +18,7 @@ from lxml import etree, objectify
 
 from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.xunit import XunitHandler
+from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.config import db, statsreporter
 from changes.constants import Result, Status
@@ -42,9 +44,6 @@ RESULT_MAP = {
 QUEUE_ID_XPATH = '/queue/item[action/parameter/name="CHANGES_BID" and action/parameter/value="{job_id}"]/id'
 BUILD_ID_XPATH = ('/freeStyleProject/build[action/parameter/name="CHANGES_BID" and '
                   'action/parameter/value="{job_id}"]/number')
-
-XUNIT_FILENAMES = ('junit.xml', 'xunit.xml', 'nosetests.xml')
-COVERAGE_FILENAMES = ('coverage.xml',)
 
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
 
@@ -215,7 +214,7 @@ class JenkinsBuilder(BaseBackend):
         )
         return self._streaming_get(url)
 
-    def _sync_artifact_as_file(self, artifact):
+    def _sync_artifact_as_file(self, artifact, handler_cls=None):
         jobstep = artifact.step
         resp = self.fetch_artifact(jobstep, artifact.data)
 
@@ -229,37 +228,22 @@ class JenkinsBuilder(BaseBackend):
             )
         )
 
-    def _sync_artifact_as_xunit(self, artifact):
-        jobstep = artifact.step
-        resp = self.fetch_artifact(jobstep, artifact.data)
+        # save file regardless of whether handler is successful
+        db.session.commit()
+
+        if not handler_cls:
+            return
 
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
         try:
-            handler = XunitHandler(jobstep)
+            handler = handler_cls(jobstep)
             handler.process(StringIO(resp.content))
+            db.session.commit()
         except Exception:
             db.session.rollback()
             self.logger.exception(
                 'Failed to sync test results for job step %s', jobstep.id)
-        else:
-            db.session.commit()
-
-    def _sync_artifact_as_coverage(self, artifact):
-        jobstep = artifact.step
-        resp = self.fetch_artifact(jobstep, artifact.data)
-
-        # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
-        # API, so we're stuffing it into StringIO
-        try:
-            handler = CoverageHandler(jobstep)
-            handler.process(StringIO(resp.content))
-        except Exception:
-            db.session.rollback()
-            self.logger.exception(
-                'Failed to sync test results for job step %s', jobstep.id)
-        else:
-            db.session.commit()
 
     def _sync_artifact_as_log(self, artifact):
         jobstep = artifact.step
@@ -290,6 +274,8 @@ class JenkinsBuilder(BaseBackend):
                     'text': chunk,
                 })
                 offset += chunk_size
+
+        db.session.commit()
 
     def _sync_log(self, jobstep, name, job_name, build_no):
         job = jobstep.job
@@ -683,6 +669,10 @@ class JenkinsBuilder(BaseBackend):
         else:
             phased_results = False
 
+        if not any(ManifestJsonHandler.can_process(os.path.basename(a['fileName'])) for a in artifacts):
+            # currently just log, may eventually mark this situation as an infra_failure
+            self.logger.warning('Missing manifest.json file (build=%s)', step.job.build_id.hex)
+
         # artifacts sync differently depending on the style of job results
         if phased_results:
             self._sync_phased_results(step, artifacts)
@@ -859,28 +849,25 @@ class JenkinsBuilder(BaseBackend):
             if artifact.name.endswith('.log') and not self.sync_log_artifacts:
                 return
 
-            elif artifact.name.endswith(XUNIT_FILENAMES) and not self.sync_xunit_artifacts:
+            elif XunitHandler.can_process(artifact.name) and not self.sync_xunit_artifacts:
                 return
 
-            elif artifact.name.endswith(COVERAGE_FILENAMES) and not self.sync_coverage_artifacts:
+            elif CoverageHandler.can_process(artifact.name) and not self.sync_coverage_artifacts:
                 return
 
             elif not self.sync_file_artifacts:
                 return
 
-        if artifact.name.endswith('.log'):
-            self._sync_artifact_as_log(artifact)
-
-        elif artifact.name.endswith(XUNIT_FILENAMES):
-            self._sync_artifact_as_xunit(artifact)
-
-        elif artifact.name.endswith(COVERAGE_FILENAMES):
-            self._sync_artifact_as_coverage(artifact)
-
+        for cls in [XunitHandler, CoverageHandler, ManifestJsonHandler]:
+            if cls.can_process(artifact.name):
+                self._sync_artifact_as_file(artifact, handler_cls=cls)
+                break
         else:
-            self._sync_artifact_as_file(artifact)
+            if artifact.name.endswith('.log'):
+                self._sync_artifact_as_log(artifact)
 
-        db.session.commit()
+            else:
+                self._sync_artifact_as_file(artifact)
 
     def cancel_step(self, step):
         # The Jenkins build_no won't exist if the job is still queued.

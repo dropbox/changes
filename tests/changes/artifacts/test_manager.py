@@ -1,18 +1,22 @@
 from __future__ import absolute_import, print_function
 
 from cStringIO import StringIO
-from mock import Mock
 
+import mock
+
+from changes.artifacts.base import ArtifactHandler
 from changes.artifacts.manager import Manager
 from changes.testutils import TestCase
 
 
 class ManagerTest(TestCase):
-    def test_process_behavior(self):
-        handler = Mock()
+    @mock.patch.object(ArtifactHandler, 'process')
+    def test_process_behavior(self, process):
+        handler = ArtifactHandler
+        handler.FILENAMES = ('coverage.xml',)
 
         manager = Manager()
-        manager.register(handler, ['coverage.xml'])
+        manager.register(handler)
 
         project = self.create_project()
         build = self.create_build(project)
@@ -27,7 +31,7 @@ class ManagerTest(TestCase):
         artifact.file.save(StringIO(), artifact.name)
         manager.process(artifact)
 
-        assert not handler.called
+        assert not process.called
 
         artifact = self.create_artifact(
             step=jobstep,
@@ -36,5 +40,4 @@ class ManagerTest(TestCase):
         artifact.file.save(StringIO(), artifact.name)
         manager.process(artifact)
 
-        handler.assert_called_once_with(jobstep)
-        handler.return_value.process.assert_called_once()
+        assert process.call_count == 1

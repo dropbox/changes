@@ -6,13 +6,16 @@ import os.path
 from datetime import datetime, timedelta
 from flask import current_app
 
+from changes.artifacts.coverage import CoverageHandler
+from changes.artifacts.xunit import XunitHandler
+from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.backends.base import UnrecoverableException
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Status
 from changes.models import SnapshotImage, SnapshotStatus
 
-from .builder import JenkinsBuilder, XUNIT_FILENAMES, COVERAGE_FILENAMES
+from .builder import JenkinsBuilder
 from .generic_builder import JenkinsGenericBuilder
 
 
@@ -148,7 +151,8 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
     def __init__(self, job_name, script, cluster, diff_cluster='', path='',
                  workspace='', reset_script='', build_type=None,
                  setup_script='', teardown_script='',
-                 artifacts=XUNIT_FILENAMES + COVERAGE_FILENAMES, snapshot_script=None, **kwargs):
+                 artifacts=XunitHandler.FILENAMES + CoverageHandler.FILENAMES + ManifestJsonHandler.FILENAMES,
+                 snapshot_script=None, **kwargs):
         """
         build_type describes how to use changes-client, but 'legacy'
         defaults to not using it at all. See configuration file

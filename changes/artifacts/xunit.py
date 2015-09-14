@@ -14,6 +14,7 @@ from .base import ArtifactHandler
 
 
 class XunitHandler(ArtifactHandler):
+    FILENAMES = ('xunit.xml', 'junit.xml', 'nosetests.xml', '*.xunit.xml', '*.junit.xml', '*.nosetests.xml')
     logger = logging.getLogger('xunit')
 
     def process(self, fp):

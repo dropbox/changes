@@ -69,4 +69,4 @@ class RepositoryCreateTest(APITestCase):
         assert repo.backend == RepositoryBackend.git
         assert repo.status == RepositoryStatus.importing
 
-        queue_delay.assert_called_once
+        assert queue_delay.call_count == 1
