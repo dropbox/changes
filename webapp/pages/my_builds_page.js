@@ -50,7 +50,7 @@ var MyBuildsPage = React.createClass({
           {'D' + build.source.data['phabricator.revisionID']}
         </a>
       } else {
-        target = build.source.revision.sha.substr(0, 7);
+        target = ChangesLinks.phabCommit(build.source.revision);
       }
 
       return [
