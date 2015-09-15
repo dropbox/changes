@@ -240,18 +240,22 @@ var BuildsPage = React.createClass({
     var header = "No header yet";
     if (type === 'commit') {
       var source = this.props.targetData;
-      var author_link = ChangesLinks.author(source.revision.author, true);
+      var authorLink = ChangesLinks.author(source.revision.author, true);
+      var commitLink = ChangesLinks.phabCommitHref(source.revision);
 
       header = <div>
-        {source.revision.sha.substring(0,7)}{": "}
+        <a className="subtle" href={commitLink} target="_blank">
+          {source.revision.sha.substring(0,7)}
+        </a>
+        {": "}
         {utils.first_line(source.revision.message)}
         {" (by "}
-        {author_link}
+        {authorLink}
         {")"}
       </div>;
     } else if (type === 'diff') {
       var diff_data = this.props.targetData;
-      var author_link = ChangesLinks.author(
+      var authorLink = ChangesLinks.author(
         this.getAuthorForDiff(this.props.builds), true);
       header = <div>
         <a className="subtle" href={diff_data.uri} target="_blank">
@@ -260,7 +264,7 @@ var BuildsPage = React.createClass({
         {": "}
         {diff_data.title}
         {" (by "}
-        {author_link}
+        {authorLink}
         {")"}
       </div>;
     } else {
