@@ -175,13 +175,19 @@ export var SingleBuild = React.createClass({
       return <InfoList>{rows}</InfoList>;
     };
 
+    var column_style = {
+      width: '49%', 
+      display: 'inline-block', 
+      verticalAlign: 'top'
+    };
+
     return <div>
       <SectionHeader>Details</SectionHeader>
       <div>
-        <div style={{width: '49%', display: 'inline-block'}}>
+        <div style={column_style}>
           {attributes_to_table(attributes_left)}
         </div>
-        <div style={{width: '49%', display: 'inline-block'}}>
+        <div style={column_style}>
           {attributes_to_table(attributes_right)}
         </div>
       </div>
