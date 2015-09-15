@@ -7,8 +7,6 @@ import { Error } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
 import { TimeText } from 'es6!display/time';
 
-import * as api from 'es6!server/api';
-
 import custom_content_hook from 'es6!utils/custom_content';
 import { email_head } from 'es6!utils/utils';
 

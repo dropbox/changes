@@ -1,5 +1,4 @@
 import React, { PropTypes } from 'react';
-import moment from 'moment';
 
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
@@ -23,8 +22,6 @@ var AllProjectsPage = React.createClass({
     'Plans By Type',
     'Jenkins Plans By Master',
   ],
-
-  STALE_MAX_AGE: 60*60*24*7, // one week
 
   getInitialState: function() {
     return {
@@ -103,13 +100,7 @@ var AllProjectsPage = React.createClass({
   renderDefault: function(projects_data) {
     var list = [], stale_list = [];
     _.each(projects_data, p => {
-      var is_stale = false;
-      if (p.lastBuild) {
-        var age = moment.utc().format('X') - moment.utc(p.lastBuild.dateCreated).format('X');
-        // if there's never been a build for this project, let's not consider
-        // it stale
-        is_stale = age > this.STALE_MAX_AGE;
-      }
+      var is_stale = p.lastBuild && ChangesUI.projectIsStale(p.lastBuild);
       !is_stale ? list.push(p) : stale_list.push(p);
     });
 

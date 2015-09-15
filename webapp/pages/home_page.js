@@ -1,8 +1,8 @@
 import React, { PropTypes } from 'react';
-import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
+import ChangesUI from 'es6!display/changes/ui';
 import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
@@ -66,11 +66,7 @@ var HomePage = React.createClass({
     var projects = null;
     if (!this.props.author) {
       projects = <div className="marginTopL">
-        <Projects
-          commits={this.state.commits}
-          projects={this.state.projects}
-          isSelf={!this.props.author}
-        />
+        <Projects projects={this.state.projects} />
       </div>;
     }
 
@@ -296,9 +292,6 @@ var Commits = React.createClass({
 var Projects = React.createClass({
   propTypes: {
     projects: PropTypes.object,
-
-    // optional: we'll bold projects that the user has recently committed to
-    commits: PropTypes.object,
   },
 
   render: function() {
@@ -310,31 +303,14 @@ var Projects = React.createClass({
 
     var projects = projects_api.getReturnedData();
 
-    var commits = this.props.commits && this.props.commits.getReturnedData();
-
-    var author_projects = [];
-    if (commits) {
-      // grab projects recently committed to by author
-      var author_projects = _.chain(commits)
-        .pluck('builds')
-        .flatten()
-        .pluck('project')
-        .compact()
-        .map(p => p.slug)
-        .uniq()
-        .value();
-    }
-
-    var color_cls = '';
     var project_entries = _.compact(_.map(projects, p => {
+      var color_cls = '';
       if (p.lastBuild) {
         // ignore projects over a week old
-        // TODO: centralize this logic with all projects page
-        var age = moment.utc().format('X') -
-          moment.utc(p.lastBuild.dateCreated).format('X');
-        if (age > 60*60*24*7) { // one week
+        if (ChangesUI.projectIsStale(p.lastBuild)) {
           return null;
         }
+
         switch (get_runnable_condition(p.lastBuild)) {
           case 'passed':
             color_cls = 'green';
@@ -346,11 +322,9 @@ var Projects = React.createClass({
         }
       }
 
-      var url = "/v2/project/" + p.slug;
-      var project_name = _.contains(author_projects, p.slug) ?
-        <b>{p.name}</b> :
-        p.name;
-      return <a className={color_cls} href={url}>{project_name}</a>;
+      return <a className={color_cls} href={ChangesLinks.projectHref(p)}>
+        {p.name}
+      </a>;
     }));
 
     // render names in 3 columns

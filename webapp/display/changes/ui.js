@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import moment from 'moment';
 
 var cx = React.addons.classSet;
 
@@ -11,6 +12,14 @@ var ChangesUI = {
   // grabs the last path param or filename after : for a repo name
   getShortRepoName: function(repo_url) {
     return _.last(_.compact(repo_url.split(/:|\//)));
+  },
+
+  // projects whose last build was over a week old are considered stale
+  projectIsStale: function(lastBuild) {
+    var age = moment.utc().format('X') -
+      moment.utc(lastBuild.dateCreated).format('X');
+
+    return age > 60*60*24*7;
   },
 
   // takes a blob of text and wraps urls in anchor tags
