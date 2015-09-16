@@ -9,6 +9,7 @@ from changes.constants import Result
 from changes.db.utils import try_create
 from changes.models import TestResult, TestResultManager, FailureReason
 from changes.utils.agg import aggregate_result
+from changes.utils.http import build_uri
 
 from .base import ArtifactHandler
 
@@ -35,8 +36,8 @@ class XunitHandler(ArtifactHandler):
             parser = etree.XMLParser(huge_tree=True)
             root = etree.fromstring(fp.read(), parser=parser)
         except Exception:
-            # Record the JobStep ID so we have any hope of tracking these down.
-            self.logger.exception('Failed to parse XML; (step={})'.format(self.step.id.hex))
+            uri = build_uri('/projects/{0}/builds/{1}]'.format(self.step.project.slug, self.step.job.build_id.hex))
+            self.logger.warning('Failed to parse XML; (step=%s, build=%s)', self.step.id.hex, uri, exn_info=True)
             try_create(FailureReason, {
                 'step_id': self.step.id,
                 'job_id': self.step.job_id,
