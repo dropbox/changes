@@ -37,7 +37,7 @@ class XunitHandler(ArtifactHandler):
             root = etree.fromstring(fp.read(), parser=parser)
         except Exception:
             uri = build_uri('/projects/{0}/builds/{1}]'.format(self.step.project.slug, self.step.job.build_id.hex))
-            self.logger.warning('Failed to parse XML; (step=%s, build=%s)', self.step.id.hex, uri, exn_info=True)
+            self.logger.warning('Failed to parse XML; (step=%s, build=%s)', self.step.id.hex, uri, exc_info=True)
             try_create(FailureReason, {
                 'step_id': self.step.id,
                 'job_id': self.step.job_id,
