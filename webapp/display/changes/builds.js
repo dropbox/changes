@@ -371,7 +371,7 @@ var get_runnable_condition_color_cls = function(condition, background = false) {
  */
 export var get_build_cause = function(build) {
   var tags = build.tags;
-  if (build.cause === 'retry') {
+  if (build.cause.id === 'retry') {
     // manually triggered retry (either from phabricator or the changes ui)
     return 'manual';
   }
