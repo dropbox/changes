@@ -1,8 +1,9 @@
 import changes
 import urlparse
 
+from changes.api.auth import get_current_user
 from changes.config import statsreporter
-from flask import render_template, current_app
+from flask import render_template, redirect, current_app, request
 from flask.views import MethodView
 
 
@@ -14,6 +15,14 @@ class IndexView(MethodView):
         super(MethodView, self).__init__()
 
     def get(self, path=''):
+        # we automatically redirect some users hitting the homepage to v2
+        if (request.path.strip('/') == '' and not request.args):
+            current_user = get_current_user()
+            current_username = (current_user.email.split('@')[0] if
+                current_user else None)
+            if current_username in current_app.config['NEW_UI_OPTIN_USERS']:
+                return redirect('/v2/?optin=1')
+
         statsreporter.stats().incr('homepage_view')
         if current_app.config['SENTRY_DSN'] and False:
             parsed = urlparse.urlparse(current_app.config['SENTRY_DSN'])

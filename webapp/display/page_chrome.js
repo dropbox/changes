@@ -44,6 +44,16 @@ export var ChangesPage = React.createClass({
       </div>;
     }
 
+    var optinHeader = null;
+    if (URI(window.location.href).query(true)['optin']) {
+      optinHeader = <div className="persistentMessageHeader">
+        You{"'"}ve been redirected to a new UI for Changes. Its still under
+        development, so let us know what you think with the feedback link at
+        the top. You can go back to the original changes homepage{" "}
+        <a href="/projects">here</a>.
+      </div>;
+    }
+
     if (this.props.isPageLoaded) {
       // NOTE: once browsers support it, we could start using
       // window.performance.mark
@@ -56,6 +66,7 @@ export var ChangesPage = React.createClass({
 
     return <div>
       {messageMarkup}
+      {optinHeader}
       <ChangesPageHeader highlight={this.props.highlight} fixed={this.props.fixed} />
       <div style={style}>
         {this.props.children}

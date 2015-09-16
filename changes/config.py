@@ -292,6 +292,10 @@ def create_app(_read_config=True, **config):
     # Maximum number of jobsteps to retry for a given job
     app.config['JOBSTEP_RETRY_MAX'] = 1
 
+    # we opt these users into the new ui...redirecting them if they
+    # hit the homepage
+    app.config['NEW_UI_OPTIN_USERS'] = set([])
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
