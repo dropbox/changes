@@ -269,6 +269,7 @@ var Commits = React.createClass({
     var header_text = this.props.isSelf ?
       'My Commits' : 'Commits';
 
+    // TODO: this doesn't actually show other people's builds :/
     var builds_sentence = this.props.isSelf ?
       'See all of your ' : 'See all ';
 

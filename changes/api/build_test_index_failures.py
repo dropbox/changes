@@ -26,6 +26,7 @@ class BuildTestIndexFailuresAPIView(APIView):
         for test in test_list:
             test_info = dict()
             test_info['name'] = test.name
+            test_info['hash'] = test.name_sha
             test_info['result'] = test.result.name
             test_info['job_id'] = test.job_id
             test_info['test_id'] = test.id

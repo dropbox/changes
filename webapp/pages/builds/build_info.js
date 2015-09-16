@@ -28,13 +28,21 @@ export var SingleBuild = React.createClass({
   propTypes: {
     // the build to render
     build: PropTypes.object.isRequired,
-    //
+
     content: PropTypes.oneOf(['short', 'normal'])
   },
 
   getDefaultProps: function() {
     return {
       content: 'normal'
+    };
+  },
+
+  getInitialState: function() {
+    return {
+      // states for toggling inline visibility of test snippets
+      expandedTests: {},
+      expandedTestsData: {}
     };
   },
 
@@ -54,15 +62,6 @@ export var SingleBuild = React.createClass({
 
     // TODO: don't refetch every time (cache on parent)
     api.fetchMap(this, 'jobPhases', endpoint_map);
-  },
-
-  getInitialState: function() {
-    return {
-      // states for toggling inline visibility
-      showRevertInstructions: {},
-      expandedTests: {},
-      expandedTestsData: {}
-    };
   },
 
   render: function() {
@@ -91,9 +90,11 @@ export var SingleBuild = React.createClass({
     var render_all = this.props.content === "normal";
 
     return <div>
-      {this.renderHeader(build, job_phases)}
+      <div className="marginBottomL">
+        {this.renderHeader(build, job_phases)}
+        {render_all ? this.renderDetails(build, job_phases) : null}
+      </div>
       {this.renderFailedTests(build, job_phases)}
-      {render_all ? this.renderBuildDetails(build, job_phases) : null}
       {render_all ? this.renderJobs(build, job_phases) : null}
     </div>;
   },
@@ -137,7 +138,7 @@ export var SingleBuild = React.createClass({
       marginLeft: 5
     };
 
-    return <div className="marginBottomL">
+    return <div>
       {dot}
       <div className="inlineBlock" style={style}>
         <div style={{ fontSize: 18 }}>{build.project.name}</div>
@@ -152,46 +153,31 @@ export var SingleBuild = React.createClass({
     </div>;
   },
 
-  renderBuildDetails: function(build, job_phases) {
-    // split attributes into a left and right column
-    var attributes_left = {};
-    attributes_left['By'] = ChangesLinks.author(build.author);
-    attributes_left['Trigger'] = get_build_cause(build);
-    attributes_left['Project'] = ChangesLinks.project(build.project);
-    attributes_left['Test Count'] = build.stats.test_count;
-    attributes_left['Duration'] = display_duration(build.duration/1000);
-
+  renderDetails: function(build, job_phases) {
     var DATE_RFC2822 = "ddd, DD MMM YYYY HH:mm:ss ZZ";
 
-    var attributes_right = {};
-    attributes_right['Status'] = build.status.name;
-    attributes_right['Result'] = build.result.name;
-    attributes_right['Time Started'] = build.dateCreated && moment.utc(build.dateCreated).format(DATE_RFC2822);
-    attributes_right['Time Completed'] = build.dateFinished && moment.utc(build.dateFinished).format(DATE_RFC2822);
-    attributes_right['Build Number'] = build.number;
+    var attributes = {};
+    attributes['By'] = ChangesLinks.author(build.author);
+    if (build.dateCreated) {
+      attributes['Started'] = moment.utc(build.dateCreated).local()
+        .format(DATE_RFC2822);
+    }
+    if (build.dateFinished) {
+      attributes['Duration'] = display_duration(build.duration / 1000);
+    }
+    var test_label = build.dateFinished ? "Tests Ran" : "Tests Run";
+    attributes[test_label] = <span>
+      {build.stats.test_count}{" ("}
+      <a href={"/v2/build_tests/"+build.id+"/#SlowTests"}>
+        more information
+      </a>
+      {")"}
+    </span>;
 
-    var attributes_to_table = attr => {
-      var rows = _.map(attr, (v,k) => <InfoItem label={k}>{v}</InfoItem>);
-      return <InfoList>{rows}</InfoList>;
-    };
-
-    var column_style = {
-      width: '49%', 
-      display: 'inline-block', 
-      verticalAlign: 'top'
-    };
-
+    var rows = _.map(attributes, (v,k) => <InfoItem label={k}>{v}</InfoItem>);
     return <div>
-      <SectionHeader>Details</SectionHeader>
-      <div>
-        <div style={column_style}>
-          {attributes_to_table(attributes_left)}
-        </div>
-        <div style={column_style}>
-          {attributes_to_table(attributes_right)}
-        </div>
-      </div>
-    </div>
+      <InfoList className="marginTopM">{rows}</InfoList>
+    </div>;
   },
 
   // which tests caused the build to fail?
@@ -254,51 +240,34 @@ export var SingleBuild = React.createClass({
       }
     });
 
-    var revert_instructions = custom_content_hook('revertInstructions');
-    var revert_markup = null, revert_link = null;
-    if (revert_instructions) {
-      var on_click = __ => {
-        this.setState((prevStat, props) => {
-          var instr = _.clone(prevStat.showRevertInstructions);
-          instr[build.id] = !instr[build.id];
-          return {showRevertInstructions: instr};
-        });
-      };
-      revert_link = <div className="darkGray marginTopM">
-        How do I{" "}
-        <a onClick={on_click}>revert this</a>?
-      </div>
-
-      if (this.state.showRevertInstructions[build.id]) {
-        revert_markup = <pre className="defaultPre">
-          {custom_content_hook('revertInstructions')}
-        </pre>;
-      }
-    }
-
-    // TODO: see all
     var more_markup = null;
     if (build.testFailures.total > build.testFailures.tests.length) {
-      more_markup = <div className="darkGray marginTopM">
-        Only showing
-        {" "}{build.testFailures.tests.length}{" "}
-        out of
-        {" "}{build.testFailures.total}{" "}
-        failed tests.
+      more_markup = <div className="marginTopS">
+        Only showing{" "}
+        <span className="lb">{build.testFailures.tests.length}</span>
+        {" "}out of{" "}
+        <span className="lb">{build.testFailures.total}</span>
+        {" "}failed tests.{" "}
+        <a href={"/v2/build_tests/"+build.id+"/"}>
+        See all
+        </a>
       </div>
     }
 
-    return <div className="marginTopL">
-      <SectionHeader>Failed Tests</SectionHeader>
+    var top_spacing = this.props.content === "normal" ?
+      'marginTopL paddingTopM' : 'marginTopL';
+
+    return <div className={top_spacing + ' marginBottomL'}>
+      <SectionHeader className="noBottomPadding">
+        Failed Tests ({build.testFailures.total})
+      </SectionHeader>
       <Grid
         colnum={2}
-        className="errorGrid marginBottomM"
+        className="marginBottomM"
         data={rows}
         headers={['Name', 'Links']}
       />
       {more_markup}
-      {revert_link}
-      {revert_markup}
     </div>;
   },
 
@@ -306,14 +275,17 @@ export var SingleBuild = React.createClass({
   renderJobs: function(build, phases) {
     var markup = _.map(build.jobs, (job, index) => {
       // we'll render a table with content from each phase
-      return <div className="marginTopL">
+      return <div className="marginTopM">
         <b>Build Plan:{" " + job.name}</b>
         {this.renderJobTable(job, build, phases)}
       </div>;
     });
 
-    return <div className="marginTopL">
-      <SectionHeader>Breakdown</SectionHeader>
+    var top_spacing = this.props.content === "normal" ?
+      'marginTopL paddingTopM' : 'marginTopL';
+
+    return <div className={top_spacing}>
+      <SectionHeader className="noBottomPadding">Breakdown</SectionHeader>
       {markup}
     </div>;
   },
@@ -403,7 +375,7 @@ export var SingleBuild = React.createClass({
     ];
 
     var cellClasses = [
-      'nowrap', 'nowrap center', 'wide', 'nowrap', 'nowrap'
+      'nowrap phaseCell', 'nowrap center', 'wide', 'nowrap', 'nowrap'
     ];
 
     return <Grid
@@ -413,7 +385,7 @@ export var SingleBuild = React.createClass({
       headers={job_headers}
       cellClasses={cellClasses}
     />;
-  }
+  },
 })
 
 export var LatestBuildsSummary = React.createClass({

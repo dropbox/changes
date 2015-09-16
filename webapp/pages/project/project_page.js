@@ -46,7 +46,7 @@ var ProjectPage = React.createClass({
     var selected_item_from_hash = MenuUtils.selectItemFromHash(
       window.location.hash, this.menuItems);
 
-    // when we first came to this page, which tab was shown? Used to do the
+    // when we first came to this page, which tab was shown? Used by the
     // initial data fetching within tabs
     this.initialTab = selected_item_from_hash || 'Commits';
 

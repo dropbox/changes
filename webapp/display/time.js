@@ -68,7 +68,8 @@ export var TimeText = React.createClass({
 });
 
 /*
- * Converts 136 [in seconds] to a string like "2m16s"
+ * Converts 136 [in seconds] to a string like "2m16s". Note that the backend
+ * often returns durations in milliseconds, not seconds!
  */
 export var display_duration = function(total_seconds) {
   return display_duration_pieces(total_seconds).join("");

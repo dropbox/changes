@@ -8,7 +8,6 @@ var cx = React.addons.classSet;
  * Basically a list with properties/keys on the left and values on the right.
  * The values might be arbitrarily complex markup.
  */
-
 export var InfoList = React.createClass({
 
   propTypes: {

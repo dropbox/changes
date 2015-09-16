@@ -49,6 +49,7 @@ require([
   "es6!pages/project/project_page",
   "es6!pages/my_builds_page",
   "es6!pages/builds/builds_pages",
+  "es6!pages/builds/build_tests_page",
   "es6!pages/test_history_page",
   "es6!pages/log_page",
   "es6!pages/all_projects_page",
@@ -65,6 +66,7 @@ require([
   ProjectPage,
   MyBuildsPage,
   buildsPages,
+  BuildTestsPage,
   TestHistoryPage,
   LogPage,
   AllProjectsPage,
@@ -99,6 +101,7 @@ require([
     'commit': [CommitPage, 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
     'single_build': [SingleBuildPage, 'buildID'],
+    'build_tests': [BuildTestsPage, 'buildID'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],
     // TODO: don't just use the homepage for this
