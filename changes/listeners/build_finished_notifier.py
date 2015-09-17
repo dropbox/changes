@@ -46,7 +46,7 @@ def build_finished_handler(build_id, **kwargs):
             requests.post(
                 url,
                 data={'build_id': build.id},
-                timeout=10,
+                timeout=20,
 
                 # this is either a string path to the ca bundle or a boolean
                 # indicating that the ssl cert should be checked
