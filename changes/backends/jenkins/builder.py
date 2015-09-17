@@ -669,13 +669,15 @@ class JenkinsBuilder(BaseBackend):
         else:
             phased_results = False
 
-        if not any(ManifestJsonHandler.can_process(os.path.basename(a['fileName'])) for a in artifacts):
-            # Currently just log, may eventually mark this situation as an infra_failure.
-            # We include the slug in the message but format string the rest so the slug is used by Sentry
-            # for bucketing.
-            slug = step.project.slug
-            self.logger.warning('Missing manifest file for ' + slug + ': (build=%s, len(artifacts)=%d)',
-                                step.job.build_id.hex, len(artifacts))
+        # If the Jenkins run was aborted, we don't expect a manifest file.
+        if step.result != Result.aborted:
+            if not any(ManifestJsonHandler.can_process(os.path.basename(a['fileName'])) for a in artifacts):
+                # Currently just log, may eventually mark this situation as an infra_failure.
+                # We include the slug in the message but format string the rest so the slug is used by Sentry
+                # for bucketing.
+                slug = step.project.slug
+                self.logger.warning('Missing manifest file for ' + slug + ': (build=%s, len(artifacts)=%d)',
+                                    step.job.build_id.hex, len(artifacts))
 
         # artifacts sync differently depending on the style of job results
         if phased_results:
