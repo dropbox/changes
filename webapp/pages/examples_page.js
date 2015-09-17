@@ -3,8 +3,6 @@ import React, { PropTypes } from 'react';
 import Examples from 'es6!display/examples';
 import { ChangesPage } from 'es6!display/page_chrome';
 
-import custom_content_hook from 'es6!utils/custom_content';
-
 /* 
  * Renders example uses of the reusable display tags in display/
  */

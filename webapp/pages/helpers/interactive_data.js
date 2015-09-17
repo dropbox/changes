@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import ChangesUI from 'es6!display/changes/ui';
+import { Button } from 'es6!display/button';
 
 import * as api from 'es6!server/api';
 
@@ -246,34 +247,26 @@ var InteractiveDataPrototype = {
 
     var links = [];
 
-    var prevClasses = cx({
-      pagingLink: true,
-      marginRightS: true,
-      disabled: !params.previous
-    });
-
     links.push(
-      <a
-        className={prevClasses}
+      <Button 
+        type="paging"
+        className="marginRightS"
         onClick={onClick.previous}
+        disabled={!params.previous}
         href={URI(window.location.href).query(params.previous)}>
         &laquo; Previous
-      </a>
+      </Button>
     );
 
-    var next_classes = cx({
-      pagingLink: true,
-      marginRightS: true,
-      disabled: !params.next
-    });
-
     links.push(
-      <a
-        className={next_classes}
+      <Button 
+        type="paging"
+        className="marginRightS"
         onClick={onClick.next}
+        disabled={!params.next}
         href={URI(window.location.href).query(params.next)}>
         Next &raquo;
-      </a>
+      </Button>
     );
 
     return links;

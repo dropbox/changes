@@ -326,12 +326,77 @@ a.buildStatus:hover {
   padding-top: 3px;
 }
 
-/* 
- * paging links
- * TODO: make this a generic link-button in display
+/* buttons: blue, white, paging */
+
+a.button {
+  border-radius: 3px;
+  display: inline-block;
+  padding: 7px 15px;
+  outline: 0;
+}
+
+a.button:hover {
+  text-decoration: none;
+}
+
+a.button.disabled {
+  cursor: default;
+}
+
+a.button.blueButton {
+  background: @buttonBg;
+  border: 1px solid @buttonBorder;
+  color: #fff;
+  transition: all 150ms ease;
+}
+
+a.button.blueButton:hover {
+  background: @buttonHoverBg;
+  border-color: @buttonHoverBorder;
+  color: #fff;
+}
+
+a.button.blueButton:active {
+  background: @buttonActiveBg;
+  border-color: @buttonActiveBorder;
+  color: #fff;
+}
+
+a.button.blueButton.disabled {
+  background-color: @buttonDisabledBg;
+  border-color: @buttonDisabledBorder;
+}
+
+a.button.whiteButton {
+  background-color: white;
+  border: 1px solid @whiteButtonBorder;
+  color: @whiteButtonColor;
+}
+
+a.button.whiteButton:hover {
+  border-color: @whiteButtonHoverBorder;
+  background-color: @whiteButtonHoverBg;
+  color: @whiteButtonHoverColor;
+}
+
+a.button.whiteButton:active {
+  border-color: @whiteButtonActiveBorder;
+  background-color: @whiteButtonActiveBg;
+  color: @whiteButtonActiveColor;
+}
+
+a.button.whiteButton.disabled {
+  border-color: @whiteButtonDisabled;
+  background-color: white;
+  color: @whiteButtonDisabled;
+}
+
+
+/* paging button was written before the other buttons, so it has a lot of
+ * custom (and probably unneeded) css 
  */
 
-.pagingLink {
+.pagingButton {
   background: #fff;
   border: 1px solid @blue;
   color: @blue;
@@ -353,13 +418,12 @@ a.buildStatus:hover {
   }
 }
 
-
-.pagingLink.disabled {
+.pagingButton.disabled {
   opacity: 0.4;
   cursor: default;
 }
 
-.pagingLink.disabled:hover {
+.pagingButton.disabled:hover {
   background: #fff;
   color: @blue;
   cursor: default;
