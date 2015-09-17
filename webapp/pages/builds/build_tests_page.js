@@ -16,7 +16,7 @@ import * as utils from 'es6!utils/utils';
 var BuildTestsPage = React.createClass({
 
   menuItems: [
-    'Failed/Skipped Tests',
+    'Not Passing Tests',
     'Slow Tests',
   ],
 
@@ -35,7 +35,7 @@ var BuildTestsPage = React.createClass({
 
     // when we first came to this page, which tab was shown? Used by the
     // initial data fetching within tabs
-    this.initialTab = selectedItemFromHash || 'Failed/Skipped Tests';
+    this.initialTab = selectedItemFromHash || 'Not Passing Tests';
 
     this.setState({ selectedItem: this.initialTab });
 
@@ -79,7 +79,7 @@ var BuildTestsPage = React.createClass({
 
     var content = null;
     switch (selectedItem) {
-      case 'Failed/Skipped Tests':
+      case 'Not Passing Tests':
         content = this.renderFailed();
         break;
       case 'Slow Tests':
@@ -199,10 +199,6 @@ var BuildTestsPage = React.createClass({
     }
 
     var slowTests = slowTestsInteractive.getDataToShow().getReturnedData();
-
-    if (!slowTests) {
-      return <div>No tests?!</div>;
-    }
 
     var rows = [];
     _.each(slowTests, test => {
