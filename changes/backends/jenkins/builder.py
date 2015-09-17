@@ -741,6 +741,7 @@ class JenkinsBuilder(BaseBackend):
             'job_name': step.data['job_name'],
             'build_no': step.data['build_no'],
             'generated': True,
+            # TODO: _pick_master here seems very suspicious.
             'master': self._pick_master(step.data['job_name'], is_diff),
         }
 
@@ -754,6 +755,12 @@ class JenkinsBuilder(BaseBackend):
                 continue
 
             pending_artifacts.remove(artifact_filename)
+
+            if ManifestJsonHandler.can_process(artifact_filename):
+                # Associate any manifest file with the original step for
+                # accurate validation.
+                self._handle_generic_artifact(step, artifact_data)
+                continue
 
             resp = self.fetch_artifact(step, artifact_data)
             phase_data = resp.json()
