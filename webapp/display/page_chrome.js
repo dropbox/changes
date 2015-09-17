@@ -45,7 +45,7 @@ export var ChangesPage = React.createClass({
     }
 
     var optinHeader = null;
-    if (URI(window.location.href).query(true)['optin']) {
+    if (URI(window.location.href).query(true)['optin'] && !this.props.fixed) {
       optinHeader = <div className="persistentMessageHeader">
         You{"'"}ve been redirected to a new UI for Changes. Its still under
         development, so let us know what you think with the feedback link at

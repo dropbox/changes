@@ -43,6 +43,7 @@ require([
   "uriJS/URI",
   "es6!server/api",
   "es6!utils/custom_content",
+  "es6!display/changes/links",
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",
@@ -61,6 +62,7 @@ require([
   URI,
   data_fetching,
   custom_content_hook,
+  ChangesLinks,
 
   HomePage,
   ProjectPage,
@@ -94,6 +96,23 @@ require([
   var path = path.split(/[\?#]/, 1)[0];
   var path_parts = _.compact(path.split('/'));
 
+  if (path_parts[0] === 'find_build') {
+    var redirect_func = function(response, was_success) {
+      if (!was_success) {
+        document.write('Redirect failed');
+        return;
+      }
+      var build = JSON.parse(response.responseText);
+      var new_href = URI(ChangesLinks.buildHref(build))
+        .addSearch('optin', 1);
+      window.location.href = new_href;
+    }
+    data_fetching.make_api_ajax_get('/api/0/builds/' + path_parts[1],
+      redirect_func, redirect_func);
+
+    return;
+  }
+
   var url_contains = {
     'projects': [AllProjectsPage],
     'project': [ProjectPage, 'projectSlug'],
@@ -104,8 +123,7 @@ require([
     'build_tests': [BuildTestsPage, 'buildID'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],
-    // TODO: don't just use the homepage for this
-    'author': [HomePage, 'author'],
+    'author': [HomePage, 'author'],  // TODO: don't just use the homepage
     'node': [NodePage, 'node_id'],
   };
 

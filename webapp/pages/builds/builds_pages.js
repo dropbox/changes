@@ -140,17 +140,34 @@ var BuildsPage = React.createClass({
 
     this.updateWindowUrl();
 
+    // temporary
+    var topHeader = <div
+      className="persistentMessageHeader"
+      style={{position: 'fixed', top: 40, zIndex: 20}}>
+      You probably came here from clicking a link in Phabricator. This is
+      still not quite ready for primetime (I added the Phabricator extension
+      a bit early), but you{"'"}re welcome to test and send us feedback using
+      the top link.
+    </div>;
+
+    if (URI(window.location.href).query(true)['optin']) {
+      topHeader = <div
+        className="persistentMessageHeader"
+        style={{position: 'fixed', top: 40, zIndex: 20}}>
+        You{"'"}ve been redirected to a new UI for Changes. Its still under
+        development, so let us know what you think with the feedback link at
+        the top. If you need to use the old ui, you can use the{" "}
+        <a className="external" target="_blank" href="/my/builds/">my builds</a>
+        {" "}page.
+      </div>;
+    }
+
     // TODO: cleanup!
     return <ChangesPage bodyPadding={false} fixed={true}>
       <div className="buildsLabelHeader">
         {this.renderLabelHeader()}
       </div>
-      <div className="persistentMessageHeader" style={{position: 'fixed', top: 40, zIndex: 20}}>
-        You probably came here from clicking a link in Phabricator. This is
-        still not quite ready for primetime (I added the Phabricator extension
-        a bit early), but you{"'"}re welcome to test and email us feedback
-        (we'll add a feedback link to the header soon too.)
-      </div>
+      {topHeader}
       <Sidebar
         builds={this.props.builds}
         type={this.props.type}
