@@ -5,7 +5,6 @@ import SectionHeader from 'es6!display/section_header';
 import { ChangesPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
-import { display_duration } from 'es6!display/time';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
