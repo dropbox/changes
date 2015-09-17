@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 
+import ChangesUI from 'es6!display/changes/ui';
+
 import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
@@ -194,11 +196,12 @@ var InteractiveDataPrototype = {
     return this._fetchNewestData(new_params);
   },
 
-  _paginate(page_params) {
+  _paginate(page_params, evt) {
     // when the user updates a control, we want to merge the updated param into
     // the params we're already sending the server. For paging, though,
     // the server does this automatically for us.
-    return this._fetchNewestData(page_params);
+    evt.preventDefault();
+    this._fetchNewestData(page_params);
   },
 
   _fetchNewestData(params) {
@@ -232,11 +235,18 @@ var InteractiveDataPrototype = {
 
     // the paging api should return the same endpoint that we're already
     // using, so we'll just grab the get params
-    var on_click = params => this._paginate(params);
+    var onClick = {
+      previous: params.previous && ChangesUI.leftClickOnly(
+          _.partial(this._paginate, params.previous)
+        ).bind(this),
+      next: params.next && ChangesUI.leftClickOnly(
+          _.partial(this._paginate, params.next)
+        ).bind(this)
+    };
 
     var links = [];
 
-    var prev_classes = cx({
+    var prevClasses = cx({
       pagingLink: true,
       marginRightS: true,
       disabled: !params.previous
@@ -244,8 +254,9 @@ var InteractiveDataPrototype = {
 
     links.push(
       <a
-        className={prev_classes}
-        onClick={params.previous && on_click.bind(this, params.previous)}>
+        className={prevClasses}
+        onClick={onClick.previous}
+        href={URI(window.location.href).query(params.previous)}>
         &laquo; Previous
       </a>
     );
@@ -259,7 +270,8 @@ var InteractiveDataPrototype = {
     links.push(
       <a
         className={next_classes}
-        onClick={params.next && on_click.bind(this, params.next)}>
+        onClick={onClick.next}
+        href={URI(window.location.href).query(params.next)}>
         Next &raquo;
       </a>
     );

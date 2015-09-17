@@ -48,6 +48,23 @@ var ChangesUI = {
     elements.push(string.substring(current_pos));
 
     return elements;
+  },
+
+  leftClickOnly: function(wrapped_event_handler) {
+    return function() {
+      var args = Array.prototype.slice.call(arguments);
+      var evt = args[0];
+      if (evt.button !== 0) {
+        // these return values might be ignored
+        return true;
+      }
+
+      if (evt.altKey || evt.ctrlKey || evt.metaKey) {
+        return true;
+      }
+
+      return wrapped_event_handler.apply(this, args);
+    }
   }
 };
 
