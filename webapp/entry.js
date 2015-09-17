@@ -48,7 +48,7 @@ require([
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",
   "es6!pages/project/project_page",
-  "es6!pages/my_builds_page",
+  "es6!pages/author_builds_page",
   "es6!pages/builds/builds_pages",
   "es6!pages/builds/build_tests_page",
   "es6!pages/test_history_page",
@@ -66,7 +66,7 @@ require([
 
   HomePage,
   ProjectPage,
-  MyBuildsPage,
+  AuthorBuildsPage,
   buildsPages,
   BuildTestsPage,
   TestHistoryPage,
@@ -116,7 +116,7 @@ require([
   var url_contains = {
     'projects': [AllProjectsPage],
     'project': [ProjectPage, 'projectSlug'],
-    'builds': [MyBuildsPage],
+    'author_builds': [AuthorBuildsPage, 'author'],
     'commit': [CommitPage, 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
     'single_build': [SingleBuildPage, 'buildID'],

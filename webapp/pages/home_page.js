@@ -75,11 +75,11 @@ var HomePage = React.createClass({
       <div>
         <Diffs
           diffs={this.state.diffs}
-          isSelf={!this.props.author}
+          author={this.props.author}
         />
         <Commits
           commits={this.state.commits}
-          isSelf={!this.props.author}
+          author={this.props.author}
         />
       </div>
       {projects}
@@ -126,8 +126,8 @@ var Diffs = React.createClass({
     // diffs authored by the user (and associated builds)
     diffs: PropTypes.array,
 
-    // isSelf = false when we're using this page as a makeshift user page
-    isSelf: PropTypes.bool
+    // author = null if viewing home page, otherwise the author
+    author: PropTypes.string,
   },
 
   getInitialState: function() {
@@ -172,7 +172,7 @@ var Diffs = React.createClass({
       'Updated'
     ];
 
-    var header_text = this.props.isSelf ?  'My Diffs' : 'Diffs';
+    var header_text = !this.props.author ?  'My Diffs' : 'Diffs';
     return <div className="paddingBottomM">
       <SectionHeader>{header_text}</SectionHeader>
       <Grid
@@ -202,8 +202,8 @@ var Commits = React.createClass({
     // commits authored by the user (and associated builds)
     commits: PropTypes.object,
 
-    // isSelf = false when we're using this page as a makeshift user page
-    isSelf: PropTypes.bool
+    // author = null if viewing home page, otherwise the author
+    author: PropTypes.string,
   },
 
   getInitialState: function() {
@@ -258,7 +258,7 @@ var Commits = React.createClass({
     var is_it_out_markup = null;
 
     var is_it_out_link = custom_content_hook('isItOutHref');
-    if (is_it_out_link && this.props.isSelf) {
+    if (is_it_out_link && !this.props.author) {
       is_it_out_markup = <div className="darkGray marginTopM">
         Check to see if your commit is live in production:{" "}
         <a className="external" href={is_it_out_link} target="_blank">is it out?</a>
@@ -266,12 +266,13 @@ var Commits = React.createClass({
       </div>;
     }
 
-    var header_text = this.props.isSelf ?
+    var header_text = !this.props.author ?
       'My Commits' : 'Commits';
 
     // TODO: this doesn't actually show other people's builds :/
-    var builds_sentence = this.props.isSelf ?
+    var builds_sentence = !this.props.author ?
       'See all of your ' : 'See all ';
+    var buildsHref = `/v2/author_builds/${this.props.author || 'me'}`;
 
     return <div className="marginTopL">
       <SectionHeader>{header_text}</SectionHeader>
@@ -282,7 +283,7 @@ var Commits = React.createClass({
         headers={headers}
       />
       <div className="darkGray marginTopM">
-        {builds_sentence}<a href="/v2/builds">recent builds</a>{"."}
+        {builds_sentence}<a href={buildsHref}>recent builds</a>{"."}
       </div>
       {is_it_out_markup}
     </div>;
