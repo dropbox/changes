@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
+import { AjaxError } from 'es6!display/errors';
 import { ChangesPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
@@ -207,8 +208,16 @@ var BuildTestsPage = React.createClass({
       ]);
     });
 
+    var errorMessage = null;
+    if (slowTestsInteractive.failedToLoadUpdatedData()) {
+      errorMessage = <AjaxError response={slowTestsInteractive.getDataForErrorMessage().response} />;
+    }
+    var style = slowTestsInteractive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
+
     var pagingLinks = slowTestsInteractive.getPagingLinks();
-    return <div>
+
+    return <div style={style}>
+      {errorMessage}
       <Grid
         colnum={2}
         className="marginBottomM marginTopM"

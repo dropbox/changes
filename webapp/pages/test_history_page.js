@@ -1,11 +1,15 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
+import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { ConditionDot } from 'es6!display/changes/builds';
 import { Grid } from 'es6!display/grid';
 import { TimeText, display_duration } from 'es6!display/time';
+
+import InteractiveData from 'es6!pages/helpers/interactive_data';
 
 import * as api from 'es6!server/api';
 
@@ -20,18 +24,30 @@ var TestHistoryPage = React.createClass({
     }
   },
 
-  componentDidMount: function() {
-    var project_id = this.props.projectUUID;
-    var test_hash = this.props.testHash;
+  componentWillMount: function() {
+    var projectID = this.props.projectUUID;
+    var testHash = this.props.testHash;
 
-    var info_endpoint = `/api/0/projects/${project_id}/tests/${test_hash}/`;
-    var history_endpoint = `/api/0/projects/${project_id}/tests/${test_hash}/history/` +
+    var historyEndpoint = `/api/0/projects/${projectID}/tests/${testHash}/history/` +
       '?per_page=100&branch=master';
 
+    this.setState({
+      history: InteractiveData(this,
+        'history',
+        historyEndpoint),
+    });
+  },
+
+  componentDidMount: function() {
+    var projectID = this.props.projectUUID;
+    var testHash = this.props.testHash;
+
+    var info_endpoint = `/api/0/projects/${projectID}/tests/${testHash}/`;
     api.fetch(this, {
       info: info_endpoint,
-      history: history_endpoint
     });
+
+    this.state.history.initialize(InteractiveData.getParamsFromWindowUrl());
   },
 
   render() {
@@ -48,11 +64,15 @@ var TestHistoryPage = React.createClass({
   },
 
   renderHistory() {
-    if (!api.isLoaded(this.state.history)) {
-      return <APINotLoaded calls={this.state.history} />;
+    var historyInteractive = this.state.history;
+
+    if (historyInteractive.hasNotLoadedInitialData()) {
+      return <APINotLoaded calls={historyInteractive.getDataToShow()} />;
     }
 
-    var rows = _.map(this.state.history.getReturnedData(), t => {
+    var history = historyInteractive.getDataToShow().getReturnedData();
+
+    var rows = _.map(history, t => {
       if (!t) {
         return [
           null, null, null, null, 
@@ -67,8 +87,8 @@ var TestHistoryPage = React.createClass({
       return [
         <ConditionDot condition={t.result.id} />,
         display_duration(t.duration / 1000),
-        <a href="#">{utils.email_head(revision.author.email)}</a>,
-        <a href="#">{utils.truncate(revision.sha, 8)}</a>,
+        ChangesLinks.author(revision.author),
+        ChangesLinks.phabCommit(revision),
         utils.first_line(revision.message),
         <TimeText time={revision.dateCreated} />
       ];
@@ -86,12 +106,26 @@ var TestHistoryPage = React.createClass({
     var cellClasses = ['nowrap center', 'nowrap center', 'nowrap',
       'nowrap', 'wide', 'nowrap'];
 
-    return <Grid
-      colnum={6}
-      data={rows}
-      headers={headers}
-      cellClasses={cellClasses}
-    />;
+    var errorMessage = null;
+    if (historyInteractive.failedToLoadUpdatedData()) {
+      errorMessage = <AjaxError response={historyInteractive.getDataForErrorMessage().response} />;
+    }
+    var style = historyInteractive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
+
+    var pagingLinks = historyInteractive.getPagingLinks();
+
+    return <div style={style}>
+      {errorMessage}
+      <Grid
+        colnum={6}
+        data={rows}
+        headers={headers}
+        cellClasses={cellClasses}
+      />
+      <div className="marginTopM">
+        {pagingLinks}
+      </div>
+    </div>;
   }
 });
 
