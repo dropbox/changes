@@ -22,7 +22,7 @@ var APIResponsePrototype = {
     return this.response.status + "";
   },
 
-  // api calls with pagination return their links as a response header.
+  // api calls with paging return their links as a response header.
   getLinksFromHeader: function() {
     var header = this.response.getResponseHeader('Link');
     if (header === null) {

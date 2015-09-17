@@ -86,7 +86,7 @@ var CommitsTab = React.createClass({
       {this.renderTableControls()}
       {error_message}
       {this.renderTable()}
-      {this.renderPagination()}
+      {this.renderPaging()}
     </div>;
   },
 
@@ -216,8 +216,8 @@ var CommitsTab = React.createClass({
     ];
   },
 
-  renderPagination: function() {
-    var links = this.props.interactive.getPaginationLinks();
+  renderPaging: function() {
+    var links = this.props.interactive.getPagingLinks();
     return <div className="marginBottomM marginTopM">{links}</div>;
   },
 });

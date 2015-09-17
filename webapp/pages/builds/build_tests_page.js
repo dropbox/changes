@@ -212,7 +212,7 @@ var BuildTestsPage = React.createClass({
       ]);
     });
 
-    var paginationLinks = slowTestsInteractive.getPaginationLinks();
+    var pagingLinks = slowTestsInteractive.getPagingLinks();
     return <div>
       <Grid
         colnum={2}
@@ -221,7 +221,7 @@ var BuildTestsPage = React.createClass({
         headers={['Name', 'Duration (ms)']}
       />
       <div className="marginTopM marginBottomM">
-        {paginationLinks}
+        {pagingLinks}
       </div>
     </div>;
   },

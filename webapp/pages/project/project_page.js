@@ -52,7 +52,7 @@ var ProjectPage = React.createClass({
 
     this.setState({ selectedItem: this.initialTab });
 
-    // initialize our pagination objects. Data fetching still doesn't happen
+    // initialize our paging objects. Data fetching still doesn't happen
     // till componentDidMount (either ours or the subcomponent.)
     this.setState({
       buildsInteractive: InteractiveData(

@@ -117,7 +117,7 @@ var BuildsTab = React.createClass({
           headers={headers}
         />
       </div>
-      {this.renderPagination()}
+      {this.renderPaging()}
     </div>;
   },
 
@@ -167,8 +167,8 @@ var BuildsTab = React.createClass({
     />;
   },
 
-  renderPagination: function(commits) {
-    var links = this.props.interactive.getPaginationLinks();
+  renderPaging: function(commits) {
+    var links = this.props.interactive.getPagingLinks();
     return <div className="marginTopM marginBottomM">{links}</div>;
   },
 });

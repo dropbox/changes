@@ -9,7 +9,7 @@ var cx = React.addons.classSet;
 /*
  * A data structure for you to make a table of data interactive. It helps with
  * several things.
- * - Renders pagination links for you. It also keeps track of both the fetched
+ * - Renders paging links for you. It also keeps track of both the fetched
  *   and not-yet-fetched data when getting new pages from the server, allowing
  *   you to render the transition state.
  * - Allows you to add controls, e.g. a dropdown for which branch to choose
@@ -42,7 +42,7 @@ var cx = React.addons.classSet;
  *   current data, then use that to render what state your controls are in.
  *   When someone changes your controls, call updateWithParams with the
  *   query parameters you want to change.
- * - getPaginationLinks returns previous and next buttons (either might be
+ * - getPagingLinks returns previous and next buttons (either might be
  *   disabled)
  * - updateWindowUrl will update the current window href with the current
  *   state in this component. Use this if, say, you have multiple tabs and you
@@ -181,7 +181,7 @@ var InteractiveDataPrototype = {
 
   /*
    * Call this when the user changes a control and you want to fetch new data
-   * from the api. If the user clicks on a pagination link, we use paginate
+   * from the api. If the user clicks on a paging link, we use paginate
    * instead
    */
   updateWithParams(new_params, reset_page = false) {
@@ -196,7 +196,7 @@ var InteractiveDataPrototype = {
 
   _paginate(page_params) {
     // when the user updates a control, we want to merge the updated param into
-    // the params we're already sending the server. For pagination, though,
+    // the params we're already sending the server. For paging, though,
     // the server does this automatically for us.
     return this._fetchNewestData(page_params);
   },
@@ -223,21 +223,21 @@ var InteractiveDataPrototype = {
     );
   },
 
-  getPaginationLinks() {
+  getPagingLinks() {
     var hrefs = this.getDataToShow().getLinksFromHeader();
     var params = {
       previous: hrefs.previous && URI(hrefs.previous).search(true),
       next: hrefs.next && URI(hrefs.next).search(true)
     };
 
-    // the pagination api should return the same endpoint that we're already
+    // the paging api should return the same endpoint that we're already
     // using, so we'll just grab the get params
     var on_click = params => this._paginate(params);
 
     var links = [];
 
     var prev_classes = cx({
-      paginationLink: true,
+      pagingLink: true,
       marginRightS: true,
       disabled: !params.previous
     });
@@ -251,7 +251,7 @@ var InteractiveDataPrototype = {
     );
 
     var next_classes = cx({
-      paginationLink: true,
+      pagingLink: true,
       marginRightS: true,
       disabled: !params.next
     });

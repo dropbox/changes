@@ -91,13 +91,13 @@ var MyBuildsPage = React.createClass({
           data={data}
           headers={headers}
         />
-      {this.renderPagination()}
+      {this.renderPaging()}
       </div>
     </ChangesPage>;
   },
 
-  renderPagination: function(builds) {
-    var links = this.state.buildsInteractive.getPaginationLinks();
+  renderPaging: function(builds) {
+    var links = this.state.buildsInteractive.getPagingLinks();
     return <div className="marginTopM marginBottomM">{links}</div>;
   },
 });
