@@ -381,7 +381,10 @@ var ChangesLogin = React.createClass({
       </a>;
     } else {
       return <div className="floatR">
-        <a className="headerLinkBlock" href="/auth/logout?return=1">
+        <a 
+          className="headerLinkBlock" 
+          href="/auth/logout?return=1" 
+          title="Sign Out">
           <i className="fa fa-sign-out"></i>
         </a>
       </div>;
