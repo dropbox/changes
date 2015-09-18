@@ -42,10 +42,23 @@ export var TimeText = React.createClass({
     }
   },
 
+  getInitialState: function() {
+    return { raw: false };
+  },
+
   render: function() {
-    var { time, format, ...others } = this.props;
+    var { time, format, className, ...others } = this.props;
+
+    if (!time) {
+      return <span {...others}></span>;
+    }
+
     var time_text = '';
-    if (time) {
+    var classes = '', title = '';
+    if (!this.state.raw) {
+      classes += 'timeTextExpandable';
+      title = 'Click to view full timestamp';
+
       // parse in utc, display in local time
       if (format) {
         var time = moment.utc(time, format).local();
@@ -62,8 +75,30 @@ export var TimeText = React.createClass({
       } else {
         time_text = time.format('MMM D, YYYY');
       }
+    } else {
+      var DATE_RFC2822 = "ddd, DD MMM YYYY HH:mm:ss ZZ";
+
+      time_text = <span>
+        <span className="lb">Local:</span>{" "}
+          {moment.utc(time, format).local().format(DATE_RFC2822)}<br />
+        <span className="lb">UTC:</span>{" "}
+          {moment.utc(time, format).format(DATE_RFC2822)}
+      </span>;
     }
-    return <span {...others}>{time_text}</span>;
+
+    var onClick = evt => {
+      this.setState({ raw: true });
+    };
+
+    classes = classes + " " + (className || "");
+
+    return <span 
+      onClick={onClick} 
+      className={classes} 
+      title={title}
+      {...others}>
+      {time_text}
+    </span>;
   }
 });
 
