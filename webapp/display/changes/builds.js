@@ -87,51 +87,78 @@ export var ManyBuildsStatus = React.createClass({
 
 /*
  * Shows the status of a single build. This tooltip can go into more details
- * than ManyBuildsStatus
+ * than ManyBuildsStatus (show the names of the failing tests)
  */
 export var SingleBuildStatus = React.createClass({
+
+  MAX_TESTS_IN_TOOLTIP: 15,
 
   render: function() {
     var build = this.props.build;
     var condition = get_runnable_condition(build);
-
-    var num = null;
-    if (build.stats && build.stats.test_failures) {
-      num = build.stats.test_failures;
-    }
-    var dot = <ConditionDot condition={condition} num={num} />;
-
+    var dot = <ConditionDot condition={condition} />;
     var href = ChangesLinks.buildHref(build);
 
-    /*
+    var extra_text = null;
+
     // TODO: show popover for any failure, not just test failures
+    var tooltip = this.getStandardTooltip();
     if (build.stats['test_failures'] > 0) {
-
-      var popover = this.getFailedTestsPopover();
-      if (popover) {
-        return <div>
-          <OverlayTrigger
-            placement='right'
-            overlay={popover}>
-            <div>{build_widget}</div>
-          </OverlayTrigger>
-        </div>;
-      }
+      tooltip = this.getFailedTestsTooltip();
+      extra_text = build.stats['test_failures'];
     }
-    */
 
-    // TODO: more than this
-    var tooltip = <Tooltip>TODO</Tooltip>;
-    return <OverlayTrigger
-      placement="right"
-      overlay={tooltip}>
-      <a className="buildStatus" href={href}>
-        {dot}
-      </a>
-    </OverlayTrigger>;
+    var extra_text_classes = "buildWidgetText " +
+      get_runnable_condition_color_cls(condition)
+
+    var widget = <a className="buildStatus" href={href}>
+      {dot}
+      <span className={extra_text_classes}>
+        {extra_text}
+      </span>
+    </a>;
+
+    if (tooltip) {
+      return <div>
+        <OverlayTrigger
+          placement='right'
+          overlay={tooltip}>
+          <div>{widget}</div>
+        </OverlayTrigger>
+      </div>;
+    }
+
+    return widget;
   },
 
-  getFailedTestsPopover: function() {
+  getStandardTooltip() {
+    return <Tooltip>{this.getTooltipHeader()}</Tooltip>;
+  },
+
+  getTooltipHeader() {
+    var build = this.props.build;
+
+    var subtext = '';
+    if (build.stats.test_count === 0) {
+      subtext = 'No tests run';
+    } else if (build.stats.test_failures > 0) {
+      subtext = `${build.stats.test_failures} of ${build.stats.test_count} tests failed`;
+    } else {
+      subtext = `All ${build.stats.test_count} tests passed`;
+    }
+
+    return <div style={{textAlign: "left"}}>
+      <div style={{ display: "inline-block", paddingTop: 10, paddingRight: 5}}>
+        <ConditionDot condition={get_runnable_condition(build)} />
+      </div>
+      <div style={{ verticalAlign: "top", display: "inline-block"}}>
+        <div>{build.project.name}</div>
+        <span className="mediumGray">{subtext}</span>
+      </div>
+    </div>;
+  },
+
+  getFailedTestsTooltip: function() {
     var elem = this.props.parentElem, build = this.props.build;
 
     var state_key = "_build_widget_failed_tests";
@@ -148,15 +175,16 @@ export var SingleBuildStatus = React.createClass({
     if (elem.state[state_key] &&
         api.isLoaded(elem.state[state_key][build.id])) {
       var data = elem.state[state_key][build.id].getReturnedData();
-      var list = _.map(data.testFailures.tests, t => {
+      var tests = data.testFailures.tests.slice(0, this.MAX_TESTS_IN_TOOLTIP);
+      var list = _.map(tests, t => {
         return <div>{_.last(t.name.split("."))}</div>;
       });
 
-      if (data.testFailures.tests.length < build.stats['test_failures']) {
+      if (tests.length < build.stats['test_failures']) {
         list.push(
           <div className="marginTopS"> <em>
             Showing{" "}
-            {data.testFailures.tests.length}
+            {tests.length}
             {" "}out of{" "}
             {build.stats['test_failures']}
             {" "}test failures
@@ -164,10 +192,13 @@ export var SingleBuildStatus = React.createClass({
         );
       }
 
-      return <Popover>
-        <span className="bb">Failed Tests:</span>
-        {list}
-      </Popover>;
+      return <Tooltip key={+new Date()}>
+        {this.getTooltipHeader()}
+        <div style={{textAlign: "left", marginTop: 10}}>
+          <span className="bb">Failed Tests:</span>
+          {list}
+        </div>
+      </Tooltip>;
     } else {
       // we want to fetch more build information and show a list of failed
       // tests on hover. To do this, we'll create an anonymous react element
@@ -192,10 +223,13 @@ export var SingleBuildStatus = React.createClass({
         {elem: elem, buildID: build.id}
       );
 
-      return <Popover>
+      return <Tooltip>
+        {this.getTooltipHeader()}
         {data_fetcher}
-        Loading failed test list
-      </Popover>;
+        <div style={{textAlign: "left", marginTop: 10}}>
+          Loading failed test list
+        </div>
+      </Tooltip>;
     }
   },
 });

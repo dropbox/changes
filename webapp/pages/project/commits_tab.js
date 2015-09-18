@@ -199,9 +199,7 @@ var CommitsTab = React.createClass({
         display_duration(last_build.duration / 1000) :
         null;
 
-      tests = get_runnable_condition(last_build) !== 'waiting' ?
-        last_build.stats.test_count :
-        <span className="bluishGray">{last_build.stats.test_count}</span>;
+      tests = last_build.stats.test_count;
     }
 
     // TODO: if there are any comments, show a comment icon on the right
