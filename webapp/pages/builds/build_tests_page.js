@@ -112,9 +112,6 @@ var BuildTestsPage = React.createClass({
 
     var rows = [];
     _.each(failedTests, test => {
-      console.log(test);
-      var split_char = test.name.indexOf('/') >= 0 ? '/' : '.';
-      var simple_name = _.last(test.name.split(split_char));
       var href = `/v2/project_test/${project_id}/${test.hash}`;
 
       var onClick = __ => {
@@ -133,7 +130,7 @@ var BuildTestsPage = React.createClass({
 
       var markup = [
         <div>
-          {simple_name} <a onClick={onClick}>Expand</a>
+          {test.shortName} <a onClick={onClick}>Expand</a>
           <div className="subText">{test.name}</div>
         </div>
       ];

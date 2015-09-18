@@ -177,7 +177,7 @@ export var SingleBuildStatus = React.createClass({
       var data = elem.state[state_key][build.id].getReturnedData();
       var tests = data.testFailures.tests.slice(0, this.MAX_TESTS_IN_TOOLTIP);
       var list = _.map(tests, t => {
-        return <div>{_.last(t.name.split("."))}</div>;
+        return <div>{t.shortName}</div>;
       });
 
       if (tests.length < build.stats['test_failures']) {
