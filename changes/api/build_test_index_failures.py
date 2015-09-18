@@ -30,6 +30,7 @@ class BuildTestIndexFailuresAPIView(APIView):
             test_info['result'] = test.result.name
             test_info['job_id'] = test.job_id
             test_info['test_id'] = test.id
+            test_info['shortName'] = test.short_name
 
             result_list.append(test_info)
 
