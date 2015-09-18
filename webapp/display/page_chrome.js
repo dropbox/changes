@@ -78,7 +78,8 @@ export var ChangesPage = React.createClass({
 export var APINotLoadedPage = React.createClass({
 
   propTypes: {
-    calls: PropTypes.oneOf(PropTypes.object, PropTypes.array).isRequired
+    // required, but this could be null
+    calls: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 
     // ...
     // transfers other properties to rendered <ChangesPage />

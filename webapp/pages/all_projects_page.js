@@ -151,7 +151,8 @@ var AllProjectsPage = React.createClass({
     });
 
     var headers = ['Last Build', 'When', 'Name', 'Links', 'Notes'];
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'nowrap', 'wide'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'nowrap',
+      'cellOverflow'];
 
     return <Grid
       colnum={5}

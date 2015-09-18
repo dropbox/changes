@@ -14,6 +14,7 @@ export var Grid = React.createClass({
     // a row (same length as other rows) used for blue header cells
     headers: PropTypes.array,
     // same length as row, we add each css class to the row cells
+    // we have some magic classes (descriptions in css file): cellOverflow
     cellClasses: PropTypes.arrayOf(PropTypes.string),
     // whether to render dividers between rows
     border: PropTypes.bool,
@@ -90,6 +91,24 @@ export var Grid = React.createClass({
           className += ' gridCell';
         }
 
+        // cellOverflow magic class: we wrap the contents in a span and expand
+        // it on click
+        if (className.indexOf('cellOverflow') >= 0) {
+          var onClick = evt => {
+            var newClass = evt.target.className
+              .replace("cellOverflowPointer", "") +
+              " cellOverflowExpanded";
+
+            evt.target.className = newClass;
+          };
+
+          var cell = <td className={className} onClick={onClick}>
+            {cell}
+          </td>;
+
+          return cell;
+        }
+
         return <td className={className}>
           {cell}
         </td>;
@@ -108,6 +127,23 @@ export var Grid = React.createClass({
     return <tr className={row_classes}>
       {cells}
     </tr>;
+  },
+
+  componentDidMount: function() {
+    // hack: we add the cellOverflowPointer class to any cell with overflowing
+    // content. Note that this won't update if we scroll (but its a minor ui
+    // issue and let's us avoid adding a scroll handler.)
+
+    // React might not properly dispose of this class if something weird
+    // happens, but that should be ok. The css rule only triggers when both
+    // a react-supplied class and our custom class are present.
+
+    var overflowNodes = React.findDOMNode(this).getElementsByClassName('cellOverflow');
+    _.each(overflowNodes, cell => {
+      if (cell.scrollWidth > cell.clientWidth) {
+        cell.className += " cellOverflowPointer";
+      }
+    });
   },
 
   // verify that we were passed in good data
@@ -169,7 +205,6 @@ export var Grid = React.createClass({
 
     return null;
   },
-
 });
 
 /*

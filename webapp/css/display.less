@@ -76,6 +76,26 @@ tr.gridHeader {
   text-align: center;
 }
 
+.cellOverflow {
+  overflow: hidden;
+  max-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.cellOverflow.cellOverflowPointer {
+  cursor: pointer;
+}
+
+.cellOverflow.cellOverflowExpanded {
+  /* undo everything except width: 100% */
+  overflow: visible;
+  max-width: none;
+  text-overflow: clip;
+  white-space: normal;
+}
+
 /*
  * Error Box
  */
