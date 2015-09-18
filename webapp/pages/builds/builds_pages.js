@@ -24,6 +24,9 @@ var cx = React.addons.classSet;
  * Page that shows the builds associated with a single diff
  */
 export var DiffPage = React.createClass({
+  getInitialTitle: function() {
+    return `${this.props.diff_id}: Builds`;
+  },
 
   getInitialState: function() {
     return {
@@ -96,6 +99,10 @@ export var CommitPage = React.createClass({
         calls={[this.state.commitBuilds, this.state.source]}
       />;
     }
+
+    var sha = this.state.source.getReturnedData().revision.sha;
+    utils.setPageTitle(`${sha.substr(0, 7)}: Builds`);
+
 
     return <BuildsPage
       type="commit"
@@ -322,6 +329,9 @@ export var SingleBuildPage = React.createClass({
     if (!api.isLoaded(this.state.build)) {
       return <APINotLoadedPage calls={this.state.build} />;
     }
+
+    var project = this.state.build.getReturnedData().project;
+    utils.setPageTitle(`A ${project.name} Build`);
 
     return <ChangesPage>
       <SingleBuild build={this.state.build.getReturnedData()} />

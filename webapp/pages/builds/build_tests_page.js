@@ -68,6 +68,9 @@ var BuildTestsPage = React.createClass({
     }
     var buildInfo = this.state.buildInfo.getReturnedData();
 
+    var title = `Tests for ${buildInfo.project.name} Build`
+    utils.setPageTitle(title);
+
     // render menu
     var selectedItem = this.state.selectedItem;
 
@@ -90,9 +93,8 @@ var BuildTestsPage = React.createClass({
         throw 'unreachable';
     }
 
-    var name = buildInfo.project.name;
     return <ChangesPage highlight="Projects">
-      <SectionHeader>Tests for {name} Build</SectionHeader>
+      <SectionHeader>{title}</SectionHeader>
       {menu}
       <div className="marginTopS">{content}</div>
     </ChangesPage>;

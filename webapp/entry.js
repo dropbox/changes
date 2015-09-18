@@ -43,6 +43,7 @@ require([
   "uriJS/URI",
   "es6!server/api",
   "es6!utils/custom_content",
+  "es6!utils/utils",
   "es6!display/changes/links",
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
@@ -62,6 +63,7 @@ require([
   URI,
   data_fetching,
   custom_content_hook,
+  utils,
   ChangesLinks,
 
   HomePage,
@@ -124,7 +126,7 @@ require([
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],
     'author': [HomePage, 'author'],  // TODO: don't just use the homepage
-    'node': [NodePage, 'node_id'],
+    'node': [NodePage, 'nodeID'],
   };
 
   var page = FourOhFourPage;
@@ -150,8 +152,6 @@ require([
   }
 
   if (path === "") { page = HomePage; }
-
-  // TODO: pages should set window.document.title
 
   // we fetch some initial data used by pages (e.g. are we logged in?)
   var authResponse = null;
@@ -183,11 +183,16 @@ require([
     ).trim();
     document.getElementById('reactRoot').className = root_classes
 
-    React.render(
+    var pageElem = React.render(
       React.createElement(page, params),
       document.getElementById('reactRoot')
     );
 
+    var initialTitle = pageElem.getInitialTitle && pageElem.getInitialTitle();
+
+    if (initialTitle) {
+      utils.setPageTitle(initialTitle);
+    }
   };
 
   data_fetching.make_api_ajax_get('/api/0/auth',

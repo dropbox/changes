@@ -15,6 +15,10 @@ import * as utils from 'es6!utils/utils';
 
 var AllProjectsPage = React.createClass({
 
+  getInitialTitle: function() {
+    return 'All Projects';
+  },
+
   menuItems: [
     'Latest Project Builds',
     'Projects By Repository',

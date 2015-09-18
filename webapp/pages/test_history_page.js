@@ -54,9 +54,12 @@ var TestHistoryPage = React.createClass({
     if (!api.isLoaded(this.state.info)) {
       return <APINotLoadedPage calls={this.state.info} />;
     }
+    var test_data = this.state.info.getReturnedData();
+    utils.setPageTitle(`${test_data.shortName} - History`);
 
     return <ChangesPage>
-      <SectionHeader>Commits in master</SectionHeader>
+      <SectionHeader>History: {test_data.shortName}</SectionHeader>
+      Displaying a list of the results of this test for every commit in master.
       <div className="marginTopM">
         {this.renderHistory()}
       </div>

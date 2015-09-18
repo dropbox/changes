@@ -56,6 +56,9 @@ var LogPage = React.createClass({
       />;
     }
 
+    var parentJobstep = this.state.initialLog.getReturnedData().source.step;
+    utils.setPageTitle(`Logs - ${parentJobstep.node.name}`);
+
     return <ChangesPage fixed={true}>
       <LogComponent
         initialLog={this.state.initialLog}

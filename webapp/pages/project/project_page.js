@@ -82,6 +82,11 @@ var ProjectPage = React.createClass({
       return <APINotLoadedPage calls={this.state.project} />;
     }
 
+    utils.setPageTitle(
+      this.state.project.getReturnedData().name + ' - ' + 
+      this.state.selectedItem
+    );
+
     // render menu
     var selected_item = this.state.selectedItem;
     var onClick = item => {

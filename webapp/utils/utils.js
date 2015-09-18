@@ -9,9 +9,11 @@
 // Generic stuff
 //
 
-// jondoe@company.com -> jondoe
+// jondoe@company.com -> jondoe. leaves non-emails untouched
 export var email_head = function(email) {
-  return email.substring(0, email.indexOf('@'));
+  return email.indexOf('@') >= 0 ?
+    email.substring(0, email.indexOf('@')) :
+    email;
 }
 
 // truncates a string to length-3 chars and adds ...
@@ -143,4 +145,11 @@ export var update_state_dict = function(map_key, updates) {
 
 export var to_underscore = function(camelcase) {
   return this.replace(/([A-Z])/g, function($1){return "_"+$1.toLowerCase();});
+}
+
+export var setPageTitle = function(title) {
+  if (window.changesGlobals.IS_DEBUG) {
+    title = "\u2699 " + title;
+  }
+  window.document.title = title;
 }

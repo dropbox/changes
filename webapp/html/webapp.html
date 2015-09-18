@@ -2,7 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title ng-bind="pageTitle">Changes</title>
+    {% if IS_DEBUG %}
+    <title>&#x2699; Changes</title>
+    {% else %}
+    <title>Changes</title>
+    {% endif %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {% set ERROR_STYLE = "background-color: #a00; border: 1px solid #666; " +
@@ -42,8 +46,11 @@
     {% endif %}
       <script type="text/javascript">
         window.changesGlobals = {
+          {% if IS_DEBUG %}
+          IS_DEBUG: true,
+          {% endif %}
           APP_VERSION: '{{ VERSION }}',
-          PHABRICATOR_HOST: '{{ PHABRICATOR_HOST }}'
+          PHABRICATOR_HOST: '{{ PHABRICATOR_HOST }}',
         };
         {% if WEBAPP_USE_ANOTHER_HOST %}
           window.changesGlobals['USE_ANOTHER_HOST'] =

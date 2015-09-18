@@ -16,6 +16,13 @@ import custom_content_hook from 'es6!utils/custom_content';
 
 var HomePage = React.createClass({
 
+  getInitialTitle: function() {
+    if (!this.props.author) {
+      return 'My Changes';
+    }
+    // if this is being used as an author page, we'll set the title later
+  },
+
   getInitialState: function() {
     return {
       commits: null,
@@ -59,8 +66,9 @@ var HomePage = React.createClass({
     if (this.props.author) {
       var author_info = this.state.commits.getReturnedData()[0].builds[0].author;
       header_markup = <div style={{paddingBottom: 30, paddingTop: 10}}>
-        Diffs and Commits by {author_info.name}.
+        Diffs and Commits by {utils.email_head(this.props.author)} ({author_info.name})
       </div>;
+      utils.setPageTitle(`${utils.email_head(this.props.author)} - Changes`);
     }
 
     var projects = null;

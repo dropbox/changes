@@ -10,6 +10,8 @@ import { TimeText } from 'es6!display/time';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
+import * as utils from 'es6!utils/utils';
+
 var AuthorBuildsPage = React.createClass({
 
   componentWillMount: function() {
@@ -30,7 +32,7 @@ var AuthorBuildsPage = React.createClass({
   },
 
   render: function() {
-   var interactive = this.state.buildsInteractive;
+    var interactive = this.state.buildsInteractive;
 
     if (interactive.hasNotLoadedInitialData()) {
       return <APINotLoadedPage
@@ -83,13 +85,18 @@ var AuthorBuildsPage = React.createClass({
 
     var style = interactive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
-    var header_text = (!this.props.author || this.props.author === 'me') ?
-      'My Builds' :
-      `Builds (${this.props.author})`;
+    var title = 'My Builds', headerText = 'My Builds';
+    if (this.props.author && this.props.author !== 'me') {
+      var username = utils.email_head(this.props.author);
+      title = `${username} - Builds`;
+      headerText = `Builds by ${username}`;
+    }
+
+    utils.setPageTitle(title);
 
     return <ChangesPage>
       {error_message}
-      <SectionHeader>{header_text}</SectionHeader>
+      <SectionHeader>{headerText}</SectionHeader>
       <div style={style}>
         <Grid
           colnum={6}

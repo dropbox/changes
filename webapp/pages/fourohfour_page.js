@@ -1,10 +1,17 @@
 import React, { PropTypes } from 'react';
 
 import { ChangesPage } from 'es6!display/page_chrome';
+import { Error } from 'es6!display/errors';
 
 import custom_content_hook from 'es6!utils/custom_content';
 
 var FourOhFourPage = React.createClass({
+
+  getInitialTitle: function() {
+    return this.props.badUrl ? 
+      "Error" :
+      "Not Found";
+  },
 
   propTypes: {
     badUrl: PropTypes.bool

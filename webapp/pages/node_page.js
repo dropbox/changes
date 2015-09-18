@@ -8,6 +8,8 @@ import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
 
+import * as utils from 'es6!utils/utils';
+
 /**
  * Page that shows the builds associated with a single node, across all projects.
  */
@@ -21,7 +23,7 @@ var NodePage = React.createClass({
   },
 
   componentDidMount: function() {
-    var nodeID = this.props.node_id;
+    var nodeID = this.props.nodeID;
 
     var detailsEndpoint = `/api/0/nodes/${nodeID}/`;
     var jobsEndpoint = `/api/0/nodes/${nodeID}/jobs/`;
@@ -37,6 +39,9 @@ var NodePage = React.createClass({
         calls={[this.state.nodeJobs, this.state.nodeDetails]}
       />;
     }
+
+    var node = this.state.nodeDetails.getReturnedData();
+    utils.setPageTitle(node.name);
 
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [ 'Build', 'Phab.', 'Project', 'Name', 'Committed'];
