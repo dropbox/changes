@@ -203,9 +203,12 @@ export var SingleBuild = React.createClass({
         }
       };
 
+      var expandLabel = !this.state.expandedTests[test.id] ?
+        'Expand' : 'Collapse';
+
       var markup = [
         <div>
-          {test.shortName} <a onClick={onClick}>Expand</a>
+          {test.shortName} <a onClick={onClick}>{expandLabel}</a>
           <div className="subText">{test.name}</div>
         </div>
       ];
