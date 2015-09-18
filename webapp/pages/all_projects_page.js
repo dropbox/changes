@@ -140,22 +140,16 @@ var AllProjectsPage = React.createClass({
       return [
         widget,
         build_time,
-        p.name,
-        [<a href={ChangesLinks.projectHref(p)}>Commits</a>,
-         <a className="marginLeftM" href={ChangesLinks.projectHref(p, 'Details')}>
-           Details
-         </a>
-        ],
+        ChangesLinks.project(p),
         p.options["project.notes"]
       ];
     });
 
-    var headers = ['Last Build', 'When', 'Name', 'Links', 'Notes'];
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'nowrap',
-      'cellOverflow'];
+    var headers = ['Last Build', 'When', 'Name', 'Description'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'cellOverflow'];
 
     return <Grid
-      colnum={5}
+      colnum={4}
       data={grid_data}
       headers={headers}
       cellClasses={cellClasses}
