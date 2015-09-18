@@ -145,13 +145,17 @@ class JenkinsBuildStep(BuildStep):
         return self.get_builder().can_snapshot()
 
 
+SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log', '*.service.log')
+
+
 class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
     def __init__(self, job_name, script, cluster, diff_cluster='', path='',
                  workspace='', reset_script='', build_type=None,
                  setup_script='', teardown_script='',
-                 artifacts=XunitHandler.FILENAMES + CoverageHandler.FILENAMES + ManifestJsonHandler.FILENAMES,
+                 artifacts=XunitHandler.FILENAMES + CoverageHandler.FILENAMES +
+                 ManifestJsonHandler.FILENAMES + SERVICE_LOG_FILE_PATTERNS,
                  snapshot_script=None, **kwargs):
         """
         build_type describes how to use changes-client, but 'legacy'
