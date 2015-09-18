@@ -58,7 +58,11 @@ var ChangesLinks = {
   buildsHref: function(builds) {
     var build = builds[0];
 
-    if (!build.source.patch) {
+    if (!build.source) {
+      // this can happen occasionally. I think its if you committed a diff
+      // within the last few seconds...
+      return '';
+    } else if (!build.source.patch) {
       return URI(`/v2/commit/${build.source.id}/`).toString();
     } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
       return URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`).toString();
