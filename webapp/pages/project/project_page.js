@@ -190,7 +190,9 @@ var ProjectPage = React.createClass({
     }
 
     return <div style={{ padding: 20 }}>
-      <div><b>{project_info.name}</b></div>
+      <div><b>{project_info.name}</b>
+        <tt> (arc test {project_info.slug})</tt> 
+      </div>
       <span style={{ fontWeight: 600 }}>Repository:</span>
         {" "}{project_info.repository.url}{" "}
         {" ("}
