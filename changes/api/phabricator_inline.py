@@ -17,7 +17,6 @@ class PhabricatorInlineInfoAPIView(APIView):
         revision_id = request.args.get('revision_id')
         diff_id = request.args.get('diff_id')
 
-        print request.args
         if not revision_id or not diff_id:
             return error('missing revision or diff id')
 
