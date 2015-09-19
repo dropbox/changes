@@ -4,6 +4,8 @@ import moment from 'moment';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
+import { AjaxError } from 'es6!display/errors';
+import { Button } from 'es6!display/button';
 import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause } from 'es6!display/changes/builds';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -39,6 +41,9 @@ export var SingleBuild = React.createClass({
 
   getInitialState: function() {
     return {
+      // used by the recreate build button
+      recreateBuild: null,
+
       // states for toggling inline visibility of test snippets
       expandedTests: {},
       expandedTestsData: {}
@@ -90,6 +95,9 @@ export var SingleBuild = React.createClass({
 
     return <div>
       <div className="marginBottomL">
+        <div className="floatR">
+          {this.renderButton(build)}
+        </div>
         {this.renderHeader(build, job_phases)}
         {render_all ? this.renderDetails(build, job_phases) : null}
       </div>
@@ -150,6 +158,34 @@ export var SingleBuild = React.createClass({
         </span>{"."}
       </div>
     </div>;
+  },
+
+  renderButton: function(build) {
+    var recreate = this.state.recreateBuild;
+
+    if (recreate && recreate.condition === 'loading') {
+      return <div>
+        <i className="fa fa-spinner fa-spin" />
+      </div>;
+    } else if (api.isError(recreate)) {
+      return <AjaxError response={recreate.response} />;
+    } else if (api.isLoaded(recreate)) {
+      // reload to pick up the new build
+      window.location.reload();
+    }
+
+    var onClick = evt => {
+      api.post(this, {
+        recreateBuild: `/api/0/builds/${build.id}/retry/`
+      });
+    };
+
+    return <Button
+      type="white"
+      onClick={onClick}>
+      <i className="fa fa-repeat marginRightS" />
+      Recreate Build
+    </Button>;
   },
 
   renderDetails: function(build, job_phases) {

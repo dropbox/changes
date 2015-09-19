@@ -1,3 +1,5 @@
+import { Error } from 'es6!display/errors';
+
 import * as utils from 'es6!utils/utils';
 
 /**
@@ -48,11 +50,23 @@ export var fetch = function(elem, endpoint_map) {
   return fetchMap(elem, null, endpoint_map);
 }
 
+/* 
+ * Similar to fetch, but use this for post requests.
+ */
+export var post = function(elem, endpoint_map) {
+  return fetchMap(elem, null, endpoint_map, 'POST');
+}
+
 /*
  * Like fetch, but all of the results are in a map inside state with key `map_key`
  * You cannot directly call this from render! use asyncFetchMap instead
  */
-export var fetchMap = function(elem, map_key, endpoint_map) {
+export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET') {
+  method = method.toLowerCase();
+  if (method !== 'get' && method !== 'post') {
+    throw new Error('method must be get or post!');
+  }
+
   // add a bunch of "loading" APIResponse objects to the element state
   if (map_key) {
     // we preserve other elements in the map
@@ -93,7 +107,11 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
           map_key, state_key, api_response));
       }
     }
-    make_api_ajax_get(endpoint, ajax_response, ajax_response);
+    if (method === 'get') {
+      make_api_ajax_get(endpoint, ajax_response, ajax_response);
+    } else {
+      make_api_ajax_post(endpoint, ajax_response, ajax_response);
+    }
   });
 }
 
@@ -101,7 +119,7 @@ export var fetchMap = function(elem, map_key, endpoint_map) {
  * Wraps fetchMap in window.setTimeout. This allows you to call it from
  * render() (yes, there's a legitimate reason we do this...)
  *
- * TODO: replace with utils.async
+ * TODO: deleted only use case, maybe deprecate?
  */
 export var asyncFetchMap = function(elem, map_key, endpoint_map) {
   window.setTimeout(_ => {
