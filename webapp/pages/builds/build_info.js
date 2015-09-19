@@ -56,7 +56,7 @@ export var SingleBuild = React.createClass({
 
     var endpoint_map = {};
     _.each(job_ids, id => {
-      endpoint_map[id] = `/api/0/jobs/${id}/phases`;
+      endpoint_map[id] = `/api/0/jobs/${id}/phases?test_counts=1`;
     });
 
     // TODO: don't refetch every time (cache on parent)
@@ -330,8 +330,15 @@ export var SingleBuild = React.createClass({
           var failure_markup = _.map(shard_failures, f => {
             var reason = f.reason;
             if (f.id === 'test_failures') {
-              reason = f.reason.match(/\d+ failing tests/);
+              // Note: the failure message itself doesn't tell us the correct
+              // number of failing tests. I modified the API we use to send the
+              // correct number as a separate param
+              reason = 'Some tests failed';
+              if (shard.testFailures && shard.testFailures > 0) {
+                reason = utils.plural(shard.testFailures, 'test(s) failed');
+              }
             }
+
             return <div className="red">{reason}</div>;
           });
 
