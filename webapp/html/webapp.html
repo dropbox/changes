@@ -16,10 +16,14 @@
     <script type="text/javascript">
       window.onerror = function(errorMsg, url, lineNumber , column, errorObj) {
         if (errorMsg.indexOf("Load timeout for modules") === -1) {
+          var wrapperNode = document.createElement('div');
+          var textNode = document.createTextNode(errorMsg);
+          wrapperNode.appendChild(textNode);
+          var escapedMsg = wrapperNode.innerHTML;
           document.getElementById('jsErrors').innerHTML = '<div>' +
             '<b>Javascript Error (dev console has a more accurate error message/line #)</b>' +
             '<div style="font-size: smaller;">' + url + ': ' + lineNumber + '</div>' +
-            '<pre>' + errorMsg + '</pre>' +
+            '<pre>' + escapedMsg + '</pre>' +
             '</div>';
           document.getElementById('jsErrors').style.display = "block";
           return false;
