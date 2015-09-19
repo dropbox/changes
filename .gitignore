@@ -23,5 +23,6 @@ npm-debug.log
 !/webapp/custom/README
 /webapp/dist
 /webapp/css/bundled.css
+/webapp/css/bundled_with_custom.css
 webapp/.webassets-cache
 .vagrant

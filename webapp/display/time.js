@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 
+import Examples from 'es6!display/examples';
+
 import * as utils from 'es6!utils/utils';
 
 /*
@@ -140,3 +142,15 @@ export var display_duration_pieces = function(total_seconds) {
     `${minutes ? utils.pad(seconds, 2) : seconds}s`
   ];
 }
+
+Examples.add('TimeText and display_duration', __ => {
+  return [
+    <TimeText
+      className="block paddingBottomS"
+      time={moment.utc().local().toString()}
+    />,
+    <TimeText className="block" time="September 1, 2008 3:14 PM" />,
+    display_duration(57),
+    display_duration(3742)
+  ];
+});

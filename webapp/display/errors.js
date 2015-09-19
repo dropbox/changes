@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 
+import Examples from 'es6!display/examples';
+
 /*
  * Renders a red error box
  */
@@ -80,4 +82,8 @@ export var ProgrammingError = React.createClass({
       {this.props.children}
     </div>;
   },
+});
+
+Examples.add('Error', __ => {
+  return [<Error>An error has occurred. Let{"'"}s be cryptic.</Error>];
 });

@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 
+import Examples from 'es6!display/examples';
 import { ProgrammingError } from 'es6!display/errors';
 
 var cx = React.addons.classSet;
@@ -237,3 +238,14 @@ export class GridRow {
   // see oneItem constructor
   isUsingColspan() { return this.useColspan; }
 }
+
+Examples.add('Grid', __ => {
+  var data = [['A', 1], ['Z', 26]];
+  return [
+    <Grid 
+      colnum={2}
+      headers={['Letter', 'Position']}
+      data={data}
+    />
+  ];
+});

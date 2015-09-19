@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 
+import Examples from 'es6!display/examples';
+
 var cx = React.addons.classSet;
 
 /*
@@ -140,3 +142,32 @@ export var MenuUtils = {
     };
   }
 }
+
+Examples.add('Menus', __ => {
+  var MenuRenderer = React.createClass({
+    getInitialState: function() {
+      return {
+        selectedItem: 'Home',
+      };
+    },
+
+    render: function() {
+      var onclick = item => {
+        this.setState({selectedItem: item});
+      };
+
+      var menu_props = {
+        items: ["Home", "Section", "Another Section"],
+        selectedItem: this.state.selectedItem,
+        onClick: onclick
+      };
+
+      return React.createElement(this.props.cls, menu_props);
+    }
+  });
+
+  return [
+    <MenuRenderer cls={Menu1} />,
+    <MenuRenderer cls={Tabs} />
+  ];
+});

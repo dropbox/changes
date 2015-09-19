@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 
+import Examples from 'es6!display/examples';
+
 // Some playful loading messages
 var loading_messages = [
   'Waiting for them bits',
@@ -62,4 +64,12 @@ export var InlineLoading = React.createClass({
       {_.sample(loading_messages)}
     </div>;
   },
+});
+
+Examples.add("Loading Messages", __ => {
+  return [
+    <RandomLoadingMessage />,
+    <RandomLoadingMessage />,
+    <InlineLoading />
+  ];
 });

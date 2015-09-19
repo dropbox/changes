@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import ChangesLinks from 'es6!display/changes/links';
+import Examples from 'es6!display/examples';
 import { Error, ProgrammingError } from 'es6!display/errors';
 
 import * as api from 'es6!server/api';
@@ -432,3 +433,21 @@ export var get_build_cause = function(build) {
   });
   return cause;
 }
+
+Examples.add('ConditionDot', __ => {
+  return [
+    <ConditionDot condition="passed" />,
+    <ConditionDot condition="failed" />,
+    <ConditionDot condition="waiting" />,
+    <ConditionDot condition="failed_unusual" />,
+    <ConditionDot condition="unknown" />,
+    <ConditionDot condition="passed" num={2} />,
+    <ConditionDot condition="passed" glow={true} />,
+    <div>
+      <ConditionDot className="marginRightS" condition="failed" size="small" />
+      <ConditionDot className="marginRightS" condition="failed" size="smaller" />
+      <ConditionDot className="marginRightS" condition="failed" size="medium" />
+      <ConditionDot className="marginRightS" condition="failed" size="large" />
+    </div>
+  ];
+});

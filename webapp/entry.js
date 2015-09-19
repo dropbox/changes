@@ -56,6 +56,7 @@ require([
   "es6!pages/log_page",
   "es6!pages/all_projects_page",
   "es6!pages/node_page",
+  "es6!pages/examples_page",
   "es6!pages/fourohfour_page",
 ], function(
   React,
@@ -75,6 +76,7 @@ require([
   LogPage,
   AllProjectsPage,
   NodePage,
+  DisplayExamplesPage,
   FourOhFourPage
 ) {
   'use strict';
@@ -127,6 +129,7 @@ require([
     'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],
     'author': [HomePage, 'author'],  // TODO: don't just use the homepage
     'node': [NodePage, 'nodeID'],
+    'display_examples': [DisplayExamplesPage]
   };
 
   var page = FourOhFourPage;
