@@ -19,7 +19,7 @@ var DisplayExamplesPage = React.createClass({
       .addQuery('disable_custom', 1)
       .toString();
 
-    var removeLink = <a href={removeHref} onClick={onClick}>
+    var removeLink = <a href={removeHref}>
       Render without any custom JS/CSS
     </a>;
 
