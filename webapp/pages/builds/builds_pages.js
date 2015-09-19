@@ -251,7 +251,7 @@ var BuildsPage = React.createClass({
     }
 
     return <LatestBuildsSummary
-      builds={latest_builds} 
+      builds={latest_builds}
       type={this.props.type}
       targetData={this.props.targetData}
       pageElem={this}

@@ -4,10 +4,10 @@ currently being used.
 
 Its written using React/JSX and ES6: Babel translates both into ES5.
 
-== ORGANIZATION == 
+== ORGANIZATION ==
 
 css/: self-explanatory. Includes a hacky modification of bootstrap that I'd really like to clean up (I commented out conflicting CSS rather than setting the variables.) Or switch to Elemental
-custom/: Custom text, images, and CSS that are company-specific. Dropbox keeps their customizations in a private repo. 
+custom/: Custom text, images, and CSS that are company-specific. Dropbox keeps their customizations in a private repo.
 display/: Useful, common UI components used by pages. Examples: Grid, Tabs, Error, APINotLoaded. The changes/ subdirectory has components/functions specific to Changes, e.g. SingleBuildStatus, authorLink()
 dist/: the concatenated js served to users in production
 html/: the html page sent down to the browser by the server

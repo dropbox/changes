@@ -135,8 +135,8 @@ export var SingleBuild = React.createClass({
       </div>;
     }
 
-    var dot = <ConditionDot 
-      condition={condition} 
+    var dot = <ConditionDot
+      condition={condition}
       size="large"
     />;
 
@@ -481,19 +481,19 @@ export var LatestBuildsSummary = React.createClass({
       subtext = `${failing.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} failed`;
       subtext_extra_class = 'redGrayMix';
     } else if (summary_condition === 'waiting') {
-      var waiting = _.filter(latest_by_proj, 
+      var waiting = _.filter(latest_by_proj,
         b => get_runnable_condition(b) === 'waiting');
       subtext = `${waiting.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} are still running`;
     } else if (summary_condition === 'unknown') {
-      var unknown = _.filter(latest_by_proj, 
+      var unknown = _.filter(latest_by_proj,
         b => get_runnable_condition(b) === 'unknown');
       subtext = `${unknown.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} have an unknown status`;
     } else {
       subtext = `${utils.plural(latest_by_proj.length, 'project(s)')} passed`;
     }
 
-    var dot = <ConditionDot 
-      condition={summary_condition} 
+    var dot = <ConditionDot
+      condition={summary_condition}
       size="large"
       glow={latest_by_proj.length > 1}
     />;

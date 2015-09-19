@@ -64,7 +64,7 @@ var Sidebar = React.createClass({
       Committed {"("}<TimeText time={source.revision.dateCommitted} />{")"}
     </span>;
 
-    return <div> 
+    return <div>
       <div className="marginTopL">
         {this.renderLatestItem(builds)}
       </div>
@@ -119,7 +119,7 @@ var Sidebar = React.createClass({
       sections.push(this.renderSection(section_header, section_content));
     });
 
-    return <div> 
+    return <div>
       <div className="marginTopL">
         {latest_item}
       </div>
@@ -145,11 +145,11 @@ var Sidebar = React.createClass({
       subtext = `${failing.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} failed`;
       subtext_extra_class = 'redGrayMix';
     } else if (summary_condition === 'waiting') {
-      var waiting = _.filter(latest_by_proj, 
+      var waiting = _.filter(latest_by_proj,
         b => get_runnable_condition(b) === 'waiting');
       subtext = `${waiting.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} are still running`;
     } else if (summary_condition === 'unknown') {
-      var unknown = _.filter(latest_by_proj, 
+      var unknown = _.filter(latest_by_proj,
         b => get_runnable_condition(b) === 'unknown');
       subtext = `${unknown.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} have an unknown status`;
     } else {
@@ -157,7 +157,7 @@ var Sidebar = React.createClass({
     }
 
     return this.renderBuildSideItem(
-      <ConditionDot 
+      <ConditionDot
         condition={summary_condition}
         size="medium"
         glow={latest_by_proj.length > 1}
@@ -196,22 +196,22 @@ var Sidebar = React.createClass({
       if (build_state.indexOf('failed') === 0) {
         subtext_extra_class = 'redGrayMix';
         tests_text = utils.plural(
-          b.stats.test_failures, 
-          'test(s) failed', 
+          b.stats.test_failures,
+          'test(s) failed',
           true);
       } else {
         tests_text = utils.plural(b.stats.test_count, "test(s) run");
       }
 
       return this.renderBuildSideItem(
-        <ConditionDot 
-          condition={get_runnable_condition(b)} 
+        <ConditionDot
+          condition={get_runnable_condition(b)}
           size="medium"
         />,
         utils.truncate(b.project.name, 26),
         display_duration(b.duration / 1000),
         `Triggered by ${get_build_cause(b)}, ${tests_text}`,
-        subtext_extra_class, 
+        subtext_extra_class,
         this.props.activeBuildID === b.id,
         on_click(b.id));
     });

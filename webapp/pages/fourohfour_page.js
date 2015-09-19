@@ -8,7 +8,7 @@ import custom_content_hook from 'es6!utils/custom_content';
 var FourOhFourPage = React.createClass({
 
   getInitialTitle: function() {
-    return this.props.badUrl ? 
+    return this.props.badUrl ?
       "Error" :
       "Not Found";
   },

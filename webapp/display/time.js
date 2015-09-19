@@ -94,9 +94,9 @@ export var TimeText = React.createClass({
 
     classes = classes + " " + (className || "");
 
-    return <span 
-      onClick={onClick} 
-      className={classes} 
+    return <span
+      onClick={onClick}
+      className={classes}
       title={title}
       {...others}>
       {time_text}

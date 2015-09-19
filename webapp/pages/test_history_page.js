@@ -78,8 +78,8 @@ var TestHistoryPage = React.createClass({
     var rows = _.map(history, t => {
       if (!t) {
         return [
-          null, null, null, null, 
-          <i>Not run for this commit</i>, 
+          null, null, null, null,
+          <i>Not run for this commit</i>,
           null
         ];
       }

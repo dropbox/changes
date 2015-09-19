@@ -4,7 +4,7 @@
 # the top of every javascript file. I didn't want to read through an entire
 # parse tree and handle all of the corner cases, so the way this works is the
 # script generates a list of every single export in the codebase, then goes
-# file by file, greps for all of the exported identifiers, and uses that to 
+# file by file, greps for all of the exported identifiers, and uses that to
 # replace every import statement. It also manually adds import react, bootstrap
 # imports, and some other special cases (search for "special cases")
 

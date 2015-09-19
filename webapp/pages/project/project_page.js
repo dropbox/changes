@@ -83,7 +83,7 @@ var ProjectPage = React.createClass({
     }
 
     utils.setPageTitle(
-      this.state.project.getReturnedData().name + ' - ' + 
+      this.state.project.getReturnedData().name + ' - ' +
       this.state.selectedItem
     );
 

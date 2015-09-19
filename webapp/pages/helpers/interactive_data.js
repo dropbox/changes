@@ -23,7 +23,7 @@ var cx = React.addons.classSet;
  *   people to share links.
  *
  * The control is slightly complex, partly due to all the power it gives you
- * and also partly due to the way changes is architected. Here's generally how 
+ * and also partly due to the way changes is architected. Here's generally how
  * to use it:
  * - Create it in componentWillMount inside your element's state object.
  *   Constructor params are the owner element and the state key being used,
@@ -248,7 +248,7 @@ var InteractiveDataPrototype = {
     var links = [];
 
     links.push(
-      <Button 
+      <Button
         type="paging"
         className="marginRightS"
         onClick={onClick.previous}
@@ -259,7 +259,7 @@ var InteractiveDataPrototype = {
     );
 
     links.push(
-      <Button 
+      <Button
         type="paging"
         className="marginRightS"
         onClick={onClick.next}

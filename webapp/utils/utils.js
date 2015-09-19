@@ -100,8 +100,8 @@ export var get_common_prefix = function(strings) {
 export var plural = function(num, text, use_no = false, capitalize = false) {
   if (num === 1) {
     return num + " " + text.replace("(s)", "");
-  } 
-  text = text.replace("(s)", "s"); 
+  }
+  text = text.replace("(s)", "s");
 
   if (num === 0 && use_no) {
     return (capitalize ? 'No ' : 'no ') + text;

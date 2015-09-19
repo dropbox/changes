@@ -31,7 +31,7 @@ export default custom_content_hook;
 
 /* Creating a custom content file.
  * - Don't use es6 / jsx syntax (keep it simple)
- * - Your dictionary should map hook names to strings, or 
+ * - Your dictionary should map hook names to strings, or
  *   functions. extra_data is only used funcs.
  *
  * Example:

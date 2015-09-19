@@ -242,7 +242,7 @@ export class GridRow {
 Examples.add('Grid', __ => {
   var data = [['A', 1], ['Z', 26]];
   return [
-    <Grid 
+    <Grid
       colnum={2}
       headers={['Letter', 'Position']}
       data={data}

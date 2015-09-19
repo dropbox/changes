@@ -50,7 +50,7 @@ export var fetch = function(elem, endpoint_map) {
   return fetchMap(elem, null, endpoint_map);
 }
 
-/* 
+/*
  * Similar to fetch, but use this for post requests.
  */
 export var post = function(elem, endpoint_map) {
