@@ -434,6 +434,26 @@ export var get_build_cause = function(build) {
   return cause;
 }
 
+/*
+ * Renders a sentence describing how this build was created
+ */
+export var get_cause_sentence = function(cause) {
+  switch (cause) {
+    case 'manual':
+      // hmm...if I start a build with someone else's commit, who's listed as
+      // the build author?
+      return 'This build was manually started by someone';
+    case 'arc test': 
+      return 'This build was started via arc test';
+    case 'commit': 
+      return 'This build was automatically started after commit';
+    case 'phabricator': 
+      return 'This build was started by our phabricator-changes integration';
+    default:
+      return 'The trigger for this build was ' + cause;
+  }
+}
+
 Examples.add('ConditionDot', __ => {
   return [
     <ConditionDot condition="passed" />,
