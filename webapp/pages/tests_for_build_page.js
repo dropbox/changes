@@ -18,6 +18,7 @@ var BuildTestsPage = React.createClass({
   menuItems: [
     'Not Passing Tests',
     'Slow Tests',
+    'Retries'
   ],
 
   getInitialState: function() {
@@ -43,11 +44,15 @@ var BuildTestsPage = React.createClass({
       slowTests : InteractiveData(this,
         'slowTests',
         `/api/0/builds/${this.props.buildID}/tests/?sort=duration`),
+
+      retries : InteractiveData(this,
+        'retries',
+        `/api/0/builds/${this.props.buildID}/tests/?sort=retries`),
     });
   },
 
   componentDidMount: function() {
-    _.each([['slowTests', 'Slow Tests']], tabs => {
+    _.each([['slowTests', 'Slow Tests'], ['retries', 'Retries']], tabs => {
       var [stateKey, tabName] = tabs;
       var params = {};
       if (this.initialTab === tabName) {
@@ -87,6 +92,9 @@ var BuildTestsPage = React.createClass({
         break;
       case 'Slow Tests':
         content = this.renderSlow();
+        break;
+      case 'Retries':
+        content = this.renderRetries();
         break;
       // TODO: slow test files
       default:
@@ -225,6 +233,48 @@ var BuildTestsPage = React.createClass({
         className="marginBottomM marginTopM"
         data={rows}
         headers={['Name', 'Duration (ms)']}
+      />
+      <div className="marginTopM marginBottomM">
+        {pagingLinks}
+      </div>
+    </div>;
+  },
+
+  renderRetries: function() {
+    var retriesInteractive = this.state.retries;
+
+    // we want to update the window url whenever the user switches tabs
+    retriesInteractive.updateWindowUrl();
+
+    if (retriesInteractive.hasNotLoadedInitialData()) {
+      return <APINotLoaded calls={retriesInteractive.getDataToShow()} />;
+    }
+
+    var retries = retriesInteractive.getDataToShow().getReturnedData();
+
+    var rows = [];
+    _.each(retries, test => {
+      rows.push([
+        test.name,
+        test.numRetries
+      ]);
+    });
+
+    var errorMessage = null;
+    if (retriesInteractive.failedToLoadUpdatedData()) {
+      errorMessage = <AjaxError response={retriesInteractive.getDataForErrorMessage().response} />;
+    }
+    var style = retriesInteractive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
+
+    var pagingLinks = retriesInteractive.getPagingLinks();
+
+    return <div style={style}>
+      {errorMessage}
+      <Grid
+        colnum={2}
+        className="marginBottomM marginTopM"
+        data={rows}
+        headers={['Name', 'Retries']}
       />
       <div className="marginTopM marginBottomM">
         {pagingLinks}
