@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 
+import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -9,6 +10,7 @@ import { TimeText } from 'es6!display/time';
 import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
+import custom_content_hook from 'es6!utils/custom_content';
 
 /**
  * Page that shows the builds associated with a single node, across all projects.
@@ -43,7 +45,7 @@ var NodePage = React.createClass({
     var node = this.state.nodeDetails.getReturnedData();
     utils.setPageTitle(node.name);
 
-    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [ 'Build', 'Phab.', 'Project', 'Name', 'Committed'];
 
     var grid_data = _.map(this.state.nodeJobs.getReturnedData(), d => {
@@ -57,13 +59,33 @@ var NodePage = React.createClass({
     })
 
     var details = this.state.nodeDetails.getReturnedData();
+
+    var extra_info_name = custom_content_hook('nodeInfoName'),
+      extra_info_href = custom_content_hook('nodeInfo', null, details.name);
+
+    var extra_indo_markup = null;
+    if (extra_info_name && extra_info_href) {
+      var extra_info_markup = <a 
+        className="external inlineBlock"
+        style={{marginTop: 3}}
+        target="_blank"
+        href={extra_info_href}>
+        {extra_info_name}
+      </a>;
+    }
+
     return <ChangesPage>
-      <InfoList style={{ margin: 10, marginLeft: 4 }}>
+      <SectionHeader>{details.name}</SectionHeader>
+      <InfoList>
         <InfoItem label="Node ID">{details.id}</InfoItem>
         <InfoItem label="First Seen">
           <TimeText time={details.dateCreated} />
         </InfoItem>
       </InfoList>
+      {extra_info_markup}
+      <div className="marginBottomM marginTopM paddingTopS">
+        Recent runs on this node
+      </div>
       <Grid
         colnum={5}
         data={grid_data}
