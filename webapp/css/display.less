@@ -454,3 +454,20 @@ a.button.whiteButton.disabled {
   padding: 5px;
   white-space: pre-wrap;
 }
+
+@keyframes blink {  
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+
+@-webkit-keyframes blink {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+
+.blink {
+  animation: blink 1.2s step-start 0s infinite;
+  -webkit-animation: blink 1.2s step-start 0s infinite;
+} 

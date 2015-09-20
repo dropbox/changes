@@ -49,4 +49,24 @@ var Examples = {
   }
 };
 
+Examples.add('CSS Classes', __ => {
+  return [
+    <span className="blink">Blinking Text</span>,
+    <span>
+      Normal,{" "}
+      <span className="lb">Bold-ish</span>,{" "}
+      <b>Bold</b>,{" "}
+      <span className="bb">Very Bold</span>
+    </span>,
+    <pre className="defaultPre">
+    {"#include <stdio.h>"}<br />
+    <br />
+    {"int main() {\n"}<br />
+    {"  printf(\"Hello World!\\n\");\n"}<br />
+    {"}"}
+    </pre>,
+    <span>Text. <span className="subText">Subtext</span></span>
+  ];
+});
+
 export default Examples;

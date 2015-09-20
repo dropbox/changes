@@ -117,8 +117,12 @@ var LogComponent = React.createClass({
       this.state.newLogs);
 
     var tooManyLines = false;
+    var isFinished = false;
     var lines = [];
     _.each(apiCallsToRender, apiCall => {
+      if (apiCall.source.step.status.id === 'finished') {
+        isFinished = true;
+      }
       _.each(apiCall.chunks, chunk => {
         _.each(chunk.text.split("\n"), line => {
           if (lines.length >= MAX_LOG_LINES) {
@@ -149,6 +153,16 @@ var LogComponent = React.createClass({
         <Error>
           Truncating display: we render at most {MAX_LOG_LINES} lines
         </Error>
+      );
+    } 
+    
+    if (!isFinished && otherContent.length === 0) {
+      // if we're still waiting on content, render an old-school blinking
+      // terminal cursor
+      otherContent.push(
+        <div className="blink">
+          {"\u2588"}
+        </div>
       );
     }
 
