@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error } from 'es6!display/errors';
+import { TimeText } from 'es6!display/time';
 import { get_build_cause } from 'es6!display/changes/builds';
 
 import Sidebar from 'es6!pages/builds/sidebar';
@@ -140,11 +141,6 @@ var BuildsPage = React.createClass({
   },
 
   render: function() {
-    var content_style = {
-      marginLeft: 310,
-      padding: 20
-    };
-
     this.updateWindowUrl();
 
     var activeBuild = _.filter(
@@ -167,8 +163,8 @@ var BuildsPage = React.createClass({
         activeBuildID={this.state.activeBuildID}
         pageElem={this}
       />
-      <div style={{paddingTop: 100}}>
-        <div style={content_style} >
+      <div className="buildsContent">
+        <div className="buildsInnerContent">
           {this.getErrorMessage()}
           {this.getContent()}
         </div>
@@ -254,11 +250,14 @@ var BuildsPage = React.createClass({
       var commitLink = ChangesLinks.phabCommitHref(source.revision);
 
       header = <div>
+        <div className="floatR">
+          <TimeText time={source.revision.dateCreated} />
+        </div>
         <a className="subtle" href={commitLink} target="_blank">
           {source.revision.sha.substring(0,7)}
         </a>
         {": "}
-        {utils.first_line(source.revision.message)}
+        {utils.truncate(utils.first_line(source.revision.message))}
         {" (by "}
         {authorLink}
         {")"}
@@ -268,11 +267,14 @@ var BuildsPage = React.createClass({
       var authorLink = ChangesLinks.author(
         this.getAuthorForDiff(this.props.builds), true);
       header = <div>
+        <div className="floatR">
+          <TimeText time={moment.unix(diff_data.dateCreated).toString()} />
+        </div>
         <a className="subtle" href={diff_data.uri} target="_blank">
           D{diff_data.id}
         </a>
         {": "}
-        {diff_data.title}
+        {utils.truncate(diff_data.title)}
         {" (by "}
         {authorLink}
         {")"}

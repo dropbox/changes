@@ -4,7 +4,11 @@
  * Some pages (in pages/) need their own CSS
  */
 
-/* builds_results_page */
+/* Page: builds
+ *
+ * TODO: some of this css is from before I used position fixed/absolute.
+ * I should delete it
+ */
 
 .buildsLabelHeader {
   position: fixed;
@@ -13,7 +17,6 @@
   right: 0;
   height: 32px;
   background-color: white;
-  border-bottom: 1px solid @fainterBorder;
   font-size: 18px;
   z-index: 2;
   white-space: nowrap;
@@ -25,15 +28,15 @@
 }
 
 .buildsSidebar {
+  border-top: 1px solid @fainterBorder;
   position: fixed;
   top: 100px;
-  left: 10px;
+  left: 20px;
   bottom: 0;
   width: 290px;
   overflow-x: hidden;
   overflow-y: auto;
   vertical-align: top;
-  padding-right: 15px;
 }
 
 .buildsSideItem {
@@ -42,7 +45,6 @@
   display: block;
   padding: 6px 0 6px 15px;
   text-decoration: none;
-  margin-left: 10px;
   border: 1px solid white;
 
   &:hover {
@@ -53,7 +55,6 @@
 }
 
 .buildsSideItem.selected {
-/* TODO: colors */
   background-color: @selectedBg;
   border-radius: 5px;
   border: 1px solid @selectedBorder;
@@ -67,35 +68,28 @@
 }
 
 .buildsSideSectionHeader {
-   font-size: 12px;
-   color: @mediumGray;
-   margin-bottom: 5px;
-   padding-left: 10px;
+  font-size: 12px;
+  color: @mediumGray;
+  margin-bottom: 5px;
 }
 
 .phaseCell {
   min-width: 95px;
 }
 
-/*
-.grid.errorGrid {
-  border-color: @red;
+.buildsContent {
+  margin-top: 100px;
+  margin-left: 310px;
+  padding: 20px;
+  padding-top: 0;
 }
 
-.errorGrid .gridHeader .gridCell {
-  color: #ee2e24;
+.buildsInnerContent {
+  border-top: 1px solid #edeeef;
+  padding-top: 20px;
 }
 
-.errorGrid .gridRow.gridHeader  {
-  border-color: #ee2e24;
-}
-
-.errorGrid .gridRow {
-  border-color: #e5cfcf;
-}
-*/
-
-/* log page */
+/* Page: log */
 
 .logFile {
   font-family: Consolas, 'Bitstream Vera Sans Mono', 'Courier New', Courier, monospace;
@@ -116,7 +110,7 @@
   top: 50px;
 }
 
-/* examples page */
+/* Page: examples */
 
 .exampleHeader {
   font-weight: 500;
