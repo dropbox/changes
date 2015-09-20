@@ -440,8 +440,8 @@ export var get_build_cause = function(build) {
 export var get_cause_sentence = function(cause) {
   switch (cause) {
     case 'manual':
-      // hmm...if I start a build with someone else's commit, who's listed as
-      // the build author?
+      // If I start a build with someone else's commit, they're still listed as
+      // the build author. So there's no way to be more specific than someone
       return 'This build was manually started by someone';
     case 'arc test': 
       return 'This build was started via arc test';

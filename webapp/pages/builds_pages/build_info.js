@@ -189,18 +189,25 @@ export var SingleBuild = React.createClass({
     var DATE_RFC2822 = "ddd, DD MMM YYYY HH:mm:ss ZZ";
 
     var attributes = {};
-    attributes['By'] = ChangesLinks.author(build.author);
-    if (build.dateCreated) {
-      attributes['Started'] = moment.utc(build.dateCreated).local()
+    if (build.dateFinished) {
+      attributes['Finished'] = (
+        moment.utc(build.dateCreated).local().format(DATE_RFC2822) + 
+        ` (${display_duration(build.duration / 1000)})`
+      );
+    } else if (build.dateStarted) {
+      attributes['Started'] = moment.utc(build.dateStarted).local()
+        .format(DATE_RFC2822);
+    } else {
+      attributes['Created'] = moment.utc(build.dateCreated).local()
         .format(DATE_RFC2822);
     }
-    if (build.dateFinished) {
-      attributes['Duration'] = display_duration(build.duration / 1000);
-    }
-    var test_label = build.dateFinished ? "Tests Ran" : "Tests Run";
-    attributes[test_label] = <span>
+
+    var testLabel = build.dateFinished ? "Tests Ran" : "Tests Run";
+    var buildTestsHref = `/v2/build_tests/${build.id}` +
+      (build.testFailures.total > 0 ? '' : "#SlowTests")
+    attributes[testLabel] = <span>
       {build.stats.test_count}{" ("}
-      <a href={"/v2/build_tests/"+build.id+"/#SlowTests"}>
+      <a href={buildTestsHref}>
         more information
       </a>
       {")"}
