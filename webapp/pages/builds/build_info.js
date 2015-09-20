@@ -96,7 +96,7 @@ export var SingleBuild = React.createClass({
     return <div>
       <div className="marginBottomL">
         <div className="floatR">
-          {this.renderButton(build)}
+          {render_all ? this.renderButton(build) : null}
         </div>
         {this.renderHeader(build, job_phases)}
         {render_all ? this.renderDetails(build, job_phases) : null}
