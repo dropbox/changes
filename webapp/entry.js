@@ -48,10 +48,10 @@ require([
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",
-  "es6!pages/project/project_page",
+  "es6!pages/project_page/project_page",
   "es6!pages/author_builds_page",
-  "es6!pages/builds/builds_pages",
-  "es6!pages/builds/build_tests_page",
+  "es6!pages/builds_pages/builds_pages",
+  "es6!pages/tests_for_build_page",
   "es6!pages/test_history_page",
   "es6!pages/log_page",
   "es6!pages/all_projects_page",

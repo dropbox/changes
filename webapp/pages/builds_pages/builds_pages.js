@@ -7,8 +7,8 @@ import { Error } from 'es6!display/errors';
 import { TimeText } from 'es6!display/time';
 import { get_build_cause } from 'es6!display/changes/builds';
 
-import Sidebar from 'es6!pages/builds/sidebar';
-import { SingleBuild, LatestBuildsSummary } from 'es6!pages/builds/build_info';
+import Sidebar from 'es6!pages/builds_pages/sidebar';
+import { SingleBuild, LatestBuildsSummary } from 'es6!pages/builds_pages/build_info';
 
 import * as api from 'es6!server/api';
 

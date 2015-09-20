@@ -5,9 +5,9 @@ import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { ProgrammingError } from 'es6!display/errors';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 
-import BuildsTab from 'es6!pages/project/builds_tab';
-import CommitsTab from 'es6!pages/project/commits_tab';
-import DetailsTab from 'es6!pages/project/details_tab';
+import BuildsTab from 'es6!pages/project_page/builds_tab';
+import CommitsTab from 'es6!pages/project_page/commits_tab';
+import DetailsTab from 'es6!pages/project_page/details_tab';
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
 import * as api from 'es6!server/api';
