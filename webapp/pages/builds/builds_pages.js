@@ -147,34 +147,19 @@ var BuildsPage = React.createClass({
 
     this.updateWindowUrl();
 
-    // temporary
-    var topHeader = <div
-      className="persistentMessageHeader"
-      style={{position: 'fixed', top: 40, zIndex: 20}}>
-      You probably came here from clicking a link in Phabricator. This is
-      still not quite ready for primetime (I added the Phabricator extension
-      a bit early), but you{"'"}re welcome to test and send us feedback using
-      the top link.
-    </div>;
-
-    if (URI(window.location.href).query(true)['optin']) {
-      topHeader = <div
-        className="persistentMessageHeader"
-        style={{position: 'fixed', top: 40, zIndex: 20}}>
-        You{"'"}ve been redirected to a new UI for Changes. Its still under
-        development, so let us know what you think with the feedback link at
-        the top. If you need to use the old ui, you can use the{" "}
-        <a className="external" target="_blank" href="/my/builds/">my builds</a>
-        {" "}page.
-      </div>;
-    }
+    var activeBuild = _.filter(
+      this.props.builds, 
+      b => b.id === this.state.activeBuildID)[0];
 
     // TODO: cleanup!
-    return <ChangesPage bodyPadding={false} fixed={true}>
+    return <ChangesPage 
+      bodyPadding={false} 
+      fixed={true} 
+      oldUI={oldBuildUI(activeBuild)}>
+
       <div className="buildsLabelHeader">
         {this.renderLabelHeader()}
       </div>
-      {topHeader}
       <Sidebar
         builds={this.props.builds}
         type={this.props.type}
@@ -182,12 +167,13 @@ var BuildsPage = React.createClass({
         activeBuildID={this.state.activeBuildID}
         pageElem={this}
       />
-      <div style={{paddingTop: 150}}>
+      <div style={{paddingTop: 100}}>
         <div style={content_style} >
           {this.getErrorMessage()}
           {this.getContent()}
         </div>
       </div>
+
     </ChangesPage>;
   },
 
@@ -338,3 +324,12 @@ export var SingleBuildPage = React.createClass({
     </ChangesPage>;
   },
 });
+
+var oldBuildUI = function(build) {
+  console.log(build);
+  if (build) {
+    return `/projects/${build.project.slug}/builds/${build.id}/?optout=1`;
+  } else {
+    return '/my/builds/';
+  }
+}

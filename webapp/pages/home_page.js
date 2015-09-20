@@ -57,6 +57,7 @@ var HomePage = React.createClass({
       return <APINotLoadedPage
         highlight="My Changes"
         calls={this.state.commits}
+        oldUI="/projects/"
       />;
     }
 
@@ -78,7 +79,7 @@ var HomePage = React.createClass({
       </div>;
     }
 
-    return <ChangesPage highlight="My Changes">
+    return <ChangesPage highlight="My Changes" oldUI="/projects/">
       {header_markup}
       <div>
         <Diffs
@@ -118,7 +119,7 @@ var HomePage = React.createClass({
       </center>;
     }
 
-    return <ChangesPage highlight="My Changes">
+    return <ChangesPage highlight="My Changes" oldUI="/projects/">
       <div className="marginBottomL">
         {login_markup}
       </div>

@@ -25,6 +25,8 @@ export var ChangesPage = React.createClass({
     highlight: PropTypes.string,
     // we have to use position: fixed for some pages
     fixed: PropTypes.bool,
+    // if present, we render a link to return to the old ui
+    oldUI: PropTypes.string
   },
 
   getDefaultProps: function() {
@@ -44,16 +46,6 @@ export var ChangesPage = React.createClass({
       </div>;
     }
 
-    var optinHeader = null;
-    if (URI(window.location.href).query(true)['optin'] && !this.props.fixed) {
-      optinHeader = <div className="persistentMessageHeader">
-        You{"'"}ve been redirected to a new UI for Changes. Its still under
-        development, so let us know what you think with the feedback link at
-        the top. You can go back to the original changes homepage{" "}
-        <a href="/projects">here</a>.
-      </div>;
-    }
-
     if (this.props.isPageLoaded) {
       // NOTE: once browsers support it, we could start using
       // window.performance.mark
@@ -66,8 +58,11 @@ export var ChangesPage = React.createClass({
 
     return <div>
       {messageMarkup}
-      {optinHeader}
-      <ChangesPageHeader highlight={this.props.highlight} fixed={this.props.fixed} />
+      <ChangesPageHeader 
+        highlight={this.props.highlight} 
+        fixed={this.props.fixed} 
+        oldUI={this.props.oldUI} 
+      />
       <div style={style}>
         {this.props.children}
       </div>
@@ -105,7 +100,8 @@ var ChangesPageHeader = React.createClass({
 
   propTypes: {
     highlight: PropTypes.string, // see ChangesPage
-    fixed: PropTypes.bool
+    fixed: PropTypes.bool,
+    oldUI: PropTypes.string
   },
 
   render: function() {
@@ -119,9 +115,19 @@ var ChangesPageHeader = React.createClass({
       </a>;
     }
 
+    var oldUI = null;
+    if (this.props.oldUI) {
+      var oldHref = URI(this.props.oldUI).addQuery('optout', 1).toString();
+      oldUI = <a className="headerLinkBlock floatR red"
+        target="_blank"
+        href={oldHref}>
+        Old UI
+      </a>;
+    }
+
 /* TODO:
         <a className="headerLinkBlock" href="/v2/nodes/">
-          Machines
+          Changes Internals
         </a>
 */
 
@@ -133,14 +139,6 @@ var ChangesPageHeader = React.createClass({
     var all_projects_classes = cx({
       headerLinkBlock: true, headerHighlight: highlight === "Projects"
     });
-
-    /*
-    var logo = <div
-      className="headerBlock"
-      style={{fontWeight: 900}}>
-      Changes
-    </div>;
-    */
 
     var classes = cx({pageHeader: true, fixedPageHeader: this.props.fixed });
     return <div>
@@ -154,6 +152,7 @@ var ChangesPageHeader = React.createClass({
         <ChangesLogin />
         <ChangesInlinePerf />
         {feedback_link}
+        {oldUI}
       </div>
     </div>;
   }
