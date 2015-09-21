@@ -159,8 +159,8 @@ class PhabricatorNotifyDiffAPIView(APIView):
             'source': source,
         })
         if phabricatordiff is None:
-            logging.error("Diff %s, Revision %s already exists",
-                          args['phabricator.diffID'], args['phabricator.revisionID'])
+            logging.warning("Diff %s, Revision %s already exists",
+                            args['phabricator.diffID'], args['phabricator.revisionID'])
             return error("Diff already exists within Changes")
 
         project_options = ProjectOptionsHelper.get_options(projects, ['build.file-whitelist'])
