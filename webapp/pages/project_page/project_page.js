@@ -9,6 +9,7 @@ import BuildsTab from 'es6!pages/project_page/builds_tab';
 import CommitsTab from 'es6!pages/project_page/commits_tab';
 import DetailsTab from 'es6!pages/project_page/details_tab';
 import InteractiveData from 'es6!pages/helpers/interactive_data';
+import TestsTab from 'es6!pages/project_page/tests_tab';
 
 import * as api from 'es6!server/api';
 
@@ -23,6 +24,7 @@ var ProjectPage = React.createClass({
       selectedItem: null, // we set this in componentWillMount
       project: null,
       commits: null,
+      flakyTests: null,
       details: null,
 
       // Keep the state for the commit tab here (and send it via props.) This
@@ -129,7 +131,11 @@ var ProjectPage = React.createClass({
         />;
         break;
       case 'Tests [TODO]':
-        content = <div>TODO</div>;
+        content = <TestsTab
+          project={this.state.project}
+          flakyTests={this.state.flakyTests}
+          pageElem={this}
+        />;
         break;
       case 'Details':
         content = <DetailsTab
