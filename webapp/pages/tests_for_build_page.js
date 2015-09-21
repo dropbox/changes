@@ -16,6 +16,7 @@ import * as utils from 'es6!utils/utils';
 var BuildTestsPage = React.createClass({
 
   menuItems: [
+    'Sharding',
     'Not Passing Tests',
     'Slow Tests',
     'Retries'
@@ -33,7 +34,6 @@ var BuildTestsPage = React.createClass({
 
       expandedRetryTests: {},
       expandedRetryTestsData: {},
-
     }
   },
 
@@ -94,6 +94,9 @@ var BuildTestsPage = React.createClass({
 
     var content = null;
     switch (selectedItem) {
+      case 'Sharding':
+        content = <ShardingTab build={buildInfo} />;
+        break;
       case 'Not Passing Tests':
         content = this.renderFailed();
         break;
@@ -103,7 +106,6 @@ var BuildTestsPage = React.createClass({
       case 'Retries':
         content = this.renderRetries();
         break;
-      // TODO: slow test files
       default:
         throw 'unreachable';
     }
@@ -367,6 +369,110 @@ var BuildTestsPage = React.createClass({
       </div>
     </div>;
   },
+});
+
+var ShardingTab = React.createClass({
+
+  getInitialState: function() {
+    var jobPhases = {};
+    _.each(this.props.build.jobs, j => {
+      jobPhases[j.id] = null;
+    });
+
+    return {
+      jobPhases: jobPhases,
+      // TODO: move to parent...
+      expandedShards: {}
+    };
+  },
+
+  componentDidMount: function() {
+    // phases/jobsteps info
+    var jobIDs = _.map(this.props.build.jobs, j => j.id);
+
+    var endpoint_map = {};
+    _.each(jobIDs, id => {
+      endpoint_map[id] = `/api/0/jobs/${id}/phases?test_counts=1`;
+    });
+
+    // TODO: don't refetch every time (cache on parent)
+    api.fetchMap(this, 'jobPhases', endpoint_map);
+  },
+
+  render: function() {
+    var build = this.props.build;
+    var jobIDs = _.map(build.jobs, j => j.id);
+
+    var phasesCalls = _.chain(this.state.jobPhases)
+      .pick(jobIDs)
+      .values().value();
+
+    if (!api.allLoaded(phasesCalls)) {
+      return <APINotLoaded calls={phasesCalls} />;
+    }
+
+    var markup = [];
+    _.each(jobIDs, jobID => {
+      var job = _.filter(build.jobs, j => j.id === jobID)[0];
+      markup.push(<SectionHeader>{job.name}</SectionHeader>);
+      var rows = [];
+      _.each(this.state.jobPhases[jobID].getReturnedData(), phase => {
+        _.each(phase.steps, step => {
+          if (!step.data.weight) {
+            return;
+          }
+
+          var onClick = evt => {
+            this.setState(utils.update_key_in_state_dict(
+              'expandedShards',
+              step.node.name,
+              !this.state.expandedShards[step.node.name]
+            ));
+          };
+
+          var expandLabel = !this.state.expandedShards[step.node.name] ?
+            'See Raw Data' : 'Collapse';
+          
+          rows.push([
+            step.node && step.node.name,
+            step.data.weight,
+            step.data.tests.length,
+            <a onClick={onClick}>{expandLabel}</a>
+          ]);
+
+          if (this.state.expandedShards[step.node.name]) {
+            rows.push(GridRow.oneItem(
+              <pre className="defaultPre">
+                {JSON.stringify(step.data, null, 2)}
+              </pre>
+            ));
+          }
+
+          rows.push(GridRow.oneItem(
+            <div>
+              <b>Files:</b>
+              <pre>{step.data.tests.join("\n")}</pre>
+            </div>
+          ));
+        });
+      });
+      markup.push(
+        <Grid
+          colnum={4}
+          headers={['Node', 'Shard Weight', 'File Count', 'Links']}
+          cellClasses={['wide', 'nowrap', 'nowrap', 'nowrap']}
+          data={rows}
+        />
+      );
+    });
+
+    return <div>
+      <div style={{backgroundColor: "#FFFBCC"}} className="marginBottomL">
+        This is very much a work-in-progress
+      </div>
+      {markup}
+    </div>;
+  }
 });
 
 export default BuildTestsPage;
