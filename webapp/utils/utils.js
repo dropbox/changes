@@ -127,6 +127,7 @@ export var async = function(func) {
 // Preserves prototype, but doesn't play well with es6 classes
 // TODO: this may accidentally promote properties from the prototype to the
 // object
+// Usage: this.setState(utils.update_key_in_state_dict(...))
 export var update_key_in_state_dict = function(map_key, key, value) {
   return update_state_dict(map_key, {[ key ]: value});
 }

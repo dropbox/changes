@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
-import { ChangesPage } from 'es6!display/page_chrome';
+import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 
@@ -26,7 +26,10 @@ var BuildTestsPage = React.createClass({
       selectedItem: null, // set in componentWillMount
 
       expandedTests: {},
-      expandedTestsData: {}
+      expandedTestsData: {},
+
+      // the checkboxes in the Not Passing tab
+      uncheckedResults: {}
     }
   },
 
@@ -69,7 +72,7 @@ var BuildTestsPage = React.createClass({
 
   render: function() {
     if (!api.isLoaded(this.state.buildInfo)) {
-      return <APINotLoaded state={this.state.buildInfo} />;
+      return <APINotLoadedPage calls={this.state.buildInfo} />;
     }
     var buildInfo = this.state.buildInfo.getReturnedData();
 
@@ -122,6 +125,13 @@ var BuildTestsPage = React.createClass({
 
     var rows = [];
     _.each(failedTests, test => {
+      // skip 'quarantined_passed' tests
+      if (test.result.indexOf('passed') >= 0) {
+        return;
+      } else if (this.state.uncheckedResults[test.result]) {
+        return;
+      }
+
       var href = `/v2/project_test/${project_id}/${test.hash}`;
 
       var onClick = __ => {
@@ -141,15 +151,22 @@ var BuildTestsPage = React.createClass({
       var expandLabel = !this.state.expandedTests[test.test_id] ?
         'Expand' : 'Collapse';
 
-      var markup = [
-        <div>
-          {test.shortName} <a onClick={onClick}>{expandLabel}</a>
-          <div className="subText">{test.name}</div>
-        </div>
-      ];
+      var markup = <div>
+        {test.shortName} <a onClick={onClick}>{expandLabel}</a>
+        <div className="subText">{test.name}</div>
+      </div>;
+
+      var capitalizedResult = test.result.charAt(0).toUpperCase() +
+        test.result.slice(1);
+
+      var color = 'bluishGray';
+      if (test.result.indexOf('failed') >= 0) {
+        color = 'red';
+      }
 
       rows.push([
         markup,
+        <span className={color}>{capitalizedResult}</span>,
         <a href={href}>History</a>,
       ]);
 
@@ -177,23 +194,45 @@ var BuildTestsPage = React.createClass({
 
     var tests_by_result = _.groupBy(failedTests, t => t.result);
     var result_markup = _.map(tests_by_result, (tests, result) => {
+      // as above, skip 'quarantined_passed' tests
+      if (result.indexOf('passed') >= 0) {
+        return;
+      }
+
       var sentence = utils.plural(tests.length, "test(s) " + result);
+      // render the number ourselves
       var rest_of_words = _.rest(sentence.split(" ")).join(" ");
 
+      var onClick = evt => {
+        this.setState(
+          utils.update_key_in_state_dict(
+            'uncheckedResults',
+            result,
+            !this.state.uncheckedResults[result]
+          )
+        );
+      };
+
+      var isChecked = !this.state.uncheckedResults[result];
+
       return <div className="marginTopS">
-        <span className="lb">{tests.length}</span>
-        {" "}
-        {rest_of_words}
+        <label>
+          <input type="checkbox" checked={isChecked} onClick={onClick} />
+          <span className="marginLeftXS lb">{tests.length}</span>
+          {" "}
+          {rest_of_words}
+        </label>
       </div>;
     });
 
     return <div>
       {result_markup}
       <Grid
-        colnum={2}
+        colnum={3}
         className="marginBottomM marginTopM"
+        cellClasses={['wide', 'nowrap', 'nowrap']}
         data={rows}
-        headers={['Name', 'Links']}
+        headers={['Name', 'Result', 'Links']}
       />
     </div>;
   },
