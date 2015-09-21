@@ -75,27 +75,29 @@ var BuildsTab = React.createClass({
           {'D' + build.source.data['phabricator.revisionID']}
         </a>
       } else {
-        target = build.source.revision.sha.substr(0, 7);
+        target = ChangesLinks.phabCommit(build.source.revision);
       }
 
       return [
         <SingleBuildStatus build={build} parentElem={this} />,
+        <a className="subtle" href={ChangesLinks.buildHref(build)}>
+          {build.name}
+        </a>,
         target,
-        ChangesLinks.author(build.author),
-        build.name,
         get_build_cause(build),
+        ChangesLinks.author(build.author),
         <TimeText time={build.dateStarted} />
       ];
     });
 
-    var cellClasses = ['buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
+    var cellClasses = ['buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
 
     var headers = [
       'Result',
-      'Target',
-      'By',
       'Name',
+      'Target',
       'Cause',
+      'By',
       'Started'
     ];
 

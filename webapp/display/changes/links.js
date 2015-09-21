@@ -62,7 +62,7 @@ var ChangesLinks = {
   // target
   buildsHref: function(builds) {
     if (!builds || builds.length === 0) {
-      console.error('tried to render build links without a build!');
+      console.error('tried to render a link for an empty list of builds!');
       return '';
     }
 

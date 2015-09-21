@@ -150,14 +150,15 @@ var CommitsTab = React.createClass({
 
     var grid_data = _.map(data_to_show, c => this.turnIntoRow(c, project_info));
 
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['nowrap buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
+
     var headers = [
-      'Last B.',
+      'Result',
+      'Name',
       'Time',
       'Tests Ran',
-      'Commit',
       'Author',
-      'Name',
+      'Commit',
       'Committed'
     ];
 
@@ -200,16 +201,20 @@ var CommitsTab = React.createClass({
         null;
 
       tests = last_build.stats.test_count;
+
+      title = <a className="subtle" href={ChangesLinks.buildHref(last_build)}>
+        {title}
+      </a>;
     }
 
     // TODO: if there are any comments, show a comment icon on the right
     return [
       build_widget,
+      title,
       <span className="bluishGray">{duration}</span>,
       <span className="bluishGray">{tests}</span>,
-      ChangesLinks.phabCommit(c),
       ChangesLinks.author(c.author),
-      title,
+      ChangesLinks.phabCommit(c),
       <TimeText time={c.dateCommitted} />
     ];
   },

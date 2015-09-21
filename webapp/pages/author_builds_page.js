@@ -59,21 +59,23 @@ var AuthorBuildsPage = React.createClass({
 
       return [
         <SingleBuildStatus build={build} parentElem={this} />,
+        <a className="subtle" href={ChangesLinks.buildHref(build)}>
+          {build.name}
+        </a>,
         target,
-        ChangesLinks.author(build.author),
-        build.name,
+        ChangesLinks.project(build.project),
         get_build_cause(build),
         <TimeText time={build.dateStarted} />
       ];
     });
 
-    var cellClasses = ['buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap', 'nowrap'];
+    var cellClasses = ['buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
 
     var headers = [
       'Result',
-      'Target',
-      'By',
       'Name',
+      'Target',
+      'Project',
       'Cause',
       'Started'
     ];

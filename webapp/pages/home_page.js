@@ -153,31 +153,37 @@ var Diffs = React.createClass({
     var grid_data = _.map(diffs, d => {
       var ident = "D" + d.id;
 
+      var title = d['title'];
       var latest_builds = null;
       if (d.builds.length > 0) {
         // TODO: nit, but if there are no builds, let's render an invisible
         // clickable widget
 
         latest_builds = <ManyBuildsStatus builds={d.builds} />;
+        title = <a 
+          className="subtle" 
+          href={ChangesLinks.buildsHref(d.builds)}>
+          {title}
+        </a>;
       }
 
       return [
         latest_builds,
-        <a className="external" href={d['uri']} target="_blank">{ident}</a>,
+        title,
         <span className={this.getStatusColor(d['statusName'])}>
           {d['statusName']}
         </span>,
-        d['title'],
+        <a className="external" href={d['uri']} target="_blank">{ident}</a>,
         <TimeText time={d['dateModified']} format="X" />
       ];
     });
 
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['nowrap buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap'];
     var headers = [
-      'Build(s)',
-      'Diff',
-      'Status',
+      'Result',
       'Name',
+      'Status',
+      'Diff',
       'Updated'
     ];
 
@@ -242,23 +248,30 @@ var Commits = React.createClass({
         .flatten()
         .value();
 
+      var name = utils.truncate(utils.first_line(c.revision.message));
+      if (c.builds) {
+        name = <a className="subtle" href={ChangesLinks.buildsHref(c.builds)}>
+          {name}
+        </a>;
+      }
+
       grid_data.push(
         [
           <ManyBuildsStatus builds={c.builds} />,
-          ChangesLinks.phabCommit(c.revision),
+          name,
           project_links,
-          utils.truncate(utils.first_line(c.revision.message)),
+          ChangesLinks.phabCommit(c.revision),
           <TimeText time={c.revision.dateCommitted} />
         ]
       );
     });
 
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['nowrap buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap'];
     var headers = [
-      'Last Build',
-      'Commit',
-      'Project(s)',
+      'Result',
       'Name',
+      'Project(s)',
+      'Commit',
       'Committed'
     ];
 
