@@ -33,7 +33,7 @@ changes have to know about their existance as a table separate from
 snapshot imagese.
 """
 from changes.config import db
-from changes.models import CachedSnapshotImage, Plan, Snapshot, SnapshotImage, Step
+from changes.models import CachedSnapshotImage, Plan, PlanStatus, Snapshot, SnapshotImage, Step
 from datetime import datetime
 from flask import current_app
 
@@ -49,16 +49,12 @@ def get_current_datetime():
 
 
 def get_plans_for_cluster(cluster):
-    """
-    Aggregate all plans that the given cluster is associated with
-
-    Cluster is not a column of plan so we can't do a more
-    efficient join operation here. A consequence of refusing to
-    store jenkins-specific things in the database is that we can't
-    do natural operations on the database.
+    """Returns the set of active plans for the given cluster.
     """
     plans = set()
-    for plan, step in db.session.query(Plan, Step).filter(Plan.id == Step.plan_id).all():
+    q = db.session.query(Plan, Step)
+    q = q.filter(Plan.id == Step.plan_id, Plan.status == PlanStatus.active)
+    for plan, step in q.all():
         if step.data and step.data.get('cluster', None) == cluster:
             plans.add(plan)
     return plans

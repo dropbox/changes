@@ -1,6 +1,6 @@
 from changes.config import db
 from changes.testutils.cases import TestCase
-from changes.models import CachedSnapshotImage
+from changes.models import CachedSnapshotImage, PlanStatus
 import changes.lib.snapshot_garbage_collection as gc
 
 import datetime
@@ -24,10 +24,16 @@ class TestSnapshotGCTestCase(TestCase):
         plan1_2 = self.create_plan(project1)
         plan2_1 = self.create_plan(project2)
         plan2_2 = self.create_plan(project2)
+        plan2_3 = self.create_plan(project2)
 
         self.create_step(plan1_1, data={'cluster': 'cluster1'})
         self.create_step(plan1_2, data={'cluster': 'cluster2'})
         self.create_step(plan2_1, data={'cluster': 'cluster1'})
+
+        # Inactive plan
+        self.create_step(plan2_3, data={'cluster': 'cluster1'})
+        plan2_3.status = PlanStatus.inactive
+        db.session.commit()
 
         plans = gc.get_plans_for_cluster('cluster1')
         assert len(plans) == 2
