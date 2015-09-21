@@ -87,8 +87,11 @@ var TestHistoryPage = React.createClass({
       var build = t.job.build;
       var revision = build.source.revision;
 
+      var build_href = ChangesLinks.buildHref(build);
       return [
-        <ConditionDot condition={t.result.id} />,
+        <a className="buildStatus" href={build_href}>
+          <ConditionDot condition={t.result.id} />
+        </a>,
         display_duration(t.duration / 1000),
         ChangesLinks.author(revision.author),
         ChangesLinks.phabCommit(revision),
@@ -106,7 +109,7 @@ var TestHistoryPage = React.createClass({
       'Committed'
     ];
 
-    var cellClasses = ['nowrap center', 'nowrap center', 'nowrap',
+    var cellClasses = ['buildWidgetCell nowrap', 'nowrap center', 'nowrap',
       'nowrap', 'wide', 'nowrap'];
 
     var errorMessage = null;
