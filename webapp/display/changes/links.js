@@ -36,6 +36,11 @@ var ChangesLinks = {
 
   // renders the permalink url for an arbitrary build
   buildHref: function(build) {
+    if (!build) {
+      console.error('tried to render a build link without a build!');
+      return '';
+    }
+
     // three possibilities: this is a plain commit build, this is a diff build
     // from phabricator, or this is a build on an arbitrary code patch (e.g.
     // from arc test)
@@ -56,6 +61,11 @@ var ChangesLinks = {
   // as above, but for the case where we have many builds pointing to the same
   // target
   buildsHref: function(builds) {
+    if (!builds || builds.length === 0) {
+      console.error('tried to render build links without a build!');
+      return '';
+    }
+
     var build = builds[0];
 
     if (!build.source) {
