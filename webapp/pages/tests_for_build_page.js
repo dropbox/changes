@@ -29,7 +29,11 @@ var BuildTestsPage = React.createClass({
       expandedTestsData: {},
 
       // the checkboxes in the Not Passing tab
-      uncheckedResults: {}
+      uncheckedResults: {},
+
+      expandedRetryTests: {},
+      expandedRetryTestsData: {},
+
     }
   },
 
@@ -293,10 +297,53 @@ var BuildTestsPage = React.createClass({
 
     var rows = [];
     _.each(retries, test => {
+      var onClick = __ => {
+        this.setState(
+          utils.update_key_in_state_dict('expandedRetryTests',
+            test.id,
+            !this.state.expandedRetryTests[test.id])
+        );
+
+        if (!this.state.expandedRetryTestsData[test.id]) {
+          api.fetchMap(this, 'expandedRetryTestsData', {
+            [ test.id ]: `/api/0/tests/${test.id}/`
+          });
+        }
+      };
+
+      var expandLabel = !this.state.expandedRetryTests[test.id] ?
+        'Expand' : 'Collapse';
+
+      var markup = <div>
+        {test.shortName} <a onClick={onClick}>{expandLabel}</a>
+        <div className="subText">{test.name}</div>
+      </div>;
+
       rows.push([
-        test.name,
+        markup,
         test.numRetries
       ]);
+
+      if (this.state.expandedRetryTests[test.id]) {
+        if (!api.isLoaded(this.state.expandedRetryTestsData[test.id])) {
+          rows.push(GridRow.oneItem(
+            <APINotLoaded
+              className="marginTopM"
+              calls={this.state.expandedRetryTestsData[test.id]}
+            />
+          ));
+        } else {
+          var data = this.state.expandedRetryTestsData[test.id].getReturnedData();
+          rows.push(GridRow.oneItem(
+            <div className="marginTopS">
+              <b>Captured Output</b>
+              <pre className="defaultPre">
+              {data.message}
+              </pre>
+            </div>
+          ));
+        }
+      }
     });
 
     var errorMessage = null;
