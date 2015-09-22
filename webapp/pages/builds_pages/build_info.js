@@ -8,6 +8,7 @@ import { Button } from 'es6!display/button';
 import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause, get_cause_sentence } from 'es6!display/changes/builds';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
+import { TestDetails } from 'es6!display/changes/test_details';
 import { display_duration } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
@@ -234,12 +235,6 @@ export var SingleBuild = React.createClass({
             test.id,
             !this.state.expandedTests[test.id])
         );
-
-        if (!this.state.expandedTestsData[test.id]) {
-          api.fetchMap(this, 'expandedTestsData', {
-            [ test.id ]: `/api/0/tests/${test.id}/`
-          });
-        }
       };
 
       var expandLabel = !this.state.expandedTests[test.id] ?
@@ -258,24 +253,7 @@ export var SingleBuild = React.createClass({
       ]);
 
       if (this.state.expandedTests[test.id]) {
-        if (!api.isLoaded(this.state.expandedTestsData[test.id])) {
-          rows.push(GridRow.oneItem(
-            <APINotLoaded
-              className="marginTopM"
-              calls={this.state.expandedTestsData[test.id]}
-            />
-          ));
-        } else {
-          var data = this.state.expandedTestsData[test.id].getReturnedData();
-          rows.push(GridRow.oneItem(
-            <div className="marginTopS">
-              <b>Captured Output</b>
-              <pre className="defaultPre">
-              {data.message}
-              </pre>
-            </div>
-          ));
-        }
+        rows.push(GridRow.oneItem(<TestDetails testID={test.id} />));
       }
     });
 

@@ -6,6 +6,7 @@ import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
+import { TestDetails } from 'es6!display/changes/test_details';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -26,14 +27,12 @@ var BuildTestsPage = React.createClass({
     return {
       selectedItem: null, // set in componentWillMount
 
-      expandedTests: {},
-      expandedTestsData: {},
+      // Not Passing tab
+      expandedTests: {},  // expand for more details
+      uncheckedResults: {},  // checkboxes to filter by statuses
 
-      // the checkboxes in the Not Passing tab
-      uncheckedResults: {},
-
+      // Retries tab
       expandedRetryTests: {},
-      expandedRetryTestsData: {},
     }
   },
 
@@ -146,12 +145,6 @@ var BuildTestsPage = React.createClass({
             test.test_id,
             !this.state.expandedTests[test.test_id])
         );
-
-        if (!this.state.expandedTestsData[test.test_id]) {
-          api.fetchMap(this, 'expandedTestsData', {
-            [ test.test_id ]: `/api/0/tests/${test.test_id}/`
-          });
-        }
       };
 
       var expandLabel = !this.state.expandedTests[test.test_id] ?
@@ -177,24 +170,9 @@ var BuildTestsPage = React.createClass({
       ]);
 
       if (this.state.expandedTests[test.test_id]) {
-        if (!api.isLoaded(this.state.expandedTestsData[test.test_id])) {
-          rows.push(GridRow.oneItem(
-            <APINotLoaded
-              className="marginTopM"
-              calls={this.state.expandedTestsData[test.test_id]}
-            />
-          ));
-        } else {
-          var data = this.state.expandedTestsData[test.test_id].getReturnedData();
-          rows.push(GridRow.oneItem(
-            <div className="marginTopS">
-              <b>Captured Output</b>
-              <pre className="defaultPre">
-              {data.message}
-              </pre>
-            </div>
-          ));
-        }
+        rows.push(GridRow.oneItem(
+          <TestDetails testID={test.test_id} />
+        ));
       }
     });
 
@@ -305,12 +283,6 @@ var BuildTestsPage = React.createClass({
             test.id,
             !this.state.expandedRetryTests[test.id])
         );
-
-        if (!this.state.expandedRetryTestsData[test.id]) {
-          api.fetchMap(this, 'expandedRetryTestsData', {
-            [ test.id ]: `/api/0/tests/${test.id}/`
-          });
-        }
       };
 
       var expandLabel = !this.state.expandedRetryTests[test.id] ?
@@ -329,20 +301,7 @@ var BuildTestsPage = React.createClass({
       if (this.state.expandedRetryTests[test.id]) {
         if (!api.isLoaded(this.state.expandedRetryTestsData[test.id])) {
           rows.push(GridRow.oneItem(
-            <APINotLoaded
-              className="marginTopM"
-              calls={this.state.expandedRetryTestsData[test.id]}
-            />
-          ));
-        } else {
-          var data = this.state.expandedRetryTestsData[test.id].getReturnedData();
-          rows.push(GridRow.oneItem(
-            <div className="marginTopS">
-              <b>Captured Output</b>
-              <pre className="defaultPre">
-              {data.message}
-              </pre>
-            </div>
+            <TestDetails testID={test.id} />
           ));
         }
       }
