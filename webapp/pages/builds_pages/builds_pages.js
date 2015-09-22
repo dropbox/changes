@@ -5,7 +5,7 @@ import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error } from 'es6!display/errors';
 import { TimeText } from 'es6!display/time';
-import { get_build_cause } from 'es6!display/changes/builds';
+import { get_runnable_condition, get_runnable_condition_color_cls, get_build_cause } from 'es6!display/changes/builds';
 
 import Sidebar from 'es6!pages/builds_pages/sidebar';
 import { SingleBuild, LatestBuildsSummary } from 'es6!pages/builds_pages/build_info';
@@ -95,6 +95,44 @@ export var CommitPage = React.createClass({
 
   render: function() {
     var slug = this.props.project;
+
+    // special-case source API errors...it might be because the commit contains unicode
+    if (api.isError(this.state.source)) {
+      if (!api.isLoaded(this.state.commitBuilds)) {
+        return <APINotLoadedPage calls={this.state.commitBuilds} />;  
+      }
+
+      var links = _.map(this.state.commitBuilds.getReturnedData(), b => {
+        var href = URI(`/v2/single_build/${b.id}/`);
+        var condition = get_runnable_condition(b);
+        return <div>
+          <TimeText time={b.dateFinished || b.dateStarted || b.dateCreated} />
+          {": "}
+          <a href={href}>{b.project.name}</a>
+          {" ("}
+          <span className={get_runnable_condition_color_cls(condition)}>
+            {condition}
+          </span>
+          {")"}
+        </div>
+      });
+
+      return <ChangesPage>
+        <p>
+          We couldn{"'"}t load this commit. Oftentimes this is because it
+          contains unicode characters, which we don{"'"}t properly support. Rest
+          assured that we feel both regret and self-loathing about this.
+        </p>
+
+        <p>
+          Here are links to the individual builds. Hopefully you{"'"}ll have a
+          better chance loading those pages:
+        </p>
+        <div className="marginTopL">
+          {links}
+        </div>
+      </ChangesPage>;
+    }
 
     if (!api.allLoaded([this.state.commitBuilds, this.state.source])) {
       return <APINotLoadedPage

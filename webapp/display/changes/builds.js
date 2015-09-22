@@ -385,7 +385,7 @@ export var get_runnables_summary_condition = function(runnables) {
     'passed';
 }
 
-var get_runnable_condition_color_cls = function(condition, background = false) {
+export var get_runnable_condition_color_cls = function(condition, background = false) {
   switch (condition) {
     case 'passed':
       return background ? 'greenBg' : 'green';
