@@ -85,7 +85,7 @@ a.subtle:hover {
   color: @anchorBlue;
 }
 
-.headerLinkBlock:hover, .inlinePerf:hover {
+.headerLinkBlock:hover {
   text-decoration: underline;
 }
 
@@ -117,7 +117,7 @@ div.persistentMessageHeader {
   min-width: 150px;
   padding: 10px;
   position: absolute;
-  right: 0;
+  right: 10px;
   top: 40px;
   z-index: 10;
 }
@@ -126,7 +126,58 @@ div.inlinePerfExpanded, div.inlinePerfExpanded:hover {
   background-color: white;
 }
 
+.inlinePerfCaret:hover {
+  text-decoration: underline;
+}
+
+/* learn more dropdown */
+
+.learnMoreHeaderBlock {
+  position: relative;
+}
+
+.learnMoreHeaderBlock:hover {
+  text-decoration: none;
+}
+
+.learnMoreCaret:hover {
+  text-decoration: underline !important;
+}
+
+.learnMoreContent {
+  /* this is basically the same as inlinePerfDropdown */
+  background-color: white;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+  color: #333;
+  cursor: default;
+  min-width: 300px;
+  padding: 10px;
+  position: absolute;
+  right: 10px;
+  top: 40px;
+  z-index: 10;
+}
+
+.learnMoreLink {
+  display: block;
+}
+
+.learnMoreLink:hover {
+  text-decoration: none;
+}
+
+.learnMoreLink:hover .learnMoreLinkTitle {
+  text-decoration: underline;
+}
+
+.learnMoreDesc {
+  color: @darkGray;
+  font-size: smaller;
+  margin-top: 2px;
+}
+
 /* bootstrap popovers should have no max-width */
+
 div.popover {
   max-width: none;
 }

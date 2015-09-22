@@ -104,7 +104,13 @@ var ChangesPageHeader = React.createClass({
     oldUI: PropTypes.string
   },
 
-  render: function() {
+  getInitialState() {
+    return {
+      helpExpanded: false
+    };
+  },
+
+  render() {
     var feedback_href = custom_content_hook('feedbackHref');
     var feedback_link = null;
     if (feedback_href) {
@@ -114,6 +120,8 @@ var ChangesPageHeader = React.createClass({
         Give Feedback!
       </a>;
     }
+
+    var learnMore = this.renderLearnMore();
 
     var oldUI = null;
     if (this.props.oldUI) {
@@ -151,10 +159,52 @@ var ChangesPageHeader = React.createClass({
         </a>
         <ChangesLogin />
         <ChangesInlinePerf />
+        {learnMore}
         {feedback_link}
         {oldUI}
       </div>
     </div>;
+  },
+
+  renderLearnMore() {
+    var learnMoreLinks = custom_content_hook('learnMoreLinks');
+    if (!learnMoreLinks) {
+      return null;
+    }
+
+    var onClick = (e) => {
+      this.setState({
+        helpExpanded: !this.state.helpExpanded
+      });
+    }
+
+    var expandedContent = null;
+    if (this.state.helpExpanded) {
+      var linkMarkup = _.map(learnMoreLinks, (link, index) => {
+        var className = index > 0 ? 'marginTopL' : '';
+        return <div className={className}>
+          <a className="learnMoreLink" href={link.href} target="_blank">
+            <span className="learnMoreLinkTitle">{link.name}</span>
+            <div className="learnMoreDesc">
+              {link.desc}
+            </div>
+          </a> 
+        </div>;
+      });
+
+      var expandedContent = <div className="learnMoreContent">
+        {linkMarkup}
+      </div>;
+    }
+
+    return <a className="learnMoreHeaderBlock headerLinkBlock floatR"
+      target="_blank">
+      <div onClick={onClick} className="learnMoreCaret">
+        Learn More
+        <i className="fa fa-caret-down" style={{marginLeft: 4}} />
+      </div>
+      {expandedContent}
+    </a>;
   }
 });
 
@@ -231,9 +281,10 @@ var ChangesInlinePerf = React.createClass({
 
     return <div
       className={classes}
-      onClick={onclick}
       style={{position: 'relative'}}>
-      <div>
+      <div 
+        onClick={onclick}
+        className="inlinePerfCaret">
         {perf_markup}
         <i className="fa fa-caret-down" style={{marginLeft: 4}} />
       </div>
