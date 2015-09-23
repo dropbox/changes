@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 
+import SimpleTooltip from 'es6!display/simple_tooltip';
+
 var cx = React.addons.classSet;
 
 /*
@@ -20,6 +22,14 @@ var ChangesUI = {
       moment.utc(lastBuild.dateCreated).format('X');
 
     return age > 60*60*24*7;
+  },
+
+  // renders a lock icon with tooltip: you may need special permissions to see 
+  // this (I think not everyone can see Jenkins)
+  restrictedIcon() {
+    return <SimpleTooltip label="You may need special permissions to see this">
+      <i className="fa fa-lock" style={{ opacity: "0.8" }}/>
+    </SimpleTooltip>;
   },
 
   // takes a blob of text and wraps urls in anchor tags

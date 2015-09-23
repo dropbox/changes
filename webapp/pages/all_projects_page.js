@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
 import SectionHeader from 'es6!display/section_header';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Menu1, MenuUtils } from 'es6!display/menus';
@@ -418,7 +419,19 @@ var AllProjectsPage = React.createClass({
       });
     });
 
-    var headers = ['Master', 'Used for', 'Plan', 'Project', 'Modified'];
+    var headers = [
+      <span>
+        Master{" "}
+        <SimpleTooltip label="You may need special permissions to view the Jenkins pages">
+          <i className="fa fa-lock" />
+        </SimpleTooltip>
+      </span>,
+      'Used for', 
+      'Plan', 
+      'Project', 
+      'Modified'
+    ];
+
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <div>

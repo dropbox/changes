@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
+import ChangesUI from 'es6!display/changes/ui';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { Button } from 'es6!display/button';
@@ -389,8 +390,15 @@ export var SingleBuild = React.createClass({
           var raw_log_uri = `/api/0/jobs/${job.id}/logs/${log_id}/?raw=1`;
           links.push(<a className="external marginRightM" href={raw_log_uri} target="_blank">Raw</a>);
         }
+
         if (shard.data.uri) {
-          links.push(<a className="external" href={shard.data.uri} target="_blank">Jenkins</a>);
+          links.push(
+            /* skip external class since we'd have two icons */
+            <a href={shard.data.uri} target="_blank">
+              Jenkins{" "}
+              {ChangesUI.restrictedIcon()} 
+            </a>
+          );
         }
 
         return [
