@@ -200,6 +200,8 @@ var Sidebar = React.createClass({
           b.stats.test_failures,
           'test(s) failed',
           true);
+      } else if (build_state === 'waiting') {
+        tests_text = 'tests in progress';
       } else {
         tests_text = utils.plural(b.stats.test_count, "test(s) run");
       }

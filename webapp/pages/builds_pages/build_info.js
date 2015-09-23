@@ -124,11 +124,17 @@ export var SingleBuild = React.createClass({
       header_subtext = <div className="red">
         {failed_test_sentence}{error_sentence}
       </div>;
-    } else if (condition.indexOf === "waiting") {
-      header_subtext = <div className="mediumGray">
-        Have run {build.stats.test_count} test(s) in{" "}
-        {display_duration(moment.utc().diff(moment.utc(build.dateCreated), 's'))}
-      </div>;
+    } else if (condition === "waiting") {
+      if (build.stats.test_count) {
+        header_subtext = <div className="mediumGray">
+          Have run {build.stats.test_count} test(s) as of{" "}
+          {display_duration(moment.utc().diff(moment.utc(build.dateCreated), 's'))}
+        </div>;
+      } else {
+        header_subtext = <div className="mediumGray">
+          Still running tests
+        </div>;
+      }
     } else {
       header_subtext = <div className="mediumGray">
         Ran {utils.plural(build.stats.test_count, " test(s) ")} in{" "}
@@ -207,11 +213,14 @@ export var SingleBuild = React.createClass({
         .format(DATE_RFC2822);
     }
 
+    var testCount = !build.stats.test_count && get_runnable_condition(build) === 'waiting' ?
+      'In Progress' : build.stats.test_count;
+
     var testLabel = build.dateFinished ? "Tests Ran" : "Tests Run";
     var buildTestsHref = `/v2/build_tests/${build.id}` +
       (build.testFailures.total > 0 ? '' : "#SlowTests")
     attributes[testLabel] = <span>
-      {build.stats.test_count}{" ("}
+      {testCount}{" ("}
       <a href={buildTestsHref}>
         more information
       </a>
