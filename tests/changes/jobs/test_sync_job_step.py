@@ -538,3 +538,37 @@ class SyncJobStepTest(BaseTestCase):
             FailureReason.step_id == step.id,
             FailureReason.reason == 'timeout',
         )
+
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    def test_failure_reasons(self, get_implementation):
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+
+        project = self.create_project()
+        build = self.create_build(project=project)
+        job = self.create_job(build=build)
+
+        plan = self.create_plan(project)
+        self.create_step(plan, implementation='test', order=0)
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.finished, result=Result.passed)
+
+        db.session.add(FailureReason(
+            step_id=step.id,
+            job_id=job.id,
+            build_id=build.id,
+            project_id=project.id,
+            reason='missing_manifest_json'
+        ))
+        db.session.commit()
+
+        with mock.patch.object(sync_job_step, 'allow_absent_from_db', True):
+            sync_job_step(
+                step_id=step.id.hex,
+                task_id=step.id.hex,
+                parent_task_id=job.id.hex
+            )
+
+        assert step.result == Result.infra_failed

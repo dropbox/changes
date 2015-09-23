@@ -26,8 +26,8 @@ from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
-    Artifact, Cluster, ClusterNode, TestResult,
-    LogSource, LogChunk, Node, JobPhase, JobStep, LOG_CHUNK_SIZE
+    Artifact, Cluster, ClusterNode, FailureReason, LogSource,
+    LogChunk, Node, JobPhase, JobStep, TestResult, LOG_CHUNK_SIZE
 )
 from changes.utils.http import build_uri
 from changes.utils.text import chunked
@@ -672,12 +672,16 @@ class JenkinsBuilder(BaseBackend):
         # If the Jenkins run was aborted, we don't expect a manifest file.
         if step.result != Result.aborted:
             if not any(ManifestJsonHandler.can_process(os.path.basename(a['fileName'])) for a in artifacts):
-                # Currently just log, may eventually mark this situation as an infra_failure.
-                # We include the slug in the message but format string the rest so the slug is used by Sentry
-                # for bucketing.
-                slug = step.project.slug
-                self.logger.warning('Missing manifest file for ' + slug + ': (build=%s, len(artifacts)=%d)',
-                                    step.job.build_id.hex, len(artifacts))
+                db.session.add(FailureReason(
+                    step_id=step.id,
+                    job_id=step.job.id,
+                    build_id=step.job.build_id,
+                    project_id=step.job.project_id,
+                    reason='missing_manifest_json',
+                ))
+                step.result = Result.infra_failed
+                db.session.add(step)
+                db.session.commit()
 
         # artifacts sync differently depending on the style of job results
         if phased_results:

@@ -24,13 +24,7 @@
         {},
         {}
     ],
-    "artifacts": [
-        {
-            "displayPath": "manifest.json",
-            "fileName": "manifest.json",
-            "relativePath": "artifacts/manifest.json"
-        }
-    ],
+    "artifacts": [],
     "building": false,
     "description": null,
     "duration": 8875,

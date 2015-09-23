@@ -164,8 +164,14 @@ def sync_job(job_id):
     # if any phases are marked as failing, fail the build
     if any(j.result is Result.failed for j in all_phases):
         job.result = Result.failed
-    # if any test cases were marked as failing, fail the build
-    elif TestCase.query.filter(TestCase.result == Result.failed, TestCase.job_id == job.id).first():
+    # If any test cases were marked as failing, fail the build.
+    # The exception is if the only failing test case occurred in a JobStep that
+    # had an infra failure. In this case we can't trust the test case result as
+    # being meaningful and so we ignore these.
+    elif TestCase.query.join(JobStep, JobStep.id == TestCase.step_id).filter(
+                    TestCase.result == Result.failed, TestCase.job_id == job.id,
+                    JobStep.result != Result.infra_failed
+    ).first():
         job.result = Result.failed
     # if we've finished all phases, use the best result available
     elif is_finished:

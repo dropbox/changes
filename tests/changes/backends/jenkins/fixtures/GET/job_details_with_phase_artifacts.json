@@ -34,6 +34,11 @@
             "displayPath": "test.phase.json",
             "fileName": "test.phase.json",
             "relativePath": "artifacts/test.phase.json"
+        },
+        {
+            "displayPath": "manifest.json",
+            "fileName": "manifest.json",
+            "relativePath": "artifacts/manifest.json"
         }
     ],
     "building": false,
