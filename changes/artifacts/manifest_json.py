@@ -20,11 +20,13 @@ class ManifestJsonHandler(ArtifactHandler):
             if contents['job_step_id'] != self.step.id.hex:
                 self.logger.warning('manifest.json had wrong step id (build=%s): expected %s but got %s',
                                     self.step.job.build_id.hex, self.step.id.hex, contents['job_step_id'])
-                self._add_failure_reason()
+                # TODO(nate): temporarily disabled
+                # self._add_failure_reason()
         except Exception:
             self.logger.exception('Failed to parse manifest.json; (build=%s, step=%s)',
                                 self.step.job.build_id.hex, self.step.id.hex)
-            self._add_failure_reason()
+            # TODO(nate): temporarily disabled
+            # self._add_failure_reason()
 
     def _add_failure_reason(self):
         db.session.add(FailureReason(
