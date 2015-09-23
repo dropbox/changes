@@ -7,10 +7,10 @@ import ChangesUI from 'es6!display/changes/ui';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { Button } from 'es6!display/button';
-import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause, get_cause_sentence } from 'es6!display/changes/builds';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import { TestDetails } from 'es6!display/changes/test_details';
+import { WaitingTooltip, ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause, get_cause_sentence } from 'es6!display/changes/builds';
 import { display_duration } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
@@ -335,8 +335,12 @@ export var SingleBuild = React.createClass({
       // what the server calls a jobstep is better named as shard
       return _.map(phase.steps, (shard, index) => {
         var shard_state = get_runnable_condition(shard);
-        var shard_duration = 'Running';
-        if (shard_state !== 'waiting') {
+        var shard_duration = null;
+        if (shard_state === 'waiting') {
+          shard_duration = <WaitingTooltip runnable={shard} placement="left">
+            <span>Running</span>
+          </WaitingTooltip>;
+        } else {
           shard_duration = shard.duration ?
             display_duration(shard.duration/1000) : '';
         }

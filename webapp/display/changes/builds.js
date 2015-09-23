@@ -1,9 +1,11 @@
 import React, { PropTypes } from 'react';
+import moment from 'moment';
 import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import ChangesLinks from 'es6!display/changes/links';
 import Examples from 'es6!display/examples';
 import { Error, ProgrammingError } from 'es6!display/errors';
+import { LiveTime } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
 
@@ -49,7 +51,9 @@ export var ManyBuildsStatus = React.createClass({
 
     var tooltip_markup = _.map(latest_builds, b => {
       var subtext = '';
-      if (b.stats.test_count === 0) {
+      if (get_runnable_condition(b) === 'waiting') {
+        subtext = <WaitingLiveText runnable={b} />;
+      } else if (!b.stats.test_count) {
         subtext = 'No tests run';
       } else if (b.stats.test_failures > 0) {
         subtext = `${b.stats.test_failures} of ${b.stats.test_count} tests failed`;
@@ -85,6 +89,44 @@ export var ManyBuildsStatus = React.createClass({
     </OverlayTrigger>;
   }
 });
+
+/*
+ * How long has it been since a runnable started?
+ */
+export var WaitingTooltip = React.createClass({
+
+  render() {
+    var tooltip = <Tooltip>
+      <WaitingLiveText runnable={this.props.runnable} />
+    </Tooltip>;
+
+    return <OverlayTrigger
+      placement={this.props.placement}
+      overlay={tooltip}>
+      {this.props.children}
+    </OverlayTrigger>;
+  }
+
+});
+
+// internal component that implements the above
+var WaitingLiveText = React.createClass({
+
+  render() {
+    var runnable = this.props.runnable;
+
+    if (!runnable.dateStarted) {
+      return 'Not yet started';
+    }
+
+    var unix = moment.utc(runnable.dateStarted).unix();
+
+    return <span>
+      Time Since Start:{" "}
+      <LiveTime time={unix} />
+    </span>;
+  }
+})
 
 /*
  * Shows the status of a single build. This tooltip can go into more details
@@ -140,7 +182,9 @@ export var SingleBuildStatus = React.createClass({
     var build = this.props.build;
 
     var subtext = '';
-    if (build.stats.test_count === 0) {
+    if (get_runnable_condition(build) === 'waiting') {
+      subtext = <WaitingLiveText runnable={build} />;
+    } else if (!build.stats.test_count) {
       subtext = 'No tests run';
     } else if (build.stats.test_failures > 0) {
       subtext = `${build.stats.test_failures} of ${build.stats.test_count} tests failed`;
