@@ -299,11 +299,9 @@ var BuildTestsPage = React.createClass({
       ]);
 
       if (this.state.expandedRetryTests[test.id]) {
-        if (!api.isLoaded(this.state.expandedRetryTestsData[test.id])) {
-          rows.push(GridRow.oneItem(
-            <TestDetails testID={test.id} />
-          ));
-        }
+        rows.push(GridRow.oneItem(
+          <TestDetails testID={test.id} />
+        ));
       }
     });
 
