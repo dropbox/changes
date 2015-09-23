@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { Button } from 'es6!display/button';
@@ -148,7 +149,11 @@ export var SingleBuild = React.createClass({
     return <div>
       {dot}
       <div className="inlineBlock" style={style}>
-        <div style={{ fontSize: 18 }}>{build.project.name}</div>
+        <div style={{ fontSize: 18 }}>
+          <a className="subtle" href={ChangesLinks.projectHref(build.project)}>
+            {build.project.name}
+          </a>
+        </div>
         {header_subtext}
       </div>
       <div className="marginTopS">

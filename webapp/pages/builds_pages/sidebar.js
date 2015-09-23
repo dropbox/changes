@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 
+import ChangesLinks from 'es6!display/changes/links';
 import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
 
@@ -35,7 +36,7 @@ var Sidebar = React.createClass({
   render: function() {
     return <div className="buildsSidebar">
       {this.renderBuildsList()}
-      {this.renderSurroundingBuilds()}
+      {this.renderSection('Links', this.renderLinksToCode())}
     </div>;
   },
 
@@ -247,14 +248,52 @@ var Sidebar = React.createClass({
     </div>;
   },
 
-  renderSurroundingBuilds: function() {
-    // TODO
-    return null;
-
+  renderLinksToCode() {
     if (this.props.type === "diff") {
-      return null;
+      var diffData = this.props.targetData;
+      return <div className="marginBottomL"> <a
+        className="external"
+        href={diffData.uri}
+        target="_blank">
+        <i className="fa fa-pencil marginRightS" style={{width: 15}} />
+        View Differential Revision
+      </a> </div>;
+    } else {
+      var source = this.props.targetData;
+
+      var diffHref = null;
+      URI.withinString(source.revision.message, (url) => {
+        if (URI(url).path().match(/D[0-9]+/)) {
+          // its a phabricator diff
+          diffHref = url;
+        }
+        return url;
+      });
+
+      var commitLink = <div> <a 
+        className="external"
+        href={ChangesLinks.phabCommitHref(source.revision)}
+        target="_blank">
+        <i className="fa fa-code marginRightS" style={{width: 15}} />
+        View Commit
+      </a> </div>;
+
+      var diffLink = null;
+      if (diffHref) {
+        diffLink = <div className="marginTopS"> <a
+          className="external"
+          href={diffHref}
+          target="_blank">
+          <i className="fa fa-pencil marginRightS" style={{width: 15}} />
+          View Original Differential Revision
+        </a> </div>;
+      }
+
+      return <div>
+        {commitLink}
+        {diffLink}
+      </div>
     }
-    return this.renderSection("Nearby Commits", <span>TODO</span>);
   },
 
   renderSection: function(header, content) {

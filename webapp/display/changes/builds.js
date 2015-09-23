@@ -313,9 +313,18 @@ export var ConditionDot = React.createClass({
         large: 45
       };
 
+      var style =  {
+        fontSize: font_sizes[this.props.size], 
+        color: "#007ee5"
+      };
+
+      if (this.props.size === 'medium') {
+        style = _.extend(style, {marginLeft: 2, marginRight: 6});
+      }
+
       dot = <i
         className="fa fa-clock-o conditionDotIcon"
-        style={{ fontSize: font_sizes[this.props.size], color: "#007ee5" }}
+        style={style}
       />;
     } else {
       var classes = [
