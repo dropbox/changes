@@ -104,6 +104,86 @@ export var TimeText = React.createClass({
   }
 });
 
+// given a unix timestamp, renders how long its been since then in hh:mm:ss
+// format. Useful to render how long its been since a build started
+export var LiveTime = React.createClass({
+
+  propTypes: {
+    time: PropTypes.number,
+  },
+
+  getInitialState: function() {
+    // this is a monotonically increasing number (e.g. timestamps work.)
+    // whenever this updates, we rerender our LiveTime text
+    return {
+      lastUpdated: 0
+    };
+  },
+
+  render() {
+    var now = moment.utc().unix();
+    var start = this.props.time;
+
+    var totalSeconds = now - start;
+    var seconds = Math.floor(totalSeconds % 60);
+    var minutes = Math.floor(totalSeconds / 60);
+    if (minutes > 60) {
+      var hours = Math.floor(minutes / 60);
+      minutes = minutes % 60;
+    }
+
+    var text = null; 
+    var suffix = ':' + utils.pad(seconds, 2);
+    if (hours) {
+      text = hours + ':' + utils.pad(minutes, 2) + suffix;
+    } else {
+      text = minutes + suffix;
+    }
+    return <span>{text}</span>;
+  },
+
+  // timer code
+
+  statics: {
+    instances: {},
+    refreshTimer: null
+  },
+
+  componentDidMount() {
+    this.uniqueID = utils.randomID();
+    LiveTime.instances[this.uniqueID] = this;
+
+    if (!LiveTime.refreshTimer) {
+      LiveTime.refreshTimer = setInterval(arg => {
+        _.each(LiveTime.instances, (val, key) => {
+          if (!val) { 
+            return; 
+          }
+          if (val.isMounted()) {
+            val.setState({
+              // this just has to be monotonically increasing, so new Date is fine
+              lastUpdated: Date.now()
+            });
+          }
+        });
+      // this isn't going to be that smooth :/, but do I really want to change
+      // it to something like 250ms?
+      }, 1000);
+    }
+  },
+
+  componentWillUnmount: function() {
+    LiveTime.instances[this.uniqueID] = null;
+    var timersLeft = _.any(LiveTime.instances, (v, k) => v);
+
+    if (!timersLeft && LiveTime.refreshTimer) {
+      // technically I should console.error if refreshTimer is missing
+      clearInterval(LiveTime.refreshTimer);
+      LiveTime.refreshTimer = null;
+    }
+  }
+});
+
 /*
  * Converts 136 [in seconds] to a string like "2m16s". Note that the backend
  * often returns durations in milliseconds, not seconds!
@@ -151,6 +231,13 @@ Examples.add('TimeText and display_duration', __ => {
     />,
     <TimeText className="block" time="September 1, 2008 3:14 PM" />,
     display_duration(57),
-    display_duration(3742)
+    display_duration(3742),
+    <span>
+      <LiveTime time={moment.utc().unix()} />
+      &nbsp;
+      <LiveTime time={moment.utc().unix() - 120} />
+      &nbsp;
+      <LiveTime time={moment.utc().unix() - 3600} />
+    </span>
   ];
 });
