@@ -103,7 +103,7 @@ export var plural = function(num, text, use_no = false, capitalize = false) {
   }
   text = text.replace("(s)", "s");
 
-  if (num === 0 && use_no) {
+  if (!num && use_no) {
     return (capitalize ? 'No ' : 'no ') + text;
   }
   return num + " " + text;

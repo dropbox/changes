@@ -123,7 +123,7 @@ var BuildTestsPage = React.createClass({
     var failedTests = this.state.failedTests.getReturnedData();
 
     if (!failedTests) {
-      return <div>No tests failed</div>;
+      return <div>Empty</div>;
     }
 
     var project_id = this.state.buildInfo.getReturnedData().project.id;
