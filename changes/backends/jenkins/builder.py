@@ -760,12 +760,6 @@ class JenkinsBuilder(BaseBackend):
 
             pending_artifacts.remove(artifact_filename)
 
-            if ManifestJsonHandler.can_process(artifact_filename):
-                # Associate any manifest file with the original step for
-                # accurate validation.
-                self._handle_generic_artifact(step, artifact_data)
-                continue
-
             resp = self.fetch_artifact(step, artifact_data)
             phase_data = resp.json()
 
@@ -832,11 +826,15 @@ class JenkinsBuilder(BaseBackend):
         if not pending_artifacts:
             return
 
+        # Alias to clarify that this is the JobStep that actually ran on a slave.
+        original_step = step
         # all remaining artifacts get bound to the final phase
         final_step = sorted(phase_steps, key=lambda x: x.date_finished, reverse=True)[0]
         for artifact_name in pending_artifacts:
+            # Manifest files are associated with the original step so we can validate that the ID is correct.
+            responsible_step = original_step if ManifestJsonHandler.can_process(artifact_name) else final_step
             self._handle_generic_artifact(
-                jobstep=final_step,
+                jobstep=responsible_step,
                 artifact=artifacts_by_name[artifact_name],
             )
 
