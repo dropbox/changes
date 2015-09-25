@@ -360,7 +360,7 @@ export var SingleBuildPage = React.createClass({
     var project = this.state.build.getReturnedData().project;
     utils.setPageTitle(`A ${project.name} Build`);
 
-    return <ChangesPage>
+    return <ChangesPage oldUI={oldBuildUI(this.state.build.getReturnedData())}>
       <SingleBuild build={this.state.build.getReturnedData()} />
     </ChangesPage>;
   },
