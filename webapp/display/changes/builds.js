@@ -130,7 +130,7 @@ var WaitingLiveText = React.createClass({
 
 /*
  * Shows the status of a single build. This tooltip can go into more details
- * than ManyBuildsStatus (show the names of the failing tests)
+ * than ManyBuildsStatus (showing the names of the failing tests)
  */
 export var SingleBuildStatus = React.createClass({
 
@@ -321,8 +321,8 @@ var get_builds_for_last_change = function(builds) {
 
 /*
  * Renders a rounded square with a color that indicates the condition of the
- * runnable (passed/failed/unknown/not yet run.) Shows a clock icon instead of
- * the dot if the build hasn't finished yet.
+ * runnable (passed/failed/unknown/not yet run.) Shows icons instead of
+ * dots for builds that haven't finished yet or were cancelled
  */
 export var ConditionDot = React.createClass({
 
@@ -349,24 +349,29 @@ export var ConditionDot = React.createClass({
     var condition = this.props.condition;
 
     var dot = null;
-    if (condition === 'waiting') {
+    if (condition === 'waiting' || condition === 'failed_aborted') {
       var font_sizes = {
         smaller: 12,
         small: 16,
         medium: 26,
         large: 45
       };
-
-      var style =  {
+      var style = {
         fontSize: font_sizes[this.props.size], 
       };
-
       if (this.props.size === 'medium') {
         style = _.extend(style, {marginLeft: 2, marginRight: 6});
       }
 
+      var classes = {
+        common: 'fa conditionDotIcon ',
+        waiting: "fa-clock-o blue",  // blue instead of blue-gray
+        'failed_aborted': 'red fa-ban'
+      }
+      var className = classes['common'] + classes[condition];
+
       dot = <i
-        className="fa fa-clock-o conditionDotIcon blue"
+        className={className}
         style={style}
       />;
     } else {
@@ -392,13 +397,12 @@ export var ConditionDot = React.createClass({
   }
 });
 
-var all_build_conditions = ['passed', 'failed', 'failed_unusual', 'unknown', 'waiting'];
+var all_build_conditions = ['passed', 'failed', 'failed_infra', 'failed_aborted', 'unknown', 'waiting'];
 
 /*
  * Looks at a build/job/jobstep's status and result fields to figure out what
- * condition the build is in. For the most part I treat failed and failed_unusual
- * the same...someone with a better understanding of changes can differentiate
- * these if they want
+ * condition the build is in. There are a bunch of failure conditions with a
+ * common prefix, so you can just check failure with indexOf('failed') === 0.
  */
 export var get_runnable_condition = function(runnable) {
   var status = runnable.status.id, result = runnable.result.id;
@@ -409,8 +413,10 @@ export var get_runnable_condition = function(runnable) {
 
   if (result === 'passed' || result === 'failed') {
     return result;
-  } else if (result === 'aborted' || result === 'infra_failed') {
-    return 'failed_unusual';
+  } else if (result === 'aborted') {
+    return 'failed_aborted';
+  } else if (result === 'infra_failed') {
+    return 'failed_infra';
   }
   return 'unknown';
 }
@@ -418,23 +424,35 @@ export var get_runnable_condition = function(runnable) {
 /*
  * Combines the conditions of a bunch of runnables into a single summary
  * condition: if any failed or haven't finished, returns failed/waiting, etc.
- *
- * NOTE: treats failed_unusual as failed
  */
 export var get_runnables_summary_condition = function(runnables) {
-  var any_failed = _.any(runnables,
-    r => get_runnable_condition(r).indexOf('failed') === 0);
+  var any_condition = condition => _.any(runnables,
+    r => get_runnable_condition(r) === condition);
 
-  var any_waiting = _.any(runnables,
-    r => get_runnable_condition(r) === 'waiting');
+  var any_aborted = any_condition('failed_aborted');
+  var any_failed_infra = any_condition('failed_infra');
+  var any_failed = any_condition('failed');
+  var any_waiting = any_condition('waiting');
+  var any_unknown = any_condition('unknown');
 
-  var any_unknown = _.any(runnables,
-    r => get_runnable_condition(r) === 'unknown');
-
-  return (any_failed && 'failed') ||
+  return (any_aborted && 'failed_aborted') ||
+    (any_failed_infra && 'failed_infra') ||
+    (any_failed && 'failed') ||
     (any_waiting && 'waiting') ||
     (any_unknown && 'unknown') ||
     'passed';
+}
+
+// short, readable text for runnable conditions
+export var get_runnable_condition_short_text = function(condition) {
+  names = {
+    passed: 'passed',
+    failed: 'failed',
+    'failed_aborted': 'aborted',
+    'failed_infra': 'infrastructure failure',
+    waiting: 'in progress',
+  };
+  return names[condition] || 'unknown';
 }
 
 export var get_runnable_condition_color_cls = function(condition, background = false) {
@@ -442,8 +460,10 @@ export var get_runnable_condition_color_cls = function(condition, background = f
     case 'passed':
       return background ? 'greenBg' : 'green';
     case 'failed':
-    case 'failed_unusual':
+    case 'failed_aborted':
       return background ? 'redBg' : 'red';
+    case 'failed_infra':
+      return background ? 'blackBg' : 'black';
     case 'waiting':
       return background ? 'bluishGrayBg' : 'bluishGray';
     case 'unknown':
@@ -509,9 +529,10 @@ export var get_cause_sentence = function(cause) {
 Examples.add('ConditionDot', __ => {
   return [
     <ConditionDot condition="passed" />,
-    <ConditionDot condition="failed" />,
     <ConditionDot condition="waiting" />,
-    <ConditionDot condition="failed_unusual" />,
+    <ConditionDot condition="failed" />,
+    <ConditionDot condition="failed_infra" />,
+    <ConditionDot condition="failed_aborted" />,
     <ConditionDot condition="unknown" />,
     <ConditionDot condition="passed" num={2} />,
     <ConditionDot condition="passed" glow={true} />,

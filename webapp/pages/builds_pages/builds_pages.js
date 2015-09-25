@@ -111,7 +111,7 @@ export var CommitPage = React.createClass({
           <a href={href}>{b.project.name}</a>
           {" ("}
           <span className={get_runnable_condition_color_cls(condition)}>
-            {condition}
+            {get_runnable_condition_short_text(condition)}
           </span>
           {")"}
         </div>

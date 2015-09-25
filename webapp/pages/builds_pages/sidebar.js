@@ -196,10 +196,16 @@ var Sidebar = React.createClass({
       var tests_text = null;
       if (build_state.indexOf('failed') === 0) {
         subtext_extra_class = 'redGrayMix';
-        tests_text = utils.plural(
-          b.stats.test_failures,
-          'test(s) failed',
-          true);
+
+        if (build_state === 'failed') {
+          tests_text = utils.plural(
+            b.stats.test_failures,
+            'test(s) failed',
+            true);
+        } else {
+          // infrastructure failure/aborted
+          tests_text = get_runnable_condition_short_text(build_state);
+        }
       } else if (build_state === 'waiting') {
         tests_text = 'tests in progress';
       } else {

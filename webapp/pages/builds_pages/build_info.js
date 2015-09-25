@@ -214,7 +214,7 @@ export var SingleBuild = React.createClass({
         .format(DATE_RFC2822);
     }
 
-    var testCount = !build.stats.test_count && get_runnable_condition(build) === 'waiting' ?
+    var testCount = (!build.stats.test_count && get_runnable_condition(build) === 'waiting') ?
       'In Progress' : build.stats.test_count;
 
     var testLabel = build.dateFinished ? "Tests Ran" : "Tests Run";
@@ -464,7 +464,6 @@ export var LatestBuildsSummary = React.createClass({
       .values()
       .value();
 
-    var summary_condition = get_runnables_summary_condition(latest_by_proj);
     builds = _.map(latest_by_proj, (b, index) => {
       return <div className="marginTopL paddingTopL fainterBorderTop">
         <SingleBuild build={b} content="short" />
@@ -486,7 +485,6 @@ export var LatestBuildsSummary = React.createClass({
       var failing = _.filter(latest_by_proj,
         b => get_runnable_condition(b).indexOf('failed') === 0);
       subtext = `${failing.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} failed`;
-      subtext_extra_class = 'redGrayMix';
     } else if (summary_condition === 'waiting') {
       var waiting = _.filter(latest_by_proj,
         b => get_runnable_condition(b) === 'waiting');
