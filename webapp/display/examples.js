@@ -5,6 +5,9 @@ import React, { PropTypes } from 'react';
  * Examples.add. Its an easy way to test your component in isolation and
  * to document various ways to use the component.
  *
+ * Examples are added automatically on import, so if your component doesn't
+ * show up its probably because nothing imports it
+ *
  * /display_examples allows you to see all examples.
  */
 var Examples = {

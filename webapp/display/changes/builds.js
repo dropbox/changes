@@ -136,6 +136,12 @@ export var SingleBuildStatus = React.createClass({
 
   MAX_TESTS_IN_TOOLTIP: 15,
 
+  propTypes: {
+    build: PropTypes.object,
+    placement: PropTypes.string,
+    parentElem: PropTypes.element
+  },
+
   render: function() {
     var build = this.props.build;
     var condition = get_runnable_condition(build);
@@ -164,7 +170,7 @@ export var SingleBuildStatus = React.createClass({
     if (tooltip) {
       return <div>
         <OverlayTrigger
-          placement="right"
+          placement={this.props.placement || "right"}
           overlay={tooltip}>
           <div>{widget}</div>
         </OverlayTrigger>

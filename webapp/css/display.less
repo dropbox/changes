@@ -440,6 +440,38 @@ a.button.whiteButton.disabled {
 }
 
 /*
+ * Charts
+ */
+
+.emptyChartBar {
+  background-color: @mediumGray;
+  display: inline-block;
+  height: 2px;
+  width: 10px;
+}
+
+a.chartBarColumn, div.chartBarColumn {
+  display: inline-block;
+  width: 10px;
+  margin-right: 2px;
+}
+
+a.chartBarColumn:hover {
+  /* TODO: don't hardcode colors */
+  background-color: #EFEFEF;
+}
+
+a.chartBarColumn:hover .chartBar {
+  opacity: 0.7;
+}
+
+div.chartBar {
+  display: inline-block;
+  width: 10px;
+  height: 40px;  /* We'll override this later */
+}
+
+/*
  * Misc: classes that didn't quite deserve their own tag
  */
 

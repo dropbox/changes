@@ -27,6 +27,10 @@ entry.js: the entry point into the app
 - /display_examples (or maybe /v2/display_examples) has a nice gallery of all
   the reusable ui components we use
 
+- I used underscores for a while before realizing js typically uses camelCase
+  for all variables. So now its half-and-half, sorry :(. It shouldn't be that
+  hard to fix...
+
 == OTHER ==
 
 Q: Why not Angular or Ember? Why not server-side rendering?

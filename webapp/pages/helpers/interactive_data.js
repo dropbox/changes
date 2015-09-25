@@ -227,6 +227,14 @@ var InteractiveDataPrototype = {
     );
   },
 
+  hasPreviousPage() {
+    return this.getDataToShow().getLinksFromHeader().previous;
+  },
+
+  hasNextPage() {
+    return this.getDataToShow().getLinksFromHeader().next;
+  },
+
   getPagingLinks() {
     var hrefs = this.getDataToShow().getLinksFromHeader();
     var params = {

@@ -4,6 +4,7 @@ import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { AjaxError } from 'es6!display/errors';
+import { BuildsChart } from 'es6!display/changes/build_chart';
 import { Grid } from 'es6!display/grid';
 import { SingleBuildStatus, get_runnable_condition } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
@@ -83,6 +84,9 @@ var CommitsTab = React.createClass({
     var style = interactive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
     return <div style={style}>
+      <div className="floatR">
+        {this.renderChart()}
+      </div>
       {this.renderTableControls()}
       {error_message}
       {this.renderTable()}
@@ -142,6 +146,25 @@ var CommitsTab = React.createClass({
     return <div style={{marginBottom: 5, marginTop: 10}}>
       {branch_dropdown}
     </div>;
+  },
+
+  renderChart() {
+    var dataToShow = this.props.interactive.getDataToShow().getReturnedData();
+
+    var builds = _.map(dataToShow, commit => {
+      if (commit.builds && commit.builds.length > 0) {
+        var sortedBuilds = _.sortBy(commit.builds, b => b.dateCreated).reverse();
+        return _.first(sortedBuilds);
+      } else {
+        return {};
+      }
+    });
+
+    return <BuildsChart 
+      builds={builds}
+      leftEllipsis={this.props.interactive.hasPreviousPage()}
+      rightEllipsis={this.props.interactive.hasNextPage()}
+    />;
   },
 
   renderTable: function() {

@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import { AjaxError } from 'es6!display/errors';
+import { BuildsChart } from 'es6!display/changes/build_chart';
 import { Grid } from 'es6!display/grid';
 import { Menu1 } from 'es6!display/menus';
 import { SingleBuildStatus, get_build_cause } from 'es6!display/changes/builds';
@@ -63,6 +64,12 @@ var BuildsTab = React.createClass({
 
     var data_to_show = interactive.getDataToShow();
 
+    var chart = <BuildsChart 
+      builds={data_to_show.getReturnedData()} 
+      leftEllipsis={interactive.hasPreviousPage()}
+      rightEllipsis={interactive.hasNextPage()}
+    />;
+
     var data = _.map(data_to_show.getReturnedData(), build => {
       var target = null;
       if (_.contains(build.tags, 'arc test')) {
@@ -109,9 +116,12 @@ var BuildsTab = React.createClass({
     var style = interactive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
     return <div>
-      {this.renderControls()}
-      {error_message}
       <div style={style}>
+        <div className="floatR">
+          {chart}
+        </div>
+        {this.renderControls()}
+        {error_message}
         <Grid
           colnum={6}
           cellClasses={cellClasses}
