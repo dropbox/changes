@@ -178,7 +178,7 @@ var Diffs = React.createClass({
       ];
     });
 
-    var cellClasses = ['nowrap buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap'];
+    var cellClasses = ['buildWidgetCell', 'wide easyClick', 'nowrap', 'nowrap', 'nowrap'];
     var headers = [
       'Result',
       'Name',
@@ -266,7 +266,7 @@ var Commits = React.createClass({
       );
     });
 
-    var cellClasses = ['nowrap buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap'];
+    var cellClasses = ['buildWidgetCell', 'wide easyClick', 'nowrap', 'nowrap', 'nowrap'];
     var headers = [
       'Result',
       'Name',

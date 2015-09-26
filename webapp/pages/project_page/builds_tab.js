@@ -90,7 +90,7 @@ var BuildsTab = React.createClass({
       ];
     });
 
-    var cellClasses = ['buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
+    var cellClasses = ['buildWidgetCell', 'wide easyClick', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
 
     var headers = [
       'Result',

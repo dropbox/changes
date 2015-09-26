@@ -150,7 +150,7 @@ var CommitsTab = React.createClass({
 
     var grid_data = _.map(data_to_show, c => this.turnIntoRow(c, project_info));
 
-    var cellClasses = ['nowrap buildWidgetCell', 'wide', 'nowrap', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
+    var cellClasses = ['buildWidgetCell', 'wide easyClick', 'nowrap', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
 
     var headers = [
       'Result',

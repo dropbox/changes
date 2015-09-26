@@ -45,7 +45,7 @@ var NodePage = React.createClass({
     var node = this.state.nodeDetails.getReturnedData();
     utils.setPageTitle(node.name);
 
-    var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [ 'Build', 'Phab.', 'Project', 'Name', 'Committed'];
 
     var grid_data = _.map(this.state.nodeJobs.getReturnedData(), d => {

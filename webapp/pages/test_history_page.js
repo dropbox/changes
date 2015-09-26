@@ -109,7 +109,7 @@ var TestHistoryPage = React.createClass({
       'Committed'
     ];
 
-    var cellClasses = ['buildWidgetCell nowrap', 'nowrap center', 'nowrap',
+    var cellClasses = ['buildWidgetCell', 'nowrap center', 'nowrap',
       'nowrap', 'wide', 'nowrap'];
 
     var errorMessage = null;
