@@ -6,7 +6,7 @@ import ChangesUI from 'es6!display/changes/ui';
 import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
-import { ManyBuildsStatus, get_runnable_condition_color_cls } from 'es6!display/changes/builds';
+import { ManyBuildsStatus, get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
@@ -335,7 +335,8 @@ var Projects = React.createClass({
           return null;
         }
 
-        color_cls = get_runnable_condition_color_cls(p.lastBuild);
+        color_cls = get_runnable_condition_color_cls(
+          get_runnable_condition(p.lastBuild));
       }
 
       return <a className={color_cls} href={ChangesLinks.projectHref(p)}>
