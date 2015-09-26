@@ -146,7 +146,7 @@ var AllProjectsPage = React.createClass({
       ];
     });
 
-    var headers = ['Last Build', 'When', 'Name', 'Description'];
+    var headers = ['Last Build', 'When', 'Project Page', 'Description'];
     var cellClasses = ['nowrap buildWidgetCell', 'nowrap', 'nowrap', 'cellOverflow'];
 
     return <Grid
