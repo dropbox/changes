@@ -332,46 +332,45 @@ export var SingleBuild = React.createClass({
       phases[0].steps && phases[0].steps.length === 1;
 
     var phases_rows = _.map(phases, phase => {
-      // what the server calls a jobstep is better named as shard
-      return _.map(phase.steps, (shard, index) => {
-        var shard_state = get_runnable_condition(shard);
-        var shard_duration = null;
-        if (shard_state === 'waiting') {
-          shard_duration = <WaitingTooltip runnable={shard} placement="left">
+      return _.map(phase.steps, (jobstep, index) => {
+        var jobstep_state = get_runnable_condition(jobstep);
+        var jobstep_duration = null;
+        if (jobstep_state === 'waiting') {
+          jobstep_duration = <WaitingTooltip runnable={jobstep} placement="left">
             <span>Running</span>
           </WaitingTooltip>;
         } else {
-          shard_duration = shard.duration ?
-            display_duration(shard.duration/1000) : '';
+          jobstep_duration = jobstep.duration ?
+            display_duration(jobstep.duration/1000) : '';
         }
 
-        if (!shard.node) {
+        if (!jobstep.node) {
           return [
             index === 0 && !only_one_row ?
               <span className="lb">{phase.name}</span> : "",
-            <ConditionDot state={shard_state} />,
+            <ConditionDot state={jobstep_state} />,
             <i>Machine not yet assigned</i>,
             '',
-            shard_duration
+            jobstep_duration
           ];
         }
-        var node_name = <a href={"/v2/node/" + shard.node.id}>
-          {shard.node.name}
+        var node_name = <a href={"/v2/node/" + jobstep.node.id}>
+          {jobstep.node.name}
         </a>;
 
-        var shard_failures = _.filter(failures, f => f.step_id == shard.id);
+        var jobstep_failures = _.filter(failures, f => f.step_id == jobstep.id);
 
         var main_markup = node_name;
-        if (shard_failures) {
-          var failure_markup = _.map(shard_failures, f => {
+        if (jobstep_failures) {
+          var failure_markup = _.map(jobstep_failures, f => {
             var reason = f.reason;
             if (f.id === 'test_failures') {
               // Note: the failure message itself doesn't tell us the correct
               // number of failing tests. I modified the API we use to send the
               // correct number as a separate param
               reason = 'Some tests failed';
-              if (shard.testFailures && shard.testFailures > 0) {
-                reason = utils.plural(shard.testFailures, 'test(s) failed');
+              if (jobstep.testFailures && jobstep.testFailures > 0) {
+                reason = utils.plural(jobstep.testFailures, 'test(s) failed');
               }
             }
 
@@ -386,7 +385,7 @@ export var SingleBuild = React.createClass({
 
         var links = [];
 
-        var log_id = shard.logSources[0] && shard.logSources[0].id;
+        var log_id = jobstep.logSources[0] && jobstep.logSources[0].id;
         if (log_id) {
           var log_uri = `/v2/job_log/${build.id}/${job.id}/${log_id}/`;
           links.push(<a className="marginRightM" href={log_uri}>Log</a>);
@@ -395,10 +394,10 @@ export var SingleBuild = React.createClass({
           links.push(<a className="external marginRightM" href={raw_log_uri} target="_blank">Raw</a>);
         }
 
-        if (shard.data.uri) {
+        if (jobstep.data.uri) {
           links.push(
             /* skip external class since we'd have two icons */
-            <a href={shard.data.uri} target="_blank">
+            <a href={jobstep.data.uri} target="_blank">
               Jenkins{" "}
               {ChangesUI.restrictedIcon()} 
             </a>
@@ -408,10 +407,10 @@ export var SingleBuild = React.createClass({
         return [
           index === 0 && !only_one_row ?
             <span className="lb">{phase.name}</span> : "",
-          <ConditionDot condition={shard_state} />,
+          <ConditionDot condition={jobstep_state} />,
           main_markup,
           links,
-          shard_duration
+          jobstep_duration
         ];
       });
     });
