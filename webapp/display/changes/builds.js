@@ -164,7 +164,7 @@ export var SingleBuildStatus = React.createClass({
     if (tooltip) {
       return <div>
         <OverlayTrigger
-          placement='right'
+          placement="right"
           overlay={tooltip}>
           <div>{widget}</div>
         </OverlayTrigger>
@@ -239,7 +239,7 @@ export var SingleBuildStatus = React.createClass({
 
       return <Tooltip key={+new Date()}>
         {this.getTooltipHeader()}
-        <div style={{textAlign: "left", marginTop: 10}}>
+        <div style={{textAlign: "left", marginTop: 10, marginLeft: 25}}>
           <span className="bb">Failed Tests:</span>
           {list}
         </div>
@@ -271,7 +271,7 @@ export var SingleBuildStatus = React.createClass({
       return <Tooltip>
         {this.getTooltipHeader()}
         {data_fetcher}
-        <div style={{textAlign: "left", marginTop: 10}}>
+        <div style={{textAlign: "left", marginTop: 10, marginLeft: 25}}>
           Loading failed test list
         </div>
       </Tooltip>;
