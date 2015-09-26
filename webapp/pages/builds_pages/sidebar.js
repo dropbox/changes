@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import ChangesLinks from 'es6!display/changes/links';
-import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause } from 'es6!display/changes/builds';
+import { ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_short_text, get_build_cause } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
 
 import * as utils from 'es6!utils/utils';

@@ -5,7 +5,7 @@ import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error } from 'es6!display/errors';
 import { TimeText } from 'es6!display/time';
-import { get_runnable_condition, get_runnable_condition_color_cls, get_build_cause } from 'es6!display/changes/builds';
+import { get_runnable_condition, get_runnable_condition_short_text, get_runnable_condition_color_cls, get_build_cause } from 'es6!display/changes/builds';
 
 import Sidebar from 'es6!pages/builds_pages/sidebar';
 import { SingleBuild, LatestBuildsSummary } from 'es6!pages/builds_pages/build_info';

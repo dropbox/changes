@@ -445,7 +445,7 @@ export var get_runnables_summary_condition = function(runnables) {
 
 // short, readable text for runnable conditions
 export var get_runnable_condition_short_text = function(condition) {
-  names = {
+  var names = {
     passed: 'passed',
     failed: 'failed',
     'failed_aborted': 'aborted',
