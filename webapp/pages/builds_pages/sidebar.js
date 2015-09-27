@@ -190,23 +190,23 @@ var Sidebar = React.createClass({
     };
 
     var entries = _.map(builds, b => {
-      var build_state = get_runnable_condition(b);
+      var buildCondition = get_runnable_condition(b);
 
       var subtext_extra_class = '';
       var tests_text = null;
-      if (build_state.indexOf('failed') === 0) {
+      if (buildCondition.indexOf('failed') === 0) {
         subtext_extra_class = 'redGrayMix';
 
-        if (build_state === 'failed') {
+        if (buildCondition === 'failed') {
           tests_text = utils.plural(
             b.stats.test_failures,
             'test(s) failed',
             true);
         } else {
           // infrastructure failure/aborted
-          tests_text = get_runnable_condition_short_text(build_state);
+          tests_text = get_runnable_condition_short_text(buildCondition);
         }
-      } else if (build_state === 'waiting') {
+      } else if (buildCondition === 'waiting') {
         tests_text = 'tests in progress';
       } else {
         tests_text = utils.plural(b.stats.test_count, "test(s) run");

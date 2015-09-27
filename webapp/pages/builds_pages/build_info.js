@@ -314,9 +314,9 @@ export var SingleBuild = React.createClass({
 
     var phases_rows = _.map(phases, phase => {
       return _.map(phase.steps, (jobstep, index) => {
-        var jobstep_state = get_runnable_condition(jobstep);
+        var jobstepCondition = get_runnable_condition(jobstep);
         var jobstep_duration = null;
-        if (jobstep_state === 'waiting') {
+        if (jobstepCondition === 'waiting') {
           jobstep_duration = <WaitingTooltip runnable={jobstep} placement="left">
             <span>Running</span>
           </WaitingTooltip>;
@@ -329,7 +329,7 @@ export var SingleBuild = React.createClass({
           return [
             index === 0 && !only_one_row ?
               <span className="lb">{phase.name}</span> : "",
-            <ConditionDot state={jobstep_state} />,
+            <ConditionDot state={jobstepCondition} />,
             <i>Machine not yet assigned</i>,
             '',
             jobstep_duration
@@ -387,8 +387,9 @@ export var SingleBuild = React.createClass({
 
         return [
           index === 0 && !only_one_row ?
-            <span className="lb">{phase.name}</span> : "",
-          <ConditionDot condition={jobstep_state} />,
+            <span className="lb">{phase.name}</span> : 
+            "",
+          <ConditionDot condition={jobstepCondition} />,
           main_markup,
           links,
           jobstep_duration
