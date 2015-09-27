@@ -116,7 +116,7 @@ var WaitingLiveText = React.createClass({
     var runnable = this.props.runnable;
 
     if (!runnable.dateStarted) {
-      return 'Not yet started';
+      return <span>Not yet started</span>;
     }
 
     var unix = moment.utc(runnable.dateStarted).unix();

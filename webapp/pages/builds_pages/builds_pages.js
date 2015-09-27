@@ -356,12 +356,15 @@ export var SingleBuildPage = React.createClass({
     if (!api.isLoaded(this.state.build)) {
       return <APINotLoadedPage calls={this.state.build} />;
     }
+    var build = this.state.build.getReturnedData();
 
-    var project = this.state.build.getReturnedData().project;
-    utils.setPageTitle(`A ${project.name} Build`);
+    utils.setPageTitle(`A ${build.project.name} Build`);
 
-    return <ChangesPage oldUI={oldBuildUI(this.state.build.getReturnedData())}>
-      <SingleBuild build={this.state.build.getReturnedData()} />
+    return <ChangesPage oldUI={oldBuildUI(build)}>
+      <SingleBuild build={build} />
+      <div className="marginTopL">
+        <a href={`/v2/code/${build.source.id}`}>View Code for this Build</a>
+      </div>
     </ChangesPage>;
   },
 });
