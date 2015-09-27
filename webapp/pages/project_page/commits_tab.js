@@ -107,13 +107,17 @@ var CommitsTab = React.createClass({
     if (api.isError(this.state.branches) &&
         this.state.branches.getStatusCode() === '422') {
 
-      branch_dropdown = <select disabled={true}>
-        <option>No branches</option>
-      </select>;
+      branch_dropdown = <div className="selectWrap">
+        <select disabled={true}>
+          <option>No branches</option>
+        </select>
+      </div>;
     } else if (!api.isLoaded(this.state.branches)) {
-      branch_dropdown = <select disabled={true}>
-        <option value={current_branch}>{current_branch}</option>
-      </select>;
+      branch_dropdown = <div className="selectWrap">
+        <select disabled={true}>
+          <option value={current_branch}>{current_branch}</option>
+        </select>
+      </div>;
     } else {
       var options = _.chain(this.state.branches.getReturnedData())
         .pluck('name')
@@ -127,9 +131,11 @@ var CommitsTab = React.createClass({
           true); // reset to page 0
       };
 
-      branch_dropdown = <select onChange={onChange} value={current_branch}>
-        {options}
-      </select>;
+      branch_dropdown = <div className="selectWrap">
+        <select onChange={onChange} value={current_branch}>
+          {options}
+        </select>
+      </div>;
     }
 
     /*

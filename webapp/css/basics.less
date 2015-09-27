@@ -185,3 +185,37 @@ div.popover {
 div.tooltip-inner {
   max-width: 400px;
 }
+
+/* 
+ * restyle select. We sometimes want to use these over bootstrap dropdowns
+ * because they're better at handling many items
+ */
+
+.selectWrap {
+  border: 1px solid #ccc;
+  width: 140px;
+  border-radius: 3px;
+  overflow: hidden;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: 95% 50%;
+  /* convert caret.png -alpha on -channel a -evaluate set 15% caret_gray.png */  
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAUCAQAAAD4zq+ZAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QA/4ePzL8AAAAHdElNRQffCRoQBSPePveXAAAAOklEQVQoz2P8r8aABzAxMAxPaRYIxYgh8R9Z93+skkiG/8ciiWL3fywKmdCNRLUGzeXobhjEgUpAGgDSZAtGaRBRtgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wOS0yNlQxNjowNTozNy0wNzowMLN729cAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDktMjZUMTY6MDU6MzUtMDc6MDBVuXJCAAAAAElFTkSuQmCC");
+}
+
+.selectWrap select {
+  padding: 10px 29px 10px 10px;
+  width: 130%;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.selectWrap select:focus {
+  outline: none;
+}
+
