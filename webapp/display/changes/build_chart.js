@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
 
 import ChangesLinks from 'es6!display/changes/links';
-import Examples from 'es6!display/examples';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/builds';
 

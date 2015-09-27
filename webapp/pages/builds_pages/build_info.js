@@ -4,8 +4,8 @@ import moment from 'moment';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
+import PostRequest from 'es6!display/post_request';
 import SectionHeader from 'es6!display/section_header';
-import { AjaxError } from 'es6!display/errors';
 import { Button } from 'es6!display/button';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -43,9 +43,6 @@ export var SingleBuild = React.createClass({
 
   getInitialState: function() {
     return {
-      // used by the recreate build button
-      recreateBuild: null,
-
       // states for toggling inline visibility of test snippets
       expandedTests: {},
       expandedTestsData: {}
@@ -170,31 +167,15 @@ export var SingleBuild = React.createClass({
   },
 
   renderButton: function(build) {
-    var recreate = this.state.recreateBuild;
-
-    if (recreate && recreate.condition === 'loading') {
-      return <div>
-        <i className="fa fa-spinner fa-spin" />
-      </div>;
-    } else if (api.isError(recreate)) {
-      return <AjaxError response={recreate.response} />;
-    } else if (api.isLoaded(recreate)) {
-      // reload to pick up the new build
-      window.location.reload();
-    }
-
-    var onClick = evt => {
-      api.post(this, {
-        recreateBuild: `/api/0/builds/${build.id}/retry/`
-      });
-    };
-
-    return <Button
-      type="white"
-      onClick={onClick}>
-      <i className="fa fa-repeat marginRightS" />
-      Recreate Build
-    </Button>;
+    return <PostRequest
+      parentElem={this}
+      name="recreateBuild"
+      endpoint={`/api/0/builds/${build.id}/retry/`}>
+      <Button type="white">
+        <i className="fa fa-repeat marginRightS" />
+        Recreate Build
+      </Button>
+    </PostRequest>;
   },
 
   renderDetails: function(build, job_phases) {

@@ -227,5 +227,10 @@ export var make_api_ajax_call = function(
       error_callback.call(this, this, false);
     }
   };
+
+  req.onerror = function() {
+    error_callback.call(this, this, false);
+  }
+
   req.send(params);
 }
