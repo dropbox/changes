@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 
+import SimpleTooltip from 'es6!display/simple_tooltip';
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
 import { Error } from 'es6!display/errors';
@@ -133,6 +134,21 @@ var ChangesPageHeader = React.createClass({
       </a>;
     }
 
+    var foreign_api_header = null;
+
+    if (window.changesGlobals['USE_ANOTHER_HOST']) {
+      foreign_api_header =
+        <div className="headerLinkBlock floatR green">
+          <SimpleTooltip
+           placement="bottom"
+           label="It looks like your local configuration makes use of a non-local host for API calls.">
+            <span style={{borderBottom: "1px dotted #777"}}>
+              Foreign API
+            </span>
+          </SimpleTooltip>
+        </div>;
+    }
+
 /* TODO:
         <a className="headerLinkBlock" href="/v2/nodes/">
           Changes Internals
@@ -162,6 +178,7 @@ var ChangesPageHeader = React.createClass({
         {learnMore}
         {feedback_link}
         {oldUI}
+        {foreign_api_header}
       </div>
     </div>;
   },
