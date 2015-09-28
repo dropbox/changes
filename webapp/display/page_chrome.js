@@ -41,8 +41,12 @@ export var ChangesPage = React.createClass({
   render: function() {
     var messageMarkup = null;
     if (window.changesMessageData && window.changesMessageData.message) {
+      var className = this.props.fixed ? 
+        'persistentMessageFixed' : 
+        'persistentMessage';
+
       var messageData = window.changesMessageData;
-      messageMarkup = <div className="persistentMessageHeader">
+      messageMarkup = <div className={className}>
         {messageData.message}{"  - "}{messageData.user.email}
       </div>;
     }
