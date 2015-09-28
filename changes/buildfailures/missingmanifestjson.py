@@ -7,4 +7,4 @@ from changes.buildfailures.base import BuildFailure
 
 class MissingManifestJson(BuildFailure):
     def get_html_label(self, build):
-        return Markup('Infrastructure failure: manifest.json was not generated')
+        return Markup('Infrastructure failure (missing manifest file)')
