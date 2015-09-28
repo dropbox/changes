@@ -244,9 +244,6 @@ def create_app(_read_config=True, **config):
     app.config['GOOGLE_CLIENT_SECRET'] = None
     app.config['GOOGLE_DOMAIN'] = None
 
-    # must be a URL-safe base64-encoded 32-byte key
-    app.config['COOKIE_ENCRYPTION_KEY'] = 'theDefaultKeyIs32BytesLongAndTotallyURLSafe='
-
     app.config['REPO_ROOT'] = None
 
     app.config['DEFAULT_FILE_STORAGE'] = 'changes.storage.s3.S3FileStorage'

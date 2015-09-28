@@ -21,12 +21,11 @@ class LoginViewTest(TestCase):
         assert parsed_location.netloc == 'accounts.google.com'
         assert parsed_location.path == '/o/oauth2/auth'
         assert parse_qs(parsed_location.query) == {
-            'scope': ['email'],
+            'scope': ['https://www.googleapis.com/auth/userinfo.email'],
             'redirect_uri': ['http://localhost/auth/complete/'],
             'response_type': ['code'],
             'client_id': ['aaaaaaaaaaaa'],
-            'access_type': ['offline'],
-            'approval_prompt': ['force']
+            'access_type': ['offline']
         }
 
     def test_with_state(self):

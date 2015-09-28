@@ -4,15 +4,11 @@ define([
 ], function(app, time) {
   'use strict';
 
-  app.controller('LayoutCtrl', function($scope, $rootScope, $location, $window, authData,
+  return {
+    abstract: true,
+    templateUrl: 'partials/layout.html',
+    controller: function($scope, $rootScope, $location, $window, authData,
                          projectList, adminMessage, flash, PageTitle) {
-
-      // If user isn't logged in - redirect to login
-      if (!authData || !authData.user) {
-        console.log("User not identified - redirecting to login");
-        $window.location.href = '/auth/login/';
-        return;
-      }
 
       PageTitle.set('Changes');
 
@@ -79,12 +75,7 @@ define([
       });
 
       $('.navbar .container').show();
-    });
-
-  return {
-    abstract: true,
-    templateUrl: 'partials/layout.html',
-    controller: 'LayoutCtrl',
+    },
     resolve: {
       adminMessage: function($http) {
         return $http.get('/api/0/messages/').then(function(response) {
