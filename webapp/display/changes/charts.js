@@ -2,17 +2,19 @@ import React, { PropTypes } from 'react';
 
 import ChangesLinks from 'es6!display/changes/links';
 import SimpleTooltip from 'es6!display/simple_tooltip';
+import { ProgrammingError } from 'es6!display/errors';
 import { get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/builds';
 
 /*
- * Renders a small bar chart of a series of builds.
+ * Renders a small bar chart of a series of builds/tests/maybe others
  */
-export var BuildsChart = React.createClass({
+export var ChangesChart = React.createClass({
 
   MAX_CHART_HEIGHT: 40,  // pixels
   
   propTypes: {
-    builds: PropTypes.array.isRequired,
+    type: PropTypes.oneOf(['build', 'test']).isRequired,
+    runnables: PropTypes.array.isRequired,
     leftEllipsis: PropTypes.bool,
     rightEllipsis: PropTypes.bool,
   },
@@ -22,13 +24,14 @@ export var BuildsChart = React.createClass({
   },
   
   render() {
-    var builds = this.props.builds;
+    var runnables = this.props.runnables;
     
     // we'll render bar heights relative to this
-    var longestBuildDuration = _.max(builds, b => b.duration).duration;
+    var longestDuration = _.max(runnables, r => r && r.duration).duration;
 
-    var content = _.map(this.props.builds, build => {
-      if (_.isEmpty(build)) {
+    var content = _.map(this.props.runnables, runnable => {
+      var no_duration = !runnable.duration && runnable.duration === 0;
+      if (_.isEmpty(runnable) || no_duration) {
         // would be nice to still show a tooltip here...
         return <div 
           className="chartBarColumn"
@@ -40,20 +43,35 @@ export var BuildsChart = React.createClass({
         </div>;
       }
 
-      var heightPercentage = build.duration / longestBuildDuration;
+      var heightPercentage = runnable.duration / longestDuration;
       var barHeight = Math.floor(heightPercentage * this.MAX_CHART_HEIGHT) || 1;
 
       var columnPadding = this.MAX_CHART_HEIGHT - barHeight;
 
       var bgColor = get_runnable_condition_color_cls(
-        get_runnable_condition(build),
+        get_runnable_condition(runnable),
         true);
 
-      // TODO: show more details about the build
-      return <SimpleTooltip label={build.name} placement="bottom">
+      var tooltipText = null, href = null;
+      if (this.props.type === 'build') {
+        // TODO: show more details about the build
+        tooltipText = runnable.name;
+        href = ChangesLinks.buildHref(runnable);
+      } else if (this.props.type === 'test') {
+        // TODO: show more details about the test
+        tooltipText = runnable.name;
+        href = '';  // TODO: this
+        // href = ChangesLinks.buildHref(build);
+      } else {
+        return <ProgrammingError>
+          Unknown type {this.props.type}
+        </ProgrammingError>;
+      }
+
+      return <SimpleTooltip label={tooltipText} placement="bottom">
         <a 
           className="chartBarColumn" 
-          href={ChangesLinks.buildHref(build)}
+          href={href}
           style={{ paddingTop: columnPadding }}>
           <div 
             className={"chartBar " + bgColor} 
@@ -71,6 +89,6 @@ export var BuildsChart = React.createClass({
       content.push(<div className="inlineBlock">...</div>);
     }
 
-    return <div className="buildsChart">{content}</div>;
+    return <div className="changesChart">{content}</div>;
   }
 });

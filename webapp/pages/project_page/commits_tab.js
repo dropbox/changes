@@ -4,7 +4,7 @@ import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { AjaxError } from 'es6!display/errors';
-import { BuildsChart } from 'es6!display/changes/build_chart';
+import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
 import { SingleBuildStatus, get_runnable_condition } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
@@ -166,8 +166,9 @@ var CommitsTab = React.createClass({
       }
     });
 
-    return <BuildsChart 
-      builds={builds}
+    return <ChangesChart
+      type="build"
+      runnables={builds}
       leftEllipsis={this.props.interactive.hasPreviousPage()}
       rightEllipsis={this.props.interactive.hasNextPage()}
     />;
