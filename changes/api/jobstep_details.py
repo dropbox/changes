@@ -94,6 +94,7 @@ class JobStepDetailsAPIView(APIView):
         context['snapshot'] = self.serialize(current_image)
         context['expectedSnapshot'] = self.serialize(expected_image)
         context['project'] = self.serialize(jobstep.project)
+        context['job'] = self.serialize(jobstep.job)
 
         return self.respond(context, serialize=False)
 
