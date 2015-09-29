@@ -1,6 +1,5 @@
 from uuid import uuid4
 
-from changes.api.jobstep_details import JobStepDetailsAPIView
 from changes.config import db
 from changes.constants import Cause, Result, Status
 from changes.models import CommandType, JobStep, ProjectOption
@@ -60,7 +59,6 @@ class JobStepDetailsTest(APITestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
-        self.create_job_plan(job, plan)
         snapshot = self.create_snapshot(project)
         image = self.create_snapshot_image(
             plan=plan,
@@ -71,6 +69,48 @@ class JobStepDetailsTest(APITestCase):
             name='snapshot.current',
             value=snapshot.id.hex,
         ))
+        db.session.commit()
+
+        self.create_job_plan(job, plan)
+        db.session.commit()
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+        assert data['snapshot']['id'] == image.id.hex
+        assert data['expectedSnapshot'] is None
+
+    def test_jobplan_missing_snapshot(self):
+        # TODO(paulruan): This is a test to verify compatibility with running
+        #                 code without snapshot_image_id set in jobplan will
+        #                 still work. This is to be deleted soon.
+        project = self.create_project()
+        build = self.create_build(project)
+        plan = self.create_plan(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        snapshot = self.create_snapshot(project)
+        image = self.create_snapshot_image(
+            plan=plan,
+            snapshot=snapshot,
+        )
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='snapshot.current',
+            value=snapshot.id.hex,
+        ))
+        db.session.commit()
+
+        # Unset the snapshot image id.
+        # Snapshot image should still be looked up for now.
+        jobplan = self.create_job_plan(job, plan)
+        jobplan.snapshot_image_id = None
+        db.session.add(jobplan)
         db.session.commit()
 
         path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
@@ -304,7 +344,6 @@ class UpdateJobStepTest(APITestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
-        self.create_job_plan(job, plan_1)
         snapshot = self.create_snapshot(project)
         image_1 = self.create_snapshot_image(snapshot, plan_1)
         image_2 = self.create_snapshot_image(snapshot, plan_2)
@@ -315,6 +354,9 @@ class UpdateJobStepTest(APITestCase):
         ))
         db.session.commit()
 
+        self.create_job_plan(job, plan_1)
+        db.session.commit()
+
         path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
 
         resp = self.client.get(path)
@@ -322,21 +364,31 @@ class UpdateJobStepTest(APITestCase):
         data = self.unserialize(resp)
         assert data['snapshot']['id'] == image_2.id.hex
 
-    def test_get_snapshot_image_independent(self):
+    def test_multiple_jobsteps(self):
         project = self.create_project()
-        plan = self.create_plan(project)
-        snapshot = self.create_snapshot(project)
-        snapshot_image = self.create_snapshot_image(snapshot, plan)
-        assert snapshot_image == JobStepDetailsAPIView.get_snapshot_image(snapshot.id, plan.id)
-
-    def test_get_snapshot_image_dependent(self):
-        project = self.create_project()
+        build = self.create_build(project)
         plan_1 = self.create_plan(project)
         plan_2 = self.create_plan(project)
         plan_1.snapshot_plan_id = plan_2.id
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
         snapshot = self.create_snapshot(project)
-        snapshot_image_1 = self.create_snapshot_image(snapshot, plan_1)
-        snapshot_image_2 = self.create_snapshot_image(snapshot, plan_2)
+        image_1 = self.create_snapshot_image(snapshot, plan_1)
+        image_2 = self.create_snapshot_image(snapshot, plan_2)
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='snapshot.current',
+            value=snapshot.id.hex,
+        ))
+        db.session.commit()
 
-        assert snapshot_image_2 == JobStepDetailsAPIView.get_snapshot_image(snapshot.id, plan_1.id)
-        assert snapshot_image_2 == JobStepDetailsAPIView.get_snapshot_image(snapshot.id, plan_2.id)
+        self.create_job_plan(job, plan_1)
+        db.session.commit()
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['snapshot']['id'] == image_2.id.hex

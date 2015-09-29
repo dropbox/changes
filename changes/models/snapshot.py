@@ -215,3 +215,18 @@ class SnapshotImage(db.Model):
             self.snapshot.status = SnapshotStatus.invalidated
 
         db.session.commit()
+
+    @classmethod
+    def get_current(self, plan):
+        """Return the current SnapshotImage for a plan (or None if one is not set)."""
+        current_snapshot = Snapshot.get_current(plan.project_id)
+        if current_snapshot is not None:
+            snapshot_plan_id = plan.snapshot_plan_id
+            if snapshot_plan_id is None:
+                snapshot_plan_id = plan.id
+
+            return SnapshotImage.query.filter(
+                        SnapshotImage.snapshot_id == current_snapshot.id,
+                        SnapshotImage.plan_id == snapshot_plan_id,
+                   ).scalar()
+        return None

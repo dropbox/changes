@@ -75,6 +75,7 @@ class JobPlan(db.Model):
     build_id = Column(GUID, ForeignKey('build.id', ondelete="CASCADE"), nullable=False)
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False, unique=True)
     plan_id = Column(GUID, ForeignKey('plan.id', ondelete="CASCADE"), nullable=False)
+    snapshot_image_id = Column(GUID, ForeignKey('snapshot_image.id', ondelete="RESTRICT"), nullable=True)
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
     data = Column(JSONEncodedDict)
@@ -83,6 +84,7 @@ class JobPlan(db.Model):
     build = relationship('Build')
     job = relationship('Job')
     plan = relationship('Plan')
+    snapshot_image = relationship('SnapshotImage')
 
     __repr__ = model_repr('build_id', 'job_id', 'plan_id')
 
@@ -104,6 +106,7 @@ class JobPlan(db.Model):
     @classmethod
     def build_jobplan(cls, plan, job):
         from changes.models import ItemOption
+        from changes.models import SnapshotImage
 
         plan_steps = sorted(plan.steps, key=lambda x: x.order)
 
@@ -127,11 +130,17 @@ class JobPlan(db.Model):
             'options': options[plan.id],
         }
 
+        snapshot_image_id = None
+        current_snapshot_image = SnapshotImage.get_current(plan)
+        if current_snapshot_image is not None:
+            snapshot_image_id = current_snapshot_image.id
+
         instance = cls(
             plan_id=plan.id,
             job_id=job.id,
             build_id=job.build_id,
             project_id=job.project_id,
+            snapshot_image_id=snapshot_image_id,
             data={
                 'snapshot': snapshot,
             },
