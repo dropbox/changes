@@ -165,7 +165,6 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         # CHANGES_BID, the jobstep id, is provided by superclass
         params.extend([
             {'name': 'CHANGES_PID', 'value': project.slug},
-            {'name': 'PROJECT_CONFIG', 'value': project.get_config_path()},
             {'name': 'REPO_URL', 'value': repo_url},
             {'name': 'SETUP_SCRIPT', 'value': setup_script},
             {'name': 'SCRIPT', 'value': script},
