@@ -1,5 +1,5 @@
 #!/bin/bash -ex
-sudo apt-get install -y build-essential python-setuptools redis-server postgresql libpq-dev libevent-dev libxml2-dev libxslt-dev
+sudo apt-get install -y build-essential python-setuptools redis-server postgresql libpq-dev libevent-dev libxml2-dev libxslt-dev libffi-dev
 
 npm --version
 

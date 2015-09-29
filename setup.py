@@ -35,6 +35,7 @@ install_requires = [
     'boto>=2.25.0,<2.26.0',
     # celery 3.1.9 breaks TrackedTask (wraps is incorrect)
     'celery==3.1.8',
+    'cryptography==1.0.1',
     # Kombu 3.0.25 has undocumented dependency on a newer version of redis that breaks
     # us, so we keep with 3.0.24 until that is resolved.
     'kombu>=3.0.8,<=3.0.24',
