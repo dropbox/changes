@@ -207,15 +207,16 @@ class LogoutView(MethodView):
         session.pop('access_token', None)
         session.pop('email', None)
 
+        response_redirect = redirect(url_for(self.complete_url))
+
         # if the url contains ?return, go back to the referrer page
         if 'return' in request.args and request.referrer:
             is_same_host = (urlparse.urlparse(request.referrer).netloc ==
                 urlparse.urlparse(request.host_url).netloc)
             if is_same_host:
-                return redirect(request.referrer)
+                response_redirect = redirect(request.referrer)
 
         # remove refresh token and login email
-        response_redirect = redirect(url_for(self.complete_url))
         response = current_app.make_response(response_redirect)
         response.delete_cookie('refresh_token')
         response.delete_cookie('refresh_email')
