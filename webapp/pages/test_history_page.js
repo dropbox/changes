@@ -5,7 +5,7 @@ import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
-import { ConditionDot } from 'es6!display/changes/builds';
+import { ConditionDot } from 'es6!display/changes/build_conditions';
 import { Grid } from 'es6!display/grid';
 import { TimeText, display_duration } from 'es6!display/time';
 

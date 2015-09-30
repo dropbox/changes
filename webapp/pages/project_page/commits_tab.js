@@ -6,8 +6,9 @@ import SimpleTooltip from 'es6!display/simple_tooltip';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
-import { SingleBuildStatus, get_runnable_condition } from 'es6!display/changes/builds';
+import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
+import { get_runnable_condition } from 'es6!display/changes/build_conditions';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 

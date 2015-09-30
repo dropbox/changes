@@ -10,8 +10,9 @@ import { Button } from 'es6!display/button';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import { TestDetails } from 'es6!display/changes/test_details';
-import { WaitingTooltip, ConditionDot, get_runnable_condition, get_runnables_summary_condition, get_build_cause, get_cause_sentence } from 'es6!display/changes/builds';
+import { WaitingTooltip, get_build_cause, get_cause_sentence } from 'es6!display/changes/builds';
 import { display_duration } from 'es6!display/time';
+import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
 

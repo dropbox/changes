@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import ChangesLinks from 'es6!display/changes/links';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { ProgrammingError } from 'es6!display/errors';
-import { get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/builds';
+import { get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/build_conditions';
 
 /*
  * Renders a small bar chart of a series of builds/tests/maybe others
