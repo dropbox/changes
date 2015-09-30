@@ -1,8 +1,11 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesUI from 'es6!display/changes/ui';
 
 import * as api from 'es6!server/api';
+
+import custom_content_hook from 'es6!utils/custom_content';
 
 /*
  * Shows captured output and artifacts for a test
@@ -32,8 +35,18 @@ export var TestDetails = React.createClass({
 
     className = (className || "") + " testDetails";
 
+    var testDetailsHelpText = custom_content_hook('testDetailsHelpText', null, test.project.id)
+    if (testDetailsHelpText) {
+      testDetailsHelpText = ChangesUI.linkifyURLs(testDetailsHelpText);
+      testDetailsHelpText = <div className='green marginBottomM'>
+        <i className="fa fa-info-circle marginRightS"></i>
+        {testDetailsHelpText}
+      </div>;
+    }
+
     return <div {...props} className={className}>
       <div className="marginTopS">
+        {testDetailsHelpText}
         <b>Captured Output</b>
         <pre className="defaultPre">
         {test.message}
