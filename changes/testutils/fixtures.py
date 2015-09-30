@@ -67,12 +67,12 @@ E   ImportError: No module named mock</failure>
 
 SAMPLE_XUNIT_DOUBLE_CASES = """<?xml version="1.0" encoding="utf-8"?>
 <testsuite errors="1" failures="2" name="pytest" skips="0" tests="2" time="0.019">
-  <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.25">
+  <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.25" rerun="3">
     <failure message="test failure">test_simple.py:8: in test_falsehood
     assert False
 E   AssertionError: assert False</failure>
   </testcase>
-  <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50">
+  <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
     <error message="test setup failure">test_simple.py:4: in tearDown
     1/0
 E   ZeroDivisionError: integer division or modulo by zero</error>

@@ -72,7 +72,7 @@ E   AssertionError: assert False
 test_simple.py:4: in tearDown
     1/0
 E   ZeroDivisionError: integer division or modulo by zero"""
-    assert r1.reruns == 0
+    assert r1.reruns == 3
 
     r2 = results[1]
     assert type(r2) is TestResult
@@ -119,7 +119,7 @@ E   AssertionError: assert False
 test_simple.py:4: in tearDown
     1/0
 E   ZeroDivisionError: integer division or modulo by zero"""
-    assert r1.reruns == 0
+    assert r1.reruns == 3
 
     r2 = results[1]
     assert type(r2) is TestResult

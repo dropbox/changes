@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division
 
 import logging
+from operator import add
 
 from lxml import etree
 
@@ -186,11 +187,11 @@ def _deduplicate_testresults(results):
 
         if existing_result is not None:
             e, r = existing_result, result
-            e.duration = _careful_add(e.duration, r.duration)
+            e.duration = _careful(add, e.duration, r.duration)
             e.result = aggregate_result((e.result, r.result))
             e.message += '\n\n' + r.message
-            e.reruns = _careful_add(e.reruns, r.reruns)
-            e.artifacts = _careful_add(e.artifacts, r.artifacts)
+            e.reruns = _careful(max, e.reruns, r.reruns)
+            e.artifacts = _careful(add, e.artifacts, r.artifacts)
         else:
             result_dict[key] = result
             deduped.append(result)
@@ -198,10 +199,10 @@ def _deduplicate_testresults(results):
     return deduped
 
 
-def _careful_add(a, b):
-    """Return the sum `a + b`, else whichever is not `None`, else `None`."""
+def _careful(op, a, b):
+    """Return `op(a, b)` if neither is `None`, else the non-`None` value."""
     if a is None:
         return b
     if b is None:
         return a
-    return a + b
+    return op(a, b)
