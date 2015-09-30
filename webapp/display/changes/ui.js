@@ -60,6 +60,11 @@ var ChangesUI = {
     return elements;
   },
 
+  /*
+   * Allows us to have links that can dynamically change content using
+   * javascript (tabs, paging buttons) but can still be opened in a new 
+   * window with ctrl/right click
+   */
   leftClickOnly: function(wrapped_event_handler) {
     return function() {
       var args = Array.prototype.slice.call(arguments);
