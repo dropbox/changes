@@ -235,7 +235,8 @@ var InteractiveDataPrototype = {
     return this.getDataToShow().getLinksFromHeader().next;
   },
 
-  getPagingLinks() {
+  // displays Older/Newer by default, unless you set use_next_previous
+  getPagingLinks(use_next_previous = false) {
     var hrefs = this.getDataToShow().getLinksFromHeader();
     var params = {
       previous: hrefs.previous && URI(hrefs.previous).search(true),
@@ -261,8 +262,8 @@ var InteractiveDataPrototype = {
         className="marginRightS"
         onClick={onClick.previous}
         disabled={!params.previous}
-        href={URI(window.location.href).query(params.previous)}>
-        &laquo; Previous
+        href={params.previous ? URI(window.location.href).query(params.previous) : null}>
+        &laquo;{" "}{use_next_previous ? "Previous" : "Newer"}
       </Button>
     );
 
@@ -272,8 +273,8 @@ var InteractiveDataPrototype = {
         className="marginRightS"
         onClick={onClick.next}
         disabled={!params.next}
-        href={URI(window.location.href).query(params.next)}>
-        Next &raquo;
+        href={params.next ? URI(window.location.href).query(params.next) : null}>
+        {use_next_previous ? "Next" : "Older"}{" "}&raquo;
       </Button>
     );
 

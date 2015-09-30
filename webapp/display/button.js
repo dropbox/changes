@@ -39,7 +39,6 @@ export var Button = React.createClass({
       props.href = null;
       props.onClick = null;
     }
-    props.href = props.href || "#";
 
     return <a className={className} {...props}>{this.props.children}</a>;
   }
