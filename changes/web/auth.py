@@ -37,7 +37,9 @@ def get_auth_flow(redirect_uri=None, state=""):
         redirect_uri=redirect_uri,
         user_agent='changes/{0} (python {1})'.format(
             changes.VERSION,
-            sys.version,
+            # Newer versions of Python stdlib disallow newlines in header values.
+            # See http://bugs.python.org/issue22928
+            sys.version.replace('\n', ' -- '),
         ),
         auth_uri=auth_uri,
         token_uri=GOOGLE_TOKEN_URI,
