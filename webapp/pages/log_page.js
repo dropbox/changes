@@ -1,8 +1,12 @@
 import React, { PropTypes } from 'react';
+import { Modal } from 'react_bootstrap';
 
 import ChangesLinks from 'es6!display/changes/links';
+import SimpleTooltip from 'es6!display/simple_tooltip';
+import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error, AjaxError } from 'es6!display/errors';
+import { Grid, GridRow } from 'es6!display/grid';
 
 import * as api from 'es6!server/api';
 
@@ -35,7 +39,9 @@ var LogPage = React.createClass({
   getInitialState: function() {
     return {
       initialLog: null,
-      build: null
+      build: null,
+
+      showDebug: false,
     }
   },
 
@@ -173,6 +179,50 @@ var LogComponent = React.createClass({
     </div>;
   },
 
+  renderDebugContent() {
+    var initialLog = this.props.initialLog;
+    var newLogs = this.state.newLogs;
+
+    var allApiCalls = [initialLog.getReturnedData()].concat(
+      this.state.newLogs);
+
+    var data = [];
+
+    var source = 0;
+    var expectedOffset = 0;
+    _.each(allApiCalls, call => {
+      _.each(call.chunks, chunk => {
+        var icon = chunk.offset === expectedOffset ?
+          <SimpleTooltip label="This offset looks correct">
+            <i className="marginLeftS fa fa-check green" />
+          </SimpleTooltip> :
+          <SimpleTooltip 
+            label="This offset doesn't look right. Did we not render some log lines?">
+            <i className="marginLeftS fa fa-times red" />
+          </SimpleTooltip>;
+        var offsetText = <span>{chunk.offset}{icon}</span>;
+        var sourceText = source === 0 ? "initial" : "api call #" + source;
+        data.push([offsetText, chunk.size, sourceText]);
+        expectedOffset = chunk.offset + chunk.size;
+      });
+      data.push(GridRow.oneItem("End of call. Next Offset: " + call.nextOffset));
+      expectedOffset = call.nextOffset;
+      source += 1;
+    });
+
+    return <div>
+      <div>Maximum line count: {MAX_LOG_LINES}</div>
+      <div>Poll interval: {POLL_INTERVAL}</div>
+      <Grid
+        colnum={3}
+        data={data}
+        headers={['Offset', 'Chunk', 'Source']}
+      />
+      This debugging info may not help you diagnose cases where we prematurely
+      stop fetching log lines before the log is complete.
+    </div>
+  },
+
   renderTopRightBox() {
     var build = this.props.build.getReturnedData();
 
@@ -190,6 +240,9 @@ var LogComponent = React.createClass({
       </div>;
     }
 
+    var showDebug = __ => { this.setState({showDebug: true}); };
+    var hideDebug = __ => { this.setState({showDebug: false}); };
+
     return <div className="logReturnLink">
       {header}
       <div>
@@ -201,6 +254,20 @@ var LogComponent = React.createClass({
           Return to build
         </a>
       </div>
+      <a className="logDebugLink" onClick={showDebug}>
+        Debugging Info
+      </a>
+      <Modal animation={false} show={this.state.showDebug} onHide={hideDebug}>
+        <Modal.Header closeButton>
+          <Modal.Title>Debugging Info</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {this.renderDebugContent()}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={hideDebug}>Close</Button>
+        </Modal.Footer>
+      </Modal>
     </div>;
   },
 

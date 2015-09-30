@@ -152,6 +152,12 @@ export var Grid = React.createClass({
     var data = this.props.data, headers = this.props.headers,
       cellClasses = this.props.cellClasses, colnum = this.props.colnum;
 
+    if (!colnum) {
+      return <ProgrammingError>
+        {"`"}colnum{"`"} is 0 or unspecified!
+      </ProgrammingError>;
+    }
+
     // make sure headers/cellClasses have the right length
 
     if (!_.isEmpty(headers) && headers.length !== colnum) {

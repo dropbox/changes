@@ -1,9 +1,9 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 
-import SimpleTooltip from 'es6!display/simple_tooltip';
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 import { Error } from 'es6!display/errors';
 import { Grid } from 'es6!display/grid';
 import { TimeText } from 'es6!display/time';

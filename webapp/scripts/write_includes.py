@@ -11,7 +11,8 @@
 REACT_BOOTSTRAP_COMPONENTS_USED = [
   'Popover',
   'OverlayTrigger',
-  'Tooltip'
+  'Tooltip',
+  'Modal'
 ]
 
 import os, re, sys
