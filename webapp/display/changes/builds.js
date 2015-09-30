@@ -3,9 +3,9 @@ import moment from 'moment';
 import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import ChangesLinks from 'es6!display/changes/links';
-import Examples from 'es6!display/examples';
 import { Error, ProgrammingError } from 'es6!display/errors';
 import { LiveTime } from 'es6!display/time';
+import { buildSummaryText } from 'es6!display/changes/build_text';
 import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_color_cls, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
@@ -51,16 +51,7 @@ export var ManyBuildsStatus = React.createClass({
     latest_builds = _.sortBy(latest_builds, b => b.project.name);
 
     var tooltip_markup = _.map(latest_builds, b => {
-      var subtext = '';
-      if (get_runnable_condition(b) === 'waiting') {
-        subtext = <WaitingLiveText runnable={b} />;
-      } else if (!b.stats.test_count) {
-        subtext = 'No tests run';
-      } else if (b.stats.test_failures > 0) {
-        subtext = `${b.stats.test_failures} of ${b.stats.test_count} tests failed`;
-      } else {
-        subtext = `All ${b.stats.test_count} tests passed`;
-      }
+      var subtext = buildSummaryText(b, true);
 
       return <div style={{textAlign: "left"}}>
         <div style={{ display: "inline-block", paddingTop: 10, paddingRight: 5}}>
@@ -188,16 +179,7 @@ export var SingleBuildStatus = React.createClass({
   getTooltipHeader() {
     var build = this.props.build;
 
-    var subtext = '';
-    if (get_runnable_condition(build) === 'waiting') {
-      subtext = <WaitingLiveText runnable={build} />;
-    } else if (!build.stats.test_count) {
-      subtext = 'No tests run';
-    } else if (build.stats.test_failures > 0) {
-      subtext = `${build.stats.test_failures} of ${build.stats.test_count} tests failed`;
-    } else {
-      subtext = `All ${build.stats.test_count} tests passed`;
-    }
+    var subtext = buildSummaryText(build, true);
 
     return <div style={{textAlign: "left"}}>
       <div style={{ display: "inline-block", paddingTop: 10, paddingRight: 5}}>
@@ -319,77 +301,3 @@ export var get_builds_for_last_change = function(builds) {
   return _.filter(builds,
     b => b.source.data['phabricator.diffID'] === latest_diff_id);
 }
-
-/*
- * What caused the build to be kicked off? We can usually tell from the tags
- * attribute, but we sometimes need to look at the almost always useless cause
- * attribute.
- */
-export var get_build_cause = function(build) {
-  var tags = build.tags;
-  if (build.cause.id === 'retry') {
-    // manually triggered retry (either from phabricator or the changes ui)
-    return 'manual';
-  }
-
-  var causes_from_tags = {
-    // user ran build using arc test
-    'arc test': 'arc test',
-    // standard build that got kicked off due to a new commit
-    'commit': 'commit',
-    // build for a diff that was created/updated in phabricator
-    'phabricator': 'phabricator',
-    // this is a very temporary hack inside of dropbox. Talk to dev-tools about
-    // it
-    'buildpoker': 'commit (hack)',
-    // build by the commit queue infrastructure
-    'commit-queue': 'commit queue',
-  }
-
-  var cause = 'unknown';
-  _.each(causes_from_tags, (v, k) => {
-    if (_.contains(tags, k)) {
-      cause = v;
-    }
-  });
-  return cause;
-}
-
-/*
- * Renders a sentence describing how this build was created
- */
-export var get_cause_sentence = function(cause) {
-  switch (cause) {
-    case 'manual':
-      // If I start a build with someone else's commit, they're still listed as
-      // the build author. So there's no way to be more specific than someone
-      return 'This build was manually started by someone';
-    case 'arc test': 
-      return 'This build was started via arc test';
-    case 'commit': 
-      return 'This build was automatically started after commit';
-    case 'phabricator': 
-      return 'This build was started by our phabricator-changes integration';
-    default:
-      return 'The trigger for this build was ' + cause;
-  }
-}
-
-Examples.add('ConditionDot', __ => {
-  return [
-    <ConditionDot condition="passed" />,
-    <ConditionDot condition="waiting" />,
-    <ConditionDot condition="failed" />,
-    <ConditionDot condition="failed_infra" />,
-    <ConditionDot condition="failed_aborted" />,
-    <ConditionDot condition="unknown" />,
-    <ConditionDot condition="passed" num={2} />,
-    <ConditionDot condition="passed" glow={true} />,
-    <div>
-      <ConditionDot className="marginRightS" condition="failed" size="small" />
-      <ConditionDot className="marginRightS" condition="failed" size="smaller" />
-      <ConditionDot className="marginRightS" condition="failed" size="medium" />
-      <ConditionDot className="marginRightS" condition="failed" size="large" />
-    </div>
-  ];
-});

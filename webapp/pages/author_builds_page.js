@@ -5,8 +5,9 @@ import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
-import { SingleBuildStatus, get_build_cause } from 'es6!display/changes/builds';
+import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
+import { get_build_cause } from 'es6!display/changes/build_text';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 

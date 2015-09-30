@@ -1,10 +1,35 @@
 from __future__ import absolute_import, division, unicode_literals
 
+from collections import defaultdict
+
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Build, PhabricatorDiff, Job
+from changes.models import Build, PhabricatorDiff, Job, JobStep, FailureReason
 
 from changes.utils.phabricator_utils import PhabricatorRequest
+
+
+# similar to code in build_details
+def get_failure_reasons(builds):
+    from changes.buildfailures import registry
+
+    rows = FailureReason.query.join(
+        JobStep, JobStep.id == FailureReason.step_id,
+    ).filter(
+        FailureReason.build_id.in_(builds.keys()),
+        JobStep.replacement_id.is_(None),
+    )
+
+    failure_reasons = defaultdict(list)
+    for row in rows:
+        failure_reasons[row.build_id.hex].append({
+            'id': row.reason,
+            'reason': registry[row.reason].get_html_label(builds[row.build_id]),
+            'step_id': row.step_id,
+            'job_id': row.job_id,
+            'data': dict(row.data or {}),
+        })
+    return failure_reasons
 
 
 class DiffBuildsIndexAPIView(APIView):
@@ -60,6 +85,7 @@ class DiffBuildsIndexAPIView(APIView):
         ))
 
         build_ids = set([row.Build.id for row in rows])
+        failures = get_failure_reasons({row.Build.id: row.Build for row in rows})
 
         jobs = self.serialize(list(Job.query.filter(
             Job.build_id.in_(build_ids)
@@ -72,6 +98,7 @@ class DiffBuildsIndexAPIView(APIView):
 
         build_info = {}
         for build, phabricator_diff in serialized_builds:
+            build['failures'] = failures[build['id']]
             # we may have multiple diffs within a single differential revision
             single_diff_id = phabricator_diff.diff_id
             if single_diff_id not in build_info:

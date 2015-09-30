@@ -6,8 +6,9 @@ import { AjaxError } from 'es6!display/errors';
 import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
 import { Menu1 } from 'es6!display/menus';
-import { SingleBuildStatus, get_build_cause } from 'es6!display/changes/builds';
+import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
+import { get_build_cause } from 'es6!display/changes/build_text';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 

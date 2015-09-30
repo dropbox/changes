@@ -3,8 +3,9 @@ import moment from 'moment';
 
 import ChangesLinks from 'es6!display/changes/links';
 import { TimeText, display_duration } from 'es6!display/time';
-import { get_builds_for_last_change, get_build_cause } from 'es6!display/changes/builds';
-import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_short_text, ConditionDot } from 'es6!display/changes/build_conditions';
+import { buildSummaryText, manyBuildsSummaryText, get_build_cause } from 'es6!display/changes/build_text';
+import { get_builds_for_last_change } from 'es6!display/changes/builds';
+import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as utils from 'es6!utils/utils';
 
@@ -146,43 +147,29 @@ var Sidebar = React.createClass({
     builds = get_builds_for_last_change(builds);
 
     // we want the most recent build for each project
-    var latest_by_proj = _.chain(builds)
+    var latestByProj = _.chain(builds)
       .groupBy(b => b.project.name)
-      .map(proj_builds => _.last(_.sortBy(proj_builds, b => b.dateCreated)))
+      .map(projBuilds => _.last(_.sortBy(projBuilds, b => b.dateCreated)))
       .values()
       .value();
 
-    var summary_condition = get_runnables_summary_condition(latest_by_proj);
+    var subtext = manyBuildsSummaryText(latestByProj);
 
-    var subtext = '';
-    var subtext_extra_class = '';
-    if (summary_condition.indexOf('failed') === 0) {
-      var failing = _.filter(latest_by_proj,
-        b => get_runnable_condition(b).indexOf('failed') === 0);
-      subtext = `${failing.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} failed`;
-      subtext_extra_class = 'redGrayMix';
-    } else if (summary_condition === 'waiting') {
-      var waiting = _.filter(latest_by_proj,
-        b => get_runnable_condition(b) === 'waiting');
-      subtext = `${waiting.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} are still running`;
-    } else if (summary_condition === 'unknown') {
-      var unknown = _.filter(latest_by_proj,
-        b => get_runnable_condition(b) === 'unknown');
-      subtext = `${unknown.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} have an unknown status`;
-    } else {
-      subtext = `${utils.plural(latest_by_proj.length, 'project(s)')} passed`;
-    }
+    var summaryCondition = get_runnables_summary_condition(latestByProj);
+    var subtextExtraClass = summaryCondition.indexOf('failed') === 0 ?
+      'redGrayMix' : '';
 
     return this.renderBuildSideItem(
       <ConditionDot
-        condition={summary_condition}
+        condition={summaryCondition}
         size="medium"
-        glow={latest_by_proj.length > 1}
+        glow={latestByProj.length > 1}
       />,
       'Latest Builds',
       '',
       subtext,
-      subtext_extra_class,
+      subtextExtraClass,
+      null,
       !this.props.activeBuildID,
       evt => this.props.pageElem.setState({ activeBuildID: null })
     );
@@ -207,36 +194,19 @@ var Sidebar = React.createClass({
 
     var entries = _.map(builds, b => {
       var buildCondition = get_runnable_condition(b);
-
-      var subtext_extra_class = '';
-      var tests_text = null;
-      if (buildCondition.indexOf('failed') === 0) {
-        subtext_extra_class = 'redGrayMix';
-
-        if (buildCondition === 'failed') {
-          tests_text = utils.plural(
-            b.stats.test_failures,
-            'test(s) failed',
-            true);
-        } else {
-          // infrastructure failure/aborted
-          tests_text = get_runnable_condition_short_text(buildCondition);
-        }
-      } else if (buildCondition === 'waiting') {
-        tests_text = 'tests in progress';
-      } else {
-        tests_text = utils.plural(b.stats.test_count, "test(s) run");
-      }
+      var subtextExtraClass = buildCondition.indexOf('failed') === 0 ?
+        'redGrayMix' : null;
 
       return this.renderBuildSideItem(
         <ConditionDot
-          condition={get_runnable_condition(b)}
+          condition={buildCondition}
           size="medium"
         />,
         utils.truncate(b.project.name, 26),
         display_duration(b.duration / 1000),
-        `Triggered by ${get_build_cause(b)}, ${tests_text}`,
-        subtext_extra_class,
+        `${buildSummaryText(b)}`,
+        subtextExtraClass,
+        get_build_cause(b),
         this.props.activeBuildID === b.id,
         on_click(b.id));
     });
@@ -245,7 +215,7 @@ var Sidebar = React.createClass({
   },
 
   renderBuildSideItem: function(condition_dot, text, time, subtext,
-    subtext_extra_class, is_selected, on_click) {
+    subtext_extra_class, right_subtext, is_selected, on_click) {
 
     var time_style = {
       float: 'right',
@@ -258,6 +228,13 @@ var Sidebar = React.createClass({
       selected: is_selected
     });
 
+    if (right_subtext) {
+      var className = 'floatR marginRightM subText';
+      right_subtext = <div className={className}>
+        {right_subtext}
+      </div>;
+    }
+
     return <div className={classes} onClick={on_click}>
       <div className="sideItemDot">
         {condition_dot}
@@ -267,6 +244,7 @@ var Sidebar = React.createClass({
         <div style={time_style}>{time}</div>
         <div className={"subText " + subtext_extra_class}>
           {subtext}
+          {right_subtext}
         </div>
       </div>
     </div>;

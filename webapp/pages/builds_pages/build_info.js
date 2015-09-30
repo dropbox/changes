@@ -10,7 +10,8 @@ import { Button } from 'es6!display/button';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import { TestDetails } from 'es6!display/changes/test_details';
-import { WaitingTooltip, get_build_cause, get_cause_sentence } from 'es6!display/changes/builds';
+import { WaitingTooltip } from 'es6!display/changes/builds';
+import { buildSummaryText, manyBuildsSummaryText, get_build_cause, get_cause_sentence } from 'es6!display/changes/build_text';
 import { display_duration } from 'es6!display/time';
 import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
 
@@ -109,38 +110,9 @@ export var SingleBuild = React.createClass({
 
   renderHeader: function(build, job_phases) {
     var condition = get_runnable_condition(build);
-
-    var header_subtext = '';
-    if (condition.indexOf("failed") === 0) {
-      var failed_test_count = build.stats.test_failures;
-      var error_count = _.filter(build.failures, f => f.id !== 'test_failures').length;
-
-      var failed_test_sentence = utils.plural(
-        failed_test_count, 'test(s) failed. ', true, true);
-
-      var error_sentence = error_count > 0 ?
-        utils.plural(error_count, 'error message(s)') : '';
-
-      header_subtext = <div className="red">
-        {failed_test_sentence}{error_sentence}
-      </div>;
-    } else if (condition === "waiting") {
-      if (build.stats.test_count) {
-        header_subtext = <div className="mediumGray">
-          Have run {build.stats.test_count} test(s) as of{" "}
-          {display_duration(moment.utc().diff(moment.utc(build.dateCreated), 's'))}
-        </div>;
-      } else {
-        header_subtext = <div className="mediumGray">
-          Still running tests
-        </div>;
-      }
-    } else {
-      header_subtext = <div className="mediumGray">
-        Ran {utils.plural(build.stats.test_count, " test(s) ")} in{" "}
-        {display_duration(build.duration / 1000)}
-      </div>;
-    }
+    var header_subtext = buildSummaryText(build, false, true);
+    var colorCls = condition.indexOf('failed') === 0 ?
+      'red' : '';
 
     var dot = <ConditionDot
       condition={condition}
@@ -160,7 +132,9 @@ export var SingleBuild = React.createClass({
             {build.project.name}
           </a>
         </div>
-        {header_subtext}
+        <div className={colorCls}>
+          {header_subtext}
+        </div>
       </div>
       <div className="marginTopS">
         {get_cause_sentence(get_build_cause(build))}
@@ -457,49 +431,34 @@ export var LatestBuildsSummary = React.createClass({
     // a common helper function
 
     // we want the most recent build for each project
-    var latest_by_proj = _.chain(builds)
+    var latestByProj = _.chain(builds)
       .groupBy(b => b.project.name)
       .map(proj_builds => _.last(_.sortBy(proj_builds, b => b.dateCreated)))
       .values()
       .value();
 
-    builds = _.map(latest_by_proj, (b, index) => {
+    builds = _.map(latestByProj, (b, index) => {
       return <div className="marginTopL paddingTopL fainterBorderTop">
         <SingleBuild build={b} content="short" />
       </div>
     });
 
     return <div>
-      {this.renderHeader(latest_by_proj)}
+      {this.renderHeader(latestByProj)}
       {builds}
     </div>;
   },
 
-  renderHeader: function(latest_by_proj) {
-    var summary_condition = get_runnables_summary_condition(latest_by_proj);
-
-    var subtext = '';
-    var subtext_extra_class = '';
-    if (summary_condition.indexOf('failed') === 0) {
-      var failing = _.filter(latest_by_proj,
-        b => get_runnable_condition(b).indexOf('failed') === 0);
-      subtext = `${failing.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} failed`;
-    } else if (summary_condition === 'waiting') {
-      var waiting = _.filter(latest_by_proj,
-        b => get_runnable_condition(b) === 'waiting');
-      subtext = `${waiting.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} are still running`;
-    } else if (summary_condition === 'unknown') {
-      var unknown = _.filter(latest_by_proj,
-        b => get_runnable_condition(b) === 'unknown');
-      subtext = `${unknown.length} out of ${utils.plural(latest_by_proj.length, 'project(s)')} have an unknown status`;
-    } else {
-      subtext = `${utils.plural(latest_by_proj.length, 'project(s)')} passed`;
-    }
+  renderHeader: function(latestByProj) {
+    var summaryCondition = get_runnables_summary_condition(latestByProj);
+    var subtext = manyBuildsSummaryText(latestByProj);
+    var colorCls = summaryCondition.indexOf('failed') === 0 ?
+      'red' : '';
 
     var dot = <ConditionDot
-      condition={summary_condition}
+      condition={summaryCondition}
       size="large"
-      glow={latest_by_proj.length > 1}
+      glow={latestByProj.length > 1}
     />;
 
     var style = {
@@ -511,7 +470,7 @@ export var LatestBuildsSummary = React.createClass({
       {dot}
       <div className="inlineBlock" style={style}>
         <div style={{ fontSize: 18 }}>Latest Builds</div>
-        <div className={subtext_extra_class}>
+        <div className={colorCls}>
           {subtext}
         </div>
       </div>
