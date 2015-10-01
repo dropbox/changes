@@ -66,11 +66,16 @@ var Sidebar = React.createClass({
       Committed {"("}<TimeText time={source.revision.dateCommitted} />{")"}
     </span>;
 
+    var content = this.noBuildsMarkup();
+    if (builds) {
+      content = this.renderBuilds();
+    }
+
     return <div>
       <div className="marginTopL">
         {this.renderLatestItem(builds)}
       </div>
-      {this.renderSection(label, this.renderBuilds(builds))}
+      {this.renderSection(label, content)}
     </div>;
   },
 
@@ -116,7 +121,10 @@ var Sidebar = React.createClass({
           {")"}
         </span>;
       }
-      var section_content = builds ? this.renderBuilds(builds) : null;
+      var section_content = this.noBuildsMarkup();
+      if (builds) {
+        section_content = this.renderBuilds(builds);
+      }
 
       sections.push(this.renderSection(section_header, section_content));
     });
@@ -126,6 +134,13 @@ var Sidebar = React.createClass({
         {latest_item}
       </div>
       {sections}
+    </div>;
+  },
+
+  noBuildsMarkup: function() {
+    return <div className="buildsSidebarNoBuilds">
+      <i className="fa fa-exclamation-circle" />
+      <span className="marginLeftS">No builds</span>
     </div>;
   },
 
