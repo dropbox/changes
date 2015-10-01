@@ -338,6 +338,7 @@ export var SingleBuild = React.createClass({
             jobstepDuration
           ];
         }
+
         var node_name = <a href={"/v2/node/" + jobstep.node.id}>
           {jobstep.node.name}
         </a>;

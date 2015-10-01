@@ -12,7 +12,8 @@ REACT_BOOTSTRAP_COMPONENTS_USED = [
   'Popover',
   'OverlayTrigger',
   'Tooltip',
-  'Modal'
+  'Modal',
+  'Dropdown'
 ]
 
 import os, re, sys
@@ -72,7 +73,7 @@ class Exports:
 
     remaining_lines = text.splitlines()[start+1:]
     program = "\n".join(remaining_lines).strip()
-    without_comments = self.trash_comments(program)
+    without_most_comments = self.trash_comments(program)
 
     # find exports that are being used
     imports_to_add = [] # contains pairs of import statements/include paths
@@ -83,10 +84,10 @@ class Exports:
       exports_in_file = []
       export_prefixes = []
       for exp in item['exports']:
-        if re.search("[^\w]%s[^\w]" % (exp, ), without_comments):
+        if re.search("[^\w]%s[^\w]" % (exp, ), without_most_comments):
           exports_in_file.append(exp)
         # we also want to find things like api.fetch
-        prefix_search = re.search("(\w*)\."+exp, without_comments)
+        prefix_search = re.search("(\w*)\."+exp, without_most_comments)
         if prefix_search:
           export_prefixes.append(prefix_search.group(1))
 
@@ -121,18 +122,19 @@ class Exports:
 
     # special cases
 
-    # if we have a closing html tag, we should probably import react.
+    # if we have a closing/self-closing html tag, we should probably import 
+    # react.
     # todo: strip out comments from this search string
     other_imports = ""
-    if (re.search("<\/\w", without_comments) or 
-      re.search("\/>", without_comments)):
+    if (re.search("<\/\w", without_most_comments) or 
+      re.search("\/>", without_most_comments)):
       other_imports += "import React, { PropTypes } from 'react';\n"
 
-    if "moment(" in without_comments or "moment." in without_comments:
+    if "moment(" in without_most_comments or "moment." in without_most_comments:
       other_imports += "import moment from 'moment';\n"
 
     react_bootstrap_components = [c for c in REACT_BOOTSTRAP_COMPONENTS_USED
-      if re.search("[^\w]%s[^\w]" % (c, ), without_comments)]
+      if re.search("[^\w]%s[^\w]" % (c, ), without_most_comments)]
     if react_bootstrap_components:
       other_imports += "import { %s } from 'react_bootstrap';\n" % (", ".join(react_bootstrap_components), );
 
