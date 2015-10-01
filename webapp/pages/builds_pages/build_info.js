@@ -11,8 +11,7 @@ import { Button } from 'es6!display/button';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import { TestDetails } from 'es6!display/changes/test_details';
-import { WaitingTooltip } from 'es6!display/changes/builds';
-import { buildSummaryText, manyBuildsSummaryText, get_build_cause, get_cause_sentence } from 'es6!display/changes/build_text';
+import { buildSummaryText, manyBuildsSummaryText, get_build_cause, get_cause_sentence, WaitingTooltip } from 'es6!display/changes/build_text';
 import { display_duration } from 'es6!display/time';
 import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_short_text, ConditionDot } from 'es6!display/changes/build_conditions';
 
@@ -328,26 +327,9 @@ export var SingleBuild = React.createClass({
           </SimpleTooltip>;
         }
 
-        if (!jobstep.node) {
-          return [
-            index === 0 && !only_one_row ?
-              <span className="lb">{phase.name}</span> : "",
-            jobstepDot,
-            <i>Machine not yet assigned</i>,
-            '',
-            jobstepDuration
-          ];
-        }
-
-        var node_name = <a href={"/v2/node/" + jobstep.node.id}>
-          {jobstep.node.name}
-        </a>;
-
         var jobstep_failures = _.filter(failures, f => f.step_id == jobstep.id);
-
-        var main_markup = node_name;
         if (jobstep_failures) {
-          var failure_markup = _.map(jobstep_failures, f => {
+          var innerFailureMarkup = _.map(jobstep_failures, f => {
             var reason = f.reason;
             if (f.id === 'test_failures') {
               // Note: the failure message itself doesn't tell us the correct
@@ -362,21 +344,44 @@ export var SingleBuild = React.createClass({
             return <div className="red">{reason}</div>;
           });
 
-          main_markup = <div>
-            {node_name}
-            <div className="marginTopS">{failure_markup}</div>
-          </div>
+          var failureMarkup = <div className="marginTopS">
+            {innerFailureMarkup}
+          </div>;
         }
 
-        var links = [];
+        if (!jobstep.node) {
+          return [
+            index === 0 && !only_one_row ?
+              <span className="lb">{phase.name}</span> : "",
+            jobstepDot,
+            <div>
+              <i>Machine not yet assigned</i>
+              {failureMarkup}
+            </div>,
+            '',
+            jobstepDuration
+          ];
+        }
 
-        var log_id = jobstep.logSources[0] && jobstep.logSources[0].id;
-        if (log_id) {
-          var log_uri = `/v2/job_log/${build.id}/${job.id}/${log_id}/`;
-          links.push(<a className="marginRightM" href={log_uri}>Log</a>);
+        var nodeLink = jobstep.node.name;
 
-          var raw_log_uri = `/api/0/jobs/${job.id}/logs/${log_id}/?raw=1`;
-          links.push(<a className="external marginRightM" href={raw_log_uri} target="_blank">Raw</a>);
+        var logID = jobstep.logSources[0] && jobstep.logSources[0].id;
+        if (logID) {
+          var logURI = `/v2/job_log/${build.id}/${job.id}/${logID}/`;
+          nodeLink = <a href={logURI}>{nodeLink}</a>;
+        }
+        
+        var links = [
+          <a className="marginRightM" href={"/v2/node/" + jobstep.node.id}>
+            Machine
+          </a>
+        ];
+
+        if (logID) {
+          var raw_log_uri = `/api/0/jobs/${job.id}/logs/${logID}/?raw=1`;
+          links.push(
+            <a className="external marginRightM" href={raw_log_uri} target="_blank">Raw</a>
+          );
         }
 
         if (jobstep.data.uri) {
@@ -394,7 +399,7 @@ export var SingleBuild = React.createClass({
             <span className="lb">{phase.name}</span> : 
             "",
           jobstepDot,
-          main_markup,
+          <div>{nodeLink}{failureMarkup}</div>,
           links,
           jobstepDuration
         ];
@@ -404,7 +409,7 @@ export var SingleBuild = React.createClass({
     var job_headers = [
       'Phase',
       'Result',
-      'Machine',
+      'Machine Log',
       'Links',
       'Duration'
     ];

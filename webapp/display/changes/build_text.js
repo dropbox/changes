@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
+import moment from 'moment';
+import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
-import { display_duration } from 'es6!display/time';
+import { LiveTime, display_duration } from 'es6!display/time';
 import { get_runnable_condition, get_runnables_summary_condition } from 'es6!display/changes/build_conditions';
 
 import * as utils from 'es6!utils/utils';
@@ -72,7 +74,7 @@ export var buildSummaryText = function(build, liveTimer = false, showDuration = 
       sentence += durationSuffix('parens_after');
       return sentence;
     case 'waiting':
-      return liveTimer ? <WaitingLiveText runnable={b} /> : 'Still running';
+      return liveTimer ? <WaitingLiveText runnable={build} /> : 'Still running';
     case 'unknown':
     default:
       return '';
@@ -184,3 +186,43 @@ export var get_cause_sentence = function(cause) {
       return 'The trigger for this build was ' + cause;
   }
 }
+
+/* Live-updating timers */
+
+/*
+ * How long has it been since a runnable started?
+ */
+export var WaitingTooltip = React.createClass({
+
+  render() {
+    var tooltip = <Tooltip>
+      <WaitingLiveText runnable={this.props.runnable} />
+    </Tooltip>;
+
+    return <OverlayTrigger
+      placement={this.props.placement}
+      overlay={tooltip}>
+      {this.props.children}
+    </OverlayTrigger>;
+  }
+
+});
+
+// internal component that implements the above
+export var WaitingLiveText = React.createClass({
+
+  render() {
+    var runnable = this.props.runnable;
+
+    if (!runnable.dateStarted) {
+      return <span>Not yet started</span>;
+    }
+
+    var unix = moment.utc(runnable.dateStarted).unix();
+
+    return <span>
+      Time Since Start:{" "}
+      <LiveTime time={unix} />
+    </span>;
+  }
+})

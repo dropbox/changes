@@ -1,10 +1,8 @@
 import React, { PropTypes } from 'react';
-import moment from 'moment';
 import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import ChangesLinks from 'es6!display/changes/links';
 import { Error, ProgrammingError } from 'es6!display/errors';
-import { LiveTime } from 'es6!display/time';
 import { buildSummaryText } from 'es6!display/changes/build_text';
 import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_color_cls, ConditionDot } from 'es6!display/changes/build_conditions';
 
@@ -81,44 +79,6 @@ export var ManyBuildsStatus = React.createClass({
     </OverlayTrigger>;
   }
 });
-
-/*
- * How long has it been since a runnable started?
- */
-export var WaitingTooltip = React.createClass({
-
-  render() {
-    var tooltip = <Tooltip>
-      <WaitingLiveText runnable={this.props.runnable} />
-    </Tooltip>;
-
-    return <OverlayTrigger
-      placement={this.props.placement}
-      overlay={tooltip}>
-      {this.props.children}
-    </OverlayTrigger>;
-  }
-
-});
-
-// internal component that implements the above
-var WaitingLiveText = React.createClass({
-
-  render() {
-    var runnable = this.props.runnable;
-
-    if (!runnable.dateStarted) {
-      return <span>Not yet started</span>;
-    }
-
-    var unix = moment.utc(runnable.dateStarted).unix();
-
-    return <span>
-      Time Since Start:{" "}
-      <LiveTime time={unix} />
-    </span>;
-  }
-})
 
 /*
  * Shows the status of a single build. This tooltip can go into more details
