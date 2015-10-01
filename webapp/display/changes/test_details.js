@@ -38,20 +38,18 @@ export var TestDetails = React.createClass({
     var testDetailsHelpText = custom_content_hook('testDetailsHelpText', null, test.project.id)
     if (testDetailsHelpText) {
       testDetailsHelpText = ChangesUI.linkifyURLs(testDetailsHelpText);
-      testDetailsHelpText = <div className='green marginBottomM'>
+      testDetailsHelpText = <div className="green" style={{marginBottom: 15}}>
         <i className="fa fa-info-circle marginRightS"></i>
         {testDetailsHelpText}
       </div>;
     }
 
     return <div {...props} className={className}>
-      <div className="marginTopS">
-        {testDetailsHelpText}
-        <b>Captured Output</b>
-        <pre className="defaultPre">
-        {test.message}
-        </pre>
-      </div>
+      {testDetailsHelpText}
+      <b>Captured Output</b>
+      <pre className="defaultPre">
+      {test.message}
+      </pre>
       {this.renderArtifacts(test)}
     </div>;
   },
