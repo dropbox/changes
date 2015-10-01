@@ -106,18 +106,19 @@ export var ConditionDot = React.createClass({
   propTypes: {
     // the runnable condition to render (see get_runnable_condition)
     condition: PropTypes.oneOf(all_build_conditions).isRequired,
-    // renders a small number at the lower-right corner
-    // TODO: is this still true?
+    // renders a number inside the dot
+    // only if dot >= small and we aren't rendering an icon
+    // TODO: this
     num: PropTypes.oneOfType(PropTypes.number, PropTypes.string),
     // smaller = 12px, small = 16px
     size: PropTypes.oneOf(["smaller", "small", "medium", "large"]),
-    // a glow is a ui indicator that this dot shows results from multiple items
-    glow: PropTypes.bool
+    // we have a special UI indicator to represent multiple builds
+    multiIndicator: PropTypes.bool
   },
 
   getDefaultProps: function() {
     return {
-      num: '',
+      num: null,
       size: 'small',
       glow: false
     }
@@ -134,6 +135,7 @@ export var ConditionDot = React.createClass({
         medium: 26,
         large: 45
       };
+
       var style = {
         fontSize: font_sizes[this.props.size], 
       };
@@ -157,20 +159,24 @@ export var ConditionDot = React.createClass({
         'conditionDot',
         this.props.size,
         get_runnable_condition_color_cls(condition, true),
-        this.props.glow ? 'glow' : ''
+        this.props.multiIndicator ? 'glow' : ''
       ];
 
-      dot = <span className={classes.join(" ")} />;
+      // cap num at 99 unless rendering the large widget
+      var num = this.props.num;
+      if (this.props.size !== 'large' && this.props.num > 99) {
+        num = '99+';
+      }
+
+      var text = num && this.props.size !== "smaller" ?
+        <span className="dotText">{num}</span> :
+        null;
+
+      dot = <span className={classes.join(" ")}>{text}</span>;
     }
 
-    var num = null;
-    if (this.props.num) {
-      // TODO: adjust this so waiting works
-      num = <span className="dotText">{this.props.num}</span>;
-    }
-
-    return <span className="dotContainer">
-      {dot}{num}
+    return <span>
+      {dot}
     </span>;
   }
 });
@@ -183,8 +189,38 @@ Examples.add('ConditionDot', __ => {
     <ConditionDot condition="failed_infra" />,
     <ConditionDot condition="failed_aborted" />,
     <ConditionDot condition="unknown" />,
-    <ConditionDot condition="passed" num={2} />,
-    <ConditionDot condition="passed" glow={true} />,
+    <div>
+      <ConditionDot className="marginRightS" condition="passed" size="small" num={222} />
+      <ConditionDot className="marginRightS" condition="passed" size="smaller" num={222} />
+      <ConditionDot className="marginRightS" condition="passed" size="medium" num={222} />
+      <ConditionDot className="marginRightS" condition="passed" size="large" num={222} />
+    </div>,
+    <div>
+      <ConditionDot 
+        className="marginRightS" 
+        condition="passed" 
+        size="small" 
+        multiIndicator={true} 
+      />
+      <ConditionDot 
+        className="marginRightS" 
+        condition="passed" 
+        size="smaller" 
+        multiIndicator={true} 
+      />
+      <ConditionDot 
+        className="marginRightS" 
+        condition="passed" 
+        size="medium" 
+        multiIndicator={true} 
+      />
+      <ConditionDot 
+        className="marginRightS" 
+        condition="passed" 
+        size="large" 
+        multiIndicator={true} 
+      />
+    </div>,
     <div>
       <ConditionDot className="marginRightS" condition="failed" size="small" />
       <ConditionDot className="marginRightS" condition="failed" size="smaller" />

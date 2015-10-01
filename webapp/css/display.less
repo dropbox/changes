@@ -208,10 +208,6 @@ tr.gridHeader {
  * Builds/Status Dot
  */
 
-.dotContainer {
-  position: relative;
-}
-
 .conditionDotIcon {
   display: inline-block;
   margin-right: 4px;
@@ -219,53 +215,54 @@ tr.gridHeader {
 }
 
 .conditionDot {
-  border-radius: 3px;
+  color: white;
   display: inline-block;
   margin-right: 4px;
   opacity: 1;
+  text-align: center;
+
+  .dotText {
+    position: relative;
+  }
 }
 
 .conditionDot.small {
   width: 16px;
   height: 16px;
+  border-radius: 12px;
+
+  .dotText {
+    font-size: 7px;
+    top: -4px;
+  }
 }
 
 .conditionDot.smaller {
   width: 12px;
   height: 12px;
+  border-radius: 10px;
 }
 
 .conditionDot.medium {
   width: 26px;
   height: 26px;
-  border-radius: 7px;
+  border-radius: 18px;
+
+  .dotText {
+    top: 2px;
+    font-size: smaller;
+  }
 }
 
 .conditionDot.large {
   width: 45px;
   height: 45px;
-  border-radius: 10px;
-}
+  border-radius: 30px;
 
-.dotText {
-  color: #fff;
-  font-size: 10px;
-  font-weight: bold;
-  margin-left: -8px;
-  margin-top: 5px;
-  position: absolute;
-  text-shadow:
-    -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-    1px 1px 0 #000;
-}
-
-.statusNumBase {
-  border-radius: 2px;
-  display: inline-block;
-  margin-right: 4px;
-  opacity: 1;
+  .dotText {
+    top: 12px;
+    font-size: larger;
+  }
 }
 
 .buildWidget {
