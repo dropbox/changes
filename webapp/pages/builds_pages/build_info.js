@@ -6,6 +6,7 @@ import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
 import PostRequest from 'es6!display/post_request';
 import SectionHeader from 'es6!display/section_header';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 import { Button } from 'es6!display/button';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -13,7 +14,7 @@ import { TestDetails } from 'es6!display/changes/test_details';
 import { WaitingTooltip } from 'es6!display/changes/builds';
 import { buildSummaryText, manyBuildsSummaryText, get_build_cause, get_cause_sentence } from 'es6!display/changes/build_text';
 import { display_duration } from 'es6!display/time';
-import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_short_text, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
 
@@ -307,24 +308,34 @@ export var SingleBuild = React.createClass({
     var phases_rows = _.map(phases, phase => {
       return _.map(phase.steps, (jobstep, index) => {
         var jobstepCondition = get_runnable_condition(jobstep);
-        var jobstep_duration = null;
+        var jobstepDot = <ConditionDot condition={jobstepCondition} />;
+
+        var jobstepDuration = null;
         if (jobstepCondition === 'waiting') {
-          jobstep_duration = <WaitingTooltip runnable={jobstep} placement="left">
+          jobstepDuration = <WaitingTooltip runnable={jobstep} placement="left">
             <span>Running</span>
           </WaitingTooltip>;
+
+          jobstepDot = <WaitingTooltip runnable={jobstep} placement="right">
+            <span>{jobstepDot}</span>
+          </WaitingTooltip>;
         } else {
-          jobstep_duration = jobstep.duration ?
+          jobstepDuration = jobstep.duration ?
             display_duration(jobstep.duration/1000) : '';
+          var label = get_runnable_condition_short_text(jobstepCondition);
+          jobstepDot = <SimpleTooltip label={label} placement="right">
+            <span>{jobstepDot}</span>
+          </SimpleTooltip>;
         }
 
         if (!jobstep.node) {
           return [
             index === 0 && !only_one_row ?
               <span className="lb">{phase.name}</span> : "",
-            <ConditionDot state={jobstepCondition} />,
+            jobstepDot,
             <i>Machine not yet assigned</i>,
             '',
-            jobstep_duration
+            jobstepDuration
           ];
         }
         var node_name = <a href={"/v2/node/" + jobstep.node.id}>
@@ -381,10 +392,10 @@ export var SingleBuild = React.createClass({
           index === 0 && !only_one_row ?
             <span className="lb">{phase.name}</span> : 
             "",
-          <ConditionDot condition={jobstepCondition} />,
+          jobstepDot,
           main_markup,
           links,
-          jobstep_duration
+          jobstepDuration
         ];
       });
     });

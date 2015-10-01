@@ -3,6 +3,9 @@ import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 /*
  * A react-bootstrap tooltip with less boilerplate
+ *
+ * Note: if its not working for some reason, try wrapping your content in a
+ * span
  */
 var SimpleTooltip = React.createClass({
 
