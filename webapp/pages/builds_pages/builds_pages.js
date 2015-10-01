@@ -363,9 +363,6 @@ export var SingleBuildPage = React.createClass({
 
     return <ChangesPage oldUI={oldBuildUI(build)}>
       <SingleBuild build={build} />
-      <div className="marginTopL">
-        <a href={`/v2/code/${build.source.id}`}>View Code for this Build</a>
-      </div>
     </ChangesPage>;
   },
 });
