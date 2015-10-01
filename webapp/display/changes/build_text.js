@@ -1,3 +1,5 @@
+import React, { PropTypes } from 'react';
+
 import { display_duration } from 'es6!display/time';
 import { get_runnable_condition, get_runnables_summary_condition } from 'es6!display/changes/build_conditions';
 

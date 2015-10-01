@@ -124,7 +124,8 @@ class Exports:
     # if we have a closing html tag, we should probably import react.
     # todo: strip out comments from this search string
     other_imports = ""
-    if re.search("<\/\w", without_comments):
+    if (re.search("<\/\w", without_comments) or 
+      re.search("\/>", without_comments)):
       other_imports += "import React, { PropTypes } from 'react';\n"
 
     if "moment(" in without_comments or "moment." in without_comments:
