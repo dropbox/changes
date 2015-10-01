@@ -32,18 +32,29 @@ export var Menu1 = React.createClass({
 
     var item_onclick = (item, clickEvent) => onClick(item, clickEvent);
 
-    var item_markup = _.map(items, (text, index) => {
+    var item_markup = [];
+    _.each(items, (text, index) => {
       var classes = cx({
         menuItem: true,
         firstMenuItem: index === 0,
         selectedMenuItem: selectedItem === text
       });
 
-      return <div
-        className={classes}
-        onClick={_.partial(item_onclick, text)}>
-        {text}
-      </div>;
+      item_markup.push(
+        <div
+          className={classes}
+          onClick={_.partial(item_onclick, text)}>
+          {text}
+        </div>
+      );
+
+      if (index < items.length - 1) {
+        item_markup.push(
+          <div className="inlineBlock">
+            {"\u22C5"}
+          </div>
+        );
+      }
     });
 
     return <div {...others}>{item_markup}</div>;
