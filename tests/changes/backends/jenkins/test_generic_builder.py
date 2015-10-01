@@ -81,6 +81,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         result = builder.get_job_parameters(job, changes_bid, path='foo')
         assert {'name': 'CHANGES_BID', 'value': changes_bid} in result
         assert {'name': 'CHANGES_PID', 'value': job.project.slug} in result
+        assert {'name': 'PROJECT_CONFIG', 'value': job.project.get_config_path()} in result
         assert {'name': 'REPO_URL', 'value': job.project.repository.url} in result
         assert {'name': 'REPO_VCS', 'value': job.project.repository.backend.name} in result
         assert {'name': 'REVISION', 'value': job.source.revision_sha} in result
@@ -92,7 +93,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         # magic number that is simply the current number of parameters. Ensures that
         # there is nothing "extra"
-        assert len(result) == 21
+        assert len(result) == 22
 
         # test defaulting for lxc
         # pre/post are defined in conftest.py
