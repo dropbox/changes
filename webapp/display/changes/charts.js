@@ -17,10 +17,12 @@ export var ChangesChart = React.createClass({
     runnables: PropTypes.array.isRequired,
     leftEllipsis: PropTypes.bool,
     rightEllipsis: PropTypes.bool,
+    // if enabled, we'll show a 'latest' label when leftEllipsis = false
+    enableLatest: PropTypes.bool
   },
 
   getDefaultProps() {
-    return { leftEllipsis: false, rightEllipsis: false };
+    return { leftEllipsis: false, rightEllipsis: false, enableLatest: true };
   },
   
   render() {
@@ -84,11 +86,35 @@ export var ChangesChart = React.createClass({
     // add ellipses
     if (this.props.leftEllipsis) {
       content.unshift(<div className="inlineBlock marginRightXS">...</div>);
+    } else if (this.props.enableLatest) {
+      content.unshift(<LatestWidget />);
     }
     if (this.props.rightEllipsis) {
       content.push(<div className="inlineBlock">...</div>);
     }
 
     return <div className="changesChart">{content}</div>;
+  }
+});
+
+var LatestWidget = React.createClass({
+  render() {
+    var divStyle = {
+      position: 'absolute',
+      marginLeft: -8,
+      marginTop: -18,
+      fontSize: 'xx-small',
+    };
+
+    var caretStyle = {
+      display: 'block',
+      marginLeft: 10,
+      marginTop: -3
+    };
+
+    return <div style={divStyle}>
+      Latest
+      <i style={caretStyle} className="fa fa-caret-down" />
+    </div>;
   }
 });
