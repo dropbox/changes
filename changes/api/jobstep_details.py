@@ -65,12 +65,6 @@ class JobStepDetailsAPIView(APIView):
             current_image = None
             if jobplan:
                 current_image = jobplan.snapshot_image
-                # TODO(paulruan): This is to remain compatible with running code
-                #                 that doesn't set snapshot_images in the jobplans.
-                #                 This should be removed soon.
-                if current_image is None:
-                    current_image = SnapshotImage.get_current(jobplan.plan)
-
             if current_image is None and current_app.config['DEFAULT_SNAPSHOT']:
                 current_image = {
                     'id': current_app.config['DEFAULT_SNAPSHOT'],

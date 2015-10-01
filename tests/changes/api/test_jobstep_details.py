@@ -83,45 +83,6 @@ class JobStepDetailsTest(APITestCase):
         assert data['snapshot']['id'] == image.id.hex
         assert data['expectedSnapshot'] is None
 
-    def test_jobplan_missing_snapshot(self):
-        # TODO(paulruan): This is a test to verify compatibility with running
-        #                 code without snapshot_image_id set in jobplan will
-        #                 still work. This is to be deleted soon.
-        project = self.create_project()
-        build = self.create_build(project)
-        plan = self.create_plan(project)
-        job = self.create_job(build)
-        jobphase = self.create_jobphase(job)
-        jobstep = self.create_jobstep(jobphase)
-
-        snapshot = self.create_snapshot(project)
-        image = self.create_snapshot_image(
-            plan=plan,
-            snapshot=snapshot,
-        )
-        db.session.add(ProjectOption(
-            project_id=project.id,
-            name='snapshot.current',
-            value=snapshot.id.hex,
-        ))
-        db.session.commit()
-
-        # Unset the snapshot image id.
-        # Snapshot image should still be looked up for now.
-        jobplan = self.create_job_plan(job, plan)
-        jobplan.snapshot_image_id = None
-        db.session.add(jobplan)
-        db.session.commit()
-
-        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
-
-        resp = self.client.get(path)
-        assert resp.status_code == 200
-        data = self.unserialize(resp)
-        assert data['id'] == jobstep.id.hex
-        assert data['snapshot']['id'] == image.id.hex
-        assert data['expectedSnapshot'] is None
-
     def test_with_expected_snapshot(self):
         project = self.create_project()
         build = self.create_build(project, cause=Cause.snapshot)
