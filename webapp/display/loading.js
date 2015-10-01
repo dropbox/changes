@@ -10,8 +10,6 @@ var loading_messages = [
   'Confucius say...wait',
   'Important things are worth waiting for',
   "I'm a happy loading message! \\(^o^)/",
-  "I'm givin' her all she's got, captain!"
-//  'W3C Working Draft: XMLHttpRequest Level 1'
 ];
 
 /*
