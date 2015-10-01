@@ -289,9 +289,9 @@ export var SingleBuildStatus = React.createClass({
 // if a list of builds is for a differential diff, filter them so that we only
 // have the builds for the latest update
 //
-// there's a slight bug where we won't know about the latest update if no
-// builds have run for it, but I think this is fine as-is
-var get_builds_for_last_change = function(builds) {
+// we won't know about the latest update if no builds have run for it (instead
+// returning builds for the second-latest update), but I think that's fine
+export var get_builds_for_last_change = function(builds) {
   var revision_ids = [];
   var diff_ids = [];
 

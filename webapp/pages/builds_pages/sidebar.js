@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import ChangesLinks from 'es6!display/changes/links';
 import { TimeText, display_duration } from 'es6!display/time';
-import { get_build_cause } from 'es6!display/changes/builds';
+import { get_builds_for_last_change, get_build_cause } from 'es6!display/changes/builds';
 import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_short_text, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as utils from 'es6!utils/utils';
@@ -94,14 +94,10 @@ var Sidebar = React.createClass({
 
     var sections = [], latest_item = null;
     _.each(all_diff_ids, (single_diff_id, index) => {
-      var builds = builds_by_update[single_diff_id];
+      var diff_builds = builds_by_update[single_diff_id];
       var changes_data = diff_data.changes[single_diff_id];
 
       var diff_update_num = all_diff_ids.length - index - 1;
-
-      if (index === 0) {
-        latest_item = this.renderLatestItem(builds);
-      }
 
       if (single_diff_id > original_single_diff_id) {
         if (changes_data) {
@@ -122,8 +118,8 @@ var Sidebar = React.createClass({
         </span>;
       }
       var section_content = this.noBuildsMarkup();
-      if (builds) {
-        section_content = this.renderBuilds(builds);
+      if (diff_builds) {
+        section_content = this.renderBuilds(diff_builds);
       }
 
       sections.push(this.renderSection(section_header, section_content));
@@ -131,7 +127,7 @@ var Sidebar = React.createClass({
 
     return <div>
       <div className="marginTopL">
-        {latest_item}
+        {this.renderLatestItem(builds)}
       </div>
       {sections}
     </div>;
@@ -145,6 +141,10 @@ var Sidebar = React.createClass({
   },
 
   renderLatestItem: function(builds) {
+    // if its a diff, only get builds from the most recent update that had 
+    // builds
+    builds = get_builds_for_last_change(builds);
+
     // we want the most recent build for each project
     var latest_by_proj = _.chain(builds)
       .groupBy(b => b.project.name)
