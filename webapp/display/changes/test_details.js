@@ -89,10 +89,11 @@ export var TestDetails = React.createClass({
     }
 
     if (imageArtifacts.length > 0) {
-      markup.push(<div className="lb marginTopM">Images</div>);
+      markup.push(<div className="lb marginTopM marginBottomS">Images</div>);
       _.each(imageArtifacts, a => {
         markup.push(
           <div> <a target="_blank" href={a.url}>
+            <div className="artifactImageName">{a.name}</div>
             <img className="artifactImage" src={a.url} />
           </a> </div>
         );
