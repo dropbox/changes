@@ -475,7 +475,7 @@ export var LatestBuildsSummary = React.createClass({
     var dot = <ConditionDot
       condition={summaryCondition}
       size="large"
-      glow={latestByProj.length > 1}
+      multiIndicator={latestByProj.length > 1}
     />;
 
     var style = {

@@ -120,7 +120,7 @@ export var ConditionDot = React.createClass({
     return {
       num: null,
       size: 'small',
-      glow: false
+      multiIndicator: false
     }
   },
 
@@ -159,7 +159,7 @@ export var ConditionDot = React.createClass({
         'conditionDot',
         this.props.size,
         get_runnable_condition_color_cls(condition, true),
-        this.props.multiIndicator ? 'glow' : ''
+        this.props.multiIndicator ? 'ring' : ''
       ];
 
       // cap num at 99 unless rendering the large widget

@@ -171,7 +171,7 @@ var Sidebar = React.createClass({
       <ConditionDot
         condition={summaryCondition}
         size="medium"
-        glow={latestPerProj.length > 1}
+        multiIndicator={latestPerProj.length > 1}
       />,
       'Latest Builds',
       '',

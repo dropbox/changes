@@ -23,9 +23,10 @@
   .redBg { background-color: @red; }
   .greenBg { background-color: @green; }
 
-  .redBg.glow { box-shadow: 0px 0px 10px 2px @redGlow; }
-  .greenBg.glow { box-shadow: 0px 0px 10px 2px @greenGlow; }
-  .bluishGrayBg.glow { box-shadow: 0px 0px 10px 2px @bluishGrayGlow; }
+  .redBg.ring { box-shadow: 0px 0px 0px 4px lighten(@red, 30%) }
+  .greenBg.ring { box-shadow: 0px 0px 0px 4px lighten(@green, 30%) }
+  .bluishGrayBg.ring { box-shadow: 0px 0px 0px 4px lighten(@bluishGray, 30%) }
+  .blackBg.ring { box-shadow: 0px 0px 0px 4px lighten(#000, 50%) }
 
   .fainterBorderTop { border-top: 1px solid @fainterBorder; }
 

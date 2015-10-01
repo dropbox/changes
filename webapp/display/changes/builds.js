@@ -66,7 +66,7 @@ export var ManyBuildsStatus = React.createClass({
 
     var summary_condition = get_runnables_summary_condition(latest_builds);
 
-    var glow = latest_builds.length > 1;
+    var multiIndicator = latest_builds.length > 1;
 
     var builds_href = ChangesLinks.buildsHref(latest_builds);
 
@@ -74,7 +74,7 @@ export var ManyBuildsStatus = React.createClass({
       placement="right"
       overlay={tooltip}>
       <a className="buildStatus" href={builds_href}>
-        <ConditionDot condition={summary_condition} glow={glow} />
+        <ConditionDot condition={summary_condition} multiIndicator={multiIndicator} />
       </a>
     </OverlayTrigger>;
   }
