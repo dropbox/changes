@@ -7,8 +7,9 @@ import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
 import { Menu1 } from 'es6!display/menus';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
-import { TimeText } from 'es6!display/time';
+import { TimeText, display_duration } from 'es6!display/time';
 import { get_build_cause } from 'es6!display/changes/build_text';
+import { get_runnable_condition } from 'es6!display/changes/build_conditions';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -87,11 +88,19 @@ var BuildsTab = React.createClass({
         target = ChangesLinks.phabCommit(build.source.revision);
       }
 
+      var duration = get_runnable_condition(build) !== 'waiting' ?
+        display_duration(build.duration / 1000) :
+        null;
+
+      var tests = build.stats.test_count;
+
       return [
         <SingleBuildStatus build={build} parentElem={this} />,
         <a className="subtle" href={ChangesLinks.buildHref(build)}>
           {build.name}
         </a>,
+        duration,
+        tests,
         target,
         get_build_cause(build),
         ChangesLinks.author(build.author),
@@ -99,11 +108,22 @@ var BuildsTab = React.createClass({
       ];
     });
 
-    var cellClasses = ['buildWidgetCell', 'wide easyClick', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
+    var cellClasses = [
+      'buildWidgetCell', 
+      'wide easyClick', 
+      'bluishGray nowrap', 
+      'bluishGray nowrap', 
+      'nowrap', 
+      'nowrap', 
+      'nowrap', 
+      'nowrap'
+    ];
 
     var headers = [
       'Result',
       'Name',
+      'Time',
+      'Tests Ran',
       'Target',
       'Cause',
       'By',
@@ -125,7 +145,7 @@ var BuildsTab = React.createClass({
         {this.renderControls()}
         {error_message}
         <Grid
-          colnum={6}
+          colnum={8}
           cellClasses={cellClasses}
           data={data}
           headers={headers}

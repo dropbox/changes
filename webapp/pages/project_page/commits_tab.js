@@ -181,7 +181,15 @@ var CommitsTab = React.createClass({
 
     var grid_data = _.map(data_to_show, c => this.turnIntoRow(c, project_info));
 
-    var cellClasses = ['buildWidgetCell', 'wide easyClick', 'nowrap', 'nowrap', 'nowrap', 'nowrap', 'nowrap'];
+    var cellClasses = [
+      'buildWidgetCell', 
+      'wide easyClick', 
+      'bluishGray nowrap', 
+      'bluishGray nowrap', 
+      'nowrap', 
+      'nowrap', 
+      'nowrap'
+    ];
 
     var headers = [
       'Result',
@@ -242,8 +250,8 @@ var CommitsTab = React.createClass({
     return [
       build_widget,
       title,
-      <span className="bluishGray">{duration}</span>,
-      <span className="bluishGray">{tests}</span>,
+      duration,
+      tests,
       ChangesLinks.author(c.author),
       ChangesLinks.phabCommit(c),
       <TimeText time={c.dateCommitted} />
