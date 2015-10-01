@@ -34,7 +34,7 @@ export var ManyBuildsStatus = React.createClass({
 
     // If this is a diff, we only want to look at builds that ran on the last
     // code change
-    var builds_for_last_code_change = get_builds_for_last_change(builds);
+    var builds_for_last_code_change = buildsForLastCodeChange(builds);
 
     // grab the latest builds for each project
     var builds_by_project = _.groupBy(builds_for_last_code_change,
@@ -269,11 +269,12 @@ export var SingleBuildStatus = React.createClass({
 });
 
 // if a list of builds is for a differential diff, filter them so that we only
-// have the builds for the latest update
+// have the builds for the latest update. Its safe to run this on non-diffs...we'll
+// just return the original list
 //
 // we won't know about the latest update if no builds have run for it (instead
 // returning builds for the second-latest update), but I think that's fine
-export var get_builds_for_last_change = function(builds) {
+export var buildsForLastCodeChange = function(builds) {
   var revision_ids = [];
   var diff_ids = [];
 

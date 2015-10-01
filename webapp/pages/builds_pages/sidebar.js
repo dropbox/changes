@@ -4,7 +4,7 @@ import moment from 'moment';
 import ChangesLinks from 'es6!display/changes/links';
 import { TimeText, display_duration } from 'es6!display/time';
 import { buildSummaryText, manyBuildsSummaryText, get_build_cause } from 'es6!display/changes/build_text';
-import { get_builds_for_last_change } from 'es6!display/changes/builds';
+import { buildsForLastCodeChange } from 'es6!display/changes/builds';
 import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as utils from 'es6!utils/utils';
@@ -69,7 +69,7 @@ var Sidebar = React.createClass({
 
     var content = this.noBuildsMarkup();
     if (builds) {
-      content = this.renderBuilds();
+      content = this.renderBuilds(builds, true);
     }
 
     return <div>
@@ -94,6 +94,7 @@ var Sidebar = React.createClass({
     var original_single_diff_id = _.last(all_diff_ids);
 
     var sections = [], latest_item = null;
+    var hasRenderedSectionWithBuilds = false;
     _.each(all_diff_ids, (single_diff_id, index) => {
       var diff_builds = builds_by_update[single_diff_id];
       var changes_data = diff_data.changes[single_diff_id];
@@ -120,7 +121,10 @@ var Sidebar = React.createClass({
       }
       var section_content = this.noBuildsMarkup();
       if (diff_builds) {
-        section_content = this.renderBuilds(diff_builds);
+        section_content = this.renderBuilds(
+          diff_builds,
+          !hasRenderedSectionWithBuilds);
+        hasRenderedSectionWithBuilds = true;
       }
 
       sections.push(this.renderSection(section_header, section_content));
@@ -141,21 +145,25 @@ var Sidebar = React.createClass({
     </div>;
   },
 
-  renderLatestItem: function(builds) {
+  getLatestPerProject: function(builds) {
     // if its a diff, only get builds from the most recent update that had 
     // builds
-    builds = get_builds_for_last_change(builds);
+    builds = buildsForLastCodeChange(builds);
 
     // we want the most recent build for each project
-    var latestByProj = _.chain(builds)
+    return _.chain(builds)
       .groupBy(b => b.project.name)
       .map(projBuilds => _.last(_.sortBy(projBuilds, b => b.dateCreated)))
       .values()
       .value();
+  },
 
-    var subtext = manyBuildsSummaryText(latestByProj);
+  renderLatestItem: function(builds) {
+    var latestPerProj = this.getLatestPerProject(builds);
 
-    var summaryCondition = get_runnables_summary_condition(latestByProj);
+    var subtext = manyBuildsSummaryText(latestPerProj);
+
+    var summaryCondition = get_runnables_summary_condition(latestPerProj);
     var subtextExtraClass = summaryCondition.indexOf('failed') === 0 ?
       'redGrayMix' : '';
 
@@ -163,7 +171,7 @@ var Sidebar = React.createClass({
       <ConditionDot
         condition={summaryCondition}
         size="medium"
-        glow={latestByProj.length > 1}
+        glow={latestPerProj.length > 1}
       />,
       'Latest Builds',
       '',
@@ -175,7 +183,7 @@ var Sidebar = React.createClass({
     );
   },
 
-  renderBuilds: function(builds) {
+  renderBuilds: function(builds, hideNonLatest = false) {
     if (builds === undefined) {
       return null;
     }
@@ -183,6 +191,13 @@ var Sidebar = React.createClass({
       .sortBy(b => b.dateCreated)
       .reverse()
       .value();
+  
+    var latestPerProj = this.getLatestPerProject(builds);
+    var shouldDim = build => {
+      if (!hideNonLatest) { return false; }
+      var inLatest = _.filter(latestPerProj, b => b.id === build.id);
+      return !(inLatest.length > 0);  // dim if not in latest
+    }
 
     var on_click = build_id => {
       return evt => {
@@ -208,14 +223,16 @@ var Sidebar = React.createClass({
         subtextExtraClass,
         get_build_cause(b),
         this.props.activeBuildID === b.id,
-        on_click(b.id));
+        on_click(b.id),
+        shouldDim(b));
     });
 
     return <div>{entries}</div>;
   },
 
+  // TODO: ok, this should probably be a component or something...
   renderBuildSideItem: function(condition_dot, text, time, subtext,
-    subtext_extra_class, right_subtext, is_selected, on_click) {
+    subtext_extra_class, right_subtext, is_selected, on_click, dimmed = false) {
 
     var time_style = {
       float: 'right',
@@ -235,7 +252,12 @@ var Sidebar = React.createClass({
       </div>;
     }
 
-    return <div className={classes} onClick={on_click}>
+    var style = null;
+    if (dimmed) {
+      style = { opacity: 0.5 };
+    }
+
+    return <div className={classes} onClick={on_click} style={style}>
       <div className="sideItemDot">
         {condition_dot}
       </div>

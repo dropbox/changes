@@ -371,7 +371,6 @@ export var SingleBuildPage = React.createClass({
 });
 
 var oldBuildUI = function(build) {
-  console.log(build);
   if (build) {
     return `/projects/${build.project.slug}/builds/${build.id}/?optout=1`;
   } else {
