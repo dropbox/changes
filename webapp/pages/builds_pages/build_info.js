@@ -95,6 +95,7 @@ export var SingleBuild = React.createClass({
 
     return <div>
       <div className="marginBottomL">
+        {render_all ? this.renderFailedAdvice(build) : null}
         <div className="floatR">
           {render_all ? this.renderButton(build) : null}
         </div>
@@ -214,6 +215,22 @@ export var SingleBuild = React.createClass({
     return <div>
       <InfoList className="marginTopM">{rows}</InfoList>
     </div>;
+  },
+
+  renderFailedAdvice: function(build) {
+    var buildCondition = get_runnable_condition(build);
+
+    if (buildCondition === 'failed_infra') {
+      return <div className="messageBox" style={{marginBottom: 15}}>
+        There was an infrastructure failure while running this diff.
+        You can retry it using the right button on the right.
+      </div>;
+    } else if (buildCondition === 'failed_aborted') {
+      var advice = <div className="messageBox" style={{marginBottom: 15}}>
+        This build was aborted. You can retry it using the button on the right.
+      </div>;
+    }
+    return null;
   },
 
   // which tests caused the build to fail?
