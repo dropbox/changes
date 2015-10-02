@@ -4,6 +4,7 @@ from flask import current_app
 
 import heapq
 import logging
+import uuid
 
 from hashlib import md5
 
@@ -326,7 +327,8 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             groups = self._shard_tests(phase_config['tests'], self.max_shards,
                                        test_stats, avg_test_time)
             steps = [
-                self._create_jobstep(phase, phase_config, weight, test_list, len(groups))
+                self._create_jobstep(phase, phase_config['cmd'], phase_config.get('path', ''),
+                                     weight, test_list, len(groups))
                 for weight, test_list in groups
                 ]
             assert len(steps) == len(groups)
@@ -342,7 +344,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 parent_task_id=phase.job.id.hex,
             )
 
-    def _create_jobstep(self, phase, phase_config, weight, test_list, shard_count=1):
+    def _create_jobstep(self, phase, phase_cmd, phase_path, weight, test_list, shard_count=1, force_create=False):
         """
         Create a JobStep in the database for a single shard.
 
@@ -350,10 +352,14 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         Args:
             phase (JobPhase): The phase this step will be part of.
-            phase_config (dict): Configuration data gathered the collection step.
+            phase_cmd (str): Command configured for the collection step.
+            phase_path (str): Path configured for the collection step.
             weight (int): The weight of this shard.
             test_list (list): The list of tests names for this shard.
             shard_count (int): The total number of shards in this JobStep's phase.
+            force_create (bool): Force this JobStep to be created (rather than
+                retrieved). This is used when replacing a JobStep to make sure
+                we don't just get the old one.
 
         Returns:
             JobStep: the (possibly-newly-created) JobStep.
@@ -361,15 +367,20 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         test_names = ' '.join(test_list)
         label = md5(test_names).hexdigest()
 
-        step, created = get_or_create(JobStep, where={
+        where = {
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
             'label': label,
-        }, defaults={
+        }
+        if force_create:
+            # uuid is unique so forces JobStep to be created
+            where['id'] = uuid.uuid4()
+
+        step, created = get_or_create(JobStep, where=where, defaults={
             'data': {
-                'cmd': phase_config['cmd'],
-                'path': phase_config.get('path', ''),
+                'cmd': phase_cmd,
+                'path': phase_path,
                 'tests': test_list,
                 'expanded': True,
                 'shard_count': shard_count,
@@ -379,9 +390,30 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             },
             'status': Status.queued,
         })
+        assert created or not force_create
         BuildStep.handle_debug_infra_failures(step, self.debug_config, 'expanded')
         db.session.add(step)
         return step
+
+    def create_replacement_jobstep(self, step):
+        if not step.data.get('expanded'):
+            # TODO(nate): eventually we'll call super here when we support
+            # replacing primary jobsteps
+            return None
+        newstep = self._create_jobstep(step.phase, step.data['cmd'], step.data['path'],
+                                       step.data['weight'], step.data['tests'],
+                                       step.data['shard_count'], force_create=True)
+        step.replacement_id = newstep.id
+        db.session.add(step)
+        db.session.commit()
+
+        self._create_jenkins_build(newstep.phase, newstep)
+        sync_job_step.delay_if_needed(
+            step_id=newstep.id.hex,
+            task_id=newstep.id.hex,
+            parent_task_id=newstep.phase.job.id.hex,
+        )
+        return newstep
 
     def _create_jenkins_build(self, phase, step):
         """

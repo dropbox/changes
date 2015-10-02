@@ -9,6 +9,7 @@ from copy import deepcopy
 from uuid import UUID
 
 from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, JenkinsTestCollectorBuildStep, JenkinsCollectorBuilder
+from changes.config import db
 from changes.constants import Result, Status
 from changes.models import JobPhase, JobStep
 from changes.testutils import TestCase
@@ -444,9 +445,155 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert phase2.label == 'Test'
         assert phase2.status == Status.queued
 
-        new_steps = sorted(JobStep.query.filter(
-            JobStep.phase_id == phase2.id
-        ), key=lambda x: x.data['weight'], reverse=True)
+        new_steps = sorted(phase2.current_steps, key=lambda x: x.data['weight'], reverse=True)
+
+        assert len(new_steps) == 2
+        assert new_steps[0].data['expanded'] is True
+        assert new_steps[0].data['build_no'] == 23
+        assert new_steps[0].data['job_name'] == 'foo-bar'
+        assert new_steps[0].data['tests'] == ['foo.bar.test_buz']
+        assert new_steps[0].data['path'] == ''
+        assert new_steps[0].data['cmd'] == 'py.test --junit=junit.xml {test_names}'
+        assert new_steps[0].data['weight'] == 201
+
+        assert new_steps[1].data['expanded'] is True
+        assert new_steps[1].data['build_no'] == 23
+        assert new_steps[1].data['job_name'] == 'foo-bar'
+        assert new_steps[1].data['tests'] == [
+            'foo/bar.py',
+            'foo/baz.py',
+            'foo.bar.test_biz',
+        ]
+        assert new_steps[1].data['path'] == ''
+        assert new_steps[1].data['cmd'] == 'py.test --junit=junit.xml {test_names}'
+        assert new_steps[1].data['weight'] == 78
+
+        builder.fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
+        builder.get_job_parameters.assert_any_call(
+            job,
+            changes_bid=new_steps[0].id.hex,
+            script='py.test --junit=junit.xml foo.bar.test_buz',
+            path='',
+            setup_script='',
+            teardown_script='',
+        )
+        builder.create_job_from_params.assert_any_call(
+            job_name='foo-bar',
+            changes_bid=new_steps[0].id.hex,
+            is_diff=False,
+            params=builder.get_job_parameters.return_value,
+        )
+        builder.get_job_parameters.assert_any_call(
+            job,
+            changes_bid=new_steps[1].id.hex,
+            script='py.test --junit=junit.xml foo/bar.py foo/baz.py foo.bar.test_biz',
+            path='',
+            setup_script='',
+            teardown_script='',
+        )
+        builder.create_job_from_params.assert_any_call(
+            job_name='foo-bar',
+            changes_bid=new_steps[1].id.hex,
+            is_diff=False,
+            params=builder.get_job_parameters.return_value,
+        )
+
+        # If fetch_artifact() is called again with different weights so
+        # that it divvies up the tests differently, does a broken
+        # double-shard build result?
+
+        get_test_stats.return_value = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+            ('foo', 'bar', 'test_biz'): 10,
+            ('foo', 'bar', 'test_buz'): 55,
+        }, 68
+
+        buildstep.fetch_artifact(artifact)
+
+        all_steps = phase2.current_steps
+        assert len(all_steps) == 2
+
+    @responses.activate
+    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
+    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')
+    def test_create_replacement_jobstep(self, get_test_stats, get_builder):
+        """
+        Tests create_replacement_jobstep by running a very similar test to
+        test_job_expansion, failing one of the jobsteps and then replacing it,
+        and making sure the results still end up the same.
+        """
+        builder = self.get_mock_builder()
+        builder.fetch_artifact.return_value.json.return_value = {
+            'phase': 'Test',
+            'cmd': 'py.test --junit=junit.xml {test_names}',
+            'tests': [
+                'foo/bar.py',
+                'foo/baz.py',
+                'foo.bar.test_biz',
+                'foo.bar.test_buz',
+            ],
+        }
+        builder.create_job_from_params.return_value = {
+            'job_name': 'foo-bar',
+            'build_no': 23,
+        }
+        builder.get_required_artifact.return_value = 'tests.json'
+
+        get_builder.return_value = builder
+        get_test_stats.return_value = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+            ('foo', 'bar', 'test_biz'): 10,
+            ('foo', 'bar', 'test_buz'): 200,
+        }, 68
+
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+
+        artifact = self.create_artifact(
+            step=step,
+            name='tests.json',
+            data={'fileName': 'tests.json'},
+        )
+
+        buildstep = self.get_buildstep()
+        buildstep.fetch_artifact(artifact)
+
+        phase2 = JobPhase.query.filter(
+            JobPhase.job_id == job.id,
+            JobPhase.id != phase.id,
+        ).first()
+
+        new_steps = sorted(phase2.current_steps, key=lambda x: x.data['weight'], reverse=True)
+
+        failstep = new_steps[0]
+        failstep.result = Result.infra_failed
+        failstep.status = Status.finished
+        db.session.add(failstep)
+        db.session.commit()
+
+        replacement_step = buildstep.create_replacement_jobstep(failstep)
+        # new jobstep should still be part of same job/phase
+        assert replacement_step.job == job
+        assert replacement_step.phase == phase2
+        # make sure .steps actually includes the new jobstep
+        assert len(phase2.steps) == 3
+        # make sure replacement id is correctly set
+        assert failstep.replacement_id == replacement_step.id
+
+        # Now perform same tests as test_job_expansion, making sure that the
+        # replacement step still satisfies all the correct attributes
+        new_steps = sorted(phase2.current_steps, key=lambda x: x.data['weight'], reverse=True)
 
         assert len(new_steps) == 2
         # assert new_steps[0].label == '790ed83d37c20fd5178ddb4f20242ef6'
@@ -514,7 +661,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
         buildstep.fetch_artifact(artifact)
 
-        all_steps = JobStep.query.filter_by(phase_id=phase2.id).all()
+        all_steps = phase2.current_steps
         assert len(all_steps) == 2
 
     @responses.activate
