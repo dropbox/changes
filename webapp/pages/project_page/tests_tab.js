@@ -35,6 +35,13 @@ var TestsTab = React.createClass({
     if (!api.isLoaded(this.props.flakyTests)) {
       return <APINotLoaded calls={this.props.flakyTests} />;
     }
+
+    var InProgressMessage = <div className="messageBox marginBottomL">
+      This tab is still a WIP (adding the ability for you to find tests via a
+      filter, more dashboards, and other stuff.) Right now we have a flaky
+      test dashboard finished.
+    </div>;
+
     var flakyTestsDict = this.props.flakyTests.getReturnedData();
     var date = flakyTestsDict.date;
     var flakyTests = flakyTestsDict.flakyTests;
@@ -57,12 +64,14 @@ var TestsTab = React.createClass({
 
     if (!flakyTests.length) {
       return <div>
+        {InProgressMessage}
         <SectionHeader>Flaky Tests ({date})</SectionHeader>
         <p>There were no flaky tests on this day.</p>
       </div>;
     }
 
     return <div>
+      {InProgressMessage}
       <SectionHeader>Flaky Tests ({date})</SectionHeader>
       <p>
         A test is called flaky if its first run failed, but some of its reruns

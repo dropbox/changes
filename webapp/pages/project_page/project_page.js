@@ -39,7 +39,7 @@ var ProjectPage = React.createClass({
   menuItems: [
     'Commits',
     'Builds',
-    'Tests [TODO]',
+    'Tests',
     'Details'
   ],
 
@@ -130,7 +130,7 @@ var ProjectPage = React.createClass({
           pageElem={this}
         />;
         break;
-      case 'Tests [TODO]':
+      case 'Tests':
         content = <TestsTab
           project={this.state.project}
           flakyTests={this.state.flakyTests}
