@@ -49,7 +49,8 @@ var HomePage = React.createClass({
     // I want to display just a single loading indicator until we have content
     // to show
     if (!api.isLoaded(this.state.commits)) {
-      // special rendering for not logged in
+      // special rendering for not logged in. this shouldn't be possible
+      // (unless you're hitting prod apis from a local box)
       if (api.isError(this.state.commits) &&
           this.state.commits.getStatusCode() === '401') {
         return this.renderNotLoggedIn();
@@ -100,28 +101,12 @@ var HomePage = React.createClass({
     var current_location = encodeURIComponent(window.location.href);
     var login_href = '/auth/login/?orig_url=' + current_location;
 
-    var login_markup = [
-      <a href={login_href}>
-        Log in
-      </a>,
-      " to see your recent diffs and commits."
-    ];
-
-    var custom_login_image = custom_content_hook('customLoginImage');
-    if (custom_login_image) {
-      var image_href = '/v2/custom_image/' + custom_login_image;
-      login_markup = <center style={{ marginTop: 24, display: "block" }}>
-        <img
-          className="block"
-          src={image_href}
-          style={{ width: "30%" }}
-        />
-        <div style={{fontSize: 18}}>{login_markup}</div>
-      </center>;
-    }
-
     return <ChangesPage highlight="My Changes" oldUI="/projects/">
       <div className="marginBottomL">
+        <a href={login_href}>
+          Log in
+        </a>,
+        to see your recent diffs and commits.
         {login_markup}
       </div>
       <Projects projects={this.state.projects} />
