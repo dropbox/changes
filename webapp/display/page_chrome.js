@@ -134,7 +134,7 @@ var ChangesPageHeader = React.createClass({
       oldUI = <a className="headerLinkBlock floatR red"
         target="_blank"
         href={oldHref}>
-        Old UI
+        Go to Old UI
       </a>;
     }
 
