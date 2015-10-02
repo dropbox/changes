@@ -1,85 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
-from flask import request
 
-# This is somewhat :(
-#
-# So we've already batched the database fetches for a bunch of sqlalchemy
-# objects together. These objects probably have joins/joinedloads, though,
-# which may also need to do data fetches (and/or have joins themselves that
-# have data fetches.) Without the function you're reading about now, those
-# would all happen serially.
-#
-# So here's what we'll do. We'll write a function that operates on a list of
-# already-converted dictionaries (from a Crumbler.) We can
-# find every key/value pair within that dict that has its own data fetching to
-# do [1], batch all of that data fetching together and crumble those objects.
-# Now we can recursively run ourselves on that resulting list, and replace
-# the original value with the final result from this greedy fetch.
-#
-# Another way of describing this is that we do a depth first search and crumble
-# everything we come across, transforming the original structure in place.
-#
-# [1] The implmentation does this for every value that has its own Crumble object
-# even if get_extra_attrs_from_db is a no-op
-#
-# Based on the way serialization is written, this cannot change what we'd
-# output... we're basically allowed to run object_to_dict on objects whenever
-# we want, as long as we make sure to run serialize on them afterwards. In this
-# case, the caller of this function will run serialize on this entire tree
-# after we're done.
-#
-# Philosophically, this function is written so that running it can only make
-# things better: there may be corner cases where it fails to batch something
-# that should be batched, but if it fails that won't break anything
-#
-# @param (data): a list of objects that have already had serializer run on them
-#
-# NOTE: right now, this function doesn't fully work
-
-
-def greedily_try_to_batch_data_fetches(data, extended_registry):
-    # we only care about lists of dicts
-    if not isinstance(data, list) or not isinstance(data[0], dict):
-        return data
-
-    for k in data[0].keys():
-        if isinstance(data[0][k], _PASSTHROUGH):
-            # cheap check to see if value is boring before calling
-            # get_crumbler
-            continue
-
-        crumbler = get_crumbler(data[0][k], extended_registry)
-        if not crumbler:
-            # this isn't a key that might do data fetching
-            continue
-
-        objs_to_crumble = [o[k] for o in data]
-
-        # let's double check that all of these objects are the same type
-        # (missing objects/None values are ok)
-        if len(set(type(o) for o in objs_to_crumble if o)) != 1:
-            continue
-
-        # ok, batch the data fetch for all of these child keys and run
-        # serializer
-        attrs = crumbler.get_extra_attrs_from_db(objs_to_crumble)
-        replacements = [crumbler(o, attrs=attrs.get(o)) if o else None
-                        for o in objs_to_crumble]
-
-        # we've serialized the child data fetch. But it might also have
-        # children that want to fetch data, so let's recursively call greed!
-        if isinstance(replacements[0], dict):
-            replacements = greedily_try_to_batch_data_fetches(replacements,
-                                                              extended_registry)
-
-        # replace the originals with our fetched&crumbled objects
-        replacement_dict = dict(zip(objs_to_crumble, replacements))
-        for o in data:
-            if o[k] in replacement_dict:
-                o[k] = replacement_dict[o[k]]
-    return data
 
 # Types for which serialization is a no-op.
 _PASSTHROUGH = (basestring, bool, int, long, type(None), float)
@@ -134,10 +56,6 @@ def serialize(data, extended_registry=None, use_greedy=False):
             if crumbler:
                 attrs = crumbler.get_extra_attrs_from_db(data)
                 data = [crumbler(o, attrs=attrs.get(o)) for o in data]
-
-                test_greedy_batching = use_greedy or int(request.args.get('__batch__', 0))
-                if test_greedy_batching:
-                    greedily_try_to_batch_data_fetches(data, extended_registry)
 
         return [serialize(j, extended_registry) for j in data]
 
