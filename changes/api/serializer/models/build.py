@@ -1,11 +1,18 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import Build, ItemStat
+from changes.models import Build, ItemStat, FailureReason, JobStep
 from changes.utils.http import build_uri
+
+from changes.buildfailures import registry
+
+from collections import defaultdict
 
 
 @register(Build)
 class BuildCrumbler(Crumbler):
     def get_extra_attrs_from_db(self, item_list):
+        builds_by_id = {build.id: build for build in item_list}
+
+        # grab build stats
         stat_list = ItemStat.query.filter(
             ItemStat.item_id.in_(r.id for r in item_list),
         )
@@ -14,9 +21,31 @@ class BuildCrumbler(Crumbler):
             stats_by_item.setdefault(stat.item_id, {})
             stats_by_item[stat.item_id][stat.name] = stat.value
 
+        # grab any failures. We don't grab these for retried buildsteps
+        rows = FailureReason.query.join(
+            JobStep, JobStep.id == FailureReason.step_id,
+        ).filter(
+            FailureReason.build_id.in_(builds_by_id.keys()),
+            JobStep.replacement_id.is_(None),
+        )
+
+        failures = defaultdict(list)
+        for row in rows:
+            failures[row.build_id].append({
+                'id': row.reason,
+                'reason': registry[row.reason].get_html_label(builds_by_id[row.build_id]),
+                'step_id': row.step_id,
+                'job_id': row.job_id,
+                'data': dict(row.data or {}),
+            })
+
+        # return data to augment
         result = {}
         for item in item_list:
-            result[item] = {'stats': stats_by_item.get(item.id, {})}
+            result[item] = {
+                'stats': stats_by_item.get(item.id, {}),
+                'failures': failures.get(item.id, [])
+            }
 
         return result
 
@@ -51,6 +80,7 @@ class BuildCrumbler(Crumbler):
             'dateStarted': item.date_started.isoformat() if item.date_started else None,
             'dateFinished': item.date_finished.isoformat() if item.date_finished else None,
             'stats': attrs['stats'],
+            'failures': attrs['failures'],
             'link': build_uri('/projects/{0}/builds/{1}/'.format(
                 item.project.slug, item.id.hex)),
         }
