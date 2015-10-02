@@ -68,7 +68,7 @@ var BuildsTab = React.createClass({
 
     var chart = <ChangesChart
       type="build"
-      runnables={data_to_show.getReturnedData()} 
+      runnables={data_to_show.getReturnedData()}
       leftEllipsis={interactive.hasPreviousPage()}
       rightEllipsis={interactive.hasNextPage()}
     />;
@@ -159,21 +159,30 @@ var BuildsTab = React.createClass({
     var items = [
       'All',
       'Commits Only',
-      'Diffs/arc test only'
+      'Diffs/arc test only',
+      'Snapshot creation only'
     ];
 
     var params_for_items = {
       'All': {
         'include_patches': 1,
-        'patches_only': 0
+        'patches_only': 0,
+        'cause': ''
       },
       'Commits Only': {
         'include_patches': 0,
-        'patches_only': 0
+        'patches_only': 0,
+        'cause': ''
       },
       'Diffs/arc test only': {
         'include_patches': 1,
-        'patches_only': 1
+        'patches_only': 1,
+        'cause': ''
+      },
+      'Snapshot creation only': {
+        'include_patches': 0,
+        'patches_only': 0,
+        'cause': 'snapshot'
       }
     };
 

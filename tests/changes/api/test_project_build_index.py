@@ -1,7 +1,7 @@
 from uuid import uuid4
 from urllib import quote
 
-from changes.constants import Result
+from changes.constants import Cause, Result
 from changes.testutils import APITestCase
 
 # flake8: noqa
@@ -163,6 +163,34 @@ class ProjectBuildListTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 1
         assert data[0]['id'] == patch_build.id.hex
+
+    def test_by_cause(self):
+        project = self.create_project()
+        patch = self.create_patch(repository=project.repository)
+        source = self.create_source(project, patch=patch)
+        self.create_build(project)
+        push_build = self.create_build(project, source=source, cause=Cause.push)
+        push_build2 = self.create_build(project, source=source, cause=Cause.push)
+        snapshot_build = self.create_build(project, source=source, cause=Cause.snapshot)
+
+        snapshot_path = '/api/0/projects/{0}/builds/?cause=snapshot'.format(
+            project.id.hex)
+        push_path = '/api/0/projects/{0}/builds/?cause=push'.format(
+            project.id.hex)
+
+        resp = self.client.get(snapshot_path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == snapshot_build.id.hex
+
+        resp = self.client.get(push_path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
+        push_build_ids = [push_build.id.hex, push_build2.id.hex]
+        assert data[0]['id'] in push_build_ids
+        assert data[1]['id'] in push_build_ids
 
     def test_author(self):
         project = self.create_project()

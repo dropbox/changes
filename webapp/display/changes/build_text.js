@@ -143,6 +143,11 @@ export var get_build_cause = function(build) {
     // manually triggered retry (either from phabricator or the changes ui)
     return 'manual';
   }
+  if (build.cause.id === 'snapshot') {
+    // build triggered to create a snapshot
+    return 'snapshot';
+  }
+
 
   var causes_from_tags = {
     // user ran build using arc test
@@ -182,6 +187,8 @@ export var get_cause_sentence = function(cause) {
       return 'This build was automatically started after commit';
     case 'phabricator':
       return 'This build was started by our phabricator-changes integration';
+    case 'snapshot':
+      return 'This build was started to create a new snapshot';
     default:
       return 'The trigger for this build was ' + cause;
   }

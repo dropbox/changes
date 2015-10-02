@@ -6,7 +6,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from changes.api.auth import get_current_user
 from changes.api.base import APIView
-from changes.constants import Result
+from changes.constants import Cause, Result
 from changes.models import Author, Project, Source, Build
 
 from changes.utils.phabricator_utils import (might_be_diffusion_iden,
@@ -33,6 +33,8 @@ class ProjectBuildIndexAPIView(APIView):
                             choices=('failed', 'passed', 'aborted', 'unknown', ''))
     get_parser.add_argument('patches_only', type=lambda x: bool(int(x)), location='args',
                             default=False)
+    get_parser.add_argument('cause', type=unicode, location='args',
+                            choices=('unknown', 'manual', 'push', 'retry', 'snapshot', ''))
 
     def get(self, project_id):
         project = Project.get(project_id)
@@ -76,6 +78,9 @@ class ProjectBuildIndexAPIView(APIView):
 
         if args.result:
             filters.append(Build.result == Result[args.result])
+
+        if args.cause:
+            filters.append(Build.cause == Cause[args.cause])
 
         if args.patches_only:
             filters.append(Source.patch_id != None)  # NOQA
