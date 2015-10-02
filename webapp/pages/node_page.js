@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 
+import PostRequest from 'es6!display/post_request';
 import SectionHeader from 'es6!display/section_header';
+import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -31,6 +33,7 @@ var NodePage = React.createClass({
     var jobsEndpoint = `/api/0/nodes/${nodeID}/jobs/`;
     api.fetch(this, {
       nodeDetails: detailsEndpoint,
+      nodeStatus: `/api/0/nodes/${nodeID}/status`,
       nodeJobs: jobsEndpoint,
     })
   },
@@ -42,8 +45,32 @@ var NodePage = React.createClass({
       />;
     }
 
+    var nodeID = this.props.nodeID;
     var node = this.state.nodeDetails.getReturnedData();
     utils.setPageTitle(node.name);
+
+    var nodeStatusText = <span className="bluishGray">Loading...</span>;
+    var toggleNodeButton = null;
+    if (api.isLoaded(this.state.nodeStatus)) {
+      console.log(this.state.nodeStatus.getReturnedData());
+      var nodeStatus = this.state.nodeStatus.getReturnedData();
+      nodeStatusText = nodeStatus ?
+        <span className="green">Online</span> : 
+        <span className="red">Offline</span>;
+
+      toggleNodeButton = <div className="floatR">
+        <PostRequest
+          parentElem={this}
+          name="toggleNode"
+          endpoint={`/api/0/nodes/${nodeID}/status?toggle=1`}>
+          <Button type="white">
+            <span>
+              {nodeStatus ? "Take Node Offline" : "Bring Node Online"}
+            </span>
+          </Button>
+        </PostRequest>
+      </div>;
+    };
 
     var cellClasses = ['buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
     var headers = [ 'Build', 'Phab.', 'Project', 'Name', 'Committed'];
@@ -75,11 +102,15 @@ var NodePage = React.createClass({
     }
 
     return <ChangesPage>
+      {toggleNodeButton}
       <SectionHeader>{details.name}</SectionHeader>
       <InfoList>
         <InfoItem label="Node ID">{details.id}</InfoItem>
         <InfoItem label="First Seen">
           <TimeText time={details.dateCreated} />
+        </InfoItem>
+        <InfoItem label="Status">
+          {nodeStatusText}
         </InfoItem>
       </InfoList>
       {extra_info_markup}
