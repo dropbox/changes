@@ -85,11 +85,17 @@ class DiffBuildsIndexAPIView(APIView):
         ))
 
         build_ids = set([row.Build.id for row in rows])
-        failures = get_failure_reasons({row.Build.id: row.Build for row in rows})
 
-        jobs = self.serialize(list(Job.query.filter(
-            Job.build_id.in_(build_ids)
-        )))
+        failures = {}
+        jobs = []
+        if len(build_ids) > 0:
+            failures = get_failure_reasons(
+                {row.Build.id: row.Build for row in rows}
+            )
+
+            jobs = self.serialize(list(Job.query.filter(
+                Job.build_id.in_(build_ids)
+            )))
 
         serialized_builds = zip(
             self.serialize([row.Build for row in rows]),
