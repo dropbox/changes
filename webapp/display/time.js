@@ -189,7 +189,7 @@ export var LiveTime = React.createClass({
  * often returns durations in milliseconds, not seconds!
  */
 export var display_duration = function(total_seconds) {
-  return display_duration_pieces(total_seconds).join("");
+  return display_duration_pieces(total_seconds).join(" ");
 }
 
 /*
