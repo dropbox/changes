@@ -175,6 +175,17 @@ require([
       var unauthOK = _.any(unauthOKPages, path => path_parts[0] === path);
 
       if (!unauthOK) {
+         // if WEBAPP_USE_ANOTHER_HOST, we can't redirect to login. Tell the
+         // user to do it themselves
+         if (window.changesGlobals['USE_ANOTHER_HOST']) {
+           document.getElementById('reactRoot').innerHTML = '<div>' +
+             'We want to redirect you to login, but API calls are using ' +
+             'a different server (WEBAPP_USE_ANOTHER_HOST). Go to that ' +
+             'server and log in.' +
+             '</div>';
+           return;
+         }
+
          var current_location = encodeURIComponent(window.location.href);
          var login_href = '/auth/login/?orig_url=' + current_location;
 
