@@ -39,7 +39,7 @@ DEFAULT_ENV = {
 
 class DefaultBuildStep(BuildStep):
     """
-    A build step which relies on the a scheduling framework in addition to the
+    A build step which relies on a scheduling framework in addition to the
     Changes client (or some other push source).
 
     Jobs will get allocated via a polling step that is handled by the external
@@ -48,11 +48,6 @@ class DefaultBuildStep(BuildStep):
 
     This build step is also responsible for generating appropriate commands
     in order for the client to obtain the source code.
-
-    Args:
-      - compression: Compression algorithm to use (xz, lz4)
-      - cpus: How many cpus to limit the container to (not applicable for basic)
-      - memory: How much memory to limit the container to (not applicable for basic)
     """
     # TODO(dcramer): we need to enforce ordering of setup/teardown commands
     # so that setup is always first and teardown is always last. Realistically
@@ -66,8 +61,27 @@ class DefaultBuildStep(BuildStep):
     def __init__(self, commands, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=20, cpus=4, memory=8 * 1024,
-                 compression=None, **kwargs):
+                compression=None, debug_config=None, **kwargs):
+        """
+        Constructor for DefaultBuildStep.
 
+        Args:
+            cpus: How many cpus to limit the container to (not applicable for basic)
+            memory: How much memory to limit the container to (not applicable for basic)
+            compression: Compression algorithm to use (xz, lz4)
+            debug_config: A dictionary of debug config options. These are passed through
+                to changes-client. Options currently supported:
+                prelaunch_env and postlaunch_env, which can be used to change the pre-
+                and post- launch environments for
+                changes-client. There is also an infra_failures option, which takes a
+                dictionary used to force infrastructure failures in builds. The keys of
+                this dictionary refer to the phase (for DefaultBuildSteps, only possible
+                value is 'primary'), and the values are the probabilities with which
+                a JobStep in that phase will fail.
+                An example debug_config: "debug_config": {"infra_failures": {"primary": 0.5}}
+                This will then cause an infra failure in the primary JobStep with
+                probability 0.5.
+        """
         if env is None:
             env = DEFAULT_ENV.copy()
 
@@ -99,6 +113,7 @@ class DefaultBuildStep(BuildStep):
             'cpus': cpus,
             'mem': memory,
         }
+        self.debug_config = debug_config or {}
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
@@ -172,6 +187,7 @@ class DefaultBuildStep(BuildStep):
                 'mem': self.resources['mem'],
             },
         })
+        BuildStep.handle_debug_infra_failures(step, self.debug_config, 'primary')
 
         all_commands = list(self.iter_all_commands(job))
 

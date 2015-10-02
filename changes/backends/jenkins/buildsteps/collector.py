@@ -6,6 +6,7 @@ from hashlib import md5
 
 from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
+from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create, try_create
@@ -143,6 +144,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
             },
             'status': Status.queued,
         })
+        BuildStep.handle_debug_infra_failures(step, self.debug_config, 'expanded')
 
         # TODO(dcramer): due to no unique constraints this section of code
         # presents a race condition when run concurrently

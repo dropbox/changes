@@ -77,6 +77,13 @@ class JobStepDetailsAPIView(APIView):
         context['project'] = self.serialize(jobstep.project)
         context['job'] = self.serialize(jobstep.job)
 
+        _, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
+        debugConfig = buildstep.debug_config if buildstep else {}
+        if 'debugForceInfraFailure' in jobstep.data:
+            debugConfig['forceInfraFailure'] = jobstep.data['debugForceInfraFailure']
+        if debugConfig:
+            context['debugConfig'] = self.serialize(debugConfig)
+
         return self.respond(context, serialize=False)
 
     def post(self, step_id):

@@ -97,3 +97,21 @@ class BuildStep(object):
 
     def get_allocation_command(self, jobstep):
         raise NotImplementedError
+
+    @staticmethod
+    def handle_debug_infra_failures(jobstep, debug_config, phase_type):
+        """
+        Uses the infra_failures debug_config to determine whether a JobStep
+        should simulate an infra failure, and sets the JobStep's data field
+        accordingly. (changes-client will then report an infra failure.)
+
+        Args:
+            jobstep: The JobStep in question.
+            debug_config: The debug_config for this BuildStep.
+            phase_type: The phase this JobStep is in. Either 'primary' or 'expanded'
+        """
+        infra_failures = debug_config.get('infra_failures', {})
+        if phase_type in infra_failures:
+            percent = jobstep.id.int % 100
+            jobstep.data['debugForceInfraFailure'] = percent < infra_failures[phase_type] * 100
+            db.session.add(jobstep)

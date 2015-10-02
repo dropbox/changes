@@ -20,6 +20,7 @@ from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.xunit import XunitHandler
 from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.backends.base import BaseBackend, UnrecoverableException
+from changes.buildsteps.base import BuildStep
 from changes.config import db, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
@@ -63,6 +64,7 @@ class JenkinsBuilder(BaseBackend):
 
     def __init__(self, master_urls=None, diff_urls=None, job_name=None,
                  sync_phase_artifacts=True, auth_keyname=None, verify=True,
+                 debug_config=None,
                  *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.master_urls = master_urls
@@ -84,6 +86,7 @@ class JenkinsBuilder(BaseBackend):
         self.http_session = requests.Session()
         self.auth = self.app.config[auth_keyname] if auth_keyname else None
         self.verify = verify
+        self.debug_config = debug_config or {}
 
         def report_response_status(r, *args, **kwargs):
             statsreporter.stats().incr('jenkins_api_response_{}'.format(r.status_code))
@@ -190,6 +193,7 @@ class JenkinsBuilder(BaseBackend):
             'phase': phase,
             'label': label,
         }, defaults=defaults)
+        BuildStep.handle_debug_infra_failures(step, self.debug_config, 'primary')
 
         return step
 

@@ -24,7 +24,7 @@ class JenkinsBuildStep(BuildStep):
     logger = logging.getLogger('jenkins')
 
     def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None,
-                 auth_keyname=None, verify=True):
+                 auth_keyname=None, verify=True, debug_config=None):
         """
         The JenkinsBuildStep constructor here, which is used as a base
         for all Jenkins builds, only accepts parameters which are used
@@ -44,6 +44,18 @@ class JenkinsBuildStep(BuildStep):
             verify (str or bool): The verify parameter to pass to the requests
                 library for verifying SSL certificates. For details,
                 see http://docs.python-requests.org/en/latest/user/advanced/#ssl-cert-verification
+            debug_config: A dictionary of debug config options. These are passed through
+                to changes-client. Options currently supported:
+                prelaunch_env and postlaunch_env, which can be used to change the pre-
+                and post- launch environments for
+                changes-client. There is also an infra_failures option, which takes a
+                dictionary used to force infrastructure failures in builds. The keys of
+                this dictionary refer to the phase (either 'primary' or 'expanded' if
+                applicable), and the values are the probabilities with which
+                a JobStep in that phase will fail.
+                An example debug_config: "debug_config": {"infra_failures": {"primary": 0.5}}
+                This will then cause an infra failure in the primary JobStep with
+                probability 0.5.
         """
         # we support a string or a list of strings for master server urls
         if not isinstance(jenkins_url, (list, tuple)):
@@ -63,6 +75,7 @@ class JenkinsBuildStep(BuildStep):
         self.jenkins_diff_urls = jenkins_diff_url
         self.auth_keyname = auth_keyname
         self.verify = verify
+        self.debug_config = debug_config or {}
 
     def get_builder(self, app=current_app, **kwargs):
         """
@@ -87,6 +100,7 @@ class JenkinsBuildStep(BuildStep):
             'job_name': self.job_name,
             'verify': self.verify,
             'auth_keyname': self.auth_keyname,
+            'debug_config': self.debug_config,
         }
 
     def get_label(self):

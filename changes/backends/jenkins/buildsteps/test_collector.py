@@ -9,6 +9,7 @@ from hashlib import md5
 
 from changes.api.client import api_client
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
+from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
@@ -359,6 +360,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         """
         test_names = ' '.join(test_list)
         label = md5(test_names).hexdigest()
+
         step, created = get_or_create(JobStep, where={
             'job': phase.job,
             'project': phase.project,
@@ -373,10 +375,11 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
                 'shard_count': shard_count,
                 'job_name': self.job_name,
                 'build_no': None,
-                'weight': weight
+                'weight': weight,
             },
             'status': Status.queued,
         })
+        BuildStep.handle_debug_infra_failures(step, self.debug_config, 'expanded')
         db.session.add(step)
         return step
 
