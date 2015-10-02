@@ -98,7 +98,7 @@ export var SingleBuild = React.createClass({
       <div className="marginBottomL">
         {render_all ? this.renderFailedAdvice(build) : null}
         <div className="floatR">
-          {render_all ? this.renderButton(build) : null}
+          {render_all ? this.renderButtons(build) : null}
         </div>
         {this.renderHeader(build, job_phases)}
         {render_all ? this.renderDetails(build, job_phases) : null}
@@ -145,16 +145,35 @@ export var SingleBuild = React.createClass({
     </div>;
   },
 
-  renderButton: function(build) {
-    return <PostRequest
-      parentElem={this}
-      name="recreateBuild"
-      endpoint={`/api/0/builds/${build.id}/retry/`}>
-      <Button type="white">
-        <i className="fa fa-repeat marginRightS" />
-        Recreate Build
-      </Button>
-    </PostRequest>;
+  renderButtons: function(build) {
+    var cancel = get_runnable_condition(build) === 'waiting' ?
+      <div className="marginTopM">
+        <PostRequest
+          parentElem={this}
+          name="cancelBuild"
+          endpoint={`/api/0/builds/${build.id}/cancel/`}>
+          <Button type="white" className="sizedButton">
+            <span className="red">
+              <i className="fa fa-ban marginRightM" />
+              Cancel Build
+            </span>
+          </Button>
+        </PostRequest> 
+      </div> :
+      null;
+
+    return <div>
+      <PostRequest
+        parentElem={this}
+        name="recreateBuild"
+        endpoint={`/api/0/builds/${build.id}/retry/`}>
+        <Button type="white" className="sizedButton">
+          <i className="fa fa-repeat marginRightM" />
+          Recreate Build
+        </Button>
+      </PostRequest>
+      {cancel}
+    </div>;
   },
 
   renderDetails: function(build, job_phases) {
