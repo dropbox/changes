@@ -38,7 +38,7 @@ export var AjaxError = React.createClass({
 
   render: function() {
     var { response, ...props} = this.props;
-    var response_status = response.status;
+    var response_status = response.status || null;
     var response_text = response.responseText.trim();
     // get rid of " at beginning and end
     var quote_trim = /^"+|"+$/g;
@@ -55,6 +55,10 @@ export var AjaxError = React.createClass({
 
     var status_title = status_titles[response_status] || null;
     response_text = response_text || "";
+
+    if (!response_status && !response_text) {
+      response_text = <i>Empty response</i>;
+    }
 
     return <Error {...props}>
       <b>{response_status}{status_title}</b>
