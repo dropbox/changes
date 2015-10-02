@@ -12,7 +12,7 @@ import custom_content_hook from 'es6!utils/custom_content';
  */
 export var TestDetails = React.createClass({
   propTypes: {
-    testID: PropTypes.number,
+    testID: PropTypes.string,
   },
 
   getInitialState: function() {
