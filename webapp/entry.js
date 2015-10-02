@@ -1,4 +1,5 @@
-/* some RequireJS config before we start */
+/* some RequireJS config before we start. This is NOT as ES6 file */
+
 
 requirejs.config({
 
@@ -172,7 +173,9 @@ require([
       // disabled on the project page for now so that people can create
       // dashboards
       var unauthOKPages = ['project'];
-      var unauthOK = _.any(unauthOKPages, path => path_parts[0] === path);
+      var unauthOK = _.any(unauthOKPages, function(path) { 
+        return path_parts[0] === path
+      });
 
       if (!unauthOK) {
          // if WEBAPP_USE_ANOTHER_HOST, we can't redirect to login. Tell the
