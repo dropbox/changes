@@ -4,7 +4,7 @@ import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 import ChangesLinks from 'es6!display/changes/links';
 import { Error, ProgrammingError } from 'es6!display/errors';
 import { buildSummaryText } from 'es6!display/changes/build_text';
-import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_color_cls, ConditionDot } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
 
