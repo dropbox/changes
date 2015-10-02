@@ -84,13 +84,19 @@ export var ChangesChart = React.createClass({
     });
 
     // add ellipses
+    var ellipsisStyle = {
+      fontSize: 'large',
+      fontWeight: 200,
+      letterSpacing: -1,
+    };
+
     if (this.props.leftEllipsis) {
-      content.unshift(<div className="inlineBlock marginRightXS">...</div>);
+      content.unshift(<div className="inlineBlock marginRightXS" style={ellipsisStyle}>...</div>);
     } else if (this.props.enableLatest) {
       content.unshift(<LatestWidget />);
     }
     if (this.props.rightEllipsis) {
-      content.push(<div className="inlineBlock">...</div>);
+      content.push(<div className="inlineBlock" style={ellipsisStyle}>...</div>);
     }
 
     return <div className="changesChart">{content}</div>;
@@ -101,19 +107,27 @@ var LatestWidget = React.createClass({
   render() {
     var divStyle = {
       position: 'absolute',
-      marginLeft: -8,
+      marginLeft: -12,
       marginTop: -18,
       fontSize: 'xx-small',
     };
 
+    var spanStyle = {
+      backgroundColor: '#000000',
+      color: 'white',
+      padding: '1px 4px',
+      borderRadius: 3
+    };
+
     var caretStyle = {
       display: 'block',
-      marginLeft: 10,
-      marginTop: -3
+      fontSize: 13,
+      marginLeft: 13,
+      marginTop: -4
     };
 
     return <div style={divStyle}>
-      Latest
+      <span style={spanStyle}>Latest</span>
       <i style={caretStyle} className="fa fa-caret-down" />
     </div>;
   }
