@@ -218,7 +218,9 @@ var Sidebar = React.createClass({
           size="medium"
         />,
         utils.truncate(b.project.name, 26),
-        display_duration(b.duration / 1000),
+        buildCondition === 'waiting' ? 
+          'Running' : 
+          display_duration(b.duration / 1000),
         `${buildSummaryText(b)}`,
         subtextExtraClass,
         get_build_cause(b),
