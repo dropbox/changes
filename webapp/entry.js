@@ -160,25 +160,29 @@ require([
   if (path === "") { page = HomePage; }
 
   // we fetch some initial data used by pages (e.g. are we logged in?)
-  var authResponse = null;
-  var messageResponse = null;
-
-  var handleInitialAPIs = function(whichAPI, response) {
-    if (whichAPI === 'auth') {
-      authResponse = response;
-    } else if (whichAPI === 'message') {
-      messageResponse = response;
-    } else {
-      throw new Error('unreachable: ' + whichAPI);
-    }
-
-    if (!(authResponse && messageResponse)) {
-      return;
-    }
+  data_fetching.make_api_ajax_get('/api/0/initial', function(response) {
+    var parsedResponse = JSON.parse(response.responseText);
 
     // TODO: use context?
-    window.changesAuthData = JSON.parse(authResponse.responseText);
-    window.changesMessageData = JSON.parse(messageResponse.responseText);
+    window.changesAuthData = parsedResponse['auth'];
+    window.changesMessageData = parsedResponse['admin_message'];
+
+    // require user to be logged in
+    if (!window.changesAuthData || !window.changesAuthData.user) {
+      // disabled on the project page for now so that people can create
+      // dashboards
+      var unauthOKPages = ['project'];
+      var unauthOK = _.any(unauthOKPages, path => path_parts[0] === path);
+
+      if (!unauthOK) {
+         var current_location = encodeURIComponent(window.location.href);
+         var login_href = '/auth/login/?orig_url=' + current_location;
+
+         console.log("User not identified - redirecting to login");
+         window.location.href = login_href;
+         return;
+      }
+    }
 
     // add custom css class if present
     var custom_css = custom_content_hook('rootClass', '');
@@ -199,12 +203,6 @@ require([
     if (initialTitle) {
       utils.setPageTitle(initialTitle);
     }
-  };
-
-  data_fetching.make_api_ajax_get('/api/0/auth',
-    _.partial(handleInitialAPIs, 'auth'));
-
-  data_fetching.make_api_ajax_get('/api/0/messages',
-    _.partial(handleInitialAPIs, 'message'));
+  });
 });
 

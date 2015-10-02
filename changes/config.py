@@ -498,6 +498,7 @@ def configure_api_routes(app):
     from changes.api.command_details import CommandDetailsAPIView
     from changes.api.diff_builds import DiffBuildsIndexAPIView
     from changes.api.diff_build_retry import DiffBuildRetryAPIView
+    from changes.api.initial_index import InitialIndexAPIView
     from changes.api.job_artifact_index import JobArtifactIndexAPIView
     from changes.api.job_details import JobDetailsAPIView
     from changes.api.job_log_details import JobLogDetailsAPIView
@@ -580,6 +581,7 @@ def configure_api_routes(app):
     api.add_resource(CommandDetailsAPIView, '/commands/<uuid:command_id>/')
     api.add_resource(DiffBuildsIndexAPIView, '/phabricator_diffs/<diff_ident>/builds/')
     api.add_resource(DiffBuildRetryAPIView, '/phabricator_diffs/<diff_id>/retry/')
+    api.add_resource(InitialIndexAPIView, '/initial/')
     api.add_resource(JobDetailsAPIView, '/jobs/<uuid:job_id>/')
     api.add_resource(JobLogDetailsAPIView, '/jobs/<uuid:job_id>/logs/<uuid:source_id>/')
     api.add_resource(JobPhaseIndexAPIView, '/jobs/<uuid:job_id>/phases/')

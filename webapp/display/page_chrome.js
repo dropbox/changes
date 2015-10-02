@@ -445,18 +445,10 @@ var ChangesLogin = React.createClass({
   // no properties
 
   render: function() {
-    // If user isn't logged in
     if (!window.changesAuthData || !window.changesAuthData.user) {
       var current_location = encodeURIComponent(window.location.href);
       var login_href = '/auth/login/?orig_url=' + current_location;
 
-      // Force them to log in
-      if (window.location.pathname.indexOf("single_build") < 0) {
-        console.log("User not identified - redirecting to login");
-        window.location.href = login_href;
-      }
-
-      // Unless they're viewing a dashboard
       return <a className="headerLinkBlock floatR" href={login_href}>
         Log in
       </a>;
