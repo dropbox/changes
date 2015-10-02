@@ -106,8 +106,9 @@ export var ConditionDot = React.createClass({
   propTypes: {
     // the runnable condition to render (see get_runnable_condition)
     condition: PropTypes.oneOf(all_build_conditions).isRequired,
-    // renders a number inside the dot
-    // only if dot >= small and we aren't rendering an icon
+    // renders a number inside the dot. Despite the name, you can render a
+    // letter too (e.g. "!")
+    // (only if dot >= small and we aren't rendering an icon)
     // TODO: this
     num: PropTypes.oneOfType(PropTypes.number, PropTypes.string),
     // smaller = 12px, small = 16px
@@ -164,8 +165,14 @@ export var ConditionDot = React.createClass({
 
       // cap num at 99 unless rendering the large widget
       var num = this.props.num;
-      if (this.props.size !== 'large' && this.props.num > 99) {
+      if (this.props.size !== 'large' && 
+          (_.isFinite(num) && num > 99)) {
         num = '99+';
+      }
+
+      if ((_.isString(num) && num.length === 1) || 
+          (_.isFinite(num) && num > 0 && num < 9)) {
+        classes.push('singleDigit');
       }
 
       var text = num && this.props.size !== "smaller" ?

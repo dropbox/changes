@@ -97,26 +97,29 @@ export var SingleBuildStatus = React.createClass({
   render: function() {
     var build = this.props.build;
     var condition = get_runnable_condition(build);
-    var dot = <ConditionDot condition={condition} />;
     var href = ChangesLinks.buildHref(build);
 
-    var extra_text = null;
+    var error_count = build.failures ?
+      _.filter(build.failures, f => f.id !== 'test_failures').length :
+      0; // if its 0, we don't know whether there are 0 failures or if the
+         // backend didn't return this info
+    var dotNum = null;
+    if (error_count > 0) {
+      dotNum = '!!';
+    } else if (build.stats['test_failures'] > 0) {
+      dotNum = build.stats['test_failures'];
+    }
 
-    // TODO: show popover for any failure, not just test failures
+    // TODO: could show error messages in tooltip...
     var tooltip = this.getStandardTooltip();
     if (build.stats['test_failures'] > 0) {
       tooltip = this.getFailedTestsTooltip();
-      extra_text = build.stats['test_failures'];
     }
 
-    var extra_text_classes = "buildWidgetText " +
-      get_runnable_condition_color_cls(condition)
+    var dot = <ConditionDot condition={condition} num={dotNum} />;
 
     var widget = <a className="buildStatus" href={href}>
       {dot}
-      <span className={extra_text_classes}>
-        {extra_text}
-      </span>
     </a>;
 
     if (tooltip) {
