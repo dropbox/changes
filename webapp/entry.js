@@ -1,6 +1,6 @@
-/* some RequireJS config before we start. This is NOT as ES6 file */
+/* WARNING:  This is NOT as ES6 file. So no =>, `str`, or other conveniences */
 
-
+// some RequireJS config before we start.
 requirejs.config({
 
   // IMPORTANT NOTE: if you add something here, update the Gruntfile
