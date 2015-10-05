@@ -150,7 +150,9 @@ var CommitsTab = React.createClass({
         style={{minWidth: 170, marginRight: 5}}
       />
     */
-    return <div style={{marginBottom: 5, marginTop: 10}}>
+    return <div 
+      className="commitsControls" 
+      style={{marginBottom: 5, marginTop: 10}}>
       {branch_dropdown}
     </div>;
   },
@@ -167,12 +169,14 @@ var CommitsTab = React.createClass({
       }
     });
 
-    return <ChangesChart
-      type="build"
-      runnables={builds}
-      leftEllipsis={this.props.interactive.hasPreviousPage()}
-      rightEllipsis={this.props.interactive.hasNextPage()}
-    />;
+    return <div className="commitsChart">
+      <ChangesChart
+        type="build"
+        runnables={builds}
+        leftEllipsis={this.props.interactive.hasPreviousPage()}
+        rightEllipsis={this.props.interactive.hasNextPage()}
+      />
+    </div>;
   },
 
   renderTable: function() {

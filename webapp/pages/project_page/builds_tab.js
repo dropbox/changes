@@ -66,12 +66,14 @@ var BuildsTab = React.createClass({
 
     var data_to_show = interactive.getDataToShow();
 
-    var chart = <ChangesChart
-      type="build"
-      runnables={data_to_show.getReturnedData()}
-      leftEllipsis={interactive.hasPreviousPage()}
-      rightEllipsis={interactive.hasNextPage()}
-    />;
+    var chart = <div className="buildsChart">
+      <ChangesChart
+        type="build"
+        runnables={data_to_show.getReturnedData()}
+        leftEllipsis={interactive.hasPreviousPage()}
+        rightEllipsis={interactive.hasNextPage()}
+      />
+    </div>;
 
     var data = _.map(data_to_show.getReturnedData(), build => {
       var target = null;
@@ -203,7 +205,7 @@ var BuildsTab = React.createClass({
     var onclick = item => this.props.interactive.updateWithParams(params_for_items[item], true);
 
     return <Menu1
-      className="marginBottomS"
+      className="marginBottomS buildsControls"
       items={items}
       selectedItem={selected_item}
       onClick={onclick}
