@@ -105,7 +105,7 @@ export var SingleBuildStatus = React.createClass({
          // backend didn't return this info
     var dotNum = null;
     if (error_count > 0) {
-      dotNum = '!!';
+      dotNum = 'E';
     } else if (build.stats['test_failures'] > 0) {
       dotNum = build.stats['test_failures'];
     }
