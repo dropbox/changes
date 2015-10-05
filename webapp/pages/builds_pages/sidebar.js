@@ -37,7 +37,9 @@ var Sidebar = React.createClass({
 
   render: function() {
     return <div className="buildsSidebar">
-      {this.renderBuildsList()}
+      <div className="sidebarBorder">
+        {this.renderBuildsList()}
+      </div>
       {this.renderSection('Links', this.renderLinksToCode())}
     </div>;
   },

@@ -28,7 +28,6 @@
 }
 
 .buildsSidebar {
-  border-top: 1px solid @fainterBorder;
   position: fixed;
   top: 100px;
   left: 20px;
@@ -38,6 +37,10 @@
   overflow-y: auto;
   padding-right: 15px;
   vertical-align: top;
+
+  .sidebarBorder {
+    border-top: 1px solid @fainterBorder;
+  }
 }
 
 .buildsSideItem {

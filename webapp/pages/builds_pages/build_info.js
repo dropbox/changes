@@ -510,7 +510,7 @@ export var LatestBuildsSummary = React.createClass({
     return <div>
       {dot}
       <div className="inlineBlock" style={style}>
-        <div style={{ fontSize: 18 }}>Latest Builds</div>
+        <div style={{ fontSize: 18 }}>Summary: Latest Builds per Project</div>
         <div className={colorCls}>
           {subtext}
         </div>
