@@ -107,7 +107,6 @@ var HomePage = React.createClass({
           Log in
         </a>,
         to see your recent diffs and commits.
-        {login_markup}
       </div>
       <Projects projects={this.state.projects} />
     </ChangesPage>;
