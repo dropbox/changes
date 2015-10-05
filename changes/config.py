@@ -638,7 +638,7 @@ def configure_api_routes(app):
     api.add_resource(CachedSnapshotClusterDetailsAPIView, '/snapshots/cache/clusters/<cluster>/')
     api.add_resource(CachedSnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/cache/')
     api.add_resource(SourceDetailsAPIView, '/sources/<source_id>/')
-    api.add_resource(SourceBuildIndexAPIView, '/sources/builds/')
+    api.add_resource(SourceBuildIndexAPIView, '/sources_builds/')
     api.add_resource(SystemStatsAPIView, '/systemstats/')
     api.add_resource(StepDetailsAPIView, '/steps/<uuid:step_id>/')
     api.add_resource(TestCaseDetailsAPIView, '/tests/<uuid:test_id>/')

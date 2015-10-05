@@ -90,7 +90,7 @@ export var CommitPage = React.createClass({
     var uuid = this.props.sourceUUID;
 
     api.fetch(this, {
-      commitBuilds: `/api/0/sources/builds/?source_id=${uuid}`,
+      commitBuilds: `/api/0/sources_builds/?source_id=${uuid}`,
       source: `/api/0/sources/${uuid}`
     });
   },
@@ -398,7 +398,7 @@ var ParentCommit = React.createClass({
     var repoID = this.props.repoID;
 
     api.fetch(this, {
-      builds: URI('/api/0/sources/builds')
+      builds: URI('/api/0/sources_builds/')
         .addQuery({ revision_sha: sha, repo_id: repoID })
         .toString()
     });
