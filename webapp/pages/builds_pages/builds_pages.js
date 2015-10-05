@@ -4,6 +4,7 @@ import moment from 'moment';
 import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Error } from 'es6!display/errors';
+import { ManyBuildsStatus } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 import { get_build_cause } from 'es6!display/changes/build_text';
 import { get_runnable_condition, get_runnable_condition_short_text, get_runnable_condition_color_cls } from 'es6!display/changes/build_conditions';
@@ -89,7 +90,7 @@ export var CommitPage = React.createClass({
     var uuid = this.props.sourceUUID;
 
     api.fetch(this, {
-      commitBuilds: `/api/0/sources/${uuid}/builds`,
+      commitBuilds: `/api/0/sources/builds/?source_id=${uuid}`,
       source: `/api/0/sources/${uuid}`
     });
   },
@@ -286,21 +287,32 @@ var BuildsPage = React.createClass({
     var header = "No header yet";
     if (type === 'commit') {
       var source = this.props.targetData;
-      var authorLink = ChangesLinks.author(source.revision.author, true);
+      var authorLink = ChangesLinks.author(source.revision.author);
       var commitLink = ChangesLinks.phabCommitHref(source.revision);
+
+      var parentElem = null;
+      if (source.revision.parents && source.revision.parents.length > 0) {
+        parentElem = <ParentCommit 
+          sha={source.revision.parents[0]} 
+          repoID={source.revision.repository.id}
+          onlyParent={source.revision.parents.length <= 1}
+        />;
+      }
 
       header = <div>
         <div className="floatR">
           <TimeText time={source.revision.dateCreated} />
         </div>
-        <a className="subtle" href={commitLink} target="_blank">
+        <a className="subtle lb" href={commitLink} target="_blank">
           {source.revision.sha.substring(0,7)}
         </a>
         {": "}
         {utils.truncate(utils.first_line(source.revision.message))}
-        {" (by "}
-        {authorLink}
-        {")"}
+        <div className="headerByline">
+          {"by "}
+          {authorLink}
+          {parentElem}
+        </div>
       </div>;
     } else if (type === 'diff') {
       var diff_data = this.props.targetData;
@@ -310,14 +322,15 @@ var BuildsPage = React.createClass({
         <div className="floatR">
           <TimeText time={moment.unix(diff_data.dateCreated).toString()} />
         </div>
-        <a className="subtle" href={diff_data.uri} target="_blank">
+        <a className="subtle lb" href={diff_data.uri} target="_blank">
           D{diff_data.id}
         </a>
         {": "}
         {utils.truncate(diff_data.title)}
-        {" (by "}
-        {authorLink}
-        {")"}
+        <div className="headerByline">
+          {"by "}
+          {authorLink}
+        </div>
       </div>;
     } else {
       throw 'unreachable';
@@ -374,3 +387,46 @@ var oldBuildUI = function(build) {
     return '/my/builds/';
   }
 }
+
+var ParentCommit = React.createClass({
+  getInitialState() {
+    return { builds: null };
+  },
+
+  componentDidMount() {
+    var sha = this.props.sha;
+    var repoID = this.props.repoID;
+
+    api.fetch(this, {
+      builds: URI('/api/0/sources/builds')
+        .addQuery({ revision_sha: sha, repo_id: repoID })
+        .toString()
+    });
+  },
+
+  render() {
+    var sha = this.props.sha;
+    var repoID = this.props.repoID;
+    var onlyParent = this.props.onlyParent;
+
+    if (!api.isLoaded(this.state.builds)) {
+      return <span />;
+    }
+
+    var builds = this.state.builds.getReturnedData();
+    return <span className="parentLabel marginLeftS">
+      &middot;
+      <span className="marginLeftS">
+        {!onlyParent ? "First Parent: " : "Parent: "}
+      </span>
+      <a 
+        className="marginLeftXS"
+        href={ChangesLinks.buildsHref(builds)}>
+        {sha.substr(0,7)}
+      </a>
+      <ManyBuildsStatus 
+        builds={builds} 
+      />
+    </span>;
+  }
+});

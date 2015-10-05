@@ -46,7 +46,7 @@ var ChangesLinks = {
     // from arc test)
 
     if (!build.source.patch) {
-      return URI(`/v2/commit/${build.source.id}/`)
+      return URI(`/v2/commit_source/${build.source.id}/`)
         .search({ buildID: build.id })
         .toString();
     } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
@@ -73,7 +73,7 @@ var ChangesLinks = {
       // within the last few seconds...
       return '';
     } else if (!build.source.patch) {
-      return URI(`/v2/commit/${build.source.id}/`).toString();
+      return URI(`/v2/commit_source/${build.source.id}/`).toString();
     } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
       return URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`).toString();
     } else {

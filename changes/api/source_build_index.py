@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
+from flask import request
+
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
@@ -11,10 +13,26 @@ class SourceBuildIndexAPIView(APIView):
     Gets all the builds for a given source object
     """
 
-    def get(self, source_id):
-        source = Source.query.filter(
-            Source.id == source_id,
-        ).first()
+    def get(self):
+        # this can take either a source id or a revision/repo id. For the
+        # latter, only non-patch sources are looked at
+        source_id = request.args.get('source_id')
+        revision_sha = request.args.get('revision_sha')
+        repo_id = request.args.get('repo_id')
+
+        if source_id:
+            source = Source.query.filter(
+                Source.id == source_id,
+            ).first()
+        elif revision_sha and repo_id:
+            source = Source.query.filter(
+                Source.revision_sha == revision_sha,
+                Source.repository_id == repo_id,
+                Source.patch_id == None  # NOQA
+            ).first()
+        else:
+            return 'invalid args', 400
+
         if source is None:
             return '', 404
 

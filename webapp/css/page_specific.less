@@ -15,27 +15,52 @@
   top: 40px;
   left: 0;
   right: 0;
-  height: 32px;
+  height: 43px;
   background-color: white;
   font-size: 18px;
   z-index: 2;
   white-space: nowrap;
-  overflow-x: hidden;
+  overflow: hidden;
   padding-top: 20px;
   margin-bottom: 10px;
   margin-left: 20px;
   margin-right: 20px;
 }
 
+.headerByline {
+  font-size: 14px;
+}
+
+.parentLabel {
+  color: @darkGray;
+
+  .buildStatus {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 0;
+    position: relative;
+    top: 1px;
+
+    .conditionDot {
+      height: 12px;
+      width: 12px;
+    }
+
+    .ring {
+      box-shadow: none;
+    }
+  }
+}
+
 .buildsSidebar {
   position: fixed;
-  top: 100px;
+  top: 120px;
   left: 20px;
   bottom: 0;
   width: 290px;
   overflow-x: hidden;
   overflow-y: auto;
-  padding-right: 15px;
+  padding-right: 20px;
   vertical-align: top;
 
   .sidebarBorder {
@@ -71,6 +96,13 @@
   margin-right: 2px;
 }
 
+.sidebarTime {
+  float: right;
+  margin-right: 10px;
+  color: @darkGray;
+  font-size: 12px;
+}
+
 .buildsSideSectionHeader {
   font-size: 12px;
   color: @mediumGray;
@@ -82,8 +114,8 @@
 }
 
 .buildsContent {
-  margin-top: 100px;
-  margin-left: 310px;
+  margin-top: 120px;
+  margin-left: 330px;
   padding: 20px;
   padding-top: 0;
 }

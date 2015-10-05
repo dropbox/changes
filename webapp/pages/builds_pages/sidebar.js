@@ -238,12 +238,6 @@ var Sidebar = React.createClass({
   renderBuildSideItem: function(condition_dot, text, time, subtext,
     subtext_extra_class, right_subtext, is_selected, on_click, dimmed = false) {
 
-    var time_style = {
-      float: 'right',
-      marginRight: 10,
-      color: '#333'
-    };
-
     var classes = cx({
       buildsSideItem: true,
       selected: is_selected
@@ -267,7 +261,7 @@ var Sidebar = React.createClass({
       </div>
       <div>
         <div className="inlineBlock">{text}</div>
-        <div style={time_style}>{time}</div>
+        <div className="sidebarTime">{time}</div>
         <div className={"subText " + subtext_extra_class}>
           {subtext}
           {right_subtext}

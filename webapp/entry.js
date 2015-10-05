@@ -124,7 +124,7 @@ require([
     'projects': [AllProjectsPage],
     'project': [ProjectPage, 'projectSlug'],
     'author_builds': [AuthorBuildsPage, 'author'],
-    'commit': [CommitPage, 'sourceUUID'],
+    'commit_source': [CommitPage, 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
     'single_build': [SingleBuildPage, 'buildID'],
     'build_tests': [BuildTestsPage, 'buildID'],
