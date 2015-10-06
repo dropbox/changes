@@ -21,22 +21,22 @@ export var JobstepDetails = React.createClass({
 
   componentDidMount: function() {
     api.fetch(this, {
-      artifacts: `/api/0/jobsteps/${this.props.jobstepID}/artifacts/`
+      details: `/api/0/jobsteps/${this.props.jobstepID}/artifacts/`
     });
   },
 
   render: function() {
     var { jobstepID, className, ...props} = this.props;
 
-    if (!api.isLoaded(this.state.artifacts)) {
-      return <APINotLoaded calls={this.state.artifacts} />;
+    if (!api.isLoaded(this.state.details)) {
+      return <APINotLoaded calls={this.state.details} />;
     }
-    var artifacts = this.state.artifacts.getReturnedData();
+    var details = this.state.details.getReturnedData();
 
     className = (className || "") + " jobstepDetails";
 
     return <div {...props} className={className}>
-      {this.renderArtifacts(artifacts)}
+      {this.renderArtifacts(details.artifacts)}
     </div>;
   },
 
