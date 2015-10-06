@@ -10,6 +10,7 @@ import SimpleTooltip from 'es6!display/simple_tooltip';
 import { Button } from 'es6!display/button';
 import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
+import { JobstepDetails } from 'es6!display/changes/jobstep_details';
 import { TestDetails } from 'es6!display/changes/test_details';
 import { buildSummaryText, manyBuildsSummaryText, get_build_cause, get_cause_sentence, WaitingTooltip } from 'es6!display/changes/build_text';
 import { display_duration } from 'es6!display/time';
@@ -47,7 +48,7 @@ export var SingleBuild = React.createClass({
     return {
       // states for toggling inline visibility of test snippets
       expandedTests: {},
-      expandedTestsData: {}
+      expandedJobSteps: {},
     };
   },
 
@@ -329,7 +330,9 @@ export var SingleBuild = React.createClass({
       phases[0].steps && phases[0].steps.length === 1;
 
     var phases_rows = _.map(phases, phase => {
-      return _.map(phase.steps, (jobstep, index) => {
+      let phase_rows = [];
+      for (let index = 0; index < phase.steps.length; index++) {
+        let jobstep = phase.steps[index];
         var jobstepCondition = get_runnable_condition(jobstep);
         var jobstepDot = <ConditionDot condition={jobstepCondition} />;
 
@@ -418,16 +421,32 @@ export var SingleBuild = React.createClass({
           );
         }
 
-        return [
+        let onClick = __ => {
+          this.setState(
+            utils.update_key_in_state_dict('expandedJobSteps',
+              jobstep.id,
+              !this.state.expandedJobSteps[jobstep.id])
+          );
+        };
+
+        let expandLabel = !this.state.expandedJobSteps[jobstep.id] ?
+          'Expand' : 'Collapse';
+
+        phase_rows.push([
           index === 0 && !only_one_row ?
             <span className="lb">{phase.name}</span> : 
             "",
           jobstepDot,
-          <div>{nodeLink}{failureMarkup}</div>,
+          <div>{nodeLink}{failureMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
           links,
           jobstepDuration
-        ];
-      });
+        ]);
+
+        if (this.state.expandedJobSteps[jobstep.id]) {
+          phase_rows.push(GridRow.oneItem(<JobstepDetails jobstepID={jobstep.id} />));
+        }
+      }
+      return phase_rows;
     });
 
     var job_headers = [
