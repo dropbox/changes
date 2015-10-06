@@ -114,6 +114,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     def __init__(self, shards=None, max_shards=10, collection_build_type=None,
                  build_type=None, setup_script='', teardown_script='',
                  collection_setup_script='', collection_teardown_script='',
+                 test_stats_from=None,
                  **kwargs):
         """
         Arguments:
@@ -125,6 +126,12 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             build_type = build type to use for the shard phase
             setup_script = setup to use for the shard phase
             teardown_script = teardown to use for the shard phase
+
+            test_stats_from = project to get test statistics from, or
+              None (the default) to use this project.  Useful if the
+              project runs a different subset of tests each time, so
+              test timing stats from the parent are not reliable.
+
         """
         # TODO(josiah): migrate existing step configs to use "shards" and remove max_shards
         if shards:
@@ -149,6 +156,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         self.shard_setup_script = setup_script
         self.shard_teardown_script = teardown_script
+        self.test_stats_from = test_stats_from
 
     def get_builder_options(self):
         options = super(JenkinsTestCollectorBuildStep, self).get_builder_options()
@@ -295,7 +303,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         assert 'tests' in phase_config
 
         num_tests = len(phase_config['tests'])
-        test_stats, avg_test_time = self.get_test_stats(step.project)
+        test_stats, avg_test_time = self.get_test_stats(self.test_stats_from or step.project)
 
         phase, created = get_or_create(JobPhase, where={
             'job': step.job,
