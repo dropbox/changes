@@ -262,6 +262,7 @@ export var SingleBuild = React.createClass({
 
       rows.push([
         markup,
+        test.duration + ' seconds',
         <a href={href}>History</a>,
       ]);
 
@@ -292,10 +293,10 @@ export var SingleBuild = React.createClass({
         Failed Tests ({build.testFailures.total})
       </SectionHeader>
       <Grid
-        colnum={2}
+        colnum={3}
         className="marginBottomM"
         data={rows}
-        headers={['Name', 'Links']}
+        headers={['Name', 'Duration', 'Links']}
       />
       {more_markup}
     </div>;
