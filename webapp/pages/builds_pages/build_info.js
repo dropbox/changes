@@ -330,9 +330,39 @@ export var SingleBuild = React.createClass({
       phases[0].steps && phases[0].steps.length === 1;
 
     var phases_rows = _.map(phases, phase => {
+      // we sometimes rerun jobsteps multiple times. Rearrange them so that
+      // jobsteps that were rerun are always together.
+
+      // partition into non-replaced and replaced jobsteps
+      var [grouped_steps, remaining_steps] = _.partition(phase.steps, step => {
+        return step.replacement_id == null;
+      });
+      // now we go through each replaced step and group it with its
+      // replacement, repeating this process as necessary.
+      var remaining = remaining_steps.length;
+      while (remaining) {
+        remaining_steps = _.filter(remaining_steps, step => {
+          let index = _.findIndex(grouped_steps, replacement => {
+            return replacement.id == step.replacement_id;
+          });
+          if (index == -1) {
+            // this step's replacement isn't in grouped_steps yet, keep trying
+            return true;
+          }
+          grouped_steps.splice(index + 1, 0, step);
+          return false;
+        });
+        // make sure we don't loop forever
+        if (remaining_steps.length && remaining_steps.length == remaining) {
+          grouped_steps.concat(remaining_steps);
+          break;
+        }
+        remaining = remaining_steps.length;
+      }
+
       let phase_rows = [];
-      for (let index = 0; index < phase.steps.length; index++) {
-        let jobstep = phase.steps[index];
+      for (let index = 0; index < grouped_steps.length; index++) {
+        let jobstep = grouped_steps[index];
         var jobstepCondition = get_runnable_condition(jobstep);
         var jobstepDot = <ConditionDot condition={jobstepCondition} />;
 
@@ -390,7 +420,14 @@ export var SingleBuild = React.createClass({
           ];
         }
 
-        var nodeLink = jobstep.node.name;
+        var replacementMarkup = null;
+        if (jobstep.replacement_id != null) {
+          replacementMarkup = <div className="marginTopS mediumGray">
+            <i>Retried.</i>
+          </div>;
+        }
+
+        var nodeLink = jobstep.node.name || jobstep.node.id;
 
         var logID = jobstep.logSources[0] && jobstep.logSources[0].id;
         if (logID) {
@@ -432,15 +469,18 @@ export var SingleBuild = React.createClass({
         let expandLabel = !this.state.expandedJobSteps[jobstep.id] ?
           'Expand' : 'Collapse';
 
-        phase_rows.push([
+        // no separator and 50% opacity for replaced jobstep
+        var hasBorder = jobstep.replacement_id == null;
+        var fadedOut = jobstep.replacement_id != null;
+        phase_rows.push(new GridRow([
           index === 0 && !only_one_row ?
             <span className="lb">{phase.name}</span> : 
             "",
           jobstepDot,
-          <div>{nodeLink}{failureMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
+          <div>{nodeLink}{failureMarkup}{replacementMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
           links,
           jobstepDuration
-        ]);
+        ], hasBorder, fadedOut));
 
         if (this.state.expandedJobSteps[jobstep.id]) {
           phase_rows.push(GridRow.oneItem(<JobstepDetails jobstepID={jobstep.id} />));

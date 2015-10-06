@@ -72,8 +72,12 @@ export var Grid = React.createClass({
 
     var cells = null;
     var is_using_colspan = false;
+    var hasBorder = true;
+    var fadedOut = false;
     if (row instanceof GridRow) {
-      if (row.isUsingColspan) {
+      hasBorder = row.hasBorder();
+      fadedOut = row.isFadedOut();
+      if (row.isUsingColspan()) {
         is_using_colspan = true;
         cells = <td className="gridCell" colSpan={this.props.colnum}>
           {row.getData()[0]}
@@ -123,6 +127,8 @@ export var Grid = React.createClass({
       gridEven: row_index !== 0 && (row_index+1) % 2 === 0,
       gridFirstRow: row_index === 0,
       gridRowOneItem: is_using_colspan,
+      gridFadedOut: fadedOut,
+      noborder: !hasBorder,
     });
 
     return <tr className={row_classes}>
@@ -222,11 +228,13 @@ export var Grid = React.createClass({
  * GridRow can be used in place of the row array above
  */
 export class GridRow {
-  constructor(data) {
+  constructor(data, border=true, fadedOut=false) {
     if (!_.isArray(data)) {
       throw 'GridRow expects an array of data!';
     }
     this.data = data;
+    this.border = border;
+    this.fadedOut = fadedOut;
   }
 
   // use this if you want your row to just be a single item that spans all
@@ -240,6 +248,8 @@ export class GridRow {
 
   getData() { return this.data; }
   getLength() { return this.data.length; }
+  hasBorder() { return this.border; }
+  isFadedOut() { return this.fadedOut; }
 
   // see oneItem constructor
   isUsingColspan() { return this.useColspan; }

@@ -16,6 +16,7 @@ class JobStepCrumbler(Crumbler):
             'status': instance.status,
             'node': instance.node,
             'duration': instance.duration,
+            'replacement_id': instance.replacement_id,
             'dateCreated': instance.date_created,
             'dateStarted': instance.date_started,
             'dateFinished': instance.date_finished,
