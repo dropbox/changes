@@ -16,7 +16,7 @@ var TestsTab = React.createClass({
     // flaky tests api response
     flakyTests: PropTypes.object,
     // the ProjectPage element
-    pageElem: PropTypes.element.isRequired,
+    pageElem: PropTypes.object.isRequired,
   },
 
   getInitialState: function() {

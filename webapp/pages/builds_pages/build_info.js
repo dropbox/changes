@@ -522,7 +522,7 @@ export var LatestBuildsSummary = React.createClass({
     // info about the commit (a changes source object) or diff (from phab.)
     targetData: PropTypes.object,
     // the parent page element.
-    pageElem: PropTypes.element,
+    pageElem: PropTypes.object,
   },
 
   render: function() {

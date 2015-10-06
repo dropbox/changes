@@ -32,7 +32,7 @@ var Sidebar = React.createClass({
     activeBuildID: PropTypes.string,
 
     // the parent page element. Sidebar clicks change its state
-    pageElem: PropTypes.element,
+    pageElem: PropTypes.object,
   },
 
   render: function() {

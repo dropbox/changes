@@ -91,7 +91,7 @@ export var SingleBuildStatus = React.createClass({
   propTypes: {
     build: PropTypes.object,
     placement: PropTypes.string,
-    parentElem: PropTypes.element
+    parentElem: PropTypes.object,
   },
 
   render: function() {

@@ -10,7 +10,7 @@ import * as api from 'es6!server/api';
 var PostRequest = React.createClass({
 
   propTypes: {
-    parentElem: PropTypes.element.isRequired,
+    parentElem: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
     endpoint: PropTypes.string.isRequired
   },

@@ -29,7 +29,7 @@ var BuildsTab = React.createClass({
     interactive: PropTypes.object,
 
     // parent elem that has state
-    pageElem: PropTypes.element.isRequired,
+    pageElem: PropTypes.object.isRequired,
   },
 
   statics: {
