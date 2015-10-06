@@ -222,7 +222,7 @@ export var SingleBuild = React.createClass({
     if (buildCondition === 'failed_infra') {
       return <div className="messageBox" style={{marginBottom: 15}}>
         There was an infrastructure failure while running this diff.
-        You can retry it using the right button on the right.
+        You can retry it using the button on the right.
       </div>;
     } else if (buildCondition === 'failed_aborted') {
       var advice = <div className="messageBox" style={{marginBottom: 15}}>
