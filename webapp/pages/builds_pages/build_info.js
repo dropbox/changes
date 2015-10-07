@@ -331,11 +331,36 @@ export var SingleBuild = React.createClass({
       phases[0].steps && phases[0].steps.length === 1;
 
     var phases_rows = _.map(phases, phase => {
+
+      // Sort the list of job steps.
+      let steps = phase.steps.slice();
+      steps.sort((a, b) => {
+        // Test failures at the top.
+        let test_difference = (b.testFailures || 0) - (a.testFailures || 0);
+        if (test_difference) {
+          return test_difference;
+        }
+
+        // Other failures after test failures.
+        let status_a = get_runnable_condition(a).search('failed');
+        let status_b = get_runnable_condition(b).search('failed');
+        if (status_a !== status_b) {
+          return status_b - status_a;
+        }
+
+        // Fallback to sorting by finish time (builds finished most recently at the top).
+        // Note that dateFinished may be undefined if the step is not yet complete.
+        // Such steps will be sorted above completed steps.
+        let date_a = Date.parse(a.dateFinished) || 0;
+        let date_b = Date.parse(b.dateFinished) || 0;
+        return date_a - date_b;
+      });
+
       // we sometimes rerun jobsteps multiple times. Rearrange them so that
       // jobsteps that were rerun are always together.
 
       // partition into non-replaced and replaced jobsteps
-      var [grouped_steps, remaining_steps] = _.partition(phase.steps, step => {
+      var [grouped_steps, remaining_steps] = _.partition(steps, step => {
         return step.replacement_id == null;
       });
       // now we go through each replaced step and group it with its
