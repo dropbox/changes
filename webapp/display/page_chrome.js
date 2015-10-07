@@ -50,6 +50,9 @@ export var ChangesPage = React.createClass({
         {messageData.message}{"  - "}{messageData.user.email}
       </div>;
     }
+    messageMarkup = <div className="persistentMessageFixed">
+      testtest - anonymous@example.com
+    </div>;
 
     if (this.props.isPageLoaded) {
       // NOTE: once browsers support it, we could start using
@@ -68,10 +71,24 @@ export var ChangesPage = React.createClass({
         fixed={this.props.fixed} 
         oldUI={this.props.oldUI} 
       />
-      <div style={style}>
+      <div id="ChangesPageChildren" style={style}>
         {this.props.children}
       </div>
     </div>;
+  },
+
+  componentDidMount() {
+    if (this.props.fixed) {
+      var node = this.getDOMNode();
+      var queryret = node.getElementsByClassName(
+        'persistentMessageFixed');
+      var messageNode = queryret[0];
+      if (messageNode) {
+        document.getElementById('ChangesPageChildren').style['margin-bottom'] = (
+          messageNode.offsetHeight + "px"
+        );
+      }
+    }
   }
 });
 
@@ -89,8 +106,12 @@ export var APINotLoadedPage = React.createClass({
     var { calls, ...props} = this.props;
     props['isPageLoaded'] = false;
 
-    return <ChangesPage {...props}>
+    var content = this.props.fixed ?
+      <div style={{marginTop: 30}}><APINotLoaded calls={calls} /></div> :
       <APINotLoaded calls={calls} />
+
+    return <ChangesPage {...props}>
+      {content}
     </ChangesPage>;
   }
 

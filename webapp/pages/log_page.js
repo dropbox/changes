@@ -59,6 +59,7 @@ var LogPage = React.createClass({
     if (!api.allLoaded([this.state.initialLog, this.state.build])) {
       return <APINotLoadedPage
         calls={[this.state.initialLog, this.state.build]}
+        fixed={true}
       />;
     }
 
