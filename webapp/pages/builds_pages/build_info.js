@@ -262,7 +262,7 @@ export var SingleBuild = React.createClass({
 
       rows.push([
         markup,
-        test.duration + ' seconds',
+        display_duration(test.duration / 1000),
         <a href={href}>History</a>,
       ]);
 
