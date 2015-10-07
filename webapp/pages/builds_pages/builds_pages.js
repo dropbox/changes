@@ -295,7 +295,7 @@ var BuildsPage = React.createClass({
         parentElem = <ParentCommit 
           sha={source.revision.parents[0]} 
           repoID={source.revision.repository.id}
-          onlyParent={source.revision.parents.length <= 1}
+          label={source.revision.parents.length <= 1 ? 'only' : 'first'}
         />;
       }
 
@@ -315,21 +315,33 @@ var BuildsPage = React.createClass({
         </div>
       </div>;
     } else if (type === 'diff') {
-      var diff_data = this.props.targetData;
+      var diffData = this.props.targetData;
       var authorLink = ChangesLinks.author(
         this.getAuthorForDiff(this.props.builds), true);
+
+      var parentElem = null;
+      var diffSource = this.getSourceForDiff(this.props.builds);
+      if (diffSource) {  // maybe this is missing if we have no builds?
+        parentElem = <ParentCommit 
+          sha={diffSource.revision.sha} 
+          repoID={diffSource.revision.repository.id}
+          label="diffParent"
+        />;
+      }
+
       header = <div>
         <div className="floatR">
-          <TimeText time={moment.unix(diff_data.dateCreated).toString()} />
+          <TimeText time={moment.unix(diffData.dateCreated).toString()} />
         </div>
-        <a className="subtle lb" href={diff_data.uri} target="_blank">
-          D{diff_data.id}
+        <a className="subtle lb" href={diffData.uri} target="_blank">
+          D{diffData.id}
         </a>
         {": "}
-        {utils.truncate(diff_data.title)}
+        {utils.truncate(diffData.title)}
         <div className="headerByline">
           {"by "}
           {authorLink}
+          {parentElem}
         </div>
       </div>;
     } else {
@@ -340,8 +352,8 @@ var BuildsPage = React.createClass({
   },
 
   getAuthorForDiff: function(builds) {
-    // TODO: the author of any cause=phabricator build for a diff is always the
-    // same as the author of the diff. Display them here
+    // the author of any cause=phabricator build for a diff is always the
+    // same as the author of the diff.
     var author = null;
     _.each(builds, b => {
       if (get_build_cause(b) === 'phabricator') {
@@ -349,6 +361,10 @@ var BuildsPage = React.createClass({
       }
     });
     return author;
+  },
+
+  getSourceForDiff: function(builds) {
+    return builds && builds.length && builds[0].source;
   }
 });
 
@@ -407,7 +423,13 @@ var ParentCommit = React.createClass({
   render() {
     var sha = this.props.sha;
     var repoID = this.props.repoID;
-    var onlyParent = this.props.onlyParent;
+    var labelProp = this.props.label;
+
+    var label = {
+      only: 'Parent: ',
+      first: 'First Parent: ',
+      diffParent: 'Parent Commit: '
+    }[labelProp];
 
     if (!api.isLoaded(this.state.builds)) {
       return <span />;
@@ -416,9 +438,7 @@ var ParentCommit = React.createClass({
     var builds = this.state.builds.getReturnedData();
     return <span className="parentLabel marginLeftS">
       &middot;
-      <span className="marginLeftS">
-        {!onlyParent ? "First Parent: " : "Parent: "}
-      </span>
+      <span className="marginLeftS">{label}</span>
       <a 
         className="marginLeftXS"
         href={ChangesLinks.buildsHref(builds)}>
