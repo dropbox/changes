@@ -21,7 +21,7 @@ class BuildCrumbler(Crumbler):
             stats_by_item.setdefault(stat.item_id, {})
             stats_by_item[stat.item_id][stat.name] = stat.value
 
-        # grab any failures. We don't grab these for retried buildsteps
+        # grab any failures. We don't grab these for replaced JobSteps
         rows = FailureReason.query.join(
             JobStep, JobStep.id == FailureReason.step_id,
         ).filter(

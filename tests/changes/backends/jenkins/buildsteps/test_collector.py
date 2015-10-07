@@ -7,7 +7,7 @@ from uuid import UUID
 
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.constants import Result, Status
-from changes.models import JobPhase, JobStep
+from changes.models import JobPhase
 from changes.testutils import TestCase
 from ..test_builder import BaseTestCase
 
@@ -104,15 +104,18 @@ class JenkinsCollectorBuildStepTest(TestCase):
         builder.sync_artifact.assert_called_once_with(artifact)
 
     @responses.activate
-    @mock.patch.object(JenkinsCollectorBuildStep, 'get_builder')
-    def test_job_expansion(self, get_builder):
+    @mock.patch.object(JenkinsCollectorBuilder, 'fetch_artifact')
+    @mock.patch.object(JenkinsCollectorBuilder, 'create_jenkins_job_from_params')
+    @mock.patch.object(JenkinsCollectorBuilder, 'get_required_artifact')
+    @mock.patch.object(JenkinsCollectorBuilder, 'get_job_parameters')
+    def test_job_expansion(self, get_job_parameters, get_required_artifact,
+                           create_jenkins_job_from_params, fetch_artifact):
         """
         Fairly heavy integration test which mocks out a few things but ensures
         that generic APIs are called correctly and the jobs.json is parsed
         as expected.
         """
-        builder = self.get_mock_builder()
-        builder.fetch_artifact.return_value.json.return_value = {
+        fetch_artifact.return_value.json.return_value = {
             'phase': 'Run',
             'jobs': [
                 {'name': 'Optional name',
@@ -120,13 +123,11 @@ class JenkinsCollectorBuildStepTest(TestCase):
                 {'cmd': 'py.test --junit=junit.xml'},
             ],
         }
-        builder.create_job_from_params.return_value = {
+        create_jenkins_job_from_params.return_value = {
             'job_name': 'foo-bar',
             'build_no': 23,
         }
-        builder.get_required_artifact.return_value = 'jobs.json'
-
-        get_builder.return_value = builder
+        get_required_artifact.return_value = 'jobs.json'
 
         project = self.create_project()
         build = self.create_build(project)
@@ -158,9 +159,7 @@ class JenkinsCollectorBuildStepTest(TestCase):
         assert phase2.label == 'Run'
         assert phase2.status == Status.queued
 
-        new_steps = sorted(JobStep.query.filter(
-            JobStep.phase_id == phase2.id
-        ), key=lambda x: x.date_created)
+        new_steps = sorted(phase2.current_steps, key=lambda x: x.date_created)
 
         assert len(new_steps) == 2
         assert new_steps[0].label == 'Optional name'
@@ -179,14 +178,16 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'expanded': True,
         }
 
-        builder.fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
-        builder.create_job_from_params.assert_any_call(
+        fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
+        create_jenkins_job_from_params.assert_any_call(
             job_name='foo-bar',
             changes_bid=new_steps[0].id.hex,
-            params=builder.get_job_parameters.return_value,
+            params=get_job_parameters.return_value,
+            is_diff=False
         )
-        builder.create_job_from_params.assert_any_call(
+        create_jenkins_job_from_params.assert_any_call(
             job_name='foo-bar',
             changes_bid=new_steps[1].id.hex,
-            params=builder.get_job_parameters.return_value,
+            params=get_job_parameters.return_value,
+            is_diff=False
         )

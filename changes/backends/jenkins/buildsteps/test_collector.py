@@ -345,7 +345,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         # Now that that database transaction is done, we'll do the slow work of
         # creating jenkins builds.
         for step in steps:
-            self._create_jenkins_build(phase, step)
+            self._create_jenkins_build(step)
             sync_job_step.delay_if_needed(
                 step_id=step.id.hex,
                 task_id=step.id.hex,
@@ -405,9 +405,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
     def create_replacement_jobstep(self, step):
         if not step.data.get('expanded'):
-            # TODO(nate): eventually we'll call super here when we support
-            # replacing primary jobsteps
-            return None
+            return super(JenkinsTestCollectorBuildStep, self).create_replacement_jobstep(step)
         newstep = self._create_jobstep(step.phase, step.data['cmd'], step.data['path'],
                                        step.data['weight'], step.data['tests'],
                                        step.data['shard_count'], force_create=True)
@@ -415,7 +413,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         db.session.add(step)
         db.session.commit()
 
-        self._create_jenkins_build(newstep.phase, newstep)
+        self._create_jenkins_build(newstep)
         sync_job_step.delay_if_needed(
             step_id=newstep.id.hex,
             task_id=newstep.id.hex,
@@ -423,31 +421,23 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         )
         return newstep
 
-    def _create_jenkins_build(self, phase, step):
+    def _create_jenkins_build(self, step):
         """
-        Create a jenkins build for the given phase and jobstep.
+        Create a jenkins build for the given expanded jobstep.
 
         If the given step already has a jenkins build associated with it, this
         will not perform any work. If not, this creates the build, updates the
         step to refer to the new build, and commits the change to the database.
 
         Args:
-            phase (JobPhase): The phase being expanded.
             step (JobStep): The shard we'd like to launch a jenkins build for.
         """
-        # TODO(dcramer): due to no unique constraints this section of code
-        # presents a race condition when run concurrently
-        if step.data.get('build_no'):
-            return
-
         # we also have to inject the correct build_type here in order
         # to generate the correct params and to generate the correct
         # commands later on
         builder = self.get_builder(build_type=self.shard_build_type)
 
-        params = builder.get_job_parameters(
-            step.job,
-            changes_bid=step.id.hex,
+        builder.create_jenkins_build(step, job_name=step.data['job_name'],
             script=step.data['cmd'].format(
                 test_names=' '.join(step.data['tests']),
             ),
@@ -455,19 +445,3 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             teardown_script=self.shard_teardown_script,
             path=step.data['path'],
         )
-
-        is_diff = not step.job.source.is_commit()
-        job_data = builder.create_job_from_params(
-            changes_bid=step.id.hex,
-            params=params,
-            job_name=step.data['job_name'],
-            is_diff=is_diff
-        )
-        step.data.update(job_data)
-        db.session.add(step)
-
-        # if this build uses changes-client, we need to inject the commands here
-        # because create_job never gets called on it to create them.
-        builder.create_commands(step, params)
-
-        db.session.commit()

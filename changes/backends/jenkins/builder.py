@@ -158,40 +158,27 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _create_job_step(self, id, phase, data, **defaults):
+    def _create_job_step(self, phase, data, **defaults):
         """
         Gets or creates the primary JobStep for a Jenkins Job.
 
         Args:
-            id (uuid.UUID): ID to use for the JobStep.
             phase (JobPhase): JobPhase the JobStep should be part of.
-            data (dict): JSON-serializable data associated with the Jenkins build. Must
-              contain 'master', 'job_name', and either 'build_no' or 'item_id'.
+            data (dict): JSON-serializable data associated with the Jenkins build.
         Returns:
             JobStep: The JobStep that was retrieved or created.
         """
-        # TODO(dcramer): we make an assumption that the job step label is unique
-        # but its not guaranteed to be the case. We can ignore this assumption
-        # by guaranteeing that the JobStep.id value is used for builds instead
-        # of the Job.id value.
-        assert 'master' in data
-        assert 'job_name' in data
-        assert 'build_no' in data or 'item_id' in data
+        defaults['data'] = data
 
         # TODO(kylec): Get rid of the kwargs.
         if not defaults.get('label'):
-            label = '{0} #{1}'.format(data['job_name'], data['build_no'] or data['item_id'])
-
-        assert label
-
-        defaults['data'] = data
+            # we update this once we have the build_no for this jobstep
+            defaults['label'] = self.job_name
 
         step, _ = get_or_create(JobStep, where={
-            'id': id,
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
-            'label': label,
         }, defaults=defaults)
         BuildStep.handle_debug_infra_failures(step, self.debug_config, 'primary')
 
@@ -951,7 +938,7 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def create_job_from_params(self, changes_bid, params, job_name=None, is_diff=False):
+    def create_jenkins_job_from_params(self, changes_bid, params, job_name=None, is_diff=False):
         if job_name is None:
             job_name = self.job_name
 
@@ -993,8 +980,8 @@ class JenkinsBuilder(BaseBackend):
 
         return job_data
 
-    def get_default_job_phase_label(self, job, job_data):
-        return 'Build {0}'.format(job_data['job_name'])
+    def get_default_job_phase_label(self, job, job_name):
+        return 'Build {0}'.format(job_name)
 
     def create_job(self, job):
         """
@@ -1006,52 +993,39 @@ class JenkinsBuilder(BaseBackend):
         - Polling for the newly created job to associate either a queue ID
           or a finalized build number.
         """
-        # We want to use the JobStep ID for the CHANGES_BID so that JobSteps can be easily
-        # associated with Jenkins builds, but the JobStep probably doesn't exist yet and
-        # requires information about the Jenkins build to be created.
-        # So, we generate the JobStep ID before we create the build on Jenkins, and we deterministically derive
-        # it from the Job ID to be sure that we don't create new builds/JobSteps when this
-        # method is retried.
-        # TODO(kylec): The process described above seems too complicated. Try to fix that so we
-        # can delete the comment.
-        jobstep_id = uuid.uuid5(JOB_NAMESPACE_UUID, job.id.hex)
-        params = self.get_job_parameters(job, changes_bid=jobstep_id.hex)
-        is_diff = not job.source.is_commit()
-        job_data = self.create_job_from_params(
-            changes_bid=jobstep_id.hex,
-            params=params,
-            is_diff=is_diff
+        phase, created = get_or_create(JobPhase, where={
+            'job': job,
+            'label': self.get_default_job_phase_label(job, self.job_name),
+            'project': job.project,
+        }, defaults={
+            'status': job.status,
+        })
+
+        step = self._create_job_step(
+            phase=phase,
+            data={'job_name': self.job_name},
+            status=job.status,
         )
 
+        db.session.commit()
+
+        # now create the jenkins build
+
+        # we don't commit immediately because we also want to update the job
+        # and jobstep using the job_data we get from jenkins
+        job_data = self.create_jenkins_build(step, commit=False)
         if job_data['queued']:
             job.status = Status.queued
         else:
             job.status = Status.in_progress
         db.session.add(job)
 
-        phase, created = get_or_create(JobPhase, where={
-            'job': job,
-            'label': self.get_default_job_phase_label(job, job_data),
-            'project': job.project,
-        }, defaults={
-            'status': job.status,
-        })
-
-        if not created:
-            return
-
-        # TODO(dcramer): due to no unique constraints this section of code
-        # presents a race condition when run concurrently
-        step = self._create_job_step(
-            id=jobstep_id,
-            phase=phase,
-            status=job.status,
-            data=job_data,
-        )
-
-        # Hook that allows other builders to add commands for the jobstep
-        # which tells changes-client what to run
-        self.create_commands(step, params)
+        assert 'master' in step.data
+        assert 'job_name' in step.data
+        assert 'build_no' in step.data or 'item_id' in step.data
+        # now we have the build_no/item_id and can set the full jobstep label
+        step.label = '{0} #{1}'.format(step.data['job_name'], step.data['build_no'] or step.data['item_id'])
+        db.session.add(step)
 
         db.session.commit()
 
@@ -1060,6 +1034,46 @@ class JenkinsBuilder(BaseBackend):
             task_id=step.id.hex,
             parent_task_id=job.id.hex,
         )
+
+        return step
+
+    def create_jenkins_build(self, step, job_name=None, commit=True, **kwargs):
+        """
+        Create a jenkins build for the given jobstep.
+
+        If the given step already has a jenkins build associated with it, this
+        will not perform any work. If not, this creates the build, updates the
+        step to refer to the new build, optionally committing these changes.
+
+        Args:
+            step (JobStep): The shard we'd like to launch a jenkins build for.
+            job_name (str): Job's name. Default is self.job_name.
+            commit (bool): Whether to commit changes to database at the end.
+            kwargs: Additional arguments to be passed to get_job_parameters()
+        """
+        if step.data.get('build_no') or step.data.get('item_id'):
+            return
+
+        params = self.get_job_parameters(step.job, changes_bid=step.id.hex, **kwargs)
+
+        is_diff = not step.job.source.is_commit()
+        job_data = self.create_jenkins_job_from_params(
+            changes_bid=step.id.hex,
+            params=params,
+            job_name=job_name,
+            is_diff=is_diff
+        )
+        step.data.update(job_data)
+        db.session.add(step)
+
+        # Hook that allows other builders to add commands for the jobstep
+        # which tells changes-client what to run
+        self.create_commands(step, params)
+
+        if commit:
+            db.session.commit()
+
+        return job_data
 
     def create_commands(self, step, params):
         pass

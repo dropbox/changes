@@ -13,8 +13,6 @@ from changes.db.utils import get_or_create, try_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import FailureReason, JobPhase, JobStep
 
-import logging
-
 
 class JenkinsCollectorBuilder(JenkinsGenericBuilder):
     def get_default_job_phase_label(self, job, job_data):
@@ -125,11 +123,10 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
 
         for job_config in phase_config['jobs']:
             assert job_config['cmd']
-            self._expand_job(phase, job_config)
+            label = job_config.get('name') or md5(job_config['cmd']).hexdigest()
+            self._expand_job(phase, label, job_config['cmd'])
 
-    def _expand_job(self, phase, job_config):
-        label = job_config.get('name') or md5(job_config['cmd']).hexdigest()
-
+    def _expand_job(self, phase, label, cmd):
         step, created = get_or_create(JobStep, where={
             'job': phase.job,
             'project': phase.project,
@@ -137,7 +134,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
             'label': label,
         }, defaults={
             'data': {
-                'cmd': job_config['cmd'],
+                'cmd': cmd,
                 'job_name': self.job_name,
                 'build_no': None,
                 'expanded': True,
@@ -146,42 +143,12 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
         })
         BuildStep.handle_debug_infra_failures(step, self.debug_config, 'expanded')
 
-        # TODO(dcramer): due to no unique constraints this section of code
-        # presents a race condition when run concurrently
-        if not step.data.get('build_no'):
-            builder = self.get_builder()
-            params = builder.get_job_parameters(
-                step.job, changes_bid=step.id.hex, script=step.data['cmd'])
-
-            success = False
-            exn = None
-            for _ in range(0, 3):
-                try:
-                    job_data = builder.create_job_from_params(
-                        changes_bid=step.id.hex,
-                        params=params,
-                        job_name=step.data['job_name'],
-                    )
-
-                    step.data.update(job_data)
-                    db.session.add(step)
-                    db.session.commit()
-                    success = True
-                    break
-                except Exception as ex:
-                    logging.exception("Failed to create jobstep")
-                    exn = ex
-
-            if not success:
-                step.status = Status.finished
-                step.result = Result.infra_failed
-                db.session.add(step)
-                db.session.commit()
-                if exn:
-                    raise exn
+        builder = self.get_builder()
+        builder.create_jenkins_build(step, job_name=step.data['job_name'], script=step.data['cmd'])
 
         sync_job_step.delay_if_needed(
             step_id=step.id.hex,
             task_id=step.id.hex,
             parent_task_id=phase.job.id.hex,
         )
+        return step

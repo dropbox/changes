@@ -5,6 +5,7 @@ import mock
 import os.path
 import responses
 import pytest
+import re
 import time
 
 from datetime import datetime
@@ -69,7 +70,6 @@ class CreateBuildTest(BaseTestCase):
     @responses.activate
     def test_queued_creation(self):
         job_id = '81d1596fd4d642f4a6bdf86c45e014e8'
-        jobstep_id = uuid5_from(job_id)
         responses.add(
             responses.POST, 'http://jenkins.example.com/job/server/build',
             body='',
@@ -77,15 +77,13 @@ class CreateBuildTest(BaseTestCase):
 
         responses.add(
             responses.GET,
-            'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
-            body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
-            match_querystring=True)
+            re.compile('http://jenkins\\.example\\.com/queue/api/xml/\\?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fid&wrapper=x'),
+            body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'))
 
         responses.add(
             responses.GET,
-            'http://jenkins.example.com/job/server/api/xml/?depth=1&xpath=/queue/item[action/parameter/name=%22CHANGES_BID%22%20and%20action/parameter/value=%22{}%22]/id'.format(jobstep_id),
-            status=404,
-            match_querystring=True)
+            re.compile('http://jenkins\\.example\\.com/job/server/api/xml/\\?depth=1&xpath=/queue/item\\[action/parameter/name=%22CHANGES_BID%22%20and%20action/parameter/value=%22.*?%22\\]/id'),
+            status=404)
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -109,7 +107,6 @@ class CreateBuildTest(BaseTestCase):
     @responses.activate
     def test_active_creation(self):
         job_id = 'f9481a17aac446718d7893b6e1c6288b'
-        jobstep_id = uuid5_from(job_id)
         responses.add(
             responses.POST, 'http://jenkins.example.com/job/server/build',
             body='',
@@ -117,15 +114,13 @@ class CreateBuildTest(BaseTestCase):
 
         responses.add(
             responses.GET,
-            'http://jenkins.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
-            status=404,
-            match_querystring=True)
+            re.compile('http://jenkins\\.example\\.com/queue/api/xml/\\?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fid&wrapper=x'),
+            status=404)
 
         responses.add(
             responses.GET,
-            'http://jenkins.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fnumber&depth=1&wrapper=x'.format(jobstep_id),
-            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
-            match_querystring=True)
+            re.compile('http://jenkins\\.example\\.com/job/server/api/xml/\\?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fnumber&depth=1&wrapper=x'),
+            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -183,7 +178,6 @@ class CreateBuildTest(BaseTestCase):
     @responses.activate
     def test_multi_master(self):
         job_id = 'f9481a17aac446718d7893b6e1c6288b'
-        jobstep_id = uuid5_from(job_id)
         responses.add(
             responses.GET, 'http://jenkins-2.example.com/queue/api/json/',
             body=self.load_fixture('fixtures/GET/queue_list_other_jobs.json'),
@@ -201,15 +195,13 @@ class CreateBuildTest(BaseTestCase):
 
         responses.add(
             responses.GET,
-            'http://jenkins-2.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
-            status=404,
-            match_querystring=True)
+            re.compile('http://jenkins-2\\.example\\.com/queue/api/xml/\\?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fid&wrapper=x'),
+            status=404)
 
         responses.add(
             responses.GET,
-            'http://jenkins-2.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fnumber&depth=1&wrapper=x'.format(jobstep_id),
-            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
-            match_querystring=True)
+            re.compile('http://jenkins-2\\.example\\.com/job/server/api/xml/\\?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fnumber&depth=1&wrapper=x'),
+            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -231,7 +223,6 @@ class CreateBuildTest(BaseTestCase):
     @responses.activate
     def test_multi_master_one_bad(self):
         job_id = 'f9481a17aac446718d7893b6e1c6288b'
-        jobstep_id = uuid5_from(job_id)
         responses.add(
             responses.GET, 'http://jenkins-2.example.com/queue/api/json/',
             body=self.load_fixture('fixtures/GET/queue_list_other_jobs.json'),
@@ -250,15 +241,13 @@ class CreateBuildTest(BaseTestCase):
 
         responses.add(
             responses.GET,
-            'http://jenkins-2.example.com/queue/api/xml/?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid&wrapper=x'.format(jobstep_id),
-            status=404,
-            match_querystring=True)
+            re.compile('http://jenkins-2\\.example\\.com/queue/api/xml/\\?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fid&wrapper=x'),
+            status=404)
 
         responses.add(
             responses.GET,
-            'http://jenkins-2.example.com/job/server/api/xml/?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fnumber&depth=1&wrapper=x'.format(jobstep_id),
-            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'),
-            match_querystring=True)
+            re.compile('http://jenkins-2\\.example\\.com/job/server/api/xml/\\?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fnumber&depth=1&wrapper=x'),
+            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'))
 
         build = self.create_build(self.project)
         job = self.create_job(
@@ -1067,7 +1056,6 @@ class JenkinsIntegrationTest(BaseTestCase):
     def test_full(self):
         from changes.jobs.create_job import create_job
         job_id = '81d1596fd4d642f4a6bdf86c45e014e8'
-        jobstep_id = uuid5_from(job_id)
 
         # TODO: move this out of this file and integrate w/ buildstep
         responses.add(
@@ -1076,9 +1064,8 @@ class JenkinsIntegrationTest(BaseTestCase):
             status=201)
         responses.add(
             responses.GET,
-            'http://jenkins.example.com/queue/api/xml/?wrapper=x&xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22+and+action%2Fparameter%2Fvalue%3D%22{}%22%5D%2Fid'.format(jobstep_id),
-            body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'),
-            match_querystring=True)
+            re.compile('http://jenkins\\.example\\.com/queue/api/xml/\\?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fid&wrapper=x'),
+            body=self.load_fixture('fixtures/GET/queue_item_by_job_id.xml'))
         responses.add(
             responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
             body=self.load_fixture('fixtures/GET/queue_details_building.json'))
