@@ -50,9 +50,6 @@ export var ChangesPage = React.createClass({
         {messageData.message}{"  - "}{messageData.user.email}
       </div>;
     }
-    messageMarkup = <div className="persistentMessageFixed">
-      testtest - anonymous@example.com
-    </div>;
 
     if (this.props.isPageLoaded) {
       // NOTE: once browsers support it, we could start using
