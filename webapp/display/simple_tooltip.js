@@ -11,6 +11,7 @@ var SimpleTooltip = React.createClass({
 
   propTypes: {
     // the text for the tooltip
+    // TODO: you can use markup here too, I should add that typehint
     label: PropTypes.string,
     // left, right, top, bottom
     placement: PropTypes.string,

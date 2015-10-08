@@ -1,11 +1,8 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import ChangesUI from 'es6!display/changes/ui';
 
 import * as api from 'es6!server/api';
-
-import custom_content_hook from 'es6!utils/custom_content';
 
 /*
  * Shows artifacts for a jobstep

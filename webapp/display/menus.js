@@ -151,6 +151,25 @@ export var MenuUtils = {
       window.location.hash = item.replace(/ /g, "");
       elem.setState({selectedItem: item});
     };
+  },
+
+  // as above, but sets a query parameter instead
+  onClickQueryParam: function(elem, selected_item, query_param) {
+    return item => {
+      if (item === selected_item) {
+        return;
+      }
+
+      var current_params = URI(window.location.href).search(true);
+      current_params[query_param] = item;
+
+      window.history.replaceState(
+        null,
+        'switched tab',
+        URI(window.location.href).query(current_params));
+
+      elem.setState({selectedItem: item});
+    };
   }
 }
 

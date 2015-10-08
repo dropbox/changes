@@ -25,6 +25,7 @@ var ProjectPage = React.createClass({
       project: null,
       commits: null,
       flakyTests: null,
+      quarantineTasks: null,
       details: null,
 
       // Keep the state for the commit tab here (and send it via props.) This
@@ -134,6 +135,7 @@ var ProjectPage = React.createClass({
         content = <TestsTab
           project={this.state.project}
           flakyTests={this.state.flakyTests}
+          quarantineTasks={this.state.quarantineTasks}
           pageElem={this}
         />;
         break;

@@ -299,6 +299,10 @@ def create_app(_read_config=True, **config):
     # hit the homepage
     app.config['NEW_UI_OPTIN_USERS'] = set([])
 
+    # the PHID of the user creating quarantine tasks. We can use this to show
+    # the list of open quarantine tasks inline
+    app.config['QUARANTINE_PHID'] = None
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
@@ -541,6 +545,7 @@ def configure_api_routes(app):
     from changes.api.project_details import ProjectDetailsAPIView
     from changes.api.project_source_details import ProjectSourceDetailsAPIView
     from changes.api.project_source_build_index import ProjectSourceBuildIndexAPIView
+    from changes.api.quarantine_tasks import QuarantineTasksAPIView
     from changes.api.repository_details import RepositoryDetailsAPIView
     from changes.api.repository_index import RepositoryIndexAPIView
     from changes.api.repository_project_index import RepositoryProjectIndexAPIView
@@ -628,6 +633,7 @@ def configure_api_routes(app):
     api.add_resource(ProjectTestHistoryAPIView, '/projects/<project_id>/tests/<test_hash>/history/')
     api.add_resource(ProjectSourceDetailsAPIView, '/projects/<project_id>/sources/<source_id>/')
     api.add_resource(ProjectSourceBuildIndexAPIView, '/projects/<project_id>/sources/<source_id>/builds/')
+    api.add_resource(QuarantineTasksAPIView, '/quarantine_tasks')
     api.add_resource(RepositoryIndexAPIView, '/repositories/')
     api.add_resource(RepositoryDetailsAPIView, '/repositories/<uuid:repository_id>/')
     api.add_resource(RepositoryProjectIndexAPIView, '/repositories/<uuid:repository_id>/projects/')
