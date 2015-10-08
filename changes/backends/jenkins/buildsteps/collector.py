@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import os.path
+import uuid
 
 from hashlib import md5
 
@@ -126,13 +127,17 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
             label = job_config.get('name') or md5(job_config['cmd']).hexdigest()
             self._expand_job(phase, label, job_config['cmd'])
 
-    def _expand_job(self, phase, label, cmd):
-        step, created = get_or_create(JobStep, where={
+    def _expand_job(self, phase, label, cmd, replaces=None):
+        where = {
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
             'label': label,
-        }, defaults={
+        }
+        if replaces:
+            # uuid is unique which forces jobstep to be created
+            where['id'] = uuid.uuid4()
+        step, created = get_or_create(JobStep, where=where, defaults={
             'data': {
                 'cmd': cmd,
                 'job_name': self.job_name,
@@ -141,7 +146,11 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
             },
             'status': Status.queued,
         })
+        assert created or not replaces
         BuildStep.handle_debug_infra_failures(step, self.debug_config, 'expanded')
+        if replaces:
+            replaces.replacement_id = step.id
+            db.session.add(replaces)
 
         builder = self.get_builder()
         builder.create_jenkins_build(step, job_name=step.data['job_name'], script=step.data['cmd'])
@@ -152,3 +161,8 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
             parent_task_id=phase.job.id.hex,
         )
         return step
+
+    def create_replacement_jobstep(self, step):
+        if not step.data.get('expanded'):
+            return super(JenkinsCollectorBuildStep, self).create_replacement_jobstep(step)
+        return self._expand_job(step.phase, step.label, step.data['cmd'], replaces=step)

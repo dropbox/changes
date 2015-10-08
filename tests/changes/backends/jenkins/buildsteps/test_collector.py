@@ -6,6 +6,7 @@ import responses
 from uuid import UUID
 
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
+from changes.config import db
 from changes.constants import Result, Status
 from changes.models import JobPhase
 from changes.testutils import TestCase
@@ -160,6 +161,115 @@ class JenkinsCollectorBuildStepTest(TestCase):
         assert phase2.status == Status.queued
 
         new_steps = sorted(phase2.current_steps, key=lambda x: x.date_created)
+
+        assert len(new_steps) == 2
+        assert new_steps[0].label == 'Optional name'
+        assert new_steps[0].data == {
+            'build_no': 23,
+            'job_name': 'foo-bar',
+            'cmd': 'echo 1',
+            'expanded': True,
+        }
+
+        assert new_steps[1].label == 'a357e93d82b8627ba1aa5f5c58884cd8'
+        assert new_steps[1].data == {
+            'build_no': 23,
+            'job_name': 'foo-bar',
+            'cmd': 'py.test --junit=junit.xml',
+            'expanded': True,
+        }
+
+        fetch_artifact.assert_called_once_with(artifact.step, artifact.data)
+        create_jenkins_job_from_params.assert_any_call(
+            job_name='foo-bar',
+            changes_bid=new_steps[0].id.hex,
+            params=get_job_parameters.return_value,
+            is_diff=False
+        )
+        create_jenkins_job_from_params.assert_any_call(
+            job_name='foo-bar',
+            changes_bid=new_steps[1].id.hex,
+            params=get_job_parameters.return_value,
+            is_diff=False
+        )
+
+    @responses.activate
+    @mock.patch.object(JenkinsCollectorBuilder, 'fetch_artifact')
+    @mock.patch.object(JenkinsCollectorBuilder, 'create_jenkins_job_from_params')
+    @mock.patch.object(JenkinsCollectorBuilder, 'get_required_artifact')
+    @mock.patch.object(JenkinsCollectorBuilder, 'get_job_parameters')
+    def test_create_replacement_jobstep(self, get_job_parameters, get_required_artifact,
+                           create_jenkins_job_from_params, fetch_artifact):
+        """
+        Tests create_replacement_jobstep by running a very similar test to
+        test_job_expansion, failing one of the jobsteps and then replacing it,
+        and making sure the results still end up the same.
+        """
+        fetch_artifact.return_value.json.return_value = {
+            'phase': 'Run',
+            'jobs': [
+                {'name': 'Optional name',
+                 'cmd': 'echo 1'},
+                {'cmd': 'py.test --junit=junit.xml'},
+            ],
+        }
+        create_jenkins_job_from_params.return_value = {
+            'job_name': 'foo-bar',
+            'build_no': 23,
+        }
+        get_required_artifact.return_value = 'jobs.json'
+
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build, data={
+            'job_name': 'server',
+            'build_no': '35',
+        })
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, data={
+            'item_id': 13,
+            'job_name': 'server',
+        })
+
+        artifact = self.create_artifact(
+            step=step,
+            name='jobs.json',
+            data={'fileName': 'jobs.json'},
+        )
+
+        buildstep = self.get_buildstep()
+        buildstep.fetch_artifact(artifact)
+
+        phase2 = JobPhase.query.filter(
+            JobPhase.job_id == job.id,
+            JobPhase.id != phase.id,
+        ).first()
+
+        assert phase2, 'phase wasnt created'
+        assert phase2.label == 'Run'
+        assert phase2.status == Status.queued
+
+        new_steps = sorted(phase2.current_steps, key=lambda x: x.date_created)
+
+        failstep = new_steps[1]
+        failstep.result = Result.infra_failed
+        failstep.status = Status.finished
+        db.session.add(failstep)
+        db.session.commit()
+
+        replacement_step = buildstep.create_replacement_jobstep(failstep)
+        # new jobstep should still be part of same job/phase
+        assert replacement_step.job == job
+        assert replacement_step.phase == phase2
+        # make sure .steps actually includes the new jobstep
+        assert len(phase2.steps) == 3
+        # make sure replacement id is correctly set
+        assert failstep.replacement_id == replacement_step.id
+
+        # Now perform same tests as test_job_expansion, making sure that the
+        # replacement step still satisfies all the correct attributes
+        new_steps = sorted(phase2.current_steps, key=lambda x: x.date_created)
+        assert new_steps[1] == replacement_step
 
         assert len(new_steps) == 2
         assert new_steps[0].label == 'Optional name'

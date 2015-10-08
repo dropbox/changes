@@ -138,6 +138,10 @@ class JenkinsBuildStep(BuildStep):
         step.date_finished = datetime.utcnow()
         db.session.add(step)
 
+    def create_replacement_jobstep(self, step):
+        builder = self.get_builder()
+        return builder.create_job(step.job, replaces=step)
+
     def fetch_artifact(self, artifact, **kwargs):
         """
         Processes a single artifact. Critical artifacts - that is, artifacts

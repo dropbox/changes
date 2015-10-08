@@ -158,13 +158,16 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _create_job_step(self, phase, data, **defaults):
+    def _create_job_step(self, phase, data, force_create=False, **defaults):
         """
         Gets or creates the primary JobStep for a Jenkins Job.
 
         Args:
             phase (JobPhase): JobPhase the JobStep should be part of.
             data (dict): JSON-serializable data associated with the Jenkins build.
+            force_create (bool): Force this JobStep to be created (rather than
+                retrieved). This is used when replacing a JobStep to make sure
+                we don't just get the old one.
         Returns:
             JobStep: The JobStep that was retrieved or created.
         """
@@ -175,11 +178,17 @@ class JenkinsBuilder(BaseBackend):
             # we update this once we have the build_no for this jobstep
             defaults['label'] = self.job_name
 
-        step, _ = get_or_create(JobStep, where={
+        where = {
             'job': phase.job,
             'project': phase.project,
             'phase': phase,
-        }, defaults=defaults)
+        }
+        if force_create:
+            # uuid is unique which forces jobstep to be created
+            where['id'] = uuid.uuid4()
+
+        step, created = get_or_create(JobStep, where=where, defaults=defaults)
+        assert created or not force_create
         BuildStep.handle_debug_infra_failures(step, self.debug_config, 'primary')
 
         return step
@@ -983,7 +992,7 @@ class JenkinsBuilder(BaseBackend):
     def get_default_job_phase_label(self, job, job_name):
         return 'Build {0}'.format(job_name)
 
-    def create_job(self, job):
+    def create_job(self, job, replaces=None):
         """
         Creates a job within Jenkins.
 
@@ -1000,12 +1009,18 @@ class JenkinsBuilder(BaseBackend):
         }, defaults={
             'status': job.status,
         })
+        assert not created or not replaces
 
         step = self._create_job_step(
             phase=phase,
             data={'job_name': self.job_name},
             status=job.status,
+            force_create=bool(replaces)
         )
+
+        if replaces:
+            replaces.replacement_id = step.id
+            db.session.add(replaces)
 
         db.session.commit()
 

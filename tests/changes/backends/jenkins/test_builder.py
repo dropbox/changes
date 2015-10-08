@@ -266,6 +266,57 @@ class CreateBuildTest(BaseTestCase):
 
         assert step.data['master'] == 'http://jenkins-2.example.com'
 
+    @responses.activate
+    def test_jobstep_replacement(self):
+        job_id = 'f9481a17aac446718d7893b6e1c6288b'
+        responses.add(
+            responses.POST, 'http://jenkins.example.com/job/server/build',
+            body='',
+            status=201)
+
+        responses.add(
+            responses.GET,
+            re.compile('http://jenkins\\.example\\.com/queue/api/xml/\\?xpath=%2Fqueue%2Fitem%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fid&wrapper=x'),
+            status=404)
+
+        responses.add(
+            responses.GET,
+            re.compile('http://jenkins\\.example\\.com/job/server/api/xml/\\?xpath=%2FfreeStyleProject%2Fbuild%5Baction%2Fparameter%2Fname%3D%22CHANGES_BID%22\\+and\\+action%2Fparameter%2Fvalue%3D%22.*?%22%5D%2Fnumber&depth=1&wrapper=x'),
+            body=self.load_fixture('fixtures/GET/build_item_by_job_id.xml'))
+
+        build = self.create_build(self.project)
+        job = self.create_job(
+            build=build,
+            id=UUID(hex=job_id),
+        )
+
+        builder = self.get_builder()
+        builder.create_job(job)
+
+        failstep = job.phases[0].steps[0]
+        failstep.result = Result.infra_failed
+        failstep.status = Status.finished
+        db.session.add(failstep)
+        db.session.commit()
+
+        replacement_step = builder.create_job(job, replaces=failstep)
+        # new jobstep should still be part of same job/phase
+        assert replacement_step.job == job
+        assert replacement_step.phase == failstep.phase
+        # make sure .steps actually includes the new jobstep
+        assert len(failstep.phase.steps) == 2
+        # make sure replacement id is correctly set
+        assert failstep.replacement_id == replacement_step.id
+
+        assert replacement_step.data == {
+            'build_no': '1',
+            'item_id': None,
+            'job_name': 'server',
+            'queued': False,
+            'uri': None,
+            'master': 'http://jenkins.example.com',
+        }
+
 
 class CancelStepTest(BaseTestCase):
     @responses.activate
