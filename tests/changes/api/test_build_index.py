@@ -238,7 +238,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert source.revision_sha == 'a' * 40
 
     def test_with_snapshot(self):
-        snapshot = self.create_snapshot(self.project)
+        snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
         image = self.create_snapshot_image(
             plan=self.plan,
             snapshot=snapshot,
@@ -309,7 +309,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
-            'snapshot_id': uuid.uuid4().hex,
+            'snapshot_id': snapshot.id.hex,
         })
         assert resp.status_code == 400
 

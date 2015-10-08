@@ -495,8 +495,8 @@ class BuildIndexAPIView(APIView):
             snapshot = Snapshot.query.get(snapshot_id)
             if not snapshot:
                 return error("Unable to find snapshot.")
-            if snapshot.status in [SnapshotStatus.invalidated, SnapshotStatus.active]:
-                return error("Snapshot is in an invalid state: %s", snapshot.status)
+            if snapshot.status != SnapshotStatus.active:
+                return error("Snapshot is in an invalid state: %s" % snapshot.status)
             for project in projects:
                 for plan in project.plans:
                     plan_options = plan.get_item_options()
