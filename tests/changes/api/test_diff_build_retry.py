@@ -6,7 +6,7 @@ from datetime import datetime
 from changes.config import db
 from changes.constants import Cause, Result, Status
 from changes.models import Build, Job, ProjectOption
-from changes.testutils import APITestCase, SAMPLE_DIFF
+from changes.testutils import APITestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, UnknownRevision, Vcs
 
 
@@ -39,7 +39,7 @@ class DiffBuildRetryTest(APITestCase):
             # mainly that `export` and `log` now works.
             fake_vcs.log.side_effect = log_results
             fake_vcs.export.side_effect = None
-            fake_vcs.export.return_value = SAMPLE_DIFF
+            fake_vcs.export.return_value = SAMPLE_DIFF_BYTES
 
         fake_vcs.update.side_effect = fake_update
 

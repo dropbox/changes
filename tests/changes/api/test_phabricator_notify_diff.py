@@ -8,7 +8,7 @@ from mock import Mock, patch
 
 from changes.config import db
 from changes.models import Job, JobPlan, ProjectOption
-from changes.testutils import APITestCase, SAMPLE_DIFF
+from changes.testutils import APITestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.testutils.build import CreateBuildsMixin
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
 
@@ -40,7 +40,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
             # mainly that `export` and `log` now works.
             fake_vcs.log.side_effect = log_results
             fake_vcs.export.side_effect = None
-            fake_vcs.export.return_value = SAMPLE_DIFF
+            fake_vcs.export.return_value = SAMPLE_DIFF_BYTES
 
         fake_vcs.update.side_effect = fake_update
 
@@ -52,7 +52,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
             'phabricator.diffID': '1324134',
             'phabricator.revisionID': '1234',
             'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
             'sha': 'a' * 40,
             'label': 'Foo Bar',
             'message': 'Hello world!',

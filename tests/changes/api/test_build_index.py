@@ -11,7 +11,7 @@ from changes.api.build_index import find_green_parent_sha
 from changes.config import db
 from changes.constants import Status, Result
 from changes.models import Job, JobPlan, Patch, ProjectOption, SnapshotStatus
-from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
+from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
 from changes.testutils.build import CreateBuildsMixin
 
@@ -210,7 +210,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             # mainly that `export` and `log` now works.
             fake_vcs.log.side_effect = log_results
             fake_vcs.export.side_effect = None
-            fake_vcs.export.return_value = SAMPLE_DIFF
+            fake_vcs.export.return_value = SAMPLE_DIFF_BYTES
 
         fake_vcs.update.side_effect = fake_update
 
@@ -426,7 +426,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data['label'] = 'Foo Bar'
         data['message'] = 'Hello world!'
         data['author'] = 'David Cramer <dcramer@example.com>'
-        data['patch'] = (StringIO(SAMPLE_DIFF), 'foo.diff')
+        data['patch'] = (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff')
         data['patch[data]'] = '{"foo": "bar"}'
         return self.client.post(self.path, data=data)
 
@@ -914,7 +914,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             'project': self.project.slug,
             'apply_project_files_trigger': '1',
             'ensure_only': '1',
-            'patch': (StringIO(SAMPLE_DIFF), 'foo.diff'),
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
         })
         assert resp.status_code == 400
         data = self.unserialize(resp)

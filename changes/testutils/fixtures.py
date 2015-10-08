@@ -15,7 +15,7 @@ from changes.models import (
 )
 from changes.utils.slugs import slugify
 
-__all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
+__all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF_BYTES', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
            'SAMPLE_XUNIT_DOUBLE_CASES',
            'SAMPLE_XUNIT_TESTARTIFACTS')
 
@@ -52,8 +52,10 @@ SAMPLE_COVERAGE = """<?xml version="1.0" ?>
     </packages>
 </coverage>"""
 
-with open('sample.diff', 'r') as f:
-    SAMPLE_DIFF = f.read()
+with open('sample.diff', 'rb') as f:
+    SAMPLE_DIFF_BYTES = f.read()
+
+SAMPLE_DIFF = SAMPLE_DIFF_BYTES.decode('utf-8')
 
 SAMPLE_XUNIT = """<?xml version="1.0" encoding="utf-8"?>
 <testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.077">
