@@ -109,6 +109,7 @@ class Snapshot(db.Model):
     # The build that generated this snapshot.
     build = relationship('Build', backref=backref('snapshot', uselist=False))
     project = relationship('Project', innerjoin=True)
+
     # The source that was used to generate the snapshot.
     source = relationship('Source')
 
@@ -118,7 +119,7 @@ class Snapshot(db.Model):
             self.id = uuid4()
 
     @classmethod
-    def get_current(self, project_id):
+    def get_current(cls, project_id):
         """Return the current Snapshot for a project (or None if one is not set)."""
         from changes.models import ProjectOption
 
@@ -217,16 +218,19 @@ class SnapshotImage(db.Model):
         db.session.commit()
 
     @classmethod
-    def get_current(self, plan):
-        """Return the current SnapshotImage for a plan (or None if one is not set)."""
-        current_snapshot = Snapshot.get_current(plan.project_id)
-        if current_snapshot is not None:
-            snapshot_plan_id = plan.snapshot_plan_id
-            if snapshot_plan_id is None:
-                snapshot_plan_id = plan.id
+    def get(cls, plan, snapshot_id):
+        """Return the SnapshotImage for a plan or None if one is not set.
+        """
 
+        # This plan might be configured to be dependent on another plan's snapshot
+        snapshot_plan = plan
+        if plan.snapshot_plan is not None:
+            snapshot_plan = plan.snapshot_plan
+
+        snapshot = Snapshot.query.filter(Snapshot.id == snapshot_id).scalar()
+        if snapshot is not None:
             return SnapshotImage.query.filter(
-                        SnapshotImage.snapshot_id == current_snapshot.id,
-                        SnapshotImage.plan_id == snapshot_plan_id,
+                        SnapshotImage.snapshot_id == snapshot.id,
+                        SnapshotImage.plan_id == snapshot_plan.id,
                    ).scalar()
         return None

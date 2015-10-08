@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import logging
 import uuid
 
 from collections import defaultdict
@@ -104,7 +105,15 @@ class JobPlan(db.Model):
 
     # TODO(dcramer): find a better place for this
     @classmethod
-    def build_jobplan(cls, plan, job):
+    def build_jobplan(cls, plan, job, snapshot_id=None):
+        """Creates and returns a jobplan.
+
+        Unless a snapshot_id is given, no snapshot will be used. This differs
+        from the build index endpoint where the default is the current snapshot
+        for a project.
+        If a snapshot image is not found for a plan configured to use
+        snapshots, a warning is given.
+        """
         from changes.models import ItemOption
         from changes.models import SnapshotImage
 
@@ -131,9 +140,17 @@ class JobPlan(db.Model):
         }
 
         snapshot_image_id = None
-        current_snapshot_image = SnapshotImage.get_current(plan)
-        if current_snapshot_image is not None:
-            snapshot_image_id = current_snapshot_image.id
+        # TODO(paulruan): Remove behavior that just having a snapshot plan means
+        #                 snapshot use is enabled. Just `snapshot.allow` should be sufficient.
+        allow_snapshot = options[plan.id].get('snapshot.allow', False) or plan.snapshot_plan
+        if allow_snapshot and snapshot_id is not None:
+            snapshot_image = SnapshotImage.get(plan, snapshot_id)
+            if snapshot_image is not None:
+                snapshot_image_id = snapshot_image.id
+
+            if snapshot_image is None:
+                logging.warning("Failed to find snapshot_image for %s's %s.",
+                                plan.project.slug, plan.label)
 
         instance = cls(
             plan_id=plan.id,

@@ -52,6 +52,7 @@ class Plan(db.Model):
     avg_build_time = Column(Integer)
 
     project = relationship('Project', backref=backref('plans'))
+    snapshot_plan = relationship('Plan', remote_side=[id])
 
     __repr__ = model_repr('label')
     __tablename__ = 'plan'
@@ -64,3 +65,15 @@ class Plan(db.Model):
             self.date_created = datetime.utcnow()
         if self.date_modified is None:
             self.date_modified = self.date_created
+
+    def get_item_options(self):
+        from changes.models import ItemOption
+        options_query = db.session.query(
+            ItemOption.name, ItemOption.value
+        ).filter(
+            ItemOption.item_id == self.id,
+        )
+        options = dict()
+        for opt_name, opt_value in options_query:
+            options[opt_name] = opt_value
+        return options

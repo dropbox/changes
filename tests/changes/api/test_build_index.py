@@ -1,4 +1,5 @@
 import json
+import uuid
 import yaml
 
 from cStringIO import StringIO
@@ -9,7 +10,7 @@ from mock import patch, Mock
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Job, JobPlan, Patch, ProjectOption
+from changes.models import Job, JobPlan, Patch, ProjectOption, SnapshotStatus
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
 from changes.testutils.build import CreateBuildsMixin
@@ -235,6 +236,109 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
         assert source.repository_id == self.project.repository_id
         assert source.revision_sha == 'a' * 40
+
+    def test_with_snapshot(self):
+        snapshot = self.create_snapshot(self.project)
+        image = self.create_snapshot_image(
+            plan=self.plan,
+            snapshot=snapshot,
+        )
+        self.create_option(
+            item_id=self.plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'snapshot_id': snapshot.id.hex,
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        job = Job.query.filter(
+            Job.build_id == data[0]['id']
+        ).first()
+        build = job.build
+        source = build.source
+
+        assert job.project == self.project
+
+        assert source.repository_id == self.project.repository_id
+        assert source.revision_sha == 'a' * 40
+
+        jobplan = JobPlan.query.filter(
+            JobPlan.build_id == data[0]['id'],
+            JobPlan.job_id == job.id
+        ).first()
+
+        assert jobplan.snapshot_image_id == image.id
+
+    def test_with_nonexistent_snapshot(self):
+        self.create_option(
+            item_id=self.plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'snapshot_id': uuid.uuid4().hex,
+        })
+        assert resp.status_code == 400
+
+    def test_with_pending_snapshot(self):
+        snapshot = self.create_snapshot(self.project, status=SnapshotStatus.pending)
+        image = self.create_snapshot_image(
+            plan=self.plan,
+            snapshot=snapshot,
+        )
+        self.create_option(
+            item_id=self.plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'snapshot_id': uuid.uuid4().hex,
+        })
+        assert resp.status_code == 400
+
+    def test_with_snapshot_missing_image(self):
+        another_plan = self.create_plan(self.project)
+        snapshot = self.create_snapshot(self.project)
+        image = self.create_snapshot_image(
+            plan=self.plan,
+            snapshot=snapshot,
+        )
+        # plan has snapshots enabled but the snapshot does not have an image for it
+        self.create_option(
+            item_id=self.plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        self.create_option(
+            item_id=another_plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'snapshot_id': snapshot.id.hex,
+        })
+        assert resp.status_code == 400
 
     @patch('changes.models.Repository.get_vcs')
     def test_defaults_to_revision(self, get_vcs):

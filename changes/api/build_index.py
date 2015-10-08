@@ -18,8 +18,8 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, ProjectOptionsHelper, Build, Job, JobPlan, Repository,
-    RepositoryStatus, Patch, ItemOption, Source, PlanStatus, Revision,
-    ProjectConfigError
+    RepositoryStatus, Patch, ItemOption, Snapshot, SnapshotImage, SnapshotStatus,
+    Source, PlanStatus, Revision, ProjectConfigError
 )
 from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
@@ -124,7 +124,7 @@ def find_green_parent_sha(project, sha):
 
 def create_build(project, collection_id, label, target, message, author,
                  change=None, patch=None, cause=None, source=None, sha=None,
-                 source_data=None, tag=None):
+                 source_data=None, tag=None, snapshot_id=None):
     assert sha or source
 
     repository = project.repository
@@ -169,7 +169,7 @@ def create_build(project, collection_id, label, target, message, author,
     db.session.add(build)
     db.session.commit()
 
-    execute_build(build=build)
+    execute_build(build=build, snapshot_id=snapshot_id)
 
     return build
 
@@ -178,10 +178,17 @@ def get_build_plans(project):
     return [p for p in project.plans if p.status == PlanStatus.active]
 
 
-def execute_build(build):
+def execute_build(build, snapshot_id=None):
     # TODO(dcramer): most of this should be abstracted into sync_build as if it
     # were a "im on step 0, create step 1"
     project = build.project
+
+    # We choose a snapshot before creating jobplans. This is so that different
+    # jobplans won't end up using different snapshots in a build.
+    if snapshot_id is None:
+        snapshot = Snapshot.get_current(project.id)
+        if snapshot:
+            snapshot_id = snapshot.id
 
     jobs = []
     for plan in get_build_plans(project):
@@ -198,7 +205,7 @@ def execute_build(build):
 
         db.session.add(job)
 
-        jobplan = JobPlan.build_jobplan(plan, job)
+        jobplan = JobPlan.build_jobplan(plan, job, snapshot_id=snapshot_id)
 
         db.session.add(jobplan)
 
@@ -387,6 +394,14 @@ class BuildIndexAPIView(APIView):
     """
     parser.add_argument('ensure_only', type=bool, default=False)
 
+    """Optional id of the snapshot to use for this build. If none is given,
+    the current active snapshot for the project(s) will be used.
+
+    TODO(paulruan): It might be useful to have a flag that allows us to say that
+    no snapshot should be used.
+    """
+    parser.add_argument('snapshot_id', type=uuid.UUID, default=None)
+
     def get(self):
         queryset = Build.query.options(
             joinedload('project'),
@@ -411,14 +426,17 @@ class BuildIndexAPIView(APIView):
         3. If ``patch`` is given, then apply the patch and mark this as a diff build.
         Otherwise, this is a commit build.
 
-        4. If provided, apply project_whitelist, filtering out projects not in
+        4. If ``snapshot_id`` is given, verify that the snapshot can be used by all
+        projects.
+
+        5. If provided, apply project_whitelist, filtering out projects not in
         this whitelist.
 
-        5. Based on the flag ``apply_project_files_trigger`` (see comment on the argument
+        6. Based on the flag ``apply_project_files_trigger`` (see comment on the argument
         itself for default values), decide whether or not to filter out projects
         by file blacklist and whitelist.
 
-        6. Attach metadata and create/ensure existence of a build for each project,
+        7. Attach metadata and create/ensure existence of a build for each project,
         depending on the flag ``ensure_only``.
 
         NOTE: In ensure-only mode, the collection_ids of the returned builds are
@@ -467,11 +485,28 @@ class BuildIndexAPIView(APIView):
         author = args.author
         message = args.message
         tag = args.tag
+        snapshot_id = args.snapshot_id
 
         if not tag and args.patch_file:
             tag = 'patch'
 
-        # 2. find revision
+        # 2. validate snapshot
+        if snapshot_id:
+            snapshot = Snapshot.query.get(snapshot_id)
+            if not snapshot:
+                return error("Unable to find snapshot.")
+            if snapshot.status in [SnapshotStatus.invalidated, SnapshotStatus.active]:
+                return error("Snapshot is in an invalid state: %s", snapshot.status)
+            for project in projects:
+                for plan in project.plans:
+                    plan_options = plan.get_item_options()
+                    allow_snapshot = '1' == plan_options.get('snapshot.allow', '0') or plan.snapshot_plan
+                    if allow_snapshot and not SnapshotImage.get(plan, snapshot_id):
+                        # We want to create a build using a specific snapshot but no image
+                        # was found for this plan so fail.
+                        return error("Snapshot cannot be applied to %s's %s" % (project.slug, plan.label,))
+
+        # 3. find revision
         try:
             revision = identify_revision(repository, args.sha)
         except MissingRevision:
@@ -505,7 +540,7 @@ class BuildIndexAPIView(APIView):
                 label = 'A homeless build'
         label = label[:128]
 
-        # 3. Check for patch
+        # 4. Check for patch
         if args.patch_file:
             fp = StringIO()
             for line in args.patch_file:
@@ -566,7 +601,7 @@ class BuildIndexAPIView(APIView):
             if not plan_list:
                 logging.warning('No plans defined for project %s', project.slug)
                 continue
-            # 4. apply project whitelist as appropriate
+            # 5. apply project whitelist as appropriate
             if args.project_whitelist is not None and project.slug not in args.project_whitelist:
                 logging.info('Project %s is not in the supplied whitelist', project.slug)
                 continue
@@ -579,7 +614,7 @@ class BuildIndexAPIView(APIView):
             #         sha=sha,
             #     )
 
-            # 5. apply file whitelist as appropriate
+            # 6. apply file whitelist as appropriate
             diff = None
             if patch is not None:
                 diff = patch.diff
@@ -601,7 +636,7 @@ class BuildIndexAPIView(APIView):
                     author_name = author.name
                 logging.error('Project config for project %s is not in a valid format. Author is %s.', project.slug, author_name, exc_info=True)
 
-            # 6. create/ensure build
+            # 7. create/ensure build
             if args.ensure_only:
                 potentials = list(Build.query.filter(
                     Build.project_id == project.id,
@@ -621,6 +656,7 @@ class BuildIndexAPIView(APIView):
                         patch=patch,
                         source_data=patch_data,
                         tag=tag,
+                        snapshot_id=snapshot_id,
                     ))
                 else:
                     builds.append(potentials[0])
@@ -636,6 +672,7 @@ class BuildIndexAPIView(APIView):
                     patch=patch,
                     source_data=patch_data,
                     tag=tag,
+                    snapshot_id=snapshot_id,
                 ))
 
         return self.respond(builds)

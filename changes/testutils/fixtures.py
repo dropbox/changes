@@ -199,8 +199,8 @@ class Fixtures(object):
 
         return job
 
-    def create_job_plan(self, job, plan):
-        jobplan = JobPlan.build_jobplan(plan, job)
+    def create_job_plan(self, job, plan, snapshot_id=None):
+        jobplan = JobPlan.build_jobplan(plan, job, snapshot_id=snapshot_id)
         db.session.add(jobplan)
         db.session.commit()
 

@@ -60,7 +60,7 @@ class TestSnapshotImageTestCase(TestCase):
         ))
         snapshot_image = self.create_snapshot_image(snapshot, plan)
 
-        assert snapshot_image == SnapshotImage.get_current(plan)
+        assert snapshot_image == SnapshotImage.get(plan, snapshot.id)
 
     def test_get_snapshot_image_dependent(self):
         project = self.create_project()
@@ -76,5 +76,21 @@ class TestSnapshotImageTestCase(TestCase):
         snapshot_image_1 = self.create_snapshot_image(snapshot, plan_1)
         snapshot_image_2 = self.create_snapshot_image(snapshot, plan_2)
 
-        assert snapshot_image_2 == SnapshotImage.get_current(plan_1)
-        assert snapshot_image_2 == SnapshotImage.get_current(plan_2)
+        assert snapshot_image_2 == SnapshotImage.get(plan_1, snapshot.id)
+        assert snapshot_image_2 == SnapshotImage.get(plan_2, snapshot.id)
+
+    def test_get_snapshot_image_given_snapshot(self):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        snapshot = self.create_snapshot(project)
+        current_snapshot = self.create_snapshot(project)
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='snapshot.current',
+            value=current_snapshot.id.hex,
+        ))
+        snapshot_image = self.create_snapshot_image(snapshot, plan)
+        current_snapshot_image = self.create_snapshot_image(current_snapshot, plan)
+
+        assert snapshot_image == SnapshotImage.get(plan, snapshot.id)
+        assert current_snapshot_image == SnapshotImage.get(plan, current_snapshot.id)

@@ -5,7 +5,7 @@ from changes.api.project_snapshot_index import get_snapshottable_plans
 from changes.buildsteps.dummy import DummyBuildStep
 from changes.config import db
 from changes.constants import Status, Cause
-from changes.models import Snapshot, SnapshotImage, SnapshotStatus
+from changes.models import JobPlan, Snapshot, SnapshotImage, SnapshotStatus
 from changes.testutils import APITestCase
 
 
@@ -169,6 +169,14 @@ class CreateProjectSnapshotTest(APITestCase):
         assert images[1].plan_id == plan_2.id
         assert images[1].job_id
         assert images[0].job_id != images[1].job_id
+
+        # Verify that snapshot builds don't use snapshots
+        jobplans = [JobPlan.query.filter(
+            JobPlan.plan_id == image.plan.id,
+            JobPlan.job_id == image.job.id
+        ).scalar() for image in [images[0], images[1]]]
+        for jobplan in jobplans:
+            assert jobplan.snapshot_image_id is None
 
         assert len(mock_create_job.mock_calls) == 2
         for image in images:

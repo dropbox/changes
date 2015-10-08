@@ -64,6 +64,11 @@ class JobStepDetailsTest(APITestCase):
             plan=plan,
             snapshot=snapshot,
         )
+        self.create_option(
+            item_id=plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
         db.session.add(ProjectOption(
             project_id=project.id,
             name='snapshot.current',
@@ -71,7 +76,7 @@ class JobStepDetailsTest(APITestCase):
         ))
         db.session.commit()
 
-        self.create_job_plan(job, plan)
+        self.create_job_plan(job, plan, snapshot.id)
         db.session.commit()
 
         path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
@@ -315,7 +320,7 @@ class UpdateJobStepTest(APITestCase):
         ))
         db.session.commit()
 
-        self.create_job_plan(job, plan_1)
+        self.create_job_plan(job, plan_1, snapshot.id)
         db.session.commit()
 
         path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
@@ -344,7 +349,7 @@ class UpdateJobStepTest(APITestCase):
         ))
         db.session.commit()
 
-        self.create_job_plan(job, plan_1)
+        self.create_job_plan(job, plan_1, snapshot.id)
         db.session.commit()
 
         path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
