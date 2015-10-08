@@ -262,8 +262,8 @@ export var SingleBuild = React.createClass({
 
       rows.push([
         markup,
-        display_duration(test.duration / 1000),
         <a href={href}>History</a>,
+        display_duration(test.duration / 1000),
       ]);
 
       if (this.state.expandedTests[test.id]) {
@@ -296,7 +296,7 @@ export var SingleBuild = React.createClass({
         colnum={3}
         className="marginBottomM"
         data={rows}
-        headers={['Name', 'Duration', 'Links']}
+        headers={['Name', 'Links', 'Duration']}
       />
       {more_markup}
     </div>;
