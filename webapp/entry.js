@@ -175,7 +175,7 @@ require([
     if (!window.changesAuthData || !window.changesAuthData.user) {
       // disabled on the project page for now so that people can create
       // dashboards
-      var unauthOKPages = ['project'];
+      var unauthOKPages = ['project', 'pusher'];
       var unauthOK = _.any(unauthOKPages, function(path) { 
         return path_parts[0] === path
       });
