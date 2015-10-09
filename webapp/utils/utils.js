@@ -29,7 +29,7 @@ export var split_lines = function(text) {
   if (text === "") {
     return [text];
   }
-  return text.match(/[^\r\n]+/g);
+  return text.match(/^[^\r\n]*/mg);
 }
 
 // gets the first line of a string

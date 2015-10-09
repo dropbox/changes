@@ -41,8 +41,15 @@ var CodePage = React.createClass({
     console.log(source);
     utils.setPageTitle('Code');
 
+    var message_lines = utils.split_lines(source.revision.message);
+    var title = _.first(message_lines);
+    var message_body = _.rest(message_lines).join("\n").trim();
+
     return <ChangesPage>
-      <SectionHeader>Code</SectionHeader>
+      <SectionHeader>{title}</SectionHeader>
+      <pre style={{marginBottom: 15, marginTop: 5}}>
+      {message_body}
+      </pre>
       <InfoList className="marginBottomL">
         <InfoItem label="Internal Changes ID">
           {source.id}
