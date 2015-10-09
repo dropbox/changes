@@ -16,6 +16,7 @@ export var APIResponse = function(endpoint) {
 
 var APIResponsePrototype = {
   // for API calls that return json
+  // TODO: this name is terrible. Change it
   getReturnedData: function() {
     return JSON.parse(this.response.responseText);
   },

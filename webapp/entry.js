@@ -58,6 +58,7 @@ require([
   "es6!pages/all_projects_page",
   "es6!pages/node_page",
   "es6!pages/code_page",
+  "es6!pages/pusher_page",
   "es6!pages/examples_page",
   "es6!pages/fourohfour_page",
 ], function(
@@ -79,6 +80,7 @@ require([
   AllProjectsPage,
   NodePage,
   CodePage,
+  PusherPage,
   DisplayExamplesPage,
   FourOhFourPage
 ) {
@@ -133,6 +135,7 @@ require([
     'author': [HomePage, 'author'],  // TODO: don't just use the homepage
     'node': [NodePage, 'nodeID'],
     'code': [CodePage, 'sourceID'],
+    'pusher': [PusherPage],
     'display_examples': [DisplayExamplesPage]
   };
 

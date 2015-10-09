@@ -27,14 +27,18 @@ export var ChangesPage = React.createClass({
     // we have to use position: fixed for some pages
     fixed: PropTypes.bool,
     // if present, we render a link to return to the old ui
-    oldUI: PropTypes.string
+    oldUI: PropTypes.string,
+    // some pages can disable the perf widget (since they continuously
+    // live-update)
+    widget: PropTypes.bool,
   },
 
   getDefaultProps: function() {
     return {
       bodyPadding: true,
       isPageLoaded: true,
-      fixed: false
+      fixed: false,
+      widget: true
     };
   },
 
@@ -67,6 +71,7 @@ export var ChangesPage = React.createClass({
         highlight={this.props.highlight} 
         fixed={this.props.fixed} 
         oldUI={this.props.oldUI} 
+        widget={this.props.widget}
       />
       <div id="ChangesPageChildren" style={style}>
         {this.props.children}
@@ -124,7 +129,8 @@ var ChangesPageHeader = React.createClass({
   propTypes: {
     highlight: PropTypes.string, // see ChangesPage
     fixed: PropTypes.bool,
-    oldUI: PropTypes.string
+    oldUI: PropTypes.string,
+    widget: PropTypes.bool
   },
 
   getInitialState() {
@@ -196,7 +202,7 @@ var ChangesPageHeader = React.createClass({
           Projects
         </a>
         <ChangesLogin />
-        <ChangesInlinePerf />
+        {this.props.widget ? <ChangesInlinePerf /> : null}
         {learnMore}
         {feedback_link}
         {oldUI}

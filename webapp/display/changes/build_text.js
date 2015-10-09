@@ -222,13 +222,15 @@ export var WaitingLiveText = React.createClass({
     var runnable = this.props.runnable;
 
     if (!runnable.dateStarted) {
-      return <span>Not yet started</span>;
+      return this.props.text ? 
+        <span>Not yet started</span> :
+        <span>...</span>;
     }
 
     var unix = moment.utc(runnable.dateStarted).unix();
 
     return <span>
-      Time Since Start:{" "}
+      {this.props.text ? "Time Since Start: " : ''}
       <LiveTime time={unix} />
     </span>;
   }
