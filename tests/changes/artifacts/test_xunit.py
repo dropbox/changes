@@ -2,7 +2,7 @@ import uuid
 
 from cStringIO import StringIO
 
-from changes.artifacts.xunit import XunitHandler
+from changes.artifacts.xunit import XunitHandler, _truncate_message, _TRUNCATION_HEADER
 from changes.constants import Result
 from changes.models import JobStep, TestResult
 from changes.testutils import SAMPLE_XUNIT, SAMPLE_XUNIT_DOUBLE_CASES
@@ -133,3 +133,17 @@ test_simple.py:4: in tearDown
     1/0
 E   ZeroDivisionError: integer division or modulo by zero"""
     assert r2.reruns == 0
+
+
+def test_truncate_message():
+    suffix = "But it'll be truncated anyway."
+    original = ("This isn't really that big.\n" * 1024) + suffix
+    limit = len(suffix) + 3
+    newmsg = _truncate_message(original, limit=len(suffix) + 3)
+    assert len(newmsg) < limit + len(_TRUNCATION_HEADER)
+
+    short = "Hello"
+    assert short == _truncate_message(short, limit=1024)
+
+    single_long_line = "Text " * 1024
+    assert _truncate_message(single_long_line, limit=1024) == _TRUNCATION_HEADER

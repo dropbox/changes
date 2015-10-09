@@ -88,7 +88,7 @@ class XunitHandler(ArtifactHandler):
                 package=attrs.get('fixture') or None,
                 duration=float(attrs['duration']) * 1000,
                 result=result,
-                message=message,
+                message=_truncate_message(message),
             ))
 
         return results
@@ -147,7 +147,9 @@ class XunitHandler(ArtifactHandler):
                 package=attrs.get('classname') or None,
                 duration=duration,
                 result=result,
-                message=message,
+                # We truncate before deduplication; this gives us a weaker guarantee on maximum size,
+                # but ensures that we have at least some message from each test.
+                message=_truncate_message(message),
                 reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None,
                 artifacts=self._get_testartifacts(node)
             ))
@@ -206,3 +208,28 @@ def _careful(op, a, b):
     if b is None:
         return a
     return op(a, b)
+
+
+_TRUNCATION_HEADER = " -- CONTENT TRUNCATED; Look for original XML file for the full data. --\n"
+
+# 640k ought to be enough for anybody.
+_MESSAGE_LIMIT = 640 * 1024
+
+
+def _truncate_message(msg, limit=_MESSAGE_LIMIT):
+    """Truncate a message if necessary, retaining as many ending lines as possible.
+    If truncated, a header line explaining may be prepended to the beginning.
+
+    Args:
+        msg (str): The message to potentially truncate.
+        limit (Optional[int]): Maximum number of bytes to retain of the message.
+    """
+    # 640k ought to be enough for anybody.
+    if len(msg) <= limit:
+        return msg
+    nl = msg.find('\n', len(msg) - limit)
+    if nl == -1:
+        msg = ''  # No line ending? This message is going to be unreadable.
+    else:
+        msg = msg[nl + 1:]
+    return _TRUNCATION_HEADER + msg
