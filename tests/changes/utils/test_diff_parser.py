@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from changes.testutils.fixtures import SAMPLE_DIFF as COMPLEX_DIFF
+from changes.testutils.fixtures import SAMPLE_DIFF_BYTES as COMPLEX_DIFF
 from changes.testutils import TestCase
 from changes.utils.diff_parser import DiffParser
 
@@ -158,7 +158,7 @@ class DiffParserTest(TestCase):
 """ + ' ' + """
 +    new_file_text = ""
 +    if os.path.isfile('%s/coverage.xml' % os.getcwd()):
-+        write_out("Replacing all paths in coverage.xml with repo paths.")
++        write_out("Replacing all paths in coverage.xml with repo paths. \xe2\x98\x83")
 +        with open('%s/coverage.xml' % os.getcwd(), 'r') as f:
 +            file_text = f.read()
 +            new_file_text = file_text.replace("filename='", "filename='%s" % cwd)

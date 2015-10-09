@@ -60,17 +60,22 @@ class Source(db.Model):
             self.date_created = datetime.utcnow()
 
     def generate_diff(self):
+        diff = None
+
         if self.patch:
-            return self.patch.diff
+            diff = self.patch.diff
+        else:
+            vcs = self.repository.get_vcs()
+            if vcs:
+                try:
+                    diff = vcs.export(self.revision_sha)
+                except Exception:
+                    pass
 
-        vcs = self.repository.get_vcs()
-        if vcs:
-            try:
-                return vcs.export(self.revision_sha)
-            except Exception:
-                pass
+        if isinstance(diff, bytes):
+            diff = diff.decode('utf-8')
 
-        return None
+        return diff
 
     def is_commit(self):
         return bool(self.patch_id is None and self.revision_sha)

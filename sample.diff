@@ -22,7 +22,7 @@ diff -r 3142efbcdcdb -r 28720876f4a2 ci/run_with_retries.py
 
 +    new_file_text = ""
 +    if os.path.isfile('%s/coverage.xml' % os.getcwd()):
-+        write_out("Replacing all paths in coverage.xml with repo paths.")
++        write_out("Replacing all paths in coverage.xml with repo paths. ☃")
 +        with open('%s/coverage.xml' % os.getcwd(), 'r') as f:
 +            file_text = f.read()
 +            new_file_text = file_text.replace("filename='", "filename='%s" % cwd)

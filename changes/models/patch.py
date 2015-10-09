@@ -38,3 +38,5 @@ class Patch(db.Model):
             self.id = uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+        if isinstance(self.diff, bytes):
+            self.diff = self.diff.decode('utf-8')

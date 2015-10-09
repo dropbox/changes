@@ -140,7 +140,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
         patch = Patch(
             repository=repository,
             parent_revision_sha=sha,
-            diff=''.join(args.patch_file),
+            diff=''.join(line.decode('utf-8') for line in args.patch_file),
         )
         db.session.add(patch)
 
