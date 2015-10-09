@@ -53,8 +53,11 @@
           {% if IS_DEBUG %}
           IS_DEBUG: true,
           {% endif %}
+          {% if COLORBLIND %}
+          COLORBLIND: true,
+          {% endif %}
           APP_VERSION: '{{ VERSION }}',
-          PHABRICATOR_HOST: '{{ PHABRICATOR_HOST }}',
+          PHABRICATOR_HOST: '{{ PHABRICATOR_HOST }}'
         };
         {% if WEBAPP_USE_ANOTHER_HOST %}
           window.changesGlobals['USE_ANOTHER_HOST'] =
@@ -73,14 +76,25 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href="{{ url_for('webapp_v2.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
     {% if HAS_CUSTOM_CSS %}
-      {% assets filters="less", output="css/bundled_with_custom.css", depends=["**/*.less", "custom/**/*.less"], "css/bundle_definition_custom.less" %}
-        <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
-        <script type="text"></script>
-      {% endassets %}
+      {% if COLORBLIND %}
+        {% assets filters="less", output="dist/bundled_with_custom_colorblind.css", depends=["**/*.less", "custom/**/*.less"], "css/bundle_definition_custom_colorblind.less" %}
+          <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+        {% endassets %}
+      {% else %}
+        {% assets filters="less", output="dist/bundled_with_custom.css", depends=["**/*.less", "custom/**/*.less"], "css/bundle_definition_custom.less" %}
+          <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+        {% endassets %}
+      {% endif %}
     {% else %}
-      {% assets filters="less", output="css/bundled.css", depends="**/*.less", "css/bundle_definition.less" %}
-        <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
-      {% endassets %}
+      {% if COLORBLIND %}
+        {% assets filters="less", output="dist/bundled_colorblind.css", depends="**/*.less", "css/bundle_definition_colorblind.less" %}
+          <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+        {% endassets %}
+      {% else %}
+        {% assets filters="less", output="dist/bundled.css", depends="**/*.less", "css/bundle_definition.less" %}
+          <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+        {% endassets %}
+      {% endif %}
     {% endif %}
     <link href='https://fonts.googleapis.com/css?family=Slabo+13px' rel='stylesheet' type='text/css'>
   </head>

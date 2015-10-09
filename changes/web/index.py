@@ -2,9 +2,11 @@ import changes
 import urlparse
 
 from changes.api.auth import get_current_user
-from changes.config import statsreporter
+from changes.config import statsreporter, db
 from flask import render_template, redirect, current_app, request
 from flask.views import MethodView
+
+from changes.models import ItemOption
 
 
 class IndexView(MethodView):
@@ -45,6 +47,16 @@ class IndexView(MethodView):
         if redir:
             return redir
 
+        # get user options, e.g. colorblind
+        current_user = get_current_user()
+        user_options = {}
+        if current_user:
+            user_options = dict(db.session.query(
+                ItemOption.name, ItemOption.value,
+            ).filter(
+                ItemOption.item_id == current_user.id,
+            ))
+
         statsreporter.stats().incr('homepage_view')
         if current_app.config['SENTRY_DSN'] and False:
             parsed = urlparse.urlparse(current_app.config['SENTRY_DSN'])
@@ -82,7 +94,9 @@ class IndexView(MethodView):
                 'HAS_CUSTOM_CSS': (current_app.config['WEBAPP_CUSTOM_CSS'] and
                     not disable_custom),
                 'IS_DEBUG': current_app.debug,
-                'PHABRICATOR_HOST': current_app.config['PHABRICATOR_HOST']
+                'PHABRICATOR_HOST': current_app.config['PHABRICATOR_HOST'],
+                'COLORBLIND': (user_options.get('user.colorblind') and
+                    user_options.get('user.colorblind') != '0'),
             })
 
         return render_template('index.html', **{

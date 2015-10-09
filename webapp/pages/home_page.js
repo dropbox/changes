@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
+import PostRequest from 'es6!display/post_request';
 import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
@@ -74,10 +75,14 @@ var HomePage = React.createClass({
       utils.setPageTitle(`${utils.email_head(this.props.author)} - Changes`);
     }
 
-    var projects = null;
+    var projects = null, options = null;
     if (!this.props.author) {
       projects = <div className="marginTopL">
         <Projects projects={this.state.projects} />
+      </div>;
+
+      options = <div className="marginTopL">
+        <UserOptions />
       </div>;
     }
 
@@ -94,6 +99,7 @@ var HomePage = React.createClass({
         />
       </div>
       {projects}
+      {options}
     </ChangesPage>;
   },
 
@@ -354,6 +360,28 @@ var Projects = React.createClass({
         are not shown. See all on the{" "}
         <a href="/v2/projects/">Projects page</a>
       </div>
+    </div>;
+  }
+});
+
+var UserOptions = React.createClass({
+  getInitialState() {
+    return {};
+  },
+
+  render() {
+    var isChecked = window.changesGlobals['COLORBLIND'];
+    return <div className="subText">
+      <span className="marginRightS">Options: </span>
+      <PostRequest
+        parentElem={this}
+        name="setOption"
+        endpoint={`/api/0/user_options/?user.colorblind=${!isChecked ? 1 : 0}`}>
+        <label>
+          <input type="checkbox" checked={isChecked} />
+          Colorblind Mode
+        </label>
+      </PostRequest>
     </div>;
   }
 });

@@ -562,6 +562,7 @@ def configure_api_routes(app):
     from changes.api.testcase_details import TestCaseDetailsAPIView
     from changes.api.user_details import UserDetailsAPIView
     from changes.api.user_index import UserIndexAPIView
+    from changes.api.user_options import UserOptionsAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
@@ -652,6 +653,7 @@ def configure_api_routes(app):
     api.add_resource(TaskDetailsAPIView, '/tasks/<uuid:task_id>/')
     api.add_resource(UserIndexAPIView, '/users/')
     api.add_resource(UserDetailsAPIView, '/users/<uuid:user_id>/')
+    api.add_resource(UserOptionsAPIView, '/user_options/')
     api.add_resource(APICatchall, '/<path:path>')
 
 
