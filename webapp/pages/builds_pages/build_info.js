@@ -165,6 +165,11 @@ export var SingleBuild = React.createClass({
       </div> :
       null;
 
+    // show a button for the tests for build page, since its important and we
+    // want a prominent link
+    var buildTestsHref = `/v2/build_tests/${build.id}` +
+      (build.testFailures.total > 0 ? '' : "#SlowTests")
+
     return <div>
       <PostRequest
         parentElem={this}
@@ -176,6 +181,15 @@ export var SingleBuild = React.createClass({
         </Button>
       </PostRequest>
       {cancel}
+      <div className="marginTopM">
+        <Button 
+          type="white" 
+          className="sizedButton" 
+          href={buildTestsHref}>
+          <i className="fa fa-ellipsis-h marginRightM" />
+          Test Details
+        </Button>
+      </div>
     </div>;
   },
 
