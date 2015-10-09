@@ -218,6 +218,12 @@ export var WaitingTooltip = React.createClass({
 // internal component that implements the above
 export var WaitingLiveText = React.createClass({
 
+  getDefaultProps() {
+    return {
+      text: true
+    };
+  },
+
   render() {
     var runnable = this.props.runnable;
 
