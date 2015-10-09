@@ -54,8 +54,7 @@ class SourceDetailsAPIView(APIView):
         if not diff:
             return None
 
-        # Let's just encode it as utf-8 just in case
-        diff_lines = diff.encode('utf-8').splitlines()
+        diff_lines = diff.splitlines()
 
         current_file = None
         line_number = None
@@ -103,10 +102,10 @@ class SourceDetailsAPIView(APIView):
         Returns a list of filenames from a diff.
         """
         files = set()
-        diff_lines = diff.encode('utf-8').split('\n')
+        diff_lines = diff.split('\n')
         for line in diff_lines:
             if line.startswith('+++ b/'):
                 line = line.split('\t')[0]
-                files.add(unicode(line[6:]))
+                files.add(line[6:])
 
         return files
