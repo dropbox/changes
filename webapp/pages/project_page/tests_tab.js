@@ -256,10 +256,15 @@ var TestsTab = React.createClass({
       'nowrap'
     ];
 
+    var explanation = 'Is dateUpdated more than 60 seconds later than ' +
+      'dateCreated?';
+
     var headers = [
       'Assigned',
       'Task',
-      'Ever Updated?',
+      <SimpleTooltip label={explanation} placement="left">
+        <span>Ever Updated?</span>
+      </SimpleTooltip>,
       'Modified'
     ];
 
