@@ -147,3 +147,6 @@ def test_truncate_message():
 
     single_long_line = "Text " * 1024
     assert _truncate_message(single_long_line, limit=1024) == _TRUNCATION_HEADER
+
+    # Because this was previously broken.
+    assert _truncate_message(None) is None

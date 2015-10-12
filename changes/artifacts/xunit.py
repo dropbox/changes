@@ -224,7 +224,7 @@ def _truncate_message(msg, limit=_MESSAGE_LIMIT):
         msg (str): The message to potentially truncate.
         limit (Optional[int]): Maximum number of bytes to retain of the message.
     """
-    if len(msg) <= limit:
+    if msg is None or len(msg) <= limit:
         return msg
     nl = msg.find('\n', len(msg) - limit)
     if nl == -1:
