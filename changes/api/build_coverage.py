@@ -1,6 +1,6 @@
 from changes.api.base import APIView
 
-from changes.lib.coverage import get_coverage_by_build_id
+from changes.lib.coverage import get_coverage_by_build_id, merged_coverage_data
 
 from changes.models import Build
 
@@ -11,9 +11,6 @@ class BuildTestCoverageAPIView(APIView):
         if build is None:
             return '', 404
 
-        coverage = {
-            c.filename: c.data
-            for c in get_coverage_by_build_id(build.id)
-        }
+        coverage = merged_coverage_data(get_coverage_by_build_id(build.id))
 
         return self.respond(coverage)

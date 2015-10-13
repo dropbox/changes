@@ -5,10 +5,10 @@ from cStringIO import StringIO
 from mock import patch
 
 from changes.artifacts.coverage import CoverageHandler
-from changes.models import Job, JobStep
+from changes.models import Job, JobStep, Source
 from changes.models.filecoverage import FileCoverage
 from changes.testutils import TestCase
-from changes.testutils.fixtures import SAMPLE_COVERAGE
+from changes.testutils.fixtures import SAMPLE_COVERAGE, SAMPLE_DIFF
 
 
 class CoverageHandlerTest(TestCase):
@@ -56,6 +56,26 @@ class CoverageHandlerTest(TestCase):
         assert r1.filename == 'src/main/java/com/dropbox/apx/onyx/api/resource/stats/StatsResource.java'
         assert r1.data == 'NNNNCCCCNNCCUU'
 
+    @patch.object(Source, 'generate_diff')
+    def test_process_diff(self, generate_diff):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        generate_diff.return_value = SAMPLE_DIFF
+
+        handler = CoverageHandler(jobstep)
+
+        lines_by_file = handler.get_processed_diff()
+        # Just check the keys and one detail (there are other unittests that validate this already)
+        assert set(lines_by_file) == {'ci/server-collect', 'ci/run_with_retries.py', 'ci/not-real'}
+        assert lines_by_file['ci/not-real'] == {1}
+
+        # This should be repeatable
+        assert handler.get_processed_diff() == lines_by_file
+
     @patch.object(CoverageHandler, 'get_coverage')
     @patch.object(CoverageHandler, 'process_diff')
     def test_process(self, process_diff, get_coverage):
@@ -69,6 +89,7 @@ class CoverageHandlerTest(TestCase):
 
         process_diff.return_value = {
             'setup.py': set([1, 2, 3, 4, 5]),
+            'config.py': set([1, 3]),
         }
 
         # now try with some duplicate coverage
@@ -78,6 +99,12 @@ class CoverageHandlerTest(TestCase):
             project_id=project.id,
             filename='setup.py',
             data='CUNNNNCCNNNUNNNUUUUUU'
+        ), FileCoverage(
+            job_id=job.id,
+            step_id=jobstep.id,
+            project_id=project.id,
+            filename='config.py',
+            data=''
         )]
 
         fp = StringIO()
@@ -92,6 +119,32 @@ class CoverageHandlerTest(TestCase):
             project_id=project.id,
             filename='setup.py',
             data='NUUNNNNNNNNUCCNU'
+        ), FileCoverage(
+            job_id=job.id,
+            step_id=jobstep.id,
+            project_id=project.id,
+            filename='config.py',
+            data='U'
+        )]
+
+        fp = StringIO()
+        handler.process(fp)
+        get_coverage.assert_called_once_with(fp)
+
+        get_coverage.reset_mock()
+
+        get_coverage.return_value = [FileCoverage(
+            job_id=job.id,
+            step_id=jobstep.id,
+            project_id=project.id,
+            filename='setup.py',
+            data='NUUNNNNNNNNUCCNU'
+        ), FileCoverage(
+            job_id=job.id,
+            step_id=jobstep.id,
+            project_id=project.id,
+            filename='config.py',
+            data='NNC'
         )]
 
         fp = StringIO()
@@ -101,10 +154,17 @@ class CoverageHandlerTest(TestCase):
         file_cov = list(FileCoverage.query.filter(
             FileCoverage.job_id == job.id,
         ))
-        assert len(file_cov) == 1
+        assert len(file_cov) == 2
+        file_cov.sort(key=lambda r: -len(r.data))
         assert file_cov[0].filename == 'setup.py'
         assert file_cov[0].data == 'CUUNNNCCNNNUCCNUUUUUU'
         assert file_cov[0].lines_covered == 5
         assert file_cov[0].lines_uncovered == 9
         assert file_cov[0].diff_lines_covered == 1
         assert file_cov[0].diff_lines_uncovered == 2
+        assert file_cov[1].filename == 'config.py'
+        assert file_cov[1].data == 'UNC'
+        assert file_cov[1].lines_covered == 1
+        assert file_cov[1].lines_uncovered == 1
+        assert file_cov[1].diff_lines_covered == 1
+        assert file_cov[1].diff_lines_uncovered == 1

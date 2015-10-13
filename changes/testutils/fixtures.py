@@ -35,14 +35,14 @@ SAMPLE_COVERAGE = """<?xml version="1.0" ?>
                         <line hits="0" number="12"/>
                         <line hits="1" number="13"/>
                         <line hits="1" number="14"/>
-                        <line hits="0" number="16"/>
+                        <line branch="true" condition-coverage="0% (0/2)" hits="0" number="16"/>
                     </lines>
                 </class>
                 <class branch-rate="0" complexity="0" filename="src/pytest_phabricator/plugin.py" line-rate="0.1875" name="src/pytest_phabricator/plugin">
                     <methods/>
                     <lines>
                         <line hits="1" number="1"/>
-                        <line hits="1" number="2"/>
+                        <line branch="true" condition-coverage="50% (1/2)" hits="1" number="2"/>
                         <line hits="1" number="3"/>
                         <line hits="0" number="7"/>
                     </lines>

@@ -99,6 +99,8 @@ class DiffParserTest(TestCase):
         assert files == set([
             'changes/utils/diff_parser.py',
         ])
+        lines_by_file = parser.get_lines_by_file()
+        assert lines_by_file == {'changes/utils/diff_parser.py': {74}}
 
     def test_get_changed_files_complex_diff(self):
         parser = DiffParser(COMPLEX_DIFF)
@@ -108,6 +110,11 @@ class DiffParserTest(TestCase):
             'ci/server-collect',
             'ci/not-real',
         ])
+        lines_by_file = parser.get_lines_by_file()
+        assert set(lines_by_file) == files
+        assert lines_by_file['ci/not-real'] == {1}
+        assert lines_by_file['ci/server-collect'] == {24, 31, 39, 46}
+        assert lines_by_file['ci/run_with_retries.py'] == {2, 45} | set(range(53, 63)) | set(range(185, 192))
 
     def test_reconstruct_file_diff_simple_diff(self):
         parser = DiffParser(SIMPLE_DIFF)
@@ -357,6 +364,7 @@ index 0000000..038d718
 """
         assert file_dict['old_filename'] is None
         assert parser.get_changed_files() == set(['whitelist/blacklist/a.txt'])
+        assert parser.get_lines_by_file() == {'whitelist/blacklist/a.txt': {1}}
 
     def test_dev_null_target(self):
         patch = """diff --git a/whitelist/blacklist/b.txt b/whitelist/blacklist/b.txt
@@ -378,3 +386,4 @@ index 038d718..0000000
 """
         assert file_dict['new_filename'] is None
         assert parser.get_changed_files() == set(['whitelist/blacklist/b.txt'])
+        assert parser.get_lines_by_file() == {}

@@ -6,6 +6,7 @@ from lxml import etree
 from sqlalchemy.exc import IntegrityError
 
 from changes.config import db, redis
+from changes.lib.coverage import merge_coverage, get_coverage_stats
 from changes.models.filecoverage import FileCoverage
 from changes.utils.diff_parser import DiffParser
 
@@ -40,26 +41,7 @@ class CoverageHandler(ArtifactHandler):
             FileCoverage.filename == new.filename,
         ).first()
 
-        cov_data = []
-        for lineno in range(max(len(existing.data), len(new.data))):
-            try:
-                old_cov = existing.data[lineno]
-            except IndexError:
-                pass
-
-            try:
-                new_cov = new.data[lineno]
-            except IndexError:
-                pass
-
-            if old_cov == 'C' or new_cov == 'C':
-                cov_data.append('C')
-            elif old_cov == 'U' or new_cov == 'U':
-                cov_data.append('U')
-            else:
-                cov_data.append('N')
-
-        existing.data = ''.join(cov_data)
+        existing.data = merge_coverage(existing.data, new.data)
 
         self.add_file_stats(existing)
 
@@ -78,17 +60,7 @@ class CoverageHandler(ArtifactHandler):
             return lines_by_file
 
         diff_parser = DiffParser(diff)
-        parsed_diff = diff_parser.parse()
-
-        for file_diff in parsed_diff:
-            for diff_chunk in file_diff['chunks']:
-                if not file_diff['new_filename']:
-                    continue
-
-                lines_by_file[file_diff['new_filename'][2:]].update(
-                    d['new_lineno'] for d in diff_chunk if d['action'] in ('add', 'del')
-                )
-        return lines_by_file
+        return diff_parser.get_lines_by_file()
 
     def get_processed_diff(self):
         if not hasattr(self, '_processed_diff'):
@@ -98,27 +70,10 @@ class CoverageHandler(ArtifactHandler):
     def add_file_stats(self, result):
         diff_lines = self.get_processed_diff()[result.filename]
 
-        lines_covered = 0
-        lines_uncovered = 0
-        diff_lines_covered = 0
-        diff_lines_uncovered = 0
-
-        for lineno, code in enumerate(result.data):
-            # lineno is 1-based in diff
-            line_in_diff = bool((lineno + 1) in diff_lines)
-            if code == 'C':
-                lines_covered += 1
-                if line_in_diff:
-                    diff_lines_covered += 1
-            elif code == 'U':
-                lines_uncovered += 1
-                if line_in_diff:
-                    diff_lines_uncovered += 1
-
-        result.lines_covered = lines_covered
-        result.lines_uncovered = lines_uncovered
-        result.diff_lines_covered = diff_lines_covered
-        result.diff_lines_uncovered = diff_lines_uncovered
+        (result.lines_covered,
+         result.lines_uncovered,
+         result.diff_lines_covered,
+         result.diff_lines_uncovered) = get_coverage_stats(diff_lines, result.data)
 
     def get_coverage(self, fp):
         """

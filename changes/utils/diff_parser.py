@@ -26,6 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from collections import defaultdict
 import re
 
 
@@ -186,6 +187,11 @@ class DiffParser(object):
         return diff
 
     def get_changed_files(self):
+        """Return the set of files affected by this diff.
+
+        This is the union of all non-null 'before' and 'after'
+        filenames found in the diff.
+        """
         results = set()
         for info in self.parse():
             if info['new_filename']:
@@ -193,3 +199,21 @@ class DiffParser(object):
             if info['old_filename']:
                 results.add(info['old_filename'][2:])
         return results
+
+    def get_lines_by_file(self):
+        """Return a dict mapping 'after' filenames to sets of 1-based line numbers.
+
+        The keys are all non-null 'after' filenames in the diff; the
+        values refer to the lines that were actually inserted or
+        replaced (so not counting lines included in the diff for
+        context only), in the numbering after the diff is applied.
+        """
+        lines_by_file = defaultdict(set)
+        for file_diff in self.parse():
+            for diff_chunk in file_diff['chunks']:
+                if not file_diff['new_filename']:
+                    continue
+                lines_by_file[file_diff['new_filename'][2:]].update(
+                    d['new_lineno'] for d in diff_chunk if d['action'] == 'add'
+                )
+        return lines_by_file
