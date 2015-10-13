@@ -182,7 +182,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
         buildstep = self.get_buildstep()
 
-        results, avg_time = buildstep.get_test_stats(project)
+        results, avg_time = buildstep.get_test_stats(project.slug)
 
         assert avg_time == 37
 

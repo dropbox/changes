@@ -202,9 +202,9 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         phase.result = aggregate_result([s.result for s in phase.current_steps] +
                                         [self._validate_shards(phase.current_steps)])
 
-    def get_test_stats(self, project):
+    def get_test_stats(self, project_slug):
         response = api_client.get('/projects/{project}/'.format(
-            project=project.slug))
+            project=project_slug))
         last_build = response['lastPassingBuild']
 
         if not last_build:
@@ -303,7 +303,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         assert 'tests' in phase_config
 
         num_tests = len(phase_config['tests'])
-        test_stats, avg_test_time = self.get_test_stats(self.test_stats_from or step.project)
+        test_stats, avg_test_time = self.get_test_stats(self.test_stats_from or step.project.slug)
 
         phase, created = get_or_create(JobPhase, where={
             'job': step.job,
