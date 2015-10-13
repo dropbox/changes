@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 from changes.api.base import APIView
 from changes.models import Source
-from changes.lib.coverage import get_coverage_by_source_id
+from changes.lib.coverage import get_coverage_by_source_id, merged_coverage_data
 import logging
 
 
@@ -23,11 +23,8 @@ class SourceDetailsAPIView(APIView):
         if diff:
             files = self._get_files_from_raw_diff(diff)
 
-            coverage = {
-                c.filename: c.data
-                for c in get_coverage_by_source_id(source_id)
-                if c.filename in files
-            }
+            coverage = merged_coverage_data(c for c in get_coverage_by_source_id(source_id)
+                                            if c.filename in files)
 
             coverage_for_added_lines = self._filter_coverage_for_added_lines(diff, coverage)
 
