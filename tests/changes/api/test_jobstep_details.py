@@ -88,6 +88,42 @@ class JobStepDetailsTest(APITestCase):
         assert data['snapshot']['id'] == image.id.hex
         assert data['expectedSnapshot'] is None
 
+    def test_with_snapshot_disallowed(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        plan = self.create_plan(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+        snapshot = self.create_snapshot(project)
+        image = self.create_snapshot_image(
+            plan=plan,
+            snapshot=snapshot,
+        )
+        self.create_option(
+            item_id=plan.id,
+            name='snapshot.allow',
+            value='0'
+        )
+        db.session.add(ProjectOption(
+            project_id=project.id,
+            name='snapshot.current',
+            value=snapshot.id.hex,
+        ))
+        db.session.commit()
+
+        self.create_job_plan(job, plan, snapshot.id)
+        db.session.commit()
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['id'] == jobstep.id.hex
+        assert data['snapshot'] is None
+        assert data['expectedSnapshot'] is None
+
     def test_with_expected_snapshot(self):
         project = self.create_project()
         build = self.create_build(project, cause=Cause.snapshot)

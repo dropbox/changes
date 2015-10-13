@@ -142,7 +142,7 @@ class JobPlan(db.Model):
         snapshot_image_id = None
         # TODO(paulruan): Remove behavior that just having a snapshot plan means
         #                 snapshot use is enabled. Just `snapshot.allow` should be sufficient.
-        allow_snapshot = options[plan.id].get('snapshot.allow', False) or plan.snapshot_plan
+        allow_snapshot = '1' == options[plan.id].get('snapshot.allow', '0') or plan.snapshot_plan
         if allow_snapshot and snapshot_id is not None:
             snapshot_image = SnapshotImage.get(plan, snapshot_id)
             if snapshot_image is not None:
