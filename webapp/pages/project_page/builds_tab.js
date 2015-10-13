@@ -66,13 +66,18 @@ var BuildsTab = React.createClass({
 
     var data_to_show = interactive.getDataToShow();
 
+    var links = this.props.interactive.getPagingLinks({type: 'chart_paging'});
+    var prevLink = interactive.hasPreviousPage() ? links[0] : '';
+    var nextLink = interactive.hasNextPage() ? links[1] : '';
     var chart = <div className="buildsChart">
+      {prevLink}
       <ChangesChart
         type="build"
+        className="marginRightS inlineBlock"
         runnables={data_to_show.getReturnedData()}
-        leftEllipsis={interactive.hasPreviousPage()}
-        rightEllipsis={interactive.hasNextPage()}
+        enableLatest={!interactive.hasPreviousPage()}
       />
+      {nextLink}
     </div>;
 
     var data = _.map(data_to_show.getReturnedData(), build => {

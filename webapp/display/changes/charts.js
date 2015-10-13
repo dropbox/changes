@@ -15,18 +15,16 @@ export var ChangesChart = React.createClass({
   propTypes: {
     type: PropTypes.oneOf(['build', 'test']).isRequired,
     runnables: PropTypes.array.isRequired,
-    leftEllipsis: PropTypes.bool,
-    rightEllipsis: PropTypes.bool,
-    // if enabled, we'll show a 'latest' label when leftEllipsis = false
+    // if enabled, we'll show a 'latest' label
     enableLatest: PropTypes.bool
   },
 
   getDefaultProps() {
-    return { leftEllipsis: false, rightEllipsis: false, enableLatest: true };
+    return { enableLatest: true };
   },
   
   render() {
-    var runnables = this.props.runnables;
+    var { runnables, className, } = this.props;
     
     // we'll render bar heights relative to this
     var longestDuration = _.max(runnables, r => r && r.duration).duration;
@@ -83,23 +81,12 @@ export var ChangesChart = React.createClass({
       </SimpleTooltip>;
     });
 
-    // add ellipses
-    var ellipsisStyle = {
-      fontSize: 'large',
-      fontWeight: 200,
-      letterSpacing: -1,
-    };
-
-    if (this.props.leftEllipsis) {
-      content.unshift(<div className="inlineBlock marginRightXS" style={ellipsisStyle}>...</div>);
-    } else if (this.props.enableLatest) {
+    if (this.props.enableLatest) {
       content.unshift(<LatestWidget />);
     }
-    if (this.props.rightEllipsis) {
-      content.push(<div className="inlineBlock" style={ellipsisStyle}>...</div>);
-    }
 
-    return <div className="changesChart">{content}</div>;
+    var className = " changesChart " + (className || "");
+    return <div className={className}>{content}</div>;
   }
 });
 

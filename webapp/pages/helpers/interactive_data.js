@@ -236,7 +236,10 @@ var InteractiveDataPrototype = {
   },
 
   // displays Older/Newer by default, unless you set use_next_previous
-  getPagingLinks(use_next_previous = false) {
+  getPagingLinks(options = {}) {
+    let use_next_previous = options.use_next_previous || false;
+    let type = options.type || 'paging';
+
     var hrefs = this.getDataToShow().getLinksFromHeader();
     var params = {
       previous: hrefs.previous && URI(hrefs.previous).search(true),
@@ -258,8 +261,8 @@ var InteractiveDataPrototype = {
 
     links.push(
       <Button
-        type="paging"
-        className="marginRightS"
+        type={type}
+        className="marginRightS inlineBlock"
         onClick={onClick.previous}
         disabled={!params.previous}
         href={params.previous ? URI(window.location.href).query(params.previous) : null}>
@@ -269,8 +272,8 @@ var InteractiveDataPrototype = {
 
     links.push(
       <Button
-        type="paging"
-        className="marginRightS"
+        type={type}
+        className="marginRightS inlineBlock"
         onClick={onClick.next}
         disabled={!params.next}
         href={params.next ? URI(window.location.href).query(params.next) : null}>
