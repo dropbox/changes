@@ -447,7 +447,7 @@ export var SingleBuild = React.createClass({
         }
 
         if (!jobstep.node) {
-          return [
+          phase_rows.push(new GridRow([
             index === 0 && !only_one_row ?
               <span className="lb">{phase.name}</span> : "",
             jobstepDot,
@@ -457,7 +457,8 @@ export var SingleBuild = React.createClass({
             </div>,
             '',
             jobstepDuration
-          ];
+          ]));
+          continue;
         }
 
         var replacementMarkup = null;
