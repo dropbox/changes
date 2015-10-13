@@ -76,19 +76,7 @@ var BuildsTab = React.createClass({
     </div>;
 
     var data = _.map(data_to_show.getReturnedData(), build => {
-      var target = null;
-      if (_.contains(build.tags, 'arc test')) {
-        target = '';
-      } else if (build.source.patch) {
-        target = <a
-          className="external"
-          href={build.source.data['phabricator.revisionURL']}
-          target="_blank">
-          {'D' + build.source.data['phabricator.revisionID']}
-        </a>
-      } else {
-        target = ChangesLinks.phabCommit(build.source.revision);
-      }
+      var target = ChangesLinks.phab(build);
 
       var duration = get_runnable_condition(build) !== 'waiting' ?
         display_duration(build.duration / 1000) :
@@ -111,13 +99,13 @@ var BuildsTab = React.createClass({
     });
 
     var cellClasses = [
-      'buildWidgetCell', 
-      'wide easyClick', 
-      'bluishGray nowrap', 
-      'bluishGray nowrap', 
-      'nowrap', 
-      'nowrap', 
-      'nowrap', 
+      'buildWidgetCell',
+      'wide easyClick',
+      'bluishGray nowrap',
+      'bluishGray nowrap',
+      'nowrap',
+      'nowrap',
+      'nowrap',
       'nowrap'
     ];
 

@@ -81,6 +81,21 @@ var ChangesLinks = {
     }
   },
 
+  phab: function(build) {
+    if (_.contains(build.tags, 'arc test')) {
+      return '';
+    } else if (build.source.patch) {
+      return <a
+        className="external"
+        href={build.source.data['phabricator.revisionURL']}
+        target="_blank">
+        {'D' + build.source.data['phabricator.revisionID']}
+      </a>
+    } else {
+      return ChangesLinks.phabCommit(build.source.revision);
+    }
+  },
+
   phabCommit: function(revision) {
     var label = revision.sha.substr(0,7);
     return <a

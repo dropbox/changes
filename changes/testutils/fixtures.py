@@ -11,7 +11,7 @@ from changes.models import (
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
     RepositoryStatus, User, ItemOption, Command, Snapshot, SnapshotImage,
-    CachedSnapshotImage, PlanStatus, AdminMessage, PhabricatorDiff
+    CachedSnapshotImage, PlanStatus, AdminMessage, PhabricatorDiff, ProjectOption
 )
 from changes.utils.slugs import slugify
 
@@ -441,6 +441,12 @@ class Fixtures(object):
 
     def create_option(self, **kwargs):
         option = ItemOption(**kwargs)
+        db.session.add(option)
+        db.session.commit()
+        return option
+
+    def create_project_option(self, project, name, value, **kwargs):
+        option = ProjectOption(project=project, name=name, value=value, **kwargs)
         db.session.add(option)
         db.session.commit()
         return option

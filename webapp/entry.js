@@ -57,6 +57,7 @@ require([
   "es6!pages/log_page",
   "es6!pages/all_projects_page",
   "es6!pages/node_page",
+  "es6!pages/snapshot_page",
   "es6!pages/code_page",
   "es6!pages/pusher_page",
   "es6!pages/examples_page",
@@ -79,6 +80,7 @@ require([
   LogPage,
   AllProjectsPage,
   NodePage,
+  SnapshotPage,
   CodePage,
   PusherPage,
   DisplayExamplesPage,
@@ -134,6 +136,7 @@ require([
     'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],
     'author': [HomePage, 'author'],  // TODO: don't just use the homepage
     'node': [NodePage, 'nodeID'],
+    'snapshot': [SnapshotPage, 'snapshotID'],
     'code': [CodePage, 'sourceID'],
     'pusher': [PusherPage],
     'display_examples': [DisplayExamplesPage]
@@ -176,7 +179,7 @@ require([
       // disabled on the project page for now so that people can create
       // dashboards
       var unauthOKPages = ['project', 'pusher'];
-      var unauthOK = _.any(unauthOKPages, function(path) { 
+      var unauthOK = _.any(unauthOKPages, function(path) {
         return path_parts[0] === path
       });
 

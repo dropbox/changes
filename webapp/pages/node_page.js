@@ -55,7 +55,7 @@ var NodePage = React.createClass({
       console.log(this.state.nodeStatus.getReturnedData());
       var nodeStatus = this.state.nodeStatus.getReturnedData();
       nodeStatusText = nodeStatus ?
-        <span className="green">Online</span> : 
+        <span className="green">Online</span> :
         <span className="red">Offline</span>;
 
       toggleNodeButton = <div className="floatR">
@@ -92,7 +92,7 @@ var NodePage = React.createClass({
 
     var extra_indo_markup = null;
     if (extra_info_name && extra_info_href) {
-      var extra_info_markup = <a 
+      var extra_info_markup = <a
         className="external inlineBlock"
         style={{marginTop: 3}}
         target="_blank"

@@ -132,7 +132,7 @@ export var LiveTime = React.createClass({
       minutes = minutes % 60;
     }
 
-    var text = null; 
+    var text = null;
     var suffix = ':' + utils.pad(seconds, 2);
     if (hours) {
       text = hours + ':' + utils.pad(minutes, 2) + suffix;
@@ -156,8 +156,8 @@ export var LiveTime = React.createClass({
     if (!LiveTime.refreshTimer) {
       LiveTime.refreshTimer = setInterval(arg => {
         _.each(LiveTime.instances, (val, key) => {
-          if (!val) { 
-            return; 
+          if (!val) {
+            return;
           }
           if (val.isMounted()) {
             val.setState({
