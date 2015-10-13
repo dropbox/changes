@@ -57,7 +57,10 @@ PATCH_URL=%(patch_url)s
 pushd $LOCAL_PATH
 PATCH_PATH=/tmp/$(mktemp patch.XXXXXXXXXX)
 curl -o $PATCH_PATH $PATCH_URL
-git apply $PATCH_PATH
+git apply --index $PATCH_PATH
+export GIT_COMMITTER_NAME="Patch applier" GIT_COMMITTER_EMAIL="dev-tools+git-patch@dropbox.com"
+export GIT_AUTHOR_NAME=$GIT_COMMITTER_NAME GIT_AUTHOR_EMAIL=$GIT_COMMITTER_EMAIL
+git commit -m 'Diff build'
 """.strip()
 
 
