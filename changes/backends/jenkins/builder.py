@@ -176,7 +176,7 @@ class JenkinsBuilder(BaseBackend):
         # TODO(kylec): Get rid of the kwargs.
         if not defaults.get('label'):
             # we update this once we have the build_no for this jobstep
-            defaults['label'] = self.job_name
+            defaults['label'] = '<Creating Jenkins build>'
 
         where = {
             'job': phase.job,

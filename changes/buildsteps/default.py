@@ -58,7 +58,7 @@ class DefaultBuildStep(BuildStep):
     # - collect_commands
     # - commands
     # - teardown_commands
-    def __init__(self, commands, path=DEFAULT_PATH, env=None,
+    def __init__(self, commands=None, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=20, cpus=4, memory=8 * 1024,
                 compression=None, debug_config=None, **kwargs):
@@ -82,6 +82,9 @@ class DefaultBuildStep(BuildStep):
                 This will then cause an infra failure in the primary JobStep with
                 probability 0.5.
         """
+        if commands is None:
+            raise ValueError("Missing required config: need commands")
+
         if env is None:
             env = DEFAULT_ENV.copy()
 

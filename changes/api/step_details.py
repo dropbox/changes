@@ -53,8 +53,8 @@ class StepDetailsAPIView(APIView):
                 # XXX(dcramer): It's important that we deepcopy data so any
                 # mutations within the BuildStep don't propagate into the db
                 impl_cls(**deepcopy(data))
-            except Exception:
-                return {"message": "unable to create build step mapping provided data"}, 400
+            except Exception as exc:
+                return {"message": "unable to create build step mapping provided data: %s" % exc}, 400
             step.data = data
 
         if args.order is not None:

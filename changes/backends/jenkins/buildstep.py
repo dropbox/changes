@@ -57,6 +57,10 @@ class JenkinsBuildStep(BuildStep):
                 This will then cause an infra failure in the primary JobStep with
                 probability 0.5.
         """
+        # required field
+        if job_name is None:
+            raise ValueError("Missing required config: need job_name.")
+
         # we support a string or a list of strings for master server urls
         if not isinstance(jenkins_url, (list, tuple)):
             if jenkins_url:
@@ -169,7 +173,7 @@ SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log'
 class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
-    def __init__(self, job_name, script, cluster, diff_cluster='', path='',
+    def __init__(self, job_name=None, script=None, cluster=None, diff_cluster='', path='',
                  workspace='', reset_script='', build_type=None,
                  setup_script='', teardown_script='',
                  artifacts=XunitHandler.FILENAMES + CoverageHandler.FILENAMES +
@@ -205,6 +209,10 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         artifacts is a list of file name patterns describing the artifacts
         which need to be picked up.
         """
+        # required fields
+        if None in (job_name, script, cluster):
+            raise ValueError("Missing required config: need job_name, script, and cluster.")
+
         self.setup_script = setup_script
         self.script = script
         self.teardown_script = teardown_script

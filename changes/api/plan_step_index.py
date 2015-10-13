@@ -45,18 +45,21 @@ class PlanStepIndexAPIView(APIView):
 
         data = json.loads(args.data)
         if not isinstance(data, dict):
+            db.session.rollback()
             return {"message": "data must be a JSON mapping"}, 400
 
         impl_cls = step.get_implementation(load=False)
         if impl_cls is None:
+            db.session.rollback()
             return {"message": "unable to load build step implementation"}, 400
 
         try:
             # XXX(dcramer): It's important that we deepcopy data so any
             # mutations within the BuildStep don't propagate into the db
             impl_cls(**deepcopy(data))
-        except Exception:
-            return {"message": "unable to create build step provided data"}, 400
+        except Exception as exc:
+            db.session.rollback()
+            return {"message": "unable to create build step provided data: %s" % exc}, 400
 
         step.data = data
         step.order = args.order
