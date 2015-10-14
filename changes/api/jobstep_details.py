@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import json
+
 from datetime import datetime
 from flask import current_app
 from flask_restful.reqparse import RequestParser
@@ -34,6 +36,7 @@ class JobStepDetailsAPIView(APIView):
     post_parser.add_argument('result', choices=RESULT_CHOICES)
     post_parser.add_argument('node')
     post_parser.add_argument('heartbeat', type=bool)
+    post_parser.add_argument('metrics')
 
     def _is_final_jobphase(self, jobphase):
         return not db.session.query(
@@ -119,6 +122,18 @@ class JobStepDetailsAPIView(APIView):
                 'label': args.node,
             })
             jobstep.node_id = node.id
+
+        if args.metrics:
+            try:
+                metrics = json.loads(args.metrics)
+            except ValueError:
+                return {'message': 'Metrics was not valid JSON'}, 400
+            if not isinstance(metrics, dict):
+                return {'message': 'Metrics should be a JSON object'}, 400
+            if 'metrics' in jobstep.data:
+                jobstep.data['metrics'].update(metrics)
+            else:
+                jobstep.data['metrics'] = metrics
 
         # we want to guarantee that even if the jobstep seems to succeed, that
         # we accurately reflect what we internally would consider a success state

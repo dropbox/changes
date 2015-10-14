@@ -169,6 +169,7 @@ def job_finished_handler(job_id, **kwargs):
                 'failure_reasons': failure_reasons_by_jobstep[jobstep.id],
                 # TODO: Node? Duration (to match build, for efficiency)?
         }
+
         records.append(data)
     post_analytics_data(url, records)
 

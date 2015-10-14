@@ -352,7 +352,8 @@ class AnalyticsNotifierTest(TestCase):
                                       date_created=ts_to_datetime(created),
                                       date_started=ts_to_datetime(started),
                                       date_finished=ts_to_datetime(finished),
-                                      node_id=node.id)
+                                      node_id=node.id,
+                                      data={'foo': 'bar'})
 
         with mock.patch('changes.listeners.analytics_notifier._get_job_failure_reasons_by_jobstep') as mock_get_failures:
             mock_get_failures.return_value = defaultdict(list)
@@ -366,7 +367,7 @@ class AnalyticsNotifierTest(TestCase):
             'result': 'Passed',
             'replacement_id': None,
             'label': 'Step 1',
-            'data': {},
+            'data': {'foo': 'bar'},
             'date_created': created,
             'date_started': started,
             'date_finished': finished,
