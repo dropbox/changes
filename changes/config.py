@@ -303,6 +303,10 @@ def create_app(_read_config=True, **config):
     # the list of open quarantine tasks inline
     app.config['QUARANTINE_PHID'] = None
 
+    # The max length a test's output to be stored. If it is longer, the it will
+    # be truncated.
+    app.config['TEST_MESSAGE_MAX_LEN'] = 10 * 1024
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):

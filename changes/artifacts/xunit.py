@@ -5,6 +5,8 @@ from operator import add
 
 from lxml import etree
 
+from flask import current_app
+
 from changes.config import db, statsreporter
 from changes.constants import Result
 from changes.db.utils import try_create
@@ -58,6 +60,7 @@ class XunitHandler(ArtifactHandler):
 
         results = []
 
+        message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
         # XXX(dcramer): bitten xml syntax, no clue what this
         for node in root.iter('test'):
             # classname, name, time
@@ -88,7 +91,7 @@ class XunitHandler(ArtifactHandler):
                 package=attrs.get('fixture') or None,
                 duration=float(attrs['duration']) * 1000,
                 result=result,
-                message=_truncate_message(message),
+                message=_truncate_message(message, message_limit),
             ))
 
         return results
@@ -96,6 +99,7 @@ class XunitHandler(ArtifactHandler):
     def get_xunit_tests(self, root):
         step = self.step
 
+        message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
         results = []
         for node in root.iter('testcase'):
             # classname, name, time
@@ -149,7 +153,7 @@ class XunitHandler(ArtifactHandler):
                 result=result,
                 # We truncate before deduplication; this gives us a weaker guarantee on maximum size,
                 # but ensures that we have at least some message from each test.
-                message=_truncate_message(message),
+                message=_truncate_message(message, message_limit),
                 reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None,
                 artifacts=self._get_testartifacts(node)
             ))
@@ -212,11 +216,8 @@ def _careful(op, a, b):
 
 _TRUNCATION_HEADER = " -- CONTENT TRUNCATED; Look for original XML file for the full data. --\n"
 
-# 640k ought to be enough for anybody.
-_MESSAGE_LIMIT = 640 * 1024
 
-
-def _truncate_message(msg, limit=_MESSAGE_LIMIT):
+def _truncate_message(msg, limit):
     """Truncate a message if necessary, retaining as many ending lines as possible.
     If truncated, a header line explaining may be prepended to the beginning.
 
