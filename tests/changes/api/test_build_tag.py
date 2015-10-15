@@ -40,7 +40,10 @@ class BuildTagTest(APITestCase):
                 resp = self.client.get(path)
                 data = self.unserialize(resp)
 
-                assert data['tags'] == tag_list_update
+                if tag_list_update is None:
+                    assert data['tags'] == []
+                else:
+                    assert data['tags'] == tag_list_update
 
     def test_bad_tag_format(self):
         project = self.create_project()

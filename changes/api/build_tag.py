@@ -20,7 +20,7 @@ class BuildTagAPIView(APIView):
             return self.respond({}, status_code=404)
 
         tags = build.tags if build.tags else []
-        return self.respond({'tags': build.tags})
+        return self.respond({'tags': tags})
 
     def post(self, build_id):
         """ Set tags associated with a build. """
