@@ -293,7 +293,7 @@ def create_app(_read_config=True, **config):
     app.config['TRANSACTION_MS_WARNING_THRESHOLD'] = 2500
 
     # Maximum number of jobsteps to retry for a given job
-    app.config['JOBSTEP_RETRY_MAX'] = 1
+    app.config['JOBSTEP_RETRY_MAX'] = 2
 
     # we opt these users into the new ui...redirecting them if they
     # hit the homepage
