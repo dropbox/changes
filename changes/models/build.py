@@ -93,3 +93,5 @@ class Build(db.Model):
             self.duration = (self.date_finished - self.date_started).total_seconds() * 1000
         if self.number is None and self.project:
             self.number = select([func.next_item_value(self.project.id.hex)])
+        if self.tags is None:
+            self.tags = []
