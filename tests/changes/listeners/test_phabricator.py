@@ -36,6 +36,19 @@ class PhabricatorListenerTest(UnitTestCase):
 
     @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
+    def test_arc_test_build(self, get_options, phab):
+        get_options.return_value = {
+            'phabricator.notify': '1'
+        }
+        project = self.create_project(name='test', slug='project-slug')
+        self.assertEquals(phab.call_count, 0)
+        build = self.create_build(project, result=Result.failed, target='D1', status=Status.finished,
+                tags=['arc test'])
+        build_finished_handler(build_id=build.id.hex)
+        self.assertEquals(phab.call_count, 0)
+
+    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_whitelisted_project(self, get_options, phab):
         get_options.return_value = {
             'phabricator.notify': '1'

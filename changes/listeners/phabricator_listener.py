@@ -108,6 +108,12 @@ def build_finished_handler(build_id, **kwargs):
         # Not a diff build
         return
 
+    if build.tags and 'arc test' in build.tags:
+        # 'arc test' builds have an associated Phabricator diff, but
+        # aren't necessarily for the diff under review, so we don't
+        # want to notify with them.
+        return
+
     options = get_options(build.project_id)
     if options.get('phabricator.notify', '0') != '1':
         return
