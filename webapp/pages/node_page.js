@@ -76,7 +76,7 @@ var NodePage = React.createClass({
     var headers = [ 'Build', 'Phab.', 'Project', 'Name', 'Committed'];
 
     var grid_data = _.map(this.state.nodeJobs.getReturnedData(), d => {
-      var project_href = "/project/" + d.project.slug;
+      var project_href = "/v2/project/" + d.project.slug;
       return [
         <SingleBuildStatus build={d.build} parentElem={this} />,
         d.build.source.id.substr(0, 7),

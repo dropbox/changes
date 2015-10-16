@@ -10,7 +10,7 @@ import warnings
 from celery.schedules import crontab
 from celery.signals import task_postrun
 from datetime import timedelta
-from flask import request, session
+from flask import request, session, Blueprint
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.assets import Environment
 from flask_debugtoolbar import DebugToolbarExtension
@@ -307,8 +307,6 @@ def create_app(_read_config=True, **config):
     # be truncated.
     app.config['TEST_MESSAGE_MAX_LEN'] = 10 * 1024
 
-    app.config['USE_OLD_UI'] = False
-
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
@@ -387,7 +385,11 @@ def create_app(_read_config=True, **config):
 
     # TODO: these can be moved to wsgi app entrypoints
     configure_api_routes(app)
-    configure_web_routes(app)
+    app_static_root = configure_web_routes(app)
+
+    # blueprint for our new v2 webapp
+    blueprint = create_v2_blueprint(app, app_static_root)
+    app.register_blueprint(blueprint, url_prefix='/v2')
 
     configure_jobs(app)
     configure_transaction_logging(app)
@@ -397,16 +399,69 @@ def create_app(_read_config=True, **config):
         # Fail at startup if we have a bad rules file.
         categorize.load_rules(rules_file)
 
-    import jinja2
-    webapp_template_folder = os.path.join(PROJECT_ROOT, 'webapp/html')
-    template_folder = os.path.join(PROJECT_ROOT, 'templates')
-    template_loader = jinja2.ChoiceLoader([
-                app.jinja_loader,
-                jinja2.FileSystemLoader([webapp_template_folder, template_folder])
-                ])
-    app.jinja_loader = template_loader
-
     return app
+
+
+def create_v2_blueprint(app, app_static_root):
+    blueprint = Blueprint(
+        'webapp_v2',
+        __name__,
+        template_folder=os.path.join(PROJECT_ROOT, 'webapp/html')
+    )
+
+    from changes.web.index import IndexView
+    from changes.web.static import StaticView
+
+    static_root = os.path.join(PROJECT_ROOT, 'webapp')
+    revision_facts = changes.get_revision_info() or {}
+    revision = revision_facts.get('hash', '0') if not app.debug else '0'
+
+    # all of these urls are automatically prefixed with v2
+    # (see the register_blueprint call above)
+
+    # static file paths contain the current revision so that users
+    # don't hit outdated static resources
+    blueprint.add_url_rule(
+        '/static/' + revision + '/<path:filename>',
+        view_func=StaticView.as_view(
+            'static',
+            root=static_root,
+            hacky_vendor_root=app_static_root)
+    )
+
+    # no need to set up our own login/logout urls
+
+    blueprint.add_url_rule('/<path:path>',
+      view_func=IndexView.as_view('index-path', use_v2=True))
+    blueprint.add_url_rule('/', view_func=IndexView.as_view('index', use_v2=True))
+
+    # serve custom images if we have a custom content file
+    if app.config['WEBAPP_CUSTOM_JS']:
+        custom_dir = os.path.dirname(app.config['WEBAPP_CUSTOM_JS'])
+        blueprint.add_url_rule(
+            '/custom_image/<path:filename>',
+            view_func=StaticView.as_view(
+                'custom_image',
+                root=custom_dir)
+        )
+
+    # One last thing...v2 uses CSS bundling via flask-assets, so set that up on
+    # the main app object
+    assets = Environment(app)
+    assets.config['directory'] = os.path.join(PROJECT_ROOT, 'webapp')
+    assets.config['url'] = '/v2/static/' + revision + '/'
+    # path to the lessc binary.
+    assets.config['LESS_BIN'] = os.path.join(PROJECT_ROOT, 'node_modules/.bin/lessc')
+
+    assets.config['LESS_EXTRA_ARGS'] = (['--global-var=custom_css="%s"' % app.config['WEBAPP_CUSTOM_CSS']]
+        if app.config['WEBAPP_CUSTOM_CSS']
+        else [])
+
+    assets.load_path = [
+        os.path.join(PROJECT_ROOT, 'webapp')
+    ]
+
+    return blueprint
 
 
 def configure_debug_toolbar(app):
@@ -628,6 +683,13 @@ def configure_web_routes(app):
         revision = revision_facts.get('hash', '0')
 
     app.add_url_rule(
+        '/static/' + revision + '/<path:filename>',
+        view_func=StaticView.as_view('static', root=static_root))
+    app.add_url_rule(
+        '/partials/<path:filename>',
+        view_func=StaticView.as_view('partials', root=os.path.join(PROJECT_ROOT, 'partials')))
+
+    app.add_url_rule(
         '/auth/login/', view_func=LoginView.as_view('login', authorized_url='authorized'))
     app.add_url_rule(
         '/auth/logout/', view_func=LogoutView.as_view('logout', complete_url='index'))
@@ -637,69 +699,13 @@ def configure_web_routes(app):
                                                             authorized_url='authorized',
                                                             ))
 
-    if app.config['USE_OLD_UI']:
-        app.add_url_rule(
-            '/static/' + revision + '/<path:filename>',
-            view_func=StaticView.as_view('static', root=static_root))
-        app.add_url_rule(
-            '/partials/<path:filename>',
-            view_func=StaticView.as_view('partials', root=os.path.join(PROJECT_ROOT, 'partials')))
-        app.add_url_rule(
-            '/<path:path>', view_func=IndexView.as_view('index-path'))
-        app.add_url_rule(
-            '/', view_func=IndexView.as_view('index'))
-    else:
-        configure_default(app)
-
-
-def configure_default(app):
-    from changes.web.index import IndexView
-    from changes.web.static import StaticView
-
-    static_root = os.path.join(PROJECT_ROOT, 'webapp')
-    revision_facts = changes.get_revision_info() or {}
-    revision = revision_facts.get('hash', '0') if not app.debug else '0'
-
-    # static file paths contain the current revision so that users
-    # don't hit outdated static resources
-    hacky_vendor_root = os.path.join(PROJECT_ROOT, 'static')
     app.add_url_rule(
-        '/static/' + revision + '/<path:filename>',
-        view_func=StaticView.as_view(
-            'static',
-            root=static_root,
-            hacky_vendor_root=hacky_vendor_root)
-    )
+        '/<path:path>', view_func=IndexView.as_view('index-path'))
+    app.add_url_rule(
+        '/', view_func=IndexView.as_view('index'))
 
-    app.add_url_rule('/<path:path>',
-      view_func=IndexView.as_view('index-path', use_v2=True))
-    app.add_url_rule('/', view_func=IndexView.as_view('index', use_v2=True))
-
-    # serve custom images if we have a custom content file
-    if app.config['WEBAPP_CUSTOM_JS']:
-        custom_dir = os.path.dirname(app.config['WEBAPP_CUSTOM_JS'])
-        app.add_url_rule(
-            '/custom_image/<path:filename>',
-            view_func=StaticView.as_view(
-                'custom_image',
-                root=custom_dir)
-        )
-
-    # One last thing...we use CSS bundling via flask-assets, so set that up on
-    # the main app object
-    assets = Environment(app)
-    assets.config['directory'] = os.path.join(PROJECT_ROOT, 'webapp')
-    assets.config['url'] = '/static/' + revision + '/'
-    # path to the lessc binary.
-    assets.config['LESS_BIN'] = os.path.join(PROJECT_ROOT, 'node_modules/.bin/lessc')
-
-    assets.config['LESS_EXTRA_ARGS'] = (['--global-var=custom_css="%s"' % app.config['WEBAPP_CUSTOM_CSS']]
-        if app.config['WEBAPP_CUSTOM_CSS']
-        else [])
-
-    assets.load_path = [
-        os.path.join(PROJECT_ROOT, 'webapp')
-    ]
+    # bit of a hack: we use this for creating the v2 blueprint
+    return static_root
 
 
 def configure_debug_routes(app):

@@ -178,7 +178,7 @@ var ChangesPageHeader = React.createClass({
     }
 
 /* TODO:
-        <a className="headerLinkBlock" href="/nodes/">
+        <a className="headerLinkBlock" href="/v2/nodes/">
           Changes Internals
         </a>
 */
@@ -195,10 +195,10 @@ var ChangesPageHeader = React.createClass({
     var classes = cx({pageHeader: true, fixedPageHeader: this.props.fixed });
     return <div>
       <div className={classes}>
-        <a className={my_changes_classes} href="/">
+        <a className={my_changes_classes} href="/v2/">
           My Changes
         </a>
-        <a className={all_projects_classes} href="/projects/">
+        <a className={all_projects_classes} href="/v2/projects/">
           Projects
         </a>
         <ChangesLogin />

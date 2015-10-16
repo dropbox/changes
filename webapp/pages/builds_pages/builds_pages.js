@@ -105,7 +105,7 @@ export var CommitPage = React.createClass({
       }
 
       var links = _.map(this.state.commitBuilds.getReturnedData(), b => {
-        var href = URI(`/single_build/${b.id}/`);
+        var href = URI(`/v2/single_build/${b.id}/`);
         var condition = get_runnable_condition(b);
         return <div>
           <TimeText time={b.dateFinished || b.dateStarted || b.dateCreated} />

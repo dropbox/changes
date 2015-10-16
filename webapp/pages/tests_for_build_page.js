@@ -137,7 +137,7 @@ var BuildTestsPage = React.createClass({
         return;
       }
 
-      var href = `/project_test/${project_id}/${test.hash}`;
+      var href = `/v2/project_test/${project_id}/${test.hash}`;
 
       var onClick = __ => {
         this.setState(
