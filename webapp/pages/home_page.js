@@ -285,7 +285,7 @@ var Commits = React.createClass({
     // TODO: this doesn't actually show other people's builds :/
     var builds_sentence = !this.props.author ?
       'See all of your ' : 'See all ';
-    var buildsHref = `/v2/author_builds/${this.props.author || 'me'}`;
+    var buildsHref = `/author_builds/${this.props.author || 'me'}`;
 
     return <div className="marginTopL">
       <SectionHeader>{header_text}</SectionHeader>
@@ -358,7 +358,7 @@ var Projects = React.createClass({
       <div className="darkGray marginTopM">
         Projects that haven{"'"}t run a build in the last week
         are not shown. See all on the{" "}
-        <a href="/v2/projects/">Projects page</a>
+        <a href="/projects/">Projects page</a>
       </div>
     </div>;
   }

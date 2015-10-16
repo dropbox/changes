@@ -102,7 +102,7 @@ require([
   // too template-y. Or at least don't use nesting with react-router
 
   var url = window.location.href;
-  var path = _.last(url.split('/v2/', 2)).trim();
+  var path = _.last(url.split('/', 2)).trim();
   // ignore # and ?
   var path = path.split(/[\?#]/, 1)[0];
   var path_parts = _.compact(path.split('/'));

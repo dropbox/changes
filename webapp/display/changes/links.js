@@ -15,7 +15,7 @@ var ChangesLinks = {
       return 'unknown';
     }
     var classes = subtle ? "subtle" : "";
-    var author_href = `/v2/author/${author.email}`;
+    var author_href = `/author/${author.email}`;
     return <a href={author_href} className={classes}>
       {utils.email_head(author.email)}
     </a>;
@@ -27,7 +27,7 @@ var ChangesLinks = {
   },
 
   projectHref: function(project, tab = null) {
-    var href = `/v2/project/${project.slug}/`;
+    var href = `/project/${project.slug}/`;
     if (tab) {
       href += "#" + tab;
     }
@@ -46,15 +46,15 @@ var ChangesLinks = {
     // from arc test)
 
     if (!build.source.patch) {
-      return URI(`/v2/commit_source/${build.source.id}/`)
+      return URI(`/commit_source/${build.source.id}/`)
         .search({ buildID: build.id })
         .toString();
     } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
-      return URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`)
+      return URI(`/diff/D${build.source.data['phabricator.revisionID']}`)
         .search({ buildID: build.id })
         .toString();
     } else {
-      return URI(`/v2/single_build/${build.id}/`);
+      return URI(`/single_build/${build.id}/`);
     }
   },
 
@@ -73,11 +73,11 @@ var ChangesLinks = {
       // within the last few seconds...
       return '';
     } else if (!build.source.patch) {
-      return URI(`/v2/commit_source/${build.source.id}/`).toString();
+      return URI(`/commit_source/${build.source.id}/`).toString();
     } else if (build.source.patch && build.source.data['phabricator.revisionID']) {
-      return URI(`/v2/diff/D${build.source.data['phabricator.revisionID']}`).toString();
+      return URI(`/diff/D${build.source.data['phabricator.revisionID']}`).toString();
     } else {
-      return URI(`/v2/single_build/${build.id}/`);
+      return URI(`/single_build/${build.id}/`);
     }
   },
 
