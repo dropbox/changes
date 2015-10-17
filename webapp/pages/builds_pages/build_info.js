@@ -446,11 +446,21 @@ export var SingleBuild = React.createClass({
           </div>;
         }
 
+        var jobstepImage = '';
+        if (jobstep.image) {
+            var imageLabel = jobstep.image.id.substring(0, 8);
+            var staleness = moment.utc(jobstep.dateCreated).from(moment.utc(jobstep.image.dateCreated), true);
+            jobstepImage = <SimpleTooltip label={staleness + " old when used"} placement="right">
+                    <div><a href={ChangesLinks.snapshotImageHref(jobstep.image)}>{imageLabel}</a></div>
+                </SimpleTooltip>;
+        }
+
         if (!jobstep.node) {
           phase_rows.push(new GridRow([
             index === 0 && !only_one_row ?
               <span className="lb">{phase.name}</span> : "",
             jobstepDot,
+            jobstepImage,
             <div>
               <i>Machine not yet assigned</i>
               {failureMarkup}
@@ -518,6 +528,7 @@ export var SingleBuild = React.createClass({
             <span className="lb">{phase.name}</span> : 
             "",
           jobstepDot,
+          jobstepImage,
           <div>{nodeLink}{failureMarkup}{replacementMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
           links,
           jobstepDuration
@@ -533,17 +544,18 @@ export var SingleBuild = React.createClass({
     var job_headers = [
       'Phase',
       'Result',
+      'Snapshot Image',
       'Machine Log',
       'Links',
       'Duration'
     ];
 
     var cellClasses = [
-      'nowrap phaseCell', 'nowrap center', 'wide', 'nowrap', 'nowrap'
+      'nowrap phaseCell', 'nowrap center', 'nowrap', 'wide', 'nowrap', 'nowrap'
     ];
 
     return <Grid
-      colnum={5}
+      colnum={6}
       className="marginTopS"
       data={_.flatten(phases_rows, true)}
       headers={job_headers}

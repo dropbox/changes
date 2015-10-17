@@ -6,14 +6,16 @@ from changes.testutils import APITestCase
 class SnapshotListTest(APITestCase):
     def test_simple(self):
         project_1 = self.create_project()
+        build_1 = self.create_build(project_1)
         snapshot_1 = self.create_snapshot(
-            project=project_1, status=SnapshotStatus.active)
+            project=project_1, status=SnapshotStatus.active, build=build_1)
         plan_1 = self.create_plan(project_1)
         image_1 = self.create_snapshot_image(snapshot_1, plan_1)
 
         project_2 = self.create_project()
+        build_2 = self.create_build(project_2)
         snapshot_2 = self.create_snapshot(
-            project=project_2, status=SnapshotStatus.invalidated)
+            project=project_2, status=SnapshotStatus.invalidated, build=build_2)
         plan_2 = self.create_plan(project_2)
         image_2 = self.create_snapshot_image(snapshot_2, plan_1)
         image_3 = self.create_snapshot_image(snapshot_2, plan_2)

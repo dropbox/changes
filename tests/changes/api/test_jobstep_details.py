@@ -59,7 +59,7 @@ class JobStepDetailsTest(APITestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
-        snapshot = self.create_snapshot(project)
+        snapshot = self.create_snapshot(project, build=build)
         image = self.create_snapshot_image(
             plan=plan,
             snapshot=snapshot,
@@ -132,7 +132,7 @@ class JobStepDetailsTest(APITestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
         self.create_job_plan(job, plan)
-        snapshot = self.create_snapshot(project)
+        snapshot = self.create_snapshot(project, build=build)
         self.create_snapshot_image(
             plan=plan,
             snapshot=snapshot,
@@ -142,7 +142,7 @@ class JobStepDetailsTest(APITestCase):
             name='snapshot.current',
             value=snapshot.id.hex,
         ))
-        new_snapshot = self.create_snapshot(project)
+        new_snapshot = self.create_snapshot(project, build=build)
         new_image = self.create_snapshot_image(
             plan=plan,
             snapshot=new_snapshot,
@@ -346,7 +346,7 @@ class UpdateJobStepTest(APITestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
-        snapshot = self.create_snapshot(project)
+        snapshot = self.create_snapshot(project, build=build)
         image_1 = self.create_snapshot_image(snapshot, plan_1)
         image_2 = self.create_snapshot_image(snapshot, plan_2)
         db.session.add(ProjectOption(
@@ -375,7 +375,7 @@ class UpdateJobStepTest(APITestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
-        snapshot = self.create_snapshot(project)
+        snapshot = self.create_snapshot(project, build=build)
         image_1 = self.create_snapshot_image(snapshot, plan_1)
         image_2 = self.create_snapshot_image(snapshot, plan_2)
         db.session.add(ProjectOption(

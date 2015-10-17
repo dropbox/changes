@@ -6,7 +6,8 @@ from changes.testutils import APITestCase
 class SnapshotImageDetailsTest(APITestCase):
     def test_simple(self):
         project = self.create_project()
-        snapshot = self.create_snapshot(project)
+        build = self.create_build(project=project)
+        snapshot = self.create_snapshot(project, build=build)
         plan = self.create_plan(project)
         image = self.create_snapshot_image(snapshot, plan)
 
@@ -22,7 +23,8 @@ class UpdateSnapshotImageTest(APITestCase):
     def setUp(self):
         super(UpdateSnapshotImageTest, self).setUp()
         self.project = self.create_project()
-        self.snapshot = self.create_snapshot(self.project)
+        build = self.create_build(project=self.project)
+        self.snapshot = self.create_snapshot(self.project, build=build)
         self.plan = self.create_plan(self.project)
         self.image = self.create_snapshot_image(self.snapshot, self.plan)
 

@@ -10,4 +10,5 @@ class SnapshotImageCrumbler(Crumbler):
             'status': instance.status,
             'dateCreated': instance.date_created,
             'plan': instance.plan,
+            'snapshot': {'id': instance.snapshot.id.hex},
         }
