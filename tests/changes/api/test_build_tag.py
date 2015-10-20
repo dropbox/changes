@@ -54,3 +54,14 @@ class BuildTagTest(APITestCase):
 
         resp = self.client.post(path, data=tags)
         assert resp.status_code == 400
+
+    def test_long_tags(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        path = PATH.format(build.id.hex)
+
+        tags = ['ok_tag_length', 'one_really_stupidly_long_tag']
+
+        resp = self.client.post(path, data={'tags': json.dumps(tags)})
+
+        assert resp.status_code == 400

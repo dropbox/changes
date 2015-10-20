@@ -31,6 +31,9 @@ class BuildTagAPIView(APIView):
         except ValueError as err:
             return error(err.message, ['tags'])
 
+        if tags and (not all(len(tag) <= 16 for tag in tags)):
+            return error('Tags must be 16 characters or less.')
+
         build = Build.query.get(build_id)
 
         # if the build is not in findable in db after we just fetched
