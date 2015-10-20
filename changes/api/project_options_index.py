@@ -34,6 +34,7 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('build.test-duration-warning')
     parser.add_argument('phabricator.diff-trigger')
     parser.add_argument('phabricator.notify')
+    parser.add_argument('phabricator.coverage')
     parser.add_argument('project.owners')
     parser.add_argument('project.notes')
     parser.add_argument('ui.show-coverage')

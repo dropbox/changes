@@ -15,13 +15,117 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import try_create
 from changes.lib import build_context_lib
-from changes.models import Build, ProjectOption, Source
+from changes.lib.coverage import get_coverage_by_build_id, merged_coverage_data
+from changes.models import Build, ItemOption, ProjectOption, RepositoryBackend, Source
 from changes.models.event import Event, EventType
 from changes.utils.http import build_uri
+from changes.vcs.git import GitVcs
+from changes.vcs.hg import MercurialVcs
 from sqlalchemy.orm import joinedload
+
+# Copied from api/serializer/models/repository.py
+DEFAULT_BRANCHES = {
+    RepositoryBackend.git: GitVcs.get_default_revision(),
+    RepositoryBackend.hg: MercurialVcs.get_default_revision(),
+    RepositoryBackend.unknown: ''
+}
 
 
 logger = logging.getLogger('phabricator-listener')
+
+
+class Phabricator(object):
+    """A poor man's Phabricator connector.
+
+    Usage:
+      p = Phabricator(username, cert, host)
+      result = p.post(method_name, **kwds)
+
+    Where:
+      - method_name is the dotted method name from the Conduit docs
+      - **kwds is a set of keyword args for that method
+
+    Example:
+      p.post('differential.createcomment', revision_id='123', message='hello')
+
+    Notes:
+      - Phabricator objects aren't cached.  Connecting is assumed
+        to be fast and cheap.  (Not sure if it really is.)
+    """
+
+    def __init__(self, username, cert, host):
+        # Must pass in stuff
+        assert username and cert and host, (username, cert, host)
+
+        # Host must be e.g. 'https://secure.phabricator.com',
+        # not what's in .arcrc (like 'https://secure.phabricator.com/api/'),
+        # nor a plain DNS name (like 'secure.phabricator.com').
+        assert host.startswith('http') and not host.endswith('/'), host
+
+        self.username = username
+        self.cert = cert
+        self.host = host
+
+        token = int(time.time())
+
+        connect_args = {
+            'authSignature': hashlib.sha1(str(token) + cert).hexdigest(),
+            'authToken': token,
+            'client': 'changes-phabricator',
+            'clientVersion': 1,
+            'host': self.host,
+            'user': self.username,
+        }
+
+        connect_url = "%s/api/conduit.connect" % self.host
+        resp = requests.post(connect_url, {
+            '__conduit__': True,
+            'output': 'json',
+            'params': json.dumps(connect_args),
+        }, timeout=10)
+        resp.raise_for_status()
+        resp = resp.json()['result']
+        self.auth_params = {
+            'connectionID': resp['connectionID'],
+            'sessionKey': resp['sessionKey'],
+        }
+
+    def post(self, method, timeout=10, **kwargs):
+        url = "%s/api/%s" % (self.host, method)
+        kwargs['__conduit__'] = self.auth_params
+        args = {
+            'params': json.dumps(kwargs),
+            'output': 'json',
+            }
+        resp = requests.post(url, args, timeout=timeout)
+        resp.raise_for_status()
+        raw_response = resp.json()
+        error_code = raw_response['error_code']
+        error_info = raw_response['error_info']
+        if error_code or error_info:
+            raise RuntimeError('%s request error: %s, %s' % (method, error_code, error_info))
+        return raw_response['result']
+
+
+def make_phab(phab):
+    """Pass in a Phabricator instace or None.
+
+    Returns a Phabricator instance, or None if no phabricator
+    credentials could be found.
+    """
+    if phab is not None:
+        return phab
+
+    # Create a connected Phabricator instance
+    username = current_app.config.get('PHABRICATOR_USERNAME')
+    cert = current_app.config.get('PHABRICATOR_CERT')
+    host = current_app.config.get('PHABRICATOR_HOST')
+    if not username or not cert or not host:
+        logger.error("Couldn't find phabricator credentials; username: %s host: %s cert: %s",
+                     username, host, cert)
+        return None
+
+    return Phabricator(username, cert, host)
 
 
 def get_options(project_id):
@@ -31,59 +135,83 @@ def get_options(project_id):
         ).filter(
             ProjectOption.project_id == project_id,
             ProjectOption.name.in_([
-                'phabricator.notify'
+                'phabricator.notify',
+                'phabricator.coverage',
             ])
         )
     )
 
 
-def post_diff_comment(diff_id, comment):
-    user = current_app.config.get('PHABRICATOR_USERNAME')
-    host = current_app.config.get('PHABRICATOR_HOST')
-    cert = current_app.config.get('PHABRICATOR_CERT')
+def get_repo_options(repo_id):
+    return dict(
+        db.session.query(
+            ItemOption.name, ItemOption.value
+        ).filter(
+            ItemOption.item_id == repo_id,
+            ItemOption.name.in_([
+                'phabricator.callsign',
+            ])
+        )
+    )
 
-    if not cert:
-        logger.error("Couldn't find phabricator credentials user: %s host: %s cert: %s",
-                     user, host, cert)
+
+def post_diff_comment(revision_id, comment, phab):
+    phab.post('differential.createcomment', revision_id=revision_id, message=comment)
+
+
+def post_diff_coverage(revision_id, coverage, phab):
+    # See https://secure.phabricator.com/T9529
+    revisions = phab.post('differential.query', ids=[revision_id])
+    if not revisions:
+        logger.warn("post_diff_coverage: No data for revision D%s", revision_id)
         return
+    rev = revisions[0]
+    key = 'arcanist.unit'
+    target_map = phab.post('harbormaster.queryautotargets',
+                          objectPHID=rev['activeDiffPHID'], targetKeys=[key])['targetMap']
+    phid = target_map.get(key)
+    if phid is None:
+        logger.warn("post_diff_coverage: No target PHID for revision D%s", revision_id)
+        return
+    unit = [dict(name="Coverage results from Changes for %d files" % len(coverage),
+                 result='pass', coverage=coverage)]
+    phab.post('harbormaster.sendmessage', buildTargetPHID=phid, type='work', unit=unit)
 
-    token = int(time.time())
 
-    connect_args = {
-        'authSignature': hashlib.sha1(str(token) + cert).hexdigest(),
-        'authToken': token,
-        'client': 'changes-phabricator',
-        'clientVersion': 1,
-        'host': host,
-        'user': user,
-    }
+def commit_details(source):
+    repo = source.repository
+    if not repo:
+        return None, None, None
+    options = get_repo_options(repo.id)
+    callsign = options.get('phabricator.callsign')
+    default_branch = DEFAULT_BRANCHES[repo.backend]
+    branches = source.revision.branches
+    if not branches:
+        branch = default_branch
+    elif len(branches) == 1:
+        branch = branches[0]
+    elif default_branch in branches:
+        branch = default_branch
+    else:
+        # Don't know which of several branches to choose; the default branch isn't listed.
+        logger.warn(
+            "commit_details: ambiguous branching (default branch %r, revision branches %r)",
+            branch, branches)
+        return None, None, None
+    return callsign, branch, source.revision_sha
 
-    connect_url = "%s/api/conduit.connect" % host
-    resp = requests.post(connect_url, {
-        '__conduit__': True,
-        'output': 'json',
-        'params': json.dumps(connect_args),
-    }, timeout=10)
-    resp.raise_for_status()
 
-    resp = json.loads(resp.content)['result']
-    auth_params = {
-        'connectionID': resp['connectionID'],
-        'sessionKey': resp['sessionKey'],
-    }
-
-    comment_args = {
-        'params': json.dumps({
-            'revision_id': diff_id,
-            'message': comment,
-            '__conduit__': auth_params,
-        }),
-        'output': 'json',
-    }
-
-    comment_url = "%s/api/differential.createcomment" % host
-    comment_resp = requests.post(comment_url, comment_args, timeout=10)
-    comment_resp.raise_for_status()
+def post_commit_coverage(callsign, branch, commit, coverage, phab):
+    phab_repos = phab.post('repository.query', callsigns=[callsign])
+    if not phab_repos:
+        return
+    phid = phab_repos[0]['phid']
+    # Doing it
+    phab.post('diffusion.updatecoverage',
+              repositoryPHID=phid,
+              branch=branch,
+              commit=commit,
+              coverage=coverage)
 
 
 def _comment_posted_for_collection_of_build(build):
@@ -102,12 +230,6 @@ def build_finished_handler(build_id, **kwargs):
     if build is None:
         return
 
-    target = build.target
-    is_diff_build = target and target.startswith(u'D')
-    if not is_diff_build:
-        # Not a diff build
-        return
-
     if build.tags and 'arc test' in build.tags:
         # 'arc test' builds have an associated Phabricator diff, but
         # aren't necessarily for the diff under review, so we don't
@@ -116,6 +238,31 @@ def build_finished_handler(build_id, **kwargs):
 
     options = get_options(build.project_id)
     if options.get('phabricator.notify', '0') != '1':
+        return
+
+    target = build.target
+    is_diff_build = target and target.startswith(u'D')
+    is_commit_build = build.source is not None and build.source.is_commit()
+
+    phab = None
+
+    if options.get('phabricator.coverage', '0') == '1' and (is_diff_build or is_commit_build):
+        coverage = merged_coverage_data(get_coverage_by_build_id(build_id))
+        if coverage:
+            phab = make_phab(phab)
+            if not phab:
+                return
+            if is_diff_build:
+                logger.info("Posting coverage to %s", target)
+                post_diff_coverage(target[1:], coverage, phab)
+            elif is_commit_build:
+                callsign, branch, commit = commit_details(build.source)
+                if callsign and commit:
+                    logger.info("Posting coverage to %s, %s, %s", callsign, branch, commit)
+                    post_commit_coverage(callsign, branch, commit, coverage, phab)
+
+    if not is_diff_build:
+        # Not a diff build
         return
 
     builds = list(
@@ -134,7 +281,9 @@ def build_finished_handler(build_id, **kwargs):
 
     message = '\n\n'.join([_get_message_for_build_context(x) for x in context['builds']])
 
-    post_comment(target, message)
+    phab = make_phab(phab)
+    if phab:
+        post_comment(target, message, phab)
 
 
 def _get_message_for_build_context(build_context):
@@ -267,10 +416,10 @@ def get_test_failure_remarkup(build, tests):
     return message
 
 
-def post_comment(target, message):
+def post_comment(target, message, phab=None):
     try:
         logger.info("Posting build results to %s", target)
         revision_id = target[1:]
-        post_diff_comment(revision_id, message)
+        post_diff_comment(revision_id, message, phab)
     except Exception:
         logger.exception("Failed to post to target: %s", target)

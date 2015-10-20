@@ -139,6 +139,7 @@ class ProjectOption(db.Model):
         - mail.notify-author
         - phabricator.diff-trigger
         - phabricator.notify
+        - phabricator.coverage
         - project.notes
         - project.owners
         - snapshot.current

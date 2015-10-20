@@ -51,7 +51,6 @@ install_requires = [
     'redis>=2.8.0,<2.9.0',
     'requests>=2.3.0,<2.4.0',
     'oauth2client>=1.2,<1.3',
-    'phabricator>=0.3.0,<0.4.0',
     'psycopg2>=2.5.1,<2.6.0',
     'python-dateutil>=2.1,<2.2',
     'PyYAML>=3.11',
