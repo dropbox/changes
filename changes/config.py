@@ -16,6 +16,7 @@ from flask.ext.assets import Environment
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
 from kombu import Exchange, Queue
+from kombu.common import Broadcast
 from raven.contrib.flask import Sentry
 from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
@@ -158,6 +159,7 @@ def create_app(_read_config=True, **config):
         Queue('events', routing_key='events'),
         Queue('default', routing_key='default'),
         Queue('repo.sync', Exchange('fanout', 'fanout'), routing_key='repo.sync'),
+        Broadcast('repo.update'),
     )
     app.config['CELERY_ROUTES'] = {
         'create_job': {
@@ -192,6 +194,9 @@ def create_app(_read_config=True, **config):
             'queue': 'events',
             'routing_key': 'events',
         },
+        'update_local_repos': {
+            'queue': 'repo.update',
+        }
     }
 
     app.config['EVENT_LISTENERS'] = (
@@ -734,6 +739,7 @@ def configure_jobs(app):
     from changes.jobs.sync_repo import sync_repo
     from changes.jobs.update_project_stats import (
         update_project_stats, update_project_plan_stats)
+    from changes.jobs.update_local_repos import update_local_repos
 
     queue.register('aggregate_flaky_tests', aggregate_flaky_tests)
     queue.register('check_repos', check_repos)
@@ -749,6 +755,7 @@ def configure_jobs(app):
     queue.register('sync_repo', sync_repo)
     queue.register('update_project_stats', update_project_stats)
     queue.register('update_project_plan_stats', update_project_plan_stats)
+    queue.register('update_local_repos', update_local_repos)
 
     @task_postrun.connect
     def cleanup_session(*args, **kwargs):
