@@ -111,6 +111,7 @@ class ProjectSnapshotIndexAPIView(APIView):
         source, _ = get_or_create(Source, where={
             'repository': repository,
             'revision_sha': sha,
+            'patch_id': None,
         })
 
         build = Build(

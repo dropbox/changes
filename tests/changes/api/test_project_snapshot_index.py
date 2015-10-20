@@ -142,16 +142,22 @@ class CreateProjectSnapshotTest(APITestCase):
         resp = self.client.post(path)
         assert resp.status_code == 400
 
+        revision_sha = 'c' * 40
+        # A patch source based on same revision. Patch sources should not be used.
+        patch = self.create_patch()
+        self.create_source(project, revision_sha=revision_sha, patch_id=patch.id)
+
         # valid params
         resp = self.client.post(path, data={
-            'sha': 'a' * 40,
+            'sha': revision_sha,
         })
         assert resp.status_code == 200
         mock_get_snapshottable_plans.assert_called_once_with(project)
         data = self.unserialize(resp)
 
         snapshot = Snapshot.query.get(data['id'])
-        assert snapshot.source.revision_sha == 'a' * 40
+        assert snapshot.source.revision_sha == revision_sha
+        assert snapshot.source.patch_id is None
         assert snapshot.project_id == project.id
         assert snapshot.status == SnapshotStatus.pending
 
