@@ -158,7 +158,8 @@ var CommitsTab = React.createClass({
   },
 
   renderChart() {
-    var dataToShow = this.props.interactive.getDataToShow().getReturnedData();
+    var interactive = this.props.interactive;
+    var dataToShow = interactive.getDataToShow().getReturnedData();
 
     var builds = _.map(dataToShow, commit => {
       if (commit.builds && commit.builds.length > 0) {
@@ -169,13 +170,19 @@ var CommitsTab = React.createClass({
       }
     });
 
+    var links = interactive.getPagingLinks({type: 'chart_paging'});
+    var prevLink = interactive.hasPreviousPage() ? links[0] : '';
+    var nextLink = interactive.hasNextPage() ? links[1] : '';
+
     return <div className="commitsChart">
+      {prevLink}
       <ChangesChart
         type="build"
+        className="inlineBlock"
         runnables={builds}
-        leftEllipsis={this.props.interactive.hasPreviousPage()}
-        rightEllipsis={this.props.interactive.hasNextPage()}
+        enableLatest={!interactive.hasPreviousPage()}
       />
+      {nextLink}
     </div>;
   },
 
