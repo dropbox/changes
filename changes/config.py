@@ -231,6 +231,10 @@ def create_app(_read_config=True, **config):
             # Hour 7 GMT is midnight PST, hopefully a time of low load
             'schedule': crontab(hour=7, minute=0),
         },
+        'update-local-repos': {
+            'task': 'update_local_repos',
+            'schedule': timedelta(minutes=5),
+        }
     }
     app.config['CELERY_TIMEZONE'] = 'UTC'
 
