@@ -82,11 +82,20 @@ var SnapshotPage = React.createClass({
       </a>
       </div>;
 
+    var statusText = "";
+    if (details.isActive) {
+      statusText = "Currently active";
+    } else if (details.status.name == "Active") {
+      statusText = "Ready to be activated";
+    } else {
+      statusText = details.status.name;
+    }
+
     return <ChangesPage>
       <SectionHeader>{details.name}</SectionHeader>
       <InfoList>
         <InfoItem label="Snapshot ID">{details.id}</InfoItem>
-        <InfoItem label="Status">{details.status.name}</InfoItem>
+        <InfoItem label="Status">{statusText}</InfoItem>
         <InfoItem label="Project">{projectInfo}</InfoItem>
         <InfoItem label="Created from build">{buildInfo}</InfoItem>
         <InfoItem label="Based on commit">{commitInfo}</InfoItem>
