@@ -161,7 +161,7 @@ require([
     }
   }
 
-  if (path === "") { page = HomePage; }
+  if (path === "/") { page = HomePage; }
 
   // we fetch some initial data used by pages (e.g. are we logged in?)
   data_fetching.make_api_ajax_get('/api/0/initial', function(response) {
