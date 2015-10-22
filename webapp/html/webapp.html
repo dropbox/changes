@@ -72,9 +72,9 @@
         {{ WEBAPP_CUSTOM_JS |safe }}
       </script>
     {% endif %}
-    <link href="{{ url_for('webapp_v2.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
+    <link href="{{ url_for('.static', filename='favicon.ico') }}" rel="shortcut icon" type="image/x-icon">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-    <link href="{{ url_for('webapp_v2.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
+    <link href="{{ url_for('.static', filename='css/bootstrap.css') }}?4" rel="stylesheet" media="screen">
     {% if HAS_CUSTOM_CSS %}
       {% if COLORBLIND %}
         {% assets filters="less", output="dist/bundled_with_custom_colorblind.css", depends=["**/*.less", "custom/**/*.less"], "css/bundle_definition_custom_colorblind.less" %}
@@ -111,19 +111,19 @@
       <div class="paddingTopL paddingLeftM">Loading...</div>
     </div>
     <script
-      data-main="{{ url_for('webapp_v2.static', filename='dist/built') }}"
-      src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
+      data-main="{{ url_for('.static', filename='dist/built') }}"
+      src="{{ url_for('.static', filename='vendor/requirejs/require.js') }}">
     </script>
     {% else %}
       <div class="paddingTopL paddingLeftM">Downloading and transpiling javascript... (dev only)</div>
     </div>
     <script
-      data-main="{{ url_for('webapp_v2.static', filename='entry') }}"
-      src="{{ url_for('webapp_v2.static', filename='vendor/requirejs/require.js') }}">
+      data-main="{{ url_for('.static', filename='entry') }}"
+      src="{{ url_for('.static', filename='vendor/requirejs/require.js') }}">
     </script>
     <script>
       requirejs.config({
-        baseUrl: '{{ url_for('webapp_v2.static', filename='') }}'
+        baseUrl: '{{ url_for('.static', filename='') }}'
       });
     </script>
     {% endif %}

@@ -108,7 +108,7 @@ export var SingleBuild = React.createClass({
       {render_all ? this.renderJobs(build, job_phases) : null}
       {render_all ?
       <div className="marginTopL">
-        <a href={`/v2/code/${build.source.id}`}>View Code for this Build</a>
+        <a href={`/code/${build.source.id}`}>View Code for this Build</a>
       </div>
       : null}
     </div>;
@@ -167,7 +167,7 @@ export var SingleBuild = React.createClass({
 
     // show a button for the tests for build page, since its important and we
     // want a prominent link
-    var buildTestsHref = `/v2/build_tests/${build.id}` +
+    var buildTestsHref = `/build_tests/${build.id}` +
       (build.testFailures.total > 0 ? '' : "#SlowTests")
 
     return <div>
@@ -214,7 +214,7 @@ export var SingleBuild = React.createClass({
       'In Progress' : build.stats.test_count;
 
     var testLabel = build.dateFinished ? "Tests Ran" : "Tests Run";
-    var buildTestsHref = `/v2/build_tests/${build.id}` +
+    var buildTestsHref = `/build_tests/${build.id}` +
       (build.testFailures.total > 0 ? '' : "#SlowTests")
     attributes[testLabel] = <span>
       {testCount}{" ("}
@@ -254,7 +254,7 @@ export var SingleBuild = React.createClass({
 
     var rows = [];
     _.each(build.testFailures.tests, test => {
-      var href = `/v2/project_test/${test.project.id}/${test.hash}`;
+      var href = `/project_test/${test.project.id}/${test.hash}`;
 
       var onClick = __ => {
         this.setState(
@@ -293,7 +293,7 @@ export var SingleBuild = React.createClass({
         {" "}out of{" "}
         <span className="lb">{build.testFailures.total}</span>
         {" "}failed tests.{" "}
-        <a href={"/v2/build_tests/"+build.id+"/"}>
+        <a href={"/build_tests/"+build.id+"/"}>
         See all
         </a>
       </div>
@@ -482,12 +482,12 @@ export var SingleBuild = React.createClass({
 
         var logID = jobstep.logSources[0] && jobstep.logSources[0].id;
         if (logID) {
-          var logURI = `/v2/job_log/${build.id}/${job.id}/${logID}/`;
+          var logURI = `/job_log/${build.id}/${job.id}/${logID}/`;
           nodeLink = <a href={logURI}>{nodeLink}</a>;
         }
         
         var links = [
-          <a className="marginRightM" href={"/v2/node/" + jobstep.node.id}>
+          <a className="marginRightM" href={"/node/" + jobstep.node.id}>
             Machine
           </a>
         ];

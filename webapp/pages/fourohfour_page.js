@@ -37,7 +37,7 @@ var FourOhFourPage = React.createClass({
     }
 
     if (custom_image) {
-      var image_href = '/v2/custom_image/' + custom_image;
+      var image_href = '/custom_image/' + custom_image;
 
       var content = <center style={{ marginTop: 24, display: "block" }}>
         <div style={{ fontSize: 48, marginBottom: 20 }}>404</div>

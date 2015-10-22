@@ -101,10 +101,7 @@ require([
   // replace with a routing library. Probably not react-router, though... its
   // too template-y. Or at least don't use nesting with react-router
 
-  var url = window.location.href;
-  var path = _.last(url.split('/v2/', 2)).trim();
-  // ignore # and ?
-  var path = path.split(/[\?#]/, 1)[0];
+  var path = window.location.pathname;
   var path_parts = _.compact(path.split('/'));
 
   if (path_parts[0] === 'find_build') {

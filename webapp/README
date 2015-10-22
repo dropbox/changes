@@ -1,4 +1,4 @@
-This is a separate frontend (accessible via <your host>.com/v2/) that we're
+This is a separate frontend (accessible via <your host>.com/) that we're
 building to replace the original one. Look in static/ and templates/ for the UI
 currently being used.
 
@@ -24,8 +24,7 @@ entry.js: the entry point into the app
   contain timezone info. By default, chrome and firefox will parse dates
   differently, so to be on the safe side you should always use moment.utc
 
-- /display_examples (or maybe /v2/display_examples) has a nice gallery of all
-  the reusable ui components we use
+- /display_examples has a nice gallery of all the reusable ui components we use
 
 - I used underscores for a while before realizing js typically uses camelCase
   for all variables. So now its half-and-half, sorry :(. It shouldn't be that

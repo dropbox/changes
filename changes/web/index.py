@@ -3,7 +3,7 @@ import urlparse
 
 from changes.api.auth import get_current_user
 from changes.config import statsreporter, db
-from flask import render_template, redirect, current_app, request
+from flask import render_template, current_app, request
 from flask.views import MethodView
 
 from changes.models import ItemOption
@@ -16,37 +16,7 @@ class IndexView(MethodView):
         self.use_v2 = use_v2
         super(MethodView, self).__init__()
 
-    def get_v2_redirect(self):
-        """
-        Redirect opted-in users to v2. This won't affect people using the
-        original angular app (since it doesn't need full-page loads to
-        navigate), but covers links from phabricator comments, emails, etc.
-        """
-        # ignore any explicit optouts
-        if request.args and "optout" in request.args:
-            return None
-
-        current_user = get_current_user()
-        current_username = (current_user.email.split('@')[0] if
-            current_user else None)
-        if current_username not in current_app.config['NEW_UI_OPTIN_USERS']:
-            return None
-
-        path = request.path.strip('/')
-        path_pieces = path.split('/')
-        if (path == '' and not request.args):
-            return redirect('/v2/?optin=1')
-        elif (len(path_pieces) == 4 and
-              path_pieces[0] == 'projects' and
-              path_pieces[2] == 'builds'):
-            return redirect('/v2/find_build/%s/' % (path_pieces[3],))
-
     def get(self, path=''):
-        # we automatically redirect some users to v2
-        redir = self.get_v2_redirect()
-        if redir:
-            return redir
-
         # get user options, e.g. colorblind
         current_user = get_current_user()
         user_options = {}
