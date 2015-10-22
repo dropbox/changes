@@ -265,7 +265,7 @@ var CommitsTab = React.createClass({
       tests,
       ChangesLinks.author(c.author),
       ChangesLinks.phabCommit(c),
-      <TimeText time={c.dateCommitted} />
+      <TimeText key={c.id} time={c.dateCommitted} />
     ];
   },
 

@@ -99,7 +99,7 @@ var BuildsTab = React.createClass({
         target,
         get_build_cause(build),
         ChangesLinks.author(build.author),
-        <TimeText time={build.dateStarted} />
+        <TimeText key={build.id} time={build.dateStarted} />
       ];
     });
 
