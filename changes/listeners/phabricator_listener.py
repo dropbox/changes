@@ -242,7 +242,8 @@ def build_finished_handler(build_id, **kwargs):
 
     target = build.target
     is_diff_build = target and target.startswith(u'D')
-    is_commit_build = build.source is not None and build.source.is_commit()
+    is_commit_build = (build.source is not None and build.source.is_commit() and
+                       build.tags and 'commit' in build.tags)
 
     phab = None
 

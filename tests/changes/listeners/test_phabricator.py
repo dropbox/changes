@@ -545,7 +545,7 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         self.create_option(name='phabricator.callsign', value='BOO', item_id=repo.id)
         project = self.create_project(name='Server', repository=repo)
         source = self.create_source(project)
-        build = self.create_build(project, result=Result.passed, source=source, status=Status.finished)
+        build = self.create_build(project, result=Result.passed, source=source, status=Status.finished, tags=['commit'])
         job = self.create_job(build=build)
 
         cov = {"file": "NUC"}
