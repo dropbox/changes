@@ -156,11 +156,11 @@ var ChangesPageHeader = React.createClass({
     if (this.props.oldUI) {
 
       // We need to patch the hostname to the classic version
-      var host = window.location.host;
-      var index = host.indexOf('.');
-      host = host.substring(0, index) + '-classic' + host.substring(index);
+      var origin = window.location.origin;
+      var index = origin.indexOf('.');
+      origin = origin.substring(0, index) + '-classic' + origin.substring(index);
 
-      var oldHref = URI(host + this.props.oldUI).toString();
+      var oldHref = URI(origin + this.props.oldUI).toString();
       oldUI = <a className="headerLinkBlock floatR red"
         target="_blank"
         href={oldHref}>
