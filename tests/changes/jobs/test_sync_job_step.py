@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
 import mock
+import re
+import responses
 
 from datetime import datetime, timedelta
 from flask import current_app
@@ -271,9 +273,15 @@ class IsMissingTestsTest(BaseTestCase):
 
 
 class SyncJobStepTest(BaseTestCase):
+    ARTIFACTSTORE_REQUEST_RE = re.compile(r'http://localhost:1234/buckets/.+/artifacts')
+
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @responses.activate
     def test_in_progress(self, get_implementation, queue_delay):
+        # Simulate test which doesn't interact with artifacts store.
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body='', status=404)
+
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -332,7 +340,11 @@ class SyncJobStepTest(BaseTestCase):
 
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @responses.activate
     def test_finished(self, get_implementation, queue_delay):
+        # Simulate test type which doesn't interact with artifacts store.
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body='', status=404)
+
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -439,7 +451,11 @@ class SyncJobStepTest(BaseTestCase):
 
     @mock.patch('changes.config.queue.delay')
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @responses.activate
     def test_missing_test_results_and_expected(self, get_implementation, queue_delay):
+        # Simulate test type which doesn't interact with artifacts store.
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body='', status=404)
+
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -498,7 +514,11 @@ class SyncJobStepTest(BaseTestCase):
 
     @mock.patch('changes.jobs.sync_job_step.has_timed_out')
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @responses.activate
     def test_timed_out(self, get_implementation, mock_has_timed_out):
+        # Simulate test type which doesn't interact with artifacts store.
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body='', status=404)
+
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -540,7 +560,11 @@ class SyncJobStepTest(BaseTestCase):
         )
 
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @responses.activate
     def test_failure_reasons(self, get_implementation):
+        # Simulate test type which doesn't interact with artifacts store.
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body='', status=404)
+
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 

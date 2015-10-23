@@ -1132,6 +1132,13 @@ class JenkinsIntegrationTest(BaseTestCase):
             responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
             body=self.load_fixture('fixtures/GET/node_config.xml'))
 
+        artifacts_store_requests_re = re.compile(r'http://localhost:1234/buckets/.+/artifacts')
+        # Simulate test type which doesn't interact with artifacts store.
+        responses.add(
+            responses.GET, artifacts_store_requests_re,
+            body='',
+            status=404)
+
         build = self.create_build(self.project)
         job = self.create_job(
             build=build,

@@ -107,7 +107,10 @@ def create_app(_read_config=True, **config):
 
     # Location of artifacts server that is passed to changes-client
     # (include http:// or https://)
-    app.config['ARTIFACTS_SERVER'] = None
+    #
+    # The default artifact server url uses a random uri which is expected to fail
+    # without being overridden. This value is referenced in test code.
+    app.config['ARTIFACTS_SERVER'] = 'http://localhost:1234'
 
     app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE'] = 'legacy'
 

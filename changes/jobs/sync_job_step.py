@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 from datetime import datetime
 from flask import current_app
 from sqlalchemy import distinct, or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 
 from changes.constants import Status, Result
@@ -10,9 +11,14 @@ from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.models import (
     ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
-    FileCoverage, FailureReason, SnapshotImage
+    FileCoverage, FailureReason, SnapshotImage, Artifact, LogSource
 )
 from changes.queue.task import tracked_task
+from changes.db.utils import get_or_create
+
+from requests.exceptions import HTTPError
+
+import requests
 
 
 QUEUED_RETRY_DELAY = 30
@@ -190,6 +196,77 @@ def record_coverage_stats(step):
 DEFAULT_TIMEOUT_MIN = 60
 
 
+# In seconds, the timeout applied to any requests we make to the artifacts
+# store. Arbitrarily chose as the amount of delay we can tolerate for each
+# sync_job_step.
+ARTIFACTS_REQUEST_TIMEOUT_SECS = 5
+
+
+# List of artifact names recognized to be log source (content which is
+# continuously updated during the duration of a test, like console logs and
+# infralogs)
+LOGSOURCE_WHITELIST = ('console', 'infralog',)
+
+
+def sync_artifacts_for_jobstep(jobstep):
+    url = '{base}/buckets/{jobstep_id}/artifacts'.format(
+        base=current_app.config.get('ARTIFACTS_SERVER'),
+        jobstep_id=jobstep.id.hex,
+    )
+    job = jobstep.job
+
+    try:
+        res = requests.get(url, timeout=ARTIFACTS_REQUEST_TIMEOUT_SECS)
+        res.raise_for_status()
+        artifacts = res.json()
+        for artifact in artifacts:
+            # Artifact name is guaranteed to be unique in an artifact store bucket.
+            artifact_name = artifact['name']
+            artifact_path = artifact['relativePath']
+            if artifact_name in LOGSOURCE_WHITELIST:
+                logsource, created = get_or_create(LogSource, where={
+                    'name': artifact_name,
+                    'job': job,
+                    'step': jobstep,
+                }, defaults={
+                    'project': job.project,
+                    'date_created': job.date_started,
+                    'in_artifact_store': True,
+                })
+
+                # If this artifact is a logsource, don't add it to the list of
+                # test artifacts.
+                continue
+
+            art, created = get_or_create(Artifact, where={
+                # Don't conflict with same artifacts uploaded by other means (Jenkins/Mesos)
+                'name': 'artifactstore/' + artifact_path,
+                'step_id': jobstep.id,
+                'job_id': jobstep.job_id,
+                'project_id': jobstep.project_id,
+            })
+            if not created:
+                art.file.storage = 'changes.storage.artifactstore.ArtifactStoreFileStorage'
+                filename = 'buckets/{jobstep_id}/artifacts/{artifact_name}'.format(
+                    jobstep_id=jobstep.id.hex,
+                    artifact_name=artifact_name,
+                )
+                art.file.save(None, filename)
+                try:
+                    db.session.add(art)
+                    db.session.flush()
+                except IntegrityError, err:
+                    db.session.rollback()
+                    current_app.logger.error(
+                        'DB Error while inserting/updating artifact %s: %s', filename, err)
+    except HTTPError, err:
+        # Log to sentry - unable to contact artifacts store
+        current_app.logger.warning('Error fetching url %s: %s', url, err, exc_info=True)
+    except Exception, err:
+        current_app.logger.error('Error updating artifacts for jobstep %s: %s', jobstep, err, exc_info=True)
+        raise err
+
+
 @tracked_task(on_abort=abort_step, max_retries=100)
 def sync_job_step(step_id):
     """
@@ -206,6 +283,8 @@ def sync_job_step(step_id):
         implementation.update_step(step=step)
 
     db.session.flush()
+
+    sync_artifacts_for_jobstep(step)
 
     if step.status != Status.finished:
         is_finished = False

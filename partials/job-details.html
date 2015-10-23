@@ -54,9 +54,19 @@
                             <span ng-if="step.status.id != 'finished'"
                                   class="spinner-icon spinner-icon-sm"></span>
 
-                            {{step.name}}
                             <span ng-if="step.logSources.length">
-                                (<a ui-sref="log_details({source_id: step.logSources[0].id})">log</a> | <a href="/api/0/jobs/{{job.id}}/logs/{{step.logSources[0].id}}/?raw=1" target="_self">raw</a>)
+                                <span ng-repeat="logSource in step.logSources">
+                                    {{logSource.name}} (
+                                    <span ng-repeat="url in logSource.urls">
+                                        <span ng-if="url.type != 'chunked'">
+                                            <a href="{{url.url}}" target="_self"> raw </a>
+                                        </span>
+                                        <span ng-if="url.type == 'chunked'">
+                                            | <a ui-sref="log_details({source_id: logSource.id})"> log </a>
+                                        </span>
+                                    </span>
+                                    )
+                                </span>
                             </span>
                         </td>
                         <td class="column">

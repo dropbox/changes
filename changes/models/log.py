@@ -1,7 +1,7 @@
 import uuid
 
 from datetime import datetime
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Integer
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.schema import Index, UniqueConstraint
 
@@ -17,6 +17,9 @@ class LogSource(db.Model):
     """
     We log the console output for each jobstep. logsource is an
     entity table for these "logfiles". logchunk contains the actual text.
+
+    If we're using artifact store to store/host the log file, in_artifact_store will be set to true.
+    No logchunk entries will be associated with such logsources.
     """
     __tablename__ = 'logsource'
     __table_args__ = (
@@ -30,6 +33,7 @@ class LogSource(db.Model):
     step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"))
     name = Column(String(64), nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
+    in_artifact_store = Column(Boolean, default=False)
 
     job = relationship('Job')
     project = relationship('Project')

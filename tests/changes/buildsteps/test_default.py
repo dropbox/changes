@@ -166,6 +166,7 @@ class DefaultBuildStepTest(TestCase):
             's3-bucket': 'snapshot-bucket',
             'pre-launch': 'echo pre',
             'post-launch': 'echo post',
+            'artifacts-server': 'http://localhost:1234',
         }
 
     def test_get_allocation_params_with_compression(self):

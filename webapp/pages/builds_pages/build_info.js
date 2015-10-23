@@ -478,25 +478,26 @@ export var SingleBuild = React.createClass({
           </div>;
         }
 
+        var links = [];
         var nodeLink = jobstep.node.name || jobstep.node.id;
+        var chunkedUrls = [];
+        jobstep.logSources.forEach(l => {
+          l.urls.forEach(logSourceURL => {
+            if (logSourceURL.type == "chunked") {
+              var log_uri = `/v2/job_log/${build.id}/${job.id}/${l.id}/`;
+              chunkedUrls.push(log_uri);
+            } else {
+              links.push(<a className="external marginRightM" href={logSourceURL.url} target="_blank">{l.name}</a>);
+            }
+          })
+        });
 
-        var logID = jobstep.logSources[0] && jobstep.logSources[0].id;
-        if (logID) {
-          var logURI = `/job_log/${build.id}/${job.id}/${logID}/`;
-          nodeLink = <a href={logURI}>{nodeLink}</a>;
-        }
-        
-        var links = [
-          <a className="marginRightM" href={"/node/" + jobstep.node.id}>
-            Machine
-          </a>
-        ];
-
-        if (logID) {
-          var raw_log_uri = `/api/0/jobs/${job.id}/logs/${logID}/?raw=1`;
-          links.push(
-            <a className="external marginRightM" href={raw_log_uri} target="_blank">Raw</a>
-          );
+        // First, check if there is at least one "chunked" (tail-able) URL.
+        // If yes, link the first one from the node id (currently, we're guaranteed to only have one
+        // url of this kind, till artifacts store exposes such a url).
+        // TODO(anupc): Figure out a good way to display more than one link of this form.
+        if (chunkedUrls.length >= 1) {
+          nodeLink = <a href={chunkedUrls[0]}>{nodeLink}</a>;
         }
 
         if (jobstep.data.uri) {

@@ -20,7 +20,7 @@ class FileStorageCache(FileStorage):
                 }
 
     def url_for(self, filename, expire=300):
-        raise NotImplementedError
+        return 'url-not-implemented-for-filestoragecache'
 
     def get_file(self, filename):
         return StringIO(_cache[filename]['content'])
