@@ -141,6 +141,12 @@ require([
 
   var page = FourOhFourPage;
 
+  // Redirect projects/foo -> project/foo because
+  // v1 project pages used the plural form
+  if (path_parts[0] === 'projects' && path_parts.length > 1) {
+    path_parts[0] = 'project';
+  }
+
   var params = {};
   for (var str in url_contains) {
     if (path_parts[0] === str) {
