@@ -89,51 +89,18 @@ class CoverageHandler(ArtifactHandler):
         - U: uncovered
         - C: covered
         """
-        root = etree.fromstring(fp.read())
+        # parse root elem without parsing whole file
+        _, root = next(etree.iterparse(fp, events=("start",)))
+        fp.seek(0)
 
         if root.tag == 'coverage':
-            return self.get_cobertura_coverage(root)
+            # use a streaming parser to parse coverage
+            parser = etree.XMLParser(target=CoberturaCoverageParser(self))
+            return etree.parse(fp, parser)
         elif root.tag == 'report':
+            root = etree.fromstring(fp.read())  # parse whole file
             return self.get_jacoco_coverage(root)
         raise NotImplementedError('Unsupported coverage format')
-
-    def get_cobertura_coverage(self, root):
-        step = self.step
-        job = self.step.job
-
-        results = []
-        for node in root.iter('class'):
-            filename = node.get('filename')
-            if not filename:
-                self.logger.warn('Unable to determine filename for node: %s', node)
-                continue
-
-            file_coverage = []
-            for lineset in node.iterchildren('lines'):
-                lineno = 0
-                for line in lineset.iterchildren('line'):
-                    number, hits = int(line.get('number')), int(line.get('hits'))
-                    if lineno < number - 1:
-                        for lineno in range(lineno, number - 1):
-                            file_coverage.append('N')
-                    if hits > 0:
-                        file_coverage.append('C')
-                    else:
-                        file_coverage.append('U')
-                    lineno = number
-
-            result = FileCoverage(
-                step_id=step.id,
-                job_id=job.id,
-                project_id=job.project_id,
-                filename=filename,
-                data=''.join(file_coverage),
-            )
-            self.add_file_stats(result)
-
-            results.append(result)
-
-        return results
 
     def get_jacoco_coverage(self, root):
         step = self.step
@@ -174,3 +141,58 @@ class CoverageHandler(ArtifactHandler):
                 results.append(result)
 
         return results
+
+
+class CoberturaCoverageParser(object):
+    def __init__(self, coverage_handler):
+        self.coverage_handler = coverage_handler
+        self.results = []
+        self.in_file = False
+        self.step = coverage_handler.step
+        self.job = coverage_handler.step.job
+
+    def start(self, tag, attrib):
+        if tag == 'class':
+            if 'filename' not in attrib:
+                self.coverage_handler.logger.warn(
+                    'Unable to determine filename for class node with attributes: %s', attrib)
+            else:
+                self.filename = attrib['filename']
+                self.file_coverage = []
+                self.current_lineno = 0
+                self.in_file = True
+        elif tag == 'line':
+            if self.in_file:
+                number = int(attrib['number'])
+                hits = int(attrib['hits'])
+                # the line numbers in the file should be strictly increasing
+                assert self.current_lineno < number
+                if self.current_lineno < number - 1:
+                    for self.current_lineno in range(self.current_lineno, number - 1):
+                        self.file_coverage.append('N')
+                if hits > 0:
+                    self.file_coverage.append('C')
+                else:
+                    self.file_coverage.append('U')
+                self.current_lineno = number
+
+    def end(self, tag):
+        if tag == 'class':
+            if self.in_file:
+                result = FileCoverage(
+                    step_id=self.step.id,
+                    job_id=self.job.id,
+                    project_id=self.job.project_id,
+                    filename=self.filename,
+                    data=''.join(self.file_coverage),
+                )
+                self.coverage_handler.add_file_stats(result)
+                self.results.append(result)
+
+                self.in_file = False
+
+    def data(self, data):
+        pass
+
+    def close(self):
+        return self.results
