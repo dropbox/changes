@@ -484,7 +484,7 @@ export var SingleBuild = React.createClass({
         jobstep.logSources.forEach(l => {
           l.urls.forEach(logSourceURL => {
             if (logSourceURL.type == "chunked") {
-              var log_uri = `/v2/job_log/${build.id}/${job.id}/${l.id}/`;
+              var log_uri = `/job_log/${build.id}/${job.id}/${l.id}/`;
               chunkedUrls.push(log_uri);
             } else {
               links.push(<a className="external marginRightM" href={logSourceURL.url} target="_blank">{l.name}</a>);
