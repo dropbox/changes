@@ -34,7 +34,7 @@ SAMPLE_COVERAGE = """<?xml version="1.0" ?>
                         <line hits="0" number="2"/>
                         <line hits="0" number="12"/>
                         <line hits="1" number="13"/>
-                        <line hits="1" number="14"/>
+                        <line branch="true" condition-coverage="100% (3/3)" hits="4" number="14"/>
                         <line branch="true" condition-coverage="0% (0/2)" hits="0" number="16"/>
                     </lines>
                 </class>

@@ -165,15 +165,32 @@ class CoberturaCoverageParser(object):
             if self.in_file:
                 number = int(attrib['number'])
                 hits = int(attrib['hits'])
+                branch = attrib.get('branch') == 'true'
                 # the line numbers in the file should be strictly increasing
                 assert self.current_lineno < number
                 if self.current_lineno < number - 1:
                     for self.current_lineno in range(self.current_lineno, number - 1):
                         self.file_coverage.append('N')
-                if hits > 0:
-                    self.file_coverage.append('C')
+
+                # count partial branch coverage as uncovered
+                if branch:
+                    # condition-coverage attrib looks something like '50% (2/4)'
+                    if 'condition-coverage' not in attrib:
+                        # condition-coverage should always be present if branch="true".  if it's
+                        # not, log a warning and mark the line uncovered (to avoid false positivies)
+                        self.coverage_handler.logger.warn(
+                            'Line node with branch="true" has no condition-coverage attribute. ' +
+                            'Node attributes: %s', attrib)
+                        self.file_coverage.append('U')
+                    elif attrib['condition-coverage'].startswith('100%'):
+                        self.file_coverage.append('C')
+                    else:
+                        self.file_coverage.append('U')
                 else:
-                    self.file_coverage.append('U')
+                    if hits > 0:
+                        self.file_coverage.append('C')
+                    else:
+                        self.file_coverage.append('U')
                 self.current_lineno = number
 
     def end(self, tag):

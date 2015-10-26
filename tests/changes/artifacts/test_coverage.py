@@ -35,7 +35,7 @@ class CoverageHandlerTest(TestCase):
         assert type(r2) == FileCoverage
         assert r2.job_id == jobstep.job.id
         assert r2.project_id == jobstep.job.project_id
-        assert r2.data == 'CCCNNNU'
+        assert r2.data == 'CUCNNNU'  # partial branch coverage is considered uncovered
 
     def test_jacoco_result_generation(self):
         jobstep = JobStep(
