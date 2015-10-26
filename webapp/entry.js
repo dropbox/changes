@@ -104,6 +104,16 @@ require([
   var path = window.location.pathname;
   var path_parts = _.compact(path.split('/'));
 
+  // We want to ensure that certain changes classic style links still work.
+  if (path_parts.length > 3 && path_parts[0] === 'projects' && path_parts[2] == 'builds') {
+    // for /projects/<slug>/builds/<build_id>/ or /projects/<slug>/builds/<build_id>/jobs/<job_id>
+    if (path_parts.length == 4 || (path_parts.length == 6 && path_parts[4] == 'jobs'))
+      path_parts = ['find_build', path_parts[3]];
+    // for /projects/<slug>/builds/<build_id>/jobs/<job_id>/logs/<log_id>
+    else if (path_parts.length == 8 && path_parts[4] == 'jobs' && path_parts[6] == 'logs')
+      path_parts = ['job_log', path_parts[3], path_parts[5], path_parts[7]];
+  }
+
   if (path_parts[0] === 'find_build') {
     var redirect_func = function(response, was_success) {
       if (!was_success) {
