@@ -197,9 +197,9 @@ DEFAULT_TIMEOUT_MIN = 60
 
 
 # In seconds, the timeout applied to any requests we make to the artifacts
-# store. Arbitrarily chose as the amount of delay we can tolerate for each
+# store. Arbitrarily chosen as the amount of delay we can tolerate for each
 # sync_job_step.
-ARTIFACTS_REQUEST_TIMEOUT_SECS = 5
+ARTIFACTS_REQUEST_TIMEOUT_SECS = 15
 
 
 # List of artifact names recognized to be log source (content which is
