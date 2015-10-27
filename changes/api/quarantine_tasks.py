@@ -4,7 +4,7 @@ from flask import current_app
 
 from changes.api.base import APIView
 
-from changes.utils.phabricator_utils import PhabricatorRequest
+from changes.utils.phabricator_utils import PhabricatorClient
 
 import requests
 
@@ -24,7 +24,7 @@ class QuarantineTasksAPIView(APIView):
                     'fetched_data_from_phabricator': False
                 })
 
-            request = PhabricatorRequest()
+            request = PhabricatorClient()
             request.connect()
             task_info = request.call('maniphest.query', {'authorPHIDs': [quarantine_user]})
 

@@ -4,7 +4,7 @@ from changes.api.base import APIView
 from changes.config import db
 from changes.models import Build, PhabricatorDiff, Job
 
-from changes.utils.phabricator_utils import PhabricatorRequest
+from changes.utils.phabricator_utils import PhabricatorClient
 
 
 class DiffBuildsIndexAPIView(APIView):
@@ -24,7 +24,7 @@ class DiffBuildsIndexAPIView(APIView):
         # grab diff info from phabricator.
         phabricator_info = {}
         try:
-            request = PhabricatorRequest()
+            request = PhabricatorClient()
             request.connect()
 
             phabricator_info = request.call('differential.query', {

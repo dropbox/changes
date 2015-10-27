@@ -1,12 +1,6 @@
-import logging
-import time
-import hashlib
-import json
-
 from changes.models.job import Job
 from changes.models.test import TestCase
 
-import requests
 import urllib
 
 from flask import current_app
@@ -19,6 +13,7 @@ from changes.lib.coverage import get_coverage_by_build_id, merged_coverage_data
 from changes.models import Build, ItemOption, ProjectOption, RepositoryBackend, Source
 from changes.models.event import Event, EventType
 from changes.utils.http import build_uri
+from changes.utils.phabricator_utils import logger, PhabricatorClient, post_comment
 from changes.vcs.git import GitVcs
 from changes.vcs.hg import MercurialVcs
 from sqlalchemy.orm import joinedload
@@ -29,103 +24,6 @@ DEFAULT_BRANCHES = {
     RepositoryBackend.hg: MercurialVcs.get_default_revision(),
     RepositoryBackend.unknown: ''
 }
-
-
-logger = logging.getLogger('phabricator-listener')
-
-
-class Phabricator(object):
-    """A poor man's Phabricator connector.
-
-    Usage:
-      p = Phabricator(username, cert, host)
-      result = p.post(method_name, **kwds)
-
-    Where:
-      - method_name is the dotted method name from the Conduit docs
-      - **kwds is a set of keyword args for that method
-
-    Example:
-      p.post('differential.createcomment', revision_id='123', message='hello')
-
-    Notes:
-      - Phabricator objects aren't cached.  Connecting is assumed
-        to be fast and cheap.  (Not sure if it really is.)
-    """
-
-    def __init__(self, username, cert, host):
-        # Must pass in stuff
-        assert username and cert and host, (username, cert, host)
-
-        # Host must be e.g. 'https://secure.phabricator.com',
-        # not what's in .arcrc (like 'https://secure.phabricator.com/api/'),
-        # nor a plain DNS name (like 'secure.phabricator.com').
-        assert host.startswith('http') and not host.endswith('/'), host
-
-        self.username = username
-        self.cert = cert
-        self.host = host
-
-        token = int(time.time())
-
-        connect_args = {
-            'authSignature': hashlib.sha1(str(token) + cert).hexdigest(),
-            'authToken': token,
-            'client': 'changes-phabricator',
-            'clientVersion': 1,
-            'host': self.host,
-            'user': self.username,
-        }
-
-        connect_url = "%s/api/conduit.connect" % self.host
-        resp = requests.post(connect_url, {
-            '__conduit__': True,
-            'output': 'json',
-            'params': json.dumps(connect_args),
-        }, timeout=10)
-        resp.raise_for_status()
-        resp = resp.json()['result']
-        self.auth_params = {
-            'connectionID': resp['connectionID'],
-            'sessionKey': resp['sessionKey'],
-        }
-
-    def post(self, method, timeout=10, **kwargs):
-        url = "%s/api/%s" % (self.host, method)
-        kwargs['__conduit__'] = self.auth_params
-        args = {
-            'params': json.dumps(kwargs),
-            'output': 'json',
-            }
-        resp = requests.post(url, args, timeout=timeout)
-        resp.raise_for_status()
-        raw_response = resp.json()
-        error_code = raw_response['error_code']
-        error_info = raw_response['error_info']
-        if error_code or error_info:
-            raise RuntimeError('%s request error: %s, %s' % (method, error_code, error_info))
-        return raw_response['result']
-
-
-def make_phab(phab):
-    """Pass in a Phabricator instace or None.
-
-    Returns a Phabricator instance, or None if no phabricator
-    credentials could be found.
-    """
-    if phab is not None:
-        return phab
-
-    # Create a connected Phabricator instance
-    username = current_app.config.get('PHABRICATOR_USERNAME')
-    cert = current_app.config.get('PHABRICATOR_CERT')
-    host = current_app.config.get('PHABRICATOR_HOST')
-    if not username or not cert or not host:
-        logger.error("Couldn't find phabricator credentials; username: %s host: %s cert: %s",
-                     username, host, cert)
-        return None
-
-    return Phabricator(username, cert, host)
 
 
 def get_options(project_id):
@@ -153,10 +51,6 @@ def get_repo_options(repo_id):
             ])
         )
     )
-
-
-def post_diff_comment(revision_id, comment, phab):
-    phab.post('differential.createcomment', revision_id=revision_id, message=comment)
 
 
 def post_diff_coverage(revision_id, coverage, phab):
@@ -245,14 +139,11 @@ def build_finished_handler(build_id, **kwargs):
     is_commit_build = (build.source is not None and build.source.is_commit() and
                        build.tags and 'commit' in build.tags)
 
-    phab = None
+    phab = PhabricatorClient()
 
     if options.get('phabricator.coverage', '0') == '1' and (is_diff_build or is_commit_build):
         coverage = merged_coverage_data(get_coverage_by_build_id(build_id))
         if coverage:
-            phab = make_phab(phab)
-            if not phab:
-                return
             if is_diff_build:
                 logger.info("Posting coverage to %s", target)
                 post_diff_coverage(target[1:], coverage, phab)
@@ -413,15 +304,3 @@ def get_test_failure_remarkup(build, tests):
         )
         message += _generate_remarkup_table_for_tests(build, failures_in_parent)
     return message
-
-
-def post_comment(target, message, phab=None):
-    phab = make_phab(phab)
-    if not phab:
-        return
-    try:
-        logger.info("Posting build results to %s", target)
-        revision_id = target[1:]
-        post_diff_comment(revision_id, message, phab)
-    except Exception:
-        logger.exception("Failed to post to target: %s", target)

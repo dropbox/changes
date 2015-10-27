@@ -7,7 +7,7 @@ import logging
 
 from flask import current_app
 
-# eh, just use the same logger as the listener code
+# The name is a historical relic -- phabricator_listener.py imports this same logger.
 logger = logging.getLogger('phabricator-listener')
 
 # Functions to locally recognize/parse diffusion ids
@@ -51,7 +51,7 @@ def get_hash_from_diffusion_iden(text):
     return match.group(1)
 
 
-class PhabricatorRequest:
+class PhabricatorClient(object):
     """
     Implements the logic of talking to phabricator. Always call connect first
     """
@@ -61,7 +61,7 @@ class PhabricatorRequest:
 
     def connect(self, force=False):
         if self.auth_params and not force:
-            raise RuntimeError("already connected to phabricator!")
+            return True
 
         self.user = current_app.config.get('PHABRICATOR_USERNAME')
         self.host = current_app.config.get('PHABRICATOR_HOST')
@@ -71,7 +71,7 @@ class PhabricatorRequest:
             logger.error(
                 "Couldn't find phabricator credentials user: %s host: %s cert: %s",
                 self.user, self.host, self.cert)
-            return
+            return False
 
         token = int(time.time())
 
@@ -101,6 +101,8 @@ class PhabricatorRequest:
             'sessionKey': resp['sessionKey'],
         }
 
+        return True  # Success!
+
     def call(self, method_name, params):
         if '__conduit__' in params:
             raise ValueError('phabricator params should not have __conduit__!')
@@ -124,3 +126,39 @@ class PhabricatorRequest:
             raise ValueError((content['error_code'], content['error_info']))
 
         return content['result']
+
+    def post(self, method_name, **params):
+        """
+        Connect and then call method_name with the keyword params.
+
+        This is a shorthand for
+          r.connect()
+          r.call('a.b', {'k': v})
+        """
+        if not self.connect():
+            raise RuntimeError("Failed to connect -- see logs")
+        return self.call(method_name, params)
+
+
+def post_diff_comment(revision_id, comment, request):
+    # This exists mainly for easy mocking in test_phabricator_listener.py.
+    request.post('differential.createcomment', revision_id=revision_id, message=comment)
+
+
+def post_comment(target, message, request=None):
+    """
+    Post a comment to a diff in Phabricator.
+
+    The target is a Phabricator revision identifier, e.g. 'D12345'.
+    """
+    try:
+        if request is None:
+            request = PhabricatorClient()
+        if not request.connect():
+            # Return quietly if we can't connect.
+            return
+        logger.info("Posting build results to %s", target)
+        revision_id = target[1:]
+        post_diff_comment(revision_id, message, request)
+    except requests.exceptions.ConnectionError:
+        logger.exception("Failed to post to target: %s", target)

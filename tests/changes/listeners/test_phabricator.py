@@ -10,8 +10,6 @@ from changes.models import RepositoryBackend
 from changes.testutils import TestCase as UnitTestCase
 from changes.listeners.phabricator_listener import (
     build_finished_handler,
-    make_phab,
-    Phabricator,
     post_commit_coverage,
     post_diff_coverage,
     )
@@ -22,11 +20,11 @@ class PhabricatorListenerTest(UnitTestCase):
     def setUp(self):
         super(PhabricatorListenerTest, self).setUp()
         current_app.config['PHABRICATOR_POST_BUILD_RESULT'] = True
-        patcher = mock.patch('changes.listeners.phabricator_listener.make_phab')
-        self.phab_mock = patcher.start().return_value
+        patcher = mock.patch('changes.utils.phabricator_utils.PhabricatorClient.connect')
+        patcher.start().return_value = True
         self.addCleanup(patcher.stop)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_no_target(self, get_options, post):
         project = self.create_project(name='test', slug='test')
@@ -34,7 +32,7 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
         self.assertEquals(post.call_count, 0)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_blacklisted_project(self, get_options, post):
         project = self.create_project(name='test', slug='test')
@@ -44,7 +42,7 @@ class PhabricatorListenerTest(UnitTestCase):
         self.assertEquals(post.call_count, 0)
         get_options.assert_called_once_with(project.id)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_arc_test_build(self, get_options, post):
         get_options.return_value = {
@@ -57,7 +55,7 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
         self.assertEquals(post.call_count, 0)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_whitelisted_project(self, get_options, post):
         get_options.return_value = {
@@ -75,9 +73,9 @@ class PhabricatorListenerTest(UnitTestCase):
             build_link
         )
 
-        post.assert_called_once_with('1', expected_msg, self.phab_mock)
+        post.assert_called_once_with('1', expected_msg, mock.ANY)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_build_failure_with_tests_and_no_base_build(self, get_options, post):
         get_options.return_value = {
@@ -121,9 +119,9 @@ class PhabricatorListenerTest(UnitTestCase):
 |--|--|
 |{2}|test.group.ClassName|"""
 
-        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), self.phab_mock)
+        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), mock.ANY)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_build_failure_with_tests_and_no_base_job(self, get_options, post):
         get_options.return_value = {
@@ -171,9 +169,9 @@ class PhabricatorListenerTest(UnitTestCase):
 |--|--|
 |{2}|test.group.ClassName|"""
 
-        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), self.phab_mock)
+        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), mock.ANY)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_build_failure_with_tests(self, get_options, post):
         get_options.return_value = {
@@ -220,10 +218,10 @@ class PhabricatorListenerTest(UnitTestCase):
 |--|--|
 |{2}|test.group.ClassName|"""
 
-        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), self.phab_mock)
+        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), mock.ANY)
 
     @mock.patch('changes.listeners.phabricator_listener.get_test_failures_in_base_commit')
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_no_new_failures(self, get_options, post, get_base_failures):
         get_options.return_value = {
@@ -266,10 +264,10 @@ class PhabricatorListenerTest(UnitTestCase):
 |--|--|
 |{2}|test.group.ClassName|"""
 
-        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), self.phab_mock)
+        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc), mock.ANY)
 
     @mock.patch('changes.listeners.phabricator_listener.get_test_failures_in_base_commit')
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_parent_and_new_failures(self, get_options, post, get_base_failures):
         def get_test_desc(build, testcase, test_name):
@@ -327,9 +325,9 @@ class PhabricatorListenerTest(UnitTestCase):
 |--|--|
 |{3}|test.group.ClassName|"""
 
-        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc2, test_desc), self.phab_mock)
+        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc2, test_desc), mock.ANY)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_max_shown_build_failures(self, get_options, post):
         get_options.return_value = {
@@ -378,7 +376,7 @@ class PhabricatorListenerTest(UnitTestCase):
         assert 'Server build Failed {{icon times, color=red}} ([results]({0})). There were {2} new [test failures]({1})'.format(build_link, failure_link, total_test_count)
         assert '|...more...|...|' in comment
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_multiple_builds(self, get_options, post):
         get_options.return_value = {
@@ -437,9 +435,9 @@ class PhabricatorListenerTest(UnitTestCase):
 
 Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
 
-        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc, build2_link), self.phab_mock)
+        post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc, build2_link), mock.ANY)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_slug_escape(self, get_options, post):
         get_options.return_value = {
@@ -467,9 +465,9 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
             safe_slug, build.id.hex))
 
         expected_msg = 'Server build Passed {{icon check, color=green}} ([results]({0})).'
-        post.assert_called_once_with('1', expected_msg.format(build_link), self.phab_mock)
+        post.assert_called_once_with('1', expected_msg.format(build_link), mock.ANY)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.post_diff_coverage')
     @mock.patch('changes.listeners.phabricator_listener.merged_coverage_data')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
@@ -492,9 +490,9 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
 
         assert post_diff_comment.call_count == 1
         assert post_diff_coverage.call_count == 1
-        post_diff_coverage.assert_called_once_with('1', cov, self.phab_mock)
+        post_diff_coverage.assert_called_once_with('1', cov, mock.ANY)
 
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.post_diff_coverage')
     @mock.patch('changes.listeners.phabricator_listener.merged_coverage_data')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
@@ -529,14 +527,14 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         assert call2[0] == ('harbormaster.sendmessage',)
         # We'll trust the code for the keyword args
 
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.post_commit_coverage')
-    @mock.patch('changes.listeners.phabricator_listener.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.post_diff_coverage')
     @mock.patch('changes.listeners.phabricator_listener.merged_coverage_data')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_commit_coverage_posted(self, get_options, merged_coverage_data,
-                                    post_diff_coverage, post_diff_comment,
-                                    post_commit_coverage):
+                                    post_diff_coverage, post_commit_coverage,
+                                    post_diff_comment):
         get_options.return_value = {
             'phabricator.notify': '1',
             'phabricator.coverage': '1',
@@ -556,7 +554,7 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         assert post_diff_comment.call_count == 0
         assert post_diff_coverage.call_count == 0
         assert post_commit_coverage.call_count == 1
-        post_commit_coverage.assert_called_once_with('BOO', 'master', source.revision_sha, cov, self.phab_mock)
+        post_commit_coverage.assert_called_once_with('BOO', 'master', source.revision_sha, cov, mock.ANY)
 
     def test_post_commit_coverage(self):
         phab = mock.MagicMock()
@@ -567,34 +565,3 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         assert call0[0] == ('repository.query',)
         assert call1[0] == ('diffusion.updatecoverage',)
         # We'll trust the code for the keyword args
-
-    @mock.patch('requests.post')
-    def test_phabricator_class(self, post):
-        post.return_value.json.return_value = {'result': {'connectionID': 'fake_conn', 'sessionKey': 'fake_sess'}}
-        phab = Phabricator('guido', 'fake_cert', 'https://example.com')
-        assert post.call_count == 1
-        assert phab.auth_params == {'connectionID': 'fake_conn', 'sessionKey': 'fake_sess'}
-
-        post.reset_mock()
-        post.return_value.json.return_value = {'error_code': None, 'error_info': None, 'result': {'hoho': 'ho'}}
-        result = phab.post('differential.query', ids=[123])
-        assert post.call_count == 1
-        assert result == {'hoho': 'ho'}
-
-        post.reset_mock()
-        post.return_value.json.return_value = {'error_code': 'code', 'error_info': 'msg'}
-        with self.assertRaises(RuntimeError) as error:
-            result = phab.post('differential.query', ids=[123])
-        assert post.call_count == 1
-        assert 'code' in str(error.exception) and 'msg' in str(error.exception)
-
-    @mock.patch('changes.listeners.phabricator_listener.Phabricator')
-    @mock.patch('changes.listeners.phabricator_listener.current_app')
-    def test_make_phab(self, current_app, phab_class):
-        phab = make_phab(None)
-        assert phab_class.call_count == 1
-
-        phab_class.reset_mock()
-        phab2 = make_phab(phab)
-        assert phab2 == phab
-        assert phab_class.call_count == 0

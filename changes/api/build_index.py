@@ -16,7 +16,7 @@ from changes.constants import Result, Status, ProjectStatus
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
-from changes.listeners.phabricator_listener import post_comment
+from changes.utils.phabricator_utils import post_comment
 from changes.models import (
     Project, ProjectOptionsHelper, Build, Job, JobPlan, Repository,
     RepositoryStatus, Patch, ItemOption, Snapshot, SnapshotImage, SnapshotStatus,

@@ -7,7 +7,7 @@ from changes.models import Author, Build, PhabricatorDiff
 
 from collections import defaultdict
 
-from changes.utils.phabricator_utils import PhabricatorRequest
+from changes.utils.phabricator_utils import PhabricatorClient
 
 import requests
 
@@ -30,7 +30,7 @@ class AuthorPhabricatorDiffsAPIView(APIView):
 
         try:
             author_email = authors[0].email
-            request = PhabricatorRequest()
+            request = PhabricatorClient()
             request.connect()
             user_info = request.call('user.query', {'emails': [author_email]})
 

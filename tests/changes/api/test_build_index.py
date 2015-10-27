@@ -930,9 +930,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
 
-    @patch('changes.listeners.phabricator_listener.post_diff_comment')
-    @patch('changes.listeners.phabricator_listener.make_phab')
-    def test_ensure_match_patch_want_diff_error(self, make_phab, post_diff_comment):
+    @patch('changes.utils.phabricator_utils.post_diff_comment')
+    @patch('changes.utils.phabricator_utils.PhabricatorClient.connect')
+    def test_ensure_match_patch_want_diff_error(self, connect, post_diff_comment):
         """This tests that ensure-only mode does not work with diff builds.
         """
         resp = self.client.post(self.path, data={
@@ -948,7 +948,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert 'patch' in data['problems']
         assert 'ensure_only' in data['problems']
         assert post_diff_comment.call_count == 1
-        post_diff_comment.assert_called_once_with('123', ANY, make_phab.return_value)
+        post_diff_comment.assert_called_once_with('123', ANY, ANY)
 
     @patch('changes.models.Repository.get_vcs')
     def test_existing_build_wrong_revision(self, get_vcs):
