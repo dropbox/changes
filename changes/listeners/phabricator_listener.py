@@ -282,9 +282,7 @@ def build_finished_handler(build_id, **kwargs):
 
     message = '\n\n'.join([_get_message_for_build_context(x) for x in context['builds']])
 
-    phab = make_phab(phab)
-    if phab:
-        post_comment(target, message, phab)
+    post_comment(target, message, phab)
 
 
 def _get_message_for_build_context(build_context):
@@ -418,6 +416,9 @@ def get_test_failure_remarkup(build, tests):
 
 
 def post_comment(target, message, phab=None):
+    phab = make_phab(phab)
+    if not phab:
+        return
     try:
         logger.info("Posting build results to %s", target)
         revision_id = target[1:]

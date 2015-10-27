@@ -460,7 +460,9 @@ class BuildIndexAPIView(APIView):
         args = self.parser.parse_args()
 
         if args.patch_file and args.ensure_only:
-            return self.handle_failure("Ensure-only mode does not work with a diff build yet.", problems=["patch", "ensure_only"], diff=args.target)
+            return self.handle_failure("Ensure-only mode does not work with a diff build yet.",
+                                       problems=["patch", "ensure_only"],
+                                       diff=args.target)
 
         if not (args.project or args.repository or args['repository[phabricator.callsign]']):
             return self.handle_failure("Project or repository must be specified",

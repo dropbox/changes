@@ -4,9 +4,8 @@ import yaml
 
 from cStringIO import StringIO
 from datetime import datetime
-from mock import MagicMock
 
-from mock import patch, Mock
+from mock import patch, ANY, MagicMock, Mock
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
 from changes.constants import Status, Result
@@ -931,7 +930,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
 
-    def test_ensure_match_patch_want_diff_error(self):
+    @patch('changes.listeners.phabricator_listener.post_diff_comment')
+    @patch('changes.listeners.phabricator_listener.make_phab')
+    def test_ensure_match_patch_want_diff_error(self, make_phab, post_diff_comment):
         """This tests that ensure-only mode does not work with diff builds.
         """
         resp = self.client.post(self.path, data={
@@ -940,11 +941,14 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             'apply_project_files_trigger': '1',
             'ensure_only': '1',
             'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
+            'target': 'D123',
         })
         assert resp.status_code == 400
         data = self.unserialize(resp)
         assert 'patch' in data['problems']
         assert 'ensure_only' in data['problems']
+        assert post_diff_comment.call_count == 1
+        post_diff_comment.assert_called_once_with('123', ANY, make_phab.return_value)
 
     @patch('changes.models.Repository.get_vcs')
     def test_existing_build_wrong_revision(self, get_vcs):
