@@ -104,6 +104,11 @@ require([
   var path = window.location.pathname;
   var path_parts = _.compact(path.split('/'));
 
+  // Strip the leading /v2/ if it exists
+  if (path_parts[0] == 'v2') {
+    path_parts.shift();
+  }
+
   // We want to ensure that certain changes classic style links still work.
   if (path_parts.length > 3 && path_parts[0] === 'projects' && path_parts[2] == 'builds') {
     var build_id = path_parts[3];
@@ -179,7 +184,7 @@ require([
     }
   }
 
-  if (path === "/") { page = HomePage; }
+  if (path_parts.length === 0) { page = HomePage; }
 
   // we fetch some initial data used by pages (e.g. are we logged in?)
   data_fetching.make_api_ajax_get('/api/0/initial', function(response) {
