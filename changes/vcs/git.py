@@ -6,7 +6,10 @@ from urlparse import urlparse
 from changes.utils.cache import memoize
 from changes.utils.http import build_uri
 
-from .base import Vcs, RevisionResult, BufferParser, CommandError, UnknownRevision
+from .base import (
+    Vcs, RevisionResult, BufferParser, ConcurrentUpdateError, CommandError,
+    UnknownRevision,
+)
 
 from time import time
 
@@ -152,7 +155,17 @@ class GitVcs(Vcs):
 
     def update(self):
         self.run(['remote', 'set-url', 'origin', self.remote_url])
-        self.run(['fetch', '--all', '-p'])
+        try:
+            self.run(['fetch', '--all', '-p'])
+        except CommandError as e:
+            if 'error: cannot lock ref' in e.stderr.lower():
+                raise ConcurrentUpdateError(
+                    cmd=e.cmd,
+                    retcode=e.retcode,
+                    stdout=e.stdout,
+                    stderr=e.stderr
+                )
+            raise e
 
     def log(self, parent=None, branch=None, author=None, offset=0, limit=100, paths=None):
         """ Gets the commit log for the repository.

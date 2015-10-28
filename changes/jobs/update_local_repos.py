@@ -1,6 +1,6 @@
 import logging
 
-from changes.vcs.base import CommandError
+from changes.vcs.base import CommandError, ConcurrentUpdateError
 from changes.models import Repository, RepositoryStatus
 
 
@@ -26,5 +26,8 @@ def update_local_repos():
                 vcs.update()
             else:
                 vcs.clone()
+        except ConcurrentUpdateError:
+            # The repo is already updating already. No need to update.
+            pass
         except CommandError:
             logging.exception('Failed to update %s', repo.url)

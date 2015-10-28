@@ -8,6 +8,7 @@ from changes.config import db
 from changes.jobs.signals import fire_signal
 from changes.models import Repository, RepositoryStatus, Revision
 from changes.queue.task import tracked_task
+from changes.vcs.base import ConcurrentUpdateError
 
 logger = logging.getLogger('repo.sync')
 
@@ -46,7 +47,11 @@ def sync(repo):
     db.session.commit()
 
     if vcs.exists():
-        vcs.update()
+        try:
+            vcs.update()
+        except ConcurrentUpdateError:
+            # Updating already so no need to update.
+            pass
     else:
         vcs.clone()
 

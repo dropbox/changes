@@ -7,7 +7,7 @@ from changes.api.build_index import BuildIndexAPIView
 from changes.models import ProjectStatus, Project, ProjectConfigError, ProjectOptionsHelper, Revision
 from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
-from changes.vcs.base import UnknownRevision
+from changes.vcs.base import ConcurrentUpdateError, UnknownRevision
 
 
 def revision_created_handler(revision_sha, repository_id, **kwargs):
@@ -48,7 +48,11 @@ class CommitTrigger(object):
             diff = vcs.export(self.revision.sha)
         except UnknownRevision:
             # Maybe the repo is stale; update.
-            vcs.update()
+            try:
+                vcs.update()
+            except ConcurrentUpdateError:
+                # Retry once if it was already updating.
+                vcs.update()
             # If it doesn't work this time, we have
             # a problem. Let the exception escape.
             diff = vcs.export(self.revision.sha)

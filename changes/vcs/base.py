@@ -38,6 +38,11 @@ class UnknownRevision(CommandError):
     pass
 
 
+class ConcurrentUpdateError(CommandError):
+    """Indicates that a command failed because a vcs update is running."""
+    pass
+
+
 class InvalidDiffError(Exception):
     """This is used when a diff is invalid and fails to apply. It is NOT
     a subclass of CommandError, as it is not a vcs command"""

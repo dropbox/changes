@@ -24,7 +24,9 @@ from changes.models import (
 )
 from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
-from changes.vcs.base import CommandError, InvalidDiffError, UnknownRevision
+from changes.vcs.base import (
+    CommandError, ConcurrentUpdateError, InvalidDiffError, UnknownRevision
+)
 
 
 class MissingRevision(Exception):
@@ -52,7 +54,11 @@ def identify_revision(repository, treeish):
         commit = vcs.log(parent=treeish, limit=1).next()
     except CommandError:
         # update and try one more time
-        vcs.update()
+        try:
+            vcs.update()
+        except ConcurrentUpdateError:
+            # Retry once if it was already updating.
+            vcs.update()
         try:
             commit = vcs.log(parent=treeish, limit=1).next()
         except CommandError:
@@ -73,7 +79,11 @@ def _get_revision_changed_files(repository, revision):
     try:
         diff = vcs.export(revision.sha)
     except UnknownRevision:
-        vcs.update()
+        try:
+            vcs.update()
+        except ConcurrentUpdateError:
+            # Retry once if it was already updating.
+            vcs.update()
         try:
             diff = vcs.export(revision.sha)
         except UnknownRevision:
