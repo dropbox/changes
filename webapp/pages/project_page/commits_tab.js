@@ -29,12 +29,6 @@ var CommitsTab = React.createClass({
     pageElem: PropTypes.object.isRequired,
   },
 
-  getInitialState: function() {
-    // powers on-hover list of failed tests. Its ok for this to get wiped out
-    // every time we switch tabs
-    return { failedTests: [] };
-  },
-
   statics: {
     getEndpoint: function(project_slug) {
       return URI(`/api/0/projects/${project_slug}/commits/`)
