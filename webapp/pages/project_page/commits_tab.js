@@ -29,6 +29,10 @@ var CommitsTab = React.createClass({
     pageElem: PropTypes.object.isRequired,
   },
 
+  getInitialState: function() {
+    return {};
+  },
+
   statics: {
     getEndpoint: function(project_slug) {
       return URI(`/api/0/projects/${project_slug}/commits/`)
