@@ -89,18 +89,22 @@ class CoverageHandler(ArtifactHandler):
         - U: uncovered
         - C: covered
         """
-        # parse root elem without parsing whole file
-        _, root = next(etree.iterparse(fp, events=("start",)))
-        fp.seek(0)
+        try:
+            # parse root elem without parsing whole file
+            _, root = next(etree.iterparse(fp, events=("start",)))
+            fp.seek(0)
 
-        if root.tag == 'coverage':
-            # use a streaming parser to parse coverage
-            parser = etree.XMLParser(target=CoberturaCoverageParser(self))
-            return etree.parse(fp, parser)
-        elif root.tag == 'report':
-            root = etree.fromstring(fp.read())  # parse whole file
-            return self.get_jacoco_coverage(root)
-        raise NotImplementedError('Unsupported coverage format')
+            if root.tag == 'coverage':
+                # use a streaming parser to parse coverage
+                parser = etree.XMLParser(target=CoberturaCoverageParser(self))
+                return etree.parse(fp, parser)
+            elif root.tag == 'report':
+                root = etree.fromstring(fp.read())  # parse whole file
+                return self.get_jacoco_coverage(root)
+            raise NotImplementedError('Unsupported coverage format')
+        except etree.XMLSyntaxError as e:
+            self.logger.warn(str(e))
+            return []
 
     def get_jacoco_coverage(self, root):
         step = self.step

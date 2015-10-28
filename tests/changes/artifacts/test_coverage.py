@@ -37,6 +37,20 @@ class CoverageHandlerTest(TestCase):
         assert r2.project_id == jobstep.job.project_id
         assert r2.data == 'CUCNNNU'  # partial branch coverage is considered uncovered
 
+    def test_empty_cobertura_file(self):
+        jobstep = JobStep(
+            id=uuid.uuid4(),
+            job=Job(id=uuid.uuid4(), project_id=uuid.uuid4())
+        )
+
+        fp = StringIO('')
+
+        handler = CoverageHandler(jobstep)
+        results = handler.get_coverage(fp)
+
+        # most importantly, it shouldn't crash
+        assert len(results) == 0
+
     def test_jacoco_result_generation(self):
         jobstep = JobStep(
             id=uuid.uuid4(),
