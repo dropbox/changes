@@ -98,6 +98,7 @@ export var Tabs = React.createClass({
 
       return <div
         className={classes}
+        key={text}
         onClick={_.partial(onClick, text)}>
         <div className="tabsItemText">{text}</div>
       </div>;

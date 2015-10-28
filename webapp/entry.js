@@ -49,6 +49,8 @@ require([
   // requiring every page. It doesn't matter that much in prod since we bundle,
   // and we want to avoid dynamic module loading
   "es6!pages/home_page",
+  "es6!pages/admin_page",
+  "es6!pages/admin_project_page",
   "es6!pages/project_page/project_page",
   "es6!pages/author_builds_page",
   "es6!pages/builds_pages/builds_pages",
@@ -72,6 +74,8 @@ require([
   ChangesLinks,
 
   HomePage,
+  AdminPage,
+  AdminProjectPage,
   ProjectPage,
   AuthorBuildsPage,
   buildsPages,
@@ -153,7 +157,9 @@ require([
     'snapshot': [SnapshotPage, 'snapshotID'],
     'code': [CodePage, 'sourceID'],
     'pusher': [PusherPage],
-    'display_examples': [DisplayExamplesPage]
+    'display_examples': [DisplayExamplesPage],
+    'admin': [AdminPage],
+    'admin_project': [AdminProjectPage, 'projectSlug'],
   };
 
   var page = FourOhFourPage;

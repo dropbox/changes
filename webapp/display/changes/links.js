@@ -21,6 +21,11 @@ var ChangesLinks = {
     </a>;
   },
 
+  projectAdmin: function(project) {
+    var href = `/admin_project/${project.slug}/`;
+    return <a href={href}>{project.name}</a>;
+  },
+
   project: function(project) {
     var href = ChangesLinks.projectHref(project);
     return <a href={href}>{project.name}</a>;
