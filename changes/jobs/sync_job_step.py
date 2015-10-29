@@ -16,7 +16,7 @@ from changes.models import (
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
 
-from requests.exceptions import HTTPError
+from requests.exceptions import ConnectionError, HTTPError, Timeout
 
 import requests
 
@@ -197,9 +197,9 @@ DEFAULT_TIMEOUT_MIN = 60
 
 
 # In seconds, the timeout applied to any requests we make to the artifacts
-# store. Arbitrarily chosen as the amount of delay we can tolerate for each
+# store. Arbitrarily chose as the amount of delay we can tolerate for each
 # sync_job_step.
-ARTIFACTS_REQUEST_TIMEOUT_SECS = 15
+ARTIFACTS_REQUEST_TIMEOUT_SECS = 5
 
 
 # List of artifact names recognized to be log source (content which is
@@ -259,7 +259,7 @@ def sync_artifacts_for_jobstep(jobstep):
                     db.session.rollback()
                     current_app.logger.error(
                         'DB Error while inserting/updating artifact %s: %s', filename, err)
-    except HTTPError, err:
+    except (ConnectionError, Timeout, HTTPError) as err:
         # Log to sentry - unable to contact artifacts store
         current_app.logger.warning('Error fetching url %s: %s', url, err, exc_info=True)
     except Exception, err:
