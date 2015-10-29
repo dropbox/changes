@@ -104,3 +104,5 @@ let AdminPage = React.createClass({
     </div>;
   },
 });
+
+export default AdminPage;

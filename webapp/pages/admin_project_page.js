@@ -16,7 +16,7 @@ import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
-let AdminPage = React.createClass({
+let AdminProjectPage = React.createClass({
 
   menuItems: [
     'Settings',
@@ -238,4 +238,4 @@ let SnapshotList = React.createClass({
   },
 });
 
-export default AdminPage;
+export default AdminProjectPage;
