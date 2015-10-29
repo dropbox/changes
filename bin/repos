@@ -7,7 +7,7 @@ import sys
 
 from changes.config import create_app, db
 from changes.db.utils import create_or_update
-from changes.jobs.sync_repo import sync
+from changes.jobs.sync_repo import sync_repo
 from changes.models import ItemOption, Repository, RepositoryBackend, RepositoryStatus
 
 
@@ -148,8 +148,11 @@ elif args.command == 'sync':
         abort()
 
     for repo in repos:
-        print("Forcing repository sync - {}".format(repo.url))
-        sync(repo)
+        if repo.backend == RepositoryBackend.unknown:
+            print("No backend configured for {}!".format(repo.url))
+        else:
+            print("Forcing repository sync - {}".format(repo.url))
+            sync_repo(repo_id=repo.id.hex, task_id=repo.id.hex, continuous=False)
 
 elif args.command == 'options':
     if args.option_command == 'set':

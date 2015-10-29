@@ -17,27 +17,22 @@ NUM_RECENT_COMMITS = 30
 
 @tracked_task(max_retries=None)
 def sync_repo(repo_id, continuous=True):
+    """
+    Polls repositories for new commits, and fires signals for revisions.
+    """
     repo = Repository.query.get(repo_id)
     if not repo:
         logger.error('Repository %s not found', repo_id)
-        return False
+        return
 
-    if sync(repo) and continuous:
-        raise sync_repo.NotFinished
-
-
-def sync(repo):
-    """
-    Checks the repository for new commits, and fires revision.created signals.
-    """
     vcs = repo.get_vcs()
     if vcs is None:
         logger.warning('Repository %s has no VCS backend set', repo.id)
-        return False
+        return
 
     if repo.status != RepositoryStatus.active:
         logger.info('Repository %s is not active', repo.id)
-        return False
+        return
 
     Repository.query.filter(
         Repository.id == repo.id,
@@ -64,7 +59,7 @@ def sync(repo):
     # backfill task
     for commit in vcs.log(parent=None, limit=NUM_RECENT_COMMITS):
         known_revision = Revision.query.filter(
-            Revision.repository_id == repo.id,
+            Revision.repository_id == repo_id,
             Revision.sha == commit.id
         ).with_for_update().scalar()
 
@@ -77,7 +72,7 @@ def sync(repo):
 
         # Lock the revision.
         revision = Revision.query.filter(
-            Revision.repository_id == repo.id,
+            Revision.repository_id == repo_id,
             Revision.sha == commit.id
         ).with_for_update().scalar()
 
@@ -102,4 +97,5 @@ def sync(repo):
     }, synchronize_session=False)
     db.session.commit()
 
-    return True
+    if continuous:
+        raise sync_repo.NotFinished
