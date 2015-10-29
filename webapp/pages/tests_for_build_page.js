@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
+import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
@@ -79,8 +80,9 @@ var BuildTestsPage = React.createClass({
     }
     var buildInfo = this.state.buildInfo.getReturnedData();
 
-    var title = `Tests for ${buildInfo.project.name} Build`
-    utils.setPageTitle(title);
+    var buildTitle = `${buildInfo.project.name} Build`
+    var pageTitle = 'Tests for ' + buildTitle;
+    utils.setPageTitle(pageTitle);
 
     // render menu
     var selectedItem = this.state.selectedItem;
@@ -110,7 +112,7 @@ var BuildTestsPage = React.createClass({
     }
 
     return <ChangesPage highlight="Projects">
-      <SectionHeader>{title}</SectionHeader>
+      <SectionHeader>Tests for <a href={ChangesLinks.buildHref(buildInfo)}>{buildTitle}</a></SectionHeader>
       {menu}
       <div className="marginTopS">{content}</div>
     </ChangesPage>;
