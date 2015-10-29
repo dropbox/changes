@@ -18,7 +18,7 @@ def lock(func):
             ).hexdigest()
         )
         try:
-            with redis.lock(key, timeout=1, expire=300, nowait=True):
+            with redis.lock(key, expire=300, nowait=True):
                 return func(**kwargs)
         except UnableToGetLock:
             current_app.logger.warn('Unable to get lock for %s', key)

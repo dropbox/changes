@@ -5,7 +5,6 @@ import redis
 
 from contextlib import contextmanager
 from random import random
-from time import sleep
 
 from .container import Container
 
@@ -27,27 +26,30 @@ class _Redis(object):
         return getattr(self.redis, name)
 
     @contextmanager
-    def lock(self, lock_key, timeout=3, expire=None, nowait=False):
+    def lock(self, lock_key, expire=None, blocking_timeout=3, nowait=False):
+        """
+        Returns a context for locking a redis lock with the given key
+
+        Args:
+            lock_key (string): key to lock
+            expire (float): how long (in seconds) we can hold lock before it is
+                            automatically released
+            blocking_timeout (float): how long (in seconds) to try locking until we give up.
+            nowait (bool): if True, don't block if can't acquire the lock
+                           (will instead raise an exception)
+        """
         conn = self.redis
 
         if expire is None:
-            expire = timeout
+            expire = blocking_timeout
 
         delay = 0.01 + random() / 10
-        attempt = 0
-        max_attempts = timeout / delay
-        got_lock = None
-        while not got_lock and attempt < max_attempts:
-            got_lock = conn.set(lock_key, '', nx=True, ex=expire)
-            if not got_lock:
-                if nowait:
-                    break
-                sleep(delay)
-                attempt += 1
+        lock = conn.lock(lock_key, timeout=expire, sleep=delay)
+        acquired = lock.acquire(blocking=not nowait, blocking_timeout=blocking_timeout)
 
         self.logger.info('Acquiring lock on %s', lock_key)
 
-        if not got_lock:
+        if not acquired:
             raise UnableToGetLock('Unable to fetch lock on %s' % (lock_key,))
 
         try:
@@ -56,8 +58,10 @@ class _Redis(object):
             self.logger.info('Releasing lock on %s', lock_key)
 
             try:
-                conn.delete(lock_key)
+                lock.release()
             except Exception as e:
+                # notably, an exception is raised if we release a lock we don't
+                # own, e.g. because it expired while we held it.
                 self.logger.exception(e)
 
     def incr(self, key):
