@@ -20,7 +20,7 @@ let AdminPage = React.createClass({
 
   menuItems: [
     'Settings',
-    //'Snapshots',
+    'Snapshots',
     //'Build Plans'
   ],
 
@@ -44,6 +44,7 @@ let AdminPage = React.createClass({
     let slug = this.props.projectSlug;
     api.fetch(this, {
       project: `/api/0/projects/${slug}`,
+      snapshots: `/api/0/projects/${slug}/snapshots`,
     });
   },
 
@@ -70,7 +71,14 @@ let AdminPage = React.createClass({
       case 'Settings':
         content = <FieldGroup project={project} />
         break;
-      default:
+      case 'Snapshots':
+        if (!api.isLoaded(this.state.snapshots)) {
+          return <APINotLoadedPage calls={this.state.snapshots} />;
+        }
+        let snapshots = this.state.snapshots.getReturnedData();
+        content = <SnapshotList snapshots={snapshots} />
+        break;
+     default:
         throw 'unreachable';
     }
 
@@ -203,6 +211,30 @@ let FieldGroup = React.createClass({
     });
 
     return <div>{markup}</div>;
+  },
+});
+
+let SnapshotList = React.createClass({
+
+  getInitialState: function() {
+    return { };
+  },
+
+  render: function() {
+    let rows = _.map(this.props.snapshots, snapshot => {
+      let sha = '-';
+      if (snapshot.source.revision.sha) {
+        sha = snapshot.source.revision.sha.substring(0, 12);
+      }
+      return [snapshot.id, sha, <TimeText time={snapshot.dateCreated} />, snapshot.status.id];
+    });
+
+    return <Grid
+             colnum={4}
+             cellClasses={['wide', 'nowrap', 'nowrap', 'nowrap']}
+             data = {rows}
+             headers={['Id', 'Sha', 'Created', 'Status']}
+           />;
   },
 });
 
