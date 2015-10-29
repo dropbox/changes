@@ -65,7 +65,7 @@ var SnapshotPage = React.createClass({
     var commitLink = ChangesLinks.phabCommitHref(source.revision);
     var buildLink = ChangesLinks.buildHref(details.build);
 
-    var projectInfo = <a href={ChangesLinks.project(details.build.project)}>{details.build.project.name}</a>
+    var projectInfo = ChangesLinks.project(details.build.project)
 
     var commitInfo = <div>
       <a href={commitLink} target="_blank">

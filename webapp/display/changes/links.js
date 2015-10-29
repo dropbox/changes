@@ -129,7 +129,7 @@ var ChangesLinks = {
   snapshotImageHref: function(snapshotImage) {
      // We don't have a page for individual images, so we
      // link to the whole snapshot.
-     return URI(`/v2/snapshot/${snapshotImage.snapshot.id}/`);
+     return URI(`/snapshot/${snapshotImage.snapshot.id}/`);
   }
 };
 
