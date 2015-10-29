@@ -1,5 +1,7 @@
 from itertools import chain, imap
 
+from flask import current_app
+
 from changes.api.build_details import get_parents_last_builds
 from changes.constants import Result
 from changes.models.job import Job
@@ -215,6 +217,10 @@ def _get_log_clipping(logsource, max_size=5000, max_lines=25):
         LogChunk.source_id == logsource.id,
     )
     tail = queryset.order_by(LogChunk.offset.desc()).limit(1).first()
+    # in case logsource has no LogChunks
+    if tail is None:
+        current_app.logger.warning('LogSource (id=%s) had no LogChunks', logsource.id.hex)
+        return ""
 
     chunks = list(queryset.filter(
         (LogChunk.offset + LogChunk.size) >= max(tail.offset - max_size, 0),

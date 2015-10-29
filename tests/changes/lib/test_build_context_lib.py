@@ -176,3 +176,19 @@ class GetLogClippingTestCase(TestCase):
 
         result = build_context_lib._get_log_clipping(logsource, max_size=5, max_lines=3)
         assert result == "world"
+
+    def test_no_log_chunks(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+
+        logsource = LogSource(
+            project=project,
+            job=job,
+            name='console',
+        )
+        db.session.add(logsource)
+        db.session.commit()
+
+        result = build_context_lib._get_log_clipping(logsource)
+        assert result == ""
