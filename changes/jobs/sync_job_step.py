@@ -16,7 +16,7 @@ from changes.models import (
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
 
-from requests.exceptions import ConnectionError, HTTPError, Timeout
+from requests.exceptions import ConnectionError, HTTPError, Timeout, SSLError
 
 import requests
 
@@ -259,7 +259,7 @@ def sync_artifacts_for_jobstep(jobstep):
                     db.session.rollback()
                     current_app.logger.error(
                         'DB Error while inserting/updating artifact %s: %s', filename, err)
-    except (ConnectionError, Timeout, HTTPError) as err:
+    except (ConnectionError, HTTPError, SSLError, Timeout) as err:
         # Log to sentry - unable to contact artifacts store
         current_app.logger.warning('Error fetching url %s: %s', url, err, exc_info=True)
     except Exception, err:
