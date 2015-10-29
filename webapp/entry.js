@@ -136,7 +136,7 @@ require([
         .addSearch('optin', 1);
       window.location.href = new_href;
     }
-    data_fetching.make_api_ajax_get('/api/0/builds/' + path_parts[1],
+    data_fetching.make_api_ajax_get('/api/0/builds/' + path_parts[1], null,
       redirect_func, redirect_func);
 
     return;
@@ -193,7 +193,7 @@ require([
   if (path_parts.length === 0) { page = HomePage; }
 
   // we fetch some initial data used by pages (e.g. are we logged in?)
-  data_fetching.make_api_ajax_get('/api/0/initial', function(response) {
+  data_fetching.make_api_ajax_get('/api/0/initial', null, function(response) {
     var parsedResponse = JSON.parse(response.responseText);
 
     // TODO: use context?

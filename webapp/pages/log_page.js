@@ -336,6 +336,7 @@ var LogComponent = React.createClass({
         this.props.jobID,
         this.props.logsourceID,
         latestData.nextOffset),
+      null,
       handle_response,
       handle_response);
   }

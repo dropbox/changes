@@ -12,7 +12,8 @@ var PostRequest = React.createClass({
   propTypes: {
     parentElem: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
-    endpoint: PropTypes.string.isRequired
+    endpoint: PropTypes.string.isRequired,
+    params: PropTypes.string,
   },
 
   render: function() {
@@ -37,7 +38,9 @@ var PostRequest = React.createClass({
 
     var onClick = evt => {
       api.post(parentElem, {
-        [ stateKey ]: endpoint
+        [ stateKey ]: endpoint,
+      }, {
+        [ stateKey ]: this.props.params,
       });
     };
 

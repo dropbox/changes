@@ -44,18 +44,20 @@ var APIResponsePrototype = {
 
 /*
  * Sends a bunch of API requests, and calls setState on `elem` with the
- * resulting APIResponse objects. endpoint_map is a map from the state key
- * to the endpoint to send the get request to.
+ * resulting APIResponse objects.
+ * endpoint_map is a map from the state key to the endpoint to send the get request to.
+ * param_map is a map from the state key to a params object to send.
  */
-export var fetch = function(elem, endpoint_map) {
-  return fetchMap(elem, null, endpoint_map);
+export var fetch = function(elem, endpoint_map, param_map = {}) {
+
+  return fetchMapWithParams(elem, null, endpoint_map, 'GET', param_map);
 }
 
 /*
  * Similar to fetch, but use this for post requests.
  */
-export var post = function(elem, endpoint_map) {
-  return fetchMap(elem, null, endpoint_map, 'POST');
+export var post = function(elem, endpoint_map, param_map = {}) {
+  return fetchMapWithParams(elem, null, endpoint_map, 'POST', param_map);
 }
 
 /*
@@ -63,6 +65,10 @@ export var post = function(elem, endpoint_map) {
  * You cannot directly call this from render! use asyncFetchMap instead
  */
 export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET') {
+  return fetchMapWithParams(elem, map_key, endpoint_map, method, {});
+}
+
+var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map) {
   method = method.toLowerCase();
   if (method !== 'get' && method !== 'post') {
     throw new Error('method must be get or post!');
@@ -74,7 +80,7 @@ export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET') {
     elem.setState((previous_state, props) => {
       var new_map = _.extend({},
         previous_state[map_key],
-        _.mapObject(endpoint_map, (endpoint) => {
+        _.mapObject(endpoint_map, endpoint => {
           return APIResponse(endpoint);
         }));
       var state_to_set = {};
@@ -83,13 +89,14 @@ export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET') {
     });
   } else {
     elem.setState(
-      _.mapObject(endpoint_map, (endpoint) => {
+      _.mapObject(endpoint_map, endpoint => {
         return APIResponse(endpoint);
       })
     );
   }
 
   _.each(endpoint_map, (endpoint, state_key) => {
+    var params = param_map[state_key];
     var ajax_response = function(response, was_success) {
       if (!elem.isMounted()) {
         return false;
@@ -109,9 +116,9 @@ export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET') {
       }
     }
     if (method === 'get') {
-      make_api_ajax_get(endpoint, ajax_response, ajax_response);
+      make_api_ajax_get(endpoint, params, ajax_response, ajax_response);
     } else {
-      make_api_ajax_post(endpoint, ajax_response, ajax_response);
+      make_api_ajax_post(endpoint, params, ajax_response, ajax_response);
     }
   });
 }
@@ -174,8 +181,8 @@ export var allErrorResponses = function(list_of_calls) {
  * Wrapper to make ajax GET request
  */
 export var make_api_ajax_get = function(
-    endpoint, response_callback, error_callback) {
-  return make_api_ajax_call('get', endpoint, '', response_callback, error_callback);
+    endpoint, params, response_callback, error_callback) {
+  return make_api_ajax_call('get', endpoint, params, response_callback, error_callback);
 }
 
 /**
@@ -210,10 +217,13 @@ export var make_api_ajax_call = function(
 
   var req = new XMLHttpRequest();
   req.open(method, url, true);
-  if (params.length) {
-    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  if (params) {
+    params = JSON.stringify(params);
+    req.setRequestHeader('Content-type', 'application/json;charset=UTF-8');
     req.setRequestHeader('Content-length', params.length);
     req.setRequestHeader('Connection', 'close');
+  } else {
+    params = '';
   }
   // TODO: maybe just use a library for ajax calls
   req.onload = function() {

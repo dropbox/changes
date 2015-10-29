@@ -3,9 +3,11 @@ import React, { PropTypes } from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
+import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
 import { Grid, GridRow } from 'es6!display/grid';
+import PostRequest from 'es6!display/post_request';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 import { TestDetails } from 'es6!display/changes/test_details';
 import { TimeText } from 'es6!display/time';
@@ -76,7 +78,7 @@ let AdminProjectPage = React.createClass({
           return <APINotLoadedPage calls={this.state.snapshots} />;
         }
         let snapshots = this.state.snapshots.getReturnedData();
-        content = <SnapshotList snapshots={snapshots} />
+        content = <SnapshotList snapshots={snapshots} projectSlug={project.slug} />
         break;
      default:
         throw 'unreachable';
@@ -216,6 +218,10 @@ let FieldGroup = React.createClass({
 
 let SnapshotList = React.createClass({
 
+  propTypes: {
+    projectSlug: PropTypes.string,
+  },
+
   getInitialState: function() {
     return { };
   },
@@ -226,7 +232,27 @@ let SnapshotList = React.createClass({
       if (snapshot.source.revision.sha) {
         sha = snapshot.source.revision.sha.substring(0, 12);
       }
-      return [snapshot.id, sha, <TimeText time={snapshot.dateCreated} />, snapshot.status.id];
+
+      let params = {};
+      let key = 'snapshot.current';
+      let action = 'Activate';
+      if (snapshot.isActive) {
+        params[key] = '';
+        action = 'Deactivate';
+      } else {
+        params[key] = snapshot.id;
+      }
+      let endpoint = `/api/0/projects/${this.props.projectSlug}/options/`;
+      let post = <PostRequest
+                    parentElem={this}
+                    name="activate_snapshot"
+                    endpoint={endpoint}
+                    params={params}>
+                      <Button type="blue">
+                        <span>{action}</span>
+                      </Button>
+                 </PostRequest>;
+      return [snapshot.id, sha, <TimeText time={snapshot.dateCreated} />, post];
     });
 
     return <Grid
