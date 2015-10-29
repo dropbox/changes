@@ -86,7 +86,6 @@ let AdminProjectPage = React.createClass({
 
     return <ChangesPage highlight="Project Settings">
       <SectionHeader>{title}</SectionHeader>
-      <h4> These are readonly for now, use changes-classic to modify settings </h4>
       {menu}
       <div className="marginTopS">{content}</div>
     </ChangesPage>;
@@ -99,6 +98,47 @@ let FieldGroup = React.createClass({
 
   getInitialState: function() {
     return { };
+  },
+
+  saveSettings: function() {
+    let state = this.state;
+    let project_params = {
+      'name': state.name,
+      'repository': state.repository,
+      'slug': state.slug,
+      'status': state.status,
+    };
+    let options_params = {
+      'project.owners': state.owner,
+      'project.notes': state.notes,
+      'build.commit-trigger': state.commitTrigger | 0,
+      'phabricator.diff-trigger': state.diffTrigger | 0,
+      'build.file-whitelist': state.fileWhitelist,
+      'build.branch-names': state.branches,
+      'mail.notify-author': state.notifyAuthors | 0,
+      'mail.notify-addresses': state.notifyAddresses,
+      'mail.notify-addresses-revisions': state.notifyAddressesRevision,
+      'phabricator.notify': state.pushBuildResults | 0,
+      'phabricator.coverage': state.pushCoverageResults | 0,
+      'green-build.notify': state.greenBuildNotify | 0,
+      'green-build.project': state.greenBuildProject,
+      'ui.show-tests': state.showTests | 0,
+      'build.test-duration-warning': state.maxTestDuration,
+      'ui.show-coverage': state.showCoverage | 0,
+    };
+
+    let originalSlug = this.props.project.slug;
+
+    let endpoints = {
+      '_postRequest_project': `/api/0/projects/${originalSlug}/`,
+      '_postRequest_options': `/api/0/projects/${originalSlug}/options/`,
+    };
+    let params = {
+      '_postRequest_project': project_params,
+      '_postRequest_options': options_params,
+    };
+
+    api.post(this, endpoints, params);
   },
 
   componentDidMount: function() {
@@ -212,7 +252,9 @@ let FieldGroup = React.createClass({
       </div>;
     });
 
-    return <div>{markup}</div>;
+    let onSaveClicked = _ => this.saveSettings();
+    let saveButton = <Button onClick={onSaveClicked}>Save Changes</Button>;
+    return <div>{saveButton}{markup}</div>;
   },
 });
 
