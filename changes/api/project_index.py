@@ -29,7 +29,7 @@ def get_latest_builds_query(project_list, result=None):
         Source.patch_id == None,  # NOQA
         Build.status == Status.finished,
         Build.cause != Cause.snapshot,
-        Build.result.in_([Result.passed, Result.failed]),
+        Build.result.in_([Result.passed, Result.failed, Result.infra_failed]),
     ).order_by(
         Build.date_created.desc(),
     )
