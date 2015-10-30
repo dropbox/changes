@@ -23,7 +23,7 @@ let AdminProjectPage = React.createClass({
   menuItems: [
     'Settings',
     'Snapshots',
-    //'Build Plans'
+    'Build Plans',
   ],
 
   getInitialState: function() {
@@ -47,6 +47,7 @@ let AdminProjectPage = React.createClass({
     api.fetch(this, {
       project: `/api/0/projects/${slug}`,
       snapshots: `/api/0/projects/${slug}/snapshots`,
+      plans: `/api/0/projects/${slug}/plans/?status=`,
     });
   },
 
@@ -71,7 +72,7 @@ let AdminProjectPage = React.createClass({
     let content = null;
     switch (selectedItem) {
       case 'Settings':
-        content = <FieldGroup project={project} />
+        content = <ProjectSettingsFieldGroup project={project} />
         break;
       case 'Snapshots':
         if (!api.isLoaded(this.state.snapshots)) {
@@ -80,7 +81,14 @@ let AdminProjectPage = React.createClass({
         let snapshots = this.state.snapshots.getReturnedData();
         content = <SnapshotList snapshots={snapshots} projectSlug={project.slug} />
         break;
-     default:
+     case 'Build Plans':
+        if (!api.isLoaded(this.state.plans)) {
+          return <APINotLoadedPage calls={this.state.plans} />;
+        }
+        let plans = this.state.plans.getReturnedData();
+        content = <PlanList plans={plans} projectSlug={project.slug} />
+        break;
+      default:
         throw 'unreachable';
     }
 
@@ -92,12 +100,74 @@ let AdminProjectPage = React.createClass({
   },
 });
 
-let FieldGroup = React.createClass({
+let createFieldGroupMarkup = function(form, saveButtonText, _this) {
+  let markup = _.map(form, section => {
+
+    let sectionMarkup = _.map(section.fields, field => {
+
+      if (field.type === 'text' || field.type === 'textarea' || field.type === 'select') {
+        let placeholder = field.placeholder || '';
+
+        let commentMarkup = null;
+        if (field.comment) {
+          commentMarkup = <div> {field.comment} </div>;
+        }
+
+        let tag = '';
+        if (field.type === 'text') {
+          tag = <input size="50" type="text" valueLink={_this.linkState(field.link)} placeholder={placeholder}/>;
+        } else if (field.type === 'textarea') {
+          tag = <textarea rows="10" cols="100" valueLink={_this.linkState(field.link)} placeholder={placeholder}/>;
+        } else if (field.type === 'select') {
+          let options = _.map(field.options, option => <option value={option}>{option}</option>);
+          tag = <select valueLink={_this.linkState(field.link)} >{options}</select>;
+        }
+
+        return <div className="marginBottomS">
+          <div> {field.display}: </div>
+          {tag}
+          {commentMarkup}
+          <hr />
+        </div>;
+      } else if (field.type === 'checkbox') {
+        return <div className="marginBottomS">
+          <label>
+            <div><input type='checkbox' checkedLink={_this.linkState(field.link)} /></div>
+            {field.comment}
+          </label>
+          <hr />
+        </div>;
+      } else {
+        throw 'unreachable';
+      }
+    });
+
+    return <div>
+      <h2>{section.sectionTitle}</h2>
+      {sectionMarkup}
+    </div>;
+  });
+
+  let onSaveClicked = _ => _this.saveSettings();
+  let saveButton = <Button onClick={onSaveClicked}>{saveButtonText}</Button>;
+  return <div>{saveButton}{markup}</div>;
+}
+
+let ProjectSettingsFieldGroup = React.createClass({
 
   mixins: [React.addons.LinkedStateMixin],
 
+  propTypes: {
+    project: PropTypes.object.isRequired,
+  },
+
   getInitialState: function() {
     return { };
+  },
+
+  displayStatusToStatus: {
+    'Active': 'active',
+    'Inactive': 'inactive',
   },
 
   saveSettings: function() {
@@ -106,7 +176,7 @@ let FieldGroup = React.createClass({
       'name': state.name,
       'repository': state.repository,
       'slug': state.slug,
-      'status': state.status,
+      'status': this.displayStatusToStatus[state.status],
     };
     let options_params = {
       'project.owners': state.owner,
@@ -172,9 +242,9 @@ let FieldGroup = React.createClass({
         {type: 'text', display: 'Name', link: 'name'},
         {type: 'text', display: 'Slug', link: 'slug'},
         {type: 'text', display: 'Repository', link: 'repository'},
-        {type: 'text', display: 'Status', link: 'status'},
+        {type: 'select', options: ['Active', 'Inactive'], display: 'Status', link: 'status'},
         {type: 'text', display: 'Owner', link: 'owner', comment: 'An email address for whom should be contacted in case of questions about this project.'},
-        {type: 'text', display: 'Notes', link: 'notes', comment: 'A blurb of text to give additional context around this project. This will be shown in various places, such as in email notifications.'},
+        {type: 'textarea', display: 'Notes', link: 'notes', comment: 'A blurb of text to give additional context around this project. This will be shown in various places, such as in email notifications.'},
         ]
       },
       { sectionTitle: 'Builds', fields: [
@@ -213,55 +283,17 @@ let FieldGroup = React.createClass({
         {type: 'checkbox', link: 'showCoverage', comment: 'Show coverage data in various UIs.'},
         ]
       },
-      ];
+    ];
 
-    let markup = _.map(form, section => {
-
-      let sectionMarkup = _.map(section.fields, field => {
-
-        if (field.type === 'text' || field.type === 'textarea') {
-          let placeholder = field.placeholder || '';
-
-          let commentMarkup = null;
-          if (field.comment) {
-            commentMarkup = <div> {field.comment} </div>;
-          }
-
-          return <div className="marginBottomS">
-            <div> {field.display}: </div>
-            <div> <input type={field.type} valueLink={this.linkState(field.link)} placeholder={placeholder}/> </div>
-            {commentMarkup}
-            <hr />
-          </div>;
-        } else if (field.type === 'checkbox') {
-          return <div className="marginBottomS">
-            <label>
-              <input type='checkbox' checkedLink={this.linkState(field.link)} />
-              {field.comment}
-            </label>
-            <hr />
-          </div>;
-        } else {
-          throw 'unreachable';
-        }
-      });
-
-      return <div>
-        <h2>{section.sectionTitle}</h2>
-        {sectionMarkup}
-      </div>;
-    });
-
-    let onSaveClicked = _ => this.saveSettings();
-    let saveButton = <Button onClick={onSaveClicked}>Save Changes</Button>;
-    return <div>{saveButton}{markup}</div>;
+    return createFieldGroupMarkup(form, "Save Project", this);
   },
 });
 
 let SnapshotList = React.createClass({
 
   propTypes: {
-    projectSlug: PropTypes.string,
+    projectSlug: PropTypes.string.isRequired,
+    snapshots: PropTypes.array.isRequired,
   },
 
   getInitialState: function() {
@@ -303,6 +335,255 @@ let SnapshotList = React.createClass({
              data = {rows}
              headers={['Id', 'Sha', 'Created', 'Status']}
            />;
+  },
+});
+
+let PlanList = React.createClass({
+
+  propTypes: {
+    projectSlug: PropTypes.string.isRequired,
+    plans: PropTypes.array.isRequired,
+  },
+
+  getInitialState: function() {
+    return {
+      expandedPlans: {},
+    };
+  },
+
+  render: function() {
+    let rows = [];
+    _.each(this.props.plans, plan => {
+      let onClick = __ => {
+        this.setState(
+          utils.update_key_in_state_dict('expandedPlans',
+            plan.id,
+            !this.state.expandedPlans[plan.id])
+        );
+      };
+
+      var expandLabel = !this.state.expandedPlans[plan.id] ?
+        'Expand Plan' : 'Collapse Plan';
+
+      var planName = <div>
+        {plan.name} <a onClick={onClick}>{expandLabel}</a>
+      </div>;
+
+      rows.push([planName, plan.status.name, <TimeText time={plan.dateCreated} />]);
+
+      if (this.state.expandedPlans[plan.id]) {
+        rows.push(GridRow.oneItem(
+          <PlanDetailsWrapper plan={plan} />
+        ));
+      }
+    });
+
+    return <Grid
+             colnum={3}
+             cellClasses={['wide', 'nowrap', 'nowrap']}
+             data = {rows}
+             headers={['Plan', 'Status', 'Created']}
+           />;
+  },
+});
+
+// Use this wrapper to fetch the plan options and then render the plan details.
+let PlanDetailsWrapper = React.createClass({
+
+  propTypes: {
+    plan: PropTypes.object.isRequired,
+  },
+
+  getInitialState: function() {
+    return { };
+  },
+
+  componentDidMount: function() {
+    api.fetch(this, {
+      options: `/api/0/plans/${this.props.plan.id}/options`,
+    });
+  },
+
+  render: function() {
+    if (!api.isLoaded(this.state.options)) {
+      return <APINotLoadedPage calls={this.state.options} />;
+    }
+    let options = this.state.options.getReturnedData();
+
+    return <PlanDetails options={options} plan={this.props.plan} />;
+  },
+});
+
+let PlanDetails = React.createClass({
+
+  mixins: [React.addons.LinkedStateMixin],
+
+  propTypes: {
+    plan: PropTypes.object.isRequired,
+    options: PropTypes.object.isRequired,
+  },
+
+  getInitialState: function() {
+    return {
+      expandedSteps: {},
+    };
+  },
+
+  saveSettings: function() {
+    let state = this.state;
+    let plan_params = {
+      'name': state.name,
+      'status': state.status,
+    };
+    let options_params = {
+      'build.expect-tests': state.expectTests | 0,
+      'snapshot.allow': state.allowSnapshot | 0,
+    };
+
+    let planId = this.props.plan.id;
+
+    let endpoints = {
+      '_postRequest_plan': `/api/0/plans/${planId}/`,
+      '_postRequest_options': `/api/0/plans/${planId}/options/`,
+    };
+    let params = {
+      '_postRequest_plan': plan_params,
+      '_postRequest_options': options_params,
+    };
+
+    api.post(this, endpoints, params);
+  },
+
+  componentDidMount: function() {
+    let project = this.props.project;
+    this.setState({ name: this.props.plan.name,
+                    status: this.props.plan.status.name,
+                    expectTests: this.props.options['build.expect-tests'] === '1',
+                    allowSnapshot: this.props.options['snapshot.allow'] === '1',
+                  });
+  },
+
+  render: function() {
+    let form = [
+      { sectionTitle: 'Basics', fields: [
+        {type: 'text', display: 'Name', link: 'name'},
+        {type: 'text', display: 'Status', link: 'status'},
+        ]
+      },
+      { sectionTitle: 'Snapshots', fields: [
+        {type: 'checkbox', link: 'allowSnapshot', comment: 'Allow snapshots to be created (and used) for this build plan.'},
+        ]
+      },
+      { sectionTitle: 'Tests', fields: [
+        {type: 'checkbox', link: 'expectTests',
+         comment: 'Expect test results to be reported. If they\'re not, the build will be considered as failing, in addition to "failing during setup".'},
+        ]
+      },
+    ];
+
+    let fieldMarkup = createFieldGroupMarkup(form, "Save Plan", this);
+    let rows = [];
+    _.each(this.props.plan.steps, step => {
+      let onClick = __ => {
+        this.setState(
+          utils.update_key_in_state_dict('expandedSteps',
+            step.id,
+            !this.state.expandedSteps[step.id])
+        );
+      };
+
+      var expandLabel = !this.state.expandedSteps[step.id] ?
+        'Expand Step' : 'Collapse Step';
+
+      var stepName = <div>
+        {step.name} <a onClick={onClick}>{expandLabel}</a>
+      </div>;
+
+      rows.push([step.order, stepName, <TimeText time={step.dateCreated} />]);
+
+      if (this.state.expandedSteps[step.id]) {
+        rows.push(GridRow.oneItem(
+          <StepDetails step={step} />
+        ));
+      }
+    });
+
+    return <div>
+             {fieldMarkup}
+             <Grid
+               colnum={3}
+               cellClasses={['nowrap', 'wide', 'nowrap']}
+               data = {rows}
+               headers={['Order', 'Step', 'Created']}
+             />
+           </div>;
+  },
+});
+
+let StepDetails = React.createClass({
+
+  mixins: [React.addons.LinkedStateMixin],
+
+  propTypes: {
+    step: PropTypes.object.isRequired,
+  },
+
+  getInitialState: function() {
+    return {};
+  },
+
+  changesBuildStepImplementationFor: {
+    'DefaultBuildStep': 'changes.buildsteps.default.DefaultBuildStep',
+    'LXCBuildStep': 'changes.buildsteps.lxc.LXCBuildStep',
+    'JenkinsBuildStep': 'changes.backends.jenkins.buildstep.JenkinsBuildStep',
+    'JenkinsGenericBuildStep': 'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
+    'JenkinsCollectorBuildStep': 'changes.backends.jenkins.buildsteps.collector.JenkinsCollectorBuildStep',
+    'JenkinsTestCollectorBuildStep': 'changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep',
+  },
+
+  saveSettings: function() {
+    let state = this.state;
+    let step_params = {
+      'name': state.name,
+      'build.timeout': state.timeout,
+      'data': state.data,
+      'implementation': this.changesBuildStepImplementationFor[state.implementation],
+    };
+
+    let stepId = this.props.step.id;
+
+    let endpoints = {
+      '_postRequest_step': `/api/0/steps/${stepId}/`,
+    };
+    let params = {
+      '_postRequest_step': step_params,
+    };
+
+    api.post(this, endpoints, params);
+  },
+
+  componentDidMount: function() {
+    let step = this.props.step;
+    var implementation = step.implementation.split('.');
+    this.setState({ name: step.name,
+                    timeout: step.options['build.timeout'],
+                    data: step.data,
+                    implementation: implementation[implementation.length - 1],
+                  });
+  },
+
+  render: function() {
+    let form = [
+      { sectionTitle: '', fields: [
+        {type: 'select', display: 'Implementation', link: 'implementation',
+         options: Object.keys(this.changesBuildStepImplementationFor) },
+        {type: 'textarea', display: 'Config', link: 'data'},
+        {type: 'text', display: 'Timeout', link: 'timeout'},
+        ]
+      },
+    ];
+
+    return createFieldGroupMarkup(form, "Save Step", this);
   },
 });
 
