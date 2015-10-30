@@ -154,6 +154,7 @@ var BuildsTab = React.createClass({
     var items = [
       'All',
       'Commits Only',
+      'Commit Queue Only',
       'Diffs/arc test only',
       'Snapshot creation only'
     ];
@@ -162,21 +163,31 @@ var BuildsTab = React.createClass({
       'All': {
         'include_patches': 1,
         'patches_only': 0,
+        'tag': '',
         'cause': ''
       },
       'Commits Only': {
         'include_patches': 0,
         'patches_only': 0,
+        'tag': '',
+        'cause': ''
+      },
+      'Commit Queue Only': {
+        'include_patches': 0,
+        'patches_only': 0,
+        'tag': 'commit-queue',
         'cause': ''
       },
       'Diffs/arc test only': {
         'include_patches': 1,
         'patches_only': 1,
+        'tag': '',
         'cause': ''
       },
       'Snapshot creation only': {
         'include_patches': 0,
         'patches_only': 0,
+        'tag': '',
         'cause': 'snapshot'
       }
     };

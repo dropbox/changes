@@ -413,6 +413,11 @@ class BuildIndexAPIView(APIView):
     """
     parser.add_argument('snapshot_id', type=uuid.UUID, default=None)
 
+    get_parser = reqparse.RequestParser()
+
+    """Optional tag to search for."""
+    get_parser.add_argument('tag', type=str, default='')
+
     def handle_failure(self, msg, problems=[], diff=None):
         if diff:
             message = '{icon times, color=red}  ' + msg
@@ -425,6 +430,10 @@ class BuildIndexAPIView(APIView):
             joinedload('author'),
             joinedload('source').joinedload('revision'),
         ).order_by(Build.date_created.desc(), Build.date_started.desc())
+
+        args = self.get_parser.parse_args()
+        if args.tag:
+            queryset = queryset.filter(Build.tags.any(args.tag))
 
         return self.paginate(queryset)
 

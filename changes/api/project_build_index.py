@@ -35,6 +35,7 @@ class ProjectBuildIndexAPIView(APIView):
                             default=False)
     get_parser.add_argument('cause', type=unicode, location='args',
                             choices=('unknown', 'manual', 'push', 'retry', 'snapshot', ''))
+    get_parser.add_argument('tag', type=unicode, default='')
 
     def get(self, project_id):
         project = Project.get(project_id)
@@ -81,6 +82,9 @@ class ProjectBuildIndexAPIView(APIView):
 
         if args.cause:
             filters.append(Build.cause == Cause[args.cause])
+
+        if args.tag:
+            filters.append(Build.tags.any(args.tag))
 
         if args.patches_only:
             filters.append(Source.patch_id != None)  # NOQA

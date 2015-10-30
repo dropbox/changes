@@ -175,6 +175,17 @@ class BuildListTest(APITestCase):
         assert data[0]['id'] == build2.id.hex
         assert data[1]['id'] == build.id.hex
 
+    def test_tag_query(self):
+        project = self.create_project()
+        build1 = self.create_build(project, tags=['foo'])
+        build2 = self.create_build(project, tags=['bar'])
+
+        resp = self.client.get(self.path + '?tag=foo')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build1.id.hex
+
 
 class BuildCreateTest(APITestCase, CreateBuildsMixin):
     path = '/api/0/builds/'

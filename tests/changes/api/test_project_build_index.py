@@ -20,7 +20,7 @@ class ProjectBuildListTest(APITestCase):
         build1 = self.create_build(project1, label='test', target='D1234',
                                    result=Result.passed)
         project2 = self.create_project()
-        build2 = self.create_build(project2, label='test', target='D1234',
+        build2 = self.create_build(project2, label='test', target='D1234', tags=['foo'],
                                    result=Result.failed)
 
         path = '/api/0/projects/{0}/builds/'.format(fake_project_id.hex)
@@ -77,6 +77,21 @@ class ProjectBuildListTest(APITestCase):
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 0
+
+        build3 = self.create_build(project2, label='test', target='D12345', tags=['bar'],
+                                   result=Result.failed)
+
+        resp = self.client.get(path + '?tag=foo')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build2.id.hex
+
+        resp = self.client.get(path + '?tag=bar')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == build3.id.hex
 
     def test_more_searches(self):
         project1 = self.create_project()
