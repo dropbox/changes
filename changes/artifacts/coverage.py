@@ -90,70 +90,101 @@ class CoverageHandler(ArtifactHandler):
         - C: covered
         """
         try:
-            # parse root elem without parsing whole file
-            _, root = next(etree.iterparse(fp, events=("start",)))
-            fp.seek(0)
-
-            if root.tag == 'coverage':
-                # use a streaming parser to parse coverage
-                parser = etree.XMLParser(target=CoberturaCoverageParser(self))
-                return etree.parse(fp, parser)
-            elif root.tag == 'report':
-                root = etree.fromstring(fp.read())  # parse whole file
-                return self.get_jacoco_coverage(root)
-            raise NotImplementedError('Unsupported coverage format')
+            parser = etree.XMLParser(target=CoverageParser(self))
+            return etree.parse(fp, parser)
         except etree.XMLSyntaxError as e:
             self.logger.warn(str(e))
             return []
 
-    def get_jacoco_coverage(self, root):
-        step = self.step
-        job = self.step.job
 
-        results = []
-        for package in root.iter('package'):
-            package_path = 'src/main/java/{}'.format(package.get('name'))
-            for sourcefile in package.iter('sourcefile'):
-                # node name resembles 'com/example/foo/bar/Resource'
-                filename = '{filepath}/{filename}'.format(
-                    filepath=package_path,
-                    filename=sourcefile.get('name'),
-                )
+class DelegateParser(object):
+    """DelegateParser is a no-op streaming XML parser class intended for
+    subclassing.  It allows you to base your final choice of streaming XML
+    parser on information from the XML document.  Subclasses should override
+    some or all of the `_start`, `_end`, `_data`, and `_close` methods to
+    inspect the XML file as its being parsed.  Once the subclass has decided on
+    what parser to use, it should call `_set_subparser`. At this point, all
+    future parse events will be directed to the subparser, and the `_*` methods
+    will no longer be called.  Note that the subparser will begin receiving
+    parse events from the point where DelegateParser left off, that is: past
+    parse events will *not* be repeated.
+    """
 
-                file_coverage = []
-                lineno = 0
-                for line in sourcefile.iterchildren('line'):
-                    number, hits = int(line.get('nr')), int(line.get('ci'))
-                    if lineno < number - 1:
-                        for lineno in range(lineno, number - 1):
-                            file_coverage.append('N')
-                    if hits > 0:
-                        file_coverage.append('C')
-                    else:
-                        file_coverage.append('U')
-                    lineno = number
+    def __init__(self):
+        self._subparser = None
 
-                result = FileCoverage(
-                    step_id=step.id,
-                    job_id=job.id,
-                    project_id=job.project_id,
-                    filename=filename,
-                    data=''.join(file_coverage),
-                )
-                self.add_file_stats(result)
+    def _set_subparser(self, subparser):
+        self._subparser = subparser
 
-                results.append(result)
+    def _start(self, tag, attrib):
+        pass
 
-        return results
+    def _end(self, tag):
+        pass
+
+    def _data(self, data):
+        pass
+
+    def _close(self):
+        return None
+
+    def start(self, tag, attrib):
+        if self._subparser:
+            self._subparser.start(tag, attrib)
+        else:
+            self._start(tag, attrib)
+
+    def end(self, tag):
+        if self._subparser:
+            self._subparser.end(tag)
+        else:
+            self._end(tag)
+
+    def data(self, data):
+        if self._subparser:
+            self._subparser.data(data)
+        else:
+            self._data(data)
+
+    def close(self):
+        if self._subparser:
+            return self._subparser.close()
+        else:
+            return self._close()
+
+
+class CoverageParser(DelegateParser):
+    """Parses a Cobertura or Jacoco XML file into a list of FileCoverage objects."""
+
+    def __init__(self, coverage_handler):
+        super(CoverageParser, self).__init__()
+        self.coverage_handler = coverage_handler
+
+    def _start(self, tag, attrib):
+        # check the root tag name to determine which type of coverage file this is
+        if tag == 'coverage':
+            self._set_subparser(CoberturaCoverageParser(self.coverage_handler))
+        elif tag == 'report':
+            self._set_subparser(JacocoCoverageParser(self.coverage_handler))
+        else:
+            # the root tag is not any of the known coverage type
+            raise NotImplementedError('Unsupported coverage format')
+
+    def _close(self):
+        # because we choose a subparser after seeing the root element, the only
+        # way we'll get here is if the document is empty
+        raise etree.XMLSyntaxError("Empty file", None, 1, 1)
 
 
 class CoberturaCoverageParser(object):
+    """Parses a Cobertura XML file into a list of FileCoverage objects."""
+
     def __init__(self, coverage_handler):
         self.coverage_handler = coverage_handler
-        self.results = []
-        self.in_file = False
         self.step = coverage_handler.step
         self.job = coverage_handler.step.job
+        self.results = []
+        self.in_file = False
 
     def start(self, tag, attrib):
         if tag == 'class':
@@ -195,6 +226,70 @@ class CoberturaCoverageParser(object):
                         self.file_coverage.append('C')
                     else:
                         self.file_coverage.append('U')
+                self.current_lineno = number
+
+    def end(self, tag):
+        if tag == 'class':
+            if self.in_file:
+                result = FileCoverage(
+                    step_id=self.step.id,
+                    job_id=self.job.id,
+                    project_id=self.job.project_id,
+                    filename=self.filename,
+                    data=''.join(self.file_coverage),
+                )
+                self.coverage_handler.add_file_stats(result)
+                self.results.append(result)
+
+                self.in_file = False
+
+    def data(self, data):
+        pass
+
+    def close(self):
+        return self.results
+
+
+class JacocoCoverageParser(object):
+    """Parses a Jacoco XML file into a list of FileCoverage objects."""
+
+    def __init__(self, coverage_handler):
+        self.coverage_handler = coverage_handler
+        self.step = coverage_handler.step
+        self.job = coverage_handler.step.job
+        self.results = []
+        self.in_file = False
+
+    def start(self, tag, attrib):
+        if tag == 'package':
+            if 'name' not in attrib:
+                self.coverage_handler.logger.warn(
+                    'Unable to determine name for package node with attributes: %s', attrib)
+            else:
+                self.package_path = 'src/main/java/{}'.format(attrib['name'])
+        elif tag == 'sourcefile':
+            if 'name' not in attrib:
+                self.coverage_handler.logger.warn(
+                    'Unable to determine name for sourcefile node with attributes: %s', attrib)
+            else:
+                self.filename = '{}/{}'.format(self.package_path, attrib['name'])
+                self.file_coverage = []
+                self.current_lineno = 0
+                self.in_file = True
+        elif tag == 'line':
+            if self.in_file:
+                number = int(attrib['nr'])
+                hits = int(attrib['ci'])
+                # the line numbers in the file should be strictly increasing
+                assert self.current_lineno < number
+                if self.current_lineno < number - 1:
+                    for self.current_lineno in range(self.current_lineno, number - 1):
+                        self.file_coverage.append('N')
+
+                if hits > 0:
+                    self.file_coverage.append('C')
+                else:
+                    self.file_coverage.append('U')
                 self.current_lineno = number
 
     def end(self, tag):
