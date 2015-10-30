@@ -40,4 +40,11 @@ class ManagerTest(TestCase):
         artifact.file.save(StringIO(), artifact.name)
         manager.process(artifact)
 
-        assert process.call_count == 1
+        artifact = self.create_artifact(
+            step=jobstep,
+            name='foo/coverage.xml',
+        )
+        artifact.file.save(StringIO(), artifact.name)
+        manager.process(artifact)
+
+        assert process.call_count == 2

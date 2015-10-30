@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from fnmatch import fnmatch
 
 import logging
+import os
 
 
 class ArtifactHandler(object):
@@ -13,12 +14,12 @@ class ArtifactHandler(object):
         self.step = step
 
     @classmethod
-    def can_process(cls, filename):
+    def can_process(cls, filepath):
         """
         Returns True if this handler can process the given artifact.
         """
         for pattern in cls.FILENAMES:
-            if fnmatch(filename, pattern):
+            if fnmatch(os.path.basename(filepath), pattern):
                 return True
         return False
 
