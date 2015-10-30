@@ -146,7 +146,7 @@ let FieldGroup = React.createClass({
     this.setState({ name: project.name,
                     slug: project.slug,
                     repository: project.repository.url,
-                    status: project.status.name,
+                    status: project.status.id,
                     owner: project.options['project.owners'],
                     notes: project.options['project.notes'],
                     commitTrigger: project.options['build.commit-trigger'] === '1',
