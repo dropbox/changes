@@ -376,11 +376,10 @@ var ShardingTab = React.createClass({
       markup.push(<SectionHeader>{job.name}</SectionHeader>);
       var rows = [];
       _.each(this.state.jobPhases[jobID].getReturnedData(), phase => {
-        _.each(phase.steps, step => {
-          if (!step.data.weight) {
-            return;
-          }
-
+        // Filter out steps with missing weights and then sort by descending weight.
+        var steps = _.sortBy(_.filter(phase.steps, step => step.data.weight),
+                             step => -step.data.weight);
+        _.each(steps, step => {
           var onClick = evt => {
             this.setState(utils.update_key_in_state_dict(
               'expandedShards',
