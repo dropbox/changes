@@ -242,6 +242,8 @@ class Fixtures(object):
             kwargs['source'] = self.create_source(project)
         if 'collection_id' not in kwargs:
             kwargs['collection_id'] = uuid4()
+        if 'message' not in kwargs:
+            kwargs['message'] = ''
 
         kwargs['source_id'] = kwargs['source'].id
 

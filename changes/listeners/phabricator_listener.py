@@ -1,6 +1,7 @@
 from changes.models.job import Job
 from changes.models.test import TestCase
 
+import re
 import urllib
 
 from flask import current_app
@@ -95,6 +96,13 @@ def commit_details(source):
     return callsign, branch, source.revision_sha
 
 
+def parse_revision_id(message):
+    """Parse the revision id out of a commit message"""
+
+    match = re.search('^Differential Revision:.*/D(\d+)$', message, re.MULTILINE)
+    return int(match.group(1)) if match else None
+
+
 def post_commit_coverage(callsign, branch, commit, coverage, phab):
     phab_repos = phab.post('repository.query', callsigns=[callsign])
     if not phab_repos:
@@ -148,6 +156,11 @@ def build_finished_handler(build_id, **kwargs):
                 logger.info("Posting coverage to %s", target)
                 post_diff_coverage(target[1:], coverage, phab)
             elif is_commit_build:
+                # commits update diffs in phabricator, so post the coverage there too
+                revision_id = parse_revision_id(build.message)
+                if revision_id:
+                    post_diff_coverage(revision_id, coverage, phab)
+
                 callsign, branch, commit = commit_details(build.source)
                 if callsign and commit:
                     logger.info("Posting coverage to %s, %s, %s", callsign, branch, commit)

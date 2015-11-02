@@ -543,7 +543,14 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         self.create_option(name='phabricator.callsign', value='BOO', item_id=repo.id)
         project = self.create_project(name='Server', repository=repo)
         source = self.create_source(project)
-        build = self.create_build(project, result=Result.passed, source=source, status=Status.finished, tags=['commit'])
+        revision_id = 12345
+        build = self.create_build(project,
+                                  result=Result.passed,
+                                  source=source,
+                                  status=Status.finished,
+                                  tags=['commit'],
+                                  message='commit message\nDifferential Revision: '
+                                  'https://phabricator.example.com/D{}'.format(revision_id))
         job = self.create_job(build=build)
 
         cov = {"file": "NUC"}
@@ -552,7 +559,8 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         build_finished_handler(build_id=build.id.hex)
 
         assert post_diff_comment.call_count == 0
-        assert post_diff_coverage.call_count == 0
+        assert post_diff_coverage.call_count == 1
+        post_diff_coverage.assert_called_once_with(revision_id, cov, mock.ANY)
         assert post_commit_coverage.call_count == 1
         post_commit_coverage.assert_called_once_with('BOO', 'master', source.revision_sha, cov, mock.ANY)
 
