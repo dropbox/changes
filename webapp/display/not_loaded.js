@@ -5,8 +5,6 @@ import { RandomLoadingMessage, InlineLoading } from 'es6!display/loading';
 
 import * as api from 'es6!server/api';
 
-var cx = React.addons.classSet;
-
 /*
  * Convenience wrapper that takes the contents of the state variable used for
  * an api fetch and renders either an error message (using <AjaxError />)

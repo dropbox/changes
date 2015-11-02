@@ -3,8 +3,6 @@ import moment from 'moment';
 
 import SimpleTooltip from 'es6!display/simple_tooltip';
 
-var cx = React.addons.classSet;
-
 /*
  * Mostly things that seemed too small to be worth making into tags, e.g.
  * rendering a shorter name for a repo url.

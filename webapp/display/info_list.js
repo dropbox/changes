@@ -2,8 +2,6 @@ import React, { PropTypes } from 'react';
 
 import { Error, ProgrammingError } from 'es6!display/errors';
 
-var cx = React.addons.classSet;
-
 /*
  * Basically a list with properties/keys on the left and values on the right.
  * The values might be arbitrarily complex markup.

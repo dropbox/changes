@@ -2,8 +2,6 @@ import React, { PropTypes } from 'react';
 
 import Examples from 'es6!display/examples';
 
-var cx = React.addons.classSet;
-
 export var Button = React.createClass({
 
   propTypes: {

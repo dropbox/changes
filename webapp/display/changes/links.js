@@ -2,8 +2,6 @@ import React, { PropTypes } from 'react';
 
 import * as utils from 'es6!utils/utils';
 
-var cx = React.addons.classSet;
-
 /*
  * Renders links to various pages. Usually returns anchor tags, but functions
  * ending in Href just return the URI (in case you need to customize.)

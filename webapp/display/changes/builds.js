@@ -8,8 +8,6 @@ import { get_runnable_condition, get_runnables_summary_condition, ConditionDot }
 
 import * as api from 'es6!server/api';
 
-var cx = React.addons.classSet;
-
 /*
  * Shows the status of many builds run for a single code change (e.g. a commit
  * or diff.) Despite the name, this widget can also handle showing a single
