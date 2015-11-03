@@ -55,15 +55,15 @@ class AnalyticsNotifierTest(TestCase):
         finished = started + duration
 
         build = self.create_build(project, result=Result.failed, target='D1',
-                                  label='Some sweet diff', duration=duration,
+                                  label='Some sweet diff', duration=duration, tags=['commit', 'angry'],
                                   date_created=ts_to_datetime(created), date_started=ts_to_datetime(started),
                                   date_finished=ts_to_datetime(finished))
 
         job = self.create_job(build=build, result=Result.failed)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase, status=Status.finished, result=Result.failed)
-        jobstep2 = self.create_jobstep(jobphase, status=Status.finished,
-                                       result=Result.infra_failed, replacement_id=jobstep.id)
+        self.create_jobstep(jobphase, status=Status.finished,
+                            result=Result.infra_failed, replacement_id=jobstep.id)
         db.session.add(FailureReason(step_id=jobstep.id, job_id=job.id, build_id=build.id, project_id=project.id,
                                      reason='missing_tests'))
         db.session.commit()
@@ -89,6 +89,7 @@ class AnalyticsNotifierTest(TestCase):
             'date_finished': finished,
             'phab_revision_url': 'https://example.com/D1',
             'failure_reasons': ['aborted', 'missing_tests'],
+            'tags': {'tags': ['angry', 'commit']},
         }
         post_fn.assert_called_once_with(URL, [expected_data])
 

@@ -115,6 +115,9 @@ def build_finished_handler(build_id, **kwargs):
         'phab_revision_url': _get_phabricator_revision_url(build),
         'failure_reasons': failure_reasons,
         'jobsteps_replaced': jobsteps_replaced,
+        # tags is a dict rather than just a list because some analytics backends (Hive, for
+        # example) handle JSON objects much more conveniently than lists.
+        'tags': {'tags': sorted(list(build.tags or []))},
     }
     if build.author:
         data['author'] = build.author.email
