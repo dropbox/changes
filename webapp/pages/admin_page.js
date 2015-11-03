@@ -24,6 +24,8 @@ let AdminPage = React.createClass({
   menuItems: [
     'Projects',
     'New Project',
+    'Repositories',
+    'Users',
   ],
 
   getInitialState: function() {
@@ -40,12 +42,30 @@ let AdminPage = React.createClass({
     // initial data fetching within tabs
     this.initialTab = selectedItemFromHash || 'Projects';
 
-    this.setState({ selectedItem: this.initialTab });
+    this.setState({
+      selectedItem: this.initialTab,
+      repositoriesInteractive: InteractiveData(
+        this,
+        'repositoriesInteractive',
+        '/api/0/repositories/?status='),
+      usersInteractive: InteractiveData(
+        this,
+        'usersInteractive',
+        '/api/0/users/')
+    });
   },
 
   componentDidMount: function() {
     api.fetch(this, {
       projects: '/api/0/projects/',
+    });
+
+    var interactives = [this.state.repositoriesInteractive, this.state.usersInteractive];
+
+    _.each(interactives, interactive => {
+      if (!interactive.hasRunInitialize()) {
+        interactive.initialize({});
+      }
     });
   },
 
@@ -74,6 +94,12 @@ let AdminPage = React.createClass({
         break;
       case 'New Project':
         content = this.renderNewProject();
+        break;
+      case 'Repositories':
+        content = this.renderRepositories();
+        break;
+      case 'Users':
+        content = this.renderUsers();
         break;
       default:
         throw 'unreachable';
@@ -139,6 +165,67 @@ let AdminPage = React.createClass({
     };
 
     api.post(this, endpoints, params);
+  },
+
+  renderRepositories: function() {
+    var interactive = this.state.repositoriesInteractive;
+    if (interactive.hasNotLoadedInitialData()) {
+      return <APINotLoaded calls={interactive.getDataToShow()} />;
+    }
+
+    let repositories = interactive.getDataToShow().getReturnedData();
+    let rows = [];
+    _.each(repositories, repository => {
+      rows.push([
+        repository.url,
+        repository.status.name,
+        repository.backend.name,
+        <TimeText time={repository.dateCreated} />
+      ]);
+    });
+
+    var pagingLinks = interactive.getPagingLinks({
+      use_next_previous: true,
+    });
+    return <div>
+      <Grid
+        colnum={4}
+        className="marginBottomM marginTopM"
+        data={rows}
+        headers={['Name', 'Status', 'Backend', 'Created']}
+      />
+      <div className="marginTopM marginBottomM">{pagingLinks}</div>
+    </div>;
+  },
+
+  renderUsers: function() {
+    var interactive = this.state.usersInteractive;
+    if (interactive.hasNotLoadedInitialData()) {
+      return <APINotLoaded calls={interactive.getDataToShow()} />;
+    }
+
+    let users = interactive.getDataToShow().getReturnedData();
+    let rows = [];
+    _.each(users, user => {
+      rows.push([
+        user.email,
+        user.isAdmin ? 'true' : 'false',
+        <TimeText time={user.dateCreated} />
+      ]);
+    });
+
+    var pagingLinks = interactive.getPagingLinks({
+      use_next_previous: true,
+    });
+    return <div>
+      <Grid
+        colnum={3}
+        className="marginBottomM marginTopM"
+        data={rows}
+        headers={['Email', 'Admin?', 'Created']}
+      />
+      <div className="marginTopM marginBottomM">{pagingLinks}</div>
+    </div>;
   },
 });
 
