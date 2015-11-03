@@ -15,6 +15,18 @@ class BuildStep(object):
     def get_label(self):
         raise NotImplementedError
 
+    def get_resource_limits(self):
+        """Return the resource limits that should be applied to individual executions.
+        The return value is expected to be a dict like:
+           {'cpus': 4, 'memory': 8000}
+        with 'cpus' and 'memory' indicating the number of CPUs and megabytes of memory needed
+        respectively. Both fields are optional.
+        Specifying these values don't guarantee you'll get them (or that you won't get more),
+        but it will be taken into account when scheduling jobs, and steps with lower limits
+        may be scheduled sooner.
+        """
+        return {}
+
     def execute(self, job):
         """
         Given a new job, execute it (either sync or async), and report the

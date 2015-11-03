@@ -1,8 +1,10 @@
 from uuid import uuid4
 
+import mock
+
 from changes.config import db
 from changes.constants import Cause, Result, Status
-from changes.models import CommandType, JobStep, ProjectOption
+from changes.models import CommandType, JobPlan, JobStep, ProjectOption
 from changes.testutils import APITestCase
 
 
@@ -28,6 +30,26 @@ class JobStepDetailsTest(APITestCase):
         assert data['id'] == jobstep.id.hex
         assert data['snapshot'] is None
         assert data['expectedSnapshot'] is None
+
+    def test_with_resource_limits(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as mocked:
+            buildstep = mock.Mock()
+            buildstep.get_resource_limits.return_value = {'cpus': 4}
+            buildstep.debug_config = {}
+            mocked.return_value = (None, buildstep)
+            resp = self.client.get(path)
+
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['resourceLimits'] == {'cpus': 4}
 
     def test_without_image(self):
         project = self.create_project()

@@ -13,7 +13,7 @@ from changes.backends.base import UnrecoverableException
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Status
-from changes.models import SnapshotImage, SnapshotStatus
+from changes.models.snapshot import SnapshotImage, SnapshotStatus
 
 from .builder import JenkinsBuilder
 from .generic_builder import JenkinsGenericBuilder
@@ -24,7 +24,8 @@ class JenkinsBuildStep(BuildStep):
     logger = logging.getLogger('jenkins')
 
     def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None,
-                 auth_keyname=None, verify=True, debug_config=None):
+                 auth_keyname=None, verify=True, debug_config=None,
+                 cpus=4, memory=8 * 1024):
         """
         The JenkinsBuildStep constructor here, which is used as a base
         for all Jenkins builds, only accepts parameters which are used
@@ -44,6 +45,8 @@ class JenkinsBuildStep(BuildStep):
             verify (str or bool): The verify parameter to pass to the requests
                 library for verifying SSL certificates. For details,
                 see http://docs.python-requests.org/en/latest/user/advanced/#ssl-cert-verification
+            cpus (int): Number of CPUs this buildstep requires to run.
+            memory (int): Memory required for this buildstep in megabytes.
             debug_config: A dictionary of debug config options. These are passed through
                 to changes-client. Options currently supported:
                 prelaunch_env and postlaunch_env, which can be used to change the pre-
@@ -80,6 +83,12 @@ class JenkinsBuildStep(BuildStep):
         self.auth_keyname = auth_keyname
         self.verify = verify
         self.debug_config = debug_config or {}
+
+        self._resources = {}
+        if cpus:
+            self._resources['cpus'] = cpus
+        if memory:
+            self._resources['memory'] = memory
 
     def get_builder(self, app=current_app, **kwargs):
         """
@@ -165,6 +174,9 @@ class JenkinsBuildStep(BuildStep):
         actually look up and verify the buildtype from within the buildstep.
         """
         return self.get_builder().can_snapshot()
+
+    def get_resource_limits(self):
+        return self._resources.copy()
 
 
 SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log', '*.service.log')

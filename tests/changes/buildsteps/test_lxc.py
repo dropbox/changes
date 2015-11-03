@@ -6,18 +6,22 @@ from changes.testutils import TestCase
 
 class LXCBuildStepTest(TestCase):
     def get_buildstep(self):
-        return LXCBuildStep(commands=(
-            dict(
-                script='echo "hello world 2"',
-                path='/usr/test/1',
-                artifacts=['artifact1.txt', 'artifact2.txt'],
-                env={'PATH': '/usr/test/1'},
-                type='setup',
-            ),
-            dict(
-                script='echo "hello world 1"',
-            ),
-        ), release='trusty')
+        return LXCBuildStep(
+            commands=[
+                dict(
+                    script='echo "hello world 2"',
+                    path='/usr/test/1',
+                    artifacts=['artifact1.txt', 'artifact2.txt'],
+                    env={'PATH': '/usr/test/1'},
+                    type='setup',
+                ),
+                dict(
+                    script='echo "hello world 1"',
+                ),
+            ],
+            release='trusty',
+            cpus=8,
+            memory=9000)
 
     def test_get_allocation_params(self):
         project = self.create_project()
@@ -36,7 +40,11 @@ class LXCBuildStepTest(TestCase):
             's3-bucket': 'snapshot-bucket',
             'pre-launch': 'echo pre',
             'post-launch': 'echo post',
-            'memory': '8192',
-            'cpus': '4',
+            'memory': '9000',
+            'cpus': '8',
             'artifacts-server': 'http://localhost:1234',
         }
+
+    def test_get_resource_limits(self):
+        buildstep = self.get_buildstep()
+        assert buildstep.get_resource_limits() == {'cpus': 8, 'memory': 9000, }

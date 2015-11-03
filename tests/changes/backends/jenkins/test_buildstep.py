@@ -4,13 +4,29 @@ import mock
 
 from changes.backends.jenkins.builder import JenkinsBuilder
 from changes.backends.jenkins.buildstep import JenkinsBuildStep, JenkinsGenericBuildStep
-from changes.models import SnapshotStatus
+from changes.models.snapshot import SnapshotStatus
 from changes.testutils import TestCase
 
 
 class JenkinsBuildStepTest(TestCase):
     def get_buildstep(self):
         return JenkinsBuildStep(job_name='foo-bar')
+
+    def test_get_resource_limits(self):
+        buildstep = JenkinsBuildStep(job_name="both", cpus=8, memory=8080)
+        assert buildstep.get_resource_limits() == {
+            'cpus': 8,
+            'memory': 8080,
+        }
+
+        # We specify defaults, so if you don't want a limit, gotta say so.
+        only_cpus = JenkinsBuildStep(job_name="only_cpus", cpus=8, memory=None)
+        assert only_cpus.get_resource_limits() == {'cpus': 8}
+
+        assert JenkinsBuildStep(job_name="defaults").get_resource_limits() == {
+            "memory": 8192,
+            "cpus": 4,
+        }
 
     def test_get_builder(self):
         buildstep = self.get_buildstep()

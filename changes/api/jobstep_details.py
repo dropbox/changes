@@ -81,6 +81,10 @@ class JobStepDetailsAPIView(APIView):
         context['job'] = self.serialize(jobstep.job)
 
         _, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
+        resource_limits = buildstep.get_resource_limits() if buildstep else {}
+        if resource_limits:
+            context['resourceLimits'] = resource_limits
+
         debugConfig = buildstep.debug_config if buildstep else {}
         if 'debugForceInfraFailure' in jobstep.data:
             debugConfig['forceInfraFailure'] = jobstep.data['debugForceInfraFailure']
