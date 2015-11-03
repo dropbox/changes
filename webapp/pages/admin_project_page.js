@@ -6,6 +6,7 @@ import { AjaxError } from 'es6!display/errors';
 import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
+import * as FieldGroupMarkup from 'es6!display/field_group';
 import { Grid, GridRow } from 'es6!display/grid';
 import Request from 'es6!display/request';
 import { Tabs, MenuUtils } from 'es6!display/menus';
@@ -99,59 +100,6 @@ let AdminProjectPage = React.createClass({
     </ChangesPage>;
   },
 });
-
-let createFieldGroupMarkup = function(form, saveButtonText, _this) {
-  let markup = _.map(form, section => {
-
-    let sectionMarkup = _.map(section.fields, field => {
-
-      if (field.type === 'text' || field.type === 'textarea' || field.type === 'select') {
-        let placeholder = field.placeholder || '';
-
-        let commentMarkup = null;
-        if (field.comment) {
-          commentMarkup = <div> {field.comment} </div>;
-        }
-
-        let tag = '';
-        if (field.type === 'text') {
-          tag = <input size="50" type="text" valueLink={_this.linkState(field.link)} placeholder={placeholder}/>;
-        } else if (field.type === 'textarea') {
-          tag = <textarea rows="10" cols="100" valueLink={_this.linkState(field.link)} placeholder={placeholder}/>;
-        } else if (field.type === 'select') {
-          let options = _.map(field.options, option => <option value={option}>{option}</option>);
-          tag = <select valueLink={_this.linkState(field.link)} >{options}</select>;
-        }
-
-        return <div className="marginBottomS">
-          <div> {field.display}: </div>
-          {tag}
-          {commentMarkup}
-          <hr />
-        </div>;
-      } else if (field.type === 'checkbox') {
-        return <div className="marginBottomS">
-          <label>
-            <div><input type='checkbox' checkedLink={_this.linkState(field.link)} /></div>
-            {field.comment}
-          </label>
-          <hr />
-        </div>;
-      } else {
-        throw 'unreachable';
-      }
-    });
-
-    return <div>
-      <h2>{section.sectionTitle}</h2>
-      {sectionMarkup}
-    </div>;
-  });
-
-  let onSaveClicked = _ => _this.saveSettings();
-  let saveButton = <Button onClick={onSaveClicked}>{saveButtonText}</Button>;
-  return <div>{saveButton}{markup}</div>;
-}
 
 let ProjectSettingsFieldGroup = React.createClass({
 
@@ -285,7 +233,7 @@ let ProjectSettingsFieldGroup = React.createClass({
       },
     ];
 
-    return createFieldGroupMarkup(form, "Save Project", this);
+    return FieldGroupMarkup.create(form, "Save Project", this);
   },
 });
 
@@ -482,7 +430,7 @@ let PlanDetails = React.createClass({
       },
     ];
 
-    let fieldMarkup = createFieldGroupMarkup(form, "Save Plan", this);
+    let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this);
     let rows = [];
     _.each(this.props.plan.steps, step => {
       let onClick = __ => {
@@ -593,7 +541,7 @@ let StepDetails = React.createClass({
       },
     ];
 
-    return createFieldGroupMarkup(form, "Save Step", this);
+    return FieldGroupMarkup.create(form, "Save Step", this);
   },
 });
 

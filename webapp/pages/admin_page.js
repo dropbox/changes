@@ -5,6 +5,7 @@ import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
+import * as FieldGroupMarkup from 'es6!display/field_group';
 import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 import { TestDetails } from 'es6!display/changes/test_details';
@@ -18,8 +19,11 @@ import * as utils from 'es6!utils/utils';
 
 let AdminPage = React.createClass({
 
+  mixins: [React.addons.LinkedStateMixin],
+
   menuItems: [
     'Projects',
+    'New Project',
   ],
 
   getInitialState: function() {
@@ -68,6 +72,9 @@ let AdminPage = React.createClass({
       case 'Projects':
         content = this.renderProjects();
         break;
+      case 'New Project':
+        content = this.renderNewProject();
+        break;
       default:
         throw 'unreachable';
     }
@@ -102,6 +109,36 @@ let AdminPage = React.createClass({
         headers={['Name', 'Status', 'Creation Date']}
       />
     </div>;
+  },
+
+  renderNewProject: function() {
+    let form = [
+      { sectionTitle: 'New Project', fields: [
+        {type: 'text', display: 'Name', link: 'name'},
+        {type: 'text', display: 'Repository', link: 'repository'},
+        ]
+      }
+    ];
+
+    let fieldMarkup = FieldGroupMarkup.create(form, "Save Project", this);
+    return <div>{fieldMarkup}</div>;
+  },
+
+  saveSettings: function() {
+    let state = this.state;
+    let project_params = {
+      'name': state.name,
+      'repository': state.repository,
+    };
+
+    let endpoints = {
+      '_postRequest_newproject': `/api/0/projects/`,
+    };
+    let params = {
+      '_postRequest_newproject': project_params,
+    };
+
+    api.post(this, endpoints, params);
   },
 });
 
