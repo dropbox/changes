@@ -161,6 +161,8 @@ export var get_build_cause = function(build) {
     'buildpoker': 'buildpoker',
     // build by the commit queue infrastructure
     'commit-queue': 'commit queue',
+    // build started to test a snapshot
+    'test-snapshot': 'test snapshot'
   }
 
   var cause = 'unknown';
@@ -189,6 +191,8 @@ export var get_cause_sentence = function(cause) {
       return 'This build was started by our phabricator-changes integration';
     case 'snapshot':
       return 'This build was started to create a new snapshot';
+    case 'test snapshot':
+      return 'This build was started to test a snapshot';
     default:
       return 'The trigger for this build was ' + cause;
   }
@@ -228,7 +232,7 @@ export var WaitingLiveText = React.createClass({
     var runnable = this.props.runnable;
 
     if (!runnable.dateStarted) {
-      return this.props.text ? 
+      return this.props.text ?
         <span>Not yet started</span> :
         <span>...</span>;
     }
