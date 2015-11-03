@@ -61,6 +61,13 @@ export var post = function(elem, endpoint_map, param_map = {}) {
 }
 
 /*
+ * Similar to fetch, but use this for delete requests.
+ */
+export var delete_ = function(elem, endpoint_map, param_map = {}) {
+  return fetchMapWithParams(elem, null, endpoint_map, 'DELETE', param_map);
+}
+
+/*
  * Like fetch, but all of the results are in a map inside state with key `map_key`
  * You cannot directly call this from render! use asyncFetchMap instead
  */
@@ -70,8 +77,8 @@ export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET') {
 
 var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map) {
   method = method.toLowerCase();
-  if (method !== 'get' && method !== 'post') {
-    throw new Error('method must be get or post!');
+  if (method !== 'get' && method !== 'post' && method !=='delete') {
+    throw new Error('method must be get or post or delete!');
   }
 
   // add a bunch of "loading" APIResponse objects to the element state
@@ -115,11 +122,8 @@ var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map
           map_key, state_key, api_response));
       }
     }
-    if (method === 'get') {
-      make_api_ajax_get(endpoint, params, ajax_response, ajax_response);
-    } else {
-      make_api_ajax_post(endpoint, params, ajax_response, ajax_response);
-    }
+
+    make_api_ajax_call(method, endpoint, params, ajax_response, ajax_response);
   });
 }
 

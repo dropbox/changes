@@ -7,7 +7,7 @@ import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
 import { Grid, GridRow } from 'es6!display/grid';
-import PostRequest from 'es6!display/post_request';
+import Request from 'es6!display/request';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 import { TestDetails } from 'es6!display/changes/test_details';
 import { TimeText } from 'es6!display/time';
@@ -317,15 +317,16 @@ let SnapshotList = React.createClass({
         params[key] = snapshot.id;
       }
       let endpoint = `/api/0/projects/${this.props.projectSlug}/options/`;
-      let post = <PostRequest
+      let post = <Request
                     parentElem={this}
                     name="activate_snapshot"
                     endpoint={endpoint}
+                    method="post"
                     params={params}>
                       <Button type="blue">
                         <span>{action}</span>
                       </Button>
-                 </PostRequest>;
+                 </Request>;
       return [snapshot.id, sha, <TimeText time={snapshot.dateCreated} />, post];
     });
 
@@ -499,7 +500,16 @@ let PlanDetails = React.createClass({
         {step.name} <a onClick={onClick}>{expandLabel}</a>
       </div>;
 
-      rows.push([step.order, stepName, <TimeText time={step.dateCreated} />]);
+      rows.push([step.order,
+                 stepName,
+                 <Request
+                   parentElem={this}
+                   name="deleteStep"
+                   method="delete"
+                   endpoint={`/api/0/steps/${step.id}/`}>
+                     <Button>Delete</Button>
+                  </Request>,
+                 <TimeText time={step.dateCreated} />]);
 
       if (this.state.expandedSteps[step.id]) {
         rows.push(GridRow.oneItem(
@@ -511,10 +521,10 @@ let PlanDetails = React.createClass({
     return <div>
              {fieldMarkup}
              <Grid
-               colnum={3}
-               cellClasses={['nowrap', 'wide', 'nowrap']}
+               colnum={4}
+               cellClasses={['nowrap', 'wide', 'nowrap', 'nowrap']}
                data = {rows}
-               headers={['Order', 'Step', 'Created']}
+               headers={['Order', 'Step', 'Delete', 'Created']}
              />
            </div>;
   },

@@ -7,13 +7,18 @@ import * as api from 'es6!server/api';
 /*
  * Eas(ier) way to make post requests. 
  */
-var PostRequest = React.createClass({
+var Request = React.createClass({
 
   propTypes: {
     parentElem: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
     endpoint: PropTypes.string.isRequired,
-    params: PropTypes.string,
+    params: PropTypes.object,
+    method: function(props, propName) {
+      if (!_.contains(['delete', 'post', 'get'], props[propName])) {
+        return new Error('Unknown request method');
+      }
+    },
   },
 
   render: function() {
@@ -22,7 +27,8 @@ var PostRequest = React.createClass({
       endpoint = this.props.endpoint,
       child = React.Children.only(this.props.children);
 
-    var stateKey = "_postRequest_" + name;
+    var stateKey = `_${this.props.method}Request_${name}`;
+    console.log(stateKey);
     var currentState = parentElem.state[stateKey];
       
     if (currentState && currentState.condition === 'loading') {
@@ -31,13 +37,20 @@ var PostRequest = React.createClass({
       </div>;
     } else if (api.isError(currentState)) {
       return <AjaxError response={currentState.response} />;
-    } else if (api.isLoaded(currentState)) {
-      // reload to pick up the updates from the post request
+    } else if (api.isLoaded(currentState) && this.props.method !== 'get') {
+      // reload to pick up the updates from the request
       window.location.reload();
     }
 
+    var method = api.post;
+    if (this.props.method === 'delete') {
+      method = api.delete_;
+    } else if (this.props.method === 'get') {
+      method = api.get;
+    }
+
     var onClick = evt => {
-      api.post(parentElem, {
+      method(parentElem, {
         [ stateKey ]: endpoint,
       }, {
         [ stateKey ]: this.props.params,
@@ -49,4 +62,4 @@ var PostRequest = React.createClass({
   },
 });
 
-export default PostRequest;
+export default Request;

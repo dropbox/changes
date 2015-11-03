@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
 
 import ChangesLinks from 'es6!display/changes/links';
-import PostRequest from 'es6!display/post_request';
 import SectionHeader from 'es6!display/section_header';
 import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';

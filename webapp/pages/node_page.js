@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import PostRequest from 'es6!display/post_request';
+import Request from 'es6!display/request';
 import SectionHeader from 'es6!display/section_header';
 import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
@@ -59,16 +59,17 @@ var NodePage = React.createClass({
         <span className="red">Offline</span>;
 
       toggleNodeButton = <div className="floatR">
-        <PostRequest
+        <Request
           parentElem={this}
           name="toggleNode"
+          method="post"
           endpoint={`/api/0/nodes/${nodeID}/status?toggle=1`}>
           <Button type="white">
             <span>
               {nodeStatus ? "Take Node Offline" : "Bring Node Online"}
             </span>
           </Button>
-        </PostRequest>
+        </Request>
       </div>;
     };
 

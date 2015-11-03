@@ -4,7 +4,7 @@ import moment from 'moment';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
-import PostRequest from 'es6!display/post_request';
+import Request from 'es6!display/request';
 import SectionHeader from 'es6!display/section_header';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { Button } from 'es6!display/button';
@@ -149,9 +149,10 @@ export var SingleBuild = React.createClass({
   renderButtons: function(build) {
     var cancel = get_runnable_condition(build) === 'waiting' ?
       <div className="marginTopM">
-        <PostRequest
+        <Request
           parentElem={this}
           name="cancelBuild"
+          method="post"
           endpoint={`/api/0/builds/${build.id}/cancel/`}>
           <Button type="white" className="sizedButton">
             <span className="red">
@@ -159,7 +160,7 @@ export var SingleBuild = React.createClass({
               Cancel Build
             </span>
           </Button>
-        </PostRequest> 
+        </Request>
       </div> :
       null;
 
@@ -169,15 +170,16 @@ export var SingleBuild = React.createClass({
       (build.testFailures.total > 0 ? '' : "#SlowTests")
 
     return <div>
-      <PostRequest
+      <Request
         parentElem={this}
         name="recreateBuild"
+        method="post"
         endpoint={`/api/0/builds/${build.id}/retry/`}>
         <Button type="white" className="sizedButton">
           <i className="fa fa-repeat marginRightM" />
           Recreate Build
         </Button>
-      </PostRequest>
+      </Request>
       {cancel}
       <div className="marginTopM">
         <Button 

@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
-import PostRequest from 'es6!display/post_request';
+import Request from 'es6!display/request';
 import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
@@ -373,15 +373,16 @@ var UserOptions = React.createClass({
     var isChecked = window.changesGlobals['COLORBLIND'];
     return <div className="subText">
       <span className="marginRightS">Options: </span>
-      <PostRequest
+      <Request
         parentElem={this}
         name="setOption"
+        method="post"
         endpoint={`/api/0/user_options/?user.colorblind=${!isChecked ? 1 : 0}`}>
         <label>
           <input type="checkbox" checked={isChecked} />
           Colorblind Mode
         </label>
-      </PostRequest>
+      </Request>
     </div>;
   }
 });
