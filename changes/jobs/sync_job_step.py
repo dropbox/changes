@@ -260,8 +260,13 @@ def sync_artifacts_for_jobstep(jobstep):
                     current_app.logger.error(
                         'DB Error while inserting/updating artifact %s: %s', filename, err)
     except (ConnectionError, HTTPError, SSLError, Timeout) as err:
-        # Log to sentry - unable to contact artifacts store
-        current_app.logger.warning('Error fetching url %s: %s', url, err, exc_info=True)
+        if isinstance(err, HTTPError) and err.response is not None and err.response.status_code == 404:
+            # While not all plans use the Artifact Store, 404s are normal and expected.
+            # No sense in reporting them.
+            pass
+        else:
+            # Log to sentry - unable to contact artifacts store
+            current_app.logger.warning('Error fetching url %s: %s', url, err, exc_info=True)
     except Exception, err:
         current_app.logger.error('Error updating artifacts for jobstep %s: %s', jobstep, err, exc_info=True)
         raise err
