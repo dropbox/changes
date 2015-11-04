@@ -179,7 +179,7 @@ let AdminPage = React.createClass({
     let rows = [];
     _.each(repositories, repository => {
       rows.push([
-        repository.url,
+        ChangesLinks.repositoryAdmin(repository),
         repository.status.name,
         repository.backend.name,
         <TimeText time={repository.dateCreated} />

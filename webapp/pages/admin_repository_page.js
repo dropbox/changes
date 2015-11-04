@@ -18,6 +18,7 @@ let AdminRepositoryPage = React.createClass({
 
   menuItems: [
     'Settings',
+    'Projects',
   ],
 
   getInitialState: function() {
@@ -40,6 +41,7 @@ let AdminRepositoryPage = React.createClass({
     let repositoryID = this.props.repositoryID;
     api.fetch(this, {
       repository: `/api/0/repositories/${repositoryID}`,
+      projects: `/api/0/repositories/${repositoryID}/projects`,
     });
   },
 
@@ -65,6 +67,12 @@ let AdminRepositoryPage = React.createClass({
     switch (selectedItem) {
       case 'Settings':
         content = <RepositorySettingsFieldGroup repository={repository} />
+        break;
+      case 'Projects':
+        if (!api.isLoaded(this.state.projects)) {
+          return <APINotLoadedPage calls={this.state.projects} />;
+        }
+        content = <ProjectList projects={this.state.projects.getReturnedData()} />
         break;
       default:
         throw 'unreachable';
@@ -142,6 +150,30 @@ let RepositorySettingsFieldGroup = React.createClass({
     ];
 
     return FieldGroupMarkup.create(form, "Save Repository", this);
+  },
+});
+
+
+let ProjectList = React.createClass({
+
+  propTypes: {
+    projects: PropTypes.array.isRequired,
+  },
+
+  getInitialState: function() {
+    return { };
+  },
+
+  render: function() {
+    let rows = _.map(this.props.projects, project => {
+      return [ChangesLinks.projectAdmin(project)];
+    });
+
+    return <Grid
+             colnum={1}
+             data = {rows}
+             headers={['Projects']}
+           />;
   },
 });
 

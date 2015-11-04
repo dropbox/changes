@@ -124,6 +124,11 @@ var ChangesLinks = {
       .toString();
   },
 
+  repositoryAdmin: function(repository) {
+    var href = `/admin_repository/${repository.id}`;
+    return <a href={href}>{repository.url}</a>;
+  },
+
   snapshotImageHref: function(snapshotImage) {
      // We don't have a page for individual images, so we
      // link to the whole snapshot.
