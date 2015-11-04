@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload
@@ -46,10 +47,17 @@ class ProjectOptionsIndexAPIView(APIView):
         project = Project.query.options(
             joinedload(Project.repository, innerjoin=True),
         ).filter_by(slug=project_id).first()
+
         if project is None:
+            # Not a slug, maybe a project id.
+            try:
+                as_uuid = uuid.UUID(project_id)
+            except ValueError:
+                # Not a valid project id.
+                return None
             project = Project.query.options(
                 joinedload(Project.repository, innerjoin=True),
-            ).get(project_id)
+            ).get(as_uuid)
         return project
 
     @requires_admin
@@ -68,8 +76,10 @@ class ProjectOptionsIndexAPIView(APIView):
             if name == 'snapshot.current':
                 current = Snapshot.get_current(project.id)
                 if current:
-                    replacement = Snapshot.query.get(value)
-                    if replacement.date_created < current.date_created:
+                    # If value is empty, we're deactivating a snapshot without replacing it,
+                    # and that's a downgrade too.
+                    replacement = value and Snapshot.query.get(value)
+                    if not replacement or replacement.date_created < current.date_created:
                         _report_snapshot_downgrade(project)
 
             create_or_update(ProjectOption, where={

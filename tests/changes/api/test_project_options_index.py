@@ -61,6 +61,21 @@ class ProjectOptionsTest(APITestCase):
         assert options.get('phabricator.diff-trigger') == '1'
         assert options.get('snapshot.current') == snapshot.id.hex
 
+    def test_nonsense_project(self):
+        project = self.create_project()
+        path_fmt = '/api/0/projects/{0}/options/'
+        self.login_default_admin()
+        resp = self.client.post(path_fmt.format('project-that-doesnt-exist'), data={
+            'mail.notify-author': '0',
+        })
+        assert resp.status_code == 404
+
+        # Random UUID.
+        uuid_resp = self.client.post(path_fmt.format('fc0e5c51-19c5-43f0-9e11-8c28e091e9b0'), data={
+            'mail.notify-author': '0',
+        })
+        assert uuid_resp.status_code == 404
+
     def test_report_rollback(self):
         project = self.create_project()
         path = '/api/0/projects/{0}/options/'.format(project.slug)
@@ -85,6 +100,14 @@ class ProjectOptionsTest(APITestCase):
         with patch(PATCH_PATH) as report_downgrade:
             resp = self.client.post(path, data={
                 'snapshot.current': older.id.hex,
+            })
+            assert resp.status_code == 200
+            report_downgrade.assert_called_once_with(project)
+
+        # Deactivation without replacement.
+        with patch(PATCH_PATH) as report_downgrade:
+            resp = self.client.post(path, data={
+                'snapshot.current': '',
             })
             assert resp.status_code == 200
             report_downgrade.assert_called_once_with(project)
