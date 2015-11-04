@@ -374,7 +374,6 @@ let PlanDetails = React.createClass({
 
   getInitialState: function() {
     return {
-      expandedSteps: {},
     };
   },
 
@@ -431,49 +430,42 @@ let PlanDetails = React.createClass({
     ];
 
     let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this);
-    let rows = [];
-    _.each(this.props.plan.steps, step => {
-      let onClick = __ => {
-        this.setState(
-          utils.update_key_in_state_dict('expandedSteps',
-            step.id,
-            !this.state.expandedSteps[step.id])
-        );
-      };
 
-      var expandLabel = !this.state.expandedSteps[step.id] ?
-        'Expand Step' : 'Collapse Step';
+    let stepMarkup = null;
+    if (this.props.plan.steps.length > 0) {
+      let step = this.props.plan.steps[0];
 
-      var stepName = <div>
-        {step.name} <a onClick={onClick}>{expandLabel}</a>
-      </div>;
+      var stepName = <div> {step.name} </div>;
 
-      rows.push([step.order,
-                 stepName,
-                 <Request
-                   parentElem={this}
-                   name="deleteStep"
-                   method="delete"
-                   endpoint={`/api/0/steps/${step.id}/`}>
-                     <Button>Delete</Button>
-                  </Request>,
-                 <TimeText time={step.dateCreated} />]);
+      let data = [[stepName,
+                   <Request
+                     parentElem={this}
+                     name="deleteStep"
+                     method="delete"
+                     endpoint={`/api/0/steps/${step.id}/`}>
+                       <Button>Delete</Button>
+                    </Request>,
+                   <TimeText time={step.dateCreated} />]];
 
-      if (this.state.expandedSteps[step.id]) {
-        rows.push(GridRow.oneItem(
-          <StepDetails step={step} />
-        ));
-      }
-    });
+       stepMarkup = <Grid
+               colnum={3}
+               cellClasses={['wide', 'nowrap', 'nowrap']}
+               data = {data}
+               headers={['Step', 'Delete', 'Created']}
+             />
+    } else {
+      stepMarkup = <Request
+                     parentElem={this}
+                     name="createStep"
+                     method="post"
+                     endpoint={`/api/0/plans/${plan.id}/steps/`}>
+                       <Button>Create Step</Button>
+                   </Request>;
+    }
 
     return <div>
              {fieldMarkup}
-             <Grid
-               colnum={4}
-               cellClasses={['nowrap', 'wide', 'nowrap', 'nowrap']}
-               data = {rows}
-               headers={['Order', 'Step', 'Delete', 'Created']}
-             />
+             {stepMarkup}
            </div>;
   },
 });
