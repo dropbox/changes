@@ -3,7 +3,8 @@ sudo apt-get install -y build-essential python-setuptools redis-server postgresq
 
 npm --version
 
-sudo npm install -g bower
+# Install bower only if it's not installed already.
+bower help || sudo npm install -g bower
 sudo easy_install -U pip
 sudo easy_install virtualenv
 
