@@ -124,7 +124,7 @@ let ProjectSettingsFieldGroup = React.createClass({
       'name': state.name,
       'repository': state.repository,
       'slug': state.slug,
-      'status': this.displayStatusToStatus[state.status],
+      'status': state.status,
     };
     let options_params = {
       'project.owners': state.owner,
@@ -190,7 +190,7 @@ let ProjectSettingsFieldGroup = React.createClass({
         {type: 'text', display: 'Name', link: 'name'},
         {type: 'text', display: 'Slug', link: 'slug'},
         {type: 'text', display: 'Repository', link: 'repository'},
-        {type: 'select', options: ['Active', 'Inactive'], display: 'Status', link: 'status'},
+        {type: 'select', options: this.displayStatusToStatus, display: 'Status', link: 'status'},
         {type: 'text', display: 'Owner', link: 'owner', comment: 'An email address for whom should be contacted in case of questions about this project.'},
         {type: 'textarea', display: 'Notes', link: 'notes', comment: 'A blurb of text to give additional context around this project. This will be shown in various places, such as in email notifications.'},
         ]
@@ -505,7 +505,7 @@ let StepDetails = React.createClass({
       'name': state.name,
       'build.timeout': state.timeout,
       'data': state.data,
-      'implementation': this.changesBuildStepImplementationFor[state.implementation],
+      'implementation': state.implementation,
     };
 
     let stepId = this.props.step.id;
@@ -522,11 +522,10 @@ let StepDetails = React.createClass({
 
   componentDidMount: function() {
     let step = this.props.step;
-    var implementation = step.implementation.split('.');
     this.setState({ name: step.name,
                     timeout: step.options['build.timeout'],
                     data: step.data,
-                    implementation: implementation[implementation.length - 1],
+                    implementation: step.implementation,
                   });
   },
 
@@ -534,7 +533,7 @@ let StepDetails = React.createClass({
     let form = [
       { sectionTitle: '', fields: [
         {type: 'select', display: 'Implementation', link: 'implementation',
-         options: Object.keys(this.changesBuildStepImplementationFor) },
+         options: this.changesBuildStepImplementationFor },
         {type: 'textarea', display: 'Config', link: 'data'},
         {type: 'text', display: 'Timeout', link: 'timeout'},
         ]

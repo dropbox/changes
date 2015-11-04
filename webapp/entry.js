@@ -52,6 +52,7 @@ require([
   "es6!pages/home_page",
   "es6!pages/admin_page",
   "es6!pages/admin_project_page",
+  "es6!pages/admin_repository_page",
   "es6!pages/project_page/project_page",
   "es6!pages/author_builds_page",
   "es6!pages/builds_pages/builds_pages",
@@ -77,6 +78,7 @@ require([
   HomePage,
   AdminPage,
   AdminProjectPage,
+  AdminRepositoryPage,
   ProjectPage,
   AuthorBuildsPage,
   buildsPages,
@@ -161,6 +163,7 @@ require([
     'display_examples': [DisplayExamplesPage],
     'admin': [AdminPage],
     'admin_project': [AdminProjectPage, 'projectSlug'],
+    'admin_repository': [AdminRepositoryPage, 'repositoryID'],
   };
 
   var page = FourOhFourPage;

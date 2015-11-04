@@ -20,7 +20,7 @@ export var create = function(form, saveButtonText, _this) {
         } else if (field.type === 'textarea') {
           tag = <textarea rows="10" cols="100" valueLink={_this.linkState(field.link)} placeholder={placeholder}/>;
         } else if (field.type === 'select') {
-          let options = _.map(field.options, option => <option value={option}>{option}</option>);
+          let options = _.map(field.options, (option, name) => <option value={option}>{name}</option>);
           tag = <select valueLink={_this.linkState(field.link)} >{options}</select>;
         }
 
