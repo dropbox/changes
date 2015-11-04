@@ -10,7 +10,7 @@ from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
     Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
-    RepositoryStatus, User, ItemOption, Command, Snapshot, SnapshotImage,
+    RepositoryStatus, User, ItemOption, ItemStat, Command, Snapshot, SnapshotImage,
     CachedSnapshotImage, PlanStatus, AdminMessage, PhabricatorDiff, ProjectOption
 )
 from changes.utils.slugs import slugify
@@ -446,6 +446,22 @@ class Fixtures(object):
         db.session.add(option)
         db.session.commit()
         return option
+
+    def create_itemstat(self, item_id, name, value, **kwargs):
+        """
+        Args:
+            item_id (UUID): The ID of the item.
+            name (str): Name of the stat.
+            value (int): Value of the stat.
+            **kwargs: Other fields.
+
+        Returns:
+            ItemStat: The newly created/committed ItemStat.
+        """
+        stat = ItemStat(item_id=item_id, name=name, value=value, **kwargs)
+        db.session.add(stat)
+        db.session.commit()
+        return stat
 
     def create_project_option(self, project, name, value, **kwargs):
         option = ProjectOption(project=project, name=name, value=value, **kwargs)

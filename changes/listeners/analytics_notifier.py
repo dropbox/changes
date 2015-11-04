@@ -17,7 +17,12 @@ from flask import current_app
 
 from changes.config import db, statsreporter
 from changes.constants import Result
-from changes.models import Build, FailureReason, Job, JobStep, LogSource, LogChunk
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.jobstep import JobStep
+from changes.models.log import LogChunk, LogSource
+from changes.models.failurereason import FailureReason
+from changes.models.itemstat import ItemStat
 from changes.experimental import categorize
 
 logger = logging.getLogger('analytics_notifier')
@@ -118,6 +123,8 @@ def build_finished_handler(build_id, **kwargs):
         # tags is a dict rather than just a list because some analytics backends (Hive, for
         # example) handle JSON objects much more conveniently than lists.
         'tags': {'tags': sorted(list(build.tags or []))},
+        'item_stats': _get_itemstat_dict(build.id),
+
     }
     if build.author:
         data['author'] = build.author.email
@@ -139,6 +146,17 @@ def post_analytics_data(url, data):
         # missing data.
     except Exception:
         logger.exception("Failed to post to Analytics")
+
+
+def _get_itemstat_dict(iid):
+    """
+    Args:
+        iid (UUID): The ID of the item to get stats for.
+
+    Returns:
+        dict: Dictionary of stats.
+    """
+    return dict((s.name, s.value) for s in ItemStat.query.filter(ItemStat.item_id == iid))
 
 
 def job_finished_handler(job_id, **kwargs):
@@ -170,6 +188,7 @@ def job_finished_handler(job_id, **kwargs):
                 'data': jobstep.data.value,
                 'log_categories': sorted(list(tags_by_step[jobstep.id])),
                 'failure_reasons': failure_reasons_by_jobstep[jobstep.id],
+                'item_stats': _get_itemstat_dict(jobstep.id),
                 # TODO: Node? Duration (to match build, for efficiency)?
         }
 

@@ -11,7 +11,7 @@ import mock
 from changes.config import db
 from changes.constants import Result, Status
 from changes.testutils import TestCase
-from changes.models import FailureReason
+from changes.models.failurereason import FailureReason
 from changes.listeners.analytics_notifier import (
         build_finished_handler,
         job_finished_handler,
@@ -68,6 +68,9 @@ class AnalyticsNotifierTest(TestCase):
                                      reason='missing_tests'))
         db.session.commit()
 
+        self.create_itemstat(item_id=build.id, name='names', value=99)
+        self.create_itemstat(item_id=build.id, name='faces', value=0)
+
         with mock.patch('changes.listeners.analytics_notifier._get_phabricator_revision_url') as mock_get_phab:
             mock_get_phab.return_value = 'https://example.com/D1'
             with mock.patch('changes.listeners.analytics_notifier._get_build_failure_reasons') as mock_get_failures:
@@ -90,6 +93,7 @@ class AnalyticsNotifierTest(TestCase):
             'phab_revision_url': 'https://example.com/D1',
             'failure_reasons': ['aborted', 'missing_tests'],
             'tags': {'tags': ['angry', 'commit']},
+            'item_stats': {'names': 99, 'faces': 0},
         }
         post_fn.assert_called_once_with(URL, [expected_data])
 
@@ -326,6 +330,7 @@ class AnalyticsNotifierTest(TestCase):
             'date_finished': finished,
             'failure_reasons': ['aborted', 'missing_tests'],
             'log_categories': [],
+            'item_stats': {},
         }
         post_fn.assert_called_once_with(URL, [expected_data])
         json.dumps(post_fn.call_args[0][1])
@@ -355,6 +360,8 @@ class AnalyticsNotifierTest(TestCase):
                                       date_finished=ts_to_datetime(finished),
                                       node_id=node.id,
                                       data={'foo': 'bar'})
+        self.create_itemstat(item_id=jobstep.id, name='files', value=55)
+        self.create_itemstat(item_id=jobstep.id, name='lines', value=44)
 
         with mock.patch('changes.listeners.analytics_notifier._get_job_failure_reasons_by_jobstep') as mock_get_failures:
             mock_get_failures.return_value = defaultdict(list)
@@ -374,6 +381,7 @@ class AnalyticsNotifierTest(TestCase):
             'date_finished': finished,
             'failure_reasons': [],
             'log_categories': [],
+            'item_stats': {'files': 55, 'lines': 44},
         }
         post_fn.assert_called_once_with(URL, [expected_data])
         json.dumps(post_fn.call_args[0][1])
