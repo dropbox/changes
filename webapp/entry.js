@@ -9,6 +9,7 @@ requirejs.config({
   paths: {
     // all of our code is written in jsx/es6 syntax and converted using babel
     babel: "vendor/requirejs-babel/babel-4.6.6.min",
+    classnames: 'vendor/classnames/index',
     es6: "vendor/requirejs-babel/es6", // the requirejs babel loader
     // time library
     moment: "vendor/moment/min/moment.min",

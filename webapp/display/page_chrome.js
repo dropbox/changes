@@ -11,7 +11,7 @@ import { TimeText } from 'es6!display/time';
 import custom_content_hook from 'es6!utils/custom_content';
 import { email_head } from 'es6!utils/utils';
 
-var cx = React.addons.classSet;
+import classNames from 'classnames';
 
 export var ChangesPage = React.createClass({
 
@@ -190,15 +190,15 @@ var ChangesPageHeader = React.createClass({
 */
 
     var highlight = this.props.highlight;
-    var my_changes_classes = cx({
+    var my_changes_classes = classNames({
       headerLinkBlock: true, headerHighlight: highlight === "My Changes"
     });
 
-    var all_projects_classes = cx({
+    var all_projects_classes = classNames({
       headerLinkBlock: true, headerHighlight: highlight === "Projects"
     });
 
-    var classes = cx({pageHeader: true, fixedPageHeader: this.props.fixed });
+    var classes = classNames({pageHeader: true, fixedPageHeader: this.props.fixed });
     return <div>
       <div className={classes}>
         <a className={my_changes_classes} href="/">
@@ -323,7 +323,7 @@ var ChangesInlinePerf = React.createClass({
       });
     }
 
-    var classes = cx({
+    var classes = classNames({
       headerBlock: true,
       inlinePerf: true,
       floatR: true,

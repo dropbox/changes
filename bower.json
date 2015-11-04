@@ -20,6 +20,7 @@
     "angular-sanitize": "1.2.14",
     "angular-ui-router": "0.2.10",
     "bootstrap": "~3.1.0",
+    "classnames": "~2.2.0",
     "d3": "~3.4.6",
     "d3-tip": "https://github.com/deciob/d3-tip.git#amd",
     "jquery": "~2.0.3",

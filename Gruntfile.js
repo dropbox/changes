@@ -72,6 +72,7 @@ module.exports = function(grunt) {
           // actual file locations on disk
           'paths': {
               'babel': '../static/vendor/requirejs-babel/babel-4.6.6.min',
+              'classnames': '../static/vendor/classnames/index',
               'es6': '../static/vendor/requirejs-babel/es6',
               'moment': "../static/vendor/moment/min/moment.min",
               'react': '../static/vendor/react/react-with-addons',

@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import Examples from 'es6!display/examples';
 import { ProgrammingError } from 'es6!display/errors';
 
-var cx = React.addons.classSet;
+import classNames from 'classnames';
 
 export var Grid = React.createClass({
 
@@ -120,7 +120,7 @@ export var Grid = React.createClass({
       });
     }
 
-    var row_classes = cx({
+    var row_classes = classNames({
       gridRow: true,
       gridHeader: row_index === -1,
       // we may sometimes/somday want different bg colors for even/odd rows

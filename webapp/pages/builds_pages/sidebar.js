@@ -9,7 +9,7 @@ import { get_runnable_condition, get_runnables_summary_condition, ConditionDot }
 
 import * as utils from 'es6!utils/utils';
 
-var cx = React.addons.classSet;
+import classNames from 'classnames';
 
 /*
  * The sidebar on the builds page. Shows a list of builds for a single diff or
@@ -238,7 +238,7 @@ var Sidebar = React.createClass({
   renderBuildSideItem: function(condition_dot, text, time, subtext,
     subtext_extra_class, right_subtext, is_selected, on_click, dimmed = false) {
 
-    var classes = cx({
+    var classes = classNames({
       buildsSideItem: true,
       selected: is_selected
     });

@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 
 import Examples from 'es6!display/examples';
 
-var cx = React.addons.classSet;
+import classNames from 'classnames';
 
 /*
  * Menu 1. Simple, items separated with |.
@@ -34,7 +34,7 @@ export var Menu1 = React.createClass({
 
     var item_markup = [];
     _.each(items, (text, index) => {
-      var classes = cx({
+      var classes = classNames({
         menuItem: true,
         firstMenuItem: index === 0,
         selectedMenuItem: selectedItem === text
@@ -89,7 +89,7 @@ export var Tabs = React.createClass({
     var item_onclick = (item, clickEvent) => this.props.onClick(item, clickEvent);
 
     var item_markup = _.map(items, (text, index) => {
-      var classes = cx({
+      var classes = classNames({
         tabsItem: true,
         leftmostTab: index === 0,
         rightmostTab: index === items.length - 1,
