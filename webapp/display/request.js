@@ -57,8 +57,7 @@ var Request = React.createClass({
       });
     };
 
-    child.props.onClick = onClick;
-    return child;
+    return React.cloneElement(child, {'onClick': onClick});
   },
 });
 
