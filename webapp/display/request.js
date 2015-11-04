@@ -5,7 +5,7 @@ import { AjaxError } from 'es6!display/errors';
 import * as api from 'es6!server/api';
 
 /*
- * Eas(ier) way to make post requests. 
+ * Eas(ier) way to make post requests.
  */
 var Request = React.createClass({
 
@@ -28,9 +28,8 @@ var Request = React.createClass({
       child = React.Children.only(this.props.children);
 
     var stateKey = `_${this.props.method}Request_${name}`;
-    console.log(stateKey);
     var currentState = parentElem.state[stateKey];
-      
+
     if (currentState && currentState.condition === 'loading') {
       return <div>
         <i className="fa fa-spinner fa-spin" />
