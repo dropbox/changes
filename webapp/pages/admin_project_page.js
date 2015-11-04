@@ -25,6 +25,7 @@ let AdminProjectPage = React.createClass({
     'Settings',
     'Snapshots',
     'Build Plans',
+    'New Build Plan',
   ],
 
   getInitialState: function() {
@@ -88,6 +89,9 @@ let AdminProjectPage = React.createClass({
         }
         let plans = this.state.plans.getReturnedData();
         content = <PlanList plans={plans} projectSlug={project.slug} />
+        break;
+      case 'New Build Plan':
+        content = <NewPlan project={project} />;
         break;
       default:
         throw 'unreachable';
@@ -533,6 +537,47 @@ let StepDetails = React.createClass({
     ];
 
     return FieldGroupMarkup.create(form, "Save Step", this);
+  },
+});
+
+let NewPlan = React.createClass({
+
+  mixins: [React.addons.LinkedStateMixin],
+
+  propTypes: {
+    project: PropTypes.object.isRequired,
+  },
+
+  getInitialState: function() {
+    return {
+    };
+  },
+
+  saveSettings: function() {
+    let plan_params = {
+      'name': this.state.name,
+    };
+
+    let endpoints = {
+      '_postRequest_plan': `/api/0/project/${this.props.project.slug}/plans`,
+    };
+    let params = {
+      '_postRequest_plan': plan_params,
+    };
+
+    api.post(this, endpoints, params);
+  },
+
+  render: function() {
+    let form = [
+      { sectionTitle: '', fields: [
+        {type: 'text', display: 'Name', link: 'name', placeholder: 'e.g. ' + this.props.project.slug},
+        ]
+      },
+    ];
+
+    let fieldMarkup = FieldGroupMarkup.create(form, "Create Plan", this);
+    return <div> {fieldMarkup}</div>;
   },
 });
 
