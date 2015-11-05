@@ -25,7 +25,7 @@ export var create = function(form, saveButtonText, _this) {
         }
 
         return <div className="marginBottomS">
-          <div> {field.display}: </div>
+          <div> {field.display ? field.display + ':' : ''} </div>
           {tag}
           {commentMarkup}
           <hr />

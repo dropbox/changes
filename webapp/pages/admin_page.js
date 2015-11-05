@@ -28,6 +28,7 @@ let AdminPage = React.createClass({
     'New Project',
     'Repositories',
     'Users',
+    'Message',
   ],
 
   getInitialState: function() {
@@ -53,13 +54,14 @@ let AdminPage = React.createClass({
       usersInteractive: InteractiveData(
         this,
         'usersInteractive',
-        '/api/0/users/')
+        '/api/0/users/'),
     });
   },
 
   componentDidMount: function() {
     api.fetch(this, {
       projects: '/api/0/projects/',
+      message: '/api/0/messages/'
     });
 
     var interactives = [this.state.repositoriesInteractive, this.state.usersInteractive];
@@ -102,6 +104,12 @@ let AdminPage = React.createClass({
         break;
       case 'Users':
         content = this.renderUsers();
+        break;
+      case 'Message':
+        if (!api.isLoaded(this.state.message)) {
+          return <APINotLoadedPage calls={this.state.message} />;
+        }
+        content = <AdminMessageFieldGroup message={this.state.message.getReturnedData()} />;
         break;
       default:
         throw 'unreachable';
@@ -246,5 +254,50 @@ let AdminPage = React.createClass({
     </div>;
   },
 });
+
+let AdminMessageFieldGroup = React.createClass({
+  mixins: [React.addons.LinkedStateMixin],
+
+  propTypes: {
+    message: PropTypes.object.isRequired,
+  },
+
+  getInitialState: function() {
+    return { };
+  },
+
+  saveSettings: function() {
+    let message_params = {
+      'message': this.state.messageText,
+    };
+
+    let endpoints = {
+      '_postRequest_message': `/api/0/messages/`,
+    };
+    let params = {
+      '_postRequest_message': message_params,
+    };
+
+    api.post(this, endpoints, params);
+  },
+
+  componentDidMount: function() {
+    this.setState({
+      messageText: this.props.message.message,
+    })
+  },
+
+  render: function() {
+    let form = [
+      { sectionTitle: 'Message', fields: [
+        {type: 'text', display: '', link: 'messageText'},
+        ]
+      }
+    ];
+
+    let fieldMarkup = FieldGroupMarkup.create(form, "Save Message", this);
+    return <div>{fieldMarkup}</div>;
+  },
+})
 
 export default AdminPage;
