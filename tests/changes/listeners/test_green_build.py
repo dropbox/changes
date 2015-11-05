@@ -5,6 +5,7 @@ import responses
 import urlparse
 from uuid import uuid4
 
+from changes.config import db
 from changes.constants import Result
 from changes.listeners.green_build import build_finished_handler, \
     _set_latest_green_build_for_each_branch
@@ -75,6 +76,19 @@ class GreenBuildTest(TestCase):
         get_options.return_value = {
             'green-build.notify': '1',
         }
+
+        def set_tags(b, tags):
+            b.tags = tags
+            db.session.add(b)
+            db.session.commit()
+
+        # Commit queue builds shouldn't be reported.
+        set_tags(build, ['commit-queue'])
+        build_finished_handler(build_id=build.id.hex)
+        assert len(responses.calls) == 0
+
+        # Not commit queue
+        set_tags(build, [])
 
         build_finished_handler(build_id=build.id.hex)
 

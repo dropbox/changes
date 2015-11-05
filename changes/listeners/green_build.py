@@ -76,8 +76,11 @@ def build_finished_handler(build_id, **kwargs):
 
     source = build.source
 
-    # we only want to identify stable revisions
-    if not source.is_commit():
+    is_commit_build = source.is_commit()
+    # Commit queue builds have a commit, but they aren't really commit builds.
+    if build.tags and 'commit-queue' in build.tags:
+        is_commit_build = False
+    if not is_commit_build:
         logger.debug('Ignoring build due to non-commit: %s', build.id)
         return
 

@@ -6,9 +6,10 @@ from loremipsum import get_paragraphs, get_sentences
 from uuid import uuid4
 
 from changes.config import db
+from changes.models.build import Build
 from changes.models import (
     Repository, Job, JobPlan, Project, Revision, Change, Author,
-    Patch, Plan, Step, Build, Source, Node, JobPhase, JobStep, Task,
+    Patch, Plan, Step, Source, Node, JobPhase, JobStep, Task,
     Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
     RepositoryStatus, User, ItemOption, ItemStat, Command, Snapshot, SnapshotImage,
     CachedSnapshotImage, PlanStatus, AdminMessage, PhabricatorDiff, ProjectOption
