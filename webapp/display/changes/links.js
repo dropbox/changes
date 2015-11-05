@@ -29,6 +29,11 @@ var ChangesLinks = {
     return <a href={href}>{project.name}</a>;
   },
 
+  flaky_test_history: function(test) {
+    var href = `/project_test/${test.project_id}/${test.hash}/`;
+    return <a href={href}>{test.short_name}</a>;
+  },
+
   projectHref: function(project, tab = null) {
     var href = `/project/${project.slug}/`;
     if (tab) {

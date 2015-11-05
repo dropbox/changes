@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import moment from 'moment';
 
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { Grid } from 'es6!display/grid';
@@ -111,7 +112,7 @@ var TestsTab = React.createClass({
     var data = _.map(flakyTests, test => {
       return [
         <div>
-          {test.short_name}{this.getQuarantineTasksForFlakyTest(test)}
+          {ChangesLinks.flaky_test_history(test)}{this.getQuarantineTasksForFlakyTest(test)}
           <div className="subText">{test.name}</div>
         </div>,
         test.double_reruns,
