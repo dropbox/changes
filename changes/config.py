@@ -317,7 +317,7 @@ def create_app(_read_config=True, **config):
 
     # The max length a test's output to be stored. If it is longer, the it will
     # be truncated.
-    app.config['TEST_MESSAGE_MAX_LEN'] = 10 * 1024
+    app.config['TEST_MESSAGE_MAX_LEN'] = 64 * 1024
 
     app.config['USE_OLD_UI'] = False
 
