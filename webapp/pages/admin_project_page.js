@@ -353,7 +353,7 @@ let PlanDetailsWrapper = React.createClass({
 
   componentDidMount: function() {
     api.fetch(this, {
-      options: `/api/0/plans/${this.props.plan.id}/options`,
+      options: `/api/0/plans/${this.props.plan.id}/options/`,
     });
   },
 
@@ -462,7 +462,7 @@ let PlanDetails = React.createClass({
                      parentElem={this}
                      name="createStep"
                      method="post"
-                     endpoint={`/api/0/plans/${plan.id}/steps/`}>
+                     endpoint={`/api/0/plans/${this.props.plan.id}/steps/`}>
                        <Button>Create Step</Button>
                    </Request>;
     }
@@ -559,7 +559,7 @@ let NewPlan = React.createClass({
     };
 
     let endpoints = {
-      '_postRequest_plan': `/api/0/project/${this.props.project.slug}/plans`,
+      '_postRequest_plan': `/api/0/projects/${this.props.project.id}/plans/`,
     };
     let params = {
       '_postRequest_plan': plan_params,
