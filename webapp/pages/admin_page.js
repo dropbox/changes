@@ -27,6 +27,7 @@ let AdminPage = React.createClass({
     'Projects',
     'New Project',
     'Repositories',
+    'New Repository',
     'Users',
     'Message',
   ],
@@ -101,6 +102,9 @@ let AdminPage = React.createClass({
         break;
       case 'Repositories':
         content = this.renderRepositories();
+        break;
+      case 'New Repository':
+        content = <NewRepoFieldGroup />;
         break;
       case 'Users':
         content = this.renderUsers();
@@ -254,6 +258,44 @@ let AdminPage = React.createClass({
     </div>;
   },
 });
+
+let NewRepoFieldGroup = React.createClass({
+  mixins: [React.addons.LinkedStateMixin],
+
+  getInitialState: function() {
+    return { };
+  },
+
+  saveSettings: function() {
+    let repo_params = {
+      'url': this.state.url,
+      'backend': this.state.backend,
+    };
+
+    let endpoints = {
+      '_postRequest_repo': `/api/0/repositories/`,
+    };
+    let params = {
+      '_postRequest_repo': repo_params,
+    };
+
+    api.post(this, endpoints, params);
+  },
+
+  render: function() {
+    let backendOptions = {'Unknown': 'unknown', 'Git': 'git', 'Mercurial': 'hg'};
+    let form = [
+      { sectionTitle: 'New Repository', fields: [
+        {type: 'text', display: 'URL', link: 'url'},
+        {type: 'select', display: 'Backend', link: 'backend', options: backendOptions},
+        ]
+      }
+    ];
+
+    let fieldMarkup = FieldGroupMarkup.create(form, "Create Repository", this);
+    return <div>{fieldMarkup}</div>;
+  },
+})
 
 let AdminMessageFieldGroup = React.createClass({
   mixins: [React.addons.LinkedStateMixin],
