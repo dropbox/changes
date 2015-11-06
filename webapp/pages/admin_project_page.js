@@ -378,6 +378,7 @@ let PlanDetails = React.createClass({
 
   getInitialState: function() {
     return {
+      createStepClicked: false
     };
   },
 
@@ -438,33 +439,17 @@ let PlanDetails = React.createClass({
     let stepMarkup = null;
     if (this.props.plan.steps.length > 0) {
       let step = this.props.plan.steps[0];
-
-      var stepName = <div> {step.name} </div>;
-
-      let data = [[stepName,
-                   <Request
-                     parentElem={this}
-                     name="deleteStep"
-                     method="delete"
-                     endpoint={`/api/0/steps/${step.id}/`}>
-                       <Button>Delete</Button>
-                    </Request>,
-                   <TimeText time={step.dateCreated} />]];
-
-       stepMarkup = <Grid
-               colnum={3}
-               cellClasses={['wide', 'nowrap', 'nowrap']}
-               data = {data}
-               headers={['Step', 'Delete', 'Created']}
-             />
+      stepMarkup = <StepDetails stepExists={true} step={step} />;
+    } else if (this.state.createStepClicked) {
+      let step = {'name': 'LXCBuildStep',
+                  'implementation': 'changes.buildsteps.lxc.LXCBuildStep',
+                  'options': { 'build.timeout': 0},
+                  'data': '{}',
+                  };
+      stepMarkup = <StepDetails stepExists={false} step={step} />;
     } else {
-      stepMarkup = <Request
-                     parentElem={this}
-                     name="createStep"
-                     method="post"
-                     endpoint={`/api/0/plans/${this.props.plan.id}/steps/`}>
-                       <Button>Create Step</Button>
-                   </Request>;
+      let onClick = _ => this.setState({ createStepClicked: true });
+      stepMarkup = <Button onClick={onClick}>Create Step</Button>;
     }
 
     return <div>
@@ -480,6 +465,7 @@ let StepDetails = React.createClass({
 
   propTypes: {
     step: PropTypes.object.isRequired,
+    stepExists: PropTypes.bool.isRequired,
   },
 
   getInitialState: function() {
@@ -504,10 +490,13 @@ let StepDetails = React.createClass({
       'implementation': state.implementation,
     };
 
-    let stepId = this.props.step.id;
+    let endpoint = '/api/0/steps/';
+    if (this.props.stepExists) {
+      endpoint += this.props.step.id + '/';
+    }
 
     let endpoints = {
-      '_postRequest_step': `/api/0/steps/${stepId}/`,
+      '_postRequest_step': endpoint,
     };
     let params = {
       '_postRequest_step': step_params,
@@ -526,8 +515,10 @@ let StepDetails = React.createClass({
   },
 
   render: function() {
+    let step = this.props.step;
+
     let form = [
-      { sectionTitle: '', fields: [
+      { sectionTitle: step.name, fields: [
         {type: 'select', display: 'Implementation', link: 'implementation',
          options: this.changesBuildStepImplementationFor },
         {type: 'textarea', display: 'Config', link: 'data'},
@@ -536,7 +527,18 @@ let StepDetails = React.createClass({
       },
     ];
 
-    return FieldGroupMarkup.create(form, "Save Step", this);
+    let del = <Request
+                 parentElem={this}
+                 name="deleteStep"
+                 method="delete"
+                 endpoint={`/api/0/steps/${step.id}/`}>
+                   <Button>Delete Step</Button>
+                </Request>;
+
+    return <div>
+             <div>{FieldGroupMarkup.create(form, "Save Step", this)}</div>
+             <div>{del}</div>
+          </div>;
   },
 });
 
