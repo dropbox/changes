@@ -61,7 +61,7 @@ let AdminPage = React.createClass({
 
   componentDidMount: function() {
     api.fetch(this, {
-      projects: '/api/0/projects/',
+      projects: '/api/0/projects/?status=',
       message: '/api/0/messages/'
     });
 
