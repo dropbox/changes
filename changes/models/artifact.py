@@ -28,7 +28,7 @@ class Artifact(db.Model):
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
-    name = Column(String(128), nullable=False)
+    name = Column(String(1024), nullable=False)
     date_created = Column(DateTime, nullable=False, default=datetime.utcnow)
     data = Column(JSONEncodedDict)
     file = Column(FileStorage(**ARTIFACT_STORAGE_OPTIONS))
