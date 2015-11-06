@@ -7,7 +7,7 @@ var loading_messages = [
   'Waiting for them bits',
   'Rolling, rolling, rolling',
   'Slow and steady wins the race',
-  'Confucius say...wait',
+  'Simon says... wait',
   'Important things are worth waiting for',
   "I'm a happy loading message! \\(^o^)/",
 ];
