@@ -15,8 +15,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.alter_column('artifact', 'name', sa.VARCHAR(1024))
+    op.alter_column('artifact', 'name', type_=sa.VARCHAR(1024))
 
 
 def downgrade():
-    op.alter_column('artifact', 'name', sa.VARCHAR(128))
+    op.alter_column('artifact', 'name', type_=sa.VARCHAR(128))
