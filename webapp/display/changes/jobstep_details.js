@@ -42,11 +42,16 @@ export var JobstepDetails = React.createClass({
     if (artifacts.length > 0) {
       markup.push(<div className="lb marginTopM">Artifacts</div>);
       _.each(artifacts, a => {
-        markup.push(
-          <div> <a className="external" target="_blank" href={a.url}>
-            {a.name}
-          </a> </div>
-        );
+        if (a.url) {
+          markup.push(
+              <div><a className="external" target="_blank" href={a.url}>
+                {a.name}
+              </a></div>
+          );
+        } else {
+          // if there's no URL don't add a link
+          markup.push(<div>{a.name}</div>);
+        }
       });
     }
 
