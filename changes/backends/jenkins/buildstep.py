@@ -8,7 +8,6 @@ from flask import current_app
 
 from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.xunit import XunitHandler
-from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.backends.base import UnrecoverableException
 from changes.buildsteps.base import BuildStep
 from changes.config import db
@@ -189,7 +188,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
                  workspace='', reset_script='', build_type=None,
                  setup_script='', teardown_script='',
                  artifacts=XunitHandler.FILENAMES + CoverageHandler.FILENAMES +
-                 ManifestJsonHandler.FILENAMES + SERVICE_LOG_FILE_PATTERNS,
+                 SERVICE_LOG_FILE_PATTERNS,
                  snapshot_script=None, **kwargs):
         """
         build_type describes how to use changes-client, but 'legacy'
@@ -219,7 +218,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         reset_script is used to asynchronously reset the workspace.
 
         artifacts is a list of file name patterns describing the artifacts
-        which need to be picked up.
+        which need to be picked up by changes-client.
         """
         # required fields
         if None in (job_name, script, cluster):
