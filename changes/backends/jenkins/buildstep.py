@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import logging
-import os.path
 
 from datetime import datetime, timedelta
 from flask import current_app
@@ -12,7 +11,6 @@ from changes.backends.base import UnrecoverableException
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Status
-from changes.models.snapshot import SnapshotImage, SnapshotStatus
 
 from .builder import JenkinsBuilder
 from .generic_builder import JenkinsGenericBuilder
@@ -254,33 +252,3 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'artifacts': self.artifacts,
         })
         return options
-
-    def fetch_artifact(self, artifact, **kwargs):
-        # we receive the snapshot images as a json file instead of through
-        # the api endpoint because it lets us guarantee that we actually
-        # receive the status and we can properly propagate an error
-        # if this is not actually the case.
-        #
-        # we have access to the jobstep in _sync_results so we can determine
-        # if the step is a snapshot build or not and from that derive if this
-        # json file is required, and give an error if we never find it
-        if os.path.basename(artifact.data['fileName']) == 'snapshot_status.json':
-            self.update_snapshot_image_status(artifact)
-        else:
-            super(JenkinsGenericBuildStep, self).fetch_artifact(artifact, **kwargs)
-
-    def update_snapshot_image_status(self, artifact):
-        """
-        Processes the result of obtaining snapshot_status.json, changing the status
-        of the image to what the artifact indicates. snapshot_status.json is expected
-        to be a json file with two elements, image (string) and status (string) indicating
-        the image id and new status of the image - which is almost always "active" for
-        what we use snapshot_status.json for.
-        """
-        artifact_data = self.get_builder().fetch_artifact(artifact.step, artifact.data)
-        status_json = artifact_data.json()
-        image_id = status_json['image']
-        status = status_json['status']
-
-        image = SnapshotImage.query.get(image_id)
-        image.change_status(SnapshotStatus[status])

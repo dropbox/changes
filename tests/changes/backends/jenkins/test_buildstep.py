@@ -3,8 +3,7 @@ from __future__ import absolute_import
 import mock
 
 from changes.backends.jenkins.builder import JenkinsBuilder
-from changes.backends.jenkins.buildstep import JenkinsBuildStep, JenkinsGenericBuildStep
-from changes.models.snapshot import SnapshotStatus
+from changes.backends.jenkins.buildstep import JenkinsBuildStep
 from changes.testutils import TestCase
 
 
@@ -126,35 +125,3 @@ class JenkinsBuildStepTest(TestCase):
         buildstep.fetch_artifact(artifact)
 
         builder.sync_artifact.assert_called_once_with(artifact, sync_logs=False)
-
-
-class JenkinsGenericBuildStepTest(TestCase):
-    def get_buildstep(self):
-        return JenkinsGenericBuildStep(job_name='foo-bar', script='script',
-            cluster='cluster')
-
-    @mock.patch.object(JenkinsGenericBuildStep, 'get_builder')
-    def test_fetch_artifact_snapshot_image_status(self, get_builder):
-        builder = mock.Mock()
-        get_builder.return_value = builder
-
-        project = self.create_project()
-        build = self.create_build(project)
-        job = self.create_job(build)
-        plan = self.create_plan(project)
-        snapshot = self.create_snapshot(project)
-        snapshot_image = self.create_snapshot_image(snapshot, plan, job=job)
-
-        artifact = mock.Mock()
-        artifact.data = {'fileName': '/snapshot_status.json'}
-        artifact_data = mock.Mock()
-        artifact_data.json.return_value = {
-            'image': snapshot_image.id,
-            'status': 'active'
-        }
-        builder.fetch_artifact.return_value = artifact_data
-
-        buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(artifact)
-
-        assert snapshot_image.status == SnapshotStatus.active
