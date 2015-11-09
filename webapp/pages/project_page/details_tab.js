@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesLinks from 'es6!display/changes/links';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 
 import * as api from 'es6!server/api';
@@ -83,11 +84,22 @@ var DetailsTab = React.createClass({
       });
     }
 
+    // Most projects should have a current snapshot, so it's worth the potential noise
+    // to say one isn't set even when the build plan doesn't make it possible.
+    var snapshot_info = "None configured";
+    var current_snapshot = project.options["snapshot.current"];
+    if (current_snapshot) {
+        snapshot_info = <a href={URI(`/snapshot/${current_snapshot}/`)}>{current_snapshot.substring(0, 8)}</a>;
+    }
+
     return <div className="marginBottomL">
       <b>{project.name}</b>
       <InfoList>
         <InfoItem label="Repository">
           {project.repository.url}
+        </InfoItem>
+        <InfoItem label="Owners">
+          {project.options["project.owners"] || "unknown"}
         </InfoItem>
         <InfoItem label="Builds for">
           {triggers}
@@ -97,6 +109,9 @@ var DetailsTab = React.createClass({
         </InfoItem>
         <InfoItem label="Touching paths">
           {whitelist_paths}
+        </InfoItem>
+        <InfoItem label="Current snapshot">
+          {snapshot_info}
         </InfoItem>
         <InfoItem label="Build plans">
           {plans.length}
