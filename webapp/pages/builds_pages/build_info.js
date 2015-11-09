@@ -450,9 +450,9 @@ export var SingleBuild = React.createClass({
         if (jobstep.image) {
             var imageLabel = jobstep.image.id.substring(0, 8);
             var staleness = moment.utc(jobstep.dateCreated).from(moment.utc(jobstep.image.dateCreated), true);
-            jobstepImage = <SimpleTooltip label={staleness + " old when used"} placement="right">
-                    <div><a href={ChangesLinks.snapshotImageHref(jobstep.image)}>{imageLabel}</a></div>
-                </SimpleTooltip>;
+            jobstepImage = <div><SimpleTooltip label={staleness + " old when used"} placement="right">
+                    <a href={ChangesLinks.snapshotImageHref(jobstep.image)}>{imageLabel}</a>
+                </SimpleTooltip></div>;
         }
 
         if (!jobstep.node) {
