@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 from flask import current_app
 
+import mock
+
 from copy import deepcopy
 from pytest import raises
 from uuid import uuid4
@@ -108,7 +110,8 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'RESET_SCRIPT', 'value': ''} in result
 
     def test_create_commands(self):
-        builder = self.get_builder()
+        artifacts = ['coverage.xml', 'junit.xml']
+        builder = self.get_builder(artifacts=artifacts)
         project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build)
@@ -124,6 +127,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert jobstep.commands[1].script == 'script2'
         assert jobstep.commands[0].env == jobstep.commands[1].env
         assert jobstep.commands[0].env['SCRIPT'] == 'py.test'
+        assert jobstep.commands[0].artifacts == artifacts
 
     def test_commands_snapshot(self):
         builder = self.get_builder()
@@ -149,6 +153,24 @@ class JenkinsGenericBuilderTest(BaseTestCase):
             assert command.env['SETUP_SCRIPT'] == self.builder_options['setup_script']
             assert command.env['SCRIPT'] == ':'
             assert command.env['TEARDOWN_SCRIPT'] == self.builder_options['teardown_script']
+
+    @mock.patch.object(JenkinsGenericBuilder, 'artifacts_for_jobstep')
+    def test_artifacts_for_jobstep(self, artifacts_for_jobstep):
+        artifacts = ['tests.json']
+        artifacts_for_jobstep.return_value = artifacts
+        builder = self.get_builder(artifacts=['coverage.xml'])
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        params = builder.get_job_parameters(job, jobstep.id.hex, path='foo')
+        builder.create_commands(jobstep, params)
+        db.session.commit()
+
+        assert len(jobstep.commands) == 2
+        assert jobstep.commands[0].artifacts == artifacts
 
     def test_commands_snapshot_with_script(self):
         """Test that we replace script with snapshot_script when

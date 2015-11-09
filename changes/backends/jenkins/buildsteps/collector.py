@@ -28,6 +28,10 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
         """
         return 'jobs.json'
 
+    def artifacts_for_jobstep(self, jobstep):
+        # we only care about the required artifact for the collection phase
+        return self.artifacts if jobstep.data.get('expanded') else (self.get_required_artifact(),)
+
     def _sync_results(self, step, item):
         """
         At this point, we have already collected all of the artifacts, so if

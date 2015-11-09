@@ -11,7 +11,7 @@ from .builder import JenkinsBuilder
 
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, setup_script='', teardown_script='',
-                 artifacts=[], reset_script='', diff_cluster=None, path='', workspace='',
+                 artifacts=(), reset_script='', diff_cluster=None, path='', workspace='',
                  snapshot_script=None, *args, **kwargs):
         """Builder for JenkinsGenericBuildStep. See JenkinsGenericBuildStep
         for information on most of these arguments.
@@ -213,12 +213,12 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         """
         return {param['name']: param['value'] for param in params}
 
-    def get_future_commands(self, params, commands):
+    def get_future_commands(self, params, commands, artifacts):
         """Create future commands which are later created as comands.
         See models/command.py.
         """
         return map(lambda command: FutureCommand(command['script'],
-                                    artifacts=self.artifacts,
+                                    artifacts=artifacts,
                                     env=self.params_to_env(params)),
                    commands)
 
@@ -237,9 +237,10 @@ class JenkinsGenericBuilder(JenkinsBuilder):
           params (dict): Jenkins parameter dict
         """
         commands = self.build_desc.get('commands', [])
+        artifacts = self.artifacts_for_jobstep(jobstep)
 
         index = 0
-        for future_command in self.get_future_commands(params, commands):
+        for future_command in self.get_future_commands(params, commands, artifacts):
             db.session.add(future_command.as_command(jobstep, index))
             index += 1
 
@@ -253,3 +254,14 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         false as most types don't support this operation.
         """
         return self.build_desc.get('can_snapshot', False)
+
+    def artifacts_for_jobstep(self, jobstep):
+        """
+        The artifact names/patterns we want to collect for a given jobstep.
+
+        For example, we may want to collect different artifacts for a
+        collection phase jobstep.
+        Arguments:
+            jobstep (JobStep): jobstep in question
+        """
+        return self.artifacts

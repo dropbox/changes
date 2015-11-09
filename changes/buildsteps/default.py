@@ -6,6 +6,8 @@ from copy import deepcopy
 from flask import current_app
 from itertools import chain
 
+from changes.artifacts.coverage import CoverageHandler
+from changes.artifacts.xunit import XunitHandler
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Cause, Status
@@ -17,14 +19,7 @@ from changes.models import (
 from changes.utils.http import build_uri
 
 
-DEFAULT_ARTIFACTS = (
-    'junit.xml',
-    '*.junit.xml',
-    'xunit.xml',
-    '*.xunit.xml',
-    'coverage.xml',
-    '*.coverage.xml',
-)
+DEFAULT_ARTIFACTS = XunitHandler.FILENAMES + CoverageHandler.FILENAMES
 
 DEFAULT_PATH = './source/'
 
