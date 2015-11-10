@@ -213,6 +213,9 @@ def _get_job_context(job):
 
 
 def _get_log_clipping(logsource, max_size=5000, max_lines=25):
+    if logsource.in_artifact_store:
+        # We don't yet get clippings for ArtifactStore logs.
+        return ""
     queryset = LogChunk.query.filter(
         LogChunk.source_id == logsource.id,
     )
