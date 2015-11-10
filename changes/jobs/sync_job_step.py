@@ -245,7 +245,7 @@ def sync_artifacts_for_jobstep(jobstep):
                 'job_id': jobstep.job_id,
                 'project_id': jobstep.project_id,
             })
-            if not created:
+            if created:
                 art.file.storage = 'changes.storage.artifactstore.ArtifactStoreFileStorage'
                 filename = 'buckets/{jobstep_id}/artifacts/{artifact_name}'.format(
                     jobstep_id=jobstep.id.hex,
