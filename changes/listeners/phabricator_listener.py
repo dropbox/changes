@@ -113,7 +113,8 @@ def post_commit_coverage(callsign, branch, commit, coverage, phab):
               repositoryPHID=phid,
               branch=branch,
               commit=commit,
-              coverage=coverage)
+              coverage=coverage,
+              mode='update')
 
 
 def _comment_posted_for_collection_of_build(build):
