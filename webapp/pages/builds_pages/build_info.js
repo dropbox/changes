@@ -12,9 +12,14 @@ import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import { JobstepDetails } from 'es6!display/changes/jobstep_details';
 import { TestDetails } from 'es6!display/changes/test_details';
-import { buildSummaryText, manyBuildsSummaryText, get_build_cause, get_cause_sentence, WaitingTooltip } from 'es6!display/changes/build_text';
+import { buildSummaryText, manyBuildsSummaryText,
+         get_build_cause, get_cause_sentence,
+         WaitingTooltip } from 'es6!display/changes/build_text';
 import { display_duration, formatTime } from 'es6!display/time';
-import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_short_text, ConditionDot } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition,
+         get_runnables_summary_condition,
+         get_runnable_condition_short_text,
+         ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
 
@@ -54,7 +59,8 @@ export var SingleBuild = React.createClass({
   componentDidMount: function() {
     // get richer information about the build
     api.fetch(this, {
-      buildDetails : `/api/0/builds/${this.props.build.id}`
+      buildDetails: `/api/0/builds/${this.props.build.id}`,
+      buildCoverage: `/api/0/builds/${this.props.build.id}/stats/coverage?diff=1`,
     });
 
     // get info about the phases of each job
@@ -75,18 +81,18 @@ export var SingleBuild = React.createClass({
     // get job phases
     var job_ids = _.map(build_prop.jobs, j => j.id);
 
-    var phasesCalls = _.chain(this.state.jobPhases)
+    let phasesCalls = _.chain(this.state.jobPhases)
       .pick(job_ids)
       .values().value();
 
-    if (!api.allLoaded(phasesCalls)) {
-      return <APINotLoaded calls={phasesCalls} />;
-    } else if (!api.isLoaded(this.state.buildDetails)) {
-      return <APINotLoaded calls={this.state.buildDetails} />;
+    let calls = phasesCalls.concat([this.state.buildDetails, this.state.buildCoverage]);
+    if (!api.allLoaded(calls)) {
+      return <APINotLoaded calls={calls} />;
     }
 
     var build = this.state.buildDetails.getReturnedData();
 
+    var coverageInfo = this.state.buildCoverage.getReturnedData();
     var job_phases = _.mapObject(this.state.jobPhases, (v,k) => {
       return v.getReturnedData();
     });
@@ -104,12 +110,40 @@ export var SingleBuild = React.createClass({
         {render_all ? this.renderDetails(build, job_phases) : null}
       </div>
       {this.renderFailedTests(build, job_phases)}
+      {render_all ? this.renderCoverage(coverageInfo) : null}
       {render_all ? this.renderJobs(build, job_phases) : null}
       {render_all ?
       <div className="marginTopL">
         <a href={`/code/${build.source.id}`}>View Code for this Build</a>
       </div>
       : null}
+    </div>;
+  },
+
+  renderCoverage: function(coverageInfo) {
+   let paths = _.keys(coverageInfo);
+   if (paths.length == 0) {
+       return null;
+   }
+   let coverPercent = (covered, uncovered) => Math.floor((covered / (covered + uncovered)) * 100);
+
+   let rows = _.map(paths.sort(), function(path) {
+       let data = coverageInfo[path];
+       return [path,
+               `${coverPercent(data.diffLinesCovered, data.diffLinesUncovered)}%`,
+               `${coverPercent(data.linesCovered, data.linesUncovered)}%`];
+   });
+   return <div className={' marginBottomL'}>
+      <SectionHeader className="noBottomPadding">
+        File Coverage
+      </SectionHeader>
+      <Grid
+        colnum={3}
+        cellClasses={['wide', 'nowrap text-right', 'nowrap text-right']}
+        className="marginBottomM"
+        data={rows}
+        headers={['Filename', 'Diff', 'Total']}
+      />
     </div>;
   },
 
