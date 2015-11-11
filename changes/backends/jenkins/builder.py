@@ -59,7 +59,7 @@ class NotFound(Exception):
 class JenkinsBuilder(BaseBackend):
 
     def __init__(self, master_urls=None, diff_urls=None, job_name=None,
-                 sync_phase_artifacts=True, auth_keyname=None, verify=True,
+                 auth_keyname=None, verify=True,
                  debug_config=None,
                  *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
@@ -73,12 +73,6 @@ class JenkinsBuilder(BaseBackend):
 
         self.logger = logging.getLogger('jenkins')
         self.job_name = job_name
-        # disabled by default as it's expensive
-        self.sync_phase_artifacts = sync_phase_artifacts
-        self.sync_log_artifacts = self.app.config.get('JENKINS_SYNC_LOG_ARTIFACTS', False)
-        self.sync_xunit_artifacts = self.app.config.get('JENKINS_SYNC_XUNIT_ARTIFACTS', True)
-        self.sync_coverage_artifacts = self.app.config.get('JENKINS_SYNC_COVERAGE_ARTIFACTS', True)
-        self.sync_file_artifacts = self.app.config.get('JENKINS_SYNC_FILE_ARTIFACTS', True)
         self.http_session = requests.Session()
         self.auth = self.app.config[auth_keyname] if auth_keyname else None
         self.verify = verify
@@ -224,7 +218,7 @@ class JenkinsBuilder(BaseBackend):
             )
         )
 
-        # save file regardless of whether handler is successful
+        # commit file save regardless of whether handler is successful
         db.session.commit()
 
         if not handler_cls:
@@ -235,9 +229,7 @@ class JenkinsBuilder(BaseBackend):
         try:
             handler = handler_cls(jobstep)
             handler.process(StringIO(resp.content))
-            db.session.commit()
         except Exception:
-            db.session.rollback()
             self.logger.exception(
                 'Failed to sync test results for job step %s', jobstep.id)
 
@@ -657,13 +649,10 @@ class JenkinsBuilder(BaseBackend):
         build_no = step.data['build_no']
 
         artifacts = item.get('artifacts', ())
-        if self.sync_phase_artifacts:
-            # if we are allowing phase artifacts and we find *any* artifacts
-            # that resemble a phase we need to change the behavior of the
-            # the remainder of tasks
-            phased_results = any(a['fileName'].endswith('phase.json') for a in artifacts)
-        else:
-            phased_results = False
+        # if we find *any* artifacts
+        # that resemble a phase we need to change the behavior of the
+        # the remainder of tasks
+        phased_results = any(a['fileName'].endswith('phase.json') for a in artifacts)
 
         # If the Jenkins run was aborted, we don't expect a manifest file.
         if step.result != Result.aborted:
@@ -703,7 +692,7 @@ class JenkinsBuilder(BaseBackend):
                 'Unable to sync console log for job step %r',
                 step.id.hex)
 
-    def _handle_generic_artifact(self, jobstep, artifact, skip_checks=False):
+    def _handle_generic_artifact(self, jobstep, artifact, sync_logs=False):
         artifact, created = get_or_create(Artifact, where={
             'step': jobstep,
             'name': artifact['fileName'],
@@ -719,7 +708,7 @@ class JenkinsBuilder(BaseBackend):
             artifact_id=artifact.id.hex,
             task_id=artifact.id.hex,
             parent_task_id=jobstep.id.hex,
-            skip_checks=skip_checks,
+            sync_logs=sync_logs,
         )
 
     def _sync_phased_results(self, step, artifacts):
@@ -810,7 +799,7 @@ class JenkinsBuilder(BaseBackend):
                 self._handle_generic_artifact(
                     jobstep=jobstep,
                     artifact=log_artifact,
-                    skip_checks=True,
+                    sync_logs=True,
                 )
 
         # ideally we don't mark the base step as a failure if any of the phases
@@ -855,28 +844,18 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_step_from_active(step)
 
-    def sync_artifact(self, artifact, skip_checks=False):
-        if not skip_checks:
-            if artifact.name.endswith('.log') and not self.sync_log_artifacts:
-                return
-
-            elif XunitHandler.can_process(artifact.name) and not self.sync_xunit_artifacts:
-                return
-
-            elif CoverageHandler.can_process(artifact.name) and not self.sync_coverage_artifacts:
-                return
-
-            elif not self.sync_file_artifacts:
-                return
-
+    def sync_artifact(self, artifact, sync_logs=False, skip_checks=False):
         for cls in [XunitHandler, CoverageHandler, ManifestJsonHandler]:
             if cls.can_process(artifact.name):
                 self._sync_artifact_as_file(artifact, handler_cls=cls)
                 break
         else:
             if artifact.name.endswith('.log'):
-                self._sync_artifact_as_log(artifact)
-
+                # sync_logs replaces skip_checks but we temporarily handle both
+                # in case of in-flight tasks.
+                # TODO(nate): remove skip_checks once this has been deployed a few mins
+                if sync_logs or skip_checks:
+                    self._sync_artifact_as_log(artifact)
             else:
                 self._sync_artifact_as_file(artifact)
 

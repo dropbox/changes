@@ -40,7 +40,6 @@ def app(request, session_config):
         GREEN_BUILD_URL='https://foo.example.com',
         GREEN_BUILD_AUTH=('username', 'password'),
         JENKINS_URL='http://jenkins.example.com',
-        JENKINS_SYNC_LOG_ARTIFACTS=True,
         PHABRICATOR_HOST='http://phabricator.example.com',
         GOOGLE_CLIENT_ID='a' * 12,
         GOOGLE_CLIENT_SECRET='b' * 40,

@@ -760,7 +760,7 @@ class SyncGenericResultsTest(BaseTestCase):
             artifact_id=log_artifact.id.hex,
             task_id=log_artifact.id.hex,
             parent_task_id=step.id.hex,
-            skip_checks=False,
+            sync_logs=False,
         )
 
         xunit_artifact = Artifact.query.filter(
@@ -778,7 +778,7 @@ class SyncGenericResultsTest(BaseTestCase):
             artifact_id=xunit_artifact.id.hex,
             task_id=xunit_artifact.id.hex,
             parent_task_id=step.id.hex,
-            skip_checks=False,
+            sync_logs=False,
         )
 
 
@@ -912,7 +912,7 @@ class SyncArtifactTest(BaseTestCase):
             "relativePath": "artifacts/foobar.log"
         })
         builder = self.get_builder()
-        builder.sync_artifact(artifact)
+        builder.sync_artifact(artifact, sync_logs=True)
 
         source = LogSource.query.filter(
             LogSource.job_id == job.id,
