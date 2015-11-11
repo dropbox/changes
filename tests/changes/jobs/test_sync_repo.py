@@ -55,7 +55,7 @@ class SyncRepoTest(TestCase):
             'repo_id': repo.id.hex,
             'task_id': repo.id.hex,
             'parent_task_id': None,
-        }, countdown=5)
+        }, countdown=20)
 
         mock_fire_signal.delay.assert_any_call(
             signal='revision.created',
