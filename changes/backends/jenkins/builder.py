@@ -50,10 +50,6 @@ ID_XML_RE = re.compile(r'<id>(\d+)</id>')
 
 LOG_SYNC_TIMEOUT_SECS = 30
 
-# Namespace UUID for version 3 or 5 UUIDs generated from Job IDs.
-# Value generated randomly.
-JOB_NAMESPACE_UUID = uuid.UUID('35cd8c37-9f2b-4b0e-846b-0e88a4c930ac')
-
 
 class NotFound(Exception):
     """Indicates a 404 response from the Jenkins API."""

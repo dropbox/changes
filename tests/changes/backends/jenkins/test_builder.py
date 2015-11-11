@@ -10,7 +10,7 @@ import time
 
 from datetime import datetime
 from flask import current_app
-from uuid import uuid5, UUID
+from uuid import UUID
 
 from changes.config import db
 from changes.constants import Status, Result
@@ -49,19 +49,6 @@ class BaseTestCase(BackendTestCase):
         )
         with open(filepath, 'rb') as fp:
             return fp.read()
-
-
-def uuid5_from(s):
-    """
-    Get a new UUID from an existing hex-encoded Job UUID.
-
-    Args:
-        s (str): Hex-encoded UUID of a Job.
-    Returns:
-        str: Hex-encoded UUID derived from the original.
-    """
-    from changes.backends.jenkins.builder import JOB_NAMESPACE_UUID
-    return uuid5(JOB_NAMESPACE_UUID, s).hex
 
 
 # TODO(dcramer): these tests need to ensure we're passing the right parameters
