@@ -13,7 +13,7 @@ redis-server -v
 virtualenv ~/env
 sudo -u postgres createuser -s `whoami` --no-password || true
 sudo -u postgres createdb changes || true
-sudo chown -R `whoami` `npm config get cache`
+sudo chown -R `whoami` `npm config get cache` || true
 source ~/env/bin/activate
 time make install-test-requirements
 
