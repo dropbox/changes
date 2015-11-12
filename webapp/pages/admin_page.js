@@ -305,40 +305,44 @@ let AdminMessageFieldGroup = React.createClass({
   },
 
   getInitialState: function() {
-    return { };
+    return {
+      messageText: this.props.message.message,
+      hasFormChanges: false,
+      error: "",
+    };
   },
 
   saveSettings: function() {
     let message_params = {
       'message': this.state.messageText,
     };
+    var saveCallback = (response, was_success) => {
+      if (was_success) {
+        this.setState({'hasFormChanges': false,
+                       'error': ""});
+      } else {
+        this.setState({'error': response.responseText});
+      }
+    }
 
-    let endpoints = {
-      '_postRequest_message': `/api/0/messages/`,
-    };
-    let params = {
-      '_postRequest_message': message_params,
-    };
-
-    api.post(this, endpoints, params);
+    api.make_api_ajax_post('/api/0/messages/', message_params, saveCallback, saveCallback);
   },
 
   componentDidMount: function() {
-    this.setState({
-      messageText: this.props.message.message,
-    })
   },
 
-  render: function() {
-    let form = [
-      { sectionTitle: 'Message', fields: [
-        {type: 'text', display: '', link: 'messageText'},
-        ]
-      }
-    ];
+  form: [
+    { sectionTitle: 'Message',
+      fields: [{type: 'text', display: '', link: 'messageText'},] }
+  ],
 
-    let fieldMarkup = FieldGroupMarkup.create(form, "Save Message", this);
-    return <div>{fieldMarkup}</div>;
+  render: function() {
+    let fieldMarkup = FieldGroupMarkup.create(this.form, "Save Message", this);
+    let error = this.state.error;
+    return <div>
+            <div>{fieldMarkup}</div>
+            <div>{error}</div>
+           </div>;
   },
 })
 
