@@ -149,7 +149,7 @@ export var SingleBuild = React.createClass({
   renderButtons: function(build) {
     var cancel = get_runnable_condition(build) === 'waiting' ?
       <div className="marginTopM">
-        <PostRequest
+        <Request
           parentElem={this}
           name="cancelBuild"
           method="post"
@@ -160,7 +160,7 @@ export var SingleBuild = React.createClass({
               Cancel Build
             </span>
           </Button>
-        </PostRequest>
+        </Request>
       </div> :
       null;
 
@@ -192,7 +192,7 @@ export var SingleBuild = React.createClass({
 
       var unsafe_to_push =
         <div className="marginTopM">
-          <PostRequest
+          <Request
             parentElem={this}
             name={unsafeName}
             endpoint={`/api/0/builds/${build.id}/tags?${build_tags}`}>
@@ -202,7 +202,7 @@ export var SingleBuild = React.createClass({
                 {buttonText}
               </span>
             </Button>
-          </PostRequest>
+          </Request>
         </div>
     }
 
