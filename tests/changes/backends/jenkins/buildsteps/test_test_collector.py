@@ -167,7 +167,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         buildstep = self.get_buildstep()
         buildstep.fetch_artifact(artifact)
 
-        builder.sync_artifact.assert_called_once_with(artifact)
+        builder.sync_artifact.assert_called_once_with(artifact, sync_logs=False)
 
     def test_get_test_stats(self):
         project = self.create_project()

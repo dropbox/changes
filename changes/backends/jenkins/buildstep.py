@@ -154,7 +154,7 @@ class JenkinsBuildStep(BuildStep):
         builder = self.get_builder()
         return builder.create_job(step.job, replaces=step)
 
-    def fetch_artifact(self, artifact, **kwargs):
+    def fetch_artifact(self, artifact, sync_logs=False):
         """
         Processes a single artifact. Critical artifacts - that is, artifacts
         that are somehow special and possibly required - can be specified
@@ -163,7 +163,7 @@ class JenkinsBuildStep(BuildStep):
         used (and always used) for normal artifacts.
         """
         builder = self.get_builder()
-        builder.sync_artifact(artifact, **kwargs)
+        builder.sync_artifact(artifact, sync_logs=sync_logs)
 
     def can_snapshot(self):
         """

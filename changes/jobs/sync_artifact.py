@@ -34,7 +34,7 @@ def sync_artifact(artifact_id=None, **kwargs):
         jobplan, implementation = JobPlan.get_build_step_for_job(job_id=step.job_id)
 
         try:
-            implementation.fetch_artifact(artifact=artifact, **kwargs)
+            implementation.fetch_artifact(artifact=artifact, sync_logs=kwargs.pop('sync_logs', False))
 
         except UnrecoverableException:
             current_app.logger.exception(

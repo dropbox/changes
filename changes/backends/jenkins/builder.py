@@ -844,17 +844,14 @@ class JenkinsBuilder(BaseBackend):
         else:
             self._sync_step_from_active(step)
 
-    def sync_artifact(self, artifact, sync_logs=False, skip_checks=False):
+    def sync_artifact(self, artifact, sync_logs=False):
         for cls in [XunitHandler, CoverageHandler, ManifestJsonHandler]:
             if cls.can_process(artifact.name):
                 self._sync_artifact_as_file(artifact, handler_cls=cls)
                 break
         else:
             if artifact.name.endswith('.log'):
-                # sync_logs replaces skip_checks but we temporarily handle both
-                # in case of in-flight tasks.
-                # TODO(nate): remove skip_checks once this has been deployed a few mins
-                if sync_logs or skip_checks:
+                if sync_logs:
                     self._sync_artifact_as_log(artifact)
             else:
                 self._sync_artifact_as_file(artifact)
