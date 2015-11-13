@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import json
 import mock
 import responses
 
@@ -8,7 +9,7 @@ from uuid import UUID
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import JobPhase
+from changes.models import JobPhase, JobPlan
 from changes.testutils import TestCase
 from ..test_builder import BaseTestCase
 
@@ -116,14 +117,14 @@ class JenkinsCollectorBuildStepTest(TestCase):
         that generic APIs are called correctly and the jobs.json is parsed
         as expected.
         """
-        fetch_artifact.return_value.json.return_value = {
+        fetch_artifact.return_value.content = json.dumps({
             'phase': 'Run',
             'jobs': [
                 {'name': 'Optional name',
                  'cmd': 'echo 1'},
                 {'cmd': 'py.test --junit=junit.xml'},
             ],
-        }
+        })
         create_jenkins_job_from_params.return_value = {
             'job_name': 'foo-bar',
             'build_no': 23,
@@ -149,7 +150,9 @@ class JenkinsCollectorBuildStepTest(TestCase):
         )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(artifact)
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as get_build_step_for_job:
+            get_build_step_for_job.return_value = (None, buildstep)
+            buildstep.fetch_artifact(artifact)
 
         phase2 = JobPhase.query.filter(
             JobPhase.job_id == job.id,
@@ -205,14 +208,14 @@ class JenkinsCollectorBuildStepTest(TestCase):
         test_job_expansion, failing one of the jobsteps and then replacing it,
         and making sure the results still end up the same.
         """
-        fetch_artifact.return_value.json.return_value = {
+        fetch_artifact.return_value.content = json.dumps({
             'phase': 'Run',
             'jobs': [
                 {'name': 'Optional name',
                  'cmd': 'echo 1'},
                 {'cmd': 'py.test --junit=junit.xml'},
             ],
-        }
+        })
         create_jenkins_job_from_params.return_value = {
             'job_name': 'foo-bar',
             'build_no': 23,
@@ -238,7 +241,9 @@ class JenkinsCollectorBuildStepTest(TestCase):
         )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(artifact)
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as get_build_step_for_job:
+            get_build_step_for_job.return_value = (None, buildstep)
+            buildstep.fetch_artifact(artifact)
 
         phase2 = JobPhase.query.filter(
             JobPhase.job_id == job.id,

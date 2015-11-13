@@ -175,6 +175,10 @@ class JenkinsBuildStep(BuildStep):
     def get_resource_limits(self):
         return self._resources.copy()
 
+    def get_artifact_manager(self, jobstep):
+        builder = self.get_builder()
+        return builder.get_artifact_manager(jobstep)
+
 
 SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log', '*.service.log')
 

@@ -2,19 +2,20 @@ from __future__ import absolute_import, print_function
 
 
 class Manager(object):
-    def __init__(self):
-        self.handlers = []
+    def __init__(self, handlers=None):
+        self.handlers = handlers or []
 
     def register(self, cls):
         self.handlers.append(cls)
 
-    def process(self, artifact):
+    def process(self, artifact, fp=None):
         step = artifact.step
         artifact_name = artifact.name
         for cls in self.handlers:
             if cls.can_process(artifact_name):
+                if not fp:
+                    fp = artifact.file.get_file()
                 handler = cls(step)
-                fp = artifact.file.get_file()
                 try:
                     handler.process(fp)
                 finally:

@@ -7,6 +7,7 @@ from flask import current_app
 from itertools import chain
 
 from changes.artifacts.coverage import CoverageHandler
+from changes.artifacts.manager import Manager
 from changes.artifacts.xunit import XunitHandler
 from changes.buildsteps.base import BuildStep
 from changes.config import db
@@ -338,3 +339,6 @@ class DefaultBuildStep(BuildStep):
             '-%s %s' % (k, v)
             for k, v in params.iteritems()
         ))
+
+    def get_artifact_manager(self, jobstep):
+        return Manager([CoverageHandler, XunitHandler])

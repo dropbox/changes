@@ -117,6 +117,20 @@ class BuildStep(object):
     def get_allocation_command(self, jobstep):
         raise NotImplementedError
 
+    def get_artifact_manager(self, jobstep):
+        """
+        Return an artifacts.manager.Manager object for the given jobstep.
+
+        This manager should be created with all artifact handlers that apply.
+        For instance, in a collection JobStep, you might wish to have only a
+        handler for a collection artifact, whereas in JobSteps that run tests,
+        you may wish to have handlers for test result files, coverage, etc.
+
+        Args:
+            jobstep: The JobStep in question.
+        """
+        raise NotImplementedError
+
     @staticmethod
     def handle_debug_infra_failures(jobstep, debug_config, phase_type):
         """

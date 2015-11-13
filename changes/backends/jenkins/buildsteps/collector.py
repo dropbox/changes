@@ -5,6 +5,8 @@ import uuid
 
 from hashlib import md5
 
+from changes.artifacts.manager import Manager
+from changes.artifacts.collection_artifact import JobsJsonHandler
 from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.buildsteps.base import BuildStep
@@ -26,11 +28,17 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
         Returns:
             str: the required filename
         """
-        return 'jobs.json'
+        return JobsJsonHandler.FILENAMES[0]
 
     def artifacts_for_jobstep(self, jobstep):
         # we only care about the required artifact for the collection phase
         return self.artifacts if jobstep.data.get('expanded') else (self.get_required_artifact(),)
+
+    def get_artifact_manager(self, jobstep):
+        if jobstep.data.get('expanded'):
+            return super(JenkinsCollectorBuilder, self).get_artifact_manager(jobstep)
+        else:
+            return Manager([JobsJsonHandler])
 
     def _sync_results(self, step, item):
         """
@@ -104,17 +112,13 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
     def get_label(self):
         return 'Collect jobs from job "{0}" on Jenkins'.format(self.job_name)
 
-    def fetch_artifact(self, artifact, **kwargs):
-        if os.path.basename(artifact.data['fileName']) == self.get_builder().get_required_artifact():
-            self._expand_jobs(artifact.step, artifact)
-        else:
-            super(JenkinsCollectorBuildStep, self).fetch_artifact(artifact, **kwargs)
+    def expand_jobs(self, step, phase_config):
+        """
+        Creates and runs JobSteps for a set of commands, based on a phase config.
 
-    def _expand_jobs(self, step, artifact):
-        builder = self.get_builder()
-        artifact_data = builder.fetch_artifact(step, artifact.data)
-        phase_config = artifact_data.json()
-
+        This phase config comes from a jobs.json file that the collection
+        jobstep should generate. This method is then called by the JobsJsonHandler.
+        """
         assert phase_config['phase']
         assert phase_config['jobs']
 

@@ -17,8 +17,9 @@ from flask import current_app
 from lxml import etree, objectify
 
 from changes.artifacts.coverage import CoverageHandler
-from changes.artifacts.xunit import XunitHandler
+from changes.artifacts.manager import Manager
 from changes.artifacts.manifest_json import ManifestJsonHandler
+from changes.artifacts.xunit import XunitHandler
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.buildsteps.base import BuildStep
 from changes.config import db, statsreporter
@@ -204,7 +205,7 @@ class JenkinsBuilder(BaseBackend):
         )
         return self._streaming_get(url)
 
-    def _sync_artifact_as_file(self, artifact, handler_cls=None):
+    def _sync_artifact_as_file(self, artifact):
         jobstep = artifact.step
         resp = self.fetch_artifact(jobstep, artifact.data)
 
@@ -221,14 +222,10 @@ class JenkinsBuilder(BaseBackend):
         # commit file save regardless of whether handler is successful
         db.session.commit()
 
-        if not handler_cls:
-            return
-
         # TODO(dcramer): requests doesnt seem to provide a non-binary file-like
         # API, so we're stuffing it into StringIO
         try:
-            handler = handler_cls(jobstep)
-            handler.process(StringIO(resp.content))
+            self.get_artifact_manager(jobstep).process(artifact, StringIO(resp.content))
         except Exception:
             self.logger.exception(
                 'Failed to sync test results for job step %s', jobstep.id)
@@ -845,16 +842,11 @@ class JenkinsBuilder(BaseBackend):
             self._sync_step_from_active(step)
 
     def sync_artifact(self, artifact, sync_logs=False):
-        for cls in [XunitHandler, CoverageHandler, ManifestJsonHandler]:
-            if cls.can_process(artifact.name):
-                self._sync_artifact_as_file(artifact, handler_cls=cls)
-                break
+        if artifact.name.endswith('.log'):
+            if sync_logs:
+                self._sync_artifact_as_log(artifact)
         else:
-            if artifact.name.endswith('.log'):
-                if sync_logs:
-                    self._sync_artifact_as_log(artifact)
-            else:
-                self._sync_artifact_as_file(artifact)
+            self._sync_artifact_as_file(artifact)
 
     def cancel_step(self, step):
         # The Jenkins build_no won't exist if the job is still queued.
@@ -1076,6 +1068,9 @@ class JenkinsBuilder(BaseBackend):
             db.session.commit()
 
         return job_data
+
+    def get_artifact_manager(self, jobstep):
+        return Manager([CoverageHandler, XunitHandler, ManifestJsonHandler])
 
     def create_commands(self, step, params):
         pass

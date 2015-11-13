@@ -7,6 +7,8 @@ import uuid
 
 from hashlib import md5
 
+from changes.artifacts.manager import Manager
+from changes.artifacts.collection_artifact import TestsJsonHandler
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.buildsteps.base import BuildStep
 from changes.config import db
@@ -73,7 +75,13 @@ class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
         Returns:
             str: the required artifact
         """
-        return 'tests.json'
+        return TestsJsonHandler.FILENAMES[0]
+
+    def get_artifact_manager(self, jobstep):
+        if jobstep.data.get('expanded'):
+            return super(JenkinsCollectorBuilder, self).get_artifact_manager(jobstep)
+        else:
+            return Manager([TestsJsonHandler])
 
 
 class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
@@ -213,11 +221,13 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
 
         return tuple(segments)
 
-    def _expand_jobs(self, step, artifact):
-        builder = self.get_builder()
-        artifact_data = builder.fetch_artifact(step, artifact.data)
-        phase_config = artifact_data.json()
+    def expand_jobs(self, step, phase_config):
+        """
+        Creates and runs JobSteps for a set of tests, based on a phase config.
 
+        This phase config comes from a tests.json file that the collection
+        jobstep should generate. This method is then called by the TestsJsonHandler.
+        """
         assert phase_config['cmd']
         assert '{test_names}' in phase_config['cmd']
         assert 'tests' in phase_config

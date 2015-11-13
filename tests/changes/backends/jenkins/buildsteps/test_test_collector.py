@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from flask import current_app
 
+import json
 import mock
 import responses
 
@@ -12,7 +13,7 @@ from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollec
 from changes.config import db
 from changes.constants import Result, Status
 from changes.expanders import TestsExpander
-from changes.models import JobPhase, JobStep
+from changes.models import JobPhase, JobPlan, JobStep
 from changes.testutils import TestCase
 from ..test_builder import BaseTestCase
 
@@ -326,7 +327,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         that generic APIs are called correctly and the tests.json is parsed
         as expected.
         """
-        fetch_artifact.return_value.json.return_value = {
+        fetch_artifact.return_value.content = json.dumps({
             'phase': 'Test',
             'cmd': 'py.test --junit=junit.xml {test_names}',
             'tests': [
@@ -335,7 +336,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
                 'foo.bar.test_biz',
                 'foo.bar.test_buz',
             ],
-        }
+        })
         create_jenkins_job_from_params.return_value = {
             'job_name': 'foo-bar',
             'build_no': 23,
@@ -368,14 +369,16 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(artifact)
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as get_build_step_for_job:
+            get_build_step_for_job.return_value = (None, buildstep)
+            buildstep.fetch_artifact(artifact)
 
         phase2 = JobPhase.query.filter(
             JobPhase.job_id == job.id,
             JobPhase.id != phase.id,
         ).first()
 
-        assert phase2, 'phase wasnt created'
+        assert phase2, "phase wasn't created"
         assert phase2.label == 'Test'
         assert phase2.status == Status.queued
 
@@ -461,7 +464,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         test_job_expansion, failing one of the jobsteps and then replacing it,
         and making sure the results still end up the same.
         """
-        fetch_artifact.return_value.json.return_value = {
+        fetch_artifact.return_value.content = json.dumps({
             'phase': 'Test',
             'cmd': 'py.test --junit=junit.xml {test_names}',
             'tests': [
@@ -470,7 +473,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
                 'foo.bar.test_biz',
                 'foo.bar.test_buz',
             ],
-        }
+        })
         create_jenkins_job_from_params.return_value = {
             'job_name': 'foo-bar',
             'build_no': 23,
@@ -503,12 +506,15 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(artifact)
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as get_build_step_for_job:
+            get_build_step_for_job.return_value = (None, buildstep)
+            buildstep.fetch_artifact(artifact)
 
         phase2 = JobPhase.query.filter(
             JobPhase.job_id == job.id,
             JobPhase.id != phase.id,
         ).first()
+        assert phase2, "phase wasn't created"
 
         new_steps = sorted(phase2.current_steps, key=lambda x: x.data['weight'], reverse=True)
 
@@ -600,22 +606,24 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         assert len(all_steps) == 2
 
     @responses.activate
-    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
+    @mock.patch.object(JenkinsTestCollectorBuilder, 'fetch_artifact')
+    @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
+    @mock.patch.object(JenkinsTestCollectorBuilder, 'get_required_artifact')
+    @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
-    def test_job_expansion_no_tests(self, get_test_stats, get_builder):
-        builder = self.get_mock_builder()
-        builder.fetch_artifact.return_value.json.return_value = {
+    def test_job_expansion_no_tests(self, get_test_stats, get_job_parameters, get_required_artifact,
+                           create_jenkins_job_from_params, fetch_artifact):
+        fetch_artifact.return_value.content = json.dumps({
             'phase': 'Test',
             'cmd': 'py.test --junit=junit.xml {test_names}',
             'tests': [],
-        }
-        builder.create_jenkins_job_from_params.return_value = {
+        })
+        create_jenkins_job_from_params.return_value = {
             'job_name': 'foo-bar',
             'build_no': 23,
         }
-        builder.get_required_artifact.return_value = 'tests.json'
+        get_required_artifact.return_value = 'tests.json'
 
-        get_builder.return_value = builder
         get_test_stats.return_value = {
             ('foo', 'bar'): 50,
             ('foo', 'baz'): 15,
@@ -640,12 +648,15 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         )
 
         buildstep = self.get_buildstep()
-        buildstep.fetch_artifact(artifact)
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as get_build_step_for_job:
+            get_build_step_for_job.return_value = (None, buildstep)
+            buildstep.fetch_artifact(artifact)
 
         phase2 = JobPhase.query.filter(
             JobPhase.job_id == job.id,
             JobPhase.id != phase.id,
         ).first()
+        assert phase2, "phase wasn't created"
         assert phase2.status == Status.finished
         assert phase2.result == Result.passed
 
