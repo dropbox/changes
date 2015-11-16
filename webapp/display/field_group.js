@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import { Button } from 'es6!display/button';
 
 
-export var create = function(form, saveButtonText, _this) {
+export var create = function(form, saveButtonText, _this, messages=[]) {
   let hasChanges = _this.state.hasFormChanges;
   if (hasChanges === undefined) {
     // Since we can't tell if this form has changes, default to true.
@@ -64,7 +64,11 @@ export var create = function(form, saveButtonText, _this) {
     </div>;
   });
 
+  let messageDivs = _.map(messages, m => {
+    return <div>{m}</div>;
+  });
+
   let onSaveClicked = _ => _this.saveSettings();
   let saveButton = hasChanges ? <Button onClick={onSaveClicked}>{saveButtonText}</Button> : '';
-  return <div>{saveButton}{markup}</div>;
+  return <div>{saveButton}{messageDivs}{markup}</div>;
 };

@@ -376,9 +376,15 @@ let PlanDetails = React.createClass({
     options: PropTypes.object.isRequired,
   },
 
+  displayStatusToStatus: {
+    'Active': 'active',
+    'Inactive': 'inactive',
+  },
+
   getInitialState: function() {
     return {
-      createStepClicked: false
+      createStepClicked: false,
+      hasFormChanges: false,
     };
   },
 
@@ -405,12 +411,13 @@ let PlanDetails = React.createClass({
     };
 
     api.post(this, endpoints, params);
+    this.setState({hasFormChanges: false});
   },
 
   componentDidMount: function() {
     let project = this.props.project;
     this.setState({ name: this.props.plan.name,
-                    status: this.props.plan.status.name,
+                    status: this.props.plan.status.id,
                     expectTests: this.props.options['build.expect-tests'] === '1',
                     allowSnapshot: this.props.options['snapshot.allow'] === '1',
                   });
@@ -420,7 +427,7 @@ let PlanDetails = React.createClass({
     let form = [
       { sectionTitle: 'Basics', fields: [
         {type: 'text', display: 'Name', link: 'name'},
-        {type: 'text', display: 'Status', link: 'status'},
+        {type: 'select', options: this.displayStatusToStatus, display: 'Status', link: 'status'},
         ]
       },
       { sectionTitle: 'Snapshots', fields: [
@@ -434,7 +441,26 @@ let PlanDetails = React.createClass({
       },
     ];
 
-    let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this);
+    let formMessages = [];
+    let saveOptionsMessage = '';
+    let savePlanMessage = '';
+    if (!this.state.hasFormChanges) {
+      if (this.state._postRequest_plan) {
+        let result = this.state._postRequest_plan;
+        if (result.condition === 'loaded')
+          formMessages.push('Saved plan basics');
+        else if (result.condition === 'error')
+          formMessages.push('Failed to save plan basics: ' + result.response.responseText);
+      }
+      if (this.state._postRequest_options) {
+        let result = this.state._postRequest_options;
+        if (result.condition === 'loaded')
+          formMessages.push('Saved plan options');
+        else if (result.condition === 'error')
+          formMessages.push('Failed to save plan options: ' + result.response.responseText);
+      }
+    }
+    let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this, formMessages);
 
     let stepMarkup = null;
     if (this.props.plan.steps.length > 0) {
@@ -453,6 +479,8 @@ let PlanDetails = React.createClass({
     }
 
     return <div>
+             <div>{savePlanMessage}</div>
+             <div>{saveOptionsMessage}</div>
              {fieldMarkup}
              {stepMarkup}
            </div>;
@@ -503,6 +531,7 @@ let StepDetails = React.createClass({
     };
 
     api.post(this, endpoints, params);
+    this.setState({hasFormChanges: false});
   },
 
   componentDidMount: function() {
@@ -517,6 +546,16 @@ let StepDetails = React.createClass({
   render: function() {
     let step = this.props.step;
 
+    let formMessages = [];
+    if (!this.state.hasFormChanges) {
+      if (this.state._postRequest_step) {
+        let result = this.state._postRequest_step;
+        if (result.condition === 'loaded')
+          formMessages.push('Saved step');
+        else if (result.condition === 'error')
+          formMessages.push('Failed to save step: ' + result.response.responseText);
+      }
+    }
     let form = [
       { sectionTitle: step.name, fields: [
         {type: 'select', display: 'Implementation', link: 'implementation',
@@ -536,7 +575,7 @@ let StepDetails = React.createClass({
                 </Request>;
 
     return <div>
-             <div>{FieldGroupMarkup.create(form, "Save Step", this)}</div>
+             <div>{FieldGroupMarkup.create(form, "Save Step", this, formMessages)}</div>
              <div>{del}</div>
           </div>;
   },
