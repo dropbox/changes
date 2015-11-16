@@ -55,8 +55,9 @@ class DefaultBuildStep(BuildStep):
     # - teardown_commands
     def __init__(self, commands=None, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
-                 max_executors=20, cpus=4, memory=8 * 1024,
-                compression=None, debug_config=None, **kwargs):
+                 max_executors=10, cpus=4, memory=8 * 1024,
+                 compression=None, debug_config=None, test_stats_from=None,
+                 **kwargs):
         """
         Constructor for DefaultBuildStep.
 
@@ -76,6 +77,10 @@ class DefaultBuildStep(BuildStep):
                 An example debug_config: "debug_config": {"infra_failures": {"primary": 0.5}}
                 This will then cause an infra failure in the primary JobStep with
                 probability 0.5.
+            test_stats_from: project to get test statistics from, or
+                None (the default) to use this project.  Useful if the
+                project runs a different subset of tests each time, so
+                test timing stats from the parent are not reliable.
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
@@ -83,9 +88,10 @@ class DefaultBuildStep(BuildStep):
         if env is None:
             env = DEFAULT_ENV.copy()
 
+        self.artifacts = artifacts
         for command in commands:
             if 'artifacts' not in command:
-                command['artifacts'] = artifacts
+                command['artifacts'] = self.artifacts
 
             if 'path' not in command:
                 command['path'] = path
@@ -112,11 +118,15 @@ class DefaultBuildStep(BuildStep):
             'mem': memory,
         }
         self.debug_config = debug_config or {}
+        self.test_stats_from = test_stats_from
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
     def get_label(self):
         return 'Build via Changes Client'
+
+    def get_test_stats_from(self):
+        return self.test_stats_from
 
     def iter_all_commands(self, job):
         source = job.source
@@ -259,6 +269,7 @@ class DefaultBuildStep(BuildStep):
                 new_jobstep.data[key] = value
         new_jobstep.status = Status.pending_allocation
         new_jobstep.data['generated'] = True
+        BuildStep.handle_debug_infra_failures(new_jobstep, self.debug_config, 'expanded')
         db.session.add(new_jobstep)
 
         # when we expand the command we need to include all setup and teardown
@@ -283,7 +294,7 @@ class DefaultBuildStep(BuildStep):
             # TODO(dcramer): this API isn't really ideal. Future command should
             # set things to NoneType and we should deal with unset values
             if not new_command.artifacts:
-                new_command.artifacts = DEFAULT_ARTIFACTS
+                new_command.artifacts = self.artifacts
             db.session.add(new_command)
 
         return new_jobstep

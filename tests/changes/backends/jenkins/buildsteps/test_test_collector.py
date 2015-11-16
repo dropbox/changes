@@ -11,6 +11,7 @@ from uuid import UUID
 from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, JenkinsTestCollectorBuildStep, JenkinsCollectorBuilder
 from changes.config import db
 from changes.constants import Result, Status
+from changes.expanders import TestsExpander
 from changes.models import JobPhase, JobStep
 from changes.testutils import TestCase
 from ..test_builder import BaseTestCase
@@ -169,75 +170,6 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
         builder.sync_artifact.assert_called_once_with(artifact, sync_logs=False)
 
-    def test_get_test_stats(self):
-        project = self.create_project()
-        build = self.create_build(
-            project=project,
-            status=Status.finished,
-            result=Result.passed,
-        )
-        job = self.create_job(build)
-        self.create_test(job, name='foo.bar.test_baz', duration=50)
-        self.create_test(job, name='foo.bar.test_bar', duration=25)
-
-        buildstep = self.get_buildstep()
-
-        results, avg_time = buildstep.get_test_stats(project.slug)
-
-        assert avg_time == 37
-
-        assert results[('foo', 'bar')] == 75
-        assert results[('foo', 'bar', 'test_baz')] == 50
-        assert results[('foo', 'bar', 'test_bar')] == 25
-
-    def test_sharding(self):
-        """
-        Unit test for the test sharding logic.
-        """
-        tests = [
-            'foo/bar.py',
-            'foo/baz.py',
-            'foo.bar.test_biz',
-            'foo.bar.test_buz',
-        ]
-        test_weights = {
-            ('foo', 'bar'): 50,
-            ('foo', 'baz'): 15,
-            ('foo', 'bar', 'test_biz'): 10,
-            ('foo', 'bar', 'test_buz'): 200,
-        }
-        avg_test_time = sum(test_weights.values()) / len(test_weights)
-
-        project = self.create_project()
-        build = self.create_build(project)
-        job = self.create_job(build, data={
-            'job_name': 'server',
-            'build_no': '35',
-        })
-        phase = self.create_jobphase(job)
-        step = self.create_jobstep(phase, data={
-            'item_id': 13,
-            'job_name': 'server',
-        })
-        buildstep = self.get_buildstep()
-
-        groups = buildstep._shard_tests(tests, 2, test_weights, avg_test_time)
-        assert len(groups) == 2
-        groups.sort()
-        assert groups[0] == (78, ['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
-        assert groups[1] == (201, ['foo.bar.test_buz'])
-
-        groups = buildstep._shard_tests(tests, 3, test_weights, avg_test_time)
-        assert len(groups) == 3
-        groups.sort()
-        assert groups[0] == (27, ['foo/baz.py', 'foo.bar.test_biz'])
-        assert groups[1] == (51, ['foo/bar.py'])
-        assert groups[2] == (201, ['foo.bar.test_buz'])
-
-        # more shards than tests
-        groups = buildstep._shard_tests(tests, len(tests) * 2, test_weights, avg_test_time)
-        assert len(groups) == len(tests)
-
     def test_validate_shards(self):
         project = self.create_project()
         build = self.create_build(project)
@@ -386,7 +318,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_required_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
-    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')
+    @mock.patch.object(TestsExpander, 'get_test_stats')
     def test_job_expansion(self, get_test_stats, get_job_parameters, get_required_artifact,
                            create_jenkins_job_from_params, fetch_artifact):
         """
@@ -521,7 +453,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_required_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
-    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')
+    @mock.patch.object(TestsExpander, 'get_test_stats')
     def test_create_replacement_jobstep(self, get_test_stats, get_job_parameters, get_required_artifact,
                                         create_jenkins_job_from_params, fetch_artifact):
         """
@@ -669,7 +601,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
 
     @responses.activate
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
-    @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_test_stats')
+    @mock.patch.object(TestsExpander, 'get_test_stats')
     def test_job_expansion_no_tests(self, get_test_stats, get_builder):
         builder = self.get_mock_builder()
         builder.fetch_artifact.return_value.json.return_value = {

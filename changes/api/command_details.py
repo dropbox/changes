@@ -9,7 +9,7 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView, error
 from changes.api.validators.datetime import ISODatetime
 from changes.config import db, redis
-from changes.constants import Status
+from changes.constants import Result, Status
 from changes.expanders import CommandsExpander, TestsExpander
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import Command, CommandType, JobPhase, JobPlan
@@ -140,9 +140,16 @@ class CommandDetailsAPIView(APIView):
         _, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
 
         results = []
-        for future_jobstep in expander.expand(max_executors=jobstep.data['max_executors']):
+        for future_jobstep in expander.expand(max_executors=jobstep.data['max_executors'],
+                                              test_stats_from=buildstep.get_test_stats_from()):
             new_jobstep = buildstep.expand_jobstep(jobstep, new_jobphase, future_jobstep)
             results.append(new_jobstep)
+
+        # If there are no tests to run, the phase is done.
+        if len(results) == 0:
+            new_jobphase.status = Status.finished
+            new_jobphase.result = Result.passed
+            db.session.add(new_jobphase)
 
         db.session.flush()
 

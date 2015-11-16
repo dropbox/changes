@@ -43,13 +43,45 @@ class TestsExpanderTest(TestCase):
         self.create_test(job, name='foo.bar.test_bar', duration=25)
 
         expander = self.get_expander({})
-        results, avg_time = expander.get_test_stats()
+        results, avg_time = expander.get_test_stats(self.project.slug)
 
         assert avg_time == 37
 
         assert results[('foo', 'bar')] == 75
         assert results[('foo', 'bar', 'test_baz')] == 50
         assert results[('foo', 'bar', 'test_bar')] == 25
+
+    def test_sharding(self):
+        tests = [
+            'foo/bar.py',
+            'foo/baz.py',
+            'foo.bar.test_biz',
+            'foo.bar.test_buz',
+        ]
+        test_weights = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+            ('foo', 'bar', 'test_biz'): 10,
+            ('foo', 'bar', 'test_buz'): 200,
+        }
+        avg_test_time = sum(test_weights.values()) / len(test_weights)
+
+        groups = TestsExpander.shard_tests(tests, 2, test_weights, avg_test_time)
+        assert len(groups) == 2
+        groups.sort()
+        assert groups[0] == (78, ['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
+        assert groups[1] == (201, ['foo.bar.test_buz'])
+
+        groups = TestsExpander.shard_tests(tests, 3, test_weights, avg_test_time)
+        assert len(groups) == 3
+        groups.sort()
+        assert groups[0] == (27, ['foo/baz.py', 'foo.bar.test_biz'])
+        assert groups[1] == (51, ['foo/bar.py'])
+        assert groups[2] == (201, ['foo.bar.test_buz'])
+
+        # more shards than tests
+        groups = TestsExpander.shard_tests(tests, len(tests) * 2, test_weights, avg_test_time)
+        assert len(groups) == len(tests)
 
     @patch.object(TestsExpander, 'get_test_stats')
     def test_expand(self, mock_get_test_stats):
@@ -69,6 +101,8 @@ class TestsExpanderTest(TestCase):
                 'foo.bar.test_buz',
             ],
         }).expand(max_executors=2))
+
+        results.sort(key=lambda x: x.data['weight'], reverse=True)
 
         assert len(results) == 2
         assert results[0].label == 'py.test --junit=junit.xml foo.bar.test_buz'

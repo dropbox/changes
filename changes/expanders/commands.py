@@ -20,8 +20,9 @@ class CommandsExpander(Expander):
     def validate(self):
         assert 'commands' in self.data, 'Missing ``commands`` attribute'
 
-    def expand(self, max_executors):
+    def expand(self, max_executors, **kwargs):
         for cmd_data in self.data['commands']:
+            # TODO: group commands with jobsteps so as to respect max_executors
             future_command = FutureCommand(**cmd_data)
             future_jobstep = FutureJobStep(
                 label=cmd_data.get('label') or future_command.label,

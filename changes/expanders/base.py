@@ -13,5 +13,5 @@ class Expander(object):
     def validate(self):
         raise NotImplementedError
 
-    def expand(self, max_executors):
+    def expand(self, max_executors, **kwargs):
         raise NotImplementedError

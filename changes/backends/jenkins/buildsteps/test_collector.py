@@ -2,22 +2,20 @@ from __future__ import absolute_import
 
 from flask import current_app
 
-import heapq
 import logging
 import uuid
 
 from hashlib import md5
 
-from changes.api.client import api_client
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
+from changes.expanders import TestsExpander
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import Job, JobPhase, JobStep, TestCase
+from changes.models import JobPhase, JobStep, TestCase
 from changes.utils.agg import aggregate_result
-from changes.utils.trees import build_flat_tree
 
 
 class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
@@ -170,6 +168,9 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
     def get_label(self):
         return 'Collect tests from job "{0}" on Jenkins'.format(self.job_name)
 
+    def get_test_stats_from(self):
+        return self.test_stats_from
+
     def _validate_shards(self, phase_steps):
         """This returns passed/unknown based on whether the correct number of
         shards were run."""
@@ -202,48 +203,6 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         phase.result = aggregate_result([s.result for s in phase.current_steps] +
                                         [self._validate_shards(phase.current_steps)])
 
-    def get_test_stats(self, project_slug):
-        response = api_client.get('/projects/{project}/'.format(
-            project=project_slug))
-        last_build = response['lastPassingBuild']
-
-        if not last_build:
-            return {}, 0
-
-        # XXX(dcramer): ideally this would be abstractied via an API
-        job_list = db.session.query(Job.id).filter(
-            Job.build_id == last_build['id'],
-        )
-
-        test_durations = dict(db.session.query(
-            TestCase.name, TestCase.duration
-        ).filter(
-            TestCase.job_id.in_(job_list),
-        ))
-        test_names = []
-        total_count, total_duration = 0, 0
-        for test in test_durations:
-            test_names.append(test)
-            total_duration += test_durations[test]
-            total_count += 1
-
-        test_stats = {}
-        if test_names:
-            sep = TestCase(name=test_names[0]).sep
-            tree = build_flat_tree(test_names, sep=sep)
-            for group_name, group_tests in tree.iteritems():
-                segments = self._normalize_test_segments(group_name)
-                test_stats[segments] = sum(test_durations[t] for t in group_tests)
-
-        # the build report can contain different test suites so this isnt the
-        # most accurate
-        if total_duration > 0:
-            avg_test_time = int(total_duration / total_count)
-        else:
-            avg_test_time = 0
-
-        return test_stats, avg_test_time
-
     def _normalize_test_segments(self, test_name):
         sep = TestCase(name=test_name).sep
         segments = test_name.split(sep)
@@ -253,45 +212,6 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             segments[-1] = segments[-1].rsplit('.', 1)[0]
 
         return tuple(segments)
-
-    def _shard_tests(self, tests, max_shards, test_stats, avg_test_time):
-        """
-        Breaks a set of tests into shards.
-
-        Args:
-            tests (list): A list of test names.
-            max_shards (int): Maximum amount of shards over which to distribute the tests.
-            test_stats (dict): A mapping from normalized test name to duration.
-            avg_test_time (int): Average duration of a single test.
-
-        Returns:
-            list: Shards. Each element is a pair containing the weight for that
-                shard and the test names assigned to that shard.
-        """
-
-        def get_test_duration(test_name):
-            segments = self._normalize_test_segments(test_name)
-            result = test_stats.get(segments)
-            if result is None:
-                if test_stats:
-                    self.logger.info('No existing duration found for test %r', test_name)
-                result = avg_test_time
-            return result
-
-        # don't use more shards than there are tests
-        num_shards = min(len(tests), max_shards)
-        # Each element is a pair (weight, tests).
-        groups = [(0, []) for _ in range(num_shards)]
-        # Groups is already a proper heap, but we'll call this to guarantee it.
-        heapq.heapify(groups)
-        weighted_tests = [(get_test_duration(t), t) for t in tests]
-        for weight, test in sorted(weighted_tests, reverse=True):
-            group_weight, group_tests = heapq.heappop(groups)
-            group_weight += 1 + weight
-            group_tests.append(test)
-            heapq.heappush(groups, (group_weight, group_tests))
-
-        return groups
 
     def _expand_jobs(self, step, artifact):
         builder = self.get_builder()
@@ -303,7 +223,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         assert 'tests' in phase_config
 
         num_tests = len(phase_config['tests'])
-        test_stats, avg_test_time = self.get_test_stats(self.test_stats_from or step.project.slug)
+        test_stats, avg_test_time = TestsExpander.get_test_stats(self.get_test_stats_from() or step.project.slug)
 
         phase, created = get_or_create(JobPhase, where={
             'job': step.job,
@@ -332,7 +252,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
             assert len(steps) == step_shard_counts[0]
         else:
             # Create all of the job steps and commit them together.
-            groups = self._shard_tests(phase_config['tests'], self.max_shards,
+            groups = TestsExpander.shard_tests(phase_config['tests'], self.max_shards,
                                        test_stats, avg_test_time)
             steps = [
                 self._create_jobstep(phase, phase_config['cmd'], phase_config.get('path', ''),

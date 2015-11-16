@@ -27,6 +27,13 @@ class BuildStep(object):
         """
         return {}
 
+    def get_test_stats_from(self):
+        """
+        Returns the project slug that test statistics should be retrieved from,
+        or None to use the current project.
+        """
+        return None
+
     def execute(self, job):
         """
         Given a new job, execute it (either sync or async), and report the

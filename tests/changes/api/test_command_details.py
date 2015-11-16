@@ -6,7 +6,7 @@ from changes.buildsteps.base import BuildStep
 from changes.constants import Result, Status
 from changes.expanders.base import Expander
 from changes.models import (
-    Command, CommandType, FutureCommand, FutureJobStep, JobStep
+    Command, CommandType, FutureCommand, FutureJobStep, JobStep, JobPhase
 )
 from changes.testutils import APITestCase
 
@@ -139,10 +139,72 @@ class UpdateCommandTest(APITestCase):
             data={'foo': 'bar'},
         )
         dummy_expander.validate.assert_called_once_with()
-        dummy_expander.expand.assert_called_once_with(max_executors=10)
+        dummy_expander.expand.assert_called_once_with(max_executors=10,
+                                                      test_stats_from=mock_buildstep.get_test_stats_from.return_value)
 
-        new_jobstep = JobStep.query.filter(
-            JobStep.job_id == job.id,
-            JobStep.id != jobstep.id,
+        phase2 = JobPhase.query.filter(
+            JobPhase.job_id == job.id,
+            JobPhase.id != jobphase.id,
         ).first()
+        assert phase2.label == 'Phase #1'
+        assert phase2.status == Status.queued
+
+        new_jobstep = phase2.current_steps[0]
         assert new_jobstep.label == 'test'
+
+    @patch('changes.models.JobPlan.get_build_step_for_job')
+    @patch('changes.api.command_details.CommandDetailsAPIView.get_expander')
+    def test_expander_no_commands(self, mock_get_expander, mock_get_build_step_for_job):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase, data={
+            'max_executors': 10,
+        })
+        plan = self.create_plan(project, label='test')
+        self.create_step(plan)
+        jobplan = self.create_job_plan(job, plan)
+        command = self.create_command(
+            jobstep, type=CommandType.collect_tests,
+            status=Status.in_progress)
+
+        def dummy_expand_jobstep(jobstep, new_jobphase, future_jobstep):
+            return future_jobstep.as_jobstep(new_jobphase)
+
+        empty_expander = Mock(spec=Expander)
+        empty_expander.expand.return_value = []
+        mock_get_expander.return_value.return_value = empty_expander
+        mock_buildstep = Mock(spec=BuildStep)
+
+        mock_get_build_step_for_job.return_value = jobplan, mock_buildstep
+
+        path = '/api/0/commands/{0}/'.format(command.id.hex)
+
+        resp = self.client.post(path, data={
+            'status': 'finished',
+            'output': '{"foo": "bar"}',
+        })
+        assert resp.status_code == 200, resp.data
+
+        mock_get_expander.assert_called_once_with(command.type)
+        mock_get_expander.return_value.assert_called_once_with(
+            project=project,
+            data={'foo': 'bar'},
+        )
+        empty_expander.validate.assert_called_once_with()
+        empty_expander.expand.assert_called_once_with(max_executors=10,
+                                                      test_stats_from=mock_buildstep.get_test_stats_from.return_value)
+
+        phase2 = JobPhase.query.filter(
+            JobPhase.job_id == job.id,
+            JobPhase.id != jobphase.id,
+        ).first()
+        assert phase2
+        assert phase2.status == Status.finished
+        assert phase2.result == Result.passed
+
+        new_steps = JobStep.query.filter(
+            JobStep.phase_id == phase2.id
+        )
+        assert len(list(new_steps)) == 0
