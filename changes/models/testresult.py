@@ -10,7 +10,8 @@ from sqlalchemy.sql import func
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update
-from changes.models import FailureReason, ItemStat, TestCase, TestArtifact
+from changes.models import FailureReason, ItemStat, TestArtifact
+from changes.models.test import TestCase
 
 logger = logging.getLogger('changes.testresult')
 
@@ -82,20 +83,40 @@ class TestResultManager(object):
         # Create all test cases.
         testcase_list = []
 
+        # For tracking the name of any test we see with a bad
+        # duration, typically the first one if we see multiple.
+        bad_duration_test_name = None
+        bad_duration_value = None
+
         for test in test_list:
+            duration = test.duration
+            # Maximum value for the Integer column type
+            if duration > 2147483647 or duration < 0:
+                # If it is very large (>~25 days) or negative set it to 0
+                # since it is almost certainly wrong, and keeping it or truncating
+                # to max will give misleading total values.
+                if not bad_duration_test_name:
+                    bad_duration_test_name = test.name
+                    bad_duration_value = duration
+                duration = 0
             testcase = TestCase(
                 job=job,
                 step=step,
                 name_sha=test.name_sha,
                 project=project,
                 name=test.name,
-                duration=test.duration,
+                duration=duration,
                 message=test.message,
                 result=test.result,
                 date_created=test.date_created,
                 reruns=test.reruns
             )
             testcase_list.append(testcase)
+
+        if bad_duration_test_name:
+            # Include the project slug in the warning so project warnings aren't bucketed together.
+            logger.warning("Got bad test duration for " + project.slug + "; %s: %s",
+                           bad_duration_test_name, bad_duration_value)
 
         # Try an optimistic commit of all cases at once.
         for testcase in testcase_list:

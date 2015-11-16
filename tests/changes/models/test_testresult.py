@@ -1,8 +1,10 @@
 from base64 import b64encode
 
+import mock
+
 from changes.constants import Result
 from changes.models import FailureReason, ItemStat
-from changes.models.testresult import TestResult, TestResultManager
+from changes.models.testresult import TestResult, TestResultManager, logger
 from changes.testutils.cases import TestCase
 
 
@@ -13,7 +15,7 @@ def _stat(jobstep, name):
 
 class TestResultManagerTestCase(TestCase):
     def test_simple(self):
-        from changes.models import TestCase
+        from changes.models.test import TestCase
 
         project = self.create_project()
         build = self.create_build(project)
@@ -79,8 +81,50 @@ class TestResultManagerTestCase(TestCase):
         failures = FailureReason.query.filter_by(step_id=jobstep.id).all()
         assert failures == []
 
+    def test_bad_duration(self):
+        from changes.models.test import TestCase
+
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        results = [
+            TestResult(
+                step=jobstep,
+                name='test_bar',
+                package='tests.changes.handlers.test_xunit',
+                result=Result.failed,
+                message='collection failed',
+                duration=2147483647 * 2,
+                artifacts=[{
+                    'name': 'artifact_name',
+                    'type': 'text',
+                    'base64': b64encode('sample content')}]),
+        ]
+        manager = TestResultManager(jobstep)
+
+        with mock.patch.object(logger, 'warning') as warn:
+            manager.save(results)
+            assert warn.called
+
+        testcase_list = TestCase.query.all()
+
+        assert len(testcase_list) == 1
+
+        for test in testcase_list:
+            assert test.job_id == job.id
+            assert test.step_id == jobstep.id
+            assert test.project_id == project.id
+
+        assert testcase_list[0].name == 'tests.changes.handlers.test_xunit.test_bar'
+        assert testcase_list[0].result == Result.failed
+        assert testcase_list[0].message == 'collection failed'
+        assert testcase_list[0].duration == 0
+
     def test_duplicate_tests_in_same_result_list(self):
-        from changes.models import TestCase
+        from changes.models.test import TestCase
 
         project = self.create_project()
         build = self.create_build(project)
