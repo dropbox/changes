@@ -54,43 +54,51 @@ class DiffParser(object):
     def parse(self):
         # reference: unidiff format by Guido:
         # https://www.artima.com/weblogs/viewpost.jsp?thread=164293
-        in_header = True
-        header = []
         lineiter = iter(self.lines)
         files = []
+
+        # current_file is only used for git-generated "extended diffs"
+        # which are able to express empty file creation and deletion
+        current_file = None
         try:
             line = lineiter.next()
             while 1:
-                # continue until we found the old file
+                if current_file:
+                    if line.startswith('diff --git '):
+                        files.append(current_file)
+                        current_file = None
+                    elif line.startswith('deleted file mode '):
+                        current_file['new_filename'] = None
+                    elif line.startswith('new file mode '):
+                        current_file['old_filename'] = None
+                if not current_file and line.startswith('diff --git '):
+                    diff_line = line.strip().split()
+                    current_file = {
+                        'old_filename': diff_line[2],
+                        'new_filename': diff_line[3],
+                        'chunks': [],
+                        'chunk_markers': [],
+                    }
+
                 if not line.startswith('--- '):
-                    if in_header:
-                        header.append(line)
                     line = lineiter.next()
                     continue
 
-                if header and all(x.strip() for x in header):
-                    # files.append({'is_header': True, 'lines': header})
-                    header = []
-
-                in_header = False
                 chunks = []
                 chunk_markers = []
                 old, new = self._extract_rev(line, lineiter.next())
                 files.append({
-                    'is_header': False,
                     'old_filename': old[0] if old[0] != '/dev/null' else None,
-                    'old_revision': old[1],
                     'new_filename': new[0] if new[0] != '/dev/null' else None,
-                    'new_revision': new[1],
                     'chunks': chunks,
                     'chunk_markers': chunk_markers,
                 })
+                current_file = None
 
                 line = lineiter.next()
                 while line:
                     match = self._chunk_re.match(line)
                     if not match:
-                        in_header = True
                         break
 
                     lines = []
@@ -140,6 +148,8 @@ class DiffParser(object):
                 assert len(chunks) == len(chunk_markers)
 
         except StopIteration:
+            if current_file:
+                files.append(current_file)
             pass
 
         return files
@@ -163,6 +173,8 @@ class DiffParser(object):
             'del': '-',
             'unmod': ' ',
         }
+        if not file_dict['chunks']:
+            return ""
         chunk_strings = []
         for chunk, chunk_marker in zip(file_dict['chunks'], file_dict['chunk_markers']):
             lines = [action_character_dict[l['action']] + l['line'] + no_newline_marker(l)

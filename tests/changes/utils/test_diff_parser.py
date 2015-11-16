@@ -11,13 +11,13 @@ index c2a8485..0768aaa 100644
 --- a/changes/utils/diff_parser.py
 +++ b/changes/utils/diff_parser.py
 @@ -71,6 +71,7 @@ class DiffParser(object):
-
-             in_header = False
+                 continue
+""" + ' ' + """
              chunks = []
-+                chunk_markers = []
++            chunk_markers = []
              old, new = self._extract_rev(line, lineiter.next())
              files.append({
-                 'is_header': False,
+                 'old_filename': old[0] if old[0] != '/dev/null' else None,
 """
 
 
@@ -28,23 +28,20 @@ class DiffParserTest(TestCase):
         files = parser.parse()
         assert files == [
             {
-                'is_header': False,
                 'old_filename': 'a/changes/utils/diff_parser.py',
-                'old_revision': None,
                 'new_filename': 'b/changes/utils/diff_parser.py',
-                'new_revision': None,
                 'chunk_markers': ['@@ -71,6 +71,7 @@ class DiffParser(object):'],
                 'chunks': [[
                     {
                         'action': 'unmod',
-                        'line': '',
+                        'line': '                continue',
                         'new_lineno': 71,
                         'old_lineno': 71,
                         'ends_with_newline': True,
                     },
                     {
                         'action': 'unmod',
-                        'line': '            in_header = False',
+                        'line': '',
                         'new_lineno': 72,
                         'old_lineno': 72,
                         'ends_with_newline': True,
@@ -58,7 +55,7 @@ class DiffParserTest(TestCase):
                     },
                     {
                         'action': 'add',
-                        'line': '                chunk_markers = []',
+                        'line': '            chunk_markers = []',
                         'new_lineno': 74,
                         'old_lineno': u'',
                         'ends_with_newline': True,
@@ -79,7 +76,7 @@ class DiffParserTest(TestCase):
                     },
                     {
                         'action': 'unmod',
-                        'line': "                'is_header': False,",
+                        'line': "                'old_filename': old[0] if old[0] != '/dev/null' else None,",
                         'new_lineno': 77,
                         'old_lineno': 76,
                         'ends_with_newline': True,
@@ -125,13 +122,13 @@ class DiffParserTest(TestCase):
 --- a/changes/utils/diff_parser.py
 +++ b/changes/utils/diff_parser.py
 @@ -71,6 +71,7 @@ class DiffParser(object):
+                 continue
 """ + ' ' + """
-             in_header = False
              chunks = []
-+                chunk_markers = []
++            chunk_markers = []
              old, new = self._extract_rev(line, lineiter.next())
              files.append({
-                 'is_header': False,
+                 'old_filename': old[0] if old[0] != '/dev/null' else None,
 """
         assert diff == correct
 
@@ -386,4 +383,64 @@ index 038d718..0000000
 """
         assert file_dict['new_filename'] is None
         assert parser.get_changed_files() == set(['whitelist/blacklist/b.txt'])
+        assert parser.get_lines_by_file() == {}
+
+    def test_remove_empty_file(self):
+        patch = """diff --git a/diff-from/__init__.py b/diff-from/__init__.py
+deleted file mode 100644
+index e69de29..0000000
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == ""
+        assert file_dict['new_filename'] is None
+        assert parser.get_changed_files() == set(['diff-from/__init__.py'])
+        assert parser.get_lines_by_file() == {}
+
+    def test_remove_multiple_empty_files(self):
+        patch = """diff --git a/diff-from/__init__.py b/diff-from/__init__.py
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/diff-from/other.py b/diff-from/other.py
+deleted file mode 100644
+index e69de29..0000000
+"""
+        parser = DiffParser(patch)
+        (first_dict, second_dict,) = parser.parse()
+        assert first_dict['new_filename'] is None
+        assert first_dict['old_filename'] == 'a/diff-from/__init__.py'
+        assert second_dict['new_filename'] is None
+        assert second_dict['old_filename'] == 'a/diff-from/other.py'
+        assert parser.get_changed_files() == set(['diff-from/__init__.py', 'diff-from/other.py'])
+        assert parser.get_lines_by_file() == {}
+
+    def test_add_empty_file(self):
+        patch = """diff --git a/diff-from/__init__.py b/diff-from/__init__.py
+new file mode 100644
+index 0000000..e69de29
+"""
+        parser = DiffParser(patch)
+        (file_dict,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_dict)
+        assert diff == ""
+        assert file_dict['old_filename'] is None
+        assert parser.get_changed_files() == set(['diff-from/__init__.py'])
+        assert parser.get_lines_by_file() == {}
+
+    def test_add_multiple_empty_files(self):
+        patch = """diff --git a/diff-from/__init__.py b/diff-from/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/diff-from/other.py b/diff-from/other.py
+new file mode 100644
+index 0000000..e69de29
+"""
+        parser = DiffParser(patch)
+        (first_dict, second_dict,) = parser.parse()
+        assert first_dict['new_filename'] == 'b/diff-from/__init__.py'
+        assert first_dict['old_filename'] is None
+        assert second_dict['new_filename'] == 'b/diff-from/other.py'
+        assert second_dict['old_filename'] is None
+        assert parser.get_changed_files() == set(['diff-from/__init__.py', 'diff-from/other.py'])
         assert parser.get_lines_by_file() == {}
