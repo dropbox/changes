@@ -341,6 +341,9 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'job_name': 'foo-bar',
             'build_no': 23,
         }
+
+        get_job_parameters.return_value = {'PARAM': '44'}
+
         get_required_artifact.return_value = 'tests.json'
 
         get_test_stats.return_value = {
@@ -418,7 +421,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             job_name='foo-bar',
             changes_bid=new_steps[0].id.hex,
             is_diff=False,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
         )
         get_job_parameters.assert_any_call(
             job,
@@ -432,7 +435,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             job_name='foo-bar',
             changes_bid=new_steps[1].id.hex,
             is_diff=False,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
         )
 
         # If fetch_artifact() is called again with different weights so
@@ -478,6 +481,9 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'job_name': 'foo-bar',
             'build_no': 23,
         }
+
+        get_job_parameters.return_value = {'PARAM': '44'}
+
         get_required_artifact.return_value = 'tests.json'
 
         get_test_stats.return_value = {
@@ -572,7 +578,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             job_name='foo-bar',
             changes_bid=new_steps[0].id.hex,
             is_diff=False,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
         )
         get_job_parameters.assert_any_call(
             job,
@@ -586,7 +592,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             job_name='foo-bar',
             changes_bid=new_steps[1].id.hex,
             is_diff=False,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
         )
 
         # If fetch_artifact() is called again with different weights so

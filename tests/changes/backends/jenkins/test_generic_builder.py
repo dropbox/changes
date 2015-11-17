@@ -81,19 +81,19 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         changes_bid = '5a9d18bb87ff12835dc844883c5c3ebe'  # arbitrary
 
         result = builder.get_job_parameters(job, changes_bid, path='foo')
-        assert {'name': 'CHANGES_BID', 'value': changes_bid} in result
-        assert {'name': 'CHANGES_PID', 'value': job.project.slug} in result
-        assert {'name': 'PROJECT_CONFIG', 'value': job.project.get_config_path()} in result
-        assert {'name': 'REPO_URL', 'value': job.project.repository.url} in result
-        assert {'name': 'REPO_VCS', 'value': job.project.repository.backend.name} in result
-        assert {'name': 'REVISION', 'value': job.source.revision_sha} in result
-        assert {'name': 'SETUP_SCRIPT', 'value': self.builder_options['setup_script']} in result
-        assert {'name': 'SCRIPT', 'value': self.builder_options['script']} in result
-        assert {'name': 'TEARDOWN_SCRIPT', 'value': self.builder_options['teardown_script']} in result
-        assert {'name': 'CLUSTER', 'value': self.builder_options['cluster']} in result
-        assert {'name': 'WORK_PATH', 'value': 'foo'} in result
-        assert {'name': 'PHAB_REVISION_ID', 'value': '1234'} in result
-        assert {'name': 'PHAB_DIFF_ID', 'value': '54321'} in result
+        assert result['CHANGES_BID'] == changes_bid
+        assert result['CHANGES_PID'] == job.project.slug
+        assert result['PROJECT_CONFIG'] == job.project.get_config_path()
+        assert result['REPO_URL'] == job.project.repository.url
+        assert result['REPO_VCS'] == job.project.repository.backend.name
+        assert result['REVISION'] == job.source.revision_sha
+        assert result['SETUP_SCRIPT'] == self.builder_options['setup_script']
+        assert result['SCRIPT'] == self.builder_options['script']
+        assert result['TEARDOWN_SCRIPT'] == self.builder_options['teardown_script']
+        assert result['CLUSTER'] == self.builder_options['cluster']
+        assert result['WORK_PATH'] == 'foo'
+        assert result['PHAB_REVISION_ID'] == '1234'
+        assert result['PHAB_DIFF_ID'] == '54321'
 
         # magic number that is simply the current number of parameters. Ensures that
         # there is nothing "extra"
@@ -101,15 +101,15 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         # test defaulting for lxc
         # pre/post are defined in conftest.py
-        assert {'name': 'CHANGES_CLIENT_LXC_PRE_LAUNCH', 'value': 'echo pre'} in result
-        assert {'name': 'CHANGES_CLIENT_LXC_POST_LAUNCH', 'value': 'echo post'} in result
-        assert {'name': 'CHANGES_CLIENT_LXC_RELEASE', 'value': 'release'} in result
+        assert result['CHANGES_CLIENT_LXC_PRE_LAUNCH'] == 'echo pre'
+        assert result['CHANGES_CLIENT_LXC_POST_LAUNCH'] == 'echo post'
+        assert result['CHANGES_CLIENT_LXC_RELEASE'] == 'release'
 
         # test optional values
         result = builder.get_job_parameters(job, uuid4().hex)
-        assert {'name': 'WORK_PATH', 'value': ''} in result
-        assert {'name': 'C_WORKSPACE', 'value': ''} in result
-        assert {'name': 'RESET_SCRIPT', 'value': ''} in result
+        assert result['WORK_PATH'] == ''
+        assert result['C_WORKSPACE'] == ''
+        assert result['RESET_SCRIPT'] == ''
 
     def test_create_commands(self):
         artifacts = ['coverage.xml', 'junit.xml']
@@ -141,12 +141,12 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         plan = self.create_plan(project)
         self.create_job_plan(job, plan)
         snapshot = self.create_snapshot(project)
-        snapshot_image = self.create_snapshot_image(snapshot, plan, job=job)
+        self.create_snapshot_image(snapshot, plan, job=job)
 
         params = builder.get_job_parameters(job, jobstep.id.hex, path='foo')
-        assert {'name': 'SETUP_SCRIPT', 'value': self.builder_options['setup_script']} in params
-        assert {'name': 'SCRIPT', 'value': ':'} in params
-        assert {'name': 'TEARDOWN_SCRIPT', 'value': self.builder_options['teardown_script']} in params
+        assert params['SETUP_SCRIPT'] == self.builder_options['setup_script']
+        assert params['SCRIPT'] == ':'
+        assert params['TEARDOWN_SCRIPT'] == self.builder_options['teardown_script']
 
         builder.create_commands(jobstep, params)
         db.session.commit()
@@ -187,10 +187,10 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         plan = self.create_plan(project)
         self.create_job_plan(job, plan)
         snapshot = self.create_snapshot(project)
-        snapshot_image = self.create_snapshot_image(snapshot, plan, job=job)
+        self.create_snapshot_image(snapshot, plan, job=job)
 
         params = builder.get_job_parameters(job, jobstep.id.hex, path='foo')
-        assert {'name': 'SCRIPT', 'value': 'cache-data'} in params
+        assert params['SCRIPT'] == 'cache-data'
 
         builder.create_commands(jobstep, params)
         db.session.commit()
@@ -210,7 +210,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         builder = self.get_builder(reset_script='reset_me.sh')
 
         result = builder.get_job_parameters(job, uuid4().hex, path='foo')
-        assert {'name': 'RESET_SCRIPT', 'value': 'reset_me.sh'} in result
+        assert result['RESET_SCRIPT'] == 'reset_me.sh'
 
     def test_get_job_parameters_diff(self):
         project = self.create_project()
@@ -222,7 +222,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         builder = self.get_builder()
 
         result = builder.get_job_parameters(job, uuid4().hex, path='foo')
-        assert {'name': 'CLUSTER', 'value': self.builder_options['diff_cluster']} in result
+        assert result['CLUSTER'] == self.builder_options['diff_cluster']
 
     def validate_build_type(self, build_type):
         builder = self.get_builder()

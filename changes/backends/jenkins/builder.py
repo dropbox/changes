@@ -892,37 +892,32 @@ class JenkinsBuilder(BaseBackend):
 
     def get_job_parameters(self, job, changes_bid):
         # TODO(kylec): Take a Source rather than a Job; we don't need a Job.
-        params = [
-            {'name': 'CHANGES_BID', 'value': changes_bid},
-        ]
+        """
+        Args:
+            job (Job): Job to use.
+            changes_bid (str): Changes BID; typically JobStep ID.
+
+        Returns:
+            dict: Parameters to be supplied to Jenkins for the job.
+        """
+        params = {'CHANGES_BID': changes_bid}
 
         source = job.build.source
 
         if source.revision_sha:
-            params.append(
-                {'name': 'REVISION', 'value': source.revision_sha},
-            )
+            params['REVISION'] = source.revision_sha
 
         if source.patch:
-            params.append(
-                {
-                    'name': 'PATCH_URL',
-                    'value': build_uri('/api/0/patches/{0}/?raw=1'.format(
-                        source.patch.id.hex)),
-                }
-            )
+            params['PATCH_URL'] = build_uri('/api/0/patches/{0}/?raw=1'.format(
+                        source.patch.id.hex))
 
         phab_diff_id = source.data.get('phabricator.diffID')
         if phab_diff_id:
-            params.append(
-                {'name': 'PHAB_DIFF_ID', 'value': phab_diff_id},
-            )
+            params['PHAB_DIFF_ID'] = phab_diff_id
 
         phab_revision_id = source.data.get('phabricator.revisionID')
         if phab_revision_id:
-            params.append(
-                {'name': 'PHAB_REVISION_ID', 'value': phab_revision_id},
-            )
+            params['PHAB_REVISION_ID'] = phab_revision_id
 
         return params
 
@@ -1048,7 +1043,8 @@ class JenkinsBuilder(BaseBackend):
         if step.data.get('build_no') or step.data.get('item_id'):
             return
 
-        params = self.get_job_parameters(step.job, changes_bid=step.id.hex, **kwargs)
+        params_dict = self.get_job_parameters(step.job, changes_bid=step.id.hex, **kwargs)
+        params = [{'name': k, 'value': v} for k, v in params_dict.iteritems()]
 
         is_diff = not step.job.source.is_commit()
         job_data = self.create_jenkins_job_from_params(

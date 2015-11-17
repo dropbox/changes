@@ -131,6 +131,8 @@ class JenkinsCollectorBuildStepTest(TestCase):
         }
         get_required_artifact.return_value = 'jobs.json'
 
+        get_job_parameters.return_value = {'PARAM': '44'}
+
         project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build, data={
@@ -186,13 +188,13 @@ class JenkinsCollectorBuildStepTest(TestCase):
         create_jenkins_job_from_params.assert_any_call(
             job_name='foo-bar',
             changes_bid=new_steps[0].id.hex,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
             is_diff=False
         )
         create_jenkins_job_from_params.assert_any_call(
             job_name='foo-bar',
             changes_bid=new_steps[1].id.hex,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
             is_diff=False
         )
 
@@ -221,6 +223,8 @@ class JenkinsCollectorBuildStepTest(TestCase):
             'build_no': 23,
         }
         get_required_artifact.return_value = 'jobs.json'
+
+        get_job_parameters.return_value = {'PARAM': '44'}
 
         project = self.create_project()
         build = self.create_build(project)
@@ -297,12 +301,12 @@ class JenkinsCollectorBuildStepTest(TestCase):
         create_jenkins_job_from_params.assert_any_call(
             job_name='foo-bar',
             changes_bid=new_steps[0].id.hex,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
             is_diff=False
         )
         create_jenkins_job_from_params.assert_any_call(
             job_name='foo-bar',
             changes_bid=new_steps[1].id.hex,
-            params=get_job_parameters.return_value,
+            params=[{'name': 'PARAM', 'value': '44'}],
             is_diff=False
         )

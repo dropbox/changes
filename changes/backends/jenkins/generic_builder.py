@@ -30,7 +30,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         # See configuration for more details; by default, the default build type is
         # legacy which sets up no additional configuration.
         self.build_type = kwargs.pop('build_type',
-            current_app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE'])
+                                     current_app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE'])
         if self.build_type is None:
             self.build_type = current_app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE']
 
@@ -91,7 +91,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         ).scalar()
 
     def get_job_parameters(self, job, changes_bid, setup_script=None,
-            script=None, teardown_script=None, path=None):
+                           script=None, teardown_script=None, path=None):
         """
         Gets a list containing dictionaries, each with two keys - name and value.
         These key,value pairs correspond to the input variables in Jenkins.
@@ -163,63 +163,44 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             teardown_script = self.get_snapshot_teardown_script()
 
         # CHANGES_BID, the jobstep id, is provided by superclass
-        params.extend([
-            {'name': 'CHANGES_PID', 'value': project.slug},
-            {'name': 'PROJECT_CONFIG', 'value': project.get_config_path()},
-            {'name': 'REPO_URL', 'value': repo_url},
-            {'name': 'SETUP_SCRIPT', 'value': setup_script},
-            {'name': 'SCRIPT', 'value': script},
-            {'name': 'TEARDOWN_SCRIPT', 'value': teardown_script},
-            {'name': 'RESET_SCRIPT', 'value': self.reset_script},
-            {'name': 'REPO_VCS', 'value': repository.backend.name},
-            {'name': 'CLUSTER', 'value': cluster},
-            {'name': 'WORK_PATH', 'value': path},
-            {'name': 'C_WORKSPACE', 'value': self.workspace},
-            {'name': 'ARTIFACTS_SERVER_BASE_URL', 'value': self.artifact_server_base_url}
-        ])
+        params.update({
+            'CHANGES_PID': project.slug,
+            'PROJECT_CONFIG': project.get_config_path(),
+            'REPO_URL': repo_url,
+            'SETUP_SCRIPT': setup_script,
+            'SCRIPT': script,
+            'TEARDOWN_SCRIPT': teardown_script,
+            'RESET_SCRIPT': self.reset_script,
+            'REPO_VCS': repository.backend.name,
+            'CLUSTER': cluster,
+            'WORK_PATH': path,
+            'C_WORKSPACE': self.workspace,
+            'ARTIFACTS_SERVER_BASE_URL': self.artifact_server_base_url})
 
         if build_desc.get('uses_client', False):
-            params.extend([
-                {'name': 'JENKINS_COMMAND',
-                 'value': build_desc['jenkins-command']},
-                {'name': 'CHANGES_CLIENT_ADAPTER',
-                 'value': build_desc['adapter']},
-                {'name': 'CHANGES_CLIENT_SERVER',
-                 'value': build_uri('/api/0')},
-                {'name': 'CHANGES_CLIENT_SNAPSHOT_BUCKET',
-                 'value': snapshot_bucket},
-                {'name': 'CHANGES_CLIENT_SNAPSHOT_ID',
-                 'value': snapshot_id},
-                {'name': 'CHANGES_CLIENT_LXC_PRE_LAUNCH',
-                 'value': build_desc.get('pre-launch', default_pre)},
-                {'name': 'CHANGES_CLIENT_LXC_POST_LAUNCH',
-                 'value': build_desc.get('post-launch', default_post)},
-                {'name': 'CHANGES_CLIENT_LXC_RELEASE',
-                 'value': build_desc.get('release', default_release)},
-            ])
+            params.update({
+                'JENKINS_COMMAND': build_desc['jenkins-command'],
+                'CHANGES_CLIENT_ADAPTER': build_desc['adapter'],
+                'CHANGES_CLIENT_SERVER': build_uri('/api/0'),
+                'CHANGES_CLIENT_SNAPSHOT_BUCKET': snapshot_bucket,
+                'CHANGES_CLIENT_SNAPSHOT_ID': snapshot_id,
+                'CHANGES_CLIENT_LXC_PRE_LAUNCH': build_desc.get('pre-launch',
+                                                                default_pre),
+                'CHANGES_CLIENT_LXC_POST_LAUNCH': build_desc.get('post-launch',
+                                                                 default_post),
+                'CHANGES_CLIENT_LXC_RELEASE': build_desc.get('release',
+                                                             default_release)
+            })
 
         return params
-
-    def params_to_env(self, params):
-        """
-        If the build is LXC, all of the environment will get wiped
-        as we actually run the command. However, it is still necessary
-        to pass SCRIPT and similar environment variables. As an easy
-        way of working around this, we just pass all the Jenkins
-        job parameters as environment variables. Thus, we simply
-        turn the Jenkins-parameters into a more normal dict
-        that represents environment variables that get passed to the
-        commands from the build type.
-        """
-        return {param['name']: param['value'] for param in params}
 
     def get_future_commands(self, params, commands, artifacts):
         """Create future commands which are later created as comands.
         See models/command.py.
         """
         return map(lambda command: FutureCommand(command['script'],
-                                    artifacts=artifacts,
-                                    env=self.params_to_env(params)),
+                                                 artifacts=artifacts,
+                                                 env=dict(params)),
                    commands)
 
     def create_commands(self, jobstep, params):
