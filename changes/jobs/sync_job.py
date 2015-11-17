@@ -14,7 +14,8 @@ from changes.queue.task import tracked_task
 from changes.utils.agg import aggregate_status, safe_agg
 
 # Maximum duration of failed job that we will consider retrying (in seconds)
-MAX_DURATION_FOR_RETRY_SECS = 600
+# TODO(nate): make this a config
+MAX_DURATION_FOR_RETRY_SECS = 900
 
 
 def aggregate_job_stat(job, name, func_=func.sum):
