@@ -216,6 +216,7 @@ class Fixtures(object):
         if 'data' not in kwargs:
             data = {
                 'phabricator.revisionID': '1234',
+                'phabricator.diffID': '54321',
                 'phabricator.revisionURL': 'https://tails.corp.dropbox.com/D1234'
             }
             kwargs['data'] = data

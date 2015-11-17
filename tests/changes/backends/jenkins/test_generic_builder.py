@@ -92,10 +92,12 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         assert {'name': 'TEARDOWN_SCRIPT', 'value': self.builder_options['teardown_script']} in result
         assert {'name': 'CLUSTER', 'value': self.builder_options['cluster']} in result
         assert {'name': 'WORK_PATH', 'value': 'foo'} in result
+        assert {'name': 'PHAB_REVISION_ID', 'value': '1234'} in result
+        assert {'name': 'PHAB_DIFF_ID', 'value': '54321'} in result
 
         # magic number that is simply the current number of parameters. Ensures that
         # there is nothing "extra"
-        assert len(result) == 22
+        assert len(result) == 24
 
         # test defaulting for lxc
         # pre/post are defined in conftest.py

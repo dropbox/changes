@@ -904,19 +904,34 @@ class JenkinsBuilder(BaseBackend):
             {'name': 'CHANGES_BID', 'value': changes_bid},
         ]
 
-        if job.build.source.revision_sha:
+        source = job.build.source
+
+        if source.revision_sha:
             params.append(
-                {'name': 'REVISION', 'value': job.build.source.revision_sha},
+                {'name': 'REVISION', 'value': source.revision_sha},
             )
 
-        if job.build.source.patch:
+        if source.patch:
             params.append(
                 {
                     'name': 'PATCH_URL',
                     'value': build_uri('/api/0/patches/{0}/?raw=1'.format(
-                        job.build.source.patch.id.hex)),
+                        source.patch.id.hex)),
                 }
             )
+
+        phab_diff_id = source.data.get('phabricator.diffID')
+        if phab_diff_id:
+            params.append(
+                {'name': 'PHAB_DIFF_ID', 'value': phab_diff_id},
+            )
+
+        phab_revision_id = source.data.get('phabricator.revisionID')
+        if phab_revision_id:
+            params.append(
+                {'name': 'PHAB_REVISION_ID', 'value': phab_revision_id},
+            )
+
         return params
 
     def create_jenkins_job_from_params(self, changes_bid, params, job_name=None, is_diff=False):
