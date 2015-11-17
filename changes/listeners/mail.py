@@ -41,6 +41,7 @@ class MailNotificationHandler(object):
     logger = logging.getLogger('mail')
 
     def send(self, msg, build):
+        msg.recipients = filter_recipients(msg.recipients)
         if not msg.recipients:
             self.logger.info(
                 'Exiting for collection_id={} because its message has no '
