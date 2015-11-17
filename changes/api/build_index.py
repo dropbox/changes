@@ -135,7 +135,7 @@ def find_green_parent_sha(project, sha):
 
 def create_build(project, collection_id, label, target, message, author,
                  change=None, patch=None, cause=None, source=None, sha=None,
-                 source_data=None, tag=None, snapshot_id=None):
+                 source_data=None, tag=None, snapshot_id=None, no_snapshot=False):
     assert sha or source
 
     repository = project.repository
@@ -180,7 +180,7 @@ def create_build(project, collection_id, label, target, message, author,
     db.session.add(build)
     db.session.commit()
 
-    execute_build(build=build, snapshot_id=snapshot_id)
+    execute_build(build=build, snapshot_id=snapshot_id, no_snapshot=no_snapshot)
 
     return build
 
@@ -189,14 +189,16 @@ def get_build_plans(project):
     return [p for p in project.plans if p.status == PlanStatus.active]
 
 
-def execute_build(build, snapshot_id=None):
+def execute_build(build, snapshot_id, no_snapshot):
+    if no_snapshot:
+        assert snapshot_id is None, 'Cannot specify snapshot with no_snapshot option'
     # TODO(dcramer): most of this should be abstracted into sync_build as if it
     # were a "im on step 0, create step 1"
     project = build.project
 
     # We choose a snapshot before creating jobplans. This is so that different
     # jobplans won't end up using different snapshots in a build.
-    if snapshot_id is None:
+    if snapshot_id is None and not no_snapshot:
         snapshot = Snapshot.get_current(project.id)
         if snapshot:
             snapshot_id = snapshot.id
@@ -406,12 +408,13 @@ class BuildIndexAPIView(APIView):
     parser.add_argument('ensure_only', type=bool, default=False)
 
     """Optional id of the snapshot to use for this build. If none is given,
-    the current active snapshot for the project(s) will be used.
-
-    TODO(paulruan): It might be useful to have a flag that allows us to say that
-    no snapshot should be used.
+    the current active snapshot for the project(s) will be used. To use no snapshot,
+    use the `no_snapshot` flag described below.
     """
     parser.add_argument('snapshot_id', type=uuid.UUID, default=None)
+
+    """Optional flag to force the build to use no snapshot."""
+    parser.add_argument('no_snapshot', type=bool, default=False)
 
     get_parser = reqparse.RequestParser()
 
@@ -517,6 +520,10 @@ class BuildIndexAPIView(APIView):
         message = args.message
         tag = args.tag
         snapshot_id = args.snapshot_id
+        no_snapshot = args.no_snapshot
+
+        if no_snapshot and snapshot_id:
+            return self.handle_failure("Cannot specify snapshot with no_snapshot option")
 
         if not tag and args.patch_file:
             tag = 'patch'
@@ -695,6 +702,7 @@ class BuildIndexAPIView(APIView):
                         source_data=patch_data,
                         tag=tag,
                         snapshot_id=snapshot_id,
+                        no_snapshot=no_snapshot
                     ))
                 else:
                     builds.append(potentials[0])
@@ -711,6 +719,7 @@ class BuildIndexAPIView(APIView):
                     source_data=patch_data,
                     tag=tag,
                     snapshot_id=snapshot_id,
+                    no_snapshot=no_snapshot
                 ))
 
         return self.respond(builds)

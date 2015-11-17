@@ -288,6 +288,75 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
         assert jobplan.snapshot_image_id == image.id
 
+    def test_default_to_current_snapshot(self):
+        snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
+        image = self.create_snapshot_image(
+            plan=self.plan,
+            snapshot=snapshot,
+        )
+        self.create_option(
+            item_id=self.plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        self.create_project_option(
+            project=self.project,
+            name='snapshot.current',
+            value=snapshot.id.hex
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        job = Job.query.filter(
+            Job.build_id == data[0]['id']
+        ).first()
+        jobplan = JobPlan.query.filter(
+            JobPlan.build_id == data[0]['id'],
+            JobPlan.job_id == job.id
+        ).first()
+
+        assert jobplan.snapshot_image_id == image.id
+
+    def test_no_snapshot_option(self):
+        snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
+        image = self.create_snapshot_image(
+            plan=self.plan,
+            snapshot=snapshot,
+        )
+        self.create_option(
+            item_id=self.plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        self.create_project_option(
+            project=self.project,
+            name='snapshot.current',
+            value=snapshot.id.hex
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'no_snapshot': '1',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        job = Job.query.filter(
+            Job.build_id == data[0]['id']
+        ).first()
+        jobplan = JobPlan.query.filter(
+            JobPlan.build_id == data[0]['id'],
+            JobPlan.job_id == job.id
+        ).first()
+
+        assert jobplan.snapshot_image_id is None
+
     def test_with_nonexistent_snapshot(self):
         self.create_option(
             item_id=self.plan.id,
