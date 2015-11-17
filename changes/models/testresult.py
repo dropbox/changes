@@ -91,7 +91,7 @@ class TestResultManager(object):
         for test in test_list:
             duration = test.duration
             # Maximum value for the Integer column type
-            if duration > 2147483647 or duration < 0:
+            if duration is not None and (duration > 2147483647 or duration < 0):
                 # If it is very large (>~25 days) or negative set it to 0
                 # since it is almost certainly wrong, and keeping it or truncating
                 # to max will give misleading total values.
