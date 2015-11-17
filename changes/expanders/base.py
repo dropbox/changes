@@ -1,7 +1,11 @@
 from __future__ import absolute_import
 
+import logging
+
 
 class Expander(object):
+    logger = logging.getLogger('expander')
+
     def __init__(self, project, data):
         self.project = project
         self.data = data

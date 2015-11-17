@@ -6,7 +6,7 @@ from datetime import datetime
 from flask_restful.reqparse import RequestParser
 from sqlalchemy.sql import func
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.validators.datetime import ISODatetime
 from changes.config import db, redis
 from changes.constants import Status
@@ -60,7 +60,7 @@ class CommandDetailsAPIView(APIView):
                 return '', 404
 
             if command.status == Status.finished:
-                return '{"error": "Command already marked as finished"}', 400
+                return error("Command already marked as finished")
 
             if args.return_code is not None:
                 command.return_code = args.return_code
@@ -90,7 +90,7 @@ class CommandDetailsAPIView(APIView):
             if expander_cls is not None:
                 if not args.output:
                     db.session.rollback()
-                    return '{"error": "Missing output for command of type %s"}' % (command.type), 400
+                    return error("Missing output for command of type %s" % command.type)
 
                 expander = expander_cls(
                     project=command.jobstep.project,
@@ -101,7 +101,7 @@ class CommandDetailsAPIView(APIView):
                     expander.validate()
                 except AssertionError as e:
                     db.session.rollback()
-                    return '{"error": "{}"}'.format(e), 400
+                    return error('%s' % e)
                 except Exception:
                     db.session.rollback()
                     return '', 500

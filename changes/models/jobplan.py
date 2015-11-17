@@ -4,6 +4,7 @@ import logging
 import uuid
 
 from collections import defaultdict
+from copy import deepcopy
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
@@ -53,7 +54,9 @@ class HistoricalImmutableStep(object):
             return cls
 
         try:
-            return cls(**self.data)
+            # It's important that we deepcopy data so any
+            # mutations within the BuildStep don't propagate into the db
+            return cls(**deepcopy(self.data))
         except Exception:
             return None
 

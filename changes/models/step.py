@@ -66,7 +66,7 @@ class Step(db.Model):
             return cls
 
         try:
-            # XXX(dcramer): It's important that we deepcopy data so any
+            # It's important that we deepcopy data so any
             # mutations within the BuildStep don't propagate into the db
             return cls(**deepcopy(self.data))
         except Exception:
