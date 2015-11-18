@@ -126,9 +126,6 @@ class CommandDetailsAPIView(APIView):
             ).scalar()
             phase_name = 'Phase #{}'.format(phase_count)
 
-        jobstep.data['expanded'] = True
-        db.session.add(jobstep)
-
         new_jobphase = JobPhase(
             job_id=jobstep.job_id,
             project_id=jobstep.project_id,
@@ -142,7 +139,7 @@ class CommandDetailsAPIView(APIView):
         results = []
         for future_jobstep in expander.expand(max_executors=jobstep.data['max_executors'],
                                               test_stats_from=buildstep.get_test_stats_from()):
-            new_jobstep = buildstep.expand_jobstep(jobstep, new_jobphase, future_jobstep)
+            new_jobstep = buildstep.create_expanded_jobstep(jobstep, new_jobphase, future_jobstep)
             results.append(new_jobstep)
 
         # If there are no tests to run, the phase is done.

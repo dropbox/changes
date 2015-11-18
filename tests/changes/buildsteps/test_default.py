@@ -105,7 +105,7 @@ class DefaultBuildStepTest(TestCase):
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[1].env == DEFAULT_ENV
 
-    def test_expand_jobstep(self):
+    def test_create_expanded_jobstep(self):
         build = self.create_build(self.create_project())
         job = self.create_job(build)
         jobphase = self.create_jobphase(job, label='foo')
@@ -122,12 +122,74 @@ class DefaultBuildStepTest(TestCase):
         )
 
         buildstep = self.get_buildstep()
-        new_jobstep = buildstep.expand_jobstep(
+        new_jobstep = buildstep.create_expanded_jobstep(
             jobstep, new_jobphase, future_jobstep)
 
         db.session.flush()
 
-        assert new_jobstep.data['generated'] is True
+        assert new_jobstep.data['expanded'] is True
+
+        commands = list(Command.query.filter(
+            Command.jobstep_id == new_jobstep.id,
+        ).order_by(
+            Command.order.asc(),
+        ))
+
+        assert len(commands) == 3
+        assert commands[0].script == 'echo "hello world 2"'
+        assert commands[0].cwd == '/usr/test/1'
+        assert commands[0].type == CommandType.setup
+        assert commands[0].order == 0
+        assert commands[1].label == 'echo 1'
+        assert commands[1].script == 'echo 1'
+        assert commands[1].order == 1
+        assert commands[1].cwd == DEFAULT_PATH
+        assert commands[2].label == 'echo "foo"'
+        assert commands[2].script == 'echo "foo"\necho "bar"'
+        assert commands[2].order == 2
+        assert commands[2].cwd == DEFAULT_PATH
+
+    def test_create_replacement_jobstep_expanded(self):
+        build = self.create_build(self.create_project())
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job, label='foo')
+        jobstep = self.create_jobstep(jobphase)
+
+        new_jobphase = self.create_jobphase(job, label='bar')
+
+        future_jobstep = FutureJobStep(
+            label='test',
+            commands=[
+                FutureCommand('echo 1'),
+                FutureCommand('echo "foo"\necho "bar"'),
+            ],
+            data={'weight': 1, 'forceInfraFailure': True},
+        )
+
+        buildstep = self.get_buildstep()
+        fail_jobstep = buildstep.create_expanded_jobstep(
+            jobstep, new_jobphase, future_jobstep)
+
+        fail_jobstep.result = Result.infra_failed
+        fail_jobstep.status = Status.finished
+        db.session.add(fail_jobstep)
+        db.session.commit()
+
+        new_jobstep = buildstep.create_replacement_jobstep(fail_jobstep)
+        # new jobstep should still be part of same job/phase
+        assert new_jobstep.job == job
+        assert new_jobstep.phase == new_jobphase
+        # make sure .steps actually includes the new jobstep
+        assert len(job.phases[0].steps) == 2
+        # make sure replacement id is correctly set
+        assert fail_jobstep.replacement_id == new_jobstep.id
+
+        # we want the replacement jobstep to have the same attributes the
+        # original jobstep would be expected to after expand_jobstep()
+        assert new_jobstep.data['expanded'] is True
+        assert new_jobstep.data['weight'] == 1
+        # make sure non-whitelisted attributes aren't copied over
+        assert 'forceInfraFailure' not in new_jobstep.data
 
         commands = list(Command.query.filter(
             Command.jobstep_id == new_jobstep.id,

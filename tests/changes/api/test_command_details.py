@@ -98,7 +98,7 @@ class UpdateCommandTest(APITestCase):
             jobstep, type=CommandType.collect_tests,
             status=Status.in_progress)
 
-        def dummy_expand_jobstep(jobstep, new_jobphase, future_jobstep):
+        def dummy_create_expanded_jobstep(jobstep, new_jobphase, future_jobstep):
             return future_jobstep.as_jobstep(new_jobphase)
 
         dummy_expander = Mock(spec=Expander)
@@ -112,7 +112,7 @@ class UpdateCommandTest(APITestCase):
         )]
         mock_get_expander.return_value.return_value = dummy_expander
         mock_buildstep = Mock(spec=BuildStep)
-        mock_buildstep.expand_jobstep.side_effect = dummy_expand_jobstep
+        mock_buildstep.create_expanded_jobstep.side_effect = dummy_create_expanded_jobstep
 
         mock_get_build_step_for_job.return_value = jobplan, mock_buildstep
 
@@ -168,9 +168,6 @@ class UpdateCommandTest(APITestCase):
         command = self.create_command(
             jobstep, type=CommandType.collect_tests,
             status=Status.in_progress)
-
-        def dummy_expand_jobstep(jobstep, new_jobphase, future_jobstep):
-            return future_jobstep.as_jobstep(new_jobphase)
 
         empty_expander = Mock(spec=Expander)
         empty_expander.expand.return_value = []

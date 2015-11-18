@@ -39,7 +39,18 @@ class FutureCommand(object):
         self.label = label
         self.type = type
 
+    @classmethod
+    def from_command(cls, command):
+        """
+        Creates a FutureCommand from an existing Command database object.
+        """
+        return cls(command.script, command.cwd, command.artifacts,
+                   command.env, command.label, command.type)
+
     def as_command(self, jobstep, order):
+        """
+        Return a Command database object from a FutureCommand.
+        """
         return Command(
             jobstep_id=jobstep.id,
             script=self.script,

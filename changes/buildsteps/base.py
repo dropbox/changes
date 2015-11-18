@@ -111,7 +111,7 @@ class BuildStep(object):
     def fetch_artifact(self, artifact):
         raise NotImplementedError
 
-    def expand_jobstep(self, jobstep, new_jobphase, future_jobstep):
+    def create_expanded_jobstep(self, jobstep, new_jobphase, future_jobstep):
         raise NotImplementedError
 
     def get_allocation_command(self, jobstep):

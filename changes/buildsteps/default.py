@@ -15,7 +15,7 @@ from changes.constants import Cause, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
-    CommandType, FutureCommand, JobPhase, JobStep, SnapshotImage
+    CommandType, FutureCommand, JobPhase, JobStep, FutureJobStep, SnapshotImage
 )
 from changes.utils.http import build_uri
 
@@ -31,6 +31,11 @@ DEFAULT_RELEASE = 'precise'
 DEFAULT_ENV = {
     'CHANGES': '1',
 }
+
+# We only want to copy certain attributes from a jobstep (basically, only
+# static state, not things that change after jobstep creation), so we
+# have an explicit list of attributes we'll copy
+JOBSTEP_DATA_COPY_WHITELIST = ('release', 'cpus', 'memory', 'weight', 'tests', 'shard_count')
 
 
 class DefaultBuildStep(BuildStep):
@@ -240,11 +245,24 @@ class DefaultBuildStep(BuildStep):
         return step
 
     def create_replacement_jobstep(self, step):
-        # don't support retrying expanded/generated jobsteps yet (for non-jenkins
-        # builds expanded jobsteps are just dead code right now anyway)
-        if step.data.get('generated', False):
-            return None
-        return self._setup_jobstep(step.phase, step.job, replaces=step)
+        if not step.data.get('expanded', False):
+            return self._setup_jobstep(step.phase, step.job, replaces=step)
+        future_commands = map(FutureCommand.from_command, step.commands)
+        future_jobstep = FutureJobStep(step.label, commands=future_commands)
+        # we skip adding setup and teardown commands because these will already
+        # be present in the old, failed JobStep.
+        new_jobstep = self.create_expanded_jobstep(step, step.phase, future_jobstep,
+                                   skip_setup_teardown=True)
+        db.session.flush()
+        step.replacement_id = new_jobstep.id
+        db.session.add(step)
+        db.session.commit()
+        sync_job_step.delay_if_needed(
+            step_id=new_jobstep.id.hex,
+            task_id=new_jobstep.id.hex,
+            parent_task_id=new_jobstep.job.id.hex,
+        )
+        return new_jobstep
 
     def update(self, job):
         pass
@@ -259,33 +277,48 @@ class DefaultBuildStep(BuildStep):
     def cancel_step(self, step):
         pass
 
-    def expand_jobstep(self, jobstep, new_jobphase, future_jobstep):
+    def create_expanded_jobstep(self, base_jobstep, new_jobphase, future_jobstep, skip_setup_teardown=False):
+        """
+        Converts an expanded FutureJobstep into a JobStep and sets up its commands accordingly.
+
+        Args:
+            base_jobstep: The base JobStep to copy data attributes from.
+            new_jobphase: The JobPhase for the new JobStep
+            future_jobstep: the FutureJobstep to convert from.
+            skip_setup_teardown: if True, don't add setup and teardown commands
+                to the new JobStep (e.g., if future_jobstep already has them)
+        Returns the newly created JobStep (uncommitted).
+        """
         new_jobstep = future_jobstep.as_jobstep(new_jobphase)
 
-        base_jobstep_data = deepcopy(jobstep.data)
+        base_jobstep_data = deepcopy(base_jobstep.data)
 
         # inherit base properties from parent jobstep
         for key, value in base_jobstep_data.items():
+            if key not in JOBSTEP_DATA_COPY_WHITELIST:
+                continue
             if key not in new_jobstep.data:
                 new_jobstep.data[key] = value
         new_jobstep.status = Status.pending_allocation
-        new_jobstep.data['generated'] = True
+        new_jobstep.data['expanded'] = True
         BuildStep.handle_debug_infra_failures(new_jobstep, self.debug_config, 'expanded')
         db.session.add(new_jobstep)
 
         # when we expand the command we need to include all setup and teardown
-        # commands as part of the build step
+        # commands
         setup_commands = []
         teardown_commands = []
-        for future_command in self.iter_all_commands(jobstep.job):
-            if future_command.type == CommandType.setup:
-                setup_commands.append(future_command)
-            elif future_command.type == CommandType.teardown:
-                teardown_commands.append(future_command)
+        if not skip_setup_teardown:
+            for future_command in self.iter_all_commands(base_jobstep.job):
+                if future_command.type == CommandType.setup:
+                    setup_commands.append(future_command)
+                elif future_command.type == CommandType.teardown:
+                    teardown_commands.append(future_command)
 
         for future_command in future_jobstep.commands:
             # TODO(dcramer): we need to remove path as an end-user option
-            future_command.path = self.path
+            if not future_command.path:
+                future_command.path = self.path
 
         # setup -> newly generated commands from expander -> teardown
         for index, future_command in enumerate(chain(setup_commands,
