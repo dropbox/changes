@@ -26,6 +26,7 @@ class RevisionTest(TestCase):
         assert result['dateCreated'] == '2013-09-19T22:15:22'
         assert result['parents'] == ['a' * 40]
         assert result['external'] is None
+        assert result['branches'] == ['master']
 
     def test_phabricator_links(self):
         repository = self.create_repo()

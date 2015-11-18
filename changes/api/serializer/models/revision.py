@@ -4,7 +4,8 @@ from flask import current_app
 
 from changes.api.serializer import Crumbler, register
 from changes.config import db
-from changes.models import ItemOption, Revision
+from changes.models.option import ItemOption
+from changes.models.revision import Revision
 
 
 @register(Revision)
@@ -45,6 +46,7 @@ class RevisionCrumbler(Crumbler):
                 'id': instance.repository_id,
             },
             'sha': instance.sha,
+            'branches': instance.branches,
             'message': instance.message,
             'author': instance.author,
             'parents': instance.parents,
