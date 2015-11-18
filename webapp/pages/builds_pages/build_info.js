@@ -13,7 +13,7 @@ import { InfoList, InfoItem } from 'es6!display/info_list';
 import { JobstepDetails } from 'es6!display/changes/jobstep_details';
 import { TestDetails } from 'es6!display/changes/test_details';
 import { buildSummaryText, manyBuildsSummaryText, get_build_cause, get_cause_sentence, WaitingTooltip } from 'es6!display/changes/build_text';
-import { display_duration } from 'es6!display/time';
+import { display_duration, formatTime } from 'es6!display/time';
 import { get_runnable_condition, get_runnables_summary_condition, get_runnable_condition_short_text, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
@@ -47,6 +47,7 @@ export var SingleBuild = React.createClass({
       // states for toggling inline visibility of test snippets
       expandedTests: {},
       expandedJobSteps: {},
+      expandedJobStepTimelines: {},
     };
   },
 
@@ -225,9 +226,9 @@ export var SingleBuild = React.createClass({
       </Request>
       {cancel}
       <div className="marginTopM">
-        <Button 
-          type="white" 
-          className="sizedButton" 
+        <Button
+          type="white"
+          className="sizedButton"
           href={buildTestsHref}>
           <i className="fa fa-ellipsis-h marginRightM" />
           Test Details
@@ -238,20 +239,16 @@ export var SingleBuild = React.createClass({
   },
 
   renderDetails: function(build, job_phases) {
-    var DATE_RFC2822 = "ddd, DD MMM YYYY HH:mm:ss ZZ";
-
     var attributes = {};
+    attributes['Created'] = formatTime(build.dateCreated);
+    if (build.dateStarted) {
+      attributes['Started'] = formatTime(build.dateStarted);
+    }
     if (build.dateFinished) {
       attributes['Finished'] = (
-        moment.utc(build.dateCreated).local().format(DATE_RFC2822) + 
+        formatTime(build.dateFinished) +
         ` (${display_duration(build.duration / 1000)})`
       );
-    } else if (build.dateStarted) {
-      attributes['Started'] = moment.utc(build.dateStarted).local()
-        .format(DATE_RFC2822);
-    } else {
-      attributes['Created'] = moment.utc(build.dateCreated).local()
-        .format(DATE_RFC2822);
     }
 
     var testCount = (!build.stats.test_count && get_runnable_condition(build) === 'waiting') ?
@@ -450,6 +447,26 @@ export var SingleBuild = React.createClass({
         var jobstepCondition = get_runnable_condition(jobstep);
         var jobstepDot = <ConditionDot condition={jobstepCondition} />;
 
+        var timeline = {
+          'Created': jobstep.dateCreated,
+          'Started': jobstep.dateStarted,
+          'Finished': jobstep.dateFinished,
+        };
+        let formattedTimeline = _.map(timeline, (t, label) => {
+          return t ? <div>{label}: {formatTime(t)}</div> : '';
+        });
+
+        let expandTimelineOnClick = __ => {
+          this.setState(
+            utils.update_key_in_state_dict('expandedJobStepTimelines',
+              jobstep.id,
+              !this.state.expandedJobStepTimelines[jobstep.id])
+          );
+        };
+
+        let expandTimelineLabel = !this.state.expandedJobStepTimelines[jobstep.id] ?
+          'details' : 'collapse';
+
         var jobstepDuration = null;
         if (jobstepCondition === 'waiting') {
           jobstepDuration = <WaitingTooltip runnable={jobstep} placement="left">
@@ -462,6 +479,10 @@ export var SingleBuild = React.createClass({
         } else {
           jobstepDuration = jobstep.duration ?
             display_duration(jobstep.duration/1000) : '';
+          jobstepDuration = <div>
+            {jobstepDuration}{' ('}<a onClick={expandTimelineOnClick}>{expandTimelineLabel}</a>{')'}
+            {this.state.expandedJobStepTimelines[jobstep.id] ? formattedTimeline : ''}
+          </div>;
           var label = get_runnable_condition_short_text(jobstepCondition);
           jobstepDot = <SimpleTooltip label={label} placement="right">
             <span>{jobstepDot}</span>
@@ -549,7 +570,7 @@ export var SingleBuild = React.createClass({
             /* skip external class since we'd have two icons */
             <a href={jobstep.data.uri} target="_blank">
               Jenkins{" "}
-              {ChangesUI.restrictedIcon()} 
+              {ChangesUI.restrictedIcon()}
             </a>
           );
         }
@@ -565,18 +586,19 @@ export var SingleBuild = React.createClass({
         let expandLabel = !this.state.expandedJobSteps[jobstep.id] ?
           'Expand' : 'Collapse';
 
+
         // no separator and 50% opacity for replaced jobstep
         var hasBorder = jobstep.replacement_id == null;
         var fadedOut = jobstep.replacement_id != null;
         phase_rows.push(new GridRow([
           index === 0 && !only_one_row ?
-            <span className="lb">{phase.name}</span> : 
+            <span className="lb">{phase.name}</span> :
             "",
           jobstepDot,
           jobstepImage,
           <div>{nodeLink}{failureMarkup}{replacementMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
           links,
-          jobstepDuration
+          jobstepDuration,
         ], hasBorder, fadedOut));
 
         if (this.state.expandedJobSteps[jobstep.id]) {
@@ -592,11 +614,11 @@ export var SingleBuild = React.createClass({
       'Snapshot Image',
       'Machine Log',
       'Links',
-      'Duration'
+      'Duration',
     ];
 
     var cellClasses = [
-      'nowrap phaseCell', 'nowrap center', 'nowrap', 'wide', 'nowrap', 'nowrap'
+      'nowrap phaseCell', 'nowrap center', 'nowrap', 'wide', 'nowrap', 'nowrap',
     ];
 
     return <Grid

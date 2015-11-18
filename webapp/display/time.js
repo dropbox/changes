@@ -184,6 +184,11 @@ export var LiveTime = React.createClass({
   }
 });
 
+export var formatTime = function(time) {
+  var DATE_RFC2822 = "ddd, DD MMM YYYY HH:mm:ss ZZ";
+  return moment.utc(time).local().format(DATE_RFC2822);
+}
+
 /*
  * Converts 136 [in seconds] to a string like "2m16s". Note that the backend
  * often returns durations in milliseconds, not seconds!
