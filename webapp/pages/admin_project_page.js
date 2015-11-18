@@ -259,27 +259,33 @@ let SnapshotList = React.createClass({
         sha = snapshot.source.revision.sha.substring(0, 12);
       }
 
-      let params = {};
-      let key = 'snapshot.current';
-      let action = 'Activate';
-      if (snapshot.isActive) {
-        params[key] = '';
-        action = 'Deactivate';
+      let post = '';
+      if (snapshot.status.id == 'failed') {
+        post = <i>Failed</i>;
       } else {
-        params[key] = snapshot.id;
+        let params = {};
+        let key = 'snapshot.current';
+        let action = 'Activate';
+        if (snapshot.isActive) {
+          params[key] = '';
+          action = 'Deactivate';
+        } else {
+          params[key] = snapshot.id;
+        }
+        let endpoint = `/api/0/projects/${this.props.projectSlug}/options/`;
+        post = <Request
+                  parentElem={this}
+                  name="activate_snapshot"
+                  endpoint={endpoint}
+                  method="post"
+                  params={params}>
+                  <Button type="blue">
+                    <span>{action}</span>
+                  </Button>
+               </Request>;
       }
-      let endpoint = `/api/0/projects/${this.props.projectSlug}/options/`;
-      let post = <Request
-                    parentElem={this}
-                    name="activate_snapshot"
-                    endpoint={endpoint}
-                    method="post"
-                    params={params}>
-                      <Button type="blue">
-                        <span>{action}</span>
-                      </Button>
-                 </Request>;
-      return [snapshot.id, sha, <TimeText time={snapshot.dateCreated} />, post];
+      let idlink = <a href={URI(`/snapshot/${snapshot.id}`)}>{snapshot.id}</a>;
+      return [idlink, sha, <TimeText time={snapshot.dateCreated} />, post];
     });
 
     return <Grid
