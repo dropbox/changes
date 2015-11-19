@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import logging
 import redis
+import time
 
 from contextlib import contextmanager
 from random import random
@@ -46,6 +47,9 @@ class _Redis(object):
         delay = 0.01 + random() / 10
         lock = conn.lock(lock_key, timeout=expire, sleep=delay)
         acquired = lock.acquire(blocking=not nowait, blocking_timeout=blocking_timeout)
+        # This is likely slightly after it was actually acquired, but it avoids reporting blocked
+        # time as time spent holding the lock.
+        start = time.time()
 
         self.logger.info('Acquiring lock on %s', lock_key)
 
@@ -59,10 +63,10 @@ class _Redis(object):
 
             try:
                 lock.release()
-            except Exception as e:
+            except Exception:
                 # notably, an exception is raised if we release a lock we don't
                 # own, e.g. because it expired while we held it.
-                self.logger.exception(e)
+                self.logger.exception("Error releasing lock %s acquired around %ss ago", lock_key, time.time() - start)
 
     def incr(self, key):
         self.redis.incr(key)
