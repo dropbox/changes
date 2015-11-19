@@ -67,8 +67,7 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
         expected_msg = "test build Failed {{icon times, color=red}} ([results]({0})).".format(
             build_link
         )
@@ -100,15 +99,11 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex))
-        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
-            build.project.slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-            build.project.slug,
-            build.id.hex,
-            testcase.job_id.hex,
+        test_link = build_uri('/build_test/{0}/{1}/'.format(
+            build.project.id.hex,
             testcase.id.hex
         ))
         test_desc = "[test_foo](%s)" % test_link
@@ -150,16 +145,12 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex))
-        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
-            build.project.slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-            build.project.slug,
-            build.id.hex,
-            testcase.job_id.hex,
-            testcase.id.hex
+        test_link = build_uri('/build_test/{0}/{1}/'.format(
+            build.project.id.hex,
+            testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
         expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were a total of 1 [test failures]({1}), but we could not determine if any of these tests were previously failing.
@@ -199,16 +190,12 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex))
-        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
-            build.project.slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-            build.project.slug,
-            build.id.hex,
-            testcase.job_id.hex,
-            testcase.id.hex
+        test_link = build_uri('/build_test/{0}/{1}/'.format(
+            build.project.id.hex,
+            testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
         expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
@@ -245,16 +232,12 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex))
-        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
-            build.project.slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-            build.project.slug,
-            build.id.hex,
-            testcase.job_id.hex,
-            testcase.id.hex
+        test_link = build_uri('/build_test/{0}/{1}/'.format(
+            build.project.id.hex,
+            testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
         expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 0 new [test failures]({1})
@@ -271,11 +254,9 @@ class PhabricatorListenerTest(UnitTestCase):
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_parent_and_new_failures(self, get_options, post, get_base_failures):
         def get_test_desc(build, testcase, test_name):
-            test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-                build.project.slug,
-                build.id.hex,
-                testcase.job_id.hex,
-                testcase.id.hex
+            test_link = build_uri('/build_test/{0}/{1}/'.format(
+                build.project.id.hex,
+                testcase.id.hex,
             ))
             return "[%s](%s)" % (test_name, test_link)
         get_options.return_value = {
@@ -306,10 +287,8 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex))
-        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
-            build.project.slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
         test_desc = get_test_desc(build, testcase, 'test_foo')
         test_desc2 = get_test_desc(build, testcase2, 'test_foo2')
@@ -354,21 +333,17 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build.project.slug, build.id.hex))
-        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
-            build.project.slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
         assert post.call_count == 1
         (diff_id, comment, phab), _ = post.call_args
         assert diff_id == '1'
         shown_test_count = 0
         for testcase in testcases:
-            test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-                build.project.slug,
-                build.id.hex,
-                testcase.job_id.hex,
-                testcase.id.hex
+            test_link = build_uri('/build_test/{0}/{1}/'.format(
+                build.project.id.hex,
+                testcase.id.hex,
             ))
             if test_link in comment:
                 shown_test_count += 1
@@ -412,18 +387,13 @@ class PhabricatorListenerTest(UnitTestCase):
 
         build_finished_handler(build_id=build1.id.hex)
 
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build1.project.slug, build1.id.hex))
-        build2_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            build2.project.slug, build2.id.hex))
-        failure_link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(
-            build1.project.slug, build1.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build1.id.hex))
+        build2_link = build_uri('/find_build/{0}/'.format(build2.id.hex))
+        failure_link = build_uri('/build_tests/{0}/'.format(build1.id.hex))
 
-        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-            build1.project.slug,
-            build1.id.hex,
-            testcase1.job_id.hex,
-            testcase1.id.hex
+        test_link = build_uri('/build_test/{0}/{1}/'.format(
+            build1.project.id.hex,
+            testcase1.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
         expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
@@ -460,9 +430,7 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        safe_slug = 'project-%28slug%29'
-        build_link = build_uri('/projects/{0}/builds/{1}/'.format(
-            safe_slug, build.id.hex))
+        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
 
         expected_msg = 'Server build Passed {{icon check, color=green}} ([results]({0})).'
         post.assert_called_once_with('1', expected_msg.format(build_link), mock.ANY)

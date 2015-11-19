@@ -153,7 +153,7 @@ class BuildReport(object):
                 'green_builds': 0,
                 'green_percent': None,
                 'avg_duration': 0,
-                'link': build_uri('/projects/{0}/'.format(project.slug)),
+                'link': build_uri('/project/{0}/'.format(project.slug)),
             }
 
         for project_id, result, num_builds, duration in query:
@@ -271,8 +271,8 @@ class BuildReport(object):
                 'package': test.package,
                 'duration': '%.2f s' % (test.duration / 1000.0,),
                 'duration_raw': test.duration,
-                'link': build_uri('/projects/{0}/tests/{1}/'.format(
-                    project.slug, test.name_sha)),
+                'link': build_uri('/project_test/{0}/{1}/'.format(
+                    project.id.hex, test.name_sha)),
             })
 
         return slow_list

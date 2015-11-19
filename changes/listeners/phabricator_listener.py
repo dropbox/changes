@@ -204,7 +204,7 @@ def _get_message_for_build_context(build_context):
         project=build.project.name,
         image=result_image,
         result=unicode(build.result),
-        link=build_uri('/projects/{0}/builds/{1}/'.format(safe_slug, build.id.hex))
+        link=build_uri('/find_build/{0}/'.format(build.id.hex))
     )
 
     test_failures = [t['test_case'] for t in build_context['failing_tests']]
@@ -266,11 +266,9 @@ def _generate_remarkup_table_for_tests(build, tests):
         if pkg and name.startswith(pkg):
             name = name[len(pkg) + 1:]
 
-        test_link = build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
-            urllib.quote_plus(build.project.slug),
-            build.id.hex,
-            test.job_id.hex,
-            test.id.hex
+        test_link = build_uri('/build_test/{0}/{1}/'.format(
+            build.project.id.hex,
+            test.id.hex,
         ))
         table = table + ['|[%s](%s)|%s|' % (name, test_link, pkg)]
 
@@ -291,7 +289,7 @@ def get_test_failure_remarkup(build, tests):
                   '{num_failures} [test failures]({link}), but we could not ' \
                   'determine if any of these tests were previously failing.'.format(
                       num_failures=len(tests),
-                      link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(safe_slug, build.id.hex))
+                      link=build_uri('/build_tests/{0}/'.format(build.id.hex))
                   )
         message += '\n\n**All failures ({failure_count}):**\n'.format(
             failure_count=len(total_failures)
@@ -303,7 +301,7 @@ def get_test_failure_remarkup(build, tests):
         failures_in_parent = [t for t in tests if t.name in base_commit_failures]
         message = ' There were {new_failures} new [test failures]({link})'.format(
             new_failures=len(new_failures),
-            link=build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(safe_slug, build.id.hex))
+            link=build_uri('/build_tests/{0}/'.format(build.id.hex))
         )
 
         if new_failures:

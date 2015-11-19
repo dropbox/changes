@@ -84,7 +84,7 @@ require([
   ProjectPage,
   AuthorBuildsPage,
   buildsPages,
-  BuildTestsPage,
+  buildTestsPages,
   TestHistoryPage,
   LogPage,
   AllProjectsPage,
@@ -104,6 +104,9 @@ require([
   var CommitPage = buildsPages.CommitPage;
   var DiffPage = buildsPages.DiffPage;
   var SingleBuildPage = buildsPages.SingleBuildPage;
+
+  var BuildTestsPage = buildTestsPages.BuildTestsPage;
+  var SingleBuildTestPage = buildTestsPages.SingleBuildTestPage;
 
   // routing
   // TODO: all of this is terrible and temporary just to get something working.
@@ -154,6 +157,7 @@ require([
     'commit_source': [CommitPage, 'sourceUUID'],
     'diff': [DiffPage, 'diff_id'],
     'single_build': [SingleBuildPage, 'buildID'],
+    'build_test': [SingleBuildTestPage, 'buildID', 'testID'],
     'build_tests': [BuildTestsPage, 'buildID'],
     'project_test': [TestHistoryPage, 'projectUUID', 'testHash'],
     'job_log': [LogPage, 'buildID', 'jobID', 'logsourceID'],

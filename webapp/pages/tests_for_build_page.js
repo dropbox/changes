@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
+import { InfoList, InfoItem } from 'es6!display/info_list';
 import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid, GridRow } from 'es6!display/grid';
@@ -15,7 +16,7 @@ import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
-var BuildTestsPage = React.createClass({
+export var BuildTestsPage = React.createClass({
 
   menuItems: [
     'Sharding',
@@ -390,7 +391,7 @@ var ShardingTab = React.createClass({
 
           var expandLabel = !this.state.expandedShards[step.node.name] ?
             'See Raw Data' : 'Collapse';
-          
+
           rows.push([
             step.node && step.node.name,
             step.data.weight,
@@ -433,4 +434,50 @@ var ShardingTab = React.createClass({
   }
 });
 
-export default BuildTestsPage;
+export var SingleBuildTestPage = React.createClass({
+  getInitialState: function() {
+    return {};
+  },
+
+  componentDidMount: function() {
+    api.fetch(this, {
+      buildInfo: `/api/0/builds/${this.props.buildID}/`,
+      test: `/api/0/tests/${this.props.testID}/`
+    });
+  },
+
+  render: function() {
+    if (!api.isLoaded(this.state.buildInfo)) {
+      return <APINotLoadedPage calls={this.state.buildInfo} />;
+    }
+    if (!api.isLoaded(this.state.test)) {
+      return <APINotLoadedPage calls={this.state.test} />;
+    }
+    let buildInfo = this.state.buildInfo.getReturnedData();
+    let test = this.state.test.getReturnedData();
+
+    let buildTitle = `${buildInfo.project.name} Build`
+    let pageTitle = `Test ${test.shortName} for ${buildTitle}`;
+    utils.setPageTitle(pageTitle);
+
+    let info = <div>
+      <InfoList className="marginTopM">
+        <InfoItem label='Name'>{test.name}</InfoItem>
+        <InfoItem label='Result'>
+          {test.result.name} ({ChangesLinks.historyLink(buildInfo.project, test.hash)})
+        </InfoItem>
+      </InfoList>
+    </div>;
+    let testDetails = <TestDetails testID={this.props.testID} />;
+
+    return <ChangesPage highlight="Projects">
+      <SectionHeader>
+        Test {test.shortName} for <a href={ChangesLinks.buildHref(buildInfo)}>{buildTitle}</a>
+      </SectionHeader>
+      <div className="marginTopS">
+        {info}
+        {testDetails}
+      </div>
+    </ChangesPage>;
+  }
+});

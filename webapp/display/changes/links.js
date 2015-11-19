@@ -142,6 +142,11 @@ var ChangesLinks = {
     return `/admin_repository/${repository.id}`;
   },
 
+  historyLink: function(project, test_hash) {
+    var href = `/project_test/${project.id}/${test_hash}`;
+    return <a href={href}>History</a>;
+  },
+
   snapshotImageHref: function(snapshotImage) {
      // We don't have a page for individual images, so we
      // link to the whole snapshot.
