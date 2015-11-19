@@ -159,7 +159,7 @@ class DefaultBuildStep(BuildStep):
         job.status = Status.pending_allocation
         db.session.add(job)
 
-        phase, created = get_or_create(JobPhase, where={
+        phase, _ = get_or_create(JobPhase, where={
             'job': job,
             'label': job.label,
         }, defaults={
@@ -190,7 +190,7 @@ class DefaultBuildStep(BuildStep):
             # clause to ensure we create a new jobstep, not just get the old one
             where['id'] = uuid.uuid4()
 
-        step, created = get_or_create(JobStep, where=where, defaults={
+        step, _ = get_or_create(JobStep, where=where, defaults={
             'status': Status.pending_allocation,
             'job': phase.job,
             'project': phase.project,

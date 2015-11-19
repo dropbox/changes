@@ -4,7 +4,7 @@ from flask_restful.reqparse import RequestParser
 
 from sqlalchemy.orm import joinedload
 
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 
 from changes.api.base import APIView
 from changes.api.auth import get_current_user
@@ -61,7 +61,6 @@ class AuthorCommitIndexAPIView(APIView):
 
         # move builds into sources
         builds_map = defaultdict(list)
-        revision_list = OrderedDict()
 
         for build in commit_builds_list:
             builds_map[build['source']['id']].append(build)

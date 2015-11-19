@@ -224,7 +224,7 @@ def sync_artifacts_for_jobstep(jobstep):
             artifact_name = artifact['name']
             artifact_path = artifact['relativePath']
             if artifact_name in LOGSOURCE_WHITELIST:
-                logsource, created = get_or_create(LogSource, where={
+                get_or_create(LogSource, where={
                     'name': artifact_name,
                     'job': job,
                     'step': jobstep,

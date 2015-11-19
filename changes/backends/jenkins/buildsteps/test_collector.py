@@ -235,7 +235,7 @@ class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
         num_tests = len(phase_config['tests'])
         test_stats, avg_test_time = TestsExpander.get_test_stats(self.get_test_stats_from() or step.project.slug)
 
-        phase, created = get_or_create(JobPhase, where={
+        phase, _ = get_or_create(JobPhase, where={
             'job': step.job,
             'project': step.project,
             'label': phase_config.get('phase') or 'Test',

@@ -234,7 +234,7 @@ class JenkinsBuilder(BaseBackend):
         jobstep = artifact.step
         job = artifact.job
 
-        logsource, created = get_or_create(LogSource, where={
+        logsource, _ = get_or_create(LogSource, where={
             'name': artifact.data['displayPath'],
             'job': job,
             'step': jobstep,
@@ -753,7 +753,7 @@ class JenkinsBuilder(BaseBackend):
             date_started = datetime.utcfromtimestamp(phase_data['startTime'])
             date_finished = datetime.utcfromtimestamp(phase_data['endTime'])
 
-            jobphase, created = get_or_create(JobPhase, where={
+            jobphase, _ = get_or_create(JobPhase, where={
                 'job': job,
                 'label': phase_data['name'],
             }, defaults={
@@ -765,7 +765,7 @@ class JenkinsBuilder(BaseBackend):
             })
             phases.add(jobphase)
 
-            jobstep, created = get_or_create(JobStep, where={
+            jobstep, _ = get_or_create(JobStep, where={
                 'phase': jobphase,
                 'label': step.label,
             }, defaults={

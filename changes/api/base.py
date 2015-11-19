@@ -121,7 +121,6 @@ class APIView(Resource):
             offset = (page - 1) * per_page
             result = list(queryset[offset:offset + per_page + 1])
         else:
-            offset = 0
             page = 1
             result = list(queryset)
 
@@ -221,7 +220,6 @@ class APIView(Resource):
             # if position == 0 and before, fall through to the code below
             # (which will just return the first page)
 
-            links = None
             if before:
                 # the behavior is if per_page is 5 and you request elements
                 # before item #3, we'll return the first 5 elements. I think

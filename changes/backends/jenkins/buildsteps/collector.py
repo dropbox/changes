@@ -122,7 +122,7 @@ class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):
         assert phase_config['phase']
         assert phase_config['jobs']
 
-        phase, created = get_or_create(JobPhase, where={
+        phase, _ = get_or_create(JobPhase, where={
             'job': step.job,
             'project': step.project,
             'label': phase_config['phase'],
