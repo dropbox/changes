@@ -389,6 +389,10 @@ class DefaultBuildStep(BuildStep):
                              release=self.release)
         return None
 
+    def get_resource_limits(self):
+        return {'memory': self.resources['mem'],
+                'cpus': self.resources['cpus']}
+
     def get_allocation_command(self, jobstep):
         params = self.get_allocation_params(jobstep)
         return 'changes-client %s' % (' '.join(

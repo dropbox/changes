@@ -32,6 +32,10 @@ class DefaultBuildStepTest(TestCase):
             ),
         ), **kwargs)
 
+    def test_get_resource_limits(self):
+        buildstep = self.get_buildstep(cpus=8, memory=9000)
+        assert buildstep.get_resource_limits() == {'cpus': 8, 'memory': 9000, }
+
     def test_execute(self):
         build = self.create_build(self.create_project())
         job = self.create_job(build)

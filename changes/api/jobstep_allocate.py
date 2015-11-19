@@ -1,18 +1,22 @@
 from __future__ import absolute_import, division, unicode_literals
-
 import json
 import logging
-
+from collections import namedtuple
 from datetime import datetime
-
 from flask import request
 from sqlalchemy.sql import func
-
 from changes.api.base import APIView, error
 from changes.constants import Status, Result
 from changes.config import db, redis, statsreporter
 from changes.ext.redis import UnableToGetLock
-from changes.models import Build, Job, JobPlan, JobStep
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
+
+# Named tuple for data from the BuildStep used to pick JobSteps to allocate,
+# to make sure we don't need to refetch (and risk inconsistency).
+_AllocData = namedtuple('_AllocData', ['cpus', 'memory', 'command'])
 
 
 class JobStepAllocateAPIView(APIView):
@@ -43,7 +47,7 @@ class JobStepAllocateAPIView(APIView):
                 Job.project_id,
             )
             if c >= 10
-        ]
+            ]
 
         filters = [
             JobStep.status == Status.pending_allocation,
@@ -106,17 +110,25 @@ class JobStepAllocateAPIView(APIView):
                     available_allocations = self.find_next_jobsteps(limit=10)
                     to_allocate = []
                     for jobstep in available_allocations:
-                        req_cpus = jobstep.data.get('cpus', 4)
-                        req_mem = jobstep.data.get('mem', 8 * 1024)
+
+                        jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
+                        assert jobplan and buildstep
+                        limits = buildstep.get_resource_limits()
+                        req_cpus = limits.get('cpus', 4)
+                        req_mem = limits.get('memory', 8 * 1024)
 
                         if total_cpus >= req_cpus and total_mem >= req_mem:
                             total_cpus -= req_cpus
                             total_mem -= req_mem
+                            allocation_cmd = buildstep.get_allocation_command(jobstep)
 
                             jobstep.status = Status.allocated
                             db.session.add(jobstep)
 
-                            to_allocate.append(jobstep)
+                            # We keep the data from the BuildStep to be sure we're using the same resource values.
+                            to_allocate.append((jobstep, _AllocData(cpus=req_cpus,
+                                                                    memory=req_mem,
+                                                                    command=allocation_cmd)))
                             # The JobSteps returned are pending_allocation, and the initial state for a Mesos JobStep is
                             # pending_allocation, so we can determine how long it was pending by how long ago it was
                             # created.
@@ -135,18 +147,16 @@ class JobStepAllocateAPIView(APIView):
 
             context = []
 
-            for jobstep, jobstep_data in zip(to_allocate, self.serialize(to_allocate)):
+            for jobstep, alloc_data in to_allocate:
                 try:
-                    jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
-
-                    assert jobplan and buildstep
+                    jobstep_data = self.serialize(jobstep)
 
                     jobstep_data['project'] = self.serialize(jobstep.project)
                     jobstep_data['resources'] = {
-                        'cpus': jobstep.data.get('cpus', 4),
-                        'mem': jobstep.data.get('mem', 8 * 1024),
+                        'cpus': alloc_data.cpus,
+                        'mem': alloc_data.memory,
                     }
-                    jobstep_data['cmd'] = buildstep.get_allocation_command(jobstep)
+                    jobstep_data['cmd'] = alloc_data.command
                 except Exception:
                     jobstep.status = Status.finished
                     jobstep.result = Result.infra_failed

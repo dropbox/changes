@@ -22,8 +22,3 @@ class LXCBuildStep(DefaultBuildStep):
         params['memory'] = str(self.resources['mem'])
         params['cpus'] = str(self.resources['cpus'])
         return params
-
-    def get_resource_limits(self):
-        # This buildstep is for LXC, so memory and cpu limits are required.
-        return {'memory': self.resources['mem'],
-                'cpus': self.resources['cpus']}

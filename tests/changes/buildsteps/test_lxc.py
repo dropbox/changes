@@ -46,7 +46,3 @@ class LXCBuildStepTest(TestCase):
             'artifacts-server': 'http://localhost:1234',
             'artifact-search-path': DEFAULT_PATH,
         }
-
-    def test_get_resource_limits(self):
-        buildstep = self.get_buildstep()
-        assert buildstep.get_resource_limits() == {'cpus': 8, 'memory': 9000, }

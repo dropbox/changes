@@ -97,8 +97,8 @@ class JobStepAllocateTest(APITestCase):
         assert resp.data == '[]', 'Expecting no content'
 
     @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
-    def test_allocation_error(self, mock_get_allocation_command):
-        mock_get_allocation_command.side_effect = Exception('Boom!')
+    def test_limits_too_high(self, mock_get_allocation_command):
+        mock_get_allocation_command.return_value = 'echo 1'
 
         project = self.create_project()
         build = self.create_build(project, status=Status.pending_allocation)
@@ -107,8 +107,33 @@ class JobStepAllocateTest(APITestCase):
         plan = self.create_plan(project)
         self.create_step(plan)
         self.create_job_plan(job, plan)
-        self.create_jobstep(jobphase, status=Status.pending_allocation)
 
-        resp = self.post_simple()
+        jobstep = self.create_jobstep(jobphase, status=Status.pending_allocation)
+
+        params = json.dumps({
+            'resources': {
+                'cpus': '2',
+                'mem': '8192',
+            },
+        })
+
+        with patch('changes.buildsteps.base.BuildStep.get_resource_limits') as get_limits:
+            get_limits.return_value = {'memory': 8192, 'cpus': 4}  # too expensive for params.
+            resp = self.client.post(self.path, data=params, content_type='application/json')
+
         assert resp.status_code == 200, resp.data
-        assert resp.data == '[]', 'Expecting no content'
+        assert self.unserialize(resp) == []
+
+        with patch('changes.buildsteps.base.BuildStep.get_resource_limits') as get_limits:
+            get_limits.return_value = {'memory': 8192, 'cpus': 1}  # now we're cheap enough.
+            resp = self.client.post(self.path, data=params, content_type='application/json')
+
+        assert resp.status_code == 200, resp.data
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id'] == jobstep.id.hex
+        assert data[0]['status']['id'] == Status.allocated.name
+        assert data[0]['resources']
+        assert data[0]['resources']['cpus'] == 1
+        assert data[0]['resources']['mem'] == 8192
+        assert data[0]['cmd'] == 'echo 1'
