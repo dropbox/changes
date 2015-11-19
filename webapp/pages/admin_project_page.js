@@ -478,7 +478,7 @@ let PlanDetails = React.createClass({
                   'options': { 'build.timeout': 0},
                   'data': '{}',
                   };
-      stepMarkup = <StepDetails stepExists={false} step={step} />;
+      stepMarkup = <StepDetails stepExists={false} step={step} plan={this.props.plan} />;
     } else {
       let onClick = _ => this.setState({ createStepClicked: true });
       stepMarkup = <Button onClick={onClick}>Create Step</Button>;
@@ -500,6 +500,7 @@ let StepDetails = React.createClass({
   propTypes: {
     step: PropTypes.object.isRequired,
     stepExists: PropTypes.bool.isRequired,
+    plan: PropTypes.object,
   },
 
   getInitialState: function() {
@@ -524,9 +525,11 @@ let StepDetails = React.createClass({
       'implementation': state.implementation,
     };
 
-    let endpoint = '/api/0/steps/';
+    var endpoint;
     if (this.props.stepExists) {
-      endpoint += this.props.step.id + '/';
+      endpoint = '/api/0/steps/' + this.props.step.id + '/';
+    } else {
+      endpoint = '/api/0/plans/' + this.props.plan.id + '/steps/';
     }
 
     let endpoints = {
