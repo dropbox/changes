@@ -74,9 +74,9 @@ class DefaultBuildStepTest(TestCase):
         step = buildstep.create_replacement_jobstep(oldstep)
         # new jobstep should still be part of same job/phase
         assert step.job == job
-        assert step.phase == job.phases[0]
+        assert step.phase == oldstep.phase
         # make sure .steps actually includes the new jobstep
-        assert len(job.phases[0].steps) == 2
+        assert len(oldstep.phase.steps) == 2
         # make sure replacement id is correctly set
         assert oldstep.replacement_id == step.id
 
@@ -178,9 +178,9 @@ class DefaultBuildStepTest(TestCase):
         new_jobstep = buildstep.create_replacement_jobstep(fail_jobstep)
         # new jobstep should still be part of same job/phase
         assert new_jobstep.job == job
-        assert new_jobstep.phase == new_jobphase
+        assert new_jobstep.phase == fail_jobstep.phase
         # make sure .steps actually includes the new jobstep
-        assert len(job.phases[0].steps) == 2
+        assert len(fail_jobstep.phase.steps) == 2
         # make sure replacement id is correctly set
         assert fail_jobstep.replacement_id == new_jobstep.id
 
