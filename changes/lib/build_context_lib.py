@@ -191,7 +191,7 @@ def _get_job_context(job):
                     log_source, max_size=5000, max_lines=25),
                 'name': log_source.name,
                 'uri': build_uri(_get_log_uri(log_source)),
-            } for log_source in failing_log_sources
+            } for log_source in failing_log_sources if not log_source.is_infrastructural()
         ]
         failing_log_sources_count = len(failing_logs)
 

@@ -46,6 +46,15 @@ class LogSource(db.Model):
         if self.date_created is None:
             self.date_created = datetime.utcnow()
 
+    def is_infrastructural(self):
+        """
+        Returns:
+            bool: Whether this LogSource is for an infrastructural log.
+
+        """
+        # We only have one infrastructural log at the moment, and it's always named infralog.
+        return self.name == "infralog"
+
     def get_url(self):
         """
            Returns:
