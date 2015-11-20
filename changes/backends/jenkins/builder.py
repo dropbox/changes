@@ -205,7 +205,7 @@ class JenkinsBuilder(BaseBackend):
         )
         return self._streaming_get(url)
 
-    def _sync_artifact_as_file(self, artifact):
+    def sync_artifact(self, artifact):
         jobstep = artifact.step
         resp = self.fetch_artifact(jobstep, artifact.data)
 
@@ -229,38 +229,6 @@ class JenkinsBuilder(BaseBackend):
         except Exception:
             self.logger.exception(
                 'Failed to sync test results for job step %s', jobstep.id)
-
-    def _sync_artifact_as_log(self, artifact):
-        jobstep = artifact.step
-        job = artifact.job
-
-        logsource, _ = get_or_create(LogSource, where={
-            'name': artifact.data['displayPath'],
-            'job': job,
-            'step': jobstep,
-        }, defaults={
-            'job': job,
-            'project': job.project,
-            'date_created': job.date_started,
-        })
-
-        offset = 0
-        with closing(self.fetch_artifact(jobstep, artifact.data)) as resp:
-            iterator = resp.iter_content()
-            for chunk in chunked(iterator, LOG_CHUNK_SIZE):
-                chunk_size = len(chunk)
-                chunk, _ = create_or_update(LogChunk, where={
-                    'source': logsource,
-                    'offset': offset,
-                }, values={
-                    'job': job,
-                    'project': job.project,
-                    'size': chunk_size,
-                    'text': chunk,
-                })
-                offset += chunk_size
-
-        db.session.commit()
 
     def _sync_log(self, jobstep, name, job_name, build_no):
         job = jobstep.job
@@ -646,30 +614,22 @@ class JenkinsBuilder(BaseBackend):
         build_no = step.data['build_no']
 
         artifacts = item.get('artifacts', ())
-        # if we find *any* artifacts
-        # that resemble a phase we need to change the behavior of the
-        # the remainder of tasks
-        phased_results = any(a['fileName'].endswith('phase.json') for a in artifacts)
 
         # If the Jenkins run was aborted, we don't expect a manifest file.
-        if step.result != Result.aborted:
-            if not any(ManifestJsonHandler.can_process(os.path.basename(a['fileName'])) for a in artifacts):
-                db.session.add(FailureReason(
-                    step_id=step.id,
-                    job_id=step.job.id,
-                    build_id=step.job.build_id,
-                    project_id=step.job.project_id,
-                    reason='missing_manifest_json',
-                ))
-                step.result = Result.infra_failed
-                db.session.add(step)
-                db.session.commit()
+        if (step.result != Result.aborted and
+                not any(ManifestJsonHandler.can_process(os.path.basename(a['fileName'])) for a in artifacts)):
+            db.session.add(FailureReason(
+                step_id=step.id,
+                job_id=step.job.id,
+                build_id=step.job.build_id,
+                project_id=step.job.project_id,
+                reason='missing_manifest_json',
+            ))
+            step.result = Result.infra_failed
+            db.session.add(step)
+            db.session.commit()
 
-        # artifacts sync differently depending on the style of job results
-        if phased_results:
-            self._sync_phased_results(step, artifacts)
-        else:
-            self._sync_generic_results(step, artifacts)
+        self._sync_generic_results(step, artifacts)
 
         # sync console log
         self.logger.info('Syncing console log for %s', step.id)
@@ -689,7 +649,7 @@ class JenkinsBuilder(BaseBackend):
                 'Unable to sync console log for job step %r',
                 step.id.hex)
 
-    def _handle_generic_artifact(self, jobstep, artifact, sync_logs=False):
+    def _handle_generic_artifact(self, jobstep, artifact):
         artifact, created = get_or_create(Artifact, where={
             'step': jobstep,
             'name': artifact['fileName'],
@@ -705,120 +665,7 @@ class JenkinsBuilder(BaseBackend):
             artifact_id=artifact.id.hex,
             task_id=artifact.id.hex,
             parent_task_id=jobstep.id.hex,
-            sync_logs=sync_logs,
         )
-
-    def _sync_phased_results(self, step, artifacts):
-        # due to the limitations of Jenkins and our requirement to have more
-        # insight into the actual steps a build process takes and unfortunately
-        # the best way to do this is to rewrite history within Changes
-        job = step.job
-        is_diff = not job.source.is_commit()
-        project = step.project
-
-        artifacts_by_name = dict(
-            (a['fileName'], a)
-            for a in artifacts
-        )
-        pending_artifacts = set(artifacts_by_name.keys())
-
-        phase_steps = set()
-        phase_step_data = {
-            'job_name': step.data['job_name'],
-            'build_no': step.data['build_no'],
-            'generated': True,
-            # TODO: _pick_master here seems very suspicious.
-            'master': self._pick_master(step.data['job_name'], is_diff),
-        }
-
-        phases = set()
-
-        # fetch each phase and create it immediately (as opposed to async)
-        for artifact_data in artifacts:
-            artifact_filename = artifact_data['fileName']
-
-            if not artifact_filename.endswith('phase.json'):
-                continue
-
-            pending_artifacts.remove(artifact_filename)
-
-            resp = self.fetch_artifact(step, artifact_data)
-            phase_data = resp.json()
-
-            if phase_data['retcode']:
-                result = Result.failed
-            else:
-                result = Result.passed
-
-            date_started = datetime.utcfromtimestamp(phase_data['startTime'])
-            date_finished = datetime.utcfromtimestamp(phase_data['endTime'])
-
-            jobphase, _ = get_or_create(JobPhase, where={
-                'job': job,
-                'label': phase_data['name'],
-            }, defaults={
-                'project': project,
-                'result': result,
-                'status': Status.finished,
-                'date_started': date_started,
-                'date_finished': date_finished,
-            })
-            phases.add(jobphase)
-
-            jobstep, _ = get_or_create(JobStep, where={
-                'phase': jobphase,
-                'label': step.label,
-            }, defaults={
-                'job': job,
-                'node': step.node,
-                'project': project,
-                'result': result,
-                'status': Status.finished,
-                'date_started': date_started,
-                'date_finished': date_finished,
-                'data': phase_step_data,
-            })
-            sync_job_step.delay_if_needed(
-                task_id=jobstep.id.hex,
-                parent_task_id=job.id.hex,
-                step_id=jobstep.id.hex,
-            )
-            phase_steps.add(jobstep)
-
-            # capture the log if available
-            try:
-                log_artifact = artifacts_by_name[phase_data['log']]
-            except KeyError:
-                self.logger.warning('Unable to find logfile for phase: %s', phase_data)
-            else:
-                pending_artifacts.remove(log_artifact['fileName'])
-
-                self._handle_generic_artifact(
-                    jobstep=jobstep,
-                    artifact=log_artifact,
-                    sync_logs=True,
-                )
-
-        # ideally we don't mark the base step as a failure if any of the phases
-        # report more correct results
-        if phases and step.result == Result.failed and any(p.result == Result.failed for p in phases):
-            step.result = Result.passed
-            db.session.add(step)
-
-        if not pending_artifacts:
-            return
-
-        # Alias to clarify that this is the JobStep that actually ran on a slave.
-        original_step = step
-        # all remaining artifacts get bound to the final phase
-        final_step = sorted(phase_steps, key=lambda x: x.date_finished, reverse=True)[0]
-        for artifact_name in pending_artifacts:
-            # Manifest files are associated with the original step so we can validate that the ID is correct.
-            responsible_step = original_step if ManifestJsonHandler.can_process(artifact_name) else final_step
-            self._handle_generic_artifact(
-                jobstep=responsible_step,
-                artifact=artifacts_by_name[artifact_name],
-            )
 
     def _sync_generic_results(self, step, artifacts):
         # sync artifacts
@@ -840,13 +687,6 @@ class JenkinsBuilder(BaseBackend):
             self._sync_step_from_queue(step)
         else:
             self._sync_step_from_active(step)
-
-    def sync_artifact(self, artifact, sync_logs=False):
-        if artifact.name.endswith('.log'):
-            if sync_logs:
-                self._sync_artifact_as_log(artifact)
-        else:
-            self._sync_artifact_as_file(artifact)
 
     def cancel_step(self, step):
         # The Jenkins build_no won't exist if the job is still queued.

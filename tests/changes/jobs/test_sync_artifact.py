@@ -33,5 +33,4 @@ class SyncArtifactTest(TestCase):
 
         implementation.fetch_artifact.assert_called_once_with(
             artifact=self.artifact,
-            sync_logs=False,
         )

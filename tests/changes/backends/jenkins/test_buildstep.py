@@ -124,4 +124,4 @@ class JenkinsBuildStepTest(TestCase):
         buildstep = self.get_buildstep()
         buildstep.fetch_artifact(artifact)
 
-        builder.sync_artifact.assert_called_once_with(artifact, sync_logs=False)
+        builder.sync_artifact.assert_called_once_with(artifact)

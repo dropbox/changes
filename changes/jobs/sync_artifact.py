@@ -33,7 +33,7 @@ def sync_artifact(artifact_id=None, **kwargs):
                 artifact.step_id, artifact)
     else:
         try:
-            implementation.fetch_artifact(artifact=artifact, sync_logs=kwargs.pop('sync_logs', False))
+            implementation.fetch_artifact(artifact=artifact)
         except UnrecoverableException:
             current_app.logger.exception(
                 'Unrecoverable exception fetching artifact %s: %s',
