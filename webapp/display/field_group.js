@@ -1,6 +1,18 @@
 import React, { PropTypes } from 'react';
 import { Button } from 'es6!display/button';
 
+// Convenience function for generating redirect callbacks on successful form saves.
+// `redirectUrl` should be a function that takes a json-parsed response object and
+// returns the url to redirect to on success.
+export var redirectCallback = function(fieldGroup, redirectUrl) {
+  return (response, was_success) => {
+      if (was_success) {
+        window.location.href = redirectUrl(JSON.parse(response.responseText));
+      } else {
+        fieldGroup.setState({ error: response.responseText });
+      }
+  };
+}
 
 export var create = function(form, saveButtonText, _this, messages=[]) {
   let hasChanges = _this.state.hasFormChanges;

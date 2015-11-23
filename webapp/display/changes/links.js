@@ -20,8 +20,12 @@ var ChangesLinks = {
   },
 
   projectAdmin: function(project) {
-    var href = `/admin_project/${project.slug}/`;
+    var href = ChangesLinks.projectAdminHref(project);
     return <a href={href}>{project.name}</a>;
+  },
+
+  projectAdminHref: function(project) {
+    return `/admin_project/${project.slug}/`;
   },
 
   project: function(project) {
@@ -130,8 +134,12 @@ var ChangesLinks = {
   },
 
   repositoryAdmin: function(repository) {
-    var href = `/admin_repository/${repository.id}`;
+    var href = ChangesLinks.repositoryAdminHref(repository);
     return <a href={href}>{repository.url}</a>;
+  },
+
+  repositoryAdminHref: function(repository) {
+    return `/admin_repository/${repository.id}`;
   },
 
   snapshotImageHref: function(snapshotImage) {

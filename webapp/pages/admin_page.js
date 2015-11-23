@@ -98,7 +98,7 @@ let AdminPage = React.createClass({
         content = this.renderProjects();
         break;
       case 'New Project':
-        content = this.renderNewProject();
+        content = <NewProjectFieldGroup />;
         break;
       case 'Repositories':
         content = this.renderRepositories();
@@ -149,36 +149,6 @@ let AdminPage = React.createClass({
         headers={['Name', 'Status', 'Creation Date']}
       />
     </div>;
-  },
-
-  renderNewProject: function() {
-    let form = [
-      { sectionTitle: 'New Project', fields: [
-        {type: 'text', display: 'Name', link: 'name'},
-        {type: 'text', display: 'Repository', link: 'repository'},
-        ]
-      }
-    ];
-
-    let fieldMarkup = FieldGroupMarkup.create(form, "Save Project", this);
-    return <div>{fieldMarkup}</div>;
-  },
-
-  saveSettings: function() {
-    let state = this.state;
-    let project_params = {
-      'name': state.name,
-      'repository': state.repository,
-    };
-
-    let endpoints = {
-      '_postRequest_newproject': `/api/0/projects/`,
-    };
-    let params = {
-      '_postRequest_newproject': project_params,
-    };
-
-    api.post(this, endpoints, params);
   },
 
   renderRepositories: function() {
@@ -259,11 +229,54 @@ let AdminPage = React.createClass({
   },
 });
 
+let NewProjectFieldGroup = React.createClass({
+  mixins: [React.addons.LinkedStateMixin],
+
+  getInitialState: function() {
+    return {
+      hasFormChanges: false,
+      error: '',
+    };
+  },
+
+  saveSettings: function() {
+    let state = this.state;
+    let project_params = {
+      'name': state.name,
+      'repository': state.repository,
+    };
+
+    let saveCallback = FieldGroupMarkup.redirectCallback(
+      this, project => {
+        return URI(ChangesLinks.projectAdminHref(project));
+      });
+
+    api.make_api_ajax_post('/api/0/projects/', project_params, saveCallback, saveCallback);
+    this.setState({ hasFormChanges: false });
+  },
+
+  render: function() {
+    let form = [
+      { sectionTitle: 'New Project', fields: [
+        {type: 'text', display: 'Name', link: 'name'},
+        {type: 'text', display: 'Repository', link: 'repository'},
+        ]
+      }
+    ];
+
+    let fieldMarkup = FieldGroupMarkup.create(form, "Save Project", this, [this.state.error]);
+    return <div>{fieldMarkup}</div>;
+  },
+})
+
 let NewRepoFieldGroup = React.createClass({
   mixins: [React.addons.LinkedStateMixin],
 
   getInitialState: function() {
-    return { };
+    return {
+      hasFormChanges: false,
+      error: '',
+    };
   },
 
   saveSettings: function() {
@@ -272,14 +285,13 @@ let NewRepoFieldGroup = React.createClass({
       'backend': this.state.backend,
     };
 
-    let endpoints = {
-      '_postRequest_repo': `/api/0/repositories/`,
-    };
-    let params = {
-      '_postRequest_repo': repo_params,
-    };
+    let saveCallback = FieldGroupMarkup.redirectCallback(
+      this, repo => {
+        return URI(ChangesLinks.repositoryAdminHref(repo));
+      });
 
-    api.post(this, endpoints, params);
+    api.make_api_ajax_post('/api/0/repositories/', repo_params, saveCallback, saveCallback);
+    this.setState({ hasFormChanges: false })
   },
 
   render: function() {
@@ -292,7 +304,7 @@ let NewRepoFieldGroup = React.createClass({
       }
     ];
 
-    let fieldMarkup = FieldGroupMarkup.create(form, "Create Repository", this);
+    let fieldMarkup = FieldGroupMarkup.create(form, "Create Repository", this, [this.state.error]);
     return <div>{fieldMarkup}</div>;
   },
 })
