@@ -6,7 +6,7 @@ from copy import deepcopy
 from datetime import datetime
 from flask.ext.restful import reqparse
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.auth import requires_admin
 from changes.config import db
 from changes.constants import IMPLEMENTATION_CHOICES
@@ -25,7 +25,7 @@ class StepDetailsAPIView(APIView):
     def get(self, step_id):
         step = Step.query.get(step_id)
         if step is None:
-            return {"message": "step not found"}, 404
+            return error("step not found", http_code=404)
 
         return self.respond(step)
 
@@ -33,7 +33,7 @@ class StepDetailsAPIView(APIView):
     def post(self, step_id):
         step = Step.query.get(step_id)
         if step is None:
-            return {"message": "step not found"}, 404
+            return error("step not found", http_code=404)
 
         args = self.parser.parse_args()
 
@@ -41,20 +41,24 @@ class StepDetailsAPIView(APIView):
             step.implementation = args.implementation
 
         if args.data is not None:
-            data = json.loads(args.data)
+            try:
+                data = json.loads(args.data)
+            except ValueError as e:
+                return error("invalid JSON: %s" % e)
+
             if not isinstance(data, dict):
-                return {"message": "data must be a JSON mapping"}, 400
+                return error("data must be a JSON mapping")
 
             impl_cls = step.get_implementation(load=False)
             if impl_cls is None:
-                return {"message": "unable to load build step implementation"}, 400
+                return error("unable to load build step implementation")
 
             try:
                 # XXX(dcramer): It's important that we deepcopy data so any
                 # mutations within the BuildStep don't propagate into the db
                 impl_cls(**deepcopy(data))
             except Exception as exc:
-                return {"message": "unable to create build step mapping provided data: %s" % exc}, 400
+                return error("unable to create build step mapping provided data: %s" % exc)
             step.data = data
 
         if args.order is not None:

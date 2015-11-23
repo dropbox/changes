@@ -6,7 +6,7 @@ from copy import deepcopy
 from flask.ext.restful import reqparse
 
 from changes.api.auth import requires_admin
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.config import db
 from changes.constants import IMPLEMENTATION_CHOICES
 from changes.db.utils import create_or_update
@@ -25,7 +25,7 @@ class PlanStepIndexAPIView(APIView):
     def get(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:
-            return {"message": "plan not found"}, 404
+            return error("plan not found", http_code=404)
 
         return self.respond(list(plan.steps))
 
@@ -33,7 +33,7 @@ class PlanStepIndexAPIView(APIView):
     def post(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:
-            return {"message": "plan not found"}, 404
+            return error("plan not found", http_code=404)
 
         args = self.parser.parse_args()
 
@@ -43,15 +43,19 @@ class PlanStepIndexAPIView(APIView):
             implementation=args.implementation,
         )
 
-        data = json.loads(args.data)
+        try:
+            data = json.loads(args.data)
+        except ValueError as e:
+            db.session.rollback()
+            return error("invalid JSON: %s" % e)
         if not isinstance(data, dict):
             db.session.rollback()
-            return {"message": "data must be a JSON mapping"}, 400
+            return error("data must be a JSON mapping")
 
         impl_cls = step.get_implementation(load=False)
         if impl_cls is None:
             db.session.rollback()
-            return {"message": "unable to load build step implementation"}, 400
+            return error("unable to load build step implementation")
 
         try:
             # XXX(dcramer): It's important that we deepcopy data so any
@@ -59,7 +63,7 @@ class PlanStepIndexAPIView(APIView):
             impl_cls(**deepcopy(data))
         except Exception as exc:
             db.session.rollback()
-            return {"message": "unable to create build step provided data: %s" % exc}, 400
+            return error("unable to create build step provided data: %s" % exc)
 
         step.data = data
         step.order = args.order
