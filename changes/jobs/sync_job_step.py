@@ -209,7 +209,7 @@ LOGSOURCE_WHITELIST = ('console', 'infralog',)
 
 
 def sync_artifacts_for_jobstep(jobstep):
-    url = '{base}/buckets/{jobstep_id}/artifacts'.format(
+    url = '{base}/buckets/{jobstep_id}/artifacts/'.format(
         base=current_app.config.get('ARTIFACTS_SERVER'),
         jobstep_id=jobstep.id.hex,
     )
