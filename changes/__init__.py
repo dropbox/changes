@@ -17,15 +17,15 @@ def _get_git_revision_info(checkout_dir):
             '--git-dir',
             os.path.normpath(os.path.join(checkout_dir, '.git', '')),
             'show',
-            '--pretty="%s"' % "%H\x01%ae\x01%at\x01%s",
+            '--pretty="%s"' % "%H\x01%ae\x01%ct\x01%s",
             '-s']
         r = subprocess.check_output(git_command).strip().strip('"')
-        (commit_hash, author_email, author_time, subject) = r.split("\x01")
+        (commit_hash, author_email, commit_time, subject) = r.split("\x01")
         return {
             'hash': commit_hash,
             'author_email': author_email,
-            'author_time': author_time,
-            'subject': subject
+            'commit_time': commit_time,
+            'subject': subject,
         }
     except Exception:
         return None
@@ -36,7 +36,7 @@ def get_revision_info():
     Returns a dictionary of information about the current revision -
       hash: the commit hash
       author_email: email of the author
-      author_time: when was this committed by the author (different than commit_time!)
+      commit_time: commit time of this revision (updated on amend, rebase, etc.)
       subject: the commit subject/title
     Returns None if this info cannot be determined
     """

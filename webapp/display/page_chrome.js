@@ -455,7 +455,7 @@ var ChangesInlinePerf = React.createClass({
         {release_info.hash.substr(0, 7)}
         </a>
         {" "}committed{" "}
-        <TimeText format="X" time={release_info['author_time']} />
+        <TimeText format="X" time={release_info['commit_time']} />
         {" "}by{" "}
         {email_head(release_info['author_email'])}.
       </div>
