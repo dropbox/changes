@@ -629,6 +629,14 @@ class JenkinsBuilder(BaseBackend):
             db.session.add(step)
             db.session.commit()
 
+        # Detect and warn if there are duplicate artifact file names as we were relying on
+        # uniqueness before.
+        artifact_filenames = set()
+        for artifact in artifacts:
+            if artifact['fileName'] in artifact_filenames:
+                self.logger.warning('Duplicate artifact filename found: %s', artifact['fileName'])
+            artifact_filenames.add(artifact['fileName'])
+
         self._sync_generic_results(step, artifacts)
 
         # sync console log
@@ -649,10 +657,23 @@ class JenkinsBuilder(BaseBackend):
                 'Unable to sync console log for job step %r',
                 step.id.hex)
 
+    def _get_artifact_path(self, artifact_data):
+        """Given the artifact's info from Jenkins, return a relative path
+        to be used as a unique name in the database.
+
+        This assumes that Jenkins is set up to collect artifacts from a directory
+        named "artifacts" if Jenkins says the relative path starts with "artifacts/".
+        In those cases, remove the "artifacts/" prefix.
+        """
+        artifact_dir = 'artifacts/'
+        if artifact_data['relativePath'].startswith(artifact_dir):
+            return artifact_data['relativePath'][len(artifact_dir):]
+        return artifact_data['relativePath']
+
     def _handle_generic_artifact(self, jobstep, artifact):
         artifact, created = get_or_create(Artifact, where={
             'step': jobstep,
-            'name': artifact['fileName'],
+            'name': self._get_artifact_path(artifact),
         }, defaults={
             'project': jobstep.project,
             'job': jobstep.job,

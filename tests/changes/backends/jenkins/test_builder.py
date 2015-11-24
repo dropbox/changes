@@ -743,39 +743,36 @@ class SyncGenericResultsTest(BaseTestCase):
         builder = self.get_builder()
         builder.sync_step(step)
 
-        log_artifact = Artifact.query.filter(
-            Artifact.name == 'foobar.log',
-            Artifact.step == step,
-        ).first()
-
-        assert log_artifact.data == {
+        expected_artifacts_data = dict()
+        expected_artifacts_data['foobar.log'] = {
             "displayPath": "foobar.log",
             "fileName": "foobar.log",
             "relativePath": "artifacts/foobar.log",
         }
-
-        sync_artifact.delay_if_needed.assert_any_call(
-            artifact_id=log_artifact.id.hex,
-            task_id=log_artifact.id.hex,
-            parent_task_id=step.id.hex,
-        )
-
-        xunit_artifact = Artifact.query.filter(
-            Artifact.name == 'tests.xml',
-            Artifact.step == step,
-        ).first()
-
-        assert xunit_artifact.data == {
+        expected_artifacts_data['foo/tests.xml'] = {
+            "displayPath": "tests.xml",
+            "fileName": "tests.xml",
+            "relativePath": "artifacts/foo/tests.xml",
+        }
+        expected_artifacts_data['tests.xml'] = {
             "displayPath": "tests.xml",
             "fileName": "tests.xml",
             "relativePath": "artifacts/tests.xml",
         }
 
-        sync_artifact.delay_if_needed.assert_any_call(
-            artifact_id=xunit_artifact.id.hex,
-            task_id=xunit_artifact.id.hex,
-            parent_task_id=step.id.hex,
-        )
+        for name, data in expected_artifacts_data.iteritems():
+            artifact = Artifact.query.filter(
+                Artifact.name == name,
+                Artifact.step == step,
+            ).first()
+
+            assert artifact.data == data
+
+            sync_artifact.delay_if_needed.assert_any_call(
+                artifact_id=artifact.id.hex,
+                task_id=artifact.id.hex,
+                parent_task_id=step.id.hex,
+            )
 
 
 class SyncArtifactTest(BaseTestCase):

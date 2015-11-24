@@ -39,6 +39,11 @@
             "displayPath": "manifest.json",
             "fileName": "manifest.json",
             "relativePath": "artifacts/manifest.json"
+        },
+        {
+            "displayPath": "tests.xml",
+            "fileName": "tests.xml",
+            "relativePath": "artifacts/foo/tests.xml"
         }
     ],
     "building": false,
