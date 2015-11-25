@@ -153,6 +153,19 @@ class Vcs(object):
         """
         raise NotImplementedError
 
+    def get_changed_files(self, id):
+        """Returns the list of files changed in a revision.
+        Args:
+            id (str): The id of the revision.
+        Returns:
+            A set of filenames
+        Raises:
+            UnknownRevision: If the revision wan't found.
+        """
+        diff = self.export(id)
+        diff_parser = DiffParser(diff)
+        return diff_parser.get_changed_files()
+
     def get_default_revision(self):
         raise NotImplementedError
 

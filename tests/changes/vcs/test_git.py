@@ -246,6 +246,7 @@ class GitVcsTest(TestCase, VcsAsserts):
 new file mode 100644
 index 0000000..e69de29
 """
+        assert vcs.get_changed_files(revisions[0].id) == set(["BAR"])
         revisions = list(vcs.log(offset=0, limit=1))
         assert len(revisions) == 1
         assert revisions[0].subject == 'biz'

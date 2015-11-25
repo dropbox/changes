@@ -34,6 +34,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         fake_vcs.exists.return_value = True
         fake_vcs.log.side_effect = UnknownRevision(cmd="test command", retcode=128)
         fake_vcs.export.side_effect = UnknownRevision(cmd="test command", retcode=128)
+        fake_vcs.get_changed_files.side_effect = UnknownRevision(cmd="test command", retcode=128)
 
         def fake_update():
             # this simulates the effect of calling update() on a repo,
@@ -41,6 +42,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
             fake_vcs.log.side_effect = log_results
             fake_vcs.export.side_effect = None
             fake_vcs.export.return_value = SAMPLE_DIFF
+            fake_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(fake_vcs, id)
 
         fake_vcs.update.side_effect = fake_update
 
@@ -92,6 +94,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         mock_vcs = self.get_fake_vcs()
         mock_vcs.export.side_effect = None
         mock_vcs.export.return_value = SAMPLE_DIFF
+        mock_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(mock_vcs, id)
         mock_vcs.update.side_effect = None
         mock_identify_revision.return_value = revision
         mock_get_vcs.return_value = mock_vcs
@@ -126,6 +129,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         mock_vcs = self.get_fake_vcs()
         mock_vcs.export.side_effect = None
         mock_vcs.export.return_value = SAMPLE_DIFF
+        mock_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(mock_vcs, id)
         mock_vcs.update.side_effect = None
         mock_identify_revision.return_value = revision
         mock_vcs.read_file.side_effect = None
@@ -163,6 +167,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
         mock_vcs = self.get_fake_vcs()
         mock_vcs.export.side_effect = None
         mock_vcs.export.return_value = SAMPLE_DIFF
+        mock_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(mock_vcs, id)
         mock_vcs.update.side_effect = None
         mock_identify_revision.return_value = revision
         mock_vcs.read_file.side_effect = ('{{invalid yaml}}', yaml.safe_dump({
@@ -186,12 +191,14 @@ class RevisionCreatedHandlerTestCase(TestCase):
             mock_vcs = self.get_fake_vcs()
             mock_vcs.export.side_effect = None
             mock_vcs.export.return_value = SAMPLE_DIFF
+            mock_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(mock_vcs, id)
             mock_vcs.update.side_effect = None
             get_vcs.return_value = mock_vcs
             ct = CommitTrigger(revision)
             ct.get_changed_files()
             self.assertEqual(list(mock_vcs.method_calls), [
                 ('exists', (), {}),
+                ('get_changed_files', (sha,), {}),
                 ('export', (sha,), {}),
                 ])
 
@@ -200,14 +207,17 @@ class RevisionCreatedHandlerTestCase(TestCase):
             mock_vcs = self.get_fake_vcs()
             # Raise first time, work second time.
             mock_vcs.export.side_effect = (UnknownRevision("", 1), SAMPLE_DIFF)
+            mock_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(mock_vcs, id)
             mock_vcs.update.side_effect = None
             get_vcs.return_value = mock_vcs
             ct = CommitTrigger(revision)
             ct.get_changed_files()
             self.assertEqual(list(mock_vcs.method_calls), [
                 ('exists', (), {}),
+                ('get_changed_files', (sha,), {}),
                 ('export', (sha,), {}),
                 ('update', (), {}),
+                ('get_changed_files', (sha,), {}),
                 ('export', (sha,), {}),
                 ])
 
@@ -217,6 +227,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
             mock_vcs.exists.return_value = True
             # Revision is always unknown.
             mock_vcs.export.side_effect = UnknownRevision("", 1)
+            mock_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(mock_vcs, id)
             mock_vcs.update.side_effect = None
             get_vcs.return_value = mock_vcs
 
@@ -225,7 +236,9 @@ class RevisionCreatedHandlerTestCase(TestCase):
                 ct.get_changed_files()
             self.assertEqual(list(mock_vcs.method_calls), [
                 ('exists', (), {}),
+                ('get_changed_files', (sha,), {}),
                 ('export', (sha,), {}),
                 ('update', (), {}),
+                ('get_changed_files', (sha,), {}),
                 ('export', (sha,), {}),
                 ])

@@ -172,6 +172,19 @@ class MercurialVcs(Vcs):
         result = self.run(cmd)
         return result
 
+    def get_changed_files(self, id):
+        """Returns the list of files changed in a revision.
+        Args:
+            id (str): The id of the revision.
+        Returns:
+            A set of filenames
+        Raises:
+            UnknownRevision: If the revision wan't found.
+        """
+        cmd = ['status', '--rev', '%s^..%s' % (id, id), '-n']
+        output = self.run(cmd)
+        return set([x.strip() for x in output.splitlines()])
+
     def is_child_parent(self, child_in_question, parent_in_question):
         cmd = ['debugancestor', parent_in_question, child_in_question]
         result = self.run(cmd)

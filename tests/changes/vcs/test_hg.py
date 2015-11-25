@@ -216,6 +216,7 @@ class MercurialVcsTest(TestCase, VcsAsserts):
         assert diff == """diff --git a/BAR b/BAR
 new file mode 100644
 """
+        assert vcs.get_changed_files(revisions[0].id) == set(["BAR"])
         revisions = list(vcs.log(offset=0, limit=1))
         assert len(revisions) == 1
         assert revisions[0].subject == 'biz'

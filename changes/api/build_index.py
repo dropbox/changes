@@ -77,7 +77,7 @@ def _get_revision_changed_files(repository, revision):
         raise NotImplementedError
 
     try:
-        diff = vcs.export(revision.sha)
+        return vcs.get_changed_files(revision.sha)
     except UnknownRevision:
         try:
             vcs.update()
@@ -85,12 +85,9 @@ def _get_revision_changed_files(repository, revision):
             # Retry once if it was already updating.
             vcs.update()
         try:
-            diff = vcs.export(revision.sha)
+            return vcs.get_changed_files(revision.sha)
         except UnknownRevision:
             raise MissingRevision('Unable to find revision %s' % (revision.sha,))
-
-    diff_parser = DiffParser(diff)
-    return diff_parser.get_changed_files()
 
 
 def find_green_parent_sha(project, sha):

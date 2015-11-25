@@ -214,6 +214,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         fake_vcs.exists.return_value = True
         fake_vcs.log.side_effect = UnknownRevision(cmd="test command", retcode=128)
         fake_vcs.export.side_effect = UnknownRevision(cmd="test command", retcode=128)
+        fake_vcs.get_changed_files.side_effect = UnknownRevision(cmd="test command", retcode=128)
 
         def fake_update():
             # this simulates the effect of calling update() on a repo,
@@ -221,6 +222,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             fake_vcs.log.side_effect = log_results
             fake_vcs.export.side_effect = None
             fake_vcs.export.return_value = SAMPLE_DIFF_BYTES
+            fake_vcs.get_changed_files.side_effect = lambda id: Vcs.get_changed_files(fake_vcs, id)
 
         fake_vcs.update.side_effect = fake_update
 

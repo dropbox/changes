@@ -5,7 +5,6 @@ import logging
 from flask import current_app
 from changes.api.build_index import BuildIndexAPIView
 from changes.models import ProjectStatus, Project, ProjectConfigError, ProjectOptionsHelper, Revision
-from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import ConcurrentUpdateError, UnknownRevision
 
@@ -43,9 +42,8 @@ class CommitTrigger(object):
         if not vcs.exists():
             vcs.clone()
 
-        diff = None
         try:
-            diff = vcs.export(self.revision.sha)
+            return vcs.get_changed_files(self.revision.sha)
         except UnknownRevision:
             # Maybe the repo is stale; update.
             try:
@@ -55,10 +53,7 @@ class CommitTrigger(object):
                 vcs.update()
             # If it doesn't work this time, we have
             # a problem. Let the exception escape.
-            diff = vcs.export(self.revision.sha)
-
-        diff_parser = DiffParser(diff)
-        return diff_parser.get_changed_files()
+            return vcs.get_changed_files(self.revision.sha)
 
     def run(self):
         revision = self.revision
