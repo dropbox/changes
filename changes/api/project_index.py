@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, unicode_literals
 
 from collections import defaultdict
 
-from flask import current_app
 from flask.ext.restful import reqparse
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
@@ -114,14 +113,6 @@ class ProjectIndexAPIView(APIView):
 
                 plans = defaultdict(list)
                 for p in plans_list:
-                    # we also want info about what jenkins does when certain
-                    # config params are not specified
-                    # TODO: this is such a terrible way to ship down the data
-                    # (its duplicated like 50 times)
-                    p['jenkins_fallback'] = {
-                        'fallback_url': current_app.config['JENKINS_URL'],
-                        'fallback_cluster_machines': current_app.config['JENKINS_CLUSTERS']
-                    }
                     plans[p['project_id']].append(p)
 
                 # we could use the option names whitelist from

@@ -9,7 +9,7 @@ from changes.testutils import TestCase
 
 class JenkinsBuildStepTest(TestCase):
     def get_buildstep(self):
-        return JenkinsBuildStep(job_name='foo-bar')
+        return JenkinsBuildStep(job_name='foo-bar', jenkins_url=['http://jenkins.example.com'])
 
     def test_get_resource_limits(self):
         buildstep = JenkinsBuildStep(job_name="both", cpus=8, memory=8080)

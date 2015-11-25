@@ -71,9 +71,6 @@ class JenkinsBuilder(BaseBackend):
         self.master_urls = master_urls
         self.diff_urls = diff_urls
 
-        if not self.master_urls and self.app.config['JENKINS_URL']:
-            self.master_urls = [self.app.config['JENKINS_URL']]
-
         assert self.master_urls, 'No Jenkins masters specified'
 
         self.logger = logging.getLogger('jenkins')

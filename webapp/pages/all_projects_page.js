@@ -352,7 +352,6 @@ var AllProjectsPage = React.createClass({
     // keys are jenkins master urls. Values are two lists (master/diff) each of
     // plans (since we have a separate jenkins_diff_urls)
     var plans_by_master = {};
-    var jenkins_fallback_data = {};
 
     // ignore trailing slash for urls
     var del_trailing_slash = url => url.replace(/\/$/, '');
@@ -366,14 +365,6 @@ var AllProjectsPage = React.createClass({
         // is it a jenkins plan?
         if (plan.steps[0].name.toLowerCase().indexOf('jenkins') === -1) {
           return;
-        }
-
-        if (plan['jenkins_fallback']) {
-          jenkins_fallback_data = plan['jenkins_fallback'];
-          jenkins_fallback_data['fallback_cluster_machines'] =
-            jenkins_fallback_data['fallback_cluster_machines'] ?
-            JSON.stringify(jenkins_fallback_data['fallback_cluster_machines']) :
-            "None";
         }
 
         var data = JSON.parse(plan.steps[0].data);
@@ -477,14 +468,6 @@ var AllProjectsPage = React.createClass({
     var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <div>
-      <div className="defaultPre marginBottomM">
-        Note: this chart only shows explicitly-configured master urls. Here are
-        the fallbacks we use when master is not configured.
-        <div><b>fallback_url: </b>{(jenkins_fallback_data['fallback_url'] || "None")}</div>
-        <div><b>fallback_cluster_machines: </b>
-          {jenkins_fallback_data['fallback_cluster_machines']}
-        </div>
-      </div>
       <Grid
         colnum={6}
         data={rows}

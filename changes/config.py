@@ -246,9 +246,6 @@ def create_app(_read_config=True, **config):
         'changes',
     ]
 
-    app.config['JENKINS_URL'] = None
-    app.config['JENKINS_CLUSTERS'] = {}
-
     app.config['KOALITY_URL'] = None
     app.config['KOALITY_API_KEY'] = None
 

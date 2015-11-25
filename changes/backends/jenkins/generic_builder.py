@@ -42,11 +42,6 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         # key'd by the build_type, documented in config.py
         self.build_desc = self.load_build_desc(self.build_type)
 
-        if not master_urls:
-            # if we haven't specified master urls, lets try to take the default
-            # for this given cluster
-            master_urls = current_app.config['JENKINS_CLUSTERS'].get(self.cluster)
-
         super(JenkinsGenericBuilder, self).__init__(master_urls, *args, **kwargs)
 
     def load_build_desc(self, build_type):

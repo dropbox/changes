@@ -63,6 +63,7 @@ class JenkinsCollectorBuilderTest(BaseTestCase):
 class JenkinsCollectorBuildStepTest(TestCase):
     def get_buildstep(self):
         return JenkinsCollectorBuildStep(
+            jenkins_url=['http://jenkins.example.com'],
             job_name='foo-bar',
             script='exit 0',
             cluster='default',
