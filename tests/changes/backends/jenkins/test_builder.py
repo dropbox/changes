@@ -10,13 +10,13 @@ import time
 from flask import current_app
 from uuid import UUID
 
-from changes.config import db
+from changes.config import db, redis
 from changes.constants import Status, Result
 from changes.models import (
     Artifact, FailureReason, FileCoverage, Job, LogChunk, LogSource,
     Patch, TestCase, TestArtifact
 )
-from changes.backends.jenkins.builder import JenkinsBuilder
+from changes.backends.jenkins.builder import JenkinsBuilder, MASTER_BLACKLIST_KEY
 from changes.testutils import (
     BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT, SAMPLE_COVERAGE,
     SAMPLE_XUNIT_TESTARTIFACTS
@@ -250,6 +250,15 @@ class CreateBuildTest(BaseTestCase):
         step = job.phases[0].steps[0]
 
         assert step.data['master'] == 'http://jenkins-2.example.com'
+
+    def test_pick_master_with_blacklist(self):
+        redis.sadd(MASTER_BLACKLIST_KEY, 'http://jenkins.example.com')
+        builder = self.get_builder()
+        builder.master_urls = [
+            'http://jenkins.example.com',
+            'http://jenkins-2.example.com',
+        ]
+        assert 'http://jenkins-2.example.com' == builder._pick_master('job1')
 
     @responses.activate
     def test_jobstep_replacement(self):

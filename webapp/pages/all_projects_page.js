@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
+import Request from 'es6!display/request';
 import SectionHeader from 'es6!display/section_header';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
@@ -49,7 +50,9 @@ var AllProjectsPage = React.createClass({
 
   componentDidMount: function() {
     api.fetch(this, {
-      projects: '/api/0/projects/?fetch_extra=1'
+      projects: '/api/0/projects/?fetch_extra=1',
+      jenkins_master_blacklist: '/api/0/jenkins_master_blacklist/',
+      auth: '/api/0/auth/'
     });
   },
 
@@ -85,7 +88,13 @@ var AllProjectsPage = React.createClass({
         content = this.renderPlansByType(projects_data);
         break;
       case 'Jenkins Plans By Master':
-        content = this.renderJenkinsPlansByMaster(projects_data);
+        if (!api.isLoaded(this.state.jenkins_master_blacklist) &&
+            !api.isLoaded(this.state.auth)) {
+          return <APINotLoadedPage calls={[this.state.jenkins_master_blacklist, this.state.auth]} />;
+        }
+        var blacklist = this.state.jenkins_master_blacklist.getReturnedData()['blacklist'];
+        var user = this.state.auth.getReturnedData()['user'];
+        content = this.renderJenkinsPlansByMaster(projects_data, blacklist, user);
         break;
       default:
         throw 'unreachable';
@@ -147,16 +156,16 @@ var AllProjectsPage = React.createClass({
     });
 
     var headers = [
-      'Last Build', 
-      'When', 
-      <span style={{marginLeft: 11}}>Project Page</span>, 
+      'Last Build',
+      'When',
+      <span style={{marginLeft: 11}}>Project Page</span>,
       'Description'
     ];
 
     var cellClasses = [
-      'buildWidgetCell', 
-      'nowrap', 
-      'leftBarrier nowrap', 
+      'buildWidgetCell',
+      'nowrap',
+      'leftBarrier nowrap',
       'cellOverflow'
     ];
 
@@ -339,7 +348,7 @@ var AllProjectsPage = React.createClass({
      />;
   },
 
-  renderJenkinsPlansByMaster: function(projects_data) {
+  renderJenkinsPlansByMaster: function(projects_data, blacklist, user) {
     // keys are jenkins master urls. Values are two lists (master/diff) each of
     // plans (since we have a separate jenkins_diff_urls)
     var plans_by_master = {};
@@ -398,6 +407,25 @@ var AllProjectsPage = React.createClass({
       val.diff = val.diff || [];
 
       var is_first_row = true;
+      var in_blacklist = _.contains(blacklist, url);
+      var params = {'master_url': url};
+      if (in_blacklist)
+        params['remove'] = "1";
+
+      var checkbox = <input type="checkbox" checked={in_blacklist ? 1 : 0} disabled />;
+      if (user.isAdmin)
+        checkbox = <input type="checkbox" checked={in_blacklist ? 1 : 0}/>;
+
+      var checkbox_name = "toggle_blacklist_" + url;
+      var toggleDisable = <Request
+          parentElem={this}
+          name={checkbox_name}
+          method="post"
+          endpoint={`/api/0/jenkins_master_blacklist/`}
+          params={params}>
+          {checkbox}
+        </Request>;
+
       var first_row_text = <span className="paddingRightM">
         <a className="subtle" href={url} target="_blank">
           {split_urls_for_display[url][0]}
@@ -409,6 +437,7 @@ var AllProjectsPage = React.createClass({
 
       _.each(val.master, (plan, index) => {
         rows.push([
+          is_first_row ? {toggleDisable} : '',
           is_first_row ? first_row_text : '',
           index === 0 ? <span className="paddingRightM">Anything</span> : '',
           plan.name,
@@ -420,6 +449,7 @@ var AllProjectsPage = React.createClass({
 
       _.each(val.diff, (plan, index) => {
         rows.push([
+          is_first_row ? {toggleDisable} : '',
           is_first_row ? first_row_text : '',
           index === 0 ? <span className="paddingRightM">Diffs-only</span> : '',
           plan.name,
@@ -431,19 +461,20 @@ var AllProjectsPage = React.createClass({
     });
 
     var headers = [
+      'Disabled',
       <span>
         Master{" "}
         <SimpleTooltip label="You may need special permissions to view the Jenkins pages">
           <i className="fa fa-lock" />
         </SimpleTooltip>
       </span>,
-      'Used for', 
-      'Plan', 
-      'Project', 
+      'Used for',
+      'Plan',
+      'Project',
       'Modified'
     ];
 
-    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
 
     return <div>
       <div className="defaultPre marginBottomM">
@@ -455,7 +486,7 @@ var AllProjectsPage = React.createClass({
         </div>
       </div>
       <Grid
-        colnum={5}
+        colnum={6}
         data={rows}
         headers={headers}
         cellClasses={cellClasses}

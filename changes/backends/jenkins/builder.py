@@ -22,7 +22,7 @@ from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.artifacts.xunit import XunitHandler
 from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.buildsteps.base import BuildStep
-from changes.config import db, statsreporter
+from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_artifact import sync_artifact
@@ -50,6 +50,10 @@ BUILD_ID_XPATH = ('/freeStyleProject/build[action/parameter/name="CHANGES_BID" a
 ID_XML_RE = re.compile(r'<id>(\d+)</id>')
 
 LOG_SYNC_TIMEOUT_SECS = 30
+
+# Redis key for storing the master blacklist set
+# The blacklist is used to temporarily remove jenkins masters from the pool of available masters.
+MASTER_BLACKLIST_KEY = 'jenkins_master_blacklist'
 
 
 class NotFound(Exception):
@@ -357,10 +361,15 @@ class JenkinsBuilder(BaseBackend):
         if is_diff and self.diff_urls:
             candidate_urls = self.diff_urls
 
-        if len(candidate_urls) == 1:
-            return candidate_urls[0]
+        blacklist = redis.smembers(MASTER_BLACKLIST_KEY)
+        master_urls = [c for c in candidate_urls if c not in blacklist]
 
-        master_urls = candidate_urls[:]
+        if len(master_urls) == 0:
+            raise ValueError("No masters to pick from.")
+
+        if len(master_urls) == 1:
+            return master_urls[0]
+
         random.shuffle(master_urls)
 
         best_match = (sys.maxint, None)
