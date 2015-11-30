@@ -53,6 +53,7 @@ require([
   "es6!pages/admin_page",
   "es6!pages/admin_project_page",
   "es6!pages/admin_repository_page",
+  "es6!pages/infra_fails_page",
   "es6!pages/project_page/project_page",
   "es6!pages/author_builds_page",
   "es6!pages/builds_pages/builds_pages",
@@ -79,6 +80,7 @@ require([
   AdminPage,
   AdminProjectPage,
   AdminRepositoryPage,
+  InfraFailsPage,
   ProjectPage,
   AuthorBuildsPage,
   buildsPages,
@@ -158,6 +160,7 @@ require([
     'author': [HomePage, 'author'],  // TODO: don't just use the homepage
     'node': [NodePage, 'nodeID'],
     'snapshot': [SnapshotPage, 'snapshotID'],
+    'infra_fails': [InfraFailsPage],
     'code': [CodePage, 'sourceID'],
     'pusher': [PusherPage],
     'display_examples': [DisplayExamplesPage],

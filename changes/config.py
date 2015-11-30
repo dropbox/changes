@@ -524,6 +524,7 @@ def configure_api_routes(app):
     from changes.api.user_details import UserDetailsAPIView
     from changes.api.user_index import UserIndexAPIView
     from changes.api.user_options import UserOptionsAPIView
+    from changes.api.infra_fail_job_index import InfraFailJobIndexAPIView
 
     api.add_resource(AuthIndexAPIView, '/auth/')
     api.add_resource(BuildIndexAPIView, '/builds/')
@@ -608,6 +609,7 @@ def configure_api_routes(app):
     api.add_resource(CachedSnapshotClusterDetailsAPIView, '/snapshots/cache/clusters/<cluster>/')
     api.add_resource(CachedSnapshotDetailsAPIView, '/snapshots/<uuid:snapshot_id>/cache/')
     api.add_resource(SnapshotJobIndexAPIView, '/snapshots/<uuid:snapshot_id>/jobs/')
+    api.add_resource(InfraFailJobIndexAPIView, '/admin_dash/infra_fail_jobs/')
     api.add_resource(SourceDetailsAPIView, '/sources/<source_id>/')
     api.add_resource(SourceBuildIndexAPIView, '/sources_builds/')
     api.add_resource(SystemStatsAPIView, '/systemstats/')
