@@ -25,7 +25,6 @@ from changes.buildsteps.base import BuildStep
 from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
-from changes.jobs.sync_artifact import sync_artifact
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
     Artifact, Cluster, ClusterNode, FailureReason, LogSource,
@@ -687,12 +686,6 @@ class JenkinsBuilder(BaseBackend):
         })
         if not created:
             db.session.commit()
-
-        sync_artifact.delay_if_needed(
-            artifact_id=artifact.id.hex,
-            task_id=artifact.id.hex,
-            parent_task_id=jobstep.id.hex,
-        )
 
     def _sync_generic_results(self, step, artifacts):
         # sync artifacts

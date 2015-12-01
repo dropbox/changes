@@ -1,14 +1,18 @@
 from __future__ import absolute_import
 
-from changes.storage.base import FileStorage
+import requests
 
+from cStringIO import StringIO
 from flask import current_app
+
+from changes.storage.base import FileStorage
 
 
 class ArtifactStoreFileStorage(FileStorage):
     def __init__(self, base_url=None, path=''):
         self.base_url = base_url or current_app.config.get('ARTIFACTS_SERVER')
         self.path = path
+        self.session = requests.Session()
 
     def save(self, filename, fp, content_type=None):
         # We don't actually write file contents anywhere
@@ -21,8 +25,10 @@ class ArtifactStoreFileStorage(FileStorage):
         )
 
     def get_file(self, filename):
-        # TODO: Make a request and get data
-        raise NotImplementedError
+        # TODO(paulruan): Have a reasonable file size limit
+        resp = self.session.get(self.url_for(filename))
+        resp.raise_for_status()
+        return StringIO(resp.content)
 
     def get_content_type(self, filename):
         # TODO: We should be able to detect filetype from name

@@ -131,6 +131,13 @@ class BuildStep(object):
         """
         raise NotImplementedError
 
+    def prefer_artifactstore(self):
+        """
+        Return true if we should prefer the artifact store artifacts over
+        those collected by Mesos/Jenkins.
+        """
+        return False
+
     @staticmethod
     def handle_debug_infra_failures(jobstep, debug_config, phase_type):
         """

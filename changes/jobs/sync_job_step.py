@@ -1,7 +1,12 @@
 from __future__ import absolute_import, print_function
 
+import os
+import requests
+
+from collections import defaultdict
 from datetime import datetime
 from flask import current_app
+from requests.exceptions import ConnectionError, HTTPError, Timeout, SSLError
 from sqlalchemy import distinct, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
@@ -9,16 +14,13 @@ from sqlalchemy.sql import func
 from changes.constants import Status, Result
 from changes.config import db, statsreporter
 from changes.db.utils import try_create
+from changes.jobs.sync_artifact import sync_artifact
 from changes.models import (
     ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
     FileCoverage, FailureReason, SnapshotImage, Artifact, LogSource
 )
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
-
-from requests.exceptions import ConnectionError, HTTPError, Timeout, SSLError
-
-import requests
 
 
 QUEUED_RETRY_DELAY = 30
@@ -208,7 +210,8 @@ ARTIFACTS_REQUEST_TIMEOUT_SECS = 5
 LOGSOURCE_WHITELIST = ('console', 'infralog',)
 
 
-def sync_artifacts_for_jobstep(jobstep):
+def _sync_from_artifact_store(jobstep):
+    """Checks and creates new artifacts from the artifact store."""
     url = '{base}/buckets/{jobstep_id}/artifacts/'.format(
         base=current_app.config.get('ARTIFACTS_SERVER'),
         jobstep_id=jobstep.id.hex,
@@ -254,7 +257,7 @@ def sync_artifacts_for_jobstep(jobstep):
                 art.file.save(None, filename)
                 try:
                     db.session.add(art)
-                    db.session.flush()
+                    db.session.commit()
                 except IntegrityError, err:
                     db.session.rollback()
                     current_app.logger.error(
@@ -270,6 +273,42 @@ def sync_artifacts_for_jobstep(jobstep):
     except Exception, err:
         current_app.logger.error('Error updating artifacts for jobstep %s: %s', jobstep, err, exc_info=True)
         raise err
+
+
+def _get_artifacts_to_sync(artifacts, prefer_artifactstore):
+    def is_artifact_store(artifact):
+        return artifact.file.storage == 'changes.storage.artifactstore.ArtifactStoreFileStorage'
+
+    artifacts_by_name = defaultdict(list)
+    # group by filename
+    for artifact in artifacts:
+        artifacts_by_name[os.path.basename(artifact.name)].append(artifact)
+
+    to_sync = []
+    for name, arts in artifacts_by_name.iteritems():
+        artifactstore_arts = [a for a in arts if is_artifact_store(a)]
+        other_arts = [a for a in arts if not is_artifact_store(a)]
+
+        # if we have this artifact from both sources, let buildstep choose which to use
+        if len(artifactstore_arts) and len(other_arts):
+            arts = artifactstore_arts if prefer_artifactstore else other_arts
+
+        to_sync.extend(arts)
+
+    return to_sync
+
+
+def _sync_artifacts_for_jobstep(step):
+    _, buildstep = JobPlan.get_build_step_for_job(job_id=step.job_id)
+    prefer_artifactstore = buildstep.prefer_artifactstore()
+    artifacts = Artifact.query.filter(Artifact.step_id == step.id).all()
+
+    for artifact in _get_artifacts_to_sync(artifacts, prefer_artifactstore):
+        sync_artifact.delay_if_needed(
+            artifact_id=artifact.id.hex,
+            task_id=artifact.id.hex,
+            parent_task_id=step.id.hex,
+        )
 
 
 @tracked_task(on_abort=abort_step, max_retries=100)
@@ -289,12 +328,14 @@ def sync_job_step(step_id):
 
     db.session.flush()
 
-    sync_artifacts_for_jobstep(step)
+    _sync_from_artifact_store(step)
 
-    if step.status != Status.finished:
-        is_finished = False
-    else:
-        is_finished = sync_job_step.verify_all_children() == Status.finished
+    if step.status == Status.finished:
+        _sync_artifacts_for_jobstep(step)
+
+    is_finished = (step.status == Status.finished and
+                   # make sure all child tasks (like sync_artifact) have also finished
+                   sync_job_step.verify_all_children() == Status.finished)
 
     if not is_finished:
         default_timeout = current_app.config['DEFAULT_JOB_TIMEOUT_MIN']

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import json
 import mock
 import re
 import responses
@@ -10,13 +11,16 @@ from mock import patch
 
 from changes.config import db
 from changes.constants import Result, Status
+from changes.db.types.filestorage import FileData
 from changes.jobs.sync_job_step import (
     sync_job_step, is_missing_tests, has_timed_out,
     _SNAPSHOT_TIMEOUT_BONUS_MINUTES,
+    _get_artifacts_to_sync,
+    _sync_from_artifact_store
 )
 from changes.models import (
     ItemOption, ItemStat, JobStep, HistoricalImmutableStep, Task, FileCoverage,
-    TestCase, FailureReason
+    TestCase, FailureReason, Artifact, LogSource
 )
 from changes.testutils import TestCase as BaseTestCase
 
@@ -315,8 +319,6 @@ class SyncJobStepTest(BaseTestCase):
             parent_task_id=job.id.hex,
         )
 
-        get_implementation.assert_called_once_with()
-
         implementation.update_step.assert_called_once_with(
             step=step
         )
@@ -394,8 +396,6 @@ class SyncJobStepTest(BaseTestCase):
             task_id=step.id.hex,
             parent_task_id=job.id.hex,
         )
-
-        get_implementation.assert_called_once_with()
 
         implementation.update_step.assert_called_once_with(
             step=step
@@ -546,7 +546,6 @@ class SyncJobStepTest(BaseTestCase):
 
         mock_has_timed_out.assert_called_once_with(step, jobplan, default_timeout=99)
 
-        get_implementation.assert_called_once_with()
         implementation.cancel_step.assert_called_once_with(
             step=step,
         )
@@ -596,3 +595,60 @@ class SyncJobStepTest(BaseTestCase):
             )
 
         assert step.result == Result.infra_failed
+
+    @mock.patch.object(Artifact, 'file')
+    @responses.activate
+    def test_sync_from_artifact_store(self, artifact_file):
+        artifacts = [{'name': 'junit.xml', 'relativePath': 'project/junit.xml'},
+                     {'name': 'console', 'relativePath': 'project/console'}]
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body=json.dumps(artifacts))
+
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.finished, result=Result.passed)
+
+        _sync_from_artifact_store(step)
+
+        logsources = LogSource.query.filter(LogSource.step_id == step.id).all()
+        assert len(logsources) == 1
+        assert logsources[0].name == 'console'
+        assert logsources[0].in_artifact_store
+
+        db_artifacts = Artifact.query.filter(Artifact.step_id == step.id).all()
+        assert len(db_artifacts) == 1
+        assert db_artifacts[0].name == 'artifactstore/project/junit.xml'
+        assert artifact_file.save.call_count == 1
+
+    def test_get_artifacts_to_sync(self):
+        project = self.create_project()
+        build = self.create_build(project=project)
+        job = self.create_job(build=build)
+
+        plan = self.create_plan(project)
+        self.create_step(plan, implementation='test', order=0)
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.finished, result=Result.passed)
+
+        make_AS_file = lambda: FileData({
+            'filename': 'foo',
+            'storage': 'changes.storage.artifactstore.ArtifactStoreFileStorage'})
+
+        artstore_junit = self.create_artifact(step, 'artifactstore/foo/junit.xml',
+                                              file=make_AS_file())
+        artstore_junit2 = self.create_artifact(step, 'artifactstore/junit.xml',
+                                               file=make_AS_file())
+        artstore_coverage = self.create_artifact(step, 'artifactstore/coverage.xml',
+                                                 file=make_AS_file())
+        other_junit = self.create_artifact(step, 'bar/junit.xml')
+        other_manifest = self.create_artifact(step, 'manifest.json')
+        arts = Artifact.query.filter(Artifact.step_id == step.id).all()
+
+        assert (sorted(_get_artifacts_to_sync(arts, prefer_artifactstore=True)) ==
+                sorted([artstore_junit, artstore_junit2, artstore_coverage, other_manifest]))
+
+        assert (sorted(_get_artifacts_to_sync(arts, prefer_artifactstore=False)) ==
+                sorted([artstore_coverage, other_junit, other_manifest]))

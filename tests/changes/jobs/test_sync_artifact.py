@@ -2,6 +2,9 @@ from __future__ import absolute_import
 
 import mock
 
+from cStringIO import StringIO
+
+from changes.config import db
 from changes.jobs.sync_artifact import sync_artifact
 from changes.models import HistoricalImmutableStep
 from changes.testutils import TestCase
@@ -24,7 +27,7 @@ class SyncArtifactTest(TestCase):
         self.jobplan = self.create_job_plan(self.job, self.plan)
 
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
-    def test_simple(self, get_implementation):
+    def test_file_doesnt_exist(self, get_implementation):
         implementation = mock.Mock()
         get_implementation.return_value = implementation
 
@@ -34,3 +37,20 @@ class SyncArtifactTest(TestCase):
         implementation.fetch_artifact.assert_called_once_with(
             artifact=self.artifact,
         )
+
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    def test_file_exists(self, get_implementation):
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+        manager = mock.Mock()
+        implementation.get_artifact_manager.return_value = manager
+
+        self.artifact.file.save(StringIO(), 'foo')
+        db.session.add(self.artifact)
+        db.session.commit()
+
+        with mock.patch.object(sync_artifact, 'allow_absent_from_db', True):
+            sync_artifact(artifact_id=self.artifact.id.hex)
+
+        implementation.get_artifact_manager.assert_called_once_with(self.jobstep)
+        manager.process.assert_called_once_with(self.artifact)

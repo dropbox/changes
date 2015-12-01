@@ -721,8 +721,7 @@ class SyncGenericResultsTest(BaseTestCase):
         assert step.data.get('log_offset') == 7
 
     @responses.activate
-    @mock.patch('changes.backends.jenkins.builder.sync_artifact')
-    def test_does_fire_sync_artifacts(self, sync_artifact):
+    def test_does_save_artifacts(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
             body=self.load_fixture('fixtures/GET/job_details_with_artifacts.json'))
@@ -776,12 +775,6 @@ class SyncGenericResultsTest(BaseTestCase):
             ).first()
 
             assert artifact.data == data
-
-            sync_artifact.delay_if_needed.assert_any_call(
-                artifact_id=artifact.id.hex,
-                task_id=artifact.id.hex,
-                parent_task_id=step.id.hex,
-            )
 
 
 class SyncArtifactTest(BaseTestCase):

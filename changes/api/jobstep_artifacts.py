@@ -7,7 +7,6 @@ from werkzeug.datastructures import FileStorage
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result
-from changes.jobs.sync_artifact import sync_artifact
 from changes.models import Artifact, JobStep
 
 
@@ -71,11 +70,5 @@ class JobStepArtifactsAPIView(APIView):
         )
         db.session.add(artifact)
         db.session.commit()
-
-        sync_artifact.delay_if_needed(
-            artifact_id=artifact.id.hex,
-            task_id=artifact.id.hex,
-            parent_task_id=step.id.hex,
-        )
 
         return {'id': artifact.id.hex}, 201
