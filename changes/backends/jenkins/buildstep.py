@@ -45,15 +45,12 @@ class JenkinsBuildStep(BuildStep):
             cpus (int): Number of CPUs this buildstep requires to run.
             memory (int): Memory required for this buildstep in megabytes.
             debug_config: A dictionary of debug config options. These are passed through
-                to changes-client. Options currently supported:
-                prelaunch_env and postlaunch_env, which can be used to change the pre-
-                and post- launch environments for
-                changes-client. There is also an infra_failures option, which takes a
+                to changes-client. There is also an infra_failures option, which takes a
                 dictionary used to force infrastructure failures in builds. The keys of
                 this dictionary refer to the phase (either 'primary' or 'expanded' if
                 applicable), and the values are the probabilities with which
                 a JobStep in that phase will fail.
-                An example debug_config: "debug_config": {"infra_failures": {"primary": 0.5}}
+                An example: "debug_config": {"infra_failures": {"primary": 0.5}}
                 This will then cause an infra failure in the primary JobStep with
                 probability 0.5.
         """
@@ -182,6 +179,9 @@ class JenkinsBuildStep(BuildStep):
     def verify_final_artifacts(self, jobstep, artifacts):
         builder = self.get_builder()
         return builder.verify_final_artifacts(jobstep, artifacts)
+
+    def prefer_artifactstore(self):
+        return self.debug_config.get('prefer_artifactstore', False)
 
 
 SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log', '*.service.log')

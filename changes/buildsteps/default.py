@@ -72,15 +72,12 @@ class DefaultBuildStep(BuildStep):
             memory: How much memory to limit the container to (not applicable for basic)
             compression: Compression algorithm to use (xz, lz4)
             debug_config: A dictionary of debug config options. These are passed through
-                to changes-client. Options currently supported:
-                prelaunch_env and postlaunch_env, which can be used to change the pre-
-                and post- launch environments for
-                changes-client. There is also an infra_failures option, which takes a
+                to changes-client. There is also an infra_failures option, which takes a
                 dictionary used to force infrastructure failures in builds. The keys of
                 this dictionary refer to the phase (for DefaultBuildSteps, only possible
                 value is 'primary'), and the values are the probabilities with which
                 a JobStep in that phase will fail.
-                An example debug_config: "debug_config": {"infra_failures": {"primary": 0.5}}
+                An example: "debug_config": {"infra_failures": {"primary": 0.5}}
                 This will then cause an infra failure in the primary JobStep with
                 probability 0.5.
             test_stats_from: project to get test statistics from, or
@@ -375,3 +372,6 @@ class DefaultBuildStep(BuildStep):
 
     def get_artifact_manager(self, jobstep):
         return Manager([CoverageHandler, XunitHandler])
+
+    def prefer_artifactstore(self):
+        return self.debug_config.get('prefer_artifactstore', False)
