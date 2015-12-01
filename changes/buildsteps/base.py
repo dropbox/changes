@@ -138,6 +138,13 @@ class BuildStep(object):
         """
         return False
 
+    def verify_final_artifacts(self, jobstep, artifacts):
+        """
+        Called when a jobstep is finished but we haven't yet synced its artifacts.
+        Used to do any verification we might want, for instance checking for
+        required artifacts.
+        """
+
     @staticmethod
     def handle_debug_infra_failures(jobstep, debug_config, phase_type):
         """

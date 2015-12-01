@@ -179,6 +179,10 @@ class JenkinsBuildStep(BuildStep):
         builder = self.get_builder()
         return builder.get_artifact_manager(jobstep)
 
+    def verify_final_artifacts(self, jobstep, artifacts):
+        builder = self.get_builder()
+        return builder.verify_final_artifacts(jobstep, artifacts)
+
 
 SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log', '*.service.log')
 

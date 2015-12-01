@@ -303,7 +303,12 @@ def _sync_artifacts_for_jobstep(step):
     prefer_artifactstore = buildstep.prefer_artifactstore()
     artifacts = Artifact.query.filter(Artifact.step_id == step.id).all()
 
-    for artifact in _get_artifacts_to_sync(artifacts, prefer_artifactstore):
+    to_sync = _get_artifacts_to_sync(artifacts, prefer_artifactstore)
+
+    # buildstep may want to check for e.g. required artifacts
+    buildstep.verify_final_artifacts(step, to_sync)
+
+    for artifact in to_sync:
         sync_artifact.delay_if_needed(
             artifact_id=artifact.id.hex,
             task_id=artifact.id.hex,

@@ -2,7 +2,6 @@ from __future__ import absolute_import, division
 
 import json
 import logging
-import os
 import random
 import re
 import requests
@@ -620,20 +619,6 @@ class JenkinsBuilder(BaseBackend):
 
         artifacts = item.get('artifacts', ())
 
-        # If the Jenkins run was aborted, we don't expect a manifest file.
-        if (step.result != Result.aborted and
-                not any(ManifestJsonHandler.can_process(os.path.basename(a['fileName'])) for a in artifacts)):
-            db.session.add(FailureReason(
-                step_id=step.id,
-                job_id=step.job.id,
-                build_id=step.job.build_id,
-                project_id=step.job.project_id,
-                reason='missing_manifest_json',
-            ))
-            step.result = Result.infra_failed
-            db.session.add(step)
-            db.session.commit()
-
         # Detect and warn if there are duplicate artifact file names as we were relying on
         # uniqueness before.
         artifact_filenames = set()
@@ -661,6 +646,21 @@ class JenkinsBuilder(BaseBackend):
             current_app.logger.exception(
                 'Unable to sync console log for job step %r',
                 step.id.hex)
+
+    def verify_final_artifacts(self, step, artifacts):
+        # If the Jenkins run was aborted, we don't expect a manifest file.
+        if (step.result != Result.aborted and
+                not any(ManifestJsonHandler.can_process(a.name) for a in artifacts)):
+            db.session.add(FailureReason(
+                step_id=step.id,
+                job_id=step.job.id,
+                build_id=step.job.build_id,
+                project_id=step.job.project_id,
+                reason='missing_manifest_json',
+            ))
+            step.result = Result.infra_failed
+            db.session.add(step)
+            db.session.commit()
 
     def _get_artifact_path(self, artifact_data):
         """Given the artifact's info from Jenkins, return a relative path

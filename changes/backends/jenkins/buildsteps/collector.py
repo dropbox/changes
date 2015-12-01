@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 
-import os.path
 import uuid
 
 from hashlib import md5
 
 from changes.artifacts.manager import Manager
 from changes.artifacts.collection_artifact import JobsJsonHandler
+from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.buildsteps.base import BuildStep
@@ -21,32 +21,27 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
     def get_default_job_phase_label(self, job, job_data):
         return 'Collect Jobs'
 
-    def get_required_artifact(self):
-        """The initial (collect) step must return at least one artifact with
-        this filename, or it will be marked as failed.
+    def get_required_handler(self):
+        """The initial (collect) step must return at least one artifact
+        that this handler can process, or it will be marked as failed.
 
         Returns:
-            str: the required filename
+            class: the handler class for the required artifact
         """
-        return JobsJsonHandler.FILENAMES[0]
+        return JobsJsonHandler
 
     def artifacts_for_jobstep(self, jobstep):
         # we only care about the required artifact for the collection phase
-        return self.artifacts if jobstep.data.get('expanded') else (self.get_required_artifact(),)
+        return self.artifacts if jobstep.data.get('expanded') else (self.get_required_handler().FILENAMES[0],)
 
     def get_artifact_manager(self, jobstep):
         if jobstep.data.get('expanded'):
             return super(JenkinsCollectorBuilder, self).get_artifact_manager(jobstep)
         else:
-            return Manager([JobsJsonHandler])
+            return Manager([self.get_required_handler(), ManifestJsonHandler])
 
-    def _sync_results(self, step, item):
-        """
-        At this point, we have already collected all of the artifacts, so if
-        this is the initial collection phase and we did not collect a
-        critical artifact then we error.
-        """
-        super(JenkinsCollectorBuilder, self)._sync_results(step, item)
+    def verify_final_artifacts(self, step, artifacts):
+        super(JenkinsCollectorBuilder, self).verify_final_artifacts(step, artifacts)
 
         # We annotate the "expanded" jobs with this tag, so the individual
         # shards will no longer require the critical artifact
@@ -60,10 +55,9 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
         if expected_image:
             return
 
-        artifacts = item.get('artifacts', ())
-        required_artifact = self.get_required_artifact()
+        required_handler = self.get_required_handler()
 
-        if not any(os.path.basename(a['fileName']) == required_artifact for a in artifacts):
+        if not any(required_handler.can_process(a.name) for a in artifacts):
             step.result = Result.failed
             db.session.add(step)
 
@@ -75,6 +69,7 @@ class JenkinsCollectorBuilder(JenkinsGenericBuilder):
                 'project_id': job.project_id,
                 'reason': 'missing_artifact'
             })
+            db.session.commit()
 
 
 class JenkinsCollectorBuildStep(JenkinsGenericBuildStep):

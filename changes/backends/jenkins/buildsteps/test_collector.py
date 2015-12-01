@@ -7,7 +7,6 @@ import uuid
 
 from hashlib import md5
 
-from changes.artifacts.manager import Manager
 from changes.artifacts.collection_artifact import TestsJsonHandler
 from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
 from changes.buildsteps.base import BuildStep
@@ -66,22 +65,8 @@ class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
     def get_default_job_phase_label(self, job, job_data):
         return 'Collect Tests'
 
-    def get_required_artifact(self):
-        """The initial (collect) step must return at least one artifact with
-        this filename, or it will be marked as failed. This logic is checked in
-        JenkinsCollectorBuildStep, where it checks all artifacts to ensure
-        one with this filename was collected.
-
-        Returns:
-            str: the required artifact
-        """
-        return TestsJsonHandler.FILENAMES[0]
-
-    def get_artifact_manager(self, jobstep):
-        if jobstep.data.get('expanded'):
-            return super(JenkinsCollectorBuilder, self).get_artifact_manager(jobstep)
-        else:
-            return Manager([TestsJsonHandler])
+    def get_required_handler(self):
+        return TestsJsonHandler
 
 
 class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):

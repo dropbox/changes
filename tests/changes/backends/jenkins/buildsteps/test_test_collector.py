@@ -7,96 +7,14 @@ import mock
 import responses
 
 from copy import deepcopy
-from uuid import UUID
 
+from changes.artifacts.collection_artifact import TestsJsonHandler
 from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, JenkinsTestCollectorBuildStep, JenkinsCollectorBuilder
 from changes.config import db
 from changes.constants import Result, Status
 from changes.expanders import TestsExpander
 from changes.models import JobPhase, JobPlan, JobStep
 from changes.testutils import TestCase
-from ..test_builder import BaseTestCase
-
-
-class JenkinsCollectorBuilderTest(BaseTestCase):
-    builder_cls = JenkinsTestCollectorBuilder
-    builder_options = {
-        'master_urls': ['http://jenkins.example.com'],
-        'diff_urls': ['http://jenkins-diff.example.com'],
-        'job_name': 'server',
-        'script': 'echo hello',
-        'cluster': 'server-runner',
-        'build_type': 'legacy',
-        'shard_build_type': 'legacy'
-    }
-
-    @responses.activate
-    def test_tests_collected(self):
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
-            body=self.load_fixture('fixtures/GET/job_details_success_with_tests_artifact.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
-            match_querystring=True,
-            adding_headers={'X-Text-Size': '0'},
-            body='')
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
-            body=self.load_fixture('fixtures/GET/node_config.xml'))
-
-        build = self.create_build(self.project)
-        job = self.create_job(
-            build=build,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-        )
-        phase = self.create_jobphase(job)
-        step = self.create_jobstep(phase, data={
-            'build_no': 2,
-            'item_id': 13,
-            'job_name': 'server',
-            'queued': False,
-            'master': 'http://jenkins.example.com',
-        })
-
-        builder = self.get_builder()
-        builder.sync_step(step)
-
-        # tests.json present; step should succeed.
-        assert step.result == Result.passed
-
-    @responses.activate
-    def test_no_tests_collected(self):
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
-            body=self.load_fixture('fixtures/GET/job_details_success.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
-            match_querystring=True,
-            adding_headers={'X-Text-Size': '0'},
-            body='')
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
-            body=self.load_fixture('fixtures/GET/node_config.xml'))
-
-        build = self.create_build(self.project)
-        job = self.create_job(
-            build=build,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-        )
-        phase = self.create_jobphase(job)
-        step = self.create_jobstep(phase, data={
-            'build_no': 2,
-            'item_id': 13,
-            'job_name': 'server',
-            'queued': False,
-            'master': 'http://jenkins.example.com',
-        })
-
-        builder = self.get_builder()
-        builder.sync_step(step)
-
-        # No tests.json collected should cause the step to fail.
-        assert step.result == Result.failed
 
 
 class JenkinsTestCollectorBuildStepTest(TestCase):
@@ -147,7 +65,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuildStep, 'get_builder')
     def test_default_artifact_handling(self, get_builder):
         builder = self.get_mock_builder()
-        builder.get_required_artifact.return_value = 'required.json'
+        builder.get_required_handler.return_value = TestsJsonHandler
         get_builder.return_value = builder
 
         project = self.create_project()
@@ -318,10 +236,9 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @responses.activate
     @mock.patch.object(JenkinsTestCollectorBuilder, 'fetch_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
-    @mock.patch.object(JenkinsTestCollectorBuilder, 'get_required_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
-    def test_job_expansion(self, get_test_stats, get_job_parameters, get_required_artifact,
+    def test_job_expansion(self, get_test_stats, get_job_parameters,
                            create_jenkins_job_from_params, fetch_artifact):
         """
         Fairly heavy integration test which mocks out a few things but ensures
@@ -344,8 +261,6 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         }
 
         get_job_parameters.return_value = {'PARAM': '44'}
-
-        get_required_artifact.return_value = 'tests.json'
 
         get_test_stats.return_value = {
             ('foo', 'bar'): 50,
@@ -458,10 +373,9 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @responses.activate
     @mock.patch.object(JenkinsTestCollectorBuilder, 'fetch_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
-    @mock.patch.object(JenkinsTestCollectorBuilder, 'get_required_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
-    def test_create_replacement_jobstep(self, get_test_stats, get_job_parameters, get_required_artifact,
+    def test_create_replacement_jobstep(self, get_test_stats, get_job_parameters,
                                         create_jenkins_job_from_params, fetch_artifact):
         """
         Tests create_replacement_jobstep by running a very similar test to
@@ -484,8 +398,6 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         }
 
         get_job_parameters.return_value = {'PARAM': '44'}
-
-        get_required_artifact.return_value = 'tests.json'
 
         get_test_stats.return_value = {
             ('foo', 'bar'): 50,
@@ -615,10 +527,9 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @responses.activate
     @mock.patch.object(JenkinsTestCollectorBuilder, 'fetch_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
-    @mock.patch.object(JenkinsTestCollectorBuilder, 'get_required_artifact')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
-    def test_job_expansion_no_tests(self, get_test_stats, get_job_parameters, get_required_artifact,
+    def test_job_expansion_no_tests(self, get_test_stats, get_job_parameters,
                            create_jenkins_job_from_params, fetch_artifact):
         fetch_artifact.return_value.content = json.dumps({
             'phase': 'Test',
@@ -629,7 +540,6 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
             'job_name': 'foo-bar',
             'build_no': 23,
         }
-        get_required_artifact.return_value = 'tests.json'
 
         get_test_stats.return_value = {
             ('foo', 'bar'): 50,

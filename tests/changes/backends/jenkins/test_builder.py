@@ -579,25 +579,9 @@ class SyncStepTest(BaseTestCase):
         assert step.result == Result.failed
         assert step.date_finished is not None
 
-    @responses.activate
-    def test_missing_manifest_result(self):
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
-            body=self.load_fixture('fixtures/GET/job_details_missing_manifest.json'))
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/job/server/2/logText/progressiveText/?start=0',
-            match_querystring=True,
-            adding_headers={'X-Text-Size': '0'},
-            body='')
-        responses.add(
-            responses.GET, 'http://jenkins.example.com/computer/server-ubuntu-10.04%20(ami-746cf244)%20(i-836023b7)/config.xml',
-            body=self.load_fixture('fixtures/GET/node_config.xml'))
-
+    def test_present_manifest(self):
         build = self.create_build(self.project)
-        job = self.create_job(
-            build=build,
-            id=UUID('81d1596fd4d642f4a6bdf86c45e014e8'),
-        )
+        job = self.create_job(build=build)
         phase = self.create_jobphase(job)
         step = self.create_jobstep(phase, data={
             'build_no': 2,
@@ -607,18 +591,30 @@ class SyncStepTest(BaseTestCase):
             'master': 'http://jenkins.example.com',
         })
 
+        artifacts = [self.create_artifact(step, 'manifest.json')]
+
         builder = self.get_builder()
-        builder.sync_step(step)
+        builder.verify_final_artifacts(step, artifacts)
+
+        assert not FailureReason.query.filter(
+            FailureReason.step_id == step.id
+        ).first()
+
+    def test_missing_manifest_result(self):
+        build = self.create_build(self.project)
+        job = self.create_job(build=build)
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.finished)
+
+        builder = self.get_builder()
+        builder.verify_final_artifacts(step, [])
 
         assert FailureReason.query.filter(
             FailureReason.step_id == step.id,
             FailureReason.reason == 'missing_manifest_json'
-        )
+        ).first()
 
-        assert step.data['build_no'] == 2
-        assert step.status == Status.finished
         assert step.result == Result.infra_failed
-        assert step.date_finished is not None
 
     @responses.activate
     @mock.patch('changes.backends.jenkins.builder.time')
