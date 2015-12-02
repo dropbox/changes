@@ -34,4 +34,15 @@ class BuildTestIndexFailuresAPIView(APIView):
 
             result_list.append(test_info)
 
+        # Specified order for all expected Result values.
+        sort_order = (Result.failed, Result.quarantined_failed, Result.quarantined_skipped, Result.skipped)
+        sort_dict = {}
+        for i, k in enumerate(sort_order):
+            sort_dict[k.name] = i
+
+        def sort_key(t):
+            # Unexpected values get -1 (and so go first) because they are by definition interesting.
+            return sort_dict.get(t['result'], -1)
+
+        result_list = sorted(result_list, key=sort_key)
         return self.respond(result_list)
