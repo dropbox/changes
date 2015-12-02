@@ -19,19 +19,28 @@ class CollectionArtifactHandler(ArtifactHandler):
     def process(self, fp):
         try:
             phase_config = json.load(fp)
-            _, implementation = JobPlan.get_build_step_for_job(job_id=self.step.job_id)
-            implementation.expand_jobs(self.step, phase_config)
-        except Exception:
+        except ValueError:
             uri = build_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
             self.logger.warning('Failed to parse json; (step=%s, build=%s)', self.step.id.hex, uri, exc_info=True)
-            try_create(FailureReason, {
-                'step_id': self.step.id,
-                'job_id': self.step.job_id,
-                'build_id': self.step.job.build_id,
-                'project_id': self.step.project_id,
-                'reason': 'malformed_artifact'
-            })
-            db.session.commit()
+            self._add_failure_reason()
+        else:
+            _, implementation = JobPlan.get_build_step_for_job(job_id=self.step.job_id)
+            try:
+                implementation.expand_jobs(self.step, phase_config)
+            except Exception:
+                uri = build_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
+                self.logger.warning('expand_jobs failed (step=%s, build=%s)', self.step.id.hex, uri, exc_info=True)
+                self._add_failure_reason()
+
+    def _add_failure_reason(self):
+        try_create(FailureReason, {
+            'step_id': self.step.id,
+            'job_id': self.step.job_id,
+            'build_id': self.step.job.build_id,
+            'project_id': self.step.project_id,
+            'reason': 'malformed_artifact'
+        })
+        db.session.commit()
 
 
 class JobsJsonHandler(CollectionArtifactHandler):
