@@ -64,7 +64,7 @@ class PhabricatorClient(object):
             return True
 
         self.user = current_app.config.get('PHABRICATOR_USERNAME')
-        self.host = current_app.config.get('PHABRICATOR_HOST')
+        self.host = current_app.config.get('PHABRICATOR_API_HOST')
         self.cert = current_app.config.get('PHABRICATOR_CERT')
 
         if not self.cert:

@@ -126,7 +126,7 @@ var ChangesLinks = {
     // if we don't have a link, let's just let the phabricator search engine
     // find the commit for us. It automatically redirects when only one commit
     // matches the sha
-    var phab_host = window.changesGlobals['PHABRICATOR_HOST'];
+    var phab_host = window.changesGlobals['PHABRICATOR_LINK_HOST'];
     return URI(phab_host)
       .path('/search/')
       .addSearch('query', revision.sha)

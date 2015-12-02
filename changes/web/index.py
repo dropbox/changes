@@ -64,7 +64,7 @@ class IndexView(MethodView):
                 'HAS_CUSTOM_CSS': (current_app.config['WEBAPP_CUSTOM_CSS'] and
                     not disable_custom),
                 'IS_DEBUG': current_app.debug,
-                'PHABRICATOR_HOST': current_app.config['PHABRICATOR_HOST'],
+                'PHABRICATOR_LINK_HOST': current_app.config['PHABRICATOR_LINK_HOST'],
                 'COLORBLIND': (user_options.get('user.colorblind') and
                     user_options.get('user.colorblind') != '0'),
             })

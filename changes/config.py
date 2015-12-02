@@ -263,7 +263,8 @@ def create_app(_read_config=True, **config):
     app.config['S3_SECRET_KEY'] = None
     app.config['S3_BUCKET'] = None
 
-    app.config['PHABRICATOR_HOST'] = None
+    app.config['PHABRICATOR_LINK_HOST'] = None
+    app.config['PHABRICATOR_API_HOST'] = None
     app.config['PHABRICATOR_USERNAME'] = None
     app.config['PHABRICATOR_CERT'] = None
 

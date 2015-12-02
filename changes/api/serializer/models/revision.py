@@ -28,11 +28,11 @@ class RevisionCrumbler(Crumbler):
 
     def crumble(self, instance, attrs):
         callsign = attrs['phabricator.callsign']
-        if callsign and current_app.config['PHABRICATOR_HOST']:
+        if callsign and current_app.config['PHABRICATOR_LINK_HOST']:
             label = 'r{}{}'.format(callsign, instance.sha[:12])
             external = {
                 'link': '{}/{}'.format(
-                    current_app.config['PHABRICATOR_HOST'].rstrip('/'),
+                    current_app.config['PHABRICATOR_LINK_HOST'].rstrip('/'),
                     label),
                 'label': label,
             }
