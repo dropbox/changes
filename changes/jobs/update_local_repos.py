@@ -1,7 +1,8 @@
 import logging
 
-from changes.vcs.base import CommandError, ConcurrentUpdateError
+from changes.config import db
 from changes.models import Repository, RepositoryStatus
+from changes.vcs.base import CommandError, ConcurrentUpdateError
 
 
 logger = logging.getLogger('update_local_repo')
@@ -17,6 +18,9 @@ def update_local_repos():
 
     for repo in repo_list:
         vcs = repo.get_vcs()
+        # Close the read transaction to avoid a long running transaction
+        db.session.commit()
+
         if vcs is None:
             logger.warning('Repository %s has no VCS backend set', repo.id)
             continue
