@@ -60,8 +60,7 @@ export var create = function(form, saveButtonText, _this, messages=[]) {
       } else if (field.type === 'checkbox') {
         return <div className="marginBottomS">
           <label>
-            <div><input type='checkbox' checkedLink={_this.linkState(field.link)} /></div>
-            {field.comment}
+            <div><input type='checkbox' checkedLink={_this.linkState(field.link)} /> {field.comment} </div>
           </label>
           <hr />
         </div>;
