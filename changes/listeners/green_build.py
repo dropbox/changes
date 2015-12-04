@@ -18,6 +18,7 @@ from changes.models import (
 from changes.models.latest_green_build import LatestGreenBuild
 from changes.utils.http import build_uri
 from changes.utils.locking import lock
+from changes.vcs.base import ConcurrentUpdateError
 
 logger = logging.getLogger('green_build')
 
@@ -91,7 +92,11 @@ def build_finished_handler(build_id, **kwargs):
 
     # ensure we have the latest changes
     if vcs.exists():
-        vcs.update()
+        try:
+            vcs.update()
+        except ConcurrentUpdateError:
+            # Retry once if it was already updating.
+            vcs.update()
     else:
         vcs.clone()
 
