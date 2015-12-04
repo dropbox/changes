@@ -16,7 +16,8 @@ from changes.jobs.sync_job_step import (
     sync_job_step, is_missing_tests, has_timed_out,
     _SNAPSHOT_TIMEOUT_BONUS_MINUTES,
     _get_artifacts_to_sync,
-    _sync_from_artifact_store
+    _sync_from_artifact_store,
+    _sync_artifacts_for_jobstep,
 )
 from changes.models import (
     ItemOption, ItemStat, JobStep, HistoricalImmutableStep, Task, FileCoverage,
@@ -652,3 +653,37 @@ class SyncJobStepTest(BaseTestCase):
 
         assert (sorted(_get_artifacts_to_sync(arts, prefer_artifactstore=False)) ==
                 sorted([artstore_coverage, other_junit, other_manifest]))
+
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @mock.patch('changes.jobs.sync_job_step._get_artifacts_to_sync')
+    def test_sync_artifacts_for_jobstep(self, _get_artifacts_to_sync, get_implementation):
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+        implementation.prefer_artifactstore.return_value = False
+
+        project = self.create_project()
+        build = self.create_build(project=project)
+        job = self.create_job(build=build)
+
+        plan = self.create_plan(project)
+        self.create_step(plan, implementation='test', order=0)
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.finished, result=Result.passed)
+
+        artifact = self.create_artifact(step, 'manifest.json')
+        to_sync = [artifact]
+        _get_artifacts_to_sync.return_value = to_sync
+
+        _sync_artifacts_for_jobstep(step)
+
+        assert Task.query.filter(Task.task_id == artifact.id).first()
+
+        implementation.verify_final_artifacts.assert_called_once_with(step, to_sync)
+
+        # verify second call is a no-op
+        _sync_artifacts_for_jobstep(step)
+
+        # not called again
+        implementation.verify_final_artifacts.assert_called_once_with(step, to_sync)

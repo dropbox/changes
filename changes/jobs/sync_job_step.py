@@ -17,7 +17,7 @@ from changes.db.utils import try_create
 from changes.jobs.sync_artifact import sync_artifact
 from changes.models import (
     ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
-    FileCoverage, FailureReason, SnapshotImage, Artifact, LogSource
+    FileCoverage, FailureReason, SnapshotImage, Artifact, LogSource, Task
 )
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
@@ -299,6 +299,13 @@ def _get_artifacts_to_sync(artifacts, prefer_artifactstore):
 
 
 def _sync_artifacts_for_jobstep(step):
+    # only generate the sync_artifact tasks for this step once
+    if Task.query.filter(
+        Task.parent_id == step.id,
+        Task.task_name == 'sync_artifact',
+    ).first():
+        return
+
     _, buildstep = JobPlan.get_build_step_for_job(job_id=step.job_id)
     prefer_artifactstore = buildstep.prefer_artifactstore()
     artifacts = Artifact.query.filter(Artifact.step_id == step.id).all()
