@@ -139,7 +139,7 @@ let ProjectSettingsFieldGroup = React.createClass({
       'build.branch-names': state.branches,
       'mail.notify-author': state.notifyAuthors | 0,
       'mail.notify-addresses': state.notifyAddresses,
-      'mail.notify-addresses-revisions': state.notifyAddressesRevision,
+      'mail.notify-addresses-revisions': state.notifyAddressesRevisions,
       'phabricator.notify': state.pushBuildResults | 0,
       'phabricator.coverage': state.pushCoverageResults | 0,
       'green-build.notify': state.greenBuildNotify | 0,
