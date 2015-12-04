@@ -13,12 +13,12 @@ from changes.utils.trees import build_flat_tree
 
 class TestsExpander(Expander):
     """
-    The ``command`` value must exist (and contain {test_names}) as well as the
+    The ``cmd`` value must exist (and contain {test_names}) as well as the
     ``tests`` attribute which must be a list of strings:
 
         {
             "phase": "optional phase name",
-            "command": "py.test --junit=junit.xml {test_names}",
+            "cmd": "py.test --junit=junit.xml {test_names}",
             "path": "",
             "tests": [
                 "foo.bar.test_baz",
@@ -28,8 +28,8 @@ class TestsExpander(Expander):
     """
     def validate(self):
         assert 'tests' in self.data, 'Missing ``tests`` attribute'
-        assert 'command' in self.data, 'Missing ``command`` attribute'
-        assert '{test_names}' in self.data['command'], 'Missing ``{test_names}`` in command'
+        assert 'cmd' in self.data, 'Missing ``cmd`` attribute'
+        assert '{test_names}' in self.data['cmd'], 'Missing ``{test_names}`` in command'
 
     def expand(self, max_executors, test_stats_from=None):
         test_stats, avg_test_time = self.get_test_stats(test_stats_from or self.project.slug)
@@ -39,7 +39,7 @@ class TestsExpander(Expander):
 
         for weight, test_list in groups:
             future_command = FutureCommand(
-                script=self.data['command'].format(test_names=' '.join(test_list)),
+                script=self.data['cmd'].format(test_names=' '.join(test_list)),
                 path=self.data.get('path'),
                 env=self.data.get('env'),
                 artifacts=self.data.get('artifacts'),

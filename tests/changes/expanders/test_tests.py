@@ -25,11 +25,11 @@ class TestsExpanderTest(TestCase):
             self.get_expander({'tests': []}).validate()
 
         with pytest.raises(AssertionError):
-            self.get_expander({'command': 'echo 1', 'tests': []}).validate()
+            self.get_expander({'cmd': 'echo 1', 'tests': []}).validate()
 
         self.get_expander({
             'tests': [],
-            'command': 'echo {test_names}',
+            'cmd': 'echo {test_names}',
         }).validate()
 
     def test_get_test_stats(self):
@@ -93,7 +93,7 @@ class TestsExpanderTest(TestCase):
         }, 68
 
         results = list(self.get_expander({
-            'command': 'py.test --junit=junit.xml {test_names}',
+            'cmd': 'py.test --junit=junit.xml {test_names}',
             'tests': [
                 'foo/bar.py',
                 'foo/baz.py',
