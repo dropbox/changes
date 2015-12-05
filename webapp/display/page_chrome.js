@@ -483,7 +483,14 @@ var ChangesLogin = React.createClass({
         Log in
       </a>;
     } else {
+      var admin_link = <a
+          className="headerLinkBlock"
+          href="/admin"
+          title="Admin">
+          <i className="fa fa-cog"></i>
+        </a>;
       return <div className="floatR">
+        {admin_link}
         <a
           className="headerLinkBlock"
           href="/auth/logout?return=1"
