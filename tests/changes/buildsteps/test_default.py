@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import mock
 
 from changes.buildsteps.default import (
     DEFAULT_ARTIFACTS, DEFAULT_ENV, DEFAULT_PATH, DEFAULT_RELEASE,
@@ -7,8 +8,9 @@ from changes.buildsteps.default import (
 )
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Command, CommandType, FutureCommand, FutureJobStep
+from changes.models import CommandType, FutureCommand, FutureJobStep, Repository
 from changes.testutils import TestCase
+from changes.vcs.base import Vcs
 
 
 class DefaultBuildStepTest(TestCase):
@@ -38,9 +40,7 @@ class DefaultBuildStepTest(TestCase):
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
 
-        commands = list(Command.query.filter(
-            Command.jobstep_id == step.id,
-        ))
+        commands = step.commands
         assert len(commands) == 2
 
         assert commands[0].script == 'echo "hello world 2"'
@@ -55,6 +55,38 @@ class DefaultBuildStepTest(TestCase):
         assert commands[1].script == 'echo "hello world 1"'
         assert commands[1].cwd == DEFAULT_PATH
         assert commands[1].type == CommandType.default
+        assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[1].env == DEFAULT_ENV
+
+    @mock.patch.object(Repository, 'get_vcs')
+    def test_execute_collection_step(self, get_vcs):
+        build = self.create_build(self.create_project())
+        job = self.create_job(build)
+
+        vcs = mock.Mock(spec=Vcs)
+        vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
+        get_vcs.return_value = vcs
+
+        buildstep = DefaultBuildStep(commands=[{'script': 'ls', 'type': 'collect_tests'},
+                                               {'script': 'setup_command', 'type': 'setup'}])
+        buildstep.execute(job)
+
+        step = job.phases[0].steps[0]
+
+        assert step.data['release'] == DEFAULT_RELEASE
+        assert step.status == Status.pending_allocation
+
+        commands = step.commands
+        assert len(commands) == 2
+
+        assert commands[0].script == 'git clone https://example.com'
+        assert commands[0].cwd == ''
+        assert commands[0].type == CommandType.infra_setup
+        assert commands[0].env == DEFAULT_ENV
+
+        assert commands[1].script == 'ls'
+        assert commands[1].cwd == DEFAULT_PATH
+        assert commands[1].type == CommandType.collect_tests
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[1].env == DEFAULT_ENV
 
@@ -85,9 +117,7 @@ class DefaultBuildStepTest(TestCase):
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
 
-        commands = list(Command.query.filter(
-            Command.jobstep_id == step.id,
-        ))
+        commands = step.commands
         assert len(commands) == 2
 
         assert commands[0].script == 'echo "hello world 2"'
@@ -105,13 +135,18 @@ class DefaultBuildStepTest(TestCase):
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[1].env == DEFAULT_ENV
 
-    def test_create_expanded_jobstep(self):
+    @mock.patch.object(Repository, 'get_vcs')
+    def test_create_expanded_jobstep(self, get_vcs):
         build = self.create_build(self.create_project())
         job = self.create_job(build)
         jobphase = self.create_jobphase(job, label='foo')
         jobstep = self.create_jobstep(jobphase)
 
         new_jobphase = self.create_jobphase(job, label='bar')
+
+        vcs = mock.Mock(spec=Vcs)
+        vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
+        get_vcs.return_value = vcs
 
         future_jobstep = FutureJobStep(
             label='test',
@@ -129,33 +164,38 @@ class DefaultBuildStepTest(TestCase):
 
         assert new_jobstep.data['expanded'] is True
 
-        commands = list(Command.query.filter(
-            Command.jobstep_id == new_jobstep.id,
-        ).order_by(
-            Command.order.asc(),
-        ))
+        commands = new_jobstep.commands
 
-        assert len(commands) == 3
-        assert commands[0].script == 'echo "hello world 2"'
-        assert commands[0].cwd == '/usr/test/1'
-        assert commands[0].type == CommandType.setup
+        assert len(commands) == 4
+        assert commands[0].script == 'git clone https://example.com'
+        assert commands[0].cwd == ''
+        assert commands[0].type == CommandType.infra_setup
         assert commands[0].order == 0
-        assert commands[1].label == 'echo 1'
-        assert commands[1].script == 'echo 1'
+        assert commands[1].script == 'echo "hello world 2"'
+        assert commands[1].cwd == '/usr/test/1'
+        assert commands[1].type == CommandType.setup
         assert commands[1].order == 1
-        assert commands[1].cwd == DEFAULT_PATH
-        assert commands[2].label == 'echo "foo"'
-        assert commands[2].script == 'echo "foo"\necho "bar"'
+        assert commands[2].label == 'echo 1'
+        assert commands[2].script == 'echo 1'
         assert commands[2].order == 2
         assert commands[2].cwd == DEFAULT_PATH
+        assert commands[3].label == 'echo "foo"'
+        assert commands[3].script == 'echo "foo"\necho "bar"'
+        assert commands[3].order == 3
+        assert commands[3].cwd == DEFAULT_PATH
 
-    def test_create_replacement_jobstep_expanded(self):
+    @mock.patch.object(Repository, 'get_vcs')
+    def test_create_replacement_jobstep_expanded(self, get_vcs):
         build = self.create_build(self.create_project())
         job = self.create_job(build)
         jobphase = self.create_jobphase(job, label='foo')
         jobstep = self.create_jobstep(jobphase)
 
         new_jobphase = self.create_jobphase(job, label='bar')
+
+        vcs = mock.Mock(spec=Vcs)
+        vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
+        get_vcs.return_value = vcs
 
         future_jobstep = FutureJobStep(
             label='test',
@@ -191,25 +231,25 @@ class DefaultBuildStepTest(TestCase):
         # make sure non-whitelisted attributes aren't copied over
         assert 'forceInfraFailure' not in new_jobstep.data
 
-        commands = list(Command.query.filter(
-            Command.jobstep_id == new_jobstep.id,
-        ).order_by(
-            Command.order.asc(),
-        ))
+        commands = new_jobstep.commands
 
-        assert len(commands) == 3
-        assert commands[0].script == 'echo "hello world 2"'
-        assert commands[0].cwd == '/usr/test/1'
-        assert commands[0].type == CommandType.setup
+        assert len(commands) == 4
+        assert commands[0].script == 'git clone https://example.com'
+        assert commands[0].cwd == ''
+        assert commands[0].type == CommandType.infra_setup
         assert commands[0].order == 0
-        assert commands[1].label == 'echo 1'
-        assert commands[1].script == 'echo 1'
+        assert commands[1].script == 'echo "hello world 2"'
+        assert commands[1].cwd == '/usr/test/1'
+        assert commands[1].type == CommandType.setup
         assert commands[1].order == 1
-        assert commands[1].cwd == DEFAULT_PATH
-        assert commands[2].label == 'echo "foo"'
-        assert commands[2].script == 'echo "foo"\necho "bar"'
+        assert commands[2].label == 'echo 1'
+        assert commands[2].script == 'echo 1'
         assert commands[2].order == 2
         assert commands[2].cwd == DEFAULT_PATH
+        assert commands[3].label == 'echo "foo"'
+        assert commands[3].script == 'echo "foo"\necho "bar"'
+        assert commands[3].order == 3
+        assert commands[3].cwd == DEFAULT_PATH
 
     def test_get_allocation_params(self):
         project = self.create_project()

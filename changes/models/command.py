@@ -21,9 +21,27 @@ class CommandType(Enum):
     collect_tests = 2
     setup = 3
     teardown = 4
+    # infra-related setup commands that should be run for both collection and
+    # normal phases, e.g. repo cloning.
+    infra_setup = 5
 
     def is_collector(self):
+        """Returns whether this CommandType is a collection command"""
         return self in set([CommandType.collect_steps, CommandType.collect_tests])
+
+    def is_setup(self):
+        """Returns whether this CommandType is a setup command"""
+        return self in set([CommandType.setup, CommandType.infra_setup])
+
+    def is_valid_for_snapshot(self):
+        """Returns whether this CommandType should be run in a snapshot build"""
+        return self.is_setup() or self == CommandType.teardown
+
+    def is_valid_for_collection(self):
+        """Returns whether this CommandType should be run for a collection JobStep"""
+        # we only run infra_setup commands for the collection JobStep, not
+        # user setup commands.
+        return self.is_collector() or self == CommandType.infra_setup
 
 
 class FutureCommand(object):

@@ -139,14 +139,14 @@ class DefaultBuildStep(BuildStep):
             yield FutureCommand(
                 script=vcs.get_buildstep_clone(source, self.path),
                 env=self.env,
-                type=CommandType.setup,
+                type=CommandType.infra_setup,
             )
 
             if source.patch:
                 yield FutureCommand(
                     script=vcs.get_buildstep_patch(source, self.path),
                     env=self.env,
-                    type=CommandType.setup,
+                    type=CommandType.infra_setup,
                 )
 
         for command in self.commands:
@@ -202,19 +202,15 @@ class DefaultBuildStep(BuildStep):
 
         all_commands = list(self.iter_all_commands(job))
 
-        # HACK(dcramer): we dont want to run setup on collect jobs
-        # ideally the abstraction would be cleaner and it break out of
-        # the commands array (same for setup commands)
-        has_collect = any(fc.type.is_collector() for fc in all_commands)
-        # HACK(dcramer): we need to filter out non-setup commands
-        # if we're running a snapshot build
-        is_snapshot = job.build.cause == Cause.snapshot
+        # we skip certain commands for e.g. collection JobSteps.
+        valid_command_pred = lambda commandtype: True
+        if any(fc.type.is_collector() for fc in all_commands):
+            valid_command_pred = CommandType.is_valid_for_collection
+        elif job.build.cause == Cause.snapshot:
+            valid_command_pred = CommandType.is_valid_for_snapshot
         index = 0
         for future_command in all_commands:
-            if is_snapshot:
-                if future_command.type not in (CommandType.setup, CommandType.teardown):
-                    continue
-            elif has_collect and not future_command.type.is_collector():
+            if not valid_command_pred(future_command.type):
                 continue
 
             index += 1
@@ -305,17 +301,19 @@ class DefaultBuildStep(BuildStep):
         # commands
         setup_commands = []
         teardown_commands = []
+        # TODO(nate): skip_setup_teardown really means "we're whitewashing this jobstep"
+        # since we also don't set the command's path in those cases.
         if not skip_setup_teardown:
             for future_command in self.iter_all_commands(base_jobstep.job):
-                if future_command.type == CommandType.setup:
+                if future_command.type.is_setup():
                     setup_commands.append(future_command)
                 elif future_command.type == CommandType.teardown:
                     teardown_commands.append(future_command)
 
-        for future_command in future_jobstep.commands:
-            # TODO(dcramer): we need to remove path as an end-user option
-            if not future_command.path:
-                future_command.path = self.path
+            for future_command in future_jobstep.commands:
+                # TODO(dcramer): we need to remove path as an end-user option
+                if not future_command.path:
+                    future_command.path = self.path
 
         # setup -> newly generated commands from expander -> teardown
         for index, future_command in enumerate(chain(setup_commands,
