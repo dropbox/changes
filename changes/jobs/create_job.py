@@ -40,7 +40,7 @@ def create_job(job_id):
     if job.status == Status.finished:
         return
 
-    jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
+    _, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
     if implementation is None:
         # TODO(dcramer): record a FailureReason?
         job.status = Status.finished

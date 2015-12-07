@@ -24,7 +24,7 @@ class BuildCancelAPIView(APIView):
         # find any active/pending jobs
         for job in filter(lambda x: x.status != Status.finished, build.jobs):
             # TODO(dcramer): we make an assumption that there is a single step
-            jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
+            _, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
             if not implementation:
                 continue
 
