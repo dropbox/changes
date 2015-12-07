@@ -174,7 +174,7 @@ export var BuildTestsPage = React.createClass({
 
       if (this.state.expandedTests[test.test_id]) {
         rows.push(GridRow.oneItem(
-          <TestDetails testID={test.test_id} />
+          <TestDetails testID={test.test_id} buildID={this.props.buildID} />
         ));
       }
     });
@@ -303,7 +303,7 @@ export var BuildTestsPage = React.createClass({
 
       if (this.state.expandedRetryTests[test.id]) {
         rows.push(GridRow.oneItem(
-          <TestDetails testID={test.id} />
+          <TestDetails testID={test.id} buildID={this.props.buildID} />
         ));
       }
     });

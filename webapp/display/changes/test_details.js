@@ -13,6 +13,7 @@ import custom_content_hook from 'es6!utils/custom_content';
 export var TestDetails = React.createClass({
   propTypes: {
     testID: PropTypes.string,
+    buildID: PropTypes.string
   },
 
   getInitialState: function() {
@@ -64,6 +65,11 @@ export var TestDetails = React.createClass({
       imageArtifacts = artifactsOfType('image');
 
     var markup = [];
+    markup.push(<div className="lb marginTopM">Logs</div>);
+
+    var log_url = `/job_log/${this.props.buildID}/${test.logSource.job.id}/${test.logSource.id}/`;
+    markup.push(<a className="marginRightM" href={log_url} target="_blank">Console log</a>);
+
     if (textArtifacts.length > 0) {
       markup.push(<div className="lb marginTopM">Other Logs</div>);
       _.each(textArtifacts, a => {
