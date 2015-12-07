@@ -3,7 +3,8 @@ from __future__ import absolute_import
 from flask import current_app
 
 from changes.config import db
-from changes.models import FutureCommand, SnapshotImage
+from changes.models import SnapshotImage
+from changes.models.command import FutureCommand
 from changes.utils.http import build_uri
 
 from .builder import JenkinsBuilder
@@ -189,16 +190,16 @@ class JenkinsGenericBuilder(JenkinsBuilder):
 
         return params
 
-    def get_future_commands(self, params, commands, artifacts):
+    def get_future_commands(self, env, commands, artifacts):
         """Create future commands which are later created as comands.
         See models/command.py.
         """
         return map(lambda command: FutureCommand(command['script'],
                                                  artifacts=artifacts,
-                                                 env=dict(params)),
+                                                 env=env),
                    commands)
 
-    def create_commands(self, jobstep, params):
+    def create_commands(self, jobstep, env):
         """
         This seems slightly redundant, but in fact is necessary for
         changes-client to work. The issue is mainly that the client is
@@ -210,13 +211,13 @@ class JenkinsGenericBuilder(JenkinsBuilder):
 
         Arguments:
           jobstep (JobStep): jobstep to create commands under
-          params (dict): Jenkins parameter dict
+          env (dict): Env variables to supply to all commands.
         """
         commands = self.build_desc.get('commands', [])
         artifacts = self.artifacts_for_jobstep(jobstep)
 
         index = 0
-        for future_command in self.get_future_commands(params, commands, artifacts):
+        for future_command in self.get_future_commands(env, commands, artifacts):
             db.session.add(future_command.as_command(jobstep, index))
             index += 1
 

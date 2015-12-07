@@ -904,12 +904,12 @@ class JenkinsBuilder(BaseBackend):
             return
 
         params_dict = self.get_job_parameters(step.job, changes_bid=step.id.hex, **kwargs)
-        params = [{'name': k, 'value': v} for k, v in params_dict.iteritems()]
+        jenkins_params = [{'name': k, 'value': v} for k, v in params_dict.iteritems()]
 
         is_diff = not step.job.source.is_commit()
         job_data = self.create_jenkins_job_from_params(
             changes_bid=step.id.hex,
-            params=params,
+            params=jenkins_params,
             job_name=job_name,
             is_diff=is_diff
         )
@@ -917,8 +917,10 @@ class JenkinsBuilder(BaseBackend):
         db.session.add(step)
 
         # Hook that allows other builders to add commands for the jobstep
-        # which tells changes-client what to run
-        self.create_commands(step, params)
+        # which tells changes-client what to run.
+        # TODO(kylec): Stop passing the params as env once the data is available
+        # in changes-client by other means.
+        self.create_commands(step, env=params_dict)
 
         if commit:
             db.session.commit()
@@ -928,7 +930,12 @@ class JenkinsBuilder(BaseBackend):
     def get_artifact_manager(self, jobstep):
         return Manager([CoverageHandler, XunitHandler, ManifestJsonHandler])
 
-    def create_commands(self, step, params):
+    def create_commands(self, step, env):
+        """
+        Args:
+            step (JobStep): The JobStep to create commands under.
+            env (dict): Environment variables for the commands.
+        """
         pass
 
     def can_snapshot(self):
