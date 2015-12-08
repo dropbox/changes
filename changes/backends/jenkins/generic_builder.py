@@ -3,9 +3,11 @@ from __future__ import absolute_import
 from flask import current_app
 
 from changes.config import db
-from changes.models import SnapshotImage
+from changes.models.snapshot import SnapshotImage
 from changes.models.command import FutureCommand
 from changes.utils.http import build_uri
+from changes.buildsteps.base import LXCConfig
+
 
 from .builder import JenkinsBuilder
 
@@ -86,6 +88,33 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         ).filter(
             SnapshotImage.job_id == job_id,
         ).scalar()
+
+    def _get_build_desc(self, jobstep):
+        if self.get_expected_image(jobstep.job_id):
+            return self.get_snapshot_build_desc()
+        return self.build_desc
+
+    def get_lxc_config(self, jobstep):
+        """
+        Get the LXC configuration, if the LXC adapter should be used.
+        Args:
+            jobstep (JobStep): The JobStep to get the LXC config for.
+
+        Returns:
+            LXCConfig: The config to use for this jobstep, or None.
+        """
+        build_desc = self._get_build_desc(jobstep)
+        if build_desc.get('uses_client') and build_desc.get('adapter') == 'lxc':
+            app_cfg = current_app.config
+            snapshot_bucket = app_cfg.get('SNAPSHOT_S3_BUCKET')
+            default_pre = app_cfg.get('LXC_PRE_LAUNCH')
+            default_post = app_cfg.get('LXC_POST_LAUNCH')
+            default_release = app_cfg.get('LXC_RELEASE')
+            return LXCConfig(s3_bucket=snapshot_bucket,
+                             prelaunch=build_desc.get('pre-launch', default_pre),
+                             postlaunch=build_desc.get('post-launch', default_post),
+                             release=build_desc.get('release', default_release))
+        return None
 
     def get_job_parameters(self, job, changes_bid, setup_script=None,
                            script=None, teardown_script=None, path=None):

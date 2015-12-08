@@ -1,11 +1,19 @@
 from __future__ import absolute_import
 
 from datetime import datetime
+from collections import namedtuple
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import JobStep
+from changes.models.jobstep import JobStep
 from changes.utils.agg import aggregate_result
+
+
+LXCConfig = namedtuple('LXCConfig', ['compression',
+                                     'release',
+                                     'prelaunch',
+                                     'postlaunch',
+                                     's3_bucket'])
 
 
 class BuildStep(object):
@@ -26,6 +34,17 @@ class BuildStep(object):
         may be scheduled sooner.
         """
         return {}
+
+    def get_lxc_config(self, jobstep):
+        """
+        Get the LXC configuration, if the LXC adapter should be used.
+        Args:
+            jobstep (JobStep): The JobStep to get the LXC config for.
+
+        Returns:
+            LXCConfig: The config to use for this jobstep, or None.
+        """
+        return None
 
     def get_test_stats_from(self):
         """

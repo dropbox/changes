@@ -121,6 +121,11 @@ class JenkinsTestCollectorBuilder(JenkinsGenericBuilder):
             })
             db.session.commit()
 
+    def _get_build_desc(self, jobstep):
+        if jobstep.data.get('expanded'):
+            return self.shard_build_desc
+        return super(JenkinsTestCollectorBuilder, self)._get_build_desc(jobstep)
+
 
 class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
     """

@@ -85,6 +85,18 @@ class JobStepDetailsAPIView(APIView):
         if resource_limits:
             context['resourceLimits'] = resource_limits
 
+        lxc_config = buildstep.get_lxc_config(jobstep) if buildstep else None
+        if lxc_config:
+            context["adapter"] = "lxc"
+            lxc_config = {
+                'preLaunch': lxc_config.prelaunch,
+                'postLaunch': lxc_config.postlaunch,
+                's3Bucket': lxc_config.s3_bucket,
+                'compression': lxc_config.compression,
+                'release': lxc_config.release,
+            }
+            context['lxcConfig'] = lxc_config
+
         debugConfig = buildstep.debug_config if buildstep else {}
         if 'debugForceInfraFailure' in jobstep.data:
             debugConfig['forceInfraFailure'] = jobstep.data['debugForceInfraFailure']

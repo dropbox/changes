@@ -4,7 +4,11 @@ import mock
 
 from changes.config import db
 from changes.constants import Cause, Result, Status
-from changes.models import CommandType, JobPlan, JobStep, ProjectOption
+from changes.buildsteps.base import LXCConfig
+from changes.models.command import CommandType
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
+from changes.models.project import ProjectOption
 from changes.testutils import APITestCase
 
 
@@ -31,6 +35,32 @@ class JobStepDetailsTest(APITestCase):
         assert data['snapshot'] is None
         assert data['expectedSnapshot'] is None
 
+    def test_with_lxc_config(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
+
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as get_build_step_for_job:
+            buildstep = mock.Mock()
+            buildstep.get_resource_limits.return_value = None
+            buildstep.debug_config = {}
+            buildstep.get_lxc_config.return_value = LXCConfig(s3_bucket="BUCKET", release="trusty",
+                                                              prelaunch="pre.sh", postlaunch="post.sh",
+                                                              compression="xz")
+            get_build_step_for_job.return_value = (None, buildstep)
+            resp = self.client.get(path)
+
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert data['adapter'] == 'lxc'
+        assert data['lxcConfig'] == {'s3Bucket': "BUCKET", 'release': 'trusty',
+                                     'preLaunch': 'pre.sh', 'postLaunch': 'post.sh',
+                                     'compression': 'xz'}
+
     def test_with_resource_limits(self):
         project = self.create_project()
         build = self.create_build(project)
@@ -40,11 +70,12 @@ class JobStepDetailsTest(APITestCase):
 
         path = '/api/0/jobsteps/{0}/'.format(jobstep.id.hex)
 
-        with mock.patch.object(JobPlan, 'get_build_step_for_job') as mocked:
+        with mock.patch.object(JobPlan, 'get_build_step_for_job') as get_build_step_for_job:
             buildstep = mock.Mock()
             buildstep.get_resource_limits.return_value = {'cpus': 4}
             buildstep.debug_config = {}
-            mocked.return_value = (None, buildstep)
+            buildstep.get_lxc_config.return_value = None
+            get_build_step_for_job.return_value = (None, buildstep)
             resp = self.client.get(path)
 
         assert resp.status_code == 200

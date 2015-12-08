@@ -252,6 +252,17 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
 
         super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, **kwargs)
 
+    def get_lxc_config(self, jobstep):
+        """
+        Get the LXC configuration, if the LXC adapter should be used.
+        Args:
+            jobstep (JobStep): The JobStep to get the LXC config for.
+
+        Returns:
+            LXCConfig: The config to use for this jobstep, or None.
+        """
+        return self.get_builder().get_lxc_config(jobstep)
+
     def get_builder_options(self):
         options = super(JenkinsGenericBuildStep, self).get_builder_options()
         options.update({
