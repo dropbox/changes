@@ -192,7 +192,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
 
     def __init__(self, job_name=None, script=None, cluster=None, diff_cluster='', path='',
                  workspace='', reset_script='', build_type=None,
-                 setup_script='', teardown_script='',
+                 setup_script='', teardown_script='', clean=True,
                  artifacts=XunitHandler.FILENAMES + CoverageHandler.FILENAMES +
                  SERVICE_LOG_FILE_PATTERNS,
                  snapshot_script=None, **kwargs):
@@ -223,6 +223,13 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
 
         reset_script is used to asynchronously reset the workspace.
 
+        `clean` controls if the repository should be cleaned before
+        tests are run (requires integration with generic-build).
+        Defaults to true, because False may be unsafe; it may be
+        useful to set to False if snapshots are in use and they
+        intentionally leave useful incremental build products in the
+        repository.
+
         artifacts is a list of file name patterns describing the artifacts
         which need to be picked up by changes-client.
         """
@@ -241,6 +248,7 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         self.workspace = workspace
         self.build_type = build_type
         self.artifacts = artifacts
+        self.clean = clean
 
         super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, **kwargs)
 
@@ -258,5 +266,6 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'diff_cluster': self.diff_cluster,
             'build_type': self.build_type,
             'artifacts': self.artifacts,
+            'clean': self.clean,
         })
         return options

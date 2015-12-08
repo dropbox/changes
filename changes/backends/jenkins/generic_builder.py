@@ -13,7 +13,7 @@ from .builder import JenkinsBuilder
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, setup_script='', teardown_script='',
                  artifacts=(), reset_script='', diff_cluster=None, path='', workspace='',
-                 snapshot_script=None, *args, **kwargs):
+                 snapshot_script=None, clean=True, *args, **kwargs):
         """Builder for JenkinsGenericBuildStep. See JenkinsGenericBuildStep
         for information on most of these arguments.
         """
@@ -27,6 +27,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         self.path = path
         self.workspace = workspace
         self.artifacts = artifacts
+        self.clean = clean
 
         # See configuration for more details; by default, the default build type is
         # legacy which sets up no additional configuration.
@@ -215,6 +216,9 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         """
         commands = self.build_desc.get('commands', [])
         artifacts = self.artifacts_for_jobstep(jobstep)
+        env = env.copy()
+        if not self.clean:
+            env['SKIP_GIT_CLEAN'] = 1
 
         index = 0
         for future_command in self.get_future_commands(env, commands, artifacts):
