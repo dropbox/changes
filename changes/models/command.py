@@ -24,6 +24,9 @@ class CommandType(Enum):
     # infra-related setup commands that should be run for both collection and
     # normal phases, e.g. repo cloning.
     infra_setup = 5
+    # script to run only during snapshot builds. (setup and teardown will be
+    # run for both snapshot builds and normal builds.)
+    snapshot = 6
 
     def is_collector(self):
         """Returns whether this CommandType is a collection command"""
@@ -33,9 +36,14 @@ class CommandType(Enum):
         """Returns whether this CommandType is a setup command"""
         return self in set([CommandType.setup, CommandType.infra_setup])
 
+    def is_valid_for_default(self):
+        """Returns whether this CommandType should be run for a default JobStep
+        (i.e. single-shard or expanded shard)"""
+        return not self.is_collector() and self != CommandType.snapshot
+
     def is_valid_for_snapshot(self):
         """Returns whether this CommandType should be run in a snapshot build"""
-        return self.is_setup() or self == CommandType.teardown
+        return self.is_setup() or self in set([CommandType.snapshot, CommandType.teardown])
 
     def is_valid_for_collection(self):
         """Returns whether this CommandType should be run for a collection JobStep"""

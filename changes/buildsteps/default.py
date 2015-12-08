@@ -203,11 +203,11 @@ class DefaultBuildStep(BuildStep):
         all_commands = list(self.iter_all_commands(job))
 
         # we skip certain commands for e.g. collection JobSteps.
-        valid_command_pred = lambda commandtype: True
-        if any(fc.type.is_collector() for fc in all_commands):
-            valid_command_pred = CommandType.is_valid_for_collection
-        elif job.build.cause == Cause.snapshot:
+        valid_command_pred = CommandType.is_valid_for_default
+        if job.build.cause == Cause.snapshot:
             valid_command_pred = CommandType.is_valid_for_snapshot
+        elif any(fc.type.is_collector() for fc in all_commands):
+            valid_command_pred = CommandType.is_valid_for_collection
         index = 0
         for future_command in all_commands:
             if not valid_command_pred(future_command.type):

@@ -7,7 +7,7 @@ from changes.buildsteps.default import (
     DefaultBuildStep
 )
 from changes.config import db
-from changes.constants import Result, Status
+from changes.constants import Result, Status, Cause
 from changes.models import CommandType, FutureCommand, FutureJobStep, Repository
 from changes.testutils import TestCase
 from changes.vcs.base import Vcs
@@ -25,6 +25,10 @@ class DefaultBuildStepTest(TestCase):
             ),
             dict(
                 script='echo "hello world 1"',
+            ),
+            dict(
+                script='make snapshot',
+                type='snapshot',
             ),
         ), **kwargs)
 
@@ -68,7 +72,9 @@ class DefaultBuildStepTest(TestCase):
         get_vcs.return_value = vcs
 
         buildstep = DefaultBuildStep(commands=[{'script': 'ls', 'type': 'collect_tests'},
-                                               {'script': 'setup_command', 'type': 'setup'}])
+                                               {'script': 'setup_command', 'type': 'setup'},
+                                               {'script': 'default_command'},
+                                               {'script': 'make snapshot', 'type': 'snapshot'}])
         buildstep.execute(job)
 
         step = job.phases[0].steps[0]
@@ -87,6 +93,37 @@ class DefaultBuildStepTest(TestCase):
         assert commands[1].script == 'ls'
         assert commands[1].cwd == DEFAULT_PATH
         assert commands[1].type == CommandType.collect_tests
+        assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[1].env == DEFAULT_ENV
+
+    def test_execute_snapshot(self):
+        build = self.create_build(self.create_project(), cause=Cause.snapshot)
+        job = self.create_job(build)
+
+        buildstep = DefaultBuildStep(commands=[{'script': 'ls', 'type': 'collect_tests'},
+                                               {'script': 'setup_command', 'type': 'setup'},
+                                               {'script': 'default_command'},
+                                               {'script': 'make snapshot', 'type': 'snapshot'}])
+        buildstep.execute(job)
+
+        step = job.phases[0].steps[0]
+
+        assert step.data['release'] == DEFAULT_RELEASE
+        assert step.status == Status.pending_allocation
+
+        # collect tests and default commands shouldn't be added
+        commands = step.commands
+        assert len(commands) == 2
+
+        assert commands[0].script == 'setup_command'
+        assert commands[0].cwd == DEFAULT_PATH
+        assert commands[0].type == CommandType.setup
+        assert tuple(commands[0].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[1].env == DEFAULT_ENV
+
+        assert commands[1].script == 'make snapshot'
+        assert commands[1].cwd == DEFAULT_PATH
+        assert commands[1].type == CommandType.snapshot
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[1].env == DEFAULT_ENV
 
