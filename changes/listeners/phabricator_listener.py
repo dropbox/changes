@@ -267,7 +267,7 @@ def _generate_remarkup_table_for_tests(build, tests):
             name = name[len(pkg) + 1:]
 
         test_link = build_uri('/build_test/{0}/{1}/'.format(
-            build.project.id.hex,
+            build.id.hex,
             test.id.hex,
         ))
         table = table + ['|[%s](%s)|%s|' % (name, test_link, pkg)]

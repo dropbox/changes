@@ -103,7 +103,7 @@ class PhabricatorListenerTest(UnitTestCase):
         failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
         test_link = build_uri('/build_test/{0}/{1}/'.format(
-            build.project.id.hex,
+            build.id.hex,
             testcase.id.hex
         ))
         test_desc = "[test_foo](%s)" % test_link
@@ -149,7 +149,7 @@ class PhabricatorListenerTest(UnitTestCase):
         failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
         test_link = build_uri('/build_test/{0}/{1}/'.format(
-            build.project.id.hex,
+            build.id.hex,
             testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
@@ -194,7 +194,7 @@ class PhabricatorListenerTest(UnitTestCase):
         failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
         test_link = build_uri('/build_test/{0}/{1}/'.format(
-            build.project.id.hex,
+            build.id.hex,
             testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
@@ -236,7 +236,7 @@ class PhabricatorListenerTest(UnitTestCase):
         failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
 
         test_link = build_uri('/build_test/{0}/{1}/'.format(
-            build.project.id.hex,
+            build.id.hex,
             testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
@@ -255,7 +255,7 @@ class PhabricatorListenerTest(UnitTestCase):
     def test_parent_and_new_failures(self, get_options, post, get_base_failures):
         def get_test_desc(build, testcase, test_name):
             test_link = build_uri('/build_test/{0}/{1}/'.format(
-                build.project.id.hex,
+                build.id.hex,
                 testcase.id.hex,
             ))
             return "[%s](%s)" % (test_name, test_link)
@@ -342,7 +342,7 @@ class PhabricatorListenerTest(UnitTestCase):
         shown_test_count = 0
         for testcase in testcases:
             test_link = build_uri('/build_test/{0}/{1}/'.format(
-                build.project.id.hex,
+                build.id.hex,
                 testcase.id.hex,
             ))
             if test_link in comment:
@@ -392,7 +392,7 @@ class PhabricatorListenerTest(UnitTestCase):
         failure_link = build_uri('/build_tests/{0}/'.format(build1.id.hex))
 
         test_link = build_uri('/build_test/{0}/{1}/'.format(
-            build1.project.id.hex,
+            build1.id.hex,
             testcase1.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link

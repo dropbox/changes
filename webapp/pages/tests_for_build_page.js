@@ -468,7 +468,7 @@ export var SingleBuildTestPage = React.createClass({
         </InfoItem>
       </InfoList>
     </div>;
-    let testDetails = <TestDetails testID={this.props.testID} />;
+    let testDetails = <TestDetails testID={this.props.testID} buildID={this.props.buildID} />;
 
     return <ChangesPage highlight="Projects">
       <SectionHeader>
