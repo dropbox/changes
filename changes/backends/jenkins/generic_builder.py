@@ -218,7 +218,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         artifacts = self.artifacts_for_jobstep(jobstep)
         env = env.copy()
         if not self.clean:
-            env['SKIP_GIT_CLEAN'] = 1
+            env['SKIP_GIT_CLEAN'] = "1"
 
         index = 0
         for future_command in self.get_future_commands(env, commands, artifacts):
