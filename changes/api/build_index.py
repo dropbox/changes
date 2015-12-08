@@ -16,7 +16,6 @@ from changes.constants import Result, Status, ProjectStatus
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
-from changes.utils.phabricator_utils import post_comment
 from changes.models import (
     Project, ProjectOptionsHelper, Build, Job, JobPlan, Repository,
     RepositoryStatus, Patch, ItemOption, Snapshot, SnapshotImage, SnapshotStatus,
@@ -418,12 +417,6 @@ class BuildIndexAPIView(APIView):
     """Optional tag to search for."""
     get_parser.add_argument('tag', type=str, default='')
 
-    def handle_failure(self, msg, problems=[], diff=None):
-        if diff:
-            message = '{icon times, color=red}  ' + msg
-            post_comment(diff, message)
-        return error(msg, problems)
-
     def get(self):
         queryset = Build.query.options(
             joinedload('project'),
@@ -479,29 +472,24 @@ class BuildIndexAPIView(APIView):
         args = self.parser.parse_args()
 
         if args.patch_file and args.ensure_only:
-            return self.handle_failure("Ensure-only mode does not work with a diff build yet.",
-                                       problems=["patch", "ensure_only"],
-                                       diff=args.target)
+            return error("Ensure-only mode does not work with a diff build yet.",
+                         problems=["patch", "ensure_only"])
 
         if not (args.project or args.repository or args['repository[phabricator.callsign]']):
-            return self.handle_failure("Project or repository must be specified",
-                                       problems=["project", "repository",
-                                       "repository[phabricator.callsign]"],
-                                       diff=args.target)
+            return error("Project or repository must be specified",
+                         problems=["project", "repository", "repository[phabricator.callsign]"])
 
         # read arguments
         if args.patch_data:
             try:
                 patch_data = json.loads(args.patch_data)
             except Exception:
-                return self.handle_failure("Invalid patch data (must be JSON dict)",
-                                           problems=["patch[data]"],
-                                           diff=args.target)
+                return error("Invalid patch data (must be JSON dict)",
+                             problems=["patch[data]"])
 
             if not isinstance(patch_data, dict):
-                return self.handle_failure("Invalid patch data (must be JSON dict)",
-                                           problems=["patch[data]"],
-                                           diff=args.target)
+                return error("Invalid patch data (must be JSON dict)",
+                             problems=["patch[data]"])
         else:
             patch_data = None
 
@@ -509,7 +497,7 @@ class BuildIndexAPIView(APIView):
         projects, repository = try_get_projects_and_repository(args)
 
         if not projects:
-            return self.handle_failure("Unable to find project(s).", diff=args.target)
+            return error("Unable to find project(s).")
 
         # read arguments
         label = args.label
@@ -529,10 +517,9 @@ class BuildIndexAPIView(APIView):
         if snapshot_id:
             snapshot = Snapshot.query.get(snapshot_id)
             if not snapshot:
-                return self.handle_failure("Unable to find snapshot.", diff=args.target)
+                return error("Unable to find snapshot.")
             if snapshot.status != SnapshotStatus.active:
-                return self.handle_failure("Snapshot is in an invalid state: %s" % snapshot.status,
-                                           diff=args.target)
+                return error("Snapshot is in an invalid state: %s" % snapshot.status)
             for project in projects:
                 plans = get_build_plans(project)
                 for plan in plans:
@@ -541,8 +528,7 @@ class BuildIndexAPIView(APIView):
                     if allow_snapshot and not SnapshotImage.get(plan, snapshot_id):
                         # We want to create a build using a specific snapshot but no image
                         # was found for this plan so fail.
-                        return self.handle_failure("Snapshot cannot be applied to %s's %s" % (project.slug, plan.label,),
-                                                   diff=args.target)
+                        return error("Snapshot cannot be applied to %s's %s" % (project.slug, plan.label))
 
         # 3. find revision
         try:
@@ -550,10 +536,8 @@ class BuildIndexAPIView(APIView):
         except MissingRevision:
             # if the default fails, we absolutely can't continue and the
             # client should send a valid revision
-            return self.handle_failure("Unable to find commit %s in %s." % (
-                                       args.sha, repository.url),
-                                       problems=['sha', 'repository'],
-                                       diff=args.target)
+            return error("Unable to find commit %s in %s." % (args.sha, repository.url),
+                         problems=['sha', 'repository'])
 
         # get default values for arguments
         if revision:
@@ -624,10 +608,8 @@ class BuildIndexAPIView(APIView):
                 try:
                     files_changed = _get_revision_changed_files(repository, revision)
                 except MissingRevision:
-                    return self.handle_failure("Unable to find commit %s in %s." % (
-                                               args.sha, repository.url),
-                                               problems=['sha', 'repository'],
-                                               diff=args.target)
+                    return error("Unable to find commit %s in %s." % (args.sha, repository.url),
+                                 problems=['sha', 'repository'])
             else:
                 # the only way that revision can be null is if this repo does not have a vcs backend
                 logging.warning('Revision and patch are both None for sha %s. This is because the repo %s does not have a VCS backend.', sha, repository.url)

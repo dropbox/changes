@@ -4,7 +4,7 @@ import yaml
 
 from cStringIO import StringIO
 from datetime import datetime
-from mock import Mock, patch
+from mock import ANY, Mock, patch
 
 from changes.config import db
 from changes.models import Job, JobPlan, ProjectOption
@@ -15,6 +15,11 @@ from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs
 
 class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
     path = '/api/0/phabricator/notify-diff/'
+
+    def setUp(self):
+        self.project = self.create_project()
+        db.session.commit()
+        super(PhabricatorNotifyDiffTest, self).setUp()
 
     def get_fake_vcs(self, log_results=None):
         def _log_results(parent=None, branch=None, offset=0, limit=1):
@@ -304,3 +309,22 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         resp = self.post_sample_patch()
         builds = self.assert_resp_has_multiple_items(resp, count=3)
         self.assert_collection_id_across_builds(builds)
+
+    @patch('changes.api.phabricator_notify_diff.post_comment')
+    def test_diff_comment(self, mock_post_comment):
+        """ Test diff commenting. """
+        resp = self.client.post(self.path, data={
+            'phabricator.callsign': '',
+            'phabricator.diffID': '1324134',
+            'phabricator.revisionID': '1234',
+            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
+            'sha': 'a' * 40,
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>'
+        })
+
+        assert resp.status_code == 400
+        data = self.unserialize(resp)
+        mock_post_comment.assert_called_once_with('D1234', ANY)
