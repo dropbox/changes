@@ -80,7 +80,7 @@ var DetailsTab = React.createClass({
     var whitelist_paths = 'No path filter';
     if (whitelist_option) {
       whitelist_paths = _.map(utils.split_lines(whitelist_option), line => {
-        <div>{line}</div>
+        return <div><code>{line}</code></div>;
       });
     }
 
