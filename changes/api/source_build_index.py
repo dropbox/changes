@@ -45,11 +45,12 @@ class SourceBuildIndexAPIView(APIView):
         ))
         build_ids = [build['id'] for build in builds]
 
-        jobs = self.serialize(list(Job.query.filter(
-            Job.build_id.in_(build_ids)
-        )))
+        if len(builds) > 0:
+            jobs = self.serialize(list(Job.query.filter(
+                Job.build_id.in_(build_ids)
+            )))
 
-        for b in builds:
-            b['jobs'] = [j for j in jobs if j['build']['id'] == b['id']]
+            for b in builds:
+                b['jobs'] = [j for j in jobs if j['build']['id'] == b['id']]
 
         return self.paginate(builds, serialize=False)
