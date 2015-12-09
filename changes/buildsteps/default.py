@@ -350,10 +350,6 @@ class DefaultBuildStep(BuildStep):
             'post-launch': current_app.config['LXC_POST_LAUNCH'],
             'release': self.release,
         }
-        # XXX(nate): DEFAULT_PATH is "./source", and changes-client doesn't
-        # support relative paths yet, so we only set this for non-default paths
-        if self.path != DEFAULT_PATH:
-            params['artifact-search-path'] = self.path
 
         if current_app.config['CLIENT_SENTRY_DSN']:
             params['sentry-dsn'] = current_app.config['CLIENT_SENTRY_DSN']
