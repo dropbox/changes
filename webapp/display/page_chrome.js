@@ -161,7 +161,7 @@ var ChangesPageHeader = React.createClass({
       origin = origin.substring(0, index) + '-classic' + origin.substring(index);
 
       var oldHref = URI(origin + this.props.oldUI).toString();
-      oldUI = <a className="headerLinkBlock floatR red"
+      oldUI = <a className="headerLinkBlock floatR"
         target="_blank"
         href={oldHref}>
         Go to Old UI
