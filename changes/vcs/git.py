@@ -43,7 +43,7 @@ git fetch origin +refs/*:refs/remotes-all-refs/origin/* || \
 GIT_SSH_COMMAND="ssh -v" \
 git fetch origin +refs/*:refs/remotes-all-refs/origin/*
 
-git clean -fdx
+%(clean_command)s
 
 if ! git reset --hard $REVISION ; then
     echo "Failed to update to $REVISION"
@@ -275,11 +275,12 @@ class GitVcs(Vcs):
         except CommandError:
             return False
 
-    def get_buildstep_clone(self, source, workspace):
+    def get_buildstep_clone(self, source, workspace, clean=True):
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
             local_path=workspace,
             revision=source.revision_sha,
+            clean_command='git clean -fdx' if clean else '',
         )
 
     def get_buildstep_patch(self, source, workspace):

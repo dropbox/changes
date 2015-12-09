@@ -61,7 +61,7 @@ class DefaultBuildStep(BuildStep):
     # - teardown_commands
     def __init__(self, commands=None, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
-                 max_executors=10, cpus=4, memory=8 * 1024,
+                 max_executors=10, cpus=4, memory=8 * 1024, clean=True,
                  compression=None, debug_config=None, test_stats_from=None,
                  **kwargs):
         """
@@ -70,6 +70,12 @@ class DefaultBuildStep(BuildStep):
         Args:
             cpus: How many cpus to limit the container to (not applicable for basic)
             memory: How much memory to limit the container to (not applicable for basic)
+            clean: controls if the repository should be cleaned before
+                tests are run.
+                Defaults to true, because False may be unsafe; it may be
+                useful to set to False if snapshots are in use and they
+                intentionally leave useful incremental build products in the
+                repository.
             compression: Compression algorithm to use (xz, lz4)
             debug_config: A dictionary of debug config options. These are passed through
                 to changes-client. There is also an infra_failures option, which takes a
@@ -120,6 +126,7 @@ class DefaultBuildStep(BuildStep):
             'cpus': cpus,
             'mem': memory,
         }
+        self.clean = clean
         self.debug_config = debug_config or {}
         self.test_stats_from = test_stats_from
 
@@ -137,7 +144,7 @@ class DefaultBuildStep(BuildStep):
         vcs = repo.get_vcs()
         if vcs is not None:
             yield FutureCommand(
-                script=vcs.get_buildstep_clone(source, self.path),
+                script=vcs.get_buildstep_clone(source, self.path, self.clean),
                 env=self.env,
                 type=CommandType.infra_setup,
             )

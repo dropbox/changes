@@ -27,7 +27,7 @@ else
     hg pull $REMOTE_URL
 fi
 
-if ! hg up --clean $REVISION ; then
+if ! hg up %(clean_arg)s $REVISION ; then
     echo "Failed to update to $REVISION"
     exit 1
 fi
@@ -209,11 +209,12 @@ class MercurialVcs(Vcs):
         self.log_timing('get_known_branches', start_time)
         return list(branch_names)
 
-    def get_buildstep_clone(self, source, workspace):
+    def get_buildstep_clone(self, source, workspace, clean=True):
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
             local_path=workspace,
             revision=source.revision_sha,
+            clean_arg='--clean' if clean else '',
         )
 
     def get_buildstep_patch(self, source, workspace):
