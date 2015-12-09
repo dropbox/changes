@@ -34,7 +34,8 @@ from sqlalchemy import event
 from sqlalchemy.orm import Session
 # because foo.in_([]) ever executing is a bad idea
 from sqlalchemy.exc import SAWarning
-warnings.simplefilter('error', SAWarning)
+warnings.simplefilter('always', SAWarning)
+logging.captureWarnings(True)
 
 
 class ChangesDebugToolbarExtension(DebugToolbarExtension):
