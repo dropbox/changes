@@ -322,7 +322,7 @@ export var SingleBuild = React.createClass({
       ]);
 
       if (this.state.expandedTests[test.id]) {
-        rows.push(GridRow.oneItem(<TestDetails testID={test.id} />));
+        rows.push(GridRow.oneItem(<TestDetails testID={test.id} buildID={build.id} />));
       }
     });
 

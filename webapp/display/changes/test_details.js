@@ -45,6 +45,12 @@ export var TestDetails = React.createClass({
       </div>;
     }
 
+    var permalink = <div>
+        <a href={"/build_test/" + this.props.buildID + "/" + test.id}>
+        Link
+        </a>
+        </div>;
+
     return <div {...props} className={className}>
       {testDetailsHelpText}
       <b>Captured Output</b>
@@ -52,6 +58,8 @@ export var TestDetails = React.createClass({
       {test.message}
       </pre>
       {this.renderArtifacts(test)}
+      <p/>
+      {permalink}
     </div>;
   },
 
