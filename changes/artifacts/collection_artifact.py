@@ -43,9 +43,5 @@ class CollectionArtifactHandler(ArtifactHandler):
         db.session.commit()
 
 
-class JobsJsonHandler(CollectionArtifactHandler):
-    FILENAMES = ('jobs.json',)
-
-
 class TestsJsonHandler(CollectionArtifactHandler):
     FILENAMES = ('tests.json',)

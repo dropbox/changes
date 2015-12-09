@@ -8,18 +8,24 @@ import uuid
 from hashlib import md5
 
 from changes.artifacts.collection_artifact import TestsJsonHandler
-from changes.backends.jenkins.buildsteps.collector import JenkinsCollectorBuilder, JenkinsCollectorBuildStep
+from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
+from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
+from changes.artifacts.manager import Manager
+from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.buildsteps.base import BuildStep
 from changes.config import db
 from changes.constants import Result, Status
-from changes.db.utils import get_or_create
-from changes.expanders import TestsExpander
+from changes.db.utils import get_or_create, try_create
+from changes.expanders.tests import TestsExpander
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import JobPhase, JobStep, TestCase
+from changes.models.failurereason import FailureReason
+from changes.models.jobphase import JobPhase
+from changes.models.jobstep import JobStep
+from changes.models.test import TestCase
 from changes.utils.agg import aggregate_result
 
 
-class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
+class JenkinsTestCollectorBuilder(JenkinsGenericBuilder):
     def __init__(self, shard_build_type=None, shard_setup_script=None, shard_teardown_script=None,
                  *args, **kwargs):
         self.shard_build_desc = self.load_build_desc(shard_build_type)
@@ -66,10 +72,57 @@ class JenkinsTestCollectorBuilder(JenkinsCollectorBuilder):
         return 'Collect Tests'
 
     def get_required_handler(self):
+        """The initial (collect) step must return at least one artifact
+        that this handler can process, or it will be marked as failed.
+
+        Returns:
+            class: the handler class for the required artifact
+        """
         return TestsJsonHandler
 
+    def artifacts_for_jobstep(self, jobstep):
+        # we only care about the required artifact for the collection phase
+        return self.artifacts if jobstep.data.get('expanded') else (self.get_required_handler().FILENAMES[0],)
 
-class JenkinsTestCollectorBuildStep(JenkinsCollectorBuildStep):
+    def get_artifact_manager(self, jobstep):
+        if jobstep.data.get('expanded'):
+            return super(JenkinsTestCollectorBuilder, self).get_artifact_manager(jobstep)
+        else:
+            return Manager([self.get_required_handler(), ManifestJsonHandler])
+
+    def verify_final_artifacts(self, step, artifacts):
+        super(JenkinsTestCollectorBuilder, self).verify_final_artifacts(step, artifacts)
+
+        # We annotate the "expanded" jobs with this tag, so the individual
+        # shards will no longer require the critical artifact
+        if step.data.get('expanded'):
+            return
+
+        expected_image = self.get_expected_image(step.job_id)
+
+        # if this is a snapshot build then we don't have to worry about
+        # sanity checking the normal artifacts
+        if expected_image:
+            return
+
+        required_handler = self.get_required_handler()
+
+        if not any(required_handler.can_process(a.name) for a in artifacts):
+            step.result = Result.failed
+            db.session.add(step)
+
+            job = step.job
+            try_create(FailureReason, {
+                'step_id': step.id,
+                'job_id': job.id,
+                'build_id': job.build_id,
+                'project_id': job.project_id,
+                'reason': 'missing_artifact'
+            })
+            db.session.commit()
+
+
+class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
     """
     Fires off a generic job with parameters:
 

@@ -133,6 +133,5 @@ IMPLEMENTATION_CHOICES = (
     'changes.buildsteps.lxc.LXCBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsBuildStep',
     'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
-    'changes.backends.jenkins.buildsteps.collector.JenkinsCollectorBuildStep',
     'changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep',
 )

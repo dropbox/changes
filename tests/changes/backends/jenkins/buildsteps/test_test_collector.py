@@ -9,12 +9,66 @@ import responses
 from copy import deepcopy
 
 from changes.artifacts.collection_artifact import TestsJsonHandler
-from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, JenkinsTestCollectorBuildStep, JenkinsCollectorBuilder
+from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, \
+    JenkinsTestCollectorBuildStep
 from changes.config import db
 from changes.constants import Result, Status
-from changes.expanders import TestsExpander
-from changes.models import JobPhase, JobPlan, JobStep
+from changes.expanders.tests import TestsExpander
+from changes.models.failurereason import FailureReason
+from changes.models.jobphase import JobPhase
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
 from changes.testutils import TestCase
+from ..test_builder import BaseTestCase
+
+
+class JenkinsTestCollectorBuilderTest(BaseTestCase):
+    builder_cls = JenkinsTestCollectorBuilder
+    builder_options = {
+        'master_urls': ['http://jenkins.example.com'],
+        'diff_urls': ['http://jenkins-diff.example.com'],
+        'job_name': 'server',
+        'script': 'echo hello',
+        'cluster': 'server-runner',
+        'shard_build_type': 'legacy',
+    }
+
+    def test_has_required_artifact(self):
+        build = self.create_build(self.project)
+        job = self.create_job(build)
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.finished,
+                                   result=Result.passed)
+
+        artifacts = [self.create_artifact(step, 'manifest.json'),
+                     self.create_artifact(step, 'foo/tests.json')]
+
+        builder = self.get_builder()
+        builder.verify_final_artifacts(step, artifacts)
+
+        assert step.result == Result.passed
+        assert not FailureReason.query.filter(
+            FailureReason.step_id == step.id,
+        ).first()
+
+    def test_missing_required_artifact(self):
+        build = self.create_build(self.project)
+        job = self.create_job(build)
+        phase = self.create_jobphase(job)
+        step = self.create_jobstep(phase, status=Status.finished,
+                                   result=Result.passed)
+
+        artifacts = [self.create_artifact(step, 'manifest.json')]
+
+        builder = self.get_builder()
+        builder.verify_final_artifacts(step, artifacts)
+
+        # No required artifact collected should cause the step to fail.
+        assert step.result == Result.failed
+        assert FailureReason.query.filter(
+            FailureReason.step_id == step.id,
+            FailureReason.reason == 'missing_artifact'
+        ).first()
 
 
 class JenkinsTestCollectorBuildStepTest(TestCase):
@@ -30,7 +84,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
         )
 
     def get_mock_builder(self):
-        return mock.Mock(spec=JenkinsCollectorBuilder)
+        return mock.Mock(spec=JenkinsTestCollectorBuilder)
 
     def setUp(self):
         super(JenkinsTestCollectorBuildStepTest, self).setUp()

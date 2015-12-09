@@ -512,7 +512,6 @@ let StepDetails = React.createClass({
     'LXCBuildStep': 'changes.buildsteps.lxc.LXCBuildStep',
     'JenkinsBuildStep': 'changes.backends.jenkins.buildstep.JenkinsBuildStep',
     'JenkinsGenericBuildStep': 'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
-    'JenkinsCollectorBuildStep': 'changes.backends.jenkins.buildsteps.collector.JenkinsCollectorBuildStep',
     'JenkinsTestCollectorBuildStep': 'changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep',
   },
 
