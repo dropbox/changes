@@ -306,6 +306,7 @@ class DefaultBuildStepTest(TestCase):
             'pre-launch': 'echo pre',
             'post-launch': 'echo post',
             'artifacts-server': 'http://localhost:1234',
+            'artifact-search-path': DEFAULT_PATH,
         }
 
     def test_get_allocation_params_with_compression(self):

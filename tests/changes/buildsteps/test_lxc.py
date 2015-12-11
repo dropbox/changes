@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from changes.buildsteps.default import DEFAULT_PATH
 from changes.buildsteps.lxc import LXCBuildStep
 from changes.testutils import TestCase
 
@@ -43,6 +44,7 @@ class LXCBuildStepTest(TestCase):
             'memory': '9000',
             'cpus': '8',
             'artifacts-server': 'http://localhost:1234',
+            'artifact-search-path': DEFAULT_PATH,
         }
 
     def test_get_resource_limits(self):

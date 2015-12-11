@@ -340,6 +340,7 @@ class DefaultBuildStep(BuildStep):
 
     def get_allocation_params(self, jobstep):
         params = {
+            'artifact-search-path': self.path,
             'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
             'server': build_uri('/api/0/'),
