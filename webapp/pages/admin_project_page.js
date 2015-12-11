@@ -599,6 +599,8 @@ let NewPlan = React.createClass({
 
   getInitialState: function() {
     return {
+      'hasFormChanges': false,
+      'error': null
     };
   },
 
@@ -607,14 +609,14 @@ let NewPlan = React.createClass({
       'name': this.state.name,
     };
 
-    let endpoints = {
-      '_postRequest_plan': `/api/0/projects/${this.props.project.id}/plans/`,
-    };
-    let params = {
-      '_postRequest_plan': plan_params,
-    };
+    let project = this.props.project;
+    let saveCallback = FieldGroupMarkup.redirectCallback(
+      this, _ => {
+        return URI(ChangesLinks.projectPlanAdminHref(project));
+      });
 
-    api.post(this, endpoints, params);
+    api.make_api_ajax_post(`/api/0/projects/${project.id}/plans/`, plan_params, saveCallback, saveCallback);
+    this.setState({ hasFormChanges: false });
   },
 
   render: function() {
@@ -625,7 +627,7 @@ let NewPlan = React.createClass({
       },
     ];
 
-    let fieldMarkup = FieldGroupMarkup.create(form, "Create Plan", this);
+    let fieldMarkup = FieldGroupMarkup.create(form, "Create Plan", this, [this.state.error]);
     return <div> {fieldMarkup}</div>;
   },
 });
