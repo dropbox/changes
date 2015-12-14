@@ -269,6 +269,8 @@ def create_app(_read_config=True, **config):
     app.config['PHABRICATOR_USERNAME'] = None
     app.config['PHABRICATOR_CERT'] = None
 
+    app.config['SUPPORT_CONTACT'] = 'support'
+
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
     app.config['BASE_URI'] = 'http://localhost:5000'
 

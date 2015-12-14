@@ -4,13 +4,16 @@ import yaml
 
 from cStringIO import StringIO
 from datetime import datetime
-from mock import Mock, patch
+from mock import ANY, Mock, patch
 
 from changes.config import db
 from changes.models import Job, JobPlan, ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.testutils.build import CreateBuildsMixin
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
+
+_VALID_SHA = 'a' * 40
+_BOGUS_SHA = 'b' * 40
 
 
 class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
@@ -19,9 +22,11 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
     def get_fake_vcs(self, log_results=None):
         def _log_results(parent=None, branch=None, offset=0, limit=1):
             assert not branch
+            if parent not in (None, _VALID_SHA):
+                raise CommandError(cmd="test command", retcode=128)
             return iter([
                 RevisionResult(
-                    id='a' * 40,
+                    id=_VALID_SHA,
                     message='hello world',
                     author='Foo <foo@example.com>',
                     author_date=datetime.utcnow(),
@@ -53,7 +58,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
             'phabricator.revisionID': '1234',
             'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
             'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
-            'sha': 'a' * 40,
+            'sha': _VALID_SHA,
             'label': 'Foo Bar',
             'message': 'Hello world!',
             'author': 'David Cramer <dcramer@example.com>',
@@ -97,7 +102,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         assert source.repository_id == project.repository_id
         # TODO(dcramer): re-enable test when find_green_parent_sha is turned
         # assert source.revision_sha == 'b' * 40
-        assert source.revision_sha == 'a' * 40
+        assert source.revision_sha == _VALID_SHA
         assert source.data == {
             'phabricator.buildTargetPHID': None,
             'phabricator.diffID': '1324134',
@@ -108,7 +113,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         patch = source.patch
         assert patch.diff == SAMPLE_DIFF
         # we still reference the precise parent revision for patches
-        assert patch.parent_revision_sha == 'a' * 40
+        assert patch.parent_revision_sha == _VALID_SHA
 
         jobplans = list(JobPlan.query.filter(
             JobPlan.build_id == build.id,
@@ -304,3 +309,53 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         resp = self.post_sample_patch()
         builds = self.assert_resp_has_multiple_items(resp, count=3)
         self.assert_collection_id_across_builds(builds)
+
+    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.api.phabricator_notify_diff.post_comment')
+    def test_diff_comment(self, mock_post_comment, get_vcs):
+        """Test diff commenting on a revision we can't identify on a legit project"""
+        get_vcs.return_value = self.get_fake_vcs()
+        repo = self.create_repo()
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+        project = self.create_project(repository=repo)
+        self.create_plan(project)
+
+        # Test that valid sha doesn't kick off anything
+        resp = self.client.post(self.path, data={
+            'phabricator.callsign': 'FOO',
+            'phabricator.diffID': '1324134',
+            'phabricator.revisionID': '1234',
+            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
+            'sha': _VALID_SHA,
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>'
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert mock_post_comment.call_count == 0
+
+        # Test that invalid sha kicks off a mock comment
+        resp = self.client.post(self.path, data={
+            'phabricator.callsign': 'FOO',
+            'phabricator.diffID': '1324134',
+            'phabricator.revisionID': '1234',
+            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
+            'sha': _BOGUS_SHA,
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>'
+        })
+        assert resp.status_code == 400
+        data = self.unserialize(resp)
+        assert "Unable to find base revision %s" % _BOGUS_SHA in data['error']
+        mock_post_comment.assert_called_once_with('D1234', ANY)
+        assert "An error occurred somewhere between Phabricator and Changes" in mock_post_comment.call_args[0][1]
+        assert "Unable to find base revision %s" % _BOGUS_SHA in mock_post_comment.call_args[0][1]

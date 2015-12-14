@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 import uuid
 
+from flask import current_app
 from flask_restful.reqparse import RequestParser
 
 from sqlalchemy.orm import subqueryload_all
@@ -19,6 +20,7 @@ from changes.models import (
     ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectOptionsHelper, ProjectStatus,
     Repository, RepositoryStatus, Source, ProjectConfigError,
 )
+from changes.utils.phabricator_utils import post_comment
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import InvalidDiffError
 
@@ -51,13 +53,23 @@ class PhabricatorNotifyDiffAPIView(APIView):
     parser.add_argument('message', type=unicode, required=True)
     parser.add_argument('patch', type=FileStorage, dest='patch_file',
                         location='files', required=True)
-
     parser.add_argument('phabricator.callsign', type=get_repository_by_callsign,
                         required=True, dest='repository')
     parser.add_argument('phabricator.buildTargetPHID', required=False)
     parser.add_argument('phabricator.diffID', required=True)
     parser.add_argument('phabricator.revisionID', required=True)
     parser.add_argument('phabricator.revisionURL', required=True)
+
+    def postback_error(self, msg, target, problems=None, http_code=400):
+        """Return an error AND postback a comment to phabricator"""
+        if target:
+            message = (
+                'An error occurred somewhere between Phabricator and Changes:\n%s\n'
+                'Please contact %s with any questions {icon times, color=red}' %
+                (msg, current_app.config['SUPPORT_CONTACT'])
+            )
+            post_comment(target, message)
+        return error(msg, problems=problems, http_code=http_code)
 
     def post(self):
         try:
@@ -75,11 +87,16 @@ class PhabricatorNotifyDiffAPIView(APIView):
         Depending on system configuration, this may create 0 or more new builds,
         and the resulting response will be a list of those build objects.
         """
+
+        # we manually check for arg presence here so we can send a more specific
+        # error message to the user (rather than a plain 400)
         args = self.parser.parse_args()
+        if not args.repository:
+            # No need to postback a comment for this
+            statsreporter.stats().incr("diffs_repository_not_found")
+            return error("Repository not found")
 
         repository = args.repository
-        if not args.repository:
-            return error("Repository not found")
 
         projects = list(Project.query.options(
             subqueryload_all('plans'),
@@ -117,7 +134,7 @@ class PhabricatorNotifyDiffAPIView(APIView):
         author = args.author
         message = args.message
         sha = args.sha
-        target = 'D{}'.format(args['phabricator.revisionID'])
+        target = 'D%s' % args['phabricator.revisionID']
 
         try:
             identify_revision(repository, sha)
@@ -127,8 +144,17 @@ class PhabricatorNotifyDiffAPIView(APIView):
             # so we err on the side of caution and log it as an error.
             logging.error("Diff %s was posted for an unknown revision (%s, %s)",
                           target, sha, repository.url)
-            return error("Unable to find commit %s in %s." % (
-                sha, repository.url), problems=['sha', 'repository'])
+            # We should postback since this can happen if a user diffs dependent revisions
+            statsreporter.stats().incr("diff_missing_base_revision")
+            return self.postback_error(
+                "Unable to find base revision {revision} in {repo} on Changes. Some possible reasons:\n"
+                " - Changes hasn't picked up {revision} yet. Retry in a minute\n"
+                " - {revision} only exists in your local copy. Changes cannot apply your patch\n".format(
+                    revision=sha,
+                    repo=repository.url,
+                ),
+                target,
+                problems=['sha', 'repository'])
 
         source_data = {
             'phabricator.buildTargetPHID': args['phabricator.buildTargetPHID'],
@@ -161,6 +187,8 @@ class PhabricatorNotifyDiffAPIView(APIView):
         if phabricatordiff is None:
             logging.warning("Diff %s, Revision %s already exists",
                             args['phabricator.diffID'], args['phabricator.revisionID'])
+            # No need to inform user about this explicitly
+            statsreporter.stats().incr("diffs_already_exists")
             return error("Diff already exists within Changes")
 
         project_options = ProjectOptionsHelper.get_options(projects, ['build.file-whitelist'])
