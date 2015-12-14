@@ -111,6 +111,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             default_post = app_cfg.get('LXC_POST_LAUNCH')
             default_release = app_cfg.get('LXC_RELEASE')
             return LXCConfig(s3_bucket=snapshot_bucket,
+                             compression='lz4',
                              prelaunch=build_desc.get('pre-launch', default_pre),
                              postlaunch=build_desc.get('post-launch', default_post),
                              release=build_desc.get('release', default_release))
