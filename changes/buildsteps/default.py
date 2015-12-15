@@ -349,7 +349,7 @@ class DefaultBuildStep(BuildStep):
             'compression': self.compression,
             'jobstep_id': jobstep.id.hex,
             's3-bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
-            'pre-launch': current_app.config['LXC_PRE_LAUNCH'],
+            'pre-launch': self.debug_config.get('prelaunch_script') or current_app.config['LXC_PRE_LAUNCH'],
             'post-launch': current_app.config['LXC_POST_LAUNCH'],
             'release': self.release,
         }
@@ -386,7 +386,7 @@ class DefaultBuildStep(BuildStep):
         if self.get_client_adapter() == "lxc":
             app_cfg = current_app.config
             return LXCConfig(s3_bucket=app_cfg['SNAPSHOT_S3_BUCKET'],
-                             prelaunch=app_cfg['LXC_PRE_LAUNCH'],
+                             prelaunch=self.debug_config.get('prelaunch_script') or app_cfg['LXC_PRE_LAUNCH'],
                              postlaunch=app_cfg['LXC_POST_LAUNCH'],
                              compression=self.compression,
                              release=self.release)

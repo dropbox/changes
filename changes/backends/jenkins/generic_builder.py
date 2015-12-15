@@ -106,10 +106,10 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         build_desc = self._get_build_desc(jobstep)
         if build_desc.get('uses_client') and build_desc.get('adapter') == 'lxc':
             app_cfg = current_app.config
-            snapshot_bucket = app_cfg.get('SNAPSHOT_S3_BUCKET')
-            default_pre = app_cfg.get('LXC_PRE_LAUNCH')
-            default_post = app_cfg.get('LXC_POST_LAUNCH')
-            default_release = app_cfg.get('LXC_RELEASE')
+            snapshot_bucket = app_cfg.get('SNAPSHOT_S3_BUCKET', '')
+            default_pre = self.debug_config.get('prelaunch_script') or app_cfg.get('LXC_PRE_LAUNCH', '')
+            default_post = app_cfg.get('LXC_POST_LAUNCH', '')
+            default_release = app_cfg.get('LXC_RELEASE', 'trusty')
             return LXCConfig(s3_bucket=snapshot_bucket,
                              compression='lz4',
                              prelaunch=build_desc.get('pre-launch', default_pre),
@@ -156,11 +156,11 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         if is_diff and self.diff_cluster:
             cluster = self.diff_cluster
 
-        snapshot_bucket = current_app.config.get('SNAPSHOT_S3_BUCKET', '') or ''
+        snapshot_bucket = current_app.config.get('SNAPSHOT_S3_BUCKET', '')
 
-        default_pre = current_app.config.get('LXC_PRE_LAUNCH', '') or ''
-        default_post = current_app.config.get('LXC_POST_LAUNCH', '') or ''
-        default_release = current_app.config.get('LXC_RELEASE', 'trusty') or ''
+        default_pre = self.debug_config.get('prelaunch_script') or current_app.config.get('LXC_PRE_LAUNCH', '')
+        default_post = current_app.config.get('LXC_POST_LAUNCH', '')
+        default_release = current_app.config.get('LXC_RELEASE', 'trusty')
 
         build_desc = self.build_desc
 
