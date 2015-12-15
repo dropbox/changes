@@ -357,6 +357,9 @@ class DefaultBuildStep(BuildStep):
         if current_app.config['CLIENT_SENTRY_DSN']:
             params['sentry-dsn'] = current_app.config['CLIENT_SENTRY_DSN']
 
+        if 'bind_mounts' in self.debug_config:
+            params['bind-mounts'] = self.debug_config['bind_mounts']
+
         # TODO(dcramer): we need some kind of tie into the JobPlan in order
         # to dictate that this is a snapshot build
         # determine if there's an expected snapshot outcome

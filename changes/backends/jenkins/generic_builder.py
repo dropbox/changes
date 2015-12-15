@@ -204,6 +204,9 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             'C_WORKSPACE': self.workspace,
             'ARTIFACTS_SERVER_BASE_URL': self.artifact_server_base_url})
 
+        if 'bind_mounts' in self.debug_config:
+            params['bind-mounts'] = self.debug_config['bind_mounts']
+
         if build_desc.get('uses_client', False):
             params.update({
                 'JENKINS_COMMAND': build_desc['jenkins-command'],
