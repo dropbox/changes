@@ -10,6 +10,8 @@ from uuid import uuid4
 
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
 from changes.config import db
+from changes.buildsteps.base import LXCConfig
+
 from .test_builder import BaseTestCase
 
 
@@ -260,3 +262,78 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         db.session.commit()
         builder = self.get_builder()
         assert builder.get_expected_image(job.id) == snapshot_image.id
+
+    def test_get_lxc_config_legacy(self):
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['legacy'] = {
+            'uses_client': False,
+        }
+        builder = self.get_builder(build_type='legacy')
+        jobstep = mock.Mock()
+        jobstep.job_id = uuid4()
+        assert builder.get_lxc_config(jobstep=jobstep) is None
+
+    def test_get_lxc_config_basic(self):
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['basic999'] = {
+            'uses_client': True,
+            'adapter': 'basic',
+            'jenkins-command': 'command',
+            'commands': [
+                {'script': 'script1'},
+                {'script': 'script2'}
+            ]
+        }
+        builder = self.get_builder(build_type='basic999')
+        jobstep = mock.Mock()
+        jobstep.job_id = uuid4()
+        assert builder.get_lxc_config(jobstep=jobstep) is None
+
+    def test_get_lxc_config_lxc(self):
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['lxc_test'] = {
+            'uses_client': True,
+            'adapter': 'lxc',
+            'pre-launch': 'pre.sh',
+            'post-launch': 'post.sh',
+            'release': 'squishy',
+            'jenkins-command': 'command',
+            'commands': [
+                {'script': 'script1'},
+            ]
+        }
+        bucket = 'S3BUCKET'
+        current_app.config['SNAPSHOT_S3_BUCKET'] = bucket
+
+        builder = self.get_builder(build_type='lxc_test')
+        jobstep = mock.Mock()
+        jobstep.job_id = uuid4()
+        lxc_config = builder.get_lxc_config(jobstep=jobstep)
+        assert lxc_config == LXCConfig(compression='lz4',
+                                       s3_bucket=bucket,
+                                       prelaunch='pre.sh',
+                                       postlaunch='post.sh',
+                                       release='squishy')
+
+    def test_get_lxc_config_lxc_defaults(self):
+        # Defaults from the app config rather than values from the build_type.
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['lxc_test'] = {
+            'uses_client': True,
+            'adapter': 'lxc',
+            'jenkins-command': 'command',
+            'commands': [
+                {'script': 'script1'},
+            ]
+        }
+        bucket = 'S3BUCKET'
+        current_app.config['SNAPSHOT_S3_BUCKET'] = bucket
+        current_app.config['LXC_PRE_LAUNCH'] = 'default-pre.sh'
+        current_app.config['LXC_POST_LAUNCH'] = 'default-post.sh'
+        current_app.config['LXC_RELEASE'] = 'default release'
+
+        builder = self.get_builder(build_type='lxc_test')
+        jobstep = mock.Mock()
+        jobstep.job_id = uuid4()
+        lxc_config = builder.get_lxc_config(jobstep=jobstep)
+        assert lxc_config == LXCConfig(compression='lz4',
+                                       s3_bucket=bucket,
+                                       prelaunch='default-pre.sh',
+                                       postlaunch='default-post.sh',
+                                       release='default release')

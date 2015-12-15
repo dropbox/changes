@@ -7,6 +7,8 @@ import mock
 import responses
 
 from copy import deepcopy
+from uuid import uuid4
+
 
 from changes.artifacts.collection_artifact import TestsJsonHandler
 from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollectorBuilder, \
@@ -32,6 +34,14 @@ class JenkinsTestCollectorBuilderTest(BaseTestCase):
         'cluster': 'server-runner',
         'shard_build_type': 'legacy',
     }
+
+    def setUp(self):
+        super(JenkinsTestCollectorBuilderTest, self).setUp()
+        self.old_config = deepcopy(current_app.config)
+
+    def tearDown(self):
+        current_app.config = self.old_config
+        super(JenkinsTestCollectorBuilderTest, self).tearDown()
 
     def test_has_required_artifact(self):
         build = self.create_build(self.project)
@@ -69,6 +79,36 @@ class JenkinsTestCollectorBuilderTest(BaseTestCase):
             FailureReason.step_id == step.id,
             FailureReason.reason == 'missing_artifact'
         ).first()
+
+    def test_shard_lxc_config(self):
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['lxc_collect'] = {
+            'uses_client': True,
+            'adapter': 'lxc',
+            'pre-launch': 'collect-prelaunch.sh',
+            'jenkins-command': 'command',
+            'commands': [{'script': 'script1'}]
+        }
+        current_app.config['CHANGES_CLIENT_BUILD_TYPES']['lxc'] = {
+            'uses_client': True,
+            'adapter': 'lxc',
+            'pre-launch': 'shard-prelaunch.sh',
+            'jenkins-command': 'command',
+            'commands': [{'script': 'script1'}]
+        }
+
+        builder = self.get_builder(build_type='lxc_collect', shard_build_type='lxc')
+
+        collect_jobstep = mock.Mock()
+        collect_jobstep.job_id = uuid4()
+        collect_jobstep.data = {}
+        collect_config = builder.get_lxc_config(jobstep=collect_jobstep)
+        assert collect_config.prelaunch == 'collect-prelaunch.sh'
+
+        shard_jobstep = mock.Mock()
+        shard_jobstep.job_id = uuid4()
+        shard_jobstep.data = {'expanded': True}
+        shard_config = builder.get_lxc_config(jobstep=shard_jobstep)
+        assert shard_config.prelaunch == 'shard-prelaunch.sh'
 
 
 class JenkinsTestCollectorBuildStepTest(TestCase):
