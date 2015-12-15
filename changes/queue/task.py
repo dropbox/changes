@@ -11,18 +11,12 @@ from contextlib import contextmanager
 from changes.config import db, queue, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
-from changes.models.task import Task
+from changes.models import Task
 from changes.utils.locking import lock
 
 
 BASE_RETRY_COUNTDOWN = 60
 CONTINUE_COUNTDOWN = 5
-
-# Number of seconds to delay before starting tasks.
-# It isn't actually known whether this is useful or why we even have this delay;
-# this just gives it a name so this fact is explicit and hopefully we can remove it more
-# easily.
-_DEFAULT_COUNTDOWN = 3
 
 RUN_TIMEOUT = timedelta(minutes=60)
 EXPIRE_TIMEOUT = timedelta(minutes=120)
@@ -325,7 +319,7 @@ class TrackedTask(local):
             queue.delay(
                 self.task_name,
                 kwargs=kwargs,
-                countdown=_DEFAULT_COUNTDOWN,
+                countdown=CONTINUE_COUNTDOWN,
             )
 
         if created:
@@ -370,7 +364,7 @@ class TrackedTask(local):
         queue.delay(
             self.task_name,
             kwargs=kwargs,
-            countdown=_DEFAULT_COUNTDOWN,
+            countdown=CONTINUE_COUNTDOWN,
         )
 
     def verify_all_children(self):
