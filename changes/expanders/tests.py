@@ -59,9 +59,13 @@ class TestsExpander(Expander):
         last_build = response['lastPassingBuild']
 
         if not last_build:
+            # use a failing build if no build has passed yet
+            last_build = response['lastBuild']
+
+        if not last_build:
             return {}, 0
 
-        # XXX(dcramer): ideally this would be abstractied via an API
+        # XXX(dcramer): ideally this would be abstracted via an API
         job_list = db.session.query(Job.id).filter(
             Job.build_id == last_build['id'],
         )
