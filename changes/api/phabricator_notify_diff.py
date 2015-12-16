@@ -120,9 +120,12 @@ class PhabricatorNotifyDiffAPIView(APIView):
             )
         )
 
+        # Filter out projects that aren't configured to run builds off of diffs
+        # - Diff trigger disabled
+        # - No build plans
         projects = [
             p for p in projects
-            if options.get(p.id, '1') == '1'
+            if options.get(p.id, '1') == '1' and get_build_plans(p)
         ]
 
         if not projects:
@@ -199,9 +202,8 @@ class PhabricatorNotifyDiffAPIView(APIView):
         builds = []
         for project in projects:
             plan_list = get_build_plans(project)
-            if not plan_list:
-                logging.warning('No plans defined for project %s', project.slug)
-                continue
+            # We already filtered out empty build plans
+            assert plan_list, ('No plans defined for project {}'.format(project.slug))
 
             try:
                 if not files_changed_should_trigger_project(files_changed, project, project_options[project.id], sha, diff=patch.diff):

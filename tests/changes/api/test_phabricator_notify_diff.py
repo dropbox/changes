@@ -359,3 +359,68 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         mock_post_comment.assert_called_once_with('D1234', ANY)
         assert "An error occurred somewhere between Phabricator and Changes" in mock_post_comment.call_args[0][1]
         assert "Unable to find base revision %s" % _BOGUS_SHA in mock_post_comment.call_args[0][1]
+
+    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.api.phabricator_notify_diff.post_comment')
+    def test_diff_comment_bad_project(self, mock_post_comment, get_vcs):
+        """Make sure we don't comment on diffs for repos without projects/plans"""
+        get_vcs.return_value = self.get_fake_vcs()
+        repo = self.create_repo()
+        self.create_option(
+            item_id=repo.id,
+            name='phabricator.callsign',
+            value='FOO',
+        )
+
+        # There's no project for this repo. Don't post back comments.
+        resp = self.client.post(self.path, data={
+            'phabricator.callsign': 'FOO',
+            'phabricator.diffID': '1324134',
+            'phabricator.revisionID': '1234',
+            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
+            'sha': _BOGUS_SHA,
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>'
+        })
+        assert resp.status_code == 200
+        assert self.unserialize(resp) == []
+        assert mock_post_comment.call_count == 0
+
+        # Now with a project, but no build plans. Don't post back comments
+        project = self.create_project(repository=repo)
+        resp = self.client.post(self.path, data={
+            'phabricator.callsign': 'FOO',
+            'phabricator.diffID': '1324134',
+            'phabricator.revisionID': '1234',
+            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
+            'sha': _BOGUS_SHA,
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>'
+        })
+        assert resp.status_code == 200
+        assert self.unserialize(resp) == []
+        assert mock_post_comment.call_count == 0
+
+        # Now with a project and a plan, kick off comment
+        self.create_plan(project)
+        resp = self.client.post(self.path, data={
+            'phabricator.callsign': 'FOO',
+            'phabricator.diffID': '1324134',
+            'phabricator.revisionID': '1234',
+            'phabricator.revisionURL': 'https://phabricator.example.com/D1234',
+            'patch': (StringIO(SAMPLE_DIFF_BYTES), 'foo.diff'),
+            'sha': _BOGUS_SHA,
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>'
+        })
+        assert resp.status_code == 400
+        data = self.unserialize(resp)
+        assert "Unable to find base revision %s" % _BOGUS_SHA in data['error']
+        mock_post_comment.assert_called_once_with('D1234', ANY)
+        assert "An error occurred somewhere between Phabricator and Changes" in mock_post_comment.call_args[0][1]
+        assert "Unable to find base revision %s" % _BOGUS_SHA in mock_post_comment.call_args[0][1]
