@@ -53,11 +53,12 @@ class AnalyticsNotifierTest(TestCase):
         created = 1424998888
         started = created + 10
         finished = started + duration
+        decided = finished + 10
 
         build = self.create_build(project, result=Result.failed, target='D1',
                                   label='Some sweet diff', duration=duration, tags=['commit', 'angry'],
                                   date_created=ts_to_datetime(created), date_started=ts_to_datetime(started),
-                                  date_finished=ts_to_datetime(finished))
+                                  date_finished=ts_to_datetime(finished), date_decided=ts_to_datetime(decided))
 
         job = self.create_job(build=build, result=Result.failed)
         jobphase = self.create_jobphase(job)
@@ -90,6 +91,7 @@ class AnalyticsNotifierTest(TestCase):
             'date_created': created,
             'date_started': started,
             'date_finished': finished,
+            'date_decided': decided,
             'phab_revision_url': 'https://example.com/D1',
             'failure_reasons': ['aborted', 'missing_tests'],
             'tags': {'tags': ['angry', 'commit']},

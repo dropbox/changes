@@ -63,6 +63,7 @@ class Build(db.Model):
                       default=BuildPriority.default, server_default='0')
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
+    date_decided = Column(DateTime)  # date when final determination of build result is made
     date_created = Column(DateTime, default=datetime.utcnow)
     date_modified = Column(DateTime, default=datetime.utcnow)
     data = Column(JSONEncodedDict)

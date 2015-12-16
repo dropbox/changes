@@ -114,6 +114,7 @@ def build_finished_handler(build_id, **kwargs):
         'date_created': maybe_ts(build.date_created),
         'date_started': maybe_ts(build.date_started),
         'date_finished': maybe_ts(build.date_finished),
+        'date_decided': maybe_ts(build.date_decided),
         # Revision URL rather than just revision id because the URL should
         # be globally unique, whereas the id is only certain to be unique for
         # a single Phabricator instance.

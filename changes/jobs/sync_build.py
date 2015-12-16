@@ -105,6 +105,13 @@ def sync_build(build_id):
         if new_status != Status.finished:
             build.status = new_status
 
+    if is_finished:
+        build.date_decided = datetime.utcnow()
+        decided_latency = build.date_decided - build.date_finished
+        statsreporter.stats().log_timing('build_decided_latency', _timedelta_to_millis(decided_latency))
+    else:
+        build.date_decided = None
+
     if db.session.is_modified(build):
         build.date_modified = datetime.utcnow()
         db.session.add(build)
@@ -113,18 +120,19 @@ def sync_build(build_id):
     if not is_finished:
         raise sync_build.NotFinished
 
-    try:
-        aggregate_build_stat(build, 'test_count')
-        aggregate_build_stat(build, 'test_duration')
-        aggregate_build_stat(build, 'test_failures')
-        aggregate_build_stat(build, 'test_rerun_count')
-        aggregate_build_stat(build, 'tests_missing')
-        aggregate_build_stat(build, 'lines_covered')
-        aggregate_build_stat(build, 'lines_uncovered')
-        aggregate_build_stat(build, 'diff_lines_covered')
-        aggregate_build_stat(build, 'diff_lines_uncovered')
-    except Exception:
-        current_app.logger.exception('Failing recording aggregate stats for build %s', build.id)
+    with statsreporter.stats().timer('build_stat_aggregation'):
+        try:
+            aggregate_build_stat(build, 'test_count')
+            aggregate_build_stat(build, 'test_duration')
+            aggregate_build_stat(build, 'test_failures')
+            aggregate_build_stat(build, 'test_rerun_count')
+            aggregate_build_stat(build, 'tests_missing')
+            aggregate_build_stat(build, 'lines_covered')
+            aggregate_build_stat(build, 'lines_uncovered')
+            aggregate_build_stat(build, 'diff_lines_covered')
+            aggregate_build_stat(build, 'diff_lines_uncovered')
+        except Exception:
+            current_app.logger.exception('Failing recording aggregate stats for build %s', build.id)
 
     fire_signal.delay(
         signal='build.finished',
