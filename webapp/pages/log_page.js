@@ -18,13 +18,25 @@ var MAX_LOG_LINES = 40960;
 // how often to hit the api server for updates
 var POLL_INTERVAL = 1000;
 
-function logging_endpoint(jobID, logsourceID, offset = null) {
+function is_eof(logApiResult) {
+  if ("eof" in logApiResult && logApiResult.eof) {
+    return true;
+  }
+
+  if ("source" in logApiResult && logApiResult.source.step.status.id === 'finished') {
+    return true
+  }
+
+  return false;
+}
+
+function logging_endpoint(url, offset = null) {
   var params = { limit: 0 };
   if (offset) {
     params.offset = offset;
   }
 
-  return URI(`/api/0/jobs/${jobID}/logs/${logsourceID}`)
+  return URI(url)
     .setSearch(params)
     .toString();
 }
@@ -50,25 +62,36 @@ var LogPage = React.createClass({
     var logsourceID = this.props.logsourceID;
 
     api.fetch(this, {
-      initialLog: logging_endpoint(jobID, logsourceID),
-      build: `/api/0/builds/${this.props.buildID}`
+      build: `/api/0/builds/${this.props.buildID}`,
+      job: `/api/0/jobs/${this.props.jobID}`
     });
   },
 
+  getLogTailURL: function(job) {
+    var lsID = this.props.logsourceID;
+    return job.logs.filter(function(l) {
+      return l.id == lsID;
+    })[0].urls.filter(function(u) {
+      return u.type == 'chunked';
+    })[0].url;
+  },
+
   render: function() {
-    if (!api.allLoaded([this.state.initialLog, this.state.build])) {
+    if (!api.allLoaded([this.state.job, this.state.build])) {
       return <APINotLoadedPage
-        calls={[this.state.initialLog, this.state.build]}
+        calls={[this.state.job, this.state.build]}
         fixed={true}
       />;
     }
 
-    var parentJobstep = this.state.initialLog.getReturnedData().source.step;
-    utils.setPageTitle(`Logs - ${parentJobstep.node.name}`);
+    var jobName = this.state.job.getReturnedData().name;
+    utils.setPageTitle(`Logs - ${jobName}`);
+
+    var logURL = this.getLogTailURL(this.state.job.getReturnedData());
 
     return <ChangesPage fixed={true}>
       <LogComponent
-        initialLog={this.state.initialLog}
+        initialLogURL={logging_endpoint(logURL)}
         jobID={this.props.jobID}
         build={this.state.build}
         logsourceID={this.props.logsourceID}
@@ -107,6 +130,10 @@ var LogComponent = React.createClass({
       this.initialRender = false;
       this.scrollToBottom();
     }
+
+    api.fetch(this, {
+      initialLog: this.props.initialLogURL,
+    });
   },
 
   componentWillUnmount: function() {
@@ -117,7 +144,11 @@ var LogComponent = React.createClass({
   },
 
   render: function() {
-    var initialLog = this.props.initialLog;
+    if (!api.isLoaded(this.state.initialLog)) {
+      return <APINotLoadedPage calls={this.state.initialLog} />;
+    }
+
+    var initialLog = this.state.initialLog;
     var newLogs = this.state.newLogs;
 
     var apiCallsToRender = [initialLog.getReturnedData()].concat(
@@ -127,7 +158,7 @@ var LogComponent = React.createClass({
     var isFinished = false;
     var lines = [];
     _.each(apiCallsToRender, apiCall => {
-      if (apiCall.source.step.status.id === 'finished') {
+      if (is_eof(apiCall)) {
         isFinished = true;
       }
       _.each(apiCall.chunks, chunk => {
@@ -181,7 +212,7 @@ var LogComponent = React.createClass({
   },
 
   renderDebugContent() {
-    var initialLog = this.props.initialLog;
+    var initialLog = this.state.initialLog;
     var newLogs = this.state.newLogs;
 
     var allApiCalls = [initialLog.getReturnedData()].concat(
@@ -291,7 +322,7 @@ var LogComponent = React.createClass({
   },
 
   pollForUpdates: function() {
-    var latestData = this.props.initialLog.getReturnedData();
+    var latestData = this.state.initialLog.getReturnedData();
     if (this.state.newLogs.length > 0) {
       latestData = _.last(this.state.newLogs);
     }
@@ -301,7 +332,7 @@ var LogComponent = React.createClass({
     // pollForUpdates when we know we want to poll.
     var should_poll = (
       // always poll if the log isn't finished
-      latestData.source.step.status.id !== 'finished' ||
+      ! is_eof(latestData) ||
       // even if we are finished, keep polling until the api returns 0 chunks
       latestData.chunks.length > 0
     );
@@ -333,8 +364,7 @@ var LogComponent = React.createClass({
 
     api.make_api_ajax_get(
       logging_endpoint(
-        this.props.jobID,
-        this.props.logsourceID,
+        this.props.initialLogURL,
         latestData.nextOffset),
       null,
       handle_response,

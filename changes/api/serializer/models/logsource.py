@@ -38,7 +38,16 @@ class ArtifactStoreLogSource(object):
             artifact=logsource.name
         )
 
-        return [{"url": raw_url, "type": "raw"}]
+        chunked_url = "{base_url}/buckets/{bucket}/artifacts/{artifact}/chunked".format(
+            base_url=self.base_url,
+            bucket=logsource.step_id.hex,
+            artifact=logsource.name
+        )
+
+        return [
+            {"url": raw_url, "type": "raw"},
+            {"url": chunked_url, "type": "chunked", "priority": 2}
+        ]
 
 
 class ChangesLogSource(object):
@@ -62,5 +71,5 @@ class ChangesLogSource(object):
 
         return [
             {"url": raw_url, "type": "raw"},
-            {"url": chunked_url, "type": "chunked"}
+            {"url": chunked_url, "type": "chunked", "priority": 1}
         ]
