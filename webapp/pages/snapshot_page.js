@@ -72,7 +72,7 @@ var SnapshotPage = React.createClass({
       </a>
       {": "}
       {utils.truncate(utils.first_line(source.revision.message))}
-      {" (by "} {authorLink} { ")"}
+      {" (by "} {authorLink}{ ")"}
       </div>;
 
     var buildInfo = <div>
