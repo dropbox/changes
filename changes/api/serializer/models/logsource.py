@@ -44,9 +44,14 @@ class ArtifactStoreLogSource(object):
             artifact=logsource.name
         )
 
+        priority = 2
+
+        if not logsource.is_infrastructural():
+            priority += 1
+
         return [
             {"url": raw_url, "type": "raw"},
-            {"url": chunked_url, "type": "chunked", "priority": 2}
+            {"url": chunked_url, "type": "chunked", "priority": priority}
         ]
 
 
