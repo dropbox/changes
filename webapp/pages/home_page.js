@@ -68,9 +68,20 @@ var HomePage = React.createClass({
     // TODO: not this
     var header_markup = null;
     if (this.props.author) {
-      var author_info = this.state.commits.getReturnedData()[0].builds[0].author;
+      var commit_sources = this.state.commits.getReturnedData();
+      // Pull author name from the first build of the first source with a build.
+      // They should all be the same.
+      var first_build = _.chain(commit_sources)
+                        .map(function(s) { return s.builds })
+                        .flatten(true)
+                        .first()
+                        .value();
+      var full_name = null;
+      if (first_build) {
+        full_name = ` (${first_build.author.name})`;
+      }
       header_markup = <div style={{paddingBottom: 30, paddingTop: 10}}>
-        Diffs and Commits by {utils.email_head(this.props.author)} ({author_info.name})
+        Diffs and Commits by {utils.email_head(this.props.author)}{full_name}
       </div>;
       utils.setPageTitle(`${utils.email_head(this.props.author)} - Changes`);
     }
