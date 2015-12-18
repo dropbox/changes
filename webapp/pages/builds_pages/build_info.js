@@ -250,6 +250,13 @@ export var SingleBuild = React.createClass({
         ` (${display_duration(build.duration / 1000)})`
       );
     }
+    if (build.dateDecided) {
+      var decidedDuration = new Date(build.dateDecided) - new Date(build.dateCreated);
+      attributes['Decided'] = (
+        formatTime(build.dateDecided) +
+        ` (${display_duration(decidedDuration / 1000)})`
+      );
+    }
 
     var testCount = (!build.stats.test_count && get_runnable_condition(build) === 'waiting') ?
       'In Progress' : build.stats.test_count;

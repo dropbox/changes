@@ -79,6 +79,7 @@ class BuildCrumbler(Crumbler):
             'dateModified': item.date_modified.isoformat() if item.date_modified else None,
             'dateStarted': item.date_started.isoformat() if item.date_started else None,
             'dateFinished': item.date_finished.isoformat() if item.date_finished else None,
+            'dateDecided': item.date_decided.isoformat() if item.date_decided else None,
             'stats': attrs['stats'],
             'failures': attrs['failures'],
             'link': build_uri('/projects/{0}/builds/{1}/'.format(
