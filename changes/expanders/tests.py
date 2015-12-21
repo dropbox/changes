@@ -47,7 +47,7 @@ class TestsExpander(Expander):
             future_jobstep = FutureJobStep(
                 label=self.data.get('label') or future_command.label,
                 commands=[future_command],
-                data={'weight': weight, 'tests': self.data['tests'],
+                data={'weight': weight, 'tests': test_list,
                       'shard_count': len(groups)},
             )
             yield future_jobstep

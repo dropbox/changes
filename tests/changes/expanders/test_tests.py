@@ -107,10 +107,14 @@ class TestsExpanderTest(TestCase):
         assert len(results) == 2
         assert results[0].label == 'py.test --junit=junit.xml foo.bar.test_buz'
         assert results[0].data['weight'] == 201
+        assert set(results[0].data['tests']) == set(['foo.bar.test_buz'])
+        assert results[0].data['shard_count'] == 2
         assert results[0].commands[0].label == results[0].label
         assert results[0].commands[0].script == results[0].label
 
         assert results[1].label == 'py.test --junit=junit.xml foo/bar.py foo/baz.py foo.bar.test_biz'
         assert results[1].data['weight'] == 78
+        assert set(results[1].data['tests']) == set(['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
+        assert results[1].data['shard_count'] == 2
         assert results[1].commands[0].label == results[1].label
         assert results[1].commands[0].script == results[1].label
