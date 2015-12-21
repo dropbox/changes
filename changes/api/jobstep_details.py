@@ -189,9 +189,9 @@ class JobStepDetailsAPIView(APIView):
             # move to push APIs we need a good way to handle the existing sync
             job = jobstep.job
             sync_job.delay_if_needed(
+                job_id=job.id.hex,
                 task_id=job.id.hex,
-                parent_task_id=job.id.hex,
-                job_id=job.build_id.hex,
+                parent_task_id=job.build_id.hex,
             )
 
         return self.respond(jobstep)
