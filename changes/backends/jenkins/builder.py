@@ -648,8 +648,9 @@ class JenkinsBuilder(BaseBackend):
                 step.id.hex)
 
     def verify_final_artifacts(self, step, artifacts):
-        # If the Jenkins run was aborted, we don't expect a manifest file.
+        # If the Jenkins run was aborted or timed out, we don't expect a manifest file.
         if (step.result != Result.aborted and
+            not step.data.get('timed_out', False) and
                 not any(ManifestJsonHandler.can_process(a.name) for a in artifacts)):
             db.session.add(FailureReason(
                 step_id=step.id,
