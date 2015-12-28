@@ -168,11 +168,7 @@ var LogComponent = React.createClass({
             return;
           }
           lines.push(
-            <div
-              className="line"
-              // the backend sends us pre-escaped markup, I think for coloring
-              dangerouslySetInnerHTML={{__html: line}}
-            />
+            <div className="line">{line}</div>
           );
         });
       });
