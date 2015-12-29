@@ -12,6 +12,7 @@ from changes.models import (
     Project, Build, Source, Status, Result, ProjectOption, Repository,
     ProjectStatus
 )
+from changes.constants import Cause
 
 
 OPTION_DEFAULTS = {
@@ -116,6 +117,7 @@ class ProjectDetailsAPIView(APIView):
         ).filter(
             Source.patch_id == None,  # NOQA
             Build.project == project,
+            Build.cause != Cause.snapshot,
             Build.status == Status.finished,
         ).order_by(
             Build.date_created.desc(),
@@ -131,6 +133,7 @@ class ProjectDetailsAPIView(APIView):
             ).filter(
                 Source.patch_id == None,  # NOQA
                 Build.project == project,
+                Build.cause != Cause.snapshot,
                 Build.result == Result.passed,
                 Build.status == Status.finished,
             ).order_by(
