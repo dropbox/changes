@@ -7,7 +7,8 @@ from uuid import uuid4
 
 from changes.constants import Status
 from changes.jobs.cleanup_tasks import cleanup_tasks, CHECK_TIME
-from changes.models import Task
+from changes.models.task import Task
+from changes.queue.task import _DEFAULT_COUNTDOWN
 from changes.testutils import TestCase
 
 
@@ -43,7 +44,7 @@ class CleanupTasksTest(TestCase):
 
         mock_delay.assert_called_once_with(
             'cleanup_tasks',
-            countdown=5,
+            countdown=_DEFAULT_COUNTDOWN,
             kwargs={
                 'task_id': task.task_id.hex,
                 'parent_task_id': None,
