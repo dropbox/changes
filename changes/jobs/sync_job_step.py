@@ -23,8 +23,6 @@ from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
 
 
-QUEUED_RETRY_DELAY = 30
-
 INFRA_FAILURE_REASONS = ['malformed_manifest_json', 'missing_manifest_json']
 
 
@@ -391,11 +389,7 @@ def sync_job_step(step_id):
                 current_app.logger.warning(
                     "Timed out jobstep that wasn't in progress: %s (was %s)", step.id, old_status)
 
-        if step.status != Status.in_progress:
-            retry_after = QUEUED_RETRY_DELAY
-        else:
-            retry_after = None
-        raise sync_job_step.NotFinished(retry_after=retry_after)
+        raise sync_job_step.NotFinished
 
     # Ignore any 'failures' if the build did not finish properly.
     # NOTE(josiah): we might want to include "unknown" and "skipped" here as
@@ -430,7 +424,7 @@ def sync_job_step(step_id):
         # Set status to in_progress so that the next sync_job_step will fetch status from Jenkins again.
         step.result = Result.unknown
         step.status = Status.in_progress
-        raise sync_job_step.NotFinished(retry_after=QUEUED_RETRY_DELAY)
+        raise sync_job_step.NotFinished
 
     missing_tests = is_missing_tests(step, jobplan)
 
