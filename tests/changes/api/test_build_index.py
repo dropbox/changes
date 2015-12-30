@@ -1206,3 +1206,55 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 0
+
+    def test_no_project_and_no_repo(self):
+        resp = self.client.post(self.path, data={
+            'apply_project_files_trigger': '1',
+            'sha': 'a' * 40,
+            'target': 'D1234',
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>',
+            'patch': (StringIO(""), 'foo.diff'),
+            'patch[data]': '{"foo": "bar"}'
+        })
+        assert resp.status_code == 400
+
+        data = self.unserialize(resp)
+        assert "project" in data['problems']
+        assert "repository" in data['problems']
+        assert "repository[phabricator.callsign]" in data['problems']
+
+    def test_patch_data_is_not_json(self):
+        resp = self.client.post(self.path, data={
+            'apply_project_files_trigger': '1',
+            'project': self.project.slug,
+            'sha': 'a' * 40,
+            'target': 'D1234',
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>',
+            'patch': (StringIO(""), 'foo.diff'),
+            'patch[data]': '{"foo": "bar"'
+        })
+        assert resp.status_code == 400
+
+        data = self.unserialize(resp)
+        assert "patch[data]" in data['problems']
+
+    def test_patch_data_is_non_dict_json(self):
+        resp = self.client.post(self.path, data={
+            'apply_project_files_trigger': '1',
+            'project': self.project.slug,
+            'sha': 'a' * 40,
+            'target': 'D1234',
+            'label': 'Foo Bar',
+            'message': 'Hello world!',
+            'author': 'David Cramer <dcramer@example.com>',
+            'patch': (StringIO(""), 'foo.diff'),
+            'patch[data]': '["foo", "bar"]'
+        })
+        assert resp.status_code == 400
+
+        data = self.unserialize(resp)
+        assert "patch[data]" in data['problems']
