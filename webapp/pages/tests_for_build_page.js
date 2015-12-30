@@ -250,7 +250,7 @@ export var BuildTestsPage = React.createClass({
     }
     var style = slowTestsInteractive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
-    var pagingLinks = slowTestsInteractive.getPagingLinks();
+    var pagingLinks = slowTestsInteractive.getPagingLinks({use_next_previous: true});
 
     return <div style={style}>
       {errorMessage}
@@ -314,7 +314,7 @@ export var BuildTestsPage = React.createClass({
     }
     var style = retriesInteractive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
-    var pagingLinks = retriesInteractive.getPagingLinks();
+    var pagingLinks = retriesInteractive.getPagingLinks({use_next_previous: true});
 
     return <div style={style}>
       {errorMessage}
