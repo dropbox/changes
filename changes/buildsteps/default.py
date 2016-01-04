@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import os
 import uuid
 
 from copy import deepcopy
@@ -104,8 +105,7 @@ class DefaultBuildStep(BuildStep):
             if 'artifacts' not in command:
                 command['artifacts'] = self.artifacts
 
-            if 'path' not in command:
-                command['path'] = path
+            command['path'] = os.path.join(path, command.get('path', ''))
 
             c_env = env.copy()
             if 'env' in command:
@@ -320,9 +320,7 @@ class DefaultBuildStep(BuildStep):
                     teardown_commands.append(future_command)
 
             for future_command in future_jobstep.commands:
-                # TODO(dcramer): we need to remove path as an end-user option
-                if not future_command.path:
-                    future_command.path = self.path
+                future_command.path = os.path.join(self.path, future_command.path or '')
 
         # setup -> newly generated commands from expander -> teardown
         for index, future_command in enumerate(chain(setup_commands,

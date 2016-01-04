@@ -75,7 +75,7 @@ class DefaultBuildStepTest(TestCase):
         vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
         get_vcs.return_value = vcs
 
-        buildstep = DefaultBuildStep(commands=[{'script': 'ls', 'type': 'collect_tests'},
+        buildstep = DefaultBuildStep(commands=[{'script': 'ls', 'type': 'collect_tests', 'path': 'subdir'},
                                                {'script': 'setup_command', 'type': 'setup'},
                                                {'script': 'default_command'},
                                                {'script': 'make snapshot', 'type': 'snapshot'}])
@@ -95,7 +95,7 @@ class DefaultBuildStepTest(TestCase):
         assert commands[0].env == DEFAULT_ENV
 
         assert commands[1].script == 'ls'
-        assert commands[1].cwd == DEFAULT_PATH
+        assert commands[1].cwd == './source/subdir'
         assert commands[1].type == CommandType.collect_tests
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[1].env == DEFAULT_ENV
@@ -193,7 +193,7 @@ class DefaultBuildStepTest(TestCase):
             label='test',
             commands=[
                 FutureCommand('echo 1'),
-                FutureCommand('echo "foo"\necho "bar"'),
+                FutureCommand('echo "foo"\necho "bar"', path='subdir'),
             ],
         )
 
@@ -215,15 +215,20 @@ class DefaultBuildStepTest(TestCase):
         assert commands[1].script == 'echo "hello world 2"'
         assert commands[1].cwd == '/usr/test/1'
         assert commands[1].type == CommandType.setup
+        assert tuple(commands[1].artifacts) == ('artifact1.txt', 'artifact2.txt')
         assert commands[1].order == 1
         assert commands[2].label == 'echo 1'
         assert commands[2].script == 'echo 1'
         assert commands[2].order == 2
         assert commands[2].cwd == DEFAULT_PATH
+        assert commands[2].type == CommandType.default
+        assert tuple(commands[2].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[3].label == 'echo "foo"'
         assert commands[3].script == 'echo "foo"\necho "bar"'
         assert commands[3].order == 3
-        assert commands[3].cwd == DEFAULT_PATH
+        assert commands[3].cwd == './source/subdir'
+        assert commands[3].type == CommandType.default
+        assert tuple(commands[3].artifacts) == tuple(DEFAULT_ARTIFACTS)
 
     @mock.patch.object(Repository, 'get_vcs')
     def test_create_replacement_jobstep_expanded(self, get_vcs):
@@ -242,7 +247,7 @@ class DefaultBuildStepTest(TestCase):
             label='test',
             commands=[
                 FutureCommand('echo 1'),
-                FutureCommand('echo "foo"\necho "bar"'),
+                FutureCommand('echo "foo"\necho "bar"', path='subdir'),
             ],
             data={'weight': 1, 'forceInfraFailure': True},
         )
@@ -282,15 +287,20 @@ class DefaultBuildStepTest(TestCase):
         assert commands[1].script == 'echo "hello world 2"'
         assert commands[1].cwd == '/usr/test/1'
         assert commands[1].type == CommandType.setup
+        assert tuple(commands[1].artifacts) == ('artifact1.txt', 'artifact2.txt')
         assert commands[1].order == 1
         assert commands[2].label == 'echo 1'
         assert commands[2].script == 'echo 1'
         assert commands[2].order == 2
         assert commands[2].cwd == DEFAULT_PATH
+        assert commands[2].type == CommandType.default
+        assert tuple(commands[2].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[3].label == 'echo "foo"'
         assert commands[3].script == 'echo "foo"\necho "bar"'
         assert commands[3].order == 3
-        assert commands[3].cwd == DEFAULT_PATH
+        assert commands[3].cwd == './source/subdir'
+        assert commands[3].type == CommandType.default
+        assert tuple(commands[3].artifacts) == tuple(DEFAULT_ARTIFACTS)
 
     def test_get_allocation_params(self):
         project = self.create_project()
