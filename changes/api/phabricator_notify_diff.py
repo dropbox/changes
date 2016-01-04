@@ -148,11 +148,13 @@ class PhabricatorNotifyDiffAPIView(APIView):
             logging.error("Diff %s was posted for an unknown revision (%s, %s)",
                           target, sha, repository.url)
             # We should postback since this can happen if a user diffs dependent revisions
-            statsreporter.stats().incr("diff_missing_base_revision")
+            statsreporter.stats().incr("diffs_missing_base_revision")
             return self.postback_error(
                 "Unable to find base revision {revision} in {repo} on Changes. Some possible reasons:\n"
-                " - Changes hasn't picked up {revision} yet. Retry in a minute\n"
-                " - {revision} only exists in your local copy. Changes cannot apply your patch\n".format(
+                " - You may be working on multiple stacked diffs in your local repository.\n"
+                "   {revision} only exists in your local copy. Changes thus cannot apply your patch\n"
+                " - If you are sure that's not the case, it's possible you applied your patch to an extremely\n"
+                "   recent revision which Changes hasn't picked up yet. Retry in a minute\n".format(
                     revision=sha,
                     repo=repository.url,
                 ),
