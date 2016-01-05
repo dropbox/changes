@@ -38,6 +38,18 @@ class UnknownRevision(CommandError):
     pass
 
 
+class UnknownChildRevision(UnknownRevision):
+    """Indicates that VCS was queried for a parent-child relationship with a
+    a child revision that doesn't appear to exist."""
+    pass
+
+
+class UnknownParentRevision(UnknownRevision):
+    """Indicates that VCS was queried for a parent-child relationship with a
+    a parent revision that doesn't appear to exist."""
+    pass
+
+
 class ConcurrentUpdateError(CommandError):
     """Indicates that a command failed because a vcs update is running."""
     pass

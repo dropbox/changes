@@ -5,7 +5,9 @@ import pytest
 from subprocess import check_call
 
 from changes.testutils import TestCase
-from changes.vcs.base import CommandError
+from changes.vcs.base import (
+        CommandError, UnknownChildRevision, UnknownParentRevision
+)
 from changes.vcs.git import GitVcs
 
 from tests.changes.vcs.asserts import VcsAsserts
@@ -260,8 +262,18 @@ index 0000000..e69de29
         vcs.clone()
         vcs.update()
         revisions = list(vcs.log())
-        assert vcs.is_child_parent(child_in_question=revisions[0].id, parent_in_question=revisions[1].id)
-        assert vcs.is_child_parent(child_in_question=revisions[1].id, parent_in_question=revisions[0].id) is False
+        assert vcs.is_child_parent(child_in_question=revisions[0].id,
+                                   parent_in_question=revisions[1].id)
+        assert not vcs.is_child_parent(child_in_question=revisions[1].id,
+                                       parent_in_question=revisions[0].id)
+
+        unknown_sha = 'ffffffffffffffffffffffffffffffffffffffff'
+        with pytest.raises(UnknownChildRevision):
+            vcs.is_child_parent(child_in_question=unknown_sha,
+                                parent_in_question=revisions[1].id)
+        with pytest.raises(UnknownParentRevision):
+            vcs.is_child_parent(child_in_question=revisions[1].id,
+                                parent_in_question=unknown_sha)
 
     def test_get_known_branches(self):
         vcs = self.get_vcs()

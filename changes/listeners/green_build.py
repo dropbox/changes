@@ -18,7 +18,9 @@ from changes.models import (
 from changes.models.latest_green_build import LatestGreenBuild
 from changes.utils.http import build_uri
 from changes.utils.locking import lock
-from changes.vcs.base import ConcurrentUpdateError
+from changes.vcs.base import (
+    ConcurrentUpdateError, UnknownChildRevision, UnknownParentRevision
+)
 
 logger = logging.getLogger('green_build')
 
@@ -168,13 +170,42 @@ def _set_latest_green_build_for_each_branch(build, source, vcs):
             LatestGreenBuild.project_id == project.id,
             LatestGreenBuild.branch == branch).first()
 
-        if not current_latest_green_build or vcs.is_child_parent(
-                child_in_question=source.revision_sha,
-                parent_in_question=current_latest_green_build.build.source.revision_sha):
-            # switch latest_green_build to this sha
-            green_build, _ = create_or_update(LatestGreenBuild, where={
-                'project_id': project.id,
-                'branch': branch,
-            }, values={
-                'build': build,
-            })
+        if current_latest_green_build:
+            child_in_question = source.revision_sha
+            parent_in_question = current_latest_green_build.build.source.revision_sha
+            try:
+                if not vcs.is_child_parent(
+                     child_in_question=child_in_question,
+                     parent_in_question=parent_in_question):
+                    return
+            except UnknownChildRevision:
+                # The child_in_question is an unknown SHA. This shouldn't happen.
+                logging.exception(
+                    "Child SHA is missing from the VCS. This is bad news and "
+                    "shouldn't happen. (parent=%s, child=%s)",
+                    parent_in_question, child_in_question)
+                return
+            except UnknownParentRevision:
+                # The parent_in_question is an unknown SHA. Assume it was
+                # deleted and forgotten VCS, and set the new green build to
+                # the child_in_question anyway.
+                logging.warning(
+                    "Parent SHA is missing from the VCS. Assume it was deleted "
+                    "and the new build is legit.",
+                    extra={
+                        'data': {
+                            'repository_url': source.revision.repository.url,
+                            'branch': branch,
+                            'parent': parent_in_question,
+                            'child': child_in_question,
+                        },
+                    }
+                )
+
+        # switch latest_green_build to this sha
+        green_build, _ = create_or_update(LatestGreenBuild, where={
+            'project_id': project.id,
+            'branch': branch,
+        }, values={
+            'build': build,
+        })

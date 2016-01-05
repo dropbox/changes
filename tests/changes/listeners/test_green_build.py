@@ -12,6 +12,7 @@ from changes.listeners.green_build import build_finished_handler, \
 from changes.models import Event, EventType, RepositoryBackend
 from changes.models.latest_green_build import LatestGreenBuild
 from changes.testutils import TestCase
+from changes.vcs.base import UnknownChildRevision, UnknownParentRevision
 
 
 class GreenBuildTest(TestCase):
@@ -167,6 +168,61 @@ class GreenBuildTest(TestCase):
         build2.result = Result.passed
         build_finished_handler(build_id=build2.id.hex)
         assert self._get_latest_green_build(project.id, 'default').build == build2
+
+    @responses.activate
+    @mock.patch('changes.listeners.green_build.get_options')
+    @mock.patch('changes.models.Repository.get_vcs')
+    def test_set_latest_green_build_with_vcs_sha_errors(self, vcs, get_options):
+        responses.add(responses.POST, 'https://foo.example.com')
+
+        repository = self.create_repo(
+            backend=RepositoryBackend.hg,
+        )
+
+        project = self.create_project(repository=repository)
+
+        sha = uuid4().hex
+        source = self.create_source(
+            project=project,
+            revision_sha=sha,
+            revision=self.create_revision(repository=repository,
+                                          branches=['default'],
+                                          sha=sha
+            )
+        )
+        vcs = repository.get_vcs.return_value
+        vcs.is_child_parent.return_value = True
+
+        # Ensure a new build can be set to green if the current green is
+        # missing in vcs.
+        vcs.is_child_parent.side_effect = UnknownParentRevision(
+                cmd="vcs merge-base ...",
+                retcode=128,
+                stdout="",
+                stderr="fatal: Not a valid commit name [some SHA]\n")
+        build3 = self.create_build(project=project, source=source)
+        get_options.return_value = {'green-build.notify': '1'}
+        vcs.run.return_value = '137:asdadfadf'
+        build3.result = Result.passed
+        build_finished_handler(build_id=build3.id.hex)
+        assert self._get_latest_green_build(project.id, 'default').build == build3
+
+        # Ensure a new build cannot be set to green if the new build's SHA is
+        # missing in vcs.
+        vcs.is_child_parent.side_effect = UnknownChildRevision(
+                cmd="vcs merge-base ...",
+                retcode=128,
+                stdout="",
+                stderr="fatal: Not a valid commit name [some SHA]\n")
+        bad_sha_build = self.create_build(project=project, source=source)
+        get_options.return_value = {'green-build.notify': '1'}
+        vcs.run.return_value = '138:asdadfadf'
+        bad_sha_build.result = Result.passed
+        build_finished_handler(build_id=bad_sha_build.id.hex)
+        assert self._get_latest_green_build(project.id, 'default').build == build3
+
+        # Cleanup the mock (in case more blocks are added)
+        vcs.is_child_parent.side_effect = None
 
     @responses.activate
     @mock.patch('changes.models.Repository.get_vcs')

@@ -8,9 +8,10 @@ from changes.utils.http import build_uri
 
 from .base import (
     Vcs, RevisionResult, BufferParser, ConcurrentUpdateError, CommandError,
-    UnknownRevision,
+    UnknownChildRevision, UnknownParentRevision, UnknownRevision,
 )
 
+import re
 from time import time
 
 LOG_FORMAT = '%H\x01%an <%ae>\x01%at\x01%cn <%ce>\x01%ct\x01%P\x01%B\x02'
@@ -272,8 +273,27 @@ class GitVcs(Vcs):
         try:
             self.run(cmd)
             return True
-        except CommandError:
-            return False
+        except CommandError as e:
+            expected_err = "fatal: Not a valid commit name "
+            m = re.match(r'^\s*fatal: Not a valid commit name (?P<sha>\S+)\s*$', e.stderr)
+            if e.retcode == 1:
+                return False
+            elif e.retcode == 128 and m:
+                sha = m.group('sha')
+                if sha == parent_in_question:
+                    raise UnknownParentRevision(
+                        cmd=e.cmd,
+                        retcode=e.retcode,
+                        stdout=e.stdout,
+                        stderr=e.stderr)
+                elif sha == child_in_question:
+                    raise UnknownChildRevision(
+                        cmd=e.cmd,
+                        retcode=e.retcode,
+                        stdout=e.stdout,
+                        stderr=e.stderr)
+            else:
+                raise
 
     def get_buildstep_clone(self, source, workspace, clean=True):
         return BASH_CLONE_STEP % dict(
