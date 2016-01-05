@@ -44,14 +44,9 @@ class ArtifactStoreLogSource(object):
             artifact=logsource.name
         )
 
-        priority = 2
-
-        if not logsource.is_infrastructural():
-            priority += 1
-
         return [
             {"url": raw_url, "type": "raw"},
-            {"url": chunked_url, "type": "chunked", "priority": priority}
+            {"url": chunked_url, "type": "chunked", "priority": _logsource_display_priority(logsource)}
         ]
 
 
@@ -76,5 +71,27 @@ class ChangesLogSource(object):
 
         return [
             {"url": raw_url, "type": "raw"},
-            {"url": chunked_url, "type": "chunked", "priority": 1}
+            {"url": chunked_url, "type": "chunked", "priority": _logsource_display_priority(logsource)}
         ]
+
+
+def _logsource_display_priority(ls):
+    """
+    Provides a score for the logsource for deciding what to display as the machine log.
+    A higher priority means it is a better choice.
+
+    Args:
+        ls (LogSource): The LogSource to score.
+
+    Returns:
+        int: The priority.
+
+    """
+    priority = 1
+    # Prefer AS logs; they're the future, and it's more efficient.
+    if ls.in_artifact_store:
+        priority += 1
+    # We only want to pick an infra log if we don't have other options.
+    if ls.is_infrastructural():
+        priority -= 2
+    return priority
