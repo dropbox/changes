@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import { Error, ProgrammingError } from 'es6!display/errors';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 
 /*
  * Basically a list with properties/keys on the left and values on the right.
@@ -31,12 +32,19 @@ export var InfoList = React.createClass({
 
     var rows = [];
     React.Children.forEach(this.props.children, c => {
+      var label;
+      if (c.props.tooltip) {
+          label = (<SimpleTooltip label={c.props.tooltip} placement="right">
+              <div>{c.props.label}</div>
+          </SimpleTooltip>);
+      } else {
+        label = c.props.label;
+      }
       rows.push(
-        <tr> <td className="infoLabel">
-          {c.props.label}
-        </td> <td>
-          {c.props.children}
-        </td> </tr>
+          <tr>
+              <td className="infoLabel">{label}</td>
+              <td>{c.props.children}</td>
+          </tr>
       );
     });
 
@@ -49,9 +57,10 @@ export var InfoItem = React.createClass({
 
   propTypes: {
     // the label to use for the item
-    label: PropTypes.string
+    label: PropTypes.string,
 
-    // TODO: we could add tooltip support
+    // optional tooltip
+    tooltip: PropTypes.string,
 
     // the child of this item is the rhs content
   },

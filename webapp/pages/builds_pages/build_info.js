@@ -239,23 +239,29 @@ export var SingleBuild = React.createClass({
   },
 
   renderDetails: function(build, job_phases) {
-    var attributes = {};
-    attributes['Created'] = formatTime(build.dateCreated);
+    var attributes = [];
+    attributes.push(<InfoItem label='Created'
+        tooltip='when Changes received this job'>
+        {formatTime(build.dateCreated)}
+    </InfoItem>);
     if (build.dateStarted) {
-      attributes['Started'] = formatTime(build.dateStarted);
+      attributes.push(<InfoItem label='Started'
+          tooltip='when the first jobstep started'>
+          {formatTime(build.dateStarted)}
+      </InfoItem>);
     }
     if (build.dateFinished) {
-      attributes['Finished'] = (
-        formatTime(build.dateFinished) +
-        ` (${display_duration(build.duration / 1000)})`
-      );
+    attributes.push(<InfoItem label='Finished'
+        tooltip='when the last jobstep finished'>
+        {formatTime(build.dateFinished)} ({display_duration(build.duration / 1000)})
+    </InfoItem>);
     }
     if (build.dateDecided) {
       var decidedDuration = new Date(build.dateDecided) - new Date(build.dateCreated);
-      attributes['Decided'] = (
-        formatTime(build.dateDecided) +
-        ` (${display_duration(decidedDuration / 1000)})`
-      );
+      attributes.push(<InfoItem label='Decided'
+        tooltip='when the final result of the build was decided'>
+        {formatTime(build.dateDecided)} ({display_duration(decidedDuration / 1000)})
+      </InfoItem>);
     }
 
     var testCount = (!build.stats.test_count && get_runnable_condition(build) === 'waiting') ?
@@ -264,17 +270,17 @@ export var SingleBuild = React.createClass({
     var testLabel = build.dateFinished ? "Tests Ran" : "Tests Run";
     var buildTestsHref = `/build_tests/${build.id}` +
       (build.testFailures.total > 0 ? '' : "#SlowTests")
-    attributes[testLabel] = <span>
-      {testCount}{" ("}
-      <a href={buildTestsHref}>
-        more information
-      </a>
-      {")"}
-    </span>;
-
-    var rows = _.map(attributes, (v,k) => <InfoItem label={k}>{v}</InfoItem>);
+    attributes.push(<InfoItem label={testLabel}>
+      <span>
+        {testCount}{" ("}
+        <a href={buildTestsHref}>
+          more information
+        </a>
+        {")"}
+      </span>
+    </InfoItem>)
     return <div>
-      <InfoList className="marginTopM">{rows}</InfoList>
+      <InfoList className="marginTopM">{attributes}</InfoList>
     </div>;
   },
 
