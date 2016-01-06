@@ -1,4 +1,6 @@
 from fnmatch import fnmatch
+from changes.models import Build
+from datetime import datetime, timedelta
 
 
 def _in_project_files_whitelist(project_options, files_changed):
@@ -40,6 +42,9 @@ def files_changed_should_trigger_project(files_changed, project, project_options
         return True
 
     config = project.get_config(sha, diff, config_path)
+    if not _time_based_exclusion_filter(config, project):
+        return False
+
     blacklist = config['build.file-blacklist']
 
     # filter out files in blacklist
@@ -51,3 +56,22 @@ def files_changed_should_trigger_project(files_changed, project, project_options
         return _in_project_files_whitelist(project_options, files_changed)
     else:
         return False
+
+
+def _time_based_exclusion_filter(project_options, project):
+    mins_between_builds = project_options.get('build.minimum-minutes-between-builds', 0)
+
+    # By default, don't skip anything.
+    if not mins_between_builds:
+        return True
+
+    # No filtering of build type is done here to keep this simple
+    builds_in_last_n_minutes = Build.query.filter(
+        Build.project == project,
+        Build.date_created >= datetime.now() - timedelta(minutes=mins_between_builds),
+    ).count()
+
+    if builds_in_last_n_minutes != 0:
+        return False
+
+    return True

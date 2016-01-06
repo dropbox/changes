@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from datetime import datetime, timedelta
+
 import mock
 
 from changes.config import db
@@ -126,4 +128,71 @@ z
             )
             (sha, diff, _), _ = mocked.call_args
             assert sha == self.revision.sha
-            assert diff == self.patch.diff
+
+    def test_with_no_skips(self):
+        with mock.patch('changes.models.Project.get_config') as mocked:
+            mocked.return_value = {
+                'build.file-blacklist': [],
+                'build.minimum-minutes-between-builds': 0,
+            }
+            assert files_changed_should_trigger_project(
+                ['a', 'b'],
+                self.project,
+                {},
+                self.revision.sha,
+            )
+            (sha, diff, _), _ = mocked.call_args
+            assert sha == self.revision.sha
+            assert diff is None
+
+    def test_with_timed_skips(self):
+        # No builds yet
+        with mock.patch('changes.models.Project.get_config') as mocked:
+            mocked.return_value = {
+                'build.file-blacklist': [],
+                'build.minimum-minutes-between-builds': 30,
+            }
+            assert files_changed_should_trigger_project(
+                ['a', 'b'],
+                self.project,
+                {},
+                self.revision.sha,
+            )
+            (sha, diff, _), _ = mocked.call_args
+            assert sha == self.revision.sha
+            assert diff is None
+
+        # Stale build
+        self.create_build(self.project, date_created=datetime.now() - timedelta(minutes=31))
+
+        with mock.patch('changes.models.Project.get_config') as mocked:
+            mocked.return_value = {
+                'build.file-blacklist': [],
+                'build.minimum-minutes-between-builds': 30,
+            }
+            assert files_changed_should_trigger_project(
+                ['a', 'b'],
+                self.project,
+                {},
+                self.revision.sha,
+            )
+            (sha, diff, _), _ = mocked.call_args
+            assert sha == self.revision.sha
+            assert diff is None
+
+        # Create recent build
+        self.create_build(self.project, date_created=datetime.now() - timedelta(minutes=29))
+
+        # Should fail because of recently created build.
+        with mock.patch('changes.models.Project.get_config') as mocked:
+            mocked.return_value = {
+                'build.file-blacklist': [],
+                'build.minimum-minutes-between-builds': 30,
+            }
+            assert not files_changed_should_trigger_project(
+                ['a', 'b'],
+                self.project,
+                {},
+                self.revision.sha,
+            )
+            (sha, diff, _), _ = mocked.call_args
