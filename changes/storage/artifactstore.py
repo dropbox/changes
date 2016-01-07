@@ -26,7 +26,7 @@ class ArtifactStoreFileStorage(FileStorage):
 
     def get_file(self, filename):
         # TODO(paulruan): Have a reasonable file size limit
-        resp = self.session.get(self.url_for(filename))
+        resp = self.session.get(self.url_for(filename), timeout=15)
         resp.raise_for_status()
         return StringIO(resp.content)
 
