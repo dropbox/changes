@@ -714,14 +714,21 @@ class JenkinsBuilder(BaseBackend):
         if step.data.get('build_no'):
             url = '/job/{}/{}/stop/'.format(
                 step.data['job_name'], step.data['build_no'])
-        else:
+        elif step.data.get('item_id'):
             url = '/queue/cancelItem?id={}'.format(step.data['item_id'])
+        else:
+            url = None
 
         step.status = Status.finished
         step.result = Result.aborted
         step.date_finished = datetime.utcnow()
         db.session.add(step)
         db.session.flush()
+
+        if not url:
+            # We don't know how to cancel the step or even if it is running, so
+            # we've done all we can.
+            return
 
         try:
             self._get_text_response(
