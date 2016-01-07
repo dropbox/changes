@@ -140,7 +140,13 @@ def build_finished_handler(build_id, **kwargs):
         # NOTE: We compare `ex.response` to None explicitly because any non-200 response
         # evaluates to `False`.
         if ex.response is not None and ex.response.status_code == 409:
-            logger.warning("Conflict when reporting green build", exc_info=True)
+            logger.warning("Conflict when reporting green build", extra={
+                'data': {
+                    'project': project,
+                    'release_id': release_id,
+                    'build_id': build.id.hex,
+                }
+            })
         else:
             logger.exception('Failed to report green build')
         status = 'fail'
