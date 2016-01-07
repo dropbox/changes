@@ -5,7 +5,7 @@ from functools import wraps
 from urllib import quote
 import logging
 
-from flask import Response, request
+from flask import Response, request, current_app
 
 from flask.ext.sqlalchemy import get_debug_queries
 
@@ -113,9 +113,14 @@ class APIView(Resource):
     def paginate(self, queryset, max_per_page=100, **kwargs):
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 25) or 0)
-        if max_per_page:
-            assert per_page <= max_per_page
-        assert page > 0
+        if max_per_page and per_page > max_per_page:
+            msg = 'Requested more per_page than the maximum'
+            current_app.logger.warning(msg)
+            return error(msg, http_code=400)
+        if page <= 0:
+            msg = 'Page argument must be at least 1'
+            current_app.logger.warning(msg)
+            return error(msg, http_code=400)
 
         if per_page:
             offset = (page - 1) * per_page
