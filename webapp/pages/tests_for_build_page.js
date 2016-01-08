@@ -459,13 +459,25 @@ export var SingleBuildTestPage = React.createClass({
     let buildTitle = `${buildInfo.project.name} Build`
     let pageTitle = `Test ${test.shortName} for ${buildTitle}`;
     utils.setPageTitle(pageTitle);
+    let infoItems = [<InfoItem label='Name'>{test.name}</InfoItem>,
+                     <InfoItem label='Result'>
+                        {test.result.name} ({ChangesLinks.historyLink(buildInfo.project, test.hash)})
+                     </InfoItem>];
+
+    let retryCountStyle = {};
+    if (test.numRetries > 0 && (test.result.id == "passed" || test.result.id == "quarantined_passed")) {
+        // Make retries needed for pass look like a bad thing, because they generally are.
+        retryCountStyle = {color:'red'};
+    }
+    let retryCount = <div style={retryCountStyle}>{test.numRetries}</div>;
+    let retriesDoc = <div>Number of times the test was rerun to see if it would pass.<br/>
+                          Passing tests should pass the first time and need no retries.</div>;
+    infoItems.push(<InfoItem label='Retries' tooltip={retriesDoc}>{retryCount}</InfoItem>);
+
 
     let info = <div>
       <InfoList className="marginTopM">
-        <InfoItem label='Name'>{test.name}</InfoItem>
-        <InfoItem label='Result'>
-          {test.result.name} ({ChangesLinks.historyLink(buildInfo.project, test.hash)})
-        </InfoItem>
+        {infoItems}
       </InfoList>
     </div>;
     let testDetails = <TestDetails testID={this.props.testID} buildID={this.props.buildID} />;
