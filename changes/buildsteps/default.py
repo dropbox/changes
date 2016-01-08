@@ -402,4 +402,4 @@ class DefaultBuildStep(BuildStep):
         return Manager([CoverageHandler, XunitHandler])
 
     def prefer_artifactstore(self):
-        return self.debug_config.get('prefer_artifactstore', False)
+        return self.debug_config.get('prefer_artifactstore', True)
