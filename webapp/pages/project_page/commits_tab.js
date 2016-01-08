@@ -6,7 +6,7 @@ import SimpleTooltip from 'es6!display/simple_tooltip';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
-import { SingleBuildStatus } from 'es6!display/changes/builds';
+import { MissingBuildStatus, SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
 import { get_runnable_condition } from 'es6!display/changes/build_conditions';
 
@@ -253,6 +253,12 @@ var CommitsTab = React.createClass({
       title = <a className="subtle" href={ChangesLinks.buildHref(last_build)}>
         {title}
       </a>;
+    } else {
+      build_widget = <MissingBuildStatus
+          project_slug={project_info.slug}
+          commit_sha={c.sha}
+          parentElem={this}
+      />
     }
 
     // TODO: if there are any comments, show a comment icon on the right

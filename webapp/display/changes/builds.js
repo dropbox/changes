@@ -2,7 +2,9 @@ import React, { PropTypes } from 'react';
 import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import ChangesLinks from 'es6!display/changes/links';
+import { Button } from 'es6!display/button';
 import { Error, ProgrammingError } from 'es6!display/errors';
+import Request from 'es6!display/request';
 import { buildSummaryText } from 'es6!display/changes/build_text';
 import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
 
@@ -226,6 +228,42 @@ export var SingleBuildStatus = React.createClass({
         </div>
       </Tooltip>;
     }
+  },
+});
+
+/*
+ * Shows the status for a missing build. In practice, this is merely a button
+ * that allows the user to create a new build for the corresponding commit.
+ */
+export var MissingBuildStatus = React.createClass({
+
+  propTypes: {
+    project_slug: PropTypes.string,
+    commit_sha: PropTypes.string,
+    parentElem: PropTypes.object,
+  },
+
+  render: function() {
+    var buttonName = "createBuild_" + this.props.commit_sha;
+    var tooltip = <Tooltip>Create a new build for this commit.</Tooltip>;
+    var project = this.props.project_slug;
+    var commit = this.props.commit_sha;
+    var build_widget = <div>
+        <Request
+          parentElem={this.props.parentElem}
+          name={buttonName}
+          endpoint={`/api/0/builds/?project=${project}&sha=${commit}`}
+          method="post">
+          <OverlayTrigger
+            placement="right"
+            overlay={tooltip}>
+            <Button type="white" className="iconButton">
+              <i className="fa fa-cogs blue" />
+            </Button>
+          </OverlayTrigger>
+        </Request>
+      </div>;
+    return build_widget;
   },
 });
 
