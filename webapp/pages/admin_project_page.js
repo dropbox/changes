@@ -578,7 +578,8 @@ let StepDetails = React.createClass({
                  parentElem={this}
                  name="deleteStep"
                  method="delete"
-                 endpoint={`/api/0/steps/${step.id}/`}>
+                 endpoint={`/api/0/steps/${step.id}/`}
+                 promptText={`Delete ${step.name}?`}>
                    <Button>Delete Step</Button>
                 </Request>;
 

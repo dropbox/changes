@@ -19,6 +19,7 @@ var Request = React.createClass({
         return new Error('Unknown request method');
       }
     },
+    promptText: PropTypes.string,
   },
 
   render: function() {
@@ -49,11 +50,13 @@ var Request = React.createClass({
     }
 
     var onClick = evt => {
-      method(parentElem, {
-        [ stateKey ]: endpoint,
-      }, {
-        [ stateKey ]: this.props.params,
-      });
+      if (!this.props.promptText || confirm(this.props.promptText)) {
+        method(parentElem, {
+          [ stateKey ]: endpoint,
+        }, {
+          [ stateKey ]: this.props.params,
+        });
+      }
     };
 
     return React.cloneElement(child, {'onClick': onClick});
