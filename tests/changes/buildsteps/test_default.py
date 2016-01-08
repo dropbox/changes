@@ -323,17 +323,6 @@ class DefaultBuildStepTest(TestCase):
             'artifact-search-path': DEFAULT_PATH,
         }
 
-    def test_get_allocation_params_with_compression(self):
-        project = self.create_project()
-        build = self.create_build(project)
-        job = self.create_job(build)
-        jobphase = self.create_jobphase(job)
-        jobstep = self.create_jobstep(jobphase)
-
-        buildstep = self.get_buildstep(compression='lz4')
-        result = buildstep.get_allocation_params(jobstep)
-        assert result['compression'] == 'lz4'
-
     def test_test_get_allocation_params_for_snapshotting(self):
         project = self.create_project()
         build = self.create_build(project)

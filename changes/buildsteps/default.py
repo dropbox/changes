@@ -65,7 +65,7 @@ class DefaultBuildStep(BuildStep):
     def __init__(self, commands=None, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=10, cpus=4, memory=8 * 1024, clean=True,
-                 compression=None, debug_config=None, test_stats_from=None,
+                 debug_config=None, test_stats_from=None,
                  **kwargs):
         """
         Constructor for DefaultBuildStep.
@@ -79,7 +79,6 @@ class DefaultBuildStep(BuildStep):
                 useful to set to False if snapshots are in use and they
                 intentionally leave useful incremental build products in the
                 repository.
-            compression: Compression algorithm to use (xz, lz4)
             debug_config: A dictionary of debug config options. These are passed through
                 to changes-client. There is also an infra_failures option, which takes a
                 dictionary used to force infrastructure failures in builds. The keys of
@@ -118,7 +117,6 @@ class DefaultBuildStep(BuildStep):
             else:
                 command['type'] = CommandType.default
 
-        self.compression = compression
         self.env = env
         self.path = path
         self.release = release
@@ -344,7 +342,6 @@ class DefaultBuildStep(BuildStep):
             'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
             'server': build_uri('/api/0/'),
-            'compression': self.compression,
             'jobstep_id': jobstep.id.hex,
             's3-bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
             'pre-launch': self.debug_config.get('prelaunch_script') or current_app.config['LXC_PRE_LAUNCH'],
@@ -386,7 +383,7 @@ class DefaultBuildStep(BuildStep):
             return LXCConfig(s3_bucket=app_cfg['SNAPSHOT_S3_BUCKET'],
                              prelaunch=self.debug_config.get('prelaunch_script') or app_cfg['LXC_PRE_LAUNCH'],
                              postlaunch=app_cfg['LXC_POST_LAUNCH'],
-                             compression=self.compression,
+                             compression=None,
                              release=self.release)
         return None
 

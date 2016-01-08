@@ -190,7 +190,7 @@ SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log'
 class JenkinsGenericBuildStep(JenkinsBuildStep):
     builder_cls = JenkinsGenericBuilder
 
-    def __init__(self, job_name=None, script=None, cluster=None, diff_cluster='', path='',
+    def __init__(self, job_name=None, script=None, cluster=None, path='',
                  workspace='', reset_script='', build_type=None,
                  setup_script='', teardown_script='', clean=True,
                  artifacts=XunitHandler.FILENAMES + CoverageHandler.FILENAMES +
@@ -243,7 +243,6 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         self.reset_script = reset_script
         self.snapshot_script = snapshot_script
         self.cluster = cluster
-        self.diff_cluster = diff_cluster
         self.path = path
         self.workspace = workspace
         self.build_type = build_type
@@ -274,7 +273,6 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'cluster': self.cluster,
             'path': self.path,
             'workspace': self.workspace,
-            'diff_cluster': self.diff_cluster,
             'build_type': self.build_type,
             'artifacts': self.artifacts,
             'clean': self.clean,

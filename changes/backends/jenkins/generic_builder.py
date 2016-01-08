@@ -14,7 +14,7 @@ from .builder import JenkinsBuilder
 
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, setup_script='', teardown_script='',
-                 artifacts=(), reset_script='', diff_cluster=None, path='', workspace='',
+                 artifacts=(), reset_script='', path='', workspace='',
                  snapshot_script=None, clean=True, *args, **kwargs):
         """Builder for JenkinsGenericBuildStep. See JenkinsGenericBuildStep
         for information on most of these arguments.
@@ -25,7 +25,6 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         self.snapshot_script = snapshot_script
         self.reset_script = reset_script
         self.cluster = kwargs.pop('cluster')
-        self.diff_cluster = diff_cluster
         self.path = path
         self.workspace = workspace
         self.artifacts = artifacts
@@ -152,9 +151,6 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             repo_url = repository.url
 
         cluster = self.cluster
-        is_diff = not job.source.is_commit()
-        if is_diff and self.diff_cluster:
-            cluster = self.diff_cluster
 
         snapshot_bucket = current_app.config.get('SNAPSHOT_S3_BUCKET', '')
 

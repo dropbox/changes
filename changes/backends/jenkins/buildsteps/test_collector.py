@@ -162,7 +162,6 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
     # time of writing the system only supports a single build step.
     def __init__(self, shards=None, max_shards=10, collection_build_type=None,
                  build_type=None, setup_script='', teardown_script='',
-                 collection_setup_script='', collection_teardown_script='',
                  test_stats_from=None,
                  **kwargs):
         """
@@ -170,8 +169,6 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
             shards = number of shards to use
             max_shards = legacy option, same as shards
             collection_build_type = build type to use for the collection phase
-            collection_setup_script = setup to use for the collection phase
-            collection_teardown_script = teardown to use for the collection phase
             build_type = build type to use for the shard phase
             setup_script = setup to use for the shard phase
             teardown_script = teardown to use for the shard phase
@@ -197,10 +194,11 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
             self.shard_build_type = current_app.config[
                 'CHANGES_CLIENT_DEFAULT_BUILD_TYPE']
 
+        # We don't run setup/teardown scripts in the collection phase.
         super(JenkinsTestCollectorBuildStep, self).__init__(
             build_type=collection_build_type,
-            setup_script=collection_setup_script,
-            teardown_script=collection_teardown_script,
+            setup_script='',
+            teardown_script='',
             **kwargs)
 
         self.shard_setup_script = setup_script

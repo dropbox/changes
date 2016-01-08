@@ -24,7 +24,6 @@ class JenkinsGenericBuilderTest(BaseTestCase):
         'script': 'py.test',
         'teardown_script': 'teardown',
         'cluster': 'default',
-        'diff_cluster': 'diff_cluster',
         'build_type': 'test_harness'
     }
 
@@ -213,18 +212,6 @@ class JenkinsGenericBuilderTest(BaseTestCase):
 
         result = builder.get_job_parameters(job, uuid4().hex, path='foo')
         assert result['RESET_SCRIPT'] == 'reset_me.sh'
-
-    def test_get_job_parameters_diff(self):
-        project = self.create_project()
-        patch = self.create_patch()
-        source = self.create_source(project, patch=patch)
-        build = self.create_build(project, source=source)
-        job = self.create_job(build)
-
-        builder = self.get_builder()
-
-        result = builder.get_job_parameters(job, uuid4().hex, path='foo')
-        assert result['CLUSTER'] == self.builder_options['diff_cluster']
 
     def validate_build_type(self, build_type):
         builder = self.get_builder()
