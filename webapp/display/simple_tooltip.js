@@ -10,9 +10,9 @@ import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 var SimpleTooltip = React.createClass({
 
   propTypes: {
-    // the text for the tooltip
-    // TODO: you can use markup here too, I should add that typehint
-    label: PropTypes.string,
+    // the content for the tooltip; should be text, but
+    // markup is allowed.
+    label: PropTypes.node,
     // left, right, top, bottom
     placement: PropTypes.string,
   },

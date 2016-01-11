@@ -60,7 +60,7 @@ export var InfoItem = React.createClass({
     label: PropTypes.string,
 
     // optional tooltip
-    tooltip: PropTypes.string,
+    tooltip: PropTypes.node,
 
     // the child of this item is the rhs content
   },
