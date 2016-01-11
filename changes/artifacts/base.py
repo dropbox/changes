@@ -6,6 +6,10 @@ import logging
 import os
 
 
+class ArtifactParseError(Exception):
+    pass
+
+
 class ArtifactHandler(object):
     FILENAMES = ()
     logger = logging.getLogger('artifacts')

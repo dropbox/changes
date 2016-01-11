@@ -7,6 +7,7 @@ import uuid
 
 from hashlib import md5
 
+from changes.artifacts.base import ArtifactParseError
 from changes.artifacts.collection_artifact import TestsJsonHandler
 from changes.backends.jenkins.buildstep import JenkinsGenericBuildStep
 from changes.backends.jenkins.generic_builder import JenkinsGenericBuilder
@@ -269,9 +270,12 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
         This phase config comes from a tests.json file that the collection
         jobstep should generate. This method is then called by the TestsJsonHandler.
         """
-        assert phase_config['cmd']
-        assert '{test_names}' in phase_config['cmd']
-        assert 'tests' in phase_config
+        if not phase_config.get('cmd'):
+            raise ArtifactParseError('No cmd attribute')
+        if '{test_names}' not in phase_config['cmd']:
+            raise ArtifactParseError('No {test_names} in cmd')
+        if 'tests' not in phase_config:
+            raise ArtifactParseError('No tests attribute')
 
         num_tests = len(phase_config['tests'])
         test_stats, avg_test_time = TestsExpander.get_test_stats(self.get_test_stats_from() or step.project.slug)
@@ -299,8 +303,10 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
         steps = JobStep.query.filter_by(phase_id=phase.id, replacement_id=None).all()
         if steps:
             step_shard_counts = [s.data.get('shard_count', 1) for s in steps]
-            assert len(set(step_shard_counts)) == 1, "Mixed shard counts in phase!"
-            assert len(steps) == step_shard_counts[0]
+            if len(set(step_shard_counts)) != 1:
+                raise Exception("Mixed shard counts in phase!")
+            elif len(steps) != step_shard_counts[0]:
+                raise Exception("Shard count incorrect")
         else:
             # Create all of the job steps and commit them together.
             groups = TestsExpander.shard_tests(phase_config['tests'], self.max_shards,
@@ -310,7 +316,8 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
                                      weight, test_list, len(groups))
                 for weight, test_list in groups
                 ]
-            assert len(steps) == len(groups)
+            if len(steps) != len(groups):
+                raise Exception("Didn't create correct number of shards")
             db.session.commit()
 
         # Now that that database transaction is done, we'll do the slow work of
