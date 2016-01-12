@@ -57,7 +57,7 @@ export var InlineLoading = React.createClass({
 
   render: function() {
     var { className, ...props} = this.props;
-    className = (className || "") + " inlineLoading";
+    className = (className || "") + " inlineLoading nonFixedClass";
 
     return <div {...props} className={className}>
       <i className="fa fa-spinner fa-spin marginRightS" />

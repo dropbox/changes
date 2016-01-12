@@ -188,7 +188,7 @@ var LogComponent = React.createClass({
           Truncating display: we render at most {MAX_LOG_LINES} lines
         </Error>
       );
-    } 
+    }
     
     if (!isFinished && otherContent.length === 0) {
       // if we're still waiting on content, render an old-school blinking
@@ -271,7 +271,13 @@ var LogComponent = React.createClass({
     var showDebug = __ => { this.setState({showDebug: true}); };
     var hideDebug = __ => { this.setState({showDebug: false}); };
 
-    return <div className="logReturnLink">
+    // this is rendered separately, and won't be picked up by the componentDidMount
+    // of the general page when there is an admin message
+    var messageNode = document.getElementsByClassName('persistentMessage')[0];
+    var topMargin = messageNode ? messageNode.offsetHeight : 0;
+    var style = {marginTop: topMargin + "px"};
+
+    return <div className="logReturnLink" style={style}>
       {header}
       <div>
         {this.state.linesRendered} lines

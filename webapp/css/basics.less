@@ -57,20 +57,20 @@ a.subtle:hover {
   text-decoration: underline;
 }
 
+.fixedClass {
+  position: fixed;
+}
+
 /* Page header stuff */
 
 .pageHeader {
+  z-index: 5;
   background-color: white;
   border-bottom: 1px solid @lightBorder;
   top: 0;
   left: 0;
   right: 0;
   height: 40px;
-}
-
-.fixedPageHeader {
-  position: fixed;
-  z-index: 5;
 }
 
 .headerBlock, .headerLinkBlock {
@@ -97,27 +97,11 @@ div.persistentMessage {
   background-color: @messageBg;
   border-bottom: 1px solid @messageBorder;
   padding: 10px;
-}
-
-/* on pages that use position: fixed, put this at the bottom...we don't know
- * how high it is.
- *
- * TODO: here's a possible way to fix this. Create a css class fixed that's the
- * sole way to apply position: fixed to elements. When you have a message, 
- * render it with display: none, then on componentDidMount change it to visible
- * (maybe with an animation), find every position: fixed element on the page,
- * and dynamically change their height based on the message height. This is less
- * complicatd than it sounds.
- */
-div.persistentMessageFixed {
-  background-color: @messageBg;
-  border-top: 1px solid @messageBorder;
-  padding: 10px;
   position: fixed;
-  bottom: 0;
+  z-index: 30;
+  top: 0;
   left: 0;
   right: 0;
-  z-index: 30;
 }
 
 /* inline perf widget */

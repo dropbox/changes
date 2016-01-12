@@ -45,12 +45,8 @@ export var ChangesPage = React.createClass({
   render: function() {
     var messageMarkup = null;
     if (window.changesMessageData && window.changesMessageData.message) {
-      var className = this.props.fixed ? 
-        'persistentMessageFixed' : 
-        'persistentMessage';
-
       var messageData = window.changesMessageData;
-      messageMarkup = <div className={className}>
+      messageMarkup = <div className='persistentMessage'>
         {messageData.message}{"  - "}{messageData.user.email}
       </div>;
     }
@@ -67,28 +63,59 @@ export var ChangesPage = React.createClass({
 
     return <div>
       {messageMarkup}
-      <ChangesPageHeader 
-        highlight={this.props.highlight} 
-        fixed={this.props.fixed} 
-        oldUI={this.props.oldUI} 
+      <ChangesPageHeader
+        highlight={this.props.highlight}
+        fixed={this.props.fixed}
+        oldUI={this.props.oldUI}
         widget={this.props.widget}
       />
-      <div id="ChangesPageChildren" style={style}>
+      <div id="ChangesPageChildren" className="nonFixedClass" style={style}>
         {this.props.children}
       </div>
     </div>;
   },
 
-  componentDidMount() {
-    if (this.props.fixed) {
-      var node = this.getDOMNode();
-      var queryret = node.getElementsByClassName(
-        'persistentMessageFixed');
-      var messageNode = queryret[0];
-      if (messageNode) {
-        document.getElementById('ChangesPageChildren').style['margin-bottom'] = (
-          messageNode.offsetHeight + "px"
-        );
+  componentDidMount: function() {
+    var node = this.getDOMNode();
+
+    var messageNode = node.getElementsByClassName('persistentMessage')[0];
+    if (messageNode){
+      var newMargin = messageNode.offsetHeight;
+
+      // always fix nav bar if there's an admin message
+      var navNode = node.getElementsByClassName('pageHeader')[0];
+      if (navNode) {
+        navNode.className += ' fixedClass';
+      }
+
+      // realign objects without fixed position
+      var elementsWithTopMargins = document.getElementsByClassName('changeMarginAdminMsg');
+      if (elementsWithTopMargins){
+        for (var h  = 0; h < elementsWithTopMargins.length; h++){
+          var oldMargin = parseInt(window.getComputedStyle(elementsWithTopMargins[h])['margin-top']);
+          if (oldMargin > 0) {
+            elementsWithTopMargins[h].style['margin-top'] = (oldMargin + newMargin) + "px";
+          }
+        }
+      }
+
+      // whatever the height of the message header is in px,
+      // adjust every fixed-position object down by that amount
+      var fixedElements = document.getElementsByClassName('fixedClass');
+      if (fixedElements){
+        for (var i = 0; i < fixedElements.length; i++){
+          var oldTop = parseInt(window.getComputedStyle(fixedElements[i])['top']);
+          fixedElements[i].style['top'] = (newMargin + oldTop) + "px";
+        }
+      }
+
+      // every other high-level container which is non-fixed
+      // needs to be realigned
+      var affectedElements = document.getElementsByClassName('nonFixedClass');
+      if (affectedElements){
+        for (var j = 0; j < affectedElements.length; j++){
+          affectedElements[j].style['margin-top'] = newMargin + "px";
+        }
       }
     }
   }
@@ -198,7 +225,7 @@ var ChangesPageHeader = React.createClass({
       headerLinkBlock: true, headerHighlight: highlight === "Projects"
     });
 
-    var classes = classNames({pageHeader: true, fixedPageHeader: this.props.fixed });
+    var classes = classNames({pageHeader: true, fixedClass: this.props.fixed });
     return <div>
       <div className={classes}>
         <a className={my_changes_classes} href="/">

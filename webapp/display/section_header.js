@@ -12,7 +12,7 @@ var SectionHeader = React.createClass({
 
   render: function() {
     var { className, ...others } = this.props;
-    className = (className || "") + " sectionHeader";
+    className = (className || "") + " sectionHeader nonFixedClass";
     return <div {...others} className={className}>
       {this.props.children}
     </div>;

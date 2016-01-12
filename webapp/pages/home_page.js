@@ -80,7 +80,7 @@ var HomePage = React.createClass({
       if (first_build) {
         full_name = ` (${first_build.author.name})`;
       }
-      header_markup = <div style={{paddingBottom: 30, paddingTop: 10}}>
+      header_markup = <div className="nonFixedClass" style={{paddingBottom: 30, paddingTop: 10}}>
         Diffs and Commits by {utils.email_head(this.props.author)}{full_name}
       </div>;
       utils.setPageTitle(`${utils.email_head(this.props.author)} - Changes`);
@@ -99,7 +99,7 @@ var HomePage = React.createClass({
 
     return <ChangesPage highlight="My Changes" oldUI="/projects/">
       {header_markup}
-      <div>
+      <div className="nonFixedClass">
         <Diffs
           diffs={this.state.diffs}
           author={this.props.author}

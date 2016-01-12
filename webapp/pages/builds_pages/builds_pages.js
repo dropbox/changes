@@ -192,7 +192,7 @@ var BuildsPage = React.createClass({
       fixed={true} 
       oldUI={oldBuildUI(activeBuild)}>
 
-      <div className="buildsLabelHeader">
+      <div className="buildsLabelHeader fixedClass">
         {this.renderLabelHeader()}
       </div>
       <Sidebar
@@ -202,7 +202,7 @@ var BuildsPage = React.createClass({
         activeBuildID={this.state.activeBuildID}
         pageElem={this}
       />
-      <div className="buildsContent">
+      <div className="buildsContent changeMarginAdminMsg">
         <div className="buildsInnerContent">
           {this.getErrorMessage()}
           {this.getContent()}

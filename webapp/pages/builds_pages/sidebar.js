@@ -36,7 +36,7 @@ var Sidebar = React.createClass({
   },
 
   render: function() {
-    return <div className="buildsSidebar">
+    return <div className="buildsSidebar fixedClass">
       <div className="sidebarBorder">
         {this.renderBuildsList()}
       </div>
