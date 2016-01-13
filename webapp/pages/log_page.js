@@ -63,12 +63,15 @@ var LogPage = React.createClass({
 
     api.fetch(this, {
       build: `/api/0/builds/${this.props.buildID}`,
-      logsource: `/api/0/jobs/${this.props.jobID}/logs/${this.props.logsourceID}`
+      job: `/api/0/jobs/${this.props.jobID}`
     });
   },
 
   getLogTailURL: function(job) {
-    return logsource.urls.filter(function(u) {
+    var lsID = this.props.logsourceID;
+    return job.logs.filter(function(l) {
+      return l.id == lsID;
+    })[0].urls.filter(function(u) {
       return u.type == 'chunked';
     })[0].url;
   },
