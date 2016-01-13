@@ -20,12 +20,15 @@ _AllocData = namedtuple('_AllocData', ['cpus', 'memory', 'command'])
 
 
 class JobStepAllocateAPIView(APIView):
-    def find_next_jobsteps(self, limit=10):
+    def find_next_jobsteps(self, limit=10, cluster=None):
+        cluster_filter = JobStep.cluster == cluster if cluster else JobStep.cluster.is_(None)
+
         # find projects with pending allocations
         project_list = [p for p, in db.session.query(
             JobStep.project_id,
         ).filter(
             JobStep.status == Status.pending_allocation,
+            cluster_filter,
         ).group_by(
             JobStep.project_id
         )]
@@ -49,9 +52,11 @@ class JobStepAllocateAPIView(APIView):
             if c >= 10
             ]
 
-        filters = [
+        base_filters = [
             JobStep.status == Status.pending_allocation,
+            cluster_filter,
         ]
+        filters = list(base_filters)
         if unavail_projects:
             filters.append(~JobStep.project_id.in_(unavail_projects))
 
@@ -84,7 +89,7 @@ class JobStepAllocateAPIView(APIView):
         # TODO(dcramer): we want to burst but not go too far. For now just
         # let burst
         queryset = base_queryset.filter(
-            JobStep.status == Status.pending_allocation,
+            *base_filters
         )
         if results:
             queryset = queryset.filter(~JobStep.id.in_(q.id for q in results))
@@ -99,6 +104,8 @@ class JobStepAllocateAPIView(APIView):
         except KeyError:
             return error('Missing resources attribute')
 
+        cluster = args.get('cluster')
+
         # cpu and mem as 0 are treated by changes-client
         # as having no enforced limit
         total_cpus = int(resources.get('cpus', 0))
@@ -106,8 +113,11 @@ class JobStepAllocateAPIView(APIView):
 
         with statsreporter.stats().timer('jobstep_allocate'):
             try:
-                with redis.lock('jobstep:allocate', nowait=True):
-                    available_allocations = self.find_next_jobsteps(limit=10)
+                lock_key = 'jobstep:allocate'
+                if cluster:
+                    lock_key = lock_key + ':' + cluster
+                with redis.lock(lock_key, nowait=True):
+                    available_allocations = self.find_next_jobsteps(limit=10, cluster=cluster)
                     to_allocate = []
                     for jobstep in available_allocations:
 

@@ -40,13 +40,14 @@ class DefaultBuildStepTest(TestCase):
         build = self.create_build(self.create_project())
         job = self.create_job(build)
 
-        buildstep = self.get_buildstep()
+        buildstep = self.get_buildstep(cluster='foo')
         buildstep.execute(job)
 
         step = job.phases[0].steps[0]
 
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
+        assert step.cluster == 'foo'
 
         commands = step.commands
         assert len(commands) == 2
@@ -85,6 +86,7 @@ class DefaultBuildStepTest(TestCase):
 
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
+        assert step.cluster is None
 
         commands = step.commands
         assert len(commands) == 2
@@ -114,6 +116,7 @@ class DefaultBuildStepTest(TestCase):
 
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
+        assert step.cluster is None
 
         # collect tests and default commands shouldn't be added
         commands = step.commands
@@ -135,7 +138,7 @@ class DefaultBuildStepTest(TestCase):
         build = self.create_build(self.create_project())
         job = self.create_job(build)
 
-        buildstep = self.get_buildstep()
+        buildstep = self.get_buildstep(cluster='foo')
         buildstep.execute(job)
 
         oldstep = job.phases[0].steps[0]
@@ -157,6 +160,7 @@ class DefaultBuildStepTest(TestCase):
         # original jobstep would be expected to after execute()
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
+        assert step.cluster == 'foo'
 
         commands = step.commands
         assert len(commands) == 2
@@ -197,13 +201,14 @@ class DefaultBuildStepTest(TestCase):
             ],
         )
 
-        buildstep = self.get_buildstep()
+        buildstep = self.get_buildstep(cluster='foo')
         new_jobstep = buildstep.create_expanded_jobstep(
             jobstep, new_jobphase, future_jobstep)
 
         db.session.flush()
 
         assert new_jobstep.data['expanded'] is True
+        assert new_jobstep.cluster == 'foo'
 
         commands = new_jobstep.commands
 
@@ -252,7 +257,7 @@ class DefaultBuildStepTest(TestCase):
             data={'weight': 1, 'forceInfraFailure': True},
         )
 
-        buildstep = self.get_buildstep()
+        buildstep = self.get_buildstep(cluster='foo')
         fail_jobstep = buildstep.create_expanded_jobstep(
             jobstep, new_jobphase, future_jobstep)
 
@@ -274,6 +279,7 @@ class DefaultBuildStepTest(TestCase):
         # original jobstep would be expected to after expand_jobstep()
         assert new_jobstep.data['expanded'] is True
         assert new_jobstep.data['weight'] == 1
+        assert new_jobstep.cluster == 'foo'
         # make sure non-whitelisted attributes aren't copied over
         assert 'forceInfraFailure' not in new_jobstep.data
 

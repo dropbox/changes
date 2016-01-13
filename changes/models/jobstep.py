@@ -40,6 +40,7 @@ class JobStep(db.Model):
 
     __table_args__ = (
             Index('idx_jobstep_status', 'status'),
+            Index('idx_jobstep_cluster', 'cluster'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
@@ -53,6 +54,9 @@ class JobStep(db.Model):
     # id of JobStep that replaces this JobStep. Usually None, unless a JobStep
     # fails and is retried.
     replacement_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), unique=True)
+    # Used (for non-Jenkins builds) in jobstep_allocate to only allocate jobsteps
+    # to slaves of a particular cluster.
+    cluster = Column(String(128), nullable=True)
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)

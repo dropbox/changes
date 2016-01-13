@@ -65,7 +65,7 @@ class DefaultBuildStep(BuildStep):
     def __init__(self, commands=None, path=DEFAULT_PATH, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=10, cpus=4, memory=8 * 1024, clean=True,
-                 debug_config=None, test_stats_from=None,
+                 debug_config=None, test_stats_from=None, cluster=None,
                  **kwargs):
         """
         Constructor for DefaultBuildStep.
@@ -92,6 +92,8 @@ class DefaultBuildStep(BuildStep):
                 None (the default) to use this project.  Useful if the
                 project runs a different subset of tests each time, so
                 test timing stats from the parent are not reliable.
+            cluster: a cluster to associate jobs of this BuildStep with.
+                Jobsteps will then only be run on slaves of the given cluster.
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
@@ -129,6 +131,7 @@ class DefaultBuildStep(BuildStep):
         self.clean = clean
         self.debug_config = debug_config or {}
         self.test_stats_from = test_stats_from
+        self.cluster = cluster
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
@@ -198,6 +201,7 @@ class DefaultBuildStep(BuildStep):
             'status': Status.pending_allocation,
             'job': phase.job,
             'project': phase.project,
+            'cluster': self.cluster,
             'data': {
                 'release': self.release,
                 'max_executors': self.max_executors,
@@ -300,6 +304,7 @@ class DefaultBuildStep(BuildStep):
             if key not in new_jobstep.data:
                 new_jobstep.data[key] = value
         new_jobstep.status = Status.pending_allocation
+        new_jobstep.cluster = self.cluster
         new_jobstep.data['expanded'] = True
         BuildStep.handle_debug_infra_failures(new_jobstep, self.debug_config, 'expanded')
         db.session.add(new_jobstep)
