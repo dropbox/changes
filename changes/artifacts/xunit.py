@@ -195,6 +195,10 @@ def _deduplicate_testresults(results):
             e, r = existing_result, result
             e.duration = _careful(add, e.duration, r.duration)
             e.result = aggregate_result((e.result, r.result))
+            if e.message is None:
+                e.message = ''
+            if r.message is None:
+                r.message = ''
             e.message += '\n\n' + r.message
             e.reruns = _careful(max, e.reruns, r.reruns)
             e.artifacts = _careful(add, e.artifacts, r.artifacts)
