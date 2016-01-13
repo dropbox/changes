@@ -357,7 +357,7 @@ a.buildStatus:hover {
   padding-top: 3px;
 }
 
-/* buttons: blue, white, paging */
+/* buttons: blue, white, paging, red */
 
 a.button {
   border-radius: 3px;
@@ -420,6 +420,18 @@ a.button.whiteButton.disabled {
   border-color: @whiteButtonDisabled;
   background-color: white;
   color: @whiteButtonDisabled;
+}
+
+a.button.redButton {
+  background-color: white;
+  border: 1px solid @redButtonBorder;
+  color: @redButtonColor;
+}
+
+a.button.redButton:hover {
+  border-color: @redButtonHoverBorder;
+  background-color: @redButtonHoverBg;
+  color: @redButtonHoverColor;
 }
 
 a.button.sizedButton{
