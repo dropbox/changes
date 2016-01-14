@@ -30,6 +30,13 @@ function is_eof(logApiResult) {
   return false;
 }
 
+function strip_ansi(s) {
+    // Ideally we'd render the ANSI we can render, but this is better than showing it raw.
+    // NB: The below regexp only tries to remove text styling, as that is most common and least
+    // likely to cause confusion by being absent.
+    return s.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?m/g, '');
+}
+
 function logging_endpoint(url, offset = null) {
   var params = { limit: 0 };
   if (offset) {
@@ -162,7 +169,7 @@ var LogComponent = React.createClass({
         isFinished = true;
       }
       _.each(apiCall.chunks, chunk => {
-        _.each(chunk.text.split("\n"), line => {
+        _.each(strip_ansi(chunk.text).split("\n"), line => {
           if (lines.length >= MAX_LOG_LINES) {
             tooManyLines = true;
             return;
