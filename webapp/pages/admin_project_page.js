@@ -321,15 +321,13 @@ let PlanList = React.createClass({
         this.setState({selectedPlan: newValue});
       };
 
-      var expandLabel = !isSelected ?  'Show Plan' : 'Hide Plan';
-
-      var planName = <div>
-        {plan.name} <a onClick={onClick}>{expandLabel}</a>
+      let planName = <div onClick={onClick}>
+        {plan.name}
       </div>;
 
       let createTime = <TimeText time={plan.dateCreated} />
       let data = [planName, plan.status.name, createTime];
-      let gridRow = new GridRow(data, false, false);
+      let gridRow = new GridRow(data, false, false, isSelected, onClick);
       rows.push(gridRow);
     });
 

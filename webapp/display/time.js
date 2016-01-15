@@ -89,6 +89,9 @@ export var TimeText = React.createClass({
     }
 
     var onClick = evt => {
+      // Don't allow clicks on <TimeText> to cascade through to other
+      // actions/elements.
+      evt.stopPropagation();
       this.setState({ raw: true });
     };
 

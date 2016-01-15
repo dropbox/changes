@@ -33,6 +33,23 @@ table.grid {
   opacity: 0.5;
 }
 
+.gridRow.gridHighlightable {
+  cursor: pointer;
+  border: 1px solid #ffffff;
+}
+.gridRow.gridHighlightable:hover {
+  background-color: @selectedBorder;
+}
+
+.gridRow.gridHighlighted {
+  background-color: @selectedBg;
+  border: 1px solid @selectedBorder;
+}
+
+.gridRow.gridHighlightable.gridHighlighted:hover {
+  background-color: @selectedBorder;
+}
+
 .gridRow.gridFirstRow {
   border-top: none;
 }
