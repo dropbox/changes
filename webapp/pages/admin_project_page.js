@@ -260,7 +260,7 @@ let SnapshotList = React.createClass({
       }
 
       let post = '';
-      if (snapshot.status.id == 'failed') {
+      if (snapshot.status.id === 'failed') {
         post = <i>Failed</i>;
       } else {
         let params = {};
@@ -306,43 +306,49 @@ let PlanList = React.createClass({
 
   getInitialState: function() {
     return {
-      expandedPlans: {},
+      selectedPlan: null,
     };
   },
 
   render: function() {
     let rows = [];
+    let selectedPlan = this.state.selectedPlan;
+
     _.each(this.props.plans, plan => {
+      let isSelected = selectedPlan === plan;
       let onClick = __ => {
-        this.setState(
-          utils.update_key_in_state_dict('expandedPlans',
-            plan.id,
-            !this.state.expandedPlans[plan.id])
-        );
+        let newValue = isSelected ? null : plan;
+        this.setState({selectedPlan: newValue});
       };
 
-      var expandLabel = !this.state.expandedPlans[plan.id] ?
-        'Expand Plan' : 'Collapse Plan';
+      var expandLabel = !isSelected ?  'Show Plan' : 'Hide Plan';
 
       var planName = <div>
         {plan.name} <a onClick={onClick}>{expandLabel}</a>
       </div>;
 
-      rows.push([planName, plan.status.name, <TimeText time={plan.dateCreated} />]);
-
-      if (this.state.expandedPlans[plan.id]) {
-        rows.push(GridRow.oneItem(
-          <PlanDetailsWrapper plan={plan} />
-        ));
-      }
+      let createTime = <TimeText time={plan.dateCreated} />
+      let data = [planName, plan.status.name, createTime];
+      let gridRow = new GridRow(data, false, false);
+      rows.push(gridRow);
     });
 
-    return <Grid
+    let planDetails = null;
+    if (selectedPlan) {
+      planDetails = <PlanDetailsWrapper className="indent" plan={selectedPlan} />
+    }
+
+    let content = <div>
+        <Grid
              colnum={3}
              cellClasses={['wide', 'nowrap', 'nowrap']}
              data = {rows}
              headers={['Plan', 'Status', 'Created']}
-           />;
+           />
+           {planDetails}
+        </div>
+
+    return content;
   },
 });
 
@@ -369,7 +375,9 @@ let PlanDetailsWrapper = React.createClass({
     }
     let options = this.state.options.getReturnedData();
 
-    return <PlanDetails options={options} plan={this.props.plan} />;
+    // Force a new PlanDetails when the selected plan changes, such that configuration changes
+    let key = "planDetailsWrapper_" + this.props.plan.id;
+    return <PlanDetails options={options} plan={this.props.plan} key={key} />;
   },
 });
 
@@ -476,20 +484,26 @@ let PlanDetails = React.createClass({
       let step = {'name': 'LXCBuildStep',
                   'implementation': 'changes.buildsteps.lxc.LXCBuildStep',
                   'options': { 'build.timeout': 0},
-                  'data': '{}',
+                  'data': 'Specify a configuration with JSON.',
                   };
-      stepMarkup = <StepDetails stepExists={false} step={step} plan={this.props.plan} />;
+      let onClick = _ => this.setState({ createStepClicked: false });
+      stepMarkup = <StepDetails stepExists={false}
+                                step={step}
+                                plan={this.props.plan} />;
     } else {
       let onClick = _ => this.setState({ createStepClicked: true });
       stepMarkup = <Button onClick={onClick}>Create Step</Button>;
     }
 
-    return <div>
-             <div>{savePlanMessage}</div>
-             <div>{saveOptionsMessage}</div>
-             {fieldMarkup}
-             {stepMarkup}
-           </div>;
+    let rows = [[fieldMarkup, stepMarkup]];
+    return <div className="marginLeftL marginRightL">
+        <h1 className="marginBottomXS" >Plan Details - <span className="darkGray">{this.props.plan.name}</span></h1>
+        <Grid
+             colnum={2}
+             cellClasses={['half projectDetailsCell', 'half projectDetailsCell']}
+             data = {rows}
+           />
+       </div>
   },
 });
 
@@ -500,11 +514,13 @@ let StepDetails = React.createClass({
   propTypes: {
     step: PropTypes.object.isRequired,
     stepExists: PropTypes.bool.isRequired,
+    cancelCreateStep: PropTypes.func,
     plan: PropTypes.object,
   },
 
   getInitialState: function() {
-    return {};
+    return {
+    };
   },
 
   changesBuildStepImplementationFor: {
@@ -565,11 +581,13 @@ let StepDetails = React.createClass({
       }
     }
     let form = [
-      { sectionTitle: step.name, fields: [
-        {type: 'select', display: 'Implementation', link: 'implementation',
-         options: this.changesBuildStepImplementationFor },
-        {type: 'textarea', display: 'Config', link: 'data'},
-        {type: 'text', display: 'Timeout', link: 'timeout'},
+      {
+        sectionTitle: step.name,
+        fields: [
+          {type: 'select', display: 'Implementation', link: 'implementation',
+           options: this.changesBuildStepImplementationFor },
+          {type: 'textarea', display: 'Config', link: 'data'},
+          {type: 'text', display: 'Timeout', link: 'timeout'},
         ]
       },
     ];
@@ -580,13 +598,10 @@ let StepDetails = React.createClass({
                  method="delete"
                  endpoint={`/api/0/steps/${step.id}/`}
                  promptText={`Delete ${step.name}?`}>
-                   <Button>Delete Step</Button>
+                   <Button className="marginLeftS">Delete Step</Button>
                 </Request>;
 
-    return <div>
-             <div>{FieldGroupMarkup.create(form, "Save Step", this, formMessages)}</div>
-             <div>{del}</div>
-          </div>;
+    return FieldGroupMarkup.create(form, "Save Step", this, formMessages, [del]);
   },
 });
 
@@ -628,8 +643,7 @@ let NewPlan = React.createClass({
       },
     ];
 
-    let fieldMarkup = FieldGroupMarkup.create(form, "Create Plan", this, [this.state.error]);
-    return <div> {fieldMarkup}</div>;
+    return FieldGroupMarkup.create(form, "Create Plan", this, [this.state.error]);
   },
 });
 

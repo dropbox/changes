@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import { Button } from 'es6!display/button';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 
 // Convenience function for generating redirect callbacks on successful form saves.
 // `redirectUrl` should be a function that takes a json-parsed response object and
@@ -14,7 +15,7 @@ export var redirectCallback = function(fieldGroup, redirectUrl) {
   };
 }
 
-export var create = function(form, saveButtonText, _this, messages=[]) {
+export var create = function(form, saveButtonText, _this, messages=[], extraButtons=[]) {
   let hasChanges = _this.state.hasFormChanges;
   if (hasChanges === undefined) {
     // Since we can't tell if this form has changes, default to true.
@@ -45,7 +46,7 @@ export var create = function(form, saveButtonText, _this, messages=[]) {
         if (field.type === 'text') {
           tag = <input size="50" type="text" valueLink={valueLink} placeholder={placeholder}/>;
         } else if (field.type === 'textarea') {
-          tag = <textarea rows="10" cols="100" valueLink={valueLink} placeholder={placeholder}/>;
+          tag = <textarea rows="10" cols="80" valueLink={valueLink} placeholder={placeholder}/>;
         } else if (field.type === 'select') {
           let options = _.map(field.options, (option, name) => <option value={option}>{name}</option>);
           tag = <select valueLink={valueLink} >{options}</select>;
@@ -79,7 +80,32 @@ export var create = function(form, saveButtonText, _this, messages=[]) {
     return <div>{m}</div>;
   });
 
-  let onSaveClicked = _ => _this.saveSettings();
-  let saveButton = hasChanges ? <Button onClick={onSaveClicked}>{saveButtonText}</Button> : '';
-  return <div>{saveButton}{messageDivs}{markup}</div>;
+  // If changes are pending, show the button as enabled with an active onclick.
+  // If no changes are pending, show the button as disabled and clicking does nothing.
+  let saveDisabled = '';
+  let onSaveClicked = null;
+  if (!hasChanges) {
+    saveDisabled = 'disabled';
+    onSaveClicked = null;
+  } else {
+    onSaveClicked = _ => {
+      _this.saveSettings();
+    }
+  }
+  let saveButton =
+      <Button onClick={onSaveClicked} className={saveDisabled}>{saveButtonText}</Button>
+  if (!hasChanges) {
+    saveButton =
+        <SimpleTooltip label="There are no pending changes to save.">{saveButton}</SimpleTooltip>;
+  }
+
+  // Clone extraButtons to avoid mutating the function param with the subsequent unshift.
+  let allButtons = _.clone(extraButtons);
+  allButtons.unshift(saveButton);
+
+  return <div>
+    {markup}
+    <div>{allButtons}</div>
+    {messageDivs}
+  </div>;
 };
