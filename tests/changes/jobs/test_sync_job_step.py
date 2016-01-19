@@ -634,9 +634,10 @@ class SyncJobStepTest(BaseTestCase):
         phase = self.create_jobphase(job)
         step = self.create_jobstep(phase, status=Status.finished, result=Result.passed)
 
-        make_AS_file = lambda: FileData({
-            'filename': 'foo',
-            'storage': 'changes.storage.artifactstore.ArtifactStoreFileStorage'})
+        def make_AS_file():
+            return FileData({
+                'filename': 'foo',
+                'storage': 'changes.storage.artifactstore.ArtifactStoreFileStorage'})
 
         artstore_junit = self.create_artifact(step, 'artifactstore/foo/junit.xml',
                                               file=make_AS_file())

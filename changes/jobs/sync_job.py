@@ -39,10 +39,10 @@ def aggregate_job_stat(job, name, func_=func.sum):
 
 
 def _should_retry_jobstep(step):
-    return (step.result == Result.infra_failed and step.replacement_id is None
-            and (not step.duration or step.duration / 1000 < MAX_DURATION_FOR_RETRY_SECS)
+    return (step.result == Result.infra_failed and step.replacement_id is None and
+            (not step.duration or step.duration / 1000 < MAX_DURATION_FOR_RETRY_SECS) and
             # make sure this jobstep hasn't already been retried
-            and JobStep.query.filter(JobStep.replacement_id == step.id).first() is None)
+            JobStep.query.filter(JobStep.replacement_id == step.id).first() is None)
 
 
 def _find_and_retry_jobsteps(phase, implementation):

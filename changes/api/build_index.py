@@ -644,9 +644,9 @@ class BuildIndexAPIView(APIView):
                 diff = patch.diff
             try:
                 if (
-                    apply_project_files_trigger
-                    and files_changed is not None
-                    and not files_changed_should_trigger_project(
+                    apply_project_files_trigger and
+                    files_changed is not None and
+                    not files_changed_should_trigger_project(
                         files_changed, project, project_options[project.id], sha, diff)
                 ):
                     logging.info('Changed files do not trigger build for project %s', project.slug)
