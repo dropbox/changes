@@ -87,8 +87,13 @@ export var CommitPage = React.createClass({
   componentDidMount: function() {
     var uuid = this.props.sourceUUID;
 
+    // Specify the per_page param to get as many builds as possible.
+    // BuildsPage.getContent() below assumes that a selected ID is present in
+    // the list, and if the build is missing it crashes the page. Get as many
+    // builds as possible up front to minimize the chances of this happening,
+    // as a quick workaround.
     api.fetch(this, {
-      commitBuilds: `/api/0/sources_builds/?source_id=${uuid}`,
+      commitBuilds: `/api/0/sources_builds/?source_id=${uuid}&per_page=100`,
       source: `/api/0/sources/${uuid}`
     });
   },
