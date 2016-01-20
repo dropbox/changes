@@ -43,7 +43,7 @@ export var InfoList = React.createClass({
       rows.push(
           <tr>
               <td className="infoLabel">{label}</td>
-              <td>{c.props.children}</td>
+              <td className={c.props.valueClassName}>{c.props.children}</td>
           </tr>
       );
     });
@@ -61,6 +61,10 @@ export var InfoItem = React.createClass({
 
     // optional tooltip
     tooltip: PropTypes.node,
+
+    // a className string to be applied to the <td> containing the InfoItem
+    // value (vs. the InfoItem label in the other <td>)
+    valueClassName: PropTypes.string,
 
     // the child of this item is the rhs content
   },

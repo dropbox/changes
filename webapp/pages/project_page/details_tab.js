@@ -71,10 +71,12 @@ var DetailsTab = React.createClass({
       triggers = 'Only commits';
     }
 
+    const missing_value_class = 'missingValue';
     var branches_option = project.options["build.branch-names"] || '*';
     var branches = branches_option === "*" ?
       'any' :
       branches_option.replace(/ /g, ", ");
+    var branch_class = branches_option === "*" ? missing_value_class : '';
 
     var whitelist_option = project.options["build.file-whitelist"].trim();
     var whitelist_paths = 'No path filter';
@@ -86,20 +88,31 @@ var DetailsTab = React.createClass({
 
     // Most projects should have a current snapshot, so it's worth the potential noise
     // to say one isn't set even when the build plan doesn't make it possible.
-    var snapshot_info = "None configured";
+    var snapshot_info = 'None configured';
     var current_snapshot = project.options["snapshot.current"];
     if (current_snapshot) {
-        snapshot_info = <a href={URI(`/snapshot/${current_snapshot}/`)}>{current_snapshot.substring(0, 8)}</a>;
+      snapshot_info = <a href={URI(`/snapshot/${current_snapshot}/`)}>{current_snapshot.substring(0, 8)}</a>;
     }
+
+    var notes = project.options["project.notes"]
+    var notes_class = notes ? '' : missing_value_class;
+
+    var owners = project.options["project.owners"]
+    var owners_class = owners ? '' : missing_value_class;
+
+    var build_plans_class = plans.length === 0 ? missing_value_class : '';
 
     return <div className="marginBottomL">
       <b>{project.name}</b>
       <InfoList>
+        <InfoItem label="Description" valueClassName={notes_class}>
+          {notes || "Not specified."}
+        </InfoItem>
         <InfoItem label="Repository">
           {project.repository.url}
         </InfoItem>
-        <InfoItem label="Owners">
-          {project.options["project.owners"] || "unknown"}
+        <InfoItem label="Owners" valueClassName={owners_class}>
+          {owners || "Not specified."}
         </InfoItem>
         <InfoItem label="Builds for">
           {triggers}
@@ -113,7 +126,7 @@ var DetailsTab = React.createClass({
         <InfoItem label="Current snapshot">
           {snapshot_info}
         </InfoItem>
-        <InfoItem label="Build plans">
+        <InfoItem label="Build plans" valueClassName={build_plans_class}>
           {plans.length}
         </InfoItem>
       </InfoList>
