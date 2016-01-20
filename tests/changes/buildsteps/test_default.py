@@ -216,11 +216,17 @@ class DefaultBuildStepTest(TestCase):
         assert commands[0].script == 'git clone https://example.com'
         assert commands[0].cwd == ''
         assert commands[0].type == CommandType.infra_setup
+        assert commands[0].artifacts == []
+        assert commands[0].env == DEFAULT_ENV
         assert commands[0].order == 0
         assert commands[1].script == 'echo "hello world 2"'
         assert commands[1].cwd == '/usr/test/1'
         assert commands[1].type == CommandType.setup
         assert tuple(commands[1].artifacts) == ('artifact1.txt', 'artifact2.txt')
+        assert commands[1].env['PATH'] == '/usr/test/1'
+        for k, v in DEFAULT_ENV.items():
+            if k != 'PATH':
+                assert commands[1].env[k] == v
         assert commands[1].order == 1
         assert commands[2].label == 'echo 1'
         assert commands[2].script == 'echo 1'
@@ -228,12 +234,14 @@ class DefaultBuildStepTest(TestCase):
         assert commands[2].cwd == DEFAULT_PATH
         assert commands[2].type == CommandType.default
         assert tuple(commands[2].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[2].env == DEFAULT_ENV
         assert commands[3].label == 'echo "foo"'
         assert commands[3].script == 'echo "foo"\necho "bar"'
         assert commands[3].order == 3
         assert commands[3].cwd == './source/subdir'
         assert commands[3].type == CommandType.default
         assert tuple(commands[3].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[3].env == DEFAULT_ENV
 
     @mock.patch.object(Repository, 'get_vcs')
     def test_create_replacement_jobstep_expanded(self, get_vcs):
@@ -289,11 +297,17 @@ class DefaultBuildStepTest(TestCase):
         assert commands[0].script == 'git clone https://example.com'
         assert commands[0].cwd == ''
         assert commands[0].type == CommandType.infra_setup
+        assert commands[0].artifacts == []
+        assert commands[0].env == DEFAULT_ENV
         assert commands[0].order == 0
         assert commands[1].script == 'echo "hello world 2"'
         assert commands[1].cwd == '/usr/test/1'
         assert commands[1].type == CommandType.setup
         assert tuple(commands[1].artifacts) == ('artifact1.txt', 'artifact2.txt')
+        assert commands[1].env['PATH'] == '/usr/test/1'
+        for k, v in DEFAULT_ENV.items():
+            if k != 'PATH':
+                assert commands[1].env[k] == v
         assert commands[1].order == 1
         assert commands[2].label == 'echo 1'
         assert commands[2].script == 'echo 1'
@@ -301,12 +315,14 @@ class DefaultBuildStepTest(TestCase):
         assert commands[2].cwd == DEFAULT_PATH
         assert commands[2].type == CommandType.default
         assert tuple(commands[2].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[2].env == DEFAULT_ENV
         assert commands[3].label == 'echo "foo"'
         assert commands[3].script == 'echo "foo"\necho "bar"'
         assert commands[3].order == 3
         assert commands[3].cwd == './source/subdir'
         assert commands[3].type == CommandType.default
         assert tuple(commands[3].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[3].env == DEFAULT_ENV
 
     def test_get_allocation_params(self):
         project = self.create_project()

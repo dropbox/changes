@@ -102,27 +102,9 @@ class DefaultBuildStep(BuildStep):
             env = DEFAULT_ENV.copy()
 
         self.artifacts = artifacts
-        for command in commands:
-            if 'artifacts' not in command:
-                command['artifacts'] = self.artifacts
-
-            command['path'] = os.path.join(path, command.get('path', ''))
-
-            c_env = env.copy()
-            if 'env' in command:
-                for key, value in command['env'].items():
-                    c_env[key] = value
-            command['env'] = c_env
-
-            if 'type' in command:
-                command['type'] = CommandType[command['type']]
-            else:
-                command['type'] = CommandType.default
-
         self.env = env
         self.path = path
         self.release = release
-        self.commands = commands
         self.max_executors = max_executors
         self.resources = {
             'cpus': cpus,
@@ -132,6 +114,15 @@ class DefaultBuildStep(BuildStep):
         self.debug_config = debug_config or {}
         self.test_stats_from = test_stats_from
         self.cluster = cluster
+        future_commands = []
+        for command in commands:
+            command_copy = command.copy()
+            if 'type' in command_copy:
+                command_copy['type'] = CommandType[command_copy['type']]
+            future_command = FutureCommand(**command_copy)
+            self._set_command_defaults(future_command)
+            future_commands.append(future_command)
+        self.commands = future_commands
 
         super(DefaultBuildStep, self).__init__(**kwargs)
 
@@ -160,7 +151,7 @@ class DefaultBuildStep(BuildStep):
                 )
 
         for command in self.commands:
-            yield FutureCommand(**command)
+            yield command
 
     def execute(self, job):
         job.status = Status.pending_allocation
@@ -281,6 +272,15 @@ class DefaultBuildStep(BuildStep):
     def cancel_step(self, step):
         pass
 
+    def _set_command_defaults(self, future_command):
+        if not future_command.artifacts:
+            future_command.artifacts = self.artifacts
+        future_command.path = os.path.join(self.path, future_command.path or '')
+        c_env = self.env.copy()
+        if future_command.env:
+            c_env.update(future_command.env)
+        future_command.env = c_env
+
     def create_expanded_jobstep(self, base_jobstep, new_jobphase, future_jobstep, skip_setup_teardown=False):
         """
         Converts an expanded FutureJobstep into a JobStep and sets up its commands accordingly.
@@ -322,18 +322,15 @@ class DefaultBuildStep(BuildStep):
                 elif future_command.type == CommandType.teardown:
                     teardown_commands.append(future_command)
 
+            # set any needed defaults for expanded commands
             for future_command in future_jobstep.commands:
-                future_command.path = os.path.join(self.path, future_command.path or '')
+                self._set_command_defaults(future_command)
 
         # setup -> newly generated commands from expander -> teardown
         for index, future_command in enumerate(chain(setup_commands,
                                                      future_jobstep.commands,
                                                      teardown_commands)):
             new_command = future_command.as_command(new_jobstep, index)
-            # TODO(dcramer): this API isn't really ideal. Future command should
-            # set things to NoneType and we should deal with unset values
-            if not new_command.artifacts:
-                new_command.artifacts = self.artifacts
             db.session.add(new_command)
 
         return new_jobstep
