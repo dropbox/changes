@@ -5,7 +5,7 @@ import ChangesLinks from 'es6!display/changes/links';
 import { TimeText, display_duration } from 'es6!display/time';
 import { buildSummaryText, manyBuildsSummaryText, get_build_cause } from 'es6!display/changes/build_text';
 import { buildsForLastCodeChange } from 'es6!display/changes/builds';
-import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition, get_runnables_summary_condition, is_waiting, ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as utils from 'es6!utils/utils';
 
@@ -220,7 +220,7 @@ var Sidebar = React.createClass({
           size="medium"
         />,
         utils.truncate(b.project.name, 26),
-        buildCondition === 'waiting' ? 
+        is_waiting(buildCondition) ?
           'Running' : 
           display_duration(b.duration / 1000),
         `${buildSummaryText(b)}`,

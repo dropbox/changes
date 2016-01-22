@@ -9,7 +9,7 @@ import { Menu1 } from 'es6!display/menus';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
 import { get_build_cause } from 'es6!display/changes/build_text';
-import { get_runnable_condition } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition, is_waiting } from 'es6!display/changes/build_conditions';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -83,7 +83,7 @@ var BuildsTab = React.createClass({
     var data = _.map(data_to_show.getReturnedData(), build => {
       var target = ChangesLinks.phab(build);
 
-      var duration = get_runnable_condition(build) !== 'waiting' ?
+      var duration = !is_waiting(get_runnable_condition(build)) ?
         display_duration(build.duration / 1000) :
         null;
 

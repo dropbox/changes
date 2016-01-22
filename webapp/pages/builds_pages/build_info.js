@@ -16,9 +16,8 @@ import { buildSummaryText, manyBuildsSummaryText,
          get_build_cause, get_cause_sentence,
          WaitingTooltip } from 'es6!display/changes/build_text';
 import { display_duration, formatTime } from 'es6!display/time';
-import { get_runnable_condition,
-         get_runnables_summary_condition,
-         get_runnable_condition_short_text,
+import { get_runnable_condition, get_runnables_summary_condition,
+         get_runnable_condition_short_text, is_waiting,
          ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
@@ -182,7 +181,7 @@ export var SingleBuild = React.createClass({
   },
 
   renderButtons: function(build) {
-    var cancel = get_runnable_condition(build) === 'waiting' ?
+    var cancel = is_waiting(get_runnable_condition(build)) ?
       <div className="marginTopM">
         <Request
           parentElem={this}
@@ -298,7 +297,7 @@ export var SingleBuild = React.createClass({
       </InfoItem>);
     }
 
-    var testCount = (!build.stats.test_count && get_runnable_condition(build) === 'waiting') ?
+    var testCount = (!build.stats.test_count && is_waiting(get_runnable_condition(build))) ?
       'In Progress' : build.stats.test_count;
 
     var testLabel = build.dateFinished ? "Tests Ran" : "Tests Run";
@@ -515,7 +514,7 @@ export var SingleBuild = React.createClass({
           'details' : 'collapse';
 
         var jobstepDuration = null;
-        if (jobstepCondition === 'waiting') {
+        if (is_waiting(jobstepCondition)) {
           jobstepDuration = <WaitingTooltip runnable={jobstep} placement="left">
             <span>Running</span>
           </WaitingTooltip>;

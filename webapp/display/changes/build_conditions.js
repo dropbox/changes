@@ -13,36 +13,58 @@ import Examples from 'es6!display/examples';
  * Generally, we can assign conditions to objects with a status and result
  */
 
+const COND_PASSED = 'passed';
+const COND_FAILED = 'failed';
+const COND_FAILED_INFRA = 'failed_infra';
+const COND_FAILED_ABORTED = 'failed_aborted';
+const COND_UNKNOWN = 'unknown';
+const COND_WAITING = 'waiting';
+const COND_WAITING_WITH_ERRORS = 'waiting_with_errors';
+const COND_WAITING_WITH_FAILURES = 'waiting_with_failures';
+
 var all_build_conditions = [
-  'passed', 
-  'failed', 
-  'failed_infra', 
-  'failed_aborted', 
-  'unknown', 
-  
-  'waiting'
+  COND_PASSED,
+  COND_FAILED,
+  COND_FAILED_INFRA,
+  COND_FAILED_ABORTED,
+  COND_UNKNOWN,
+  COND_WAITING,
+  COND_WAITING_WITH_ERRORS,
+  COND_WAITING_WITH_FAILURES,
 ];
+
+export var is_waiting = function(condition) {
+    return condition === COND_WAITING ||
+           condition === COND_WAITING_WITH_ERRORS ||
+           condition === COND_WAITING_WITH_FAILURES;
+}
 
 /*
  * Looks at a build/job/jobstep's status and result fields to figure out what
  * condition the build is in. There are a bunch of failure conditions with a
- * common prefix, so you can just check failure with indexOf('failed') === 0.
+ * common prefix, so you can just check failure with indexOf(COND_FAILED) === 0.
  */
 export var get_runnable_condition = function(runnable) {
   var status = runnable.status.id, result = runnable.result.id;
 
   if (status === 'in_progress' || status === "queued") {
-    return 'waiting';
+    if (runnable.stats['test_failures']) {
+      return COND_WAITING_WITH_ERRORS;
+    }
+    if (runnable.result.id === COND_FAILED) {
+      return COND_WAITING_WITH_FAILURES;
+    }
+    return COND_WAITING;
   }
 
-  if (result === 'passed' || result === 'failed') {
+  if (result === COND_PASSED || result === COND_FAILED) {
     return result;
   } else if (result === 'aborted') {
-    return 'failed_aborted';
+    return COND_FAILED_ABORTED;
   } else if (result === 'infra_failed') {
-    return 'failed_infra';
+    return COND_FAILED_INFRA;
   }
-  return 'unknown';
+  return COND_UNKNOWN;
 }
 
 /*
@@ -54,44 +76,51 @@ export var get_runnables_summary_condition = function(runnables) {
     r => get_runnable_condition(r) === condition);
 
   // I picked what I thought was a reasonable order here
-  var any_aborted = any_condition('failed_aborted');
-  var any_failed_infra = any_condition('failed_infra');
-  var any_failed = any_condition('failed');
-  var any_waiting = any_condition('waiting');
-  var any_unknown = any_condition('unknown');
+  var any_aborted = any_condition(COND_FAILED_ABORTED);
+  var any_failed_infra = any_condition(COND_FAILED_INFRA);
+  var any_failed = any_condition(COND_FAILED);
+  var any_waiting = any_condition(COND_WAITING);
+  var any_waiting_with_errors = any_condition(COND_WAITING_WITH_ERRORS);
+  var any_waiting_with_failures = any_condition(COND_WAITING_WITH_FAILURES);
+  var any_unknown = any_condition(COND_UNKNOWN);
 
-  return (any_aborted && 'failed_aborted') ||
-    (any_failed_infra && 'failed_infra') ||
-    (any_failed && 'failed') ||
-    (any_waiting && 'waiting') ||
-    (any_unknown && 'unknown') ||
-    'passed';
+  return (any_aborted && COND_FAILED_ABORTED) ||
+    (any_failed_infra && COND_FAILED_INFRA) ||
+    (any_failed && COND_FAILED) ||
+    (any_waiting_with_errors && COND_WAITING_WITH_ERRORS) ||
+    (any_waiting_with_failures && COND_WAITING_WITH_FAILURES) ||
+    (any_waiting && COND_WAITING) ||
+    (any_unknown && COND_UNKNOWN) ||
+    COND_PASSED;
 }
 
 // short, readable text for runnable conditions
 export var get_runnable_condition_short_text = function(condition) {
-  var names = {
-    passed: 'passed',
-    failed: 'failed',
-    'failed_aborted': 'aborted',
-    'failed_infra': 'infrastructure failure',
-    waiting: 'in progress',
-  };
+  var names = {};
+  names[COND_PASSED] = 'passed';
+  names[COND_FAILED] = 'failed';
+  names[COND_FAILED_ABORTED] = 'aborted';
+  names[COND_FAILED_INFRA] = 'infrastructure failure';
+  names[COND_WAITING_WITH_ERRORS] = 'in progress (errors occurred)';
+  names[COND_WAITING_WITH_FAILURES] = 'in progress (test failures occurred)';
+  names[COND_WAITING] ='in progress';
   return names[condition] || 'unknown';
 }
 
 export var get_runnable_condition_color_cls = function(condition, background = false) {
   switch (condition) {
-    case 'passed':
+    case COND_PASSED:
       return background ? 'greenBg' : 'green';
-    case 'failed':
-    case 'failed_aborted':
+    case COND_FAILED:
+    case COND_FAILED_ABORTED:
+    case COND_WAITING_WITH_FAILURES:
       return background ? 'redBg' : 'red';
-    case 'failed_infra':
+    case COND_FAILED_INFRA:
+    case COND_WAITING_WITH_ERRORS:
       return background ? 'blackBg' : 'black';
-    case 'waiting':
+    case COND_WAITING:
       return background ? 'bluishGrayBg' : 'bluishGray';
-    case 'unknown':
+    case COND_UNKNOWN:
       return background ? 'mediumGrayBg' : 'mediumGray';
   }
 }
@@ -129,7 +158,10 @@ export var ConditionDot = React.createClass({
     var condition = this.props.condition;
 
     var dot = null;
-    if (condition === 'waiting' || condition === 'failed_aborted') {
+    if (condition === COND_WAITING ||
+        condition === COND_WAITING_WITH_FAILURES ||
+        condition === COND_WAITING_WITH_ERRORS ||
+        condition === COND_FAILED_ABORTED) {
       var font_sizes = {
         smaller: 12,
         small: 16,
@@ -146,9 +178,11 @@ export var ConditionDot = React.createClass({
 
       var classes = {
         common: 'fa conditionDotIcon ',
-        waiting: "fa-clock-o blue",  // blue instead of blue-gray
-        'failed_aborted': 'red fa-ban'
-      }
+      };
+      classes[COND_WAITING] = 'fa-clock-o blue'; // blue instead of blue-gray
+      classes[COND_WAITING_WITH_FAILURES] = 'fa-clock-o red';
+      classes[COND_WAITING_WITH_ERRORS] = 'fa-clock-o black';
+      classes[COND_FAILED_ABORTED] = 'red fa-ban';
       var className = classes['common'] + classes[condition];
 
       dot = <i
@@ -192,6 +226,8 @@ Examples.add('ConditionDot', __ => {
   return [
     <ConditionDot condition="passed" />,
     <ConditionDot condition="waiting" />,
+    <ConditionDot condition="waiting_with_errors" />,
+    <ConditionDot condition="waiting_with_failures" />,
     <ConditionDot condition="failed" />,
     <ConditionDot condition="failed_infra" />,
     <ConditionDot condition="failed_aborted" />,

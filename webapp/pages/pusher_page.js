@@ -6,7 +6,7 @@ import { Grid } from 'es6!display/grid';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration_pieces } from 'es6!display/time';
 import { WaitingLiveText } from 'es6!display/changes/build_text';
-import { get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition, get_runnable_condition_color_cls, is_waiting } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
 
@@ -223,7 +223,7 @@ var PusherPageContent = React.createClass({
             projectData[lastBuild.project.slug] = lastBuild.project;
           }
           var duration = null;
-          if (get_runnable_condition(lastBuild) === 'waiting') {
+          if (is_waiting(get_runnable_condition(lastBuild))) {
             duration = <WaitingLiveText runnable={lastBuild} text={false} />;
           } else {
             var pieces = _.chain(display_duration_pieces(lastBuild.duration / 1000))

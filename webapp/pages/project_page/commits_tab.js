@@ -8,7 +8,7 @@ import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
 import { MissingBuildStatus, SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
-import { get_runnable_condition } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition, is_waiting } from 'es6!display/changes/build_conditions';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -244,7 +244,7 @@ var CommitsTab = React.createClass({
         parentElem={this}
       />;
 
-      duration = get_runnable_condition(last_build) !== 'waiting' ?
+      duration = !is_waiting(get_runnable_condition(last_build)) ?
         display_duration(last_build.duration / 1000) :
         null;
 

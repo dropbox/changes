@@ -3,7 +3,17 @@ import moment from 'moment';
 import { OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import { LiveTime, display_duration } from 'es6!display/time';
-import { get_runnable_condition, get_runnables_summary_condition } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition,
+         get_runnables_summary_condition,
+         COND_PASSED,
+         COND_FAILED,
+         COND_FAILED_ABORTED,
+         COND_FAILED_INFRA,
+         COND_UNKNOWN,
+         COND_WAITING,
+         COND_WAITING_WITH_ERRORS,
+         COND_WAITING_WITH_FAILURES
+       } from 'es6!display/changes/build_conditions';
 
 import * as utils from 'es6!utils/utils';
 
@@ -40,18 +50,18 @@ export var buildSummaryText = function(build, liveTimer = false, showDuration = 
   };
 
   switch (get_runnable_condition(build)) {
-    case 'failed_aborted':
+    case COND_FAILED_ABORTED:
       return 'Aborted' + durationSuffix('parens_after')
-    case 'failed_infra':
+    case COND_FAILED_INFRA:
       return 'Infrastructure failure' + durationSuffix('parens_after');
-    case 'passed':
+    case COND_PASSED:
       if (!build.stats.test_count) {
         return 'No tests run' + durationSuffix('parens_in');
       } else {
         return `Ran ${utils.plural(build.stats.test_count, 'test(s)')}`+
           durationSuffix('plain');
       }
-    case 'failed':
+    case COND_FAILED:
       var error_count = build.failures ?
         _.filter(build.failures, f => f.id !== 'test_failures').length :
         0; // if its 0, we don't know whether there are 0 failures or if the
@@ -74,8 +84,10 @@ export var buildSummaryText = function(build, liveTimer = false, showDuration = 
       sentence += durationSuffix('parens_after');
       return sentence;
     case 'waiting':
+    case COND_WAITING_WITH_ERRORS:
+    case COND_WAITING_WITH_FAILURES:
       return liveTimer ? <WaitingLiveText runnable={build} /> : 'Still running';
-    case 'unknown':
+    case COND_UNKNOWN:
     default:
       return '';
   }
@@ -100,22 +112,21 @@ export var manyBuildsSummaryText = function(latestPerProject) {
   var hasCondition = _.filter(latestPerProject,
     b => get_runnable_condition(b) === summaryCondition);
   var mixedFailures = _.filter(latestPerProject,
-    b => get_runnable_condition(b).indexOf('failed') === 0);
+    b => get_runnable_condition(b).indexOf(COND_FAILED) === 0);
   var hasMixedFailures = mixedFailures.length > 1;
 
   var plural = hasCondition.length > 1;
 
-  if (summaryCondition === 'passed') {
+  if (summaryCondition === COND_PASSED) {
     return `Ran ${utils.plural(latestPerProject.length, 'project(s)')}`;
   }
 
-  var suffixes = {
-    failed_aborted: plural ? 'were aborted' : 'was aborted',
-    failed_infra: plural ? 'had infra failures' : 'had an infra failure',
-    failed: 'failed',
-    waiting: plural ? 'are still running' : 'is still running',
-    unknown: plural ? 'have an unknown status' : 'has an unknown status',
-  };
+  var suffixes = {};
+  suffixes[COND_FAILED_ABORTED] = plural ? 'were aborted' : 'was aborted';
+  suffixes[COND_FAILED_INFRA] = plural ? 'had infra failures' : 'had an infra failure';
+  suffixes[COND_FAILED] = 'failed';
+  suffixes[COND_WAITING] = plural ? 'are still running' : 'is still running';
+  suffixes[COND_UNKNOWN] = plural ? 'have an unknown status' : 'has an unknown status';
 
   var suffix = suffixes[summaryCondition];
   if (!suffix) {
