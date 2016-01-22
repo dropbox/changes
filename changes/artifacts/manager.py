@@ -8,6 +8,9 @@ class Manager(object):
     def register(self, cls):
         self.handlers.append(cls)
 
+    def can_process(self, artifact_name):
+        return any(cls.can_process(artifact_name) for cls in self.handlers)
+
     def process(self, artifact, fp=None):
         step = artifact.step
         artifact_name = artifact.name

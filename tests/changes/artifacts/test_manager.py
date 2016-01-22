@@ -12,11 +12,11 @@ from changes.testutils import TestCase
 class ManagerTest(TestCase):
     @mock.patch.object(ArtifactHandler, 'process')
     def test_process_behavior(self, process):
-        handler = ArtifactHandler
-        handler.FILENAMES = ('coverage.xml',)
+        class _CovHandler(ArtifactHandler):
+            FILENAMES = ('coverage.xml',)
 
         manager = Manager()
-        manager.register(handler)
+        manager.register(_CovHandler)
 
         project = self.create_project()
         build = self.create_build(project)
@@ -48,3 +48,18 @@ class ManagerTest(TestCase):
         manager.process(artifact)
 
         assert process.call_count == 2
+
+    def test_can_process(self):
+        class _CovHandler(ArtifactHandler):
+            FILENAMES = ('coverage.xml',)
+
+        class _OtherHandler(ArtifactHandler):
+            FILENAMES = ('other.xml',)
+
+        manager = Manager()
+        manager.register(_CovHandler)
+        manager.register(_OtherHandler)
+
+        assert manager.can_process('foo/coverage.xml')
+        assert manager.can_process('other.xml')
+        assert not manager.can_process('service.log')

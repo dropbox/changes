@@ -273,7 +273,7 @@ def _sync_from_artifact_store(jobstep):
         raise err
 
 
-def _get_artifacts_to_sync(artifacts, prefer_artifactstore):
+def _get_artifacts_to_sync(artifacts, artifact_manager, prefer_artifactstore):
     def is_artifact_store(artifact):
         return artifact.file.storage == 'changes.storage.artifactstore.ArtifactStoreFileStorage'
 
@@ -284,6 +284,9 @@ def _get_artifacts_to_sync(artifacts, prefer_artifactstore):
 
     to_sync = []
     for name, arts in artifacts_by_name.iteritems():
+        # don't sync_artifact artifacts that we won't actually process
+        if not artifact_manager.can_process(name):
+            continue
         artifactstore_arts = [a for a in arts if is_artifact_store(a)]
         other_arts = [a for a in arts if not is_artifact_store(a)]
 
@@ -304,11 +307,12 @@ def _sync_artifacts_for_jobstep(step):
     ).first():
         return
 
-    _, buildstep = JobPlan.get_build_step_for_job(job_id=step.job_id)
-    prefer_artifactstore = buildstep.prefer_artifactstore()
     artifacts = Artifact.query.filter(Artifact.step_id == step.id).all()
 
-    to_sync = _get_artifacts_to_sync(artifacts, prefer_artifactstore)
+    _, buildstep = JobPlan.get_build_step_for_job(job_id=step.job_id)
+    prefer_artifactstore = buildstep.prefer_artifactstore()
+    artifact_manager = buildstep.get_artifact_manager(step)
+    to_sync = _get_artifacts_to_sync(artifacts, artifact_manager, prefer_artifactstore)
 
     # buildstep may want to check for e.g. required artifacts
     buildstep.verify_final_artifacts(step, to_sync)

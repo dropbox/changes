@@ -623,6 +623,9 @@ class SyncJobStepTest(BaseTestCase):
         assert artifact_file.save.call_count == 1
 
     def test_get_artifacts_to_sync(self):
+        artifact_manager = mock.Mock()
+        artifact_manager.can_process.side_effect = lambda name: name != 'service.log'
+
         project = self.create_project()
         build = self.create_build(project=project)
         job = self.create_job(build=build)
@@ -647,12 +650,14 @@ class SyncJobStepTest(BaseTestCase):
                                                  file=make_AS_file())
         other_junit = self.create_artifact(step, 'bar/junit.xml')
         other_manifest = self.create_artifact(step, 'manifest.json')
+        # artifact manager will say we don't process this artifact
+        ignored_art = self.create_artifact(step, 'foo/service.log')
         arts = Artifact.query.filter(Artifact.step_id == step.id).all()
 
-        assert (sorted(_get_artifacts_to_sync(arts, prefer_artifactstore=True)) ==
+        assert (sorted(_get_artifacts_to_sync(arts, artifact_manager, prefer_artifactstore=True)) ==
                 sorted([artstore_junit, artstore_junit2, artstore_coverage, other_manifest]))
 
-        assert (sorted(_get_artifacts_to_sync(arts, prefer_artifactstore=False)) ==
+        assert (sorted(_get_artifacts_to_sync(arts, artifact_manager, prefer_artifactstore=False)) ==
                 sorted([artstore_coverage, other_junit, other_manifest]))
 
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
