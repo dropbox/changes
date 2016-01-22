@@ -27,7 +27,6 @@ export var ChangesPage = React.createClass({
     // we have to use position: fixed for some pages
     fixed: PropTypes.bool,
     // if present, we render a link to return to the old ui
-    oldUI: PropTypes.string,
     // some pages can disable the perf widget (since they continuously
     // live-update)
     widget: PropTypes.bool,
@@ -66,7 +65,6 @@ export var ChangesPage = React.createClass({
       <ChangesPageHeader
         highlight={this.props.highlight}
         fixed={this.props.fixed}
-        oldUI={this.props.oldUI}
         widget={this.props.widget}
       />
       <div id="ChangesPageChildren" className="nonFixedClass" style={style}>
@@ -156,7 +154,6 @@ var ChangesPageHeader = React.createClass({
   propTypes: {
     highlight: PropTypes.string, // see ChangesPage
     fixed: PropTypes.bool,
-    oldUI: PropTypes.string,
     widget: PropTypes.bool
   },
 
@@ -178,22 +175,6 @@ var ChangesPageHeader = React.createClass({
     }
 
     var learnMore = this.renderLearnMore();
-
-    var oldUI = null;
-    if (this.props.oldUI) {
-
-      // We need to patch the hostname to the classic version
-      var origin = window.location.origin;
-      var index = origin.indexOf('.');
-      origin = origin.substring(0, index) + '-classic' + origin.substring(index);
-
-      var oldHref = URI(origin + this.props.oldUI).toString();
-      oldUI = <a className="headerLinkBlock floatR"
-        target="_blank"
-        href={oldHref}>
-        Go to Old UI
-      </a>;
-    }
 
     var foreign_api_header = null;
 
@@ -238,7 +219,6 @@ var ChangesPageHeader = React.createClass({
         {this.props.widget ? <ChangesInlinePerf /> : null}
         {learnMore}
         {feedback_link}
-        {oldUI}
         {foreign_api_header}
       </div>
     </div>;

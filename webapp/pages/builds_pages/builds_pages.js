@@ -194,8 +194,7 @@ var BuildsPage = React.createClass({
     // TODO: cleanup!
     return <ChangesPage 
       bodyPadding={false} 
-      fixed={true} 
-      oldUI={oldBuildUI(activeBuild)}>
+      fixed={true}>
 
       <div className="buildsLabelHeader fixedClass">
         {this.renderLabelHeader()}
@@ -393,19 +392,11 @@ export var SingleBuildPage = React.createClass({
 
     utils.setPageTitle(`A ${build.project.name} Build`);
 
-    return <ChangesPage oldUI={oldBuildUI(build)}>
+    return <ChangesPage>
       <SingleBuild build={build} />
     </ChangesPage>;
   },
 });
-
-var oldBuildUI = function(build) {
-  if (build) {
-    return `/projects/${build.project.slug}/builds/${build.id}/?optout=1`;
-  } else {
-    return '/my/builds/';
-  }
-}
 
 var ParentCommit = React.createClass({
   getInitialState() {
