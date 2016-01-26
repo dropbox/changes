@@ -1,5 +1,3 @@
-from changes.models.job import Job
-from changes.models.test import TestCase
 
 import re
 import urllib
@@ -9,10 +7,16 @@ from flask import current_app
 from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import try_create
-from changes.lib import build_context_lib
+from changes.lib import build_context_lib, build_type
 from changes.lib.coverage import get_coverage_by_build_id, merged_coverage_data
-from changes.models import Build, ItemOption, ProjectOption, ProjectOptionsHelper, RepositoryBackend, Source
+from changes.models.build import Build
+from changes.models.option import ItemOption
+from changes.models.project import ProjectOption, ProjectOptionsHelper
+from changes.models.repository import RepositoryBackend
+from changes.models.source import Source
 from changes.models.event import Event, EventType
+from changes.models.job import Job
+from changes.models.test import TestCase
 from changes.utils.http import build_uri
 from changes.utils.phabricator_utils import logger, PhabricatorClient, post_comment
 from changes.vcs.git import GitVcs
@@ -133,7 +137,7 @@ def build_finished_handler(build_id, **kwargs):
     if build is None:
         return
 
-    if build.tags and 'arc test' in build.tags:
+    if build_type.is_arc_test_build(build):
         # 'arc test' builds have an associated Phabricator diff, but
         # aren't necessarily for the diff under review, so we don't
         # want to notify with them.
@@ -144,9 +148,8 @@ def build_finished_handler(build_id, **kwargs):
         return
 
     target = build.target
-    is_diff_build = target and target.startswith(u'D')
-    is_commit_build = (build.source is not None and build.source.is_commit() and
-                       build.tags and 'commit' in build.tags)
+    is_diff_build = build_type.is_phabricator_diff_build(build)
+    is_commit_build = build_type.is_initial_commit_build(build)
 
     phab = PhabricatorClient()
 

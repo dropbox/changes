@@ -6,7 +6,12 @@ from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Status, Result
-from changes.models import Build, FailureReason, JobStep, TestCase, Source
+from changes.models.build import Build
+from changes.models.failurereason import FailureReason
+from changes.models.jobstep import JobStep
+from changes.models.test import TestCase
+from changes.models.source import Source
+from changes.lib import build_type
 from changes.lib.flaky_tests import get_flaky_tests
 from changes.utils.http import build_uri
 
@@ -138,12 +143,12 @@ class BuildReport(object):
         ).join(
             Source, Source.id == Build.source_id,
         ).filter(
-            Source.patch_id == None,  # NOQA
             Build.project_id.in_(project_ids),
             Build.status == Status.finished,
             Build.result.in_([Result.failed, Result.passed]),
             Build.date_created >= start_period,
             Build.date_created < end_period,
+            *build_type.get_any_commit_build_filters()
         ).group_by(Build.project_id, Build.result)
 
         project_results = {}
@@ -190,12 +195,12 @@ class BuildReport(object):
         failure_stats['total'] = Build.query.join(
             Source, Source.id == Build.source_id,
         ).filter(
-            Source.patch_id == None,  # NOQA
             Build.project_id.in_(p.id for p in self.projects),
             Build.status == Status.finished,
             Build.result == Result.failed,
             Build.date_created >= start_period,
             Build.date_created < end_period,
+            *build_type.get_any_commit_build_filters()
         ).count()
 
         return failure_stats
@@ -210,11 +215,11 @@ class BuildReport(object):
         ).join(
             JobStep, JobStep.id == FailureReason.step_id,
         ).filter(
-            Source.patch_id == None,  # NOQA
             Build.project_id == project.id,
             Build.date_created >= start_period,
             Build.date_created < end_period,
             JobStep.replacement_id.is_(None),
+            *build_type.get_any_commit_build_filters()
         ).group_by(
             FailureReason.reason, FailureReason.build_id
         ).subquery()

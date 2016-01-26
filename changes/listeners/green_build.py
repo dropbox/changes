@@ -10,11 +10,13 @@ from time import time
 from sqlalchemy.orm import joinedload
 
 from changes.config import db
-from changes.constants import Cause, Result
+from changes.constants import Result
 from changes.db.utils import create_or_update
-from changes.models import (
-    Build, Event, EventType, ProjectOption, RepositoryBackend
-)
+from changes.lib import build_type
+from changes.models.build import Build
+from changes.models.event import Event, EventType
+from changes.models.project import ProjectOption
+from changes.models.repository import RepositoryBackend
 from changes.models.latest_green_build import LatestGreenBuild
 from changes.utils.http import build_uri
 from changes.utils.locking import lock
@@ -61,9 +63,6 @@ def build_finished_handler(build_id, **kwargs):
     if build is None:
         return
 
-    if build.cause == Cause.snapshot:
-        return
-
     if build.result != Result.passed:
         return
 
@@ -79,11 +78,7 @@ def build_finished_handler(build_id, **kwargs):
 
     source = build.source
 
-    is_commit_build = source.is_commit()
-    # Commit queue builds have a commit, but they aren't really commit builds.
-    if build.tags and 'commit-queue' in build.tags:
-        is_commit_build = False
-    if not is_commit_build:
+    if not build_type.is_any_commit_build(build):
         logger.debug('Ignoring build due to non-commit: %s', build.id)
         return
 

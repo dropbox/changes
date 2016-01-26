@@ -10,8 +10,13 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView
 from changes.api.auth import requires_admin
 from changes.config import db, statsreporter
-from changes.constants import Cause, Result, Status, ProjectStatus
-from changes.models import Project, Repository, Build, Source, Plan, PlanStatus, ProjectOption
+from changes.constants import Result, Status, ProjectStatus
+from changes.lib import build_type
+from changes.models.project import Project, ProjectOption
+from changes.models.repository import Repository
+from changes.models.build import Build
+from changes.models.source import Source
+from changes.models.plan import Plan, PlanStatus
 
 
 STATUS_CHOICES = ('', 'active', 'inactive')
@@ -25,13 +30,9 @@ def get_latest_builds_query(project_ids, result=None):
     ).join(
         Source, Build.source_id == Source.id,
     ).filter(
-        Source.patch_id == None,  # NOQA
         Build.status == Status.finished,
-        Build.cause != Cause.snapshot,
-        # Exclude snapshot validation and commit queue builds.
-        ~Build.tags.any('test-snapshot'),
-        ~Build.tags.any('commit-queue'),
         Build.result.in_([Result.passed, Result.failed, Result.infra_failed]),
+        *build_type.get_any_commit_build_filters()
     ).order_by(
         Build.date_created.desc(),
     )

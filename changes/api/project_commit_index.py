@@ -8,7 +8,8 @@ from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView, error
 from changes.config import db
-from changes.constants import Cause, Status
+from changes.constants import Status
+from changes.lib import build_type
 from changes.models import Build, Project, Revision, Source, ProjectOption
 
 
@@ -145,12 +146,9 @@ class ProjectCommitIndexAPIView(APIView):
             Build.source_id == Source.id,
             Build.project_id == project.id,
             Build.status.in_([Status.finished, Status.in_progress, Status.queued]),
-            Build.cause != Cause.snapshot,
-            # Snapshot validation builds shouldn't be associated with commits in the overview.
-            ~Build.tags.any('test-snapshot'),
             Source.repository_id == project.repository_id,
             Source.revision_sha.in_(c['id'] for c in commits),
-            Source.patch == None,  # NOQA
+            *build_type.get_any_commit_build_filters()
         ).order_by(Build.date_created.asc()))
 
         if not all_builds:

@@ -104,6 +104,7 @@ class GetRecipientsTestCase(TestCase):
             project=project,
             result=Result.failed,
             author=author,
+            tags=['commit'],
         )
 
         handler = MailNotificationHandler()

@@ -1,7 +1,6 @@
 from __future__ import absolute_import, print_function
 from itertools import imap
 import logging
-from changes.models.jobplan import JobPlan
 
 import toronado
 
@@ -13,10 +12,11 @@ from jinja2 import Markup
 from changes.config import db, mail
 from changes.constants import Result, Status
 from changes.db.utils import try_create
-from changes.lib import build_context_lib
+from changes.lib import build_context_lib, build_type
 from changes.models.event import Event, EventType
 from changes.models.build import Build
 from changes.models.job import Job
+from changes.models.jobplan import JobPlan
 from changes.models.project import ProjectOption
 
 
@@ -124,8 +124,7 @@ class MailNotificationHandler(object):
             return recipients
 
         recipients.extend(options['mail.notify-addresses'])
-
-        if not build.source.patch_id:
+        if build_type.is_any_commit_build(build):
             recipients.extend(options['mail.notify-addresses-revisions'])
 
         return recipients
