@@ -168,7 +168,8 @@ class GitVcs(Vcs):
                 )
             raise e
 
-    def log(self, parent=None, branch=None, author=None, offset=0, limit=100, paths=None):
+    def log(self, parent=None, branch=None, author=None, offset=0, limit=100,
+            paths=None, first_parent=True):
         """ Gets the commit log for the repository.
 
         Each revision returned includes all the branches with which this commit
@@ -179,8 +180,10 @@ class GitVcs(Vcs):
         start_time = time()
 
         # TODO(dcramer): we should make this streaming
-        cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,), '--first-parent']
+        cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,)]
 
+        if first_parent:
+            cmd.append('--first-parent')
         if author:
             cmd.append('--author=%s' % (author,))
         if offset:

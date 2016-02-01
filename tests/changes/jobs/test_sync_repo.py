@@ -18,7 +18,7 @@ class SyncRepoTest(TestCase):
     def test_simple(self, queue_delay, get_vcs_backend, mock_fire_signal):
         vcs_backend = mock.MagicMock(spec=Vcs)
 
-        def log(parent, limit):
+        def log(parent, limit, first_parent):
             if parent is None:
                 yield RevisionResult(
                     id='a' * 40,
@@ -38,7 +38,7 @@ class SyncRepoTest(TestCase):
             sync_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
 
         get_vcs_backend.assert_called_once_with()
-        vcs_backend.log.assert_any_call(parent=None, limit=NUM_RECENT_COMMITS)
+        vcs_backend.log.assert_any_call(parent=None, limit=NUM_RECENT_COMMITS, first_parent=False)
 
         db.session.expire_all()
 
@@ -108,7 +108,7 @@ class SyncRepoTest(TestCase):
         existing_revision_no_branches.save(repo)
         db.session.commit()
 
-        def log(parent, limit):
+        def log(parent, limit, first_parent):
             yield existing_revision
             yield existing_revision_branch_changed
             yield existing_revision_no_branches
@@ -127,7 +127,7 @@ class SyncRepoTest(TestCase):
             sync_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
 
         get_vcs_backend.assert_called_once_with()
-        vcs_backend.log.assert_any_call(parent=None, limit=NUM_RECENT_COMMITS)
+        vcs_backend.log.assert_any_call(parent=None, limit=NUM_RECENT_COMMITS, first_parent=False)
 
         db.session.expire_all()
 
