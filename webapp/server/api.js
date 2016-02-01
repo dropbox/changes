@@ -47,35 +47,37 @@ var APIResponsePrototype = {
  * resulting APIResponse objects.
  * endpoint_map is a map from the state key to the endpoint to send the get request to.
  * param_map is a map from the state key to a params object to send.
+ * callback is a function(APIResponse) which is called with the raw result of
+ *     the API call. Can be null.
  */
-export var fetch = function(elem, endpoint_map, param_map = {}) {
+export var fetch = function(elem, endpoint_map, param_map = {}, callback = null) {
 
-  return fetchMapWithParams(elem, null, endpoint_map, 'GET', param_map);
+  return fetchMapWithParams(elem, null, endpoint_map, 'GET', param_map, callback);
 }
 
 /*
  * Similar to fetch, but use this for post requests.
  */
-export var post = function(elem, endpoint_map, param_map = {}) {
-  return fetchMapWithParams(elem, null, endpoint_map, 'POST', param_map);
+export var post = function(elem, endpoint_map, param_map = {}, callback = null) {
+  return fetchMapWithParams(elem, null, endpoint_map, 'POST', param_map, callback);
 }
 
 /*
  * Similar to fetch, but use this for delete requests.
  */
-export var delete_ = function(elem, endpoint_map, param_map = {}) {
-  return fetchMapWithParams(elem, null, endpoint_map, 'DELETE', param_map);
+export var delete_ = function(elem, endpoint_map, param_map = {}, callback = null) {
+  return fetchMapWithParams(elem, null, endpoint_map, 'DELETE', param_map, callback);
 }
 
 /*
  * Like fetch, but all of the results are in a map inside state with key `map_key`
  * You cannot directly call this from render! use asyncFetchMap instead
  */
-export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET') {
-  return fetchMapWithParams(elem, map_key, endpoint_map, method, {});
+export var fetchMap = function(elem, map_key, endpoint_map, method = 'GET', callback = null) {
+  return fetchMapWithParams(elem, map_key, endpoint_map, method, {}, callback);
 }
 
-var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map) {
+var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map, callback) {
   method = method.toLowerCase();
   if (method !== 'get' && method !== 'post' && method !=='delete') {
     throw new Error('method must be get or post or delete!');
@@ -113,14 +115,22 @@ var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map
       api_response.condition = was_success ? 'loaded' : 'error';
       api_response.response = response;
 
+      var state_to_set = null;
       if (!map_key) {
-        var state_to_set = {};
+        state_to_set = {};
         state_to_set[state_key] = api_response;
-        elem.setState(state_to_set);
       } else {
-        elem.setState(utils.update_key_in_state_dict(
-          map_key, state_key, api_response));
+        state_to_set = utils.update_key_in_state_dict(map_key, state_key, api_response);
       }
+
+      // If a callback is specified, pass the response object to it to allow
+      // additional conditional processing by the GET/POST/DELETE caller.
+      let callbackWithResponse = null;
+      if (callback) {
+        callbackWithResponse = function() { callback(api_response); }
+      }
+
+      elem.setState(state_to_set, callbackWithResponse);
     }
 
     make_api_ajax_call(method, endpoint, params, ajax_response, ajax_response);

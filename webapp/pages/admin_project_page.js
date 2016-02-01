@@ -107,7 +107,7 @@ let AdminProjectPage = React.createClass({
 
 let ProjectSettingsFieldGroup = React.createClass({
 
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   propTypes: {
     project: PropTypes.object.isRequired,
@@ -115,6 +115,31 @@ let ProjectSettingsFieldGroup = React.createClass({
 
   getInitialState: function() {
     return { };
+  },
+
+  getFieldNames: function() {
+    return [
+      'name',
+      'repository',
+      'slug',
+      'status',
+      'owner',
+      'notes',
+      'commitTrigger',
+      'diffTrigger',
+      'fileWhitelist',
+      'branches',
+      'notifyAuthors',
+      'notifyAddresses',
+      'notifyAddressesRevisions',
+      'pushBuildResults',
+      'pushCoverageResults',
+      'greenBuildNotify',
+      'greenBuildProject',
+      'showTests',
+      'maxTestDuration',
+      'showCoverage',
+    ];
   },
 
   displayStatusToStatus: {
@@ -160,7 +185,7 @@ let ProjectSettingsFieldGroup = React.createClass({
       '_postRequest_options': options_params,
     };
 
-    api.post(this, endpoints, params);
+    api.post(this, endpoints, params, this.onFormSubmit);
   },
 
   componentDidMount: function() {
@@ -185,7 +210,8 @@ let ProjectSettingsFieldGroup = React.createClass({
                     showTests: project.options['ui.show-tests'] === '1',
                     maxTestDuration: project.options['build.test-duration-warning'],
                     showCoverage: project.options['ui.show-coverage'] === '1',
-                  });
+                  },
+                  this.updateSavedFormState);
   },
 
   render: function() {
@@ -381,7 +407,7 @@ let PlanDetailsWrapper = React.createClass({
 
 let PlanDetails = React.createClass({
 
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   propTypes: {
     plan: PropTypes.object.isRequired,
@@ -395,9 +421,11 @@ let PlanDetails = React.createClass({
 
   getInitialState: function() {
     return {
-      createStepClicked: false,
-      hasFormChanges: false,
     };
+  },
+
+  getFieldNames: function() {
+    return ['name', 'status', 'expectTests', 'allowSnapshot'];
   },
 
   saveSettings: function() {
@@ -422,8 +450,7 @@ let PlanDetails = React.createClass({
       '_postRequest_options': options_params,
     };
 
-    api.post(this, endpoints, params);
-    this.setState({hasFormChanges: false});
+    api.post(this, endpoints, params, this.onFormSubmit);
   },
 
   componentDidMount: function() {
@@ -432,7 +459,8 @@ let PlanDetails = React.createClass({
                     status: this.props.plan.status.id,
                     expectTests: this.props.options['build.expect-tests'] === '1',
                     allowSnapshot: this.props.options['snapshot.allow'] === '1',
-                  });
+                  },
+                  this.updateSavedFormState);
   },
 
   render: function() {
@@ -454,23 +482,19 @@ let PlanDetails = React.createClass({
     ];
 
     let formMessages = [];
-    let saveOptionsMessage = '';
-    let savePlanMessage = '';
-    if (!this.state.hasFormChanges) {
-      if (this.state._postRequest_plan) {
-        let result = this.state._postRequest_plan;
-        if (result.condition === 'loaded')
-          formMessages.push('Saved plan basics');
-        else if (result.condition === 'error')
-          formMessages.push('Failed to save plan basics: ' + result.response.responseText);
-      }
-      if (this.state._postRequest_options) {
-        let result = this.state._postRequest_options;
-        if (result.condition === 'loaded')
-          formMessages.push('Saved plan options');
-        else if (result.condition === 'error')
-          formMessages.push('Failed to save plan options: ' + result.response.responseText);
-      }
+    if (this.state._postRequest_plan) {
+      let result = this.state._postRequest_plan;
+      if (result.condition === 'loaded')
+        formMessages.push('Saved plan basics');
+      else if (result.condition === 'error')
+        formMessages.push('Failed to save plan basics: ' + result.response.responseText);
+    }
+    if (this.state._postRequest_options) {
+      let result = this.state._postRequest_options;
+      if (result.condition === 'loaded')
+        formMessages.push('Saved plan options');
+      else if (result.condition === 'error')
+        formMessages.push('Failed to save plan options: ' + result.response.responseText);
     }
     let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this, formMessages);
 
@@ -482,7 +506,7 @@ let PlanDetails = React.createClass({
       let step = {'name': 'LXCBuildStep',
                   'implementation': 'changes.buildsteps.lxc.LXCBuildStep',
                   'options': { 'build.timeout': 0},
-                  'data': 'Specify a configuration with JSON.',
+                  'data': 'Please specify a configuration with JSON.',
                   };
       let onClick = _ => this.setState({ createStepClicked: false });
       stepMarkup = <StepDetails stepExists={false}
@@ -507,7 +531,7 @@ let PlanDetails = React.createClass({
 
 let StepDetails = React.createClass({
 
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   propTypes: {
     step: PropTypes.object.isRequired,
@@ -519,6 +543,10 @@ let StepDetails = React.createClass({
   getInitialState: function() {
     return {
     };
+  },
+
+  getFieldNames: function() {
+    return ['name', 'timeout', 'data', 'implementation'];
   },
 
   changesBuildStepImplementationFor: {
@@ -552,8 +580,7 @@ let StepDetails = React.createClass({
       '_postRequest_step': step_params,
     };
 
-    api.post(this, endpoints, params);
-    this.setState({hasFormChanges: false});
+    api.post(this, endpoints, params, this.onFormSubmit);
   },
 
   componentDidMount: function() {
@@ -562,21 +589,20 @@ let StepDetails = React.createClass({
                     timeout: step.options['build.timeout'],
                     data: step.data,
                     implementation: step.implementation,
-                  });
+                  },
+                  this.updateSavedFormState);
   },
 
   render: function() {
     let step = this.props.step;
 
     let formMessages = [];
-    if (!this.state.hasFormChanges) {
-      if (this.state._postRequest_step) {
-        let result = this.state._postRequest_step;
-        if (result.condition === 'loaded')
-          formMessages.push('Saved step');
-        else if (result.condition === 'error')
-          formMessages.push('Failed to save step: ' + result.response.responseText);
-      }
+    if (this.state._postRequest_step) {
+      let result = this.state._postRequest_step;
+      if (result.condition === 'loaded')
+        formMessages.push('Saved step');
+      else if (result.condition === 'error')
+        formMessages.push('Failed to save step: ' + result.response.responseText);
     }
     let form = [
       {
@@ -605,7 +631,7 @@ let StepDetails = React.createClass({
 
 let NewPlan = React.createClass({
 
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   propTypes: {
     project: PropTypes.object.isRequired,
@@ -613,9 +639,17 @@ let NewPlan = React.createClass({
 
   getInitialState: function() {
     return {
-      'hasFormChanges': false,
-      'error': null
+      'error': null,
+      'name': '',
     };
+  },
+
+  getFieldNames: function() {
+    return ['name'];
+  },
+
+  componentDidMount: function() {
+    this.updateSavedFormState();
   },
 
   saveSettings: function() {
@@ -630,13 +664,14 @@ let NewPlan = React.createClass({
       });
 
     api.make_api_ajax_post(`/api/0/projects/${project.id}/plans/`, plan_params, saveCallback, saveCallback);
-    this.setState({ hasFormChanges: false });
   },
 
   render: function() {
     let form = [
-      { sectionTitle: '', fields: [
-        {type: 'text', display: 'Name', link: 'name', placeholder: 'e.g. ' + this.props.project.slug},
+      {
+        sectionTitle: '',
+        fields: [
+          {type: 'text', display: 'Name', link: 'name', placeholder: 'e.g. ' + this.props.project.slug},
         ]
       },
     ];

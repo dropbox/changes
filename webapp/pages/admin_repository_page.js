@@ -88,7 +88,7 @@ let AdminRepositoryPage = React.createClass({
 
 let RepositorySettingsFieldGroup = React.createClass({
 
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   propTypes: {
     repository: PropTypes.object.isRequired,
@@ -96,6 +96,17 @@ let RepositorySettingsFieldGroup = React.createClass({
 
   getInitialState: function() {
     return { };
+  },
+
+  getFieldNames: function() {
+    return [
+      'url',
+      'backend',
+      'status',
+      'username',
+      'privateKeyFile',
+      'callsign',
+    ];
   },
 
   saveSettings: function() {
@@ -127,7 +138,8 @@ let RepositorySettingsFieldGroup = React.createClass({
                     username: repository.options['auth.username'],
                     privateKeyFile: repository.options['auth.private-key-file'],
                     callsign: repository.options['phabricator.callsign'],
-                  });
+                  },
+                  this.updateSavedFormState);
   },
 
   render: function() {

@@ -230,13 +230,16 @@ let AdminPage = React.createClass({
 });
 
 let NewProjectFieldGroup = React.createClass({
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   getInitialState: function() {
     return {
-      hasFormChanges: false,
       error: '',
     };
+  },
+
+  getFieldNames: function() {
+    return ['name', 'repository'];
   },
 
   saveSettings: function() {
@@ -248,11 +251,15 @@ let NewProjectFieldGroup = React.createClass({
 
     let saveCallback = FieldGroupMarkup.redirectCallback(
       this, project => {
+        this.updateSavedFormState();
         return URI(ChangesLinks.projectAdminHref(project));
       });
 
     api.make_api_ajax_post('/api/0/projects/', project_params, saveCallback, saveCallback);
-    this.setState({ hasFormChanges: false });
+  },
+
+  componentDidMount: function() {
+    this.updateSavedFormState();
   },
 
   render: function() {
@@ -270,13 +277,16 @@ let NewProjectFieldGroup = React.createClass({
 })
 
 let NewRepoFieldGroup = React.createClass({
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   getInitialState: function() {
     return {
-      hasFormChanges: false,
       error: '',
     };
+  },
+
+  getFieldNames: function() {
+    return ['url', 'backend'];
   },
 
   saveSettings: function() {
@@ -287,11 +297,15 @@ let NewRepoFieldGroup = React.createClass({
 
     let saveCallback = FieldGroupMarkup.redirectCallback(
       this, repo => {
+        this.updateSavedFormState();
         return URI(ChangesLinks.repositoryAdminHref(repo));
       });
 
     api.make_api_ajax_post('/api/0/repositories/', repo_params, saveCallback, saveCallback);
-    this.setState({ hasFormChanges: false })
+  },
+
+  componentDidMount: function() {
+    this.updateSavedFormState();
   },
 
   render: function() {
@@ -310,7 +324,7 @@ let NewRepoFieldGroup = React.createClass({
 })
 
 let AdminMessageFieldGroup = React.createClass({
-  mixins: [React.addons.LinkedStateMixin],
+  mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   propTypes: {
     message: PropTypes.object.isRequired,
@@ -319,7 +333,6 @@ let AdminMessageFieldGroup = React.createClass({
   getInitialState: function() {
     return {
       messageText: this.props.message.message,
-      hasFormChanges: false,
       error: "",
     };
   },
@@ -330,8 +343,7 @@ let AdminMessageFieldGroup = React.createClass({
     };
     var saveCallback = (response, was_success) => {
       if (was_success) {
-        this.setState({'hasFormChanges': false,
-                       'error': ""});
+        this.setState({'error': ""}, this.updateSavedFormState);
       } else {
         this.setState({'error': response.responseText});
       }
@@ -341,6 +353,7 @@ let AdminMessageFieldGroup = React.createClass({
   },
 
   componentDidMount: function() {
+    this.updateSavedFormState();
   },
 
   form: [

@@ -650,7 +650,7 @@ export var SingleBuild = React.createClass({
           <div>{nodeName}{failureMarkup}{replacementMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
           links,
           jobstepDuration,
-        ], hasBorder, fadedOut));
+        ], hasBorder, fadedOut, null));
 
         if (this.state.expandedJobSteps[jobstep.id]) {
           phase_rows.push(GridRow.oneItem(<JobstepDetails jobstepID={jobstep.id} />));

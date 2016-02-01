@@ -15,11 +15,90 @@ export var redirectCallback = function(fieldGroup, redirectUrl) {
   };
 }
 
+// A Mixin to track changes in form fields. Components that use this mixin
+// can enable/disable save/submit buttons based on whether or not the form
+// fields are dirty.
+//
+// DiffFormMixin monitors the values of state keys that are whitelisted by
+// getFieldKeys() on the host object.
+//
+// The mixin stores last-saved-state data on the component as
+// diffFormSavedState. This is simply a copy of the component's .state from
+// the last time it was saved.
+export var DiffFormMixin = {
+
+  // Use onFormSubmit as a callback to any api.js post/get/delete call.
+  onFormSubmit: function(api_response) {
+    if (api_response.condition !== 'loaded') {
+      return false;
+    }
+
+    // POST was successful. Update the known saved state.
+    this.updateSavedFormState();
+    return true;
+  },
+
+  // Returns true if any component state values have changed since the last time
+  // the form was submitted (onFormSubmit was called).
+  hasFormChanges: function(currentState) {
+    let savedState = this.state.diffFormSavedState;
+    for (let key in savedState) {
+      let savedValue = savedState[key];
+      let currentValue = currentState[key];
+
+      // Text fields are often initialized to undefined values instead of empty values.
+      // Normalize these values to empty strings.
+      if (savedValue === undefined) {
+          savedValue = '';
+      }
+      if (currentValue === undefined) {
+          currentValue = '';
+      }
+
+      if (savedValue != currentValue) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+  // This is called automatically whenever onFormSubmit is triggered. It should
+  // also be specified as a setState callback at mount time when
+  // forms/components are loaded in order to specify the form's initial state.
+  updateSavedFormState: function() {
+    if (this.getFieldNames === undefined) {
+        throw Error('getFieldNames() must be defined on the DiffFormMixin ' +
+                    'host object. It returns a list of names of state fields ' +
+                    'that should be monitored to enable/disable the ' +
+                    'Submit/Save button on forms.');
+    }
+    let fieldNames = this.getFieldNames();
+    let savedState = {};
+    for (let i = 0; i < fieldNames.length; ++i) {
+      let key = fieldNames[i];
+      savedState[key] = this.state[key];
+    }
+
+    for (let key in this.state) {
+        if (!(key in savedState)) {
+            console.log(
+                `DiffFormMixin is ignoring state field '${key}'. If this is ` +
+                'not an input field on the form on this page, everything is ' +
+                'fine. However, if this IS a form input field, you should ' +
+                'add it to getFieldNames() on the form page/object to ' +
+                'support form diffing.');
+        }
+    }
+
+    this.setState({ diffFormSavedState: savedState });
+  }
+}
+
 export var create = function(form, saveButtonText, _this, messages=[], extraButtons=[]) {
-  let hasChanges = _this.state.hasFormChanges;
-  if (hasChanges === undefined) {
-    // Since we can't tell if this form has changes, default to true.
-    hasChanges = true;
+  // If the form doesn't track its changed state, always enable the save button.
+  let hasChanges = true;
+  if (_this.hasFormChanges !== undefined) {
+    hasChanges = _this.hasFormChanges(_this.state);
   }
 
   let markup = _.map(form, section => {
@@ -35,12 +114,7 @@ export var create = function(form, saveButtonText, _this, messages=[], extraButt
         // valueLink is a ReactLink object which has a `value` field and `requestChange` field.
         // See React docs on ReactLink for details: https://facebook.github.io/react/docs/two-way-binding-helpers.html
         let valueLink = _this.linkState(field.link);
-        valueLink.requestChange = function(newValue) {
-          let newState = {};
-          newState[field.link] = newValue;
-          newState['hasFormChanges'] = true;
-          _this.setState(newState);
-        };
+        valueLink.requestChange = makeChangeFunc(_this, field.link);
 
         let tag = '';
         if (field.type === 'text') {
@@ -59,9 +133,11 @@ export var create = function(form, saveButtonText, _this, messages=[], extraButt
           <hr />
         </div>;
       } else if (field.type === 'checkbox') {
+        let checkedLink = _this.linkState(field.link);
+        checkedLink.requestChange = makeChangeFunc(_this, field.link);
         return <div className="marginBottomS">
           <label>
-            <div><input type='checkbox' checkedLink={_this.linkState(field.link)} /> {field.comment} </div>
+            <div><input type='checkbox' checkedLink={checkedLink} /> {field.comment} </div>
           </label>
           <hr />
         </div>;
@@ -108,4 +184,12 @@ export var create = function(form, saveButtonText, _this, messages=[], extraButt
     <div>{allButtons}</div>
     {messageDivs}
   </div>;
+};
+
+var makeChangeFunc = function(_this, fieldLink) {
+  return function(newValue) {
+    let newState = {};
+    newState[fieldLink] = newValue;
+    _this.setState(newState);
+  }
 };
