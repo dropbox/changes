@@ -225,7 +225,7 @@ def _sync_from_artifact_store(jobstep):
             artifact_name = artifact['name']
             artifact_path = artifact['relativePath']
             if artifact_name in LOGSOURCE_WHITELIST:
-                get_or_create(LogSource, where={
+                _, created = get_or_create(LogSource, where={
                     'name': artifact_name,
                     'job': job,
                     'step': jobstep,
@@ -234,6 +234,15 @@ def _sync_from_artifact_store(jobstep):
                     'date_created': job.date_started,
                     'in_artifact_store': True,
                 })
+
+                if created:
+                    try:
+                        db.session.commit()
+                    except IntegrityError as err:
+                        db.session.rollback()
+                        current_app.logger.error(
+                            'DB Error while inserting LogSource %s',
+                            artifact_name, exc_info=True)
 
                 # If this artifact is a logsource, don't add it to the list of
                 # test artifacts.
@@ -259,7 +268,7 @@ def _sync_from_artifact_store(jobstep):
                 except IntegrityError, err:
                     db.session.rollback()
                     current_app.logger.error(
-                        'DB Error while inserting/updating artifact %s: %s', filename, err)
+                        'DB Error while inserting artifact %s: %s', filename, err)
     except (ConnectionError, HTTPError, SSLError, Timeout) as err:
         if isinstance(err, HTTPError) and err.response is not None and err.response.status_code == 404:
             # While not all plans use the Artifact Store, 404s are normal and expected.
