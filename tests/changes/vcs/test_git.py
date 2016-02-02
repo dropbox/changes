@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import pytest
 
-from subprocess import check_call
+from subprocess import check_call, check_output
 
 from changes.testutils import TestCase
 from changes.vcs.base import (
@@ -207,6 +207,28 @@ class GitVcsTest(TestCase, VcsAsserts):
         check_call(['git', 'checkout', vcs.get_default_revision()], cwd=self.remote_path)
         revisions = list(vcs.log(branch=vcs.get_default_revision()))
         assert len(revisions) == 2
+
+    def test_first_parent(self):
+        vcs = self.get_vcs()
+
+        self._add_file('BAZ', self.remote_path, commit_msg='baz')
+        self._add_file('BAZ2', self.remote_path, commit_msg='baz2')
+
+        # Create the commit that will be the second parent.
+        check_call(['git', 'checkout', 'HEAD^'], cwd=self.remote_path)
+        self._add_file('SECOND_PARENT', self.remote_path, commit_msg='second parent')
+        to_merge = check_output(['git', 'rev-parse', 'HEAD'], cwd=self.remote_path)
+
+        # Merge commit into master.
+        check_call('git checkout master'.split(' '), cwd=self.remote_path)
+        check_call(['git', 'merge', to_merge.strip('\n')], cwd=self.remote_path)
+
+        vcs.clone()
+        vcs.update()
+        revisions = list(vcs.log())
+        assert len(revisions) == 5
+        revisions = list(vcs.log(first_parent=False))
+        assert len(revisions) == 6
 
     def test_log_throws_errors_when_needed(self):
         vcs = self.get_vcs()

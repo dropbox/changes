@@ -6,7 +6,7 @@ from datetime import datetime
 
 from changes.config import db
 from changes.jobs.signals import fire_signal
-from changes.models import Repository, RepositoryStatus, Revision
+from changes.models import Repository, RepositoryBackend, RepositoryStatus, Revision
 from changes.queue.task import tracked_task
 from changes.vcs.base import ConcurrentUpdateError
 
@@ -62,7 +62,12 @@ def sync(repo):
     # TODO(dcramer): this doesnt scrape everything, and really we wouldn't
     # want to do this all in a single job so we should split this into a
     # backfill task
-    for commit in vcs.log(parent=None, limit=NUM_RECENT_COMMITS, first_parent=False):
+    if repo.backend == RepositoryBackend.git:
+        revisions = vcs.log(parent=None, limit=NUM_RECENT_COMMITS, first_parent=False)
+    else:
+        revisions = vcs.log(parent=None, limit=NUM_RECENT_COMMITS)
+
+    for commit in revisions:
         known_revision = Revision.query.filter(
             Revision.repository_id == repo.id,
             Revision.sha == commit.id
