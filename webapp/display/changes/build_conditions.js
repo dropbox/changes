@@ -13,14 +13,14 @@ import Examples from 'es6!display/examples';
  * Generally, we can assign conditions to objects with a status and result
  */
 
-const COND_PASSED = 'passed';
-const COND_FAILED = 'failed';
-const COND_FAILED_INFRA = 'failed_infra';
-const COND_FAILED_ABORTED = 'failed_aborted';
-const COND_UNKNOWN = 'unknown';
-const COND_WAITING = 'waiting';
-const COND_WAITING_WITH_ERRORS = 'waiting_with_errors';
-const COND_WAITING_WITH_FAILURES = 'waiting_with_failures';
+export const COND_PASSED = 'passed';
+export const COND_FAILED = 'failed';
+export const COND_FAILED_INFRA = 'failed_infra';
+export const COND_FAILED_ABORTED = 'failed_aborted';
+export const COND_UNKNOWN = 'unknown';
+export const COND_WAITING = 'waiting';
+export const COND_WAITING_WITH_ERRORS = 'waiting_with_errors';
+export const COND_WAITING_WITH_FAILURES = 'waiting_with_failures';
 
 var all_build_conditions = [
   COND_PASSED,
