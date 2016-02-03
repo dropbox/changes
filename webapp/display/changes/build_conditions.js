@@ -96,14 +96,15 @@ export var get_runnables_summary_condition = function(runnables) {
 
 // short, readable text for runnable conditions
 export var get_runnable_condition_short_text = function(condition) {
-  var names = {};
-  names[COND_PASSED] = 'passed';
-  names[COND_FAILED] = 'failed';
-  names[COND_FAILED_ABORTED] = 'aborted';
-  names[COND_FAILED_INFRA] = 'infrastructure failure';
-  names[COND_WAITING_WITH_ERRORS] = 'in progress (errors occurred)';
-  names[COND_WAITING_WITH_FAILURES] = 'in progress (test failures occurred)';
-  names[COND_WAITING] ='in progress';
+  var names = {
+      [ COND_PASSED ]: 'passed',
+      [ COND_FAILED ]: 'failed',
+      [ COND_FAILED_ABORTED ]: 'aborted',
+      [ COND_FAILED_INFRA ]: 'infrastructure failure',
+      [ COND_WAITING_WITH_ERRORS ]: 'in progress (errors occurred)',
+      [ COND_WAITING_WITH_FAILURES ]: 'in progress (test failures occurred)',
+      [ COND_WAITING ]:'in progress',
+  };
   return names[condition] || 'unknown';
 }
 
@@ -178,11 +179,11 @@ export var ConditionDot = React.createClass({
 
       var classes = {
         common: 'fa conditionDotIcon ',
-      };
-      classes[COND_WAITING] = 'fa-clock-o blue'; // blue instead of blue-gray
-      classes[COND_WAITING_WITH_FAILURES] = 'fa-clock-o red';
-      classes[COND_WAITING_WITH_ERRORS] = 'fa-clock-o black';
-      classes[COND_FAILED_ABORTED] = 'red fa-ban';
+        [ COND_WAITING ]: 'fa-clock-o blue', // blue instead of blue-gray
+        [ COND_WAITING_WITH_FAILURES ]: 'fa-clock-o red',
+        [ COND_WAITING_WITH_ERRORS ]: 'fa-clock-o black',
+        [ COND_FAILED_ABORTED ]: 'red fa-ban',
+      }
       var className = classes['common'] + classes[condition];
 
       dot = <i

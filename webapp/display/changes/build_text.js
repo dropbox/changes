@@ -121,12 +121,13 @@ export var manyBuildsSummaryText = function(latestPerProject) {
     return `Ran ${utils.plural(latestPerProject.length, 'project(s)')}`;
   }
 
-  var suffixes = {};
-  suffixes[COND_FAILED_ABORTED] = plural ? 'were aborted' : 'was aborted';
-  suffixes[COND_FAILED_INFRA] = plural ? 'had infra failures' : 'had an infra failure';
-  suffixes[COND_FAILED] = 'failed';
-  suffixes[COND_WAITING] = plural ? 'are still running' : 'is still running';
-  suffixes[COND_UNKNOWN] = plural ? 'have an unknown status' : 'has an unknown status';
+  var suffixes = {
+      [ COND_FAILED_ABORTED ]: plural ? 'were aborted' : 'was aborted',
+      [ COND_FAILED_INFRA ]: plural ? 'had infra failures' : 'had an infra failure',
+      [ COND_FAILED ]: 'failed',
+      [ COND_WAITING ]: plural ? 'are still running' : 'is still running',
+      [ COND_UNKNOWN ]: plural ? 'have an unknown status' : 'has an unknown status',
+  };
 
   var suffix = suffixes[summaryCondition];
   if (!suffix) {
