@@ -48,16 +48,16 @@ export var get_runnable_condition = function(runnable) {
   var status = runnable.status.id, result = runnable.result.id;
 
   if (status === 'in_progress' || status === "queued") {
-    if (runnable.stats['test_failures']) {
+    if (runnable.stats && runnable.stats['test_failures']) {
       return COND_WAITING_WITH_ERRORS;
     }
-    if (runnable.result.id === COND_FAILED) {
+    if (runnable.result && runnable.result.id === 'failed') {
       return COND_WAITING_WITH_FAILURES;
     }
     return COND_WAITING;
   }
 
-  if (result === COND_PASSED || result === COND_FAILED) {
+  if (result === 'passed' || result === 'failed') {
     return result;
   } else if (result === 'aborted') {
     return COND_FAILED_ABORTED;
