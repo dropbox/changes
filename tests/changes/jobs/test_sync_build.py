@@ -87,3 +87,24 @@ class SyncBuildTest(TestCase):
             ItemStat.name == 'tests_missing',
         ).first()
         assert stat.value == 1
+
+    @patch('changes.jobs.sync_build.datetime')
+    def test_finished_no_jobs(self, sync_build_datetime):
+        project = self.create_project()
+        build = self.create_build(
+            project=project,
+            status=Status.unknown,
+            result=Result.unknown,
+        )
+        sync_build_datetime.utcnow.return_value = datetime(2013, 9, 19, 22, 15, 22)
+
+        with patch.object(sync_build, 'allow_absent_from_db', True):
+            sync_build(build_id=build.id.hex, task_id=build.id.hex)
+
+        build = Build.query.get(build.id)
+
+        assert build.status == Status.finished
+        assert build.result == Result.unknown
+
+        assert build.date_finished == sync_build_datetime.utcnow.return_value
+        assert build.date_decided == sync_build_datetime.utcnow.return_value

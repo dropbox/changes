@@ -80,8 +80,10 @@ def sync_build(build_id):
         statsreporter.stats().log_timing('build_start_latency', _timedelta_to_millis(queued_time))
 
     if is_finished:
+        # If there are no jobs (or no jobs with a finished date) fall back to
+        # finishing now, since at this point, the build is done executing.
         build.date_finished = safe_agg(
-            max, (j.date_finished for j in all_jobs if j.date_finished))
+            max, (j.date_finished for j in all_jobs if j.date_finished), datetime.utcnow())
     else:
         build.date_finished = None
 
