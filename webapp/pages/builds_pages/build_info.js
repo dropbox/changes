@@ -590,7 +590,7 @@ export var SingleBuild = React.createClass({
         }
 
         var links = [];
-        var nodeLink = jobstep.node.name || jobstep.node.id;
+        var nodeName = jobstep.node.name || jobstep.node.id;
         var chunkedUrl = null;
         var logPriority = -1;
         jobstep.logSources.forEach(l => {
@@ -607,8 +607,14 @@ export var SingleBuild = React.createClass({
         });
 
         if (chunkedUrl) {
-          nodeLink = <a href={chunkedUrl}>{nodeLink}</a>;
+          nodeName = <a href={chunkedUrl}>{nodeName}</a>;
         }
+
+        links.push(
+          <a className="marginRightM" href={"/node/" + jobstep.node.id}>
+            Machine
+          </a>
+        );
 
         if (jobstep.data.uri) {
           links.push(
@@ -641,7 +647,7 @@ export var SingleBuild = React.createClass({
             "",
           jobstepDot,
           jobstepImage,
-          <div>{nodeLink}{failureMarkup}{replacementMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
+          <div>{nodeName}{failureMarkup}{replacementMarkup}<a onClick={onClick}>{expandLabel}</a></div>,
           links,
           jobstepDuration,
         ], hasBorder, fadedOut));
