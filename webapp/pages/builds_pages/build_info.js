@@ -124,13 +124,20 @@ export var SingleBuild = React.createClass({
    if (paths.length == 0) {
        return null;
    }
-   let coverPercent = (covered, uncovered) => Math.floor((covered / (covered + uncovered)) * 100);
+   let coverPercent = (covered, uncovered) => {
+        let denom = covered + uncovered;
+        if (denom == 0) {
+           return <div className="noCoverPercent"></div>;
+        }
+        let percent = Math.floor((covered / denom) * 100);
+        return `${percent}%`;
+   }
 
    let rows = _.map(paths.sort(), function(path) {
        let data = coverageInfo[path];
        return [path,
-               `${coverPercent(data.diffLinesCovered, data.diffLinesUncovered)}%`,
-               `${coverPercent(data.linesCovered, data.linesUncovered)}%`];
+               coverPercent(data.diffLinesCovered, data.diffLinesUncovered),
+               coverPercent(data.linesCovered, data.linesUncovered)];
    });
    return <div className={' marginBottomL'}>
       <SectionHeader className="noBottomPadding">

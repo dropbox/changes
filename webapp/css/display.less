@@ -145,6 +145,15 @@ tr.gridHeader {
 }
 
 /*
+ * For when we want to render coverage percent, but it is NaN.
+ * This pads to align the '-' with normal percentage numbers.
+ */
+.noCoverPercent:before {
+  content: "-";
+  padding-right: 1em;
+}
+
+/*
  * Error Box
  */
 
