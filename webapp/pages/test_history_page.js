@@ -96,7 +96,7 @@ var TestHistoryPage = React.createClass({
         ChangesLinks.author(revision.author),
         ChangesLinks.phabCommit(revision),
         utils.first_line(revision.message),
-        <TimeText time={revision.dateCreated} />
+        <TimeText time={revision.dateCommitted} />
       ];
     });
 
