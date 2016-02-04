@@ -87,13 +87,38 @@ export var CommitPage = React.createClass({
   componentDidMount: function() {
     var uuid = this.props.sourceUUID;
 
-    // Specify the per_page param to get as many builds as possible.
     // BuildsPage.getContent() below assumes that a selected ID is present in
     // the list, and if the build is missing it crashes the page. Get as many
     // builds as possible up front to minimize the chances of this happening,
     // as a quick workaround.
+    let commit_builds = [];
+
+    let fetch_one_page_of_builds = (endpoint) => {
+      api.make_api_ajax_get(
+          endpoint,
+          null,
+          response => {
+              let api_response = api.APIResponse(endpoint);
+              api_response.response = response;
+              let new_items = api_response.getReturnedData();
+              commit_builds = commit_builds.concat(new_items);
+
+              let new_endpoint = api_response.getLinksFromHeader();
+              if ('next' in new_endpoint) {
+                  fetch_one_page_of_builds(new_endpoint.next);
+              } else {
+                  this.setState({'commitBuilds': commit_builds});
+              }
+          },
+          error => {
+              console.log(`Error fetching builds. (${endpoint})`);
+          });
+    };
+
+    // 100 is max page size.
+    let endpoint = `/api/0/sources_builds/?source_id=${uuid}&per_page=100`;
+    fetch_one_page_of_builds(endpoint);  
     api.fetch(this, {
-      commitBuilds: `/api/0/sources_builds/?source_id=${uuid}&per_page=100`,
       source: `/api/0/sources/${uuid}`
     });
   },
@@ -103,8 +128,8 @@ export var CommitPage = React.createClass({
 
     // special-case source API errors...it might be because the commit contains unicode
     if (api.isError(this.state.source)) {
-      if (!api.isLoaded(this.state.commitBuilds)) {
-        return <APINotLoadedPage calls={this.state.commitBuilds} />;  
+      if (this.state.commitBuilds === null) {
+        return <APINotLoadedPage calls={this.state.commitBuilds} />;
       }
 
       var links = _.map(this.state.commitBuilds.getReturnedData(), b => {
@@ -139,7 +164,7 @@ export var CommitPage = React.createClass({
       </ChangesPage>;
     }
 
-    if (!api.allLoaded([this.state.commitBuilds, this.state.source])) {
+    if (this.state.commitBuilds === null || !api.allLoaded([this.state.source])) {
       return <APINotLoadedPage
         calls={[this.state.commitBuilds, this.state.source]}
       />;
@@ -152,7 +177,7 @@ export var CommitPage = React.createClass({
     return <BuildsPage
       type="commit"
       targetData={this.state.source.getReturnedData()}
-      builds={this.state.commitBuilds.getReturnedData()}
+      builds={this.state.commitBuilds}
     />;
   }
 });
@@ -188,12 +213,12 @@ var BuildsPage = React.createClass({
     this.updateWindowUrl();
 
     var activeBuild = _.filter(
-      this.props.builds, 
+      this.props.builds,
       b => b.id === this.state.activeBuildID)[0];
 
     // TODO: cleanup!
-    return <ChangesPage 
-      bodyPadding={false} 
+    return <ChangesPage
+      bodyPadding={false}
       fixed={true}>
 
       <div className="buildsLabelHeader fixedClass">
@@ -294,8 +319,8 @@ var BuildsPage = React.createClass({
 
       var parentElem = null;
       if (source.revision.parents && source.revision.parents.length > 0) {
-        parentElem = <ParentCommit 
-          sha={source.revision.parents[0]} 
+        parentElem = <ParentCommit
+          sha={source.revision.parents[0]}
           repoID={source.revision.repository.id}
           label={source.revision.parents.length <= 1 ? 'only' : 'first'}
         />;
@@ -324,8 +349,8 @@ var BuildsPage = React.createClass({
       var parentElem = null;
       var diffSource = this.getSourceForDiff(this.props.builds);
       if (diffSource) {  // maybe this is missing if we have no builds?
-        parentElem = <ParentCommit 
-          sha={diffSource.revision.sha} 
+        parentElem = <ParentCommit
+          sha={diffSource.revision.sha}
           repoID={diffSource.revision.repository.id}
           label="diffParent"
         />;
@@ -433,13 +458,13 @@ var ParentCommit = React.createClass({
     return <span className="parentLabel marginLeftS">
       &middot;
       <span className="marginLeftS">{label}</span>
-      <a 
+      <a
         className="marginLeftXS"
         href={ChangesLinks.buildsHref(builds)}>
         {sha.substr(0,7)}
       </a>
-      <ManyBuildsStatus 
-        builds={builds} 
+      <ManyBuildsStatus
+        builds={builds}
       />
     </span>;
   }
