@@ -21,8 +21,3 @@ sudo -u postgres createdb changes || true
 sudo chown -R `whoami` `npm config get cache` || true
 source ~/env/bin/activate
 time make install-test-requirements
-
-# Tell Changes we don't need the citools puppet again.
-if [ ! -z $CHANGES ]; then
-    touch /home/ubuntu/SKIP_CITOOLS_PUPPET
-fi
