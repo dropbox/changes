@@ -52,4 +52,5 @@ class CollectionArtifactHandler(ArtifactHandler):
 
 
 class TestsJsonHandler(CollectionArtifactHandler):
-    FILENAMES = ('tests.json',)
+    # only match in the root directory
+    FILENAMES = ('/tests.json',)

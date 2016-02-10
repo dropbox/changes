@@ -23,7 +23,16 @@ class ArtifactHandler(object):
         Returns True if this handler can process the given artifact.
         """
         for pattern in cls.FILENAMES:
-            if fnmatch(os.path.basename(filepath), pattern):
+            # we take a simplified gitignore-like approach, where if the
+            # pattern has a slash in it, we match it against the file path;
+            # otherwise we match against the basename.
+            if '/' in pattern:
+                # ignore starting slash
+                if pattern.startswith('/'):
+                    pattern = pattern[1:]
+                if fnmatch(filepath, pattern):
+                    return True
+            elif fnmatch(os.path.basename(filepath), pattern):
                 return True
         return False
 

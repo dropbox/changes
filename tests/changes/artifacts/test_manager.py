@@ -54,7 +54,7 @@ class ManagerTest(TestCase):
             FILENAMES = ('coverage.xml',)
 
         class _OtherHandler(ArtifactHandler):
-            FILENAMES = ('other.xml',)
+            FILENAMES = ('/other.xml', 'foo/*/weird.json')
 
         manager = Manager()
         manager.register(_CovHandler)
@@ -62,4 +62,7 @@ class ManagerTest(TestCase):
 
         assert manager.can_process('foo/coverage.xml')
         assert manager.can_process('other.xml')
+        assert manager.can_process('foo/bar/weird.json')
+        assert not manager.can_process('foo/other.xml')
+        assert not manager.can_process('bar/foo/baz/weird.json')
         assert not manager.can_process('service.log')

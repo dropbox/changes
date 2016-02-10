@@ -51,7 +51,7 @@ class JenkinsTestCollectorBuilderTest(BaseTestCase):
                                    result=Result.passed)
 
         artifacts = [self.create_artifact(step, 'manifest.json'),
-                     self.create_artifact(step, 'foo/tests.json')]
+                     self.create_artifact(step, 'tests.json')]
 
         builder = self.get_builder()
         builder.verify_final_artifacts(step, artifacts)
@@ -68,7 +68,8 @@ class JenkinsTestCollectorBuilderTest(BaseTestCase):
         step = self.create_jobstep(phase, status=Status.finished,
                                    result=Result.passed)
 
-        artifacts = [self.create_artifact(step, 'manifest.json')]
+        artifacts = [self.create_artifact(step, 'manifest.json'),
+                     self.create_artifact(step, 'foo/tests.json')]
 
         builder = self.get_builder()
         builder.verify_final_artifacts(step, artifacts)

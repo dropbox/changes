@@ -21,7 +21,7 @@ class CollectionArtifactHandlerTest(TestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
         handler = CollectionArtifactHandler(jobstep)
-        handler.FILENAMES = ('tests.json',)
+        handler.FILENAMES = ('/tests.json',)
 
         handler.process(StringIO("{}"))
         buildstep.expand_jobs.assert_called_once_with(jobstep, {})
@@ -39,7 +39,7 @@ class CollectionArtifactHandlerTest(TestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
         handler = CollectionArtifactHandler(jobstep)
-        handler.FILENAMES = ('tests.json',)
+        handler.FILENAMES = ('/tests.json',)
 
         handler.process(StringIO(""))
         assert buildstep.call_count == 0
@@ -57,7 +57,7 @@ class CollectionArtifactHandlerTest(TestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
         handler = CollectionArtifactHandler(jobstep)
-        handler.FILENAMES = ('tests.json',)
+        handler.FILENAMES = ('/tests.json',)
         buildstep.expand_jobs.side_effect = ArtifactParseError('bad file')
 
         handler.process(StringIO("{}"))
@@ -76,7 +76,7 @@ class CollectionArtifactHandlerTest(TestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
         handler = CollectionArtifactHandler(jobstep)
-        handler.FILENAMES = ('tests.json',)
+        handler.FILENAMES = ('/tests.json',)
         buildstep.expand_jobs.side_effect = Exception('error')
 
         handler.process(StringIO("{}"))
