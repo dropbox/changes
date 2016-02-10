@@ -11,7 +11,8 @@ var loading_messages = [
   'Important things are worth waiting for',
   "I'm a happy loading message! \\(^o^)/",
   'Mining bitcoi^W^WLoading Changes. Hang tight',
-  'Putting the turkey in the oven...',
+  'Reticulating splines...',
+  'Grab a snickers.',
 ];
 
 /*
