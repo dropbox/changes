@@ -3,7 +3,10 @@ import json
 import logging
 from collections import namedtuple
 from datetime import datetime
+from uuid import UUID
 from flask import request
+from flask_restful.reqparse import RequestParser
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 from changes.api.base import APIView, error
 from changes.constants import Status, Result
@@ -96,8 +99,125 @@ class JobStepAllocateAPIView(APIView):
         results.extend(queryset[:limit - len(results)])
         return results[:limit]
 
+    get_parser = RequestParser()
+    get_parser.add_argument('cluster', type=unicode, location='args', default=None)
+    get_parser.add_argument('limit', type=int, location='args', default=200)
+
+    def get(self):
+        """
+        New GET method that returns a priority sorted list of possible jobsteps
+        to allocate. The scheduler can then decide which ones it can actually
+        allocate and makes a POST request to mark these as such with Changes.
+
+        Args (in the form of a query string):
+            cluster (Optional[str]): The cluster to look for jobsteps in.
+            limit (int (default 200)): Maximum number of jobsteps to return.
+        """
+        args = self.get_parser.parse_args()
+
+        cluster = args.cluster
+        limit = args.limit
+
+        with statsreporter.stats().timer('jobstep_allocate_get'):
+            available_allocations = self.find_next_jobsteps(limit, cluster)
+            jobstep_results = []
+
+            for jobstep in available_allocations:
+                jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
+                assert jobplan and buildstep
+                limits = buildstep.get_resource_limits()
+                req_cpus = limits.get('cpus', 4)
+                req_mem = limits.get('memory', 8 * 1024)
+                allocation_cmd = buildstep.get_allocation_command(jobstep)
+                jobstep_data = self.serialize(jobstep)
+                jobstep_data['project'] = self.serialize(jobstep.project)
+                jobstep_data['resources'] = {
+                    'cpus': req_cpus,
+                    'mem': req_mem,
+                }
+                jobstep_data['cmd'] = allocation_cmd
+                jobstep_results.append(jobstep_data)
+
+            return self.respond({'jobsteps': jobstep_results})
+
+    def new_post(self, args):
+        """
+        New POST code path that just allocates a list of jobstep IDs.
+        This new method of allocation works by first sending a GET request
+        to get a priority sorted list of possible jobsteps. The scheduler can
+        then allocate these as it sees fit, and sends a POST request with
+        the list of jobstep IDs it actually decided to allocate.
+
+        We maintain the old POST code for now so that current schedulers
+        continue to work (anything without a jobstep_ids arg goes to the old
+        POST method). But it will likely get removed once it's out of use.
+
+        Args:
+            args: JSON dict of args to the POST request. This must include a
+                jobstep_ids field, which is a list of jobstep ID hexs to
+                allocate, and optionally a cluster that these jobsteps are in.
+        """
+        try:
+            jobstep_ids = args['jobstep_ids']
+        except KeyError:
+            return error('Missing jobstep_ids attribute')
+
+        for id in jobstep_ids:
+            try:
+                UUID(id)
+            except ValueError:
+                err = "Invalid jobstep id sent to jobstep_allocate: %s"
+                logging.warning(err, id, exc_info=True)
+                return error(err % id)
+
+        cluster = args.get('cluster')
+
+        with statsreporter.stats().timer('jobstep_allocate_post'):
+            try:
+                lock_key = 'jobstep:allocate'
+                if cluster:
+                    lock_key = lock_key + ':' + cluster
+                with redis.lock(lock_key, nowait=True):
+                    jobsteps = JobStep.query.filter(JobStep.id.in_(jobstep_ids))
+
+                    for jobstep in jobsteps:
+                        if jobstep.cluster != cluster:
+                            db.session.rollback()
+                            err = 'Jobstep is in cluster %s but tried to allocate in cluster %s (id=%s, project=%s)'
+                            err_args = (jobstep.cluster, cluster, jobstep.id.hex, jobstep.project.slug)
+                            logging.warning(err, *err_args)
+                            return error(err % err_args)
+                        if jobstep.status != Status.pending_allocation:
+                            db.session.rollback()
+                            err = 'Jobstep %s for project %s was already allocated'
+                            err_args = (jobstep.id.hex, jobstep.project.slug)
+                            logging.warning(err, *err_args)
+                            return error(err % err_args, http_code=409)
+
+                        jobstep.status = Status.allocated
+                        db.session.add(jobstep)
+                        # The JobSteps returned are pending_allocation, and the initial state for a Mesos JobStep is
+                        # pending_allocation, so we can determine how long it was pending by how long ago it was
+                        # created.
+                        pending_seconds = (datetime.utcnow() - jobstep.date_created).total_seconds()
+                        statsreporter.stats().log_timing('duration_pending_allocation', pending_seconds * 1000)
+
+                    db.session.commit()
+
+                    return self.respond({'allocated': jobstep_ids})
+            except UnableToGetLock:
+                return error('Another allocation is in progress', http_code=409)
+            except IntegrityError:
+                err = 'Could not commit allocation'
+                logging.warning(err, exc_info=True)
+                return error(err, http_code=409)
+
     def post(self):
         args = json.loads(request.data)
+
+        # TODO(nate): get rid of old allocation code once scheduler is updated to use this
+        if args.get('jobstep_ids'):
+            return self.new_post(args)
 
         try:
             resources = args['resources']
