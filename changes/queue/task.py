@@ -18,12 +18,6 @@ from changes.utils.locking import lock
 BASE_RETRY_COUNTDOWN = 60
 CONTINUE_COUNTDOWN = 5
 
-# Number of seconds to delay before starting tasks.
-# It isn't actually known whether this is useful or why we even have this delay;
-# this just gives it a name so this fact is explicit and hopefully we can remove it more
-# easily.
-_DEFAULT_COUNTDOWN = 1
-
 RUN_TIMEOUT = timedelta(minutes=60)
 EXPIRE_TIMEOUT = timedelta(minutes=120)
 HARD_TIMEOUT = timedelta(hours=12)
@@ -325,7 +319,6 @@ class TrackedTask(local):
             queue.delay(
                 self.task_name,
                 kwargs=kwargs,
-                countdown=_DEFAULT_COUNTDOWN,
             )
 
         if created:
@@ -370,7 +363,6 @@ class TrackedTask(local):
         queue.delay(
             self.task_name,
             kwargs=kwargs,
-            countdown=_DEFAULT_COUNTDOWN,
         )
 
     def verify_all_children(self):

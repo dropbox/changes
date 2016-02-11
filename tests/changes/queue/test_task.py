@@ -8,7 +8,7 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.models.task import Task
 from changes.testutils import TestCase
-from changes.queue.task import tracked_task, _DEFAULT_COUNTDOWN
+from changes.queue.task import tracked_task
 
 
 @tracked_task
@@ -41,7 +41,7 @@ class DelayTest(TestCase):
             'foo': 'bar',
             'task_id': task_id.hex,
             'parent_task_id': parent_task_id.hex,
-        }, countdown=_DEFAULT_COUNTDOWN)
+        })
 
         task = Task.query.filter(
             Task.task_id == task_id,
@@ -71,7 +71,7 @@ class DelayIfNeededTest(TestCase):
             'foo': 'bar',
             'task_id': task_id.hex,
             'parent_task_id': parent_task_id.hex,
-        }, countdown=_DEFAULT_COUNTDOWN)
+        })
 
         task = Task.query.filter(
             Task.task_id == task_id,
@@ -130,7 +130,7 @@ class DelayIfNeededTest(TestCase):
             'foo': 'bar',
             'task_id': task_id.hex,
             'parent_task_id': parent_task_id.hex,
-        }, countdown=_DEFAULT_COUNTDOWN)
+        })
 
 
 class VerifyAllChildrenTest(TestCase):

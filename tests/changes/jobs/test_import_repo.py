@@ -7,7 +7,6 @@ from datetime import datetime
 from changes.config import db
 from changes.jobs.import_repo import import_repo
 from changes.models.repository import Repository, RepositoryBackend, RepositoryStatus
-from changes.queue.task import _DEFAULT_COUNTDOWN
 from changes.testutils import TestCase
 from changes.vcs.base import Vcs, RevisionResult
 
@@ -57,4 +56,4 @@ class ImportRepoTest(TestCase):
             'repo_id': repo.id.hex,
             'task_id': repo.id.hex,
             'parent': 'a' * 40,
-        }, countdown=_DEFAULT_COUNTDOWN)
+        })
