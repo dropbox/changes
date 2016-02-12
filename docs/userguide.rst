@@ -1,7 +1,7 @@
 Using Changes
 =============
 
-At a high level, Changes is designed to be a view into the lifetime of a changeset. This is mostly apparant when you're viewing the results of automated tests.
+At a high level, Changes is designed to be a view into the lifetime of a changeset. This is mostly apparent when you're viewing the results of automated tests.
 
 A few concepts you should understand about Changes:
 
