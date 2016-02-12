@@ -200,6 +200,38 @@ export var allErrorResponses = function(list_of_calls) {
   return responses;
 }
 
+/*
+ * Build success/error messages for an API call response. Handles null/false.
+ * possible: the state object produced by the API call
+ * success_str: a string to display if the call was successful
+ * error_str_prefix: a prefix to prepend to an error message produced by the
+ *                   API call.
+ */
+export var buildStatusMessage = function(
+        possible, success_str, error_str_prefix) {
+  if (isLoaded(possible)) {
+    return success_str;
+  } else if (isError(possible)) {
+    let response_data = possible.getReturnedData();
+    // Sometimes API responses are JSON-encoded objects, and sometimes they're
+    // JSON-encoded JSON-encoded objects. getReturnedData() decodes one layer.
+    // Keep going until we get an Object instead of a string.
+    //
+    // @kylec: Some other options for this janky implementation:
+    // 1) The right fix is probably to remove the double JSON-encoding from
+    //    the server, but that will have similar compatibility problems.
+    // 2) Move the while loop into getReturnedData(). But that's called in a
+    //    bunch of places, and guaranteeing compatibility will be tricky.
+    // 3) The old solution was: Just display whatever string (JSON-encoded
+    //    or otherwise) the server decides to send back in response to the
+    //    API call. But this is ugly.
+    while (typeof(response_data) === 'string' || response_data instanceof String) {
+        response_data = JSON.parse(response_data);
+    }
+    return `${error_str_prefix}: ${response_data.error}`;
+  }
+}
+
 /**
  * Wrapper to make ajax GET request
  */

@@ -263,7 +263,15 @@ let ProjectSettingsFieldGroup = React.createClass({
       },
     ];
 
-    return FieldGroupMarkup.create(form, "Save Project", this);
+    let formMessages = [
+        api.buildStatusMessage(this.state._postRequest_project,
+                              'Saved project',
+                              'Failed to save project'),
+        api.buildStatusMessage(this.state._postRequest_options,
+                              'Saved project options',
+                              'Failed to save project options'),
+    ];
+    return FieldGroupMarkup.create(form, "Save Project", this, formMessages);
   },
 });
 
@@ -481,21 +489,14 @@ let PlanDetails = React.createClass({
       },
     ];
 
-    let formMessages = [];
-    if (this.state._postRequest_plan) {
-      let result = this.state._postRequest_plan;
-      if (result.condition === 'loaded')
-        formMessages.push('Saved plan basics');
-      else if (result.condition === 'error')
-        formMessages.push('Failed to save plan basics: ' + result.response.responseText);
-    }
-    if (this.state._postRequest_options) {
-      let result = this.state._postRequest_options;
-      if (result.condition === 'loaded')
-        formMessages.push('Saved plan options');
-      else if (result.condition === 'error')
-        formMessages.push('Failed to save plan options: ' + result.response.responseText);
-    }
+    let formMessages = [
+        api.buildStatusMessage(this.state._postRequest_plan,
+                              'Saved plan basics',
+                              'Failed to save plan basics'),
+        api.buildStatusMessage(this.state._postRequest_options,
+                              'Saved plan options',
+                              'Failed to save plan options'),
+    ];
     let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this, formMessages);
 
     let stepMarkup = null;
@@ -596,14 +597,11 @@ let StepDetails = React.createClass({
   render: function() {
     let step = this.props.step;
 
-    let formMessages = [];
-    if (this.state._postRequest_step) {
-      let result = this.state._postRequest_step;
-      if (result.condition === 'loaded')
-        formMessages.push('Saved step');
-      else if (result.condition === 'error')
-        formMessages.push('Failed to save step: ' + result.response.responseText);
-    }
+    let formMessages = [
+        api.buildStatusMessage(this.state._postRequest_step,
+                               'Saved step',
+                               'Failed to save step'),
+    ];
     let form = [
       {
         sectionTitle: step.name,
