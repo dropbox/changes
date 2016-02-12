@@ -94,6 +94,11 @@ module.exports = function(grunt) {
             },
           },
 
+          // Increase the require.js load timeout threshold, since the ES6
+          // compilation step in development mode often exceeds the default
+          // 7-second threshold.
+          waitSeconds: 15,
+
           'stubModules': ['es6', 'babel'],
 
           // uglify would cut the final file size by 50%, but make debugging 

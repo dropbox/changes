@@ -32,7 +32,11 @@ requirejs.config({
     underscore: {
       exports: '_'
     },
-  }
+  },
+
+  // Increase the require.js load timeout threshold, since the ES6 compilation
+  // step in development mode often exceeds the 7-second default threshold.
+  waitSeconds: 15
 });
 
 /*
