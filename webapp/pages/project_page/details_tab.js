@@ -32,6 +32,15 @@ var DetailsTab = React.createClass({
     var plans = this.props.details.getReturnedData();
     var project = this.props.project.getReturnedData();
 
+    let editLink = null;
+    const isAdmin = window.changesAuthData &&
+                    window.changesAuthData.user &&
+                    window.changesAuthData.user.isAdmin === true;
+    if (isAdmin) {
+        editLink = <a className="topRightLink"
+                      href={`/admin_project/${project.slug}/`}>[edit]</a>;
+    }
+
     var markup = _.map(plans, p =>
       <div className="marginBottomL">
         <b className="block">Build Plan:{" "}{p.name}</b>
@@ -53,6 +62,7 @@ var DetailsTab = React.createClass({
     );
 
     return <div>
+      {editLink}
       {this.renderHeader(project, plans)}
       {markup}
     </div>;
