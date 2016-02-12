@@ -47,8 +47,11 @@ var APIResponsePrototype = {
  * resulting APIResponse objects.
  * endpoint_map is a map from the state key to the endpoint to send the get request to.
  * param_map is a map from the state key to a params object to send.
- * callback is a function(APIResponse) which is called with the raw result of
- *     the API call. Can be null.
+ * callback is a function(APIResponse, bool) which is called with
+ *     a) the raw result of the API call. Can be null.
+ *     b) Whether or not all batched API calls have completed successfully
+ *        (e.g. for fetchMapWithParams(). Note that this is false for earlier
+ *        calls if not all calls have returned yet.
  */
 export var fetch = function(elem, endpoint_map, param_map = {}, callback = null) {
 
@@ -104,11 +107,16 @@ var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map
     );
   }
 
+  let success_count = 0;
   _.each(endpoint_map, (endpoint, state_key) => {
     var params = param_map[state_key];
     var ajax_response = function(response, was_success) {
       if (!elem.isMounted()) {
         return false;
+      }
+
+      if (was_success) {
+        ++success_count;
       }
 
       var api_response = APIResponse(endpoint);
@@ -127,7 +135,8 @@ var fetchMapWithParams = function(elem, map_key, endpoint_map, method, param_map
       // additional conditional processing by the GET/POST/DELETE caller.
       let callbackWithResponse = null;
       if (callback) {
-        callbackWithResponse = function() { callback(api_response); }
+        let all_successes = success_count === Object.keys(endpoint_map).length;
+        callbackWithResponse = function() { callback(api_response, all_successes); }
       }
 
       elem.setState(state_to_set, callbackWithResponse);

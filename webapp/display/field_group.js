@@ -28,8 +28,8 @@ export var redirectCallback = function(fieldGroup, redirectUrl) {
 export var DiffFormMixin = {
 
   // Use onFormSubmit as a callback to any api.js post/get/delete call.
-  onFormSubmit: function(api_response) {
-    if (api_response.condition !== 'loaded') {
+  onFormSubmit: function(api_response, all_successes) {
+    if (!all_successes || api_response.condition !== 'loaded') {
       return false;
     }
 
