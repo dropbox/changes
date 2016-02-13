@@ -271,6 +271,7 @@ let ProjectSettingsFieldGroup = React.createClass({
                               'Saved project options',
                               'Failed to save project options'),
     ];
+    formMessages = _.filter(formMessages, msg => msg !== null);
     return FieldGroupMarkup.create(form, "Save Project", this, formMessages);
   },
 });
@@ -497,6 +498,7 @@ let PlanDetails = React.createClass({
                               'Saved plan options',
                               'Failed to save plan options'),
     ];
+    formMessages = _.filter(formMessages, msg => msg !== null);
     let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this, formMessages);
 
     let stepMarkup = null;
@@ -623,6 +625,7 @@ let StepDetails = React.createClass({
                    <Button className="marginLeftS">Delete Step</Button>
                 </Request>;
 
+    formMessages = _.filter(formMessages, msg => msg !== null);
     return FieldGroupMarkup.create(form, "Save Step", this, formMessages, [del]);
   },
 });

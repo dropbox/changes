@@ -206,16 +206,21 @@ export var allErrorResponses = function(list_of_calls) {
  * success_str: a string to display if the call was successful
  * error_str_prefix: a prefix to prepend to an error message produced by the
  *                   API call.
+ *
+ * Returns a displayable string representing the status message, or null if no
+ * suitable message can be built for any reason (e.g. possible is null).
  */
 export var buildStatusMessage = function(
         possible, success_str, error_str_prefix) {
   if (isLoaded(possible)) {
     return success_str;
   } else if (isError(possible)) {
-    let response_data = possible.getReturnedData();
-    // Sometimes API responses are JSON-encoded objects, and sometimes they're
-    // JSON-encoded JSON-encoded objects. getReturnedData() decodes one layer.
-    // Keep going until we get an Object instead of a string.
+    let response_data = possible.response.responseText;
+    // Usually API responses are JSON-encoded objects, but sometimes they're
+    // JSON-encoded JSON-encoded objects, and sometimes they're just raw
+    // strings (e.g. access-denied error). getReturnedData() decodes one layer.
+    // Keep going until we get an Object instead of a string or until the
+    // string fails to decode.
     //
     // @kylec: Some other options for this janky implementation:
     // 1) The right fix is probably to remove the double JSON-encoding from
@@ -226,9 +231,16 @@ export var buildStatusMessage = function(
     //    or otherwise) the server decides to send back in response to the
     //    API call. But this is ugly.
     while (typeof(response_data) === 'string' || response_data instanceof String) {
-        response_data = JSON.parse(response_data);
+        try {
+            response_data = JSON.parse(response_data);
+        } catch (e) {
+            // Return whatever string couldn't be JSON-parsed.
+            return response_data;
+        }
     }
     return `${error_str_prefix}: ${response_data.error}`;
+  } else {
+    return null;
   }
 }
 
