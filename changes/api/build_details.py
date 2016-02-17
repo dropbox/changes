@@ -196,14 +196,20 @@ class BuildDetailsAPIView(APIView):
         ))
 
         # identify failures
-        test_failures = TestCase.query.options(
-            joinedload('job', innerjoin=True),
-        ).filter(
-            TestCase.job_id.in_([j.id for j in jobs]),
-            TestCase.result == Result.failed,
-        ).order_by(TestCase.name.asc())
-        num_test_failures = test_failures.count()
-        test_failures = test_failures[:25]
+        if not jobs:
+            # If we have no jobs, the query to find failures becomes very expensive due to `in_([])` being
+            # handled poorly, but since we know the result, we can just set it.
+            test_failures = []
+            num_test_failures = 0
+        else:
+            test_failures = TestCase.query.options(
+                joinedload('job', innerjoin=True),
+            ).filter(
+                TestCase.job_id.in_([j.id for j in jobs]),
+                TestCase.result == Result.failed,
+            ).order_by(TestCase.name.asc())
+            num_test_failures = test_failures.count()
+            test_failures = test_failures[:25]
 
         failures_by_job = defaultdict(list)
         for failure in test_failures:
