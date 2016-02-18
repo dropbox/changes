@@ -48,6 +48,13 @@ class TestCase(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
     reruns = Column(Integer)
 
+    # owner should be considered an unstructured string field. It may contain
+    # email address ("Foo <foo@example.com>", a username ("foo"), or something
+    # else. This field is not used directly by Changes, so
+    # providers + consumers on either side of Changes should be sure they know
+    # what they're doing.
+    owner = Column(Text)
+
     job = relationship('Job')
     step = relationship('JobStep')
     project = relationship('Project')
