@@ -1,13 +1,24 @@
-from fnmatch import fnmatch
 from changes.models import Build
 from datetime import datetime, timedelta
+
+import fnmatch
+import re
+
+
+def _compile_patterns(pattern_list):
+    return [re.compile(fnmatch.translate(p)) for p in pattern_list]
+
+
+def _match_file_patterns(patterns, fname):
+    return any(pattern.match(fname) for pattern in patterns)
 
 
 def _in_project_files_whitelist(project_options, files_changed):
     file_whitelist = filter(bool, project_options.get('build.file-whitelist', '').splitlines())
     if file_whitelist:
+        whitelist_patterns = _compile_patterns(file_whitelist)
         for filename in files_changed:
-            if any(fnmatch(filename, pattern) for pattern in file_whitelist):
+            if _match_file_patterns(whitelist_patterns, filename):
                 return True
         return False
     return True
@@ -48,8 +59,8 @@ def files_changed_should_trigger_project(files_changed, project, project_options
     blacklist = config['build.file-blacklist']
 
     # filter out files in blacklist
-    files_changed = filter(
-        lambda f: not any([fnmatch(f, b) for b in blacklist]), files_changed)
+    blacklist_patterns = _compile_patterns(blacklist)
+    files_changed = filter(lambda f: not _match_file_patterns(blacklist_patterns, f), files_changed)
 
     # apply whitelist, if there are still files left
     if len(files_changed) > 0:
