@@ -263,7 +263,7 @@ var Sidebar = React.createClass({
         <div className="inlineBlock">{text}</div>
         <div className="sidebarTime">{time}</div>
         <div className={"subText " + subtext_extra_class}>
-          {subtext}
+          <span className="subtextStatus">{subtext}</span>
           {right_subtext}
         </div>
       </div>

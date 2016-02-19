@@ -582,6 +582,15 @@ div.chartBar {
   color: @mediumGray;
 }
 
+/*
+ * The div+float-based layout for the Builds List can get some wonky
+ * indenting if the left subtext is empty. Ensure that there's always at least
+ * an &emsp; present to force things into the correct positions.
+ */
+.subtextStatus:empty::before {
+  content: "\2003";  /* 2003 == &emsp; */
+}
+
 .lb {
   font-weight: 600;
 }
