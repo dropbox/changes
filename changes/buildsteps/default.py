@@ -210,12 +210,10 @@ class DefaultBuildStep(BuildStep):
             valid_command_pred = CommandType.is_valid_for_snapshot
         elif any(fc.type.is_collector() for fc in all_commands):
             valid_command_pred = CommandType.is_valid_for_collection
-        index = 0
-        for future_command in all_commands:
+        for index, future_command in enumerate(all_commands):
             if not valid_command_pred(future_command.type):
                 continue
 
-            index += 1
             command = future_command.as_command(
                 jobstep=step,
                 order=index,
@@ -223,7 +221,7 @@ class DefaultBuildStep(BuildStep):
             db.session.add(command)
 
         # TODO(dcramer): improve error handling here
-        assert index != 0, "No commands were registered for build plan"
+        assert len(all_commands) != 0, "No commands were registered for build plan"
 
         if replaces:
             replaces.replacement_id = step.id

@@ -60,12 +60,14 @@ class DefaultBuildStepTest(TestCase):
         for k, v in DEFAULT_ENV.items():
             if k != 'PATH':
                 assert commands[0].env[k] == v
+        assert commands[0].order == 0
 
         assert commands[1].script == 'echo "hello world 1"'
         assert commands[1].cwd == DEFAULT_PATH
         assert commands[1].type == CommandType.default
         assert tuple(commands[1].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[1].env == DEFAULT_ENV
+        assert commands[1].order == 1
 
     @mock.patch.object(Repository, 'get_vcs')
     def test_execute_collection_step(self, get_vcs):
