@@ -7,6 +7,8 @@ from flask import current_app
 
 from changes.storage.base import FileStorage
 
+ARTIFACTSTORE_PREFIX = 'artifactstore/'
+
 
 class ArtifactStoreFileStorage(FileStorage):
     def __init__(self, base_url=None, path=''):

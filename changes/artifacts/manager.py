@@ -1,4 +1,5 @@
 from __future__ import absolute_import, print_function
+from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX
 
 
 class Manager(object):
@@ -9,6 +10,9 @@ class Manager(object):
         self.handlers.append(cls)
 
     def can_process(self, artifact_name):
+        # artifactstore prefix shouldn't be considered part of the path
+        if artifact_name.startswith(ARTIFACTSTORE_PREFIX):
+            artifact_name = artifact_name[len(ARTIFACTSTORE_PREFIX):]
         return any(cls.can_process(artifact_name) for cls in self.handlers)
 
     def process(self, artifact, fp=None):

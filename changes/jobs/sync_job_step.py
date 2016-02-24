@@ -21,6 +21,7 @@ from changes.models import (
 )
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
+from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX
 
 
 INFRA_FAILURE_REASONS = ['malformed_manifest_json', 'missing_manifest_json']
@@ -250,7 +251,7 @@ def _sync_from_artifact_store(jobstep):
 
             art, created = get_or_create(Artifact, where={
                 # Don't conflict with same artifacts uploaded by other means (Jenkins/Mesos)
-                'name': 'artifactstore/' + artifact_path,
+                'name': ARTIFACTSTORE_PREFIX + artifact_path,
                 'step_id': jobstep.id,
                 'job_id': jobstep.job_id,
                 'project_id': jobstep.project_id,

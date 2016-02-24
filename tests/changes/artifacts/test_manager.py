@@ -62,7 +62,9 @@ class ManagerTest(TestCase):
 
         assert manager.can_process('foo/coverage.xml')
         assert manager.can_process('other.xml')
+        assert manager.can_process('artifactstore/other.xml')
         assert manager.can_process('foo/bar/weird.json')
+        assert manager.can_process('artifactstore/foo/bar/weird.json')
         assert not manager.can_process('foo/other.xml')
         assert not manager.can_process('bar/foo/baz/weird.json')
         assert not manager.can_process('service.log')
