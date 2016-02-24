@@ -47,18 +47,19 @@ class BuildFlakyTestsAPIView(APIView):
             # MAX_TESTS_TO_ADD to add. If there are less, it will only send
             # an alert and we don't want to waste time querying the DB
             if len(flaky_tests_query) <= MAX_TESTS_TO_ADD:
-                first_build = self._get_first_build(build.project_id, test.name_sha)
-                last_test = self._get_last_testcase(build.project_id, test.name_sha)
+                first_test = TestCase.query.filter(
+                    TestCase.project_id == build.project_id,
+                    TestCase.name_sha == test.name_sha,
+                ).order_by(TestCase.date_created.asc()).limit(1).first()
 
-                possible_authors = [
-                    last_test.owner,
-                    first_build.author.email,
-                ]
+                first_build = Build.query.options(
+                    joinedload('author'),
+                    joinedload('source'),
+                ).filter(
+                    Build.id == first_test.job.build_id,
+                ).first()
 
-                for author in possible_authors:
-                    if author:
-                        item['author'] = {'email': author}
-                        break
+                item['author'] = {'email': first_build.author.email}
 
                 if first_build.source.patch_id:
                     # Use Phabricator revision ID without trailing D
@@ -76,45 +77,3 @@ class BuildFlakyTestsAPIView(APIView):
         }
 
         return self.respond(context)
-
-    @staticmethod
-    def _get_first_build(project_id, test_name_sha):
-        """Get the first build (by date created) containing a test case.
-
-        Args:
-           :param project_id: string
-           :param test_name_sha: string
-        Returns:
-            Build
-        """
-        first_test = TestCase.query.filter(
-            TestCase.project_id == project_id,
-            TestCase.name_sha == test_name_sha,
-        ).order_by(TestCase.date_created.asc()).limit(1).first()
-
-        if first_test is None:
-            return None
-
-        first_build = Build.query.options(
-            joinedload('author'),
-            joinedload('source'),
-        ).filter(
-            Build.id == first_test.job.build_id,
-        ).first()
-        return first_build
-
-    @staticmethod
-    def _get_last_testcase(project_id, test_name_sha):
-        """Get the most recent TestCase instance for the specified name.
-
-        Args:
-           :param project_id: string
-           :param test_name_sha: string
-        Returns:
-            TestCase
-        """
-        most_recent_test = TestCase.query.filter(
-            TestCase.project_id == project_id,
-            TestCase.name_sha == test_name_sha,
-        ).order_by(TestCase.date_created.desc()).limit(1).first()
-        return most_recent_test

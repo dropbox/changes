@@ -23,7 +23,7 @@ class TestResult(object):
     """
     def __init__(self, step, name, message=None, package=None,
                  result=None, duration=None, date_created=None,
-                 reruns=None, artifacts=None, owner=None):
+                 reruns=None, artifacts=None):
         self.step = step
         self._name = name
         self._package = package
@@ -33,7 +33,6 @@ class TestResult(object):
         self.date_created = date_created or datetime.utcnow()
         self.reruns = reruns or 0
         self.artifacts = artifacts
-        self.owner = owner
 
     @property
     def sep(self):
@@ -110,8 +109,7 @@ class TestResultManager(object):
                 message=test.message,
                 result=test.result,
                 date_created=test.date_created,
-                reruns=test.reruns,
-                owner=test.owner,
+                reruns=test.reruns
             )
             testcase_list.append(testcase)
 

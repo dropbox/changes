@@ -140,8 +140,6 @@ class XunitHandler(ArtifactHandler):
                 elif result == Result.skipped:
                     result = Result.quarantined_skipped
 
-            owner = attrs.get('owner', None)
-
             if attrs.get('time'):
                 duration = float(attrs['time']) * 1000
             else:
@@ -157,8 +155,7 @@ class XunitHandler(ArtifactHandler):
                 # but ensures that we have at least some message from each test.
                 message=_truncate_message(message, message_limit),
                 reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None,
-                artifacts=self._get_testartifacts(node),
-                owner=owner,
+                artifacts=self._get_testartifacts(node)
             ))
 
         results = _deduplicate_testresults(results)

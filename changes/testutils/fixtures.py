@@ -60,7 +60,7 @@ SAMPLE_DIFF = SAMPLE_DIFF_BYTES.decode('utf-8')
 
 SAMPLE_XUNIT = """<?xml version="1.0" encoding="utf-8"?>
 <testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.077">
-    <testcase classname="" name="tests.test_report" time="0" owner="foo">
+    <testcase classname="" name="tests.test_report" time="0">
         <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
 &gt;   import mock
 E   ImportError: No module named mock</failure>
