@@ -202,9 +202,15 @@ var ProjectPage = React.createClass({
       </span>
     }
 
+    let inactive_warning = null;
+    if (project_info.status.id == "inactive") {
+      inactive_warning = <span className="inactiveWarning">[This project is inactive]</span>;
+    }
+
     return <div style={{ padding: 20 }}>
       <div className="nonFixedClass"><b>{project_info.name}</b>
-        <tt> (arc test {project_info.slug})</tt> 
+        <tt> (arc test {project_info.slug})</tt>
+        {inactive_warning}
       </div>
       <span style={{ fontWeight: 600 }}>Repository:</span>
         {" "}{project_info.repository.url}{" "}
