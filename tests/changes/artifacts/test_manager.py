@@ -15,8 +15,12 @@ class ManagerTest(TestCase):
         class _CovHandler(ArtifactHandler):
             FILENAMES = ('coverage.xml',)
 
+        class _OtherHandler(ArtifactHandler):
+            FILENAMES = ('/other.xml',)
+
         manager = Manager()
         manager.register(_CovHandler)
+        manager.register(_OtherHandler)
 
         project = self.create_project()
         build = self.create_build(project)
@@ -48,6 +52,25 @@ class ManagerTest(TestCase):
         manager.process(artifact)
 
         assert process.call_count == 2
+
+        artifact = self.create_artifact(
+            step=jobstep,
+            name='artifactstore/other.xml'
+        )
+        artifact.file.save(StringIO(), artifact.name)
+        manager.process(artifact)
+
+        assert process.call_count == 3
+
+        # shouldn't process this
+        artifact = self.create_artifact(
+            step=jobstep,
+            name='artifactstore/foo/other.xml'
+        )
+        artifact.file.save(StringIO(), artifact.name)
+        manager.process(artifact)
+
+        assert process.call_count == 3
 
     def test_can_process(self):
         class _CovHandler(ArtifactHandler):

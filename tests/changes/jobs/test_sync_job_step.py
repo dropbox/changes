@@ -624,7 +624,7 @@ class SyncJobStepTest(BaseTestCase):
 
     def test_get_artifacts_to_sync(self):
         artifact_manager = mock.Mock()
-        artifact_manager.can_process.side_effect = lambda name: name != 'service.log'
+        artifact_manager.can_process.side_effect = lambda name: not name.endswith('service.log')
 
         project = self.create_project()
         build = self.create_build(project=project)

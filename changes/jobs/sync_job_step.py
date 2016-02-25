@@ -293,10 +293,12 @@ def _get_artifacts_to_sync(artifacts, artifact_manager, prefer_artifactstore):
         artifacts_by_name[os.path.basename(artifact.name)].append(artifact)
 
     to_sync = []
-    for name, arts in artifacts_by_name.iteritems():
+    for _, arts in artifacts_by_name.iteritems():
         # don't sync_artifact artifacts that we won't actually process
-        if not artifact_manager.can_process(name):
+        arts = [art for art in arts if artifact_manager.can_process(art.name)]
+        if len(arts) == 0:
             continue
+
         artifactstore_arts = [a for a in arts if is_artifact_store(a)]
         other_arts = [a for a in arts if not is_artifact_store(a)]
 

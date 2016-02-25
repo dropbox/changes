@@ -51,7 +51,7 @@ class JenkinsTestCollectorBuilderTest(BaseTestCase):
                                    result=Result.passed)
 
         artifacts = [self.create_artifact(step, 'manifest.json'),
-                     self.create_artifact(step, 'tests.json')]
+                     self.create_artifact(step, 'artifactstore/tests.json')]
 
         builder = self.get_builder()
         builder.verify_final_artifacts(step, artifacts)

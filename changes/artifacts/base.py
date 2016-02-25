@@ -5,6 +5,8 @@ from fnmatch import fnmatch
 import logging
 import os
 
+from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX
+
 
 class ArtifactParseError(Exception):
     pass
@@ -17,11 +19,19 @@ class ArtifactHandler(object):
     def __init__(self, step):
         self.step = step
 
+    @staticmethod
+    def _sanitize_path(artifact_path):
+        # artifactstore prefix shouldn't be considered part of the path
+        if artifact_path.startswith(ARTIFACTSTORE_PREFIX):
+            artifact_path = artifact_path[len(ARTIFACTSTORE_PREFIX):]
+        return artifact_path
+
     @classmethod
     def can_process(cls, filepath):
         """
         Returns True if this handler can process the given artifact.
         """
+        filepath = ArtifactHandler._sanitize_path(filepath)
         for pattern in cls.FILENAMES:
             # we take a simplified gitignore-like approach, where if the
             # pattern has a slash in it, we match it against the file path;
