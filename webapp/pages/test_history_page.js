@@ -5,7 +5,14 @@ import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
-import { ConditionDot } from 'es6!display/changes/build_conditions';
+import { ConditionDot,
+         COND_PASSED,
+         COND_FAILED,
+         COND_UNKNOWN,
+         COND_FAILED_INFRA,
+         COND_FAILED_ABORTED
+ } from 'es6!display/changes/build_conditions';
+
 import { Grid } from 'es6!display/grid';
 import { TimeText, display_duration } from 'es6!display/time';
 
@@ -75,6 +82,19 @@ var TestHistoryPage = React.createClass({
 
     var history = historyInteractive.getDataToShow().getReturnedData();
 
+    // Maps test result id to condition value for ConditionDot.
+    const test_result_to_condition = {
+      'passed':              COND_PASSED,
+      'quarantined_passed':  COND_PASSED,
+      'failed':              COND_FAILED,
+      'quarantined_failed':  COND_FAILED,
+      'skipped':             COND_UNKNOWN,
+      'quarantined_skipped': COND_UNKNOWN,
+      // Below are unexpected, but not impossible.
+      'aborted':      COND_FAILED_ABORTED,
+      'infra_failed': COND_FAILED_ABORTED,
+    };
+
     var rows = _.map(history, t => {
       if (!t) {
         return [
@@ -90,7 +110,7 @@ var TestHistoryPage = React.createClass({
       var build_href = ChangesLinks.buildHref(build);
       return [
         <a className="buildStatus" href={build_href}>
-          <ConditionDot condition={t.result.id} />
+          <ConditionDot condition={test_result_to_condition[t.result.id] || COND_UNKNOWN} />
         </a>,
         display_duration(t.duration / 1000),
         ChangesLinks.author(revision.author),
