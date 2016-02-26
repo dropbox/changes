@@ -337,6 +337,10 @@ let AdminMessageFieldGroup = React.createClass({
     };
   },
 
+  getFieldNames: function() {
+    return ['messageText'];
+  },
+
   saveSettings: function() {
     let message_params = {
       'message': this.state.messageText,
