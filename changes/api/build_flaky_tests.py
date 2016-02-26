@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result
-from changes.models import Build, Job, TestCase
+from changes.models import Build, Job, TestCase, Source, PhabricatorDiff
 
 
 # This constant must match MAX_TESTS_TO_ADD in citools' quarantine keeper
@@ -60,9 +60,11 @@ class BuildFlakyTestsAPIView(APIView):
                         item['author'] = {'email': author}
                         break
 
-                if first_build.source.patch_id:
-                    # Use Phabricator revision ID without trailing D
-                    item['diff_id'] = first_build.target[1:]
+                phab_diff = PhabricatorDiff.query.filter(
+                    Source.id == first_build.source.id,
+                ).first()
+                if phab_diff:
+                    item['diff_id'] = phab_diff.revision_id
 
             flaky_tests.append(item)
 

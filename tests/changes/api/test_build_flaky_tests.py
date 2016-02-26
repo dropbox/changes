@@ -1,21 +1,25 @@
 from uuid import uuid4
 
 from changes.constants import Result, Status
-from changes.testutils import APITestCase
+from changes.testutils import APITestCase, SAMPLE_DIFF
 
 
-class BuildTestIndexTest(APITestCase):
+class BuildFlakyTests(APITestCase):
+    def setUp(self):
+        super(BuildFlakyTests, self).setUp()
+        self.project = self.create_project()
+        self.create_plan(self.project)
+        self.author = self.create_author(self.default_user.email)
+
     def test_owner_extraction(self):
         fake_id = uuid4()
 
         test_id_a = 'a' * 32
         test_id_b = 'b' * 32
 
-        email = 'Foo <foo@example.com>'
         owner = 'foo'
-        author = self.create_author(email)
         project = self.create_project()
-        build = self.create_build(project, result=Result.failed, author=author)
+        build = self.create_build(project, result=Result.failed, author=self.author)
         job = self.create_job(build, status=Status.finished)
         plan = self.create_plan(project)
         step = self.create_step(plan)
@@ -38,7 +42,7 @@ class BuildTestIndexTest(APITestCase):
         # flakyTests results seem to come in nondeterministic order, so make
         # sure we can handle that.
         expected_results = {
-            test_id_a: email,
+            test_id_a: self.default_user.email,
             test_id_b: owner,
         }
 
@@ -50,3 +54,68 @@ class BuildTestIndexTest(APITestCase):
 
         # Ensure that we saw every test id we expected to see.
         assert set(received_ids) == set(expected_results.keys())
+
+    def test_with_diff(self):
+        patch = self.create_patch(
+            repository_id=self.project.repository_id,
+            diff=SAMPLE_DIFF
+        )
+        source = self.create_source(
+            self.project,
+            patch=patch,
+        )
+        diff = self.create_diff(diff_id=456, revision_id=123, source=source)
+        build = self.create_build(
+            project=self.project,
+            source=source,
+            target="D123",
+            status=Status.finished,
+            result=Result.failed,
+            author=self.author,
+        )
+        job = self.create_job(build=build)
+        test = self.create_test(job=job, reruns=2, result=Result.passed)
+
+        path = '/api/0/builds/{0}/flaky_tests/'.format(build.id)
+        resp = self.client.get(path)
+
+        assert resp.status_code == 200
+
+        data = self.unserialize(resp)
+
+        assert data['flakyTests']['count'] == 1
+        assert data['flakyTests']['items'][0]['name'] == test.name
+        assert data['flakyTests']['items'][0]['job_id'] == job.id.hex
+        assert data['flakyTests']['items'][0]['diff_id'] == 123
+
+    def test_without_diff(self):
+        patch = self.create_patch(
+            repository_id=self.project.repository_id,
+            diff=SAMPLE_DIFF
+        )
+        source = self.create_source(
+            self.project,
+            patch=patch,
+        )
+        build = self.create_build(
+            project=self.project,
+            source=source,
+            target="0deadbeefcafe",
+            status=Status.finished,
+            result=Result.failed,
+            author=self.author,
+        )
+        job = self.create_job(build=build)
+        test = self.create_test(job=job, reruns=2, result=Result.passed)
+
+        path = '/api/0/builds/{0}/flaky_tests/'.format(build.id)
+        resp = self.client.get(path)
+
+        assert resp.status_code == 200
+
+        data = self.unserialize(resp)
+
+        assert data['flakyTests']['count'] == 1
+        assert data['flakyTests']['items'][0]['name'] == test.name
+        assert data['flakyTests']['items'][0]['job_id'] == job.id.hex
+        assert 'diff_id' not in data['flakyTests']['items'][0]
