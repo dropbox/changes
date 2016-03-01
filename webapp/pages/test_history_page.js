@@ -107,7 +107,7 @@ var TestHistoryPage = React.createClass({
       var build = t.job.build;
       var revision = build.source.revision;
 
-      var build_href = ChangesLinks.buildHref(build);
+      var build_href = ChangesLinks.buildTestHref(build.id, t);
       return [
         <a className="buildStatus" href={build_href}>
           <ConditionDot condition={test_result_to_condition[t.result.id] || COND_UNKNOWN} />
@@ -143,7 +143,7 @@ var TestHistoryPage = React.createClass({
     return <div style={style}>
       {errorMessage}
       <Grid
-        colnum={6}
+        colnum={headers.length}
         data={rows}
         headers={headers}
         cellClasses={cellClasses}

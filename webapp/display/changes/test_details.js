@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
+import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';
 
 import * as api from 'es6!server/api';
@@ -46,7 +47,7 @@ export var TestDetails = React.createClass({
     }
 
     var permalink = <div>
-        <a href={"/build_test/" + this.props.buildID + "/" + test.id}>
+        <a href={ChangesLinks.buildTestHref(this.props.buildID, test)}>
         Link
         </a>
         </div>;

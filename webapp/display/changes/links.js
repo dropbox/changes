@@ -155,6 +155,11 @@ var ChangesLinks = {
      // We don't have a page for individual images, so we
      // link to the whole snapshot.
      return URI(`/snapshot/${snapshotImage.snapshot.id}/`);
+  },
+
+  // Link to a specific test in an individual build.
+  buildTestHref: function(build_id, test) {
+     return URI(`/build_test/${build_id}/${test.id}`);
   }
 };
 
