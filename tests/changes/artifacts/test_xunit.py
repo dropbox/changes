@@ -32,6 +32,7 @@ def test_result_generation():
     assert r1.message == """tests/test_report.py:1: in <module>
 >   import mock
 E   ImportError: No module named mock"""
+    assert r1.owner == 'foo'
     r2 = results[1]
     assert type(r2) == TestResult
     assert r2.step == jobstep
@@ -41,6 +42,7 @@ E   ImportError: No module named mock"""
     assert r2.result == Result.passed
     assert r2.message == ''
     assert r2.reruns == 1
+    assert r2.owner is None
 
 
 def test_result_generation_when_one_test_has_two_cases():
