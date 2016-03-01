@@ -15,6 +15,7 @@ import { ConditionDot,
 
 import { Grid } from 'es6!display/grid';
 import { TimeText, display_duration } from 'es6!display/time';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -98,7 +99,7 @@ var TestHistoryPage = React.createClass({
     var rows = _.map(history, t => {
       if (!t) {
         return [
-          null, null, null, null,
+          null, null, null, null, null,
           <i>Not run for this commit</i>,
           null
         ];
@@ -113,6 +114,7 @@ var TestHistoryPage = React.createClass({
           <ConditionDot condition={test_result_to_condition[t.result.id] || COND_UNKNOWN} />
         </a>,
         display_duration(t.duration / 1000),
+        t.numRetries,
         ChangesLinks.author(revision.author),
         ChangesLinks.phabCommit(revision),
         utils.first_line(revision.message),
@@ -120,16 +122,23 @@ var TestHistoryPage = React.createClass({
       ];
     });
 
+    let helpful_header = (text, help) => <SimpleTooltip label={help} placement="top">
+                                            <span>{text}</span>
+                                          </SimpleTooltip>;
+
+    const retriesDoc = <div>Number of times the test was rerun to see if it would pass.<br/>
+                         Passing tests should pass the first time and need no retries.</div>;
     var headers = [
       'Result',
-      'Duration',
+      helpful_header('Duration', 'Reported run time of the test at this commit.'),
+      helpful_header('Retries', retriesDoc),
       'Author',
       'Commit',
       'Name',
       'Committed'
     ];
 
-    var cellClasses = ['buildWidgetCell', 'nowrap center', 'nowrap',
+    var cellClasses = ['buildWidgetCell', 'nowrap center', 'nowrap center', 'nowrap',
       'nowrap', 'wide', 'nowrap'];
 
     var errorMessage = null;
