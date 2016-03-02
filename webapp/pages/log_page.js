@@ -271,7 +271,7 @@ var LogComponent = React.createClass({
       header = <div className="paddingBottomXS">
         {'D' + build.source.data['phabricator.revisionID']}
         {': '}
-        {utils.truncate(utils.first_line(build.message), 40)}
+        {utils.truncate(build.name)}
       </div>;
     }
 
