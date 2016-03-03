@@ -132,6 +132,12 @@ class DefaultBuildStep(BuildStep):
     def get_test_stats_from(self):
         return self.test_stats_from
 
+    def _custom_bin_path(self):
+        """The path in which to look for custom binaries we want to run.
+        This is used in LXC where we bind mount custom binaries
+        (currently only blacklist-remove)"""
+        return ''
+
     def iter_all_commands(self, job):
         source = job.source
         repo = source.repository
@@ -149,6 +155,14 @@ class DefaultBuildStep(BuildStep):
                     env=self.env,
                     type=CommandType.infra_setup,
                 )
+
+        blacklist_remove_path = os.path.join(self._custom_bin_path(), 'blacklist-remove')
+        yield FutureCommand(
+            script=blacklist_remove_path + ' ' + job.project.get_config_path(),
+            path=self.path,
+            env=self.env,
+            type=CommandType.infra_setup,
+        )
 
         for command in self.commands:
             yield command
