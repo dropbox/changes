@@ -47,7 +47,7 @@ export var is_waiting = function(condition) {
 export var get_runnable_condition = function(runnable) {
   var status = runnable.status.id, result = runnable.result.id;
 
-  if (status === 'in_progress' || status === "queued") {
+  if (status === 'in_progress' || status === 'queued' || status === 'pending_allocation') {
     if (runnable.stats && runnable.stats['test_failures']) {
       return COND_WAITING_WITH_ERRORS;
     }
