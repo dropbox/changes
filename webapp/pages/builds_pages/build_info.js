@@ -253,8 +253,8 @@ export var SingleBuild = React.createClass({
     var buildTestsHref = `/build_tests/${build.id}` +
       (build.testFailures.total > 0 ? '' : "#SlowTests")
 
-    return <div>
-      <Request
+
+    let recreateButton = <Request
         parentElem={this}
         name="recreateBuild"
         method="post"
@@ -263,7 +263,19 @@ export var SingleBuild = React.createClass({
           <i className="fa fa-repeat marginRightM" />
           Recreate Build
         </Button>
-      </Request>
+      </Request>;
+    // Commit queue builds are based on short-lived branchless commits that may no longer exist in the
+    // repo past their initial use, so we don't enable the recreate button for them.
+    if (_.contains(build.tags, 'commit-queue')) {
+      recreateButton = <SimpleTooltip placement="left" label="Commit queue builds can't be recreated.">
+          <Button type="white" className="sizedButton" disabled={true}>
+            <i className="fa fa-repeat marginRightM" />
+            Recreate Build
+          </Button>
+        </SimpleTooltip>;
+    }
+    return <div>
+      {recreateButton}
       {cancel}
       <div className="marginTopM">
         <Button
