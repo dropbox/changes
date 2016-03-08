@@ -40,7 +40,7 @@ class DefaultBuildStepTest(TestCase):
         build = self.create_build(self.create_project(name='foo'))
         job = self.create_job(build)
 
-        buildstep = self.get_buildstep(cluster='foo')
+        buildstep = self.get_buildstep(cluster='foo', repo_path='source', path='tests')
         buildstep.execute(job)
 
         step = job.phases[0].steps[0]
@@ -55,7 +55,7 @@ class DefaultBuildStepTest(TestCase):
         idx = 0
         # blacklist remove command
         assert commands[idx].script == 'blacklist-remove foo.yaml'
-        assert commands[idx].cwd == DEFAULT_PATH
+        assert commands[idx].cwd == 'source'
         assert commands[idx].type == CommandType.infra_setup
         assert commands[idx].artifacts == []
         assert commands[idx].env == DEFAULT_ENV
@@ -73,7 +73,7 @@ class DefaultBuildStepTest(TestCase):
 
         idx += 1
         assert commands[idx].script == 'echo "hello world 1"'
-        assert commands[idx].cwd == DEFAULT_PATH
+        assert commands[idx].cwd == 'source/tests'
         assert commands[idx].type == CommandType.default
         assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[idx].env == DEFAULT_ENV
@@ -90,8 +90,11 @@ class DefaultBuildStepTest(TestCase):
         buildstep = DefaultBuildStep(commands=[{'script': 'ls', 'type': 'collect_tests', 'path': 'subdir'},
                                                {'script': 'setup_command', 'type': 'setup'},
                                                {'script': 'default_command'},
-                                               {'script': 'make snapshot', 'type': 'snapshot'}])
+                                               {'script': 'make snapshot', 'type': 'snapshot'}],
+                                     repo_path='source', path='tests')
         buildstep.execute(job)
+
+        vcs.get_buildstep_clone.assert_called_once_with(job.source, 'source', True)
 
         step = job.phases[0].steps[0]
 
@@ -113,7 +116,7 @@ class DefaultBuildStepTest(TestCase):
 
         idx += 1
         assert commands[idx].script == 'ls'
-        assert commands[idx].cwd == './source/subdir'
+        assert commands[idx].cwd == 'source/tests/subdir'
         assert commands[idx].type == CommandType.collect_tests
         assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[idx].env == DEFAULT_ENV
@@ -376,7 +379,7 @@ class DefaultBuildStepTest(TestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
 
-        buildstep = self.get_buildstep()
+        buildstep = self.get_buildstep(repo_path='source', path='tests')
         result = buildstep.get_allocation_params(jobstep)
         assert result == {
             'adapter': 'basic',
@@ -387,10 +390,10 @@ class DefaultBuildStepTest(TestCase):
             'pre-launch': 'echo pre',
             'post-launch': 'echo post',
             'artifacts-server': 'http://localhost:1234',
-            'artifact-search-path': DEFAULT_PATH,
+            'artifact-search-path': 'source/tests',
         }
 
-    def test_test_get_allocation_params_for_snapshotting(self):
+    def test_get_allocation_params_for_snapshotting(self):
         project = self.create_project()
         build = self.create_build(project)
         plan = self.create_plan(project)
@@ -403,3 +406,28 @@ class DefaultBuildStepTest(TestCase):
         buildstep = self.get_buildstep()
         result = buildstep.get_allocation_params(jobstep)
         assert result['save-snapshot'] == image.id.hex
+
+    def test_repo_path_and_path(self):
+        buildstep = self.get_buildstep()
+        assert buildstep.path == DEFAULT_PATH
+        assert buildstep.repo_path == DEFAULT_PATH
+
+        buildstep = self.get_buildstep(path='foo')
+        assert buildstep.path == 'foo'
+        assert buildstep.repo_path == 'foo'
+
+        buildstep = self.get_buildstep(repo_path='foo')
+        assert buildstep.path == 'foo'
+        assert buildstep.repo_path == 'foo'
+
+        buildstep = self.get_buildstep(repo_path='/foo', path='bar')
+        assert buildstep.path == '/foo/bar'
+        assert buildstep.repo_path == '/foo'
+
+        buildstep = self.get_buildstep(repo_path='/foo', path='/bar')
+        assert buildstep.path == '/bar'
+        assert buildstep.repo_path == '/foo'
+
+        buildstep = self.get_buildstep(repo_path='foo', path=DEFAULT_PATH)
+        assert buildstep.path == 'foo/./source/'
+        assert buildstep.repo_path == 'foo'

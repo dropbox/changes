@@ -62,7 +62,7 @@ class DefaultBuildStep(BuildStep):
     # - collect_commands
     # - commands
     # - teardown_commands
-    def __init__(self, commands=None, path=DEFAULT_PATH, env=None,
+    def __init__(self, commands=None, repo_path=None, path=None, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=10, cpus=4, memory=8 * 1024, clean=True,
                  debug_config=None, test_stats_from=None, cluster=None,
@@ -71,6 +71,11 @@ class DefaultBuildStep(BuildStep):
         Constructor for DefaultBuildStep.
 
         Args:
+            commands: list of commands that should be run. Run in the order given. Required.
+            repo_path: The path to check out the repo to. Can be relative or absolute.
+            path: The default path in which commands will be run. Can be absolute or
+                relative to repo_path. If only one of repo_path and path is specified,
+                both will be set to the same thing.
             cpus: How many cpus to limit the container to (not applicable for basic)
             memory: How much memory to limit the container to (not applicable for basic)
             clean: controls if the repository should be cleaned before
@@ -103,7 +108,14 @@ class DefaultBuildStep(BuildStep):
 
         self.artifacts = artifacts
         self.env = env
-        self.path = path
+        if repo_path:
+            self.repo_path = repo_path
+            # path is relative to repo_path (unless specified as an absolute path)
+            self.path = os.path.join(repo_path, path) if path else repo_path
+        else:
+            # default repo_path to path if none specified
+            self.repo_path = path or DEFAULT_PATH
+            self.path = self.repo_path
         self.release = release
         self.max_executors = max_executors
         self.resources = {
@@ -144,14 +156,14 @@ class DefaultBuildStep(BuildStep):
         vcs = repo.get_vcs()
         if vcs is not None:
             yield FutureCommand(
-                script=vcs.get_buildstep_clone(source, self.path, self.clean),
+                script=vcs.get_buildstep_clone(source, self.repo_path, self.clean),
                 env=self.env,
                 type=CommandType.infra_setup,
             )
 
             if source.patch:
                 yield FutureCommand(
-                    script=vcs.get_buildstep_patch(source, self.path),
+                    script=vcs.get_buildstep_patch(source, self.repo_path),
                     env=self.env,
                     type=CommandType.infra_setup,
                 )
@@ -159,7 +171,7 @@ class DefaultBuildStep(BuildStep):
         blacklist_remove_path = os.path.join(self._custom_bin_path(), 'blacklist-remove')
         yield FutureCommand(
             script=blacklist_remove_path + ' ' + job.project.get_config_path(),
-            path=self.path,
+            path=self.repo_path,
             env=self.env,
             type=CommandType.infra_setup,
         )
@@ -287,7 +299,7 @@ class DefaultBuildStep(BuildStep):
     def _set_command_defaults(self, future_command):
         if not future_command.artifacts:
             future_command.artifacts = self.artifacts
-        future_command.path = os.path.join(self.path, future_command.path or '')
+        future_command.path = os.path.join(self.path, future_command.path) if future_command.path else self.path
         c_env = self.env.copy()
         if future_command.env:
             c_env.update(future_command.env)
