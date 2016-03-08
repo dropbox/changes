@@ -193,5 +193,9 @@ class JobStepDetailsAPIView(APIView):
                 task_id=job.id.hex,
                 parent_task_id=job.build_id.hex,
             )
+        elif args.metrics:
+            # Check for args.metrics because is_modified doesn't detect if data['metrics'] gets updated.
+            # is_modified works fine for map creation, but not map updation.
+            db.session.commit()
 
         return self.respond(jobstep)
