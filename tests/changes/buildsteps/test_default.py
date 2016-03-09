@@ -54,7 +54,7 @@ class DefaultBuildStepTest(TestCase):
 
         idx = 0
         # blacklist remove command
-        assert commands[idx].script == 'blacklist-remove foo.yaml'
+        assert commands[idx].script == 'blacklist-remove "foo.yaml"'
         assert commands[idx].cwd == 'source'
         assert commands[idx].type == CommandType.infra_setup
         assert commands[idx].artifacts == []

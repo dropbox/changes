@@ -170,7 +170,7 @@ class DefaultBuildStep(BuildStep):
 
         blacklist_remove_path = os.path.join(self._custom_bin_path(), 'blacklist-remove')
         yield FutureCommand(
-            script=blacklist_remove_path + ' ' + job.project.get_config_path(),
+            script=blacklist_remove_path + ' "' + job.project.get_config_path() + '"',
             path=self.repo_path,
             env=self.env,
             type=CommandType.infra_setup,
