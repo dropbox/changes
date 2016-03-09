@@ -52,11 +52,15 @@ var NodePage = React.createClass({
     var nodeStatusText = <span className="bluishGray">Loading...</span>;
     var toggleNodeButton = null;
     if (api.isLoaded(this.state.nodeStatus)) {
-      console.log(this.state.nodeStatus.getReturnedData());
-      var nodeStatus = this.state.nodeStatus.getReturnedData();
-      nodeStatusText = nodeStatus ?
-        <span className="green">Online</span> :
-        <span className="red">Offline</span>;
+      const nodeStatus = this.state.nodeStatus.getReturnedData();
+      console.log(nodeStatus);
+      if (nodeStatus.offline === undefined) {
+         nodeStatusText = <span className="bluishGray">Unknown</span>;
+      } else {
+         nodeStatusText = nodeStatus.offline ?
+           <span className="red">Offline</span> :
+           <span className="green">Online</span>;
+      }
 
       toggleNodeButton = <div className="floatR">
         <Request
