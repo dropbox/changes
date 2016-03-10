@@ -9,6 +9,9 @@ from changes.utils.http import build_uri
 
 from .base import Vcs, RevisionResult, BufferParser, CommandError, UnknownRevision
 
+import logging
+
+
 LOG_FORMAT = '{node}\x01{author}\x01{date|rfc822date}\x01{p1node} {p2node}\x01{branches}\x01{desc}\x02'
 
 BASH_CLONE_STEP = """
@@ -209,7 +212,9 @@ class MercurialVcs(Vcs):
         self.log_timing('get_known_branches', start_time)
         return list(branch_names)
 
-    def get_buildstep_clone(self, source, workspace, clean=True):
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None):
+        if cache_dir is not None:
+            logging.warning("unexpected cache_dir provided for hg repository")
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
             local_path=workspace,

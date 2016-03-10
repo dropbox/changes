@@ -25,6 +25,14 @@ REMOTE_URL=%(remote_url)s
 LOCAL_PATH=%(local_path)s
 REVISION=%(revision)s
 
+BASE_NAME=$(basename "$LOCAL_PATH")
+CACHE_PATH="%(cache_dir)s/$BASE_NAME.git"
+
+if [ -d "$CACHE_PATH" ]; then
+    echo "Using local repository cache."
+    REMOTE_URL="$CACHE_PATH"
+fi
+
 if [ ! -d $LOCAL_PATH/.git ]; then
     GIT_SSH_COMMAND="ssh -v" \
     git clone $REMOTE_URL $LOCAL_PATH || \
@@ -298,11 +306,12 @@ class GitVcs(Vcs):
             else:
                 raise
 
-    def get_buildstep_clone(self, source, workspace, clean=True):
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None):
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
             local_path=workspace,
             revision=source.revision_sha,
+            cache_dir=cache_dir or "/dev/null",
             clean_command='git clean -fdx' if clean else '',
         )
 

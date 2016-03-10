@@ -84,15 +84,29 @@ class DefaultBuildStep(BuildStep):
                 useful to set to False if snapshots are in use and they
                 intentionally leave useful incremental build products in the
                 repository.
-            debug_config: A dictionary of debug config options. These are passed through
-                to changes-client. There is also an infra_failures option, which takes a
-                dictionary used to force infrastructure failures in builds. The keys of
-                this dictionary refer to the phase (for DefaultBuildSteps, only possible
-                value is 'primary'), and the values are the probabilities with which
-                a JobStep in that phase will fail.
-                An example: "debug_config": {"infra_failures": {"primary": 0.5}}
-                This will then cause an infra failure in the primary JobStep with
-                probability 0.5.
+            debug_config: A dictionary of config options for either debugging
+                or hacky features. In some cases these are passed through to
+                changes-client, in other cases they change some behaviour on
+                the server. Supported fields:
+                  - infra_failures: this should be a dictionary and is used to
+                    force infrastructure failures in builds. The keys of this
+                    dictionary refer to the phase (possible values are
+                    'primary' and 'expanded'), and the values are the
+                    probabilities with which a JobStep in that phase will fail.
+                    An example:
+                      "debug_config": {"infra_failures": {"primary": 0.5}}
+                    This will then cause an infra failure in the primary
+                    JobStep with probability 0.5.
+                  - prelaunch_script: passed to changes-client
+                  - bind_mounts: passed to changes-client
+                  - prefer_artifactstore: used in sync_job_step to select
+                    artifact source when multiple sources are available
+                  - repo_cache_dir: a directory on the build machine containing
+                    local caches of repos; if the repository for this build is
+                    found in repo_cache_dir, we may clone/pull from it rather
+                    than from the normal remote repository. We currently don't
+                    do anything to ensure that the cache is up to date;
+                    configure e.g. a pre-launch script to do that.
             test_stats_from: project to get test statistics from, or
                 None (the default) to use this project.  Useful if the
                 project runs a different subset of tests each time, so
@@ -156,7 +170,9 @@ class DefaultBuildStep(BuildStep):
         vcs = repo.get_vcs()
         if vcs is not None:
             yield FutureCommand(
-                script=vcs.get_buildstep_clone(source, self.repo_path, self.clean),
+                script=vcs.get_buildstep_clone(
+                        source, self.repo_path, self.clean,
+                        self.debug_config.get('repo_cache_dir')),
                 env=self.env,
                 type=CommandType.infra_setup,
             )

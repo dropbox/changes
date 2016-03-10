@@ -94,7 +94,7 @@ class DefaultBuildStepTest(TestCase):
                                      repo_path='source', path='tests')
         buildstep.execute(job)
 
-        vcs.get_buildstep_clone.assert_called_once_with(job.source, 'source', True)
+        vcs.get_buildstep_clone.assert_called_once_with(job.source, 'source', True, None)
 
         step = job.phases[0].steps[0]
 
