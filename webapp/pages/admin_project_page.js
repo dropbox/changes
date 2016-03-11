@@ -553,11 +553,13 @@ let StepDetails = React.createClass({
   },
 
   changesBuildStepImplementationFor: {
-    'DefaultBuildStep': 'changes.buildsteps.default.DefaultBuildStep',
     'LXCBuildStep': 'changes.buildsteps.lxc.LXCBuildStep',
-    'JenkinsBuildStep': 'changes.backends.jenkins.buildstep.JenkinsBuildStep',
     'JenkinsGenericBuildStep': 'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
     'JenkinsTestCollectorBuildStep': 'changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep',
+    // The below two implementations are avaialble for use, but we don't use them or want anybody to at the moment,
+    // so they only add confusion. Feel free to uncommonent if there is a legitimate use.
+    // 'JenkinsBuildStep': 'changes.backends.jenkins.buildstep.JenkinsBuildStep',
+    // 'DefaultBuildStep': 'changes.buildsteps.default.DefaultBuildStep',
   },
 
   saveSettings: function() {
