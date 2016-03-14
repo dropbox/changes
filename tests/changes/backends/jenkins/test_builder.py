@@ -12,10 +12,16 @@ from uuid import UUID
 
 from changes.config import db, redis
 from changes.constants import Status, Result
-from changes.models import (
-    Artifact, FailureReason, FileCoverage, Job, LogChunk, LogSource,
-    Patch, TestCase, TestArtifact
-)
+
+from changes.models.artifact import Artifact
+from changes.models.failurereason import FailureReason
+from changes.models.filecoverage import FileCoverage
+from changes.models.job import Job
+from changes.models.log import LogChunk, LogSource
+from changes.models.patch import Patch
+from changes.models.test import TestCase
+from changes.models.testartifact import TestArtifact
+
 from changes.backends.jenkins.builder import JenkinsBuilder, MASTER_BLACKLIST_KEY
 from changes.testutils import (
     BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT, SAMPLE_COVERAGE,
@@ -49,9 +55,29 @@ class BaseTestCase(BackendTestCase):
             return fp.read()
 
 
-# TODO(dcramer): these tests need to ensure we're passing the right parameters
-# to jenkins
 class CreateBuildTest(BaseTestCase):
+
+    def test_sets_cluster(self):
+        job_id = '81d1596fd4d642f4a6bdf86c45e014e8'
+
+        build = self.create_build(self.project)
+
+        job = self.create_job(
+            build=build,
+            id=UUID(job_id))
+
+        builder = self.get_builder(cluster='foobar')
+        with mock.patch.object(builder, 'create_jenkins_build') as create_jenkins_build:
+            def fake_update(step, **kwargs):
+                step.data.update({'master': 'fake', 'item_id': '99', 'build_no': None})
+                return {'queued': True}
+            create_jenkins_build.side_effect = fake_update
+
+            builder.create_job(job)
+
+        step = job.phases[0].steps[0]
+        assert step.cluster == 'foobar'
+
     @responses.activate
     def test_queued_creation(self):
         job_id = '81d1596fd4d642f4a6bdf86c45e014e8'

@@ -15,7 +15,7 @@ from .builder import JenkinsBuilder
 class JenkinsGenericBuilder(JenkinsBuilder):
     def __init__(self, master_urls=None, setup_script='', teardown_script='',
                  artifacts=(), reset_script='', path='', workspace='',
-                 snapshot_script=None, clean=True, *args, **kwargs):
+                 snapshot_script=None, clean=True, cluster=None, *args, **kwargs):
         """Builder for JenkinsGenericBuildStep. See JenkinsGenericBuildStep
         for information on most of these arguments.
         """
@@ -24,7 +24,6 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         self.teardown_script = teardown_script
         self.snapshot_script = snapshot_script
         self.reset_script = reset_script
-        self.cluster = kwargs.pop('cluster')
         self.path = path
         self.workspace = workspace
         self.artifacts = artifacts
@@ -45,7 +44,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         # key'd by the build_type, documented in config.py
         self.build_desc = self.load_build_desc(self.build_type)
 
-        super(JenkinsGenericBuilder, self).__init__(master_urls, *args, **kwargs)
+        super(JenkinsGenericBuilder, self).__init__(master_urls, cluster=cluster, *args, **kwargs)
 
     def load_build_desc(self, build_type):
         build_desc = current_app.config['CHANGES_CLIENT_BUILD_TYPES'][build_type]
@@ -150,8 +149,6 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         else:
             repo_url = repository.url
 
-        cluster = self.cluster
-
         snapshot_bucket = current_app.config.get('SNAPSHOT_S3_BUCKET', '')
 
         default_pre = self.debug_config.get('prelaunch_script') or current_app.config.get('LXC_PRE_LAUNCH', '')
@@ -195,7 +192,6 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             'TEARDOWN_SCRIPT': teardown_script,
             'RESET_SCRIPT': self.reset_script,
             'REPO_VCS': repository.backend.name,
-            'CLUSTER': cluster,
             'WORK_PATH': path,
             'C_WORKSPACE': self.workspace,
             'ARTIFACTS_SERVER_BASE_URL': self.artifact_server_base_url})

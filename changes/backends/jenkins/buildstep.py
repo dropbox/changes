@@ -21,7 +21,7 @@ class JenkinsBuildStep(BuildStep):
     logger = logging.getLogger('jenkins')
 
     def __init__(self, job_name=None, jenkins_url=None, jenkins_diff_url=None,
-                 auth_keyname=None, verify=True, debug_config=None,
+                 auth_keyname=None, verify=True, cluster=None, debug_config=None,
                  cpus=4, memory=8 * 1024):
         """
         The JenkinsBuildStep constructor here, which is used as a base
@@ -44,6 +44,8 @@ class JenkinsBuildStep(BuildStep):
                 see http://docs.python-requests.org/en/latest/user/advanced/#ssl-cert-verification
             cpus (int): Number of CPUs this buildstep requires to run.
             memory (int): Memory required for this buildstep in megabytes.
+            cluster (Optional[str]): The Jenkins label to apply to be used to restrict the build to a subset of
+                slaves where the master supports it.
             debug_config: A dictionary of debug config options. These are passed through
                 to changes-client. There is also an infra_failures option, which takes a
                 dictionary used to force infrastructure failures in builds. The keys of
@@ -76,6 +78,7 @@ class JenkinsBuildStep(BuildStep):
         self.jenkins_diff_urls = jenkins_diff_url
         self.auth_keyname = auth_keyname
         self.verify = verify
+        self.cluster = cluster
         self.debug_config = debug_config or {}
 
         self._resources = {}
@@ -107,6 +110,7 @@ class JenkinsBuildStep(BuildStep):
             'job_name': self.job_name,
             'verify': self.verify,
             'auth_keyname': self.auth_keyname,
+            'cluster': self.cluster,
             'debug_config': self.debug_config,
         }
 
@@ -242,14 +246,13 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
         self.teardown_script = teardown_script
         self.reset_script = reset_script
         self.snapshot_script = snapshot_script
-        self.cluster = cluster
         self.path = path
         self.workspace = workspace
         self.build_type = build_type
         self.artifacts = artifacts
         self.clean = clean
 
-        super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, **kwargs)
+        super(JenkinsGenericBuildStep, self).__init__(job_name=job_name, cluster=cluster, **kwargs)
 
     def get_lxc_config(self, jobstep):
         """
@@ -270,7 +273,6 @@ class JenkinsGenericBuildStep(JenkinsBuildStep):
             'teardown_script': self.teardown_script,
             'reset_script': self.reset_script,
             'snapshot_script': self.snapshot_script,
-            'cluster': self.cluster,
             'path': self.path,
             'workspace': self.workspace,
             'build_type': self.build_type,

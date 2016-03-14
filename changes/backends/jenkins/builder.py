@@ -63,7 +63,7 @@ class JenkinsBuilder(BaseBackend):
 
     def __init__(self, master_urls=None, diff_urls=None, job_name=None,
                  auth_keyname=None, verify=True,
-                 debug_config=None,
+                 cluster=None, debug_config=None,
                  *args, **kwargs):
         super(JenkinsBuilder, self).__init__(*args, **kwargs)
         self.master_urls = master_urls
@@ -76,6 +76,7 @@ class JenkinsBuilder(BaseBackend):
         self.http_session = requests.Session()
         self.auth = self.app.config[auth_keyname] if auth_keyname else None
         self.verify = verify
+        self.cluster = cluster
         self.debug_config = debug_config or {}
 
         def report_response_status(r, *args, **kwargs):
@@ -148,7 +149,7 @@ class JenkinsBuilder(BaseBackend):
             )
         return params
 
-    def _create_job_step(self, phase, data, force_create=False, **defaults):
+    def _create_job_step(self, phase, data, force_create=False, cluster=None, **defaults):
         """
         Gets or creates the primary JobStep for a Jenkins Job.
 
@@ -158,10 +159,13 @@ class JenkinsBuilder(BaseBackend):
             force_create (bool): Force this JobStep to be created (rather than
                 retrieved). This is used when replacing a JobStep to make sure
                 we don't just get the old one.
+            cluster (Optional[str]): Cluster in which the JobStep will be run.
         Returns:
             JobStep: The JobStep that was retrieved or created.
         """
         defaults['data'] = data
+        if cluster:
+            defaults['cluster'] = cluster
 
         # TODO(kylec): Get rid of the kwargs.
         if not defaults.get('label'):
@@ -787,6 +791,9 @@ class JenkinsBuilder(BaseBackend):
         if phab_revision_id:
             params['PHAB_REVISION_ID'] = phab_revision_id
 
+        if self.cluster:
+            params['CLUSTER'] = self.cluster
+
         return params
 
     def create_jenkins_job_from_params(self, changes_bid, params, job_name=None, is_diff=False):
@@ -857,7 +864,8 @@ class JenkinsBuilder(BaseBackend):
             phase=phase,
             data={'job_name': self.job_name},
             status=job.status,
-            force_create=bool(replaces)
+            force_create=bool(replaces),
+            cluster=self.cluster
         )
 
         if replaces:
