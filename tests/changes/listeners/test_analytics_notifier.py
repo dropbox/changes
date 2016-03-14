@@ -306,7 +306,8 @@ class AnalyticsNotifierTest(TestCase):
                                       date_created=ts_to_datetime(created),
                                       date_started=ts_to_datetime(started),
                                       date_finished=ts_to_datetime(finished),
-                                      node_id=node.id)
+                                      node_id=node.id,
+                                      cluster='luck')
         db.session.add(FailureReason(step_id=jobstep.id, job_id=job.id, build_id=build.id, project_id=project.id,
                                      reason='missing_tests'))
         db.session.add(FailureReason(step_id=jobstep.id, job_id=job.id, build_id=build.id, project_id=project.id,
@@ -332,6 +333,7 @@ class AnalyticsNotifierTest(TestCase):
             'date_finished': finished,
             'failure_reasons': ['aborted', 'missing_tests'],
             'log_categories': [],
+            'cluster': 'luck',
             'item_stats': {},
         }
         post_fn.assert_called_once_with(URL, [expected_data])
@@ -361,6 +363,7 @@ class AnalyticsNotifierTest(TestCase):
                                       date_started=ts_to_datetime(started),
                                       date_finished=ts_to_datetime(finished),
                                       node_id=node.id,
+                                      cluster='funk',
                                       data={'foo': 'bar'})
         self.create_itemstat(item_id=jobstep.id, name='files', value=55)
         self.create_itemstat(item_id=jobstep.id, name='lines', value=44)
@@ -383,6 +386,7 @@ class AnalyticsNotifierTest(TestCase):
             'date_finished': finished,
             'failure_reasons': [],
             'log_categories': [],
+            'cluster': 'funk',
             'item_stats': {'files': 55, 'lines': 44},
         }
         post_fn.assert_called_once_with(URL, [expected_data])

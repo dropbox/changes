@@ -179,6 +179,7 @@ def job_finished_handler(job_id, **kwargs):
                 'phase_id': jobstep.phase_id.hex,
                 'build_id': job.build_id.hex,
                 'label': jobstep.label,
+                'cluster': jobstep.cluster,
                 'result': unicode(jobstep.result),
                 'replacement_id': jobstep.replacement_id.hex if jobstep.replacement_id else None,
                 'date_started': maybe_ts(jobstep.date_started),
