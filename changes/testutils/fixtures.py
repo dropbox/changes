@@ -418,7 +418,7 @@ class Fixtures(object):
         return logsource
 
     def create_logchunk(self, source, text=None, **kwargs):
-        # TODO(dcramer): we should default offset to previosu entry in LogSource
+        # TODO(dcramer): we should default offset to previous entry in LogSource
         kwargs.setdefault('offset', 0)
         kwargs['job'] = source.job
         kwargs['project'] = source.project

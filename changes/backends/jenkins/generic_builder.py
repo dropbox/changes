@@ -259,7 +259,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
         Whether or not this build can snapshot is purely a function of the
         build type. Right now the only adapter supporting this is the lxc
         adapter, but in the scenario that another adapter is added (e.g.
-        docker?) then we would need for multiple adapters to supprt snapshots,
+        docker?) then we would need for multiple adapters to support snapshots,
         so we just encode whether it can or not as a field, defaulting to
         false as most types don't support this operation.
         """

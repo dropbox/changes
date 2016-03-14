@@ -556,8 +556,8 @@ let StepDetails = React.createClass({
     'LXCBuildStep': 'changes.buildsteps.lxc.LXCBuildStep',
     'JenkinsGenericBuildStep': 'changes.backends.jenkins.buildstep.JenkinsGenericBuildStep',
     'JenkinsTestCollectorBuildStep': 'changes.backends.jenkins.buildsteps.test_collector.JenkinsTestCollectorBuildStep',
-    // The below two implementations are avaialble for use, but we don't use them or want anybody to at the moment,
-    // so they only add confusion. Feel free to uncommonent if there is a legitimate use.
+    // The below two implementations are available for use, but we don't use them or want anybody to at the moment,
+    // so they only add confusion. Feel free to uncomment if there is a legitimate use.
     // 'JenkinsBuildStep': 'changes.backends.jenkins.buildstep.JenkinsBuildStep',
     // 'DefaultBuildStep': 'changes.buildsteps.default.DefaultBuildStep',
   },

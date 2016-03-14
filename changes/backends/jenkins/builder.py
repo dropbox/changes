@@ -210,7 +210,7 @@ class JenkinsBuilder(BaseBackend):
 
         step_id = jobstep.id.hex
 
-        # NB: Accesssing Response.content results in the entire artifact
+        # NB: Accessing Response.content results in the entire artifact
         # being loaded into memory.
         artifact.file.save(
             StringIO(resp.content), '{0}/{1}/{2}_{3}'.format(

@@ -43,6 +43,6 @@ class BuildCommentIndexAPIView(APIView):
         )
         db.session.add(comment)
 
-        # TODO(dcramer): this shoudl send out a notification about a new comment
+        # TODO(dcramer): this should send out a notification about a new comment
 
         return self.respond(comment)

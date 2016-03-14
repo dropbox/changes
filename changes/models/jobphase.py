@@ -13,7 +13,7 @@ from changes.db.types.guid import GUID
 
 class JobPhase(db.Model):
     """A JobPhase is a grouping of one or more JobSteps performing the same basic task.
-    The phases of a Job are intended to be executed sequentially, though that isn't necesarily
+    The phases of a Job are intended to be executed sequentially, though that isn't necessarily
     enforced.
 
     One example of phase usage: a Job may have a test collection phase and a test execution phase,

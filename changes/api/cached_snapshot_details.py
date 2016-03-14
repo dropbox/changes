@@ -23,7 +23,7 @@ class CachedSnapshotDetailsAPIView(APIView):
         gc.cache_snapshot(snapshot)
 
         # Send back the sync information for all clusters which require
-        # an update. Because this reponse is intended to be used for
+        # an update. Because this response is intended to be used for
         # syncing we don't need to send anything but the snapshot
         # image ids.
         response = gc.get_relevant_snapshot_images(snapshot.id)

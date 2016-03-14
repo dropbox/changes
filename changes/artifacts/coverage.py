@@ -212,7 +212,7 @@ class CoberturaCoverageParser(object):
                     # condition-coverage attrib looks something like '50% (2/4)'
                     if 'condition-coverage' not in attrib:
                         # condition-coverage should always be present if branch="true".  if it's
-                        # not, log a warning and mark the line uncovered (to avoid false positivies)
+                        # not, log a warning and mark the line uncovered (to avoid false positives)
                         self.coverage_handler.logger.warn(
                             'Line node with branch="true" has no condition-coverage attribute. ' +
                             'Node attributes: %s', attrib)

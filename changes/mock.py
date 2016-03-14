@@ -298,7 +298,7 @@ def job(build, change=None, **kwargs):
 
 
 def logchunk(source, **kwargs):
-    # TODO(dcramer): we should default offset to previosu entry in LogSource
+    # TODO(dcramer): we should default offset to previous entry in LogSource
     kwargs.setdefault('offset', 0)
 
     text = kwargs.pop('text', None) or '\n'.join(get_sentences(4))
