@@ -391,6 +391,7 @@ class DefaultBuildStepTest(TestCase):
             'post-launch': 'echo post',
             'artifacts-server': 'http://localhost:1234',
             'artifact-search-path': 'source/tests',
+            'use-external-env': 'false',
         }
 
     def test_get_allocation_params_for_snapshotting(self):

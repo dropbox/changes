@@ -389,6 +389,7 @@ class DefaultBuildStep(BuildStep):
             'pre-launch': self.debug_config.get('prelaunch_script') or current_app.config['LXC_PRE_LAUNCH'],
             'post-launch': current_app.config['LXC_POST_LAUNCH'],
             'release': self.release,
+            'use-external-env': 'false',
         }
 
         if current_app.config['CLIENT_SENTRY_DSN']:
@@ -436,7 +437,7 @@ class DefaultBuildStep(BuildStep):
     def get_allocation_command(self, jobstep):
         params = self.get_allocation_params(jobstep)
         return 'changes-client %s' % (' '.join(
-            '-%s %s' % (k, v)
+            '-%s=%s' % (k, v)
             for k, v in params.iteritems()
         ))
 
