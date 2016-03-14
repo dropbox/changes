@@ -2,7 +2,6 @@ from collections import defaultdict
 
 from changes.api.base import APIView
 from changes.constants import Status
-from changes.config import db
 from changes.models.jobstep import JobStep
 
 
