@@ -59,6 +59,8 @@ class JenkinsBuildStep(BuildStep):
         # required field
         if job_name is None:
             raise ValueError("Missing required config: need job_name.")
+        if any(int_field and type(int_field) != int for int_field in (cpus, memory)):
+            raise ValueError("cpus and memory fields must be JSON ints")
 
         # we support a string or a list of strings for master server urls
         if not isinstance(jenkins_url, (list, tuple)):

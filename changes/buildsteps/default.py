@@ -116,6 +116,8 @@ class DefaultBuildStep(BuildStep):
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
+        if any(type(int_field) != int for int_field in (cpus, memory, max_executors)):
+            raise ValueError("cpus, memory, and max_executors fields must be integers")
 
         if env is None:
             env = DEFAULT_ENV.copy()
