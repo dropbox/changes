@@ -26,6 +26,7 @@ var AllProjectsPage = React.createClass({
     'Projects By Repository',
     'Plans',
     'Plans By Type',
+    'Plans By Cluster',
     'Jenkins Plans By Master',
   ],
 
@@ -36,6 +37,7 @@ var AllProjectsPage = React.createClass({
 
       expandedConfigsInPlans: {},
       expandedConfigsInPlansByType: {},
+      expandedConfigsInPlansByCluster: {},
     }
   },
 
@@ -86,6 +88,9 @@ var AllProjectsPage = React.createClass({
         break;
       case 'Plans By Type':
         content = this.renderPlansByType(projects_data);
+        break;
+      case 'Plans By Cluster':
+        content = this.renderPlansByCluster(projects_data);
         break;
       case 'Jenkins Plans By Master':
         if (!api.isLoaded(this.state.jenkins_master_blacklist) &&
@@ -348,6 +353,61 @@ var AllProjectsPage = React.createClass({
      />;
   },
 
+  /*
+   * Group build plans by cluster
+   */
+  renderPlansByCluster: function(projects_data) {
+    var every_plan = _.flatten(
+      _.map(projects_data, p => p.plans)
+    );
+
+    var every_plan_type = _.chain(every_plan)
+      .map(p => p.steps.length > 0 ? this.getStepCluster(p.steps[0]) : "")
+      .compact()
+      .uniq()
+      .sort()
+      .value();
+
+    var rows_lists = [];
+    _.each(every_plan_type, type => {
+      // find every plan that matches this cluster and render it
+      var plan_rows = [];
+      var plan_count = 0;
+      _.each(projects_data, proj => {
+        _.each(proj.plans, (plan, index) => {
+          if (plan.steps.length > 0 && this.getStepCluster(plan.steps[0]) === type) {
+            plan_rows.push([
+              null,
+              proj.name,
+              plan.name,
+              this.getSeeConfigLink(plan.id, 'plansByCluster')
+            ]);
+            plan_count++;
+
+            if (this.isConfigExpanded(plan.id, 'plansByCluster')) {
+              plan_rows.push(this.getExpandedConfigRow(plan));
+            }
+          }
+        });
+      });
+      // add cluster label to first row
+      plan_rows[0][0] = <span className="lb">
+        {type} <span style={{color: 'gray'}}>({plan_count})</span>
+      </span>;
+      rows_lists.push(plan_rows);
+    });
+
+    var headers = ['Cluster', 'Project Name', 'Plan Name', 'More'];
+    var cellClasses = ['nowrap', 'nowrap', 'nowrap', 'nowrap'];
+
+    return <Grid
+      colnum={4}
+      data={_.flatten(rows_lists, true)}
+      headers={headers}
+      cellClasses={cellClasses}
+     />;
+  },
+
   renderJenkinsPlansByMaster: function(projects_data, blacklist, user) {
     // keys are jenkins master urls. Values are two lists (master/diff) each of
     // plans (since we have a separate jenkins_diff_urls)
@@ -524,6 +584,7 @@ var AllProjectsPage = React.createClass({
     switch (chart_name) {
       case 'plans': return 'expandedConfigsInPlans';
       case 'plansByType': return 'expandedConfigsInPlansByType';
+      case 'plansByCluster': return 'expandedConfigsInPlansByCluster';
       default: throw `unknown chart name ${chart_name}`;
     };
   },
@@ -546,6 +607,11 @@ var AllProjectsPage = React.createClass({
         {build_timeout_markup}
       </div>
     );
+  },
+
+  getStepCluster: function(step) {
+    var data = JSON.parse(step.data);
+    return data["cluster"] || "Default";
   },
 
   getStepType: function(step) {
