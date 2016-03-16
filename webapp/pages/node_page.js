@@ -60,21 +60,21 @@ var NodePage = React.createClass({
          nodeStatusText = nodeStatus.offline ?
            <span className="red">Offline</span> :
            <span className="green">Online</span>;
-      }
 
-      toggleNodeButton = <div className="floatR">
-        <Request
-          parentElem={this}
-          name="toggleNode"
-          method="post"
-          endpoint={`/api/0/nodes/${nodeID}/status?toggle=1`}>
-          <Button type="white">
-            <span>
-              {nodeStatus ? "Take Node Offline" : "Bring Node Online"}
-            </span>
-          </Button>
-        </Request>
-      </div>;
+          toggleNodeButton = <div className="floatR">
+            <Request
+              parentElem={this}
+              name="toggleNode"
+              method="post"
+              endpoint={`/api/0/nodes/${nodeID}/status/?toggle=1`}>
+              <Button type="white">
+                <span>
+                  {nodeStatus.offline ? "Bring Node Online" : "Take Node Offline"}
+                </span>
+              </Button>
+            </Request>
+          </div>;
+      }
     };
 
     var cellClasses = ['buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
