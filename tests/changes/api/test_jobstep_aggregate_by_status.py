@@ -14,12 +14,12 @@ class JobStepAggregateByStatusTest(APITestCase):
         return self.client.get(self.path + query_string)
 
     def test_get(self):
-        project_1 = self.create_project()
+        project_1 = self.create_project(slug="project_1")
         build_1 = self.create_build(project_1)
         job_1 = self.create_job(build_1)
         jobphase_1 = self.create_jobphase(job_1)
 
-        project_2 = self.create_project()
+        project_2 = self.create_project(slug="project_2")
         build_2 = self.create_build(project_2)
         job_2 = self.create_job(build_2)
         jobphase_2 = self.create_jobphase(job_2)
@@ -77,13 +77,13 @@ class JobStepAggregateByStatusTest(APITestCase):
                     },
                 },
                 'by_project': {
-                    project_1.id.get_hex(): {
+                    project_1.slug: {
                         Status.in_progress.name:
                             [1, now_iso, jobstep_in_progress.id.get_hex()],
                         Status.pending_allocation.name:
                             [1, now_iso, jobstep_pending_allocation.id.get_hex()],
                     },
-                    project_2.id.get_hex(): {
+                    project_2.slug: {
                         Status.queued.name:
                             [1, now_iso, jobstep_queued.id.get_hex()],
                     },

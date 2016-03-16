@@ -20,7 +20,7 @@ class JobStepAggregateByStatusAPIView(APIView):
                         ...
                     },
                     'by_project': {
-                        '[some project id]': [status data],
+                        '[some project slug]': [status data],
                     },
                     'global': [status_data],
                 },
@@ -54,7 +54,7 @@ class JobStepAggregateByStatusAPIView(APIView):
         by_global = {}
         for jobstep in jobsteps:
             process_row(by_cluster[jobstep.cluster], jobstep)
-            process_row(by_project[jobstep.project_id], jobstep)
+            process_row(by_project[jobstep.project.slug], jobstep)
             process_row(by_global, jobstep)
 
         output = {
