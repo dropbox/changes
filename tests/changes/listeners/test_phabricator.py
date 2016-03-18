@@ -5,6 +5,7 @@ from flask import current_app
 import mock
 import uuid
 
+from changes.config import db
 from changes.constants import Result, Status
 from changes.models import RepositoryBackend
 from changes.testutils import TestCase as UnitTestCase
@@ -23,6 +24,11 @@ class PhabricatorListenerTest(UnitTestCase):
         patcher = mock.patch('changes.utils.phabricator_utils.PhabricatorClient.connect')
         patcher.start().return_value = True
         self.addCleanup(patcher.stop)
+
+    def create_project(self, notify='1', *args, **kwargs):
+        project = super(PhabricatorListenerTest, self).create_project(*args, **kwargs)
+        self.create_project_option(project, 'phabricator.notify', notify)
+        return project
 
     @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')
@@ -406,6 +412,79 @@ class PhabricatorListenerTest(UnitTestCase):
 Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
 
         post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc, build2_link), mock.ANY)
+
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
+    def test_remaining_build(self, post):
+        project1 = self.create_project(name='project1', slug='project1')
+        project2 = self.create_project(name='project2', slug='project2')
+        collection_id = uuid.uuid4()
+        build1 = self.create_build(project1, target='D1', collection_id=collection_id, result=Result.failed, status=Status.finished)
+        build2 = self.create_build(project2, target='D1', collection_id=collection_id, result=Result.unknown, status=Status.in_progress)
+
+        build_finished_handler(build_id=build1.id.hex)
+        assert post.call_count == 0
+
+        build2.result = Result.failed
+        build2.status = Status.finished
+        db.session.add(build2)
+        db.session.commit()
+
+        build_finished_handler(build_id=build2.id.hex)
+        assert post.call_count == 1
+
+        args, kwargs = post.call_args
+        id, msg, request = args
+        assert 'project1' in msg
+        assert 'project2' in msg
+
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
+    def test_remaining_nonnotifying_build(self, post):
+        project1 = self.create_project(name='project1', slug='project1')
+        project2 = self.create_project(name='project2', slug='project2', notify='0')
+        collection_id = uuid.uuid4()
+        build1 = self.create_build(project1, target='D1', collection_id=collection_id, result=Result.failed, status=Status.finished)
+        build2 = self.create_build(project2, target='D1', collection_id=collection_id, result=Result.unknown, status=Status.in_progress)
+
+        build_finished_handler(build_id=build1.id.hex)
+        assert post.call_count == 1
+
+        args, kwargs = post.call_args
+        id, msg, request = args
+        assert 'project1' in msg
+        assert 'project2' not in msg
+
+        build2.result = Result.failed
+        build2.status = Status.finished
+        db.session.add(build2)
+        db.session.commit()
+
+        # should not change anything
+        build_finished_handler(build_id=build2.id.hex)
+        assert post.call_count == 1
+
+    @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
+    def test_nonnotifying_build(self, post):
+        project1 = self.create_project(name='project1', slug='project1', notify='0')
+        project2 = self.create_project(name='project2', slug='project2')
+        collection_id = uuid.uuid4()
+        build1 = self.create_build(project1, target='D1', collection_id=collection_id, result=Result.failed, status=Status.finished)
+        build2 = self.create_build(project2, target='D1', collection_id=collection_id, result=Result.unknown, status=Status.in_progress)
+
+        build_finished_handler(build_id=build1.id.hex)
+        assert post.call_count == 0
+
+        build2.result = Result.failed
+        build2.status = Status.finished
+        db.session.add(build2)
+        db.session.commit()
+
+        build_finished_handler(build_id=build2.id.hex)
+        assert post.call_count == 1
+
+        args, kwargs = post.call_args
+        id, msg, request = args
+        assert 'project1' not in msg
+        assert 'project2' in msg
 
     @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
     @mock.patch('changes.listeners.phabricator_listener.get_options')

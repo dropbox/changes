@@ -11,7 +11,7 @@ from changes.constants import Result, Status
 from changes.db.utils import try_create
 from changes.lib import build_context_lib
 from changes.lib.coverage import get_coverage_by_build_id, merged_coverage_data
-from changes.models import Build, ItemOption, ProjectOption, RepositoryBackend, Source
+from changes.models import Build, ItemOption, ProjectOption, ProjectOptionsHelper, RepositoryBackend, Source
 from changes.models.event import Event, EventType
 from changes.utils.http import build_uri
 from changes.utils.phabricator_utils import logger, PhabricatorClient, post_comment
@@ -173,6 +173,11 @@ def build_finished_handler(build_id, **kwargs):
 
     builds = list(
         Build.query.filter(Build.collection_id == build.collection_id))
+
+    # Filter collection of builds down to only consider/report builds for
+    # projects with phabricator.notify set.
+    options = ProjectOptionsHelper.get_options([b.project for b in builds], ['phabricator.notify'])
+    builds = [b for b in builds if options[b.project.id].get('phabricator.notify', '0') == '1']
 
     # Exit if there are no builds for the given build_id, or any build hasn't
     # finished.
