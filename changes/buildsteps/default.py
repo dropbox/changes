@@ -201,9 +201,16 @@ class DefaultBuildStep(BuildStep):
         job.status = Status.pending_allocation
         db.session.add(job)
 
+        label = job.label
+        if any(cmd.type.is_collector() for cmd in self.commands):
+            label = 'Collect tests'
+
+        # XXX(nate): we use the phase label for uniqueness, which isn't great.
+        # We let the expanded phase pick its own phase name, so if someone
+        # picked "Collect tests" for some reason, things would break.
         phase, _ = get_or_create(JobPhase, where={
             'job': job,
-            'label': job.label,
+            'label': label,
         }, defaults={
             'status': Status.pending_allocation,
             'project': job.project,
@@ -225,7 +232,7 @@ class DefaultBuildStep(BuildStep):
         """
         where = {
             'phase': phase,
-            'label': job.label,
+            'label': phase.label,
         }
         if replaces:
             # if we're replacing an old jobstep, we specify new id in the where

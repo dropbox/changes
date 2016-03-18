@@ -52,6 +52,9 @@ class TestsExpander(Expander):
             )
             yield future_jobstep
 
+    def default_phase_name(self):
+        return 'Run tests'
+
     @classmethod
     def get_test_stats(cls, project_slug):
         response = api_client.get('/projects/{project}/'.format(

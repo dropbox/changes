@@ -4,7 +4,6 @@ import json
 
 from datetime import datetime
 from flask_restful.reqparse import RequestParser
-from sqlalchemy.sql import func
 
 from changes.api.base import APIView, error
 from changes.api.validators.datetime import ISODatetime
@@ -119,12 +118,7 @@ class CommandDetailsAPIView(APIView):
         jobstep = command.jobstep
         phase_name = data.get('phase')
         if not phase_name:
-            phase_count = db.session.query(
-                func.count(),
-            ).filter(
-                JobPhase.job_id == jobstep.job_id,
-            ).scalar()
-            phase_name = 'Phase #{}'.format(phase_count)
+            phase_name = expander.default_phase_name()
 
         new_jobphase = JobPhase(
             job_id=jobstep.job_id,

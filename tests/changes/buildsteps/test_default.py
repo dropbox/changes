@@ -37,17 +37,19 @@ class DefaultBuildStepTest(TestCase):
         assert buildstep.get_resource_limits() == {'cpus': 8, 'memory': 9000, }
 
     def test_execute(self):
-        build = self.create_build(self.create_project(name='foo'))
+        build = self.create_build(self.create_project(name='foo'), label='buildlabel')
         job = self.create_job(build)
 
         buildstep = self.get_buildstep(cluster='foo', repo_path='source', path='tests')
         buildstep.execute(job)
 
+        assert job.phases[0].label == 'buildlabel'
         step = job.phases[0].steps[0]
 
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
         assert step.cluster == 'foo'
+        assert step.label == 'buildlabel'
 
         commands = step.commands
         assert len(commands) == 3
@@ -80,7 +82,7 @@ class DefaultBuildStepTest(TestCase):
 
     @mock.patch.object(Repository, 'get_vcs')
     def test_execute_collection_step(self, get_vcs):
-        build = self.create_build(self.create_project())
+        build = self.create_build(self.create_project(), label='buildlabel')
         job = self.create_job(build)
 
         vcs = mock.Mock(spec=Vcs)
@@ -94,13 +96,15 @@ class DefaultBuildStepTest(TestCase):
                                      repo_path='source', path='tests')
         buildstep.execute(job)
 
-        vcs.get_buildstep_clone.assert_called_once_with(job.source, 'source', True, None)
+        vcs.get_buildstep_clone.assert_called_with(job.source, 'source', True, None)
 
+        assert job.phases[0].label == 'Collect tests'
         step = job.phases[0].steps[0]
 
         assert step.data['release'] == DEFAULT_RELEASE
         assert step.status == Status.pending_allocation
         assert step.cluster is None
+        assert step.label == 'Collect tests'
 
         commands = step.commands
         assert len(commands) == 3

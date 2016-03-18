@@ -29,3 +29,6 @@ class CommandsExpander(Expander):
                 commands=[future_command],
             )
             yield future_jobstep
+
+    def default_phase_name(self):
+        return 'Run commands'

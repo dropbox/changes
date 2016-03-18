@@ -110,6 +110,7 @@ class UpdateCommandTest(APITestCase):
                 script='echo "foo"\necho "bar"',
             )],
         )]
+        dummy_expander.default_phase_name.return_value = 'dummy'
         mock_get_expander.return_value.return_value = dummy_expander
         mock_buildstep = Mock(spec=BuildStep)
         mock_buildstep.create_expanded_jobstep.side_effect = dummy_create_expanded_jobstep
@@ -146,7 +147,7 @@ class UpdateCommandTest(APITestCase):
             JobPhase.job_id == job.id,
             JobPhase.id != jobphase.id,
         ).first()
-        assert phase2.label == 'Phase #1'
+        assert phase2.label == 'dummy'
         assert phase2.status == Status.queued
 
         new_jobstep = phase2.current_steps[0]
@@ -171,6 +172,7 @@ class UpdateCommandTest(APITestCase):
 
         empty_expander = Mock(spec=Expander)
         empty_expander.expand.return_value = []
+        empty_expander.default_phase_name.return_value = 'empty'
         mock_get_expander.return_value.return_value = empty_expander
         mock_buildstep = Mock(spec=BuildStep)
 
@@ -200,6 +202,7 @@ class UpdateCommandTest(APITestCase):
         assert phase2
         assert phase2.status == Status.finished
         assert phase2.result == Result.passed
+        assert phase2.label == 'empty'
 
         new_steps = JobStep.query.filter(
             JobStep.phase_id == phase2.id
