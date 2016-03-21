@@ -152,6 +152,11 @@ class DefaultBuildStep(BuildStep):
             future_commands.append(future_command)
         self.commands = future_commands
 
+        # this caches the snapshot image database object for a given job id.
+        # we use it to avoid performing duplicate queries when
+        # get_allocation_command() and get_allocation_params() are called.
+        self._jobid2image = {}
+
         super(DefaultBuildStep, self).__init__(**kwargs)
 
     def get_label(self):
@@ -387,6 +392,23 @@ class DefaultBuildStep(BuildStep):
     def get_client_adapter(self):
         return 'basic'
 
+    def _image_for_job_id(self, job_id):
+        """
+        Returns the SnapshotImage database object associated with the given
+        job_id, or None if there is none (i.e. it isn't a snapshot build).
+        The implementation caches this result so the query only has to be
+        done once per job id.
+        """
+        if job_id not in self._jobid2image:
+            expected_image = db.session.query(
+                SnapshotImage.id,
+            ).filter(
+                SnapshotImage.job_id == job_id,
+            ).scalar()
+            # note that expected_image could be None
+            self._jobid2image[job_id] = expected_image
+        return self._jobid2image[job_id]
+
     def get_allocation_params(self, jobstep):
         params = {
             'artifact-search-path': self.path,
@@ -407,14 +429,7 @@ class DefaultBuildStep(BuildStep):
         if 'bind_mounts' in self.debug_config:
             params['bind-mounts'] = self.debug_config['bind_mounts']
 
-        # TODO(dcramer): we need some kind of tie into the JobPlan in order
-        # to dictate that this is a snapshot build
-        # determine if there's an expected snapshot outcome
-        expected_image = db.session.query(
-            SnapshotImage.id,
-        ).filter(
-            SnapshotImage.job_id == jobstep.job_id,
-        ).scalar()
+        expected_image = self._image_for_job_id(jobstep.job_id)
         if expected_image:
             params['save-snapshot'] = expected_image.hex
 

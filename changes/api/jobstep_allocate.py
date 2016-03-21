@@ -120,23 +120,23 @@ class JobStepAllocateAPIView(APIView):
 
         with statsreporter.stats().timer('jobstep_allocate_get'):
             available_allocations = self.find_next_jobsteps(limit, cluster)
-            jobstep_results = []
+            jobstep_results = self.serialize(available_allocations)
 
-            for jobstep in available_allocations:
-                jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
-                assert jobplan and buildstep
+            buildstep_for_job_id = {}
+            for jobstep, jobstep_data in zip(available_allocations, jobstep_results):
+                if jobstep.job_id not in buildstep_for_job_id:
+                    buildstep_for_job_id[jobstep.job_id] = JobPlan.get_build_step_for_job(jobstep.job_id)[1]
+                buildstep = buildstep_for_job_id[jobstep.job_id]
                 limits = buildstep.get_resource_limits()
                 req_cpus = limits.get('cpus', 4)
                 req_mem = limits.get('memory', 8 * 1024)
                 allocation_cmd = buildstep.get_allocation_command(jobstep)
-                jobstep_data = self.serialize(jobstep)
-                jobstep_data['project'] = self.serialize(jobstep.project)
+                jobstep_data['project'] = jobstep.project
                 jobstep_data['resources'] = {
                     'cpus': req_cpus,
                     'mem': req_mem,
                 }
                 jobstep_data['cmd'] = allocation_cmd
-                jobstep_results.append(jobstep_data)
 
             return self.respond({'jobsteps': jobstep_results})
 

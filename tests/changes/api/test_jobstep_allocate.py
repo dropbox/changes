@@ -2,10 +2,11 @@ from __future__ import absolute_import
 
 import json
 
-from mock import patch
+import mock
 from urllib import urlencode
 
 from changes.testutils import APITestCase
+from changes.buildsteps.base import BuildStep
 from changes.constants import Status
 from changes.ext.redis import UnableToGetLock
 
@@ -47,7 +48,7 @@ class JobStepAllocateTestNew(APITestCase):
 
         self.assert_successful_allocate([jobstep.id.hex])
 
-    @patch('changes.config.redis.lock',)
+    @mock.patch('changes.config.redis.lock',)
     def test_locked(self, mock_allocate):
         project = self.create_project()
         build = self.create_build(project)
@@ -75,22 +76,31 @@ class JobStepAllocateTestNew(APITestCase):
         # allocation should be all or nothing
         assert jobstep_pending.status == Status.pending_allocation
 
-    @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
-    def test_several_queued(self, mock_get_allocation_command):
-        project = self.create_project()
-        build = self.create_build(project, status=Status.pending_allocation)
-        job = self.create_job(build)
-        jobphase = self.create_jobphase(job)
-        plan = self.create_plan(project)
-        self.create_step(plan)
-        self.create_job_plan(job, plan)
+    @mock.patch('changes.models.JobPlan.get_build_step_for_job')
+    def test_several_queued(self, get_build_step_for_job):
+        jobphases = []
+        jobid2buildstep = {}
+        get_build_step_for_job.side_effect = lambda jobid: jobid2buildstep[jobid]
+        # use multiple projects/jobs/jobphases to keep things interesting
+        # (tests our memoization)
+        for i in xrange(2):
+            project = self.create_project()
+            build = self.create_build(project, status=Status.pending_allocation)
+            job = self.create_job(build)
+            jobphase = self.create_jobphase(job)
+            plan = self.create_plan(project)
+            self.create_step(plan)
+            jobplan = self.create_job_plan(job, plan)
+            implementation = mock.Mock(spec=BuildStep)
+            implementation.get_resource_limits.return_value = {}
+            implementation.get_allocation_command.return_value = 'echo %d' % i
+            jobid2buildstep[job.id] = (jobplan, implementation)
+            jobphases.append(jobphase)
 
-        jobstep_ignored = self.create_jobstep(jobphase, status=Status.unknown)
-        jobstep_first_q = self.create_jobstep(jobphase, status=Status.pending_allocation)
-        jobstep_second_q = self.create_jobstep(jobphase, status=Status.pending_allocation)
-        jobstep_third_q = self.create_jobstep(jobphase, status=Status.pending_allocation)
-
-        mock_get_allocation_command.return_value = 'echo 1'
+        jobstep_ignored = self.create_jobstep(jobphases[0], status=Status.unknown)
+        jobstep_first_q = self.create_jobstep(jobphases[0], status=Status.pending_allocation)
+        jobstep_second_q = self.create_jobstep(jobphases[1], status=Status.pending_allocation)
+        jobstep_third_q = self.create_jobstep(jobphases[1], status=Status.pending_allocation)
 
         # ensure we get back the earliest queued jobsteps first
         resp = self.get(limit=2)
@@ -101,7 +111,7 @@ class JobStepAllocateTestNew(APITestCase):
         assert data[0]['id'] == jobstep_first_q.id.hex
         assert data[0]['status']['id'] == Status.pending_allocation.name
         assert data[0]['resources']
-        assert data[0]['cmd'] == 'echo 1'
+        assert data[0]['cmd'] == 'echo 0'
         assert data[1]['id'] == jobstep_second_q.id.hex
         assert data[1]['status']['id'] == Status.pending_allocation.name
         assert data[1]['resources']
@@ -152,7 +162,7 @@ class JobStepAllocateTestNew(APITestCase):
         assert resp.status_code == 200, resp
         assert self.unserialize(resp) == {'jobsteps': []}, resp.data
 
-    @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
+    @mock.patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
     def test_several_queued_cluster(self, mock_get_allocation_command):
         project = self.create_project()
         build = self.create_build(project, status=Status.pending_allocation)
@@ -233,7 +243,7 @@ class JobStepAllocateTest(APITestCase):
         assert resp.status_code == 200, resp
         assert resp.data == '[]', resp.data
 
-    @patch('changes.config.redis.lock',)
+    @mock.patch('changes.config.redis.lock',)
     def test_cant_allocate(self, mock_allocate):
         project = self.create_project()
         build = self.create_build(project)
@@ -246,7 +256,7 @@ class JobStepAllocateTest(APITestCase):
         resp = self.post_simple()
         assert resp.status_code == 503
 
-    @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
+    @mock.patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
     def test_several_queued(self, mock_get_allocation_command):
         project = self.create_project()
         build = self.create_build(project, status=Status.pending_allocation)
@@ -319,7 +329,7 @@ class JobStepAllocateTest(APITestCase):
         assert resp.status_code == 200, resp
         assert resp.data == '[]', resp.data
 
-    @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
+    @mock.patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
     def test_several_queued_cluster(self, mock_get_allocation_command):
         project = self.create_project()
         build = self.create_build(project, status=Status.pending_allocation)
@@ -367,7 +377,7 @@ class JobStepAllocateTest(APITestCase):
         assert resp.status_code == 200
         assert resp.data == '[]', 'Expecting no content'
 
-    @patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
+    @mock.patch('changes.buildsteps.base.BuildStep.get_allocation_command',)
     def test_limits_too_high(self, mock_get_allocation_command):
         mock_get_allocation_command.return_value = 'echo 1'
 
@@ -388,14 +398,14 @@ class JobStepAllocateTest(APITestCase):
             },
         })
 
-        with patch('changes.buildsteps.base.BuildStep.get_resource_limits') as get_limits:
+        with mock.patch('changes.buildsteps.base.BuildStep.get_resource_limits') as get_limits:
             get_limits.return_value = {'memory': 8192, 'cpus': 4}  # too expensive for params.
             resp = self.client.post(self.path, data=params, content_type='application/json')
 
         assert resp.status_code == 200, resp.data
         assert self.unserialize(resp) == []
 
-        with patch('changes.buildsteps.base.BuildStep.get_resource_limits') as get_limits:
+        with mock.patch('changes.buildsteps.base.BuildStep.get_resource_limits') as get_limits:
             get_limits.return_value = {'memory': 8192, 'cpus': 1}  # now we're cheap enough.
             resp = self.client.post(self.path, data=params, content_type='application/json')
 
