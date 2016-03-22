@@ -5,17 +5,21 @@ import logging
 from flask.ext.restful.reqparse import RequestParser
 from sqlalchemy.orm import joinedload
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.build_index import identify_revision, MissingRevision
 from changes.config import db
 from changes.constants import Cause, Status
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
-from changes.models import (
-    Build, Job, JobPlan, Project, Snapshot, SnapshotImage, SnapshotStatus,
-    Source, ItemOption, PlanStatus
-)
+from changes.models.build import Build, BuildPriority
+from changes.models.option import ItemOption
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.plan import PlanStatus
+from changes.models.project import Project
+from changes.models.snapshot import Snapshot, SnapshotImage, SnapshotStatus
+from changes.models.source import Source
 
 
 def get_snapshottable_plans(project):
@@ -96,7 +100,7 @@ class ProjectSnapshotIndexAPIView(APIView):
         except MissingRevision:
             # if the default fails, we absolutely can't continue and the
             # client should send a valid revision
-            return '{"error": "Unable to find a matching revision."}', 400
+            return error("Unable to find a matching revision.")
 
         if revision:
             sha = revision.sha
@@ -106,7 +110,7 @@ class ProjectSnapshotIndexAPIView(APIView):
         plan_list = get_snapshottable_plans(project)
 
         if not plan_list:
-            return '{"error": "No snapshottable plans associated with project."}', 400
+            return error("No snapshottable plans associated with project.")
 
         source, _ = get_or_create(Source, where={
             'repository': repository,
@@ -123,6 +127,9 @@ class ProjectSnapshotIndexAPIView(APIView):
             status=Status.queued,
             cause=Cause.snapshot,
             target=sha[:12],
+            # Snapshot builds are often part of the solution to queueing, so we make them
+            # high priority to schedule them sooner.
+            priority=BuildPriority.high,
         )
         db.session.add(build)
 

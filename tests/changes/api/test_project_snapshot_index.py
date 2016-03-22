@@ -5,7 +5,9 @@ from changes.api.project_snapshot_index import get_snapshottable_plans
 from changes.buildsteps.dummy import DummyBuildStep
 from changes.config import db
 from changes.constants import Status, Cause
-from changes.models import JobPlan, Snapshot, SnapshotImage, SnapshotStatus
+from changes.models.build import BuildPriority
+from changes.models.jobplan import JobPlan
+from changes.models.snapshot import Snapshot, SnapshotImage, SnapshotStatus
 from changes.testutils import APITestCase
 
 
@@ -164,6 +166,7 @@ class CreateProjectSnapshotTest(APITestCase):
         build = snapshot.build
         assert build.cause == Cause.snapshot
         assert build.status == Status.queued
+        assert build.priority == BuildPriority.high
 
         images = sorted(SnapshotImage.query.filter(
             SnapshotImage.snapshot_id == snapshot.id,
