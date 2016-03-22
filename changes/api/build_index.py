@@ -12,15 +12,22 @@ from werkzeug.datastructures import FileStorage
 from changes.api.base import APIView, error
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, statsreporter
-from changes.constants import Result, Status, ProjectStatus
+from changes.constants import Cause, Result, Status, ProjectStatus
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
-from changes.models import (
-    Project, ProjectOptionsHelper, Build, Job, JobPlan, Repository,
-    RepositoryStatus, Patch, ItemOption, ItemOptionsHelper, Snapshot, SnapshotImage, SnapshotStatus,
-    Source, PlanStatus, Revision, ProjectConfigError
-)
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.option import ItemOption, ItemOptionsHelper
+from changes.models.patch import Patch
+from changes.models.plan import PlanStatus
+from changes.models.project import Project, ProjectConfigError, ProjectOptionsHelper
+from changes.models.repository import Repository, RepositoryStatus
+from changes.models.revision import Revision
+from changes.models.snapshot import Snapshot, SnapshotImage, SnapshotStatus
+from changes.models.source import Source
+
 from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import (
@@ -422,6 +429,9 @@ class BuildIndexAPIView(APIView):
     """Optional flag to force the build to use no snapshot."""
     parser.add_argument('no_snapshot', type=bool, default=False)
 
+    """Cause for the build (based on the Cause enum). Limited to avoid confusion."""
+    parser.add_argument('cause', type=unicode, choices=('unknown', 'manual'), default='unknown')
+
     get_parser = reqparse.RequestParser()
 
     """Optional tag to search for."""
@@ -516,6 +526,8 @@ class BuildIndexAPIView(APIView):
         tag = args.tag
         snapshot_id = args.snapshot_id
         no_snapshot = args.no_snapshot
+
+        cause = Cause[args.cause]
 
         if no_snapshot and snapshot_id:
             return error("Cannot specify snapshot with no_snapshot option")
@@ -629,6 +641,7 @@ class BuildIndexAPIView(APIView):
             files_changed = None
 
         collection_id = uuid.uuid4()
+
         builds = []
         for project in projects:
             plan_list = get_build_plans(project)
@@ -690,6 +703,7 @@ class BuildIndexAPIView(APIView):
                         patch=patch,
                         source_data=patch_data,
                         tag=tag,
+                        cause=cause,
                         snapshot_id=snapshot_id,
                         no_snapshot=no_snapshot
                     ))
@@ -707,6 +721,7 @@ class BuildIndexAPIView(APIView):
                     patch=patch,
                     source_data=patch_data,
                     tag=tag,
+                    cause=cause,
                     snapshot_id=snapshot_id,
                     no_snapshot=no_snapshot
                 ))

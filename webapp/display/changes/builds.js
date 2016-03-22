@@ -6,7 +6,9 @@ import { Button } from 'es6!display/button';
 import { Error, ProgrammingError } from 'es6!display/errors';
 import Request from 'es6!display/request';
 import { buildSummaryText } from 'es6!display/changes/build_text';
-import { get_runnable_condition, get_runnables_summary_condition, ConditionDot } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition,
+         get_runnables_summary_condition,
+         ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
 
@@ -252,7 +254,7 @@ export var MissingBuildStatus = React.createClass({
         <Request
           parentElem={this.props.parentElem}
           name={buttonName}
-          endpoint={`/api/0/builds/?project=${project}&sha=${commit}`}
+          endpoint={`/api/0/builds/?project=${project}&sha=${commit}&cause=manual`}
           method="post">
           <OverlayTrigger
             placement="right"

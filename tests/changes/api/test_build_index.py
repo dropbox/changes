@@ -8,8 +8,14 @@ from datetime import datetime
 from mock import patch, MagicMock, Mock
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
-from changes.constants import Status, Result
-from changes.models import Job, JobPlan, Patch, PlanStatus, ProjectOption, SnapshotStatus
+from changes.constants import Cause, Status, Result
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.patch import Patch
+from changes.models.plan import PlanStatus
+from changes.models.project import ProjectOption
+from changes.models.snapshot import SnapshotStatus
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
 from changes.testutils.build import CreateBuildsMixin
@@ -244,10 +250,56 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         build = job.build
         source = build.source
 
+        assert build.cause == Cause.unknown
         assert job.project == self.project
 
         assert source.repository_id == self.project.repository_id
         assert source.revision_sha == 'a' * 40
+
+    def test_manual_cause(self):
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'cause': 'manual',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        build_id = data[0]['id']
+        b = Build.query.get(build_id)
+        assert b.cause == Cause.manual
+
+    def test_explicit_unknown_cause(self):
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'cause': 'unknown',
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        build_id = data[0]['id']
+        b = Build.query.get(build_id)
+        assert b.cause == Cause.unknown
+
+    def test_bad_causes(self):
+        ss_resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'cause': 'snapshot',
+        })
+        assert ss_resp.status_code == 400
+
+        nonsense_resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+            'cause': 'this_is_not_a_real_cause',
+        })
+        assert nonsense_resp.status_code == 400
 
     def test_with_snapshot(self):
         snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
