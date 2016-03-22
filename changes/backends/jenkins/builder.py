@@ -27,7 +27,7 @@ from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models import (
     Artifact, Cluster, ClusterNode, FailureReason, LogSource,
-    LogChunk, Node, JobPhase, JobStep, TestResult, LOG_CHUNK_SIZE
+    LogChunk, Node, JobPhase, JobStep, LOG_CHUNK_SIZE
 )
 from changes.utils.http import build_uri
 from changes.utils.text import chunked
@@ -310,44 +310,6 @@ class JenkinsBuilder(BaseBackend):
         db.session.add(jobstep)
 
         return True if has_more else None
-
-    def _process_test_report(self, step, test_report):
-        test_list = []
-
-        if not test_report:
-            return test_list
-
-        for suite_data in test_report['suites']:
-            for case in suite_data['cases']:
-                message = []
-                if case['errorDetails']:
-                    message.append('Error\n-----')
-                    message.append(case['errorDetails'] + '\n')
-                if case['errorStackTrace']:
-                    message.append('Stacktrace\n----------')
-                    message.append(case['errorStackTrace'] + '\n')
-                if case['skippedMessage']:
-                    message.append(case['skippedMessage'] + '\n')
-
-                if case['status'] in ('PASSED', 'FIXED'):
-                    result = Result.passed
-                elif case['status'] in ('FAILED', 'REGRESSION'):
-                    result = Result.failed
-                elif case['status'] == 'SKIPPED':
-                    result = Result.skipped
-                else:
-                    raise ValueError('Invalid test result: %s' % (case['status'],))
-
-                test_result = TestResult(
-                    step=step,
-                    name=case['name'],
-                    package=case['className'] or None,
-                    duration=int(case['duration'] * 1000),
-                    message='\n'.join(message).strip(),
-                    result=result,
-                )
-                test_list.append(test_result)
-        return test_list
 
     def _pick_master(self, job_name, is_diff=False):
         """
