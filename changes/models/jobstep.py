@@ -55,7 +55,8 @@ class JobStep(db.Model):
     # fails and is retried.
     replacement_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"), unique=True)
     # Used (for non-Jenkins builds) in jobstep_allocate to only allocate jobsteps
-    # to slaves of a particular cluster.
+    # to slaves of a particular cluster. For Jenkins builds, this is pure documentation (typically
+    # set to the Jenkins label), but should be accurate just the same.
     cluster = Column(String(128), nullable=True)
     date_started = Column(DateTime)
     date_finished = Column(DateTime)

@@ -310,10 +310,10 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
         else:
             # Create all of the job steps and commit them together.
             groups = TestsExpander.shard_tests(phase_config['tests'], self.max_shards,
-                                       test_stats, avg_test_time)
+                                               test_stats, avg_test_time)
             steps = [
                 self._create_jobstep(phase, phase_config['cmd'], phase_config.get('path', ''),
-                                     weight, test_list, len(groups))
+                                     weight, test_list, len(groups), cluster=step.cluster)
                 for weight, test_list in groups
                 ]
             if len(steps) != len(groups):
@@ -330,7 +330,8 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
                 parent_task_id=phase.job.id.hex,
             )
 
-    def _create_jobstep(self, phase, phase_cmd, phase_path, weight, test_list, shard_count=1, force_create=False):
+    def _create_jobstep(self, phase, phase_cmd, phase_path, weight, test_list, shard_count=1, force_create=False,
+                        cluster=None):
         """
         Create a JobStep in the database for a single shard.
 
@@ -346,6 +347,7 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
             force_create (bool): Force this JobStep to be created (rather than
                 retrieved). This is used when replacing a JobStep to make sure
                 we don't just get the old one.
+            cluster (Optional[str]): The value to be used for JobStep.cluster.
 
         Returns:
             JobStep: the (possibly-newly-created) JobStep.
@@ -375,6 +377,7 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
                 'weight': weight,
             },
             'status': Status.queued,
+            'cluster': cluster,
         })
         assert created or not force_create
         BuildStep.handle_debug_infra_failures(step, self.debug_config, 'expanded')
@@ -386,7 +389,7 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
             return super(JenkinsTestCollectorBuildStep, self).create_replacement_jobstep(step)
         newstep = self._create_jobstep(step.phase, step.data['cmd'], step.data['path'],
                                        step.data['weight'], step.data['tests'],
-                                       step.data['shard_count'], force_create=True)
+                                       step.data['shard_count'], force_create=True, cluster=step.cluster)
         step.replacement_id = newstep.id
         db.session.add(step)
         db.session.commit()
