@@ -80,34 +80,35 @@ class CommandDetailsAPIView(APIView):
 
             db.session.add(command)
             db.session.flush()
+
+            if args.output or args.status == 'finished':
+                expander_cls = self.get_expander(command.type)
+                if expander_cls is not None:
+                    if not args.output:
+                        db.session.rollback()
+                        return error("Missing output for command of type %s" % command.type)
+
+                    expander = expander_cls(
+                        project=command.jobstep.project,
+                        data=args.output,
+                    )
+
+                    try:
+                        expander.validate()
+                    except AssertionError as e:
+                        db.session.rollback()
+                        return error('%s' % e)
+                    except Exception:
+                        db.session.rollback()
+                        return '', 500
+
+                    self.expand_command(command, expander, args.output)
+
+            db.session.commit()
+
         finally:
             if lock:
                 lock.__exit__(None, None, None)
-
-        if args.output or args.status == 'finished':
-            expander_cls = self.get_expander(command.type)
-            if expander_cls is not None:
-                if not args.output:
-                    db.session.rollback()
-                    return error("Missing output for command of type %s" % command.type)
-
-                expander = expander_cls(
-                    project=command.jobstep.project,
-                    data=args.output,
-                )
-
-                try:
-                    expander.validate()
-                except AssertionError as e:
-                    db.session.rollback()
-                    return error('%s' % e)
-                except Exception:
-                    db.session.rollback()
-                    return '', 500
-
-                self.expand_command(command, expander, args.output)
-
-        db.session.commit()
 
         return self.respond(command)
 

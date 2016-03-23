@@ -127,7 +127,6 @@ def sync_job(job_id):
     if job.status == Status.finished:
         return
 
-    # TODO(dcramer): we make an assumption that there is a single step
     jobplan, implementation = JobPlan.get_build_step_for_job(job_id=job.id)
 
     try:
