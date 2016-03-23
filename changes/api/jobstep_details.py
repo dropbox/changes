@@ -13,8 +13,9 @@ from changes.config import db
 from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job import sync_job
+from changes.jobs.sync_job_step import is_final_jobphase
 from changes.models import (
-    Command, FailureReason, JobPhase, JobPlan, JobStep, Node, SnapshotImage,
+    Command, FailureReason, JobPlan, JobStep, Node, SnapshotImage,
 )
 
 
@@ -37,13 +38,6 @@ class JobStepDetailsAPIView(APIView):
     post_parser.add_argument('node')
     post_parser.add_argument('heartbeat', type=bool)
     post_parser.add_argument('metrics')
-
-    def _is_final_jobphase(self, jobphase):
-        return not db.session.query(
-            JobPhase.query.filter(
-                JobPhase.date_created > jobphase.date_created,
-            ).exists(),
-        ).scalar()
 
     def get(self, step_id):
         jobstep = JobStep.query.options(
@@ -169,7 +163,7 @@ class JobStepDetailsAPIView(APIView):
 
             # are we missing an expansion step? it must happen before reporting
             # the result, and would falsely give us a success metric
-            elif last_command.type.is_collector() and self._is_final_jobphase(jobstep.phase):
+            elif last_command.type.is_collector() and is_final_jobphase(jobstep.phase):
                 jobstep.result = Result.failed
                 job = jobstep.job
                 # TODO(dcramer): we should add a better failure reason

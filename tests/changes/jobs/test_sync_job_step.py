@@ -206,19 +206,25 @@ class IsMissingTestsTest(BaseTestCase):
         jobphase = self.create_jobphase(
             job=job,
             label='setup',
-            # it's important that the date_created here is actually newer
-            # than the second phase
-            date_created=datetime(2013, 9, 19, 22, 17, 24),
-            date_started=datetime(2013, 9, 19, 22, 15, 24),
+            date_created=datetime(2013, 9, 19, 22, 15, 24),
         )
         jobphase2 = self.create_jobphase(
             job=job,
             label='test',
             date_created=datetime(2013, 9, 19, 22, 16, 24),
-            date_started=datetime(2013, 9, 19, 22, 16, 24),
         )
         jobstep = self.create_jobstep(jobphase)
         jobstep2 = self.create_jobstep(jobphase2)
+
+        job2 = self.create_job(build=build)
+        self.create_job_plan(job2, plan)
+        # this has a later date_created than jobphase2, but shouldn't be
+        # considered because it's a different job.
+        self.create_jobphase(
+            job=job2,
+            label='differentjob',
+            date_created=datetime(2013, 9, 19, 22, 17, 24),
+        )
 
         assert not is_missing_tests(jobstep, jobplan)
         assert is_missing_tests(jobstep2, jobplan)

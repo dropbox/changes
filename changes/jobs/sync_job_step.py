@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime
 from flask import current_app
 from requests.exceptions import ConnectionError, HTTPError, Timeout, SSLError
-from sqlalchemy import distinct, or_
+from sqlalchemy import distinct
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 
@@ -37,7 +37,7 @@ def abort_step(task):
 
 
 def is_missing_tests(step, jobplan):
-    return _expects_tests(jobplan) and _is_in_last_phase(step) and not _has_tests(step)
+    return _expects_tests(jobplan) and is_final_jobphase(step.phase) and not _has_tests(step)
 
 
 def _result_from_failure_reasons(step):
@@ -95,18 +95,14 @@ def _expects_tests(jobplan):
     return options.get('build.expect-tests') == '1'
 
 
-def _is_in_last_phase(step):
+def is_final_jobphase(phase):
     # TODO(dcramer): there is probably a better way we can be explicit about
     # this?
     jobphase_query = JobPhase.query.filter(
-        JobPhase.job_id == step.job_id,
-        JobPhase.id != step.phase_id,
-        or_(
-            JobPhase.date_started > step.phase.date_started,
-            JobPhase.date_started == None,  # NOQA
-        )
+        JobPhase.job_id == phase.job_id,
+        JobPhase.id != phase.id,
+        JobPhase.date_created > phase.date_created,
     )
-
     return not db.session.query(jobphase_query.exists()).scalar()
 
 
@@ -428,19 +424,6 @@ def sync_job_step(step_id):
         record_coverage_stats(step)
     except Exception:
         current_app.logger.exception('Failing recording coverage stats for step %s', step.id)
-
-    # We need the start time of this step's phase to determine if we're part of
-    # the last phase. So, if date_started is empty, wait for sync_phase to catch
-    # up and try again.
-    if _expects_tests(jobplan) and not step.phase.date_started:
-        current_app.logger.warning(
-            "Phase[%s].date_started is missing. Retrying Step", step.phase.id)
-
-        # Reset result to unknown to reduce window where test might be incorrectly green.
-        # Set status to in_progress so that the next sync_job_step will fetch status from Jenkins again.
-        step.result = Result.unknown
-        step.status = Status.in_progress
-        raise sync_job_step.NotFinished
 
     missing_tests = is_missing_tests(step, jobplan)
 
