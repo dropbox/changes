@@ -269,6 +269,18 @@ def create_app(_read_config=True, **config):
     app.config['PHABRICATOR_USERNAME'] = None
     app.config['PHABRICATOR_CERT'] = None
 
+    # Configuration to access Zookeeper - currently used to discover mesos master leader instance
+    # E.g., if mesos master is configured to talk to zk://zk1:2181,zk2:2181/mesos,
+    # set ZOOKEEPER_HOSTS = 'zk1:2181,zk2:2181'
+    #     ZOOKEEPER_MESOS_MASTER_PATH = '/mesos'
+    #
+    # This is only used to control mesos slave offline/online status from within Changes
+
+    # Comma-separated list of host:port (or ip:port) to Zookeeper instances.
+    app.config['ZOOKEEPER_HOSTS'] = 'zk:2181'
+    # Namespace within zookeeper where mesos master election is performed.
+    app.config['ZOOKEEPER_MESOS_MASTER_PATH'] = '/mesos'
+
     app.config['SUPPORT_CONTACT'] = 'support'
 
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'

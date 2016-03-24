@@ -46,6 +46,7 @@ install_requires = [
     'flask-restful>=0.2.10,<0.2.11',
     'flask-sqlalchemy>=1.0,<1.1',
     'lxml>=3.2.3,<3.3.0',
+    'kazoo==2.2.1',
     'raven>=5.3.0,<5.4.0',
     'redis>=2.10.3,<2.10.4',
     'requests>=2.3.0,<2.4.0',

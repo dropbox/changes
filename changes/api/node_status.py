@@ -10,6 +10,7 @@ from flask.ext.restful import reqparse
 from changes.api.auth import get_current_user
 from changes.api.base import APIView, error
 from changes.config import db
+from changes.lib import mesos_lib
 from changes.models import JobStep, Node
 
 
@@ -24,8 +25,11 @@ class NodeStatusAPIView(APIView):
 
     def get(self, node_id):
         node = Node.query.get(node_id)
-        master = self.get_master(node_id)
-        return self.respond_status(node, master)
+        jenkins_master = self.get_jenkins_master(node_id)
+        if not jenkins_master:
+            mesos_master = mesos_lib.get_mesos_master()
+            return self.respond_mesos_status(node, mesos_master)
+        return self.respond_jenkins_status(node, jenkins_master)
 
     def post(self, node_id):
         args = self.get_parser.parse_args()
@@ -43,11 +47,17 @@ class NodeStatusAPIView(APIView):
         if user is None:
             return error('User is not logged in.', ['user'], 401)
 
-        master = self.get_master(node_id)
-        if not master:
-            return error('Node master not found.', ['node_id'], 404)
+        jenkins_master = self.get_jenkins_master(node_id)
+        if not jenkins_master:
+            # We are most likely dealing with a Mesos slave here
+            mesos_master = mesos_lib.get_mesos_master()
+            if not mesos_lib.is_active_slave(mesos_master, node):
+                return error('Node is currently not active on Mesos master', 400)
 
-        toggle_url = '%s/toggleOffline' % (self.get_jenkins_url(master, node.label))
+            mesos_lib.toggle_node_maintenance_status(mesos_master, node)
+            return self.respond_mesos_status(node, mesos_master)
+
+        toggle_url = '%s/toggleOffline' % (self.get_jenkins_url(jenkins_master, node.label))
         timestamp = datetime.utcnow()
         data = {
             'offlineMessage': '[changes] Disabled by %s at %s' % (user.email, timestamp)
@@ -57,9 +67,9 @@ class NodeStatusAPIView(APIView):
         if response.status_code != 200:
             logging.warning('Unable to toggle offline status (%s)' % (toggle_url))
 
-        return self.respond_status(node, master)
+        return self.respond_jenkins_status(node, jenkins_master)
 
-    def respond_status(self, node, master):
+    def respond_jenkins_status(self, node, master):
         if node is None:
             return error('Node not found.', ['node_id'], 404)
 
@@ -81,7 +91,15 @@ class NodeStatusAPIView(APIView):
 
         return self.respond(context, serialize=False)
 
-    def get_master(self, node_id):
+    def respond_mesos_status(self, node, mesos_master):
+        is_active = mesos_lib.is_active_slave(mesos_master, node)
+        if not is_active:
+            return {}
+
+        is_maintenanced = mesos_lib.is_node_under_maintenance(mesos_master, node)
+        return {'offline': is_maintenanced}
+
+    def get_jenkins_master(self, node_id):
         jobstep_data = db.session.query(
             JobStep.data
         ).filter(
