@@ -33,7 +33,7 @@ var NodePage = React.createClass({
     var jobsEndpoint = `/api/0/nodes/${nodeID}/jobs/`;
     api.fetch(this, {
       nodeDetails: detailsEndpoint,
-      nodeStatus: `/api/0/nodes/${nodeID}/status`,
+      nodeStatus: `/api/0/nodes/${nodeID}/status/`,
       nodeJobs: jobsEndpoint,
     })
   },
