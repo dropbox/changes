@@ -167,6 +167,7 @@ class CreateProjectSnapshotTest(APITestCase):
         assert build.cause == Cause.snapshot
         assert build.status == Status.queued
         assert build.priority == BuildPriority.high
+        assert build.tags == ['snapshot']
 
         images = sorted(SnapshotImage.query.filter(
             SnapshotImage.snapshot_id == snapshot.id,

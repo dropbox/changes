@@ -127,6 +127,7 @@ class ProjectSnapshotIndexAPIView(APIView):
             status=Status.queued,
             cause=Cause.snapshot,
             target=sha[:12],
+            tags=['snapshot'],
             # Snapshot builds are often part of the solution to queueing, so we make them
             # high priority to schedule them sooner.
             priority=BuildPriority.high,
