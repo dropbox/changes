@@ -206,6 +206,6 @@ def toggle_node_maintenance_status(master, node):
     if is_node_under_maintenance(maint_data, node):
         maint_data = _mark_node_out_of_maintenance(maint_data, node)
     else:
-        maint_data = _mark_node_under_maintenance(master, node)
+        maint_data = _mark_node_under_maintenance(maint_data, node)
 
     _update_maintenance_schedule(master, maint_data)
