@@ -18,9 +18,7 @@ class ManagerTest(TestCase):
         class _OtherHandler(ArtifactHandler):
             FILENAMES = ('/other.xml',)
 
-        manager = Manager()
-        manager.register(_CovHandler)
-        manager.register(_OtherHandler)
+        manager = Manager([_CovHandler, _OtherHandler])
 
         project = self.create_project()
         build = self.create_build(project)
@@ -79,9 +77,7 @@ class ManagerTest(TestCase):
         class _OtherHandler(ArtifactHandler):
             FILENAMES = ('/other.xml', 'foo/*/weird.json')
 
-        manager = Manager()
-        manager.register(_CovHandler)
-        manager.register(_OtherHandler)
+        manager = Manager([_CovHandler, _OtherHandler])
 
         assert manager.can_process('foo/coverage.xml')
         assert manager.can_process('other.xml')

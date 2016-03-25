@@ -2,11 +2,8 @@ from __future__ import absolute_import, print_function
 
 
 class Manager(object):
-    def __init__(self, handlers=None):
-        self.handlers = handlers or []
-
-    def register(self, cls):
-        self.handlers.append(cls)
+    def __init__(self, handlers):
+        self.handlers = tuple(handlers)
 
     def can_process(self, artifact_name):
         return any(cls.can_process(artifact_name) for cls in self.handlers)
