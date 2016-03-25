@@ -799,6 +799,19 @@ class SyncGenericResultsTest(BaseTestCase):
             assert artifact.data == data
 
 
+class ArtifactsManagerMatchTest(BaseTestCase):
+
+    def test_standard(self):
+        builder = self.get_builder()
+        mgr = builder.get_artifact_manager(mock.Mock())
+        assert not mgr.can_process('build_report.log')
+
+    def test_fetch_jenkins(self):
+        builder = self.get_builder(debug_config={'fetch_jenkins_logs': True})
+        mgr = builder.get_artifact_manager(mock.Mock())
+        assert mgr.can_process('build_report.log')
+
+
 class SyncArtifactTest(BaseTestCase):
     @responses.activate
     def test_sync_artifact_xunit(self):

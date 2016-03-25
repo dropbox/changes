@@ -16,6 +16,7 @@ from flask import current_app
 from lxml import etree, objectify
 
 from changes.artifacts.coverage import CoverageHandler
+from changes.artifacts.dummylogfile import DummyLogFileHandler
 from changes.artifacts.manager import Manager
 from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.artifacts.xunit import XunitHandler
@@ -906,7 +907,10 @@ class JenkinsBuilder(BaseBackend):
         return job_data
 
     def get_artifact_manager(self, jobstep):
-        return Manager([CoverageHandler, XunitHandler, ManifestJsonHandler])
+        handlers = [CoverageHandler, XunitHandler, ManifestJsonHandler]
+        if self.debug_config.get('fetch_jenkins_logs'):
+            handlers.append(DummyLogFileHandler)
+        return Manager(handlers)
 
     def create_commands(self, step, env):
         """
