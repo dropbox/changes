@@ -1,0 +1,33 @@
+#!/bin/bash -eux
+
+# Heroic effort to install Python 3.2, setuptools, pip, mypy (in that
+# order) on Ubuntu 12.04.
+
+# This script needs to run as root.
+
+case `whoami` in
+root) ;;
+*) echo "Please use sudo to run this script as root."; exit 1;;
+esac
+
+apt-get install -y -q python3
+apt-get install -y -q python3-setuptools
+apt-get install -y -q python3-pip
+
+# Sadly, setuptools and pip are installed in /usr/local/lib/python3.4/
+# (but there's no apt-get package that installs Python 3.4).
+# Just add that directory to sys.path
+
+export PYTHONPATH=/usr/local/lib/python3.4/dist-packages
+
+python3 -m pip install -q -U git+https://github.com/python/mypy
+#python3 -m pip install -q -U git+https://github.com/gvanrossum/pyxl3
+# Copied from pyxl3/finish_install.py
+#python3 <<EOF
+#import os
+#from distutils.sysconfig import get_python_lib
+#python_lib = get_python_lib()
+#pyxl_path = os.path.join(python_lib, 'pyxl.pth')
+#with open(pyxl_path, 'w') as f:
+#    f.write('import pyxl.codec.register\n')
+#EOF

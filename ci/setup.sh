@@ -21,3 +21,5 @@ sudo -u postgres createdb changes || true
 sudo chown -R `whoami` `npm config get cache` || true
 source ~/env/bin/activate
 time make install-test-requirements
+
+sudo ci/mypy-setup
