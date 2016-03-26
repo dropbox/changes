@@ -8,6 +8,7 @@ from requests.exceptions import ConnectionError, HTTPError, Timeout
 
 import json
 import requests
+import socket
 import time
 
 MESOS_REQUEST_TIMEOUT_SECS = 5
@@ -101,7 +102,7 @@ def is_active_slave(master, node):
     """
     slaves = _get_slaves(master)
     for slave in slaves:
-        if slave['hostname'] == node.label.strip():
+        if slave['hostname'] == node:
             return slave['active']
 
     return False
@@ -109,13 +110,14 @@ def is_active_slave(master, node):
 
 def _is_node_in_maintenance_window(window, node):
     for maintenanced_node in window['machine_ids']:
-        if node.label.strip() == maintenanced_node['hostname']:
+        if node == maintenanced_node['hostname']:
             return True
 
     return False
 
 
-def _is_maintenance_window_currently_active(window, now=time.time()):
+def _is_maintenance_window_currently_active(window):
+    now = time.time()
     unavailability_start = window['unavailability']['start']['nanoseconds']
     unavailability_duration = window['unavailability']['duration']['nanoseconds']
 
@@ -125,7 +127,8 @@ def _is_maintenance_window_currently_active(window, now=time.time()):
     return now >= start_time and now < end_time
 
 
-def _is_stale_window(window, now=time.time()):
+def _is_stale_window(window):
+    now = time.time()
     unavailability_start = window['unavailability']['start']['nanoseconds']
     unavailability_duration = window['unavailability']['duration']['nanoseconds']
 
@@ -134,8 +137,8 @@ def _is_stale_window(window, now=time.time()):
     return now >= end_time
 
 
-def _remove_node_from_window(window, node_hostname):
-    filtered_machine_ids = [mnode for mnode in window['machine_ids'] if node_hostname != mnode['hostname']]
+def _remove_node_from_window(window, node):
+    filtered_machine_ids = [mnode for mnode in window['machine_ids'] if node != mnode['hostname']]
     if len(filtered_machine_ids) == 0:
         return None
 
@@ -143,7 +146,7 @@ def _remove_node_from_window(window, node_hostname):
     return window
 
 
-def is_node_under_maintenance(maint_data, node):
+def _is_node_under_maintenance(maint_data, node):
     if 'windows' in maint_data:
         for window in maint_data['windows']:
             if _is_node_in_maintenance_window(window, node) and _is_maintenance_window_currently_active(window):
@@ -163,7 +166,8 @@ def _mark_node_under_maintenance(maint_data, node):
     maint_data['windows'].append({
         "machine_ids": [
             {
-                "hostname": node.label.strip(),
+                "hostname": node,
+                "ip": socket.gethostbyname(node),
             }
         ],
         "unavailability": {
@@ -180,14 +184,14 @@ def _mark_node_under_maintenance(maint_data, node):
 
 def _mark_node_out_of_maintenance(maint_data, node):
     if 'windows' not in maint_data:
-        raise 'Node %s is not currently under maintenance' % (node.label.strip())
+        raise 'Node %s is not currently under maintenance' % (node)
 
     # Remove stale windows
     maint_data['windows'] = [window for window in maint_data['windows'] if not _is_stale_window(window)]
 
     filtered_windows = []
     for window in maint_data['windows']:
-        updated_window = _remove_node_from_window(window, node.label.strip())
+        updated_window = _remove_node_from_window(window, node)
         if updated_window:
             filtered_windows.append(updated_window)
 
@@ -201,9 +205,14 @@ def _mark_node_out_of_maintenance(maint_data, node):
     return maint_data
 
 
+def is_node_under_maintenance(master, node):
+    maint_data = _load_maintenance_schedule(master)
+    return _is_node_under_maintenance(maint_data, node)
+
+
 def toggle_node_maintenance_status(master, node):
     maint_data = _load_maintenance_schedule(master)
-    if is_node_under_maintenance(maint_data, node):
+    if _is_node_under_maintenance(maint_data, node):
         maint_data = _mark_node_out_of_maintenance(maint_data, node)
     else:
         maint_data = _mark_node_under_maintenance(maint_data, node)

@@ -50,11 +50,15 @@ class NodeStatusAPIView(APIView):
         jenkins_master = self.get_jenkins_master(node_id)
         if not jenkins_master:
             # We are most likely dealing with a Mesos slave here
+            node_hostname = node.label.strip()
             mesos_master = mesos_lib.get_mesos_master()
-            if not mesos_lib.is_active_slave(mesos_master, node):
+            if not mesos_lib.is_active_slave(mesos_master, node_hostname):
                 return error('Node is currently not active on Mesos master', 400)
 
-            mesos_lib.toggle_node_maintenance_status(mesos_master, node)
+            try:
+                mesos_lib.toggle_node_maintenance_status(mesos_master, node_hostname)
+            except Exception as err:
+                return error('Unable to toggle offline status of node %s: %s' % (node_hostname, err), http_code=500)
             return self.respond_mesos_status(node, mesos_master)
 
         toggle_url = '%s/toggleOffline' % (self.get_jenkins_url(jenkins_master, node.label))
@@ -92,11 +96,12 @@ class NodeStatusAPIView(APIView):
         return self.respond(context, serialize=False)
 
     def respond_mesos_status(self, node, mesos_master):
-        is_active = mesos_lib.is_active_slave(mesos_master, node)
+        node_hostname = node.label.strip()
+        is_active = mesos_lib.is_active_slave(mesos_master, node_hostname)
         if not is_active:
             return {}
 
-        is_maintenanced = mesos_lib.is_node_under_maintenance(mesos_master, node)
+        is_maintenanced = mesos_lib.is_node_under_maintenance(mesos_master, node_hostname)
         return {'offline': is_maintenanced}
 
     def get_jenkins_master(self, node_id):
