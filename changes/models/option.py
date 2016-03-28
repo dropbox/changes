@@ -1,7 +1,5 @@
 from uuid import uuid4
 
-from typing import Dict, List
-
 from collections import defaultdict
 from datetime import datetime
 from sqlalchemy import Column, DateTime, String, Text
