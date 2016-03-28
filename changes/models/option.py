@@ -1,5 +1,8 @@
 from uuid import uuid4
 
+from typing import Dict, List
+
+from collections import defaultdict
 from datetime import datetime
 from sqlalchemy import Column, DateTime, String, Text
 from sqlalchemy.schema import UniqueConstraint
@@ -26,3 +29,20 @@ class ItemOption(db.Model):
             self.id = uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
+
+
+class ItemOptionsHelper(object):
+    @staticmethod
+    def get_options(item_id_list, options_list):
+        options_query = db.session.query(
+            ItemOption.item_id, ItemOption.name, ItemOption.value
+        ).filter(
+            ItemOption.item_id.in_(item_id_list),
+            ItemOption.name.in_(options_list)
+        )
+
+        options = defaultdict(dict)
+        for item_id, option_name, option_value in options_query:
+            options[item_id][option_name] = option_value
+
+        return options

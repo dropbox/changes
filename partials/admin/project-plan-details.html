@@ -26,6 +26,10 @@
         <input type="checkbox" value="1" ng-model="options['snapshot.allow']">
         Allow snapshots to be created (and used) for this build plan.
       </label>
+      <label>
+        <input type="checkbox" value="1" ng-model="options['snapshot.require']">
+        Skip this build plan unless there is a snapshot available. (I wouldn't set this option without the previous one, if I were you.)
+      </label>
     </div>
   </fieldset>
 

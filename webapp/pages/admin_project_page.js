@@ -434,7 +434,7 @@ let PlanDetails = React.createClass({
   },
 
   getFieldNames: function() {
-    return ['name', 'status', 'expectTests', 'allowSnapshot'];
+    return ['name', 'status', 'expectTests', 'allowSnapshot', 'requireSnapshot'];
   },
 
   saveSettings: function() {
@@ -446,6 +446,7 @@ let PlanDetails = React.createClass({
     let options_params = {
       'build.expect-tests': state.expectTests | 0,
       'snapshot.allow': state.allowSnapshot | 0,
+      'snapshot.require': state.requireSnapshot | 0,
     };
 
     let planId = this.props.plan.id;
@@ -468,6 +469,7 @@ let PlanDetails = React.createClass({
                     status: this.props.plan.status.id,
                     expectTests: this.props.options['build.expect-tests'] === '1',
                     allowSnapshot: this.props.options['snapshot.allow'] === '1',
+                    requireSnapshot: this.props.options['snapshot.require'] === '1',
                   },
                   this.updateSavedFormState);
   },
@@ -481,6 +483,7 @@ let PlanDetails = React.createClass({
       },
       { sectionTitle: 'Snapshots', fields: [
         {type: 'checkbox', link: 'allowSnapshot', comment: 'Allow snapshots to be created (and used) for this build plan.'},
+        {type: 'checkbox', link: 'requireSnapshot', comment: 'Skip this build plan unless there is a snapshot available. (I wouldn\'t set this option without the previous one, if I were you.)'},
         ]
       },
       { sectionTitle: 'Tests', fields: [

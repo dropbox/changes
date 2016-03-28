@@ -12,6 +12,7 @@ OPTION_DEFAULTS = {
     'build.expect-tests': '0',
     'build.timeout': '0',
     'snapshot.allow': '1',
+    'snapshot.require': '0',
 }
 
 
@@ -35,6 +36,7 @@ class PlanOptionsAPIView(APIView):
     post_parser.add_argument('build.expect-tests')
     post_parser.add_argument('build.timeout')
     post_parser.add_argument('snapshot.allow')
+    post_parser.add_argument('snapshot.require')
 
     @requires_admin
     def post(self, plan_id):

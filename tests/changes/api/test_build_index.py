@@ -446,6 +446,75 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         })
         assert resp.status_code == 200
 
+    def test_require_snapshot(self):
+        snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
+        image = self.create_snapshot_image(
+            plan=self.plan,
+            snapshot=snapshot,
+        )
+        self.create_project_option(
+            project=self.project,
+            name='snapshot.current',
+            value=snapshot.id.hex
+        )
+        self.create_option(
+            item_id=self.plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+
+        # another_plan has snapshots enabled but the snapshot does not have an
+        # image for it. so trying to start a build using the default snapshot
+        # should not create a job for this plan.
+        another_plan = self.create_plan(self.project)
+        self.create_option(
+            item_id=another_plan.id,
+            name='snapshot.allow',
+            value='1'
+        )
+        self.create_option(
+            item_id=another_plan.id,
+            name='snapshot.require',
+            value='1'
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        jobs = Job.query.filter(
+            Job.build_id == data[0]['id']
+        ).all()
+        assert len(jobs) == 1
+
+        # Then if we create a snapshot image for the second plan, then there
+        # should be jobs for both plans.
+        another_image = self.create_snapshot_image(
+            plan=another_plan,
+            snapshot=snapshot,
+        )
+        db.session.commit()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'project': self.project.slug,
+        })
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        jobs = Job.query.filter(
+            Job.build_id == data[0]['id']
+        ).all()
+        assert len(jobs) == 2
+
     @patch('changes.models.Repository.get_vcs')
     def test_defaults_to_revision(self, get_vcs):
         fake_vcs = self.get_fake_vcs()

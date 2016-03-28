@@ -18,7 +18,7 @@ from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models import (
     Project, ProjectOptionsHelper, Build, Job, JobPlan, Repository,
-    RepositoryStatus, Patch, ItemOption, Snapshot, SnapshotImage, SnapshotStatus,
+    RepositoryStatus, Patch, ItemOption, ItemOptionsHelper, Snapshot, SnapshotImage, SnapshotStatus,
     Source, PlanStatus, Revision, ProjectConfigError
 )
 from changes.utils.diff_parser import DiffParser
@@ -199,8 +199,18 @@ def execute_build(build, snapshot_id, no_snapshot):
         if snapshot:
             snapshot_id = snapshot.id
 
+    plans = get_build_plans(project)
+
+    options = ItemOptionsHelper.get_options([p.id for p in plans], ['snapshot.require'])
+
     jobs = []
     for plan in get_build_plans(project):
+        if (options[plan.id].get('snapshot.require', '0') == '1' and
+                not no_snapshot and
+                SnapshotImage.get(plan, snapshot_id) is None):
+            logging.warning('Skipping plan %r (%r) because no snapshot exists yet', plan.label, project.slug)
+            continue
+
         job = Job(
             build=build,
             build_id=build.id,

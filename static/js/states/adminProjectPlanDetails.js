@@ -17,7 +17,8 @@ define(['app'], function(app) {
     controller: function($http, $scope, $window, planData, planOptionData, Collection, flash) {
       var booleans = {
         "build.expect-tests": 1,
-        "snapshot.allow": 1
+        "snapshot.allow": 1,
+        "snapshot.require": 0,
       }, options = {};
 
       for (var key in planOptionData) {
