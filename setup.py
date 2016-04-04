@@ -38,7 +38,7 @@ install_requires = [
     # Kombu 3.0.25 has undocumented dependency on a newer version of redis that breaks
     # us, so we keep with 3.0.24 until that is resolved.
     'kombu>=3.0.8,<=3.0.24',
-    'enum34>=0.9.18,<0.10.0',
+    'enum34==1.1.2',
     'flask>=0.10.1,<0.11.0',
     'flask-assets>=0.10,<0.11',
     'flask-debugtoolbar>=0.9.0,<0.10.0',
