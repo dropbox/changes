@@ -86,9 +86,11 @@ class SerializeTest(TestCase):
         foo_crumbler.get_extra_attrs_from_db.assert_called_once_with({item1, item3})
         bar_crumbler.get_extra_attrs_from_db.assert_called_once_with({item4, item2})
 
-        # we parse keys first, then values so there are no issues with dict ordering here
-        self._assert_crumble_called_for(foo_crumbler, [item1, item3])
-        self._assert_crumble_called_for(bar_crumbler, [item4, item2])
+        # in the current implementation, keys are crumbled before values, so these
+        # have a defined order, but doesn't seem worth relying on that behavior
+        # in our tests.
+        self._assert_crumble_called_for(foo_crumbler, [item1, item3], any_order=True)
+        self._assert_crumble_called_for(bar_crumbler, [item4, item2], any_order=True)
 
     @mock.patch('changes.api.serializer.base.get_crumbler')
     def test_recursive(self, get_crumbler):

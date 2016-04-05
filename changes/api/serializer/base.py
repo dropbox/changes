@@ -2,7 +2,8 @@ from collections import defaultdict
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
-from typing import cast, Any, Callable, Dict, Generic, Iterator, List, Optional, TypeVar, Tuple, Union  # NOQA
+from typing import cast, Any, Callable, Dict, Generic, Iterable, List, Optional, TypeVar  # NOQA
+from itertools import izip
 
 from flask import request
 
@@ -13,112 +14,13 @@ _PASSTHROUGH = (basestring, bool, int, long, type(None), float)
 T = TypeVar('T')
 
 
-class SerializeTask(Generic[T]):
-    class State(Enum):
-        # states
-        uncalled = 0  # this task hasn't yet been called
-        done = 1  # this task is done. Call get() for the result
-        depends_on = 2  # finish a list of tasks first, then resume me
-        fetch_for = 3  # fetch this data, then send it back to me
-        fetched = 4  # the scheduler fetched our data. continue!
+class Future(object):
+    __slots__ = ('data', 'final')
 
-    def __init__(self, data):
-        # type: (T) -> None
+    def __init__(self, data, final=None):
+        # type: (object, object) -> None
         self.data = data
-        self.state = SerializeTask.State.uncalled
-        self.result = None  # type: Optional[object]
-
-        self._generator = None  # type: Optional[Iterator[Tuple[SerializeTask.State, Optional[List[SerializeTask[object]]]]]]
-
-    def _run(self):
-        # type: () -> Iterator[Tuple[SerializeTask.State, Optional[List[SerializeTask[object]]]]]
-        if isinstance(self.data, _PASSTHROUGH):
-            yield self._done(self.data)
-
-        elif isinstance(self.data, (list, tuple, set, frozenset)):
-            data = cast(Union[list, tuple, set, frozenset], self.data)
-            if not isinstance(data, list):
-                data = list(data)
-
-            serializer_tasks = {}  # type: Dict[int, SerializeTask[object]]
-            for index, item in enumerate(data):
-                if isinstance(item, _PASSTHROUGH):
-                    continue
-                serializer_tasks[index] = SerializeTask(item)
-
-            yield self._depends_on(serializer_tasks.values())
-            result = []  # type: List[object]
-            for index, item in enumerate(data):
-                if index in serializer_tasks:
-                    result.append(serializer_tasks[index].get())
-                else:
-                    result.append(item)
-            yield self._done(result)
-
-        elif isinstance(self.data, dict):
-            key_serialize_task = SerializeTask(self.data.keys())
-            value_serialize_task = SerializeTask(self.data.values())
-
-            yield self._depends_on([key_serialize_task, value_serialize_task])
-            yield self._done(dict(zip(key_serialize_task.get(), value_serialize_task.get())))
-
-        else:
-            yield self._fetch_for(self.data)
-            assert self.state == SerializeTask.State.fetched
-            if isinstance(self.fetched, _PASSTHROUGH):
-                yield self._done(self.fetched)
-                return
-            # result might still have dependencies
-            serializer_task = SerializeTask(self.fetched)
-            yield self._depends_on([serializer_task])
-            yield self._done(serializer_task.get())
-
-    def generator(self):
-        # type: () -> Iterator[Tuple[SerializeTask.State, Optional[List[SerializeTask[object]]]]]
-        if not self._generator:
-            self._generator = self._run()
-        return self._generator
-
-    def get(self):
-        # type: () -> object
-        return self.result
-
-    def _done(self, result):
-        # type: (object) -> Tuple[SerializeTask.State, Optional[List[SerializeTask[object]]]]
-        self.state = SerializeTask.State.done
-        self.result = result
-        return (self.state, None)
-
-    def _depends_on(self, serialize_task_list):
-        # type: (List[SerializeTask]) -> Tuple[SerializeTask.State, List[SerializeTask[object]]]
-        self.state = SerializeTask.State.depends_on
-        self.dependents = serialize_task_list
-        return (self.state, serialize_task_list)
-
-    def _dependents_are_ready(self):
-        # type: () -> bool
-        return all([task.state == SerializeTask.State.done for task in self.dependents])
-
-    def _fetch_for(self, data):
-        # type: (T) -> Tuple[SerializeTask.State, Optional[List[SerializeTask[object]]]]
-        self.state = SerializeTask.State.fetch_for
-        self.fetchable = data
-        return (self.state, None)
-
-    def runnable(self):
-        # type: () -> bool
-        return (self.state in (SerializeTask.State.uncalled, SerializeTask.State.fetched) or
-                (self.state == SerializeTask.State.depends_on and
-                 self._dependents_are_ready()))
-
-    def get_fetchable(self):
-        # type: () -> object
-        return self.fetchable
-
-    def put_fetched(self, fetched):
-        # type: (object) -> None
-        self.state = SerializeTask.State.fetched
-        self.fetched = fetched
+        self.final = final
 
 
 def old_serialize(data, extended_registry=None):
@@ -174,51 +76,128 @@ def old_serialize(data, extended_registry=None):
     return old_serialize(data, extended_registry)
 
 
-def new_serialize(data, extended_registry=None):
-    # type: (object, Optional[Dict[type, Crumbler[object]]]) -> object
-    initial_task = SerializeTask(data)
-    all_tasks = [initial_task]
+def _gather(data, collected):
+    # type: (object, List[Future]) -> object
+    """
+    Crawls `data`, and returns an equivalent structure where any non-serializable
+    objects are replaced with Future objects, to be filled in later.
 
-    while initial_task.state != SerializeTask.State.done:
-        # our main loop. Basically:
-        # - ignore done tasks
-        # - if we have any uncalled tasks, tasks that have data ready to use,
-        #   or depends_on tasks where all dependents are done, run all of
-        #   those tasks for this loop
-        # - otherwise we must be stuck on fetch_fors. Do all of the data
-        #   fetching
-        tasks_to_run = [task for task in all_tasks if task.runnable()]
+    Args:
+        data: the data to crawl
+        collected: list which is populated with the Future
+            objects this method generates
+    Returns:
+        An object with the same structure as `data`, but with any
+        non-serializable objects replaced with Future objects.
+    """
+    if isinstance(data, _PASSTHROUGH):
+        return data
 
-        if tasks_to_run:
-            for task in tasks_to_run:
-                result = next(task.generator(), None)
-                if result and result[0] == SerializeTask.State.depends_on:
-                    all_tasks.extend(result[1])
-            continue
+    elif isinstance(data, dict):
+        # optimize for the case that keys are strings
+        keys = [k if isinstance(k, _PASSTHROUGH) else _gather(k, collected)
+                for k in data.iterkeys()]
+        values = [_gather(v, collected) for v in data.itervalues()]
+        return dict(izip(keys, values))
 
-        # ok, we must be stuck on fetch_fors. Do all of them
-        fetch_tasks = [task for task in all_tasks if task.state == SerializeTask.State.fetch_for]
-        fetches_by_class = defaultdict(list)  # type: Dict[type, List[SerializeTask[object]]]
+    elif isinstance(data, (list, tuple, set, frozenset)):
+        data = cast(Iterable, data)
+        return [_gather(item, collected) for item in data]
 
-        for f in fetch_tasks:
-            fetches_by_class[f.get_fetchable().__class__].append(f)
+    else:
+        # need to crumble this.
+        future = Future(data=data)
+        collected.append(future)
+        return future
 
-        for cls, tasks in fetches_by_class.iteritems():
+
+def _finalize_futures(needs_crumble, extended_registry):
+    # type: (List[Future], Optional[Dict[type, Crumbler[object]]]) -> None
+    """
+    Given a list of Future objects that need to be crumbled, crumbles them,
+    and then recursively gathers and crumbles the results of the Future
+    objects' crumbling. Puts off crumbling until an entire layer of objects has
+    been collected, so that we can do `get_extra_attrs_from_db` for many objects
+    at a time.
+
+    Args:
+        needs_crumble: list of initial Future objects to be crumbled
+        extended_registry: additional crumblers to use for this serialization
+    """
+    while needs_crumble:
+        fetches_by_class = defaultdict(list)  # type: Dict[type, List[Future]]
+        for future in needs_crumble:
+            fetches_by_class[future.data.__class__].append(future)
+
+        needs_crumble = []
+        for cls, futures in fetches_by_class.iteritems():
             # we can use the same crumbler object for all items of this type.
-            crumbler = get_crumbler(tasks[0].get_fetchable(), extended_registry)
+            crumbler = get_crumbler(futures[0].data, extended_registry)
             if crumbler is None:
                 # no crumbler for these objects, so just output them directly
-                for task in tasks:
-                    task.put_fetched(task.get_fetchable())
+                for future in futures:
+                    future.final = future.data
                 continue
             extra_attrs = crumbler.get_extra_attrs_from_db(
-                {task.get_fetchable() for task in tasks})
-            for task in tasks:
-                item = task.get_fetchable()
-                task.put_fetched(
-                    crumbler.crumble(item, extra_attrs.get(item)))
+                {future.data for future in futures})
+            for future in futures:
+                item = future.data
+                crumbled = crumbler.crumble(item, extra_attrs.get(item))
+                future.final = _gather(crumbled, needs_crumble)
 
-    return initial_task.get()
+
+def _expand(data):
+    # type: (object) -> object
+    """
+    Final step of serialization. Given `data`, a structure that contains
+    finalized `Future` objects, returns an equivalent structure where the
+    `Future` objects are replaced with their finalized (crumbled) value.
+    May mutate `data` in some cases.
+    """
+    if isinstance(data, _PASSTHROUGH):
+        return data
+
+    elif isinstance(data, dict):
+        # since we created this dict, it's safe for us to just mutate it,
+        # which avoids doing a zip.
+        for k, v in data.iteritems():
+            # usually keys are just strings, so we optimize for that case
+            if isinstance(k, _PASSTHROUGH):
+                data[k] = _expand(v)
+            else:
+                # mutating a dict while iterating is tricky, and we
+                # don't expect to hit this case often, so we just create a new
+                # dict in this case
+                keys = [_expand(k) for k in data.iterkeys()]
+                # we might be calling _expand a second time if we'd already
+                # iterated over this key-value pair before finding a
+                # non-trivial key, but expansion is idempotent so we're okay.
+                values = [_expand(v) for v in data.itervalues()]
+                return dict(izip(keys, values))
+        return data
+
+    elif isinstance(data, list):
+        return [_expand(item) for item in data]
+
+    elif isinstance(data, Future):
+        return _expand(data.final)
+
+    else:
+        # data for which we have no crumbler
+        return data
+
+
+def new_serialize(data, extended_registry=None):
+    # type: (object, Optional[Dict[type, Crumbler[object]]]) -> object
+    needs_crumble = []  # type: List[Future]
+    initial = _gather(data, needs_crumble)
+    if not needs_crumble:
+        return initial
+
+    _finalize_futures(needs_crumble, extended_registry)
+
+    # everything should be fully crumbled now, just have to assemble it
+    return _expand(initial)
 
 
 def serialize(data, extended_registry=None):
