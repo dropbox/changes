@@ -151,7 +151,7 @@ export var manyBuildsSummaryText = function(latestPerProject) {
  */
 export var get_build_cause = function(build) {
   var tags = build.tags;
-  if (build.cause.id === 'retry') {
+  if (build.cause.id === 'manual' || build.cause.id === 'retry') {
     // manually triggered retry (either from phabricator or the changes ui)
     return 'manual';
   }
