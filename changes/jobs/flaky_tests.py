@@ -9,11 +9,13 @@ from datetime import datetime, timedelta
 from changes.config import db
 from changes.db.utils import try_create
 from changes.lib.flaky_tests import get_flaky_tests
-from changes.models import FlakyTestStat, Project, TestCase
+from changes.models.flakyteststat import FlakyTestStat
+from changes.models.project import Project
+from changes.models.test import TestCase
 import urllib2
 
 
-def log_metrics(key, **kws):
+def _log_metrics(key, **kws):
     try:
 
         urllib2.urlopen(
@@ -25,9 +27,8 @@ def log_metrics(key, **kws):
             ),
             timeout=10
         ).read()
-    except Exception as e:
-        print("Logging Failed", e)
-        pass
+    except Exception:
+        logging.warning("Reporting flaky test data failed", exc_info=True)
 
 
 def aggregate_flaky_tests(day=None, max_flaky_tests=200):
@@ -50,7 +51,7 @@ def aggregate_flaky_tests(day=None, max_flaky_tests=200):
                     TestCase.date_created
                 ).limit(1).scalar()
 
-                log_metrics(
+                _log_metrics(
                     "flaky_test_reruns",
                     flaky_test_reruns_name=test['name'],
                     flaky_test_reruns_project_id=test['project_id'],
@@ -67,6 +68,10 @@ def aggregate_flaky_tests(day=None, max_flaky_tests=200):
                     'passing_runs': test['passing_runs'],
                     'first_run': first_run
                 })
+                # Potentially hundreds of commits per project may be a bit excessive,
+                # but the metric posting can potentially take seconds, meaning this could be
+                # a very long-running transaction otherwise.
+                db.session.commit()
 
         db.session.commit()
     except Exception as err:
