@@ -19,7 +19,7 @@ def _get_git_revision_info(checkout_dir):
             'show',
             '--pretty="%s"' % "%H\x01%ae\x01%ct\x01%s",
             '-s']
-        r = subprocess.check_output(git_command).strip().strip('"')
+        r = subprocess.check_output(git_command, close_fds=True).strip().strip('"')
         (commit_hash, author_email, commit_time, subject) = r.split("\x01")
         return {
             'hash': commit_hash,

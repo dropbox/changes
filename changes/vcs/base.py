@@ -117,7 +117,7 @@ class Vcs(object):
         kwargs['stdout'] = PIPE
         kwargs['stderr'] = PIPE
 
-        proc = Popen(*args, **kwargs)
+        proc = Popen(*args, close_fds=True, **kwargs)
         (stdout, stderr) = proc.communicate()
         if proc.returncode != 0:
             raise CommandError(args[0], proc.returncode, stdout, stderr)
