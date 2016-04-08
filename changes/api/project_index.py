@@ -19,7 +19,7 @@ STATUS_CHOICES = ('', 'active', 'inactive')
 SORT_CHOICES = ('name', 'date')
 
 
-def get_latest_builds_query(project_list, result=None):
+def get_latest_builds_query(project_ids, result=None):
     build_query = db.session.query(
         Build.id,
     ).join(
@@ -48,7 +48,7 @@ def get_latest_builds_query(project_list, result=None):
             Build.project_id == Project.id,
         ).limit(1).as_scalar(),
     ).filter(
-        Project.id.in_(p.id for p in project_list),
+        Project.id.in_(project_ids),
     ))
 
     return list(Build.query.filter(
@@ -130,42 +130,62 @@ class ProjectIndexAPIView(APIView):
 
             context = []
             if project_list:
-                latest_build_results = get_latest_builds_query(project_list)
+                latest_build_results = get_latest_builds_query(p.id for p in project_list)
+
+                projects_missing_passing_build = []
+                for build in latest_build_results:
+                    if build.result != Result.passed:
+                        projects_missing_passing_build.append(build.project_id)
+
+                if projects_missing_passing_build:
+                    extra_passing_build_results = get_latest_builds_query(
+                        projects_missing_passing_build, result=Result.passed,
+                    )
+                else:
+                    extra_passing_build_results = []
+
+                # serialize as a group for more effective batching
+                serialized_builds = self.serialize(latest_build_results + extra_passing_build_results)
+
+                serialized_latest_builds = serialized_builds[:len(latest_build_results)]
+                serialized_extra_passing_builds = serialized_builds[-len(extra_passing_build_results):]
                 latest_build_map = dict(
                     zip([b.project_id for b in latest_build_results],
-                        self.serialize(latest_build_results))
+                        serialized_latest_builds)
                 )
-
                 passing_build_map = {}
-                missing_passing_builds = set()
                 for build in latest_build_results:
                     if build.result == Result.passed:
-                        passing_build_map[build.project_id] = build
+                        passing_build_map[build.project_id] = latest_build_map.get(build.project_id)
                     else:
                         passing_build_map[build.project_id] = None
-                        missing_passing_builds.add(build.project_id)
+                passing_build_map.update(
+                    zip([b.project_id for b in extra_passing_build_results],
+                        serialized_extra_passing_builds)
+                )
 
-                if missing_passing_builds:
-                    passing_build_results = get_latest_builds_query(
-                        project_list, result=Result.passed,
+                if args.fetch_extra:
+                    repo_ids = set()
+                    repos = []
+                    for project in project_list:
+                        if project.repository_id not in repo_ids:
+                            repos.append(project.repository)
+                            repo_ids.add(project.repository)
+                    repo_dict = dict(
+                        zip([repo.id for repo in repos],
+                            self.serialize(repos))
                     )
-                    passing_build_map.update(dict(
-                        zip([b.project_id for b in passing_build_results],
-                            self.serialize(passing_build_results))
-                    ))
-
                 for project, data in zip(project_list, self.serialize(project_list)):
-                    # TODO(dcramer): build serializer is O(N) for stats
                     data['lastBuild'] = latest_build_map.get(project.id)
                     data['lastPassingBuild'] = passing_build_map.get(project.id)
                     if args.fetch_extra:
-                        data['repository'] = self.serialize(project.repository)
+                        data['repository'] = repo_dict[project.repository_id]
                         data['options'] = options_dict[project.id]
                         # we have to use the serialized version of the id
                         data['plans'] = plans[data['id']]
                     context.append(data)
 
-            return self.respond(context)
+            return self.respond(context, serialize=False)
 
     @requires_admin
     def post(self):
