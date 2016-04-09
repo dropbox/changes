@@ -188,8 +188,14 @@ class GitVcs(Vcs):
         start_time = time()
 
         # TODO(dcramer): we should make this streaming
-        cmd = ['log', '--date-order', '--pretty=format:%s' % (LOG_FORMAT,)]
+        cmd = ['log', '--pretty=format:%s' % (LOG_FORMAT,)]
 
+        if not first_parent:
+            # --date-order can be vastly slower. When --first-parent is
+            # provided, the history returned is inherently linear, so
+            # there's no freedom to reorder commits at all, meaning
+            # --date-order would be effectively a no-op.
+            cmd.append('--date-order')
         if first_parent:
             cmd.append('--first-parent')
         if author:
