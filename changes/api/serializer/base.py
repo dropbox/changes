@@ -214,7 +214,7 @@ def serialize(data, extended_registry=None):
 
     Its safe (but CPU-expensive) to rerun serialize on data multiple times
     """
-    if request.args.get('__new_serialize__') == '1':
+    if request.args.get('__new_serialize__', '1') == '1':
         return new_serialize(data, extended_registry)
     else:
         return old_serialize(data, extended_registry)
