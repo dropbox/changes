@@ -208,3 +208,32 @@ class UpdateCommandTest(APITestCase):
             JobStep.phase_id == phase2.id
         )
         assert len(list(new_steps)) == 0
+
+    @patch('changes.api.command_details.CommandDetailsAPIView.get_expander')
+    def test_expander_jobstep_aborted(self, mock_get_expander):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase, data={
+            'max_executors': 10,
+        })
+        plan = self.create_plan(project, label='test')
+        self.create_step(plan)
+        self.create_job_plan(job, plan)
+        command = self.create_command(
+            jobstep, type=CommandType.collect_tests,
+            status=Status.in_progress)
+
+        path = '/api/0/commands/{0}/'.format(command.id.hex)
+
+        jobstep.result = Result.aborted
+
+        resp = self.client.post(path, data={
+            'status': 'finished',
+            'output': '{"foo": "bar"}',
+        })
+        assert resp.status_code == 200, resp.data
+
+        # jobstep was aborted, so expansion should not occur
+        mock_get_expander.assert_not_called()

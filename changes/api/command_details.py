@@ -7,7 +7,7 @@ from flask_restful.reqparse import RequestParser
 
 from changes.api.base import APIView, error
 from changes.api.validators.datetime import ISODatetime
-from changes.config import db, redis
+from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
 from changes.expanders import CommandsExpander, TestsExpander
 from changes.jobs.sync_job_step import sync_job_step
@@ -82,6 +82,10 @@ class CommandDetailsAPIView(APIView):
             db.session.flush()
 
             if args.output or args.status == 'finished':
+                # don't expand a jobstep that already failed
+                if command.jobstep.result in (Result.aborted, Result.failed, Result.infra_failed):
+                    statsreporter.stats().incr('command_expansion_aborted')
+                    return self.respond(command)
                 expander_cls = self.get_expander(command.type)
                 if expander_cls is not None:
                     if not args.output:
