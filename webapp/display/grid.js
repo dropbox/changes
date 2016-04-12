@@ -77,12 +77,14 @@ export var Grid = React.createClass({
     var highlightable = false;
     var highlighted = false;
     var onClick = null;
+    var key = null;
     if (row instanceof GridRow) {
       hasBorder = row.hasBorder();
       fadedOut = row.isFadedOut();
       onClick = row.getRowOnClick();
       highlightable = onClick != null;
       highlighted = row.isHighlighted();
+      key = row.getKey();
       if (row.isUsingColspan()) {
         is_using_colspan = true;
         cells = <td className="gridCell" colSpan={this.props.colnum}>
@@ -120,7 +122,7 @@ export var Grid = React.createClass({
           return cell;
         }
 
-        return <td className={className}>
+        return <td className={className} key={index}>
           {cell}
         </td>;
       });
@@ -139,9 +141,14 @@ export var Grid = React.createClass({
       noborder: !hasBorder,
     });
 
+    if (key) {
+        return <tr className={row_classes} onClick={onClick} key={key}>
+                 {cells}
+               </tr>;
+    }
     return <tr className={row_classes} onClick={onClick}>
-      {cells}
-    </tr>;
+             {cells}
+           </tr>;
   },
 
   componentDidMount: function() {
@@ -236,7 +243,8 @@ export var Grid = React.createClass({
  * GridRow can be used in place of the row array above
  */
 export class GridRow {
-  constructor(data, border=true, fadedOut=false, isHighlighted=false, rowOnClick=null) {
+  constructor(data, border=true, fadedOut=false, isHighlighted=false, rowOnClick=null,
+              key=null) {
     if (!_.isArray(data)) {
       throw 'GridRow expects an array of data!';
     }
@@ -245,6 +253,7 @@ export class GridRow {
     this.fadedOut = fadedOut;
     this.highlighted = isHighlighted;
     this.rowOnClick = rowOnClick
+    this.key = key;
   }
 
   // use this if you want your row to just be a single item that spans all
@@ -262,6 +271,8 @@ export class GridRow {
   isFadedOut() { return this.fadedOut; }
   isHighlighted() { return this.highlighted; }
   getRowOnClick() { return this.rowOnClick; }
+
+  getKey() { return this.key; }
 
   // see oneItem constructor
   isUsingColspan() { return this.useColspan; }

@@ -138,12 +138,18 @@ var GroupedJobstepSummary = React.createClass({
             return result;
         };
 
+        // Column specification:
+        //    label: The text describing the column.
+        //    sortTag: Short url-safe string unique to the column, used to specify which column will be used to sort.
+        //       Only for sortable columns.
+        //    sortFn: Function used to extract a value useful for sorting from the column. Only for sortable columns.
+        //    keyFn: Function for extracting a unique identifier for the row; only one column should set this.
         let columns = [
-            {label: this.props.grouping, tag: 'group', fn: x => x},
-            {label: 'Status', tag: 'status', fn: x => x},
-            {label: 'Count', tag: 'count', fn: x => x},
-            {label: 'Eldest'},
-            {label: 'Eldest Age', tag: 'age', fn: x => x.props.created},
+            {label: this.props.grouping, sortTag: 'group', sortFn: x => x},
+            {label: 'Status', sortTag: 'status', sortFn: x => x},
+            {label: 'Count', sortTag: 'count', sortFn: x => x},
+            {label: 'Eldest', keyFn: x => x.props.jobstepID},
+            {label: 'Eldest Age', sortTag: 'age', sortFn: x => x.props.created},
         ];
 
         const no_grouping = this.props.grouping === undefined;
@@ -153,7 +159,7 @@ var GroupedJobstepSummary = React.createClass({
         }
         let headers = _.map(columns, col => {
             return <SortHeader parentElem={this} sort={this.state.sort} reverse={this.state.reverse}
-                               label={col.label} tag={col.tag} />
+                               label={col.label} tag={col.sortTag} />
         });
         let rows = [];
         if (no_grouping) {
@@ -165,8 +171,8 @@ var GroupedJobstepSummary = React.createClass({
         let sortFn = col => col[0];
         for (let i = 0; i < columns.length; i++) {
             let c = columns[i];
-            if (c.tag == this.state.sort) {
-                sortFn = col => c.fn(col[i]);
+            if (c.sortTag == this.state.sort) {
+                sortFn = col => c.sortFn(col[i]);
                 break
             }
         }
@@ -186,6 +192,22 @@ var GroupedJobstepSummary = React.createClass({
                 }
             }
         }
+        let keyFn = null;
+        for (let i = 0; i < columns.length; i++) {
+            let c = columns[i];
+            if (c.keyFn) {
+                keyFn = r => c.keyFn(r[i]);
+                break;
+            }
+        }
+        if (!keyFn) {
+            throw "Unable to find key function in column specifications";
+        }
+        let gridRows = _.map(rows, row => {
+            let gr = new GridRow(row);
+            gr.key = keyFn(row);
+            return gr;
+        });
         let cellClasses = _.times(columns.length, () => 'nowrap');
         return <div>
             <h3>{this.props.title}</h3>
@@ -193,7 +215,7 @@ var GroupedJobstepSummary = React.createClass({
                 colnum={headers.length}
                 headers={headers}
                 cellClasses={cellClasses}
-                data={rows}
+                data={gridRows}
             />
             </div>;
     }
