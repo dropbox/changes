@@ -9,7 +9,7 @@ from flask_restful.reqparse import RequestParser
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 from changes.api.base import APIView, error
-from changes.constants import Status, Result
+from changes.constants import Status
 from changes.config import db, redis, statsreporter
 from changes.ext.redis import UnableToGetLock
 from changes.models.build import Build
@@ -105,7 +105,7 @@ class JobStepAllocateAPIView(APIView):
 
     def get(self):
         """
-        New GET method that returns a priority sorted list of possible jobsteps
+        GET method that returns a priority sorted list of possible jobsteps
         to allocate. The scheduler can then decide which ones it can actually
         allocate and makes a POST request to mark these as such with Changes.
 
@@ -140,23 +140,16 @@ class JobStepAllocateAPIView(APIView):
 
             return self.respond({'jobsteps': jobstep_results})
 
-    def new_post(self, args):
+    def post(self):
         """
-        New POST code path that just allocates a list of jobstep IDs.
-        This new method of allocation works by first sending a GET request
+        Allocates a list of jobstep IDs.
+        This method of allocation works by first sending a GET request
         to get a priority sorted list of possible jobsteps. The scheduler can
         then allocate these as it sees fit, and sends a POST request with
         the list of jobstep IDs it actually decided to allocate.
-
-        We maintain the old POST code for now so that current schedulers
-        continue to work (anything without a jobstep_ids arg goes to the old
-        POST method). But it will likely get removed once it's out of use.
-
-        Args:
-            args: JSON dict of args to the POST request. This must include a
-                jobstep_ids field, which is a list of jobstep ID hexs to
-                allocate, and optionally a cluster that these jobsteps are in.
         """
+        args = json.loads(request.data)
+
         try:
             jobstep_ids = args['jobstep_ids']
         except KeyError:
@@ -211,92 +204,3 @@ class JobStepAllocateAPIView(APIView):
                 err = 'Could not commit allocation'
                 logging.warning(err, exc_info=True)
                 return error(err, http_code=409)
-
-    def post(self):
-        args = json.loads(request.data)
-
-        # TODO(nate): get rid of old allocation code once scheduler is updated to use this
-        if args.get('jobstep_ids'):
-            return self.new_post(args)
-
-        try:
-            resources = args['resources']
-        except KeyError:
-            return error('Missing resources attribute')
-
-        cluster = args.get('cluster')
-
-        # cpu and mem as 0 are treated by changes-client
-        # as having no enforced limit
-        total_cpus = int(resources.get('cpus', 0))
-        total_mem = int(resources.get('mem', 0))  # MB
-
-        with statsreporter.stats().timer('jobstep_allocate'):
-            try:
-                lock_key = 'jobstep:allocate'
-                if cluster:
-                    lock_key = lock_key + ':' + cluster
-                with redis.lock(lock_key, nowait=True):
-                    available_allocations = self.find_next_jobsteps(limit=10, cluster=cluster)
-                    to_allocate = []
-                    for jobstep in available_allocations:
-
-                        jobplan, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
-                        assert jobplan and buildstep
-                        limits = buildstep.get_resource_limits()
-                        req_cpus = limits.get('cpus', 4)
-                        req_mem = limits.get('memory', 8 * 1024)
-
-                        if total_cpus >= req_cpus and total_mem >= req_mem:
-                            total_cpus -= req_cpus
-                            total_mem -= req_mem
-                            allocation_cmd = buildstep.get_allocation_command(jobstep)
-
-                            jobstep.status = Status.allocated
-                            db.session.add(jobstep)
-
-                            # We keep the data from the BuildStep to be sure we're using the same resource values.
-                            to_allocate.append((jobstep, _AllocData(cpus=req_cpus,
-                                                                    memory=req_mem,
-                                                                    command=allocation_cmd)))
-                            # The JobSteps returned are pending_allocation, and the initial state for a Mesos JobStep is
-                            # pending_allocation, so we can determine how long it was pending by how long ago it was
-                            # created.
-                            pending_seconds = (datetime.utcnow() - jobstep.date_created).total_seconds()
-                            statsreporter.stats().log_timing('duration_pending_allocation', pending_seconds * 1000)
-                        else:
-                            logging.info('Not allocating %s due to lack of offered resources', jobstep.id.hex)
-
-                    if not to_allocate:
-                        # Should 204, but flask/werkzeug throws StopIteration (bug!) for tests
-                        return self.respond([])
-
-                    db.session.flush()
-            except UnableToGetLock:
-                return error('Another allocation is in progress', http_code=503)
-
-            context = []
-
-            for jobstep, alloc_data in to_allocate:
-                try:
-                    jobstep_data = self.serialize(jobstep)
-
-                    jobstep_data['project'] = self.serialize(jobstep.project)
-                    jobstep_data['resources'] = {
-                        'cpus': alloc_data.cpus,
-                        'mem': alloc_data.memory,
-                    }
-                    jobstep_data['cmd'] = alloc_data.command
-                except Exception:
-                    jobstep.status = Status.finished
-                    jobstep.result = Result.infra_failed
-                    db.session.add(jobstep)
-                    db.session.flush()
-
-                    logging.exception(
-                        'Exception occurred while allocating job step %s for project %s',
-                        jobstep.id.hex, jobstep.project.slug)
-                else:
-                    context.append(jobstep_data)
-
-            return self.respond(context)
