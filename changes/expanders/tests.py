@@ -76,11 +76,15 @@ class TestsExpander(Expander):
             Job.build_id == last_build['id'],
         )
 
-        test_durations = dict(db.session.query(
-            TestCase.name, TestCase.duration
-        ).filter(
-            TestCase.job_id.in_(job_list),
-        ))
+        if job_list:
+            test_durations = dict(db.session.query(
+                TestCase.name, TestCase.duration
+            ).filter(
+                TestCase.job_id.in_(job_list),
+            ))
+        else:
+            test_durations = dict()
+
         test_names = []
         total_count, total_duration = 0, 0
         for test in test_durations:

@@ -47,6 +47,9 @@ class ProjectTestIndexAPIView(APIView):
             Job.build_id == latest_build.id,
         )
 
+        if not job_list:
+            return self.respond([])
+
         # use the most recent test
         test_list = TestCase.query.filter(
             TestCase.project_id == project.id,

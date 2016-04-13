@@ -38,17 +38,20 @@ class ProjectTestGroupIndexAPIView(APIView):
             Job.build_id == latest_build.id,
         )
 
-        # use the most recent test
-        test_list = db.session.query(
-            TestCase.name, TestCase.duration
-        ).filter(
-            TestCase.job_id.in_(job_list),
-        )
-        if args.parent:
-            test_list = test_list.filter(
-                TestCase.name.startswith(args.parent),
+        if job_list:
+            # use the most recent test
+            test_list = db.session.query(
+                TestCase.name, TestCase.duration
+            ).filter(
+                TestCase.job_id.in_(job_list),
             )
-        test_list = list(test_list)
+            if args.parent:
+                test_list = test_list.filter(
+                    TestCase.name.startswith(args.parent),
+                )
+            test_list = list(test_list)
+        else:
+            test_list = []
 
         if test_list:
             sep = TestCase(name=test_list[0][0]).sep

@@ -22,17 +22,20 @@ class BuildFlakyTestsAPIView(APIView):
             Job.build_id == build.id,
         ))
 
-        flaky_tests_query = db.session.query(
-            TestCase.id,
-            TestCase.name,
-            TestCase.name_sha,
-            TestCase.message,
-            TestCase.job_id
-        ).filter(
-            TestCase.job_id.in_([j.id for j in jobs]),
-            TestCase.result == Result.passed,
-            TestCase.reruns > 1
-        ).order_by(TestCase.name.asc()).all()
+        if jobs:
+            flaky_tests_query = db.session.query(
+                TestCase.id,
+                TestCase.name,
+                TestCase.name_sha,
+                TestCase.message,
+                TestCase.job_id
+            ).filter(
+                TestCase.job_id.in_([j.id for j in jobs]),
+                TestCase.result == Result.passed,
+                TestCase.reruns > 1
+            ).order_by(TestCase.name.asc()).all()
+        else:
+            flaky_tests_query = []
 
         flaky_tests = []
         for test in flaky_tests_query:
