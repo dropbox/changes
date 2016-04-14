@@ -3,6 +3,7 @@ import time
 import logging
 from contextlib import contextmanager
 from functools import wraps
+from typing import Iterator, Optional
 
 import statsd
 
@@ -47,6 +48,7 @@ class StatsReporter(object):
             self._stats = Stats(client=sd)
 
     def stats(self):
+        # type: () -> Stats
         """Returns a Stats object.
         If no statsd config has been provided,
         the Stats won't do anything but validate."""
@@ -77,6 +79,7 @@ class Stats(object):
     """ Minimalistic class for sending stats/monitoring values."""
 
     def __init__(self, client):
+        # type: (Optional[statsd.StatsClient]) -> None
         """
         @param client - A statsd.StatsClient instance, or None for a no-op Stats.
         """
@@ -86,6 +89,7 @@ class Stats(object):
 
     @swallow_exceptions(logger)
     def set_gauge(self, key, value):
+        # type: (bytes, float) -> None
         """ Set a gauge, typically a sampled instantaneous value.
             @param key - the name of the gauge.
             @param value - current value of the gauge.
@@ -97,6 +101,7 @@ class Stats(object):
 
     @swallow_exceptions(logger)
     def incr(self, key, delta=1):
+        # type: (bytes, float) -> None
         """ Increment a count.
             @param key - the name of the stat.
             @param delta - amount to increment the stat by. Must be positive.
@@ -109,6 +114,7 @@ class Stats(object):
 
     @swallow_exceptions(logger)
     def log_timing(self, key, duration_ms):
+        # type: (bytes, float) -> None
         """ Record a millisecond timing. """
         assert isinstance(duration_ms, (int, float, long))
         Stats._check_key(key)
@@ -117,6 +123,7 @@ class Stats(object):
 
     @contextmanager
     def timer(self, key):
+        # type: (bytes) -> Iterator[None]
         """A contextmanager that reports the duration in milliseconds on exit."""
         t0 = time.time()
         try:
@@ -129,6 +136,7 @@ class Stats(object):
 
     @classmethod
     def _check_key(cls, key):
+        # type: (bytes) -> None
         """ This is probably overly strict, but we have little use for
         interestingly named keys and this avoids unintentionally using them."""
         if not cls._KEY_RE.match(key):
