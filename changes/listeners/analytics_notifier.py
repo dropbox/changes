@@ -102,6 +102,8 @@ def build_finished_handler(build_id, **kwargs):
         JobStep.replacement_id.isnot(None)
     ).count()
 
+    sorted_tags = sorted(list(build.tags or []))
+
     data = {
         'build_id': build.id.hex,
         'result': unicode(build.result),
@@ -123,9 +125,12 @@ def build_finished_handler(build_id, **kwargs):
         'jobsteps_replaced': jobsteps_replaced,
         # tags is a dict rather than just a list because some analytics backends (Hive, for
         # example) handle JSON objects much more conveniently than lists.
-        'tags': {'tags': sorted(list(build.tags or []))},
+        'tags': {'tags': sorted_tags},
+        # On the other hand other analytics backends (like beta-stage fancy auto-aggregating
+        # charting systems) only take strings, booleans, numbers, and dates/timestamps.
+        # So make the tags a string too.
+        'tags_string': ','.join(sorted_tags),
         'item_stats': _get_itemstat_dict(build.id),
-
     }
     if build.author:
         data['author'] = build.author.email

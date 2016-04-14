@@ -95,6 +95,7 @@ class AnalyticsNotifierTest(TestCase):
             'phab_revision_url': 'https://example.com/D1',
             'failure_reasons': ['aborted', 'missing_tests'],
             'tags': {'tags': ['angry', 'commit']},
+            'tags_string': 'angry,commit',
             'item_stats': {'names': 99, 'faces': 0},
         }
         post_fn.assert_called_once_with(URL, [expected_data])
