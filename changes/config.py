@@ -211,6 +211,7 @@ def create_app(_read_config=True, **config):
         ('changes.listeners.phabricator_listener.build_finished_handler', 'build.finished'),
         ('changes.listeners.analytics_notifier.build_finished_handler', 'build.finished'),
         ('changes.listeners.analytics_notifier.job_finished_handler', 'job.finished'),
+        ('changes.listeners.stats_notifier.build_finished_handler', 'build.finished'),
         ('changes.listeners.snapshot_build.build_finished_handler', 'build.finished'),
     )
 
