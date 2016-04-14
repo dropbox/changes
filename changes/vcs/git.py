@@ -52,6 +52,8 @@ git fetch origin +refs/*:refs/remotes-all-refs/origin/* || \
 GIT_SSH_COMMAND="ssh -v" \
 git fetch origin +refs/*:refs/remotes-all-refs/origin/*
 
+%(pre_reset_command)s
+
 %(clean_command)s
 
 if ! git reset --hard $REVISION ; then
@@ -312,13 +314,20 @@ class GitVcs(Vcs):
             else:
                 raise
 
-    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None):
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_command=None):
+        reset_commands = {
+            'status': 'git status',
+            'checkout': 'git checkout -q master',
+            'reset_master': 'git reset master',
+        }
+        pre_reset = reset_commands.get(pre_reset_command)
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
             local_path=workspace,
             revision=source.revision_sha,
             cache_dir=cache_dir or "/dev/null",
             clean_command='git clean -fdx' if clean else '',
+            pre_reset_command=pre_reset or ''
         )
 
     def get_buildstep_patch(self, source, workspace):
