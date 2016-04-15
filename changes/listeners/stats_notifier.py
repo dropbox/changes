@@ -2,6 +2,8 @@
 """
 
 import re
+from typing import Any, List
+from uuid import UUID
 
 from changes.config import statsreporter
 from changes.constants import Result
@@ -9,12 +11,14 @@ from changes.models.build import Build
 
 
 def build_finished_handler(build_id, **kwargs):
+    # type: (UUID, **Any) -> None
     for key in build_finished_metrics(build_id):
         statsreporter.stats().incr(key)
 
 
 def build_finished_metrics(build_id):
-    keys = []
+    # type: (UUID) -> List[str]
+    keys = []  # type: List[str]
 
     build = Build.query.get(build_id)
     if build is None:
