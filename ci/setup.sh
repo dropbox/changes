@@ -10,8 +10,9 @@ npm list -g npm@"$NPM_VERSION" || sudo npm install -g npm@"$NPM_VERSION"
 
 # Install bower only if it's not installed already.
 bower help || sudo npm install -g bower
-sudo easy_install -U pip
-sudo easy_install virtualenv
+easy_install-2.7 --version
+sudo easy_install-2.7 -U pip
+sudo easy_install-2.7 virtualenv
 
 
 redis-server -v
