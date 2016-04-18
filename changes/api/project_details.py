@@ -8,11 +8,12 @@ from sqlalchemy.sql import func
 from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import (
-    Project, Build, Source, Status, Result, ProjectOption, Repository,
-    ProjectStatus
-)
-from changes.constants import Cause
+from changes.constants import Result, Status
+from changes.lib import build_type
+from changes.models.build import Build
+from changes.models.project import Project, ProjectOption, ProjectStatus
+from changes.models.repository import Repository
+from changes.models.source import Source
 
 
 OPTION_DEFAULTS = {
@@ -48,6 +49,7 @@ class ProjectDetailsAPIView(APIView):
             Build.date_created < end_period,
             Build.status == Status.finished,
             Build.result == Result.passed,
+            *build_type.get_any_commit_build_filters()
         ).scalar() or None
         if avg_duration is not None:
             avg_duration = float(avg_duration)
@@ -59,12 +61,12 @@ class ProjectDetailsAPIView(APIView):
         ).join(
             Source, Build.source_id == Source.id,
         ).filter(
-            Source.patch_id == None,  # NOQA
             Build.project_id == project.id,
             Build.date_created >= start_period,
             Build.date_created < end_period,
             Build.status == Status.finished,
-            Build.result.in_([Result.passed, Result.failed])
+            Build.result.in_([Result.passed, Result.failed]),
+            *build_type.get_any_commit_build_filters()
         ).group_by(
             Build.result,
         ))
@@ -115,10 +117,9 @@ class ProjectDetailsAPIView(APIView):
         ).join(
             Source, Build.source_id == Source.id,
         ).filter(
-            Source.patch_id == None,  # NOQA
             Build.project == project,
-            Build.cause != Cause.snapshot,
             Build.status == Status.finished,
+            *build_type.get_any_commit_build_filters()
         ).order_by(
             Build.date_created.desc(),
         ).first()
@@ -131,11 +132,10 @@ class ProjectDetailsAPIView(APIView):
             ).join(
                 Source, Build.source_id == Source.id,
             ).filter(
-                Source.patch_id == None,  # NOQA
                 Build.project == project,
-                Build.cause != Cause.snapshot,
                 Build.result == Result.passed,
                 Build.status == Status.finished,
+                *build_type.get_any_commit_build_filters()
             ).order_by(
                 Build.date_created.desc(),
             ).first()
