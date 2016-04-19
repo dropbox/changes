@@ -8,7 +8,10 @@ from collections import defaultdict
 
 from changes.api.base import APIView
 from changes.api.auth import get_current_user
-from changes.models import Author, Build, Source, Revision
+from changes.models.author import Author
+from changes.models.build import Build
+from changes.models.revision import Revision
+from changes.models.source import Source
 
 
 class AuthorCommitIndexAPIView(APIView):
@@ -47,6 +50,9 @@ class AuthorCommitIndexAPIView(APIView):
         ).order_by(
             Revision.date_committed.desc(),
         ).limit(args.num_revs)))
+
+        if not sources:
+            return self.respond(sources)
 
         # grab builds for those revisions
         commit_builds_list = self.serialize(list(Build.query.options(
