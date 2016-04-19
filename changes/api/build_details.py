@@ -4,16 +4,24 @@ from collections import defaultdict
 from flask_restful.reqparse import RequestParser
 from itertools import groupby
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
+from typing import List
 from uuid import UUID
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginCrumbler
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import (
-    Build, BuildPriority, Source, Event, FailureReason, Job, JobStep, TestCase,
-    BuildSeen, User
-)
+from changes.lib import build_type
+from changes.models.build import Build, BuildPriority
+from changes.models.buildseen import BuildSeen
+from changes.models.event import Event
+from changes.models.failurereason import FailureReason
+from changes.models.job import Job
+from changes.models.jobstep import JobStep
+from changes.models.source import Source
+from changes.models.test import TestCase
+from changes.models.user import User
+
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -130,6 +138,7 @@ def get_failure_reasons(build):
 
 
 def get_parents_last_builds(build):
+    # type: (Build) -> List[Build]
     # A patch have only one parent, while a revision can have more.
     if build.source.patch:
         parents = [build.source.patch.parent_revision_sha]
@@ -141,13 +150,13 @@ def get_parents_last_builds(build):
             Build.project == build.project,
             Build.status == Status.finished,
             Build.id != build.id,
-            Source.patch_id == None,  # NOQA
         ).join(
             Source, Build.source_id == Source.id,
         ).options(
             contains_eager('source').joinedload('revision'),
         ).filter(
-            Source.revision_sha.in_(parents)
+            Source.revision_sha.in_(parents),
+            *build_type.get_any_commit_build_filters()
         ).order_by(Build.date_created.desc()))
         if parent_builds:
             # This returns a list with the last build of each revision.
@@ -181,9 +190,10 @@ class BuildDetailsAPIView(APIView):
                 Build.date_created < build.date_created,
                 Build.status == Status.finished,
                 Build.id != build.id,
-                Source.patch_id == None,  # NOQA
             ).join(
                 Source, Build.source_id == Source.id,
+            ).filter(
+                *build_type.get_any_commit_build_filters()
             ).options(
                 contains_eager('source').joinedload('revision'),
                 joinedload('author'),
