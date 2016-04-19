@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { Button } from 'es6!display/button';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 
@@ -137,7 +137,7 @@ export var create = function(form, saveButtonText, _this, messages=[], extraButt
         checkedLink.requestChange = makeChangeFunc(_this, field.link);
         return <div className="marginBottomS">
           <label>
-            <div><input type='checkbox' checkedLink={checkedLink} /> {field.comment} </div>
+            <div><input type="checkbox" checkedLink={checkedLink} /> {field.comment} </div>
           </label>
           <hr />
         </div>;

@@ -3,7 +3,7 @@ import { Popover, OverlayTrigger, Tooltip } from 'react_bootstrap';
 
 import ChangesLinks from 'es6!display/changes/links';
 import { Button } from 'es6!display/button';
-import { Error, ProgrammingError } from 'es6!display/errors';
+import { ProgrammingError } from 'es6!display/errors';
 import Request from 'es6!display/request';
 import { buildSummaryText } from 'es6!display/changes/build_text';
 import { get_runnable_condition,

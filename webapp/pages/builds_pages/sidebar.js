@@ -5,7 +5,10 @@ import ChangesLinks from 'es6!display/changes/links';
 import { TimeText, display_duration } from 'es6!display/time';
 import { buildSummaryText, manyBuildsSummaryText, get_build_cause } from 'es6!display/changes/build_text';
 import { buildsForLastCodeChange } from 'es6!display/changes/builds';
-import { get_runnable_condition, get_runnables_summary_condition, is_waiting, ConditionDot } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition,
+         get_runnables_summary_condition,
+         is_waiting,
+         ConditionDot } from 'es6!display/changes/build_conditions';
 
 import * as utils from 'es6!utils/utils';
 
@@ -95,7 +98,7 @@ var Sidebar = React.createClass({
     // one of those diff updates is the original diff that was sent
     var original_single_diff_id = _.last(all_diff_ids);
 
-    var sections = [], latest_item = null;
+    var sections = [];
     var hasRenderedSectionWithBuilds = false;
     _.each(all_diff_ids, (single_diff_id, index) => {
       var diff_builds = builds_by_update[single_diff_id];

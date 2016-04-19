@@ -18,6 +18,10 @@ import * as utils from 'es6!utils/utils';
  */
 var CodePage = React.createClass({
 
+  propTypes: {
+    sourceID: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       source: null,

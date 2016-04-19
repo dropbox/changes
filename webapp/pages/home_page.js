@@ -18,6 +18,10 @@ import custom_content_hook from 'es6!utils/custom_content';
 
 var HomePage = React.createClass({
 
+  propTypes: {
+    author: PropTypes.string,
+  },
+
   getInitialTitle: function() {
     if (!this.props.author) {
       return 'My Changes';

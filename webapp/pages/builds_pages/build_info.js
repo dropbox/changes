@@ -292,26 +292,26 @@ export var SingleBuild = React.createClass({
 
   renderDetails: function(build, job_phases) {
     var attributes = [];
-    attributes.push(<InfoItem label='Created'
-        tooltip='when Changes received this job'>
+    attributes.push(<InfoItem label="Created"
+        tooltip="when Changes received this job">
         {formatTime(build.dateCreated)}
     </InfoItem>);
     if (build.dateStarted) {
-      attributes.push(<InfoItem label='Started'
-          tooltip='when the first jobstep started'>
+      attributes.push(<InfoItem label="Started"
+          tooltip="when the first jobstep started">
           {formatTime(build.dateStarted)}
       </InfoItem>);
     }
     if (build.dateFinished) {
-    attributes.push(<InfoItem label='Finished'
-        tooltip='when the last jobstep finished'>
+    attributes.push(<InfoItem label="Finished"
+        tooltip="when the last jobstep finished">
         {formatTime(build.dateFinished)} ({display_duration(build.duration / 1000)})
     </InfoItem>);
     }
     if (build.dateDecided) {
       var decidedDuration = new Date(build.dateDecided) - new Date(build.dateCreated);
-      attributes.push(<InfoItem label='Decided'
-        tooltip='when the final result of the build was decided'>
+      attributes.push(<InfoItem label="Decided"
+        tooltip="when the final result of the build was decided">
         {formatTime(build.dateDecided)} ({display_duration(decidedDuration / 1000)})
       </InfoItem>);
     }
@@ -345,7 +345,7 @@ export var SingleBuild = React.createClass({
         You can retry it using the button on the right.
       </div>;
     } else if (buildCondition === 'failed_aborted') {
-      var advice = <div className="messageBox" style={{marginBottom: 15}}>
+      return <div className="messageBox" style={{marginBottom: 15}}>
         This build was aborted. You can retry it using the button on the right.
       </div>;
     }
@@ -768,13 +768,3 @@ export var LatestBuildsSummary = React.createClass({
   },
 });
 
-var render_section = function(id, content) {
-  var style = {
-    padding: 20,
-    paddingLeft: 10
-  };
-
-  return <div style={style} id={id}>
-    {content}
-  </div>;
-}

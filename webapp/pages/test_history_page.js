@@ -25,6 +25,11 @@ import * as utils from 'es6!utils/utils';
 
 var TestHistoryPage = React.createClass({
 
+  propTypes: {
+    projectUUID: PropTypes.string.isRequired,
+    testHash: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       info: null,
@@ -58,22 +63,6 @@ var TestHistoryPage = React.createClass({
     this.state.history.initialize(InteractiveData.getParamsFromWindowUrl());
   },
 
-  render() {
-    if (!api.isLoaded(this.state.info)) {
-      return <APINotLoadedPage calls={this.state.info} />;
-    }
-    var test_data = this.state.info.getReturnedData();
-    utils.setPageTitle(`${test_data.shortName} - History`);
-
-    return <ChangesPage>
-      <SectionHeader>History: {test_data.shortName}</SectionHeader>
-      Displaying a list of the results of this test for every commit in master.
-      <div className="marginTopM">
-        {this.renderHistory()}
-      </div>
-    </ChangesPage>;
-  },
-
   renderHistory() {
     var historyInteractive = this.state.history;
 
@@ -93,7 +82,7 @@ var TestHistoryPage = React.createClass({
       'quarantined_skipped': COND_UNKNOWN,
       // Below are unexpected, but not impossible.
       'aborted':      COND_FAILED_ABORTED,
-      'infra_failed': COND_FAILED_ABORTED,
+      'infra_failed': COND_FAILED_INFRA,
     };
 
     var rows = _.map(history, t => {
@@ -161,6 +150,22 @@ var TestHistoryPage = React.createClass({
         {pagingLinks}
       </div>
     </div>;
+  },
+
+  render() {
+    if (!api.isLoaded(this.state.info)) {
+      return <APINotLoadedPage calls={this.state.info} />;
+    }
+    var test_data = this.state.info.getReturnedData();
+    utils.setPageTitle(`${test_data.shortName} - History`);
+
+    return <ChangesPage>
+      <SectionHeader>History: {test_data.shortName}</SectionHeader>
+      Displaying a list of the results of this test for every commit in master.
+      <div className="marginTopM">
+        {this.renderHistory()}
+      </div>
+    </ChangesPage>;
   }
 });
 

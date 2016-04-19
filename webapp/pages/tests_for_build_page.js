@@ -25,6 +25,10 @@ export var BuildTestsPage = React.createClass({
     'Retries'
   ],
 
+  propTypes: {
+    buildID: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       selectedItem: null, // set in componentWillMount
@@ -435,6 +439,12 @@ var ShardingTab = React.createClass({
 });
 
 export var SingleBuildTestPage = React.createClass({
+
+  propTypes: {
+    buildID: PropTypes.string.isRequired,
+    testID: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {};
   },
@@ -459,8 +469,8 @@ export var SingleBuildTestPage = React.createClass({
     let buildTitle = `${buildInfo.project.name} Build`
     let pageTitle = `Test ${test.shortName} for ${buildTitle}`;
     utils.setPageTitle(pageTitle);
-    let infoItems = [<InfoItem label='Name'>{test.name}</InfoItem>,
-                     <InfoItem label='Result'>
+    let infoItems = [<InfoItem label="Name">{test.name}</InfoItem>,
+                     <InfoItem label="Result">
                         {test.result.name} ({ChangesLinks.historyLink(buildInfo.project, test.hash)})
                      </InfoItem>];
 
@@ -472,7 +482,7 @@ export var SingleBuildTestPage = React.createClass({
     let retryCount = <div style={retryCountStyle}>{test.numRetries}</div>;
     let retriesDoc = <div>Number of times the test was rerun to see if it would pass.<br/>
                           Passing tests should pass the first time and need no retries.</div>;
-    infoItems.push(<InfoItem label='Retries' tooltip={retriesDoc}>{retryCount}</InfoItem>);
+    infoItems.push(<InfoItem label="Retries" tooltip={retriesDoc}>{retryCount}</InfoItem>);
 
 
     let info = <div>

@@ -1,13 +1,10 @@
 import React, { PropTypes } from 'react';
 
-import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
-import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
 import * as FieldGroupMarkup from 'es6!display/field_group';
-import { Grid, GridRow } from 'es6!display/grid';
-import Request from 'es6!display/request';
+import { Grid } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 
 import * as api from 'es6!server/api';

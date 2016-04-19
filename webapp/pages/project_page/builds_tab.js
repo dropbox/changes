@@ -222,10 +222,4 @@ var BuildsTab = React.createClass({
   },
 });
 
-var TODO = React.createClass({
-  render: function() {
-    return <div>TODO</div>;
-  }
-});
-
 export default BuildsTab;

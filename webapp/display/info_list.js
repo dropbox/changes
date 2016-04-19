@@ -10,6 +10,8 @@ import SimpleTooltip from 'es6!display/simple_tooltip';
 export var InfoList = React.createClass({
 
   propTypes: {
+    className: PropTypes.string,
+    children: PropTypes.node,
     // ...
     // transfers other properties to rendered <div />
   },

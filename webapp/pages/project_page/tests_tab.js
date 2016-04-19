@@ -9,8 +9,6 @@ import { Grid } from 'es6!display/grid';
 import { Menu1, MenuUtils } from 'es6!display/menus';
 import { TimeText } from 'es6!display/time';
 
-import ProjectPage from 'es6!pages/project_page/project_page';
-
 import * as api from 'es6!server/api';
 
 var TestsTab = React.createClass({

@@ -1,11 +1,7 @@
 import React, { PropTypes } from 'react';
 
-import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
-import { Grid } from 'es6!display/grid';
-import { SingleBuildStatus } from 'es6!display/changes/builds';
-import { TimeText } from 'es6!display/time';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 
 
@@ -23,6 +19,10 @@ import * as utils from 'es6!utils/utils';
  * used with care, and probably not while we're having major load issues.
  */
 var TaskTreePage = React.createClass({
+
+  propTypes: {
+    objectID: PropTypes.string.isRequired,
+  },
 
   getInitialState: function() {
     return {
@@ -68,7 +68,7 @@ var TaskTreePage = React.createClass({
 var TaskTree = React.createClass({
 
   propTypes: {
-       taskID: PropTypes.string,
+       taskID: PropTypes.string.isRequired,
   },
 
   getInitialState: function() {
@@ -93,7 +93,7 @@ var TaskTree = React.createClass({
     }
     let args = JSON.stringify(t.args);
     let name = <SimpleTooltip label={args}><span>{t.name}</span></SimpleTooltip>;
-    return <span><div><ConditionDot condition={get_runnable_condition(t)} size='smaller'/>
+    return <span><div><ConditionDot condition={get_runnable_condition(t)} size="smaller"/>
        {name} <i style={{color: 'gray'}}>[modified {moment.utc(t.dateModified).fromNow()}]</i></div>
     {kids}
     </span>;

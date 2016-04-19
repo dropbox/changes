@@ -8,8 +8,6 @@ import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 
 import { Grid, GridRow } from 'es6!display/grid';
 
-import APINotLoaded from 'es6!display/not_loaded';
-
 import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
@@ -223,7 +221,7 @@ var GroupedJobstepSummary = React.createClass({
 
 var JobstepInfo = React.createClass({
   propTypes: {
-    jobstepID: PropTypes.string,
+    jobstepID: PropTypes.string.isRequired,
   },
 
   getInitialState() {
@@ -237,7 +235,7 @@ var JobstepInfo = React.createClass({
   },
 
   render() {
-    var { jobstepID, className, ...props} = this.props;
+    var { className, ...props} = this.props;
 
     if (!api.isLoaded(this.state.details)) {
       if (api.isError(this.state.details)) {

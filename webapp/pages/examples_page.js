@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 
 import Examples from 'es6!display/examples';
 import { ChangesPage } from 'es6!display/page_chrome';

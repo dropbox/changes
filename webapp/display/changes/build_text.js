@@ -217,6 +217,11 @@ export var get_cause_sentence = function(cause) {
  */
 export var WaitingTooltip = React.createClass({
 
+  propTypes: {
+    placement: PropTypes.string,
+    runnable: PropTypes.object.isRequired,
+  },
+
   render() {
     var tooltip = <Tooltip>
       <WaitingLiveText runnable={this.props.runnable} />
@@ -233,6 +238,11 @@ export var WaitingTooltip = React.createClass({
 
 // internal component that implements the above
 export var WaitingLiveText = React.createClass({
+
+  propTypes: {
+    text: PropTypes.bool,
+    runnable: PropTypes.object.isRequired,
+  },
 
   getDefaultProps() {
     return {

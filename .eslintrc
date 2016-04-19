@@ -34,7 +34,7 @@
     "react/jsx-curly-spacing": 1,
     "react/jsx-no-duplicate-props": 1,
     "react/jsx-no-undef": 1,
-    "react/jsx-quotes": 1,
+    "jsx-quotes": 1,
     "react/jsx-uses-react": 1,
     "react/jsx-uses-vars": 1,
     "react/no-danger": 1,

@@ -15,6 +15,10 @@ import * as utils from 'es6!utils/utils';
 
 var AuthorBuildsPage = React.createClass({
 
+  propTypes: {
+    author: PropTypes.string,
+  },
+
   componentWillMount: function() {
     var author = this.props.author || 'me';
 

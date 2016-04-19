@@ -34,6 +34,8 @@ export var TimeText = React.createClass({
     // needed (format='X', see http://momentjs.com/docs/#/parsing/string-format/)
     format: PropTypes.string,
 
+    className: PropTypes.string,
+
     // ...
     // transfers other properties to rendered <span />
   },

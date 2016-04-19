@@ -245,7 +245,7 @@ var CommitsTab = React.createClass({
       </span>;
     }
 
-    var build_widget = null, prev_builds = null, duration = null, tests = null;
+    var build_widget = null, duration = null, tests = null;
     if (c.builds && c.builds.length > 0) {
       var sorted_builds = _.sortBy(c.builds, b => b.dateCreated).reverse();
       var last_build = _.first(sorted_builds);

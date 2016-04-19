@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import moment from 'moment';
 
 import SimpleTooltip from 'es6!display/simple_tooltip';

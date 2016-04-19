@@ -40,7 +40,7 @@ export var RandomLoadingMessage = React.createClass({
       className = (className || "") + " " + this.props.display;
     }
 
-    return <div {...this.props} className={className}>
+    return <div {...props} className={className}>
       {_.sample(loading_messages)}
     </div>;
   }

@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 
 import ChangesLinks from 'es6!display/changes/links';
 import SectionHeader from 'es6!display/section_header';
-import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
@@ -17,6 +16,10 @@ import * as utils from 'es6!utils/utils';
  * Page that shows the builds associated with a single snapshot, across all projects.
  */
 var SnapshotPage = React.createClass({
+
+  propTypes: {
+    snapshotID: PropTypes.string.isRequired,
+  },
 
   getInitialState: function() {
     return {
@@ -42,7 +45,6 @@ var SnapshotPage = React.createClass({
     }
 
     var details = this.state.snapshotDetails.getReturnedData();
-    var snapshotID = this.props.snapshotID;
     var snapshotDate = moment.utc(details.dateCreated).local().format('M/D/YY h:mm');
     utils.setPageTitle(`Snapshot - ${snapshotDate}`);
 
@@ -72,7 +74,7 @@ var SnapshotPage = React.createClass({
       </a>
       {": "}
       {utils.truncate(utils.first_line(source.revision.message))}
-      {" (by "} {authorLink}{ ")"}
+      {" (by "} {authorLink}{")"}
       </div>;
 
     var buildInfo = <div>

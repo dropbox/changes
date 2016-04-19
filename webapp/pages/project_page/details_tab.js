@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
-import ChangesLinks from 'es6!display/changes/links';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 
 import * as api from 'es6!server/api';
@@ -12,9 +11,10 @@ var DetailsTab = React.createClass({
 
   propTypes: {
     // the API response from the fetch below
-    details: PropTypes.object,
+    details: PropTypes.object.isRequired,
     // the project api response
-    project: PropTypes.object,
+    project: PropTypes.object.isRequired,
+    pageElem: PropTypes.object.isRequired,
   },
 
   componentDidMount: function() {

@@ -1,8 +1,6 @@
 import React, { PropTypes } from 'react';
 
-import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
-import { AjaxError } from 'es6!display/errors';
 import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
@@ -10,10 +8,7 @@ import * as FieldGroupMarkup from 'es6!display/field_group';
 import { Grid, GridRow } from 'es6!display/grid';
 import Request from 'es6!display/request';
 import { Tabs, MenuUtils } from 'es6!display/menus';
-import { TestDetails } from 'es6!display/changes/test_details';
 import { TimeText } from 'es6!display/time';
-
-import InteractiveData from 'es6!pages/helpers/interactive_data';
 
 import * as api from 'es6!server/api';
 
@@ -464,7 +459,6 @@ let PlanDetails = React.createClass({
   },
 
   componentDidMount: function() {
-    let project = this.props.project;
     this.setState({ name: this.props.plan.name,
                     status: this.props.plan.status.id,
                     expectTests: this.props.options['build.expect-tests'] === '1',

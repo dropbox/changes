@@ -55,6 +55,12 @@ function logging_endpoint(url, offset = null) {
  */
 var LogPage = React.createClass({
 
+  propTypes: {
+    jobID: PropTypes.string.isRequired,
+    buildID: PropTypes.string.isRequired,
+    logsourceID: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       initialLog: null,
@@ -65,9 +71,6 @@ var LogPage = React.createClass({
   },
 
   componentDidMount: function() {
-    var jobID = this.props.jobID;
-    var logsourceID = this.props.logsourceID;
-
     api.fetch(this, {
       build: `/api/0/builds/${this.props.buildID}`,
       job: `/api/0/jobs/${this.props.jobID}`
@@ -108,6 +111,11 @@ var LogPage = React.createClass({
 });
 
 var LogComponent = React.createClass({
+
+  propTypes: {
+    initialLogURL: PropTypes.string.isRequired,
+    build: PropTypes.object.isRequired,
+  },
 
   componentWillMount: function() {
     this.refreshTimer = null;
@@ -156,7 +164,6 @@ var LogComponent = React.createClass({
     }
 
     var initialLog = this.state.initialLog;
-    var newLogs = this.state.newLogs;
 
     var apiCallsToRender = [initialLog.getReturnedData()].concat(
       this.state.newLogs);
@@ -216,7 +223,6 @@ var LogComponent = React.createClass({
 
   renderDebugContent() {
     var initialLog = this.state.initialLog;
-    var newLogs = this.state.newLogs;
 
     var allApiCalls = [initialLog.getReturnedData()].concat(
       this.state.newLogs);

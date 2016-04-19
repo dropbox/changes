@@ -86,14 +86,12 @@ export var Tabs = React.createClass({
   render: function() {
     var { items, selectedItem, onClick, className, ...others} = this.props;
 
-    var item_onclick = (item, clickEvent) => this.props.onClick(item, clickEvent);
-
     var item_markup = _.map(items, (text, index) => {
       var classes = classNames({
         tabsItem: true,
         leftmostTab: index === 0,
         rightmostTab: index === items.length - 1,
-        selectedTabsItem: this.props.selectedItem === text
+        selectedTabsItem: selectedItem === text
       });
 
       return <div

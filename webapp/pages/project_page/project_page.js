@@ -18,6 +18,10 @@ import * as utils from 'es6!utils/utils';
 
 var ProjectPage = React.createClass({
 
+  propTypes: {
+    projectSlug: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       selectedItem: null, // we set this in componentWillMount

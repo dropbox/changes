@@ -7,7 +7,9 @@ import { Error } from 'es6!display/errors';
 import { ManyBuildsStatus } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 import { get_build_cause } from 'es6!display/changes/build_text';
-import { get_runnable_condition, get_runnable_condition_short_text, get_runnable_condition_color_cls } from 'es6!display/changes/build_conditions';
+import { get_runnable_condition,
+         get_runnable_condition_short_text,
+         get_runnable_condition_color_cls } from 'es6!display/changes/build_conditions';
 
 import Sidebar from 'es6!pages/builds_pages/sidebar';
 import { SingleBuild, LatestBuildsSummary } from 'es6!pages/builds_pages/build_info';
@@ -26,6 +28,11 @@ import * as utils from 'es6!utils/utils';
  * Page that shows the builds associated with a single diff
  */
 export var DiffPage = React.createClass({
+
+  propTypes: {
+    diff_id: PropTypes.string.isRequired,
+  },
+
   getInitialTitle: function() {
     return `${this.props.diff_id}: Builds`;
   },
@@ -77,6 +84,10 @@ export var DiffPage = React.createClass({
  */
 export var CommitPage = React.createClass({
 
+  propTypes: {
+    sourceUUID: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       commitBuilds: null,
@@ -124,8 +135,6 @@ export var CommitPage = React.createClass({
   },
 
   render: function() {
-    var slug = this.props.project;
-
     // special-case source API errors...it might be because the commit contains unicode
     if (api.isError(this.state.source)) {
       if (this.state.commitBuilds === null) {
@@ -211,10 +220,6 @@ var BuildsPage = React.createClass({
 
   render: function() {
     this.updateWindowUrl();
-
-    var activeBuild = _.filter(
-      this.props.builds,
-      b => b.id === this.state.activeBuildID)[0];
 
     // TODO: cleanup!
     return <ChangesPage
@@ -397,6 +402,10 @@ var BuildsPage = React.createClass({
 
 export var SingleBuildPage = React.createClass({
 
+  propTypes: {
+    buildID: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       build: null
@@ -424,6 +433,13 @@ export var SingleBuildPage = React.createClass({
 });
 
 var ParentCommit = React.createClass({
+
+  propTypes: {
+    sha: PropTypes.string.isRequired,
+    repoID: PropTypes.string.isRequired,
+    label: PropTypes.oneOf(['only', 'first', 'diffParent']).isRequired,
+  },
+
   getInitialState() {
     return { builds: null };
   },
@@ -441,7 +457,6 @@ var ParentCommit = React.createClass({
 
   render() {
     var sha = this.props.sha;
-    var repoID = this.props.repoID;
     var labelProp = this.props.label;
 
     var label = {

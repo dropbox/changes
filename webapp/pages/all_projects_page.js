@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 
 import ChangesLinks from 'es6!display/changes/links';
 import ChangesUI from 'es6!display/changes/ui';

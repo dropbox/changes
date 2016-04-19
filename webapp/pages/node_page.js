@@ -19,6 +19,10 @@ import custom_content_hook from 'es6!utils/custom_content';
  */
 var NodePage = React.createClass({
 
+  propTypes: {
+    nodeID: PropTypes.string.isRequired,
+  },
+
   getInitialState: function() {
     return {
       nodeJobs: null,
@@ -95,7 +99,7 @@ var NodePage = React.createClass({
     var extra_info_name = custom_content_hook('nodeInfoName'),
       extra_info_href = custom_content_hook('nodeInfo', null, details.name);
 
-    var extra_indo_markup = null;
+    var extra_info_markup = null;
     if (extra_info_name && extra_info_href) {
       var extra_info_markup = <a
         className="external inlineBlock"
