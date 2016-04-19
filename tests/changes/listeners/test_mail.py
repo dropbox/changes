@@ -85,33 +85,38 @@ class GetRecipientsTestCase(TestCase):
             value='test@example.com, bar@example.com'))
 
         author = self.create_author('foo@example.com')
+        author_recipient = '{0} <{1}>'.format(author.name, author.email)
         patch = self.create_patch(repository=project.repository)
         source = self.create_source(project, patch=patch)
-        build = self.create_build(
+
+        patch_build = self.create_build(
             project=project,
             source=source,
             author=author,
             result=Result.failed,
         )
         db.session.commit()
+        patch_recipients = MailNotificationHandler().get_build_recipients(patch_build)
+        assert patch_recipients == [author_recipient]
 
-        handler = MailNotificationHandler()
-        recipients = handler.get_build_recipients(build)
+        ss_build = self.create_build(
+            project=project,
+            result=Result.failed,
+            author=author,
+            tags=['test-snapshot'],
+        )
+        ss_recipients = MailNotificationHandler().get_build_recipients(ss_build)
+        assert ss_recipients == [author_recipient]
 
-        assert recipients == ['{0} <foo@example.com>'.format(author.name)]
-
-        build = self.create_build(
+        commit_build = self.create_build(
             project=project,
             result=Result.failed,
             author=author,
             tags=['commit'],
         )
-
-        handler = MailNotificationHandler()
-        recipients = handler.get_build_recipients(build)
-
-        assert recipients == [
-            '{0} <foo@example.com>'.format(author.name),
+        commit_recipients = MailNotificationHandler().get_build_recipients(commit_build)
+        assert commit_recipients == [
+            author_recipient,
             'test@example.com',
             'bar@example.com',
         ]

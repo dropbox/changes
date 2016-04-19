@@ -124,7 +124,7 @@ class MailNotificationHandler(object):
             return recipients
 
         recipients.extend(options['mail.notify-addresses'])
-        if build_type.is_any_commit_build(build):
+        if build_type.is_initial_commit_build(build):
             recipients.extend(options['mail.notify-addresses-revisions'])
 
         return recipients
