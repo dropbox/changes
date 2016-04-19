@@ -10,11 +10,12 @@ from flask import current_app
 from changes.config import db, statsreporter
 from changes.constants import Result
 from changes.db.utils import try_create
-from changes.models import TestResult, TestResultManager, FailureReason
+from changes.models.failurereason import FailureReason
+from changes.models.testresult import TestResult, TestResultManager
 from changes.utils.agg import aggregate_result
 from changes.utils.http import build_uri
 
-from .base import ArtifactHandler
+from .base import ArtifactHandler, ArtifactParseError
 
 
 class XunitHandler(ArtifactHandler):
@@ -41,19 +42,28 @@ class XunitHandler(ArtifactHandler):
         except Exception:
             uri = build_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
             self.logger.warning('Failed to parse XML; (step=%s, build=%s)', self.step.id.hex, uri, exc_info=True)
-            try_create(FailureReason, {
-                'step_id': self.step.id,
-                'job_id': self.step.job_id,
-                'build_id': self.step.job.build_id,
-                'project_id': self.step.project_id,
-                'reason': 'malformed_artifact'
-            })
-            db.session.commit()
+            self._record_malformed()
             return []
 
-        if root.tag == 'unittest-results':
-            return self.get_bitten_tests(root)
-        return self.get_xunit_tests(root)
+        # We've parsed the XML successful, but we still need to make sure it is well-formed for our reasons.
+        try:
+            if root.tag == 'unittest-results':
+                return self.get_bitten_tests(root)
+            return self.get_xunit_tests(root)
+        except ArtifactParseError:
+            # There may be valid test data to be extracted, but we discard them all to be safe.
+            self._record_malformed()
+            return []
+
+    def _record_malformed(self):
+        try_create(FailureReason, {
+            'step_id': self.step.id,
+            'job_id': self.step.job_id,
+            'build_id': self.step.job.build_id,
+            'project_id': self.step.project_id,
+            'reason': 'malformed_artifact'
+        })
+        db.session.commit()
 
     def get_bitten_tests(self, root):
         step = self.step
@@ -146,6 +156,9 @@ class XunitHandler(ArtifactHandler):
                 duration = float(attrs['time']) * 1000
             else:
                 duration = None
+
+            if not attrs.get('name'):
+                raise ArtifactParseError('testcase is missing required "name" property.')
 
             results.append(TestResult(
                 step=step,

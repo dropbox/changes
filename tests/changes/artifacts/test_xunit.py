@@ -4,8 +4,11 @@ from cStringIO import StringIO
 
 from changes.artifacts.xunit import XunitHandler, _truncate_message, _TRUNCATION_HEADER
 from changes.constants import Result
-from changes.models import JobStep, TestResult
+from changes.models.failurereason import FailureReason
+from changes.models.jobstep import JobStep
+from changes.models.testresult import TestResult
 from changes.testutils import SAMPLE_XUNIT, SAMPLE_XUNIT_DOUBLE_CASES
+from changes.testutils.cases import TestCase
 
 
 def test_result_generation():
@@ -152,3 +155,32 @@ def test_truncate_message():
 
     # Because this was previously broken.
     assert _truncate_message(None, limit=1024) is None
+
+
+class BadArtifactTestCase(TestCase):
+
+    def test_invalid_junit(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        missing_name = """<?xml version="1.0" encoding="utf-8"?>
+        <testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.077">
+            <testcase classname="" time="0" owner="foo">
+                <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
+        &gt;   import mock
+        E   ImportError: No module named mock</failure>
+            </testcase>
+            <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.001607" rerun="1"/>
+        </testsuite>"""
+        fp = StringIO(missing_name)
+
+        handler = XunitHandler(jobstep)
+        results = handler.get_tests(fp)
+        assert results == []
+        reason = FailureReason.query.filter(
+            FailureReason.step_id == jobstep.id
+        ).first()
+        assert reason is not None
