@@ -11,7 +11,8 @@ from changes.api.auth import requires_admin
 from changes.config import db
 from changes.constants import IMPLEMENTATION_CHOICES
 from changes.db.utils import create_or_update
-from changes.models import ItemOption, Step, STEP_OPTIONS
+from changes.models.option import ItemOption
+from changes.models.step import Step, STEP_OPTIONS
 
 
 class StepDetailsAPIView(APIView):
@@ -84,8 +85,7 @@ class StepDetailsAPIView(APIView):
             })
 
         db.session.commit()
-
-        return self.serialize(step), 200
+        return self.respond(step)
 
     @requires_admin
     def delete(self, step_id):
@@ -107,4 +107,4 @@ class StepDetailsAPIView(APIView):
 
         db.session.commit()
 
-        return '', 200
+        return self.respond({})

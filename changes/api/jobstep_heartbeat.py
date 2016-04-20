@@ -3,11 +3,11 @@ from __future__ import absolute_import
 from datetime import datetime
 from flask_restful.reqparse import RequestParser
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.validators.datetime import ISODatetime
 from changes.config import db
 from changes.constants import Result
-from changes.models import JobStep
+from changes.models.jobstep import JobStep
 
 
 class JobStepHeartbeatAPIView(APIView):
@@ -17,12 +17,12 @@ class JobStepHeartbeatAPIView(APIView):
     def post(self, step_id):
         jobstep = JobStep.query.get(step_id)
         if jobstep is None:
-            return '', 404
+            return error("Not found", http_code=404)
 
         # NOTE(josiah): we think this is okay as is, but it might be better to
         # report infra_failure the same way as aborted.
         if jobstep.result == Result.aborted:
-            return '', 410
+            return error("Aborted", http_code=410)
 
         args = self.post_parser.parse_args()
 
@@ -32,4 +32,4 @@ class JobStepHeartbeatAPIView(APIView):
         db.session.add(jobstep)
         db.session.commit()
 
-        return self.serialize(jobstep), 200
+        return self.respond(jobstep)

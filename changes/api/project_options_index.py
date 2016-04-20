@@ -5,10 +5,11 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload
 
 from changes.config import statsreporter
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.auth import requires_admin
 from changes.db.utils import create_or_update
-from changes.models import Project, ProjectOption, Snapshot, SnapshotStatus
+from changes.models.project import Project, ProjectOption
+from changes.models.snapshot import Snapshot, SnapshotStatus
 
 
 def validate_snapshot_id(id_hex):
@@ -64,7 +65,7 @@ class ProjectOptionsIndexAPIView(APIView):
     def post(self, project_id):
         project = self._get_project(project_id)
         if project is None:
-            return '', 404
+            return error("Project not found", http_code=404)
 
         args = self.parser.parse_args()
 
@@ -89,7 +90,7 @@ class ProjectOptionsIndexAPIView(APIView):
                 'value': value,
             })
 
-        return '', 200
+        return self.respond({})
 
 
 def _report_snapshot_downgrade(project):

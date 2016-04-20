@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, unicode_literals
 
 from flask.ext.restful.reqparse import RequestParser
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.db.utils import create_or_update
-from changes.models import ItemOption
+from changes.models.option import ItemOption
 
 from changes.api.auth import get_current_user
 
@@ -20,7 +20,7 @@ class UserOptionsAPIView(APIView):
     def post(self):
         user = get_current_user()
         if user is None:
-            return '', 404
+            return error("User not found", http_code=404)
 
         args = self.post_parser.parse_args()
 
@@ -35,4 +35,4 @@ class UserOptionsAPIView(APIView):
                 'value': value,
             })
 
-        return '', 200
+        return self.respond({})
