@@ -9,9 +9,12 @@ from changes.api.base import APIView, error
 from changes.api.validators.datetime import ISODatetime
 from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
-from changes.expanders import CommandsExpander, TestsExpander
+from changes.expanders.commands import CommandsExpander
+from changes.expanders.tests import TestsExpander
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import Command, CommandType, JobPhase, JobPlan
+from changes.models.command import Command, CommandType
+from changes.models.jobphase import JobPhase
+from changes.models.jobplan import JobPlan
 
 
 STATUS_CHOICES = ('queued', 'in_progress', 'finished')
