@@ -109,6 +109,11 @@ var PusherPage = React.createClass({
       slugs.push(queryParams['aux']);
     }
 
+    let per_page = '50';
+    if (queryParams['per_page']) {
+        per_page = queryParams['per_page'];
+    }
+
     _.each(slugs, slug => {
       var repo = slug, branch = null;
       if (slug.indexOf('::') > 0) {
@@ -116,7 +121,7 @@ var PusherPage = React.createClass({
       }
 
       endpoints[slug] = URI(`/api/0/projects/${repo}/commits/`)
-        .query({ all_builds: 1, branch: branch })
+        .query({ all_builds: 1, branch: branch, per_page: per_page })
         .toString();
     });
 
