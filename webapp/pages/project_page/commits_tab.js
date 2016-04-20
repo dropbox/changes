@@ -16,6 +16,12 @@ import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
+
+function getSkipReason(message) {
+    let m = message.match(/^Queue skipped: (.*)$/m);
+    return m && m[1];
+}
+
 var CommitsTab = React.createClass({
 
   propTypes: {
@@ -226,9 +232,14 @@ var CommitsTab = React.createClass({
       // dropbox-specific logic: we have a commit queue (oh hey, you should
       // build one of those too)
 
+      let label = "This commit bypassed the commit queue";
+      let skipreason = getSkipReason(c.message);
+      if (skipreason) {
+        label = <div>{label}<br/>Reason given: {skipreason}</div>;
+      }
       title = <span>
         {title}
-        <SimpleTooltip label="This commit bypassed the commit queue">
+        <SimpleTooltip label={label}>
           <i className="fa fa-fast-forward blue marginLeftS" />
         </SimpleTooltip>
       </span>;
