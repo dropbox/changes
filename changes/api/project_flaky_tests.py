@@ -5,9 +5,11 @@ from flask.ext.restful import reqparse
 from sqlalchemy.sql import func
 from sqlalchemy import and_
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.config import db
-from changes.models import FlakyTestStat, Project, TestCase
+from changes.models.flakyteststat import FlakyTestStat
+from changes.models.project import Project
+from changes.models.test import TestCase
 
 
 CHART_DATA_LIMIT = 50
@@ -20,14 +22,14 @@ class ProjectFlakyTestsAPIView(APIView):
     def get(self, project_id):
         project = Project.get(project_id)
         if not project:
-            return '', 404
+            return error("Project not found", http_code=404)
 
         args = self.parser.parse_args()
         if args.date:
             try:
                 query_date = datetime.strptime(args.date, '%Y-%m-%d').date()
             except:
-                return 'Can\'t parse date "%s"' % (args.date), 500
+                return error('Can\'t parse date "%s"' % (args.date))
         else:
             # This `7` is hard-coded to match the code in config.py which kicks
             # off the cron job 7 hours past midnight GMT (which corresponds to
@@ -41,7 +43,7 @@ class ProjectFlakyTestsAPIView(APIView):
             'flakyTests': self.get_flaky_tests(project_id, query_date)
         }
 
-        return self.respond(data, serialize=False)
+        return self.respond(data)
 
     def get_flaky_tests(self, project_id, query_date):
         subquery = db.session.query(

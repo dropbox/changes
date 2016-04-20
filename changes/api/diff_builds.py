@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.config import db
-from changes.models import Build, PhabricatorDiff, Job
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.phabricatordiff import PhabricatorDiff
 
 from changes.utils.phabricator_utils import PhabricatorClient
 
@@ -19,7 +21,7 @@ class DiffBuildsIndexAPIView(APIView):
 
     def get(self, diff_ident):
         if not diff_ident.startswith('D') or not diff_ident[1:].isdigit():
-            return 400, 'diff id not valid'
+            return error('diff id not valid')
 
         # grab diff info from phabricator.
         phabricator_info = {}
@@ -31,7 +33,7 @@ class DiffBuildsIndexAPIView(APIView):
                 'ids': [int(diff_ident[1:])]
             })
             if len(phabricator_info) == 0:
-                return 404, '%s not found in phabricator' % diff_ident
+                return error('%s not found in phabricator' % diff_ident, http_code=404)
             assert len(phabricator_info) == 1
             phabricator_info = phabricator_info[0]
             phabricator_info["fetched_data_from_phabricator"] = True
@@ -91,4 +93,4 @@ class DiffBuildsIndexAPIView(APIView):
 
         phabricator_info['changes'] = build_info
 
-        return self.respond(phabricator_info, serialize=False)
+        return self.respond(phabricator_info)
