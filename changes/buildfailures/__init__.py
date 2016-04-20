@@ -1,18 +1,19 @@
-from changes.utils.imports import import_submodules
+from changes.buildfailures.duplicatetestname import DuplicateTestName
+from changes.buildfailures.malformedartifact import MalformedArtifact
+from changes.buildfailures.malformedmanifestjson import MalformedManifestJson
+from changes.buildfailures.missingartifact import MissingArtifact
+from changes.buildfailures.missingmanifestjson import MissingManifestJson
+from changes.buildfailures.missingtests import MissingTests
+from changes.buildfailures.testfailure import TestFailure
+from changes.buildfailures.timeout import Timeout
 
-import_submodules(globals(), __name__, __path__)
-
-
-class Registry(dict):
-    def add(self, type, cls):
-        self[type] = cls()
-
-registry = Registry()
-registry.add('test_failures', TestFailure)  # NOQA
-registry.add('missing_tests', MissingTests)  # NOQA
-registry.add('timeout', Timeout)  # NOQA
-registry.add('missing_artifact', MissingArtifact)  # NOQA
-registry.add('malformed_artifact', MalformedArtifact)  # NOQA
-registry.add('duplicate_test_name', DuplicateTestName)  # NOQA
-registry.add('missing_manifest_json', MissingManifestJson)  # NOQA
-registry.add('malformed_manifest_json', MalformedManifestJson)  # NOQA
+registry = {
+    'duplicate_test_name': DuplicateTestName(),
+    'malformed_artifact': MalformedArtifact(),
+    'malformed_manifest_json': MalformedManifestJson(),
+    'missing_artifact': MissingArtifact(),
+    'missing_manifest_json': MissingManifestJson(),
+    'missing_tests': MissingTests(),
+    'test_failures': TestFailure(),
+    'timeout': Timeout(),
+}
