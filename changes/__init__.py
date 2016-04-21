@@ -31,8 +31,12 @@ def _get_git_revision_info(checkout_dir):
         return None
 
 
-def get_revision_info():
+_cached_revision_info = None
+
+
+def get_revision_info(use_cache=True):
     """
+    NOTE: Results of this function may be cached.
     Returns a dictionary of information about the current revision -
       hash: the commit hash
       author_email: email of the author
@@ -40,11 +44,18 @@ def get_revision_info():
       subject: the commit subject/title
     Returns None if this info cannot be determined
     """
+    global _cached_revision_info
+    if use_cache:
+        if _cached_revision_info:
+            return _cached_revision_info
     package_dir = os.path.dirname(__file__)
     checkout_dir = os.path.normpath(os.path.join(package_dir, os.pardir))
     path = os.path.join(checkout_dir, '.git')
     if os.path.exists(path):
-        return _get_git_revision_info(checkout_dir)
+        info = _get_git_revision_info(checkout_dir)
+        if use_cache:
+            _cached_revision_info = info
+        return info
     return None
 
 
