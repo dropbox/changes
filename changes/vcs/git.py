@@ -8,7 +8,7 @@ from changes.utils.http import build_uri
 
 from .base import (
     Vcs, RevisionResult, BufferParser, ConcurrentUpdateError, CommandError,
-    UnknownChildRevision, UnknownParentRevision, UnknownRevision,
+    ContentReadError, UnknownChildRevision, UnknownParentRevision, UnknownRevision,
 )
 
 import re
@@ -347,12 +347,22 @@ class GitVcs(Vcs):
         Returns:
             str - the content of the file
         Raises:
-            CommandError - if the file or the revision cannot be found
+            CommandError - if the git invocation fails.
+            ContentReadError - if the content can't be read because the named file is missing,
+                links to something outside the tree, links to an absent file, or links to itself.
         """
-        cmd = ['show', '{revision}:{file_path}'.format(
-            revision=sha, file_path=file_path
-        )]
-        content = self.run(cmd)
+        cmd = ['cat-file', '--batch', '--follow-symlinks']
+        obj_key = '{revision}:{file_path}'.format(revision=sha, file_path=file_path)
+        content = self.run(cmd, input=obj_key)
+        info, content = content.split('\n', 1)
+        if info.endswith('missing'):
+            raise ContentReadError('No such file at revision: {}'.format(obj_key))
+        if any(info.startswith(s) for s in ('symlink', 'dangling', 'loop')):
+            raise ContentReadError('Unable to read file contents: {}'.format(info.split()[0]))
+        if not re.match(r'^[a-f0-9]+ blob \d+$', info):
+            raise ContentReadError('Unrecognized metadata for {}: {!r}'.format(obj_key, info))
+        assert content.endswith('\n')
+        content = content[:-1]
         if diff is None:
             return content
 

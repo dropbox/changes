@@ -10,7 +10,9 @@ from subprocess import Popen, PIPE, check_call, CalledProcessError
 
 from changes.constants import PROJECT_ROOT
 from changes.db.utils import create_or_update, get_or_create, try_create
-from changes.models import Author, Revision, Source
+from changes.models.author import Author
+from changes.models.revision import Revision
+from changes.models.source import Source
 from changes.config import statsreporter
 from changes.utils.diff_parser import DiffParser
 
@@ -58,6 +60,12 @@ class ConcurrentUpdateError(CommandError):
 class InvalidDiffError(Exception):
     """This is used when a diff is invalid and fails to apply. It is NOT
     a subclass of CommandError, as it is not a vcs command"""
+    pass
+
+
+class ContentReadError(Exception):
+    """Indicates that an attempt to read the contents of a file in the repo failed.
+    """
     pass
 
 
@@ -116,9 +124,12 @@ class Vcs(object):
         kwargs['env'] = env
         kwargs['stdout'] = PIPE
         kwargs['stderr'] = PIPE
+        kwargs['stdin'] = PIPE
+
+        input = kwargs.pop('input', None)
 
         proc = Popen(*args, close_fds=True, **kwargs)
-        (stdout, stderr) = proc.communicate()
+        (stdout, stderr) = proc.communicate(input=input)
         if proc.returncode != 0:
             raise CommandError(args[0], proc.returncode, stdout, stderr)
         return stdout

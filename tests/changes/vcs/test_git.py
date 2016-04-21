@@ -1,12 +1,13 @@
 from __future__ import absolute_import
 
 import pytest
+import os.path
 
 from subprocess import check_call, check_output
 
 from changes.testutils import TestCase
 from changes.vcs.base import (
-        CommandError, UnknownChildRevision, UnknownParentRevision
+        ContentReadError, UnknownChildRevision, UnknownParentRevision,
 )
 from changes.vcs.git import GitVcs
 
@@ -47,8 +48,12 @@ class GitVcsTest(TestCase, VcsAsserts):
         self._add_file('FOO', self.remote_path, commit_msg="test\nlol\n")
         self._add_file('BAR', self.remote_path, commit_msg="biz\nbaz\n")
 
-    def _add_file(self, filename, repo_path, commit_msg=None):
-        check_call(['touch', filename], cwd=repo_path)
+    def _add_file(self, filename, repo_path, commit_msg=None, content='', target=None):
+        if target:
+            check_output(['ln', '-s', target, filename], cwd=repo_path)
+        else:
+            with open(os.path.join(repo_path, filename), 'w') as f:
+                f.write(content)
         check_call(['git', 'add', filename], cwd=repo_path)
         check_call(['git', 'commit', '-m', commit_msg], cwd=repo_path)
 
@@ -348,12 +353,37 @@ index 0000000..e69de29
         assert vcs.read_file('HEAD', 'FOO') == ''
 
         # unknown file
-        with pytest.raises(CommandError):
+        with pytest.raises(ContentReadError):
             vcs.read_file('HEAD', 'doesnotexist')
 
         # unknown sha
-        with pytest.raises(CommandError):
+        with pytest.raises(ContentReadError):
             vcs.read_file('a' * 40, 'FOO')
+
+    def test_read_file_symlink(self):
+        content = 'Line 1\nLine 2\n'
+        self._add_file('REAL', self.remote_path, content=content, commit_msg='Target file.')
+        self._add_file('INDIRECT', self.remote_path, target='REAL', commit_msg="Here we go.")
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        assert vcs.read_file('HEAD', 'INDIRECT') == content
+
+        with pytest.raises(ContentReadError):
+            vcs.read_file('HEAD', 'does_not_exist.txt')
+
+    def test_read_file_symlink_out_of_tree(self):
+        oot = os.path.join(self.root, 'out_of_tree.txt')
+        with open(oot, 'w') as f:
+            f.write("Out of tree!\n")
+        self._add_file('INDIRECT', self.remote_path, target=oot, commit_msg="Here we go.")
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        with pytest.raises(ContentReadError):
+            vcs.read_file('HEAD', 'INDIRECT')
 
     def test_read_file_with_diff(self):
         PATCH = """diff --git a/FOO b/FOO

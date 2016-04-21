@@ -95,7 +95,7 @@ class Project(db.Model):
         '''
         # changes.vcs.base imports some models, which may lead to circular
         # imports, so let's import on-demand
-        from changes.vcs.base import CommandError
+        from changes.vcs.base import CommandError, ContentReadError
         if config_path is None:
             config_path = self.get_config_path()
         vcs = self.repository.get_vcs()
@@ -105,7 +105,7 @@ class Project(db.Model):
             try:
                 config_content = vcs.read_file(
                     revision_sha, config_path, diff=diff)
-            except CommandError:
+            except (CommandError, ContentReadError):
                 # this won't catch error when diff doesn't apply, which is good.
                 config_content = '{}'
             try:
