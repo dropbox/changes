@@ -1,0 +1,12 @@
+exam>=0.10.2,<0.11.0
+flake8>=2.4.0,<2.5.0
+loremipsum==1.0.2
+mercurial>=2.4
+mock>=1.0.1,<1.1.0
+pytest>=2.5.0,<2.6.0
+pytest-cov>=1.6,<1.7
+pytest-timeout>=0.3,<0.4
+pytest-xdist>=1.9,<1.10
+responses>=0.3.0,<0.4.0
+unittest2>=0.5.1,<0.6.0
+moto>=0.3.0,<0.4.0
