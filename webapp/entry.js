@@ -141,20 +141,43 @@ require([
       path_parts = ['find_build', build_id];
   }
 
-  if (path_parts[0] === 'find_build') {
-    var redirect_func = function(response, was_success) {
+  var redirect_to_build = function(build_id) {
+    var build_redirect_func = function(response, was_success) {
       if (!was_success) {
         document.write('Redirect failed');
         return;
       }
+
       var build = JSON.parse(response.responseText);
       var new_href = URI(ChangesLinks.buildHref(build))
         .addSearch('optin', 1);
       window.location.href = new_href;
     }
-    data_fetching.make_api_ajax_get('/api/0/builds/' + path_parts[1], null,
-      redirect_func, redirect_func);
 
+    data_fetching.make_api_ajax_get('/api/0/builds/' + build_id, null,
+      build_redirect_func, build_redirect_func);
+  }
+
+  var redirect_to_jobstep = function(jobstep_id) {
+    var jobstep_redirect_func = function(response, was_success) {
+      if (!was_success) {
+        document.write('Redirect failed');
+        return;
+      }
+
+      var jobstep = JSON.parse(response.responseText);
+      redirect_to_build(jobstep.job.build.id);
+    }
+
+    data_fetching.make_api_ajax_get('/api/0/jobsteps/' + jobstep_id, null,
+      jobstep_redirect_func, jobstep_redirect_func);
+  }
+
+  if (path_parts[0] === 'find_build') {
+    redirect_to_build(path_parts[1]);
+    return;
+  } else if (path_parts[0] === 'find_jobstep') {
+    redirect_to_jobstep(path_parts[1]);
     return;
   }
 
