@@ -116,4 +116,5 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('compile-static', ['ngtemplates', 'requirejs']);
+  grunt.registerTask('compile-reactjs', ['requirejs:compile2']);
 };

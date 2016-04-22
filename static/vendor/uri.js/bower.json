@@ -1,0 +1,16 @@
+{
+  "name": "URIjs",
+  "version": "1.15.2",
+  "main": "src/URI.js",
+  "ignore": [
+    ".*",
+    "*.css",
+    "/*.js",
+    "/*.html",
+    "/*.json",
+    "utils",
+    "test",
+    "prettify"
+  ],
+  "license": "MIT"
+}

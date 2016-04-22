@@ -1,0 +1,22 @@
+{
+  "name": "requirejs-babel",
+  "version": "0.0.6",
+  "authors": [
+    "Michael <mikach27@gmail.com>"
+  ],
+  "description": "An AMD loader plugin for Babel",
+  "main": "es6.js",
+  "moduleType": [
+    "amd"
+  ],
+  "keywords": [
+    "es6",
+    "esnext",
+    "babel"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "demo",
+    "package.json"
+  ]
+}
