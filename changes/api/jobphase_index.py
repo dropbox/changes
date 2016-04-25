@@ -6,7 +6,13 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView
-from changes.models import Job, JobPhase, JobStep, TestCase, Result
+from changes.api.serializer.models.logsource import LogSourceWithoutStepCrumbler
+from changes.constants import Result
+from changes.models.job import Job
+from changes.models.jobphase import JobPhase
+from changes.models.jobstep import JobStep
+from changes.models.log import LogSource
+from changes.models.test import TestCase
 from changes.config import db
 
 
@@ -40,11 +46,12 @@ class JobPhaseIndexAPIView(APIView):
             for row in rows:
                 test_counts[row[0]] = row[1]
 
+        logsource_registry = {LogSource: LogSourceWithoutStepCrumbler()}
         context = []
         for phase, phase_data in zip(phase_list, self.serialize(phase_list)):
             phase_data['steps'] = []
             for step, step_data in zip(phase.steps, self.serialize(list(phase.steps))):
-                step_data['logSources'] = self.serialize(list(step.logsources))
+                step_data['logSources'] = self.serialize(list(step.logsources), extended_registry=logsource_registry)
                 if step.id in test_counts:
                     step_data['testFailures'] = test_counts[step.id]
                 phase_data['steps'].append(step_data)

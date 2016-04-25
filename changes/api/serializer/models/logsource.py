@@ -5,6 +5,10 @@ from flask import current_app
 
 @register(LogSource)
 class LogSourceCrumbler(Crumbler):
+
+    def __init__(self, include_step=True):
+        self._include_step = include_step
+
     def crumble(self, instance, attrs):
         url_getter = None
         if instance.in_artifact_store:
@@ -12,16 +16,27 @@ class LogSourceCrumbler(Crumbler):
         else:
             url_getter = ChangesLogSource(current_app.config)
 
-        return {
+        result = {
             'id': instance.id.hex,
             'job': {
                 'id': instance.job_id.hex,
             },
             'name': instance.name,
-            'step': instance.step,
             'dateCreated': instance.date_created,
             'urls': url_getter.get_urls(instance),
         }
+        if self._include_step:
+            result['step'] = instance.step
+        return result
+
+
+class LogSourceWithoutStepCrumbler(LogSourceCrumbler):
+    """
+    Exactly like LogSourceCrumbler, but doesn't include LogSource.step in the result.
+    Use this when you already have the JobStep data to avoid doing unnecessary extra work.
+    """
+    def __init__(self):
+        super(LogSourceWithoutStepCrumbler, self).__init__(include_step=False)
 
 
 class ArtifactStoreLogSource(object):
