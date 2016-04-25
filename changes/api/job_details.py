@@ -5,7 +5,11 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginCrumbler
 from changes.constants import Result
-from changes.models import Job, TestCase, LogSource
+from changes.config import db
+from changes.models.job import Job
+from changes.models.jobstep import JobStep
+from changes.models.log import LogSource
+from changes.models.test import TestCase
 from changes.utils.originfinder import find_failure_origins
 
 
@@ -34,11 +38,18 @@ class JobDetailsAPIView(APIView):
             TestCase: TestCaseWithOriginCrumbler(),
         }
 
+        # Restricting to matching JobStep ids when querying LogSources
+        # allows us to use the LogSource.step_id index, which makes
+        # the query significantly faster.
+        jobstep_ids = db.session.query(JobStep.id).filter(
+            JobStep.job_id == job.id
+        ).subquery()
         log_sources = list(LogSource.query.options(
             joinedload('step'),
         ).filter(
             LogSource.job_id == job.id,
             LogSource.project_id == job.project_id,
+            LogSource.step_id.in_(jobstep_ids),
         ).order_by(LogSource.date_created.asc()))
 
         context = self.serialize(job)

@@ -1,5 +1,5 @@
 from changes.config import db
-from changes.models import LogSource
+from changes.models.log import LogSource
 from changes.testutils import APITestCase
 
 
@@ -8,10 +8,12 @@ class JobDetailsTest(APITestCase):
         project = self.create_project()
         build = self.create_build(project)
         job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
 
-        ls1 = LogSource(job=job, project=project, name='test')
+        ls1 = LogSource(step=jobstep, job=job, project=project, name='test')
         db.session.add(ls1)
-        ls2 = LogSource(job=job, project=project, name='test2')
+        ls2 = LogSource(step=jobstep, job=job, project=project, name='test2')
         db.session.add(ls2)
         db.session.commit()
 
