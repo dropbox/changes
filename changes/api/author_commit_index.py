@@ -42,9 +42,14 @@ class AuthorCommitIndexAPIView(APIView):
 
         # grab recent revisions by author (for any repository/project, which
         # means we can't use vcs commands)
-        sources = self.serialize(list(Source.query.join(
+        sources = self.serialize(list(Source.query.options(
+            joinedload('revision')
+        ).join(
             Revision, Source.revision_sha == Revision.sha
         ).filter(
+            # Repository matching not required for correctness, but
+            # enables an index hit that improves performance significantly.
+            Revision.repository_id == Source.repository_id,
             Revision.author_id.in_([a.id for a in authors]),
             Source.patch_id.is_(None),
         ).order_by(
