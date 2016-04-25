@@ -105,10 +105,10 @@ export var SingleBuild = React.createClass({
         <div className="floatR">
           {render_all ? this.renderButtons(build) : null}
         </div>
-        {this.renderHeader(build, job_phases)}
-        {render_all ? this.renderDetails(build, job_phases) : null}
+        {this.renderHeader(build)}
+        {render_all ? this.renderDetails(build) : null}
       </div>
-      {this.renderFailedTests(build, job_phases)}
+      {this.renderFailedTests(build)}
       {render_all ? this.renderCoverage(coverageInfo) : null}
       {render_all ? this.renderJobs(build, job_phases) : null}
       {render_all ?
@@ -153,7 +153,7 @@ export var SingleBuild = React.createClass({
     </div>;
   },
 
-  renderHeader: function(build, job_phases) {
+  renderHeader: function(build) {
     var condition = get_runnable_condition(build);
     var header_subtext = buildSummaryText(build, false, true);
     var colorCls = condition.indexOf('failed') === 0 ?
@@ -290,7 +290,7 @@ export var SingleBuild = React.createClass({
     </div>;
   },
 
-  renderDetails: function(build, job_phases) {
+  renderDetails: function(build) {
     var attributes = [];
     attributes.push(<InfoItem label="Created"
         tooltip="when Changes received this job">
@@ -353,7 +353,7 @@ export var SingleBuild = React.createClass({
   },
 
   // which tests caused the build to fail?
-  renderFailedTests: function(build, job_phases) {
+  renderFailedTests: function(build) {
     if (build.testFailures.total <= 0) {
       return null;
     }
