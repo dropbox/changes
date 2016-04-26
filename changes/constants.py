@@ -5,6 +5,10 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir
 
 NUM_PREVIOUS_RUNS = 50
 
+# Default custom css file that's searched for in the webapp/custom/ directory
+# if not specified in changes.conf.py
+CUSTOM_CSS_FILE = "changes.less"
+
 
 class Status(Enum):
     unknown = 0

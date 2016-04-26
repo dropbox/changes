@@ -21,7 +21,7 @@ from raven.contrib.flask import Sentry
 from urlparse import urlparse
 from werkzeug.contrib.fixers import ProxyFix
 
-from changes.constants import PROJECT_ROOT
+from changes.constants import CUSTOM_CSS_FILE, PROJECT_ROOT
 from changes.api.controller import APIController, APICatchall
 from changes.experimental import categorize
 from changes.ext.celery import Celery
@@ -308,6 +308,7 @@ def create_app(_read_config=True, **config):
     # so you can override them in your file
     # Note: if you change this and nothing seems to happen, try deleting
     # webapp/.webassets-cache and bundled.css. This probably won't happen, though
+    # If not specified, we will search for CUSTOM_CSS_FILE in the custom dir.
     app.config['WEBAPP_CUSTOM_CSS'] = None
 
     # In minutes, the timeout applied to jobs without a timeout specified at build time.
@@ -372,6 +373,8 @@ def create_app(_read_config=True, **config):
         enforce_is_subdir(
             app.config['WEBAPP_CUSTOM_CSS'],
             os.path.join(PROJECT_ROOT, 'webapp/custom'))
+    else:
+        app.config['WEBAPP_CUSTOM_CSS'] = _find_custom_css()
 
     if app.config['WEBAPP_CUSTOM_JS']:
         app.config['WEBAPP_CUSTOM_JS'] = os.path.join(
@@ -718,9 +721,14 @@ def configure_default(app):
                 'custom_image',
                 root=custom_dir)
         )
-
     # One last thing...we use CSS bundling via flask-assets, so set that up on
     # the main app object
+    configure_assets(app)
+
+
+def configure_assets(app):
+    revision_facts = changes.get_revision_info() or {}
+    revision = revision_facts.get('hash', '0') if not app.debug else '0'
     assets = Environment(app)
     assets.config['directory'] = os.path.join(PROJECT_ROOT, 'webapp')
     assets.config['url'] = '/static/' + revision + '/'
@@ -734,6 +742,20 @@ def configure_default(app):
     assets.load_path = [
         os.path.join(PROJECT_ROOT, 'webapp')
     ]
+    return assets
+
+
+def _find_custom_css():
+    found_files = []
+    custom_dir = os.path.join(PROJECT_ROOT, 'webapp', 'custom')
+    for dirpath, subdirs, files in os.walk(custom_dir):
+        if CUSTOM_CSS_FILE in files:
+            found_files.append(os.path.join(dirpath, CUSTOM_CSS_FILE))
+    assert len(found_files) < 2, "Multiple custom css files found: %s" % (found_files,)
+    if len(found_files) == 1:
+        return found_files[0]
+    else:
+        return None
 
 
 def configure_debug_routes(app):
