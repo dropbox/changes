@@ -43,6 +43,8 @@ class ProjectDetailsAPIView(APIView):
     def _get_avg_duration(self, project, start_period, end_period):
         avg_duration = db.session.query(
             func.avg(Build.duration)
+        ).join(
+            Source, Build.source_id == Source.id,
         ).filter(
             Build.project_id == project.id,
             Build.date_created >= start_period,
