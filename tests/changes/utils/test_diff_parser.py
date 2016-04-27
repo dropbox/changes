@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from changes.testutils.fixtures import SAMPLE_DIFF_BYTES as COMPLEX_DIFF
 from changes.testutils import TestCase
-from changes.utils.diff_parser import DiffParser
+from changes.utils.diff_parser import DiffParser, FileInfo, LineInfo
 
 
 SIMPLE_DIFF = """
@@ -27,62 +27,55 @@ class DiffParserTest(TestCase):
         parser = DiffParser(SIMPLE_DIFF)
         files = parser.parse()
         assert files == [
-            {
-                'old_filename': 'a/changes/utils/diff_parser.py',
-                'new_filename': 'b/changes/utils/diff_parser.py',
-                'chunk_markers': ['@@ -71,6 +71,7 @@ class DiffParser(object):'],
-                'chunks': [[
-                    {
-                        'action': 'unmod',
-                        'line': '                continue',
-                        'new_lineno': 71,
-                        'old_lineno': 71,
-                        'ends_with_newline': True,
-                    },
-                    {
-                        'action': 'unmod',
-                        'line': '',
-                        'new_lineno': 72,
-                        'old_lineno': 72,
-                        'ends_with_newline': True,
-                    },
-                    {
-                        'action': 'unmod',
-                        'line': '            chunks = []',
-                        'new_lineno': 73,
-                        'old_lineno': 73,
-                        'ends_with_newline': True,
-                    },
-                    {
-                        'action': 'add',
-                        'line': '            chunk_markers = []',
-                        'new_lineno': 74,
-                        'old_lineno': u'',
-                        'ends_with_newline': True,
-                    },
-                    {
-                        'action': 'unmod',
-                        'line': '            old, new = self._extract_rev(line, lineiter.next())',
-                        'new_lineno': 75,
-                        'old_lineno': 74,
-                        'ends_with_newline': True,
-                    },
-                    {
-                        'action': 'unmod',
-                        'line': '            files.append({',
-                        'new_lineno': 76,
-                        'old_lineno': 75,
-                        'ends_with_newline': True,
-                    },
-                    {
-                        'action': 'unmod',
-                        'line': "                'old_filename': old[0] if old[0] != '/dev/null' else None,",
-                        'new_lineno': 77,
-                        'old_lineno': 76,
-                        'ends_with_newline': True,
-                    }
+            FileInfo(
+                old_filename='a/changes/utils/diff_parser.py',
+                new_filename='b/changes/utils/diff_parser.py',
+                chunk_markers=['@@ -71,6 +71,7 @@ class DiffParser(object):'],
+                chunks=[[
+                    LineInfo(
+                        action='unmod',
+                        line='                continue',
+                        new_lineno=71,
+                        old_lineno=71,
+                        ends_with_newline=True),
+                    LineInfo(
+                        action='unmod',
+                        line='',
+                        new_lineno=72,
+                        old_lineno=72,
+                        ends_with_newline=True),
+                    LineInfo(
+                        action='unmod',
+                        line='            chunks = []',
+                        new_lineno=73,
+                        old_lineno=73,
+                        ends_with_newline=True),
+                    LineInfo(
+                        action='add',
+                        line='            chunk_markers = []',
+                        new_lineno=74,
+                        old_lineno=0,
+                        ends_with_newline=True),
+                    LineInfo(
+                        action='unmod',
+                        line='            old, new = self._extract_rev(line, lineiter.next())',
+                        new_lineno=75,
+                        old_lineno=74,
+                        ends_with_newline=True),
+                    LineInfo(
+                        action='unmod',
+                        line='            files.append({',
+                        new_lineno=76,
+                        old_lineno=75,
+                        ends_with_newline=True),
+                    LineInfo(
+                        action='unmod',
+                        line="                'old_filename': old[0] if old[0] != '/dev/null' else None,",
+                        new_lineno=77,
+                        old_lineno=76,
+                        ends_with_newline=True)
                 ]],
-            }
+            )
         ]
 
     def test_parse_complex_diff(self):
@@ -244,8 +237,8 @@ index d800886..190a180 100644
 +123
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == """
 --- a/test
 +++ b/test
@@ -266,8 +259,8 @@ index 190a180..d800886 100644
 \ No newline at end of file
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == """
 --- a/test
 +++ b/test
@@ -289,8 +282,8 @@ index d800886..bed2d6a 100644
 \ No newline at end of file
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == """
 --- a/test
 +++ b/test
@@ -311,8 +304,8 @@ index e69de29..d800886 100644
 \ No newline at end of file
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == """
 --- a/test
 +++ b/test
@@ -331,8 +324,8 @@ index d800886..e69de29 100644
 \ No newline at end of file
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == """
 --- a/test
 +++ b/test
@@ -351,15 +344,15 @@ index 0000000..038d718
 +testing
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == """
 --- /dev/null
 +++ b/whitelist/blacklist/a.txt
 @@ -0,0 +1 @@
 +testing
 """
-        assert file_dict['old_filename'] is None
+        assert file_info.old_filename is None
         assert parser.get_changed_files() == set(['whitelist/blacklist/a.txt'])
         assert parser.get_lines_by_file() == {'whitelist/blacklist/a.txt': {1}}
 
@@ -373,15 +366,15 @@ index 038d718..0000000
 -testing
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == """
 --- a/whitelist/blacklist/b.txt
 +++ /dev/null
 @@ -1 +0,0 @@
 -testing
 """
-        assert file_dict['new_filename'] is None
+        assert file_info.new_filename is None
         assert parser.get_changed_files() == set(['whitelist/blacklist/b.txt'])
         assert parser.get_lines_by_file() == {}
 
@@ -391,10 +384,10 @@ deleted file mode 100644
 index e69de29..0000000
 """
         parser = DiffParser(patch)
-        (file_dict,) = parser.parse()
-        diff = parser.reconstruct_file_diff(file_dict)
+        (file_info,) = parser.parse()
+        diff = parser.reconstruct_file_diff(file_info)
         assert diff == ""
-        assert file_dict['new_filename'] is None
+        assert file_info.new_filename is None
         assert parser.get_changed_files() == set(['diff-from/__init__.py'])
         assert parser.get_lines_by_file() == {}
 
@@ -407,11 +400,11 @@ deleted file mode 100644
 index e69de29..0000000
 """
         parser = DiffParser(patch)
-        (first_dict, second_dict,) = parser.parse()
-        assert first_dict['new_filename'] is None
-        assert first_dict['old_filename'] == 'a/diff-from/__init__.py'
-        assert second_dict['new_filename'] is None
-        assert second_dict['old_filename'] == 'a/diff-from/other.py'
+        (first_info, second_info,) = parser.parse()
+        assert first_info.new_filename is None
+        assert first_info.old_filename == 'a/diff-from/__init__.py'
+        assert second_info.new_filename is None
+        assert second_info.old_filename == 'a/diff-from/other.py'
         assert parser.get_changed_files() == set(['diff-from/__init__.py', 'diff-from/other.py'])
         assert parser.get_lines_by_file() == {}
 
@@ -424,7 +417,7 @@ index 0000000..e69de29
         (file_dict,) = parser.parse()
         diff = parser.reconstruct_file_diff(file_dict)
         assert diff == ""
-        assert file_dict['old_filename'] is None
+        assert file_dict.old_filename is None
         assert parser.get_changed_files() == set(['diff-from/__init__.py'])
         assert parser.get_lines_by_file() == {}
 
@@ -437,10 +430,10 @@ new file mode 100644
 index 0000000..e69de29
 """
         parser = DiffParser(patch)
-        (first_dict, second_dict,) = parser.parse()
-        assert first_dict['new_filename'] == 'b/diff-from/__init__.py'
-        assert first_dict['old_filename'] is None
-        assert second_dict['new_filename'] == 'b/diff-from/other.py'
-        assert second_dict['old_filename'] is None
+        (first_info, second_info,) = parser.parse()
+        assert first_info.new_filename == 'b/diff-from/__init__.py'
+        assert first_info.old_filename is None
+        assert second_info.new_filename == 'b/diff-from/other.py'
+        assert second_info.old_filename is None
         assert parser.get_changed_files() == set(['diff-from/__init__.py', 'diff-from/other.py'])
         assert parser.get_lines_by_file() == {}

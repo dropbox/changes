@@ -28,6 +28,34 @@
 
 from collections import defaultdict
 import re
+from typing import Optional, List, Set  # NOQA
+
+
+class FileInfo(object):
+    def __init__(self, old_filename, new_filename, chunks, chunk_markers):
+        # type: (Optional[str], Optional[str], List[List[LineInfo]], List[str]) -> None
+        self.old_filename = old_filename
+        self.new_filename = new_filename
+        self.chunks = chunks
+        self.chunk_markers = chunk_markers
+
+    def __eq__(self, other):
+        return ((self.old_filename, self.new_filename, self.chunks, self.chunk_markers) ==
+                (other.old_filename, other.new_filename, other.chunks, other.chunk_markers))
+
+
+class LineInfo(object):
+    def __init__(self, old_lineno, new_lineno, action, line, ends_with_newline):
+        # type: (int, int, str, str, bool) -> None
+        self.old_lineno = old_lineno
+        self.new_lineno = new_lineno
+        self.action = action
+        self.line = line
+        self.ends_with_newline = ends_with_newline
+
+    def __eq__(self, other):
+        return ((self.old_lineno, self.new_lineno, self.action, self.line, self.ends_with_newline) ==
+                (other.old_lineno, other.new_lineno, other.action, other.line, other.ends_with_newline))
 
 
 class DiffParser(object):
@@ -37,6 +65,7 @@ class DiffParser(object):
     _chunk_re = re.compile(r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@')
 
     def __init__(self, udiff):
+        # type: (str) -> None
         """:param udiff:   a text in udiff format"""
         self.lines = udiff.splitlines()
 
@@ -52,14 +81,16 @@ class DiffParser(object):
         return (None, None), (None, None)
 
     def parse(self):
+        # type: () -> List[FileInfo]
+
         # reference: unidiff format by Guido:
         # https://www.artima.com/weblogs/viewpost.jsp?thread=164293
         lineiter = iter(self.lines)
-        files = []
+        files = []  # type: List[FileInfo]
 
         # current_file is only used for git-generated "extended diffs"
         # which are able to express empty file creation and deletion
-        current_file = None
+        current_file = None  # type: Optional[FileInfo]
         try:
             line = lineiter.next()
             while 1:
@@ -68,31 +99,31 @@ class DiffParser(object):
                         files.append(current_file)
                         current_file = None
                     elif line.startswith('deleted file mode '):
-                        current_file['new_filename'] = None
+                        current_file.new_filename = None
                     elif line.startswith('new file mode '):
-                        current_file['old_filename'] = None
+                        current_file.old_filename = None
                 if not current_file and line.startswith('diff --git '):
                     diff_line = line.strip().split()
-                    current_file = {
-                        'old_filename': diff_line[2],
-                        'new_filename': diff_line[3],
-                        'chunks': [],
-                        'chunk_markers': [],
-                    }
+                    current_file = FileInfo(
+                        old_filename=diff_line[2],
+                        new_filename=diff_line[3],
+                        chunks=[],
+                        chunk_markers=[],
+                    )
 
                 if not line.startswith('--- '):
                     line = lineiter.next()
                     continue
 
-                chunks = []
-                chunk_markers = []
+                chunks = []  # type: List[List[LineInfo]]
+                chunk_markers = []  # type: List[str]
                 old, new = self._extract_rev(line, lineiter.next())
-                files.append({
-                    'old_filename': old[0] if old[0] != '/dev/null' else None,
-                    'new_filename': new[0] if new[0] != '/dev/null' else None,
-                    'chunks': chunks,
-                    'chunk_markers': chunk_markers,
-                })
+                files.append(FileInfo(
+                    old_filename=old[0] if old[0] != '/dev/null' else None,
+                    new_filename=new[0] if new[0] != '/dev/null' else None,
+                    chunks=chunks,
+                    chunk_markers=chunk_markers,
+                ))
                 current_file = None
 
                 line = lineiter.next()
@@ -101,12 +132,12 @@ class DiffParser(object):
                     if not match:
                         break
 
-                    lines = []
+                    lines = []  # type: List[LineInfo]
                     chunks.append(lines)
                     chunk_markers.append(line)
 
                     old_line, old_end, new_line, new_end = [
-                        int(x or 1) for x in match.groups()
+                        int(x) for x in match.groups(default='1')
                     ]
                     old_line -= 1
                     new_line -= 1
@@ -133,17 +164,17 @@ class DiffParser(object):
 
                         old_line += affects_old
                         new_line += affects_new
-                        line_dict = {
-                            'old_lineno': affects_old and old_line or u'',
-                            'new_lineno': affects_new and new_line or u'',
-                            'action': action,
-                            'line': line,
-                            'ends_with_newline': True,
-                        }
-                        lines.append(line_dict)
+                        line_info = LineInfo(
+                            old_lineno=affects_old and old_line or 0,
+                            new_lineno=affects_new and new_line or 0,
+                            action=action,
+                            line=line,
+                            ends_with_newline=True,
+                        )
+                        lines.append(line_info)
                         line = lineiter.next()
                         if line == '\ No newline at end of file':
-                            line_dict['ends_with_newline'] = False
+                            line_info.ends_with_newline = False
                             line = lineiter.next()
                 assert len(chunks) == len(chunk_markers)
 
@@ -154,17 +185,19 @@ class DiffParser(object):
 
         return files
 
-    def reconstruct_file_diff(self, file_dict):
-        """Given a file_dict dictionary in the same format returned by `parse`,
+    def reconstruct_file_diff(self, file_info):
+        # type: (FileInfo) -> str
+        """Given a FileInfo object as returned by `parse`,
         reconstruct the diff and return it as a string.
 
         Args:
-            file_dict (dict) - the same format returned by `parse`
+            file_info (FileInfo) - the same format returned by `parse`
         Returns:
             str - the reconstructed diff
         """
         def no_newline_marker(line):
-            if line['ends_with_newline']:
+            # type: (LineInfo) -> str
+            if line.ends_with_newline:
                 return ''
             else:
                 return '\n\ No newline at end of file'
@@ -173,11 +206,11 @@ class DiffParser(object):
             'del': '-',
             'unmod': ' ',
         }
-        if not file_dict['chunks']:
+        if not file_info.chunks:
             return ""
         chunk_strings = []
-        for chunk, chunk_marker in zip(file_dict['chunks'], file_dict['chunk_markers']):
-            lines = [action_character_dict[l['action']] + l['line'] + no_newline_marker(l)
+        for chunk, chunk_marker in zip(file_info.chunks, file_info.chunk_markers):
+            lines = [action_character_dict[l.action] + l.line + no_newline_marker(l)
                      for l in chunk]
 
             chunk_strings.append(
@@ -192,13 +225,14 @@ class DiffParser(object):
 +++ {new_filename}
 {chunks}
 """.format(
-            old_filename=file_dict['old_filename'] if file_dict['old_filename'] is not None else '/dev/null',
-            new_filename=file_dict['new_filename'] if file_dict['new_filename'] is not None else '/dev/null',
+            old_filename=file_info.old_filename if file_info.old_filename is not None else '/dev/null',
+            new_filename=file_info.new_filename if file_info.new_filename is not None else '/dev/null',
             chunks='\n'.join(chunk_strings),
         )
         return diff
 
     def get_changed_files(self):
+        # type: () -> Set[str]
         """Return the set of files affected by this diff.
 
         This is the union of all non-null 'before' and 'after'
@@ -206,13 +240,14 @@ class DiffParser(object):
         """
         results = set()
         for info in self.parse():
-            if info['new_filename']:
-                results.add(info['new_filename'][2:])
-            if info['old_filename']:
-                results.add(info['old_filename'][2:])
+            if info.new_filename:
+                results.add(info.new_filename[2:])
+            if info.old_filename:
+                results.add(info.old_filename[2:])
         return results
 
     def get_lines_by_file(self):
+        # type: () -> Dict[str, Set[int]]
         """Return a dict mapping 'after' filenames to sets of 1-based line numbers.
 
         The keys are all non-null 'after' filenames in the diff; the
@@ -220,12 +255,12 @@ class DiffParser(object):
         replaced (so not counting lines included in the diff for
         context only), in the numbering after the diff is applied.
         """
-        lines_by_file = defaultdict(set)
+        lines_by_file = defaultdict(set)  # type: Dict[str, Set[int]]
         for file_diff in self.parse():
-            for diff_chunk in file_diff['chunks']:
-                if not file_diff['new_filename']:
+            for diff_chunk in file_diff.chunks:
+                if not file_diff.new_filename:
                     continue
-                lines_by_file[file_diff['new_filename'][2:]].update(
-                    d['new_lineno'] for d in diff_chunk if d['action'] == 'add'
+                lines_by_file[file_diff.new_filename[2:]].update(
+                    d.new_lineno for d in diff_chunk if d.action == 'add'
                 )
         return lines_by_file

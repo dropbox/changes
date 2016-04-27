@@ -253,9 +253,9 @@ class Vcs(object):
         """
         parser = DiffParser(diff)
         selected_diff = None
-        for file_dict in parser.parse():
-            if file_dict['new_filename'] is not None and file_dict['new_filename'][2:] == file_path:
-                selected_diff = parser.reconstruct_file_diff(file_dict)
+        for file_info in parser.parse():
+            if file_info.new_filename is not None and file_info.new_filename[2:] == file_path:
+                selected_diff = parser.reconstruct_file_diff(file_info)
         if selected_diff is None:
             return file_content
         temp_patch_file_path = None

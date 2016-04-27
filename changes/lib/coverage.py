@@ -1,4 +1,3 @@
-from collections import namedtuple
 
 from changes.config import db
 from changes.constants import Status
@@ -7,6 +6,7 @@ from changes.models.filecoverage import FileCoverage
 from changes.models.job import Job
 from changes.models.project import Project
 from changes.models.source import Source
+from typing import Iterable, NamedTuple, Set  # NOQA
 
 
 def get_coverage_by_source_id(source_id):
@@ -73,6 +73,7 @@ def get_coverage_by_job_ids(job_ids):
 
 
 def merge_coverage(old, new):
+    # type: (str, str) -> str
     """Merge two coverage strings.
 
     Each of the arguments is compact coverage data as described for
@@ -103,13 +104,14 @@ def merge_coverage(old, new):
 
 
 def merged_coverage_data(coverages):
+    # type: (Iterable[FileCoverage]) -> Dict[str, str]
     """Return a dict of merged coverage data by filename.
 
     The argument is an iterable of FileCoverage instances.  The return
     value is a dict mapping filenames to the merged coverage data in
     the form as described for get_coverage_by_job_ids().
     """
-    coverage = {}
+    coverage = {}  # type: Dict[str, str]
     for c in coverages:
         data = coverage.get(c.filename)
         if data:
@@ -120,12 +122,16 @@ def merged_coverage_data(coverages):
     return coverage
 
 
-CoverageStats = namedtuple(
+CoverageStats = NamedTuple(
     'CoverageStats',
-    ['lines_covered', 'lines_uncovered', 'diff_lines_covered', 'diff_lines_uncovered'])
+    [('lines_covered', int),
+     ('lines_uncovered', int),
+     ('diff_lines_covered', int),
+     ('diff_lines_uncovered', int)])
 
 
 def get_coverage_stats(diff_lines, data):
+    # type: (Set[int], str) -> CoverageStats
     """Return a tuple of coverage stats."""
 
     lines_covered = 0
