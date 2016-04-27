@@ -155,8 +155,7 @@ var CommitsTab = React.createClass({
       />
     */
     return <div 
-      className="commitsControls" 
-      style={{marginBottom: 5, marginTop: 10}}>
+      className="commitsControls">
       {branch_dropdown}
     </div>;
   },
