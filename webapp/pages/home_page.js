@@ -236,10 +236,16 @@ var Commits = React.createClass({
       return <APINotLoaded calls={this.props.commits} />;
     }
 
+    var header_text = !this.props.author ?
+          'My Commits' : 'Commits';
+
     var commits = this.props.commits.getReturnedData();
 
-    if (commits.length === 0) {
-      return <div>I don{"'"}t see any commits!</div>;
+    if (!commits || commits.length === 0) {
+      return <div>
+              <SectionHeader>{header_text}</SectionHeader>
+              I don{"'"}t see any commits!
+            </div>;
     }
 
     var grid_data = [];
@@ -293,9 +299,6 @@ var Commits = React.createClass({
         {" "}
       </div>;
     }
-
-    var header_text = !this.props.author ?
-      'My Commits' : 'Commits';
 
     // TODO: this doesn't actually show other people's builds :/
     var builds_sentence = !this.props.author ?
