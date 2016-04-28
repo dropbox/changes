@@ -1,5 +1,6 @@
 from changes.config import db
-from changes.models import ItemOption, Step
+from changes.models.option import ItemOption
+from changes.models.step import Step
 from changes.testutils import APITestCase
 
 

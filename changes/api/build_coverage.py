@@ -2,7 +2,7 @@ from changes.api.base import APIView
 
 from changes.lib.coverage import get_coverage_by_build_id, merged_coverage_data
 
-from changes.models import Build
+from changes.models.build import Build
 
 
 class BuildTestCoverageAPIView(APIView):

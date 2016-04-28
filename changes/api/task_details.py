@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from changes.api.base import APIView
-from changes.models import Task
+from changes.models.task import Task
 
 
 class TaskDetailsAPIView(APIView):

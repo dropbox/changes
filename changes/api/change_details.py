@@ -1,7 +1,7 @@
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Change
+from changes.models.change import Change
 
 
 class ChangeDetailsAPIView(APIView):

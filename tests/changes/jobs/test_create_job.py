@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import mock
 
 from changes.jobs.create_job import create_job
-from changes.models import HistoricalImmutableStep
+from changes.models.jobplan import HistoricalImmutableStep
 from changes.testutils import TestCase
 
 

@@ -7,7 +7,10 @@ from sqlalchemy.orm import contains_eager, joinedload
 from changes.api.auth import get_current_user
 from changes.api.base import APIView
 from changes.constants import Cause, Result
-from changes.models import Author, Project, Source, Build
+from changes.models.author import Author
+from changes.models.build import Build
+from changes.models.project import Project
+from changes.models.source import Source
 
 from changes.utils.phabricator_utils import (might_be_diffusion_iden,
                                              get_hash_from_diffusion_iden)

@@ -5,7 +5,11 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Repository, Project, TestCase, Job, Source
+from changes.models.job import Job
+from changes.models.project import Project
+from changes.models.repository import Repository
+from changes.models.source import Source
+from changes.models.test import TestCase
 
 
 class HistorySliceable(object):

@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.db.utils import create_or_update
-from changes.models import AdminMessage
+from changes.models.adminmessage import AdminMessage
 
 
 class AdminMessageIndexAPIView(APIView):

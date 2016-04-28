@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from changes.api.base import APIView
-from changes.models import Project, Repository
+from changes.models.project import Project
+from changes.models.repository import Repository
 
 
 class RepositoryProjectIndexAPIView(APIView):

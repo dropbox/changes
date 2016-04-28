@@ -7,7 +7,7 @@ import uuid
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import RepositoryBackend
+from changes.models.repository import RepositoryBackend
 from changes.testutils import TestCase as UnitTestCase
 from changes.listeners.phabricator_listener import (
     build_finished_handler,

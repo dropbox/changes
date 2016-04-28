@@ -1,7 +1,7 @@
 from mock import patch
 
-from changes.models import User
 from changes.config import db
+from changes.models.user import User
 from changes.testutils import TestCase
 
 

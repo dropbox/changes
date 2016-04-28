@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from changes.api.base import APIView
-from changes.models import Snapshot
+from changes.models.snapshot import Snapshot
 import changes.lib.snapshot_garbage_collection as gc
 
 

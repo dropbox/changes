@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from changes.config import queue
 from changes.constants import Status
-from changes.models import Task
+from changes.models.task import Task
 from changes.queue.task import TrackedTask
 
 CHECK_TIME = timedelta(minutes=60)

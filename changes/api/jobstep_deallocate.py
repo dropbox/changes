@@ -4,7 +4,7 @@ from changes.api.base import APIView
 from changes.constants import Result, Status
 from changes.config import db
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import JobStep
+from changes.models.jobstep import JobStep
 
 
 class JobStepDeallocateAPIView(APIView):

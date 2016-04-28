@@ -4,7 +4,7 @@ import mock
 import pytest
 
 from changes.config import db
-from changes.models import ProjectConfigError
+from changes.models.project import ProjectConfigError
 from changes.vcs.base import Vcs, CommandError, InvalidDiffError
 from changes.testutils import TestCase
 
@@ -20,7 +20,7 @@ class GetConfigTest(TestCase):
             raise CommandError('test command', 128)
         fake_vcs = mock.Mock(spec=Vcs)
         fake_vcs.read_file.side_effect = throw
-        with mock.patch('changes.models.Repository.get_vcs') as mocked:
+        with mock.patch('changes.models.repository.Repository.get_vcs') as mocked:
             mocked.return_value = fake_vcs
             config = self.project.get_config('a' * 40)
         assert config == self.project._default_config
@@ -28,13 +28,13 @@ class GetConfigTest(TestCase):
     def test_invalid_diff(self):
         fake_vcs = mock.Mock(spec=Vcs)
         fake_vcs.read_file.side_effect = InvalidDiffError
-        with mock.patch('changes.models.Repository.get_vcs') as mocked:
+        with mock.patch('changes.models.repository.Repository.get_vcs') as mocked:
             mocked.return_value = fake_vcs
             with pytest.raises(InvalidDiffError):
                 self.project.get_config('a' * 40)
 
     def test_no_vcs(self):
-        with mock.patch('changes.models.Repository.get_vcs') as mocked:
+        with mock.patch('changes.models.repository.Repository.get_vcs') as mocked:
             mocked.return_value = None
             with pytest.raises(NotImplementedError):
                 self.project.get_config('a' * 40)
@@ -42,7 +42,7 @@ class GetConfigTest(TestCase):
     def test_malformed_config(self):
         fake_vcs = mock.Mock(spec=Vcs)
         fake_vcs.read_file.return_value = '{'
-        with mock.patch('changes.models.Repository.get_vcs') as mocked:
+        with mock.patch('changes.models.repository.Repository.get_vcs') as mocked:
             mocked.return_value = fake_vcs
             with pytest.raises(ProjectConfigError):
                 self.project.get_config('a' * 40)
@@ -50,7 +50,7 @@ class GetConfigTest(TestCase):
     def test_invalid_config(self):
         fake_vcs = mock.Mock(spec=Vcs)
         fake_vcs.read_file.return_value = '[]'
-        with mock.patch('changes.models.Repository.get_vcs') as mocked:
+        with mock.patch('changes.models.repository.Repository.get_vcs') as mocked:
             mocked.return_value = fake_vcs
             with pytest.raises(ProjectConfigError):
                 self.project.get_config('a' * 40)
@@ -66,7 +66,7 @@ class GetConfigTest(TestCase):
                 "item": true
             }
         '''
-        with mock.patch('changes.models.Repository.get_vcs') as mocked:
+        with mock.patch('changes.models.repository.Repository.get_vcs') as mocked:
             mocked.return_value = fake_vcs
             config = self.project.get_config('a' * 40)
         assert config == {

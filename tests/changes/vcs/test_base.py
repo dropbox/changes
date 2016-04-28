@@ -2,9 +2,9 @@ from datetime import datetime
 
 import pytest
 
-from changes.models import Revision
-from changes.vcs.base import InvalidDiffError, RevisionResult, Vcs
+from changes.models.revision import Revision
 from changes.testutils.cases import TestCase
+from changes.vcs.base import InvalidDiffError, RevisionResult, Vcs
 
 
 class RevisionResultTestCase(TestCase):

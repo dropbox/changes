@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from changes.api.serializer import serialize
-from changes.models import Patch
+from changes.models.patch import Patch
 from changes.testutils import SAMPLE_DIFF, TestCase
 
 

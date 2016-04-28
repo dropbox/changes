@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from flask import request, Response
 
 from changes.api.base import APIView
-from changes.models import Patch
+from changes.models.patch import Patch
 
 
 class PatchDetailsAPIView(APIView):

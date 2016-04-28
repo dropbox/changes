@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask import session
 
 from changes.api.base import APIView
-from changes.models import User
+from changes.models.user import User
 
 
 class AuthIndexAPIView(APIView):

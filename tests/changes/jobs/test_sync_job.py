@@ -8,7 +8,10 @@ from changes.constants import Status, Result
 from changes.config import db
 from changes.jobs.sync_job import sync_job, _should_retry_jobstep, _find_and_retry_jobsteps
 import changes.jobs.sync_job
-from changes.models import ItemStat, Job, HistoricalImmutableStep, Task
+from changes.models.itemstat import ItemStat
+from changes.models.job import Job
+from changes.models.jobplan import HistoricalImmutableStep
+from changes.models.task import Task
 from changes.testutils import TestCase
 
 

@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from changes.config import db
-from changes.models import Author
+from changes.models.author import Author
 from changes.testutils import APITestCase
 
 

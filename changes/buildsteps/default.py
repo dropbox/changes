@@ -15,10 +15,10 @@ from changes.config import db
 from changes.constants import Cause, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import (
-    CommandType, FutureCommand, JobPhase, SnapshotImage
-)
+from changes.models.command import CommandType, FutureCommand
+from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep, FutureJobStep
+from changes.models.snapshot import SnapshotImage
 
 from changes.utils.http import build_uri
 

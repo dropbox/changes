@@ -1,5 +1,6 @@
 from changes.config import db
-from changes.models import ProjectOption, SnapshotStatus
+from changes.models.project import ProjectOption
+from changes.models.snapshot import SnapshotStatus
 from changes.testutils import APITestCase
 
 

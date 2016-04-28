@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import TestCase
+from changes.models.test import TestCase
 from changes.testutils import APITestCase
 
 

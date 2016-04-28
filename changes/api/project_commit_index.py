@@ -10,7 +10,10 @@ from changes.api.base import APIView, error
 from changes.config import db
 from changes.constants import Status
 from changes.lib import build_type
-from changes.models import Build, Project, Revision, Source, ProjectOption
+from changes.models.build import Build
+from changes.models.project import Project, ProjectOption
+from changes.models.revision import Revision
+from changes.models.source import Source
 
 
 class ProjectCommitIndexAPIView(APIView):

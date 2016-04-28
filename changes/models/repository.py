@@ -68,7 +68,7 @@ class Repository(db.Model):
             self.date_created = datetime.utcnow()
 
     def get_vcs(self):
-        from changes.models import ItemOption
+        from changes.models.option import ItemOption
         from changes.vcs.git import GitVcs
         from changes.vcs.hg import MercurialVcs
 

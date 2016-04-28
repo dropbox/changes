@@ -1,4 +1,4 @@
-from changes.models import Build
+from changes.models.build import Build
 from datetime import datetime, timedelta
 
 import fnmatch

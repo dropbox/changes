@@ -1,6 +1,6 @@
 from changes.api.serializer import serialize
 from changes.config import db
-from changes.models import ProjectOption
+from changes.models.project import ProjectOption
 
 from changes.testutils import TestCase
 

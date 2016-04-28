@@ -4,7 +4,7 @@ from flask_restful.reqparse import RequestParser
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Snapshot, SnapshotStatus
+from changes.models.snapshot import Snapshot, SnapshotStatus
 
 STATE_CHOICES = ('', 'valid', 'invalid')
 

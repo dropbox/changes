@@ -3,7 +3,8 @@ from base64 import b64encode
 import mock
 
 from changes.constants import Result
-from changes.models import FailureReason, ItemStat
+from changes.models.failurereason import FailureReason
+from changes.models.itemstat import ItemStat
 from changes.models.testresult import TestResult, TestResultManager, logger
 from changes.testutils.cases import TestCase
 
@@ -208,7 +209,7 @@ class TestResultManagerTestCase(TestCase):
         assert failures[0].reason == 'duplicate_test_name'
 
     def test_duplicate_tests_in_different_result_lists(self):
-        from changes.models import TestCase
+        from changes.models.test import TestCase
 
         project = self.create_project()
         build = self.create_build(project)

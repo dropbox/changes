@@ -1,6 +1,7 @@
 from changes.config import db
+from changes.models.cached_snapshot_image import CachedSnapshotImage
+from changes.models.plan import PlanStatus
 from changes.testutils.cases import TestCase
-from changes.models import CachedSnapshotImage, PlanStatus
 import changes.lib.snapshot_garbage_collection as gc
 
 import datetime

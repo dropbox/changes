@@ -2,7 +2,8 @@ from flask import current_app
 
 from changes.backends.base import UnrecoverableException
 from changes.constants import Result
-from changes.models import Artifact, JobPlan
+from changes.models.artifact import Artifact
+from changes.models.jobplan import JobPlan
 from changes.queue.task import tracked_task
 
 

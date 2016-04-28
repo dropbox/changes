@@ -4,7 +4,9 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.serializer.models.job import JobWithBuildCrumbler
-from changes.models import Job, JobPlan, Snapshot
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.snapshot import Snapshot
 
 
 class SnapshotJobIndexAPIView(APIView):

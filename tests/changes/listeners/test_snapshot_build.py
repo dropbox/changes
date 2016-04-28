@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from changes.constants import Cause, Result, Status
 from changes.listeners.snapshot_build import build_finished_handler
-from changes.models import SnapshotStatus
+from changes.models.snapshot import SnapshotStatus
 from changes.testutils import TestCase
 
 

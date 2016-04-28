@@ -2,7 +2,8 @@ from flask import session
 
 from changes.api.base import APIView
 from changes.db.utils import try_create
-from changes.models import Build, BuildSeen
+from changes.models.build import Build
+from changes.models.buildseen import BuildSeen
 
 
 class BuildMarkSeenAPIView(APIView):

@@ -1,4 +1,4 @@
-from changes.models import LogSource, LogChunk
+from changes.models.log import LogSource, LogChunk
 from changes.testutils import APITestCase
 
 

@@ -7,7 +7,7 @@ from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.jobs.import_repo import import_repo
-from changes.models import Repository, RepositoryBackend, RepositoryStatus
+from changes.models.repository import Repository, RepositoryBackend, RepositoryStatus
 
 BACKEND_CHOICES = ('git', 'hg', 'unknown')
 

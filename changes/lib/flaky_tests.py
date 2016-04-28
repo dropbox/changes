@@ -3,7 +3,10 @@ from __future__ import absolute_import, division
 from sqlalchemy.sql import func, case
 
 from changes.constants import Result
-from changes.models import Build, TestCase, Source, Job
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.source import Source
+from changes.models.test import TestCase
 from changes.utils.http import build_uri
 
 

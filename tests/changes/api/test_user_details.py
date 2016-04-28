@@ -1,4 +1,4 @@
-from changes.models import User
+from changes.models.user import User
 from changes.testutils import APITestCase
 
 

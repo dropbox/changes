@@ -19,10 +19,16 @@ from changes.jobs.sync_job_step import (
     _sync_from_artifact_store,
     _sync_artifacts_for_jobstep,
 )
-from changes.models import (
-    ItemOption, ItemStat, JobStep, HistoricalImmutableStep, Task, FileCoverage,
-    TestCase, FailureReason, Artifact, LogSource
-)
+from changes.models.artifact import Artifact
+from changes.models.failurereason import FailureReason
+from changes.models.filecoverage import FileCoverage
+from changes.models.itemstat import ItemStat
+from changes.models.jobplan import HistoricalImmutableStep
+from changes.models.jobstep import JobStep
+from changes.models.log import LogSource
+from changes.models.option import ItemOption
+from changes.models.task import Task
+from changes.models.test import TestCase
 from changes.testutils import TestCase as BaseTestCase
 
 

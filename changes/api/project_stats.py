@@ -6,7 +6,9 @@ from sqlalchemy.sql import func
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Project, Build, ItemStat
+from changes.models.build import Build
+from changes.models.itemstat import ItemStat
+from changes.models.project import Project
 
 
 STAT_CHOICES = (

@@ -3,13 +3,13 @@ from mock import patch
 
 from changes.config import db
 from changes.constants import Status
-from changes.models import FileCoverage
+from changes.models.filecoverage import FileCoverage
 from changes.testutils import APITestCase
 from changes.testutils.fixtures import SAMPLE_DIFF
 
 
 class BuildCoverageStatsTest(APITestCase):
-    @patch('changes.models.Source.generate_diff')
+    @patch('changes.models.source.Source.generate_diff')
     def test_simple(self, generate_diff):
         project = self.create_project()
         build = self.create_build(

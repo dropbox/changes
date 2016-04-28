@@ -1,6 +1,6 @@
 from mock import patch
 
-from changes.models import Repository, RepositoryBackend, RepositoryStatus
+from changes.models.repository import Repository, RepositoryBackend, RepositoryStatus
 from changes.testutils import APITestCase
 
 

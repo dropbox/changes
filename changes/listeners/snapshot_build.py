@@ -1,6 +1,7 @@
 from changes.config import db
 from changes.constants import Cause, Result
-from changes.models import Build, SnapshotStatus
+from changes.models.build import Build
+from changes.models.snapshot import SnapshotStatus
 from changes.utils.locking import lock
 
 

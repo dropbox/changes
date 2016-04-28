@@ -3,7 +3,9 @@ from __future__ import absolute_import, division, unicode_literals
 from changes.api.base import APIView
 from changes.api.auth import get_current_user
 from changes.config import db
-from changes.models import Author, Build, PhabricatorDiff
+from changes.models.author import Author
+from changes.models.build import Build
+from changes.models.phabricatordiff import PhabricatorDiff
 
 from collections import defaultdict
 

@@ -1,5 +1,6 @@
 from changes.config import db
-from changes.models import JobStep, JobPhase
+from changes.models.jobphase import JobPhase
+from changes.models.jobstep import JobStep
 from changes.testutils import APITestCase
 
 

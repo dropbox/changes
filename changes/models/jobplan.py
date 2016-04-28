@@ -117,8 +117,8 @@ class JobPlan(db.Model):
         If a snapshot image is not found for a plan configured to use
         snapshots, a warning is given.
         """
-        from changes.models import ItemOption
-        from changes.models import SnapshotImage
+        from changes.models.option import ItemOption
+        from changes.models.snapshot import SnapshotImage
 
         plan_steps = sorted(plan.steps, key=lambda x: x.order)
 

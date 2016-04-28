@@ -6,7 +6,7 @@ from changes.config import statsreporter, db
 from flask import render_template, current_app, request
 from flask.views import MethodView
 
-from changes.models import ItemOption
+from changes.models.option import ItemOption
 
 
 class IndexView(MethodView):

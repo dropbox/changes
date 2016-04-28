@@ -1,7 +1,8 @@
 from sqlalchemy.orm import subqueryload_all
 
 from changes.api.base import APIView
-from changes.models import LogSource, TestCase
+from changes.models.log import LogSource
+from changes.models.test import TestCase
 
 
 class TestCaseDetailsAPIView(APIView):

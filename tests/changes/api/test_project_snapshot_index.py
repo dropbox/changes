@@ -25,7 +25,7 @@ class GetSnapshottablePlansTest(APITestCase):
         result = get_snapshottable_plans(project)
         assert result == []
 
-    @patch('changes.models.Step.get_implementation')
+    @patch('changes.models.step.Step.get_implementation')
     def test_dependent_snapshot_plan(self, mock_get_implementation):
         project = self.create_project()
         plan_1 = self.create_plan(project)
@@ -39,7 +39,7 @@ class GetSnapshottablePlansTest(APITestCase):
         result = get_snapshottable_plans(project)
         assert result == []
 
-    @patch('changes.models.Step.get_implementation')
+    @patch('changes.models.step.Step.get_implementation')
     def test_unsnapshottable_buildstep(self, mock_get_implementation):
         project = self.create_project()
         plan = self.create_plan(project)
@@ -51,7 +51,7 @@ class GetSnapshottablePlansTest(APITestCase):
         result = get_snapshottable_plans(project)
         assert result == []
 
-    @patch('changes.models.Step.get_implementation')
+    @patch('changes.models.step.Step.get_implementation')
     def test_disabled_plan(self, mock_get_implementation):
         project = self.create_project()
         plan = self.create_plan(project)
@@ -63,7 +63,7 @@ class GetSnapshottablePlansTest(APITestCase):
         result = get_snapshottable_plans(project)
         assert result == []
 
-    @patch('changes.models.Step.get_implementation')
+    @patch('changes.models.step.Step.get_implementation')
     def test_valid_plan(self, mock_get_implementation):
         project = self.create_project()
         plan = self.create_plan(project)

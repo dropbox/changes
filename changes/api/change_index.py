@@ -5,7 +5,10 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView, param
 from changes.api.validators.author import AuthorValidator
 from changes.config import db
-from changes.models import Change, Job, Project, Repository
+from changes.models.change import Change
+from changes.models.job import Job
+from changes.models.project import Project
+from changes.models.repository import Repository
 
 
 class ChangeIndexAPIView(APIView):

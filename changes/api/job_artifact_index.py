@@ -3,7 +3,8 @@ from __future__ import absolute_import
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Artifact, Job
+from changes.models.artifact import Artifact
+from changes.models.job import Job
 
 
 class JobArtifactIndexAPIView(APIView):

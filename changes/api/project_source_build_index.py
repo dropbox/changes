@@ -3,7 +3,9 @@ from __future__ import absolute_import, division, unicode_literals
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import Build, Project, Source
+from changes.models.build import Build
+from changes.models.project import Project
+from changes.models.source import Source
 
 
 class ProjectSourceBuildIndexAPIView(APIView):

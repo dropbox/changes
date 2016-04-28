@@ -1,4 +1,4 @@
-from changes.models import BuildSeen
+from changes.models.buildseen import BuildSeen
 from changes.testutils import APITestCase
 
 

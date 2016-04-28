@@ -1,7 +1,7 @@
 import logging
 
 from changes.config import db
-from changes.models import Repository, RepositoryStatus
+from changes.models.repository import Repository, RepositoryStatus
 from changes.vcs.base import CommandError, ConcurrentUpdateError
 
 

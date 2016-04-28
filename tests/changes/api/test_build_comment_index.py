@@ -1,5 +1,5 @@
 from changes.config import db
-from changes.models import Comment
+from changes.models.comment import Comment
 from changes.testutils import APITestCase
 
 

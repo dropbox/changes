@@ -6,10 +6,10 @@ from sqlalchemy.orm import joinedload, subqueryload_all
 from changes.api.base import APIView, error
 from changes.api.build_index import create_build, get_build_plans
 from changes.constants import Cause, Result, Status
-from changes.models import (
-    Build, PhabricatorDiff, Project, ProjectConfigError, ProjectStatus,
-    ProjectOptionsHelper
-)
+from changes.models.build import Build
+from changes.models.phabricatordiff import PhabricatorDiff
+from changes.models.project import (
+    Project, ProjectConfigError, ProjectStatus, ProjectOptionsHelper)
 from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import InvalidDiffError

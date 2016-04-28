@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import AdminMessage
+from changes.models.adminmessage import AdminMessage
 
 
 @register(AdminMessage)

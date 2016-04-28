@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
-from changes.models import SnapshotImage, SnapshotStatus
+from changes.models.snapshot import SnapshotImage, SnapshotStatus
 
 
 class SnapshotImageDetailsAPIView(APIView):

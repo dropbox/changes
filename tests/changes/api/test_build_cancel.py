@@ -1,7 +1,8 @@
 import mock
 
 from changes.constants import Result, Status
-from changes.models import Build, HistoricalImmutableStep
+from changes.models.build import Build
+from changes.models.jobplan import HistoricalImmutableStep
 from changes.testutils import APITestCase
 
 

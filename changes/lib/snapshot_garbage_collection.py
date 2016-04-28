@@ -33,7 +33,10 @@ changes have to know about their existance as a table separate from
 snapshot imagese.
 """
 from changes.config import db
-from changes.models import CachedSnapshotImage, Plan, PlanStatus, Snapshot, SnapshotImage, Step
+from changes.models.cached_snapshot_image import CachedSnapshotImage
+from changes.models.plan import Plan, PlanStatus
+from changes.models.snapshot import Snapshot, SnapshotImage
+from changes.models.step import Step
 from datetime import datetime
 from flask import current_app
 

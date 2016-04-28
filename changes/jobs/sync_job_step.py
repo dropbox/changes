@@ -15,10 +15,18 @@ from changes.constants import Status, Result
 from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.jobs.sync_artifact import sync_artifact
-from changes.models import (
-    ItemOption, JobPhase, JobStep, JobPlan, TestCase, ItemStat,
-    FileCoverage, FailureReason, SnapshotImage, Artifact, LogSource, Task
-)
+from changes.models.artifact import Artifact
+from changes.models.failurereason import FailureReason
+from changes.models.filecoverage import FileCoverage
+from changes.models.itemstat import ItemStat
+from changes.models.jobphase import JobPhase
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
+from changes.models.log import LogSource
+from changes.models.option import ItemOption
+from changes.models.snapshot import SnapshotImage
+from changes.models.task import Task
+from changes.models.test import TestCase
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
 from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX

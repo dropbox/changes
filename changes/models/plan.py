@@ -67,7 +67,7 @@ class Plan(db.Model):
             self.date_modified = self.date_created
 
     def get_item_options(self):
-        from changes.models import ItemOption
+        from changes.models.option import ItemOption
         options_query = db.session.query(
             ItemOption.name, ItemOption.value
         ).filter(

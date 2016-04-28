@@ -16,10 +16,14 @@ from changes.api.build_index import (
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, statsreporter
 from changes.db.utils import try_create
-from changes.models import (
-    ItemOption, Patch, PhabricatorDiff, Project, ProjectOption, ProjectOptionsHelper, ProjectStatus,
-    Repository, RepositoryStatus, Source, ProjectConfigError,
+from changes.models.option import ItemOption
+from changes.models.patch import Patch
+from changes.models.phabricatordiff import PhabricatorDiff
+from changes.models.project import (
+    Project, ProjectConfigError, ProjectOption, ProjectOptionsHelper, ProjectStatus
 )
+from changes.models.repository import Repository, RepositoryStatus
+from changes.models.source import Source
 from changes.utils.phabricator_utils import post_comment
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import InvalidDiffError

@@ -9,7 +9,12 @@ from changes.config import db, queue, statsreporter
 from changes.constants import Status, Result
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
-from changes.models import ItemStat, Job, JobPhase, JobPlan, JobStep, TestCase
+from changes.models.itemstat import ItemStat
+from changes.models.job import Job
+from changes.models.jobphase import JobPhase
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
+from changes.models.test import TestCase
 from changes.queue.task import tracked_task
 from changes.utils.agg import aggregate_status, safe_agg
 

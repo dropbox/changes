@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import JobPhase
+from changes.models.jobphase import JobPhase
 
 
 @register(JobPhase)

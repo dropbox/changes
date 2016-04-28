@@ -4,7 +4,7 @@ import json
 
 from changes.config import db
 from changes.constants import Result
-from changes.models import FailureReason
+from changes.models.failurereason import FailureReason
 from .base import ArtifactHandler
 
 

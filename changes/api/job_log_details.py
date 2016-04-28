@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask import Response, request
 
 from changes.api.base import APIView
-from changes.models import LogSource, LogChunk
+from changes.models.log import LogChunk, LogSource
 
 
 LOG_BATCH_SIZE = 50000  # in length of chars

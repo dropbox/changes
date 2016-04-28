@@ -8,7 +8,7 @@ from changes.testutils import APITestCase
 
 
 class ProjectTestHistoryTest(APITestCase):
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_simple(self, get_vcs):
         all_hash_chars = "abcdefgh"
         hash_chars_with_tests = "abcfgh"

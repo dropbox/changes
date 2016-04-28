@@ -1,5 +1,6 @@
 from changes.constants import Cause
-from changes.models import Build, Job
+from changes.models.build import Build
+from changes.models.job import Job
 from changes.testutils import APITestCase
 
 

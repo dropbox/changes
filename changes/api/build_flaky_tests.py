@@ -5,7 +5,11 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result
-from changes.models import Build, Job, TestCase, Source, PhabricatorDiff
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.phabricatordiff import PhabricatorDiff
+from changes.models.source import Source
+from changes.models.test import TestCase
 
 
 # This constant must match MAX_TESTS_TO_ADD in citools' quarantine keeper

@@ -2,9 +2,11 @@ from datetime import datetime
 
 from changes.config import db
 from changes.constants import Status
-from changes.models import (
-    Build, BuildPriority, Event, FailureReason, ItemStat, TestCase
-)
+from changes.models.build import Build, BuildPriority
+from changes.models.event import Event
+from changes.models.failurereason import FailureReason
+from changes.models.itemstat import ItemStat
+from changes.models.test import TestCase
 from changes.testutils import APITestCase, TestCase as BaseTestCase
 from changes.api.build_details import find_changed_tests
 

@@ -7,7 +7,7 @@ from oauth2client import GOOGLE_REVOKE_URI, GOOGLE_TOKEN_URI
 from oauth2client.client import OAuth2Credentials
 from urlparse import urlparse, parse_qs
 
-from changes.models import User
+from changes.models.user import User
 from changes.testutils import TestCase
 
 

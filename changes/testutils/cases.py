@@ -7,7 +7,7 @@ from exam import Exam, fixture
 from flask import current_app as app
 
 from changes.config import db, mail
-from changes.models import User
+from changes.models.user import User
 from changes.testutils.fixtures import Fixtures
 
 

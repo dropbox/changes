@@ -4,7 +4,8 @@ from flask import request
 
 from changes.api.base import APIView, error
 from changes.config import db
-from changes.models import Build, PhabricatorDiff
+from changes.models.build import Build
+from changes.models.phabricatordiff import PhabricatorDiff
 
 
 class PhabricatorInlineInfoAPIView(APIView):

@@ -2,7 +2,7 @@ from hashlib import md5
 from urllib import urlencode
 
 from changes.api.serializer import Crumbler, register
-from changes.models import User
+from changes.models.user import User
 
 
 def get_gravatar_url(email, size=None, default='mm'):

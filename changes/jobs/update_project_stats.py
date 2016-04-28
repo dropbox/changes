@@ -2,7 +2,11 @@ from sqlalchemy import and_
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Plan, Project, Build, Job, JobPlan
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.plan import Plan
+from changes.models.project import Project
 from changes.utils.locking import lock
 
 

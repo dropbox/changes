@@ -12,7 +12,7 @@ from changes.vcs.base import Vcs, RevisionResult
 
 
 class ImportRepoTest(TestCase):
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     @mock.patch('changes.config.queue.delay')
     def test_simple(self, queue_delay, get_vcs_backend):
         vcs_backend = mock.MagicMock(spec=Vcs)

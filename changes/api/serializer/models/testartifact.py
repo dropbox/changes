@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import TestArtifact
+from changes.models.testartifact import TestArtifact
 
 
 @register(TestArtifact)

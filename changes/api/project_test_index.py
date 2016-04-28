@@ -6,7 +6,11 @@ from changes.api.base import APIView
 from changes.api.serializer.models.testcase import GeneralizedTestCase
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build, Project, TestCase, Job, Source
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.project import Project
+from changes.models.source import Source
+from changes.models.test import TestCase
 
 
 SORT_CHOICES = (

@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from changes.api.serializer import serialize
-from changes.models import AdminMessage
+from changes.models.adminmessage import AdminMessage
 from changes.testutils import TestCase
 
 

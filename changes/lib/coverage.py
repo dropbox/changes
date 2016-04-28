@@ -2,7 +2,11 @@ from collections import namedtuple
 
 from changes.config import db
 from changes.constants import Status
-from changes.models import Build, FileCoverage, Job, Project, Source
+from changes.models.build import Build
+from changes.models.filecoverage import FileCoverage
+from changes.models.job import Job
+from changes.models.project import Project
+from changes.models.source import Source
 
 
 def get_coverage_by_source_id(source_id):

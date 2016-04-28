@@ -5,7 +5,9 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.serializer import Crumbler, register, serialize
 from changes.config import db
-from changes.models import Build, ProjectOption, Snapshot, SnapshotImage
+from changes.models.build import Build
+from changes.models.project import ProjectOption
+from changes.models.snapshot import Snapshot, SnapshotImage
 
 
 @register(Snapshot)

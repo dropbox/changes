@@ -8,7 +8,9 @@ import sys
 
 from changes.config import create_app, db
 from changes.constants import IMPLEMENTATION_CHOICES
-from changes.models import Plan, Project, Step
+from changes.models.plan import Plan
+from changes.models.project import Project
+from changes.models.step import Step
 
 
 app = create_app()

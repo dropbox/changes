@@ -1,6 +1,6 @@
 from cStringIO import StringIO
 
-from changes.models import Artifact
+from changes.models.artifact import Artifact
 from changes.testutils import APITestCase
 
 

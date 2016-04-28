@@ -5,7 +5,8 @@ from mock import patch
 
 from changes.constants import Status, Result
 from changes.config import db
-from changes.models import Build, ItemStat
+from changes.models.build import Build
+from changes.models.itemstat import ItemStat
 from changes.jobs.sync_build import sync_build
 from changes.testutils import TestCase
 

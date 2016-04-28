@@ -8,7 +8,8 @@ import sys
 from changes.config import create_app, db
 from changes.db.utils import create_or_update
 from changes.jobs.sync_repo import sync
-from changes.models import ItemOption, Repository, RepositoryBackend, RepositoryStatus
+from changes.models.option import ItemOption
+from changes.models.repository import Repository, RepositoryBackend, RepositoryStatus
 
 
 def abort():

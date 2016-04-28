@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, unicode_literals
 
 from changes.api.base import APIView
-from changes.models import Project, Source
+from changes.models.project import Project
+from changes.models.source import Source
 from changes.lib.coverage import get_coverage_by_source_id, merged_coverage_data
 import logging
 

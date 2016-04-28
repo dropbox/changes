@@ -9,8 +9,9 @@ from changes.config import db
 from changes.constants import Result
 from changes.listeners.green_build import build_finished_handler, \
     _set_latest_green_build_for_each_branch
-from changes.models import Event, EventType, RepositoryBackend
+from changes.models.event import Event, EventType
 from changes.models.latest_green_build import LatestGreenBuild
+from changes.models.repository import RepositoryBackend
 from changes.testutils import TestCase
 from changes.vcs.base import UnknownChildRevision, UnknownParentRevision
 
@@ -18,7 +19,7 @@ from changes.vcs.base import UnknownChildRevision, UnknownParentRevision
 class GreenBuildTest(TestCase):
     @responses.activate
     @mock.patch('changes.listeners.green_build.get_options')
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_simple(self, vcs, get_options):
         responses.add(responses.POST, 'https://foo.example.com')
 
@@ -124,7 +125,7 @@ class GreenBuildTest(TestCase):
 
     @responses.activate
     @mock.patch('changes.listeners.green_build.get_options')
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_set_latest_green_build(self, vcs, get_options):
         responses.add(responses.POST, 'https://foo.example.com')
 
@@ -171,7 +172,7 @@ class GreenBuildTest(TestCase):
 
     @responses.activate
     @mock.patch('changes.listeners.green_build.get_options')
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_set_latest_green_build_with_vcs_sha_errors(self, vcs, get_options):
         responses.add(responses.POST, 'https://foo.example.com')
 
@@ -225,7 +226,7 @@ class GreenBuildTest(TestCase):
         vcs.is_child_parent.side_effect = None
 
     @responses.activate
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_latest_green_build(self, vcs):
         repository = self.create_repo(
             backend=RepositoryBackend.hg,

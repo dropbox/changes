@@ -4,7 +4,9 @@ from changes.backends.base import UnrecoverableException
 from changes.config import db
 from changes.constants import Status, Result
 from changes.jobs.sync_job import sync_job
-from changes.models import Job, JobPlan, ProjectStatus
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.project import ProjectStatus
 from changes.queue.task import tracked_task
 
 

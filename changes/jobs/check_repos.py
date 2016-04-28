@@ -1,5 +1,5 @@
-from changes.models import Repository, RepositoryBackend
 from changes.jobs.sync_repo import sync_repo
+from changes.models.repository import Repository, RepositoryBackend
 
 
 def check_repos():

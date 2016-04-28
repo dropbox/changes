@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function
 from flask import session, request
 from functools import wraps
 
-from changes.models import User
+from changes.models.user import User
 
 
 NOT_SET = object()

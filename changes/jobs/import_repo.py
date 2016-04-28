@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 
 from changes.config import db
-from changes.models import Repository, RepositoryStatus
+from changes.models.repository import Repository, RepositoryStatus
 from changes.queue.task import tracked_task
 
 logger = logging.getLogger('repo.sync')

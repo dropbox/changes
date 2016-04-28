@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
-from changes.models import Repository
 from changes.config import redis
+from changes.models.repository import Repository
 
 import json
 

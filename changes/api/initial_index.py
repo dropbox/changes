@@ -5,7 +5,8 @@ from flask import session
 from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
-from changes.models import User, AdminMessage
+from changes.models.adminmessage import AdminMessage
+from changes.models.user import User
 
 import logging
 

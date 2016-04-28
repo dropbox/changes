@@ -2,10 +2,10 @@ from __future__ import absolute_import
 
 from changes.constants import Status, Result
 from changes.config import db
-from changes.models import Project
 from changes.jobs.update_project_stats import (
     update_project_stats, update_project_plan_stats
 )
+from changes.models.project import Project
 from changes.testutils import TestCase
 
 

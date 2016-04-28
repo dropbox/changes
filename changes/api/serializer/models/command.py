@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import Command
+from changes.models.command import Command
 
 
 @register(Command)

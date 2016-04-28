@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 
 from changes.expanders.base import Expander
-from changes.models import FutureCommand, FutureJobStep
+from changes.models.command import FutureCommand
+from changes.models.jobstep import FutureJobStep
 
 
 class CommandsExpander(Expander):

@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from changes.api.serializer import Crumbler, register
-from changes.models import Source
+from changes.models.source import Source
 
 
 @register(Source)

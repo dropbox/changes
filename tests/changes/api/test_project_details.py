@@ -1,4 +1,4 @@
-from changes.models import Project, ProjectStatus
+from changes.models.project import Project, ProjectStatus
 from changes.testutils import APITestCase
 
 

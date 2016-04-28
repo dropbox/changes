@@ -5,7 +5,8 @@ import json
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import try_create
-from changes.models import FailureReason, JobPlan
+from changes.models.failurereason import FailureReason
+from changes.models.jobplan import JobPlan
 from changes.utils.http import build_uri
 from .base import ArtifactHandler, ArtifactParseError
 

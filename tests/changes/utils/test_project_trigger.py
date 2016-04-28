@@ -32,7 +32,7 @@ class FilesChangedTest(TestCase):
         )
 
     def test_blacklist_all(self):
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': ['a', 'b', 'c']
             }
@@ -47,7 +47,7 @@ class FilesChangedTest(TestCase):
             assert diff is None
 
     def test_blacklist_not_all(self):
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': ['b', 'c']
             }
@@ -62,7 +62,7 @@ class FilesChangedTest(TestCase):
             assert diff is None
 
     def test_whitelist_empty(self):
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': []
             }
@@ -77,7 +77,7 @@ class FilesChangedTest(TestCase):
             assert diff is None
 
     def test_whitelist_unmatched(self):
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': []
             }
@@ -96,7 +96,7 @@ z
             assert diff is None
 
     def test_whitelist_matched(self):
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': []
             }
@@ -115,7 +115,7 @@ z
             assert diff is None
 
     def test_with_diff(self):
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': []
             }
@@ -130,7 +130,7 @@ z
             assert sha == self.revision.sha
 
     def test_with_no_skips(self):
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': [],
                 'build.minimum-minutes-between-builds': 0,
@@ -147,7 +147,7 @@ z
 
     def test_with_timed_skips(self):
         # No builds yet
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': [],
                 'build.minimum-minutes-between-builds': 30,
@@ -165,7 +165,7 @@ z
         # Stale build
         self.create_build(self.project, date_created=datetime.now() - timedelta(minutes=31))
 
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': [],
                 'build.minimum-minutes-between-builds': 30,
@@ -184,7 +184,7 @@ z
         self.create_build(self.project, date_created=datetime.now() - timedelta(minutes=29))
 
         # Should fail because of recently created build.
-        with mock.patch('changes.models.Project.get_config') as mocked:
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
             mocked.return_value = {
                 'build.file-blacklist': [],
                 'build.minimum-minutes-between-builds': 30,

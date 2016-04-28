@@ -4,11 +4,8 @@ import pytest
 
 from sqlalchemy.orm.exc import MultipleResultsFound
 
-from changes.models import (
-    Repository,
-    RepositoryBackend,
-    Revision,
-)
+from changes.models.repository import Repository, RepositoryBackend
+from changes.models.revision import Revision
 from changes.testutils import TestCase
 
 

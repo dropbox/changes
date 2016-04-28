@@ -5,8 +5,10 @@ from cStringIO import StringIO
 from mock import patch
 
 from changes.artifacts.coverage import CoverageHandler
-from changes.models import Job, JobStep, Source
 from changes.models.filecoverage import FileCoverage
+from changes.models.job import Job
+from changes.models.jobstep import JobStep
+from changes.models.source import Source
 from changes.testutils import TestCase
 from changes.testutils.fixtures import SAMPLE_COVERAGE, SAMPLE_DIFF
 

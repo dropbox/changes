@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
-from changes.models import Cluster, JobStep, Node
+from changes.models.jobstep import JobStep
+from changes.models.node import Cluster, Node
 
 
 class ClusterNodesAPIView(APIView):

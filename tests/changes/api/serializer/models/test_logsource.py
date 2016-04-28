@@ -2,7 +2,9 @@ from datetime import datetime
 from uuid import UUID
 
 from changes.api.serializer import serialize
-from changes.models import LogSource, Job, JobStep
+from changes.models.job import Job
+from changes.models.jobstep import JobStep
+from changes.models.log import LogSource
 
 
 def test_simple():

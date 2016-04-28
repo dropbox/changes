@@ -4,7 +4,8 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.api.auth import get_current_user
-from changes.models import Author, Build
+from changes.models.author import Author
+from changes.models.build import Build
 
 
 class AuthorBuildIndexAPIView(APIView):

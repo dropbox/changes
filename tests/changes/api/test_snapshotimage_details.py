@@ -1,5 +1,5 @@
 from changes.config import db
-from changes.models import SnapshotImage, SnapshotStatus
+from changes.models.snapshot import SnapshotImage, SnapshotStatus
 from changes.testutils import APITestCase
 
 

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from changes.api.serializer import serialize
 from changes.config import db
-from changes.models import Command
+from changes.models.command import Command
 from changes.testutils import TestCase
 
 

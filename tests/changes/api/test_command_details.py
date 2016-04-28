@@ -5,9 +5,9 @@ from mock import Mock, patch
 from changes.buildsteps.base import BuildStep
 from changes.constants import Result, Status
 from changes.expanders.base import Expander
-from changes.models import (
-    Command, CommandType, FutureCommand, FutureJobStep, JobStep, JobPhase
-)
+from changes.models.command import Command, CommandType, FutureCommand
+from changes.models.jobphase import JobPhase
+from changes.models.jobstep import FutureJobStep, JobStep
 from changes.testutils import APITestCase
 
 
@@ -81,7 +81,7 @@ class UpdateCommandTest(APITestCase):
         assert command.date_started is not None
         assert command.date_finished is not None
 
-    @patch('changes.models.JobPlan.get_build_step_for_job')
+    @patch('changes.models.jobplan.JobPlan.get_build_step_for_job')
     @patch('changes.api.command_details.CommandDetailsAPIView.get_expander')
     def test_simple_expander(self, mock_get_expander, mock_get_build_step_for_job):
         project = self.create_project()
@@ -153,7 +153,7 @@ class UpdateCommandTest(APITestCase):
         new_jobstep = phase2.current_steps[0]
         assert new_jobstep.label == 'test'
 
-    @patch('changes.models.JobPlan.get_build_step_for_job')
+    @patch('changes.models.jobplan.JobPlan.get_build_step_for_job')
     @patch('changes.api.command_details.CommandDetailsAPIView.get_expander')
     def test_expander_no_commands(self, mock_get_expander, mock_get_build_step_for_job):
         project = self.create_project()

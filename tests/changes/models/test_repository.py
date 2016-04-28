@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
+from changes.models.repository import Repository, RepositoryBackend
 from changes.vcs.git import GitVcs
 from changes.vcs.hg import MercurialVcs
-from changes.models import Repository, RepositoryBackend
 from changes.testutils import TestCase
 
 

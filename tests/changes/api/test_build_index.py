@@ -567,7 +567,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         ).all()
         assert len(jobs) == 2
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_defaults_to_revision(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.update.side_effect = None
@@ -601,7 +601,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert source.repository_id == self.project.repository_id
         assert source.revision_sha == 'a' * 40
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_defaults_to_revision_not_found(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.update.side_effect = None
@@ -622,7 +622,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert 'sha' in data['problems']
         assert 'repository' in data['problems']
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_error_on_invalid_revision(self, get_vcs):
         def log_results(parent=None, branch=None, offset=0, limit=1):
             assert not branch
@@ -657,7 +657,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data['patch[data]'] = '{"foo": "bar"}'
         return self.client.post(self.path, data=data)
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_in_whitelist_diff_build(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -675,7 +675,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist_diff_build(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -693,7 +693,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist_diff_build_default_true(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -709,7 +709,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist_diff_build_default_true_negative(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -725,7 +725,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_in_whitelist_commit_build(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -748,7 +748,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist_commit_build(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -781,7 +781,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert job.project == self.project
         assert source.revision_sha == revision.sha
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist_commit_build_default_false(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -813,7 +813,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert job.project == self.project
         assert source.revision_sha == revision.sha
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist_commit_build_false(self, get_vcs):
         po = ProjectOption(
             project=self.project,
@@ -847,7 +847,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert job.project == self.project
         assert source.revision_sha == revision.sha
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_blacklist_commit_build(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -868,7 +868,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_all_in_blacklist_commit_build(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -889,7 +889,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_blacklist_diff_build(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -905,7 +905,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_all_in_blacklist_diff_build(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -921,7 +921,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_all_in_blacklist_diff_build_invalid_diff(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -939,7 +939,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_all_in_blacklist_invalid_config(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -957,7 +957,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_ensure_existing_build_complete(self, get_vcs):
         """Tests when all builds have already been created"""
         get_vcs.return_value = self.get_fake_vcs()
@@ -978,7 +978,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] == build.id.hex
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_ensure_existing_build_incomplete(self, get_vcs):
         """Tests when only a subset of the builds have been created"""
         project2 = self.create_project(repository=self.project.repository)
@@ -1006,7 +1006,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(
             [x for x in data if x['project']['slug'] == project2.slug]) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_ensure_multiple_existing_build(self, get_vcs):
         """Tests when only a subset of the builds have been created"""
         get_vcs.return_value = self.get_fake_vcs()
@@ -1031,7 +1031,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert data[0]['id'] == build.id.hex
         assert data[0]['project']['slug'] == self.project.slug
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_ensure_existing_build_wrong_revision(self, get_vcs):
         """Tests when other builds in the system exist"""
         get_vcs.return_value = self.get_fake_vcs()
@@ -1055,7 +1055,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] != build.id.hex
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_ensure_existing_build_false(self, get_vcs):
         """Tests when existing builds have been created,
         but we don't want to run in ensure-only mode explicitly
@@ -1078,7 +1078,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] != build.id.hex
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_ensure_existing_build_default_false(self, get_vcs):
         """Tests when existing builds have been created,
         but we don't want to run in ensure-only mode by default
@@ -1100,7 +1100,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] != build.id.hex
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_ensure_match_patch_want_commit(self, get_vcs):
         """This makes sure that the ensure API handles diff builds correctly.
         This is the case where we want to ensure a commit build.
@@ -1149,7 +1149,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert 'patch' in data['problems']
         assert 'ensure_only' in data['problems']
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_existing_build_wrong_revision(self, get_vcs):
         """Tests when other builds in the system exist"""
         get_vcs.return_value = self.get_fake_vcs()
@@ -1175,7 +1175,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert len(data) == 1
         assert data[0]['id'] != build.id.hex
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_with_project_whitelist(self, get_vcs):
         project2 = self.create_project(repository=self.project.repository)
         self.create_plan(project2)
@@ -1200,7 +1200,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
         assert job.project == project2
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_with_project_whitelist_empty(self, get_vcs):
         project2 = self.create_project(repository=self.project.repository)
         self.create_plan(project2)
@@ -1219,7 +1219,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     @patch('changes.api.build_index.find_green_parent_sha')
     def test_with_full_params(self, mock_find_green_parent_sha, get_vcs):
         mock_find_green_parent_sha.return_value = 'b' * 40
@@ -1309,7 +1309,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 2
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_with_empty_changeset(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
 

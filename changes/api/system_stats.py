@@ -6,7 +6,9 @@ from sqlalchemy.sql import func
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build, Job, JobStep
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.jobstep import JobStep
 
 
 class SystemStatsAPIView(APIView):

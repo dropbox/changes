@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import Event
+from changes.models.event import Event
 
 
 @register(Event)

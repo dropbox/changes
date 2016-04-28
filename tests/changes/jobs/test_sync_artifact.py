@@ -6,7 +6,7 @@ from cStringIO import StringIO
 
 from changes.config import db
 from changes.jobs.sync_artifact import sync_artifact
-from changes.models import HistoricalImmutableStep
+from changes.models.jobplan import HistoricalImmutableStep
 from changes.testutils import TestCase
 
 

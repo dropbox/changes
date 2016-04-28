@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import SnapshotImage
+from changes.models.snapshot import SnapshotImage
 
 
 @register(SnapshotImage)

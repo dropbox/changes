@@ -2,7 +2,7 @@ from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
 from changes.lib.coverage import get_coverage_by_build_id, merged_coverage_data, get_coverage_stats
-from changes.models import Build
+from changes.models.build import Build
 from changes.utils.diff_parser import DiffParser
 
 

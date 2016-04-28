@@ -8,7 +8,8 @@ import sys
 from tempfile import NamedTemporaryFile
 
 from changes.config import create_app, db
-from changes.models import ItemOption, Repository
+from changes.models.option import ItemOption
+from changes.models.repository import Repository
 
 
 app = create_app()

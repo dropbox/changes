@@ -8,7 +8,8 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.listeners.build_revision import revision_created_handler, CommitTrigger
-from changes.models import Build, ProjectOption
+from changes.models.build import Build
+from changes.models.project import ProjectOption
 from changes.testutils.cases import TestCase
 from changes.testutils.fixtures import SAMPLE_DIFF
 from changes.vcs.base import CommandError, RevisionResult, Vcs, UnknownRevision
@@ -48,7 +49,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
 
         return fake_vcs
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_simple(self, get_vcs):
         repo = self.create_repo()
         revision = self.create_revision(repository=repo)
@@ -65,7 +66,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
 
         assert len(build_list) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_disabled(self, get_vcs):
         repo = self.create_repo()
         revision = self.create_revision(repository=repo)
@@ -81,7 +82,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
 
         assert not Build.query.first()
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     @patch('changes.api.build_index.identify_revision')
     def test_file_whitelist(self, mock_identify_revision, mock_get_vcs):
         repo = self.create_repo()
@@ -118,7 +119,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
 
         assert Build.query.first()
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     @patch('changes.api.build_index.identify_revision')
     def test_file_blacklist(self, mock_identify_revision, mock_get_vcs):
         repo = self.create_repo()
@@ -154,7 +155,7 @@ class RevisionCreatedHandlerTestCase(TestCase):
 
         assert Build.query.first()
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     @patch('changes.api.build_index.identify_revision')
     def test_invalid_config(self, mock_identify_revision, mock_get_vcs):
         repo = self.create_repo()

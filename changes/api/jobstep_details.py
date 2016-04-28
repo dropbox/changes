@@ -14,9 +14,12 @@ from changes.constants import Result, Status
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job import sync_job
 from changes.jobs.sync_job_step import is_final_jobphase
-from changes.models import (
-    Command, FailureReason, JobPlan, JobStep, Node, SnapshotImage,
-)
+from changes.models.command import Command
+from changes.models.failurereason import FailureReason
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
+from changes.models.node import Node
+from changes.models.snapshot import SnapshotImage
 
 
 RESULT_CHOICES = ('failed', 'passed', 'aborted', 'skipped', 'infra_failed')

@@ -2,8 +2,8 @@ import urllib
 
 from mock import patch
 
+from changes.models.repository import RepositoryBackend
 from changes.testutils import APITestCase
-from changes.models import RepositoryBackend
 
 
 class RepositoryTreeListTest(APITestCase):

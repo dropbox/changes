@@ -3,7 +3,9 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import JobPhase, JobStep, LogSource
+from changes.models.jobphase import JobPhase
+from changes.models.jobstep import JobStep
+from changes.models.log import LogSource
 from changes.testutils import APITestCase
 
 

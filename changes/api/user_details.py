@@ -5,7 +5,7 @@ from flask.ext.restful import reqparse
 from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import User
+from changes.models.user import User
 
 
 class UserDetailsAPIView(APIView):

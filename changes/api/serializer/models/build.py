@@ -1,5 +1,8 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import Build, ItemStat, FailureReason, JobStep
+from changes.models.build import Build
+from changes.models.failurereason import FailureReason
+from changes.models.itemstat import ItemStat
+from changes.models.jobstep import JobStep
 from changes.utils.http import build_uri
 
 from changes.buildfailures import registry

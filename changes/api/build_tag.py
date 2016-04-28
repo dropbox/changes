@@ -1,7 +1,7 @@
 import json
 
 from changes.config import db
-from changes.models import Build
+from changes.models.build import Build
 from changes.api.base import APIView, error
 
 from flask.ext.restful import reqparse

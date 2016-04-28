@@ -18,7 +18,7 @@ import requests
 
 from flask import current_app
 
-from changes.models import Build
+from changes.models.build import Build
 
 
 logger = logging.getLogger('build-finished-notifier')

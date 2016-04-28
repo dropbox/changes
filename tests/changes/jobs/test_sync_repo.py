@@ -6,14 +6,14 @@ from datetime import datetime
 
 from changes.config import db
 from changes.jobs.sync_repo import sync_repo, NUM_RECENT_COMMITS
-from changes.models import Repository, RepositoryBackend
+from changes.models.repository import Repository, RepositoryBackend
 from changes.testutils import TestCase
 from changes.vcs.base import Vcs, RevisionResult
 
 
 class SyncRepoTest(TestCase):
     @mock.patch('changes.jobs.sync_repo.fire_signal')
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     @mock.patch('changes.config.queue.delay')
     def test_simple(self, queue_delay, get_vcs_backend, mock_fire_signal):
         vcs_backend = mock.MagicMock(spec=Vcs)
@@ -66,7 +66,7 @@ class SyncRepoTest(TestCase):
         )
 
     @mock.patch('changes.jobs.sync_repo.fire_signal')
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     @mock.patch('changes.config.queue.delay')
     def test_with_existing_revision(self, queue_delay, get_vcs_backend, mock_fire_signal):
         """

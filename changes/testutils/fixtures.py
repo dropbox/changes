@@ -1,19 +1,38 @@
 from __future__ import absolute_import
-from changes.models.latest_green_build import LatestGreenBuild
 
 from base64 import b64encode
 from loremipsum import get_paragraphs, get_sentences
 from uuid import uuid4
 
 from changes.config import db
+from changes.models.adminmessage import AdminMessage
+from changes.models.artifact import Artifact
+from changes.models.author import Author
 from changes.models.build import Build
-from changes.models import (
-    Repository, Job, JobPlan, Project, Revision, Change, Author,
-    Patch, Plan, Step, Source, Node, JobPhase, JobStep, Task,
-    Artifact, TestCase, LogChunk, LogSource, Cluster, ClusterNode,
-    RepositoryStatus, User, ItemOption, ItemStat, Command, Snapshot, SnapshotImage,
-    CachedSnapshotImage, PlanStatus, AdminMessage, PhabricatorDiff, ProjectOption
-)
+from changes.models.cached_snapshot_image import CachedSnapshotImage
+from changes.models.change import Change
+from changes.models.command import Command
+from changes.models.itemstat import ItemStat
+from changes.models.job import Job
+from changes.models.jobphase import JobPhase
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
+from changes.models.latest_green_build import LatestGreenBuild
+from changes.models.log import LogChunk, LogSource
+from changes.models.node import Cluster, ClusterNode, Node
+from changes.models.option import ItemOption
+from changes.models.patch import Patch
+from changes.models.phabricatordiff import PhabricatorDiff
+from changes.models.plan import Plan, PlanStatus
+from changes.models.project import Project, ProjectOption
+from changes.models.repository import Repository, RepositoryStatus
+from changes.models.revision import Revision
+from changes.models.snapshot import Snapshot, SnapshotImage
+from changes.models.source import Source
+from changes.models.step import Step
+from changes.models.task import Task
+from changes.models.test import TestCase
+from changes.models.user import User
 from changes.utils.slugs import slugify
 
 __all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF_BYTES', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',

@@ -4,13 +4,13 @@ import mock
 
 from changes.config import db
 from changes.jobs.update_local_repos import update_local_repos
-from changes.models import RepositoryBackend, RepositoryStatus
+from changes.models.repository import RepositoryBackend, RepositoryStatus
 from changes.testutils import TestCase
 from changes.vcs.base import CommandError, Vcs
 
 
 class UpdateLocalReposTest(TestCase):
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_simple(self, get_vcs_backend):
         vcs_backend = mock.MagicMock(spec=Vcs)
         get_vcs_backend.return_value = vcs_backend

@@ -1,7 +1,10 @@
 import json
 
 from changes.api.serializer import Crumbler, register
-from changes.models import HistoricalImmutableStep, ItemOption, Plan, Step
+from changes.models.jobplan import HistoricalImmutableStep
+from changes.models.plan import Plan
+from changes.models.option import ItemOption
+from changes.models.step import Step
 
 
 @register(Plan)

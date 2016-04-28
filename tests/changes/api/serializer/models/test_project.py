@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from changes.api.serializer import serialize
-from changes.models import Project
+from changes.models.project import Project
 
 
 def test_simple():

@@ -5,7 +5,8 @@ from flask.ext.restful import reqparse
 from changes.api.base import APIView
 from changes.config import db
 from changes.db.utils import create_or_update
-from changes.models import ProjectOption, Snapshot, SnapshotStatus
+from changes.models.project import ProjectOption
+from changes.models.snapshot import Snapshot, SnapshotStatus
 
 
 class SnapshotDetailsAPIView(APIView):

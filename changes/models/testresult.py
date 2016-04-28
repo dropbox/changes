@@ -10,8 +10,10 @@ from sqlalchemy.sql import func
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update
-from changes.models import FailureReason, ItemStat, TestArtifact
+from changes.models.failurereason import FailureReason
+from changes.models.itemstat import ItemStat
 from changes.models.test import TestCase
+from changes.models.testartifact import TestArtifact
 
 logger = logging.getLogger('changes.testresult')
 

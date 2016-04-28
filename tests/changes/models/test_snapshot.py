@@ -1,6 +1,7 @@
 from changes.config import db
+from changes.models.project import ProjectOption
+from changes.models.snapshot import Snapshot, SnapshotImage, SnapshotStatus
 from changes.testutils.cases import TestCase
-from changes.models import ProjectOption, Snapshot, SnapshotImage, SnapshotStatus
 
 
 class TestSnapshotTestCase(TestCase):

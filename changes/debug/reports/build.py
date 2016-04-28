@@ -4,7 +4,7 @@ from flask import render_template, request
 from flask.views import MethodView
 from jinja2 import Markup
 
-from changes.models import Project
+from changes.models.project import Project
 from changes.reports.build import BuildReport
 
 

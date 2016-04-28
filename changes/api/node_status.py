@@ -11,7 +11,8 @@ from changes.api.auth import get_current_user
 from changes.api.base import APIView, error
 from changes.config import db
 from changes.lib import mesos_lib
-from changes.models import JobStep, Node
+from changes.models.jobstep import JobStep
+from changes.models.node import Node
 
 
 class NodeStatusAPIView(APIView):

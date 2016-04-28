@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import Cluster
+from changes.models.node import Cluster
 
 
 @register(Cluster)

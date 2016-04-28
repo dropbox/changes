@@ -7,7 +7,8 @@ from werkzeug.datastructures import FileStorage
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result
-from changes.models import Artifact, JobStep
+from changes.models.artifact import Artifact
+from changes.models.jobstep import JobStep
 
 
 class JobStepArtifactsAPIView(APIView):

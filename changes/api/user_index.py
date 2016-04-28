@@ -4,7 +4,7 @@ from flask.ext.restful import reqparse
 from sqlalchemy.sql import func
 
 from changes.api.base import APIView
-from changes.models import User
+from changes.models.user import User
 
 ADMIN_CHOICES = ('0', '1')
 

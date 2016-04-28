@@ -10,11 +10,26 @@ from uuid import uuid4
 from changes.config import db
 from changes.constants import Status, Result
 from changes.db.utils import get_or_create
-from changes.models import (
-    Project, Repository, Author, Revision, Job, JobPhase, JobStep, Node,
-    TestResult, Change, LogChunk, Build, JobPlan, Plan, Source, FailureReason,
-    Patch, FileCoverage, Event, EventType, Cluster, ClusterNode, Command
-)
+from changes.models.author import Author
+from changes.models.build import Build
+from changes.models.change import Change
+from changes.models.command import Command
+from changes.models.event import Event, EventType
+from changes.models.failurereason import FailureReason
+from changes.models.filecoverage import FileCoverage
+from changes.models.job import Job
+from changes.models.jobphase import JobPhase
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
+from changes.models.log import LogChunk
+from changes.models.node import Cluster, ClusterNode, Node
+from changes.models.patch import Patch
+from changes.models.plan import Plan
+from changes.models.project import Project
+from changes.models.repository import Repository
+from changes.models.revision import Revision
+from changes.models.source import Source
+from changes.models.test import TestResult
 from changes.testutils.fixtures import SAMPLE_DIFF
 from changes.utils.slugs import slugify
 

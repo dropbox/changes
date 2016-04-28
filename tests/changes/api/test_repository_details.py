@@ -1,5 +1,6 @@
 from changes.config import db
-from changes.models import ItemOption, Repository, RepositoryBackend
+from changes.models.option import ItemOption
+from changes.models.repository import Repository, RepositoryBackend
 from changes.testutils import APITestCase
 
 

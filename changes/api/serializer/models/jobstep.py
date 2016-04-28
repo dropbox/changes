@@ -1,6 +1,7 @@
 from collections import defaultdict
 from changes.api.serializer import Crumbler, register
-from changes.models import JobStep, JobPlan
+from changes.models.jobplan import JobPlan
+from changes.models.jobstep import JobStep
 
 
 @register(JobStep)

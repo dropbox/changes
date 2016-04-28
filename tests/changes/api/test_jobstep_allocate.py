@@ -76,7 +76,7 @@ class JobStepAllocateTest(APITestCase):
         # allocation should be all or nothing
         assert jobstep_pending.status == Status.pending_allocation
 
-    @mock.patch('changes.models.JobPlan.get_build_step_for_job')
+    @mock.patch('changes.models.jobplan.JobPlan.get_build_step_for_job')
     def test_several_queued(self, get_build_step_for_job):
         jobphases = []
         jobid2buildstep = {}

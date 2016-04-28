@@ -2,7 +2,10 @@ import mock
 
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build, Job, JobStep, ItemStat
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.jobstep import JobStep
+from changes.models.itemstat import ItemStat
 from changes.testutils import APITestCase
 
 

@@ -3,7 +3,8 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build, JobPlan
+from changes.models.build import Build
+from changes.models.jobplan import JobPlan
 
 
 class BuildCancelAPIView(APIView):

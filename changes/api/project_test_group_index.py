@@ -5,7 +5,11 @@ from flask.ext.restful import reqparse
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
-from changes.models import Build, Project, ProjectOption, TestCase, Job, Source
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.project import Project, ProjectOption
+from changes.models.source import Source
+from changes.models.test import TestCase
 from changes.utils.trees import build_tree
 
 

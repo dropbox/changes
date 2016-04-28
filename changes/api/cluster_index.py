@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from changes.api.base import APIView
-from changes.models import Cluster
+from changes.models.node import Cluster
 
 
 class ClusterIndexAPIView(APIView):

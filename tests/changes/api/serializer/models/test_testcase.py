@@ -67,7 +67,7 @@ class TestCaseCrumblerTestCase(TestCase):
 
 class TestCaseWithJobCrumblerTestCase(TestCase):
     def test_simple(self):
-        from changes.models import TestCase
+        from changes.models.test import TestCase
 
         project = self.create_project()
         build = self.create_build(project=project)
@@ -81,7 +81,7 @@ class TestCaseWithJobCrumblerTestCase(TestCase):
 
 class TestCaseWithOriginCrumblerTestCase(TestCase):
     def test_simple(self):
-        from changes.models import TestCase
+        from changes.models.test import TestCase
 
         project = self.create_project()
         build = self.create_build(project=project)
@@ -100,7 +100,7 @@ class TestCaseWithOriginCrumblerTestCase(TestCase):
 
 class GeneralizedTestCaseCrumblerTestCase(TestCase):
     def test_simple(self):
-        from changes.models import TestCase
+        from changes.models.test import TestCase
 
         project = self.create_project()
         build = self.create_build(project=project)

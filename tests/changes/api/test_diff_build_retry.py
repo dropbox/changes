@@ -5,7 +5,9 @@ from datetime import datetime
 
 from changes.config import db
 from changes.constants import Cause, Result, Status
-from changes.models import Build, Job, ProjectOption
+from changes.models.build import Build
+from changes.models.job import Job
+from changes.models.project import ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, UnknownRevision, Vcs
 
@@ -60,7 +62,7 @@ class DiffBuildRetryTest(APITestCase):
         self.diff = self.create_diff(diff_id, source=self.source)
         self.create_plan(self.project)
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_simple(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         build = self.create_build(
@@ -97,7 +99,7 @@ class DiffBuildRetryTest(APITestCase):
         ))
         assert new_job.id != job.id
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_simple_multiple_diffs(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         self.create_diff(124, source=self.source)
@@ -130,7 +132,7 @@ class DiffBuildRetryTest(APITestCase):
         ))
         assert new_job.id != job.id
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_simple_passed(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         build = self.create_build(
@@ -150,7 +152,7 @@ class DiffBuildRetryTest(APITestCase):
 
         assert len(data) == 0
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_simple_in_progress(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         build = self.create_build(
@@ -170,7 +172,7 @@ class DiffBuildRetryTest(APITestCase):
 
         assert len(data) == 0
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_multiple_builds_same_project(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         self.create_build(
@@ -206,7 +208,7 @@ class DiffBuildRetryTest(APITestCase):
         ))
         assert new_job.id != job.id
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_multiple_builds_different_projects(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         self.create_build(
@@ -258,7 +260,7 @@ class DiffBuildRetryTest(APITestCase):
         ))
         assert new_job.id != job.id
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_multiple_builds_different_projects_all_failed(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         self.create_build(
@@ -324,7 +326,7 @@ class DiffBuildRetryTest(APITestCase):
         ))
         assert new_job.id != job2.id
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         po = ProjectOption(
@@ -363,7 +365,7 @@ class DiffBuildRetryTest(APITestCase):
         ))
         assert new_job.id != job.id
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_in_whitelist(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         po = ProjectOption(
@@ -390,7 +392,7 @@ class DiffBuildRetryTest(APITestCase):
 
         assert len(data) == 0
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_blacklist(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -415,7 +417,7 @@ class DiffBuildRetryTest(APITestCase):
 
         assert len(data) == 0
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_all_in_blacklist(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -452,7 +454,7 @@ class DiffBuildRetryTest(APITestCase):
         ))
         assert new_job.id != job.id
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_invalid_diff(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -475,7 +477,7 @@ class DiffBuildRetryTest(APITestCase):
 
         assert resp.status_code == 400
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_invalid_config(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None

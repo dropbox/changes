@@ -1,4 +1,4 @@
-from changes.models import ItemOption
+from changes.models.option import ItemOption
 from changes.testutils import APITestCase
 
 

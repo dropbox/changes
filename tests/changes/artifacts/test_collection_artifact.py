@@ -6,7 +6,8 @@ from changes.artifacts.base import ArtifactParseError
 from changes.artifacts.collection_artifact import CollectionArtifactHandler
 from changes.config import db
 from changes.constants import Result
-from changes.models import FailureReason, JobPlan
+from changes.models.failurereason import FailureReason
+from changes.models.jobplan import JobPlan
 from changes.testutils import TestCase
 
 

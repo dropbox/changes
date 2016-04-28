@@ -1,4 +1,4 @@
-from changes.models import Plan
+from changes.models.plan import Plan
 from changes.testutils import APITestCase
 
 

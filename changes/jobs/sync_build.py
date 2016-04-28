@@ -6,7 +6,9 @@ from changes.config import db, queue, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import try_create
 from changes.jobs.signals import fire_signal
-from changes.models import Build, ItemStat, Job
+from changes.models.build import Build
+from changes.models.itemstat import ItemStat
+from changes.models.job import Job
 from changes.utils.agg import aggregate_result, aggregate_status, safe_agg
 from changes.queue.task import tracked_task
 

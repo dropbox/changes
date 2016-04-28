@@ -8,7 +8,9 @@ from changes.buildsteps.default import (
 )
 from changes.config import db
 from changes.constants import Result, Status, Cause
-from changes.models import CommandType, FutureCommand, FutureJobStep, Repository
+from changes.models.command import CommandType, FutureCommand
+from changes.models.jobstep import FutureJobStep
+from changes.models.repository import Repository
 from changes.testutils import TestCase
 from changes.vcs.base import Vcs
 

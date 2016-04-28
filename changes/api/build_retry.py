@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from changes.api.base import APIView
 from changes.api.build_index import create_build
 from changes.constants import Cause
-from changes.models import Build
+from changes.models.build import Build
 
 
 class BuildRetryAPIView(APIView):

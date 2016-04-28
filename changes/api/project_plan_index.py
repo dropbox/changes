@@ -6,7 +6,8 @@ from sqlalchemy.sql import func
 from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Plan, PlanStatus, Project
+from changes.models.plan import Plan, PlanStatus
+from changes.models.project import Project
 
 
 SORT_CHOICES = ('name', 'date')

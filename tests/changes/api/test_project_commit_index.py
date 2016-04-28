@@ -48,7 +48,7 @@ class ProjectCommitIndexTest(APITestCase):
         assert len(data) == 1
         assert data[0]['id'] == revision1.sha
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_with_vcs(self, get_vcs):
         def log_results(parent=None, branch=None, offset=0, limit=100, paths=None):
             assert not branch
@@ -101,7 +101,7 @@ class ProjectCommitIndexTest(APITestCase):
         assert len(data) == 1
         assert data[0]['id'] == 'b' * 40
 
-    @mock.patch('changes.models.Repository.get_vcs')
+    @mock.patch('changes.models.repository.Repository.get_vcs')
     def test_with_vcs_filtering(self, get_vcs):
         def log_results(parent=None, branch=None, offset=0, limit=100, paths=None):
             results = [

@@ -121,7 +121,7 @@ class Snapshot(db.Model):
     @classmethod
     def get_current(cls, project_id):
         """Return the current Snapshot for a project (or None if one is not set)."""
-        from changes.models import ProjectOption
+        from changes.models.project import ProjectOption
 
         current_id = db.session.query(ProjectOption.value).filter(
             ProjectOption.project_id == project_id,

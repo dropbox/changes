@@ -6,7 +6,8 @@ from datetime import datetime
 
 from changes.config import db
 from changes.jobs.signals import fire_signal
-from changes.models import Repository, RepositoryBackend, RepositoryStatus, Revision
+from changes.models.repository import Repository, RepositoryBackend, RepositoryStatus
+from changes.models.revision import Revision
 from changes.queue.task import tracked_task
 from changes.vcs.base import ConcurrentUpdateError
 

@@ -10,7 +10,9 @@ from changes.api.base import APIView, error
 from changes.config import db
 from changes.constants import IMPLEMENTATION_CHOICES
 from changes.db.utils import create_or_update
-from changes.models import ItemOption, Plan, Step, STEP_OPTIONS
+from changes.models.option import ItemOption
+from changes.models.plan import Plan
+from changes.models.step import Step, STEP_OPTIONS
 
 
 class PlanStepIndexAPIView(APIView):

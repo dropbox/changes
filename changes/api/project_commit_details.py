@@ -4,7 +4,8 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import MultipleResultsFound
 
 from changes.api.base import APIView
-from changes.models import Project, Revision
+from changes.models.project import Project
+from changes.models.revision import Revision
 
 
 class ProjectCommitDetailsAPIView(APIView):

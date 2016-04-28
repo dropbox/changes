@@ -5,7 +5,8 @@ from flask_restful.reqparse import RequestParser
 from changes.api.base import APIView
 from changes.config import db
 from changes.db.utils import create_or_update, get_or_create
-from changes.models import JobStep, LogSource, LogChunk, LOG_CHUNK_SIZE
+from changes.models.jobstep import JobStep
+from changes.models.log import LOG_CHUNK_SIZE, LogChunk, LogSource
 from changes.utils.text import chunked
 
 

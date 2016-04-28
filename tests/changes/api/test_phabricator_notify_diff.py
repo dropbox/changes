@@ -7,7 +7,9 @@ from datetime import datetime
 from mock import ANY, Mock, patch
 
 from changes.config import db
-from changes.models import Job, JobPlan, ProjectOption
+from changes.models.job import Job
+from changes.models.jobplan import JobPlan
+from changes.models.project import ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.testutils.build import CreateBuildsMixin
 from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
@@ -64,7 +66,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
             'author': 'David Cramer <dcramer@example.com>',
         })
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_valid_params(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo()
@@ -150,7 +152,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_in_whitelist(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo()
@@ -176,7 +178,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_whitelist(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo()
@@ -202,7 +204,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_in_blacklist(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -225,7 +227,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 0
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_when_not_all_in_blacklist(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -248,7 +250,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_invalid_diff(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -273,7 +275,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_invalid_config(self, get_vcs):
         fake_vcs = self.get_fake_vcs()
         fake_vcs.read_file.side_effect = None
@@ -296,7 +298,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert len(data) == 1
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     def test_collection_id(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo_with_projects(count=3)
@@ -310,7 +312,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         builds = self.assert_resp_has_multiple_items(resp, count=3)
         self.assert_collection_id_across_builds(builds)
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     @patch('changes.api.phabricator_notify_diff.post_comment')
     def test_diff_comment(self, mock_post_comment, get_vcs):
         """Test diff commenting on a revision we can't identify on a legit project"""
@@ -360,7 +362,7 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         assert "An error occurred somewhere between Phabricator and Changes" in mock_post_comment.call_args[0][1]
         assert "Unable to find base revision %s" % _BOGUS_SHA in mock_post_comment.call_args[0][1]
 
-    @patch('changes.models.Repository.get_vcs')
+    @patch('changes.models.repository.Repository.get_vcs')
     @patch('changes.api.phabricator_notify_diff.post_comment')
     def test_diff_comment_bad_project(self, mock_post_comment, get_vcs):
         """Make sure we don't comment on diffs for repos without projects/plans"""

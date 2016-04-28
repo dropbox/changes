@@ -1,7 +1,9 @@
 from sqlalchemy.orm import joinedload
 
 from changes.api.serializer import Crumbler, register, serialize
-from changes.models import Build, ItemStat, Job
+from changes.models.build import Build
+from changes.models.itemstat import ItemStat
+from changes.models.job import Job
 
 
 @register(Job)

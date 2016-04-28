@@ -9,7 +9,10 @@ import heapq
 from changes.api.client import api_client
 from changes.config import db
 from changes.expanders.base import Expander
-from changes.models import FutureCommand, FutureJobStep, Job, TestCase
+from changes.models.command import FutureCommand
+from changes.models.job import Job
+from changes.models.jobstep import FutureJobStep
+from changes.models.test import TestCase
 from changes.utils.trees import build_flat_tree
 
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from changes.constants import Cause, Result, Status
-from changes.models import Project
+from changes.models.project import Project
 from changes.testutils import APITestCase
 
 

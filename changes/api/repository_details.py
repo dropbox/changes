@@ -7,9 +7,9 @@ from changes.api.base import APIView
 from changes.config import db
 from changes.db.utils import create_or_update
 from changes.jobs.import_repo import import_repo
-from changes.models import (
-    ItemOption, Project, Repository, RepositoryBackend, RepositoryStatus
-)
+from changes.models.option import ItemOption
+from changes.models.project import Project
+from changes.models.repository import Repository, RepositoryBackend, RepositoryStatus
 
 BACKEND_CHOICES = ('git', 'hg', 'unknown')
 

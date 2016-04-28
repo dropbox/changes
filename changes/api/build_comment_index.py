@@ -3,7 +3,9 @@ from flask.ext.restful import reqparse
 
 from changes.api.base import APIView
 from changes.config import db
-from changes.models import Build, Comment, User
+from changes.models.build import Build
+from changes.models.comment import Comment
+from changes.models.user import User
 
 
 class BuildCommentIndexAPIView(APIView):

@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import Comment
+from changes.models.comment import Comment
 
 
 @register(Comment)

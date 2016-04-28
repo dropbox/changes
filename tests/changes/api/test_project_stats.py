@@ -3,7 +3,7 @@ import itertools
 from datetime import datetime, timedelta
 
 from changes.config import db
-from changes.models import ItemStat
+from changes.models.itemstat import ItemStat
 from changes.testutils import APITestCase
 
 

@@ -13,7 +13,7 @@ from oauth2client.client import OAuth2WebServerFlow
 
 from changes.config import db
 from changes.db.utils import get_or_create
-from changes.models import User
+from changes.models.user import User
 
 GOOGLE_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
 GOOGLE_REVOKE_URI = 'https://accounts.google.com/o/oauth2/revoke'

@@ -1,5 +1,5 @@
 from changes.api.serializer import Crumbler, register
-from changes.models import Task
+from changes.models.task import Task
 
 
 @register(Task)

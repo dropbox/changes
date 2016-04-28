@@ -4,7 +4,9 @@ import logging
 
 from flask import current_app
 from changes.api.build_index import BuildIndexAPIView
-from changes.models import ProjectStatus, Project, ProjectConfigError, ProjectOptionsHelper, Revision
+from changes.models.project import (
+    Project, ProjectStatus, ProjectConfigError, ProjectOptionsHelper)
+from changes.models.revision import Revision
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import ConcurrentUpdateError, UnknownRevision
 

@@ -2,7 +2,7 @@ from cStringIO import StringIO
 
 from changes.artifacts.manifest_json import ManifestJsonHandler
 from changes.constants import Result
-from changes.models import FailureReason
+from changes.models.failurereason import FailureReason
 from changes.testutils import TestCase
 
 

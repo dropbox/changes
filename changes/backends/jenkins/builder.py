@@ -26,10 +26,12 @@ from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_job_step import sync_job_step
-from changes.models import (
-    Artifact, Cluster, ClusterNode, FailureReason, LogSource,
-    LogChunk, Node, JobPhase, JobStep, LOG_CHUNK_SIZE
-)
+from changes.models.artifact import Artifact
+from changes.models.failurereason import FailureReason
+from changes.models.jobphase import JobPhase
+from changes.models.jobstep import JobStep
+from changes.models.log import LogChunk, LogSource, LOG_CHUNK_SIZE
+from changes.models.node import Cluster, ClusterNode, Node
 from changes.utils.http import build_uri
 from changes.utils.text import chunked
 
