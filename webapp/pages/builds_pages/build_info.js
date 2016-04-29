@@ -608,11 +608,25 @@ export var SingleBuild = React.createClass({
           </div>;
         }
 
+        let logSourceMaxPriority = ls => {
+            let maxPri = undefined;
+            ls.urls.forEach(u => {
+                if (u.priority !== undefined) {
+                    maxPri = Math.max(maxPri || u.priority, u.priority);
+                }
+            });
+            return maxPri;
+        };
+        let logSources = _.chain(jobstep.logSources)
+            .sortBy(ls => [logSourceMaxPriority(ls) || 0, ls.name])
+            .reverse()
+            .value();
+
         var links = [];
         var nodeName = jobstep.node.name || jobstep.node.id;
         var chunkedUrl = null;
         var logPriority = -1;
-        jobstep.logSources.forEach(l => {
+        logSources.forEach(l => {
           l.urls.forEach(logSourceURL => {
             if (logSourceURL.type == "chunked") {
               if (!chunkedUrl || logPriority <= logSourceURL.priority) {
