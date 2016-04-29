@@ -22,5 +22,6 @@ def lock(func):
                 return func(**kwargs)
         except UnableToGetLock:
             current_app.logger.warn('Unable to get lock for %s', key)
+            raise
 
     return wrapped
