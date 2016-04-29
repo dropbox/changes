@@ -102,6 +102,7 @@ class ProjectBuildIndexAPIView(APIView):
             Source, Source.id == Build.source_id,
         ).filter(
             Build.project_id == project.id,
+            Source.repository_id == project.repository_id,
             *filters
         ).order_by(Build.date_created.desc())
 
