@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask.ext.restful import reqparse
+from flask.ext.restful import reqparse, types
 from sqlalchemy.orm import contains_eager
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, asc, desc
 
 from changes.api.base import APIView
 from changes.constants import Result
@@ -27,6 +27,8 @@ class BuildTestIndexAPIView(APIView):
                         choices=RESULT_CHOICES)
     parser.add_argument('sort', type=unicode, location='args',
                         choices=SORT_CHOICES, default='duration')
+    parser.add_argument('reverse', type=types.boolean, location='args',
+                        default=False)
 
     def get(self, build_id):
         build = Build.query.get(build_id)
@@ -53,13 +55,17 @@ class BuildTestIndexAPIView(APIView):
                 TestCase.result == Result[args.result],
             )
 
+        sort_col, sort_dir = None, None
         if args.sort == 'duration':
-            sort_by = TestCase.duration.desc()
+            sort_col, sort_dir = TestCase.duration, desc
         elif args.sort == 'name':
-            sort_by = TestCase.name.asc()
+            sort_col, sort_dir = TestCase.name, asc
         elif args.sort == 'retries':
-            sort_by = TestCase.reruns.desc()
+            sort_col, sort_dir = TestCase.reruns, desc
 
-        test_list = test_list.order_by(sort_by)
+        if args.reverse:
+            sort_dir = {asc: desc, desc: asc}[sort_dir]
+
+        test_list = test_list.order_by(sort_dir(sort_col))
 
         return self.paginate(test_list, max_per_page=None)

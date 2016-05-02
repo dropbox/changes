@@ -1,5 +1,9 @@
 import React, { PropTypes } from 'react';
 
+import moment from 'moment';
+
+import classNames from 'classnames';
+
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
@@ -21,8 +25,7 @@ export var BuildTestsPage = React.createClass({
   menuItems: [
     'Sharding',
     'Not Passing Tests',
-    'Slow Tests',
-    'Retries'
+    'All Tests'
   ],
 
   propTypes: {
@@ -37,8 +40,9 @@ export var BuildTestsPage = React.createClass({
       expandedTests: {},  // expand for more details
       uncheckedResults: {},  // checkboxes to filter by statuses
 
-      // Retries tab
-      expandedRetryTests: {},
+      expandedAllTests: {},
+
+      queryValue: InteractiveData.getParamsFromWindowUrl()["query"] || null,
     }
   },
 
@@ -56,15 +60,14 @@ export var BuildTestsPage = React.createClass({
       slowTests : InteractiveData(this,
         'slowTests',
         `/api/0/builds/${this.props.buildID}/tests/?sort=duration`),
-
-      retries : InteractiveData(this,
-        'retries',
-        `/api/0/builds/${this.props.buildID}/tests/?sort=retries`),
+      allTests : InteractiveData(this,
+        'allTests',
+        `/api/0/builds/${this.props.buildID}/tests/`),
     });
   },
 
   componentDidMount: function() {
-    _.each([['slowTests', 'Slow Tests'], ['retries', 'Retries']], tabs => {
+    _.each([['allTests', 'All Tests']], tabs => {
       var [stateKey, tabName] = tabs;
       var params = {};
       if (this.initialTab === tabName) {
@@ -106,11 +109,8 @@ export var BuildTestsPage = React.createClass({
       case 'Not Passing Tests':
         content = this.renderFailed();
         break;
-      case 'Slow Tests':
-        content = this.renderSlow();
-        break;
-      case 'Retries':
-        content = this.renderRetries();
+      case 'All Tests':
+        content = this.renderAllTests();
         break;
       default:
         throw 'unreachable';
@@ -133,7 +133,7 @@ export var BuildTestsPage = React.createClass({
       return <div>Empty</div>;
     }
 
-    var project_id = this.state.buildInfo.getReturnedData().project.id;
+    var project = this.state.buildInfo.getReturnedData().project;
 
     var rows = [];
     _.each(failedTests, test => {
@@ -143,8 +143,6 @@ export var BuildTestsPage = React.createClass({
       } else if (this.state.uncheckedResults[test.result]) {
         return;
       }
-
-      var href = `/project_test/${project_id}/${test.hash}`;
 
       var onClick = __ => {
         this.setState(
@@ -173,7 +171,7 @@ export var BuildTestsPage = React.createClass({
       rows.push([
         markup,
         <span className={color}>{capitalizedResult}</span>,
-        <a href={href}>History</a>,
+        ChangesLinks.historyLink(project, test.hash),
       ]);
 
       if (this.state.expandedTests[test.test_id]) {
@@ -228,71 +226,31 @@ export var BuildTestsPage = React.createClass({
     </div>;
   },
 
-  renderSlow: function() {
-    var slowTestsInteractive = this.state.slowTests;
+ renderAllTests() {
+    let interactive = this.state.allTests;
 
     // we want to update the window url whenever the user switches tabs
-    slowTestsInteractive.updateWindowUrl();
+    interactive.updateWindowUrl();
 
-    if (slowTestsInteractive.hasNotLoadedInitialData()) {
-      return <APINotLoaded calls={slowTestsInteractive.getDataToShow()} />;
+    if (interactive.hasNotLoadedInitialData()) {
+      return <APINotLoaded calls={interactive.getDataToShow()} />;
     }
 
-    var slowTests = slowTestsInteractive.getDataToShow().getReturnedData();
+    let project = this.state.buildInfo.getReturnedData().project;
+
+    let tests = interactive.getDataToShow().getReturnedData();
 
     var rows = [];
-    _.each(slowTests, test => {
-      rows.push([
-        test.name,
-        test.duration
-      ]);
-    });
-
-    var errorMessage = null;
-    if (slowTestsInteractive.failedToLoadUpdatedData()) {
-      errorMessage = <AjaxError response={slowTestsInteractive.getDataForErrorMessage().response} />;
-    }
-    var style = slowTestsInteractive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
-
-    var pagingLinks = slowTestsInteractive.getPagingLinks({use_next_previous: true});
-
-    return <div style={style}>
-      {errorMessage}
-      <Grid
-        colnum={2}
-        className="marginBottomM marginTopM"
-        data={rows}
-        headers={['Name', 'Duration (ms)']}
-      />
-      <div className="marginTopM marginBottomM">
-        {pagingLinks}
-      </div>
-    </div>;
-  },
-
-  renderRetries: function() {
-    var retriesInteractive = this.state.retries;
-
-    // we want to update the window url whenever the user switches tabs
-    retriesInteractive.updateWindowUrl();
-
-    if (retriesInteractive.hasNotLoadedInitialData()) {
-      return <APINotLoaded calls={retriesInteractive.getDataToShow()} />;
-    }
-
-    var retries = retriesInteractive.getDataToShow().getReturnedData();
-
-    var rows = [];
-    _.each(retries, test => {
+    _.each(tests, test => {
       var onClick = __ => {
         this.setState(
-          utils.update_key_in_state_dict('expandedRetryTests',
+          utils.update_key_in_state_dict('expandedAllTests',
             test.id,
-            !this.state.expandedRetryTests[test.id])
+            !this.state.expandedAllTests[test.id])
         );
       };
 
-      var expandLabel = !this.state.expandedRetryTests[test.id] ?
+      var expandLabel = !this.state.expandedAllTests[test.id] ?
         'Expand' : 'Collapse';
 
       var markup = <div>
@@ -300,33 +258,85 @@ export var BuildTestsPage = React.createClass({
         <div className="subText">{test.name}</div>
       </div>;
 
-      rows.push([
+      let color = 'bluishGray';
+      if (test.result.id.indexOf('failed') >= 0) {
+        color = 'red';
+      }
+      let rowData = new GridRow([
         markup,
-        test.numRetries
+        <span className={color}>{test.result.name}</span>,
+        <span>{moment.duration(test.duration).asSeconds()}s</span>,
+        test.numRetries,
+        ChangesLinks.historyLink(project, test.hash)
       ]);
+      rowData.key = test.id;
+      rows.push(rowData);
 
-      if (this.state.expandedRetryTests[test.id]) {
-        rows.push(GridRow.oneItem(
-          <TestDetails testID={test.id} buildID={this.props.buildID} />
-        ));
+      if (this.state.expandedAllTests[test.id]) {
+        let expanded = GridRow.oneItem(<TestDetails testID={test.id} buildID={this.props.buildID} />);
+        expanded.key = test.id + ":expanded";
+        rows.push(expanded);
       }
     });
 
     var errorMessage = null;
-    if (retriesInteractive.failedToLoadUpdatedData()) {
-      errorMessage = <AjaxError response={retriesInteractive.getDataForErrorMessage().response} />;
+    if (interactive.failedToLoadUpdatedData()) {
+      errorMessage = <AjaxError response={interactive.getDataForErrorMessage().response} />;
     }
-    var style = retriesInteractive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
+    var style = interactive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
 
-    var pagingLinks = retriesInteractive.getPagingLinks({use_next_previous: true});
+    var pagingLinks = interactive.getPagingLinks({use_next_previous: true});
 
+    let currentReverse = interactive.getCurrentParams()["reverse"] == "true";
+
+    let switchSort = (key, rev) => {
+        interactive.updateWithParams({'sort': key, 'reverse': rev});
+    };
+
+    let currentSort = interactive.getCurrentParams()["sort"] || "duration";
+    const sortHeader = (text, key) => {
+        let caret = null;
+        let newRev = currentReverse;
+        if (currentSort == key) {
+            newRev = !currentReverse;
+            caret = <i className={classNames({'fa': true,
+                                              'fa-caret-down': !currentReverse,
+                                              'fa-caret-up':   currentReverse})}
+                       style={{marginLeft: '4px'}} />;
+        }
+
+        return <div onClick={() => switchSort(key, newRev)}
+                    className={classNames({menuItem: true,
+                                           selectedMenuItem: key == currentSort})}>{text}{caret}</div>;
+    };
+
+    let headers = [sortHeader("Name", "name"),
+                   "Result",
+                   sortHeader("Duration", "duration"),
+                   sortHeader("Retries", "retries"),
+                   "History"];
+
+
+    let searchOnChange = evt => this.setState({queryValue: evt.target.value.trim()});
+    let updateInteractive = () => {
+        interactive.updateWithParams({query: this.state.queryValue || null});
+        return false;
+    };
     return <div style={style}>
       {errorMessage}
+      <div style={{float: 'right'}}>
+      <form onSubmit={updateInteractive}>
+      <label>{"Filter: "}
+      <input type="text" onChange={searchOnChange}
+             value={this.state.queryValue} />
+             </label>
+      </form>
+      </div>
       <Grid
-        colnum={2}
+        colnum={headers.length}
         className="marginBottomM marginTopM"
         data={rows}
-        headers={['Name', 'Retries']}
+        headers={headers}
       />
       <div className="marginTopM marginBottomM">
         {pagingLinks}
@@ -336,6 +346,10 @@ export var BuildTestsPage = React.createClass({
 });
 
 var ShardingTab = React.createClass({
+
+  propTypes: {
+    build: PropTypes.object.isRequired,
+  },
 
   getInitialState: function() {
     var jobPhases = {};
