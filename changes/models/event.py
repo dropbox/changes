@@ -19,14 +19,18 @@ class EventType(object):
     phabricator_comment = 'phabricator_comment_notification'
 
 
+# All currently active EventTypes.
+ALL_EVENT_TYPES = (EventType.email, EventType.green_build,
+                   EventType.aborted_build, EventType.phabricator_comment)
+
+
 class Event(db.Model):
     """
-    "No component of the system depends on event existing"
-
-    its just for logging and displaying to the user. We log whenever we email
-    a user about a broken build (or a green build, if that option is set in
-    the ui.) Technically, the type column only has two distinct values:
-    [email_notification, green_build_notification]. Contains a JSON data-blob
+    Indicates that something (specified by `type` and `data`) happened to some
+    entity (specified by `item_id`).
+    This allows us to record that we've performed some action with an external side-effect so
+    that we can be sure we do it no more than once. It is also useful for displaying to users which
+    actions have been performed when, and whether they were successful.
     """
     __tablename__ = 'event'
     __table_args__ = (
@@ -39,6 +43,7 @@ class Event(db.Model):
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    # A value from EventType
     type = Column(String(32), nullable=False)
     item_id = Column('item_id', GUID, nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)

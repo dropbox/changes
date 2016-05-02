@@ -4,7 +4,7 @@ from collections import defaultdict
 from flask_restful.reqparse import RequestParser
 from itertools import groupby
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
-from typing import List
+from typing import List  # NOQA
 from uuid import UUID
 
 from changes.api.base import APIView
@@ -14,7 +14,7 @@ from changes.constants import Result, Status
 from changes.lib import build_type
 from changes.models.build import Build, BuildPriority
 from changes.models.buildseen import BuildSeen
-from changes.models.event import Event
+from changes.models.event import Event, ALL_EVENT_TYPES
 from changes.models.failurereason import FailureReason
 from changes.models.job import Job
 from changes.models.jobstep import JobStep
@@ -248,6 +248,7 @@ class BuildDetailsAPIView(APIView):
 
         event_list = list(Event.query.filter(
             Event.item_id == build.id,
+            Event.type.in_(ALL_EVENT_TYPES)
         ).order_by(Event.date_created.desc()))
 
         context = self.serialize(build)
