@@ -295,7 +295,14 @@ var Sidebar = React.createClass({
         return url;
       });
 
-      var commitLink = <div> <a 
+      var codeLink = <div> <a
+        href={`/code/${this.props.targetData.id}`}
+        target="_blank">
+        <i className="fa fa-code marginRightS" style={{width: 15}} />
+        View Code for this Build
+      </a> </div>;
+
+      var commitLink = <div className="marginTopS"> <a
         className="external"
         href={ChangesLinks.phabCommitHref(source.revision)}
         target="_blank">
@@ -315,6 +322,7 @@ var Sidebar = React.createClass({
       }
 
       return <div>
+        {codeLink}
         {commitLink}
         {diffLink}
       </div>

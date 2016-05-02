@@ -111,11 +111,6 @@ export var SingleBuild = React.createClass({
       {this.renderFailedTests(build)}
       {render_all ? this.renderCoverage(coverageInfo) : null}
       {render_all ? this.renderJobs(build, job_phases) : null}
-      {render_all ?
-      <div className="marginTopL">
-        <a href={`/code/${build.source.id}`}>View Code for this Build</a>
-      </div>
-      : null}
     </div>;
   },
 
