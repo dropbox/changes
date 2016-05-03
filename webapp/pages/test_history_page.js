@@ -97,11 +97,18 @@ var TestHistoryPage = React.createClass({
       var build = t.job.build;
       var revision = build.source.revision;
 
+      let dotText = '';
+      const quarantined_results = ['quarantined_passed', 'quarantined_failed', 'quarantined_skipped'];
+      if (_.contains(quarantined_results, t.result.id)) {
+        dotText = 'Q';
+      }
       var build_href = ChangesLinks.buildTestHref(build.id, t);
       return [
-        <a className="buildStatus" href={build_href}>
-          <ConditionDot condition={test_result_to_condition[t.result.id] || COND_UNKNOWN} />
-        </a>,
+        <SimpleTooltip label={t.result.name} placement="right">
+          <a className="buildStatus" href={build_href}>
+            <ConditionDot condition={test_result_to_condition[t.result.id] || COND_UNKNOWN} num={dotText} />
+          </a>
+        </SimpleTooltip>,
         display_duration(t.duration / 1000),
         t.numRetries,
         ChangesLinks.author(revision.author),
