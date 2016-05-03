@@ -470,17 +470,22 @@ var ParentCommit = React.createClass({
     }
 
     var builds = this.state.builds.getReturnedData();
+    let shortSha = sha.substr(0, 7);
+    let shaMarkup = null;
+    if (builds.length > 0) {
+      shaMarkup = <span>
+        <a className="marginLeftXS" href={ChangesLinks.buildsHref(builds)}>
+        {shortSha}
+        </a>
+        <ManyBuildsStatus builds={builds} />
+        </span>;
+    } else {
+      shaMarkup = <span className="marginLeftXS">{shortSha}</span>;
+    }
     return <span className="parentLabel marginLeftS">
       &middot;
       <span className="marginLeftS">{label}</span>
-      <a
-        className="marginLeftXS"
-        href={ChangesLinks.buildsHref(builds)}>
-        {sha.substr(0,7)}
-      </a>
-      <ManyBuildsStatus
-        builds={builds}
-      />
-    </span>;
+      {shaMarkup}
+      </span>;
   }
 });
