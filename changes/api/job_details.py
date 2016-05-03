@@ -45,7 +45,7 @@ class JobDetailsAPIView(APIView):
             JobStep.job_id == job.id
         ).subquery()
         log_sources = list(LogSource.query.options(
-            joinedload('step'),
+            joinedload('step').joinedload('node'),
         ).filter(
             LogSource.job_id == job.id,
             LogSource.project_id == job.project_id,
