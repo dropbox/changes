@@ -162,7 +162,7 @@ class GitVcs(Vcs):
             raise
 
     def clone(self):
-        self.run(['clone', '--mirror', self.remote_url, self.path])
+        self.run(['clone', '--mirror', self.remote_url, self.path], cwd='/')
 
     def update(self):
         self.run(['remote', 'set-url', 'origin', self.remote_url])

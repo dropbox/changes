@@ -98,7 +98,7 @@ class MercurialVcs(Vcs):
             raise
 
     def clone(self):
-        self.run(['clone', '--uncompressed', self.remote_url, self.path])
+        self.run(['clone', '--uncompressed', self.remote_url, self.path], cwd='/')
 
     def update(self):
         self.run(['pull'])

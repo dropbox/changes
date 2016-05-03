@@ -108,8 +108,7 @@ class Vcs(object):
         return {}
 
     def run(self, *args, **kwargs):
-        if self.exists():
-            kwargs.setdefault('cwd', self.path)
+        kwargs.setdefault('cwd', self.path)
 
         env = os.environ.copy()
 
