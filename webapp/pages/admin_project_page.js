@@ -508,7 +508,6 @@ let PlanDetails = React.createClass({
                   'options': { 'build.timeout': 0},
                   'data': 'Please specify a configuration with JSON.',
                   };
-      let onClick = _ => this.setState({ createStepClicked: false });
       stepMarkup = <StepDetails stepExists={false}
                                 step={step}
                                 plan={this.props.plan} />;
