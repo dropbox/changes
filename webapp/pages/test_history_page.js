@@ -6,13 +6,10 @@ import SectionHeader from 'es6!display/section_header';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { ConditionDot,
-         COND_PASSED,
-         COND_FAILED,
-         COND_UNKNOWN,
-         COND_FAILED_INFRA,
-         COND_FAILED_ABORTED
+         get_runnable_condition
  } from 'es6!display/changes/build_conditions';
 
+import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
 import { TimeText, display_duration } from 'es6!display/time';
 import SimpleTooltip from 'es6!display/simple_tooltip';
@@ -72,19 +69,6 @@ var TestHistoryPage = React.createClass({
 
     var history = historyInteractive.getDataToShow().getReturnedData();
 
-    // Maps test result id to condition value for ConditionDot.
-    const test_result_to_condition = {
-      'passed':              COND_PASSED,
-      'quarantined_passed':  COND_PASSED,
-      'failed':              COND_FAILED,
-      'quarantined_failed':  COND_FAILED,
-      'skipped':             COND_UNKNOWN,
-      'quarantined_skipped': COND_UNKNOWN,
-      // Below are unexpected, but not impossible.
-      'aborted':      COND_FAILED_ABORTED,
-      'infra_failed': COND_FAILED_INFRA,
-    };
-
     var rows = _.map(history, t => {
       if (!t) {
         return [
@@ -106,7 +90,7 @@ var TestHistoryPage = React.createClass({
       return [
         <SimpleTooltip label={t.result.name} placement="right">
           <a className="buildStatus" href={build_href}>
-            <ConditionDot condition={test_result_to_condition[t.result.id] || COND_UNKNOWN} num={dotText} />
+            <ConditionDot condition={get_runnable_condition(t)} num={dotText} />
           </a>
         </SimpleTooltip>,
         display_duration(t.duration / 1000),
@@ -147,6 +131,9 @@ var TestHistoryPage = React.createClass({
 
     return <div style={style}>
       {errorMessage}
+      <div style={{textAlign: "center"}}>
+        <ChangesChart type="test" runnables={history} enableLatest={false} />
+      </div>
       <Grid
         colnum={headers.length}
         data={rows}

@@ -30,7 +30,7 @@ export var ChangesChart = React.createClass({
     var longestDuration = _.max(runnables, r => r && r.duration).duration;
 
     var content = _.map(this.props.runnables, runnable => {
-      var no_duration = !runnable.duration && runnable.duration === 0;
+      var no_duration = runnable && !runnable.duration && runnable.duration === 0;
       if (_.isEmpty(runnable) || no_duration) {
         // would be nice to still show a tooltip here...
         return <div 
@@ -59,9 +59,8 @@ export var ChangesChart = React.createClass({
         href = ChangesLinks.buildHref(runnable);
       } else if (this.props.type === 'test') {
         // TODO: show more details about the test
-        tooltipText = runnable.name;
-        href = '';  // TODO: this
-        // href = ChangesLinks.buildHref(build);
+        tooltipText = runnable.result.name;
+        href = ChangesLinks.buildTestHref(runnable.job.build.id, runnable);
       } else {
         return <ProgrammingError>
           Unknown type {this.props.type}

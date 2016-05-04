@@ -50,12 +50,12 @@ export var is_waiting = function(condition) {
 }
 
 /*
- * Looks at a build/job/jobstep's status and result fields to figure out what
- * condition the build is in. There are a bunch of failure conditions with a
- * common prefix, so you can just check failure with indexOf(COND_FAILED) === 0.
+ * Looks at a build/job/jobstep/test's status and result fields to figure out what
+ * condition the build is in.
  */
 export var get_runnable_condition = function(runnable) {
-  var status = runnable.status.id, result = runnable.result.id;
+  const status = runnable.status ? runnable.status.id : 'finished';
+  var result = runnable.result.id;
 
   if (status === 'in_progress' || status === 'queued' || status === 'pending_allocation') {
     if (runnable.stats && runnable.stats['test_failures']) {
@@ -67,14 +67,17 @@ export var get_runnable_condition = function(runnable) {
     return COND_WAITING;
   }
 
-  if (result === 'passed' || result === 'failed') {
-    return result;
-  } else if (result === 'aborted') {
-    return COND_FAILED_ABORTED;
-  } else if (result === 'infra_failed') {
-    return COND_FAILED_INFRA;
-  }
-  return COND_UNKNOWN;
+  const result_condition = {
+      'passed':              COND_PASSED,
+      'quarantined_passed':  COND_PASSED,
+      'failed':              COND_FAILED,
+      'quarantined_failed':  COND_FAILED,
+      'skipped':             COND_UNKNOWN,
+      'quarantined_skipped': COND_UNKNOWN,
+      'aborted':             COND_FAILED_ABORTED,
+      'infra_failed':        COND_FAILED_INFRA,
+  };
+  return result_condition[result] || COND_UNKNOWN;
 }
 
 /*
