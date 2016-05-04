@@ -146,9 +146,12 @@ var ChangesLinks = {
     return `/admin_repository/${repository.id}`;
   },
 
+  testHistoryHref(project, test_hash) {
+    return `/project_test/${project.id}/${test_hash}`;
+  },
+
   historyLink: function(project, test_hash) {
-    var href = `/project_test/${project.id}/${test_hash}`;
-    return <a href={href}>History</a>;
+    return <a href={ChangesLinks.testHistoryHref(project,test_hash)}>History</a>;
   },
 
   snapshotImageHref: function(snapshotImage) {

@@ -43,8 +43,8 @@ class ProjectTestGroupIndexTest(APITestCase):
         assert data['groups'][0]['path'] == 'foo'
         assert data['groups'][0]['numTests'] == 2
         assert data['groups'][0]['totalDuration'] == 120
-        assert data['groups'][1]['name'] == 'blah.blah'
-        assert data['groups'][1]['path'] == 'blah.blah'
+        assert data['groups'][1]['name'] == 'blah'
+        assert data['groups'][1]['path'] == 'blah'
         assert data['groups'][1]['numTests'] == 1
         assert data['groups'][1]['totalDuration'] == 10
         assert len(data['trail']) == 0

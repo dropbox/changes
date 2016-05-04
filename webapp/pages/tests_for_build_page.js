@@ -16,16 +16,25 @@ import { TestDetails } from 'es6!display/changes/test_details';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
+import { TestHierarchy } from 'es6!display/changes/test_hierarchy';
+
 import * as api from 'es6!server/api';
 
 import * as utils from 'es6!utils/utils';
 
+// Tab names.
+const SHARDING = 'Sharding';
+const NOT_PASSING_TESTS = 'Not Passing Tests';
+const TEST_LIST = 'Test List';
+const TEST_HIERARCHY = 'Test Hierarchy';
+
 export var BuildTestsPage = React.createClass({
 
   menuItems: [
-    'Sharding',
-    'Not Passing Tests',
-    'All Tests'
+    SHARDING,
+    NOT_PASSING_TESTS,
+    TEST_LIST,
+    TEST_HIERARCHY,
   ],
 
   propTypes: {
@@ -52,22 +61,19 @@ export var BuildTestsPage = React.createClass({
 
     // when we first came to this page, which tab was shown? Used by the
     // initial data fetching within tabs
-    this.initialTab = selectedItemFromHash || 'Not Passing Tests';
+    this.initialTab = selectedItemFromHash || NOT_PASSING_TESTS;
 
     this.setState({ selectedItem: this.initialTab });
 
     this.setState({
-      slowTests : InteractiveData(this,
-        'slowTests',
-        `/api/0/builds/${this.props.buildID}/tests/?sort=duration`),
-      allTests : InteractiveData(this,
-        'allTests',
+      testList : InteractiveData(this,
+        'testList',
         `/api/0/builds/${this.props.buildID}/tests/`),
     });
   },
 
   componentDidMount: function() {
-    _.each([['allTests', 'All Tests']], tabs => {
+    _.each([['testList', TEST_LIST]], tabs => {
       var [stateKey, tabName] = tabs;
       var params = {};
       if (this.initialTab === tabName) {
@@ -103,14 +109,17 @@ export var BuildTestsPage = React.createClass({
 
     var content = null;
     switch (selectedItem) {
-      case 'Sharding':
+      case SHARDING:
         content = <ShardingTab build={buildInfo} />;
         break;
-      case 'Not Passing Tests':
+      case NOT_PASSING_TESTS:
         content = this.renderFailed();
         break;
-      case 'All Tests':
+      case TEST_LIST:
         content = this.renderAllTests();
+        break;
+      case TEST_HIERARCHY:
+        content = <TestHierarchy buildID={this.props.buildID} projectID={buildInfo.project.id} />;
         break;
       default:
         throw 'unreachable';
@@ -229,7 +238,7 @@ export var BuildTestsPage = React.createClass({
   },
 
  renderAllTests() {
-    let interactive = this.state.allTests;
+    let interactive = this.state.testList;
 
     // we want to update the window url whenever the user switches tabs
     interactive.updateWindowUrl();

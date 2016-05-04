@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Dict, List, Set  # NOQA
 
 
 def build_flat_tree(tests, sep='.', min_children=1):
@@ -15,7 +16,8 @@ def build_flat_tree(tests, sep='.', min_children=1):
 
 
 def build_tree(tests, sep='.', min_children=1, parent=''):
-    tree = defaultdict(set)
+    # type: (List[str], str, int, str) -> Set[str]
+    tree = defaultdict(set)  # type: Dict[str, Set[str]]
 
     # Build a mapping of prefix => set(children)
     for test in tests:
