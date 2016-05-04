@@ -1500,7 +1500,7 @@ chart {
   overflow: hidden;
 }
 .barchart li:hover a {
-  background: #EFEFEF;
+  background: @chartGray;
 }
 
 .barchart li.result-passed a .count {
@@ -1538,11 +1538,11 @@ chart {
 
 d3barchart {
   display: block;
-  border-bottom: 1px solid #EFEFEF;
+  border-bottom: 1px solid @chartGray;
 }
 
 .bar {
-  fill: #EFEFEF;
+  fill: @chartGray;
 }
 
 .bar:hover {
