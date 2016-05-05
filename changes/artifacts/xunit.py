@@ -32,16 +32,20 @@ class XunitHandler(ArtifactHandler):
 
     @statsreporter.timer('xunithandler_get_tests')
     def get_tests(self, fp):
+        content_size = None
         try:
             # libxml has a limit on the size of a text field by default, but we encode stdout/stderr.
             #
             # Its not good to have such huge text fields in the first place but we still want to
             # avoid hard failing here if we do.
             parser = etree.XMLParser(huge_tree=True)
-            root = etree.fromstring(fp.read(), parser=parser)
+            content = fp.read()
+            content_size = len(content)
+            root = etree.fromstring(content, parser=parser)
         except Exception:
             uri = build_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
-            self.logger.warning('Failed to parse XML; (step=%s, build=%s)', self.step.id.hex, uri, exc_info=True)
+            self.logger.warning('Failed to parse XML; (step=%s, build=%s, size=%s)',
+                                self.step.id.hex, uri, content_size, exc_info=True)
             self._record_malformed()
             return []
 
