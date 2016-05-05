@@ -9,7 +9,11 @@ import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import { Grid } from 'es6!display/grid';
 import { ManyBuildsStatus } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
-import { get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/build_conditions';
+import {
+  get_runnable_condition,
+  get_runnable_condition_color_cls,
+  get_runnable_condition_icon
+} from 'es6!display/changes/build_conditions';
 
 import * as api from 'es6!server/api';
 
@@ -338,18 +342,22 @@ var Projects = React.createClass({
 
     var project_entries = _.compact(_.map(projects, p => {
       var color_cls = '';
+      var condition = null;
+
       if (p.lastBuild) {
         // ignore projects over a week old
         if (ChangesUI.projectIsStale(p.lastBuild)) {
           return null;
         }
 
-        color_cls = get_runnable_condition_color_cls(
-          get_runnable_condition(p.lastBuild));
+        condition = get_runnable_condition(p.lastBuild);
+        color_cls = get_runnable_condition_color_cls(condition);
       }
 
+      var icon = get_runnable_condition_icon(condition);
+
       return <a className={color_cls} href={ChangesLinks.projectHref(p)}>
-        {p.name}
+        {icon}{p.name}
       </a>;
     }));
 
