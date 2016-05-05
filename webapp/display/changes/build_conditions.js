@@ -137,9 +137,8 @@ export var ConditionDot = React.createClass({
     // the runnable condition to render (see get_runnable_condition)
     condition: PropTypes.oneOf(all_build_conditions).isRequired,
     // renders a number inside the dot. Despite the name, you can render a
-    // letter too (e.g. "!")
-    // (only if dot >= small and we aren't rendering an icon)
-    // TODO: this
+    // letter too (e.g. "E"). Takes precedent over icons.
+    // (only if dot >= small)
     num: PropTypes.oneOfType(PropTypes.number, PropTypes.string),
     // smaller = 12px, small = 16px
     size: PropTypes.oneOf(["smaller", "small", "medium", "large"]),
@@ -157,12 +156,16 @@ export var ConditionDot = React.createClass({
 
   render: function() {
     var condition = this.props.condition;
+    var num = this.props.num;
 
     var dot = null;
-    if (condition === COND_WAITING ||
+    if ((condition === COND_PASSED ||
+        condition === COND_FAILED ||
+        condition === COND_FAILED_INFRA ||
+        condition === COND_WAITING ||
         condition === COND_WAITING_WITH_FAILURES ||
         condition === COND_WAITING_WITH_ERRORS ||
-        condition === COND_FAILED_ABORTED) {
+        condition === COND_FAILED_ABORTED) && num === null) {
       var font_sizes = {
         smaller: 12,
         small: 16,
@@ -179,6 +182,9 @@ export var ConditionDot = React.createClass({
 
       var classes = {
         common: 'fa conditionDotIcon ',
+        [ COND_PASSED ]: 'fa-check-circle green',
+        [ COND_FAILED ]: 'fa-times-circle red',
+        [ COND_FAILED_INFRA ]: 'fa-exclamation-circle black',
         [ COND_WAITING ]: 'fa-clock-o blue', // blue instead of blue-gray
         [ COND_WAITING_WITH_FAILURES ]: 'fa-clock-o red',
         [ COND_WAITING_WITH_ERRORS ]: 'fa-clock-o black',
