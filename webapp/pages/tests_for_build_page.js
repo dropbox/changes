@@ -395,12 +395,17 @@ var ShardingTab = React.createClass({
 
           var expandLabel = !this.state.expandedShards[step.node.name] ?
             'See Raw Data' : 'Collapse';
-
+          let links = [];
+          let logHref = ChangesLinks.jobstepChunkedLogHref(this.props.build.id, step);
+          if (logHref) {
+            links.push(<a className="marginRightM" href={logHref}>Log</a>);
+          }
+          links.push(<a className="marginRightM" onClick={onClick}>{expandLabel}</a>);
           rows.push([
             step.node && step.node.name,
             step.data.weight,
             step.data.tests.length,
-            <a onClick={onClick}>{expandLabel}</a>
+            links
           ]);
 
           if (this.state.expandedShards[step.node.name]) {

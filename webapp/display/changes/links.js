@@ -160,7 +160,23 @@ var ChangesLinks = {
   // Link to a specific test in an individual build.
   buildTestHref: function(build_id, test) {
      return URI(`/build_test/${build_id}/${test.id}`);
-  }
+  },
+
+  jobstepChunkedLogHref(build_id, jobstep) {
+    let logUrl = null;
+    let logPriority = -1;
+    jobstep.logSources.forEach(l => {
+        l.urls.forEach(logSourceURL => {
+            if (logSourceURL.type == "chunked") {
+                if (!logUrl || logPriority <= logSourceURL.priority) {
+                    logUrl = `/job_log/${build_id}/${l.job.id}/${l.id}/`;
+                    logPriority = logSourceURL.priority;
+                }
+            }
+        })
+    });
+    return logUrl;
+  },
 };
 
 export default ChangesLinks;

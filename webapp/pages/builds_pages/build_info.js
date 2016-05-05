@@ -618,22 +618,16 @@ export var SingleBuild = React.createClass({
             .value();
 
         var links = [];
-        var nodeName = jobstep.node.name || jobstep.node.id;
-        var chunkedUrl = null;
-        var logPriority = -1;
         logSources.forEach(l => {
           l.urls.forEach(logSourceURL => {
-            if (logSourceURL.type == "chunked") {
-              if (!chunkedUrl || logPriority <= logSourceURL.priority) {
-                chunkedUrl = `/job_log/${build.id}/${job.id}/${l.id}/`;
-                logPriority = logSourceURL.priority;
-              }
-            } else {
+            if (logSourceURL.type != "chunked") {
               links.push(<a className="external marginRightM" href={logSourceURL.url} target="_blank">{l.name}</a>);
             }
           })
         });
 
+        var nodeName = jobstep.node.name || jobstep.node.id;
+        let chunkedUrl = ChangesLinks.jobstepChunkedLogHref(build.id, jobstep);
         if (chunkedUrl) {
           nodeName = <a href={chunkedUrl}>{nodeName}</a>;
         }
