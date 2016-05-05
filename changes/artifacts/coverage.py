@@ -92,8 +92,8 @@ class CoverageHandler(ArtifactHandler):
         try:
             parser = etree.XMLParser(target=CoverageParser(self))
             return etree.parse(fp, parser)
-        except etree.XMLSyntaxError as e:
-            self.logger.warn(str(e))
+        except etree.XMLSyntaxError:
+            self.logger.warn("Failed to parse coverage", exc_info=True)
             return []
 
 
