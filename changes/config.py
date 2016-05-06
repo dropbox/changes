@@ -500,6 +500,7 @@ def configure_api_routes(app):
     from changes.api.node_index import NodeIndexAPIView
     from changes.api.node_job_index import NodeJobIndexAPIView
     from changes.api.node_status import NodeStatusAPIView
+    from changes.api.node_from_hostname import NodeFromHostnameAPIView
     from changes.api.adminmessage_index import AdminMessageIndexAPIView
     from changes.api.patch_details import PatchDetailsAPIView
     from changes.api.phabricator_inline import PhabricatorInlineInfoAPIView
@@ -593,6 +594,7 @@ def configure_api_routes(app):
     api.add_resource(NodeIndexAPIView, '/nodes/')
     api.add_resource(NodeJobIndexAPIView, '/nodes/<uuid:node_id>/jobs/')
     api.add_resource(NodeStatusAPIView, '/nodes/<uuid:node_id>/status/')
+    api.add_resource(NodeFromHostnameAPIView, '/nodes/hostname/<node_hostname>/')
     api.add_resource(AdminMessageIndexAPIView, '/messages/')
     api.add_resource(PatchDetailsAPIView, '/patches/<uuid:patch_id>/')
     api.add_resource(PhabricatorInlineInfoAPIView, '/phabricator/inline/')

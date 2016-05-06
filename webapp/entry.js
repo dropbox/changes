@@ -152,11 +152,27 @@ require([
       var new_href = URI(ChangesLinks.buildHref(build))
         .addSearch('optin', 1);
       window.location.href = new_href;
-    }
+    };
 
     data_fetching.make_api_ajax_get('/api/0/builds/' + build_id, null,
       build_redirect_func, build_redirect_func);
-  }
+  };
+
+  var redirect_to_node = function(node_hostname) {
+    var node_redirect_func = function(response, was_success) {
+      if (!was_success) {
+        document.write('Redirect failed');
+        return;
+      }
+
+      var node = JSON.parse(response.responseText);
+      var new_href = URI(`/node/${node.id}/`);
+      window.location.href = new_href;
+    };
+
+    data_fetching.make_api_ajax_get('/api/0/nodes/hostname/' + node_hostname, null,
+      node_redirect_func, node__redirect_func);
+  };
 
   var redirect_to_jobstep = function(jobstep_id) {
     var jobstep_redirect_func = function(response, was_success) {
@@ -167,17 +183,20 @@ require([
 
       var jobstep = JSON.parse(response.responseText);
       redirect_to_build(jobstep.job.build.id);
-    }
+    };
 
     data_fetching.make_api_ajax_get('/api/0/jobsteps/' + jobstep_id, null,
       jobstep_redirect_func, jobstep_redirect_func);
-  }
+  };
 
   if (path_parts[0] === 'find_build') {
     redirect_to_build(path_parts[1]);
     return;
   } else if (path_parts[0] === 'find_jobstep') {
     redirect_to_jobstep(path_parts[1]);
+    return;
+  } else if (path_parts[0] === 'find_node') {
+    redirect_to_node(path_parts[1]);
     return;
   }
 
