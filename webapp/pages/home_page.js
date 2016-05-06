@@ -265,7 +265,7 @@ var Commits = React.createClass({
         .value();
 
       var name = utils.truncate(utils.first_line(c.revision.message));
-      if (c.builds) {
+      if (c.builds.length > 0) {
         name = <a className="subtle" href={ChangesLinks.buildsHref(c.builds)}>
           {name}
         </a>;
