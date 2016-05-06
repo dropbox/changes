@@ -6,7 +6,9 @@ import { Button } from 'es6!display/button';
 import { ProgrammingError } from 'es6!display/errors';
 import Request from 'es6!display/request';
 import { buildSummaryText } from 'es6!display/changes/build_text';
-import { get_runnable_condition,
+import { COND_NO_BUILDS,
+         get_runnable_condition,
+         get_runnable_condition_icon,
          get_runnables_summary_condition,
          ConditionDot } from 'es6!display/changes/build_conditions';
 
@@ -27,9 +29,8 @@ export var ManyBuildsStatus = React.createClass({
   render: function() {
     var builds = this.props.builds;
 
-    if (!builds) {
-      // TODO: we could render an empty widget that went to the empty build page
-      return <div />;
+    if (builds.length === 0) {
+      return get_runnable_condition_icon(COND_NO_BUILDS);
     }
 
     // If this is a diff, we only want to look at builds that ran on the last
