@@ -3,7 +3,11 @@ import React, { PropTypes } from 'react';
 import ChangesLinks from 'es6!display/changes/links';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 import { ProgrammingError } from 'es6!display/errors';
-import { get_runnable_condition, get_runnable_condition_color_cls } from 'es6!display/changes/build_conditions';
+import {
+  get_runnable_condition,
+  get_runnable_condition_color_cls,
+  get_runnable_condition_short_text
+} from 'es6!display/changes/build_conditions';
 
 /*
  * Renders a small bar chart of a series of builds/tests/maybe others
@@ -22,7 +26,7 @@ export var ChangesChart = React.createClass({
   getDefaultProps() {
     return { enableLatest: true };
   },
-  
+
   render() {
     var { runnables, className, } = this.props;
     
@@ -48,9 +52,9 @@ export var ChangesChart = React.createClass({
 
       var columnPadding = this.MAX_CHART_HEIGHT - barHeight;
 
-      var bgColor = get_runnable_condition_color_cls(
-        get_runnable_condition(runnable),
-        true);
+      var condition = get_runnable_condition(runnable);
+      var bgColor = get_runnable_condition_color_cls(condition, true);
+      var label = get_runnable_condition_short_text(condition, true);
 
       var tooltipText = null, href = null;
       if (this.props.type === 'build') {
@@ -67,13 +71,15 @@ export var ChangesChart = React.createClass({
         </ProgrammingError>;
       }
 
-      return <SimpleTooltip label={tooltipText} placement="bottom">
+      return <SimpleTooltip label={tooltipText} placement="top">
         <a 
           className="chartBarColumn" 
           href={href}
           style={{ paddingTop: columnPadding }}>
           <div 
-            className={"chartBar " + bgColor} 
+            className={"chartBar " + bgColor}
+            alt={label}
+            title={label}
             style={{ height: barHeight }}
           />
         </a>
