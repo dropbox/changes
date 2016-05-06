@@ -10,6 +10,7 @@ import { Grid } from 'es6!display/grid';
 import { ManyBuildsStatus } from 'es6!display/changes/builds';
 import { TimeText } from 'es6!display/time';
 import {
+  COND_NO_BUILDS,
   get_runnable_condition,
   get_runnable_condition_color_cls,
   get_runnable_condition_icon
@@ -342,7 +343,7 @@ var Projects = React.createClass({
 
     var project_entries = _.compact(_.map(projects, p => {
       var color_cls = '';
-      var condition = null;
+      var condition = COND_NO_BUILDS;
 
       if (p.lastBuild) {
         // ignore projects over a week old

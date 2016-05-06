@@ -21,6 +21,9 @@ export const COND_UNKNOWN = 'unknown';
 export const COND_WAITING = 'waiting';
 export const COND_WAITING_WITH_ERRORS = 'waiting_with_errors';
 export const COND_WAITING_WITH_FAILURES = 'waiting_with_failures';
+  // to generate icons for projects that do not
+  // have any builds (for the projects page, for example)
+export const COND_NO_BUILDS = null;
 
 const ICON_CLASSES = {
   [ COND_PASSED ]: 'fa-check-circle green',
@@ -30,6 +33,7 @@ const ICON_CLASSES = {
   [ COND_WAITING_WITH_FAILURES ]: 'fa-clock-o red',
   [ COND_WAITING_WITH_ERRORS ]: 'fa-clock-o black',
   [ COND_FAILED_ABORTED ]: 'red fa-ban',
+  [ COND_NO_BUILDS ]: 'fa-circle-thin blue',
 }
 
 var all_build_conditions = [
@@ -107,18 +111,30 @@ export var get_runnables_summary_condition = function(runnables) {
     COND_PASSED;
 }
 
-// short, readable text for runnable conditions
-export var get_runnable_condition_short_text = function(condition) {
-  var names = {
-      [ COND_PASSED ]: 'passed',
-      [ COND_FAILED ]: 'failed',
-      [ COND_FAILED_ABORTED ]: 'aborted',
-      [ COND_FAILED_INFRA ]: 'infrastructure failure',
-      [ COND_WAITING_WITH_ERRORS ]: 'in progress (errors occurred)',
-      [ COND_WAITING_WITH_FAILURES ]: 'in progress (test failures occurred)',
-      [ COND_WAITING ]:'in progress',
-  };
-  return names[condition] || 'unknown';
+// short, readable text for runnable conditions.
+// tooltip text is for generating hover text on
+// status icons only.
+export var get_runnable_condition_short_text = function(condition, tooltip = false) {
+  switch (condition) {
+      case COND_PASSED:
+        return tooltip ? 'Passing' : 'passed';
+      case COND_FAILED:
+        return tooltip ? 'Failing' : 'failed';
+      case COND_FAILED_ABORTED:
+        return 'aborted';
+      case COND_FAILED_INFRA:
+        return tooltip ? 'Infrastructure failure' : 'infrastructure failure';
+      case COND_WAITING_WITH_ERRORS:
+        return 'in progress (errors occurred)';
+      case COND_WAITING_WITH_FAILURES:
+        return 'in progress (test failures occurred)';
+      case COND_WAITING:
+        return 'in progress';
+      case COND_NO_BUILDS:
+        return tooltip ? 'Not yet run' : '';
+      default:
+        return 'unknown';
+  }
 }
 
 export var get_runnable_condition_color_cls = function(condition, background = false) {
@@ -140,19 +156,15 @@ export var get_runnable_condition_color_cls = function(condition, background = f
 }
 
 var get_runnable_condition_icon_classname = function(condition) {
-  var iconClassName = 'fa conditionDotIcon ';
-
-  if (ICON_CLASSES[condition]) {
-
-    return iconClassName + ICON_CLASSES[condition];
-  }
-  // to generate icons for projects that do not
-  // have any builds (for the projects page, for example)
-  return iconClassName + 'fa-circle-thin blue';
+  return 'fa conditionDotIcon ' + ICON_CLASSES[condition];
 }
 
 export var get_runnable_condition_icon = function(condition) {
-  return <i className={get_runnable_condition_icon_classname(condition)} />;
+  var label = get_runnable_condition_short_text(condition, true);
+
+  return <i className={get_runnable_condition_icon_classname(condition)}
+            title={label}
+            alt={label} />;
 }
 
 /*
