@@ -166,7 +166,7 @@ require([
       }
 
       var node = JSON.parse(response.responseText);
-      var new_href = URI(`/node/${node.id}/`);
+      var new_href = URI('/node/' + node.id + '/');
       window.location.href = new_href;
     };
 
