@@ -171,7 +171,7 @@ require([
     };
 
     data_fetching.make_api_ajax_get('/api/0/nodes/hostname/' + node_hostname, null,
-      node_redirect_func, node__redirect_func);
+      node_redirect_func, node_redirect_func);
   };
 
   var redirect_to_jobstep = function(jobstep_id) {
