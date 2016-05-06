@@ -22,6 +22,16 @@ export const COND_WAITING = 'waiting';
 export const COND_WAITING_WITH_ERRORS = 'waiting_with_errors';
 export const COND_WAITING_WITH_FAILURES = 'waiting_with_failures';
 
+const ICON_CLASSES = {
+  [ COND_PASSED ]: 'fa-check-circle green',
+  [ COND_FAILED ]: 'fa-times-circle red',
+  [ COND_FAILED_INFRA ]: 'fa-exclamation-circle black',
+  [ COND_WAITING ]: 'fa-clock-o blue', // blue instead of blue-gray
+  [ COND_WAITING_WITH_FAILURES ]: 'fa-clock-o red',
+  [ COND_WAITING_WITH_ERRORS ]: 'fa-clock-o black',
+  [ COND_FAILED_ABORTED ]: 'red fa-ban',
+}
+
 var all_build_conditions = [
   COND_PASSED,
   COND_FAILED,
@@ -126,6 +136,22 @@ export var get_runnable_condition_color_cls = function(condition, background = f
   }
 }
 
+var get_runnable_condition_icon_classname = function(condition) {
+  var iconClassName = 'fa conditionDotIcon ';
+
+  if (ICON_CLASSES[condition]) {
+
+    return iconClassName + ICON_CLASSES[condition];
+  }
+  // to generate icons for projects that do not
+  // have any builds (for the projects page, for example)
+  return iconClassName + 'fa-circle-thin blue';
+}
+
+export var get_runnable_condition_icon = function(condition) {
+  return <i className={get_runnable_condition_icon_classname(condition)} />;
+}
+
 /*
  * Renders a rounded square with a color that indicates the condition of the
  * runnable (passed/failed/unknown/not yet run.) Shows icons instead of
@@ -159,13 +185,7 @@ export var ConditionDot = React.createClass({
     var num = this.props.num;
 
     var dot = null;
-    if ((condition === COND_PASSED ||
-        condition === COND_FAILED ||
-        condition === COND_FAILED_INFRA ||
-        condition === COND_WAITING ||
-        condition === COND_WAITING_WITH_FAILURES ||
-        condition === COND_WAITING_WITH_ERRORS ||
-        condition === COND_FAILED_ABORTED) && num === null) {
+    if (ICON_CLASSES[condition] && num === null) {
       var font_sizes = {
         smaller: 12,
         small: 16,
@@ -180,17 +200,7 @@ export var ConditionDot = React.createClass({
         style = _.extend(style, {marginLeft: 2, marginRight: 6});
       }
 
-      var classes = {
-        common: 'fa conditionDotIcon ',
-        [ COND_PASSED ]: 'fa-check-circle green',
-        [ COND_FAILED ]: 'fa-times-circle red',
-        [ COND_FAILED_INFRA ]: 'fa-exclamation-circle black',
-        [ COND_WAITING ]: 'fa-clock-o blue', // blue instead of blue-gray
-        [ COND_WAITING_WITH_FAILURES ]: 'fa-clock-o red',
-        [ COND_WAITING_WITH_ERRORS ]: 'fa-clock-o black',
-        [ COND_FAILED_ABORTED ]: 'red fa-ban',
-      }
-      var className = classes['common'] + classes[condition];
+      var className = get_runnable_condition_icon_classname(condition);
 
       dot = <i
         className={className}
