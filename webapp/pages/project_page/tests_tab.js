@@ -66,12 +66,6 @@ var TestsTab = React.createClass({
       />;
     }
 
-    var InProgressMessage = <div className="messageBox marginBottomM">
-      This tab is still a WIP (adding the ability for you to find tests via a
-      filter, more dashboards, and other stuff.) Right now we have a flaky
-      test dashboard finished.
-    </div>;
-
     // render menu
     var selectedItem = this.state.selectedItem;
 
@@ -96,7 +90,6 @@ var TestsTab = React.createClass({
     }
 
     return <div>
-      {InProgressMessage}
       {menu}
       {content}
     </div>;
