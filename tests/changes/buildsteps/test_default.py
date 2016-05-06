@@ -98,7 +98,7 @@ class DefaultBuildStepTest(TestCase):
                                      repo_path='source', path='tests')
         buildstep.execute(job)
 
-        vcs.get_buildstep_clone.assert_called_with(job.source, 'source', True, None, None)
+        vcs.get_buildstep_clone.assert_called_with(job.source, 'source', True, None, pre_reset_checkout=True)
 
         assert job.phases[0].label == 'Collect tests'
         step = job.phases[0].steps[0]

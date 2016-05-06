@@ -212,11 +212,11 @@ class MercurialVcs(Vcs):
         self.log_timing('get_known_branches', start_time)
         return list(branch_names)
 
-    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_command=None):
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=False):
         if cache_dir is not None:
             logging.warning("unexpected cache_dir provided for hg repository")
-        if pre_reset_command:
-            logging.warning('unexpected pre_reset_command set for hg repository')
+        if pre_reset_checkout:
+            logging.warning('unexpected pre_reset_checkout set for hg repository')
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
             local_path=workspace,

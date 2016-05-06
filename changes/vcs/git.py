@@ -314,13 +314,9 @@ class GitVcs(Vcs):
             else:
                 raise
 
-    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_command=None):
-        reset_commands = {
-            'status': 'git status',
-            'checkout': 'git checkout -q master',
-            'reset_master': 'git reset master',
-        }
-        pre_reset = reset_commands.get(pre_reset_command)
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=False):
+        if pre_reset_checkout:
+            pre_reset = 'git checkout -q master'
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
             local_path=workspace,

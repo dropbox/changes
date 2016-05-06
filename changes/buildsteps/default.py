@@ -176,12 +176,11 @@ class DefaultBuildStep(BuildStep):
         repo = source.repository
         vcs = repo.get_vcs()
         if vcs is not None:
-            pre_reset_command = self.debug_config.get('pre_reset_command', None)
             yield FutureCommand(
                 script=vcs.get_buildstep_clone(
                         source, self.repo_path, self.clean,
                         self.debug_config.get('repo_cache_dir'),
-                        pre_reset_command),
+                        pre_reset_checkout=True),
                 env=self.env,
                 type=CommandType.infra_setup,
             )
