@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import ReactDOM from 'react-dom';
 
 import Examples from 'es6!display/examples';
 import { ProgrammingError } from 'es6!display/errors';
@@ -162,7 +163,7 @@ export var Grid = React.createClass({
     // happens, but that should be ok. The css rule only triggers when both
     // a react-supplied class and our custom class are present.
 
-    var overflowNodes = React.findDOMNode(this).getElementsByClassName('cellOverflow');
+    var overflowNodes = ReactDOM.findDOMNode(this).getElementsByClassName('cellOverflow');
     _.each(overflowNodes, cell => {
       if (cell.scrollWidth > cell.clientWidth) {
         cell.className += " cellOverflowPointer";

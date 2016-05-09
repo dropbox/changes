@@ -279,12 +279,12 @@ var BuildsPage = React.createClass({
       var build = _.filter(builds, b => b.id === this.state.activeBuildID);
       if (build) {
         // use a key so that we remount when switching builds
-        return {
+        return React.addons.createFragment({
           [ build[0].id ]:
             <SingleBuild
               build={build[0]}
             />
-        };
+        });
       }
     }
 

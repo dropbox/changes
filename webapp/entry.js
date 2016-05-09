@@ -17,6 +17,7 @@ requirejs.config({
     react_bootstrap: 'vendor/react-bootstrap/react-bootstrap',
     // core libraries we use
     react: 'vendor/react/react-with-addons',
+    'react-dom': 'vendor/react/react-dom',
     requirejs: 'vendor/requirejs/require',
     underscore: 'vendor/underscore/underscore',
     // library to deal with URIs. Per github repo, this version is published
@@ -45,6 +46,7 @@ requirejs.config({
 
 require([
   "react",
+  "react-dom",
   "underscore",
   "uriJS/URI",
   "es6!server/api",
@@ -75,6 +77,7 @@ require([
   "es6!pages/fourohfour_page",
 ], function(
   React,
+  ReactDOM,
   _,
   URI,
   data_fetching,
@@ -302,7 +305,7 @@ require([
     ).trim();
     document.getElementById('reactRoot').className = root_classes
 
-    var pageElem = React.render(
+    var pageElem = ReactDOM.render(
       React.createElement(page, params),
       document.getElementById('reactRoot')
     );

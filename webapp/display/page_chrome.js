@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import ReactDOM from 'react-dom';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
@@ -72,7 +73,7 @@ export var ChangesPage = React.createClass({
   },
 
   componentDidMount: function() {
-    var node = this.getDOMNode();
+    var node = ReactDOM.findDOMNode(this);
 
     var messageNode = node.getElementsByClassName('persistentMessage')[0];
     if (messageNode){
