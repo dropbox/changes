@@ -29,6 +29,8 @@
     "chai": "~1.9.1",
     "grunt": "~0.4.2",
     "eslint": "~2.8.0",
+    "babel-eslint": "~6.0.0",
+    "eslint-plugin-react": "~4.0.0",
     "grunt-angular-templates": "~0.5.7",
     "grunt-cli": "~0.1.3",
     "grunt-contrib-requirejs": "~0.4.1",

@@ -14,7 +14,6 @@ easy_install-2.7 --version
 sudo easy_install-2.7 -U pip
 sudo easy_install-2.7 virtualenv
 
-
 redis-server -v
 virtualenv ~/env
 sudo -u postgres createuser -s `whoami` --no-password || true
