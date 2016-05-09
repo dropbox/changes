@@ -59,7 +59,9 @@ export var Grid = React.createClass({
     }
 
     return <table {...props} className={className}>
-      {header_row}
+      <thead>
+        {header_row}
+      </thead>
       <tbody>
         {rows}
       </tbody>

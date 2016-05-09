@@ -377,7 +377,9 @@ var Projects = React.createClass({
         <td>{v3}</td>
       </tr>
     });
-    var project_table = <table className="invisibleTable">{project_rows}</table>;
+    var project_table = <table className="invisibleTable">
+                          <tbody>{project_rows}</tbody>
+                        </table>;
 
     return <div>
       <SectionHeader>Projects</SectionHeader>

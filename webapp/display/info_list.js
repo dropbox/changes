@@ -51,7 +51,7 @@ export var InfoList = React.createClass({
     });
 
     className = (className || "") + " invisibleTable infoList";
-    return <table className={className} {...others}>{rows}</table>;
+    return <table className={className} {...others}><tbody>{rows}</tbody></table>;
   },
 });
 
