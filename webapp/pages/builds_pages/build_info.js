@@ -231,6 +231,7 @@ export var SingleBuild = React.createClass({
           <Request
             parentElem={this}
             name={unsafeName}
+            method="post"
             endpoint={`/api/0/builds/${build.id}/tags?${build_tags}`}>
             <Button type="white" className="sizedButton">
               <span className={buttonColor}>

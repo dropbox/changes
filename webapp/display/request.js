@@ -14,11 +14,7 @@ var Request = React.createClass({
     name: PropTypes.string.isRequired,
     endpoint: PropTypes.string.isRequired,
     params: PropTypes.object,
-    method: function(props, propName) {
-      if (!_.contains(['delete', 'post', 'get'], props[propName])) {
-        return new Error('Unknown request method');
-      }
-    },
+    method: PropTypes.oneOf(['delete', 'post', 'get']).isRequired,
     promptText: PropTypes.string,
   },
 
