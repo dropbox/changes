@@ -10,7 +10,6 @@ import CommitsTab from 'es6!pages/project_page/commits_tab';
 import DetailsTab from 'es6!pages/project_page/details_tab';
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 import TestsTab from 'es6!pages/project_page/tests_tab';
-import TriageTab from 'es6!pages/project_page/triage_tab';
 
 import * as api from 'es6!server/api';
 
@@ -45,7 +44,6 @@ var ProjectPage = React.createClass({
     'Builds',
     'Tests',
     'Details',
-    'Triage',
   ],
 
   componentWillMount: function() {
@@ -148,11 +146,6 @@ var ProjectPage = React.createClass({
           project={this.state.project}
           details={this.state.details}
           pageElem={this}
-        />;
-        break;
-      case 'Triage':
-        content = <TriageTab
-          project={this.state.project}
         />;
         break;
       default:
