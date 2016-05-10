@@ -105,7 +105,7 @@ var DetailsTab = React.createClass({
     }
 
     var notes = project.options["project.notes"]
-    var notes_class = notes ? '' : missing_value_class;
+    var notes_class = notes ? 'preText' : missing_value_class;
 
     var owners = project.options["project.owners"]
     var owners_class = owners ? '' : missing_value_class;
