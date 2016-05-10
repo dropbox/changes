@@ -76,6 +76,7 @@ module.exports = function(grunt) {
               'es6': '../static/vendor/requirejs-babel/es6',
               'moment': "../static/vendor/moment/min/moment.min",
               'react': '../static/vendor/react/react-with-addons',
+              'react-dom': '../static/vendor/react/react-dom',
               'react_bootstrap': '../static/vendor/react-bootstrap/react-bootstrap',
               'requirejs': '../static/vendor/requirejs/require',
               'underscore': '../static/vendor/underscore/underscore',
