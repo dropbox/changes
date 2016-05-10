@@ -17,8 +17,6 @@ class AuthorBuildListTest(APITestCase):
 
         resp = self.client.get(path)
         assert resp.status_code == 404
-        data = self.unserialize(resp)
-        assert len(data) == 0
 
         author = Author(email=self.default_user.email, name='Foo Bar')
         db.session.add(author)

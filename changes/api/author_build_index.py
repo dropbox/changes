@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 from sqlalchemy.orm import joinedload
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.auth import get_current_user
 from changes.models.author import Author
 from changes.models.build import Build
@@ -10,11 +10,11 @@ from changes.models.build import Build
 
 class AuthorBuildIndexAPIView(APIView):
     def get(self, author_id):
+        if author_id == 'me' and not get_current_user():
+            return error('Must be logged in to ask about yourself', http_code=401)
         authors = Author.find(author_id, get_current_user())
-        if not authors and author_id == 'me':
-            return '', 401
-        elif not authors:
-            return '', 404
+        if not authors:
+            return error('Author not found', http_code=404)
 
         queryset = Build.query.options(
             joinedload('project'),

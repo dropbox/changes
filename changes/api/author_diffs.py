@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from changes.api.base import APIView
+from changes.api.base import APIView, error
 from changes.api.auth import get_current_user
 from changes.config import db
 from changes.models.author import Author
@@ -23,12 +23,11 @@ class AuthorPhabricatorDiffsAPIView(APIView):
     """
 
     def get(self, author_id):
+        if author_id == 'me' and not get_current_user():
+            return error('Must be logged in to ask about yourself', http_code=401)
         authors = Author.find(author_id, get_current_user())
-        if not authors and author_id == 'me':
-            return '''Either there is no current user or you are not in the
-              author table''', 401
-        elif not authors:
-            return 'author not found', 404
+        if not authors:
+            return error('Author not found', http_code=404)
 
         try:
             author_email = authors[0].email

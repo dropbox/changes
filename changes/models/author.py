@@ -29,8 +29,7 @@ class Author(db.Model):
     @classmethod
     def find(cls, author_id, current_user=None):
         if author_id == 'me':
-            if current_user is None:
-                return []
+            assert current_user is not None
             email = current_user.email
         elif '@' in author_id:
             email = author_id
