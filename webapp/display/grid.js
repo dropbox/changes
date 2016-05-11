@@ -262,9 +262,10 @@ export class GridRow {
   // use this if you want your row to just be a single item that spans all
   // columns. By default, there's no border between this row and the one above
   // it
-  static oneItem(item) {
+  static oneItem(item, key=null) {
     var g = new GridRow([item]);
     g.useColspan = true;
+    g.key = key;
     return g;
   }
 

@@ -168,15 +168,18 @@ export var BuildTestsPage = React.createClass({
         color = 'red';
       }
 
-      rows.push([
+      let testRow = new GridRow([
         markup,
         <span className={color}>{capitalizedResult}</span>,
         ChangesLinks.historyLink(project, test.hash),
       ]);
+      testRow.key = test.test_id;
+      rows.push(testRow);
 
       if (this.state.expandedTests[test.test_id]) {
         rows.push(GridRow.oneItem(
-          <TestDetails testID={test.test_id} buildID={this.props.buildID} />
+          <TestDetails testID={test.test_id} buildID={this.props.buildID} />,
+          test.test_id + ":expanded"
         ));
       }
     });
@@ -192,7 +195,7 @@ export var BuildTestsPage = React.createClass({
       // render the number ourselves
       var rest_of_words = _.rest(sentence.split(" ")).join(" ");
 
-      var onClick = evt => {
+      let onChange = evt => {
         this.setState(
           utils.update_key_in_state_dict(
             'uncheckedResults',
@@ -203,10 +206,9 @@ export var BuildTestsPage = React.createClass({
       };
 
       var isChecked = !this.state.uncheckedResults[result];
-
-      return <div className="marginTopS">
+      return <div className="marginTopS" key={result}>
         <label>
-          <input type="checkbox" checked={isChecked} onClick={onClick} />
+          <input type="checkbox" checked={isChecked} onChange={onChange} />
           <span className="marginLeftXS lb">{tests.length}</span>
           {" "}
           {rest_of_words}
@@ -273,8 +275,8 @@ export var BuildTestsPage = React.createClass({
       rows.push(rowData);
 
       if (this.state.expandedAllTests[test.id]) {
-        let expanded = GridRow.oneItem(<TestDetails testID={test.id} buildID={this.props.buildID} />);
-        expanded.key = test.id + ":expanded";
+        let expanded = GridRow.oneItem(<TestDetails testID={test.id} buildID={this.props.buildID} />,
+                                       test.id + ":expanded");
         rows.push(expanded);
       }
     });
