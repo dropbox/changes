@@ -22,7 +22,8 @@ class SyncJobTest(TestCase):
         self.build = self.create_build(project=self.project)
         self.job = self.create_job(build=self.build)
         self.jobphase = self.create_jobphase(self.job)
-        self.jobstep = self.create_jobstep(self.jobphase)
+        self.node = self.create_node()
+        self.jobstep = self.create_jobstep(self.jobphase, node=self.node)
 
         self.task = self.create_task(
             parent_id=self.build.id,
@@ -189,7 +190,7 @@ class SyncJobTest(TestCase):
         assert not _should_retry_jobstep(self.jobstep)
 
     @mock.patch('changes.jobs.sync_job._should_retry_jobstep')
-    def test_find_and_retry_jobsteps(self, should_retry_jobstep):
+    def test_find_and_retry_jobsteps_simple(self, should_retry_jobstep):
         should_retry_jobstep.return_value = True
         implementation = mock.Mock()
         phase = self.job.phases[0]
@@ -200,13 +201,56 @@ class SyncJobTest(TestCase):
 
         # test JOBSTEP_RETRY_MAX
         implementation.reset_mock()
+        old_max = current_app.config['JOBSTEP_RETRY_MAX']
         current_app.config['JOBSTEP_RETRY_MAX'] = 0
         _find_and_retry_jobsteps(phase, implementation)
         implementation.create_replacement_jobstep.assert_not_called()
+        current_app.config['JOBSTEP_RETRY_MAX'] = old_max
 
-        # test already_retried
-        current_app.config['JOBSTEP_RETRY_MAX'] = 1
+    @mock.patch('changes.jobs.sync_job._should_retry_jobstep')
+    def test_find_and_retry_jobsteps_limits(self, should_retry_jobstep):
+        implementation = mock.Mock()
+        phase = self.job.phases[0]
+
+        # each replaced jobstep needs a unique replacement_id, but otherwise
+        # we want to ignore these.
+        replacing_jobsteps = [self.create_jobstep(phase).id for _ in xrange(3)]
+        should_retry_jobstep.side_effect = lambda step: (step.id not in replacing_jobsteps and
+                                                         step.replacement_id is None)
+
+        old_retry_max = current_app.config['JOBSTEP_RETRY_MAX']
+        old_machine_max = current_app.config['JOBSTEP_MACHINE_RETRY_MAX']
+        current_app.config['JOBSTEP_RETRY_MAX'] = 3
+        current_app.config['JOBSTEP_MACHINE_RETRY_MAX'] = 1
+        node2 = self.create_node()
         self.create_jobstep(phase, status=Status.finished,
-                            replacement_id=self.jobstep.id)
+                            replacement_id=replacing_jobsteps[0], node=node2)
+        self.create_jobstep(phase, status=Status.finished,
+                            replacement_id=replacing_jobsteps[1], node=node2)
         _find_and_retry_jobsteps(phase, implementation)
+        # self.jobstep is a different node, so won't be retried
         implementation.create_replacement_jobstep.assert_not_called()
+
+        # now we have the budget to retry another machine
+        current_app.config['JOBSTEP_MACHINE_RETRY_MAX'] = 2
+        self.create_jobstep(phase, status=Status.finished,
+                            replacement_id=replacing_jobsteps[2], node=self.node)
+        _find_and_retry_jobsteps(phase, implementation)
+        # but we hit JOBSTEP_RETRY_MAX
+        implementation.create_replacement_jobstep.assert_not_called()
+
+        current_app.config['JOBSTEP_RETRY_MAX'] = 5
+        _find_and_retry_jobsteps(phase, implementation)
+        # now we have sufficient JOBSTEP_RETRY_MAX and JOBSTEP_MACHINE_RETRY_MAX
+        implementation.create_replacement_jobstep.assert_called_once_with(self.jobstep)
+
+        # can only retry one of jobstep_samenode and self.jobstep
+        implementation.reset_mock()
+        current_app.config['JOBSTEP_MACHINE_RETRY_MAX'] = 2
+        jobstep_samenode = self.create_jobstep(phase, status=Status.finished,
+                            node=self.create_node())
+        _find_and_retry_jobsteps(phase, implementation)
+        assert implementation.create_replacement_jobstep.call_count == 1
+
+        current_app.config['JOBSTEP_RETRY_MAX'] = old_retry_max
+        current_app.config['JOBSTEP_MACHINE_RETRY_MAX'] = old_machine_max

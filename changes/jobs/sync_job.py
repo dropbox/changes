@@ -55,16 +55,22 @@ def _find_and_retry_jobsteps(phase, implementation):
     should_retry = [s for s in phase.steps if _should_retry_jobstep(s)]
     if not should_retry:
         return
-    already_retried = JobStep.query.filter(JobStep.job == phase.job,
-                                           JobStep.replacement_id.isnot(None)).count()
-    max_retry = current_app.config['JOBSTEP_RETRY_MAX'] - already_retried
+    already_retried = dict(db.session.query(JobStep.node_id, func.count(JobStep.node_id)).filter(
+        JobStep.job == phase.job,
+        JobStep.replacement_id.isnot(None)
+    ).group_by(JobStep.node_id))
     for step in should_retry:
-        if max_retry <= 0:
+        # hard max on how many jobsteps we retry
+        if (sum(already_retried.itervalues()) >= current_app.config['JOBSTEP_RETRY_MAX']):
+            break
+        # max on how many different failing machines we'll retry jobsteps for.
+        if (step.node_id not in already_retried and len(already_retried) >= current_app.config['JOBSTEP_MACHINE_RETRY_MAX']):
             break
         newstep = implementation.create_replacement_jobstep(step)
         if newstep:
             statsreporter.stats().incr('jobstep_replaced')
-            max_retry -= 1
+            # NB: node_id could be None if the jobstep failed before we got a node_id
+            already_retried[step.node_id] = already_retried.get(step.node_id, 0) + 1
 
 
 def sync_job_phases(job, phases=None, implementation=None):
