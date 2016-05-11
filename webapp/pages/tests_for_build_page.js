@@ -288,12 +288,18 @@ export var BuildTestsPage = React.createClass({
     var pagingLinks = interactive.getPagingLinks({use_next_previous: true});
 
     let currentReverse = interactive.getCurrentParams()["reverse"] == "true";
+    let currentSort = interactive.getCurrentParams()["sort"] || "duration";
 
-    let switchSort = (key, rev) => {
-        interactive.updateWithParams({'sort': key, 'reverse': rev});
+    let switchSort = (sortKey, rev) => {
+        // We use 'true' for true and null for false when saving 'reverse' value,
+        // because this maps accurately to what we'd see in the URL and in data pulled
+        // from the URL; null means "unset" (which defaults to false in the API), and the
+        // there is no way to set a non-string URL parameter, so 'true' (which the API recognizes
+        // as a bool) is stored/read as a string consistently.
+        let storedRev = rev ? 'true' : null;
+        interactive.updateWithParams({'sort': sortKey, 'reverse': storedRev}, true);
     };
 
-    let currentSort = interactive.getCurrentParams()["sort"] || "duration";
     const sortHeader = (text, key) => {
         let caret = null;
         let newRev = currentReverse;
@@ -328,7 +334,7 @@ export var BuildTestsPage = React.createClass({
       <form onSubmit={updateInteractive}>
       <label>{"Filter: "}
       <input type="text" onChange={searchOnChange}
-             value={this.state.queryValue} />
+             value={this.state.queryValue || ''} />
              </label>
       </form>
       </div>
