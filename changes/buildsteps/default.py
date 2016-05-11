@@ -282,7 +282,9 @@ class DefaultBuildStep(BuildStep):
 
         if replaces:
             replaces.replacement_id = step.id
+            step.data['avoid_node'] = replaces.node.label
             db.session.add(replaces)
+            db.session.add(step)
 
         db.session.commit()
 
@@ -305,7 +307,9 @@ class DefaultBuildStep(BuildStep):
                                    skip_setup_teardown=True)
         db.session.flush()
         step.replacement_id = new_jobstep.id
+        new_jobstep.data['avoid_node'] = step.node.label
         db.session.add(step)
+        db.session.add(new_jobstep)
         db.session.commit()
         sync_job_step.delay_if_needed(
             step_id=new_jobstep.id.hex,

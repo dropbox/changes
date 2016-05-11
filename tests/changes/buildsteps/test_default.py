@@ -173,6 +173,7 @@ class DefaultBuildStepTest(TestCase):
         oldstep = job.phases[0].steps[0]
         oldstep.result = Result.infra_failed
         oldstep.status = Status.finished
+        oldstep.node = self.create_node(label='ip-127-0-0-1')
         db.session.add(oldstep)
         db.session.commit()
 
@@ -184,6 +185,7 @@ class DefaultBuildStepTest(TestCase):
         assert len(oldstep.phase.steps) == 2
         # make sure replacement id is correctly set
         assert oldstep.replacement_id == step.id
+        assert step.data['avoid_node'] == 'ip-127-0-0-1'
 
         # we want the retried jobstep to have the exact same attributes the
         # original jobstep would be expected to after execute()
@@ -314,6 +316,7 @@ class DefaultBuildStepTest(TestCase):
 
         fail_jobstep.result = Result.infra_failed
         fail_jobstep.status = Status.finished
+        fail_jobstep.node = self.create_node(label='ip-127-0-0-1')
         db.session.add(fail_jobstep)
         db.session.commit()
 
@@ -325,6 +328,7 @@ class DefaultBuildStepTest(TestCase):
         assert len(fail_jobstep.phase.steps) == 2
         # make sure replacement id is correctly set
         assert fail_jobstep.replacement_id == new_jobstep.id
+        assert new_jobstep.data['avoid_node'] == 'ip-127-0-0-1'
 
         # we want the replacement jobstep to have the same attributes the
         # original jobstep would be expected to after expand_jobstep()
