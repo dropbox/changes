@@ -8,7 +8,8 @@ export var Button = React.createClass({
     // blue for primary actions, white for secondary, paging just for paging
     // links, chart-paging for the chart on the builds page
     // red for triage tool (removing tags)
-    type: PropTypes.oneOf(['blue', 'white', 'paging', 'chart_paging', 'red']),
+    // flash for flash message notifications (flash.js)
+    type: PropTypes.oneOf(['blue', 'white', 'paging', 'chart_paging', 'red', 'flash']),
     // paging buttons can be disabled. Haven't written the css for disabling
     // other buttons yet, though
     disabled: PropTypes.bool
@@ -32,6 +33,7 @@ export var Button = React.createClass({
       paging: 'pagingButton button ',
       chart_paging: 'chartPagingButton ',
       red: 'redButton button ',
+      flash: 'flashButton button ',
     }[this.props.type];
 
     var className = buttonClass + (className || "");
@@ -61,6 +63,9 @@ Examples.add('Buttons', __ => {
     </div>,
     <div>
       <Button className="marginRightS" type="red">Remove this tag</Button>
+    </div>,
+    <div>
+      <Button className="marginRightS" type="flash">Close the notification</Button>
     </div>
   ];
 });
