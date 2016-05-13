@@ -93,6 +93,17 @@ class ProjectBuildListTest(APITestCase):
         assert len(data) == 1
         assert data[0]['id'] == build3.id.hex
 
+    def test_multiple_tags(self):
+        project = self.create_project()
+        build1 = self.create_build(project, tags=['foo'])
+        build2 = self.create_build(project, tags=['bar'])
+        path = '/api/0/projects/{0}/builds/'.format(project.id.hex)
+        resp = self.client.get(path + '?tag=foo&tag=bar')
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+        assert len(data) == 2
+        assert {build1.id.hex, build2.id.hex} == {data[0]['id'], data[1]['id']}
+
     def test_more_searches(self):
         project1 = self.create_project()
 

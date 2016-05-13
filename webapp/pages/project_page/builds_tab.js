@@ -156,44 +156,34 @@ var BuildsTab = React.createClass({
       'Commits Only',
       'Commit Queue Only',
       'Diffs/arc test only',
-      'Snapshot creation only'
+      'Snapshot only'
     ];
 
     var params_for_items = {
       'All': {
-        'include_patches': 1,
-        'patches_only': 0,
-        'tag': '',
-        'cause': ''
+        'patches_only': null,
+        'tag': null,
       },
       'Commits Only': {
-        'include_patches': 0,
-        'patches_only': 0,
-        'tag': '',
-        'cause': ''
+        'patches_only': null,
+        'tag': 'commit',
       },
       'Commit Queue Only': {
-        'include_patches': 0,
-        'patches_only': 0,
+        'patches_only': null,
         'tag': 'commit-queue',
-        'cause': ''
       },
       'Diffs/arc test only': {
-        'include_patches': 1,
         'patches_only': 1,
-        'tag': '',
-        'cause': ''
+        'tag': null,
       },
-      'Snapshot creation only': {
-        'include_patches': 0,
-        'patches_only': 0,
-        'tag': '',
-        'cause': 'snapshot'
+      'Snapshot only': {
+        'patches_only': null,
+        'tag': ['snapshot', 'test-snapshot'],
       }
     };
 
     var current_params = this.props.interactive.getCurrentParams();
-    var selected_item = 'All';
+    var selected_item = items[0];
     _.each(params_for_items, (params, item) => {
       var is_selected = true;
       _.each(params, (v,k) => {
