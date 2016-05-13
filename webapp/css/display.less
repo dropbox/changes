@@ -184,6 +184,51 @@ tr.gridHeader {
 }
 
 /*
+ * Flash Messages
+ */
+
+.flash {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  display: inline-block;
+  padding: 0px 6px 0px 6px;
+  position: fixed;
+  top: 2%;
+  white-space: nowrap;
+  z-index: 100;
+}
+
+.flash.failure {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+
+.flash.info {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+
+.flash.success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+
+.flash.warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+
+
+.flashWrapper {
+  text-align: center;
+  width: 100%;
+}
+
+/*
  * Inline Loading
  */
 
@@ -461,6 +506,7 @@ a.button.flashButton {
   color: inherit;
   font-weight: bold;
   margin-left: 10px;
+  padding: 6px;
 }
 
 a.button.flashButton:hover {
