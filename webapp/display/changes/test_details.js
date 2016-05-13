@@ -28,7 +28,7 @@ export var TestDetails = React.createClass({
   },
 
   render: function() {
-    var { testID, className, ...props} = this.props;
+    var { testID, className, ...props} = this.props;  // eslint-disable-line
 
     if (!api.isLoaded(this.state.test)) {
       return <APINotLoaded calls={this.state.test} />;

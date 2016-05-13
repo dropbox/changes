@@ -332,7 +332,7 @@ var PusherPageContent = React.createClass({
   
   renderAux() {
     var auxProject = this.props.aux;
-    var [repo, branch] = auxProject.split('::');
+    var repo = auxProject.split('::')[0];
 
     var commitList = this.props.fetchedState[auxProject].getReturnedData();
 

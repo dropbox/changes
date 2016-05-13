@@ -35,7 +35,7 @@ export var Grid = React.createClass({
   },
 
   render: function() {
-    var { data, headers, cellClasses, className, ...props} = this.props;
+    var { data, headers, cellClasses, className, ...props} = this.props;  // eslint-disable-line
 
     // we only have something to render if we have >= 1 row or headers
     if (data.length === 0 && _.isEmpty(headers)) {

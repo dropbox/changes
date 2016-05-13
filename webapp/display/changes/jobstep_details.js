@@ -23,7 +23,7 @@ export var JobstepDetails = React.createClass({
   },
 
   render: function() {
-    var { jobstepID, className, ...props} = this.props;
+    var { jobstepID, className, ...props} = this.props;  // eslint-disable-line
 
     if (!api.isLoaded(this.state.details)) {
       return <APINotLoaded calls={this.state.details} />;

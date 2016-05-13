@@ -25,7 +25,7 @@ export var Button = React.createClass({
   },
 
   render: function() {
-    var { label, className, ...props } = this.props;
+    var { label, className, ...props } = this.props;  // eslint-disable-line
 
     var buttonClass = {
       blue: 'blueButton button ',
