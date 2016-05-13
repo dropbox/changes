@@ -180,6 +180,10 @@ var ChangesLinks = {
     });
     return logUrl;
   },
+
+  testsForBuildHref(build_id, testFailures = 0) {
+    return `/build_tests/${build_id}` + (testFailures == 0 ? '#TestList' : '');
+  },
 };
 
 export default ChangesLinks;

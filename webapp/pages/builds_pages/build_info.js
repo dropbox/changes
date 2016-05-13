@@ -246,9 +246,7 @@ export var SingleBuild = React.createClass({
 
     // show a button for the tests for build page, since its important and we
     // want a prominent link
-    var buildTestsHref = `/build_tests/${build.id}` +
-      (build.testFailures.total > 0 ? '' : "#SlowTests")
-
+    var buildTestsHref = ChangesLinks.testsForBuildHref(build.id, build.testFailures.total);
 
     let recreateButton = <Request
         parentElem={this}
@@ -316,8 +314,7 @@ export var SingleBuild = React.createClass({
       'In Progress' : build.stats.test_count;
 
     var testLabel = build.dateFinished ? "Tests Ran" : "Tests Run";
-    var buildTestsHref = `/build_tests/${build.id}` +
-      (build.testFailures.total > 0 ? '' : "#SlowTests")
+    var buildTestsHref = ChangesLinks.testsForBuildHref(build.id, build.testFailures.total);
     attributes.push(<InfoItem label={testLabel}>
       <span>
         {testCount}{" ("}
