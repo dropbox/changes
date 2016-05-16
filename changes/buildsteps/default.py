@@ -7,6 +7,7 @@ from copy import deepcopy
 from flask import current_app
 from itertools import chain
 
+from changes.artifacts.analytics_json import AnalyticsJsonHandler
 from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.manager import Manager
 from changes.artifacts.xunit import XunitHandler
@@ -23,7 +24,7 @@ from changes.models.snapshot import SnapshotImage
 from changes.utils.http import build_uri
 
 
-DEFAULT_ARTIFACTS = XunitHandler.FILENAMES + CoverageHandler.FILENAMES
+DEFAULT_ARTIFACTS = XunitHandler.FILENAMES + CoverageHandler.FILENAMES + AnalyticsJsonHandler.FILENAMES
 
 DEFAULT_PATH = './source/'
 
@@ -471,7 +472,7 @@ class DefaultBuildStep(BuildStep):
         ))
 
     def get_artifact_manager(self, jobstep):
-        return Manager([CoverageHandler, XunitHandler])
+        return Manager([CoverageHandler, XunitHandler, AnalyticsJsonHandler])
 
     def prefer_artifactstore(self):
         return self.debug_config.get('prefer_artifactstore', True)

@@ -282,6 +282,13 @@ def create_app(_read_config=True, **config):
     # Namespace within zookeeper where mesos master election is performed.
     app.config['ZOOKEEPER_MESOS_MASTER_PATH'] = '/mesos'
 
+    # List of valid tables to be written to when reporting project analytics.
+    # Analytics artifacts targeting tables not listed here will be considered invalid.
+    app.config['ANALYTICS_PROJECT_TABLES'] = []
+    # URL any project analytics JSON entries will be posted to.
+    # Entries will be posted as JSON, with the intended table specified as 'source' in the URL params.
+    app.config['ANALYTICS_PROJECT_POST_URL'] = None
+
     app.config['SUPPORT_CONTACT'] = 'support'
 
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'

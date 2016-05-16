@@ -5,6 +5,9 @@ from fnmatch import fnmatch
 import logging
 import os
 
+from changes.config import db
+from changes.db.utils import try_create
+from changes.models.failurereason import FailureReason
 from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX
 
 
@@ -50,3 +53,14 @@ class ArtifactHandler(object):
         """
         Process the given artifact.
         """
+
+    def report_malformed(self):
+        new_fr = try_create(FailureReason, {
+            'step_id': self.step.id,
+            'job_id': self.step.job_id,
+            'build_id': self.step.job.build_id,
+            'project_id': self.step.project_id,
+            'reason': 'malformed_artifact'
+        })
+        if new_fr:
+            db.session.commit()

@@ -7,10 +7,8 @@ from lxml import etree
 
 from flask import current_app
 
-from changes.config import db, statsreporter
+from changes.config import statsreporter
 from changes.constants import Result
-from changes.db.utils import try_create
-from changes.models.failurereason import FailureReason
 from changes.models.testresult import TestResult, TestResultManager
 from changes.utils.agg import aggregate_result
 from changes.utils.http import build_uri
@@ -46,7 +44,7 @@ class XunitHandler(ArtifactHandler):
             uri = build_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
             self.logger.warning('Failed to parse XML; (step=%s, build=%s, size=%s)',
                                 self.step.id.hex, uri, content_size, exc_info=True)
-            self._record_malformed()
+            self.report_malformed()
             return []
 
         # We've parsed the XML successful, but we still need to make sure it is well-formed for our reasons.
@@ -56,18 +54,8 @@ class XunitHandler(ArtifactHandler):
             return self.get_xunit_tests(root)
         except ArtifactParseError:
             # There may be valid test data to be extracted, but we discard them all to be safe.
-            self._record_malformed()
+            self.report_malformed()
             return []
-
-    def _record_malformed(self):
-        try_create(FailureReason, {
-            'step_id': self.step.id,
-            'job_id': self.step.job_id,
-            'build_id': self.step.job.build_id,
-            'project_id': self.step.project_id,
-            'reason': 'malformed_artifact'
-        })
-        db.session.commit()
 
     def get_bitten_tests(self, root):
         step = self.step

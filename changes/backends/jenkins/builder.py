@@ -15,6 +15,7 @@ from datetime import datetime
 from flask import current_app
 from lxml import etree, objectify
 
+from changes.artifacts.analytics_json import AnalyticsJsonHandler
 from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.dummylogfile import DummyLogFileHandler
 from changes.artifacts.manager import Manager
@@ -909,7 +910,7 @@ class JenkinsBuilder(BaseBackend):
         return job_data
 
     def get_artifact_manager(self, jobstep):
-        handlers = [CoverageHandler, XunitHandler, ManifestJsonHandler]
+        handlers = [CoverageHandler, XunitHandler, ManifestJsonHandler, AnalyticsJsonHandler]
         if self.debug_config.get('fetch_jenkins_logs'):
             handlers.append(DummyLogFileHandler)
         return Manager(handlers)
