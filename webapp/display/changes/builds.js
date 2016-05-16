@@ -54,7 +54,7 @@ export var ManyBuildsStatus = React.createClass({
     var tooltip_markup = _.map(latest_builds, b => {
       var subtext = buildSummaryText(b, true);
 
-      return <div style={{textAlign: "left"}}>
+      return <div style={{textAlign: "left"}} key={b.id}>
         <div style={{ display: "inline-block", paddingTop: 10, paddingRight: 5}}>
           <ConditionDot condition={get_runnable_condition(b)} />
         </div>
