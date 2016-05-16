@@ -165,11 +165,6 @@ var ProjectPage = React.createClass({
   },
 
   renderProjectInfo: function(project_info) {
-    var triggers = _.compact([
-      project_info.options["phabricator.diff-trigger"] ? "Diffs" : null,
-      project_info.options["build.commit-trigger"] ? "Commits" : null,
-    ]);
-
     var branches_option = project_info.options["build.branch-names"] || '*';
     if (branches_option === "*") {
       var branches = "all branches";
