@@ -180,7 +180,7 @@ export var ConditionDot = React.createClass({
     // renders a number inside the dot. Despite the name, you can render a
     // letter too (e.g. "E"). Takes precedent over icons.
     // (only if dot >= small)
-    num: PropTypes.oneOfType(PropTypes.number, PropTypes.string),
+    num: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     // smaller = 12px, small = 16px
     size: PropTypes.oneOf(["smaller", "small", "medium", "large"]),
     // we have a special UI indicator to represent multiple builds
