@@ -86,7 +86,6 @@ var DetailsTab = React.createClass({
     var branches = branches_option === "*" ?
       'any' :
       branches_option.replace(/ /g, ", ");
-    var branch_class = branches_option === "*" ? missing_value_class : '';
 
     var whitelist_option = project.options["build.file-whitelist"].trim();
     var whitelist_paths = 'No path filter';
