@@ -20,6 +20,14 @@ virtualenv ~/env
 sudo -u postgres createuser -s `whoami` --no-password || true
 sudo -u postgres createdb changes || true
 sudo chown -R `whoami` `npm config get cache` || true
+# npm keeps running into 'EXDEV' issues when it attempts to rename files across
+# "device" boundaries, presumably due to overlay filesystem. This hack-patching
+# is ugly and shouldn't be necessary, but it is the most reliable path to a useful build
+# right now.
+pushd $(npm root -g)/npm \
+    && sudo npm install fs-extra \
+    && sudo sed -i -e s/graceful-fs/fs-extra/ -e s/fs.rename/fs.move/ ./lib/utils/rename.js
+popd
 source ~/env/bin/activate
 time make install-test-requirements
 
