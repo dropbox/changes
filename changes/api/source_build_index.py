@@ -2,7 +2,9 @@ from __future__ import absolute_import, division, unicode_literals
 
 from flask_restful.reqparse import RequestParser
 
+from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
+
 from uuid import UUID
 
 from changes.api.base import APIView, error
@@ -20,6 +22,7 @@ class SourceBuildIndexAPIView(APIView):
     get_parser.add_argument('source_id', type=UUID, location='args')
     get_parser.add_argument('revision_sha', location='args')
     get_parser.add_argument('repo_id', type=UUID, location='args')
+    get_parser.add_argument('tag', type=unicode, action='append', location='args')
 
     def get(self):
         args = self.get_parser.parse_args()
@@ -45,11 +48,17 @@ class SourceBuildIndexAPIView(APIView):
         if source is None:
             return error("source not found", http_code=404)
 
+        filters = [Build.source_id == source.id]
+        if args.tag:
+            tags = filter(bool, args.tag)
+            # Avoid empty tags, which historically are meant to mean "no tag" restriction.
+            if tags:
+                filters.append(or_(*[Build.tags.any(t) for t in tags]))
         builds = self.serialize(list(
             Build.query.options(
                 joinedload('author')
             ).filter(
-                Build.source_id == source.id,
+                *filters
             ).order_by(Build.date_created.desc())
         ))
         build_ids = [build['id'] for build in builds]

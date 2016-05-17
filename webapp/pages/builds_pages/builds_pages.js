@@ -450,7 +450,7 @@ var ParentCommit = React.createClass({
 
     api.fetch(this, {
       builds: URI('/api/0/sources_builds/')
-        .addQuery({ revision_sha: sha, repo_id: repoID })
+        .addQuery({ revision_sha: sha, repo_id: repoID, tag: "commit" })
         .toString()
     });
   },
