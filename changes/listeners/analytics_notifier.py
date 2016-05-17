@@ -261,12 +261,17 @@ def _get_job_failure_reasons_by_jobstep(job):
 
 
 def _get_failing_log_sources(job):
+    # Restricting to matching JobStep ids when querying LogSources
+    # allows us to use the LogSource.step_id index, which makes
+    # the query significantly faster.
+    jobstep_ids = db.session.query(JobStep.id).filter(
+        JobStep.job_id == job.id,
+        JobStep.result.in_([Result.failed, Result.infra_failed])
+    ).subquery()
     return list(LogSource.query.filter(
-        LogSource.job_id == job.id,
+        LogSource.step_id.in_(jobstep_ids),
     ).join(
         JobStep, LogSource.step_id == JobStep.id,
-    ).filter(
-        JobStep.result.in_([Result.failed, Result.infra_failed]),
     ).order_by(JobStep.date_created))
 
 
