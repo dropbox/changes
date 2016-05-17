@@ -55,7 +55,7 @@ install_requires = [
     'python-dateutil>=2.1,<2.2',
     'PyYAML>=3.11',
     'simplejson>=3.3.0,<3.4.0',
-    'sqlalchemy==0.9.4',
+    'sqlalchemy==1.0.13',
     'statprof',
     'statsd==3.0.1',
     'toronado==0.0.4',

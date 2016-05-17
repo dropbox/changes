@@ -5,7 +5,6 @@ from flask_restful.reqparse import RequestParser
 from itertools import groupby
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
 from typing import List  # NOQA
-from uuid import UUID
 
 from changes.api.base import APIView
 from changes.api.serializer.models.testcase import TestCaseWithOriginCrumbler
@@ -104,9 +103,9 @@ def find_changed_tests(current_build, previous_build, limit=25):
     diff = []
     for c_id, p_id in results:
         if p_id:
-            diff.append(('-', test_map[UUID(p_id)]))
+            diff.append(('-', test_map[p_id]))
         else:
-            diff.append(('+', test_map[UUID(c_id)]))
+            diff.append(('+', test_map[c_id]))
 
     return {
         'total': total,

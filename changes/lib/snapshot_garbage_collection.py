@@ -122,7 +122,8 @@ def cache_snapshot(snapshot):
         CachedSnapshotImage.id == SnapshotImage.id,
         SnapshotImage.snapshot_id == Snapshot.id,
         Snapshot.project_id == snapshot.project_id
-    ).update(dict(expiration_date=now + current_app.config['CACHED_SNAPSHOT_EXPIRATION_DELTA']))
+    ).update(dict(expiration_date=now + current_app.config['CACHED_SNAPSHOT_EXPIRATION_DELTA']),
+             synchronize_session='fetch')
 
     images = SnapshotImage.query.filter(SnapshotImage.snapshot_id == snapshot.id)
 
