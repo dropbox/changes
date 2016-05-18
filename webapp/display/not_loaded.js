@@ -22,7 +22,7 @@ var APINotLoaded = React.createClass({
   propTypes: {
     // you can pass multiple API calls as a list (making sure they've all loaded
     // before proceeding.)
-    calls: PropTypes.oneOfType([PropTypes.object, PropTypes.list]),
+    calls: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 
     // if true, show InlineLoading instead of RandomLoading
     // TODO: should always be true?
