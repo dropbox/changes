@@ -19,4 +19,4 @@ if [ -n "$EXCLUDE" ]; then
     FILES=`echo "$FILES" | egrep -v "$EXCLUDE"`
 fi
 
-ci/run_mypy.py $MYPY --silent-imports --stats --py2 $FILES $EXTRA_FILES
+ci/run_mypy.py $MYPY --silent-imports --py2 $FILES $EXTRA_FILES
