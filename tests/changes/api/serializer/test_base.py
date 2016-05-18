@@ -1,6 +1,6 @@
 import mock
 
-from changes.api.serializer import Crumbler, new_serialize as serialize
+from changes.api.serializer import Crumbler, serialize
 from changes.testutils import TestCase
 
 

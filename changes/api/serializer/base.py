@@ -5,7 +5,6 @@ from uuid import UUID
 from typing import cast, Any, Callable, Dict, Generic, Iterable, List, Optional, TypeVar  # NOQA
 from itertools import izip
 
-from flask import request
 
 # Types for which serialization is a no-op. Everything boils down to these (or
 # to objects without crumblers, which we pass through unscathed)
@@ -21,59 +20,6 @@ class Future(object):
         # type: (object, object) -> None
         self.data = data
         self.final = final
-
-
-def old_serialize(data, extended_registry=None):
-    if extended_registry is None:
-        extended_registry = {}
-
-    if isinstance(data, _PASSTHROUGH):
-        return data
-
-    if isinstance(data, dict):
-        for k, v in data.iteritems():
-            if not isinstance(v, _PASSTHROUGH) or not isinstance(k, _PASSTHROUGH):
-                # Gotta do it the hard way.
-                return dict(zip(old_serialize(data.keys(), extended_registry),
-                                old_serialize(data.values(), extended_registry)))
-        # All keys and values were passthrough, so the dict is already
-        # serialized.
-        return data
-
-    if isinstance(data, (list, tuple, set, frozenset)):
-        if not data:
-            return []
-
-        # if every item in the list is the same, we want to batch fetch any
-        # necessary data from the db before serializing them all
-        if len(set(type(g) for g in data)) == 1:
-            # Make sure it is a list.
-            if not isinstance(data, list):
-                data = list(data)
-
-            # If we have a list of passthrough, we're done.
-            if isinstance(data[0], _PASSTHROUGH):
-                return data
-
-            crumbler = get_crumbler(data[0], extended_registry)
-
-            if crumbler:
-                attrs = crumbler.get_extra_attrs_from_db(data)
-                data = [crumbler(o, attrs=attrs.get(o)) for o in data]
-
-        return [old_serialize(j, extended_registry) for j in data]
-
-    # if we're here, we have a single object that we probably need to convert
-    # using a crumbler
-    crumbler = get_crumbler(data, extended_registry)
-
-    if crumbler is None:
-        return data
-
-    attrs = crumbler.get_extra_attrs_from_db([data])
-    data = crumbler(data, attrs=attrs.get(data))
-
-    return old_serialize(data, extended_registry)
 
 
 def _gather(data, collected):
@@ -187,19 +133,6 @@ def _expand(data):
         return data
 
 
-def new_serialize(data, extended_registry=None):
-    # type: (object, Optional[Dict[type, Crumbler[object]]]) -> object
-    needs_crumble = []  # type: List[Future]
-    initial = _gather(data, needs_crumble)
-    if not needs_crumble:
-        return initial
-
-    _finalize_futures(needs_crumble, extended_registry)
-
-    # everything should be fully crumbled now, just have to assemble it
-    return _expand(initial)
-
-
 def serialize(data, extended_registry=None):
     # type: (object, Optional[Dict[type, Crumbler[object]]]) -> object
     """
@@ -214,10 +147,15 @@ def serialize(data, extended_registry=None):
 
     Its safe (but CPU-expensive) to rerun serialize on data multiple times
     """
-    if request.args.get('__new_serialize__', '1') == '1':
-        return new_serialize(data, extended_registry)
-    else:
-        return old_serialize(data, extended_registry)
+    needs_crumble = []  # type: List[Future]
+    initial = _gather(data, needs_crumble)
+    if not needs_crumble:
+        return initial
+
+    _finalize_futures(needs_crumble, extended_registry)
+
+    # everything should be fully crumbled now, just have to assemble it
+    return _expand(initial)
 
 
 #
