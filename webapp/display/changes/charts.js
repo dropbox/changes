@@ -31,7 +31,8 @@ export var ChangesChart = React.createClass({
     var { runnables, className, } = this.props;
 
     // we'll render bar heights relative to this
-    var longestDuration = _.chain(runnables).compact().pluck('duration').sort().last().value();
+    // We sortBy(identity) because using sort() sorts by string representation, which is wrong.
+    var longestDuration = _.chain(runnables).compact().pluck('duration').sortBy(_.identity).last().value();
 
     var content = _.map(this.props.runnables, runnable => {
       var no_duration = runnable && !runnable.duration && runnable.duration === 0;
