@@ -335,8 +335,9 @@ export var BuildTestsPage = React.createClass({
 
 
     let searchOnChange = evt => this.setState({queryValue: evt.target.value.trim()});
-    let updateInteractive = () => {
-        interactive.updateWithParams({query: this.state.queryValue || null});
+    let updateInteractive = evt => {
+        interactive.updateWithParams({query: this.state.queryValue || null}, true);
+        evt.preventDefault();
         return false;
     };
     return <div style={style}>
