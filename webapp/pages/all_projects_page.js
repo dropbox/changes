@@ -488,7 +488,7 @@ var AllProjectsPage = React.createClass({
 
       _.each(val.master, (plan, index) => {
         rows.push([
-          is_first_row ? {toggleDisable} : '',
+          is_first_row ? toggleDisable : '',
           is_first_row ? first_row_text : '',
           index === 0 ? <span className="paddingRightM">Anything</span> : '',
           plan.name,
@@ -500,7 +500,7 @@ var AllProjectsPage = React.createClass({
 
       _.each(val.diff, (plan, index) => {
         rows.push([
-          is_first_row ? {toggleDisable} : '',
+          is_first_row ? toggleDisable : '',
           is_first_row ? first_row_text : '',
           index === 0 ? <span className="paddingRightM">Diffs-only</span> : '',
           plan.name,
