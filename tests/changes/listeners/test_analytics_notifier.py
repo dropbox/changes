@@ -332,9 +332,11 @@ class AnalyticsNotifierTest(TestCase):
             'date_created': created,
             'date_started': started,
             'date_finished': finished,
+            'duration': duration * 1000,
             'failure_reasons': ['aborted', 'missing_tests'],
             'log_categories': [],
             'cluster': 'luck',
+            'project_slug': 'project-slug',
             'item_stats': {},
         }
         post_fn.assert_called_once_with(URL, [expected_data])
@@ -381,6 +383,7 @@ class AnalyticsNotifierTest(TestCase):
             'result': 'Passed',
             'replacement_id': None,
             'label': 'Step 1',
+            'duration': duration * 1000,
             'data': {'foo': 'bar'},
             'date_created': created,
             'date_started': started,
@@ -388,6 +391,7 @@ class AnalyticsNotifierTest(TestCase):
             'failure_reasons': [],
             'log_categories': [],
             'cluster': 'funk',
+            'project_slug': 'project-slug',
             'item_stats': {'files': 55, 'lines': 44},
         }
         post_fn.assert_called_once_with(URL, [expected_data])

@@ -178,12 +178,16 @@ def job_finished_handler(job_id, **kwargs):
     records = []
     failure_reasons_by_jobstep = _get_job_failure_reasons_by_jobstep(job)
     for jobstep in JobStep.query.filter(JobStep.job == job):
+        duration = None
+        if jobstep.date_finished and jobstep.date_started:
+            duration = (jobstep.date_finished - jobstep.date_started).total_seconds() * 1000
         data = {
                 'jobstep_id': jobstep.id.hex,
                 'job_id': jobstep.job_id.hex,
                 'phase_id': jobstep.phase_id.hex,
                 'build_id': job.build_id.hex,
                 'label': jobstep.label,
+                'project_slug': jobstep.project.slug,
                 'cluster': jobstep.cluster,
                 'result': unicode(jobstep.result),
                 'replacement_id': jobstep.replacement_id.hex if jobstep.replacement_id else None,
@@ -196,7 +200,7 @@ def job_finished_handler(job_id, **kwargs):
                 'log_categories': sorted(list(tags_by_step[jobstep.id])),
                 'failure_reasons': failure_reasons_by_jobstep[jobstep.id],
                 'item_stats': _get_itemstat_dict(jobstep.id),
-                # TODO: Node? Duration (to match build, for efficiency)?
+                'duration': duration,
         }
 
         records.append(data)
