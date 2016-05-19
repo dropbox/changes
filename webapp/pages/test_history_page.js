@@ -13,6 +13,8 @@ import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
 import { TimeText, display_duration } from 'es6!display/time';
 import SimpleTooltip from 'es6!display/simple_tooltip';
+import { InfoList, InfoItem } from 'es6!display/info_list';
+
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -155,6 +157,11 @@ var TestHistoryPage = React.createClass({
 
     return <ChangesPage>
       <SectionHeader>History: {test_data.shortName}</SectionHeader>
+      <InfoList className="marginTopM">
+        <InfoItem label="Package">{test_data.package}</InfoItem>
+        <InfoItem label="First Seen"><TimeText time={test_data.firstBuild.dateCreated} /></InfoItem>
+      </InfoList>
+      <br/>
       Displaying a list of the results of this test for every commit in master.
       <div className="marginTopM">
         {this.renderHistory()}
