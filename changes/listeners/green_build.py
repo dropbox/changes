@@ -59,21 +59,15 @@ def get_release_id(source, vcs):
 
 @lock
 def build_finished_handler(build_id, **kwargs):
+    """Update the latest green build if this is a green build for a commit.
+
+    Also, send a green build notification if the project is configured to do so.
+    """
     build = Build.query.get(build_id)
     if build is None:
         return
 
     if build.result != Result.passed:
-        return
-
-    url = current_app.config.get('GREEN_BUILD_URL')
-    if not url:
-        logger.info('GREEN_BUILD_URL not set')
-        return
-
-    auth = current_app.config['GREEN_BUILD_AUTH']
-    if not auth:
-        logger.info('GREEN_BUILD_AUTH not set')
         return
 
     source = build.source
@@ -99,6 +93,17 @@ def build_finished_handler(build_id, **kwargs):
 
     # set latest_green_build if latest for each branch:
     _set_latest_green_build_for_each_branch(build, source, vcs)
+
+    # Send green build notifications if configured to do so.
+    url = current_app.config.get('GREEN_BUILD_URL')
+    if not url:
+        logger.info('GREEN_BUILD_URL not set')
+        return
+
+    auth = current_app.config['GREEN_BUILD_AUTH']
+    if not auth:
+        logger.info('GREEN_BUILD_AUTH not set')
+        return
 
     options = get_options(build.project_id)
 
