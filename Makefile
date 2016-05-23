@@ -82,8 +82,6 @@ lint-js:
 test-full: install-test-requirements
 	$(MAKE) lint
 	$(MAKE) coverage
-	@echo SKIPPING JAVASCRIPT TESTS UNTIL WE FIX THE RUNNER.
-	#@npm run test-ci
 
 coverage:
 	coverage run -m py.test --junitxml=python.junit.xml tests
