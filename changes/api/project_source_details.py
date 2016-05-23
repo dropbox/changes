@@ -1,6 +1,9 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from changes.api.base import APIView
+from flask_restful.reqparse import RequestParser
+from flask_restful import types
+
+from changes.api.base import APIView, error
 from changes.models.project import Project
 from changes.models.source import Source
 from changes.lib.coverage import get_coverage_by_source_id, merged_coverage_data
@@ -8,10 +11,14 @@ import logging
 
 
 class ProjectSourceDetailsAPIView(APIView):
+    get_parser = RequestParser()
+    get_parser.add_argument('coverage', type=types.boolean, location='args',
+                            default=False)
+
     def get(self, project_id, source_id):
         project = Project.get(project_id)
         if not project:
-            return '', 404
+            return error("Project not found", http_code=404)
 
         repo = project.repository
         source = Source.query.filter(
@@ -19,19 +26,21 @@ class ProjectSourceDetailsAPIView(APIView):
             Source.repository_id == repo.id,
         ).first()
         if source is None:
-            return '', 404
+            return error("Source not found", http_code=404)
 
         context = self.serialize(source)
 
         diff = source.generate_diff()
 
+        args = self.get_parser.parse_args()
+
         if diff:
             files = self._get_files_from_raw_diff(diff)
 
-            coverage = merged_coverage_data(c for c in get_coverage_by_source_id(source_id)
-                                            if c.filename in files)
-
-            coverage_for_added_lines = self._filter_coverage_for_added_lines(diff, coverage)
+            if args.coverage:
+                coverage = merged_coverage_data(c for c in get_coverage_by_source_id(source_id)
+                                                if c.filename in files)
+                coverage_for_added_lines = self._filter_coverage_for_added_lines(diff, coverage)
 
             tails_info = dict(source.data)
         else:
@@ -40,8 +49,9 @@ class ProjectSourceDetailsAPIView(APIView):
             tails_info = None
 
         context['diff'] = diff
-        context['coverage'] = coverage
-        context['coverageForAddedLines'] = coverage_for_added_lines
+        if args.coverage:
+            context['coverage'] = coverage
+            context['coverageForAddedLines'] = coverage_for_added_lines
         context['tailsInfo'] = tails_info
 
         return self.respond(context)
