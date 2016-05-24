@@ -18,9 +18,12 @@ import * as utils from 'es6!utils/utils';
 var POLL_INTERVAL = 10000;
 
 /*
- * Valid query params: main (multiple times)
+ * Modern query params:
+ * - branch: select branch to display.
+ * - project: pass multiple times to select projects to display. The value
+ *   should be a project slug. All projects should be for the same repo.
  *
- * How to use:
+ * Antiquated query params: main (multiple times)
  * - The first main parameter determines the list of commits to show.
  *   Additional main parameters will show latest builds for that commit.
  * - A parameter can be just a project slug, or slug::branch.
@@ -66,9 +69,7 @@ var PusherPage = React.createClass({
       }
     }
 
-    var queryParams = URI(window.location.href).search(true);
-    var main = queryParams['main'];
-
+    var [slugs, branch] = this.getSlugsAndBranch();
     var endpoints = this.getEndpoints();
     var apiResponses = _.map(endpoints, (v, k) => this.state[k]);
 
@@ -83,40 +84,61 @@ var PusherPage = React.createClass({
     // way, but this is fine for now.
     return <ChangesPage widget={false}>
       <PusherPageContent
-        main={main}
+        slugs={slugs}
+        branch={branch}
         fetchedState={this.state}
         key={+Date.now()}
       />
     </ChangesPage>;
   },
 
+  getSlugsAndBranch() {
+    var queryParams = URI(window.location.href).search(true);
+
+    var slugs, branch;
+    if (queryParams['project']) {
+      // Modern parameters.
+      slugs = queryParams['project'];
+      if (!_.isArray(slugs)) {
+        slugs = [slugs];
+      }
+      if (queryParams['branch']) {
+        branch = queryParams['branch'];
+      }
+    } else {
+      // Antiquated parameters.
+      var mains = queryParams['main'];
+      if (!_.isArray(mains)) {
+        mains = [mains];
+      }
+      slugs = [];
+      _.each(mains, main => {
+        let [slug, temp_branch] = mains.split('::');
+        slugs.push(slug);
+        if (!branch && temp_branch) {
+          branch = temp_branch;
+        }
+      });
+    }
+
+    return [slugs, branch];
+  },
 
   getEndpoints() {
     var queryParams = URI(window.location.href).search(true);
-
-    var endpoints = {};
-
-    var slugs = queryParams['main'];
-    if (!_.isArray(slugs)) {
-      slugs = [slugs];
-    }
-
     let per_page = '50';
     if (queryParams['per_page']) {
-        per_page = queryParams['per_page'];
+      per_page = queryParams['per_page'];
     }
 
-    _.each(slugs, slug => {
-      var repo = slug, branch = null;
-      if (slug.indexOf('::') > 0) {
-        [repo, branch] = slug.split('::');
-      }
+    var [slugs, branch] = this.getSlugsAndBranch();
 
-      endpoints[slug] = URI(`/api/0/projects/${repo}/commits/`)
+    var endpoints = {};
+    _.each(slugs, slug => {
+      endpoints[slug] = URI(`/api/0/projects/${slug}/commits/`)
         .query({ all_builds: 1, branch: branch, per_page: per_page })
         .toString();
     });
-
     return endpoints;
   },
 
@@ -142,31 +164,29 @@ var PusherPage = React.createClass({
 var PusherPageContent = React.createClass({
   
   propTypes: {
-    main: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
+    slugs: PropTypes.array.isRequired,
+    branch: PropTypes.string.isRequired,
   },
 
   getInitialState() { return {}; },
 
   render() {
-    var mainProjects = this.props.main;
-    if (!_.isArray(mainProjects)) {
-      mainProjects = [mainProjects];
-    }
-    var totalProjectCount = mainProjects.length;
+    var slugs = this.props.slugs;
+    var totalProjectCount = slugs.length;
 
     // we want to map slugs to project data (e.g. so we know the name of the
     // project. This is buried within each buld
     var projectData = {};
 
     var commitLists = {};
-    _.each(mainProjects, proj => {
+    _.each(slugs, proj => {
       commitLists[proj] = this.props.fetchedState[proj].getReturnedData();
     });
 
     // I don't want to write anything too complicated, so here's what we'll do:
     // we'll use the first "main" project as the source of truth for revisions,
     // and augment it with displaying builds from other projects.
-    var rows = _.map(commitLists[mainProjects[0]], baseCommit => {
+    var rows = _.map(commitLists[slugs[0]], baseCommit => {
       var everyCommit = {};
       _.each(commitLists, (commitList, proj) => {
         _.each(commitList, commitInList => {
@@ -177,7 +197,7 @@ var PusherPageContent = React.createClass({
       });
 
       var initialCells = [];
-      _.each(mainProjects, proj => {
+      _.each(slugs, proj => {
         if (!everyCommit[proj]) {
           initialCells.push(null);
           return;
@@ -242,18 +262,12 @@ var PusherPageContent = React.createClass({
       ]);
     });
 
-    var projectHeaders = _.map(mainProjects, proj => {
-      var [repo, branch] = proj.split('::');
+    var projectHeaders = _.map(slugs, proj => {
       var name = utils.truncate(
-        (projectData[repo] && projectData[repo].name) || repo, 
+        (projectData[proj] && projectData[proj].name) || proj,
         20);
-      let branchMarkup = null;
-      if (branch) {
-        branchMarkup = <div className="branchName">({branch})</div>;
-      }
       return <div className="pusherProjectHeader">
                 <div className="projectName">{name}</div>
-                {branchMarkup}
              </div>;
     });
 
@@ -264,7 +278,7 @@ var PusherPageContent = React.createClass({
       'Committed'
     ]);
 
-    var classHeaders = _.map(mainProjects, proj => 'nowrap buildWidgetCell');
+    var classHeaders = _.map(slugs, proj => 'nowrap buildWidgetCell');
     var cellClasses = classHeaders.concat([
       'wide',
       'nowrap',
