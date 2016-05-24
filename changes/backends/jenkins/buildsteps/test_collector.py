@@ -320,7 +320,7 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
                 raise Exception("Didn't create correct number of shards")
             db.session.commit()
 
-        # Now that that database transaction is done, we'll do the slow work of
+        # Now that the database transaction is done, we'll do the slow work of
         # creating jenkins builds.
         for step in steps:
             self._create_jenkins_build(step)

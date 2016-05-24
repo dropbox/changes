@@ -41,7 +41,7 @@ class MissingRevision(Exception):
 
 def identify_revision(repository, treeish):
     """
-    Attempt to transform a a commit-like reference into a valid revision.
+    Attempt to transform a commit-like reference into a valid revision.
     """
     # try to find it from the database first
     if len(treeish) == 40:

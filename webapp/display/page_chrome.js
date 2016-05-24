@@ -144,7 +144,7 @@ export var APINotLoadedPage = React.createClass({
 });
 
 /*
- * The header that shows up at the the top of every page. Decided against
+ * The header that shows up at the top of every page. Decided against
  * using fixed positioning: its not important enough (if it were the primary
  * means of navigation on the page, I'd have used it.)
  */

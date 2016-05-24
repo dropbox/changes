@@ -2,7 +2,7 @@
 
 The snapshot garbage collection service works by maintaining a master
 list of which snapshots a given cluster should use. There are only two
-operations that can be made to the the garbage collection api: sync
+operations that can be made to the garbage collection api: sync
 and update.
 
 Syncing to the garbage collection is done by sending slaves on a given

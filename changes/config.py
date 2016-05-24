@@ -291,7 +291,7 @@ def create_app(_read_config=True, **config):
     # to the host this string is set to (e.g. http://changes.bigcompany.com)
     # THIS IS JUST FOR EASIER TESTING IN DEVELOPMENT. Although it won't even
     # work in prod: you'll have to start chrome with --disable-web-security to
-    # make this work. Override this this in your changes.conf.py file
+    # make this work. Override this in your changes.conf.py file
     app.config['WEBAPP_USE_ANOTHER_HOST'] = None
 
     # Custom changes content unique to your deployment. This is intended to
