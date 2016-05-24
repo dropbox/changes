@@ -16,7 +16,6 @@ npm-debug.log
 /htmlcov
 /node_modules
 /dist
-/static/vendor
 /static/js/generated
 /static-built
 /webapp/custom/*
