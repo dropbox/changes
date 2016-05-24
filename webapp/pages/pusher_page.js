@@ -18,15 +18,12 @@ import * as utils from 'es6!utils/utils';
 var POLL_INTERVAL = 10000;
 
 /*
- * Valid query params: main (multiple times), aux, auxWidth.
+ * Valid query params: main (multiple times)
  *
  * How to use:
  * - The first main parameter determines the list of commits to show.
  *   Additional main parameters will show latest builds for that commit.
  * - A parameter can be just a project slug, or slug::branch.
- * - aux creates a separate column on the right with a unique set of commits
- *   and the build result for that commit.
- * - auxWidth: percentage width of the aux column
  */
 var PusherPage = React.createClass({
 
@@ -71,8 +68,6 @@ var PusherPage = React.createClass({
 
     var queryParams = URI(window.location.href).search(true);
     var main = queryParams['main'];
-    var aux = queryParams['aux'];
-    var auxWidth = queryParams['auxWidth'];
 
     var endpoints = this.getEndpoints();
     var apiResponses = _.map(endpoints, (v, k) => this.state[k]);
@@ -89,8 +84,6 @@ var PusherPage = React.createClass({
     return <ChangesPage widget={false}>
       <PusherPageContent
         main={main}
-        aux={aux}
-        auxWidth={auxWidth}
         fetchedState={this.state}
         key={+Date.now()}
       />
@@ -106,9 +99,6 @@ var PusherPage = React.createClass({
     var slugs = queryParams['main'];
     if (!_.isArray(slugs)) {
       slugs = [slugs];
-    }
-    if (queryParams['aux']) {
-      slugs.push(queryParams['aux']);
     }
 
     let per_page = '50';
@@ -153,40 +143,11 @@ var PusherPageContent = React.createClass({
   
   propTypes: {
     main: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
-    aux: PropTypes.string,
-    auxWidth: PropTypes.number
   },
 
   getInitialState() { return {}; },
 
   render() {
-    if (this.props.aux) {
-      // aux is the ability to dedicate a column on the right to viewing a
-      // different set of commits
-
-      // technically this is generalizable to a series of different commit
-      // lists, each with potentially many builds.. that's left as an exercise
-      // to the reader.
-
-      var auxWidth = this.props.auxWidth;
-      if (!auxWidth || auxWidth < 0 || auxWidth > 100) {
-        auxWidth = 40;
-      }
-
-      return <div style={{display: 'table'}}>
-        <div style={{display: 'table-cell', width: (100-auxWidth) + '%'}}>
-          {this.renderMain()}
-        </div>
-        <div style={{display: 'table-cell', width: auxWidth + '%'}}>
-          {this.renderAux()}
-        </div>
-      </div>;
-    } else {
-      return this.renderMain();
-    }
-  },
-
-  renderMain(main) {
     var mainProjects = this.props.main;
     if (!_.isArray(mainProjects)) {
       mainProjects = [mainProjects];
@@ -311,65 +272,11 @@ var PusherPageContent = React.createClass({
       'nowrap'
     ]);
 
-    // trivia: the title here exists solely so that its at the same height as the aux chart.
-    var title = this.props.aux ?
-      <div style={{textAlign: 'center', marginBottom: 10}}>
-        Commits to {projectHeaders[0]}. Live Updates{" "}
-        <span className="bluishGray">(every {POLL_INTERVAL / 1000} seconds)</span>
-      </div> :
-      null;
-
     return <div>
-      {title}
       <Grid
         colnum={4 + totalProjectCount}
         cellClasses={cellClasses}
         headers={headers}
-        data={rows}
-      />
-    </div>;
-  },
-  
-  renderAux() {
-    var auxProject = this.props.aux;
-    var repo = auxProject.split('::')[0];
-
-    var commitList = this.props.fetchedState[auxProject].getReturnedData();
-
-    var project = null; 
-    var rows = _.map(commitList, commit => {
-      var sortedBuilds = _.sortBy(commit.builds, b => b.dateCreated).reverse();
-      var lastBuild = _.first(sortedBuilds);
-
-      var buildMarkup = null;
-      if (lastBuild) {
-        if (lastBuild.project) {
-          project = lastBuild.project;
-        }
-        buildMarkup = <SingleBuildStatus
-          build={lastBuild}
-          parentElem={this}
-        />;
-      }
-
-      return [
-        buildMarkup,
-        utils.truncate(utils.first_line(commit.message)),
-        <span><TimeText time={commit.dateCommitted} /></span>
-      ];
-    });
-
-    var headers = ['Build', 'Name', 'Committed'];
-    var cellClasses = ['nowrap', 'wide', 'nowrap'];
-
-    var title = project ? project.name : repo;
-
-    return <div style={{paddingLeft: 30, marginLeft: 30, borderLeft: '1px solid #e5e5e5'}}>
-      <div style={{textAlign: 'center', marginBottom: 10}}>{title}</div>
-      <Grid
-        colnum={3}
-        cellClasses={cellClasses} 
-        headers={headers} 
         data={rows}
       />
     </div>;
