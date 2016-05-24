@@ -152,9 +152,7 @@ require([
       }
 
       var build = JSON.parse(response.responseText);
-      var new_href = URI(ChangesLinks.buildHref(build))
-        .addSearch('optin', 1);
-      window.location.href = new_href;
+      window.location.href = URI(ChangesLinks.buildHref(build));
     };
 
     data_fetching.make_api_ajax_get('/api/0/builds/' + build_id, null,
