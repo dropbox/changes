@@ -113,7 +113,7 @@ var PusherPage = React.createClass({
       }
       slugs = [];
       _.each(mains, main => {
-        let [slug, temp_branch] = mains.split('::');
+        let [slug, temp_branch] = main.split('::');
         slugs.push(slug);
         if (!branch && temp_branch) {
           branch = temp_branch;
