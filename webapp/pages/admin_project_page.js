@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import SectionHeader from 'es6!display/section_header';
 import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
+import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import * as FieldGroupMarkup from 'es6!display/field_group';
 import { Grid, GridRow } from 'es6!display/grid';
@@ -44,7 +45,6 @@ let AdminProjectPage = React.createClass({
     api.fetch(this, {
       project: `/api/0/projects/${slug}`,
       snapshots: `/api/0/projects/${slug}/snapshots`,
-      plans: `/api/0/projects/${slug}/plans/?status=`,
     });
   },
 
@@ -79,11 +79,7 @@ let AdminProjectPage = React.createClass({
         content = <SnapshotList snapshots={snapshots} projectSlug={project.slug} />
         break;
      case 'Build Plans':
-        if (!api.isLoaded(this.state.plans)) {
-          return <APINotLoadedPage calls={this.state.plans} />;
-        }
-        let plans = this.state.plans.getReturnedData();
-        content = <PlanList plans={plans} projectSlug={project.slug} />
+        content = <PlanList projectSlug={project.slug} />
         break;
       case 'New Build Plan':
         content = <NewPlan project={project} />;
@@ -331,7 +327,7 @@ let PlanList = React.createClass({
 
   propTypes: {
     projectSlug: PropTypes.string.isRequired,
-    plans: PropTypes.array.isRequired,
+    formSubmitCallback: PropTypes.func,
   },
 
   getInitialState: function() {
@@ -340,11 +336,25 @@ let PlanList = React.createClass({
     };
   },
 
+  componentDidMount: function() {
+    this.fetchPlans();
+  },
+
+  fetchPlans: function() {
+    api.fetch(this, {
+      plans: `/api/0/projects/${this.props.projectSlug}/plans/?status=`,
+    });
+  },
+
   render: function() {
+    if (!api.isLoaded(this.state.plans)) {
+      return <APINotLoaded calls={this.state.plans} />;
+    }
     let rows = [];
     let selectedPlan = this.state.selectedPlan;
 
-    _.each(this.props.plans, plan => {
+    let plans = this.state.plans.getReturnedData();
+    _.each(plans, plan => {
       let isSelected = selectedPlan === plan;
       let onClick = __ => {
         let newValue = isSelected ? null : plan;
@@ -363,7 +373,9 @@ let PlanList = React.createClass({
 
     let planDetails = null;
     if (selectedPlan) {
-      planDetails = <PlanDetailsWrapper className="indent" plan={selectedPlan} />
+      let data = null;
+      data = _.find(plans, plan => selectedPlan.id === plan.id);
+      planDetails = <PlanDetailsWrapper className="indent" plan={data} formSubmitCallback={this.fetchPlans} />
     }
 
     let content = <div>
@@ -385,6 +397,7 @@ let PlanDetailsWrapper = React.createClass({
 
   propTypes: {
     plan: PropTypes.object.isRequired,
+    formSubmitCallback: PropTypes.func,
   },
 
   getInitialState: function() {
@@ -405,7 +418,7 @@ let PlanDetailsWrapper = React.createClass({
 
     // Force a new PlanDetails when the selected plan changes, such that configuration changes
     let key = "planDetailsWrapper_" + this.props.plan.id;
-    return <PlanDetails options={options} plan={this.props.plan} key={key} />;
+    return <PlanDetails options={options} plan={this.props.plan} key={key} formSubmitCallback={this.props.formSubmitCallback} />;
   },
 });
 
@@ -416,6 +429,7 @@ let PlanDetails = React.createClass({
   propTypes: {
     plan: PropTypes.object.isRequired,
     options: PropTypes.object.isRequired,
+    formSubmitCallback: PropTypes.func,
   },
 
   displayStatusToStatus: {

@@ -25,6 +25,10 @@ export var redirectCallback = function(fieldGroup, redirectUrl) {
 // The mixin stores last-saved-state data on the component as
 // diffFormSavedState. This is simply a copy of the component's .state from
 // the last time it was saved.
+//
+// The mixin can execute a callback, if you want. The callback is stored
+// in the components .props under formSubmitCallback. This function will be
+// called every time the form is submitted.
 export var DiffFormMixin = {
 
   // Use onFormSubmit as a callback to any api.js post/get/delete call.
@@ -35,6 +39,9 @@ export var DiffFormMixin = {
 
     // POST was successful. Update the known saved state.
     this.updateSavedFormState();
+    if (this.props && this.props.formSubmitCallback) {
+      this.props.formSubmitCallback();
+    }
     return true;
   },
 
