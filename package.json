@@ -10,12 +10,7 @@
     "prelint": "npm install",
     "lint": "jshint static/",
     "precompile-static": "npm install",
-    "compile-static": "grunt compile-static",
-    "ngtemplates": "grunt ngtemplates",
-    "pretest": "npm install && grunt ngtemplates",
-    "test": "node_modules/karma/bin/karma start tests/karma.conf.js --single-run",
-    "pretest-ci": "grunt ngtemplates",
-    "test-ci": "node_modules/karma/bin/karma start tests/karma.conf.js --single-run --reporters junit,dots"
+    "compile-static": "grunt compile-static"
   },
   "repository": {
     "type": "git",
@@ -27,24 +22,17 @@
   "dependencies": {
     "bower": "~1.3.7",
     "chai": "~1.9.1",
-    "grunt": "~0.4.2",
     "eslint": "~2.8.0",
     "babel-eslint": "~6.0.0",
     "eslint-plugin-react": "~4.0.0",
-    "grunt-angular-templates": "~0.5.7",
+    "grunt": "0.4.5",
     "grunt-cli": "~0.1.3",
-    "grunt-contrib-requirejs": "~0.4.1",
+    "grunt-contrib-requirejs": "0.4.4",
     "jshint": "~2.5.0",
-    "karma": "~0.12.16",
-    "karma-chai": "~0.1.0",
-    "karma-junit-reporter": "~0.2.2",
-    "karma-mocha": "~0.1.3",
-    "karma-phantomjs-launcher": "~0.1.4",
-    "karma-requirejs": "~0.2.2",
     "less": "^2.5.1",
     "lolex": "^1.1.0",
     "mocha": "~1.19.0",
-    "requirejs": "~2.1.11",
+    "requirejs": "2.1.15",
     "sinon": "^1.10.3"
   },
   "private": true

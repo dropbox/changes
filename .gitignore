@@ -14,8 +14,10 @@ npm-debug.log
 /*.xml
 /docs/_build/
 /htmlcov
-/node_modules
 /dist
+/node_modules/babel-eslint/*
+/node_modules/eslint/*
+/node_modules/eslint-plugin-react/*
 /static/js/generated
 /static-built
 /webapp/custom/*
