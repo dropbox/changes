@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 
 import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
-import { Grid } from 'es6!display/grid';
+import { Grid, GridRow } from 'es6!display/grid';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration_pieces } from 'es6!display/time';
 import { WaitingLiveText } from 'es6!display/changes/build_text';
@@ -15,7 +15,7 @@ import * as api from 'es6!server/api';
 import * as utils from 'es6!utils/utils';
 
 // how often to hit the api server for updates
-var POLL_INTERVAL = 10000;
+const POLL_INTERVAL = 10000;
 
 /*
  * Modern query params:
@@ -30,11 +30,11 @@ var POLL_INTERVAL = 10000;
  */
 var PusherPage = React.createClass({
 
-  getInitialTitle: function() {
+  getInitialTitle() {
     return 'Dashboard';
   },
 
-  getInitialState: function() {
+  getInitialState() {
     var endpoints = this.getEndpoints();
 
     var state = {};
@@ -44,7 +44,7 @@ var PusherPage = React.createClass({
     return state;
   },
 
-  componentDidMount: function() {
+  componentDidMount() {
     api.fetch(this, this.getEndpoints());
 
     this.updateInProgress = false;
@@ -56,7 +56,7 @@ var PusherPage = React.createClass({
     }, POLL_INTERVAL);
   },
 
-  render: function() {
+  render() {
     if (this.updateInProgress) {
       if (api.allLoaded(_.values(this.state.liveUpdate))) {
         this.updateInProgress = false;
@@ -153,13 +153,14 @@ var PusherPage = React.createClass({
     api.fetchMap(this, 'liveUpdate', this.getEndpoints());
   },
 
-  componentWillUnmount: function() {
+  componentWillUnmount() {
     // clear the timer, if in use (e.g. the widget is expanded)
     if (this.refreshTimer) {
       clearInterval(this.refreshTimer);
     }
   }
 });
+
 
 var PusherPageContent = React.createClass({
   
@@ -254,12 +255,15 @@ var PusherPageContent = React.createClass({
       // if nothing else)
       var title = utils.truncate(utils.first_line(baseCommit.message));
 
-      return initialCells.concat([
+      let cells = initialCells.concat([
         title,
         ChangesLinks.author(baseCommit.author),
         ChangesLinks.phabCommit(baseCommit),
         <span><TimeText time={baseCommit.dateCommitted} /></span>
       ]);
+      let gr = new GridRow(cells);
+      gr.key = baseCommit.sha;
+      return gr;
     });
 
     var projectHeaders = _.map(slugs, proj => {
