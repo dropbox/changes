@@ -177,12 +177,12 @@ export var SingleBuildStatus = React.createClass({
       var data = elem.state[state_key][build.id].getReturnedData();
       var tests = data.testFailures.tests.slice(0, this.MAX_TESTS_IN_TOOLTIP);
       var list = _.map(tests, t => {
-        return <div>{t.shortName}</div>;
+        return <div key={"test-id-key:" + t.id}>{t.shortName}</div>;
       });
 
       if (tests.length < build.stats['test_failures']) {
         list.push(
-          <div className="marginTopS"> <em>
+          <div className="marginTopS" key="tests-more-key"> <em>
             Showing{" "}
             {tests.length}
             {" "}out of{" "}
