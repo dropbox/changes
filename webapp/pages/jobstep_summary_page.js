@@ -202,9 +202,7 @@ var GroupedJobstepSummary = React.createClass({
             throw "Unable to find key function in column specifications";
         }
         let gridRows = _.map(rows, row => {
-            let gr = new GridRow(row);
-            gr.key = keyFn(row);
-            return gr;
+            return new GridRow(keyFn(row), row);
         });
         let cellClasses = _.times(columns.length, () => 'nowrap');
         return <div>

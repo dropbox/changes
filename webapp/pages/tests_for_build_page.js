@@ -177,19 +177,16 @@ export var BuildTestsPage = React.createClass({
         color = 'red';
       }
 
-      let testRow = new GridRow([
+      let testRow = new GridRow(test.test_id, [
         markup,
         <span className={color}>{capitalizedResult}</span>,
         ChangesLinks.historyLink(project, test.hash),
       ]);
-      testRow.key = test.test_id;
       rows.push(testRow);
 
       if (this.state.expandedTests[test.test_id]) {
-        rows.push(GridRow.oneItem(
-          <TestDetails testID={test.test_id} buildID={this.props.buildID} />,
-          test.test_id + ":expanded"
-        ));
+        rows.push(GridRow.oneItem(test.test_id + ":expanded",
+          <TestDetails testID={test.test_id} buildID={this.props.buildID} />));
       }
     });
 
@@ -273,19 +270,18 @@ export var BuildTestsPage = React.createClass({
       if (test.result.id.indexOf('failed') >= 0) {
         color = 'red';
       }
-      let rowData = new GridRow([
+      let rowData = new GridRow(test.id, [
         markup,
         <span className={color}>{test.result.name}</span>,
         <span>{moment.duration(test.duration).asSeconds()}s</span>,
         test.numRetries,
         ChangesLinks.historyLink(project, test.hash)
       ]);
-      rowData.key = test.id;
       rows.push(rowData);
 
       if (this.state.expandedAllTests[test.id]) {
-        let expanded = GridRow.oneItem(<TestDetails testID={test.id} buildID={this.props.buildID} />,
-                                       test.id + ":expanded");
+        let expanded = GridRow.oneItem(test.id + ":expanded",
+                                       <TestDetails testID={test.id} buildID={this.props.buildID} />);
         rows.push(expanded);
       }
     });
@@ -441,14 +437,14 @@ var ShardingTab = React.createClass({
           ]);
 
           if (this.state.expandedShards[step.node.name]) {
-            rows.push(GridRow.oneItem(
+            rows.push(GridRow.oneItem(null,
               <pre className="defaultPre">
                 {JSON.stringify(step.data, null, 2)}
               </pre>
             ));
           }
 
-          rows.push(GridRow.oneItem(
+          rows.push(GridRow.oneItem(null,
             <div>
               <b>Files:</b>
               <pre>{step.data.tests.join("\n")}</pre>

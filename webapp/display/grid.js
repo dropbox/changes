@@ -243,11 +243,12 @@ export var Grid = React.createClass({
  * - A row that spans all columns
  * - TODO: more capabilities
  *
- * GridRow can be used in place of the row array above
+ * GridRow should be used to represent grid rows wherever possible.
+ * For the 'key' parameter, pick a stable identifier that is unique for that row. If there isn't one,
+ * you can pass null.
  */
 export class GridRow {
-  constructor(data, border=true, fadedOut=false, isHighlighted=false, rowOnClick=null,
-              key=null) {
+  constructor(key, data, border=true, fadedOut=false, isHighlighted=false, rowOnClick=null) {
     if (!_.isArray(data)) {
       throw 'GridRow expects an array of data!';
     }
@@ -262,10 +263,9 @@ export class GridRow {
   // use this if you want your row to just be a single item that spans all
   // columns. By default, there's no border between this row and the one above
   // it
-  static oneItem(item, key=null) {
-    var g = new GridRow([item]);
+  static oneItem(key, item) {
+    var g = new GridRow(key, [item]);
     g.useColspan = true;
-    g.key = key;
     return g;
   }
 

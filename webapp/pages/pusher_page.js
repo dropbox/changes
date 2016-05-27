@@ -261,9 +261,7 @@ var PusherPageContent = React.createClass({
         ChangesLinks.phabCommit(baseCommit),
         <span><TimeText time={baseCommit.dateCommitted} /></span>
       ]);
-      let gr = new GridRow(cells);
-      gr.key = baseCommit.sha;
-      return gr;
+      return new GridRow(baseCommit.sha, cells);
     });
 
     var projectHeaders = _.map(slugs, proj => {

@@ -75,9 +75,7 @@ export var TestHierarchy = React.createClass({
     let headers = ['', 'Tests', 'Duration'];
     let cellClasses = ['wide', 'nowrap', 'nowrap'];
     let groups = _.map(data.groups, g => {
-        let gr = new GridRow([groupName(g), g.numTests, <Duration millis={g.totalDuration} />]);
-        gr.key = g.path;
-        return gr;
+        return new GridRow(g.path, [groupName(g), g.numTests, <Duration millis={g.totalDuration} />]);
     });
 
     var contentStyle = testgroups.isLoadingUpdatedData() ? {opacity: 0.5} : null;

@@ -599,7 +599,7 @@ var AllProjectsPage = React.createClass({
       ];
     }
 
-    return GridRow.oneItem(
+    return GridRow.oneItem(null,
       <div>
         <pre className="defaultPre">
           {plan.steps[0] && plan.steps[0].data}

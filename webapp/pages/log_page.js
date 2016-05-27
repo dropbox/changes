@@ -246,7 +246,7 @@ var LogComponent = React.createClass({
         data.push([offsetText, chunk.size, sourceText]);
         expectedOffset = chunk.offset + chunk.size;
       });
-      data.push(GridRow.oneItem("End of call. Next Offset: " + call.nextOffset));
+      data.push(GridRow.oneItem(null, "End of call. Next Offset: " + call.nextOffset));
       expectedOffset = call.nextOffset;
       source += 1;
     });

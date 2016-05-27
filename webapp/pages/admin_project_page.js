@@ -367,7 +367,7 @@ let PlanList = React.createClass({
 
       let createTime = <TimeText time={plan.dateCreated} />
       let data = [planName, plan.status.name, createTime];
-      let gridRow = new GridRow(data, false, false, isSelected, onClick);
+      let gridRow = new GridRow(null, data, false, false, isSelected, onClick);
       rows.push(gridRow);
     });
 

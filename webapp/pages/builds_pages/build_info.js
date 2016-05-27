@@ -380,7 +380,7 @@ export var SingleBuild = React.createClass({
       ]);
 
       if (this.state.expandedTests[test.id]) {
-        rows.push(GridRow.oneItem(<TestDetails testID={test.id} buildID={build.id} />));
+        rows.push(GridRow.oneItem(null, <TestDetails testID={test.id} buildID={build.id} />));
       }
     });
 
@@ -579,7 +579,7 @@ export var SingleBuild = React.createClass({
         }
 
         if (!jobstep.node) {
-          phase_rows.push(new GridRow([
+          phase_rows.push(new GridRow(null, [
             index === 0 && !only_one_row ?
               <span className="lb">{phase.name}</span> : "",
             jobstepDot,
@@ -661,7 +661,7 @@ export var SingleBuild = React.createClass({
         // no separator and 50% opacity for replaced jobstep
         var hasBorder = jobstep.replacement_id == null;
         var fadedOut = jobstep.replacement_id != null;
-        phase_rows.push(new GridRow([
+        phase_rows.push(new GridRow(null, [
           index === 0 && !only_one_row ?
             <span className="lb">{phase.name}</span> :
             "",
@@ -673,7 +673,7 @@ export var SingleBuild = React.createClass({
         ], hasBorder, fadedOut, null));
 
         if (this.state.expandedJobSteps[jobstep.id]) {
-          phase_rows.push(GridRow.oneItem(<JobstepDetails jobstepID={jobstep.id} />));
+          phase_rows.push(GridRow.oneItem(null, <JobstepDetails jobstepID={jobstep.id} />));
         }
       }
       return phase_rows;
