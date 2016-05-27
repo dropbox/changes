@@ -38,7 +38,7 @@ export var ChangesChart = React.createClass({
       var no_duration = runnable && !runnable.duration && runnable.duration === 0;
       if (_.isEmpty(runnable) || no_duration) {
         // would be nice to still show a tooltip here...
-        return <div 
+        return <div key={runnable.id}
           className="chartBarColumn"
           style={{ paddingTop: this.MAX_CHART_HEIGHT - 2 }}>
           <div
@@ -72,7 +72,7 @@ export var ChangesChart = React.createClass({
         </ProgrammingError>;
       }
 
-      return <SimpleTooltip label={tooltipText} placement="top">
+      return <SimpleTooltip label={tooltipText} placement="top" key={runnable.id}>
         <a 
           className="chartBarColumn" 
           href={href}
@@ -88,7 +88,7 @@ export var ChangesChart = React.createClass({
     });
 
     if (this.props.enableLatest) {
-      content.unshift(<LatestWidget />);
+      content.unshift(<LatestWidget key="latest" />);
     }
 
     var className = " changesChart " + (className || "");

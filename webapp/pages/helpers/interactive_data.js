@@ -259,6 +259,7 @@ var InteractiveDataPrototype = {
 
     links.push(
       <Button
+        key="prev-button"
         type={type}
         className="marginRightS inlineBlock"
         onClick={onClick.previous}
@@ -270,6 +271,7 @@ var InteractiveDataPrototype = {
 
     links.push(
       <Button
+        key="next-button"
         type={type}
         className="marginRightS inlineBlock"
         onClick={onClick.next}

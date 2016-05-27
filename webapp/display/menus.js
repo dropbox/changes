@@ -42,6 +42,7 @@ export var Menu1 = React.createClass({
 
       item_markup.push(
         <div
+          key={text}
           className={classes}
           onClick={_.partial(item_onclick, text)}>
           {text}
@@ -50,7 +51,7 @@ export var Menu1 = React.createClass({
 
       if (index < items.length - 1) {
         item_markup.push(
-          <div className="inlineBlock">
+          <div className="inlineBlock" key={"sep-" + index}>
             {"\u22C5"}
           </div>
         );

@@ -4,7 +4,7 @@ import APINotLoaded from 'es6!display/not_loaded';
 import ChangesLinks from 'es6!display/changes/links';
 import { AjaxError } from 'es6!display/errors';
 import { ChangesChart } from 'es6!display/changes/charts';
-import { Grid } from 'es6!display/grid';
+import { Grid, GridRow } from 'es6!display/grid';
 import { Menu1 } from 'es6!display/menus';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
@@ -89,7 +89,7 @@ var BuildsTab = React.createClass({
 
       var tests = build.stats.test_count;
 
-      return [
+      return new GridRow(build.id, [
         <SingleBuildStatus build={build} parentElem={this} />,
         <a className="subtle" href={ChangesLinks.buildHref(build)}>
           {build.name}
@@ -100,7 +100,7 @@ var BuildsTab = React.createClass({
         get_build_cause(build),
         ChangesLinks.author(build.author),
         <TimeText key={build.id} time={build.dateStarted} />
-      ];
+      ]);
     });
 
     var cellClasses = [
