@@ -297,7 +297,9 @@ class JenkinsGenericBuilderTest(BaseTestCase):
                                        s3_bucket=bucket,
                                        prelaunch='pre.sh',
                                        postlaunch='post.sh',
-                                       release='squishy')
+                                       release='squishy',
+                                       mirror=None,
+                                       security_mirror=None)
 
     def test_get_lxc_config_lxc_defaults(self):
         # Defaults from the app config rather than values from the build_type.
@@ -323,4 +325,6 @@ class JenkinsGenericBuilderTest(BaseTestCase):
                                        s3_bucket=bucket,
                                        prelaunch='default-pre.sh',
                                        postlaunch='default-post.sh',
-                                       release='default release')
+                                       release='default release',
+                                       mirror=None,
+                                       security_mirror=None)

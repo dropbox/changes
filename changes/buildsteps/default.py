@@ -457,7 +457,10 @@ class DefaultBuildStep(BuildStep):
                              prelaunch=self.debug_config.get('prelaunch_script') or app_cfg['LXC_PRE_LAUNCH'],
                              postlaunch=app_cfg['LXC_POST_LAUNCH'],
                              compression=None,
-                             release=self.release)
+                             release=self.release,
+                             mirror=app_cfg['LXC_APT_MIRROR'],
+                             security_mirror=app_cfg['LXC_APT_SECURITY_MIRROR'],
+                             )
         return None
 
     def get_resource_limits(self):

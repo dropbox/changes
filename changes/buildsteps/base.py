@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from datetime import datetime
-from collections import namedtuple
+from typing import NamedTuple, Optional
 
 from changes.config import db
 from changes.constants import Result, Status
@@ -9,11 +9,13 @@ from changes.models.jobstep import JobStep
 from changes.utils.agg import aggregate_result
 
 
-LXCConfig = namedtuple('LXCConfig', ['compression',
-                                     'release',
-                                     'prelaunch',
-                                     'postlaunch',
-                                     's3_bucket'])
+LXCConfig = NamedTuple('LXCConfig', [('compression', Optional[str]),
+                                     ('release', Optional[str]),
+                                     ('prelaunch', Optional[str]),
+                                     ('postlaunch', Optional[str]),
+                                     ('s3_bucket', Optional[str]),
+                                     ('mirror', Optional[str]),
+                                     ('security_mirror', Optional[str])])
 
 
 class BuildStep(object):

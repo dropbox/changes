@@ -106,6 +106,11 @@ def create_app(_read_config=True, **config):
     app.config['LXC_PRE_LAUNCH'] = None
     app.config['LXC_POST_LAUNCH'] = None
 
+    # APT mirror URLs to use for new LXC containers created by changes-client.
+    # NB: these aren't currently supported in the public changes-client repo.
+    app.config['LXC_APT_MIRROR'] = None
+    app.config['LXC_APT_SECURITY_MIRROR'] = None
+
     # Location of artifacts server that is passed to changes-client
     # (include http:// or https://)
     #

@@ -112,7 +112,9 @@ class JenkinsGenericBuilder(JenkinsBuilder):
                              compression='lz4',
                              prelaunch=build_desc.get('pre-launch', default_pre),
                              postlaunch=build_desc.get('post-launch', default_post),
-                             release=build_desc.get('release', default_release))
+                             release=build_desc.get('release', default_release),
+                             mirror=None,
+                             security_mirror=None)
         return None
 
     def get_job_parameters(self, job, changes_bid, setup_script=None,
