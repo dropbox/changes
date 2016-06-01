@@ -58,7 +58,8 @@ class JobPhaseIndexAPIView(APIView):
                     step_data['testFailures'] = test_counts[step.id]
                 step_data['commandTypeDurations'] = defaultdict(int)
                 for command in step.commands:
-                    step_data['commandTypeDurations'][command.type.name] += command.duration
+                    if command.duration is not None:
+                        step_data['commandTypeDurations'][command.type.name] += command.duration
                 phase_data['steps'].append(step_data)
             context.append(phase_data)
 
