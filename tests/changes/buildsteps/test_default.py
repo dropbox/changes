@@ -419,6 +419,19 @@ class DefaultBuildStepTest(TestCase):
         result = buildstep.get_allocation_params(jobstep)
         assert result['save-snapshot'] == image.id.hex
 
+    @mock.patch.object(DefaultBuildStep, 'get_allocation_params')
+    def test_get_allocation_command(self, get_allocation_params):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        get_allocation_params.return_value = {'foo': 'bar'}
+        buildstep = self.get_buildstep()
+        result = buildstep.get_allocation_command(jobstep)
+        assert result == 'changes-client -foo=bar'
+
     def test_repo_path_and_path(self):
         buildstep = self.get_buildstep()
         assert buildstep.path == DEFAULT_PATH

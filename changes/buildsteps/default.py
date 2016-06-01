@@ -473,7 +473,8 @@ class DefaultBuildStep(BuildStep):
 
     def get_allocation_command(self, jobstep):
         params = self.get_allocation_params(jobstep)
-        return 'changes-client %s' % (' '.join(
+        binary = current_app.config['CHANGES_CLIENT_BINARY']
+        return '%s %s' % (binary, ' '.join(
             '-%s=%s' % (k, v)
             for k, v in params.iteritems()
         ))

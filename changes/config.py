@@ -122,6 +122,10 @@ def create_app(_read_config=True, **config):
     # without being overridden. This value is referenced in test code.
     app.config['ARTIFACTS_SERVER'] = 'http://localhost:1234'
 
+    # the binary to use for running changes-client. Default is just
+    # "changes-client", but can also be specified as e.g. a full path.
+    app.config['CHANGES_CLIENT_BINARY'] = 'changes-client'
+
     app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE'] = 'legacy'
 
     # This is a hash from each build type (string identifiers used in
