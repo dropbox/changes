@@ -46,4 +46,5 @@ class LXCBuildStepTest(TestCase):
             'artifacts-server': 'http://localhost:1234',
             'artifact-search-path': DEFAULT_PATH,
             'use-external-env': 'false',
+            'dist': 'ubuntu',
         }

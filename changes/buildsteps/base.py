@@ -14,6 +14,7 @@ LXCConfig = NamedTuple('LXCConfig', [('compression', Optional[str]),
                                      ('prelaunch', Optional[str]),
                                      ('postlaunch', Optional[str]),
                                      ('s3_bucket', Optional[str]),
+                                     ('template', Optional[str]),
                                      ('mirror', Optional[str]),
                                      ('security_mirror', Optional[str])])
 

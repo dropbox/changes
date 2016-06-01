@@ -91,6 +91,7 @@ class JobStepDetailsAPIView(APIView):
                 's3Bucket': lxc_config.s3_bucket,
                 'compression': lxc_config.compression,
                 'release': lxc_config.release,
+                'template': lxc_config.template,
                 'mirror': lxc_config.mirror,
                 'securityMirror': lxc_config.security_mirror,
             }

@@ -50,7 +50,8 @@ class JobStepDetailsTest(APITestCase):
             buildstep.debug_config = {}
             buildstep.get_lxc_config.return_value = LXCConfig(s3_bucket="BUCKET", release="trusty",
                                                               prelaunch="pre.sh", postlaunch="post.sh",
-                                                              compression="xz", mirror='http://ubuntu.com',
+                                                              compression="xz", template='ubuntu-custom',
+                                                              mirror='http://ubuntu.com',
                                                               security_mirror='http://security.ubuntu.com')
             get_build_step_for_job.return_value = (None, buildstep)
             resp = self.client.get(path)
@@ -60,7 +61,8 @@ class JobStepDetailsTest(APITestCase):
         assert data['adapter'] == 'lxc'
         assert data['lxcConfig'] == {'s3Bucket': "BUCKET", 'release': 'trusty',
                                      'preLaunch': 'pre.sh', 'postLaunch': 'post.sh',
-                                     'compression': 'xz', 'mirror': 'http://ubuntu.com',
+                                     'compression': 'xz', 'template': 'ubuntu-custom',
+                                     'mirror': 'http://ubuntu.com',
                                      'securityMirror': 'http://security.ubuntu.com'}
 
     def test_with_resource_limits(self):

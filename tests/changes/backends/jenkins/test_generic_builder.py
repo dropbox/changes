@@ -298,6 +298,7 @@ class JenkinsGenericBuilderTest(BaseTestCase):
                                        prelaunch='pre.sh',
                                        postlaunch='post.sh',
                                        release='squishy',
+                                       template=None,
                                        mirror=None,
                                        security_mirror=None)
 
@@ -326,5 +327,6 @@ class JenkinsGenericBuilderTest(BaseTestCase):
                                        prelaunch='default-pre.sh',
                                        postlaunch='default-post.sh',
                                        release='default release',
+                                       template=None,
                                        mirror=None,
                                        security_mirror=None)

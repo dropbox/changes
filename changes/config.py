@@ -111,6 +111,10 @@ def create_app(_read_config=True, **config):
     app.config['LXC_APT_MIRROR'] = None
     app.config['LXC_APT_SECURITY_MIRROR'] = None
 
+    # name of the template to use for LXC (usually the name of a particular
+    # Linux distro). Defaults to ubuntu.
+    app.config['LXC_TEMPLATE'] = 'ubuntu'
+
     # Location of artifacts server that is passed to changes-client
     # (include http:// or https://)
     #

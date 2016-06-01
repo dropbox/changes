@@ -113,6 +113,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
                              prelaunch=build_desc.get('pre-launch', default_pre),
                              postlaunch=build_desc.get('post-launch', default_post),
                              release=build_desc.get('release', default_release),
+                             template=None,
                              mirror=None,
                              security_mirror=None)
         return None

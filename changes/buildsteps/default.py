@@ -439,6 +439,9 @@ class DefaultBuildStep(BuildStep):
         if expected_image:
             params['save-snapshot'] = expected_image.hex
 
+        if current_app.config['LXC_TEMPLATE']:
+            params['dist'] = current_app.config['LXC_TEMPLATE']
+
         # Filter out any None-valued parameter
         return dict((k, v) for k, v in params.iteritems() if v is not None)
 
@@ -458,6 +461,7 @@ class DefaultBuildStep(BuildStep):
                              postlaunch=app_cfg['LXC_POST_LAUNCH'],
                              compression=None,
                              release=self.release,
+                             template=app_cfg['LXC_TEMPLATE'],
                              mirror=app_cfg['LXC_APT_MIRROR'],
                              security_mirror=app_cfg['LXC_APT_SECURITY_MIRROR'],
                              )
