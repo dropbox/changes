@@ -525,6 +525,23 @@ export var SingleBuild = React.createClass({
         let expandTimelineLabel = !this.state.expandedJobStepTimelines[jobstep.id] ?
           'details' : 'collapse';
 
+        var formattedCommandTypes = {
+          'default': 'Test',
+          'collect_steps': 'Collect Steps',
+          'collect_tests': 'Collect Tests',
+          'setup': 'Setup',
+          'teardown': 'Teardown',
+          'infra_setup': 'Changes Infrastructure Setup',
+          'snapshot': 'Snapshot',
+        };
+
+        let commandTypeDurations = _.map(jobstep.commandTypeDurations, (t, label) => {
+          return <div>{formattedCommandTypes[label]}: {display_duration(t/1000)}</div>;
+        });
+
+        let durationDetails = [<div><b>Timeline:</b></div>].concat(formattedTimeline);
+        durationDetails = durationDetails.concat([<div><b>Breakdown:</b></div>].concat(commandTypeDurations));
+
         var jobstepDuration = null;
         if (is_waiting(jobstepCondition)) {
           jobstepDuration = <WaitingTooltip runnable={jobstep} placement="left">
@@ -539,7 +556,7 @@ export var SingleBuild = React.createClass({
             display_duration(jobstep.duration/1000) : '';
           jobstepDuration = <div>
             {jobstepDuration}{' ('}<a onClick={expandTimelineOnClick}>{expandTimelineLabel}</a>{')'}
-            {this.state.expandedJobStepTimelines[jobstep.id] ? formattedTimeline : ''}
+            {this.state.expandedJobStepTimelines[jobstep.id] ? durationDetails : ''}
           </div>;
           var label = get_runnable_condition_short_text(jobstepCondition);
           jobstepDot = <SimpleTooltip label={label} placement="right">

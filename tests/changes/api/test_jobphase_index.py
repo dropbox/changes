@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from changes.config import db
 from changes.constants import Result, Status
+from changes.models.command import Command, CommandType
 from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep
 from changes.models.log import LogSource
@@ -95,6 +96,48 @@ class JobPhaseIndexTest(APITestCase):
         db.session.add(logsource_1)
         db.session.commit()
 
+        command_1_a = Command(
+            jobstep_id=step_1.id,
+            label='setup',
+            status=Status.finished,
+            script='# do nothing',
+            order=0,
+            type=CommandType.setup,
+            date_created=datetime(2013, 9, 19, 22, 15, 22),
+            date_started=datetime(2013, 9, 19, 22, 15, 23),
+            date_finished=datetime(2013, 9, 19, 22, 15, 24),
+        )
+        db.session.add(command_1_a)
+        db.session.commit()
+
+        command_1_b = Command(
+            jobstep_id=step_1.id,
+            label='setup',
+            status=Status.finished,
+            script='# do nothing again',
+            order=1,
+            type=CommandType.setup,
+            date_created=datetime(2013, 9, 19, 22, 15, 22),
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+            date_finished=datetime(2013, 9, 19, 22, 15, 25),
+        )
+        db.session.add(command_1_b)
+        db.session.commit()
+
+        command_1_c = Command(
+            jobstep_id=step_1.id,
+            label='default',
+            status=Status.finished,
+            script='# do nothing again',
+            order=2,
+            type=CommandType.default,
+            date_created=datetime(2013, 9, 19, 22, 15, 22),
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+            date_finished=datetime(2013, 9, 19, 22, 15, 25),
+        )
+        db.session.add(command_1_c)
+        db.session.commit()
+
         path = '/api/0/jobs/{0}/phases/'.format(job.id.hex)
 
         resp = self.client.get(path)
@@ -106,6 +149,9 @@ class JobPhaseIndexTest(APITestCase):
         assert data[0]['steps'][0]['id'] == step_1.id.hex
         assert len(data[0]['steps'][0]['logSources']) == 1
         assert data[0]['steps'][0]['logSources'][0]['id'] == logsource_1.id.hex
+        assert len(data[0]['steps'][0]['commandTypeDurations']) == 2
+        assert data[0]['steps'][0]['commandTypeDurations']['setup'] == 2000
+        assert data[0]['steps'][0]['commandTypeDurations']['default'] == 1000
         assert data[1]['id'] == phase_2.id.hex
         assert len(data[1]['steps']) == 2
         assert data[1]['steps'][0]['id'] == step_2_a.id.hex

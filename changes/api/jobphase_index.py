@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from collections import defaultdict
+
 from flask import request
 
 from sqlalchemy.orm import joinedload, subqueryload_all
@@ -54,6 +56,9 @@ class JobPhaseIndexAPIView(APIView):
                 step_data['logSources'] = self.serialize(list(step.logsources), extended_registry=logsource_registry)
                 if step.id in test_counts:
                     step_data['testFailures'] = test_counts[step.id]
+                step_data['commandTypeDurations'] = defaultdict(int)
+                for command in step.commands:
+                    step_data['commandTypeDurations'][command.type.name] += command.duration
                 phase_data['steps'].append(step_data)
             context.append(phase_data)
 
