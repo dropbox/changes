@@ -14,7 +14,7 @@ class AuthorBuildIndexAPIView(APIView):
             return error('Must be logged in to ask about yourself', http_code=401)
         authors = Author.find(author_id, get_current_user())
         if not authors:
-            return error('Author not found', http_code=404)
+            return self.respond([])
 
         queryset = Build.query.options(
             joinedload('project'),

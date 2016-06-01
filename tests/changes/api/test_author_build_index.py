@@ -16,7 +16,7 @@ class AuthorBuildListTest(APITestCase):
         path = '/api/0/authors/{0}/builds/'.format(fake_author_id.hex)
 
         resp = self.client.get(path)
-        assert resp.status_code == 404
+        assert resp.status_code == 200
 
         author = Author(email=self.default_user.email, name='Foo Bar')
         db.session.add(author)
