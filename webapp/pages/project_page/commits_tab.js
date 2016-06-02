@@ -99,65 +99,27 @@ var CommitsTab = React.createClass({
     </div>;
   },
 
-  renderTableControls: function() {
-    // TODO: don't do default branch logic here, since we might be showing all
-    // branches. If there's no branch, add a blank option to select
-
+  renderTableControls() {
     var default_branch = this.props.project.getReturnedData()
       .repository.defaultBranch;
     var current_params = this.props.interactive.getCurrentParams();
-    var current_branch = current_params.branch || default_branch;
-
-    var branch_dropdown = null;
-    if (api.isError(this.state.branches) &&
-        this.state.branches.getStatusCode() === '422') {
-
-      branch_dropdown = <div className="selectWrap">
-        <select disabled={true}>
-          <option>No branches</option>
-        </select>
-      </div>;
+    let branchNames = null;
+    if (api.isError(this.state.branches) && this.state.branches.getStatusCode() === '422') {
+      branchNames = [];
     } else if (!api.isLoaded(this.state.branches)) {
-      branch_dropdown = <div className="selectWrap">
-        <select disabled={true}>
-          <option value={current_branch}>{current_branch}</option>
-        </select>
-      </div>;
+      branchNames = null;
     } else {
-      var options = _.chain(this.state.branches.getReturnedData())
-        .pluck('name')
-        .sortBy(_.identity)
-        .map(n => <option value={n}>{n}</option>)
-        .value();
-
-      var onChange = evt => {
-        this.props.interactive.updateWithParams(
-          { branch: evt.target.value },
-          true); // reset to page 0
-      };
-
-      branch_dropdown = <div className="selectWrap">
-        <select onChange={onChange} value={current_branch}>
-          {options}
-        </select>
-      </div>;
+      branchNames = _.chain(this.state.branches.getReturnedData()).pluck('name').value();
     }
-
-    /*
-    <span className="paddingLeftS">
-      Showing most recent diffs since 0:00pm
-    </span>
-
-      <input
-        disabled={true}
-        placeholder="Search by name or SHA [TODO]"
-        style={{minWidth: 170, marginRight: 5}}
-      />
-    */
-    return <div 
-      className="commitsControls">
-      {branch_dropdown}
-    </div>;
+    let onBranchChange = evt => {
+        this.props.interactive.updateWithParams({branch: evt.target.value}, true);
+    };
+    return <div className="commitsControls">
+             <BranchDropdown defaultBranch={default_branch}
+                             currentBranch={current_params.branch}
+                             branchNames={branchNames}
+                             onBranchChange={onBranchChange} />
+           </div>;
   },
 
   renderChart() {
@@ -288,5 +250,38 @@ var CommitsTab = React.createClass({
     return <div className="marginBottomM marginTopM">{links}</div>;
   },
 });
+
+
+const BranchDropdown = ({defaultBranch, currentBranch, branchNames, onBranchChange}) => {
+  let current_branch = currentBranch || defaultBranch;
+  let branch_dropdown = null;
+  if (!branchNames) {
+    branch_dropdown = <select disabled={true}>
+                        <option value={current_branch}>{current_branch}</option>
+                      </select>;
+  } else if (branchNames.length == 0) {
+    branch_dropdown = <select disabled={true}>
+                        <option>No branches</option>
+                      </select>;
+  } else {
+    let options = _.chain(branchNames)
+      .sortBy(_.identity)
+      .map(n => <option value={n} key={n}>{n}</option>)
+      .value();
+    branch_dropdown = <select onChange={onBranchChange} value={current_branch}>
+                        {options}
+                      </select>;
+  }
+  return <div className="selectWrap">
+           {branch_dropdown}
+         </div>;
+};
+
+BranchDropdown.propTypes = {
+    defaultBranch: PropTypes.string.isRequired,
+    currentBranch: PropTypes.string,
+    branchNames: PropTypes.array,
+    onBranchChange: PropTypes.func.isRequired,
+};
 
 export default CommitsTab;
