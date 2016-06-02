@@ -2,8 +2,8 @@
 """
 
 import re
-from typing import Any, List
-from uuid import UUID
+from typing import Any, List  # NOQA
+from uuid import UUID  # NOQA
 
 from changes.config import statsreporter
 from changes.constants import Result

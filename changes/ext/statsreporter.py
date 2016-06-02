@@ -3,7 +3,7 @@ import time
 import logging
 from contextlib import contextmanager
 from functools import wraps
-from typing import Iterator, Optional
+from typing import Iterator, Optional  # NOQA
 
 import statsd
 
