@@ -48,12 +48,12 @@ install-requirements:
 	@# XXX: Can any of these run in parallel?
 	npm cache clean
 	npm install
-	pip install pip==1.5.6
-	pip install -e . --use-mirrors --allow-external=argparse
+	pip install pip==8.1.2
+	pip install -e .
 
 install-test-requirements: install-requirements
 	pip install setuptools==17.0
-	pip install "file://`pwd`#egg=changes[tests]" --use-mirrors
+	pip install "file://`pwd`#egg=changes[tests]"
 
 test: lint test-python test-js
 
