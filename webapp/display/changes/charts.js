@@ -38,7 +38,7 @@ export var ChangesChart = React.createClass({
       var no_duration = runnable && !runnable.duration && runnable.duration === 0;
       if (_.isEmpty(runnable) || no_duration) {
         // would be nice to still show a tooltip here...
-        return <div key={runnable.id || ("empty:" + idx)}
+        return <div key={(runnable && runnable.id) || ("empty:" + idx)}
           className="chartBarColumn"
           style={{ paddingTop: this.MAX_CHART_HEIGHT - 2 }}>
           <div
