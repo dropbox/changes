@@ -672,7 +672,7 @@ export var SingleBuild = React.createClass({
         };
 
         let expandLabel = !this.state.expandedJobSteps[jobstep.id] ?
-          'Expand' : 'Collapse';
+          'Show artifacts' : 'Collapse artifacts';
 
 
         // no separator and 50% opacity for replaced jobstep
