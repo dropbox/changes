@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.schema import UniqueConstraint, Index
 
 from changes.config import db
 from changes.db.types.filestorage import FileData, FileStorage
@@ -40,6 +40,8 @@ class Artifact(db.Model):
     __tablename__ = 'artifact'
     __table_args__ = (
         UniqueConstraint('step_id', 'name', name='unq_artifact_name'),
+        Index('idx_artifact_job_id', 'job_id'),
+        Index('idx_artifact_project_id', 'project_id'),
     )
 
     def __init__(self, **kwargs):

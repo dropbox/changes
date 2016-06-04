@@ -33,6 +33,8 @@ class TestCase(db.Model):
         UniqueConstraint('job_id', 'label_sha', name='unq_test_name'),
         Index('idx_test_step_id', 'step_id'),
         Index('idx_test_project_key', 'project_id', 'label_sha'),
+        Index('idx_task_date_created', 'date_created'),
+        Index('idx_test_project_key_date', 'project_id', 'label_sha', 'date_created'),
     )
 
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)

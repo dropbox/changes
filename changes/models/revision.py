@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
+from sqlalchemy.schema import Index
 from fnmatch import fnmatch
 
 from changes.config import db
@@ -19,6 +20,9 @@ class Revision(db.Model):
     Revisions are keyed by repository, sha. They do not have unique UUIDs
     """
     __tablename__ = 'revision'
+    __table_args__ = (
+        Index('revision_author_id', 'author_id'),
+    )
 
     repository_id = Column(GUID, ForeignKey('repository.id'), primary_key=True)
     sha = Column(String(40), primary_key=True)

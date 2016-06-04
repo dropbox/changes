@@ -26,6 +26,7 @@ class Job(db.Model):
         Index('idx_build_change_id', 'change_id'),
         Index('idx_build_source_id', 'source_id'),
         Index('idx_build_family_id', 'build_id'),
+        Index('idx_job_source_date', 'source_id', 'status', 'date_created'),
         UniqueConstraint('build_id', 'number', name='unq_job_number'),
     )
 

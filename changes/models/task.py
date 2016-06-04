@@ -40,6 +40,7 @@ class Task(db.Model):
     __table_args__ = (
         Index('idx_task_parent_id', 'parent_id', 'task_name'),
         Index('idx_task_child_id', 'child_id', 'task_name'),
+        Index('idx_task_date_created', 'date_created'),
         UniqueConstraint('task_name', 'parent_id', 'child_id', name='unq_task_entity'),
     )
 

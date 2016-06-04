@@ -27,6 +27,7 @@ class FileCoverage(db.Model):
     __table_args__ = (
         Index('idx_filecoverage_job_id', 'job_id'),
         Index('idx_filecoverage_project_id', 'project_id'),
+        Index('idx_filecoverage_step_id', 'step_id'),
         UniqueConstraint('job_id', 'filename', name='unq_job_filname'),
     )
 

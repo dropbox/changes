@@ -36,6 +36,7 @@ class Build(db.Model):
         Index('idx_buildfamily_project_id', 'project_id'),
         Index('idx_buildfamily_author_id', 'author_id'),
         Index('idx_buildfamily_source_id', 'source_id'),
+        Index('idx_build_latest', 'project_id', 'status', 'date_created'),
         UniqueConstraint('project_id', 'number', name='unq_build_number'),
     )
 

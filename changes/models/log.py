@@ -25,6 +25,8 @@ class LogSource(db.Model):
     __table_args__ = (
         UniqueConstraint('step_id', 'name', name='unq_logsource_key2'),
         Index('idx_build_project_id', 'project_id'),
+        Index('idx_logsource_date_created', 'date_created'),
+        Index('idx_logsource_step_id', 'step_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
@@ -80,6 +82,7 @@ class LogChunk(db.Model):
         Index('idx_logchunk_project_id', 'project_id'),
         Index('idx_logchunk_build_id', 'job_id'),
         Index('idx_logchunk_source_id', 'source_id'),
+        Index('idx_logchunk_date_created', 'date_created'),
         UniqueConstraint('source_id', 'offset', name='unq_logchunk_source_offset'),
     )
 

@@ -41,6 +41,7 @@ class JobStep(db.Model):
     __table_args__ = (
             Index('idx_jobstep_status', 'status'),
             Index('idx_jobstep_cluster', 'cluster'),
+            Index('idx_jobstep_project_date', 'project_id', 'date_created'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
