@@ -39,8 +39,8 @@ class Source(db.Model):
     repository = relationship('Repository', innerjoin=False)
     patch = relationship('Patch')
     revision = relationship('Revision',
-                            foreign_keys=[repository_id, revision_sha])
-
+                            primaryjoin="and_(Revision.sha == foreign(Source.revision_sha), "
+                                        "Revision.repository_id == Source.repository_id)")
     __tablename__ = 'source'
     __table_args__ = (
         ForeignKeyConstraint(
