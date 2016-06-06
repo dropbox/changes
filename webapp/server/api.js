@@ -1,5 +1,7 @@
-import { Error } from 'es6!display/errors';
+import React from 'react';
 
+import { Error } from 'es6!display/errors';
+import { FlashMessage, SUCCESS, FAILURE } from 'es6!display/flash';
 import * as utils from 'es6!utils/utils';
 
 /**
@@ -203,17 +205,18 @@ export var allErrorResponses = function(list_of_calls) {
 /*
  * Build success/error messages for an API call response. Handles null/false.
  * possible: the state object produced by the API call
- * success_str: a string to display if the call was successful
+ * success_str: a FlashMessage to display if the call was successful
  * error_str_prefix: a prefix to prepend to an error message produced by the
  *                   API call.
  *
- * Returns a displayable string representing the status message, or null if no
- * suitable message can be built for any reason (e.g. possible is null).
+ * Returns a displayable react component (FlashMessage) representing the status
+ * message, or null if no suitable message can be built for any reason
+ * (e.g. possible is null).
  */
-export var buildStatusMessage = function(
+export var buildStatusFlashMessage = function(
         possible, success_str, error_str_prefix) {
   if (isLoaded(possible)) {
-    return success_str;
+    return <FlashMessage message={success_str} type={SUCCESS} />;
   } else if (isError(possible)) {
     let response_data = possible.response.responseText;
     // Usually API responses are JSON-encoded objects, but sometimes they're
@@ -235,10 +238,11 @@ export var buildStatusMessage = function(
             response_data = JSON.parse(response_data);
         } catch (e) {
             // Return whatever string couldn't be JSON-parsed.
-            return response_data;
+            return <FlashMessage message={response_data} type={FAILURE} />;
         }
     }
-    return `${error_str_prefix}: ${response_data.error}`;
+    let message = `${error_str_prefix}: ${response_data.error}`;
+    return <FlashMessage message={message} type={FAILURE} />;
   } else {
     return null;
   }

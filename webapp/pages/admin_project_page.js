@@ -255,14 +255,14 @@ let ProjectSettingsFieldGroup = React.createClass({
     ];
 
     let formMessages = [
-        api.buildStatusMessage(this.state._postRequest_project,
+        api.buildStatusFlashMessage(this.state._postRequest_project,
                               'Saved project',
                               'Failed to save project'),
-        api.buildStatusMessage(this.state._postRequest_options,
-                              'Saved project options',
-                              'Failed to save project options'),
+        api.buildStatusFlashMessage(this.state._postRequest_options,
+                              'Saved project',
+                              'Failed to save project'),
     ];
-    formMessages = _.filter(formMessages, msg => msg !== null);
+    formMessages = _.filter(formMessages, m => m && m.props.message);  // removes objs without a message prop
     return FieldGroupMarkup.create(form, "Save Project", this, formMessages);
   },
 });
@@ -502,14 +502,14 @@ let PlanDetails = React.createClass({
     ];
 
     let formMessages = [
-        api.buildStatusMessage(this.state._postRequest_plan,
-                              'Saved plan basics',
-                              'Failed to save plan basics'),
-        api.buildStatusMessage(this.state._postRequest_options,
-                              'Saved plan options',
-                              'Failed to save plan options'),
+        api.buildStatusFlashMessage(this.state._postRequest_plan,
+                              'Saved plan',
+                              'Failed to save plan'),
+        api.buildStatusFlashMessage(this.state._postRequest_options,
+                              'Saved plan',
+                              'Failed to save plan'),
     ];
-    formMessages = _.filter(formMessages, msg => msg !== null);
+    formMessages = _.filter(formMessages, m => m && m.props.message);  // removes objs without a message prop
     let fieldMarkup = FieldGroupMarkup.create(form, "Save Plan", this, formMessages);
 
     let stepMarkup = null;
@@ -612,7 +612,7 @@ let StepDetails = React.createClass({
     let step = this.props.step;
 
     let formMessages = [
-        api.buildStatusMessage(this.state._postRequest_step,
+        api.buildStatusFlashMessage(this.state._postRequest_step,
                                'Saved step',
                                'Failed to save step'),
     ];
@@ -636,8 +636,7 @@ let StepDetails = React.createClass({
                  promptText={`Delete ${step.name}?`}>
                    <Button className="marginLeftS">Delete Step</Button>
                 </Request>;
-
-    formMessages = _.filter(formMessages, msg => msg !== null);
+    formMessages = _.filter(formMessages, m => m && m.props.message);  // removes objs without a message prop
     return FieldGroupMarkup.create(form, "Save Step", this, formMessages, [del]);
   },
 });

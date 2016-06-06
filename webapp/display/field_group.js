@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from 'es6!display/button';
+import { SUCCESS, FAILURE } from 'es6!display/flash';
 import SimpleTooltip from 'es6!display/simple_tooltip';
 
 // Convenience function for generating redirect callbacks on successful form saves.
@@ -159,9 +160,15 @@ export var create = function(form, saveButtonText, _this, messages=[], extraButt
     </div>;
   });
 
-  let messageDivs = _.map(messages, m => {
-    return <div>{m}</div>;
-  });
+  // if there was a failure, display that message so the user
+  // does not assume setting changes went through
+  let displayedMessage = _.find(messages, m => m.props.type === FAILURE);
+
+  // if no error messages could be found, then post success messages,
+  // assuming they exist
+  if (!(displayedMessage)) {
+    displayedMessage = _.find(messages, m => m.props.type === SUCCESS);
+  }
 
   // If changes are pending, show the button as enabled with an active onclick.
   // If no changes are pending, show the button as disabled and clicking does nothing.
@@ -189,7 +196,7 @@ export var create = function(form, saveButtonText, _this, messages=[], extraButt
   return <div>
     {markup}
     <div>{allButtons}</div>
-    {messageDivs}
+    {displayedMessage}
   </div>;
 };
 
