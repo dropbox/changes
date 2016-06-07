@@ -15,6 +15,10 @@ from typing import Any, List, Dict  # NOQA
 # arbitrarily large data.
 MAX_ENTRIES = 5000
 
+# Prefix for table name that indicates that the content should be parsed, but not validated
+# or sent to analytics.
+DRY_RUN_PREFIX = 'DRY_RUN:'
+
 
 class AnalyticsJsonHandler(ArtifactHandler):
     """
@@ -40,6 +44,8 @@ class AnalyticsJsonHandler(ArtifactHandler):
             self.report_malformed()
             return
         table = contents['table']
+        if table.startswith(DRY_RUN_PREFIX):
+            return
         entries = contents['entries']
         for ent in entries:
             ent['jobstep_id'] = self.step.id.hex
@@ -59,7 +65,7 @@ def _validate_structure(contents, allowed_tables):
     table = contents.get('table')
     if not table:
         raise ValueError("'table' must be specified")
-    if table not in allowed_tables:
+    if table not in allowed_tables and not table.startswith(DRY_RUN_PREFIX):
         raise ValueError("'%s' is not an allowed table (allowed: %s)".format(table, ','.join(allowed_tables)))
     entries = contents.get('entries')
     if not isinstance(entries, list):

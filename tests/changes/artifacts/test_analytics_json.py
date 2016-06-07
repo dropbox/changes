@@ -76,3 +76,18 @@ class AnalyticsJsonHandlerTest(TestCase):
             post_analytics.assert_called_once_with('URL', 'a_permitted_table', expected_data)
 
         assert not FailureReason.query.filter(FailureReason.step_id == self.jobstep.id).first()
+
+    def test_dry_run(self):
+        handler = AnalyticsJsonHandler(self.jobstep)
+        fp = StringIO(json.dumps({
+            'table': 'DRY_RUN:invalid_table',
+            'entries': [{'index': n} for n in xrange(2)],
+        }))
+
+        current_app.config['ANALYTICS_PROJECT_TABLES'] = ['a_permitted_table']
+        current_app.config['ANALYTICS_PROJECT_POST_URL'] = 'URL'
+        with mock.patch('changes.artifacts.analytics_json._post_analytics_data') as post_analytics:
+            handler.process(fp)
+            assert post_analytics.call_count == 0
+
+        assert not FailureReason.query.filter(FailureReason.step_id == self.jobstep.id).first()
