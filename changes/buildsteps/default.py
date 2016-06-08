@@ -6,6 +6,7 @@ import uuid
 from copy import deepcopy
 from flask import current_app
 from itertools import chain
+from typing import Dict, List, Optional  # NOQA
 
 from changes.artifacts.analytics_json import AnalyticsJsonHandler
 from changes.artifacts.coverage import CoverageHandler
@@ -20,6 +21,8 @@ from changes.models.command import CommandType, FutureCommand
 from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep, FutureJobStep
 from changes.models.snapshot import SnapshotImage
+from changes.vcs.git import GitVcs
+from changes.vcs.hg import MercurialVcs
 
 from changes.utils.http import build_uri
 
@@ -67,6 +70,7 @@ class DefaultBuildStep(BuildStep):
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=10, cpus=4, memory=8 * 1024, clean=True,
                  debug_config=None, test_stats_from=None, cluster=None,
+                 other_repos=None,
                  **kwargs):
         """
         Constructor for DefaultBuildStep.
@@ -114,6 +118,14 @@ class DefaultBuildStep(BuildStep):
                 test timing stats from the parent are not reliable.
             cluster: a cluster to associate jobs of this BuildStep with.
                 Jobsteps will then only be run on slaves of the given cluster.
+            other_repos: A list of dicts, where each dict describes an additional
+                repo which should be checked out for the build. Each dict must
+                specify a "repo" (either an absolute url or something like
+                "foo.git", which will then use a base repo URL, if configured),
+                and a "path" to clone the repo to. Default is git, but mercurial
+                can be specified with "backend": "hg". Default revision is
+                "origin/master" or "default" (for hg), but an explicit revision
+                can be specified with "revision".
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
@@ -153,6 +165,8 @@ class DefaultBuildStep(BuildStep):
             future_commands.append(future_command)
         self.commands = future_commands
 
+        self.other_repo_clone_commands = self._other_repo_clone_commands(other_repos)
+
         # this caches the snapshot image database object for a given job id.
         # we use it to avoid performing duplicate queries when
         # get_allocation_command() and get_allocation_params() are called.
@@ -172,6 +186,51 @@ class DefaultBuildStep(BuildStep):
         (currently only blacklist-remove)"""
         return ''
 
+    def _other_repo_clone_commands(self, other_repos):
+        """
+        Parses other_repos config and returns a list of FutureCommands
+        that will clone said repos.
+        """
+        # type: Optional[List[Dict[str, str]]] -> List[FutureCommand]
+        commands = []
+        if other_repos is None:
+            return commands
+        if not isinstance(other_repos, list):
+            raise ValueError("other_repos must be a list!")
+        for repo in other_repos:
+            if not isinstance(repo, dict):
+                raise ValueError('Each repo should be a dict')
+            if not repo.get('repo'):
+                raise ValueError("Each other_repo must specify a repo")
+            if not repo.get('path'):
+                raise ValueError("Each other_repo must specify a path")
+
+            if repo.get('backend') == 'hg':
+                repo_vcs = MercurialVcs
+                revision = repo.get('revision', 'default')
+                base_url = current_app.config['MERCURIAL_DEFAULT_BASE_URI']
+            else:
+                repo_vcs = GitVcs
+                revision = repo.get('revision', 'origin/master')
+                base_url = current_app.config['GIT_DEFAULT_BASE_URI']
+
+            # check if the repo is a full url already or just a repo name (like changes.git)
+            if '@' in repo['repo'] or '://' in repo['repo']:
+                remote_url = repo['repo']
+            elif not base_url:
+                raise ValueError("Repo %s is not a full URL but no base URL is configured" % repo['repo'])
+            else:
+                remote_url = base_url + repo['repo']
+
+            commands.append(FutureCommand(
+                script=repo_vcs.get_clone_command(
+                        remote_url, repo['path'], revision,
+                        self.clean, self.debug_config.get('repo_cache_dir')),
+                env=self.env,
+                type=CommandType.infra_setup,
+            ))
+        return commands
+
     def iter_all_commands(self, job):
         source = job.source
         repo = source.repository
@@ -180,8 +239,7 @@ class DefaultBuildStep(BuildStep):
             yield FutureCommand(
                 script=vcs.get_buildstep_clone(
                         source, self.repo_path, self.clean,
-                        self.debug_config.get('repo_cache_dir'),
-                        pre_reset_checkout=True),
+                        self.debug_config.get('repo_cache_dir')),
                 env=self.env,
                 type=CommandType.infra_setup,
             )
@@ -192,6 +250,9 @@ class DefaultBuildStep(BuildStep):
                     env=self.env,
                     type=CommandType.infra_setup,
                 )
+
+            for command in self.other_repo_clone_commands:
+                yield command
 
         blacklist_remove_path = os.path.join(self._custom_bin_path(), 'blacklist-remove')
         yield FutureCommand(

@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import mock
 
+from flask import current_app
+
 from changes.buildsteps.default import (
     DEFAULT_ARTIFACTS, DEFAULT_ENV, DEFAULT_PATH, DEFAULT_RELEASE,
     DefaultBuildStep
@@ -13,6 +15,8 @@ from changes.models.jobstep import FutureJobStep
 from changes.models.repository import Repository
 from changes.testutils import TestCase
 from changes.vcs.base import Vcs
+from changes.vcs.git import GitVcs
+from changes.vcs.hg import MercurialVcs
 
 
 class DefaultBuildStepTest(TestCase):
@@ -37,6 +41,19 @@ class DefaultBuildStepTest(TestCase):
     def test_get_resource_limits(self):
         buildstep = self.get_buildstep(cpus=8, memory=9000)
         assert buildstep.get_resource_limits() == {'cpus': 8, 'memory': 9000, }
+
+    def test_invalid_other_repos(self):
+        # dict instead of a list
+        with self.assertRaises(ValueError):
+            self.get_buildstep(other_repos={})
+
+        # list elements aren't dicts
+        with self.assertRaises(ValueError):
+            self.get_buildstep(other_repos=[[]])
+
+        # didn't specify repo and path
+        with self.assertRaises(ValueError):
+            self.get_buildstep(other_repos=[{'revision': 'foo'}])
 
     def test_execute(self):
         build = self.create_build(self.create_project(name='foo'), label='buildlabel')
@@ -98,7 +115,7 @@ class DefaultBuildStepTest(TestCase):
                                      repo_path='source', path='tests')
         buildstep.execute(job)
 
-        vcs.get_buildstep_clone.assert_called_with(job.source, 'source', True, None, pre_reset_checkout=True)
+        vcs.get_buildstep_clone.assert_called_with(job.source, 'source', True, None)
 
         assert job.phases[0].label == 'Collect tests'
         step = job.phases[0].steps[0]
@@ -162,6 +179,57 @@ class DefaultBuildStepTest(TestCase):
         assert commands[idx].type == CommandType.snapshot
         assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[idx].env == DEFAULT_ENV
+
+    @mock.patch.object(Repository, 'get_vcs')
+    @mock.patch.object(MercurialVcs, 'get_clone_command')
+    @mock.patch.object(GitVcs, 'get_clone_command')
+    def test_execute_other_repos(self, git_get_clone_command, mercurial_get_clone_command, get_vcs):
+        build = self.create_build(self.create_project(), label='buildlabel')
+        job = self.create_job(build)
+
+        vcs = mock.Mock(spec=Vcs)
+        vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
+        get_vcs.return_value = vcs
+
+        git_get_clone_command.return_value = 'git clone'
+        mercurial_get_clone_command.return_value = 'hg clone'
+
+        current_app.config['GIT_DEFAULT_BASE_URI'] = 'git@giturl.com:'
+        current_app.config['MERCURIAL_DEFAULT_BASE_URI'] = 'hg@hgurl.com/'
+        buildstep = DefaultBuildStep(commands=[{'script': 'ls'}],
+                                     repo_path='source', path='tests',
+                                     other_repos=[{'repo': 'changes.git', 'path': 'changes', 'revision': 'abcdefg'},
+                                                  {'repo': 'hg_repo', 'path': '/mercurial_repo', 'backend': 'hg'},
+                                                  {'repo': 'git@example.com:foo.git', 'path': '/foo', 'backend': 'git'}])
+        buildstep.execute(job)
+
+        vcs.get_buildstep_clone.assert_called_with(job.source, 'source', True, None)
+
+        git_get_clone_command.assert_any_call('git@giturl.com:changes.git', 'changes', 'abcdefg', True, None)
+        git_get_clone_command.assert_any_call('git@example.com:foo.git', '/foo', 'origin/master', True, None)
+        mercurial_get_clone_command.assert_any_call('hg@hgurl.com/hg_repo', '/mercurial_repo', 'default', True, None)
+
+        assert job.phases[0].label == 'buildlabel'
+        step = job.phases[0].steps[0]
+
+        commands = step.commands
+        assert len(commands) == 6
+
+        idx = 0
+        assert commands[idx].script == 'git clone https://example.com'
+        assert commands[idx].cwd == ''
+        assert commands[idx].type == CommandType.infra_setup
+        assert commands[idx].env == DEFAULT_ENV
+
+        for i in xrange(idx, idx + 3):
+            assert commands[idx].type == CommandType.infra_setup
+        idx += 3
+
+        # skip blacklist removal command
+        idx += 1
+
+        idx += 1
+        assert commands[idx].script == 'ls'
 
     def test_create_replacement_jobstep(self):
         build = self.create_build(self.create_project())

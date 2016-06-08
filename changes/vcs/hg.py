@@ -212,17 +212,19 @@ class MercurialVcs(Vcs):
         self.log_timing('get_known_branches', start_time)
         return list(branch_names)
 
-    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=False):
+    @staticmethod
+    def get_clone_command(remote_url, path, revision, clean=True, cache_dir=None):
         if cache_dir is not None:
             logging.warning("unexpected cache_dir provided for hg repository")
-        if pre_reset_checkout:
-            logging.warning('unexpected pre_reset_checkout set for hg repository')
         return BASH_CLONE_STEP % dict(
-            remote_url=self.remote_url,
-            local_path=workspace,
-            revision=source.revision_sha,
+            remote_url=remote_url,
+            local_path=path,
+            revision=revision,
             clean_arg='--clean' if clean else '',
         )
+
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=False):
+        return MercurialVcs.get_clone_command(self.remote_url, workspace, source.revision_sha, clean, cache_dir, pre_reset_checkout)
 
     def get_buildstep_patch(self, source, workspace):
         return BASH_PATCH_STEP % dict(

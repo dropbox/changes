@@ -314,17 +314,19 @@ class GitVcs(Vcs):
             else:
                 raise
 
-    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=False):
-        if pre_reset_checkout:
-            pre_reset = 'git checkout -q master'
+    @staticmethod
+    def get_clone_command(self, remote_url, path, revision, clean=True, cache_dir=None):
         return BASH_CLONE_STEP % dict(
             remote_url=self.remote_url,
-            local_path=workspace,
-            revision=source.revision_sha,
+            local_path=path,
+            revision=revision,
             cache_dir=cache_dir or "/dev/null",
             clean_command='git clean -fdx' if clean else '',
-            pre_reset_command=pre_reset or ''
+            pre_reset_command='git checkout -q master'
         )
+
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=True):
+        return GitVcs.get_clone_command(self.remote_url, workspace, source.revision_sha, clean, cache_dir, pre_reset_checkout)
 
     def get_buildstep_patch(self, source, workspace):
         return BASH_PATCH_STEP % dict(

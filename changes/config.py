@@ -128,6 +128,16 @@ def create_app(_read_config=True, **config):
 
     app.config['CHANGES_CLIENT_DEFAULT_BUILD_TYPE'] = 'legacy'
 
+    # Base URI to use for git repos that we want to clone (currently only used
+    # for the "other_repos" buildstep config). The repo name is appended
+    # directly to this, so it should already contain necessary colons and
+    # slashes, etc. For example, if GIT_DEFAULT_BASE_URI is `git@giturl.com:`
+    # and a repo is specified as `changes.git`, the clone url will be
+    # `git@giturl.com:changes.git`
+    app.config['GIT_DEFAULT_BASE_URI'] = None
+    # Same as GIT_DEFAULT_BASE_URI but used for mercurial repos.
+    app.config['MERCURIAL_DEFAULT_BASE_URI'] = None
+
     # This is a hash from each build type (string identifiers used in
     # build step configuration) to a "build spec", a definition of
     # how to use changes-client to build. To use changes-client, the key
