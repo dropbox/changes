@@ -317,7 +317,7 @@ class GitVcs(Vcs):
     @staticmethod
     def get_clone_command(self, remote_url, path, revision, clean=True, cache_dir=None):
         return BASH_CLONE_STEP % dict(
-            remote_url=self.remote_url,
+            remote_url=remote_url,
             local_path=path,
             revision=revision,
             cache_dir=cache_dir or "/dev/null",
