@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 from datetime import datetime
 from urlparse import urlparse
+from typing import Any, Optional  # NOQA
 
 from changes.utils.cache import memoize
 from changes.utils.http import build_uri
@@ -315,7 +316,8 @@ class GitVcs(Vcs):
                 raise
 
     @staticmethod
-    def get_clone_command(self, remote_url, path, revision, clean=True, cache_dir=None):
+    def get_clone_command(remote_url, path, revision, clean=True, cache_dir=None):
+        # type: (str, str, str, bool, Optional[str]) -> str
         return BASH_CLONE_STEP % dict(
             remote_url=remote_url,
             local_path=path,
@@ -325,10 +327,12 @@ class GitVcs(Vcs):
             pre_reset_command='git checkout -q master'
         )
 
-    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=True):
-        return GitVcs.get_clone_command(self.remote_url, workspace, source.revision_sha, clean, cache_dir, pre_reset_checkout)
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None):
+        # type: (Any, str, bool, Optional[str]) -> str
+        return GitVcs.get_clone_command(self.remote_url, workspace, source.revision_sha, clean, cache_dir)
 
     def get_buildstep_patch(self, source, workspace):
+        # type: (Any, str) -> str
         return BASH_PATCH_STEP % dict(
             local_path=workspace,
             patch_url=build_uri('/api/0/patches/{0}/?raw=1'.format(

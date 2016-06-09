@@ -4,6 +4,7 @@ from datetime import datetime
 from rfc822 import parsedate_tz, mktime_tz
 from urlparse import urlparse
 from time import time
+from typing import Any, Optional  # NOQA
 
 from changes.utils.http import build_uri
 
@@ -214,6 +215,7 @@ class MercurialVcs(Vcs):
 
     @staticmethod
     def get_clone_command(remote_url, path, revision, clean=True, cache_dir=None):
+        # type: (str, str, str, bool, Optional[str]) -> str
         if cache_dir is not None:
             logging.warning("unexpected cache_dir provided for hg repository")
         return BASH_CLONE_STEP % dict(
@@ -223,10 +225,12 @@ class MercurialVcs(Vcs):
             clean_arg='--clean' if clean else '',
         )
 
-    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None, pre_reset_checkout=False):
-        return MercurialVcs.get_clone_command(self.remote_url, workspace, source.revision_sha, clean, cache_dir, pre_reset_checkout)
+    def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None):
+        # type: (Any, str, bool, Optional[str]) -> str
+        return MercurialVcs.get_clone_command(self.remote_url, workspace, source.revision_sha, clean, cache_dir)
 
     def get_buildstep_patch(self, source, workspace):
+        # type: (Any, str) -> str
         return BASH_PATCH_STEP % dict(
             local_path=workspace,
             patch_url=build_uri('/api/0/patches/{0}/?raw=1'.format(
