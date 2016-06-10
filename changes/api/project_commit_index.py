@@ -7,11 +7,10 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload, contains_eager
 
 from changes.api.base import APIView, error
-from changes.config import db
 from changes.constants import Status
 from changes.lib import build_type
 from changes.models.build import Build
-from changes.models.project import Project, ProjectOption
+from changes.models.project import Project, ProjectOptionsHelper
 from changes.models.revision import Revision
 from changes.models.source import Source
 
@@ -38,7 +37,7 @@ class ProjectCommitIndexAPIView(APIView):
         # project's whitelist
         paths = None
         if not args.every_commit:
-            paths = self.get_whitelisted_paths(project)
+            paths = ProjectOptionsHelper.get_whitelisted_paths(project)
 
         repo = project.repository
         offset = (args.page - 1) * args.per_page
@@ -84,18 +83,6 @@ class ProjectCommitIndexAPIView(APIView):
             results.append(result)
 
         return self.respond(results, serialize=False, links=page_links)
-
-    def get_whitelisted_paths(self, project):
-        whitelist = db.session.query(
-            ProjectOption.project_id, ProjectOption.name, ProjectOption.value
-        ).filter(
-            ProjectOption.project_id.in_([project.id]),
-            ProjectOption.name.in_(['build.file-whitelist'])
-        ).first()
-
-        if whitelist:
-            return whitelist.value.strip().splitlines()
-        return None
 
     def get_commits_from_vcs(self, repo, vcs, offset, limit, paths, parent, branch):
         vcs_log = list(vcs.log(

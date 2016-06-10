@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.api.base import APIView
 from changes.models.job import Job
-from changes.models.project import Project
+from changes.models.project import Project, ProjectOptionsHelper
 from changes.models.repository import Repository
 from changes.models.source import Source
 from changes.models.test import TestCase
@@ -39,10 +39,13 @@ class HistorySliceable(object):
 
     def __getitem__(self, sliced):
 
+        project = Project.get(self.project_id)
+        whitelist = ProjectOptionsHelper.get_whitelisted_paths(project)
+
         repo = Repository.query.get(self.repository_id)
         vcs = repo.get_vcs()
 
-        log = vcs.log(offset=sliced.start, limit=sliced.stop - sliced.start, branch=self.branch)
+        log = vcs.log(offset=sliced.start, limit=sliced.stop - sliced.start, branch=self.branch, paths=whitelist)
 
         revs = [rev.id for rev in log]
         if revs == []:

@@ -182,3 +182,26 @@ class ProjectOptionsHelper:
             options[project_id][option_name] = option_value
 
         return options
+
+    @staticmethod
+    def get_option(project, option):
+        options_query = db.session.query(
+            ProjectOption.project_id, ProjectOption.name, ProjectOption.value
+        ).filter(
+            ProjectOption.project_id == project.id,
+            ProjectOption.name == option
+        )
+
+        option = options_query.first()
+        if option:
+            return option.value
+        else:
+            return None
+
+    @staticmethod
+    def get_whitelisted_paths(project):
+        whitelist = ProjectOptionsHelper.get_option(project, 'build.file-whitelist')
+
+        if whitelist:
+            return whitelist.strip().splitlines()
+        return None

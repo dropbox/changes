@@ -8,12 +8,16 @@ from changes.testutils import APITestCase
 
 
 class ProjectTestHistoryTest(APITestCase):
+    @patch('changes.models.project.ProjectOptionsHelper.get_whitelisted_paths')
     @patch('changes.models.repository.Repository.get_vcs')
-    def test_simple(self, get_vcs):
+    def test_simple(self, get_vcs, get_whitelisted_paths):
+        # Each commit's id is a single character repeated 40 times
+        # The path changed by each commit is just the identifying character
+        # Only commits in hash_cars_with_tests have tests
         all_hash_chars = "abcdefgh"
         hash_chars_with_tests = "abcfgh"
 
-        def log_results(parent=None, branch=None, offset=0, limit=1):
+        def log_results(parent=None, branch=None, offset=0, limit=1, paths=None):
 
             def result(id):
                 return RevisionResult(
@@ -24,7 +28,7 @@ class ProjectTestHistoryTest(APITestCase):
                 )
             return iter([
                 result(c * 40)
-                for c in all_hash_chars
+                for c in (paths if paths else all_hash_chars)
             ][offset:offset + limit])
 
         # Fake having a VCS and stub the returned commit log
@@ -70,6 +74,9 @@ class ProjectTestHistoryTest(APITestCase):
         resp = self.client.get(path)
         assert resp.status_code == 404
 
+        # First test without a whitelist
+        get_whitelisted_paths.return_value = None
+
         path = '/api/0/projects/{0}/tests/{1}/history/'.format(
             project.id.hex, parent_groups['a'].name_sha)
 
@@ -104,3 +111,17 @@ class ProjectTestHistoryTest(APITestCase):
         assert data[0] is None
         assert data[1] is None
         assert data[2]['id'] == parent_groups['f'].id.hex
+
+        # Now add the proper whitelist
+        get_whitelisted_paths.return_value = list(hash_chars_with_tests)
+
+        path = '/api/0/projects/{0}/tests/{1}/history/'.format(
+            project.id.hex, parent_groups['a'].name_sha)
+
+        resp = self.client.get(path)
+        assert resp.status_code == 200
+        data = self.unserialize(resp)
+
+        assert len(data) == 6
+        for i, parent_group_key in enumerate(hash_chars_with_tests):
+            assert data[i]['id'] == parent_groups[parent_group_key].id.hex
