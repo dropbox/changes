@@ -12,8 +12,10 @@ import requests
 from sqlalchemy import distinct
 from collections import defaultdict
 from datetime import datetime
+from uuid import UUID  # NOQA
 
 from flask import current_app
+from typing import Any, Dict, List, Tuple, Union  # NOQA
 
 from changes.config import db, statsreporter
 from changes.constants import Result
@@ -29,6 +31,7 @@ logger = logging.getLogger('analytics_notifier')
 
 
 def _datetime_to_timestamp(dt):
+    # type: (datetime) -> int
     """Convert a datetime to unix epoch time in seconds."""
     return int((dt - datetime.utcfromtimestamp(0)).total_seconds())
 
@@ -37,6 +40,7 @@ _REV_URL_RE = re.compile(r'^\s*Differential Revision:\s+(http.*/D[0-9]+)\s*$', r
 
 
 def _get_phabricator_revision_url(build):
+    # type: (Build) -> str
     """Returns the Phabricator Revision URL for a Build.
 
     Args:
@@ -59,6 +63,7 @@ def _get_phabricator_revision_url(build):
 
 
 def _get_build_failure_reasons(build):
+    # type: (Build) -> List[str]
     """Return the names of all the FailureReasons associated with a build.
     Args:
         build (Build): The build to return reasons for.
@@ -80,12 +85,14 @@ def _get_build_failure_reasons(build):
 
 
 def maybe_ts(dt):
+    # type: (datetime) -> Union[int, None]
     if dt:
         return _datetime_to_timestamp(dt)
     return None
 
 
 def build_finished_handler(build_id, **kwargs):
+    # type: (UUID, **Any) -> None
     url = current_app.config.get('ANALYTICS_POST_URL')
     if not url:
         return
@@ -139,6 +146,7 @@ def build_finished_handler(build_id, **kwargs):
 
 
 def post_analytics_data(url, data):
+    # type: (str, List[Any]) -> None
     """
     Args:
         url (str): HTTP URL to POST to.
@@ -155,6 +163,7 @@ def post_analytics_data(url, data):
 
 
 def _get_itemstat_dict(iid):
+    # type: (UUID) -> Dict[str, Any]
     """
     Args:
         iid (UUID): The ID of the item to get stats for.
@@ -287,6 +296,7 @@ def _get_log_data(source):
 
 
 def _get_rules():
+    # type: () -> List[Tuple[str, str, str]]
     """Return the current rules to be used with categorize.categorize.
     NB: Reloads the rules file at each call.
     """
@@ -297,6 +307,7 @@ def _get_rules():
 
 
 def _incr(name):
+    # type: (str) -> None
     """Helper to increments a stats counter.
     Mostly exists to ease mocking in tests.
     Args:

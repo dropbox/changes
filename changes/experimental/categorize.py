@@ -3,12 +3,15 @@
 import ast
 import re
 
+from typing import Any, AnyStr, Tuple  # NOQA
+
 
 class ParseError(Exception):
     """Raised on syntax error in a rule."""
 
 
 def load_rules(path):
+    # type: (str) -> List[Tuple[AnyStr, AnyStr, AnyStr]]
     """Load rules from a file, a rule per line.
 
     Empty lines and lines containing only a comment starting with # are ignored.
@@ -18,13 +21,14 @@ def load_rules(path):
     or quoted using Python string literal syntax (triple-quoted and raw string literals
     are supported, but unicode string literals are not valid).
 
-    Return a list of (tag, regexp) tuples (both items are strings).
+    Return a list of (tag, project, regexp) tuples.
     """
     with open(path) as file:
         return parse_rules(file.read(), path)
 
 
 def parse_rules(data, path='file'):
+    # type: (AnyStr, AnyStr) -> List[Tuple[AnyStr, AnyStr, AnyStr]]
     rules = []
     for i, line in enumerate(data.splitlines()):
         try:
@@ -37,6 +41,7 @@ def parse_rules(data, path='file'):
 
 
 def _parse_rule(line):
+    # type: (AnyStr) -> Tuple[AnyStr, AnyStr, AnyStr]
     """Parse line of text that represents a rule.
 
     Return None if the line is empty or a comment. Otherwise, return tuple
@@ -56,11 +61,12 @@ def _parse_rule(line):
 
 
 def _parse_regexp(regexp):
+    # type: (AnyStr) -> AnyStr
     regexp = regexp.strip()
     # Parse quoted regular expressions as Python string literals.
     if regexp.endswith(('"', "'")):
         try:
-            parsed = ast.literal_eval(regexp)
+            parsed = ast.literal_eval(regexp)  # type: ignore
         except SyntaxError as exc:
             raise ParseError("invalid Python string literal")
         # We don't want unicode regexps for now.
