@@ -19,7 +19,6 @@ from kombu import Exchange, Queue
 from kombu.common import Broadcast
 from raven.contrib.flask import Sentry
 from urlparse import urlparse
-from werkzeug.contrib.fixers import ProxyFix
 
 from changes.constants import CUSTOM_CSS_FILE, PROJECT_ROOT
 from changes.api.controller import APIController, APICatchall
@@ -75,7 +74,6 @@ def create_app(_read_config=True, **config):
                       static_folder=None,
                       template_folder=os.path.join(PROJECT_ROOT, 'templates'))
 
-    app.wsgi_app = ProxyFix(app.wsgi_app)
     # app.wsgi_app = TracerMiddleware(app.wsgi_app, app)
 
     # This key is insecure and you should override it on the server
