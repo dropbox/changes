@@ -3,11 +3,10 @@ from __future__ import absolute_import
 import logging
 
 from datetime import datetime
-from flask import session
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import joinedload
 
-from changes.api.auth import requires_admin
+from changes.api.auth import get_current_user, requires_admin
 from changes.api.base import APIView
 from changes.db.utils import create_or_update
 from changes.models.adminmessage import AdminMessage
@@ -65,7 +64,7 @@ class AdminMessageIndexAPIView(APIView):
         # Enforce we only ever have a single message
         message, _ = create_or_update(AdminMessage, where={}, values={
             'message': args.message,
-            'user_id': session['uid'],
+            'user_id': get_current_user().id,
             'date_created': datetime.utcnow()
         })
 

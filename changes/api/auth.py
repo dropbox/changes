@@ -1,7 +1,8 @@
 from __future__ import absolute_import, print_function
 
-from flask import session, request
+from flask import current_app, session, request
 from functools import wraps
+from typing import Optional  # NOQA
 
 from changes.models.user import User
 
@@ -51,14 +52,25 @@ def requires_admin(method):
 
 
 def get_current_user():
+    # type: () -> Optional[User]
     """
-    Return the currently authenticated user based on their active session.
+    Return the currently authenticated user.
+
+    Determines authenticated user based on session (default) or headers from an
+    authenticating proxy (only if PP_AUTH is enabled in the config).
     """
     if getattr(request, 'current_user', NOT_SET) is NOT_SET:
-        if session.get('uid') is None:
-            request.gcurrent_user = None
+        if current_app.config.get('PP_AUTH', False):
+            email = request.headers.get('X-PP-USER')
+            if email is None:
+                request.gcurrent_user = None
+            else:
+                request.gcurrent_user = User.query.filter_by(email=email).first()
         else:
-            request.gcurrent_user = User.query.get(session['uid'])
-            if request.gcurrent_user is None:
-                del session['uid']
+            if session.get('uid') is None:
+                request.gcurrent_user = None
+            else:
+                request.gcurrent_user = User.query.get(session['uid'])
+                if request.gcurrent_user is None:
+                    del session['uid']
     return request.gcurrent_user

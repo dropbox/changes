@@ -1,12 +1,10 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import session
-
 from sqlalchemy.orm import joinedload
 
+from changes.api.auth import get_current_user
 from changes.api.base import APIView
 from changes.models.adminmessage import AdminMessage
-from changes.models.user import User
 
 import logging
 
@@ -20,12 +18,7 @@ class InitialIndexAPIView(APIView):
         """
 
         # authentication
-        user = None
-        if session.get('uid'):
-            user = User.query.get(session['uid'])
-            if user is None:
-                del session['uid']
-
+        user = get_current_user()
         auth = {
             'authenticated': False,
         }

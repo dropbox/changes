@@ -141,6 +141,18 @@ class LoginView(MethodView):
             # logging in
             state = base64.urlsafe_b64encode(request.args['orig_url'].encode('utf-8'))
 
+        # If we're in the PP world, try to log in based on that header.
+        if current_app.config.get('PP_AUTH', False):
+            email = request.headers.get('X-PP-USER')
+            if email is None:
+                return current_app.make_response(('Expected PP auth!', 401, {}))
+            # All we need to do is make sure that the user exists in the
+            # database for get_current_user() to find.
+            user, _ = get_or_create(User, where={
+                'email': email,
+            })
+            return get_orig_url_redirect(state)
+
         # if refresh token available, log in without prompt
         if 'refresh_token' in request.cookies and 'refresh_email' in request.cookies:
             resp = auth_with_refresh_token(request.cookies)

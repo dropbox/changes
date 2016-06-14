@@ -1,9 +1,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from flask import session
-
+from changes.api.auth import get_current_user
 from changes.api.base import APIView
-from changes.models.user import User
 
 
 class AuthIndexAPIView(APIView):
@@ -11,12 +9,7 @@ class AuthIndexAPIView(APIView):
         """
         Return information on the currently authenticated user.
         """
-        if session.get('uid'):
-            user = User.query.get(session['uid'])
-            if user is None:
-                del session['uid']
-        else:
-            user = None
+        user = get_current_user()
 
         if user is None:
             context = {

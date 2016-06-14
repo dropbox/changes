@@ -10,7 +10,7 @@ import warnings
 from celery.schedules import crontab
 from celery.signals import task_postrun
 from datetime import timedelta
-from flask import request, session
+from flask import request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.assets import Environment
 from flask_debugtoolbar import DebugToolbarExtension
@@ -420,10 +420,12 @@ def create_app(_read_config=True, **config):
 
     @app.before_request
     def capture_user(*args, **kwargs):
-        if 'uid' in session:
+        from changes.api.auth import get_current_user
+        user = get_current_user()
+        if user is not None:
             sentry.client.user_context({
-                'id': session['uid'],
-                'email': session['email'],
+                'id': user.id,
+                'email': user.email,
             })
 
     api.init_app(app)

@@ -1,11 +1,10 @@
-from flask import session
 from flask.ext.restful import reqparse
 
+from changes.api.auth import get_current_user
 from changes.api.base import APIView
 from changes.config import db
 from changes.models.build import Build
 from changes.models.comment import Comment
-from changes.models.user import User
 
 
 class BuildCommentIndexAPIView(APIView):
@@ -24,10 +23,7 @@ class BuildCommentIndexAPIView(APIView):
         return self.respond(comments)
 
     def post(self, build_id):
-        if not session.get('uid'):
-            return '', 401
-
-        user = User.query.get(session['uid'])
+        user = get_current_user()
         if user is None:
             return '', 401
 
