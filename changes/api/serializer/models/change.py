@@ -1,6 +1,6 @@
 from changes.api.serializer import Crumbler, register
 from changes.models.change import Change
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 
 @register(Change)
@@ -12,7 +12,7 @@ class ChangeCrumbler(Crumbler):
             'project': instance.project,
             'author': instance.author,
             'message': instance.message,
-            'link': build_uri('/changes/%s/' % (instance.id.hex,)),
+            'link': build_web_uri('/changes/%s/' % (instance.id.hex,)),
             'dateCreated': instance.date_created.isoformat(),
             'dateModified': instance.date_modified.isoformat(),
         }

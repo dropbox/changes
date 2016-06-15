@@ -70,7 +70,7 @@ class ChangesLogSource(object):
     Helper class to make sure Changes log source urls can be generated.
     """
     def __init__(self, config):
-        self.base_url = config.get('BASE_URI')
+        self.base_url = config.get('WEB_BASE_URI')
 
     def get_urls(self, logsource):
         raw_url = "{base_url}/api/0/jobs/{job_id}/logs/{log_id}/?raw=1".format(

@@ -1,6 +1,6 @@
 from changes.api.serializer import Crumbler, register
 from changes.models.project import Project
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 
 @register(Project)
@@ -15,5 +15,5 @@ class ProjectCrumbler(Crumbler):
             },
             'status': instance.status,
             'dateCreated': instance.date_created,
-            'link': build_uri('/projects/{0}/'.format(instance.slug)),
+            'link': build_web_uri('/projects/{0}/'.format(instance.slug)),
         }

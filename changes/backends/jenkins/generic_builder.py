@@ -5,7 +5,7 @@ from flask import current_app
 from changes.config import db
 from changes.models.snapshot import SnapshotImage
 from changes.models.command import FutureCommand
-from changes.utils.http import build_uri
+from changes.utils.http import build_internal_uri
 from changes.buildsteps.base import LXCConfig
 
 
@@ -206,7 +206,7 @@ class JenkinsGenericBuilder(JenkinsBuilder):
             params.update({
                 'JENKINS_COMMAND': build_desc['jenkins-command'],
                 'CHANGES_CLIENT_ADAPTER': build_desc['adapter'],
-                'CHANGES_CLIENT_SERVER': build_uri('/api/0'),
+                'CHANGES_CLIENT_SERVER': build_internal_uri('/api/0'),
                 'CHANGES_CLIENT_SNAPSHOT_BUCKET': snapshot_bucket,
                 'CHANGES_CLIENT_SNAPSHOT_ID': snapshot_id,
                 'CHANGES_CLIENT_LXC_PRE_LAUNCH': build_desc.get('pre-launch',

@@ -14,7 +14,7 @@ from changes.listeners.phabricator_listener import (
     post_commit_coverage,
     post_diff_coverage,
     )
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 
 class PhabricatorListenerTest(UnitTestCase):
@@ -73,7 +73,7 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
         expected_msg = "test build Failed {{icon times, color=red}} ([results]({0})).".format(
             build_link
         )
@@ -105,10 +105,10 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
-        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_web_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/build_test/{0}/{1}/'.format(
+        test_link = build_web_uri('/build_test/{0}/{1}/'.format(
             build.id.hex,
             testcase.id.hex
         ))
@@ -151,10 +151,10 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
-        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_web_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/build_test/{0}/{1}/'.format(
+        test_link = build_web_uri('/build_test/{0}/{1}/'.format(
             build.id.hex,
             testcase.id.hex,
         ))
@@ -196,10 +196,10 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
-        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_web_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/build_test/{0}/{1}/'.format(
+        test_link = build_web_uri('/build_test/{0}/{1}/'.format(
             build.id.hex,
             testcase.id.hex,
         ))
@@ -238,10 +238,10 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
-        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_web_uri('/build_tests/{0}/'.format(build.id.hex))
 
-        test_link = build_uri('/build_test/{0}/{1}/'.format(
+        test_link = build_web_uri('/build_test/{0}/{1}/'.format(
             build.id.hex,
             testcase.id.hex,
         ))
@@ -260,7 +260,7 @@ class PhabricatorListenerTest(UnitTestCase):
     @mock.patch('changes.listeners.phabricator_listener.get_options')
     def test_parent_and_new_failures(self, get_options, post, get_base_failures):
         def get_test_desc(build, testcase, test_name):
-            test_link = build_uri('/build_test/{0}/{1}/'.format(
+            test_link = build_web_uri('/build_test/{0}/{1}/'.format(
                 build.id.hex,
                 testcase.id.hex,
             ))
@@ -293,8 +293,8 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
-        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_web_uri('/build_tests/{0}/'.format(build.id.hex))
 
         test_desc = get_test_desc(build, testcase, 'test_foo')
         test_desc2 = get_test_desc(build, testcase2, 'test_foo2')
@@ -339,15 +339,15 @@ class PhabricatorListenerTest(UnitTestCase):
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
-        failure_link = build_uri('/build_tests/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
+        failure_link = build_web_uri('/build_tests/{0}/'.format(build.id.hex))
 
         assert post.call_count == 1
         (diff_id, comment, phab), _ = post.call_args
         assert diff_id == '1'
         shown_test_count = 0
         for testcase in testcases:
-            test_link = build_uri('/build_test/{0}/{1}/'.format(
+            test_link = build_web_uri('/build_test/{0}/{1}/'.format(
                 build.id.hex,
                 testcase.id.hex,
             ))
@@ -393,11 +393,11 @@ class PhabricatorListenerTest(UnitTestCase):
 
         build_finished_handler(build_id=build1.id.hex)
 
-        build_link = build_uri('/find_build/{0}/'.format(build1.id.hex))
-        build2_link = build_uri('/find_build/{0}/'.format(build2.id.hex))
-        failure_link = build_uri('/build_tests/{0}/'.format(build1.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build1.id.hex))
+        build2_link = build_web_uri('/find_build/{0}/'.format(build2.id.hex))
+        failure_link = build_web_uri('/build_tests/{0}/'.format(build1.id.hex))
 
-        test_link = build_uri('/build_test/{0}/{1}/'.format(
+        test_link = build_web_uri('/build_test/{0}/{1}/'.format(
             build1.id.hex,
             testcase1.id.hex,
         ))
@@ -509,7 +509,7 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         build_finished_handler(build_id=build.id.hex)
 
         get_options.assert_called_once_with(project.id)
-        build_link = build_uri('/find_build/{0}/'.format(build.id.hex))
+        build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
 
         expected_msg = 'Server build Passed {{icon check, color=green}} ([results]({0})).'
         post.assert_called_once_with('1', expected_msg.format(build_link), mock.ANY)

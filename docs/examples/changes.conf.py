@@ -1,5 +1,6 @@
 # ~/.changes/changes.conf.py
-BASE_URI = 'http://localhost:5000'
+WEB_BASE_URI = 'http://localhost:5000'
+INTERNAL_BASE_URI = 'http://localhost:5000'
 SERVER_NAME = 'localhost:5000'
 
 REPO_ROOT = '/tmp'

@@ -17,7 +17,7 @@ from changes.models.source import Source
 from changes.models.event import Event, EventType
 from changes.models.job import Job
 from changes.models.test import TestCase
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 from changes.utils.phabricator_utils import logger, PhabricatorClient, post_comment
 from changes.vcs.git import GitVcs
 from changes.vcs.hg import MercurialVcs
@@ -212,7 +212,7 @@ def _get_message_for_build_context(build_context):
         project=build.project.name,
         image=result_image,
         result=unicode(build.result),
-        link=build_uri('/find_build/{0}/'.format(build.id.hex))
+        link=build_web_uri('/find_build/{0}/'.format(build.id.hex))
     )
 
     test_failures = [t['test_case'] for t in build_context['failing_tests']]
@@ -274,7 +274,7 @@ def _generate_remarkup_table_for_tests(build, tests):
         if pkg and name.startswith(pkg):
             name = name[len(pkg) + 1:]
 
-        test_link = build_uri('/build_test/{0}/{1}/'.format(
+        test_link = build_web_uri('/build_test/{0}/{1}/'.format(
             build.id.hex,
             test.id.hex,
         ))
@@ -297,7 +297,7 @@ def get_test_failure_remarkup(build, tests):
                   '{num_failures} [test failures]({link}), but we could not ' \
                   'determine if any of these tests were previously failing.'.format(
                       num_failures=len(tests),
-                      link=build_uri('/build_tests/{0}/'.format(build.id.hex))
+                      link=build_web_uri('/build_tests/{0}/'.format(build.id.hex))
                   )
         message += '\n\n**All failures ({failure_count}):**\n'.format(
             failure_count=len(total_failures)
@@ -309,7 +309,7 @@ def get_test_failure_remarkup(build, tests):
         failures_in_parent = [t for t in tests if t.name in base_commit_failures]
         message = ' There were {new_failures} new [test failures]({link})'.format(
             new_failures=len(new_failures),
-            link=build_uri('/build_tests/{0}/'.format(build.id.hex))
+            link=build_web_uri('/build_tests/{0}/'.format(build.id.hex))
         )
 
         if new_failures:

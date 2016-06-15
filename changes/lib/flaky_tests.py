@@ -7,7 +7,7 @@ from changes.models.build import Build
 from changes.models.job import Job
 from changes.models.source import Source
 from changes.models.test import TestCase
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 
 def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
@@ -65,7 +65,7 @@ def get_flaky_tests(start_period, end_period, projects, maxFlakyTests):
             'flaky_runs': reruns,
             'double_reruns': double_reruns,
             'passing_runs': count,
-            'link': build_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
+            'link': build_web_uri('/projects/{0}/builds/{1}/jobs/{2}/tests/{3}/'.format(
                 rerun.project.slug,
                 rerun.job.build.id.hex,
                 rerun.job.id.hex,

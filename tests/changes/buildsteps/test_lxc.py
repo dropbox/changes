@@ -35,7 +35,7 @@ class LXCBuildStepTest(TestCase):
         result = buildstep.get_allocation_params(jobstep)
         assert result == {
             'adapter': 'lxc',
-            'server': 'http://example.com/api/0/',
+            'server': 'http://changes-int.example.com/api/0/',
             'jobstep_id': jobstep.id.hex,
             'release': 'trusty',
             's3-bucket': 'snapshot-bucket',

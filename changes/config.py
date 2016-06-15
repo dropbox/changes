@@ -313,7 +313,6 @@ def create_app(_read_config=True, **config):
     app.config['SUPPORT_CONTACT'] = 'support'
 
     app.config['MAIL_DEFAULT_SENDER'] = 'changes@localhost'
-    app.config['BASE_URI'] = 'http://localhost:5000'
 
     # if set to a string, most (all?) of the frontend js will make API calls
     # to the host this string is set to (e.g. http://changes.bigcompany.com)
@@ -380,12 +379,14 @@ def create_app(_read_config=True, **config):
     # default the DSN for changes-client to the server's DSN
     app.config.setdefault('CLIENT_SENTRY_DSN', app.config['SENTRY_DSN'])
 
-    if not app.config['BASE_URI']:
-        raise ValueError('You must set ``BASE_URI`` in your configuration.')
+    # Backwards compatibility with old configs containing BASE_URI
+    if 'WEB_BASE_URI' not in app.config and 'BASE_URI' in app.config:
+        app.config['WEB_BASE_URI'] = app.config['BASE_URI']
+    if 'INTERNAL_BASE_URI' not in app.config and 'BASE_URI' in app.config:
+        app.config['INTERNAL_BASE_URI'] = app.config['BASE_URI']
 
-    parsed_url = urlparse(app.config['BASE_URI'])
-    app.config.setdefault('SERVER_NAME', parsed_url.netloc)
-    app.config.setdefault('PREFERRED_URL_SCHEME', parsed_url.scheme)
+    parsed_url = urlparse(app.config['WEB_BASE_URI'])
+    app.config.setdefault('PREFERRED_URL_SCHEME', 'https')
 
     if app.debug:
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0

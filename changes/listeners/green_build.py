@@ -18,7 +18,7 @@ from changes.models.event import Event, EventType
 from changes.models.project import ProjectOption
 from changes.models.repository import RepositoryBackend
 from changes.models.latest_green_build import LatestGreenBuild
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 from changes.utils.locking import lock
 from changes.vcs.base import (
     ConcurrentUpdateError, UnknownChildRevision, UnknownParentRevision
@@ -125,7 +125,7 @@ def build_finished_handler(build_id, **kwargs):
         requests.post(url, auth=auth, timeout=10, data={
             'project': project,
             'id': release_id,
-            'build_url': build_uri('/projects/{0}/builds/{1}/'.format(
+            'build_url': build_web_uri('/projects/{0}/builds/{1}/'.format(
                 build.project.slug, build.id.hex)),
             'build_server': 'changes',
             'author_name': source.revision.author.name,

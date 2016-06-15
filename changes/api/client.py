@@ -19,7 +19,7 @@ class APIClient(object):
         self.version = version
 
     def dispatch(self, url, method, data=None):
-        url = '%s/api/%d/%s' % (current_app.config['BASE_URI'], self.version, url.lstrip('/'))
+        url = '%s/api/%d/%s' % (current_app.config['INTERNAL_BASE_URI'], self.version, url.lstrip('/'))
         with current_app.test_client() as client:
             response = client.open(path=url, method=method, data=data)
         if not (200 <= response.status_code < 300):

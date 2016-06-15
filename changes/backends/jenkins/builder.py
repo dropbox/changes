@@ -33,7 +33,7 @@ from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep
 from changes.models.log import LogChunk, LogSource, LOG_CHUNK_SIZE
 from changes.models.node import Cluster, ClusterNode, Node
-from changes.utils.http import build_uri
+from changes.utils.http import build_internal_uri
 from changes.utils.text import chunked
 
 
@@ -746,7 +746,7 @@ class JenkinsBuilder(BaseBackend):
             params['REVISION'] = source.revision_sha
 
         if source.patch:
-            params['PATCH_URL'] = build_uri('/api/0/patches/{0}/?raw=1'.format(
+            params['PATCH_URL'] = build_internal_uri('/api/0/patches/{0}/?raw=1'.format(
                         source.patch.id.hex))
 
         phab_diff_id = source.data.get('phabricator.diffID')

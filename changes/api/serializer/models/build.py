@@ -3,7 +3,7 @@ from changes.models.build import Build
 from changes.models.failurereason import FailureReason
 from changes.models.itemstat import ItemStat
 from changes.models.jobstep import JobStep
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 from changes.buildfailures import registry
 
@@ -85,6 +85,6 @@ class BuildCrumbler(Crumbler):
             'dateDecided': item.date_decided.isoformat() if item.date_decided else None,
             'stats': attrs['stats'],
             'failures': attrs['failures'],
-            'link': build_uri('/projects/{0}/builds/{1}/'.format(
+            'link': build_web_uri('/projects/{0}/builds/{1}/'.format(
                 item.project.slug, item.id.hex)),
         }

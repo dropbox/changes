@@ -24,7 +24,7 @@ from changes.models.snapshot import SnapshotImage
 from changes.vcs.git import GitVcs
 from changes.vcs.hg import MercurialVcs
 
-from changes.utils.http import build_uri
+from changes.utils.http import build_internal_uri
 
 
 DEFAULT_ARTIFACTS = XunitHandler.FILENAMES + CoverageHandler.FILENAMES + AnalyticsJsonHandler.FILENAMES
@@ -481,7 +481,7 @@ class DefaultBuildStep(BuildStep):
             'artifact-search-path': self.path,
             'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
-            'server': build_uri('/api/0/'),
+            'server': build_internal_uri('/api/0/'),
             'jobstep_id': jobstep.id.hex,
             's3-bucket': current_app.config['SNAPSHOT_S3_BUCKET'],
             'pre-launch': self.debug_config.get('prelaunch_script') or current_app.config['LXC_PRE_LAUNCH'],

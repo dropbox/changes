@@ -461,7 +461,7 @@ class DefaultBuildStepTest(TestCase):
         result = buildstep.get_allocation_params(jobstep)
         assert result == {
             'adapter': 'basic',
-            'server': 'http://example.com/api/0/',
+            'server': 'http://changes-int.example.com/api/0/',
             'jobstep_id': jobstep.id.hex,
             'release': 'precise',
             's3-bucket': 'snapshot-bucket',

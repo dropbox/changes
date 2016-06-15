@@ -11,7 +11,7 @@ from changes.config import statsreporter
 from changes.constants import Result
 from changes.models.testresult import TestResult, TestResultManager
 from changes.utils.agg import aggregate_result
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 from .base import ArtifactHandler, ArtifactParseError
 
@@ -41,7 +41,7 @@ class XunitHandler(ArtifactHandler):
             content_size = len(content)
             root = etree.fromstring(content, parser=parser)
         except Exception:
-            uri = build_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
+            uri = build_web_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
             self.logger.warning('Failed to parse XML; (step=%s, build=%s, size=%s)',
                                 self.step.id.hex, uri, content_size, exc_info=True)
             self.report_malformed()

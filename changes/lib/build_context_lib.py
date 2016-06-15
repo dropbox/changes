@@ -8,7 +8,7 @@ from changes.models.job import Job
 from changes.models.jobstep import JobStep
 from changes.models.log import LogSource, LogChunk
 from changes.models.test import TestCase
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 
 def _get_project_uri(build):
@@ -131,7 +131,7 @@ def _get_build_target(build):
         # TODO: Make sure that the phabricator source data is present to
         # make this obsolete.
         target = None
-        target_uri = build_uri(_get_source_uri(build, build.source))
+        target_uri = build_web_uri(_get_source_uri(build, build.source))
     return target, target_uri
 
 
@@ -150,7 +150,7 @@ def _get_build_context(build, get_parent=True):
         'build': build,
         'parent_build': parent_build_context,
         'jobs': jobs_context,
-        'uri': build_uri(_get_build_uri(build)),
+        'uri': build_web_uri(_get_build_uri(build)),
         'is_passing': build.result == Result.passed,
         'is_failing': build.result == Result.failed,
         'result_string': str(build.result).lower(),
@@ -170,7 +170,7 @@ def _get_job_context(job):
         failing_tests = [
             {
                 'test_case': test_case,
-                'uri': build_uri(_get_test_case_uri(test_case)),
+                'uri': build_web_uri(_get_test_case_uri(test_case)),
             } for test_case in failing_tests
         ]
         failing_tests_count = len(failing_tests)
@@ -190,7 +190,7 @@ def _get_job_context(job):
                 'text': _get_log_clipping(
                     log_source, max_size=5000, max_lines=25),
                 'name': log_source.name,
-                'uri': build_uri(_get_log_uri(log_source)),
+                'uri': build_web_uri(_get_log_uri(log_source)),
             } for log_source in failing_log_sources if not log_source.is_infrastructural()
         ]
         failing_log_sources_count = len(failing_logs)
@@ -202,7 +202,7 @@ def _get_job_context(job):
 
     context = {
         'job': job,
-        'uri': build_uri(_get_job_uri(job)),
+        'uri': build_web_uri(_get_job_uri(job)),
         'failing_tests': failing_tests,
         'failing_tests_count': len(failing_tests),
         'failing_logs': failing_logs,

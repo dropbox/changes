@@ -43,7 +43,7 @@ def setup_ssh_authorized_keys(env):
                 print(line, file=f)
 
 def update_changes_conf(env):
-    replace_vars = ('BASE_URI', 'SERVER_NAME', 'REPO_ROOT', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET')
+    replace_vars = ('INTERNAL_BASE_URI', 'WEB_BASE_URI', 'SERVER_NAME', 'REPO_ROOT', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET')
     replace_regexes = tuple(re.compile("^(" + re.escape(n) + ")\s*=") for n in replace_vars)
     conf_filename = env['CHANGES_CONF']
     backup_filename = conf_filename + "~"

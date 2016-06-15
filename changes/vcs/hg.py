@@ -6,7 +6,7 @@ from urlparse import urlparse
 from time import time
 from typing import Any, Optional  # NOQA
 
-from changes.utils.http import build_uri
+from changes.utils.http import build_internal_uri
 
 from .base import Vcs, RevisionResult, BufferParser, CommandError, UnknownRevision
 
@@ -233,7 +233,7 @@ class MercurialVcs(Vcs):
         # type: (Any, str) -> str
         return BASH_PATCH_STEP % dict(
             local_path=workspace,
-            patch_url=build_uri('/api/0/patches/{0}/?raw=1'.format(
+            patch_url=build_internal_uri('/api/0/patches/{0}/?raw=1'.format(
                                 source.patch_id.hex)),
         )
 

@@ -3,12 +3,12 @@ from __future__ import absolute_import
 from jinja2 import Markup
 
 from changes.buildfailures.base import BuildFailure
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 
 class TestFailure(BuildFailure):
     def get_html_label(self, build):
-        link = build_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex))
+        link = build_web_uri('/projects/{0}/builds/{1}/tests/?result=failed'.format(build.project.slug, build.id.hex))
 
         try:
             test_failures = (

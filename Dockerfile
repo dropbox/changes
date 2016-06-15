@@ -131,7 +131,8 @@ RUN \
     fi
 
 # Default environment
-ENV BASE_URI http://localhost:5000
+ENV WEB_BASE_URI http://localhost:5000
+ENV INTERNAL_BASE_URI http://localhost:5000
 ENV SERVER_NAME localhost:5000
 
 # Expose SSH & HTTP ports.  http://localhost:5000

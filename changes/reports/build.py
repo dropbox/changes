@@ -13,7 +13,7 @@ from changes.models.test import TestCase
 from changes.models.source import Source
 from changes.lib import build_type
 from changes.lib.flaky_tests import get_flaky_tests
-from changes.utils.http import build_uri
+from changes.utils.http import build_web_uri
 
 
 MAX_FLAKY_TESTS = 10
@@ -158,7 +158,7 @@ class BuildReport(object):
                 'green_builds': 0,
                 'green_percent': None,
                 'avg_duration': 0,
-                'link': build_uri('/project/{0}/'.format(project.slug)),
+                'link': build_web_uri('/project/{0}/'.format(project.slug)),
             }
 
         for project_id, result, num_builds, duration in query:
@@ -276,7 +276,7 @@ class BuildReport(object):
                 'package': test.package,
                 'duration': '%.2f s' % (test.duration / 1000.0,),
                 'duration_raw': test.duration,
-                'link': build_uri('/project_test/{0}/{1}/'.format(
+                'link': build_web_uri('/project_test/{0}/{1}/'.format(
                     project.id.hex, test.name_sha)),
             })
 
