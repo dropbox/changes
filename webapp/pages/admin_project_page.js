@@ -651,7 +651,6 @@ let NewPlan = React.createClass({
 
   getInitialState: function() {
     return {
-      'error': null,
       'name': '',
     };
   },
@@ -688,7 +687,7 @@ let NewPlan = React.createClass({
       },
     ];
 
-    return FieldGroupMarkup.create(form, "Create Plan", this, [this.state.error]);
+    return FieldGroupMarkup.create(form, "Create Plan", this, []);
   },
 });
 
