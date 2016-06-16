@@ -230,9 +230,7 @@ let NewProjectFieldGroup = React.createClass({
   mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   getInitialState: function() {
-    return {
-      error: '',
-    };
+    return {};
   },
 
   getFieldNames: function() {
@@ -268,7 +266,7 @@ let NewProjectFieldGroup = React.createClass({
       }
     ];
 
-    let fieldMarkup = FieldGroupMarkup.create(form, "Save Project", this, [this.state.error]);
+    let fieldMarkup = FieldGroupMarkup.create(form, "Save Project", this, []);
     return <div>{fieldMarkup}</div>;
   },
 })
@@ -277,9 +275,7 @@ let NewRepoFieldGroup = React.createClass({
   mixins: [React.addons.LinkedStateMixin, FieldGroupMarkup.DiffFormMixin],
 
   getInitialState: function() {
-    return {
-      error: '',
-    };
+    return {};
   },
 
   getFieldNames: function() {
@@ -315,7 +311,7 @@ let NewRepoFieldGroup = React.createClass({
       }
     ];
 
-    let fieldMarkup = FieldGroupMarkup.create(form, "Create Repository", this, [this.state.error]);
+    let fieldMarkup = FieldGroupMarkup.create(form, "Create Repository", this, []);
     return <div>{fieldMarkup}</div>;
   },
 })
