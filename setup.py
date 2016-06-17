@@ -60,7 +60,7 @@ install_requires = [
     'statsd==3.0.1',
     'toronado==0.0.4',
     'typing==3.5.0.1',
-    'uwsgi>=2.0.4,<2.1.0',
+    'uwsgi==2.0.10',
     'ipython==3.1.0',
 ]
 
