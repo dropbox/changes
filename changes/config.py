@@ -367,6 +367,11 @@ def create_app(_read_config=True, **config):
 
     app.config['USE_OLD_UI'] = False
 
+    # sources.list entry, format is:
+    # deb uri distribution [component1] [component2] [...]
+    # Used for bazel setup, so source should have bazel package.
+    app.config['APT_SPEC'] = None
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):

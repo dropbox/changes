@@ -234,7 +234,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
         return fake_vcs
 
-    def test_minimal(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_minimal(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
@@ -256,7 +258,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert source.repository_id == self.project.repository_id
         assert source.revision_sha == 'a' * 40
 
-    def test_manual_cause(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_manual_cause(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
@@ -271,7 +275,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         b = Build.query.get(build_id)
         assert b.cause == Cause.manual
 
-    def test_explicit_unknown_cause(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_explicit_unknown_cause(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         resp = self.client.post(self.path, data={
             'sha': 'a' * 40,
             'project': self.project.slug,
@@ -301,7 +307,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         })
         assert nonsense_resp.status_code == 400
 
-    def test_with_snapshot(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_snapshot(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
         image = self.create_snapshot_image(
             plan=self.plan,
@@ -342,7 +350,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
         assert jobplan.snapshot_image_id == image.id
 
-    def test_default_to_current_snapshot(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_default_to_current_snapshot(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
         image = self.create_snapshot_image(
             plan=self.plan,
@@ -376,7 +386,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
         assert jobplan.snapshot_image_id == image.id
 
-    def test_no_snapshot_option(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_no_snapshot_option(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
         image = self.create_snapshot_image(
             plan=self.plan,
@@ -452,7 +464,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         data = self.unserialize(resp)
         assert 'Snapshot is in an invalid state' in data['error']
 
-    def test_with_snapshot_missing_image(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_snapshot_missing_image(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
         image = self.create_snapshot_image(
             plan=self.plan,
@@ -498,7 +512,9 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         })
         assert resp.status_code == 200
 
-    def test_require_snapshot(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_require_snapshot(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         snapshot = self.create_snapshot(self.project, status=SnapshotStatus.active)
         image = self.create_snapshot_image(
             plan=self.plan,
@@ -1281,18 +1297,24 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
             'sha': 'a' * 40,
         })
 
-    def test_with_repository(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_repository(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo_with_projects(count=2)
         resp = self._post_for_repo(repo)
         self.assert_resp_has_multiple_items(resp, count=2)
 
-    def test_collection_id(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_collection_id(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo_with_projects(count=3)
         resp = self._post_for_repo(repo)
         builds = self.assert_resp_has_multiple_items(resp, count=3)
         self.assert_collection_id_across_builds(builds)
 
-    def test_with_repository_callsign(self):
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_repository_callsign(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
         repo = self.create_repo_with_projects(count=2)
         self.create_option(
             item_id=repo.id,
