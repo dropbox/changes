@@ -527,7 +527,6 @@ def configure_api_routes(app):
     from changes.api.jobstep_deallocate import JobStepDeallocateAPIView
     from changes.api.jobstep_details import JobStepDetailsAPIView
     from changes.api.jobstep_heartbeat import JobStepHeartbeatAPIView
-    from changes.api.jobstep_log_append import JobStepLogAppendAPIView
     from changes.api.jobstep_aggregate_by_status import JobStepAggregateByStatusAPIView
     from changes.api.kick_sync_repo import KickSyncRepoAPIView
     from changes.api.jenkins_master_blacklist import JenkinsMasterBlacklistAPIView
@@ -619,7 +618,6 @@ def configure_api_routes(app):
     api.add_resource(JobStepArtifactsAPIView, '/jobsteps/<uuid:step_id>/artifacts/')
     api.add_resource(JobStepDeallocateAPIView, '/jobsteps/<uuid:step_id>/deallocate/')
     api.add_resource(JobStepHeartbeatAPIView, '/jobsteps/<uuid:step_id>/heartbeat/')
-    api.add_resource(JobStepLogAppendAPIView, '/jobsteps/<uuid:step_id>/logappend/')
     api.add_resource(JobStepAggregateByStatusAPIView, '/jobsteps/aggregate_by_status/')
     api.add_resource(KickSyncRepoAPIView, '/kick_sync_repo/')
     api.add_resource(ChangeIndexAPIView, '/changes/')
