@@ -1,5 +1,5 @@
 #!/bin/bash -ex
-sudo apt-get install -y build-essential python-setuptools redis-server postgresql libpq-dev libevent-dev libxml2-dev libxslt-dev libffi-dev nodejs libfontconfig1
+sudo apt-get install -y build-essential python-dev git python-setuptools redis-server postgresql libpq-dev libevent-dev libxml2-dev libxslt-dev libffi-dev nodejs libfontconfig1
 
 # We don't necessarily need a specific version of npm, but this ensures we don't
 # use a particularly old one.
