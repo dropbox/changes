@@ -189,6 +189,7 @@ class JobPlan(db.Model):
     @classmethod
     def get_build_step_for_job(cls, job_id):
         from changes.models.job import Job
+        from changes.models.project import ProjectConfigError
         from changes.buildsteps.lxc import LXCBuildStep
 
         job = Job.query.get(job_id)
@@ -209,7 +210,7 @@ class JobPlan(db.Model):
             bazel_test = 'bazel test ' + ' '.join(project_config['bazel.targets'])
             implementation = LXCBuildStep(
                 commands=[
-                    {'script': get_bazel_setup()},
+                    {'script': get_bazel_setup(), 'type': 'setup'},
                     {'script': bazel_test},
                 ],
             )
