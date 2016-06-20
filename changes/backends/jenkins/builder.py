@@ -671,9 +671,6 @@ class JenkinsBuilder(BaseBackend):
         """
 
     def sync_step(self, step):
-        if step.data.get('generated'):
-            return
-
         if step.data.get('queued'):
             self._sync_step_from_queue(step)
         else:
