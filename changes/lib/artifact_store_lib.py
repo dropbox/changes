@@ -91,12 +91,6 @@ class Artifact(object):
         self.date_created = dateutil.parser.parse(artifact_dict['dateCreated'])
 
 
-class ChunkedArtifact(Artifact):
-    def __init__(self, artifact_dict, client):
-        super(ChunkedArtifact, self).__init__(artifact_dict)
-        self._client = client
-
-
 class ArtifactStoreClient:
     # TODO (if necessary): Implement get_artifact_chunks to fetch chunks as they upload
 
@@ -106,11 +100,11 @@ class ArtifactStoreClient:
         self._session = requests.Session()
 
     # Returns the response object or raises an exception
-    def simple_retry_request(self, method, rel_url,
-                             max_retries=MAX_RETRIES,
-                             sleep_msecs_between_retries=RETRY_SLEEP_MSEC, randomize_sleep=True,
-                             timeout=DEFAULT_TIMEOUT_SEC,
-                             **kwargs):
+    def _simple_retry_request(self, method, rel_url,
+                              max_retries=MAX_RETRIES,
+                              sleep_msecs_between_retries=RETRY_SLEEP_MSEC, randomize_sleep=True,
+                              timeout=DEFAULT_TIMEOUT_SEC,
+                              **kwargs):
         # We don't support indefinite retries
         assert max_retries != 0
 
@@ -145,15 +139,15 @@ class ArtifactStoreClient:
         """
         :return: List of Buckets
         """
-        return [Bucket(b) for b in self.simple_retry_request('get', '/buckets').json()]
+        return [Bucket(b) for b in self._simple_retry_request('get', '/buckets').json()]
 
     def create_bucket(self, bucket_name, owner='changes'):
         """
         :return: The created Bucket
         """
         return Bucket(
-            self.simple_retry_request('post', '/buckets/',
-                                      data=json.dumps({'id': bucket_name, 'owner': owner}))
+            self._simple_retry_request('post', '/buckets/',
+                                       data=json.dumps({'id': bucket_name, 'owner': owner}))
                 .json()
         )
 
@@ -164,13 +158,13 @@ class ArtifactStoreClient:
         :return: The closed Bucket
         """
         return Bucket(
-            self.simple_retry_request('post', '/buckets/%s/close' % (bucket_name))
+            self._simple_retry_request('post', '/buckets/%s/close' % (bucket_name))
                 .json()
         )
 
     def get_bucket(self, bucket_name):
         return Bucket(
-            self.simple_retry_request('get', '/buckets/%s' % (bucket_name))
+            self._simple_retry_request('get', '/buckets/%s' % (bucket_name))
                 .json()
         )
 
@@ -180,7 +174,7 @@ class ArtifactStoreClient:
 
         :return: List of Artifacts
         """
-        return [Artifact(a) for a in self.simple_retry_request('get', '/buckets/%s/artifacts/' % (bucket_name)).json()]
+        return [Artifact(a) for a in self._simple_retry_request('get', '/buckets/%s/artifacts/' % (bucket_name)).json()]
 
     def create_chunked_artifact(self, bucket_name, artifact_name):
         """
@@ -190,25 +184,25 @@ class ArtifactStoreClient:
         :return: The created Artifact
         """
         return Artifact(
-            self.simple_retry_request('post', '/buckets/%s/artifacts' % (bucket_name),
-                                      data=json.dumps({'name': artifact_name, 'chunked': True}))
+            self._simple_retry_request('post', '/buckets/%s/artifacts' % (bucket_name),
+                                       data=json.dumps({'name': artifact_name, 'chunked': True}))
                 .json()
         )
 
     def post_artifact_chunk(self, bucket_name, artifact_name, offset, chunk):
         """
-        Creates a chunked artifact
+        Writes to a chunked artifact
 
         :return: The updated Artifact
         """
         return Artifact(
-            self.simple_retry_request('post', '/buckets/%s/artifacts/%s' % (bucket_name, artifact_name),
-                                      data=json.dumps({
-                                          'size': len(chunk),
-                                          'byteoffset': offset,
-                                          'bytes': b64encode(chunk)
-                                      }),
-                                      randomize_sleep=False)
+            self._simple_retry_request('post', '/buckets/%s/artifacts/%s' % (bucket_name, artifact_name),
+                                       data=json.dumps({
+                                           'size': len(chunk),
+                                           'byteoffset': offset,
+                                           'bytes': b64encode(chunk)
+                                       }),
+                                       randomize_sleep=False)
                 .json()
         )
 
@@ -216,7 +210,7 @@ class ArtifactStoreClient:
         """
         Closes a chunked artifact
         """
-        self.simple_retry_request('post', '/buckets/%s/artifacts/%s/close' % (bucket_name, artifact_name))
+        self._simple_retry_request('post', '/buckets/%s/artifacts/%s/close' % (bucket_name, artifact_name))
 
     def write_streamed_artifact(self, bucket_name, artifact_name, data, path=None):
         """
@@ -229,41 +223,44 @@ class ArtifactStoreClient:
         # No path defaults to the artifact name
         path = path or artifact_name
         artifact = Artifact(
-            self.simple_retry_request('post', '/buckets/%s/artifacts' % (bucket_name),
-                                      data=json.dumps({
-                                          'name': artifact_name,
-                                          'chunked': False,
-                                          'size': len(data),
-                                          'relativePath': path
-                                      }))
+            self._simple_retry_request('post', '/buckets/%s/artifacts' % (bucket_name),
+                                       data=json.dumps({
+                                           'name': artifact_name,
+                                           'chunked': False,
+                                           'size': len(data),
+                                           'relativePath': path
+                                       }))
                 .json()
         )
         # Change the name to account for server-side de-duplication
         artifact_name = artifact.name
+
         return Artifact(
-            self.simple_retry_request('post', '/buckets/%s/artifacts/%s' % (bucket_name, artifact_name), data=data)
+            self._simple_retry_request('post', '/buckets/%s/artifacts/%s' % (bucket_name, artifact_name), data=data)
                 .json()
         )
 
     def get_artifact(self, bucket_name, artifact_name):
         return Artifact(
-            self.simple_retry_request('get', '/buckets/%s/artifacts/%s' % (bucket_name, artifact_name))
+            self._simple_retry_request('get', '/buckets/%s/artifacts/%s' % (bucket_name, artifact_name))
                 .json()
         )
 
-    def get_artifact_content(self, bucket_name, artifact_name, byte_offset=None):
+    def get_artifact_content(self, bucket_name, artifact_name, offset=None, limit=None):
         """
-        Fetches contents of an artifact from artifactstore
+        Fetches (partial) contents of an artifact from artifactstore
 
-        :param byte_offset: Byte range to read (defaults to whole file)
         :return: Artifact contents as a file (StringIO)
         """
         headers = {}
-        if byte_offset:
-            headers['Range'] = 'bytes=%d-%d' % byte_offset
+        if offset is not None:
+            if limit is not None and limit >= 1:
+                headers['Range'] = 'bytes=%d-%d' % (offset, offset + limit - 1)
+            else:
+                headers['Range'] = 'bytes=%d-' % (offset)
 
         return StringIO(
-            self.simple_retry_request('get', '/buckets/%s/artifacts/%s/content' % (bucket_name, artifact_name),
-                                      headers=headers)
+            self._simple_retry_request('get', '/buckets/%s/artifacts/%s/content' % (bucket_name, artifact_name),
+                                       headers=headers)
                 .content
         )

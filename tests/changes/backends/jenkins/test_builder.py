@@ -13,6 +13,9 @@ from uuid import UUID
 from changes.config import db, redis
 from changes.constants import Status, Result
 
+from changes.lib.artifact_store_lib import ArtifactState
+from changes.lib.artifact_store_mock import ArtifactStoreMock
+
 from changes.models.artifact import Artifact
 from changes.models.failurereason import FailureReason
 from changes.models.filecoverage import FileCoverage
@@ -39,6 +42,7 @@ class BaseTestCase(BackendTestCase):
 
     def setUp(self):
         self.project = self.create_project()
+        ArtifactStoreMock.reset()
         super(BaseTestCase, self).setUp()
 
     def get_builder(self, **options):
@@ -388,6 +392,7 @@ class CancelStepTest(BaseTestCase):
         assert step.result == Result.aborted
 
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_timeouts_sync_log(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
@@ -444,6 +449,15 @@ class CancelStepTest(BaseTestCase):
 
         assert step.data.get('log_offset') == 7
 
+        bucket_name = step.id.hex + '-jenkins'
+        artifact_name = step.data['log_artifact_name']
+        artifact = ArtifactStoreMock('').get_artifact(bucket_name, artifact_name)
+        assert artifact.name == artifact_name
+        assert artifact.path == 'console'
+        assert artifact.size == 7
+        assert artifact.state == ArtifactState.UPLOADED
+        assert ArtifactStoreMock('').get_artifact_content(bucket_name, artifact_name).getvalue() == 'Foo bar'
+
 
 class SyncStepTest(BaseTestCase):
     @responses.activate
@@ -498,6 +512,7 @@ class SyncStepTest(BaseTestCase):
         assert step.result == Result.aborted
 
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_queued_to_active(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/queue/item/13/api/json/',
@@ -533,6 +548,7 @@ class SyncStepTest(BaseTestCase):
         assert step.data['build_no'] == 2
 
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_success_result(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
@@ -569,6 +585,7 @@ class SyncStepTest(BaseTestCase):
         assert step.date_finished is not None
 
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_failed_result(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
@@ -644,6 +661,7 @@ class SyncStepTest(BaseTestCase):
 
     @responses.activate
     @mock.patch('changes.backends.jenkins.builder.time')
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_result_slow_log(self, mock_time):
         mock_time.time.return_value = time.time()
 
@@ -688,11 +706,17 @@ class SyncStepTest(BaseTestCase):
             source=step.logsources[0],
         ).order_by(LogChunk.offset.asc()))
         assert len(chunks) == 2
-        assert "TOO LONG TO DOWNLOAD" in chunks[1].text
+        assert "LOG TRUNCATED" in chunks[1].text
+
+        bucket_name = step.id.hex + '-jenkins'
+        artifact_name = step.data['log_artifact_name']
+        assert "LOG TRUNCATED" in ArtifactStoreMock('').\
+            get_artifact_content(bucket_name, artifact_name).getvalue()
 
 
 class SyncGenericResultsTest(BaseTestCase):
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_does_sync_log(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
@@ -742,7 +766,17 @@ class SyncGenericResultsTest(BaseTestCase):
 
         assert step.data.get('log_offset') == 7
 
+        bucket_name = step.id.hex + '-jenkins'
+        artifact_name = step.data['log_artifact_name']
+        artifact = ArtifactStoreMock('').get_artifact(bucket_name, artifact_name)
+        assert artifact.name == artifact_name
+        assert artifact.path == 'console'
+        assert artifact.size == 7
+        assert artifact.state == ArtifactState.UPLOADED
+        assert ArtifactStoreMock('').get_artifact_content(bucket_name, artifact_name).getvalue() == 'Foo bar'
+
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_does_save_artifacts(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/api/json/',
@@ -970,6 +1004,8 @@ class JenkinsIntegrationTest(BaseTestCase):
     # so let's ensure we set a timeout
     @pytest.mark.timeout(5)
     @mock.patch('changes.config.redis.lock', mock.MagicMock())
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.jobs.sync_job_step.ArtifactStoreClient', ArtifactStoreMock)
     @eager_tasks
     @responses.activate
     def test_full(self):
@@ -1061,6 +1097,8 @@ class JenkinsIntegrationTest(BaseTestCase):
             'item_id': '13',
             'queued': False,
             'log_offset': 7,
+            'log_artifact_name': 'console',
+            'jenkins_bucket_name': step_list[0].id.hex + '-jenkins',
             'job_name': 'server',
             'build_no': 2,
             'uri': 'https://jenkins.build.itc.dropbox.com/job/server/2/',
@@ -1086,3 +1124,12 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert chunks[0].offset == 0
         assert chunks[0].size == 7
         assert chunks[0].text == 'Foo bar'
+
+        bucket_name = step_list[0].id.hex + '-jenkins'
+        artifact_name = step_list[0].data['log_artifact_name']
+        artifact = ArtifactStoreMock('').get_artifact(bucket_name, artifact_name)
+        assert artifact.name == artifact_name
+        assert artifact.path == 'console'
+        assert artifact.size == 7
+        assert artifact.state == ArtifactState.UPLOADED
+        assert ArtifactStoreMock('').get_artifact_content(bucket_name, artifact_name).getvalue() == 'Foo bar'

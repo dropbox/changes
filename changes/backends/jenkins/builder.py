@@ -27,6 +27,7 @@ from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
 from changes.db.utils import create_or_update, get_or_create
 from changes.jobs.sync_job_step import sync_job_step
+from changes.lib.artifact_store_lib import ArtifactStoreClient
 from changes.models.artifact import Artifact
 from changes.models.failurereason import FailureReason
 from changes.models.jobphase import JobPhase
@@ -35,7 +36,6 @@ from changes.models.log import LogChunk, LogSource, LOG_CHUNK_SIZE
 from changes.models.node import Cluster, ClusterNode, Node
 from changes.utils.http import build_internal_uri
 from changes.utils.text import chunked
-
 
 RESULT_MAP = {
     'SUCCESS': Result.passed,
@@ -64,7 +64,6 @@ class NotFound(Exception):
 
 
 class JenkinsBuilder(BaseBackend):
-
     def __init__(self, master_urls=None, diff_urls=None, job_name=None,
                  auth_keyname=None, verify=True,
                  cluster=None, debug_config=None,
@@ -82,6 +81,7 @@ class JenkinsBuilder(BaseBackend):
         self.verify = verify
         self.cluster = cluster
         self.debug_config = debug_config or {}
+        self.artifact_store_client = ArtifactStoreClient(current_app.config['ARTIFACTS_SERVER'])
 
         def report_response_status(r, *args, **kwargs):
             statsreporter.stats().incr('jenkins_api_response_{}'.format(r.status_code))
@@ -152,6 +152,16 @@ class JenkinsBuilder(BaseBackend):
                 for p in action.get('parameters', [])
             )
         return params
+
+    def _get_artifactstore_bucket(self, step):
+        # Create the artifactstore bucket, if it doesn't already exist
+        bucket_name = step.data.get('jenkins_bucket_name')
+        if not bucket_name:
+            bucket_name = self.artifact_store_client.create_bucket(step.id.hex + '-jenkins').name
+            step.data['jenkins_bucket_name'] = bucket_name
+            db.session.add(step)
+            db.session.commit()
+        return bucket_name
 
     def _create_job_step(self, phase, data, force_create=False, cluster=None, **defaults):
         """
@@ -238,12 +248,11 @@ class JenkinsBuilder(BaseBackend):
                 'Failed to sync test results for job step %s', jobstep.id)
 
     def _sync_log(self, jobstep, name, job_name, build_no):
-        job = jobstep.job
         logsource, created = get_or_create(LogSource, where={
             'name': name,
             'step': jobstep,
         }, defaults={
-            'job': job,
+            'job': jobstep.job,
             'project': jobstep.project,
             'date_created': jobstep.date_started,
         })
@@ -251,6 +260,16 @@ class JenkinsBuilder(BaseBackend):
             offset = 0
         else:
             offset = jobstep.data.get('log_offset', 0)
+
+        bucket_name = self._get_artifactstore_bucket(jobstep)
+
+        artifact_name = jobstep.data.get('log_artifact_name')
+        if not artifact_name:
+            artifact_name = self.artifact_store_client\
+                .create_chunked_artifact(bucket_name, artifact_name='console').name
+            jobstep.data['log_artifact_name'] = artifact_name
+            db.session.add(jobstep)
+            db.session.commit()
 
         url = '{base}/job/{job}/{build}/logText/progressiveText/'.format(
             base=jobstep.data['master'],
@@ -269,49 +288,62 @@ class JenkinsBuilder(BaseBackend):
             if offset > log_length:
                 return
 
+            # Jenkins will suggest to us that there is more data when the job has
+            # yet to complete
+            has_more = resp.headers.get('X-More-Data') == 'true'
+
             # XXX: requests doesnt seem to guarantee chunk_size, so we force it
             # with our own helper
             iterator = resp.iter_content()
             for chunk in chunked(iterator, LOG_CHUNK_SIZE):
                 chunk_size = len(chunk)
-                chunk, _ = create_or_update(LogChunk, where={
-                    'source': logsource,
-                    'offset': offset,
-                }, values={
-                    'job': job,
-                    'project': job.project,
-                    'size': chunk_size,
-                    'text': chunk,
-                })
-                offset += chunk_size
+                try:
+                    logchunk, _ = create_or_update(LogChunk, where={
+                        'source': logsource,
+                        'offset': offset,
+                    }, values={
+                        'job': jobstep.job,
+                        'project': jobstep.project,
+                        'size': chunk_size,
+                        'text': chunk,
+                    })
+                    self.artifact_store_client.post_artifact_chunk(bucket_name, artifact_name, offset, chunk)
+                    offset += chunk_size
 
-                if time.time() > start_time + LOG_SYNC_TIMEOUT_SECS:
-                    warning = ("\nTRUNCATED LOG: TOOK TOO LONG TO DOWNLOAD FROM JENKINS. SEE FULL LOG AT "
+                    if time.time() > start_time + LOG_SYNC_TIMEOUT_SECS:
+                        raise RuntimeError('TOO LONG TO DOWNLOAD LOG: %s' % logsource.get_url())
+                except Exception as e:
+                    # On an exception or a timeout, attempt to truncate the log
+                    # Catch all exceptions, including timeouts and HTTP errors
+
+                    self.logger.warning('Exception when uploading logchunks: %s', e.message)
+
+                    has_more = False
+
+                    warning = ("\nLOG TRUNCATED. SEE FULL LOG AT "
                                "{base}/job/{job}/{build}/consoleText\n").format(
-                                   base=jobstep.data['master'],
-                                   job=job_name,
-                                   build=build_no)
+                        base=jobstep.data['master'],
+                        job=job_name,
+                        build=build_no)
                     create_or_update(LogChunk, where={
                         'source': logsource,
                         'offset': offset,
                     }, values={
-                        'job': job,
-                        'project': job.project,
+                        'job': jobstep.job,
+                        'project': jobstep.project,
                         'size': len(warning),
                         'text': warning,
                     })
-                    offset += chunk_size
-                    self.logger.warning('log download took too long: %s', logsource.get_url())
+                    self.artifact_store_client.post_artifact_chunk(bucket_name, artifact_name, offset, warning)
                     break
-
-            # Jenkins will suggest to us that there is more data when the job has
-            # yet to complete
-            has_more = resp.headers.get('X-More-Data') == 'true'
 
         # We **must** track the log offset externally as Jenkins embeds encoded
         # links and we cant accurately predict the next `start` param.
         jobstep.data['log_offset'] = log_length
         db.session.add(jobstep)
+
+        if not has_more:
+            self.artifact_store_client.close_chunked_artifact(bucket_name, artifact_name)
 
         return True if has_more else None
 
@@ -620,7 +652,7 @@ class JenkinsBuilder(BaseBackend):
     def verify_final_artifacts(self, step, artifacts):
         # If the Jenkins run was aborted or timed out, we don't expect a manifest file.
         if (step.result != Result.aborted and
-            not step.data.get('timed_out', False) and
+                not step.data.get('timed_out', False) and
                 not any(ManifestJsonHandler.can_process(a.name) for a in artifacts)):
             db.session.add(FailureReason(
                 step_id=step.id,
@@ -744,7 +776,7 @@ class JenkinsBuilder(BaseBackend):
 
         if source.patch:
             params['PATCH_URL'] = build_internal_uri('/api/0/patches/{0}/?raw=1'.format(
-                        source.patch.id.hex))
+                source.patch.id.hex))
 
         phab_diff_id = source.data.get('phabricator.diffID')
         if phab_diff_id:

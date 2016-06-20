@@ -5,6 +5,7 @@ import requests
 
 from collections import defaultdict
 from datetime import datetime
+
 from flask import current_app
 from requests.exceptions import ConnectionError, HTTPError, Timeout, SSLError
 from sqlalchemy import distinct
@@ -15,6 +16,7 @@ from changes.constants import Status, Result
 from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.jobs.sync_artifact import sync_artifact
+from changes.lib.artifact_store_lib import ArtifactStoreClient
 from changes.models.artifact import Artifact
 from changes.models.failurereason import FailureReason
 from changes.models.filecoverage import FileCoverage
@@ -281,7 +283,7 @@ def _sync_from_artifact_store(jobstep):
                 try:
                     db.session.add(art)
                     db.session.commit()
-                except IntegrityError, err:
+                except IntegrityError as err:
                     db.session.rollback()
                     current_app.logger.error(
                         'DB Error while inserting artifact %s: %s', filename, err)
@@ -293,7 +295,7 @@ def _sync_from_artifact_store(jobstep):
         else:
             # Log to sentry - unable to contact artifacts store
             current_app.logger.warning('Error fetching url %s: %s', url, err, exc_info=True)
-    except Exception, err:
+    except Exception as err:
         current_app.logger.error('Error updating artifacts for jobstep %s: %s', jobstep, err, exc_info=True)
         raise err
 
@@ -355,7 +357,7 @@ def _sync_artifacts_for_jobstep(step):
 @tracked_task(on_abort=abort_step, max_retries=100)
 def sync_job_step(step_id):
     """
-    Polls a jenkins build for updates. May have sync_artifact children.
+    Polls a build for updates. May have sync_artifact children.
     """
     step = JobStep.query.get(step_id)
     if not step:
@@ -421,6 +423,15 @@ def sync_job_step(step_id):
                     "Timed out jobstep that wasn't in progress: %s (was %s)", step.id, old_status)
 
         raise sync_job_step.NotFinished
+
+    # Close the ArtifactStore bucket used by jenkins, if it exists
+    bucket_name = step.data.get('jenkins_bucket_name')
+    if bucket_name:
+        try:
+            ArtifactStoreClient(current_app.config['ARTIFACTS_SERVER']).close_bucket(bucket_name)
+        except Exception:
+            # Closing buckets is not strictly necessary in artifactstore
+            pass
 
     # Ignore any 'failures' if the build did not finish properly.
     # NOTE(josiah): we might want to include "unknown" and "skipped" here as
