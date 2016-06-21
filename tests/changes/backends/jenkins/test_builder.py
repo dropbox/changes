@@ -848,6 +848,7 @@ class ArtifactsManagerMatchTest(BaseTestCase):
 
 class SyncArtifactTest(BaseTestCase):
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_sync_artifact_xunit(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/xunit.xml',
@@ -884,6 +885,7 @@ class SyncArtifactTest(BaseTestCase):
         assert len(test_list) == 2
 
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_sync_artifact_coverage(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/coverage.xml',
@@ -921,6 +923,7 @@ class SyncArtifactTest(BaseTestCase):
         assert len(cover_list) == 2
 
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_sync_artifact_file(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/foo.bar',
@@ -954,6 +957,7 @@ class SyncArtifactTest(BaseTestCase):
 
 class SyncTestArtifactsTest(BaseTestCase):
     @responses.activate
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_sync_testartifacts(self):
         responses.add(
             responses.GET, 'http://jenkins.example.com/job/server/2/artifact/artifacts/xunit.xml',

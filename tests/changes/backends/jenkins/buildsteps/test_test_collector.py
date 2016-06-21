@@ -16,6 +16,7 @@ from changes.backends.jenkins.buildsteps.test_collector import JenkinsTestCollec
 from changes.config import db
 from changes.constants import Result, Status
 from changes.expanders.tests import TestsExpander
+from changes.lib.artifact_store_mock import ArtifactStoreMock
 from changes.models.failurereason import FailureReason
 from changes.models.jobphase import JobPhase
 from changes.models.jobplan import JobPlan
@@ -333,6 +334,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_job_expansion(self, get_test_stats, get_job_parameters,
                            create_jenkins_job_from_params, fetch_artifact):
         """
@@ -470,6 +472,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_create_replacement_jobstep(self, get_test_stats, get_job_parameters,
                                         create_jenkins_job_from_params, fetch_artifact):
         """
@@ -624,6 +627,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'create_jenkins_job_from_params')
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
+    @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
     def test_job_expansion_no_tests(self, get_test_stats, get_job_parameters,
                            create_jenkins_job_from_params, fetch_artifact):
         fetch_artifact.return_value.content = json.dumps({

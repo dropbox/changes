@@ -302,7 +302,7 @@ def _sync_from_artifact_store(jobstep):
 
 def _get_artifacts_to_sync(artifacts, artifact_manager, prefer_artifactstore):
     def is_artifact_store(artifact):
-        return artifact.file.storage == 'changes.storage.artifactstore.ArtifactStoreFileStorage'
+        return artifact.file.storage == 'changes.storage.artifactstore.ArtifactStoreFileStorage' and artifact.file
 
     artifacts_by_name = defaultdict(list)
     # group by filename
