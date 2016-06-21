@@ -297,3 +297,13 @@ diff -r 2104491cf7a3 FOO1
         sha = vcs.run(['id', '-i']).strip()
 
         assert vcs.read_file(sha, 'FOO', diff=PATCH) == 'blah\n'
+
+    def test_patch_hash(self):
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        sha = vcs.run(['id', '-i']).strip()
+        patch_hash = vcs.get_patch_hash(sha)
+
+        assert patch_hash is None

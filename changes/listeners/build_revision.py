@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import logging
 
+from typing import List, Set  # NOQA
+
 from flask import current_app
 from changes.api.build_index import BuildIndexAPIView
 from changes.models.project import (
@@ -31,12 +33,14 @@ class CommitTrigger(object):
         self.revision = revision
 
     def get_project_list(self):
+        # type: () -> List[str]
         return list(Project.query.filter(
             Project.repository_id == self.revision.repository_id,
             Project.status == ProjectStatus.active,
         ))
 
     def get_changed_files(self):
+        # type: () -> Set[unicode]
         vcs = self.repository.get_vcs()
         if not vcs:
             raise NotImplementedError

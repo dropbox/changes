@@ -29,6 +29,8 @@ class Revision(db.Model):
     author_id = Column(GUID, ForeignKey('author.id'))
     committer_id = Column(GUID, ForeignKey('author.id'))
     message = Column(Text)
+    # The optional git patch id
+    patch_hash = Column(String(40), nullable=True)
     parents = Column(ARRAY(String(40)))
     branches = Column(ARRAY(String(128)))
     date_created = Column(DateTime, default=datetime.utcnow)
