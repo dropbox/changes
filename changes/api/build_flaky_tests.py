@@ -31,7 +31,6 @@ class BuildFlakyTestsAPIView(APIView):
                 TestCase.id,
                 TestCase.name,
                 TestCase.name_sha,
-                TestCase.message,
                 TestCase.job_id
             ).filter(
                 TestCase.job_id.in_([j.id for j in jobs]),
@@ -46,7 +45,6 @@ class BuildFlakyTestsAPIView(APIView):
             item = {
                 'id': test.id,
                 'name': test.name,
-                'captured_output': test.message,
                 'job_id': test.job_id,
             }
 

@@ -74,7 +74,6 @@ class ProjectFlakyTestsAPIView(APIView):
                 'double_reruns': flaky_test.double_reruns,
                 'passing_runs': flaky_test.passing_runs,
                 'first_run': str(flaky_test.first_run),
-                'output': test_run.message,
                 'history': []
             }
 
