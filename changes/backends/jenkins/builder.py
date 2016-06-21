@@ -229,7 +229,7 @@ class JenkinsBuilder(BaseBackend):
         # NB: Accessing Response.content results in the entire artifact
         # being loaded into memory.
 
-        if self.debug_config.get('use_arifactstore'):
+        if self.debug_config.get('use_artifactstore'):
             bucket_name = self._get_artifactstore_bucket(jobstep)
 
             artifact_url = self.artifact_store_client\
