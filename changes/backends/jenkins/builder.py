@@ -25,14 +25,14 @@ from changes.backends.base import BaseBackend, UnrecoverableException
 from changes.buildsteps.base import BuildStep
 from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
-from changes.db.utils import create_or_update, get_or_create
+from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.lib.artifact_store_lib import ArtifactStoreClient
 from changes.models.artifact import Artifact
 from changes.models.failurereason import FailureReason
 from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep
-from changes.models.log import LogChunk, LogSource, LOG_CHUNK_SIZE
+from changes.models.log import LogSource, LOG_CHUNK_SIZE
 from changes.models.node import Cluster, ClusterNode, Node
 from changes.utils.http import build_internal_uri
 from changes.utils.text import chunked
@@ -56,6 +56,10 @@ LOG_SYNC_TIMEOUT_SECS = 30
 # Redis key for storing the master blacklist set
 # The blacklist is used to temporarily remove jenkins masters from the pool of available masters.
 MASTER_BLACKLIST_KEY = 'jenkins_master_blacklist'
+
+# Default name for the Jenkins console log.
+# Note that artifactstore may alter the name for deduplication, so this cannot directly be used.
+JENKINS_LOG_NAME = 'jenkins-console'
 
 
 class NotFound(Exception):
@@ -262,34 +266,36 @@ class JenkinsBuilder(BaseBackend):
             self.logger.exception(
                 'Failed to sync test results for job step %s', jobstep.id)
 
-    def _sync_log(self, jobstep, name, job_name, build_no):
+    def _sync_log(self, jobstep):
+        bucket_name = self._get_artifactstore_bucket(jobstep)
+
+        # Note: artifactstore may alter the log name to deduplicate it, so always use data.get('log_artifact_name')
+        artifact_name = jobstep.data.get('log_artifact_name')
+        if not artifact_name:
+            artifact_name = self.artifact_store_client\
+                .create_chunked_artifact(bucket_name, artifact_name=JENKINS_LOG_NAME).name
+            jobstep.data['log_artifact_name'] = artifact_name
+            db.session.add(jobstep)
+            db.session.commit()
+
         logsource, created = get_or_create(LogSource, where={
-            'name': name,
+            'name': artifact_name,
             'step': jobstep,
         }, defaults={
             'job': jobstep.job,
             'project': jobstep.project,
             'date_created': jobstep.date_started,
+            'in_artifact_store': True,
         })
         if created:
             offset = 0
         else:
             offset = jobstep.data.get('log_offset', 0)
 
-        bucket_name = self._get_artifactstore_bucket(jobstep)
-
-        artifact_name = jobstep.data.get('log_artifact_name')
-        if not artifact_name:
-            artifact_name = self.artifact_store_client\
-                .create_chunked_artifact(bucket_name, artifact_name='console').name
-            jobstep.data['log_artifact_name'] = artifact_name
-            db.session.add(jobstep)
-            db.session.commit()
-
         url = '{base}/job/{job}/{build}/logText/progressiveText/'.format(
             base=jobstep.data['master'],
-            job=job_name,
-            build=build_no,
+            job=jobstep.data['job_name'],
+            build=jobstep.data['build_no'],
         )
 
         start_time = time.time()
@@ -313,15 +319,6 @@ class JenkinsBuilder(BaseBackend):
             for chunk in chunked(iterator, LOG_CHUNK_SIZE):
                 chunk_size = len(chunk)
                 try:
-                    logchunk, _ = create_or_update(LogChunk, where={
-                        'source': logsource,
-                        'offset': offset,
-                    }, values={
-                        'job': jobstep.job,
-                        'project': jobstep.project,
-                        'size': chunk_size,
-                        'text': chunk,
-                    })
                     self.artifact_store_client.post_artifact_chunk(bucket_name, artifact_name, offset, chunk)
                     offset += chunk_size
 
@@ -338,17 +335,8 @@ class JenkinsBuilder(BaseBackend):
                     warning = ("\nLOG TRUNCATED. SEE FULL LOG AT "
                                "{base}/job/{job}/{build}/consoleText\n").format(
                         base=jobstep.data['master'],
-                        job=job_name,
-                        build=build_no)
-                    create_or_update(LogChunk, where={
-                        'source': logsource,
-                        'offset': offset,
-                    }, values={
-                        'job': jobstep.job,
-                        'project': jobstep.project,
-                        'size': len(warning),
-                        'text': warning,
-                    })
+                        job=jobstep.data['job_name'],
+                        build=jobstep.data['build_no'])
                     self.artifact_store_client.post_artifact_chunk(bucket_name, artifact_name, offset, warning)
                     break
 
@@ -631,9 +619,6 @@ class JenkinsBuilder(BaseBackend):
             db.session.commit()
 
     def _sync_results(self, step, item):
-        job_name = step.data['job_name']
-        build_no = step.data['build_no']
-
         artifacts = item.get('artifacts', ())
 
         # Detect and warn if there are duplicate artifact file names as we were relying on
@@ -651,12 +636,7 @@ class JenkinsBuilder(BaseBackend):
         try:
             result = True
             while result:
-                result = self._sync_log(
-                    jobstep=step,
-                    name=step.label,
-                    job_name=job_name,
-                    build_no=build_no,
-                )
+                result = self._sync_log(step)
 
         except Exception:
             db.session.rollback()
@@ -759,14 +739,7 @@ class JenkinsBuilder(BaseBackend):
         # try to grab the logs.
         if not step.data.get('queued') and step.data.get('timed_out', False):
             try:
-                job_name = step.data['job_name']
-                build_no = step.data['build_no']
-                self._sync_log(
-                    jobstep=step,
-                    name=step.label,
-                    job_name=job_name,
-                    build_no=build_no,
-                )
+                self._sync_log(step)
             except Exception:
                 self.logger.exception(
                     'Unable to fully sync console log for job step %r',

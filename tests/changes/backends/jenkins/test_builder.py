@@ -20,12 +20,12 @@ from changes.models.artifact import Artifact
 from changes.models.failurereason import FailureReason
 from changes.models.filecoverage import FileCoverage
 from changes.models.job import Job
-from changes.models.log import LogChunk, LogSource
+from changes.models.log import LogSource
 from changes.models.patch import Patch
 from changes.models.test import TestCase
 from changes.models.testartifact import TestArtifact
 
-from changes.backends.jenkins.builder import JenkinsBuilder, MASTER_BLACKLIST_KEY
+from changes.backends.jenkins.builder import JenkinsBuilder, MASTER_BLACKLIST_KEY, JENKINS_LOG_NAME
 from changes.testutils import (
     BackendTestCase, eager_tasks, SAMPLE_DIFF, SAMPLE_XUNIT, SAMPLE_COVERAGE,
     SAMPLE_XUNIT_TESTARTIFACTS
@@ -433,19 +433,9 @@ class CancelStepTest(BaseTestCase):
 
         source = LogSource.query.filter_by(job=job).first()
         assert source.step == step
-        assert source.name == step.label
+        assert source.name == JENKINS_LOG_NAME
         assert source.project == self.project
         assert source.date_created == step.date_started
-
-        chunks = list(LogChunk.query.filter_by(
-            source=source,
-        ).order_by(LogChunk.date_created.asc()))
-        assert len(chunks) == 1
-        assert chunks[0].job_id == job.id
-        assert chunks[0].project_id == self.project.id
-        assert chunks[0].offset == 0
-        assert chunks[0].size == 7
-        assert chunks[0].text == 'Foo bar'
 
         assert step.data.get('log_offset') == 7
 
@@ -453,7 +443,7 @@ class CancelStepTest(BaseTestCase):
         artifact_name = step.data['log_artifact_name']
         artifact = ArtifactStoreMock('').get_artifact(bucket_name, artifact_name)
         assert artifact.name == artifact_name
-        assert artifact.path == 'console'
+        assert artifact.path == JENKINS_LOG_NAME
         assert artifact.size == 7
         assert artifact.state == ArtifactState.UPLOADED
         assert ArtifactStoreMock('').get_artifact_content(bucket_name, artifact_name).getvalue() == 'Foo bar'
@@ -702,11 +692,6 @@ class SyncStepTest(BaseTestCase):
         builder.sync_step(step)
 
         assert len(step.logsources) == 1
-        chunks = list(LogChunk.query.filter_by(
-            source=step.logsources[0],
-        ).order_by(LogChunk.offset.asc()))
-        assert len(chunks) == 2
-        assert "LOG TRUNCATED" in chunks[1].text
 
         bucket_name = step.id.hex + '-jenkins'
         artifact_name = step.data['log_artifact_name']
@@ -750,19 +735,9 @@ class SyncGenericResultsTest(BaseTestCase):
 
         source = LogSource.query.filter_by(job=job).first()
         assert source.step == step
-        assert source.name == step.label
+        assert source.name == JENKINS_LOG_NAME
         assert source.project == self.project
         assert source.date_created == step.date_started
-
-        chunks = list(LogChunk.query.filter_by(
-            source=source,
-        ).order_by(LogChunk.date_created.asc()))
-        assert len(chunks) == 1
-        assert chunks[0].job_id == job.id
-        assert chunks[0].project_id == self.project.id
-        assert chunks[0].offset == 0
-        assert chunks[0].size == 7
-        assert chunks[0].text == 'Foo bar'
 
         assert step.data.get('log_offset') == 7
 
@@ -770,7 +745,7 @@ class SyncGenericResultsTest(BaseTestCase):
         artifact_name = step.data['log_artifact_name']
         artifact = ArtifactStoreMock('').get_artifact(bucket_name, artifact_name)
         assert artifact.name == artifact_name
-        assert artifact.path == 'console'
+        assert artifact.path == JENKINS_LOG_NAME
         assert artifact.size == 7
         assert artifact.state == ArtifactState.UPLOADED
         assert ArtifactStoreMock('').get_artifact_content(bucket_name, artifact_name).getvalue() == 'Foo bar'
@@ -1101,7 +1076,7 @@ class JenkinsIntegrationTest(BaseTestCase):
             'item_id': '13',
             'queued': False,
             'log_offset': 7,
-            'log_artifact_name': 'console',
+            'log_artifact_name': JENKINS_LOG_NAME,
             'jenkins_bucket_name': step_list[0].id.hex + '-jenkins',
             'job_name': 'server',
             'build_no': 2,
@@ -1114,26 +1089,16 @@ class JenkinsIntegrationTest(BaseTestCase):
         assert [n.label for n in node.clusters] == ['server-runner']
 
         source = LogSource.query.filter_by(job=job).first()
-        assert source.name == step_list[0].label
+        assert source.name == JENKINS_LOG_NAME
         assert source.step == step_list[0]
         assert source.project == self.project
         assert source.date_created == job.date_started
-
-        chunks = list(LogChunk.query.filter_by(
-            source=source,
-        ).order_by(LogChunk.date_created.asc()))
-        assert len(chunks) == 1
-        assert chunks[0].job_id == job.id
-        assert chunks[0].project_id == self.project.id
-        assert chunks[0].offset == 0
-        assert chunks[0].size == 7
-        assert chunks[0].text == 'Foo bar'
 
         bucket_name = step_list[0].id.hex + '-jenkins'
         artifact_name = step_list[0].data['log_artifact_name']
         artifact = ArtifactStoreMock('').get_artifact(bucket_name, artifact_name)
         assert artifact.name == artifact_name
-        assert artifact.path == 'console'
+        assert artifact.path == JENKINS_LOG_NAME
         assert artifact.size == 7
         assert artifact.state == ArtifactState.UPLOADED
         assert ArtifactStoreMock('').get_artifact_content(bucket_name, artifact_name).getvalue() == 'Foo bar'

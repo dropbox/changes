@@ -1,4 +1,5 @@
 from changes.api.serializer import Crumbler, register
+from changes.backends.jenkins.builder import JENKINS_LOG_NAME
 from changes.models.log import LogSource
 from flask import current_app
 
@@ -47,15 +48,19 @@ class ArtifactStoreLogSource(object):
         self.base_url = config.get('ARTIFACTS_SERVER') or ''
 
     def get_urls(self, logsource):
+        bucket_name = logsource.step_id.hex
+        # Jenkins builds store 'jenkins-console' logs to a separate bucket
+        if logsource.name.startswith(JENKINS_LOG_NAME) and logsource.step.data.get('jenkins_bucket_name'):
+            bucket_name = logsource.step.data.get('jenkins_bucket_name')
         raw_url = "{base_url}/buckets/{bucket}/artifacts/{artifact}/content".format(
             base_url=self.base_url,
-            bucket=logsource.step_id.hex,
+            bucket=bucket_name,
             artifact=logsource.name
         )
 
         chunked_url = "{base_url}/buckets/{bucket}/artifacts/{artifact}/chunked".format(
             base_url=self.base_url,
-            bucket=logsource.step_id.hex,
+            bucket=bucket_name,
             artifact=logsource.name
         )
 
