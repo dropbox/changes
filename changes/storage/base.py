@@ -11,5 +11,5 @@ class FileStorage(object):
     def url_for(self, filename, expire=300):
         raise NotImplementedError
 
-    def get_file(self, filename):
+    def get_file(self, filename, offset=None, length=None):
         raise NotImplementedError

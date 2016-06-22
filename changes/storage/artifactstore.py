@@ -26,9 +26,15 @@ class ArtifactStoreFileStorage(FileStorage):
             filename=filename
         )
 
-    def get_file(self, filename):
+    def get_file(self, filename, offset=None, length=None):
         # TODO(paulruan): Have a reasonable file size limit
-        resp = self.session.get(self.url_for(filename), timeout=15)
+        headers = {}
+        if offset is not None:
+            if length is not None and length >= 1:
+                headers['Range'] = 'bytes=%d-%d' % (offset, offset + length - 1)
+            else:
+                headers['Range'] = 'bytes=%d-' % (offset)
+        resp = self.session.get(self.url_for(filename), timeout=15, headers=headers)
         resp.raise_for_status()
         return StringIO(resp.content)
 
