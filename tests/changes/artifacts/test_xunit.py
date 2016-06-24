@@ -1,8 +1,10 @@
 import uuid
+import os
 
 from cStringIO import StringIO
 
-from changes.artifacts.xunit import XunitHandler, _truncate_message, _TRUNCATION_HEADER
+from changes.artifacts.xunit import XunitHandler, _truncate_message, _TRUNCATION_HEADER, XunitHandlerEtree, \
+    compare_results
 from changes.constants import Result
 from changes.models.failurereason import FailureReason
 from changes.models.jobstep import JobStep
@@ -178,9 +180,30 @@ class BadArtifactTestCase(TestCase):
         fp = StringIO(missing_name)
 
         handler = XunitHandler(jobstep)
-        results = handler.get_tests(fp)
+        results = handler.process(fp)
         assert results == []
         reason = FailureReason.query.filter(
             FailureReason.step_id == jobstep.id
         ).first()
         assert reason is not None
+
+
+class TestFromFileTestCase(TestCase):
+    def test_from_file(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        path = os.path.join(os.path.dirname(__file__), 'fixtures', 'junit.xml.test')
+
+        with open(path, 'rb') as fp:
+            handler_old = XunitHandlerEtree(jobstep)
+            results_old = handler_old.get_tests(fp)
+
+        with open(path, 'rb') as fp:
+            handler_new = XunitHandler(jobstep)
+            results_new = handler_new.get_tests(fp)
+
+        assert compare_results(results_new, results_old)

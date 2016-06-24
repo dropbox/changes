@@ -73,7 +73,7 @@ class TestArtifact(db.Model):
             self.id = uuid.uuid4()
         if self.date_created is None:
             self.date_created = datetime.utcnow()
-        if isinstance(self.type, str):
+        if isinstance(self.type, basestring):
             self.type = TestArtifactType[self.type]
         if self.file is None:
             # TODO(dcramer): this is super hacky but not sure a better way to
