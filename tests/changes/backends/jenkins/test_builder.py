@@ -857,7 +857,7 @@ class SyncArtifactTest(BaseTestCase):
             TestCase.job_id == job.id
         ))
 
-        assert len(test_list) == 2
+        assert len(test_list) == 3
 
     @responses.activate
     @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)

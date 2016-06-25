@@ -85,6 +85,13 @@ SAMPLE_XUNIT = """<?xml version="1.0" encoding="utf-8"?>
 E   ImportError: No module named mock</failure>
     </testcase>
     <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+    <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
+        <system-out>Running SampleTest</system-out>
+        <error message="test setup failure">test_simple.py:4: in tearDown
+    1/0
+E   ZeroDivisionError: integer division or modulo by zero</error>
+        <system-out>Running SampleTest</system-out>
+    </testcase>
 </testsuite>"""
 
 SAMPLE_XUNIT_DOUBLE_CASES = """<?xml version="1.0" encoding="utf-8"?>

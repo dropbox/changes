@@ -5,8 +5,7 @@ import logging
 
 from cStringIO import StringIO
 
-from changes.artifacts.xunit import XunitHandler, _truncate_message, _TRUNCATION_HEADER, XunitHandlerEtree, \
-    compare_results
+from changes.artifacts.xunit import XunitHandler, _truncate_message, _TRUNCATION_HEADER
 from changes.constants import Result
 from changes.models.failurereason import FailureReason
 from changes.models.jobstep import JobStep
@@ -27,7 +26,7 @@ def test_result_generation():
     handler = XunitHandler(jobstep)
     results = handler.get_tests(fp)
 
-    assert len(results) == 2
+    assert len(results) == 3
 
     r1 = results[0]
     assert type(r1) == TestResult
@@ -50,6 +49,16 @@ E   ImportError: No module named mock"""
     assert r2.message is None
     assert r2.reruns == 1
     assert r2.owner is None
+    r3 = results[2]
+    assert type(r3) == TestResult
+    assert r3.step == jobstep
+    assert r3.package is None
+    assert r3.name == 'test_simple.SampleTest.test_falsehood'
+    assert r3.duration == 500.0
+    assert r3.result == Result.passed
+    assert r3.message == 'Running SampleTest'
+    assert r3.reruns == 3
+    assert r3.owner is None
 
 
 def test_result_generation_when_one_test_has_two_cases():
@@ -206,13 +215,12 @@ class TestFromFileTestCase(TestCase):
             contents = fp.read()
 
         start = time.clock()
-        handler_old = XunitHandlerEtree(jobstep)
-        results_old = handler_old.get_tests(StringIO(contents))
-        logger.info("Etree XUnit handler ran in %f seconds." % (time.clock() - start))
+        handler = XunitHandler(jobstep)
+        results = handler.get_tests(StringIO(contents))
+        logger.info("XUnit handler ran in %f seconds." % (time.clock() - start))
 
-        start = time.clock()
-        handler_new = XunitHandler(jobstep)
-        results_new = handler_new.get_tests(StringIO(contents))
-        logger.info("Expat XUnit handler ran in %f seconds." % (time.clock() - start))
-
-        assert compare_results(results_new, results_old)
+        assert len(results) == 675
+        assert results[0].name == 'tests.changes.api.test_build_details.TestCase'
+        assert results[0].result == Result.skipped
+        assert results[674].name == 'tests.changes.web.test_auth.LogoutViewTest.test_simple'
+        assert results[674].result == Result.passed

@@ -1,10 +1,8 @@
 from __future__ import absolute_import, division
 
 import logging
-from cStringIO import StringIO
 from operator import add
 from xml.parsers import expat
-from lxml import etree
 
 from flask import current_app
 
@@ -23,17 +21,7 @@ class XunitHandler(ArtifactHandler):
     logger = logging.getLogger('xunit')
 
     def process(self, fp, artifact):
-
-        # TEMPORARY: run both handlers and compare the results
-        # In the future, we should only call self.get_tests(fp)
-        contents = fp.read()
-        test_list = XunitHandlerEtree(self.step).get_tests(StringIO(contents))
-
-        new_test_list = self.get_tests(StringIO(contents))
-        if not compare_results(new_test_list, test_list):
-            uri = build_web_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
-            self.logger.warning('Different XML parse results; (step=%s, build=%s)',
-                                self.step.id.hex, uri, exc_info=True)
+        test_list = self.get_tests(fp)
 
         manager = TestResultManager(self.step)
         manager.save(test_list)
@@ -49,8 +37,7 @@ class XunitHandler(ArtifactHandler):
             uri = build_web_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
             self.logger.warning('Failed to parse XML; (step=%s, build=%s); exception %s',
                                 self.step.id.hex, uri, e.message, exc_info=True)
-            # TEMPORARY: don't call this, as we're also running the etree handler
-            # self.report_malformed()
+            self.report_malformed()
             return []
 
 
@@ -64,6 +51,8 @@ class XunitDelegate(DelegateParser):
         self.step = step
 
         self._parser = expat.ParserCreate()
+        # Buffer the text so that we call CharacterDataHandler only once (or so) per text field
+        # Buffer size was determined from memory limits of machines and the size of the largest junit.xml files
         self._parser.buffer_text = True
         self._parser.buffer_size = 10 * 1000 * 1000
         self._parser.StartElementHandler = self.start
@@ -267,174 +256,6 @@ class XunitParser(XunitBaseParser):
             pass
 
 
-class XunitHandlerEtree(ArtifactHandler):
-    """
-    Old Xunit handler, only kept for verification
-    """
-    FILENAMES = ('xunit.xml', 'junit.xml', 'nosetests.xml', '*.xunit.xml', '*.junit.xml', '*.nosetests.xml')
-    logger = logging.getLogger('xunit')
-
-    def process(self, fp, artifact):
-        test_list = self.get_tests(fp)
-
-        manager = TestResultManager(self.step)
-        manager.save(test_list)
-
-        return test_list
-
-    @statsreporter.timer('xunithandler_get_tests')
-    def get_tests(self, fp):
-        content_size = None
-        try:
-            # libxml has a limit on the size of a text field by default, but we encode stdout/stderr.
-            #
-            # Its not good to have such huge text fields in the first place but we still want to
-            # avoid hard failing here if we do.
-            parser = etree.XMLParser(huge_tree=True)
-            content = fp.read()
-            content_size = len(content)
-            root = etree.fromstring(content, parser=parser)
-        except Exception:
-            uri = build_web_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
-            self.logger.warning('Failed to parse XML; (step=%s, build=%s, size=%s)',
-                                self.step.id.hex, uri, content_size, exc_info=True)
-            self.report_malformed()
-            return []
-
-        # We've parsed the XML successful, but we still need to make sure it is well-formed for our reasons.
-        try:
-            if root.tag == 'unittest-results':
-                return self.get_bitten_tests(root)
-            return self.get_xunit_tests(root)
-        except ArtifactParseError:
-            # There may be valid test data to be extracted, but we discard them all to be safe.
-            self.report_malformed()
-            return []
-
-    def get_bitten_tests(self, root):
-        step = self.step
-
-        results = []
-
-        message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
-        # XXX(dcramer): bitten xml syntax, no clue what this
-        for node in root.iter('test'):
-            # classname, name, time
-            attrs = dict(node.items())
-            # AFAIK the spec says only one tag can be present
-            # http://windyroad.com.au/dl/Open%20Source/JUnit.xsd
-            if attrs['status'] == 'success':
-                result = Result.passed
-            elif attrs['status'] == 'skipped':
-                result = Result.skipped
-            elif attrs['status'] in ('error', 'failure'):
-                result = Result.failed
-            else:
-                result = None
-
-            try:
-                message = list(node.iter('traceback'))[0].text
-            except IndexError:
-                message = ''
-
-            # no matching status tags were found
-            if result is None:
-                result = Result.passed
-
-            results.append(TestResult(
-                step=step,
-                name=attrs['name'],
-                package=attrs.get('fixture') or None,
-                duration=float(attrs['duration']) * 1000,
-                result=result,
-                message=_truncate_message(message, message_limit),
-            ))
-
-        return results
-
-    def get_xunit_tests(self, root):
-        step = self.step
-
-        message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
-        results = []
-        for node in root.iter('testcase'):
-            # classname, name, time
-            attrs = dict(node.items())
-            # AFAIK the spec says only one tag can be present
-            # http://windyroad.com.au/dl/Open%20Source/JUnit.xsd
-            try:
-                r_node = list(node.iterchildren())[0]
-            except IndexError:
-                result = Result.passed
-                message = ''
-            else:
-                # TODO(cramer): whitelist tags that are not statuses
-                if r_node.tag == 'failure':
-                    result = Result.failed
-                elif r_node.tag == 'skipped':
-                    result = Result.skipped
-                elif r_node.tag == 'error':
-                    result = Result.failed
-                else:
-                    result = None
-
-                message = r_node.text
-
-            # If there's a previous failure in addition to stdout or stderr,
-            # prioritize showing the previous failure because that's what's
-            # useful for debugging flakiness.
-            message = attrs.get("last_failure_output") or message
-            # no matching status tags were found
-            if result is None:
-                result = Result.passed
-
-            if attrs.get('quarantined'):
-                if result == Result.passed:
-                    result = Result.quarantined_passed
-                elif result == Result.failed:
-                    result = Result.quarantined_failed
-                elif result == Result.skipped:
-                    result = Result.quarantined_skipped
-
-            owner = attrs.get('owner', None)
-
-            if attrs.get('time'):
-                duration = float(attrs['time']) * 1000
-            else:
-                duration = None
-
-            if not attrs.get('name'):
-                raise ArtifactParseError('testcase is missing required "name" property.')
-
-            results.append(TestResult(
-                step=step,
-                name=attrs['name'],
-                package=attrs.get('classname') or None,
-                duration=duration,
-                result=result,
-                # We truncate before deduplication; this gives us a weaker guarantee on maximum size,
-                # but ensures that we have at least some message from each test.
-                message=_truncate_message(message, message_limit),
-                reruns=int(attrs.get('rerun')) if attrs.get('rerun') else None,
-                artifacts=self._get_testartifacts(node),
-                owner=owner,
-            ))
-
-        results = _deduplicate_testresults(results)
-        return results
-
-    def _get_testartifacts(self, node):
-        test_artifacts_node = node.find('test-artifacts')
-        if test_artifacts_node is None:
-            return None
-
-        results = []
-        for artifact_node in node.iter('artifact'):
-            attrs = dict(artifact_node.items())
-            results.append(attrs)
-        return results
-
-
 def _deduplicate_testresults(results):
     """Combine TestResult objects until every package+name is unique.
 
@@ -499,22 +320,3 @@ def _truncate_message(msg, limit):
     else:
         msg = msg[nl + 1:]
     return _TRUNCATION_HEADER + msg
-
-
-def compare_results(results1, results2):
-    if not len(results1) == len(results2):
-        return False
-    for res1, res2 in zip(results1, results2):
-        if not (
-            res1.step == res2.step and
-            res1._name == res2._name and
-            res1._package == res2._package and
-            (res1.message or '') == (res2.message or '') and
-            res1.result == res2.result and
-            res1.duration == res2.duration and
-            res1.reruns == res2.reruns and
-            res1.artifacts == res2.artifacts and
-            res1.owner == res2.owner
-        ):
-            return False
-    return True
