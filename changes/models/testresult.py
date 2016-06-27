@@ -14,6 +14,7 @@ from changes.models.failurereason import FailureReason
 from changes.models.itemstat import ItemStat
 from changes.models.test import TestCase
 from changes.models.testartifact import TestArtifact
+from changes.models.testmessage import TestMessage
 
 logger = logging.getLogger('changes.testresult')
 
@@ -22,10 +23,12 @@ class TestResult(object):
     """
     A helper class which ensures that TestSuite instances are
     managed correctly when TestCase's are created.
+
+    :param message_offsets: message_offsets is a list of tuples containing (label, start_offset, length)
     """
     def __init__(self, step, name, message=None, package=None,
                  result=None, duration=None, date_created=None,
-                 reruns=None, artifacts=None, owner=None):
+                 reruns=None, artifacts=None, owner=None, message_offsets=None):
         self.step = step
         self._name = name
         self._package = package
@@ -36,6 +39,7 @@ class TestResult(object):
         self.reruns = reruns or 0
         self.artifacts = artifacts
         self.owner = owner
+        self.message_offsets = message_offsets or []
 
     @property
     def sep(self):
@@ -64,8 +68,9 @@ class TestResult(object):
 
 
 class TestResultManager(object):
-    def __init__(self, step):
+    def __init__(self, step, artifact):
         self.step = step
+        self.artifact = artifact
 
     def clear(self):
         """
@@ -153,7 +158,7 @@ class TestResultManager(object):
                     testcase_list[i] = original  # so artifacts get stored
                     _record_test_failures(original.step)  # so count is right
 
-        # Test artifacts do not operate under a unique constraint, so
+        # Test artifacts and messages do not operate under a unique constraint, so
         # they should insert cleanly without an integrity error.
 
         for test, testcase in zip(test_list, testcase_list):
@@ -166,11 +171,21 @@ class TestResultManager(object):
                     testartifact.save_base64_content(ta['base64'])
                     db.session.add(testartifact)
 
+            for (label, start, length) in test.message_offsets:
+                testmessage = TestMessage(
+                    label=label,
+                    start_offset=start,
+                    length=length,
+                    test=testcase,
+                    artifact=self.artifact,
+                )
+                db.session.add(testmessage)
+
         try:
             db.session.commit()
         except Exception:
             db.session.rollback()
-            logger.exception('Failed to save artifacts'
+            logger.exception('Failed to save artifacts and messages'
                              ' for step {}'.format(step.id.hex))
 
         try:

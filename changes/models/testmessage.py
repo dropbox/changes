@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Column, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index
 
@@ -8,7 +8,7 @@ from changes.config import db
 from changes.db.types.guid import GUID
 
 
-class TestMessage(db.model):
+class TestMessage(db.Model):
     """
     The message produced by a run of a test.
 
@@ -24,10 +24,11 @@ class TestMessage(db.model):
     id = Column(GUID, nullable=False, primary_key=True, default=uuid.uuid4)
     test_id = Column(GUID, ForeignKey('test.id', ondelete="CASCADE"), nullable=False)
     artifact_id = Column(GUID, ForeignKey('artifact.id', ondelete="CASCADE"), nullable=False)
+    label = Column(Text, nullable=False)
     start_offset = Column(Integer, default=0, nullable=False)
     length = Column(Integer, nullable=False)
 
-    test = relationship('TestCase')
+    test = relationship('TestCase', backref='messages')
     artifact = relationship('Artifact')
 
     def __init__(self, **kwargs):
@@ -36,5 +37,4 @@ class TestMessage(db.model):
             self.id = uuid.uuid4()
 
     def get_message(self):
-        with self.artifact.file.get_file(self.start_offset, self.length) as message:
-            return message.read()
+        return self.artifact.file.get_file(self.start_offset, self.length).read()

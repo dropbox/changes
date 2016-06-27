@@ -23,7 +23,7 @@ class XunitHandler(ArtifactHandler):
     def process(self, fp, artifact):
         test_list = self.get_tests(fp)
 
-        manager = TestResultManager(self.step)
+        manager = TestResultManager(self.step, artifact)
         manager.save(test_list)
 
         return test_list
@@ -52,7 +52,7 @@ class XunitDelegate(DelegateParser):
 
         self._parser = expat.ParserCreate()
         # Buffer the text so that we call CharacterDataHandler only once (or so) per text field
-        # Buffer size was determined from memory limits of machines and the size of the largest junit.xml files
+        # Buffer size was determined from memory limits of machines and testing on a 20MB junit.xml file
         self._parser.buffer_text = True
         self._parser.buffer_size = 10 * 1000 * 1000
         self._parser.StartElementHandler = self.start
@@ -90,21 +90,32 @@ class XunitBaseParser(object):
 
         self.results = []
         self._current_result = None
-        self._is_message = False
 
-    def start_message(self):
-        self._current_result.message = ''
+        self._is_message = False
+        self._message_start = None
+        self._message_tag = None
+
+    def start_message(self, tag, attrs):
         self._is_message = True
+        self._message_tag = tag
+        self._message_start = None
+        # Byte indices are inaccurate if we buffer text
+        self._parser.buffer_text = False
 
     def process_message(self, data):
-        self._current_result.message += data
+        if self._message_start is None:
+            self._message_start = self._parser.CurrentByteIndex
+            self._parser.buffer_text = True
 
     def close_message(self):
-        # We truncate before deduplication; this gives us a weaker guarantee on maximum size,
-        # but ensures that we have at least some message from each test.
-        message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
-        self._current_result.message = _truncate_message(self._current_result.message, message_limit)
+        if self._message_start is not None:
+            message_length = self._parser.CurrentByteIndex - self._message_start
+            self._current_result.message_offsets.append((self._message_tag, self._message_start, message_length))
+
+        self._parser.buffer_text = True
         self._is_message = False
+        self._message_tag = None
+        self._message_start = None
 
 
 class BittenParser(XunitBaseParser):
@@ -136,7 +147,7 @@ class BittenParser(XunitBaseParser):
                 result=result,
             )
         elif tag == 'traceback':
-            self.start_message()
+            self.start_message(tag, attrs)
 
     def data(self, data):
         if self._is_message:
@@ -170,7 +181,8 @@ class XunitParser(XunitBaseParser):
             # If there's a previous failure in addition to stdout or stderr,
             # prioritize showing the previous failure because that's what's
             # useful for debugging flakiness.
-            message = attrs.get('last_failure_output') or None
+            message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
+            message = truncate_message(attrs.get('last_failure_output'), message_limit) or None
 
             # Results are found in children elements
             result = Result.unknown
@@ -224,8 +236,7 @@ class XunitParser(XunitBaseParser):
                 else:
                     self._current_result.result = Result.passed
 
-                if self._current_result.message is None:
-                    self.start_message()
+            self.start_message(tag, attrs)
 
     def data(self, data):
         if self._is_message:
@@ -278,13 +289,13 @@ def _deduplicate_testresults(results):
             e, r = existing_result, result
             e.duration = _careful(add, e.duration, r.duration)
             e.result = aggregate_result((e.result, r.result))
-            if e.message is None:
-                e.message = ''
-            if r.message is None:
-                r.message = ''
-            e.message += '\n\n' + r.message
+            if e.message and r.message:
+                e.message += '\n\n' + r.message
+            elif not e.message:
+                e.message = r.message or ''
             e.reruns = _careful(max, e.reruns, r.reruns)
             e.artifacts = _careful(add, e.artifacts, r.artifacts)
+            e.message_offsets = _careful(add, e.message_offsets, r.message_offsets)
         else:
             result_dict[key] = result
             deduped.append(result)
@@ -304,7 +315,7 @@ def _careful(op, a, b):
 _TRUNCATION_HEADER = " -- CONTENT TRUNCATED; Look for original XML file for the full data. --\n"
 
 
-def _truncate_message(msg, limit):
+def truncate_message(msg, limit):
     """Truncate a message if necessary, retaining as many ending lines as possible.
     If truncated, a header line explaining may be prepended to the beginning.
 
