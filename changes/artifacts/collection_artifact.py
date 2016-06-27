@@ -16,7 +16,7 @@ class CollectionArtifactHandler(ArtifactHandler):
     Does the required job expansion. Subclasses are expected to set
     cls.FILENAMES to the handleable files in question.
     """
-    def process(self, fp):
+    def process(self, fp, artifact):
         try:
             phase_config = json.load(fp)
         except ValueError:

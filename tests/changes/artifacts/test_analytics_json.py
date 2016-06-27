@@ -19,6 +19,7 @@ class AnalyticsJsonHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         self.jobstep = self.create_jobstep(jobphase)
+        self.artifact = self.create_artifact(self.jobstep, 'CHANGES_ANALYTICS.json')
 
     def test_can_process(self):
         assert AnalyticsJsonHandler.can_process('CHANGES_ANALYTICS.json')
@@ -31,7 +32,7 @@ class AnalyticsJsonHandlerTest(TestCase):
         handler = AnalyticsJsonHandler(self.jobstep)
 
         fp = StringIO("This is not valid JSON")
-        handler.process(fp)
+        handler.process(fp, self.artifact)
         failure_reason = FailureReason.query.filter(FailureReason.step_id == self.jobstep.id).first()
         assert failure_reason
         assert failure_reason.reason == 'malformed_artifact'
@@ -40,7 +41,7 @@ class AnalyticsJsonHandlerTest(TestCase):
         handler = AnalyticsJsonHandler(self.jobstep)
 
         fp = StringIO(json.dumps([{'index': n} for n in xrange(2)]))
-        handler.process(fp)
+        handler.process(fp, self.artifact)
         failure_reason = FailureReason.query.filter(FailureReason.step_id == self.jobstep.id).first()
         assert failure_reason
         assert failure_reason.reason == 'malformed_artifact'
@@ -55,7 +56,7 @@ class AnalyticsJsonHandlerTest(TestCase):
         current_app.config['ANALYTICS_PROJECT_TABLES'] = ['a_permitted_table']
         current_app.config['ANALYTICS_PROJECT_POST_URL'] = 'URL'
         with mock.patch('changes.artifacts.analytics_json._post_analytics_data') as post_analytics:
-            handler.process(fp)
+            handler.process(fp, self.artifact)
             assert post_analytics.call_count == 0
         failure_reason = FailureReason.query.filter(FailureReason.step_id == self.jobstep.id).first()
         assert failure_reason
@@ -72,7 +73,7 @@ class AnalyticsJsonHandlerTest(TestCase):
         current_app.config['ANALYTICS_PROJECT_POST_URL'] = 'URL'
         expected_data = [{'index': n, 'jobstep_id': self.jobstep.id.hex} for n in xrange(2)]
         with mock.patch('changes.artifacts.analytics_json._post_analytics_data') as post_analytics:
-            handler.process(fp)
+            handler.process(fp, self.artifact)
             post_analytics.assert_called_once_with('URL', 'a_permitted_table', expected_data)
 
         assert not FailureReason.query.filter(FailureReason.step_id == self.jobstep.id).first()
@@ -87,7 +88,7 @@ class AnalyticsJsonHandlerTest(TestCase):
         current_app.config['ANALYTICS_PROJECT_TABLES'] = ['a_permitted_table']
         current_app.config['ANALYTICS_PROJECT_POST_URL'] = 'URL'
         with mock.patch('changes.artifacts.analytics_json._post_analytics_data') as post_analytics:
-            handler.process(fp)
+            handler.process(fp, self.artifact)
             assert post_analytics.call_count == 0
 
         assert not FailureReason.query.filter(FailureReason.step_id == self.jobstep.id).first()

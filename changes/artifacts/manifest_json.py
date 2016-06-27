@@ -14,7 +14,7 @@ class ManifestJsonHandler(ArtifactHandler):
     """
     FILENAMES = ('manifest.json',)
 
-    def process(self, fp):
+    def process(self, fp, artifact):
         try:
             contents = json.load(fp)
             if contents['job_step_id'] != self.step.id.hex:

@@ -16,6 +16,6 @@ class DummyLogFileHandler(ArtifactHandler):
     """
     FILENAMES = ('*.log',)
 
-    def process(self, fp):
+    def process(self, fp, artifact):
         # We don't need to do anything with the file contents.
         pass

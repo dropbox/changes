@@ -21,10 +21,11 @@ class CollectionArtifactHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'tests.json')
         handler = CollectionArtifactHandler(jobstep)
         handler.FILENAMES = ('/tests.json',)
 
-        handler.process(StringIO("{}"))
+        handler.process(StringIO("{}"), artifact)
         buildstep.expand_jobs.assert_called_once_with(jobstep, {})
         # make sure changes were committed
         db.session.rollback()
@@ -39,10 +40,11 @@ class CollectionArtifactHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'tests.json')
         handler = CollectionArtifactHandler(jobstep)
         handler.FILENAMES = ('/tests.json',)
 
-        handler.process(StringIO(""))
+        handler.process(StringIO(""), artifact)
         assert buildstep.call_count == 0
         # make sure changes were committed
         db.session.rollback()
@@ -57,11 +59,12 @@ class CollectionArtifactHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'tests.json')
         handler = CollectionArtifactHandler(jobstep)
         handler.FILENAMES = ('/tests.json',)
         buildstep.expand_jobs.side_effect = ArtifactParseError('bad file')
 
-        handler.process(StringIO("{}"))
+        handler.process(StringIO("{}"), artifact)
         buildstep.expand_jobs.assert_called_once_with(jobstep, {})
         # make sure changes were committed
         db.session.rollback()
@@ -76,11 +79,12 @@ class CollectionArtifactHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'tests.json')
         handler = CollectionArtifactHandler(jobstep)
         handler.FILENAMES = ('/tests.json',)
         buildstep.expand_jobs.side_effect = Exception('error')
 
-        handler.process(StringIO("{}"))
+        handler.process(StringIO("{}"), artifact)
         buildstep.expand_jobs.assert_called_once_with(jobstep, {})
         # make sure changes were committed
         db.session.rollback()

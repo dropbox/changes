@@ -15,10 +15,11 @@ class ManifestJsonHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'manifest.json')
         handler = ManifestJsonHandler(jobstep)
 
         fp = StringIO(self.json_file_format % jobstep.id.hex)
-        handler.process(fp)
+        handler.process(fp, artifact)
         assert not FailureReason.query.filter(FailureReason.step_id == jobstep.id).first()
 
     def test_wrong_jobstep_id(self):
@@ -27,10 +28,11 @@ class ManifestJsonHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'manifest.json')
         handler = ManifestJsonHandler(jobstep)
 
         fp = StringIO(self.json_file_format % '1')
-        handler.process(fp)
+        handler.process(fp, artifact)
         assert jobstep.result == Result.infra_failed
         assert FailureReason.query.filter(
             FailureReason.step_id == jobstep.id,
@@ -43,10 +45,11 @@ class ManifestJsonHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'manifest.json')
         handler = ManifestJsonHandler(jobstep)
 
         fp = StringIO('invalid_file')
-        handler.process(fp)
+        handler.process(fp, artifact)
         assert Result.infra_failed
         assert FailureReason.query.filter(
             FailureReason.step_id == jobstep.id,

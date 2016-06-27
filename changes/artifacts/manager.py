@@ -17,6 +17,6 @@ class Manager(object):
                     fp = artifact.file.get_file()
                 handler = cls(step)
                 try:
-                    handler.process(fp)
+                    handler.process(fp, artifact)
                 finally:
                     fp.close()

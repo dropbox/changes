@@ -22,7 +22,7 @@ class XunitHandler(ArtifactHandler):
     FILENAMES = ('xunit.xml', 'junit.xml', 'nosetests.xml', '*.xunit.xml', '*.junit.xml', '*.nosetests.xml')
     logger = logging.getLogger('xunit')
 
-    def process(self, fp):
+    def process(self, fp, artifact):
 
         # TEMPORARY: run both handlers and compare the results
         # In the future, we should only call self.get_tests(fp)
@@ -266,7 +266,7 @@ class XunitHandlerEtree(ArtifactHandler):
     FILENAMES = ('xunit.xml', 'junit.xml', 'nosetests.xml', '*.xunit.xml', '*.junit.xml', '*.nosetests.xml')
     logger = logging.getLogger('xunit')
 
-    def process(self, fp):
+    def process(self, fp, artifact):
         test_list = self.get_tests(fp)
 
         manager = TestResultManager(self.step)

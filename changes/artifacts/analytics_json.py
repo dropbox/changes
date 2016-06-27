@@ -26,7 +26,7 @@ class AnalyticsJsonHandler(ArtifactHandler):
     """
     FILENAMES = ('CHANGES_ANALYTICS.json', '*.CHANGES_ANALYTICS.json')
 
-    def process(self, fp):
+    def process(self, fp, artifact):
         allowed_tables = current_app.config.get('ANALYTICS_PROJECT_TABLES', [])
         try:
             contents = json.load(fp)

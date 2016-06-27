@@ -100,6 +100,7 @@ class CoverageHandlerTest(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'coverage.xml')
 
         handler = CoverageHandler(jobstep)
 
@@ -124,7 +125,7 @@ class CoverageHandlerTest(TestCase):
         )]
 
         fp = StringIO()
-        handler.process(fp)
+        handler.process(fp, artifact)
         get_coverage.assert_called_once_with(fp)
 
         get_coverage.reset_mock()
@@ -144,7 +145,7 @@ class CoverageHandlerTest(TestCase):
         )]
 
         fp = StringIO()
-        handler.process(fp)
+        handler.process(fp, artifact)
         get_coverage.assert_called_once_with(fp)
 
         get_coverage.reset_mock()
@@ -164,7 +165,7 @@ class CoverageHandlerTest(TestCase):
         )]
 
         fp = StringIO()
-        handler.process(fp)
+        handler.process(fp, artifact)
         get_coverage.assert_called_once_with(fp)
 
         file_cov = list(FileCoverage.query.filter(

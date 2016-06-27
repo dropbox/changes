@@ -167,6 +167,7 @@ class BadArtifactTestCase(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        artifact = self.create_artifact(jobstep, 'junit.xml')
 
         missing_name = """<?xml version="1.0" encoding="utf-8"?>
         <testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.077">
@@ -180,7 +181,7 @@ class BadArtifactTestCase(TestCase):
         fp = StringIO(missing_name)
 
         handler = XunitHandler(jobstep)
-        results = handler.process(fp)
+        results = handler.process(fp, artifact)
         assert results == []
         reason = FailureReason.query.filter(
             FailureReason.step_id == jobstep.id

@@ -16,7 +16,7 @@ from .base import ArtifactHandler
 class CoverageHandler(ArtifactHandler):
     FILENAMES = ('coverage.xml', '*.coverage.xml')
 
-    def process(self, fp):
+    def process(self, fp, artifact):
         results = self.get_coverage(fp)
 
         for result in results:

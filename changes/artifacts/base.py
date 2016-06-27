@@ -49,7 +49,7 @@ class ArtifactHandler(object):
                 return True
         return False
 
-    def process(self, fp):
+    def process(self, fp, artifact):
         """
         Process the given artifact.
         """
