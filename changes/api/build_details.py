@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from collections import defaultdict
 from flask_restful.reqparse import RequestParser
 from itertools import groupby
+from sqlalchemy import text
 from sqlalchemy.orm import contains_eager, joinedload, subqueryload_all
 from typing import List  # NOQA
 
@@ -70,7 +71,7 @@ def find_changed_tests(current_build, previous_build, limit=25):
     total = db.session.query(
         'count'
     ).from_statement(
-        'SELECT COUNT(*) FROM (%s) as a' % (query,)
+        text('SELECT COUNT(*) FROM (%s) as a' % (query,))
     ).params(**params).scalar()
 
     if not total:
@@ -82,7 +83,7 @@ def find_changed_tests(current_build, previous_build, limit=25):
     results = db.session.query(
         'c_id', 'p_id'
     ).from_statement(
-        '%s LIMIT %d' % (query, limit)
+        text('%s LIMIT %d' % (query, limit))
     ).params(**params)
 
     all_test_ids = set()
