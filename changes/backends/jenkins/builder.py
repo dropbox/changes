@@ -233,23 +233,32 @@ class JenkinsBuilder(BaseBackend):
         # NB: Accessing Response.content results in the entire artifact
         # being loaded into memory.
 
-        if len(resp.content) == 0:
-            # Artifact store does not support empty artifacts, and they're not very useful, so just discard them.
-            self.logger.info('Artifact %s from jobstep %s is empty, discarding' % (artifact.name, jobstep.id.hex))
-            return
+        if self.debug_config.get('use_artifactstore'):
+            if len(resp.content) == 0:
+                # Artifact store does not support empty artifacts, and they're not very useful, so just discard them.
+                self.logger.info('Artifact %s from jobstep %s is empty, discarding' % (artifact.name, jobstep.id.hex))
+                return
 
-        bucket_name = self._get_artifactstore_bucket(jobstep)
+            bucket_name = self._get_artifactstore_bucket(jobstep)
 
-        artifact_url = self.artifact_store_client\
-            .write_streamed_artifact(bucket_name, artifact.id.hex, path=artifact.name, data=resp.content).name
+            artifact_url = self.artifact_store_client\
+                .write_streamed_artifact(bucket_name, artifact.id.hex, path=artifact.name, data=resp.content).name
 
-        artifact.file.storage = 'changes.storage.artifactstore.ArtifactStoreFileStorage'
-        filename = 'buckets/{bucket_name}/artifacts/{artifact_name}'.format(
-            bucket_name=bucket_name,
-            artifact_name=artifact_url,
-        )
+            artifact.file.storage = 'changes.storage.artifactstore.ArtifactStoreFileStorage'
+            filename = 'buckets/{bucket_name}/artifacts/{artifact_name}'.format(
+                bucket_name=bucket_name,
+                artifact_name=artifact_url,
+            )
 
-        artifact.file.save(None, filename)
+            artifact.file.save(None, filename)
+        else:
+            step_id = jobstep.id.hex
+
+            artifact.file.save(
+                StringIO(resp.content), '{0}/{1}/{2}_{3}'.format(
+                    step_id[:4], step_id[4:], artifact.id.hex, artifact.name
+                )
+            )
 
         # commit file save regardless of whether handler is successful
         db.session.commit()
