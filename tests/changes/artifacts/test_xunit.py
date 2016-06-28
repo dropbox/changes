@@ -1,5 +1,7 @@
 import uuid
 import os
+import time
+import logging
 
 from cStringIO import StringIO
 
@@ -196,15 +198,21 @@ class TestFromFileTestCase(TestCase):
         job = self.create_job(build)
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
+        logger = logging.getLogger('xunit')
 
         path = os.path.join(os.path.dirname(__file__), 'fixtures', 'junit.xml.test')
 
         with open(path, 'rb') as fp:
-            handler_old = XunitHandlerEtree(jobstep)
-            results_old = handler_old.get_tests(fp)
+            contents = fp.read()
 
-        with open(path, 'rb') as fp:
-            handler_new = XunitHandler(jobstep)
-            results_new = handler_new.get_tests(fp)
+        start = time.clock()
+        handler_old = XunitHandlerEtree(jobstep)
+        results_old = handler_old.get_tests(StringIO(contents))
+        logger.info("Etree XUnit handler ran in %f seconds." % (time.clock() - start))
+
+        start = time.clock()
+        handler_new = XunitHandler(jobstep)
+        results_new = handler_new.get_tests(StringIO(contents))
+        logger.info("Expat XUnit handler ran in %f seconds." % (time.clock() - start))
 
         assert compare_results(results_new, results_old)

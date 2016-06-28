@@ -64,6 +64,8 @@ class XunitDelegate(DelegateParser):
         self.step = step
 
         self._parser = expat.ParserCreate()
+        self._parser.buffer_text = True
+        self._parser.buffer_size = 10 * 1000 * 1000
         self._parser.StartElementHandler = self.start
         self._parser.CharacterDataHandler = self.data
         self._parser.EndElementHandler = self.end
