@@ -222,6 +222,13 @@ class ArtifactStoreClient:
         """
         # No path defaults to the artifact name
         path = path or artifact_name
+
+        if len(data) == 0:
+            self._logger.warning(
+                "Cannot save empty artifact (/buckets/%s/artifacts/%s from path %s)" %
+                (bucket_name, artifact_name, path))
+            raise ValueError("Cannot save empty artifact.")
+
         artifact = Artifact(
             self._simple_retry_request('post', '/buckets/%s/artifacts' % (bucket_name),
                                        data=json.dumps({

@@ -233,6 +233,11 @@ class JenkinsBuilder(BaseBackend):
         # NB: Accessing Response.content results in the entire artifact
         # being loaded into memory.
 
+        if len(resp.content) == 0:
+            # Artifact store does not support empty artifacts, and they're not very useful, so just discard them.
+            self.logger.info('Artifact %s from jobstep %s is empty, discarding' % (artifact.name, jobstep.id.hex))
+            return
+
         bucket_name = self._get_artifactstore_bucket(jobstep)
 
         artifact_url = self.artifact_store_client\
