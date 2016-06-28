@@ -72,7 +72,7 @@ class XunitDelegate(DelegateParser):
         # Somehow this is much faster than ParseFile (up to 100x vs `ParseFile(StringIO(contents))`)
         # This might become a memory issue, in which case it's easy to switch back
         contents = fp.read()
-        self._parser.Parse(contents)
+        self._parser.Parse(contents, True)
         if not isinstance(self._subparser, XunitBaseParser):
             raise ArtifactParseError('Empty file found')
         results = _deduplicate_testresults(self._subparser.results)
@@ -179,7 +179,7 @@ class XunitParser(XunitBaseParser):
             # If there's a previous failure in addition to stdout or stderr,
             # prioritize showing the previous failure because that's what's
             # useful for debugging flakiness.
-            message = attrs.get('last_failure_output') or ''
+            message = attrs.get('last_failure_output') or None
 
             # Results are found in children elements
             # Default result is passing
@@ -230,7 +230,7 @@ class XunitParser(XunitBaseParser):
             elif tag == 'error':
                 self._current_result.result = Result.failed
 
-            if not self._current_result.message:
+            if self._current_result.message is None:
                 self.start_message()
 
     def data(self, data):
