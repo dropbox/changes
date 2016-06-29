@@ -405,11 +405,3 @@ index e69de29..d0c77a5 100644
         vcs.update()
 
         assert vcs.read_file('HEAD', 'FOO', diff=PATCH) == 'blah\n'
-
-    def test_get_patch_hash(self):
-        vcs = self.get_vcs()
-        vcs.clone()
-        vcs.update()
-        patch_hash = vcs.get_patch_hash('HEAD')
-
-        assert isinstance(patch_hash, str) and len(patch_hash) == 40

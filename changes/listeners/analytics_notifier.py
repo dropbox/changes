@@ -120,7 +120,6 @@ def build_finished_handler(build_id, **kwargs):
         'number': build.number,
         'duration': build.duration,
         'target': build.target,
-        'patch_hash': build.source.revision.patch_hash,
         'date_created': maybe_ts(build.date_created),
         'date_started': maybe_ts(build.date_started),
         'date_finished': maybe_ts(build.date_finished),

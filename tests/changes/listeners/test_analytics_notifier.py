@@ -59,7 +59,6 @@ class AnalyticsNotifierTest(TestCase):
                                   label='Some sweet diff', duration=duration, tags=['commit', 'angry'],
                                   date_created=ts_to_datetime(created), date_started=ts_to_datetime(started),
                                   date_finished=ts_to_datetime(finished), date_decided=ts_to_datetime(decided))
-        build.source.revision.patch_hash = 'a' * 40
 
         job = self.create_job(build=build, result=Result.failed)
         jobphase = self.create_jobphase(job)
@@ -98,7 +97,6 @@ class AnalyticsNotifierTest(TestCase):
             'tags': {'tags': ['angry', 'commit']},
             'tags_string': 'angry,commit',
             'item_stats': {'names': 99, 'faces': 0},
-            'patch_hash': 'a' * 40,
         }
         post_fn.assert_called_once_with(URL, [expected_data])
 

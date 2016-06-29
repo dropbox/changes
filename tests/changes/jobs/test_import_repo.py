@@ -28,7 +28,6 @@ class ImportRepoTest(TestCase):
 
         get_vcs_backend.return_value = vcs_backend
         vcs_backend.log.side_effect = log
-        vcs_backend.get_patch_hash.return_value = 'a' * 40
 
         repo = self.create_repo(
             backend=RepositoryBackend.git,
@@ -38,6 +37,7 @@ class ImportRepoTest(TestCase):
         with mock.patch.object(import_repo, 'allow_absent_from_db', True):
             import_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
 
+        get_vcs_backend.assert_called_once_with()
         vcs_backend.log.assert_called_once_with(parent=None)
 
         db.session.expire_all()

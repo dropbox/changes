@@ -254,7 +254,3 @@ class MercurialVcs(Vcs):
             return content
 
         return self._selectively_apply_diff(file_path, content, diff)
-
-    def get_patch_hash(self, rev_sha):
-        """Not possible for mercurial repositories"""
-        return None
