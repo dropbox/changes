@@ -42,7 +42,7 @@ def abort_build(task):
 
 
 def _timedelta_to_millis(td):
-    return int(td.total_seconds() * 1000)
+    return int(round(td.total_seconds() * 1000))
 
 
 @tracked_task(on_abort=abort_build)

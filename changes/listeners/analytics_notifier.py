@@ -190,7 +190,7 @@ def job_finished_handler(job_id, **kwargs):
     for jobstep in JobStep.query.filter(JobStep.job == job):
         duration = None
         if jobstep.date_finished and jobstep.date_started:
-            duration = (jobstep.date_finished - jobstep.date_started).total_seconds() * 1000
+            duration = int(round((jobstep.date_finished - jobstep.date_started).total_seconds() * 1000))
         data = {
                 'jobstep_id': jobstep.id.hex,
                 'job_id': jobstep.job_id.hex,
