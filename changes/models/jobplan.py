@@ -204,7 +204,7 @@ class JobPlan(db.Model):
                 return None, None
 
             if 'bazel.targets' not in project_config:
-                logging.error('Project config for project %s is missing `bazel.targets`', job.project.slug, exc_info=True)
+                logging.error('Project config for project %s is missing `bazel.targets`. job: %s, revision_sha: %s', job.project.slug, job.id, job.source.revision_sha, exc_info=True)
                 return None, None
 
             bazel_test = 'bazel test ' + ' '.join(project_config['bazel.targets'])
