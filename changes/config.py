@@ -259,7 +259,7 @@ def create_app(_read_config=True, **config):
         },
         'update-local-repos': {
             'task': 'update_local_repos',
-            'schedule': timedelta(minutes=5),
+            'schedule': timedelta(minutes=1),
         }
     }
     app.config['CELERY_TIMEZONE'] = 'UTC'
