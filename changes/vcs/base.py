@@ -7,6 +7,7 @@ import shutil
 import tempfile
 
 from subprocess import Popen, PIPE, check_call, CalledProcessError
+from typing import Any, List, Set, Union  # NOQA
 
 from changes.constants import PROJECT_ROOT
 from changes.db.utils import create_or_update, get_or_create, try_create
@@ -108,8 +109,17 @@ class Vcs(object):
         return {}
 
     def run(self, *args, **kwargs):
+        # type: (*Any, **Any) -> str
         kwargs.setdefault('cwd', self.path)
 
+        input = kwargs.pop('input', None)
+
+        proc = self._construct_subprocess(*args, **kwargs)
+        return self._execute_subproccess(proc, *args, input=input)
+
+    def _construct_subprocess(self, *args, **kwargs):
+        # type: (*Any, **Any) -> Popen
+        """Construct a subprocess with the correct arguments and environment"""
         env = os.environ.copy()
 
         for key, value in self.get_default_env().iteritems():
@@ -121,14 +131,19 @@ class Vcs(object):
             env[key] = value
 
         kwargs['env'] = env
-        kwargs['stdout'] = PIPE
-        kwargs['stderr'] = PIPE
-        kwargs['stdin'] = PIPE
+        kwargs['close_fds'] = True
+        kwargs.setdefault('stdout', PIPE)
+        kwargs.setdefault('stderr', PIPE)
+        kwargs.setdefault('stdin', PIPE)
 
-        input = kwargs.pop('input', None)
+        proc = Popen(*args, **kwargs)
 
-        proc = Popen(*args, close_fds=True, **kwargs)
-        (stdout, stderr) = proc.communicate(input=input)
+        return proc
+
+    def _execute_subproccess(self, proc, *args, **kwargs):
+        # type: (Popen, *Any, **Any) -> str
+        """Execute subproccess and handle errors"""
+        (stdout, stderr) = proc.communicate(**kwargs)
         if proc.returncode != 0:
             raise CommandError(args[0], proc.returncode, stdout, stderr)
         return stdout
@@ -176,6 +191,7 @@ class Vcs(object):
         raise NotImplementedError
 
     def get_changed_files(self, id):
+        # type: (str) -> Set[str]
         """Returns the list of files changed in a revision.
         Args:
             id (str): The id of the revision.
@@ -233,6 +249,11 @@ class Vcs(object):
         Raises:
             CommandError - if the file or the revision cannot be found
         """
+        raise NotImplementedError
+
+    def get_patch_hash(self, rev_sha):
+        # type: (str) -> Union[str, None]
+        """Return the patch id for a given revision if git, else return None"""
         raise NotImplementedError
 
     def _selectively_apply_diff(self, file_path, file_content, diff):
@@ -302,8 +323,8 @@ class Vcs(object):
 
 
 class RevisionResult(object):
-    parents = None
-    branches = None
+    parents = None  # type: List[str]
+    branches = None  # type: List[str]
 
     def __init__(self, id, message, author, author_date, committer=None,
                  committer_date=None, parents=None, branches=None):
@@ -363,6 +384,12 @@ class RevisionResult(object):
             'date_created': self.author_date,
             'date_committed': self.committer_date,
         })
+
+        # This call is relatively expensive - only do if necessary.
+        if created:
+            vcs = repository.get_vcs()
+            if vcs:
+                revision.patch_hash = vcs.get_patch_hash(self.id)
 
         # we also want to create a source for this item as it's the canonical
         # representation in the UI

@@ -2,14 +2,17 @@ from datetime import datetime
 
 import pytest
 
+import mock
+
 from changes.models.revision import Revision
+from changes.models.repository import RepositoryBackend
 from changes.testutils.cases import TestCase
 from changes.vcs.base import InvalidDiffError, RevisionResult, Vcs
 
 
 class RevisionResultTestCase(TestCase):
-    def test_simple(self):
-        repo = self.create_repo()
+    def test_simple_git(self):
+        repo = self.create_repo(backend=RepositoryBackend.git)
         result = RevisionResult(
             id='c' * 40,
             author='Foo Bar <foo@example.com>',
@@ -18,7 +21,6 @@ class RevisionResultTestCase(TestCase):
             committer_date=datetime(2013, 9, 19, 22, 15, 23),
             message='Hello world!',
             parents=['a' * 40, 'b' * 40],
-
         )
         revision, created, _ = result.save(repo)
 
@@ -35,6 +37,101 @@ class RevisionResultTestCase(TestCase):
         assert revision.parents == ['a' * 40, 'b' * 40]
         assert revision.date_created == datetime(2013, 9, 19, 22, 15, 22)
         assert revision.date_committed == datetime(2013, 9, 19, 22, 15, 23)
+        assert revision.patch_hash is not None
+
+    def test_simple_hg(self):
+        repo = self.create_repo(backend=RepositoryBackend.hg)
+        result = RevisionResult(
+            id='c' * 40,
+            author='Foo Bar <foo@example.com>',
+            committer='Biz Baz <baz@example.com>',
+            author_date=datetime(2013, 9, 19, 22, 15, 22),
+            committer_date=datetime(2013, 9, 19, 22, 15, 23),
+            message='Hello world!',
+            parents=['a' * 40, 'b' * 40],
+        )
+        revision, created, _ = result.save(repo)
+
+        assert created
+
+        assert type(revision) == Revision
+        assert revision.repository == repo
+        assert revision.sha == 'c' * 40
+        assert revision.message == 'Hello world!'
+        assert revision.author.name == 'Foo Bar'
+        assert revision.author.email == 'foo@example.com'
+        assert revision.committer.name == 'Biz Baz'
+        assert revision.committer.email == 'baz@example.com'
+        assert revision.parents == ['a' * 40, 'b' * 40]
+        assert revision.date_created == datetime(2013, 9, 19, 22, 15, 22)
+        assert revision.date_committed == datetime(2013, 9, 19, 22, 15, 23)
+        assert revision.patch_hash is None
+
+    def test_none_vcs(self):
+        repo = self.create_repo()
+        result = RevisionResult(
+            id='c' * 40,
+            author='Foo Bar <foo@example.com>',
+            committer='Biz Baz <baz@example.com>',
+            author_date=datetime(2013, 9, 19, 22, 15, 22),
+            committer_date=datetime(2013, 9, 19, 22, 15, 23),
+            message='Hello world!',
+            parents=['a' * 40, 'b' * 40],
+        )
+        revision, created, _ = result.save(repo)
+
+        assert created
+
+        assert type(revision) == Revision
+        assert revision.repository == repo
+        assert revision.sha == 'c' * 40
+        assert revision.message == 'Hello world!'
+        assert revision.author.name == 'Foo Bar'
+        assert revision.author.email == 'foo@example.com'
+        assert revision.committer.name == 'Biz Baz'
+        assert revision.committer.email == 'baz@example.com'
+        assert revision.parents == ['a' * 40, 'b' * 40]
+        assert revision.date_created == datetime(2013, 9, 19, 22, 15, 22)
+        assert revision.date_committed == datetime(2013, 9, 19, 22, 15, 23)
+        assert revision.patch_hash is None
+
+    def test_save_again(self):
+        mock_vcs = mock.MagicMock(spec=Vcs)
+
+        repo = self.create_repo(backend=RepositoryBackend.git)
+        with mock.patch.object(repo, 'get_vcs') as mock_get_vcs:
+            mock_get_vcs.return_value = mock_vcs
+            mock_vcs.get_patch_hash.return_value = 'a' * 40
+
+            result = RevisionResult(
+                id='c' * 40,
+                author='Foo Bar <foo@example.com>',
+                committer='Biz Baz <baz@example.com>',
+                author_date=datetime(2013, 9, 19, 22, 15, 22),
+                committer_date=datetime(2013, 9, 19, 22, 15, 23),
+                message='Hello world!',
+                parents=['a' * 40, 'b' * 40],
+            )
+
+            revision1, created1, _ = result.save(repo)
+            revision2, created2, _ = result.save(repo)
+
+            assert type(revision1) == type(revision2) == Revision
+            assert revision1.repository == revision2.repository == repo
+            assert revision1.sha == revision2.sha == 'c' * 40
+            assert revision1.message == revision2.message == 'Hello world!'
+            assert revision1.author.name == revision2.author.name == 'Foo Bar'
+            assert revision1.author.email == revision2.author.email == 'foo@example.com'
+            assert revision1.committer.name == revision2.committer.name == 'Biz Baz'
+            assert revision1.committer.email == revision2.committer.email == 'baz@example.com'
+            assert revision1.parents == revision2.parents == ['a' * 40, 'b' * 40]
+            assert revision1.date_created == revision2.date_created == datetime(2013, 9, 19, 22, 15, 22)
+            assert revision1.date_committed == revision2.date_committed == datetime(2013, 9, 19, 22, 15, 23)
+            assert revision1.patch_hash == revision2.patch_hash == 'a' * 40
+
+            assert mock_vcs.get_patch_hash.called_once_with('c' * 40)
+            assert created1
+            assert not created2
 
 
 class SelectivelyApplyDiffTest(TestCase):

@@ -369,3 +369,16 @@ class GitVcs(Vcs):
             return content
 
         return self._selectively_apply_diff(file_path, content, diff)
+
+    def get_patch_hash(self, rev_sha):
+        # type: (str) -> str
+        """Get the patch id for the revision"""
+        # This is a workaround to be able to pipe the output of diff to patch-id
+        p_diff = self._construct_subprocess([self.binary_path, 'diff', '{rev_sha}^..{rev_sha}'.format(rev_sha=rev_sha)])
+        patch_cmd = [self.binary_path, 'patch-id', '--stable']
+        p_patch = self._construct_subprocess(patch_cmd, stdin=p_diff.stdout)
+
+        p_diff.stdout.close()
+
+        # There is also a commit id string that follows the patch id, which we want to throw away.
+        return self._execute_subproccess(p_patch, patch_cmd).split(' ')[0]

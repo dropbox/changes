@@ -30,6 +30,7 @@ class SyncRepoTest(TestCase):
 
         get_vcs_backend.return_value = vcs_backend
         vcs_backend.log.side_effect = log
+        vcs_backend.get_patch_hash.return_value = 'a' * 40
 
         repo = self.create_repo(
             backend=RepositoryBackend.git)
@@ -37,7 +38,6 @@ class SyncRepoTest(TestCase):
         with mock.patch.object(sync_repo, 'allow_absent_from_db', True):
             sync_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
 
-        get_vcs_backend.assert_called_once_with()
         vcs_backend.log.assert_any_call(parent=None, limit=NUM_RECENT_COMMITS, first_parent=False)
 
         db.session.expire_all()
@@ -74,6 +74,7 @@ class SyncRepoTest(TestCase):
         only if we haven't done so before and there are branches.
         """
         vcs_backend = mock.MagicMock(spec=Vcs)
+        vcs_backend.get_patch_hash.return_value = 'a' * 40
         get_vcs_backend.return_value = vcs_backend
         repo = self.create_repo(backend=RepositoryBackend.git)
 
@@ -126,7 +127,7 @@ class SyncRepoTest(TestCase):
         with mock.patch.object(sync_repo, 'allow_absent_from_db', True):
             sync_repo(repo_id=repo.id.hex, task_id=repo.id.hex)
 
-        get_vcs_backend.assert_called_once_with()
+        assert get_vcs_backend.called
         vcs_backend.log.assert_any_call(parent=None, limit=NUM_RECENT_COMMITS, first_parent=False)
 
         db.session.expire_all()

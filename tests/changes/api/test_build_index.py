@@ -221,6 +221,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         fake_vcs.log.side_effect = UnknownRevision(cmd="test command", retcode=128)
         fake_vcs.export.side_effect = UnknownRevision(cmd="test command", retcode=128)
         fake_vcs.get_changed_files.side_effect = UnknownRevision(cmd="test command", retcode=128)
+        fake_vcs.get_patch_hash.return_value = 'a' * 40
 
         def fake_update():
             # this simulates the effect of calling update() on a repo,
