@@ -240,7 +240,8 @@ def execute_build(build, snapshot_id, no_snapshot):
     db.session.commit()
 
     try:
-        project_config = project.get_config(build.source.revision_sha)
+        diff = build.source.patch.diff if build.source.patch else None
+        project_config = project.get_config(build.source.revision_sha, diff=diff)
         if 'bazel.targets' in project_config:
             job = Job(
                 build=build,
