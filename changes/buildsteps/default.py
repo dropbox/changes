@@ -26,8 +26,8 @@ from changes.vcs.hg import MercurialVcs
 
 from changes.utils.http import build_internal_uri
 
-
-DEFAULT_ARTIFACTS = XunitHandler.FILENAMES + CoverageHandler.FILENAMES + AnalyticsJsonHandler.FILENAMES
+SERVICE_LOG_FILE_PATTERNS = ('logged.service', '*.logged.service', 'service.log', '*.service.log')
+DEFAULT_ARTIFACTS = XunitHandler.FILENAMES + CoverageHandler.FILENAMES + AnalyticsJsonHandler.FILENAMES + SERVICE_LOG_FILE_PATTERNS
 
 DEFAULT_PATH = './source/'
 
