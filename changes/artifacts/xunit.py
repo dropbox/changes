@@ -45,10 +45,10 @@ class XunitHandler(ArtifactHandler):
         try:
             parser = XunitDelegate(self.step)
             return parser.parse(fp)
-        except Exception:
+        except Exception as e:
             uri = build_web_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
-            self.logger.warning('Failed to parse XML; (step=%s, build=%s)',
-                                self.step.id.hex, uri, exc_info=True)
+            self.logger.warning('Failed to parse XML; (step=%s, build=%s); exception %s',
+                                self.step.id.hex, uri, e.message, exc_info=True)
             # TEMPORARY: don't call this, as we're also running the etree handler
             # self.report_malformed()
             return []
@@ -184,8 +184,7 @@ class XunitParser(XunitBaseParser):
             message = attrs.get('last_failure_output') or None
 
             # Results are found in children elements
-            # Default result is passing
-            result = Result.passed
+            result = Result.unknown
 
             if attrs.get('quarantined'):
                 self._test_is_quarantined = True
@@ -225,15 +224,19 @@ class XunitParser(XunitBaseParser):
             self._current_result.artifacts.append(attrs)
         elif self._current_result is not None:
             # We are in a result message
-            if tag == 'failure':
-                self._current_result.result = Result.failed
-            elif tag == 'skipped':
-                self._current_result.result = Result.skipped
-            elif tag == 'error':
-                self._current_result.result = Result.failed
+            if self._current_result.result == Result.unknown:
+                # Only look at the first message
+                if tag == 'skipped':
+                    self._current_result.result = Result.skipped
+                elif tag == 'failure':
+                    self._current_result.result = Result.failed
+                elif tag == 'error':
+                    self._current_result.result = Result.failed
+                else:
+                    self._current_result.result = Result.passed
 
-            if self._current_result.message is None:
-                self.start_message()
+                if self._current_result.message is None:
+                    self.start_message()
 
     def data(self, data):
         if self._is_message:
@@ -245,6 +248,9 @@ class XunitParser(XunitBaseParser):
         if tag == 'testsuites' or tag == 'testsuite':
             pass
         elif tag == 'testcase':
+            if self._current_result.result == Result.unknown:
+                # Default result is passing
+                self._current_result.result = Result.passed
             if self._test_is_quarantined:
                 if self._current_result.result == Result.passed:
                     self._current_result.result = Result.quarantined_passed
