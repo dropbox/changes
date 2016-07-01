@@ -1,4 +1,5 @@
 import yaml
+import logging
 
 from datetime import datetime
 from uuid import uuid4
@@ -105,8 +106,11 @@ class Project(db.Model):
             try:
                 config_content = vcs.read_file(
                     revision_sha, config_path, diff=diff)
-            except (CommandError, ContentReadError):
-                # this won't catch error when diff doesn't apply, which is good.
+            # this won't catch error when diff doesn't apply, which is good.
+            except CommandError as err:
+                logging.warning('Git invocation failed for project %s: %s', self.slug, str(err), exc_info=True)
+                config_content = '{}'
+            except ContentReadError:
                 config_content = '{}'
             try:
                 config = yaml.safe_load(config_content)
