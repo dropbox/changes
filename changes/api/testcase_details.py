@@ -1,7 +1,4 @@
-from xml.sax import saxutils
 from sqlalchemy.orm import subqueryload_all
-
-from flask import current_app
 
 from changes.artifacts import xunit
 from changes.api.base import APIView
@@ -21,14 +18,7 @@ class TestCaseDetailsAPIView(APIView):
 
         context = self.serialize(testcase)
 
-        context['message'] = testcase.message or ''
-        message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
-        for m in testcase.messages:
-            if context['message']:
-                context['message'] += '\n\n'
-            context['message'] +=\
-                (' ' + m.label + ' ').center(78, '=') + '\n' +\
-                xunit.truncate_message(saxutils.unescape(m.get_message()), message_limit)
+        context['message'] = xunit.get_testcase_messages(testcase)
 
         context['step'] = self.serialize(testcase.step)
         context['artifacts'] = self.serialize(testcase.artifacts)

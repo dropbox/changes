@@ -169,6 +169,55 @@ class SendTestCase(TestCase):
         assert msg.as_string()
 
     @mock.patch.object(MailNotificationHandler, 'get_collection_recipients')
+    def test_simple_with_message(self, get_collection_recipients):
+        project = self.create_project(name='test', slug='test')
+        build = self.create_build(
+            project,
+            label='Test diff',
+            date_started=datetime.utcnow(),
+            result=Result.failed,
+            status=Status.finished
+        )
+        job = self.create_job(build=build, result=Result.failed)
+        test_message = "I'm a test message!"
+        test_case = self.create_test(job, message=test_message, result=Result.failed)
+        phase = self.create_jobphase(job=job)
+        step = self.create_jobstep(phase=phase)
+        logsource = self.create_logsource(
+            step=step,
+            name='console',
+        )
+        self.create_logchunk(
+            source=logsource,
+            text='hello world',
+        )
+
+        job_link = 'http://example.com/projects/%s/builds/%s/jobs/%s/' % (
+            project.slug, build.id.hex, job.id.hex,)
+        log_link = '%slogs/%s/' % (job_link, logsource.id.hex)
+
+        get_collection_recipients.return_value = ['foo@example.com', 'Bob <bob@example.com>']
+
+        build_finished_handler(build.id)
+
+        assert len(self.outbox) == 1
+        msg = self.outbox[0]
+
+        assert msg.subject == '%s failed - %s' % (
+            'D1234', job.build.label)
+        assert msg.recipients == ['foo@example.com', 'Bob <bob@example.com>']
+        assert msg.extra_headers['Reply-To'] == 'foo@example.com, Bob <bob@example.com>'
+
+        assert job_link in msg.html
+        assert job_link in msg.body
+        assert log_link in msg.html
+        assert log_link in msg.body
+        assert test_message in msg.html
+        assert test_message in msg.body
+
+        assert msg.as_string()
+
+    @mock.patch.object(MailNotificationHandler, 'get_collection_recipients')
     def test_simple_null_message(self, get_collection_recipients):
         project = self.create_project(name='test', slug='test')
         build = self.create_build(

@@ -30,9 +30,9 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
   {% for test_case in build.failing_tests[:MAX_SHOWN_ITEMS_PER_BUILD] %}
     Path: {{ test_case.test_case.name }}:
     Url:  {{ test_case.uri }}
-    {%- if test_case.test_case.message -%}
+    {%- if test_case.message -%}
 {{
-    test_case.test_case.message|break_long_lines(
+    test_case.message|break_long_lines(
         width=75,
         initial_indent=' '*4,
         subsequent_indent=' '*4

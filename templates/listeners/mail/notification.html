@@ -188,8 +188,8 @@ Created: {{ date_created.strftime('%a %b %d %H:%M:%S %Y') }}
                                 <span class="link-cue">(view full log)</span>
                             </a>
                         </h3>
-                        {% if test_case.test_case.message %}
-                            <pre class="log">{{ test_case.test_case.message }}</pre>
+                        {% if test_case.message %}
+                            <pre class="log">{{ test_case.message }}</pre>
                         {% endif %}
                     </div>
                 {% endfor %}

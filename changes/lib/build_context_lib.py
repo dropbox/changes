@@ -1,5 +1,6 @@
 from itertools import chain, imap
 
+from changes.artifacts import xunit
 from flask import current_app
 
 from changes.api.build_details import get_parents_last_builds
@@ -9,6 +10,7 @@ from changes.models.jobstep import JobStep
 from changes.models.log import LogSource, LogChunk
 from changes.models.test import TestCase
 from changes.utils.http import build_web_uri
+from sqlalchemy.orm import subqueryload_all
 
 
 def _get_project_uri(build):
@@ -162,7 +164,9 @@ def _get_build_context(build, get_parent=True):
 
 def _get_job_context(job):
     def get_job_failing_tests(job):
-        failing_tests = TestCase.query.filter(
+        failing_tests = TestCase.query.options(
+            subqueryload_all('messages')
+        ).filter(
             TestCase.job_id == job.id,
             TestCase.result == Result.failed,
         ).order_by(TestCase.name.asc())
@@ -171,6 +175,7 @@ def _get_job_context(job):
             {
                 'test_case': test_case,
                 'uri': build_web_uri(_get_test_case_uri(test_case)),
+                'message': xunit.get_testcase_messages(test_case),
             } for test_case in failing_tests
         ]
         failing_tests_count = len(failing_tests)

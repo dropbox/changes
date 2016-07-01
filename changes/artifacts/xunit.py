@@ -3,6 +3,7 @@ from __future__ import absolute_import, division
 import logging
 from operator import add
 from xml.parsers import expat
+from xml.sax import saxutils
 
 from flask import current_app
 
@@ -348,3 +349,15 @@ def truncate_message(msg, limit):
     else:
         msg = msg[nl + 1:]
     return _TRUNCATION_HEADER + msg
+
+
+def get_testcase_messages(testcase):
+    message = testcase.message or ''
+    message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
+    for m in testcase.messages:
+        if message:
+            message += '\n\n'
+        message += \
+            (' ' + m.label + ' ').center(78, '=') + '\n' + \
+            truncate_message(saxutils.unescape(m.get_message()), message_limit)
+    return message
