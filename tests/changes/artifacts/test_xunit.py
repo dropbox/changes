@@ -80,6 +80,21 @@ E   ZeroDivisionError: integer division or modulo by zero"""
     assert r3.owner is None
 
 
+def test_bad_encoding():
+    jobstep = JobStep(
+        id=uuid.uuid4(),
+        project_id=uuid.uuid4(),
+        job_id=uuid.uuid4(),
+    )
+
+    fp = StringIO(SAMPLE_XUNIT.replace('"utf-8"', '"utf8"'))
+
+    handler = XunitHandler(jobstep)
+    results = handler.get_tests(fp)
+
+    assert len(results) == 3
+
+
 def test_result_generation_when_one_test_has_two_cases():
     jobstep = JobStep(
         id=uuid.uuid4(),

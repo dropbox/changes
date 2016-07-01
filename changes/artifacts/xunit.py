@@ -31,8 +31,16 @@ class XunitHandler(ArtifactHandler):
     @statsreporter.timer('xunithandler_get_tests')
     def get_tests(self, fp):
         try:
-            parser = XunitDelegate(self.step)
-            return parser.parse(fp)
+            start = fp.tell()
+            try:
+                return XunitDelegate(self.step).parse(fp)
+            except expat.ExpatError as e:
+                if e.message == expat.errors.XML_ERROR_UNKNOWN_ENCODING:
+                    # If the encoding is not known, assume it's UTF-8
+                    fp.seek(start)
+                    return XunitDelegate(self.step, 'UTF-8').parse(fp)
+                else:
+                    raise e
         except Exception as e:
             uri = build_web_uri('/find_build/{0}/'.format(self.step.job.build_id.hex))
             self.logger.warning('Failed to parse XML; (step=%s, build=%s); exception %s',
@@ -46,15 +54,17 @@ class XunitDelegate(DelegateParser):
     Main delegating class to parse Xunit files: decides on the appropriate parser depending on the first tag
     """
 
-    def __init__(self, step):
+    def __init__(self, step, encoding=None):
         super(XunitDelegate, self).__init__()
         self.step = step
 
-        self._parser = expat.ParserCreate()
+        self._encoding = encoding
+        self._parser = expat.ParserCreate(encoding)
         # Buffer the text so that we call CharacterDataHandler only once (or so) per text field
         # Buffer size was determined from memory limits of machines and testing on a 20MB junit.xml file
         self._parser.buffer_text = True
         self._parser.buffer_size = 10 * 1000 * 1000
+        self._parser.XmlDeclHandler = self.xml_decl
         self._parser.StartElementHandler = self.start
         self._parser.CharacterDataHandler = self.data
         self._parser.EndElementHandler = self.end
@@ -68,6 +78,13 @@ class XunitDelegate(DelegateParser):
             raise ArtifactParseError('Empty file found')
         results = _deduplicate_testresults(self._subparser.results)
         return results
+
+    def xml_decl(self, version, encoding, standalone):
+        if self._encoding:
+            encoding = self._encoding
+        if encoding.upper() == 'UTF8':
+            # This encoding isn't supported (it should be 'UTF-8'), and breaks the parser
+            raise expat.ExpatError(expat.errors.XML_ERROR_UNKNOWN_ENCODING)
 
     def _start(self, tag, attrs):
         if tag == 'unittest-results':
