@@ -567,7 +567,7 @@ class BuildIndexAPIView(APIView):
                 plans = get_build_plans(project)
                 for plan in plans:
                     plan_options = plan.get_item_options()
-                    allow_snapshot = '1' == plan_options.get('snapshot.allow', '0') or plan.snapshot_plan
+                    allow_snapshot = '1' == plan_options.get('snapshot.allow', '1') or plan.snapshot_plan
                     if allow_snapshot and not SnapshotImage.get(plan, snapshot_id):
                         # We want to create a build using a specific snapshot but no image
                         # was found for this plan so fail.
