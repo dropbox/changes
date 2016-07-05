@@ -130,6 +130,7 @@ let ProjectSettingsFieldGroup = React.createClass({
       'showTests',
       'maxTestDuration',
       'showCoverage',
+      'testRetentionLen',
     ];
   },
 
@@ -163,6 +164,7 @@ let ProjectSettingsFieldGroup = React.createClass({
       'ui.show-tests': state.showTests | 0,
       'build.test-duration-warning': state.maxTestDuration,
       'ui.show-coverage': state.showCoverage | 0,
+      'history.test-retention-days': state.testRetentionLen,
     };
 
     let originalSlug = this.props.project.slug;
@@ -201,6 +203,7 @@ let ProjectSettingsFieldGroup = React.createClass({
                     showTests: project.options['ui.show-tests'] === '1',
                     maxTestDuration: project.options['build.test-duration-warning'],
                     showCoverage: project.options['ui.show-coverage'] === '1',
+                    testRetentionLen: project.options['history.test-retention-days'],
                   },
                   this.updateSavedFormState);
   },
@@ -251,6 +254,11 @@ let ProjectSettingsFieldGroup = React.createClass({
       { sectionTitle: 'Code Coverage', fields: [
         {type: 'checkbox', link: 'showCoverage', comment: 'Show coverage data in various UIs.'},
         ]
+      },
+      { sectionTitle: 'History', fields: [
+        {type: 'text', display: 'Test Retention Length (days)', link: 'testRetentionLen',
+          comment: 'Tests older than this will be deleted from the records.'},
+      ]
       },
     ];
 

@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+from __future__ import absolute_import, print_function
+
+import argparse
+import sys
+
+from datetime import datetime
+
+from changes.config import create_app, db
+from changes.jobs.delete_old_data import clean_project_tests
+from changes.models.project import Project
+
+
+app = create_app()
+app_context = app.app_context()
+app_context.push()
+
+parser = argparse.ArgumentParser(description='Manage database')
+
+subparsers = parser.add_subparsers(dest='command')
+
+parser_clean_tests = subparsers.add_parser('clean-tests', help='remove old test case entries')
+parser_clean_tests.add_argument('--project', dest='project', help='project ID or slug to clean', nargs='*')
+parser_clean_tests.add_argument('--all', dest='all_projects', action='store_true', help='clean all projects')
+
+args = parser.parse_args()
+
+
+def abort():
+    print('Aborted!')
+    sys.exit(1)
+
+
+def get_input(name, default=None, required=True):
+    output = name + ' ? '
+    if default:
+        output += '[%s] ' % (default,)
+
+    value = raw_input(output)
+    if not value:
+        value = default
+    if required and not value:
+        abort()
+    return value
+
+
+def get_project(id_):
+    project = Project.get(id_)
+
+    if not project:
+        print("Project not found")
+        sys.exit(1)
+
+    return project
+
+
+if args.command == 'clean-tests':
+    projects = []
+    if args.all_projects:
+        projects = Project.query.all()
+    else:
+        project_ids = args.project or [get_input('Project ID or slug')]
+        projects = [get_project(project_id) for project_id in project_ids]
+
+    current_date = datetime.utcnow()
+    for project in projects:
+        rows_deleted = clean_project_tests(project, current_date)
+
+        print("Cleaned %d old tests from project %s {%s}" % (
+            rows_deleted,
+            project.slug,
+            project.id,
+        ))
+
+db.session.commit()

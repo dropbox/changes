@@ -43,6 +43,7 @@ class ProjectOptionsIndexAPIView(APIView):
     parser.add_argument('ui.show-tests')
     # Validate the passed-in Snapshot id.
     parser.add_argument('snapshot.current', type=validate_snapshot_id)
+    parser.add_argument('history.test-retention-days')
 
     def _get_project(self, project_id):
         project = Project.query.options(

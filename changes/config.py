@@ -257,6 +257,12 @@ def create_app(_read_config=True, **config):
             # Hour 7 GMT is midnight PST, hopefully a time of low load
             'schedule': crontab(hour=7, minute=0),
         },
+        """
+        'delete-old-data': {
+            'task': 'delete_old_data',
+            'schedule': timedelta(minutes=60),
+        },
+        """
         'update-local-repos': {
             'task': 'update_local_repos',
             'schedule': timedelta(minutes=1),
@@ -813,6 +819,7 @@ def configure_jobs(app):
     from changes.jobs.check_repos import check_repos
     from changes.jobs.cleanup_tasks import cleanup_tasks
     from changes.jobs.create_job import create_job
+    from changes.jobs.delete_old_data import delete_old_data
     from changes.jobs.import_repo import import_repo
     from changes.jobs.signals import (
         fire_signal, run_event_listener
@@ -830,6 +837,7 @@ def configure_jobs(app):
     queue.register('check_repos', check_repos)
     queue.register('cleanup_tasks', cleanup_tasks)
     queue.register('create_job', create_job)
+    queue.register('delete_old_data', delete_old_data)
     queue.register('fire_signal', fire_signal)
     queue.register('import_repo', import_repo)
     queue.register('run_event_listener', run_event_listener)

@@ -111,6 +111,8 @@ var DetailsTab = React.createClass({
 
     var build_plans_class = plans.length === 0 ? missing_value_class : '';
 
+    var test_retention_days = project.options["history.test-retention-days"];
+
     return <div className="marginBottomL">
       <b>{project.name}</b>
       <InfoList>
@@ -137,6 +139,9 @@ var DetailsTab = React.createClass({
         </InfoItem>
         <InfoItem label="Build plans" valueClassName={build_plans_class}>
           {plans.length}
+        </InfoItem>
+        <InfoItem label="Keep tests for (days)">
+          {test_retention_days}
         </InfoItem>
       </InfoList>
     </div>;

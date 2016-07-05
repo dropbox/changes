@@ -1,6 +1,7 @@
 from __future__ import division
 
 from datetime import datetime, timedelta
+
 from flask.ext.restful import reqparse
 from sqlalchemy.orm import contains_eager, joinedload
 from sqlalchemy.sql import func
@@ -9,6 +10,7 @@ from changes.api.auth import requires_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
+from changes.jobs.delete_old_data import DEFAULT_TEST_RETENTION_DAYS
 from changes.lib import build_type
 from changes.models.build import Build
 from changes.models.project import Project, ProjectOption, ProjectStatus
@@ -28,6 +30,7 @@ OPTION_DEFAULTS = {
     'ui.show-coverage': '1',
     'ui.show-tests': '1',
     'snapshot.current': '',
+    'history.test-retention-days': str(DEFAULT_TEST_RETENTION_DAYS),
 }
 
 STATUS_CHOICES = ('active', 'inactive')

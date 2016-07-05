@@ -149,6 +149,7 @@ class ProjectOption(db.Model):
         - build.test-duration-warning
         - green-build.notify
         - green-build.project
+        - history.test-retention-days
         - mail.notify
         - mail.notify-addresses
         - mail.notify-addresses-revisions
