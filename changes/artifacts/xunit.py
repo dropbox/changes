@@ -83,7 +83,7 @@ class XunitDelegate(DelegateParser):
     def xml_decl(self, version, encoding, standalone):
         if self._encoding:
             encoding = self._encoding
-        if encoding.upper() == 'UTF8':
+        if encoding is not None and encoding.upper() == 'UTF8':
             # This encoding isn't supported (it should be 'UTF-8'), and breaks the parser
             raise expat.ExpatError(expat.errors.XML_ERROR_UNKNOWN_ENCODING)
 
