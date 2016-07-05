@@ -96,7 +96,7 @@ class Project(db.Model):
         '''
         # changes.vcs.base imports some models, which may lead to circular
         # imports, so let's import on-demand
-        from changes.vcs.base import CommandError, ContentReadError
+        from changes.vcs.base import CommandError, ContentReadError, MissingFileError
         if config_path is None:
             config_path = self.get_config_path()
         vcs = self.repository.get_vcs()
@@ -110,7 +110,10 @@ class Project(db.Model):
             except CommandError as err:
                 logging.warning('Git invocation failed for project %s: %s', self.slug, str(err), exc_info=True)
                 config_content = '{}'
-            except ContentReadError:
+            except MissingFileError:
+                config_content = '{}'
+            except ContentReadError as err:
+                logging.warning('Config for project %s cannot be read: %s', self.slug, str(err), exc_info=True)
                 config_content = '{}'
             try:
                 config = yaml.safe_load(config_content)

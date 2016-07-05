@@ -70,6 +70,13 @@ class ContentReadError(Exception):
     pass
 
 
+class MissingFileError(ContentReadError):
+    """Indicates that an attempt to read the contents of a file in the repo failed
+    because the file doesn't appear to exist.
+    """
+    pass
+
+
 class BufferParser(object):
     def __init__(self, fp, delim):
         self.fp = fp

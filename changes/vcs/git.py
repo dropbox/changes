@@ -9,7 +9,7 @@ from changes.utils.http import build_internal_uri
 
 from .base import (
     Vcs, RevisionResult, BufferParser, ConcurrentUpdateError, CommandError,
-    ContentReadError, UnknownChildRevision, UnknownParentRevision, UnknownRevision,
+    ContentReadError, MissingFileError, UnknownChildRevision, UnknownParentRevision, UnknownRevision,
 )
 
 import re
@@ -358,7 +358,7 @@ class GitVcs(Vcs):
         content = self.run(cmd, input=obj_key)
         info, content = content.split('\n', 1)
         if info.endswith('missing'):
-            raise ContentReadError('No such file at revision: {}'.format(obj_key))
+            raise MissingFileError('No such file at revision: {}'.format(obj_key))
         if any(info.startswith(s) for s in ('symlink', 'dangling', 'loop')):
             raise ContentReadError('Unable to read file contents: {}'.format(info.split()[0]))
         if not re.match(r'^[a-f0-9]+ blob \d+$', info):
