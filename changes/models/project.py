@@ -90,19 +90,28 @@ class Project(db.Model):
             dict - the config
 
         Raises:
+            ConcurrentUpdateError - When vcs update failed because another vcs update is running
             InvalidDiffError - When the supplied diff does not apply
             ProjectConfigError - When the config file is in an invalid format.
             NotImplementedError - When the project has no vcs backend
         '''
         # changes.vcs.base imports some models, which may lead to circular
         # imports, so let's import on-demand
-        from changes.vcs.base import CommandError, ContentReadError, MissingFileError
+        from changes.vcs.base import CommandError, ContentReadError, MissingFileError, ConcurrentUpdateError
         if config_path is None:
             config_path = self.get_config_path()
         vcs = self.repository.get_vcs()
         if vcs is None:
             raise NotImplementedError
         else:
+            # We need to update the repo because it is possible that it hasn't
+            # been updated on this machine yet, causing the project config to
+            # be read incorrectly.
+            try:
+                vcs.update()
+            except ConcurrentUpdateError:
+                # Retry once if it was already updating.
+                vcs.update()
             try:
                 config_content = vcs.read_file(
                     revision_sha, config_path, diff=diff)
