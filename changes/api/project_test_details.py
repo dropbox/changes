@@ -17,14 +17,14 @@ class ProjectTestDetailsAPIView(APIView):
 
         # use the most recent test run to find basic details
         test = TestCase.query.filter(
-            TestCase.project_id == project_id,
+            TestCase.project_id == project.id,
             TestCase.name_sha == test_hash,
         ).order_by(TestCase.date_created.desc()).limit(1).first()
         if not test:
             return error("Test not found", http_code=404)
 
         first_test = TestCase.query.filter(
-            TestCase.project_id == project_id,
+            TestCase.project_id == project.id,
             TestCase.name_sha == test_hash,
         ).order_by(TestCase.date_created.asc()).limit(1).first()
         first_build = Build.query.options(

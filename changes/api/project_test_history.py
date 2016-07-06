@@ -63,7 +63,7 @@ class HistorySliceable(object):
             TestCase.job_id == Job.id,
             Job.source_id == Source.id,
             # other filters
-            Job.project_id == self.project_id,
+            Job.project_id == project.id,
             Source.patch_id == None,  # NOQA
             Source.revision_sha.in_(revs),
             TestCase.name_sha == self.test.name_sha,
@@ -112,7 +112,7 @@ class ProjectTestHistoryAPIView(APIView):
 
         # use the most recent test run to find basic details
         test = TestCase.query.filter(
-            TestCase.project_id == project_id,
+            TestCase.project_id == project.id,
             TestCase.name_sha == test_hash,
         ).order_by(TestCase.date_created.desc()).limit(1).first()
         if not test:

@@ -39,8 +39,8 @@ class ProjectFlakyTestsAPIView(APIView):
 
         data = {
             'date': str(query_date),
-            'chartData': self.get_chart_data(project_id, query_date),
-            'flakyTests': self.get_flaky_tests(project_id, query_date)
+            'chartData': self.get_chart_data(project.id, query_date),
+            'flakyTests': self.get_flaky_tests(project.id, query_date)
         }
 
         return self.respond(data)
