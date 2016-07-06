@@ -354,6 +354,8 @@ def truncate_message(msg, limit):
 def get_testcase_messages(testcase):
     message = testcase.message or ''
     message_limit = current_app.config.get('TEST_MESSAGE_MAX_LEN')
+    # Sort messages by start offset to ensure original ordering
+    testcase.messages.sort(key=lambda x: (x.artifact_id, x.start_offset))
     for m in testcase.messages:
         if message:
             message += '\n\n'
