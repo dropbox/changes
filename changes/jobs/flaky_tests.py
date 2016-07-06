@@ -11,7 +11,6 @@ from changes.db.utils import try_create
 from changes.lib.flaky_tests import get_flaky_tests
 from changes.models.flakyteststat import FlakyTestStat
 from changes.models.project import Project
-from changes.models.test import TestCase
 import urllib2
 
 
@@ -42,15 +41,6 @@ def aggregate_flaky_tests(day=None, max_flaky_tests=200):
             tests = get_flaky_tests(day, day + timedelta(days=1), [project], max_flaky_tests)
 
             for test in tests:
-                first_run = db.session.query(
-                    TestCase.date_created
-                ).filter(
-                    TestCase.project_id == test['project_id'],
-                    TestCase.name_sha == test['hash']
-                ).order_by(
-                    TestCase.date_created
-                ).limit(1).scalar()
-
                 _log_metrics(
                     "flaky_test_reruns",
                     flaky_test_reruns_name=test['name'],
@@ -66,7 +56,6 @@ def aggregate_flaky_tests(day=None, max_flaky_tests=200):
                     'flaky_runs': test['flaky_runs'],
                     'double_reruns': test['double_reruns'],
                     'passing_runs': test['passing_runs'],
-                    'first_run': first_run
                 })
                 # Potentially hundreds of commits per project may be a bit excessive,
                 # but the metric posting can potentially take seconds, meaning this could be

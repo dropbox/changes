@@ -44,4 +44,3 @@ class ProjectTestDetailsTest(APITestCase):
         # simple test for the composite primary key
         assert data['hash'] == parent_group.name_sha
         assert data['project']['id'] == parent_group.project.id.hex
-        assert data['firstBuild']['id'] == build.id.hex

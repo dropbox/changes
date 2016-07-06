@@ -36,6 +36,7 @@ class FlakyTestStat(db.Model):
     flaky_runs = Column(Integer, default=0, nullable=False)
     double_reruns = Column(Integer, default=0, nullable=False)
     passing_runs = Column(Integer, default=0, nullable=False)
+    # DEPRECATED: first_run is no longer updated, as the information cannot be reliably attained from test history
     first_run = Column(Date, default=today, nullable=False)
 
     project = relationship('Project')

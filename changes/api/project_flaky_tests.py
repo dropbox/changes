@@ -73,7 +73,6 @@ class ProjectFlakyTestsAPIView(APIView):
                 'flaky_runs': flaky_test.flaky_runs,
                 'double_reruns': flaky_test.double_reruns,
                 'passing_runs': flaky_test.passing_runs,
-                'first_run': str(flaky_test.first_run),
                 'history': []
             }
 
@@ -97,19 +96,16 @@ class ProjectFlakyTestsAPIView(APIView):
                     'flaky_runs': flaky_test.flaky_runs,
                     'double_reruns': flaky_test.double_reruns,
                     'passing_runs': flaky_test.passing_runs,
-                    'test_existed': True
                 }
 
             # For each test, generate its history array from global history dict
             for day in reversed(sorted(history)):
                 for sha in flaky_map:
-                    test_existed = flaky_map[sha]['first_run'] and day > flaky_map[sha]['first_run']
                     default_data = {
                         'date': day,
                         'flaky_runs': 0,
                         'double_reruns': 0,
                         'passing_runs': 0,
-                        'test_existed': test_existed
                     }
                     flaky_map[sha]['history'].append(history[day].get(sha, default_data))
 

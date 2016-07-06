@@ -159,7 +159,6 @@ var TestHistoryPage = React.createClass({
       <SectionHeader>History: {test_data.shortName}</SectionHeader>
       <InfoList className="marginTopM">
         <InfoItem label="Package">{test_data.package}</InfoItem>
-        <InfoItem label="First Seen"><TimeText time={test_data.firstBuild.dateCreated} /></InfoItem>
       </InfoList>
       <br/>
       Displaying a list of the results of this test for every commit in master.

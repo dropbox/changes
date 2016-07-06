@@ -42,7 +42,7 @@ class BuildFlakyTests(APITestCase):
         # flakyTests results seem to come in nondeterministic order, so make
         # sure we can handle that.
         expected_results = {
-            test_id_a: self.default_user.email,
+            test_id_a: None,
             test_id_b: owner,
         }
 
@@ -50,7 +50,10 @@ class BuildFlakyTests(APITestCase):
         for flaky_test in data['flakyTests']['items']:
             test_id = flaky_test['id']
             received_ids.append(test_id)
-            assert flaky_test['author']['email'] == expected_results[test_id]
+            if expected_results[test_id] is None:
+                assert 'author' not in flaky_test
+            else:
+                assert flaky_test['author']['email'] == expected_results[test_id]
 
         # Ensure that we saw every test id we expected to see.
         assert set(received_ids) == set(expected_results.keys())
@@ -64,7 +67,6 @@ class BuildFlakyTests(APITestCase):
             self.project,
             patch=patch,
         )
-        diff = self.create_diff(diff_id=456, revision_id=123, source=source)
         build = self.create_build(
             project=self.project,
             source=source,
@@ -86,7 +88,6 @@ class BuildFlakyTests(APITestCase):
         assert data['flakyTests']['count'] == 1
         assert data['flakyTests']['items'][0]['name'] == test.name
         assert data['flakyTests']['items'][0]['job_id'] == job.id.hex
-        assert data['flakyTests']['items'][0]['diff_id'] == 123
 
     def test_without_diff(self):
         patch = self.create_patch(
@@ -118,4 +119,3 @@ class BuildFlakyTests(APITestCase):
         assert data['flakyTests']['count'] == 1
         assert data['flakyTests']['items'][0]['name'] == test.name
         assert data['flakyTests']['items'][0]['job_id'] == job.id.hex
-        assert 'diff_id' not in data['flakyTests']['items'][0]
