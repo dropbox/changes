@@ -45,6 +45,7 @@ class BuildFlakyTestsAPIView(APIView):
             item = {
                 'id': test.id,
                 'name': test.name,
+                'name_sha': test.name_sha,
                 'job_id': test.job_id,
             }
 
