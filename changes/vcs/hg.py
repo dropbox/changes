@@ -23,7 +23,7 @@ LOCAL_PATH=%(local_path)s
 REVISION=%(revision)s
 
 if [ ! -d $LOCAL_PATH/.hg ]; then
-    hg clone --uncompressed $REMOTE_URL $LOCAL_PATH
+    hg clone $REMOTE_URL $LOCAL_PATH
     pushd $LOCAL_PATH
 else
     pushd $LOCAL_PATH
@@ -99,7 +99,7 @@ class MercurialVcs(Vcs):
             raise
 
     def clone(self):
-        self.run(['clone', '--uncompressed', self.remote_url, self.path], cwd='/')
+        self.run(['clone', self.remote_url, self.path], cwd='/')
 
     def update(self):
         self.run(['pull'])
