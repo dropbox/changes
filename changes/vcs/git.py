@@ -57,7 +57,7 @@ git fetch origin +refs/*:refs/remotes-all-refs/origin/*
 
 %(clean_command)s
 
-if ! git reset --hard $REVISION ; then
+if ! git reset --hard $REVISION -- ; then
     echo "Failed to update to $REVISION"
     exit 1
 fi
