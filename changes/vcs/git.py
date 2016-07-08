@@ -358,6 +358,11 @@ class GitVcs(Vcs):
         content = self.run(cmd, input=obj_key)
         info, content = content.split('\n', 1)
         if info.endswith('missing'):
+            # file could have been added in the patch
+            if diff is not None:
+                content = self._selectively_apply_diff(file_path, '', diff)
+                if content is not None:
+                    return content
             raise MissingFileError('No such file at revision: {}'.format(obj_key))
         if any(info.startswith(s) for s in ('symlink', 'dangling', 'loop')):
             raise ContentReadError('Unable to read file contents: {}'.format(info.split()[0]))

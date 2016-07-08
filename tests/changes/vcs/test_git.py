@@ -406,6 +406,21 @@ index e69de29..d0c77a5 100644
 
         assert vcs.read_file('HEAD', 'FOO', diff=PATCH) == 'blah\n'
 
+    def test_read_file_with_new_file_in_diff(self):
+        PATCH = """diff --git a/newly_added b/newly_added
+new file mode 100644
+index 0000000..d0c77a5
+--- /dev/null
++++ b/newly_added
+@@ -0,0 +1 @@
++hello
+"""
+        vcs = self.get_vcs()
+        vcs.clone()
+        vcs.update()
+
+        assert vcs.read_file('HEAD', 'newly_added', diff=PATCH) == 'hello\n'
+
     def test_get_patch_hash(self):
         vcs = self.get_vcs()
         vcs.clone()
