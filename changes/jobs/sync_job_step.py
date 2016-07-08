@@ -279,7 +279,7 @@ def _sync_from_artifact_store(jobstep):
                     jobstep_id=jobstep.id.hex,
                     artifact_name=artifact_name,
                 )
-                art.file.save(None, filename)
+                art.file.set_filename(filename)
                 try:
                     db.session.add(art)
                     db.session.commit()

@@ -17,8 +17,8 @@ class ArtifactStoreFileStorage(FileStorage):
         self.session = requests.Session()
 
     def save(self, filename, fp, content_type=None):
-        # We don't actually write file contents anywhere
-        pass
+        # We don't support this yet, do this directly through artifact_store_lib.py
+        raise NotImplementedError
 
     def url_for(self, filename):
         return '{base_url}/{filename}/content'.format(

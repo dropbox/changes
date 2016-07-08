@@ -39,10 +39,14 @@ class FileData(Mutable):
             return
         return self.get_storage().url_for(self.filename)
 
-    def save(self, fp, filename=None, content_type=None):
+    def set_filename(self, filename):
         if filename:
             self.filename = filename
-        elif self.filename is None:
+        self.changed()
+
+    def save(self, fp, filename=None, content_type=None):
+        self.set_filename(filename)
+        if self.filename is None:
             raise ValueError('Missing filename')
 
         self.get_storage().save(self.filename, fp, content_type)

@@ -632,7 +632,7 @@ class SyncJobStepTest(BaseTestCase):
         db_artifacts = Artifact.query.filter(Artifact.step_id == step.id).all()
         assert len(db_artifacts) == 1
         assert db_artifacts[0].name == 'artifactstore/project/junit.xml'
-        assert artifact_file.save.call_count == 1
+        assert artifact_file.set_filename.call_count == 1
 
     def test_get_artifacts_to_sync(self):
         artifact_manager = mock.Mock()

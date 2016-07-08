@@ -249,7 +249,7 @@ class JenkinsBuilder(BaseBackend):
             artifact_name=artifact_url,
         )
 
-        artifact.file.save(None, filename)
+        artifact.file.set_filename(filename)
 
         # commit file save regardless of whether handler is successful
         db.session.commit()
