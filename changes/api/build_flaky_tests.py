@@ -6,6 +6,7 @@ from changes.constants import Result
 from changes.models.build import Build
 from changes.models.job import Job
 from changes.models.test import TestCase
+from changes.models.source import Source
 
 
 # This constant must match MAX_TESTS_TO_ADD in citools' quarantine keeper
@@ -75,7 +76,7 @@ class BuildFlakyTestsAPIView(APIView):
 
     @staticmethod
     def _get_last_testcase(project_id, test_name_sha):
-        """Get the most recent TestCase instance for the specified name.
+        """Get the most recent TestCase instance from a commit build for the specified name.
 
         Args:
            :param project_id: string
@@ -83,8 +84,18 @@ class BuildFlakyTestsAPIView(APIView):
         Returns:
             TestCase
         """
-        most_recent_test = TestCase.query.filter(
+        most_recent_test = TestCase.query.join(TestCase.job).join(Job.build).join(Build.source).filter(
             TestCase.project_id == project_id,
             TestCase.name_sha == test_name_sha,
-        ).order_by(TestCase.date_created.desc()).limit(1).first()
+            Source.patch_id.is_(None),
+            Source.revision_sha.isnot(None),
+        ).order_by(TestCase.date_created.desc()).first()
+
+        # Fall back to any test if this was never committed
+        if not most_recent_test:
+            most_recent_test = TestCase.query.filter(
+                TestCase.project_id == project_id,
+                TestCase.name_sha == test_name_sha,
+            ).order_by(TestCase.date_created.desc()).first()
+
         return most_recent_test

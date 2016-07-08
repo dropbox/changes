@@ -119,3 +119,49 @@ class BuildFlakyTests(APITestCase):
         assert data['flakyTests']['count'] == 1
         assert data['flakyTests']['items'][0]['name'] == test.name
         assert data['flakyTests']['items'][0]['job_id'] == job.id.hex
+
+    def test_commit_build(self):
+        commit_source = self.create_source(
+            self.project,
+        )
+        commit_build = self.create_build(
+            project=self.project,
+            source=commit_source,
+            target="0deadbeefcafe",
+            status=Status.finished,
+            result=Result.failed,
+            author=self.author,
+        )
+        commit_job = self.create_job(build=commit_build)
+        commit_test = self.create_test(name='test_name', job=commit_job, reruns=2, result=Result.passed, owner='commit-owner')
+
+        patch = self.create_patch(
+            repository_id=self.project.repository_id,
+            diff=SAMPLE_DIFF
+        )
+        diff_source = self.create_source(
+            self.project,
+            patch=patch,
+        )
+        diff_build = self.create_build(
+            project=self.project,
+            source=diff_source,
+            target="D123",
+            status=Status.finished,
+            result=Result.failed,
+            author=self.author,
+        )
+        diff_job = self.create_job(build=diff_build)
+        diff_test = self.create_test(name='test_name', job=diff_job, reruns=2, result=Result.passed, owner='diff-owner')
+
+        path = '/api/0/builds/{0}/flaky_tests/'.format(diff_build.id)
+        resp = self.client.get(path)
+
+        assert resp.status_code == 200
+
+        data = self.unserialize(resp)
+
+        assert data['flakyTests']['count'] == 1
+        assert data['flakyTests']['items'][0]['name'] == diff_test.name
+        assert data['flakyTests']['items'][0]['job_id'] == diff_job.id.hex
+        assert data['flakyTests']['items'][0]['author']['email'] == 'commit-owner'
