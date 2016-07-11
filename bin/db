@@ -23,6 +23,7 @@ subparsers = parser.add_subparsers(dest='command')
 parser_clean_tests = subparsers.add_parser('clean-tests', help='remove old test case entries')
 parser_clean_tests.add_argument('--project', dest='project', help='project ID or slug to clean', nargs='*')
 parser_clean_tests.add_argument('--all', dest='all_projects', action='store_true', help='clean all projects')
+parser_clean_tests.add_argument('--days', dest='num_days', type=float, help='number of days to keep')
 
 args = parser.parse_args()
 
@@ -65,7 +66,7 @@ if args.command == 'clean-tests':
 
     current_date = datetime.utcnow()
     for project in projects:
-        rows_deleted = clean_project_tests(project, current_date)
+        rows_deleted = clean_project_tests(project, current_date, args.num_days)
 
         print("Cleaned %d old tests from project %s {%s}" % (
             rows_deleted,

@@ -257,7 +257,7 @@ let ProjectSettingsFieldGroup = React.createClass({
       },
       { sectionTitle: 'History', fields: [
         {type: 'text', display: 'Test Retention Length (days)', link: 'testRetentionLen',
-          comment: 'Tests older than this will be deleted from the records.'},
+          comment: 'Tests older than this will be deleted from the records. The minimum value is 7 days.'},
       ]
       },
     ];
