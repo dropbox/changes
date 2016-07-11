@@ -31,8 +31,7 @@ from changes.models.task import Task
 from changes.models.test import TestCase
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
-from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX
-
+from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX, ArtifactStoreFileStorage
 
 INFRA_FAILURE_REASONS = ['malformed_manifest_json', 'missing_manifest_json']
 
@@ -275,10 +274,7 @@ def _sync_from_artifact_store(jobstep):
             })
             if created:
                 art.file.storage = 'changes.storage.artifactstore.ArtifactStoreFileStorage'
-                filename = 'buckets/{jobstep_id}/artifacts/{artifact_name}'.format(
-                    jobstep_id=jobstep.id.hex,
-                    artifact_name=artifact_name,
-                )
+                filename = ArtifactStoreFileStorage.get_filename_from_artifact_name(jobstep.id.hex, artifact_name)
                 art.file.set_filename(filename)
                 try:
                     db.session.add(art)

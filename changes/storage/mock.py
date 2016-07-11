@@ -18,6 +18,7 @@ class FileStorageCache(FileStorage):
                     'content': fp.read(),
                     'content_type': content_type,
                 }
+        return filename
 
     def url_for(self, filename, expire=300):
         return 'url-not-implemented-for-filestoragecache'

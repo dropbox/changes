@@ -44,6 +44,7 @@ class S3FileStorage(FileStorage):
             key.content_type = content_type
         key.set_contents_from_file(fp)
         key.set_acl('private')
+        return filename
 
     def url_for(self, filename, expire=300):
         key = self.bucket.get_key(self.get_file_path(filename))
