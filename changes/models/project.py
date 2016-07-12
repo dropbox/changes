@@ -94,27 +94,29 @@ class Project(db.Model):
             InvalidDiffError - When the supplied diff does not apply
             ProjectConfigError - When the config file is in an invalid format.
             NotImplementedError - When the project has no vcs backend
+            UnknownRevision - When the supplied revision_sha does not appear to exist
         '''
         # changes.vcs.base imports some models, which may lead to circular
         # imports, so let's import on-demand
-        from changes.vcs.base import CommandError, ContentReadError, MissingFileError, ConcurrentUpdateError
+        from changes.vcs.base import CommandError, ContentReadError, MissingFileError, ConcurrentUpdateError, UnknownRevision
         if config_path is None:
             config_path = self.get_config_path()
         vcs = self.repository.get_vcs()
         if vcs is None:
             raise NotImplementedError
         else:
-            # We need to update the repo because it is possible that it hasn't
-            # been updated on this machine yet, causing the project config to
-            # be read incorrectly.
             try:
-                vcs.update()
-            except ConcurrentUpdateError:
-                # Retry once if it was already updating.
-                vcs.update()
-            try:
-                config_content = vcs.read_file(
-                    revision_sha, config_path, diff=diff)
+                # repo might not be updated on this machine yet
+                try:
+                    config_content = vcs.read_file(revision_sha, config_path, diff=diff)
+                except UnknownRevision:
+                    try:
+                        vcs.update()
+                    except ConcurrentUpdateError:
+                        # Retry once if it was already updating.
+                        vcs.update()
+                    # now that we've updated the repo, try reading the file again
+                    config_content = vcs.read_file(revision_sha, config_path, diff=diff)
             # this won't catch error when diff doesn't apply, which is good.
             except CommandError as err:
                 logging.warning('Git invocation failed for project %s: %s', self.slug, str(err), exc_info=True)

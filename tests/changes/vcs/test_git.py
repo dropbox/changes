@@ -7,7 +7,7 @@ from subprocess import check_call, check_output
 
 from changes.testutils import TestCase
 from changes.vcs.base import (
-        ContentReadError, UnknownChildRevision, UnknownParentRevision,
+        ContentReadError, UnknownChildRevision, UnknownParentRevision, UnknownRevision
 )
 from changes.vcs.git import GitVcs
 
@@ -357,7 +357,7 @@ index 0000000..e69de29
             vcs.read_file('HEAD', 'doesnotexist')
 
         # unknown sha
-        with pytest.raises(ContentReadError):
+        with pytest.raises(UnknownRevision):
             vcs.read_file('a' * 40, 'FOO')
 
     def test_read_file_symlink(self):
