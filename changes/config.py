@@ -378,6 +378,11 @@ def create_app(_read_config=True, **config):
     # Used for bazel setup, so source should have bazel package.
     app.config['APT_SPEC'] = None
 
+    # In some configurations, build slaves might not have access to the Changes API via the
+    # normal address; if PATCH_BASE_URI is specified, it'll be used as the base URI for
+    # PATCH_URI variables provided to build slaves.
+    app.config['PATCH_BASE_URI'] = None
+
     app.config.update(config)
     if _read_config:
         if os.environ.get('CHANGES_CONF'):

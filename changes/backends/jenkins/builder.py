@@ -14,6 +14,7 @@ from contextlib import closing
 from datetime import datetime
 from flask import current_app
 from lxml import etree, objectify
+from typing import Any  # NOQA
 
 from changes.artifacts.analytics_json import AnalyticsJsonHandler
 from changes.artifacts.coverage import CoverageHandler
@@ -35,7 +36,7 @@ from changes.models.jobstep import JobStep
 from changes.models.log import LogSource, LOG_CHUNK_SIZE
 from changes.models.node import Cluster, ClusterNode, Node
 from changes.storage.artifactstore import ArtifactStoreFileStorage
-from changes.utils.http import build_internal_uri
+from changes.utils.http import build_patch_uri
 from changes.utils.text import chunked
 
 RESULT_MAP = {
@@ -739,6 +740,7 @@ class JenkinsBuilder(BaseBackend):
                     step.id.hex)
 
     def get_job_parameters(self, job, changes_bid):
+        # type: (Any, str) -> Dict[str, str]
         # TODO(kylec): Take a Source rather than a Job; we don't need a Job.
         """
         Args:
@@ -756,8 +758,7 @@ class JenkinsBuilder(BaseBackend):
             params['REVISION'] = source.revision_sha
 
         if source.patch:
-            params['PATCH_URL'] = build_internal_uri('/api/0/patches/{0}/?raw=1'.format(
-                source.patch.id.hex))
+            params['PATCH_URL'] = build_patch_uri(source.patch.id)
 
         phab_diff_id = source.data.get('phabricator.diffID')
         if phab_diff_id:
