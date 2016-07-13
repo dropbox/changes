@@ -351,12 +351,23 @@ class GitVcs(Vcs):
             CommandError - if the git invocation fails.
             ContentReadError - if the content can't be read because the named file is missing,
                 links to something outside the tree, links to an absent file, or links to itself.
+            UnknownRevision - if revision doesn't seem to exist
         """
         cmd = ['cat-file', '--batch', '--follow-symlinks']
         obj_key = '{revision}:{file_path}'.format(revision=sha, file_path=file_path)
         content = self.run(cmd, input=obj_key)
         info, content = content.split('\n', 1)
         if info.endswith('missing'):
+            # either revision is missing or file is missing
+            try:
+                # will raise CommandError if revision is missing
+                self.run(['cat-file', 'commit', sha])
+            except CommandError as e:
+                raise UnknownRevision(
+                    cmd=e.cmd,
+                    retcode=e.retcode,
+                    stdout=e.stdout,
+                    stderr=e.stderr)
             # file could have been added in the patch
             if diff is not None:
                 content = self._selectively_apply_diff(file_path, '', diff)
