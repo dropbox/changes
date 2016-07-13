@@ -7,7 +7,7 @@ from subprocess import check_call, check_output
 
 from changes.testutils import TestCase
 from changes.vcs.base import (
-        ContentReadError, UnknownChildRevision, UnknownParentRevision,
+        ContentReadError, MissingFileError, UnknownChildRevision, UnknownParentRevision,
 )
 from changes.vcs.git import GitVcs
 
@@ -420,6 +420,9 @@ index 0000000..d0c77a5
         vcs.update()
 
         assert vcs.read_file('HEAD', 'newly_added', diff=PATCH) == 'hello\n'
+
+        with pytest.raises(MissingFileError):
+            vcs.read_file('HEAD', 'still_does_not_exist', diff=PATCH)
 
     def test_get_patch_hash(self):
         vcs = self.get_vcs()

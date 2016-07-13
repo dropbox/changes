@@ -360,8 +360,10 @@ class GitVcs(Vcs):
             # file could have been added in the patch
             if diff is not None:
                 content = self._selectively_apply_diff(file_path, '', diff)
-                if content is not None:
+                if content:
                     return content
+                # TODO(adai): return empty string instead of raising MissingFileError when
+                # empty file is added in the patch
             raise MissingFileError('No such file at revision: {}'.format(obj_key))
         if any(info.startswith(s) for s in ('symlink', 'dangling', 'loop')):
             raise ContentReadError('Unable to read file contents: {}'.format(info.split()[0]))
