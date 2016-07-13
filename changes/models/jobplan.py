@@ -18,11 +18,21 @@ from changes.db.utils import model_repr
 from changes.utils.imports import import_string
 
 
-BASH_BAZEL_SETUP = """
-#!/bin/bash -eux
+BASH_BAZEL_SETUP = """#!/bin/bash -eux
 echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list.d/bazel-changes-autogen.list
 sudo apt-get update || true
 sudo apt-get install -y --force-yes bazel drte-v1 gcc unzip zip
+""".strip()
+
+# We run setup again because changes does not run setup before collecting tests, but we need bazel
+# to collect tests. (also install python because it is needed for jsonification script)
+# We also redirect stdout and stderr to /dev/null because changes uses the output of this
+# script to collect tests, and so we don't want extraneous output.
+COLLECT_BAZEL_TARGETS = """#!/bin/bash -eu
+echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list.d/bazel-changes-autogen.list > /dev/null 2>&1
+(sudo apt-get update || true) > /dev/null 2>&1
+sudo apt-get install -y --force-yes bazel drte-v1 gcc unzip zip python > /dev/null 2>&1
+(bazel query 'tests(%(bazel_targets)s)' | python -c "%(jsonify_script)s") 2> /dev/null
 """.strip()
 
 
@@ -30,6 +40,15 @@ def get_bazel_setup():
     return BASH_BAZEL_SETUP % dict(
         apt_spec=current_app.config['APT_SPEC']
     )
+
+
+def collect_bazel_targets(bazel_targets):
+    with open('changes/utils/collect_bazel_targets.py') as jsonify_script:
+        return COLLECT_BAZEL_TARGETS % dict(
+            apt_spec=current_app.config['APT_SPEC'],
+            bazel_targets=' + '.join(bazel_targets),
+            jsonify_script=jsonify_script.read()
+        )
 
 
 class HistoricalImmutableStep(object):
@@ -208,11 +227,10 @@ class JobPlan(db.Model):
                 logging.error('Project config for project %s is missing `bazel.targets`. job: %s, revision_sha: %s, config: %s', job.project.slug, job.id, job.source.revision_sha, str(project_config), exc_info=True)
                 return None, None
 
-            bazel_test = 'bazel test ' + ' '.join(project_config['bazel.targets'])
             implementation = LXCBuildStep(
                 commands=[
                     {'script': get_bazel_setup(), 'type': 'setup'},
-                    {'script': bazel_test},
+                    {'script': collect_bazel_targets(project_config['bazel.targets']), 'type': 'collect_tests'},
                 ],
             )
             return None, implementation
