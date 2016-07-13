@@ -26,6 +26,7 @@ class FlakyTestStat(db.Model):
     __table_args__ = (
         Index('idx_flakyteststat_date', 'date'),
         UniqueConstraint('name', 'project_id', 'date', name='unq_name_per_project_per_day'),
+        Index('idx_flakyteststat_last_flaky_run_id', 'last_flaky_run_id'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid4)
