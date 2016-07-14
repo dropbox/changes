@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import logging
 import uuid
+import os
 
 from collections import defaultdict
 from copy import deepcopy
@@ -43,7 +44,9 @@ def get_bazel_setup():
 
 
 def collect_bazel_targets(bazel_targets):
-    with open('changes/utils/collect_bazel_targets.py') as jsonify_script:
+    package_dir = os.path.dirname(__file__)
+    bazel_target_py = os.path.normpath(os.path.join(package_dir, "../utils/collect_bazel_targets.py"))
+    with open(bazel_target_py, 'r') as jsonify_script:
         return COLLECT_BAZEL_TARGETS % dict(
             apt_spec=current_app.config['APT_SPEC'],
             bazel_targets=' + '.join(bazel_targets),
