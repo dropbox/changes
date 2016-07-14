@@ -1,7 +1,9 @@
 from changes.models.build import Build
+from changes.models.project import ProjectConfigError
 from datetime import datetime, timedelta
 
 import fnmatch
+import logging
 import re
 
 
@@ -41,22 +43,25 @@ def files_changed_should_trigger_project(files_changed, project, project_options
 
     Returns:
         boolean - True if a build should be started.
-
-    Raises:
-        InvalidDiffError - When the supplied diff does not apply
-        ProjectConfigError - When the config file is in an invalid format.
-        NotImplementedError - When the project has no vcs backend
     """
     config_path = project.get_config_path()
     # if config file changed, then we always run the build
     if config_path in files_changed:
         return True
 
-    config = project.get_config(sha, diff, config_path)
+    try:
+        config = project.get_config(sha, diff, config_path)
+    except ProjectConfigError:
+        # TODO: we should make the build fail when this happens
+        logging.exception('Project config for project %s is not in a valid format, blacklist is being ignored!', project.slug)
+        config = {}
+    except Exception:
+        logging.exception('Exception occurred trying to parse project config for project %s', project.slug)
+        config = {}
     if not _time_based_exclusion_filter(config, project):
         return False
 
-    blacklist = config['build.file-blacklist']
+    blacklist = config.get('build.file-blacklist', [])
 
     # filter out files in blacklist
     blacklist_patterns = _compile_patterns(blacklist)

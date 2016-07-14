@@ -7,7 +7,7 @@ from typing import List, Set  # NOQA
 from flask import current_app
 from changes.api.build_index import BuildIndexAPIView
 from changes.models.project import (
-    Project, ProjectStatus, ProjectConfigError, ProjectOptionsHelper)
+    Project, ProjectStatus, ProjectOptionsHelper)
 from changes.models.revision import Revision
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import ConcurrentUpdateError, UnknownRevision
@@ -87,16 +87,9 @@ class CommitTrigger(object):
                 self.logger.info('No branches matched build.branch-names for project %s', project.slug)
                 continue
 
-            try:
-                if not files_changed_should_trigger_project(files_changed, project, options[project.id], revision.sha):
-                    self.logger.info('No changed files matched project trigger for project %s', project.slug)
-                    continue
-            except ProjectConfigError:
-                author_name = '(unknown)'
-                if revision.author_id:
-                    author_name = revision.author.name
-                self.logger.error('Project config for project %s is not in a valid format. Author is %s.', project.slug, author_name, exc_info=True)
-
+            if not files_changed_should_trigger_project(files_changed, project, options[project.id], revision.sha):
+                self.logger.info('No changed files matched project trigger for project %s', project.slug)
+                continue
             projects_to_build.append(project.slug)
 
         for project_slug in projects_to_build:

@@ -17,7 +17,7 @@ from changes.models.plan import PlanStatus
 from changes.models.project import ProjectOption
 from changes.models.snapshot import SnapshotStatus
 from changes.testutils import APITestCase, TestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
-from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
+from changes.vcs.base import CommandError, RevisionResult, Vcs, UnknownRevision
 from changes.testutils.build import CreateBuildsMixin
 
 
@@ -934,24 +934,6 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         resp = self.post_sample_patch({
             'apply_project_files_trigger': '1',
         })
-        assert resp.status_code == 200, resp.data
-        data = self.unserialize(resp)
-        assert len(data) == 1
-
-    @patch('changes.models.repository.Repository.get_vcs')
-    def test_when_not_all_in_blacklist_diff_build_invalid_diff(self, get_vcs):
-        fake_vcs = self.get_fake_vcs()
-        fake_vcs.read_file.side_effect = None
-        fake_vcs.read_file.return_value = yaml.safe_dump({
-            'build.file-blacklist': ['ci/*'],
-        })
-        get_vcs.return_value = fake_vcs
-
-        with patch('changes.api.build_index.files_changed_should_trigger_project') as mocked:
-            mocked.side_effect = InvalidDiffError
-            resp = self.post_sample_patch({
-                'apply_project_files_trigger': '1',
-            })
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 1

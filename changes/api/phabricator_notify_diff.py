@@ -20,13 +20,12 @@ from changes.models.option import ItemOption
 from changes.models.patch import Patch
 from changes.models.phabricatordiff import PhabricatorDiff
 from changes.models.project import (
-    Project, ProjectConfigError, ProjectOption, ProjectOptionsHelper, ProjectStatus
+    Project, ProjectOption, ProjectOptionsHelper, ProjectStatus
 )
 from changes.models.repository import Repository, RepositoryStatus
 from changes.models.source import Source
 from changes.utils.phabricator_utils import post_comment
 from changes.utils.project_trigger import files_changed_should_trigger_project
-from changes.vcs.base import InvalidDiffError
 
 
 def get_repository_by_callsign(callsign):
@@ -211,15 +210,9 @@ class PhabricatorNotifyDiffAPIView(APIView):
             # We already filtered out empty build plans
             assert plan_list, ('No plans defined for project {}'.format(project.slug))
 
-            try:
-                if not files_changed_should_trigger_project(files_changed, project, project_options[project.id], sha, diff=patch.diff):
-                    logging.info('No changed files matched project trigger for project %s', project.slug)
-                    continue
-            except InvalidDiffError:
-                # ok, the build will fail and the user will be notified
-                pass
-            except ProjectConfigError:
-                logging.error('Project config for project %s is not in a valid format. Author is %s.', project.slug, author.name, exc_info=True)
+            if not files_changed_should_trigger_project(files_changed, project, project_options[project.id], sha, diff=patch.diff):
+                logging.info('No changed files matched project trigger for project %s', project.slug)
+                continue
 
             builds.append(create_build(
                 project=project,

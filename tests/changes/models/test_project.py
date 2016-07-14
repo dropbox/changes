@@ -52,8 +52,8 @@ class GetConfigTest(TestCase):
         fake_vcs.read_file.return_value = '[]'
         with mock.patch('changes.models.repository.Repository.get_vcs') as mocked:
             mocked.return_value = fake_vcs
-            with pytest.raises(ProjectConfigError):
-                self.project.get_config('a' * 40)
+            config = self.project.get_config('a' * 40)
+        assert config == self.project._default_config
 
     def test_simple(self):
         self.project._default_config = {

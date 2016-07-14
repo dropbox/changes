@@ -31,7 +31,7 @@ from changes.models.source import Source
 from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
 from changes.vcs.base import (
-    CommandError, ConcurrentUpdateError, InvalidDiffError, UnknownRevision
+    CommandError, ConcurrentUpdateError, UnknownRevision
 )
 
 
@@ -686,24 +686,14 @@ class BuildIndexAPIView(APIView):
             diff = None
             if patch is not None:
                 diff = patch.diff
-            try:
-                if (
-                    apply_project_files_trigger and
-                    files_changed is not None and
-                    not files_changed_should_trigger_project(
-                        files_changed, project, project_options[project.id], sha, diff)
-                ):
-                    logging.info('Changed files do not trigger build for project %s', project.slug)
-                    continue
-            except InvalidDiffError:
-                # ok, the build will fail and the user will be notified.
-                pass
-            except ProjectConfigError:
-                author_name = '(Unknown)'
-                if author:
-                    author_name = author.name
-                logging.error('Project config for project %s is not in a valid format. Author is %s.', project.slug, author_name, exc_info=True)
-
+            if (
+                apply_project_files_trigger and
+                files_changed is not None and
+                not files_changed_should_trigger_project(
+                    files_changed, project, project_options[project.id], sha, diff)
+            ):
+                logging.info('Changed files do not trigger build for project %s', project.slug)
+                continue
             # 7. create/ensure build
             if args.ensure_only:
                 potentials = list(Build.query.filter(

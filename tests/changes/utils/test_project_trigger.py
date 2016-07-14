@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import mock
 
 from changes.config import db
+from changes.models.project import ProjectConfigError
 from changes.testutils import TestCase
 from changes.utils.project_trigger import files_changed_should_trigger_project
 
@@ -196,3 +197,41 @@ z
                 self.revision.sha,
             )
             (sha, diff, _), _ = mocked.call_args
+
+    def test_yaml_invalid_whitelist_unmatched(self):
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
+            mocked.side_effect = ProjectConfigError
+            # Should still return False even though blacklist/yaml config is invalid.
+            # This avoids potentially disastrous results where all whitelists are ignored
+            # upon encountering an invalid yaml file.
+            assert not files_changed_should_trigger_project(
+                ['a', 'b'],
+                self.project,
+                {'build.file-whitelist': """
+x
+y/a.txt
+z
+"""},
+                self.revision.sha,
+            )
+            (sha, diff, _), _ = mocked.call_args
+            assert sha == self.revision.sha
+            assert diff is None
+
+    def test_yaml_invalid_whitelist_matched(self):
+        with mock.patch('changes.models.project.Project.get_config') as mocked:
+            mocked.side_effect = ProjectConfigError
+            # this time the whitelist *does* match
+            assert files_changed_should_trigger_project(
+                ['a', 'b', 'y/a.txt'],
+                self.project,
+                {'build.file-whitelist': """
+x
+y/a.txt
+z
+"""},
+                self.revision.sha,
+            )
+            (sha, diff, _), _ = mocked.call_args
+            assert sha == self.revision.sha
+            assert diff is None

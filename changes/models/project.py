@@ -76,6 +76,7 @@ class Project(db.Model):
 
         The supplied config is applied on top of the default config
         (`_default_config`). In the case where the file is not found,
+        or the file's YAML is not a dict,
         the default config is returned.
 
         Args:
@@ -92,7 +93,7 @@ class Project(db.Model):
         Raises:
             ConcurrentUpdateError - When vcs update failed because another vcs update is running
             InvalidDiffError - When the supplied diff does not apply
-            ProjectConfigError - When the config file is in an invalid format.
+            ProjectConfigError - When the config file is invalid YAML.
             NotImplementedError - When the project has no vcs backend
             UnknownRevision - When the supplied revision_sha does not appear to exist
         '''
@@ -129,8 +130,13 @@ class Project(db.Model):
             try:
                 config = yaml.safe_load(config_content)
                 if not isinstance(config, dict):
-                    raise ProjectConfigError(
-                        'Invalid project config file {}'.format(config_path))
+                    # non-dict configs are technically invalid, but until we
+                    # have a good way to message invalid configs,
+                    # it's better to just ignore the config rather than breaking
+                    # the control flow of `get_config()` callers.
+                    logging.warning('Config for project %s is not a dict, using default config', self.slug,
+                                    extra={'data': {'revision': revision_sha, 'diff': diff}})
+                    config = {}
             except yaml.YAMLError:
                 raise ProjectConfigError(
                     'Invalid project config file {}'.format(config_path))

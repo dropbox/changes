@@ -477,24 +477,3 @@ class DiffBuildRetryTest(APITestCase):
             resp = self.client.post(path, follow_redirects=True)
 
         assert resp.status_code == 400
-
-    @mock.patch('changes.models.repository.Repository.get_vcs')
-    def test_invalid_config(self, get_vcs):
-        fake_vcs = self.get_fake_vcs()
-        fake_vcs.read_file.side_effect = None
-        fake_vcs.read_file.return_value = yaml.safe_dump({
-            'build.file-blacklist': ['ci/not-real'],
-        }) + '}'
-        get_vcs.return_value = fake_vcs
-        build = self.create_build(
-            project=self.project,
-            source=self.source,
-            status=Status.finished,
-            result=Result.failed
-        )
-        self.create_job(build=build)
-
-        path = '/api/0/phabricator_diffs/{0}/retry/'.format(self.diff.diff_id)
-        resp = self.client.post(path, follow_redirects=True)
-
-        assert resp.status_code == 400

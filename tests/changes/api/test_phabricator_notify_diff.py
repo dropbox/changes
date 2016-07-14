@@ -12,7 +12,7 @@ from changes.models.jobplan import JobPlan
 from changes.models.project import ProjectOption
 from changes.testutils import APITestCase, SAMPLE_DIFF, SAMPLE_DIFF_BYTES
 from changes.testutils.build import CreateBuildsMixin
-from changes.vcs.base import CommandError, InvalidDiffError, RevisionResult, Vcs, UnknownRevision
+from changes.vcs.base import CommandError, RevisionResult, Vcs, UnknownRevision
 
 _VALID_SHA = 'a' * 40
 _BOGUS_SHA = 'b' * 40
@@ -247,31 +247,6 @@ class PhabricatorNotifyDiffTest(APITestCase, CreateBuildsMixin):
         self.create_plan(project)
 
         resp = self.post_sample_patch()
-        assert resp.status_code == 200, resp.data
-        data = self.unserialize(resp)
-        assert len(data) == 1
-
-    @patch('changes.models.repository.Repository.get_vcs')
-    def test_invalid_diff(self, get_vcs):
-        fake_vcs = self.get_fake_vcs()
-        fake_vcs.read_file.side_effect = None
-        fake_vcs.read_file.return_value = yaml.safe_dump({
-            'build.file-blacklist': ['ci/*'],
-        })
-        get_vcs.return_value = fake_vcs
-        repo = self.create_repo()
-        self.create_option(
-            item_id=repo.id,
-            name='phabricator.callsign',
-            value='FOO',
-        )
-
-        project = self.create_project(repository=repo)
-        self.create_plan(project)
-
-        with patch('changes.api.phabricator_notify_diff.files_changed_should_trigger_project') as mocked:
-            mocked.side_effect = InvalidDiffError
-            resp = self.post_sample_patch()
         assert resp.status_code == 200, resp.data
         data = self.unserialize(resp)
         assert len(data) == 1
