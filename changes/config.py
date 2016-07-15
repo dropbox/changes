@@ -257,12 +257,10 @@ def create_app(_read_config=True, **config):
             # Hour 7 GMT is midnight PST, hopefully a time of low load
             'schedule': crontab(hour=7, minute=0),
         },
-        """
         'delete-old-data': {
             'task': 'delete_old_data',
             'schedule': timedelta(minutes=60),
         },
-        """
         'update-local-repos': {
             'task': 'update_local_repos',
             'schedule': timedelta(minutes=1),
