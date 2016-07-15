@@ -2,12 +2,10 @@ from __future__ import absolute_import
 
 import logging
 import uuid
-import os
 
 from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
-from flask import current_app
 from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index
@@ -16,42 +14,8 @@ from changes.config import db
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
+from changes.utils.bazel_setup import get_bazel_setup, collect_bazel_targets, sync_encap_pkgs
 from changes.utils.imports import import_string
-
-
-BASH_BAZEL_SETUP = """#!/bin/bash -eux
-echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list.d/bazel-changes-autogen.list
-sudo apt-get update || true
-sudo apt-get install -y --force-yes bazel drte-v1 gcc unzip zip
-""".strip()
-
-# We run setup again because changes does not run setup before collecting tests, but we need bazel
-# to collect tests. (also install python because it is needed for jsonification script)
-# We also redirect stdout and stderr to /dev/null because changes uses the output of this
-# script to collect tests, and so we don't want extraneous output.
-COLLECT_BAZEL_TARGETS = """#!/bin/bash -eu
-echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list.d/bazel-changes-autogen.list > /dev/null 2>&1
-(sudo apt-get update || true) > /dev/null 2>&1
-sudo apt-get install -y --force-yes bazel drte-v1 gcc unzip zip python > /dev/null 2>&1
-(bazel query 'tests(%(bazel_targets)s)' | python -c "%(jsonify_script)s") 2> /dev/null
-""".strip()
-
-
-def get_bazel_setup():
-    return BASH_BAZEL_SETUP % dict(
-        apt_spec=current_app.config['APT_SPEC']
-    )
-
-
-def collect_bazel_targets(bazel_targets):
-    package_dir = os.path.dirname(__file__)
-    bazel_target_py = os.path.normpath(os.path.join(package_dir, "../utils/collect_bazel_targets.py"))
-    with open(bazel_target_py, 'r') as jsonify_script:
-        return COLLECT_BAZEL_TARGETS % dict(
-            apt_spec=current_app.config['APT_SPEC'],
-            bazel_targets=' + '.join(bazel_targets),
-            jsonify_script=jsonify_script.read()
-        )
 
 
 class HistoricalImmutableStep(object):
@@ -233,6 +197,7 @@ class JobPlan(db.Model):
             implementation = LXCBuildStep(
                 commands=[
                     {'script': get_bazel_setup(), 'type': 'setup'},
+                    {'script': sync_encap_pkgs(project_config), 'type': 'setup'},
                     {'script': collect_bazel_targets(project_config['bazel.targets']), 'type': 'collect_tests'},
                 ],
             )
