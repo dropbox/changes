@@ -6,6 +6,7 @@ import uuid
 from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
+from flask import current_app
 from sqlalchemy import Column, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Index
@@ -195,6 +196,7 @@ class JobPlan(db.Model):
                 return None, None
 
             implementation = LXCBuildStep(
+                cluster=current_app.config['DEFAULT_CLUSTER'],
                 commands=[
                     {'script': get_bazel_setup(), 'type': 'setup'},
                     {'script': sync_encap_pkgs(project_config), 'type': 'setup'},
