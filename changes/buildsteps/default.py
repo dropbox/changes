@@ -344,7 +344,8 @@ class DefaultBuildStep(BuildStep):
 
         if replaces:
             replaces.replacement_id = step.id
-            step.data['avoid_node'] = replaces.node.label
+            if replaces.node:
+                step.data['avoid_node'] = replaces.node.label
             db.session.add(replaces)
             db.session.add(step)
 
