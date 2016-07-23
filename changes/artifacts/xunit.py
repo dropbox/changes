@@ -361,5 +361,8 @@ def get_testcase_messages(testcase):
             message += '\n\n'
         message += \
             (' ' + m.label + ' ').center(78, '=') + '\n' + \
-            truncate_message(saxutils.unescape(m.get_message().decode('utf-8')), message_limit)
+            truncate_message(
+                saxutils.unescape(m.get_message().decode('utf-8'), {"&apos;": "'", "&quot;": '"'}),
+                message_limit,
+            )
     return message
