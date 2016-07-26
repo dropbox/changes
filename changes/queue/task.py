@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from threading import local, Lock, Timer
 from uuid import uuid4
+from collections import Counter
 from contextlib import contextmanager
 
 from changes.config import db, queue, statsreporter
@@ -415,6 +416,8 @@ class TrackedTask(local):
                 Task.date_modified: current_datetime,
             }, synchronize_session=False)
             db.session.commit()
+            for name, count in Counter((task.task_name for task in need_run)).iteritems():
+                statsreporter.stats().incr('task_revived_by_parent_' + name, count)
 
         if has_pending:
             status = Status.in_progress
