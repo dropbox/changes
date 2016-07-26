@@ -3,11 +3,13 @@ import React, { PropTypes } from 'react';
 import Request from 'es6!display/request';
 import SectionHeader from 'es6!display/section_header';
 import { Button } from 'es6!display/button';
+import ChangesLinks from 'es6!display/changes/links';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
-import { Grid } from 'es6!display/grid';
+import { Grid, GridRow } from 'es6!display/grid';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import { SingleBuildStatus } from 'es6!display/changes/builds';
-import { TimeText } from 'es6!display/time';
+import { get_runnable_condition, is_waiting } from 'es6!display/changes/build_conditions';
+import { TimeText, display_duration } from 'es6!display/time';
 
 import * as api from 'es6!server/api';
 
@@ -81,17 +83,21 @@ var NodePage = React.createClass({
       }
     };
 
-    var cellClasses = ['buildWidgetCell', 'nowrap', 'nowrap', 'wide', 'nowrap'];
-    var headers = [ 'Build', 'Phab.', 'Project', 'Name', 'Committed'];
+    var cellClasses = ['buildWidgetCell', 'nowrap', 'nowrap', 'nowrap', 'wide', 'nowrap'];
+    var headers = [ 'Build', 'Duration', 'Target', 'Project', 'Name', 'Created'];
 
     var grid_data = _.map(this.state.nodeJobs.getReturnedData(), d => {
       var project_href = "/project/" + d.project.slug;
-      return [
+      let duration = !is_waiting(get_runnable_condition(d)) ?
+        display_duration(d.duration / 1000) :
+        null;
+      return new GridRow(d.id, [
         <SingleBuildStatus build={d.build} parentElem={this} />,
-        d.build.source.id.substr(0, 7),
+        duration,
+        ChangesLinks.phab(d.build),
         <a href={project_href}>{d.project.name}</a>,
         d.build.name,
-        <TimeText time={d.build.dateCreated} />];
+        <TimeText time={d.dateCreated} />]);
     })
 
     var details = this.state.nodeDetails.getReturnedData();
@@ -127,7 +133,7 @@ var NodePage = React.createClass({
         Recent runs on this node
       </div>
       <Grid
-        colnum={5}
+        colnum={headers.length}
         data={grid_data}
         cellClasses={cellClasses}
         headers={headers}
