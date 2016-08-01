@@ -10,6 +10,7 @@ from changes.models.plan import Plan
 
 
 OPTION_DEFAULTS = {
+    'bazel.autogenerate': '0',
     'build.expect-tests': '0',
     'build.timeout': '0',
     'snapshot.allow': '1',
@@ -34,6 +35,7 @@ class PlanOptionsAPIView(APIView):
         return self.respond(options)
 
     post_parser = RequestParser()
+    post_parser.add_argument('bazel.autogenerate')
     post_parser.add_argument('build.expect-tests')
     post_parser.add_argument('build.timeout')
     post_parser.add_argument('snapshot.allow')

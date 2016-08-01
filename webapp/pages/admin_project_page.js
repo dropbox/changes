@@ -451,7 +451,7 @@ let PlanDetails = React.createClass({
   },
 
   getFieldNames: function() {
-    return ['name', 'status', 'expectTests', 'allowSnapshot', 'requireSnapshot'];
+    return ['name', 'status', 'expectTests', 'allowSnapshot', 'requireSnapshot', 'autogenerateBazelSteps'];
   },
 
   saveSettings: function() {
@@ -461,6 +461,7 @@ let PlanDetails = React.createClass({
       'status': state.status,
     };
     let options_params = {
+      'bazel.autogenerate': state.autogenerateBazelSteps | 0,
       'build.expect-tests': state.expectTests | 0,
       'snapshot.allow': state.allowSnapshot | 0,
       'snapshot.require': state.requireSnapshot | 0,
@@ -486,6 +487,7 @@ let PlanDetails = React.createClass({
                     expectTests: this.props.options['build.expect-tests'] === '1',
                     allowSnapshot: this.props.options['snapshot.allow'] === '1',
                     requireSnapshot: this.props.options['snapshot.require'] === '1',
+                    autogenerateBazelSteps: this.props.options['bazel.autogenerate'] === '1',
                   },
                   this.updateSavedFormState);
   },
@@ -505,6 +507,10 @@ let PlanDetails = React.createClass({
       { sectionTitle: 'Tests', fields: [
         {type: 'checkbox', link: 'expectTests',
          comment: 'Expect test results to be reported. If they\'re not, the build will be considered as failing, in addition to "failing during setup".'},
+        ]
+      },
+      { sectionTitle: 'Bazel', fields: [
+        {type: 'checkbox', link: 'autogenerateBazelSteps', comment: 'Autogenerate steps from bazel.targets in project yaml'},
         ]
       },
     ];
