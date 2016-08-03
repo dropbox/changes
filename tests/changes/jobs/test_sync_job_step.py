@@ -65,9 +65,9 @@ class HasTimedOutTest(BaseTestCase):
         db.session.add(jobstep)
         db.session.commit()
 
-        # No date_started, but based on config value of 5 and date_created from
-        # 6 minutes ago, should time out.
-        assert has_timed_out(jobstep, jobplan, default_never)
+        # Jobstep has only been allocated, not started just yet.
+        # Timeout for jobsteps in queue applied, shouldn't time out.
+        assert not has_timed_out(jobstep, jobplan, default_never)
 
         jobstep.status = Status.in_progress
         jobstep.date_started = datetime.utcnow()
@@ -83,13 +83,6 @@ class HasTimedOutTest(BaseTestCase):
         db.session.commit()
 
         # Based on config value of 5, should time out.
-        assert has_timed_out(jobstep, jobplan, default_never)
-
-        jobstep.status = Status.allocated
-        db.session.add(jobstep)
-        db.session.commit()
-
-        # Doesn't require 'in_progress' to time out.
         assert has_timed_out(jobstep, jobplan, default_never)
 
         jobplan.data['snapshot']['steps'][0]['options'][option.name] = '0'
@@ -108,6 +101,72 @@ class HasTimedOutTest(BaseTestCase):
         db.session.commit()
 
         assert not has_timed_out(jobstep, jobplan, default_always)
+
+    def test_non_running(self):
+        # Verify separate timeout for non-running jobsteps
+        default_never = 1e9
+
+        project = self.create_project()
+        plan = self.create_plan(project)
+        step = self.create_step(plan)
+
+        option = ItemOption(
+            item_id=step.id,
+            name='build.timeout',
+            value='5',
+        )
+        db.session.add(option)
+        db.session.flush()
+
+        build = self.create_build(project=project)
+        job = self.create_job(build=build, status=Status.in_progress)
+        jobplan = self.create_job_plan(job, plan)
+
+        jobphase = self.create_jobphase(job)
+
+        jobstep = self.create_jobstep(jobphase)
+        jobstep.status = Status.pending_allocation
+        jobstep.date_created = datetime.utcnow() - timedelta(minutes=6)
+
+        db.session.add(jobstep)
+        db.session.commit()
+
+        # Jobstep is still pending allocation.
+        # Timeout for jobsteps in queue applied, shouldn't time out.
+        assert not has_timed_out(jobstep, jobplan, default_never)
+
+        jobstep.status = Status.queued
+        db.session.add(jobstep)
+        db.session.commit()
+
+        assert not has_timed_out(jobstep, jobplan, default_never)
+
+        jobstep.status = Status.allocated
+        db.session.add(jobstep)
+        db.session.commit()
+
+        # Jobstep is has been allocated, not started running yet.
+        assert not has_timed_out(jobstep, jobplan, default_never)
+
+        jobstep.date_created = datetime.utcnow() - timedelta(minutes=181)
+
+        db.session.add(jobstep)
+        db.session.commit()
+
+        # Too long pending allocation.
+        assert has_timed_out(jobstep, jobplan, default_never)
+
+        jobstep.status = Status.queued
+        db.session.add(jobstep)
+        db.session.commit()
+
+        assert has_timed_out(jobstep, jobplan, default_never)
+
+        jobstep.status = Status.allocated
+        db.session.add(jobstep)
+        db.session.commit()
+
+        assert has_timed_out(jobstep, jobplan, default_never)
 
     def test_snapshot(self):
         project = self.create_project()

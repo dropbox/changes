@@ -166,9 +166,13 @@ def has_timed_out(step, jobplan, default_timeout):
     # timeout is in minutes
     timeout = timeout * 60
 
-    # Snapshots don't time out.
+    # Snapshots are given a few extra minutes before being considered as timed out.
     if _is_snapshot_job(jobplan):
         timeout += 60 * _SNAPSHOT_TIMEOUT_BONUS_MINUTES
+
+    # If jobstep is still queued/pending allocation, apply a separate timeout
+    if step.status in (Status.allocated, Status.pending_allocation, Status.queued):
+        timeout = TIMEOUT_IN_QUEUE_MIN * 60
 
     delta = datetime.utcnow() - start_time
     if delta.total_seconds() > timeout:
@@ -205,6 +209,10 @@ def record_coverage_stats(step):
 # If the job legitimately takes more than an hour, the build
 # should specify an appropriate timeout.
 DEFAULT_TIMEOUT_MIN = 60
+
+# In minutes, the timeout applied to jobs which are in the queue/pending allocation.
+# This is applied uniformly across all jobsteps, and cannot be overridden per jobstep.
+TIMEOUT_IN_QUEUE_MIN = 180
 
 
 # In seconds, the timeout applied to any requests we make to the artifacts
