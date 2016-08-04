@@ -699,8 +699,6 @@ def configure_api_routes(app):
 
 def configure_web_routes(app):
     from changes.web.auth import AuthorizedView, LoginView, LogoutView
-    from changes.web.index import IndexView
-    from changes.web.static import StaticView
 
     # the path used by the webapp for static resources uses the current app
     # version (which is a git hash) so that browsers don't use an old, cached
