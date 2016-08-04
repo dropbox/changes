@@ -12,8 +12,7 @@ from changes.models.option import ItemOption
 class IndexView(MethodView):
     custom_js = None
 
-    def __init__(self, use_v2=False):
-        self.use_v2 = use_v2
+    def __init__(self):
         super(MethodView, self).__init__()
 
     def get(self, path=''):
@@ -52,25 +51,17 @@ class IndexView(MethodView):
 
         disable_custom = request.args and "disable_custom" in request.args
 
-        # use new react code
-        if self.use_v2:
-            return render_template('webapp.html', **{
-                'SENTRY_PUBLIC_DSN': dsn,
-                'RELEASE_INFO': changes.get_revision_info(),
-                'WEBAPP_USE_ANOTHER_HOST': use_another_host,
-                'WEBAPP_CUSTOM_JS': (IndexView.custom_js if
-                    not disable_custom else None),
-                'USE_PACKAGED_JS': not current_app.debug,
-                'HAS_CUSTOM_CSS': (current_app.config['WEBAPP_CUSTOM_CSS'] and
-                    not disable_custom),
-                'IS_DEBUG': current_app.debug,
-                'PHABRICATOR_LINK_HOST': current_app.config['PHABRICATOR_LINK_HOST'],
-                'COLORBLIND': (user_options.get('user.colorblind') and
-                    user_options.get('user.colorblind') != '0'),
-            })
-
-        return render_template('index.html', **{
+        return render_template('webapp.html', **{
             'SENTRY_PUBLIC_DSN': dsn,
-            'VERSION': changes.get_version(),
-            'WEBAPP_USE_ANOTHER_HOST': use_another_host
+            'RELEASE_INFO': changes.get_revision_info(),
+            'WEBAPP_USE_ANOTHER_HOST': use_another_host,
+            'WEBAPP_CUSTOM_JS': (IndexView.custom_js if
+                not disable_custom else None),
+            'USE_PACKAGED_JS': not current_app.debug,
+            'HAS_CUSTOM_CSS': (current_app.config['WEBAPP_CUSTOM_CSS'] and
+                not disable_custom),
+            'IS_DEBUG': current_app.debug,
+            'PHABRICATOR_LINK_HOST': current_app.config['PHABRICATOR_LINK_HOST'],
+            'COLORBLIND': (user_options.get('user.colorblind') and
+                user_options.get('user.colorblind') != '0'),
         })

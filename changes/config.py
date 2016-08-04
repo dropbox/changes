@@ -357,10 +357,6 @@ def create_app(_read_config=True, **config):
     # to retry more jobsteps if it's always the same machine failing.
     app.config['JOBSTEP_MACHINE_RETRY_MAX'] = 2
 
-    # we opt these users into the new ui...redirecting them if they
-    # hit the homepage
-    app.config['NEW_UI_OPTIN_USERS'] = set([])
-
     # the PHID of the user creating quarantine tasks. We can use this to show
     # the list of open quarantine tasks inline
     app.config['QUARANTINE_PHID'] = None
@@ -368,8 +364,6 @@ def create_app(_read_config=True, **config):
     # The max length a test's output to be stored. If it is longer, the it will
     # be truncated.
     app.config['TEST_MESSAGE_MAX_LEN'] = 64 * 1024
-
-    app.config['USE_OLD_UI'] = False
 
     # sources.list entry, format is:
     # deb uri distribution [component1] [component2] [...]
@@ -730,19 +724,7 @@ def configure_web_routes(app):
                                                             authorized_url='authorized',
                                                             ))
 
-    if app.config['USE_OLD_UI']:
-        app.add_url_rule(
-            '/static/' + revision + '/<path:filename>',
-            view_func=StaticView.as_view('static', root=static_root))
-        app.add_url_rule(
-            '/partials/<path:filename>',
-            view_func=StaticView.as_view('partials', root=os.path.join(PROJECT_ROOT, 'partials')))
-        app.add_url_rule(
-            '/<path:path>', view_func=IndexView.as_view('index-path'))
-        app.add_url_rule(
-            '/', view_func=IndexView.as_view('index'))
-    else:
-        configure_default(app)
+    configure_default(app)
 
 
 def configure_default(app):
@@ -764,9 +746,8 @@ def configure_default(app):
             hacky_vendor_root=hacky_vendor_root)
     )
 
-    app.add_url_rule('/<path:path>',
-      view_func=IndexView.as_view('index-path', use_v2=True))
-    app.add_url_rule('/', view_func=IndexView.as_view('index', use_v2=True))
+    app.add_url_rule('/<path:path>', view_func=IndexView.as_view('index-path'))
+    app.add_url_rule('/', view_func=IndexView.as_view('index'))
 
     # serve custom images if we have a custom content file
     if app.config['WEBAPP_CUSTOM_JS']:
@@ -777,6 +758,7 @@ def configure_default(app):
                 'custom_image',
                 root=custom_dir)
         )
+
     # One last thing...we use CSS bundling via flask-assets, so set that up on
     # the main app object
     configure_assets(app)
