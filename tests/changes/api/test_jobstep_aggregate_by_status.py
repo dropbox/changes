@@ -75,6 +75,10 @@ class JobStepAggregateByStatusTest(APITestCase):
                         Status.pending_allocation.name:
                             [1, now_iso, jobstep_pending_allocation.id.get_hex()],
                     },
+                    "cluster_b": {
+                        Status.allocated.name:
+                            [1, now_iso, jobstep_allocated_.id.get_hex()],
+                    }
                 },
                 'by_project': {
                     project_1.slug: {
@@ -86,6 +90,8 @@ class JobStepAggregateByStatusTest(APITestCase):
                     project_2.slug: {
                         Status.queued.name:
                             [1, now_iso, jobstep_queued.id.get_hex()],
+                        Status.allocated.name:
+                            [1, now_iso, jobstep_allocated_.id.get_hex()],
                     },
                 },
                 'global': {
@@ -95,6 +101,8 @@ class JobStepAggregateByStatusTest(APITestCase):
                         [1, now_iso, jobstep_in_progress.id.get_hex()],
                     Status.pending_allocation.name:
                         [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                    Status.allocated.name:
+                        [1, now_iso, jobstep_allocated_.id.get_hex()],
                 },
             }
         }

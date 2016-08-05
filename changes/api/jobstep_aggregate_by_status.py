@@ -8,7 +8,7 @@ from changes.models.jobstep import JobStep
 class JobStepAggregateByStatusAPIView(APIView):
     def get(self):
         """GET method that returns aggregated data regarding jobsteps.
-        Fetch pending, queued, and in-progress jobsteps from the database.
+        Fetch pending, queued, allocated, and in-progress jobsteps from the database.
         Compute some aggregate metrics about them.
         Return the aggregated data in a JSON-friendly format.
 
@@ -47,7 +47,7 @@ class JobStepAggregateByStatusAPIView(APIView):
 
         jobsteps = JobStep.query.filter(
             JobStep.status.in_(
-                [Status.pending_allocation, Status.queued, Status.in_progress]),
+                [Status.pending_allocation, Status.queued, Status.in_progress, Status.allocated]),
         )
 
         by_cluster, by_project = defaultdict(dict), defaultdict(dict)
