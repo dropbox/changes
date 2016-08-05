@@ -1,6 +1,4 @@
 import re
-import hashlib
-import time
 import json
 import requests
 import logging
@@ -63,43 +61,23 @@ class PhabricatorClient(object):
         if self.auth_params and not force:
             return True
 
-        self.user = current_app.config.get('PHABRICATOR_USERNAME')
         self.host = current_app.config.get('PHABRICATOR_API_HOST')
-        self.cert = current_app.config.get('PHABRICATOR_CERT')
+        self.token = current_app.config.get('PHABRICATOR_TOKEN')
 
-        if not self.cert:
+        if not all([self.host, self.token]):
             logger.error(
-                "Couldn't find phabricator credentials user: %s host: %s cert: %s",
-                self.user, self.host, self.cert)
+                "Couldn't find phabricator credentials: host: %s token: %s",
+                self.host, self.token)
             return False
-
-        token = int(time.time())
-
-        connect_args = {
-            'authSignature': hashlib.sha1(str(token) + self.cert).hexdigest(),
-            'authToken': token,
-            'client': 'changes',
-            'clientDescription': 'conduit calls from changes api server',
-            'clientVersion': 1,
-            'host': self.host,
-            'user': self.user,
-        }
-
-        connect_url = "%s/api/conduit.connect" % self.host
-        resp = requests.post(connect_url, {
-            '__conduit__': True,
-            'output': 'json',
-            'params': json.dumps(connect_args),
-        }, timeout=10)
-        resp.raise_for_status()
-
-        resp = json.loads(resp.content)['result']
 
         # we're connected. Save connection params
         self.auth_params = {
-            'connectionID': resp['connectionID'],
-            'sessionKey': resp['sessionKey'],
+            'token': self.token,
         }
+
+        # Make an API request, to fail out with an exception if auth info is
+        # not correct / we cannot connect.
+        self.call('conduit.ping', {})
 
         return True  # Success!
 
