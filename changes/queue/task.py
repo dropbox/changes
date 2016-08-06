@@ -4,10 +4,9 @@ import logging
 
 from datetime import datetime, timedelta
 from functools import wraps
-from threading import local, Lock, Timer
+from threading import local, Lock
 from uuid import uuid4
 from collections import Counter
-from contextlib import contextmanager
 
 from changes.config import db, queue, statsreporter
 from changes.constants import Result, Status
@@ -24,9 +23,6 @@ EXPIRE_TIMEOUT = timedelta(minutes=120)
 HARD_TIMEOUT = timedelta(hours=12)
 
 MAX_RETRIES = 10
-
-# How many seconds we let tasks run before warning that they're slow.
-_SLOW_RUN_THRESHOLD = 5 * 60
 
 
 class NotFinished(Exception):
@@ -110,9 +106,7 @@ class TrackedTask(local):
             return
 
         try:
-            with self._report_slow(_SLOW_RUN_THRESHOLD, self.task_name):
-                self.func(**kwargs)
-
+            self.func(**kwargs)
         except NotFinished as e:
             self.logger.info(
                 'Task marked as not finished: %s %s', self.task_name, self.task_id)
@@ -430,22 +424,6 @@ class TrackedTask(local):
     def _report_created(self):
         """Reports to monitoring that a new Task was created."""
         statsreporter.stats().incr('new_task_created_' + self.task_name)
-
-    @contextmanager
-    def _report_slow(self, threshold, msg):
-        """Reports a warning if the wrapped code is taking too long
-        Args:
-            threshold (int): Time to wait before warning, in seconds.
-            msg (str): Message to be included in the report.
-        """
-        def report():
-            self.logger.warning("Task taking too long ({}s so far): {}", threshold, msg)
-        t = Timer(threshold, report)
-        t.start()
-        try:
-            yield
-        finally:
-            t.cancel()
 
 
 # bind to a decorator-like naming scheme
