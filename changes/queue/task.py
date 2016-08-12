@@ -95,14 +95,18 @@ class TrackedTask(local):
         self.parent_id = kwargs.pop('parent_task_id', None)
         self.kwargs = kwargs
 
-        date_started = datetime.utcnow()
+        now = datetime.utcnow()
+
+        self._report_lag(now)
+
+        date_started = now
 
         updated = self._update({
-            Task.date_modified: datetime.utcnow(),
+            Task.date_modified: now,
         })
         if not updated and not self.allow_absent_from_db:
             self.logger.error("Tried to update a Task that doesn't exist in the database; %s, %s",
-                self.task_name, kwargs)
+                              self.task_name, kwargs)
             return
 
         try:
@@ -424,6 +428,23 @@ class TrackedTask(local):
     def _report_created(self):
         """Reports to monitoring that a new Task was created."""
         statsreporter.stats().incr('new_task_created_' + self.task_name)
+
+    def _report_lag(self, first_run_time):
+        """
+        Reports the time it took from creation to just before the first run of the Task; on subsequent
+        runs no reporting will occur.
+        Must be called before the `Task.date_modified` is updated.
+
+        Args:
+            first_run_time (datetime): When the task started running.
+        """
+        # type: (datetime) -> None
+        t = Task.query.get(self.task_id)
+        # Ensure the task exists, and that the creation and modification date
+        # are the same (meaning we're at the first run).
+        if t and t.date_created == t.date_modified:
+            lag_ms = (first_run_time - t.date_created).total_seconds() * 1000
+            statsreporter.stats().log_timing('first_execution_lag_' + self.task_name, lag_ms)
 
 
 # bind to a decorator-like naming scheme

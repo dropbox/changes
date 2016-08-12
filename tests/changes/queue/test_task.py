@@ -2,10 +2,12 @@ from __future__ import absolute_import
 
 import mock
 
+from datetime import datetime, timedelta
 from uuid import UUID
 
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.constants import Result, Status
+from changes.ext.statsreporter import Stats
 from changes.models.task import Task
 from changes.testutils import TestCase
 from changes.queue.task import tracked_task
@@ -24,6 +26,23 @@ def unfinished_task(foo='bar'):
 @tracked_task
 def error_task(foo='bar'):
     raise Exception
+
+
+class LagTest(TestCase):
+    def test_report_lag(self):
+        creation_date = datetime(2016, 8, 12, 17, 42, 27)
+        fresh_task = self.create_task(
+            task_name='success_task',
+            date_created=creation_date,
+            status=Status.queued,
+        )
+        success_task.task_id = fresh_task.id
+
+        fake_stats = mock.Mock(spec=Stats)
+        with mock.patch.object(statsreporter, 'stats') as get_stats:
+            get_stats.return_value = fake_stats
+            success_task._report_lag(creation_date + timedelta(seconds=5))
+        fake_stats.log_timing.assert_called_once_with('first_execution_lag_success_task', 5000)
 
 
 class DelayTest(TestCase):
