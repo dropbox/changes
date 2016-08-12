@@ -16,6 +16,7 @@ from changes.db.types.enum import Enum as EnumType
 from changes.db.types.filestorage import FileStorage, FileData
 from changes.db.types.guid import GUID
 from changes.db.utils import model_repr
+from changes.storage.artifactstore import ArtifactStoreFileStorage
 
 logger = logging.getLogger('models.testartifact')
 
@@ -80,15 +81,11 @@ class TestArtifact(db.Model):
             # do it with SQLAlchemy
             self.file = FileData({}, TESTARTIFACT_STORAGE_OPTIONS)
 
-    def save_base64_content(self, base64):
+    def save_base64_content(self, base64, bucket_name):
         content = b64decode(base64)
-        self.file.save(
-            StringIO(content),
-            '{0}/{1}_{2}'.format(
-                self.test_id, self.id.hex, self.name
-            ),
-            self._get_content_type()
-        )
+        self.file.storage = 'changes.storage.artifactstore.ArtifactStoreFileStorage'
+        filename = ArtifactStoreFileStorage.get_filename_from_artifact_name(bucket_name, self.id.hex)
+        self.file.save(StringIO(content), filename, content_type=self._get_content_type(), path=self.name)
 
     def _get_content_type(self):
         content_type, encoding = mimetypes.guess_type(self.name)

@@ -3,6 +3,7 @@ from base64 import b64encode
 import mock
 
 from changes.constants import Result
+from changes.lib.artifact_store_mock import ArtifactStoreMock
 from changes.models.failurereason import FailureReason
 from changes.models.itemstat import ItemStat
 from changes.models.testresult import TestResult, TestResultManager, logger
@@ -15,6 +16,8 @@ def _stat(jobstep, name):
 
 
 class TestResultManagerTestCase(TestCase):
+    @mock.patch('changes.models.testresult.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.storage.artifactstore.ArtifactStoreClient', ArtifactStoreMock)
     def test_simple(self):
         from changes.models.test import TestCase
 
@@ -83,6 +86,8 @@ class TestResultManagerTestCase(TestCase):
         failures = FailureReason.query.filter_by(step_id=jobstep.id).all()
         assert failures == []
 
+    @mock.patch('changes.models.testresult.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.storage.artifactstore.ArtifactStoreClient', ArtifactStoreMock)
     def test_bad_duration(self):
         from changes.models.test import TestCase
 
@@ -126,6 +131,8 @@ class TestResultManagerTestCase(TestCase):
         assert testcase_list[0].message == 'collection failed'
         assert testcase_list[0].duration == 0
 
+    @mock.patch('changes.models.testresult.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.storage.artifactstore.ArtifactStoreClient', ArtifactStoreMock)
     def test_duplicate_tests_in_same_result_list(self):
         from changes.models.test import TestCase
 
@@ -225,6 +232,8 @@ class TestResultManagerTestCase(TestCase):
         assert len(failures) == 1
         assert failures[0].reason == 'duplicate_test_name'
 
+    @mock.patch('changes.models.testresult.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.storage.artifactstore.ArtifactStoreClient', ArtifactStoreMock)
     def test_duplicate_tests_in_different_result_lists(self):
         from changes.models.test import TestCase
 

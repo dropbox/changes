@@ -5,7 +5,7 @@ class FileStorage(object):
     def __init__(self, path=''):
         self.path = path
 
-    def save(self, filename, fp):
+    def save(self, filename, fp, content_type=None, path=None):
         raise NotImplementedError
 
     def url_for(self, filename, expire=300):

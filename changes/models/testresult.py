@@ -1,15 +1,18 @@
 from __future__ import absolute_import, division
 
 import logging
+import random as insecure_random
 import re
 
 from datetime import datetime
+from flask import current_app
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update
+from changes.lib.artifact_store_lib import ArtifactStoreClient
 from changes.models.failurereason import FailureReason
 from changes.models.itemstat import ItemStat
 from changes.models.test import TestCase
@@ -161,15 +164,32 @@ class TestResultManager(object):
         # Test artifacts and messages do not operate under a unique constraint, so
         # they should insert cleanly without an integrity error.
 
+        as_client = ArtifactStoreClient(current_app.config['ARTIFACTS_SERVER'])
         for test, testcase in zip(test_list, testcase_list):
             if test.artifacts:
+                bucket_name = '{}_{}'.format(step.id.hex, test.id)
+
+                num_attempts = 0
+                max_duplicate_attempts = 5
+                while num_attempts < max_duplicate_attempts:
+                    try:
+                        as_client.create_bucket(bucket_name)
+                        break
+                    except Exception as e:
+                        bucket_name = '{}_{}_dup_{}'.format(step.id.hex, test.id,
+                                                            "%05x" % insecure_random.getrandbits(4 * 5))
+                        num_attempts += 1
+                        if num_attempts == max_duplicate_attempts:
+                            raise e
+
                 for ta in test.artifacts:
                     testartifact = TestArtifact(
                         name=ta['name'],
                         type=ta['type'],
                         test=testcase,)
-                    testartifact.save_base64_content(ta['base64'])
+                    testartifact.save_base64_content(ta['base64'], bucket_name)
                     db.session.add(testartifact)
+                as_client.close_bucket(bucket_name)
 
             for (label, start, length) in test.message_offsets:
                 testmessage = TestMessage(

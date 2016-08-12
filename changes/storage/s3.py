@@ -38,7 +38,7 @@ class S3FileStorage(FileStorage):
     def get_file_path(self, filename):
         return '/'.join([self.path.rstrip('/'), filename])
 
-    def save(self, filename, fp, content_type=None):
+    def save(self, filename, fp, content_type=None, path=None):
         key = self.bucket.new_key(self.get_file_path(filename))
         if content_type:
             key.content_type = content_type
@@ -58,6 +58,3 @@ class S3FileStorage(FileStorage):
             else:
                 headers['Range'] = 'bytes=%d-' % (offset)
         return self.bucket.get_key(self.get_file_path(filename), headers=headers)
-
-    def get_content_type(self, filename):
-        return self.bucket.get_key(self.get_file_path(filename)).content_type

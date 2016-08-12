@@ -32,7 +32,7 @@ class ArtifactStoreMock:
         :return: The created Bucket
         """
         if bucket_name in ArtifactStoreMock.buckets:
-            raise 'bucket already exists'
+            raise Exception('bucket already exists')
 
         b = Bucket(
             {
@@ -83,7 +83,7 @@ class ArtifactStoreMock:
         :return: The created Artifact
         """
         if ArtifactStoreMock.buckets[bucket_name].state != BucketState.OPEN:
-            raise 'bucket already closed'
+            raise Exception('bucket already closed')
 
         while artifact_name in ArtifactStoreMock.artifacts[bucket_name]:
             artifact_name += '.dup'
@@ -111,15 +111,15 @@ class ArtifactStoreMock:
         :return: The updated Artifact
         """
         if ArtifactStoreMock.buckets[bucket_name].state != BucketState.OPEN:
-            raise 'bucket already closed'
+            raise Exception('bucket already closed')
 
         a = ArtifactStoreMock.artifacts[bucket_name][artifact_name]
 
         if a.state != ArtifactState.APPENDING:
-            raise "artifact not open for appending"
+            raise Exception('artifact not open for appending')
 
         if offset != a.size:
-            raise "incorrect offset!"
+            raise Exception('incorrect offset!')
 
         ArtifactStoreMock.artifact_content[bucket_name][artifact_name] += chunk
         a.size += len(chunk)
@@ -132,7 +132,7 @@ class ArtifactStoreMock:
         Closes a chunked artifact
         """
         if ArtifactStoreMock.buckets[bucket_name].state != BucketState.OPEN:
-            raise 'bucket already closed'
+            raise Exception('bucket already closed')
 
         a = ArtifactStoreMock.artifacts[bucket_name][artifact_name]
 
@@ -150,7 +150,7 @@ class ArtifactStoreMock:
         :return: The written Artifact
         """
         if ArtifactStoreMock.buckets[bucket_name].state != BucketState.OPEN:
-            raise 'bucket already closed'
+            raise Exception('bucket already closed')
 
         # No path defaults to the artifact name
         path = path or artifact_name

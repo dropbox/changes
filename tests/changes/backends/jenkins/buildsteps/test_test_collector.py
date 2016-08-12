@@ -335,6 +335,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
     @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.storage.artifactstore.ArtifactStoreClient', ArtifactStoreMock)
     def test_job_expansion(self, get_test_stats, get_job_parameters,
                            create_jenkins_job_from_params, fetch_artifact):
         """
@@ -473,6 +474,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
     @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.storage.artifactstore.ArtifactStoreClient', ArtifactStoreMock)
     def test_create_replacement_jobstep(self, get_test_stats, get_job_parameters,
                                         create_jenkins_job_from_params, fetch_artifact):
         """
@@ -628,6 +630,7 @@ class JenkinsTestCollectorBuildStepTest(TestCase):
     @mock.patch.object(JenkinsTestCollectorBuilder, 'get_job_parameters')
     @mock.patch.object(TestsExpander, 'get_test_stats')
     @mock.patch('changes.backends.jenkins.builder.ArtifactStoreClient', ArtifactStoreMock)
+    @mock.patch('changes.storage.artifactstore.ArtifactStoreClient', ArtifactStoreMock)
     def test_job_expansion_no_tests(self, get_test_stats, get_job_parameters,
                            create_jenkins_job_from_params, fetch_artifact):
         fetch_artifact.return_value.content = json.dumps({

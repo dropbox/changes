@@ -44,23 +44,18 @@ class FileData(Mutable):
             self.filename = filename
         self.changed()
 
-    def save(self, fp, filename=None, content_type=None):
+    def save(self, fp, filename=None, content_type=None, path=None):
         self.set_filename(filename)
         if self.filename is None:
             raise ValueError('Missing filename')
 
-        filename = self.get_storage().save(self.filename, fp, content_type)
+        filename = self.get_storage().save(self.filename, fp, content_type, path)
         self.set_filename(filename)
 
     def get_file(self, offset=None, length=None):
         if self.filename is None:
             raise ValueError('Missing filename')
         return self.get_storage().get_file(self.filename, offset=offset, length=length)
-
-    def get_content_type(self):
-        if self.filename is None:
-            raise ValueError('Missing filename')
-        return self.get_storage().get_content_type(self.filename)
 
     @classmethod
     def coerce(cls, key, value):

@@ -242,12 +242,9 @@ class JenkinsBuilder(BaseBackend):
 
         bucket_name = self._get_artifactstore_bucket(jobstep)
 
-        artifact_url = self.artifact_store_client\
-            .write_streamed_artifact(bucket_name, artifact.id.hex, path=artifact.name, data=resp.content).name
-
         artifact.file.storage = 'changes.storage.artifactstore.ArtifactStoreFileStorage'
-        filename = ArtifactStoreFileStorage.get_filename_from_artifact_name(bucket_name, artifact_url)
-        artifact.file.set_filename(filename)
+        filename = ArtifactStoreFileStorage.get_filename_from_artifact_name(bucket_name, artifact.id.hex)
+        artifact.file.save(StringIO(resp.content), filename, path=artifact.name)
 
         # commit file save regardless of whether handler is successful
         db.session.commit()

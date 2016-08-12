@@ -13,10 +13,11 @@ class FileStorageCache(FileStorage):
     def __init__(self, **kwargs):
         super(FileStorageCache, self).__init__(**kwargs)
 
-    def save(self, filename, fp, content_type=None):
+    def save(self, filename, fp, content_type=None, path=None):
         _cache[filename] = {
                     'content': fp.read(),
                     'content_type': content_type,
+                    'path': path,
                 }
         return filename
 
@@ -30,9 +31,6 @@ class FileStorageCache(FileStorage):
             if length is not None and length >= 1:
                 end_offset = offset + length
         return StringIO(_cache[filename]['content'][start_offset:end_offset])
-
-    def get_content_type(self, filename):
-        return _cache[filename]['content_type']
 
     @staticmethod
     def clear():
