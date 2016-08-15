@@ -23,7 +23,9 @@ class S3FileStorageTest(TestCase):
             bucket='foo',
             path='artifacts/',
         )
-        storage.save('filename.txt', fp)
+        key = storage.bucket.new_key(storage.get_file_path('filename.txt'))
+        key.set_contents_from_file(fp)
+        key.set_acl('private')
 
         result = storage.url_for('filename.txt')
         assert result.startswith('https://foo.s3.amazonaws.com/artifacts/filename.txt?')

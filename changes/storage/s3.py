@@ -39,12 +39,7 @@ class S3FileStorage(FileStorage):
         return '/'.join([self.path.rstrip('/'), filename])
 
     def save(self, filename, fp, content_type=None, path=None):
-        key = self.bucket.new_key(self.get_file_path(filename))
-        if content_type:
-            key.content_type = content_type
-        key.set_contents_from_file(fp)
-        key.set_acl('private')
-        return filename
+        raise NotImplementedError('Saving artifacts to S3 is deprecated')
 
     def url_for(self, filename, expire=300):
         key = self.bucket.get_key(self.get_file_path(filename))
