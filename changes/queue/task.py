@@ -439,7 +439,11 @@ class TrackedTask(local):
             first_run_time (datetime): When the task started running.
         """
         # type: (datetime) -> None
-        t = Task.query.get(self.task_id)
+        t = Task.query.filter(
+            Task.task_name == self.task_name,
+            Task.task_id == self.task_id,
+            Task.parent_id == self.parent_id
+        ).first()
         # Ensure the task exists, and that the creation and modification date
         # are the same (meaning we're at the first run).
         if t and t.date_created == t.date_modified:

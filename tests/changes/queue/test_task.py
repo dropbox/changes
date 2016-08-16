@@ -33,10 +33,11 @@ class LagTest(TestCase):
         creation_date = datetime(2016, 8, 12, 17, 42, 27)
         fresh_task = self.create_task(
             task_name='success_task',
+            task_id=UUID('94bec3a1-592d-4734-b84b-55ba0226e5d1'),
             date_created=creation_date,
             status=Status.queued,
         )
-        success_task.task_id = fresh_task.id
+        success_task.task_id = fresh_task.task_id
 
         fake_stats = mock.Mock(spec=Stats)
         with mock.patch.object(statsreporter, 'stats') as get_stats:

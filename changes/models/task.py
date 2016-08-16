@@ -46,6 +46,7 @@ class Task(db.Model):
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
     task_name = Column(String(128), nullable=False)
+    # TODO: Rename 'task_id' to 'child_id' in code to make things less confusing.
     task_id = Column('child_id', GUID, nullable=False)
     parent_id = Column(GUID)
     status = Column(Enum(Status), nullable=False, default=Status.unknown)
