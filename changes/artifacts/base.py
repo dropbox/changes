@@ -17,6 +17,7 @@ class ArtifactParseError(Exception):
 
 class ArtifactHandler(object):
     FILENAMES = ()
+    MAX_ARTIFACT_BYTES = 50 * 1024 * 1024
     logger = logging.getLogger('artifacts')
 
     def __init__(self, step):

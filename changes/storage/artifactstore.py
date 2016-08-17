@@ -42,8 +42,11 @@ class ArtifactStoreFileStorage(FileStorage):
             filename=filename
         )
 
+    def get_size(self, filename):
+        bucket_name, artifact_name = ArtifactStoreFileStorage.get_artifact_name_from_filename(filename)
+        return ArtifactStoreClient(self.base_url).get_artifact(bucket_name, artifact_name).size
+
     def get_file(self, filename, offset=None, length=None):
-        # TODO(paulruan): Have a reasonable file size limit
         bucket_name, artifact_name = ArtifactStoreFileStorage.get_artifact_name_from_filename(filename)
         return ArtifactStoreClient(self.base_url) \
             .get_artifact_content(bucket_name, artifact_name, offset, length)

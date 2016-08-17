@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import os
+
 from cStringIO import StringIO
 
 from changes.storage.base import FileStorage
@@ -23,6 +25,11 @@ class FileStorageCache(FileStorage):
 
     def url_for(self, filename, expire=300):
         return 'url-not-implemented-for-filestoragecache'
+
+    def get_size(self, filename):
+        fp = StringIO(_cache[filename]['content'])
+        fp.seek(0, os.SEEK_END)
+        return fp.tell()
 
     def get_file(self, filename, offset=None, length=None):
         start_offset, end_offset = None, None

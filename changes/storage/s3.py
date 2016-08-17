@@ -45,6 +45,10 @@ class S3FileStorage(FileStorage):
         key = self.bucket.get_key(self.get_file_path(filename))
         return key.generate_url(300)
 
+    def get_size(self, filename):
+        key = self.bucket.get_key(self.get_file_path(filename))
+        return key.size
+
     def get_file(self, filename, offset=None, length=None):
         headers = {}
         if offset is not None:

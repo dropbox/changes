@@ -544,3 +544,10 @@ class Fixtures(object):
         db.session.add(message)
         db.session.commit()
         return message
+
+    def create_any_jobstep(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        return self.create_jobstep(jobphase)

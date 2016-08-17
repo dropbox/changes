@@ -13,9 +13,13 @@ class Manager(object):
         artifact_name = artifact.name
         for cls in self.handlers:
             if cls.can_process(artifact_name):
+                handler = cls(step)
+                size = artifact.file.get_size()
+                if size > cls.MAX_ARTIFACT_BYTES:
+                    handler.report_malformed()
+                    continue
                 if not fp:
                     fp = artifact.file.get_file()
-                handler = cls(step)
                 try:
                     handler.process(fp, artifact)
                 finally:

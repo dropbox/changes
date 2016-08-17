@@ -13,3 +13,6 @@ class FileStorage(object):
 
     def get_file(self, filename, offset=None, length=None):
         raise NotImplementedError
+
+    def get_size(self, filename):
+        raise NotImplementedError

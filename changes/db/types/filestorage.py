@@ -48,9 +48,13 @@ class FileData(Mutable):
         self.set_filename(filename)
         if self.filename is None:
             raise ValueError('Missing filename')
-
         filename = self.get_storage().save(self.filename, fp, content_type, path)
         self.set_filename(filename)
+
+    def get_size(self):
+        if self.filename is None:
+            raise ValueError('Missing filename')
+        return self.get_storage().get_size(self.filename)
 
     def get_file(self, offset=None, length=None):
         if self.filename is None:
