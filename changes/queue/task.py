@@ -449,11 +449,6 @@ class TrackedTask(local):
         if t and t.date_created == t.date_modified:
             lag_ms = (first_run_time - t.date_created).total_seconds() * 1000
             statsreporter.stats().log_timing('first_execution_lag_' + self.task_name, lag_ms)
-        elif t:
-            self.logger.info("Not first execution; id=%s, created=%s, modified=%s",
-                             self.task_id, t.date_created, t.date_modified)
-        else:
-            self.logger.info("Task not found for task id: %r", self.task_id)
 
 
 # bind to a decorator-like naming scheme
