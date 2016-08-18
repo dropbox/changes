@@ -45,6 +45,7 @@ install_requires = [
     'flask-mail>=0.9.0,<0.10.0',
     'flask-restful>=0.2.10,<0.2.11',
     'flask-sqlalchemy>=1.0,<1.1',
+    'groupy==0.0.9', # 0.1.0 had a ValueError on making any kind of query
     'lxml>=3.2.3,<3.3.0',
     'kazoo==2.2.1',
     'raven>=5.3.0,<5.4.0',

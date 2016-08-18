@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
-import { Button } from 'es6!display/button';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
 import * as FieldGroupMarkup from 'es6!display/field_group';
@@ -190,7 +189,7 @@ let AdminPage = React.createClass({
 
     _.each(users, user => {
       let params = {};
-      let action = user.isAdmin ? 'Remove Admin' : 'Make Admin';
+      let isAdmin = user.isAdmin ? 'Yes' : 'No';
       params['is_admin'] = !user.isAdmin;
       let endpoint = `/api/0/users/${user.id}/`;
       let post = <Request
@@ -199,9 +198,9 @@ let AdminPage = React.createClass({
                     endpoint={endpoint}
                     method="post"
                     params={params}>
-                      <Button type="blue">
-                        <span>{action}</span>
-                      </Button>
+                      <span>
+                        {isAdmin}
+                      </span>
                  </Request>;
 
       rows.push([

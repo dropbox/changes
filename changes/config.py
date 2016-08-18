@@ -87,6 +87,9 @@ def create_app(_read_config=True, **config):
     app.config['SQLALCHEMY_RECORD_QUERIES'] = True
 
     app.config['REDIS_URL'] = 'redis://localhost/0'
+    app.config['GROUPER_API_URL'] = 'localhost:80'
+    app.config['GROUPER_PERMISSIONS_ADMIN'] = 'changes.prod.admin'
+    app.config['GROUPER_EXCLUDED_ROLES'] = ['np-owner']
     app.config['DEBUG'] = True
     app.config['HTTP_PORT'] = 5000
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -184,6 +187,7 @@ def create_app(_read_config=True, **config):
         Queue('events', routing_key='events'),
         Queue('default', routing_key='default'),
         Queue('repo.sync', Exchange('fanout', 'fanout'), routing_key='repo.sync'),
+        Queue('grouper.sync', routing_key='grouper.sync'),
         Broadcast('repo.update'),
     )
     app.config['CELERY_ROUTES'] = {
@@ -206,6 +210,10 @@ def create_app(_read_config=True, **config):
         'check_repos': {
             'queue': 'repo.sync',
             'routing_key': 'repo.sync',
+        },
+        'sync_grouper': {
+            'queue': 'grouper.sync',
+            'routing_key': 'grouper.sync',
         },
         'sync_repo': {
             'queue': 'repo.sync',
@@ -262,6 +270,10 @@ def create_app(_read_config=True, **config):
         'check-repos': {
             'task': 'check_repos',
             'schedule': timedelta(minutes=2),
+        },
+        'sync-grouper': {
+            'task': 'sync_grouper',
+            'schedule': timedelta(minutes=1),
         },
         'aggregate-flaky-tests': {
             'task': 'aggregate_flaky_tests',
@@ -827,6 +839,7 @@ def configure_jobs(app):
     )
     from changes.jobs.sync_artifact import sync_artifact
     from changes.jobs.sync_build import sync_build
+    from changes.jobs.sync_grouper import sync_grouper
     from changes.jobs.sync_job import sync_job
     from changes.jobs.sync_job_step import sync_job_step
     from changes.jobs.sync_repo import sync_repo
@@ -844,6 +857,7 @@ def configure_jobs(app):
     queue.register('run_event_listener', run_event_listener)
     queue.register('sync_artifact', sync_artifact)
     queue.register('sync_build', sync_build)
+    queue.register('sync_grouper', sync_grouper)
     queue.register('sync_job', sync_job)
     queue.register('sync_job_step', sync_job_step)
     queue.register('sync_repo', sync_repo)

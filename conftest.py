@@ -35,6 +35,7 @@ def app(request, session_config):
         TESTING=True,
         SQLALCHEMY_DATABASE_URI='postgresql:///' + session_config['db_name'],
         REDIS_URL='redis://localhost/' + session_config['redis_db'],
+        GROUPER_API_URL='https://localhost/',
         WEB_BASE_URI='http://example.com',
         INTERNAL_BASE_URI='http://changes-int.example.com',
         REPO_ROOT='/tmp',
