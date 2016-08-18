@@ -5,6 +5,8 @@ from fnmatch import fnmatch
 import logging
 import os
 
+from flask import current_app
+
 from changes.config import db
 from changes.db.utils import try_create
 from changes.models.failurereason import FailureReason
@@ -17,11 +19,11 @@ class ArtifactParseError(Exception):
 
 class ArtifactHandler(object):
     FILENAMES = ()
-    MAX_ARTIFACT_BYTES = 50 * 1024 * 1024
     logger = logging.getLogger('artifacts')
 
     def __init__(self, step):
         self.step = step
+        self.max_artifact_bytes = current_app.config['MAX_ARTIFACT_BYTES']
 
     @staticmethod
     def _sanitize_path(artifact_path):

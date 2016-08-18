@@ -26,6 +26,10 @@ class AnalyticsJsonHandler(ArtifactHandler):
     """
     FILENAMES = ('CHANGES_ANALYTICS.json', '*.CHANGES_ANALYTICS.json')
 
+    def __init__(self, step):
+        super(AnalyticsJsonHandler, self).__init__(step)
+        self.max_artifact_bytes = current_app.config['MAX_ARTIFACT_BYTES_ANALYTICS_JSON']
+
     def process(self, fp, artifact):
         allowed_tables = current_app.config.get('ANALYTICS_PROJECT_TABLES', [])
         try:

@@ -15,7 +15,7 @@ class Manager(object):
             if cls.can_process(artifact_name):
                 handler = cls(step)
                 size = artifact.file.get_size()
-                if size > cls.MAX_ARTIFACT_BYTES:
+                if size > handler.max_artifact_bytes:
                     handler.report_malformed()
                     continue
                 if not fp:

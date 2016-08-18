@@ -123,6 +123,11 @@ def create_app(_read_config=True, **config):
     # without being overridden. This value is referenced in test code.
     app.config['ARTIFACTS_SERVER'] = 'http://localhost:1234'
 
+    # The default max artifact size handlers should be capable of processing.
+    app.config['MAX_ARTIFACT_BYTES'] = 200 * 1024 * 1024
+    # The max artifact size the analytics json handler should be capable of processing.
+    app.config['MAX_ARTIFACT_BYTES_ANALYTICS_JSON'] = 70 * 1024 * 1024
+
     # the binary to use for running changes-client. Default is just
     # "changes-client", but can also be specified as e.g. a full path.
     app.config['CHANGES_CLIENT_BINARY'] = 'changes-client'
