@@ -59,7 +59,7 @@ install_requires = [
     'statprof',
     'statsd==3.0.1',
     'toronado==0.0.4',
-    'typing==3.5.0.1',
+    'typing==3.5.2.2',
     'uwsgi==2.0.10',
     'ipython==3.1.0',
 ]
