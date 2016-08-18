@@ -500,6 +500,48 @@ class DefaultBuildStepTest(TestCase):
         assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
         assert commands[idx].env == DEFAULT_ENV
 
+    @mock.patch.object(Repository, 'get_vcs')
+    def test_create_replacement_jobstep_expanded_no_node(self, get_vcs):
+        build = self.create_build(self.create_project())
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job, label='foo')
+        jobstep = self.create_jobstep(jobphase)
+
+        new_jobphase = self.create_jobphase(job, label='bar')
+
+        vcs = mock.Mock(spec=Vcs)
+        vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
+        get_vcs.return_value = vcs
+
+        future_jobstep = FutureJobStep(
+            label='test',
+            commands=[
+                FutureCommand('echo 1'),
+                FutureCommand('echo "foo"\necho "bar"', path='subdir'),
+            ],
+            data={'weight': 1, 'forceInfraFailure': True},
+        )
+
+        buildstep = self.get_buildstep(cluster='foo')
+        fail_jobstep = buildstep.create_expanded_jobstep(
+            jobstep, new_jobphase, future_jobstep)
+
+        fail_jobstep.result = Result.infra_failed
+        fail_jobstep.status = Status.finished
+        fail_jobstep.node = None
+        db.session.add(fail_jobstep)
+        db.session.commit()
+
+        new_jobstep = buildstep.create_replacement_jobstep(fail_jobstep)
+        # new jobstep should still be part of same job/phase
+        assert new_jobstep.job == job
+        assert new_jobstep.phase == fail_jobstep.phase
+        # make sure .steps actually includes the new jobstep
+        assert len(fail_jobstep.phase.steps) == 2
+        # make sure replacement id is correctly set
+        assert fail_jobstep.replacement_id == new_jobstep.id
+        assert new_jobstep.data.get('avoid_node') is None
+
     def test_get_allocation_params(self):
         project = self.create_project()
         build = self.create_build(project)
