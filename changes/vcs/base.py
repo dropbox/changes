@@ -7,7 +7,7 @@ import shutil
 import tempfile
 
 from subprocess import Popen, PIPE, check_call, CalledProcessError
-from typing import Any, List, Set, Union  # NOQA
+from typing import Any, List, Optional, Set, Union  # NOQA
 
 from changes.constants import PROJECT_ROOT
 from changes.db.utils import create_or_update, get_or_create, try_create
@@ -154,6 +154,11 @@ class Vcs(object):
         if proc.returncode != 0:
             raise CommandError(args[0], proc.returncode, stdout, stderr)
         return stdout
+
+    @staticmethod
+    def get_clone_command(remote_url, path, revision, clean=True, cache_dir=None):
+        # type: (str, str, str, bool, Optional[str]) -> str
+        raise NotImplementedError
 
     def exists(self):
         return os.path.exists(self.path)

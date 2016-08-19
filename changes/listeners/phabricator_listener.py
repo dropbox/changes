@@ -193,7 +193,7 @@ def build_finished_handler(build_id, **kwargs):
 
     context = build_context_lib.get_collection_context(builds)
 
-    message = '\n\n'.join([_get_message_for_build_context(x) for x in context['builds']])
+    message = '\n\n'.join([_get_message_for_build_context(x) for x in context.builds])
 
     post_comment(target, message, phab)
 

@@ -177,7 +177,8 @@ class GetCollectionRecipientsTestCase(TestCase):
         )
         db.session.commit()
 
-        recipients = MailNotificationHandler().get_collection_recipients({"builds": [{'build': patch_build}, {'build': patch_build2}]})
+        mock_context = mock.Mock(builds=[{'build': patch_build}, {'build': patch_build2}])
+        recipients = MailNotificationHandler().get_collection_recipients(mock_context)
         assert recipients == []
 
     def test_diff_all_failed(self):
@@ -216,7 +217,8 @@ class GetCollectionRecipientsTestCase(TestCase):
         )
         db.session.commit()
 
-        recipients = MailNotificationHandler().get_collection_recipients({"builds": [{'build': patch_build}, {'build': patch_build2}]})
+        mock_context = mock.Mock(builds=[{'build': patch_build}, {'build': patch_build2}])
+        recipients = MailNotificationHandler().get_collection_recipients(mock_context)
         assert recipients == [author_recipient]
 
 

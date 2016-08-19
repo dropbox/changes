@@ -8,11 +8,13 @@ from email.utils import parseaddr
 from flask import current_app, render_template
 from flask_mail import Message, sanitize_address
 from jinja2 import Markup
+from typing import List  # NOQA
 
 from changes.config import db, mail
 from changes.constants import Result, Status
 from changes.db.utils import try_create
 from changes.lib import build_context_lib, build_type
+from changes.lib.build_context_lib import CollectionContext  # NOQA
 from changes.models.event import Event, EventType
 from changes.models.build import Build
 from changes.models.job import Job
@@ -66,28 +68,30 @@ class MailNotificationHandler(object):
 
     def get_msg(self, builds):
         # type: (List[Build]) -> Message
-        context = build_context_lib.get_collection_context(builds)
-        if context['result'] == Result.passed:
+        context = build_context_lib.get_collection_context(builds)  # type: CollectionContext
+        if context.result == Result.passed:
             return None
         max_shown = current_app.config.get('MAX_SHOWN_ITEMS_PER_BUILD_MAIL', 3)
-        context.update({
+        context_dict = context._asdict()
+        context_dict.update({
             'MAX_SHOWN_ITEMS_PER_BUILD': max_shown,
             'showing_failing_tests_count':
-                sum([min(b['failing_tests_count'], max_shown) for b in context['builds']])
+                sum([min(b['failing_tests_count'], max_shown) for b in context.builds])
         })
         recipients = self.get_collection_recipients(context)
 
-        msg = Message(context['title'], recipients=recipients, extra_headers={
+        msg = Message(context.title, recipients=recipients, extra_headers={
             'Reply-To': ', '.join(sanitize_address(r) for r in recipients),
         })
-        msg.body = render_template('listeners/mail/notification.txt', **context)
+        msg.body = render_template('listeners/mail/notification.txt', **context_dict)
         msg.html = Markup(toronado.from_string(
-            render_template('listeners/mail/notification.html', **context)
+            render_template('listeners/mail/notification.html', **context_dict)
         ))
 
         return msg
 
     def get_collection_recipients(self, collection_context):
+        # type: (CollectionContext) -> List[unicode]
         """
         Returns a list of recipients for a collection context created by
         get_collection_context. Only recipients for failing builds will be
@@ -95,10 +99,11 @@ class MailNotificationHandler(object):
         """
         recipient_lists = map(
             lambda build_context: self.get_build_recipients(build_context['build']),
-            collection_context['builds'])
+            collection_context.builds)
         return list(set([r for rs in recipient_lists for r in rs]))
 
     def get_build_recipients(self, build):
+        # type: (Build) -> List[unicode]
         """
         Returns a list of recipients for a build.
 

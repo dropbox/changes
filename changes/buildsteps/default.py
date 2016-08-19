@@ -6,7 +6,7 @@ import uuid
 from copy import deepcopy
 from flask import current_app
 from itertools import chain
-from typing import Dict, List, Optional  # NOQA
+from typing import Dict, List, Optional, Type  # NOQA
 
 from changes.artifacts.analytics_json import AnalyticsJsonHandler
 from changes.artifacts.bazel_target import BazelTargetHandler
@@ -23,6 +23,7 @@ from changes.models.command import CommandType, FutureCommand
 from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep, FutureJobStep
 from changes.models.snapshot import SnapshotImage
+from changes.vcs.base import Vcs  # NOQA
 from changes.vcs.git import GitVcs
 from changes.vcs.hg import MercurialVcs
 
@@ -205,12 +206,12 @@ class DefaultBuildStep(BuildStep):
         return ''
 
     def _other_repo_clone_commands(self, other_repos):
+        # type: (Optional[List[Dict[str, str]]]) -> List[FutureCommand]
         """
         Parses other_repos config and returns a list of FutureCommands
         that will clone said repos.
         """
-        # type: Optional[List[Dict[str, str]]] -> List[FutureCommand]
-        commands = []
+        commands = []  # type: List[FutureCommand]
         if other_repos is None:
             return commands
         if not isinstance(other_repos, list):
@@ -222,6 +223,8 @@ class DefaultBuildStep(BuildStep):
                 raise ValueError("Each other_repo must specify a repo")
             if not repo.get('path'):
                 raise ValueError("Each other_repo must specify a path")
+
+            repo_vcs = None  # type: Type[Vcs]
 
             if repo.get('backend') == 'hg':
                 repo_vcs = MercurialVcs

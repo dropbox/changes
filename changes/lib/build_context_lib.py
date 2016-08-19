@@ -1,4 +1,5 @@
 from itertools import chain, imap
+from datetime import datetime
 
 from changes.artifacts import xunit
 from flask import current_app
@@ -13,7 +14,7 @@ from changes.models.test import TestCase
 from changes.utils.http import build_web_uri
 from sqlalchemy.orm import subqueryload_all
 
-from typing import Any, cast, Dict, List, Optional, Tuple  # NOQA
+from typing import Any, cast, Dict, List, NamedTuple, Optional, Tuple  # NOQA
 
 
 def _get_project_uri(build):
@@ -48,9 +49,21 @@ def _aggregate_count(items, key):
     # type: (List[Dict[str, Any]], str) -> int
     return sum(map(lambda item: cast(int, item[key]), items))
 
+CollectionContext = NamedTuple('CollectionContext',
+                               [('title', unicode),
+                                ('builds', List[Dict[str, Any]]),
+                                ('result', Result),
+                                ('target_uri', str),
+                                ('target', str),
+                                ('label', str),
+                                ('date_created', datetime),
+                                ('author', str),
+                                ('commit_message', str),
+                                ('failing_tests_count', int)])
+
 
 def get_collection_context(builds):
-    # type: (List[Build]) -> Dict[str, Any]
+    # type: (List[Build]) -> CollectionContext
     """
     Given a non-empty list of finished builds, returns a context for
     rendering the build results.
@@ -89,18 +102,18 @@ def get_collection_context(builds):
 
     date_created = min([_build.date_created for _build in builds])
 
-    return {
-        'title': _get_title(target, build.label, result),
-        'builds': builds_context,
-        'result': result,
-        'target_uri': target_uri,
-        'target': target,
-        'label': build.label,
-        'date_created': date_created,
-        'author': build.author,
-        'commit_message': build.message or '',
-        'failing_tests_count': _aggregate_count(builds_context, 'failing_tests_count'),
-    }
+    return CollectionContext(
+        title=_get_title(target, build.label, result),
+        builds=builds_context,
+        result=result,
+        target_uri=target_uri,
+        target=target,
+        label=build.label,
+        date_created=date_created,
+        author=build.author,
+        commit_message=build.message or '',
+        failing_tests_count=_aggregate_count(builds_context, 'failing_tests_count'),
+    )
 
 
 def _get_title(target, label, result):

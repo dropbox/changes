@@ -14,6 +14,7 @@ def build_internal_uri(path, app=current_app):
 
 
 def build_patch_uri(patch_id, app=current_app):
+    # type: (uuid.UUID, Any) -> str
     """
     Generate the URI to be used by slaves for fetching a patch.
 
@@ -25,7 +26,6 @@ def build_patch_uri(patch_id, app=current_app):
         str: URI to be used when fetching the patch on a build slave.
 
     """
-    # type: (uuid.UUID, Any) -> str
     base = app.config.get('PATCH_BASE_URI') or app.config['INTERNAL_BASE_URI']
     return _concat_uri_path(base,
                             '/api/0/patches/{0}/?raw=1'.format(patch_id.hex))

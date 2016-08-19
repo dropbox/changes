@@ -430,6 +430,7 @@ class TrackedTask(local):
         statsreporter.stats().incr('new_task_created_' + self.task_name)
 
     def _report_lag(self, first_run_time):
+        # type: (datetime) -> None
         """
         Reports the time it took from creation to just before the first run of the Task; on subsequent
         runs no reporting will occur.
@@ -438,7 +439,6 @@ class TrackedTask(local):
         Args:
             first_run_time (datetime): When the task started running.
         """
-        # type: (datetime) -> None
         t = Task.query.filter(
             Task.task_name == self.task_name,
             Task.task_id == self.task_id,

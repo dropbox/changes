@@ -60,17 +60,17 @@ class BuildingContextTestCase(TestCase):
             if result is not Result.passed and result is not Result.failed:
                 result = Result.unknown
 
-            assert context['title'] == '%s %s - %s' % (
+            assert context.title == '%s %s - %s' % (
                 'D{}'.format(revision_id), str(result).lower(), job.build.label)
-            assert len(context['builds']) == 1
-            assert context['result'] == result
-            assert context['target_uri'] == revision_url
-            assert context['target'] == 'D{}'.format(revision_id)
-            assert context['label'] == build.label
-            assert context['date_created'] == build.date_created
-            assert context['author'] == build.author
-            assert context['commit_message'] == ''
-            assert context['failing_tests_count'] == 0
+            assert len(context.builds) == 1
+            assert context.result == result
+            assert context.target_uri == revision_url
+            assert context.target == 'D{}'.format(revision_id)
+            assert context.label == build.label
+            assert context.date_created == build.date_created
+            assert context.author == build.author
+            assert context.commit_message == ''
+            assert context.failing_tests_count == 0
 
         test_with_result(Result.passed)
         test_with_result(Result.skipped)
@@ -121,18 +121,18 @@ class BuildingContextTestCase(TestCase):
 
         first_build = builds_correct_order[0]
 
-        assert context['title'] == '%s failed - %s' % (
+        assert context.title == '%s failed - %s' % (
             'D{}'.format(revision_id), first_build.label)
-        for i in range(len(context['builds'])):
-            assert context['builds'][i]['build'] == builds_correct_order[i]
-        assert context['result'] == Result.failed
-        assert context['target_uri'] == revision_url
-        assert context['target'] == 'D{}'.format(revision_id)
-        assert context['label'] == first_build.label
-        assert context['date_created'] == build1.date_created
-        assert context['author'] == first_build.author
-        assert context['commit_message'] == ''
-        assert context['failing_tests_count'] == 0
+        for i in range(len(context.builds)):
+            assert context.builds[i]['build'] == builds_correct_order[i]
+        assert context.result == Result.failed
+        assert context.target_uri == revision_url
+        assert context.target == 'D{}'.format(revision_id)
+        assert context.label == first_build.label
+        assert context.date_created == build1.date_created
+        assert context.author == first_build.author
+        assert context.commit_message == ''
+        assert context.failing_tests_count == 0
 
 
 class GetLogClippingTestCase(TestCase):
