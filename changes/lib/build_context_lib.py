@@ -5,12 +5,15 @@ from flask import current_app
 
 from changes.api.build_details import get_parents_last_builds
 from changes.constants import Result
+from changes.models.build import Build  # NOQA
 from changes.models.job import Job
 from changes.models.jobstep import JobStep
 from changes.models.log import LogSource, LogChunk
 from changes.models.test import TestCase
 from changes.utils.http import build_web_uri
 from sqlalchemy.orm import subqueryload_all
+
+from typing import Any, cast, Dict, List, Optional, Tuple  # NOQA
 
 
 def _get_project_uri(build):
@@ -42,16 +45,19 @@ def _get_log_uri(log_source):
 
 
 def _aggregate_count(items, key):
-    return sum(map(lambda item: item[key], items))
+    # type: (List[Dict[str, Any]], str) -> int
+    return sum(map(lambda item: cast(int, item[key]), items))
 
 
 def get_collection_context(builds):
+    # type: (List[Build]) -> Dict[str, Any]
     """
     Given a non-empty list of finished builds, returns a context for
     rendering the build results.
     """
 
     def sort_builds(builds_context):
+        # type: (List[Dict[str, Any]]) -> List[Dict[str, Any]]
         result_priority_order = (
             Result.passed,
             Result.skipped,
@@ -72,12 +78,11 @@ def get_collection_context(builds):
         )
 
     builds_context = sort_builds(map(_get_build_context, builds))
+    result = Result.unknown  # type: Result
     if all(map(lambda build: build['is_passing'], builds_context)):
         result = Result.passed
     elif any(imap(lambda build: build['is_failing'], builds_context)):
         result = Result.failed
-    else:
-        result = Result.unknown
 
     build = builds[0]
     target, target_uri = _get_build_target(build)
@@ -99,6 +104,7 @@ def get_collection_context(builds):
 
 
 def _get_title(target, label, result):
+    # type: (str, unicode, Result) -> unicode
     # Use the first label line for multi line labels.
     if label:
         lines = label.splitlines()
@@ -118,6 +124,7 @@ def _get_title(target, label, result):
 
 
 def _get_build_target(build):
+    # type: (Build) -> Tuple[Optional[str], str]
     """
     Returns the build's target and target uri (normally a phabricator
     revision and diff url).
@@ -138,6 +145,7 @@ def _get_build_target(build):
 
 
 def _get_build_context(build, get_parent=True):
+    # type: (Build, bool) -> Dict[str, Any]
     jobs = list(Job.query.filter(Job.build_id == build.id))
     jobs_context = map(_get_job_context, jobs)
 
@@ -163,6 +171,7 @@ def _get_build_context(build, get_parent=True):
 
 
 def _get_job_context(job):
+    # type: (Job) -> Dict[str, Any]
     def get_job_failing_tests(job):
         failing_tests = TestCase.query.options(
             subqueryload_all('messages')
@@ -218,6 +227,7 @@ def _get_job_context(job):
 
 
 def _get_log_clipping(logsource, max_size=5000, max_lines=25):
+    # type: (LogSource, int, int) -> str
     if logsource.in_artifact_store:
         # We don't yet get clippings for ArtifactStore logs.
         return ""

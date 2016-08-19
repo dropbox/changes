@@ -65,6 +65,7 @@ class MailNotificationHandler(object):
         mail.send(msg)
 
     def get_msg(self, builds):
+        # type: (List[Build]) -> Message
         context = build_context_lib.get_collection_context(builds)
         if context['result'] == Result.passed:
             return None
