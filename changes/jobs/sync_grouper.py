@@ -1,7 +1,8 @@
 import logging
+import requests
+import urlparse
 
 from flask import current_app
-from groupy.client import Groupy
 from typing import Iterable, Set  # NOQA
 
 from changes.config import db, statsreporter
@@ -36,14 +37,13 @@ def _get_admin_emails_from_grouper():
     Returns:
         set[basestring]: a set of emails of admin users
     """
-    grouper_api_url = current_app.config['GROUPER_API_URL']
-    grouper_permissions_admin = current_app.config['GROUPER_PERMISSIONS_ADMIN']
-    grclient = Groupy(grouper_api_url)
-    groups = grclient.permissions.get(grouper_permissions_admin).groups
+    url = urlparse.urljoin(current_app.config['GROUPER_API_URL'],
+                           '/permissions/{}'.format(current_app.config['GROUPER_PERMISSIONS_ADMIN']))
+    groups = requests.get(url).json()['data']['groups']
 
     admin_users = set()
     for _, group in groups.iteritems():
-        for email, user in group.users.iteritems():
+        for email, user in group['users'].iteritems():
             if user['rolename'] not in current_app.config['GROUPER_EXCLUDED_ROLES']:
                 admin_users.add(email)
     return admin_users

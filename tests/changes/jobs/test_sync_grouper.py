@@ -1,5 +1,7 @@
 import mock
 import pytest
+import responses
+import urlparse
 
 from flask import current_app
 
@@ -12,31 +14,31 @@ from changes.testutils import TestCase
 
 class SyncGrouperAdminTestCase(TestCase):
 
+    @responses.activate
     def test_get_admin_emails_from_grouper_correct(self):
-        mock_groupy = mock.MagicMock()
-        mock_groupy.permissions.get().groups = {
-            'group1': mock.MagicMock(),
-            'group2': mock.MagicMock(),
-        }
-        mock_groupy.permissions.get().groups['group1'].users = {
-            'user1@dropbox.com': {'rolename': 'owner'},
-            'user2@dropbox.com': {'rolename': 'member'},
-            'user3@dropbox.com': {'rolename': 'member'},
-        }
-        mock_groupy.permissions.get().groups['group2'].users = {
-            'user3@dropbox.com': {'rolename': 'member'},
-            'user4@dropbox.com': {'rolename': 'member'},
-        }
-        with mock.patch('changes.jobs.sync_grouper.Groupy') as mock_groupy_init:
-            mock_groupy_init.return_value = mock_groupy
-            admin_usernames = _get_admin_emails_from_grouper()
-        mock_groupy_init.assert_called_once_with(
-            current_app.config['GROUPER_API_URL'])
+        url = urlparse.urljoin(current_app.config['GROUPER_API_URL'],
+                               '/permissions/{}'.format(current_app.config['GROUPER_PERMISSIONS_ADMIN']))
+        responses.add(responses.GET, url, json={
+            'data': {
+                'groups': {
+                    'group1': {
+                        'users': {
+                            'user1@dropbox.com': {'rolename': 'owner'},
+                            'user2@dropbox.com': {'rolename': 'member'},
+                            'user3@dropbox.com': {'rolename': 'member'},
+                        }
+                    },
+                    'group2': {
+                        'users': {
+                            'user3@dropbox.com': {'rolename': 'member'},
+                            'user4@dropbox.com': {'rolename': 'member'},
+                        }
+                    }
+                }
+            }
+        })
+        admin_usernames = _get_admin_emails_from_grouper()
 
-        # can't use assert_called_once_with because we called it 3 times when
-        # setting up the mock object itself
-        mock_groupy.permissions.get.assert_called_with(
-            current_app.config['GROUPER_PERMISSIONS_ADMIN'])
         assert admin_usernames == set([
             'user1@dropbox.com',
             'user2@dropbox.com',
@@ -44,28 +46,30 @@ class SyncGrouperAdminTestCase(TestCase):
             'user4@dropbox.com',
         ])
 
+    @responses.activate
     def test_get_admin_emails_from_grouper_np_owner(self):
-        mock_groupy = mock.MagicMock()
-        mock_groupy.permissions.get().groups = {
-            'group1': mock.MagicMock(),
-            'group2': mock.MagicMock(),
-        }
-        mock_groupy.permissions.get().groups['group1'].users = {
-            'user1@dropbox.com': {'rolename': 'np-owner'},
-            'user2@dropbox.com': {'rolename': 'member'},
-            'user3@dropbox.com': {'rolename': 'member'},
-        }
-        mock_groupy.permissions.get().groups['group2'].users = {
-            'user3@dropbox.com': {'rolename': 'member'},
-            'user4@dropbox.com': {'rolename': 'member'},
-        }
-        with mock.patch('changes.jobs.sync_grouper.Groupy') as mock_groupy_init:
-            mock_groupy_init.return_value = mock_groupy
-            admin_usernames = _get_admin_emails_from_grouper()
-        mock_groupy_init.assert_called_once_with(
-            current_app.config['GROUPER_API_URL'])
-        mock_groupy.permissions.get.assert_called_with(
-            current_app.config['GROUPER_PERMISSIONS_ADMIN'])
+        url = urlparse.urljoin(current_app.config['GROUPER_API_URL'],
+                               '/permissions/{}'.format(current_app.config['GROUPER_PERMISSIONS_ADMIN']))
+        responses.add(responses.GET, url, json={
+            'data': {
+                'groups': {
+                    'group1': {
+                        'users': {
+                            'user1@dropbox.com': {'rolename': 'np-owner'},
+                            'user2@dropbox.com': {'rolename': 'member'},
+                            'user3@dropbox.com': {'rolename': 'member'},
+                        }
+                    },
+                    'group2': {
+                        'users': {
+                            'user3@dropbox.com': {'rolename': 'member'},
+                            'user4@dropbox.com': {'rolename': 'member'},
+                        }
+                    }
+                }
+            }
+        })
+        admin_usernames = _get_admin_emails_from_grouper()
         assert admin_usernames == set([
             'user2@dropbox.com',
             'user3@dropbox.com',

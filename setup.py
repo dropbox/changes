@@ -20,7 +20,7 @@ tests_require = [
     'pytest-cov>=1.6,<1.7',
     'pytest-timeout>=0.3,<0.4',
     'pytest-xdist>=1.9,<1.10',
-    'responses>=0.3.0,<0.4.0',
+    'responses>=0.5.0,<0.6.0',
     'unittest2>=0.5.1,<0.6.0',
     'moto>=0.3.0,<0.4.0',
 ]
@@ -45,7 +45,6 @@ install_requires = [
     'flask-mail>=0.9.0,<0.10.0',
     'flask-restful>=0.2.10,<0.2.11',
     'flask-sqlalchemy>=1.0,<1.1',
-    'groupy==0.0.9', # 0.1.0 had a ValueError on making any kind of query
     'lxml>=3.2.3,<3.3.0',
     'kazoo==2.2.1',
     'raven>=5.3.0,<5.4.0',

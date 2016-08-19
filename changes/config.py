@@ -87,7 +87,7 @@ def create_app(_read_config=True, **config):
     app.config['SQLALCHEMY_RECORD_QUERIES'] = True
 
     app.config['REDIS_URL'] = 'redis://localhost/0'
-    app.config['GROUPER_API_URL'] = 'localhost:80'
+    app.config['GROUPER_API_URL'] = 'https://localhost/'
     app.config['GROUPER_PERMISSIONS_ADMIN'] = 'changes.prod.admin'
     app.config['GROUPER_EXCLUDED_ROLES'] = ['np-owner']
     app.config['DEBUG'] = True
