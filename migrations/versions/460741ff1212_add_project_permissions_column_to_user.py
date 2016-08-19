@@ -16,7 +16,7 @@ from sqlalchemy.dialects import postgresql
 
 
 def upgrade():
-    op.add_column('user', sa.Column('project_permissions', postgresql.ARRAY(sa.String(length=256)), nullable=False, default=[]))
+    op.add_column('user', sa.Column('project_permissions', postgresql.ARRAY(sa.String(length=256)), nullable=True))
 
 
 def downgrade():
