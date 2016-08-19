@@ -247,10 +247,8 @@ class AnalyticsNotifierTest(TestCase):
 
         tags_by_step = None
         with mock.patch('changes.listeners.analytics_notifier._incr') as incr:
-            with mock.patch('changes.listeners.analytics_notifier.logger.warning') as warn:
-                tags_by_step = _categorize_step_logs(job)
-                warn.assert_any_call(mock.ANY, extra=mock.ANY)
-                incr.assert_any_call("failing-log-uncategorized")
+            tags_by_step = _categorize_step_logs(job)
+            incr.assert_any_call("failing-log-uncategorized")
 
         categorize_fn.assert_called_with('project-slug', fake_rules, 'Some log text')
         self.assertSetEqual(tags_by_step[step.id], set())
