@@ -59,7 +59,7 @@ test: lint test-python test-js
 
 test-python:
 	@echo "Running Python tests"
-	py.test tests
+	py.test -vv tests
 	@echo ""
 
 test-js:
@@ -84,7 +84,7 @@ test-full: install-test-requirements
 	$(MAKE) coverage
 
 coverage:
-	coverage run -m py.test --junitxml=python.junit.xml tests
+	coverage run -m py.test -vv --junitxml=python.junit.xml tests
 	coverage xml
 
 dropdb:
