@@ -3,14 +3,31 @@ from collections import defaultdict
 from changes.api.base import APIView
 from changes.constants import Status
 from changes.models.jobstep import JobStep
+from flask_restful.reqparse import RequestParser
+
+
+def status_name(value, name):
+    # type: (str, str) -> List[Status]
+    try:
+        return [Status[value]]
+    except KeyError:
+        raise ValueError("The status '{}' is not a known status name.".format(value))
 
 
 class JobStepAggregateByStatusAPIView(APIView):
+    get_parser = RequestParser()
+    default_statuses = (Status.pending_allocation, Status.queued, Status.in_progress, Status.allocated)
+    get_parser.add_argument('status', type=status_name, location='args', default=default_statuses)
+
     def get(self):
         """GET method that returns aggregated data regarding jobsteps.
         Fetch pending, queued, allocated, and in-progress jobsteps from the database.
         Compute some aggregate metrics about them.
         Return the aggregated data in a JSON-friendly format.
+
+        Args (in the form of a query string):
+            status (Optional[str]): A specific status to look for.
+                                    If not specified, will search all statuses.
 
         Returns:
             {
@@ -45,9 +62,9 @@ class JobStepAggregateByStatusAPIView(APIView):
                 jobstep_id = jobstep.id
             agg[status] = (count, date_created, jobstep_id)
 
+        args = self.get_parser.parse_args()
         jobsteps = JobStep.query.filter(
-            JobStep.status.in_(
-                [Status.pending_allocation, Status.queued, Status.in_progress, Status.allocated]),
+            JobStep.status.in_(args.status),
         )
 
         by_cluster, by_project = defaultdict(dict), defaultdict(dict)

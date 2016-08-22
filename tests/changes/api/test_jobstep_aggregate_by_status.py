@@ -13,6 +13,52 @@ class JobStepAggregateByStatusTest(APITestCase):
         query_string = '?' + urlencode(kwargs) if kwargs else ''
         return self.client.get(self.path + query_string)
 
+    def test_get_with_invalid_status(self):
+        raw_resp = self.get(status="meow")
+        assert raw_resp.status_code == 400
+
+    def test_get_with_specific_status(self):
+        project_1 = self.create_project(slug="project_1")
+        build_1 = self.create_build(project_1)
+        job_1 = self.create_job(build_1)
+        jobphase_1 = self.create_jobphase(job_1)
+        now = datetime.datetime.now()
+
+        jobstep_pending_allocation = self.create_jobstep(
+            jobphase_1,
+            status=Status.pending_allocation,
+            date_created=now,
+            cluster="cluster_c")
+        jobstep_in_progress = self.create_jobstep(
+            jobphase_1,
+            status=Status.in_progress,
+            date_created=now,
+            cluster="cluster_a")
+        raw_resp = self.get(status="pending_allocation")
+
+        now_iso = now.isoformat()
+        expected_output = {
+            'jobsteps': {
+                'by_cluster': {
+                    "cluster_c": {
+                        Status.pending_allocation.name:
+                            [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                    },
+                },
+                'by_project': {
+                    project_1.slug: {
+                        Status.pending_allocation.name:
+                            [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                    },
+                },
+                'global': {
+                    Status.pending_allocation.name:
+                        [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                },
+            }
+        }
+        assert self.unserialize(raw_resp) == expected_output
+
     def test_get(self):
         project_1 = self.create_project(slug="project_1")
         build_1 = self.create_build(project_1)
