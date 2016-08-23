@@ -19,11 +19,11 @@ class User(db.Model):
     is_admin = Column(Boolean, default=False, nullable=False)
     date_created = Column(DateTime, default=datetime.utcnow)
 
-    # this keeps track of the list of wildcard patterns of project names that
-    # the user has access to. For example:
-    # - `foo` matches `foo`
-    # - `foo.*` matches anything starting with `foo.`, like `foo.staging`, `foo.`
-    # - `*foo*` matches anything containing `foo`, like `barfoobar`, `foo`
+    # this keeps track of the list of patterns of project names that
+    # the user has access to. Patterns will be matched using `fnmatch`,
+    # see https://docs.python.org/2/library/fnmatch.html for pattern format.
+    # Note that due to Grouper limitation, we cannot support `?` or `!`
+    # characters in the pattern.
     project_permissions = Column(ARRAY(String(256)), nullable=True)
 
     def __init__(self, **kwargs):
