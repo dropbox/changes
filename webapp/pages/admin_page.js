@@ -203,10 +203,12 @@ let AdminPage = React.createClass({
                       </span>
                  </Request>;
 
+      let projects = user.project_permissions == null ? '' : user.project_permissions.join(', ')
       rows.push([
         user.email,
         <TimeText time={user.dateCreated} />,
         post,
+        projects,
       ]);
     });
 
@@ -215,10 +217,10 @@ let AdminPage = React.createClass({
     });
     return <div>
       <Grid
-        colnum={3}
+        colnum={4}
         className="marginBottomM marginTopM"
         data={rows}
-        headers={['Email', 'Created', 'Admin?']}
+        headers={['Email', 'Created', 'Admin?', 'Projects With Admin Access']}
       />
       <div className="marginTopM marginBottomM">{pagingLinks}</div>
     </div>;

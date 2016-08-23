@@ -29,4 +29,5 @@ class UserCrumbler(Crumbler):
             'email': instance.email,
             'avatar': get_gravatar_url(instance.email),
             'dateCreated': instance.date_created,
+            'project_permissions': instance.project_permissions,
         }
