@@ -89,6 +89,7 @@ def create_app(_read_config=True, **config):
     app.config['REDIS_URL'] = 'redis://localhost/0'
     app.config['GROUPER_API_URL'] = 'https://localhost/'
     app.config['GROUPER_PERMISSIONS_ADMIN'] = 'changes.prod.admin'
+    app.config['GROUPER_PERMISSIONS_PROJECT_ADMIN'] = 'changes.prod.project.admin'
     app.config['GROUPER_EXCLUDED_ROLES'] = ['np-owner']
     app.config['DEBUG'] = True
     app.config['HTTP_PORT'] = 5000
