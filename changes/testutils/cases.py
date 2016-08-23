@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
 import json
+import random as insecure_random
+import string
 import unittest
 
 from exam import Exam, fixture
@@ -44,6 +46,16 @@ class AuthMixin(object):
 
     def login_default_admin(self):
         return self.login(self.default_admin)
+
+    def create_and_login_project_admin(self, project_permissions):
+        username = ''.join(insecure_random.choice(string.ascii_lowercase + string.digits) for _ in range(50))
+        user = User(
+            email='{}@example.com'.format(username),
+            project_permissions=project_permissions,
+        )
+        db.session.add(user)
+        db.session.commit()
+        return self.login(user)
 
 
 class TestCase(Exam, unittest.TestCase, Fixtures, AuthMixin):

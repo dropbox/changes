@@ -6,7 +6,7 @@ from flask.ext.restful import reqparse
 from sqlalchemy.orm import contains_eager, joinedload
 from sqlalchemy.sql import func
 
-from changes.api.auth import requires_admin
+from changes.api.auth import get_project_slug_from_project_id, requires_project_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.constants import Result, Status
@@ -162,7 +162,7 @@ class ProjectDetailsAPIView(APIView):
 
         return self.respond(data)
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_project_id)
     def post(self, project_id):
         project = Project.get(project_id)
         if project is None:

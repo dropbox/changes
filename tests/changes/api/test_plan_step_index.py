@@ -35,7 +35,7 @@ class CreatePlanStepTest(APITestCase):
         project = self.create_project()
         plan = self.create_plan(project, label='Foo')
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
 
         path = '/api/0/plans/{0}/steps/'.format(plan.id.hex)
 

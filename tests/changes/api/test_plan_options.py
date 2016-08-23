@@ -47,7 +47,7 @@ class PlanOptionsUpdateTest(APITestCase):
         })
         assert resp.status_code == 403
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
 
         resp = self.client.post(path, data={
             'build.expect-tests': '1',

@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 
 from changes.config import statsreporter
 from changes.api.base import APIView, error
-from changes.api.auth import requires_admin
+from changes.api.auth import get_project_slug_from_project_id, requires_project_admin
 from changes.db.utils import create_or_update
 from changes.models.project import Project, ProjectOption
 from changes.models.snapshot import Snapshot, SnapshotStatus
@@ -62,7 +62,7 @@ class ProjectOptionsIndexAPIView(APIView):
             ).get(as_uuid)
         return project
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_project_id)
     def post(self, project_id):
         project = self._get_project(project_id)
         if project is None:

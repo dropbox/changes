@@ -42,7 +42,7 @@ class ProjectDetailsTest(APITestCase):
         })
         assert resp.status_code == 403
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug, 'details*'])
 
         resp = self.client.post(path, data={
             'name': 'details test project',
@@ -75,7 +75,7 @@ class ProjectDetailsTest(APITestCase):
         path = '/api/0/projects/{0}/'.format(
             project.slug)
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug, 'details*'])
 
         resp = self.client.post(path, data={
             'name': 'details test project',

@@ -7,7 +7,7 @@ from datetime import datetime
 from flask.ext.restful import reqparse
 
 from changes.api.base import APIView, error
-from changes.api.auth import requires_admin
+from changes.api.auth import get_project_slug_from_step_id, requires_project_admin
 from changes.config import db
 from changes.constants import IMPLEMENTATION_CHOICES
 from changes.db.utils import create_or_update
@@ -30,7 +30,7 @@ class StepDetailsAPIView(APIView):
 
         return self.respond(step)
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_step_id)
     def post(self, step_id):
         step = Step.query.get(step_id)
         if step is None:
@@ -87,7 +87,7 @@ class StepDetailsAPIView(APIView):
         db.session.commit()
         return self.respond(step)
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_step_id)
     def delete(self, step_id):
         step = Step.query.get(step_id)
         if step is None:

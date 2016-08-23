@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful import reqparse
 from sqlalchemy.sql import func
 
-from changes.api.auth import requires_admin
+from changes.api.auth import get_project_slug_from_project_id, requires_project_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.models.plan import Plan, PlanStatus
@@ -54,7 +54,7 @@ class ProjectPlanIndexAPIView(APIView):
 
         return self.paginate(queryset)
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_project_id)
     def post(self, project_id):
         project = Project.get(project_id)
         if project is None:

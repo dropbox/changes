@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from flask.ext.restful.reqparse import RequestParser
 
 from changes.api.base import APIView, error
-from changes.api.auth import requires_admin
+from changes.api.auth import get_project_slug_from_plan_id, requires_project_admin
 from changes.db.utils import create_or_update
 from changes.models.option import ItemOption
 from changes.models.plan import Plan
@@ -41,7 +41,7 @@ class PlanOptionsAPIView(APIView):
     post_parser.add_argument('snapshot.allow')
     post_parser.add_argument('snapshot.require')
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_plan_id)
     def post(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:

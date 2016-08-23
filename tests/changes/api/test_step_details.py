@@ -33,13 +33,11 @@ class UpdateStepDetailsTest(APITestCase):
         assert resp.status_code == 401
 
     def test_simple(self):
-        self.login_default_admin()
-
         project = self.create_project()
         plan = self.create_plan(project, label='Foo')
         step = self.create_step(plan=plan)
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
 
         path = '/api/0/steps/{0}/'.format(step.id.hex)
 
@@ -87,7 +85,7 @@ class DeleteStepDetailsTest(APITestCase):
         plan = self.create_plan(project, label='Foo')
         step = self.create_step(plan=plan)
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
 
         path = '/api/0/steps/{0}/'.format(step.id.hex)
 

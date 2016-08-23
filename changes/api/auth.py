@@ -5,6 +5,9 @@ from fnmatch import fnmatch
 from functools import wraps
 from typing import Optional  # NOQA
 
+from changes.models.plan import Plan
+from changes.models.project import Project
+from changes.models.step import Step
 from changes.models.user import User
 
 
@@ -54,6 +57,58 @@ def requires_admin(method):
 
 class ResourceNotFound(Exception):
     pass
+
+
+def get_project_slug_from_project_id(*args, **kwargs):
+    """
+    Get the project slug from the project ID. This function assumes that
+    the project ID is passed as the keyword argument `project_id`.
+
+    Returns:
+        basestring - project slug
+    Raises:
+        ResourceNotFound - if the project is not found
+    """
+    project_id = kwargs['project_id']
+    # use our custom .get() function instead of .query.get()
+    project = Project.get(project_id)
+    if project is None:
+        raise ResourceNotFound('Project with ID {} not found.'.format(project_id))
+    return project.slug
+
+
+def get_project_slug_from_plan_id(*args, **kwargs):
+    """
+    Get the project slug from the plan ID. This function assumes that
+    the plan ID is passed as the keyword argument `plan_id`.
+
+    Returns:
+        basestring - project slug
+    Raises:
+        ResourceNotFound - if the plan is not found
+    """
+    plan_id = kwargs['plan_id']
+    plan = Plan.query.get(plan_id)
+    if plan is None:
+        raise ResourceNotFound('Plan with ID {} not found.'.format(plan_id))
+    return plan.project.slug
+
+
+def get_project_slug_from_step_id(*args, **kwargs):
+    """
+    Get the project slug from the step ID. This function assumes that
+    the step ID is passed as the keyword argument `step_id`.
+
+    Returns:
+        basestring - project slug
+    Raises:
+        ResourceNotFound - if the step is not found
+    """
+    step_id = kwargs['step_id']
+    step = Step.query.get(step_id)
+    if step is None:
+        raise ResourceNotFound('Step with ID {} not found.'.format(step_id))
+    return step.plan.project.slug
 
 
 def requires_project_admin(get_project_slug):

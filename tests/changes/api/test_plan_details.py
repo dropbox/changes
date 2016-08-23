@@ -37,7 +37,7 @@ class UpdatePlanTest(APITestCase):
         })
         assert resp.status_code == 403
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
 
         # test valid params
         resp = self.client.post(path, data={
@@ -58,7 +58,7 @@ class UpdatePlanTest(APITestCase):
 
         path = '/api/0/plans/{0}/'.format(plan.id.hex)
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
         resp = self.client.post(path, data={
             'snapshot_plan_id': other_plan.id.hex,
         })

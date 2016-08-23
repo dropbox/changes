@@ -1,10 +1,44 @@
 import mock
 import pytest
 
+from uuid import uuid4
+
 from changes.api.auth import (
+    get_project_slug_from_project_id, get_project_slug_from_plan_id,
+    get_project_slug_from_step_id,
     ResourceNotFound, requires_project_admin,
 )
 from changes.testutils import TestCase
+
+
+class ProjectAdminHelpersTestCase(TestCase):
+
+    def test_get_project_slug_from_project_id_success(self):
+        project = self.create_project()
+        assert project.slug == get_project_slug_from_project_id(1, 2, project_id=project.slug, other_args='test')
+
+    def test_get_project_slug_from_project_id_not_found(self):
+        with pytest.raises(ResourceNotFound):
+            get_project_slug_from_project_id(project_id='does-not-exist')
+
+    def test_get_project_slug_from_plan_id(self):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        assert project.slug == get_project_slug_from_plan_id(1, 2, plan_id=plan.id, other_args='test')
+
+    def test_get_project_slug_from_plan_id_not_found(self):
+        with pytest.raises(ResourceNotFound):
+            get_project_slug_from_plan_id(plan_id=uuid4())
+
+    def test_get_project_slug_from_step_id(self):
+        project = self.create_project()
+        plan = self.create_plan(project)
+        step = self.create_step(plan)
+        assert project.slug == get_project_slug_from_step_id(1, 2, step_id=step.id, other_args='test')
+
+    def test_get_project_slug_from_step_id_not_found(self):
+        with pytest.raises(ResourceNotFound):
+            get_project_slug_from_step_id(step_id=uuid4())
 
 
 class ProjectAdminTestCase(TestCase):

@@ -5,7 +5,7 @@ import json
 from copy import deepcopy
 from flask.ext.restful import reqparse
 
-from changes.api.auth import requires_admin
+from changes.api.auth import get_project_slug_from_plan_id, requires_project_admin
 from changes.api.base import APIView, error
 from changes.config import db
 from changes.constants import IMPLEMENTATION_CHOICES
@@ -31,7 +31,7 @@ class PlanStepIndexAPIView(APIView):
 
         return self.respond(list(plan.steps))
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_plan_id)
     def post(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:

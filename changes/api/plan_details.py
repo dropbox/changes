@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 from flask.ext.restful import reqparse
 
-from changes.api.auth import requires_admin
+from changes.api.auth import get_project_slug_from_plan_id, requires_project_admin
 from changes.api.base import APIView
 from changes.config import db
 from changes.models.plan import Plan, PlanStatus
@@ -27,7 +27,7 @@ class PlanDetailsAPIView(APIView):
 
         return self.respond(context)
 
-    @requires_admin
+    @requires_project_admin(get_project_slug_from_plan_id)
     def post(self, plan_id):
         plan = Plan.query.get(plan_id)
         if plan is None:

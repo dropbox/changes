@@ -26,7 +26,7 @@ class ProjectOptionsTest(APITestCase):
         })
         assert resp.status_code == 403
 
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
 
         resp = self.client.post(path, data={
             'mail.notify-author': '0',
@@ -65,7 +65,7 @@ class ProjectOptionsTest(APITestCase):
     def test_nonsense_project(self):
         project = self.create_project()
         path_fmt = '/api/0/projects/{0}/options/'
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
         resp = self.client.post(path_fmt.format('project-that-doesnt-exist'), data={
             'mail.notify-author': '0',
         })
@@ -80,7 +80,7 @@ class ProjectOptionsTest(APITestCase):
     def test_report_rollback(self):
         project = self.create_project()
         path = '/api/0/projects/{0}/options/'.format(project.slug)
-        self.login_default_admin()
+        self.create_and_login_project_admin([project.slug])
 
         now = datetime(2013, 9, 19, 22, 15, 22)
         earlier = now - timedelta(days=1)
