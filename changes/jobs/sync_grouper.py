@@ -64,7 +64,7 @@ def _get_admin_emails_from_grouper():
 
 
 def _sync_admin_users(admin_emails):
-    # type: (Iterable[str]) -> None
+    # type: (Set[str]) -> None
     """Take a look at the Changes user database. Every user with email in
     `admin_emails` should become a Changes admin, and every user already
     an admin whose email is not in `admin_emails` will have their
@@ -76,6 +76,7 @@ def _sync_admin_users(admin_emails):
             people who should be admin.
     """
     # revoke access for people who should not have admin access
+    assert len(admin_emails) > 0
     User.query.filter(
         ~User.email.in_(admin_emails),
         User.is_admin.is_(True),
@@ -148,10 +149,10 @@ def _sync_project_admin_users(project_admin_mapping):
         project_admin_mapping (Dict[str, Set[str]]): The mapping from
             user emails to project patterns
     """
-    User.query.filter(
-        ~User.email.in_(project_admin_mapping.keys()),
-        ~User.project_permissions.is_(None),
-    ).update({
+    args = [~User.project_permissions.is_(None)]
+    if len(project_admin_mapping) > 0:
+        args.append(~User.email.in_(project_admin_mapping.keys()))
+    User.query.filter(*args).update({
         'project_permissions': None
     }, synchronize_session=False)
     for email, project_permissions in project_admin_mapping.iteritems():
