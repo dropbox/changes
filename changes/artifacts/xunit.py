@@ -18,7 +18,7 @@ from .base import ArtifactHandler, ArtifactParseError
 
 
 class XunitHandler(ArtifactHandler):
-    FILENAMES = ('xunit.xml', 'junit.xml', 'nosetests.xml', '*.xunit.xml', '*.junit.xml', '*.nosetests.xml')
+    FILENAMES = ('xunit.xml', 'junit.xml', 'nosetests.xml', '*.xunit.xml', '*.junit.xml', '*.nosetests.xml', '*.bazel.xml')
     logger = logging.getLogger('xunit')
 
     def process(self, fp, artifact):
