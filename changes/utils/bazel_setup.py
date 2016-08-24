@@ -4,9 +4,14 @@ from flask import current_app
 
 
 BASH_BAZEL_SETUP = """#!/bin/bash -eux
-echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list.d/bazel-changes-autogen.list
-sudo apt-get update || true
-sudo apt-get install -y --force-yes bazel drte-v1 gcc unzip zip
+# Clean up any existing apt sources
+sudo rm -rf /etc/apt/sources.list.d
+# Overwrite apt sources
+echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list
+
+# apt-get update, and try again if it fails first time
+sudo apt-get -y update || sudo apt-get -y update
+sudo apt-get install -y --force-yes %(bazel_apt_pkgs)s
 """.strip()
 
 # We run setup again because changes does not run setup before collecting tests, but we need bazel
@@ -14,21 +19,28 @@ sudo apt-get install -y --force-yes bazel drte-v1 gcc unzip zip
 # We also redirect stdout and stderr to /dev/null because changes uses the output of this
 # script to collect tests, and so we don't want extraneous output.
 COLLECT_BAZEL_TARGETS = """#!/bin/bash -eu
-echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list.d/bazel-changes-autogen.list > /dev/null 2>&1
-(sudo apt-get update || true) > /dev/null 2>&1
-sudo apt-get install -y --force-yes bazel drte-v1 gcc unzip zip python > /dev/null 2>&1
-(bazel query 'tests(%(bazel_targets)s)' | python -c "%(jsonify_script)s") 2> /dev/null
+# Clean up any existing apt sources
+sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
+# Overwrite apt sources
+(echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list) >/dev/null 2>&1
+
+# apt-get update, and try again if it fails first time
+(sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
+sudo apt-get install -y --force-yes %(bazel_apt_pkgs)s python >/dev/null 2>&1
+
+(/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --batch query 'tests(%(bazel_targets)s)' | python -c "%(jsonify_script)s") 2> /dev/null
 """.strip()
 
 
 SYNC_ENCAP_PKG = """
-sudo rsync -a --delete %(encap_rsync_url)s%(pkg)s %(encap_dir)s
+sudo /usr/bin/rsync -a --delete %(encap_rsync_url)s%(pkg)s %(encap_dir)s
 """.strip()
 
 
 def get_bazel_setup():
     return BASH_BAZEL_SETUP % dict(
-        apt_spec=current_app.config['APT_SPEC']
+        apt_spec=current_app.config['APT_SPEC'],
+        bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
     )
 
 
@@ -38,6 +50,7 @@ def collect_bazel_targets(bazel_targets):
     with open(bazel_target_py, 'r') as jsonify_script:
         return COLLECT_BAZEL_TARGETS % dict(
             apt_spec=current_app.config['APT_SPEC'],
+            bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
             bazel_targets=' + '.join(bazel_targets),
             jsonify_script=jsonify_script.read()
         )

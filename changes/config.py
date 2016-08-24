@@ -399,6 +399,9 @@ def create_app(_read_config=True, **config):
     # Used for bazel setup, so source should have bazel package.
     app.config['APT_SPEC'] = None
 
+    # List of packages needed to install bazel and any environment.
+    app.config['BAZEL_APT_PKGS'] = ['bazel']
+
     # rsync source for encap
     # Example: rsync://example.com/encap/
     app.config['ENCAP_RSYNC_URL'] = None
