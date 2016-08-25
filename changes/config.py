@@ -95,6 +95,8 @@ def create_app(_read_config=True, **config):
     app.config['HTTP_PORT'] = 5000
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
+    app.config['BAZEL_TEST_OUTPUT_RELATIVE_PATH'] = 'bazel-testlogs/'
+
     app.config['API_TRACEBACKS'] = True
 
     # Expiration delay between when a snapshot image becomes superceded and when

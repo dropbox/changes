@@ -70,7 +70,7 @@ class DefaultBuildStep(BuildStep):
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
                  max_executors=10, cpus=4, memory=8 * 1024, clean=True,
                  debug_config=None, test_stats_from=None, cluster=None,
-                 other_repos=None,
+                 other_repos=None, artifact_search_path=None,
                  **kwargs):
         """
         Constructor for DefaultBuildStep.
@@ -126,6 +126,9 @@ class DefaultBuildStep(BuildStep):
                 can be specified with "backend": "hg". Default revision is
                 "origin/master" or "default" (for hg), but an explicit revision
                 can be specified with "revision".
+            artifact_search_path: The path in which test artifacts can be
+                found in, relative to the `repo_path`. This defaults to the
+                value for `path`.
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
@@ -145,6 +148,7 @@ class DefaultBuildStep(BuildStep):
             # default repo_path to path if none specified
             self.repo_path = path or DEFAULT_PATH
             self.path = self.repo_path
+        self.artifact_search_path = os.path.join(self.repo_path, artifact_search_path) if artifact_search_path else self.path
         self.release = release
         self.max_executors = max_executors
         self.resources = {
@@ -480,7 +484,7 @@ class DefaultBuildStep(BuildStep):
 
     def get_allocation_params(self, jobstep):
         params = {
-            'artifact-search-path': self.path,
+            'artifact-search-path': self.artifact_search_path,
             'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
             'server': build_internal_uri('/api/0/'),

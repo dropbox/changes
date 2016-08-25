@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
 import mock
+import os
 
 from flask import current_app
 
+from changes.buildsteps.default import DEFAULT_PATH
 from changes.models.command import CommandType
 from changes.models.jobplan import JobPlan
 from changes.testutils import TestCase
@@ -92,3 +94,6 @@ json.dump(out, sys.stdout)
 
         assert implementation.commands[2].type == CommandType.collect_tests
         assert implementation.commands[2].script == collect_tests_expected
+
+        assert implementation.artifact_search_path == os.path.join(DEFAULT_PATH, current_app.config['BAZEL_TEST_OUTPUT_RELATIVE_PATH'])
+        assert implementation.artifacts == ['*.xml']

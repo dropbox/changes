@@ -204,6 +204,8 @@ class JobPlan(db.Model):
                     {'script': sync_encap_pkgs(project_config), 'type': 'setup'},
                     {'script': collect_bazel_targets(project_config['bazel.targets']), 'type': 'collect_tests'},
                 ],
+                artifacts=['*.xml'],
+                artifact_search_path=current_app.config['BAZEL_TEST_OUTPUT_RELATIVE_PATH'],
             )
             return jobplan, implementation
 
