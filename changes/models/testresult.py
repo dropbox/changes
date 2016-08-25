@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division
 
+import hashlib
 import logging
 import random as insecure_random
 import re
@@ -167,7 +168,11 @@ class TestResultManager(object):
         as_client = ArtifactStoreClient(current_app.config['ARTIFACTS_SERVER'])
         for test, testcase in zip(test_list, testcase_list):
             if test.artifacts:
-                bucket_name = '{}_{}'.format(step.id.hex, test.id)
+                m = hashlib.md5()
+                m.update(test.id)
+                bucket_name_base = '{}_{}'.format(step.id.hex, m.hexdigest())
+
+                bucket_name = bucket_name_base
 
                 num_attempts = 0
                 max_duplicate_attempts = 5
@@ -176,8 +181,7 @@ class TestResultManager(object):
                         as_client.create_bucket(bucket_name)
                         break
                     except Exception as e:
-                        bucket_name = '{}_{}_dup_{}'.format(step.id.hex, test.id,
-                                                            "%05x" % insecure_random.getrandbits(4 * 5))
+                        bucket_name = '{}_dup_{}'.format(bucket_name_base, "%05x" % insecure_random.getrandbits(4 * 5))
                         num_attempts += 1
                         if num_attempts == max_duplicate_attempts:
                             raise e
