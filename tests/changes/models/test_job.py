@@ -53,6 +53,8 @@ echo "deb http://example.com/debian distribution component1" | sudo tee /etc/apt
 # apt-get update, and try again if it fails first time
 sudo apt-get -y update || sudo apt-get -y update
 sudo apt-get install -y --force-yes bazel
+
+/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --batch version
 """.strip()
 
         sync_encap_expected = """

@@ -12,6 +12,8 @@ echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list
 # apt-get update, and try again if it fails first time
 sudo apt-get -y update || sudo apt-get -y update
 sudo apt-get install -y --force-yes %(bazel_apt_pkgs)s
+
+/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --batch version
 """.strip()
 
 # We run setup again because changes does not run setup before collecting tests, but we need bazel
