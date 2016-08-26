@@ -89,8 +89,7 @@ class XunitDelegate(DelegateParser):
 
     def _start(self, tag, attrs):
         if tag == 'unittest-results':
-            self._set_subparser(BittenParser(self.step, self._parser))
-            statsreporter.stats().incr('new_bitten_result_file')
+            raise ArtifactParseError('Bitten is not supported.')
         else:
             self._set_subparser(XunitParser(self.step, self._parser))
             statsreporter.stats().incr('new_xunit_result_file')
@@ -134,53 +133,6 @@ class XunitBaseParser(object):
         self._is_message = False
         self._message_tag = None
         self._message_start = None
-
-
-class BittenParser(XunitBaseParser):
-
-    def start(self, tag, attrs):
-        # Spec: http://bitten.edgewall.org/wiki/Documentation/reports.html
-        if tag == 'unittest-results':
-            pass
-        elif tag == 'test':
-            if attrs['status'] == 'success':
-                result = Result.passed
-            elif attrs['status'] == 'skipped':
-                result = Result.skipped
-            elif attrs['status'] in ('error', 'failure'):
-                result = Result.failed
-            else:
-                result = None
-
-            # no matching status tags were found
-            if result is None:
-                result = Result.passed
-
-            self._current_result = TestResult(
-                step=self.step,
-                name=attrs['name'],
-                package=attrs.get('fixture') or None,
-                duration=float(attrs['duration']) * 1000,
-                message='',
-                result=result,
-            )
-        elif tag == 'traceback':
-            self.start_message(tag, attrs)
-
-    def data(self, data):
-        if self._is_message:
-            self.process_message(data)
-
-    def end(self, tag):
-        if self._is_message:
-            self.close_message()
-        if tag == 'unittest-results':
-            pass
-        elif tag == 'test':
-            self.results.append(self._current_result)
-            self._current_result = None
-        elif tag == 'traceback':
-            pass
 
 
 class XunitParser(XunitBaseParser):
