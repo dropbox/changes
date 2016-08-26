@@ -197,12 +197,14 @@ class JobPlan(db.Model):
                 logging.error('Project config for project %s is missing `bazel.targets`. job: %s, revision_sha: %s, config: %s', job.project.slug, job.id, job.source.revision_sha, str(project_config), exc_info=True)
                 return jobplan, None
 
+            bazel_exclude_tags = project_config['bazel.exclude-tags']
+
             implementation = LXCBuildStep(
                 cluster=current_app.config['DEFAULT_CLUSTER'],
                 commands=[
                     {'script': get_bazel_setup(), 'type': 'setup'},
-                    {'script': sync_encap_pkgs(project_config), 'type': 'setup'},
-                    {'script': collect_bazel_targets(project_config['bazel.targets']), 'type': 'collect_tests'},
+                    {'script': sync_encap_pkgs(project_config), 'type': 'setup'},  # TODO(anupc): Make this optional
+                    {'script': collect_bazel_targets(project_config['bazel.targets'], bazel_exclude_tags), 'type': 'collect_tests'},
                 ],
                 artifacts=['*.xml'],
                 artifact_search_path=current_app.config['BAZEL_TEST_OUTPUT_RELATIVE_PATH'],

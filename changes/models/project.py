@@ -60,7 +60,8 @@ class Project(db.Model):
         return project
 
     _default_config = {
-        'build.file-blacklist': []
+        'build.file-blacklist': [],
+        'bazel.exclude-tags': []
     }
 
     def get_config_path(self):

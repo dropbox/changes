@@ -30,7 +30,9 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes %(bazel_apt_pkgs)s python >/dev/null 2>&1
 
-(/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --batch query 'tests(%(bazel_targets)s)' | python -c "%(jsonify_script)s") 2> /dev/null
+(/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --batch query \
+    'let t = tests(%(bazel_targets)s) in ($t %(exclusion_subquery)s)' | \
+    python -c "%(jsonify_script)s") 2> /dev/null
 """.strip()
 
 
@@ -46,15 +48,50 @@ def get_bazel_setup():
     )
 
 
-def collect_bazel_targets(bazel_targets):
+def collect_bazel_targets(bazel_targets, bazel_exclude_tags):
+    """Construct a command to query the Bazel dependency graph to expand bazel project
+    config into a set of individual test targets.
+
+    Bazel project config currently supports the following attributes:
+    - targets: List of Bazel target patterns (conforming to the spec given in
+      https://www.bazel.io/docs/bazel-user-manual.html#target-patterns). These patterns
+      are additive, meaning a union of all targets matching any of the patterns will be
+      returned.
+    - exclude-tags: List of target tags. Targets matching any of these tags are not returned.
+      By default, this list is empty.  # TODO(anupc): Should we remove `manual` test targets?
+    """
     package_dir = os.path.dirname(__file__)
     bazel_target_py = os.path.join(package_dir, "collect_bazel_targets.py")
+
+    # Please use https://www.bazel.io/docs/query.html as a reference for Bazel query syntax
+    #
+    # To exclude targets matching a tag, we construct a query as follows:
+    #   let t = test(bazel_targets)                     ## Collect list of test targets in $t
+    #   return $t except attr("tags", $expression, $t)  ## Return all targets in t except those where "tags" matches an expression
+    #
+    # Multiple exclusions a performed by adding further "except" clauses
+    #   return $t except attr(1) expect attr(2) except attr(3) ...
+    #
+    # Examples of "tags" attribute:
+    #   []                                              ## No tags
+    #   [flaky]                                         ## Single tag named flaky
+    #   [flaky, manual]                                 ## Two tags named flaky and manual
+    #
+    # Tags are delimited on the left by an opening bracket or space, and on the right by a comma or closing bracket.
+    #
+    # Hence, $expression =>
+    #   (\[| )                                          ## Starts with an opening bracket or space
+    #   tag_name                                        ## Match actual tag name
+    #   (\]|,)                                          ## Ends with a closing bracket or comma
+    exclusion_subquery = ' '.join(["""except (attr("tags", "(\[| )%s(\]|,)", $t))""" % (tag) for tag in bazel_exclude_tags])
+
     with open(bazel_target_py, 'r') as jsonify_script:
         return COLLECT_BAZEL_TARGETS % dict(
             apt_spec=current_app.config['APT_SPEC'],
             bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
             bazel_targets=' + '.join(bazel_targets),
-            jsonify_script=jsonify_script.read()
+            jsonify_script=jsonify_script.read(),
+            exclusion_subquery=exclusion_subquery,
         )
 
 
