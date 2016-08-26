@@ -201,12 +201,12 @@ var AllProjectsPage = React.createClass({
 
       var repo_rows = _.map(repo_projects, (p, index) => {
         var triggers = "Never";
-        if (p.options["phabricator.diff-trigger"] &&
-            p.options["build.commit-trigger"]) {
+        if (p.options["phabricator.diff-trigger"] === "1" &&
+            p.options["build.commit-trigger"] === "1") {
           triggers = "Diffs and Commits";
-        } else if (p.options["phabricator.diff-trigger"]) {
+        } else if (p.options["phabricator.diff-trigger"] === "1") {
           triggers = "Only Diffs";
-        } else if (p.options["build.commit-trigger"]) {
+        } else if (p.options["build.commit-trigger"] === "1") {
           triggers = "Only Commits";
         }
 

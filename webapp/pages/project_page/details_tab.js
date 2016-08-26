@@ -69,8 +69,8 @@ var DetailsTab = React.createClass({
   },
 
   renderHeader: function(project, plans) {
-    var builds_on_diffs = project.options["phabricator.diff-trigger"];
-    var builds_on_commits = project.options["build.commit-trigger"];
+    var builds_on_diffs = project.options["phabricator.diff-trigger"] === "1";
+    var builds_on_commits = project.options["build.commit-trigger"] === "1";
 
     var triggers = 'Does not automatically run';
     if (builds_on_commits && builds_on_diffs) {
