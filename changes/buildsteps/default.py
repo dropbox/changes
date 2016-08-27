@@ -14,7 +14,7 @@ from changes.artifacts.manager import Manager
 from changes.artifacts.xunit import XunitHandler
 from changes.buildsteps.base import BuildStep, LXCConfig
 from changes.config import db
-from changes.constants import Cause, Status
+from changes.constants import Cause, Status, DEFAULT_CPUS, DEFAULT_MEMORY_MB
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models.command import CommandType, FutureCommand
@@ -68,7 +68,7 @@ class DefaultBuildStep(BuildStep):
     # - teardown_commands
     def __init__(self, commands=None, repo_path=None, path=None, env=None,
                  artifacts=DEFAULT_ARTIFACTS, release=DEFAULT_RELEASE,
-                 max_executors=10, cpus=4, memory=8 * 1024, clean=True,
+                 max_executors=10, cpus=DEFAULT_CPUS, memory=DEFAULT_MEMORY_MB, clean=True,
                  debug_config=None, test_stats_from=None, cluster=None,
                  other_repos=None, artifact_search_path=None,
                  **kwargs):

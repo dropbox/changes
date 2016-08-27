@@ -198,16 +198,38 @@ class JobPlan(db.Model):
                 return jobplan, None
 
             bazel_exclude_tags = project_config['bazel.exclude-tags']
+            bazel_cpus = project_config['bazel.cpus']
+            if bazel_cpus < 1 or bazel_cpus > current_app.config['MAX_CPUS_PER_EXECUTOR']:
+                logging.error('Project config for project %s requests invalid number of CPUs: constraint 1 <= %d <= %d' % (
+                            job.project.slug,
+                            bazel_cpus,
+                            current_app.config['MAX_CPUS_PER_EXECUTOR']))
+                return jobplan, None
+
+            bazel_memory = project_config['bazel.mem']
+            if bazel_memory < current_app.config['MIN_MEM_MB_PER_EXECUTOR'] or \
+               bazel_memory > current_app.config['MAX_MEM_MB_PER_EXECUTOR']:
+                logging.error('Project config for project %s requests invalid memory requirements: constraint %d <= %d <= %d' % (
+                            job.project.slug,
+                            current_app.config['MIN_MEM_MB_PER_EXECUTOR'],
+                            bazel_memory,
+                            current_app.config['MAX_MEM_MB_PER_EXECUTOR']))
+                return jobplan, None
 
             implementation = LXCBuildStep(
                 cluster=current_app.config['DEFAULT_CLUSTER'],
                 commands=[
                     {'script': get_bazel_setup(), 'type': 'setup'},
                     {'script': sync_encap_pkgs(project_config), 'type': 'setup'},  # TODO(anupc): Make this optional
-                    {'script': collect_bazel_targets(project_config['bazel.targets'], bazel_exclude_tags), 'type': 'collect_tests'},
+                    {'script': collect_bazel_targets(
+                        bazel_targets=project_config['bazel.targets'],
+                        bazel_exclude_tags=bazel_exclude_tags,
+                        max_jobs=2 * bazel_cpus), 'type': 'collect_tests'},
                 ],
                 artifacts=['*.xml'],
                 artifact_search_path=current_app.config['BAZEL_TEST_OUTPUT_RELATIVE_PATH'],
+                cpus=bazel_cpus,
+                memory=bazel_memory,
             )
             return jobplan, implementation
 

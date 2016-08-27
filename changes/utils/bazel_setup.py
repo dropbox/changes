@@ -48,7 +48,7 @@ def get_bazel_setup():
     )
 
 
-def collect_bazel_targets(bazel_targets, bazel_exclude_tags):
+def collect_bazel_targets(bazel_targets, bazel_exclude_tags, max_jobs):
     """Construct a command to query the Bazel dependency graph to expand bazel project
     config into a set of individual test targets.
 
@@ -58,8 +58,9 @@ def collect_bazel_targets(bazel_targets, bazel_exclude_tags):
       are additive, meaning a union of all targets matching any of the patterns will be
       returned.
     - exclude-tags: List of target tags. Targets matching any of these tags are not returned.
-      By default, this list is empty.  # TODO(anupc): Should we remove `manual` test targets?
+      By default, this list is empty.
     """
+    # type: (List[str], List[str], int) -> str
     package_dir = os.path.dirname(__file__)
     bazel_target_py = os.path.join(package_dir, "collect_bazel_targets.py")
 
@@ -90,7 +91,7 @@ def collect_bazel_targets(bazel_targets, bazel_exclude_tags):
             apt_spec=current_app.config['APT_SPEC'],
             bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
             bazel_targets=' + '.join(bazel_targets),
-            jsonify_script=jsonify_script.read(),
+            jsonify_script=jsonify_script.read() % dict(max_jobs=max_jobs),
             exclusion_subquery=exclusion_subquery,
         )
 

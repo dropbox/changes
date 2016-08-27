@@ -14,6 +14,7 @@ from changes.constants import ProjectStatus
 from changes.db.types.guid import GUID
 from changes.db.types.enum import Enum
 from changes.utils.slugs import slugify
+from changes.constants import DEFAULT_CPUS, DEFAULT_MEMORY_MB
 
 
 class ProjectConfigError(Exception):
@@ -61,7 +62,9 @@ class Project(db.Model):
 
     _default_config = {
         'build.file-blacklist': [],
-        'bazel.exclude-tags': []
+        'bazel.exclude-tags': ['manual'],  # Ignore tests with manual tag
+        'bazel.cpus': DEFAULT_CPUS,
+        'bazel.mem': DEFAULT_MEMORY_MB,
     }
 
     def get_config_path(self):
