@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+import os
 import uuid
 
 from collections import defaultdict
@@ -227,7 +228,7 @@ class JobPlan(db.Model):
                         max_jobs=2 * bazel_cpus), 'type': 'collect_tests'},
                 ],
                 artifacts=['*.xml'],
-                artifact_search_path=current_app.config['BAZEL_TEST_OUTPUT_RELATIVE_PATH'],
+                artifact_search_path=os.path.join(current_app.config['BAZEL_ROOT_PATH'], current_app.config['BAZEL_TEST_OUTPUT_RELATIVE_PATH']),
                 cpus=bazel_cpus,
                 memory=bazel_memory,
             )

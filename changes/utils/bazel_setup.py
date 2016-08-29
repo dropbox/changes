@@ -13,7 +13,7 @@ echo "%(apt_spec)s" | sudo tee /etc/apt/sources.list
 sudo apt-get -y update || sudo apt-get -y update
 sudo apt-get install -y --force-yes %(bazel_apt_pkgs)s
 
-/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --batch version
+/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --output_user_root=%(bazel_root)s --batch version
 """.strip()
 
 # We run setup again because changes does not run setup before collecting tests, but we need bazel
@@ -30,7 +30,7 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes %(bazel_apt_pkgs)s python >/dev/null 2>&1
 
-(/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --batch query \
+(/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --output_user_root=%(bazel_root)s --batch query \
     'let t = tests(%(bazel_targets)s) in ($t %(exclusion_subquery)s)' | \
     python -c "%(jsonify_script)s") 2> /dev/null
 """.strip()
@@ -45,6 +45,7 @@ def get_bazel_setup():
     return BASH_BAZEL_SETUP % dict(
         apt_spec=current_app.config['APT_SPEC'],
         bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
+        bazel_root=current_app.config['BAZEL_ROOT_PATH'],
     )
 
 
@@ -90,8 +91,9 @@ def collect_bazel_targets(bazel_targets, bazel_exclude_tags, max_jobs):
         return COLLECT_BAZEL_TARGETS % dict(
             apt_spec=current_app.config['APT_SPEC'],
             bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
+            bazel_root=current_app.config['BAZEL_ROOT_PATH'],
             bazel_targets=' + '.join(bazel_targets),
-            jsonify_script=jsonify_script.read() % dict(max_jobs=max_jobs),
+            jsonify_script=jsonify_script.read() % dict(max_jobs=max_jobs, bazel_root=current_app.config['BAZEL_ROOT_PATH']),
             exclusion_subquery=exclusion_subquery,
         )
 

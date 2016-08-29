@@ -126,9 +126,8 @@ class DefaultBuildStep(BuildStep):
                 can be specified with "backend": "hg". Default revision is
                 "origin/master" or "default" (for hg), but an explicit revision
                 can be specified with "revision".
-            artifact_search_path: The path in which test artifacts can be
-                found in, relative to the `repo_path`. This defaults to the
-                value for `path`.
+            artifact_search_path: Absolute path in which test artifacts can be
+                found in. This defaults to the value for `path`.
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
@@ -148,7 +147,7 @@ class DefaultBuildStep(BuildStep):
             # default repo_path to path if none specified
             self.repo_path = path or DEFAULT_PATH
             self.path = self.repo_path
-        self.artifact_search_path = os.path.join(self.repo_path, artifact_search_path) if artifact_search_path else self.path
+        self.artifact_search_path = artifact_search_path if artifact_search_path else self.path
         self.release = release
         self.max_executors = max_executors
         self.resources = {

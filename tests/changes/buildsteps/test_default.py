@@ -572,7 +572,7 @@ class DefaultBuildStepTest(TestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase)
 
-        buildstep = self.get_buildstep(repo_path='source', path='tests', artifact_search_path='out')
+        buildstep = self.get_buildstep(repo_path='source', path='tests', artifact_search_path='/out')
         result = buildstep.get_allocation_params(jobstep)
         assert result == {
             'adapter': 'basic',
@@ -583,7 +583,7 @@ class DefaultBuildStepTest(TestCase):
             'pre-launch': 'echo pre',
             'post-launch': 'echo post',
             'artifacts-server': 'http://localhost:1234',
-            'artifact-search-path': 'source/out',
+            'artifact-search-path': '/out',
             'use-external-env': 'false',
             'dist': 'ubuntu',
         }

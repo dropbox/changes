@@ -428,7 +428,16 @@ def create_app(_read_config=True, **config):
     # Maximum memory allowed per executor (in MB)
     app.config['MAX_MEM_MB_PER_EXECUTOR'] = 16384
 
+    # Absolute path to Bazel root (passed via --output_root to Bazel)
+    # Storing bazel cache in tmpfs could be a bad idea because:
+    #  - tmpfs means any files stored here will be stored purely in RAM and will eat into container limits
+    #  - these containers are not persisted from the snapshot
+    #
+    # Bazel will create parent directories (if the user has appropriate permissions), if missing.
+    app.config['BAZEL_ROOT_PATH'] = '/tmp/bazel_changes'
+
     app.config.update(config)
+
     if _read_config:
         if os.environ.get('CHANGES_CONF'):
             # CHANGES_CONF=/etc/changes.conf.py
