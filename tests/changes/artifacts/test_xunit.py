@@ -1,7 +1,9 @@
-import uuid
-import os
-import time
 import logging
+import mock
+import os
+import pytest
+import time
+import uuid
 
 from cStringIO import StringIO
 
@@ -10,8 +12,85 @@ from changes.constants import Result
 from changes.models.failurereason import FailureReason
 from changes.models.jobstep import JobStep
 from changes.models.testresult import TestResult
-from changes.testutils import SAMPLE_XUNIT, SAMPLE_XUNIT_DOUBLE_CASES
+from changes.testutils import (
+    SAMPLE_XUNIT, SAMPLE_XUNIT_DOUBLE_CASES, SAMPLE_XUNIT_MULTIPLE_SUITES
+)
 from changes.testutils.cases import TestCase
+
+
+@pytest.mark.parametrize('xml, suite_name, duration', [
+    (SAMPLE_XUNIT, "", 77),
+    (SAMPLE_XUNIT_DOUBLE_CASES, "pytest", 19),
+])
+def test_get_test_single_suite(xml, suite_name, duration):
+    jobstep = JobStep(
+        id=uuid.uuid4(),
+        project_id=uuid.uuid4(),
+        job_id=uuid.uuid4(),
+    )
+
+    fp = StringIO(xml)
+
+    handler = XunitHandler(jobstep)
+    suites = handler.get_test_suites(fp)
+    assert len(suites) == 1
+    assert suites[0].name == suite_name
+    assert suites[0].duration == duration
+    assert suites[0].result == Result.failed
+
+    # test the equivalence of get_tests and get_test_suites in the case where
+    # there is only one test suite, so that we can call get_tests directly
+    # in the rest of this file.
+    fp.seek(0)
+    other_results = handler.get_tests(fp)
+
+    results = suites[0].test_results
+    assert len(results) == len(other_results)
+    for i in range(len(results)):
+        assert other_results[i].step == results[i].step
+        assert other_results[i].step == results[i].step
+        assert other_results[i]._name == results[i]._name
+        assert other_results[i]._package == results[i]._package
+        assert other_results[i].message == results[i].message
+        assert other_results[i].result is results[i].result
+        assert other_results[i].duration == results[i].duration
+        assert other_results[i].reruns == results[i].reruns
+        assert other_results[i].artifacts == results[i].artifacts
+        assert other_results[i].owner == results[i].owner
+        assert other_results[i].message_offsets == results[i].message_offsets
+
+
+def test_get_test_suite_multiple():
+    jobstep = JobStep(
+        id=uuid.uuid4(),
+        project_id=uuid.uuid4(),
+        job_id=uuid.uuid4(),
+    )
+    # needed for logging when a test suite has no duration
+    jobstep.job = mock.MagicMock()
+
+    fp = StringIO(SAMPLE_XUNIT_MULTIPLE_SUITES)
+
+    handler = XunitHandler(jobstep)
+    suites = handler.get_test_suites(fp)
+    assert len(suites) == 3
+    assert suites[0].name is None
+    assert suites[0].duration is None
+    assert suites[0].result == Result.failed
+    assert len(suites[0].test_results) == 3
+
+    assert suites[1].name == 'suite2'
+    assert suites[1].duration == 77
+    assert suites[1].result == Result.failed
+    assert len(suites[1].test_results) == 3
+
+    assert suites[2].name == ''
+    assert suites[2].duration is None
+    assert suites[2].result == Result.failed
+    assert len(suites[2].test_results) == 3
+
+    tests = handler.aggregate_tests_from_suites(suites)
+    assert len(tests) == 7  # 10 test cases, 3 of which are duplicates
 
 
 def test_result_generation():

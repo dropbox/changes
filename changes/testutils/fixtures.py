@@ -36,7 +36,7 @@ from changes.models.user import User
 from changes.utils.slugs import slugify
 
 __all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF_BYTES', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
-           'SAMPLE_XUNIT_DOUBLE_CASES',
+           'SAMPLE_XUNIT_DOUBLE_CASES', 'SAMPLE_XUNIT_MULTIPLE_SUITES',
            'SAMPLE_XUNIT_TESTARTIFACTS')
 
 
@@ -93,6 +93,62 @@ E   ZeroDivisionError: integer division or modulo by zero</error>
         <system-out>Running SampleTest</system-out>
     </testcase>
 </testsuite>"""
+
+# this has multiple test suites, and one of the test cases exists in all suites
+# the third suite also has a duplicate test case.
+SAMPLE_XUNIT_MULTIPLE_SUITES = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite errors="1" failures="0" skips="0" tests="0">
+        <testcase classname="" name="tests.test_report" time="0" owner="foo">
+            <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
+    &gt;   import mock
+    E   ImportError: No module named mock</failure>
+        </testcase>
+        <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+        <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
+            <system-out>Running SampleTest</system-out>
+            <error message="test setup failure">test_simple.py:4: in tearDown
+        1/0
+    E   ZeroDivisionError: integer division or modulo by zero</error>
+            <system-out>Running SampleTest</system-out>
+        </testcase>
+    </testsuite>
+    <testsuite errors="1" failures="0" name="suite2" skips="0" tests="0" time="0.077">
+        <testcase classname="" name="tests2.test_report" time="0" owner="foo">
+            <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
+    &gt;   import mock
+    E   ImportError: No module named mock</failure>
+        </testcase>
+        <testcase classname="tests2.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+        <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
+            <system-out>Running SampleTest</system-out>
+            <error message="test setup failure">test_simple.py:4: in tearDown
+        1/0
+    E   ZeroDivisionError: integer division or modulo by zero</error>
+            <system-out>Running SampleTest</system-out>
+        </testcase>
+    </testsuite>
+    <testsuite errors="1" failures="0" name="" skips="0" tests="0">
+        <testcase classname="" name="tests3.test_report" owner="foo">
+            <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
+    &gt;   import mock
+    E   ImportError: No module named mock</failure>
+        </testcase>
+        <testcase classname="" name="tests3.test_report" owner="foo">
+            <failure message="collection failure">tests/test_report.py:1: in &lt;module&gt;
+    &gt;   import mock
+    E   ImportError: No module named mock</failure>
+        </testcase>
+        <testcase classname="tests3.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+        <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
+            <system-out>Running SampleTest</system-out>
+            <error message="test setup failure">test_simple.py:4: in tearDown
+        1/0
+    E   ZeroDivisionError: integer division or modulo by zero</error>
+            <system-out>Running SampleTest</system-out>
+        </testcase>
+    </testsuite>
+</testsuites>"""
 
 SAMPLE_XUNIT_DOUBLE_CASES = """<?xml version="1.0" encoding="utf-8"?>
 <testsuite errors="1" failures="2" name="pytest" skips="0" tests="2" time="0.019">

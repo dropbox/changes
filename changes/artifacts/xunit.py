@@ -10,7 +10,7 @@ from flask import current_app
 from changes.artifacts.xml import DelegateParser
 from changes.config import statsreporter
 from changes.constants import Result
-from changes.models.testresult import TestResult, TestResultManager
+from changes.models.testresult import TestResult, TestResultManager, TestSuite
 from changes.utils.agg import aggregate_result
 from changes.utils.http import build_web_uri
 
@@ -29,8 +29,8 @@ class XunitHandler(ArtifactHandler):
 
         return test_list
 
-    @statsreporter.timer('xunithandler_get_tests')
-    def get_tests(self, fp):
+    @statsreporter.timer('xunithandler_get_test_suites')
+    def get_test_suites(self, fp):
         try:
             start = fp.tell()
             try:
@@ -48,6 +48,23 @@ class XunitHandler(ArtifactHandler):
                                 self.step.id.hex, uri, e.message, exc_info=True)
             self.report_malformed()
             return []
+
+    @statsreporter.timer('xunithandler_aggregate_tests_from_suites')
+    def aggregate_tests_from_suites(self, test_suites):
+        tests = []
+        for suite in test_suites:
+            tests += suite.test_results
+
+        # avoid deduplicating twice
+        if len(test_suites) > 1:
+            return _deduplicate_testresults(tests)
+        else:
+            return tests
+
+    @statsreporter.timer('xunithandler_get_tests')
+    def get_tests(self, fp):
+        suites = self.get_test_suites(fp)
+        return self.aggregate_tests_from_suites(suites)
 
 
 class XunitDelegate(DelegateParser):
@@ -77,8 +94,7 @@ class XunitDelegate(DelegateParser):
         self._parser.Parse(contents, True)
         if not isinstance(self._subparser, XunitBaseParser):
             raise ArtifactParseError('Empty file found')
-        results = _deduplicate_testresults(self._subparser.results)
-        return results
+        return self._subparser.test_suites
 
     def xml_decl(self, version, encoding, standalone):
         if self._encoding:
@@ -100,12 +116,13 @@ class XunitBaseParser(object):
     """
     Base class for Xunit parsers
     """
+    logger = logging.getLogger('xunit')
 
     def __init__(self, step, parser):
         self.step = step
         self._parser = parser
 
-        self.results = []
+        self.test_suites = []
         self._current_result = None
 
         self._is_message = False
@@ -146,7 +163,12 @@ class XunitParser(XunitBaseParser):
         if tag == 'testsuites':
             pass
         elif tag == 'testsuite':
-            pass
+            if attrs.get('time'):
+                duration_ms = float(attrs['time']) * 1000
+            else:
+                duration_ms = None
+            suite = TestSuite(step=self.step, name=attrs.get('name', None), duration=duration_ms)
+            self.test_suites.append(suite)
         elif tag == 'testcase':
             # If there's a previous failure in addition to stdout or stderr,
             # prioritize showing the previous failure because that's what's
@@ -215,8 +237,18 @@ class XunitParser(XunitBaseParser):
     def end(self, tag):
         if self._is_message:
             self.close_message()
-        if tag == 'testsuites' or tag == 'testsuite':
+        if tag == 'testsuites':
             pass
+        elif tag == 'testsuite':
+            self.test_suites[-1].test_results = _deduplicate_testresults(self.test_suites[-1].test_results)
+            if self.test_suites[-1].duration is None:
+                # NOTE: it is inaccurate to just sum up the duration of individual
+                # tests, because tests may be run in parallel
+                self.logger.warning('Test suite does not have timing information; (step=%s, build=%s)',
+                                    self.step.id.hex, self.step.job.build_id.hex)
+            self.test_suites[-1].result = aggregate_result([t.result for t in self.test_suites[-1].test_results])
+            if self.test_suites[-1].date_created is None:
+                self.test_suites[-1].date_created = min([t.date_created for t in self.test_suites[-1].test_results])
         elif tag == 'testcase':
             if self._current_result.result == Result.unknown:
                 # Default result is passing
@@ -229,7 +261,7 @@ class XunitParser(XunitBaseParser):
                 elif self._current_result.result == Result.skipped:
                     self._current_result.result = Result.quarantined_skipped
             self._test_is_quarantined = None
-            self.results.append(self._current_result)
+            self.test_suites[-1].test_results.append(self._current_result)
             self._current_result = None
         elif tag == 'test-artifacts':
             pass

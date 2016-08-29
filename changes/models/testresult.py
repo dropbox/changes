@@ -71,6 +71,18 @@ class TestResult(object):
     id = name
 
 
+class TestSuite(object):
+    """A test suite is a collection of test results.
+    """
+    def __init__(self, step, name=None, result=None, duration=None, date_created=None):
+        self.step = step
+        self.name = name
+        self.duration = duration
+        self.date_created = date_created
+        self.result = result or Result.unknown
+        self.test_results = []
+
+
 class TestResultManager(object):
     def __init__(self, step, artifact):
         self.step = step
