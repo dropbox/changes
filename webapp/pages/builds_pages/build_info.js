@@ -200,50 +200,6 @@ export var SingleBuild = React.createClass({
       </div> :
       null;
 
-    var unsafe_to_push = null;
-
-    // only admins can mark a build as unsafe to push
-    if (window.changesAuthData && window.changesAuthData.user && window.changesAuthData.user.isAdmin === true){
-      // if already marked unsafe, allow it to be marked as safe again
-      var build_tags = "";
-
-      var build_tags = build.tags.filter(x => x !== "unsafe_to_push").map(x => "tags="+x).join("&")
-
-      if (!("unsafe_to_push" in build.tags)){
-        build_tags += "&tags=unsafe_to_push";
-      }
-
-      if ("unsafe_to_push" in build.tags){
-        var unsafeName = "markBuildSafe";
-        var buttonText = "Mark Safe";
-        var buttonColor = "";
-        var buttonClass = "fa fa-check marginRightM";
-      // otherwise, allow user to mark as unsafe
-      } else {
-        var unsafeName = "markBuildUnsafe";
-        var buttonText = "Mark Unsafe";
-        var buttonColor = "red";
-        var buttonClass = "fa fa-minus-circle marginRightM";
-      }
-
-      var unsafe_to_push =
-        <div className="marginTopM">
-          <Request
-            parentElem={this}
-            name={unsafeName}
-            method="post"
-            endpoint={`/api/0/builds/${build.id}/tags?${build_tags}`}>
-            <Button type="white" className="sizedButton">
-              <span className={buttonColor}>
-                <i className={buttonClass} />
-                {buttonText}
-              </span>
-            </Button>
-          </Request>
-        </div>
-    }
-
-
     // show a button for the tests for build page, since its important and we
     // want a prominent link
     var buildTestsHref = ChangesLinks.testsForBuildHref(build.id, build.testFailures.total);
@@ -280,7 +236,6 @@ export var SingleBuild = React.createClass({
           Test Details
         </Button>
       </div>
-      {unsafe_to_push}
     </div>;
   },
 
