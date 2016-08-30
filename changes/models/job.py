@@ -60,6 +60,8 @@ class Job(db.Model):
     project = relationship('Project')
     source = relationship('Source')
 
+    targets = relationship('BazelTarget', backref=backref('job'))
+
     __repr__ = model_repr('label', 'target')
 
     def __init__(self, **kwargs):

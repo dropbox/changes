@@ -9,6 +9,7 @@ from itertools import chain
 from typing import Dict, List, Optional  # NOQA
 
 from changes.artifacts.analytics_json import AnalyticsJsonHandler
+from changes.artifacts.bazel_target import BazelTargetHandler
 from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.manager import Manager
 from changes.artifacts.xunit import XunitHandler
@@ -546,7 +547,7 @@ class DefaultBuildStep(BuildStep):
         ))
 
     def get_artifact_manager(self, jobstep):
-        return Manager([CoverageHandler, XunitHandler, AnalyticsJsonHandler])
+        return Manager([CoverageHandler, BazelTargetHandler, XunitHandler, AnalyticsJsonHandler])
 
     def prefer_artifactstore(self):
         return self.debug_config.get('prefer_artifactstore', True)

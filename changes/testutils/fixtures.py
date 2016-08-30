@@ -37,6 +37,7 @@ from changes.utils.slugs import slugify
 
 __all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF_BYTES', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
            'SAMPLE_XUNIT_DOUBLE_CASES', 'SAMPLE_XUNIT_MULTIPLE_SUITES',
+           'SAMPLE_XUNIT_MULTIPLE_SUITES_COMPLETE_TIME',
            'SAMPLE_XUNIT_TESTARTIFACTS')
 
 
@@ -145,6 +146,40 @@ SAMPLE_XUNIT_MULTIPLE_SUITES = """<?xml version="1.0" encoding="utf-8"?>
             <error message="test setup failure">test_simple.py:4: in tearDown
         1/0
     E   ZeroDivisionError: integer division or modulo by zero</error>
+            <system-out>Running SampleTest</system-out>
+        </testcase>
+    </testsuite>
+</testsuites>"""
+
+# same as SAMPLE_XUNIT_MULTIPLE_SUITES, but with complete timing information and passing tests
+SAMPLE_XUNIT_MULTIPLE_SUITES_COMPLETE_TIME = """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+    <testsuite errors="0" failures="0" skips="0" tests="0" time="0.5">
+        <testcase classname="" name="tests.test_report" time="0" owner="foo">
+        </testcase>
+        <testcase classname="tests.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+        <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
+            <system-out>Running SampleTest</system-out>
+            <system-out>Running SampleTest</system-out>
+        </testcase>
+    </testsuite>
+    <testsuite errors="0" failures="0" name="suite2" skips="0" tests="0" time="0.077">
+        <testcase classname="" name="tests2.test_report" time="0" owner="foo">
+        </testcase>
+        <testcase classname="tests2.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+        <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
+            <system-out>Running SampleTest</system-out>
+            <system-out>Running SampleTest</system-out>
+        </testcase>
+    </testsuite>
+    <testsuite errors="0" failures="0" name="" skips="0" tests="0" time="1">
+        <testcase classname="" name="tests3.test_report" owner="foo">
+        </testcase>
+        <testcase classname="" name="tests3.test_report" owner="foo">
+        </testcase>
+        <testcase classname="tests3.test_report.ParseTestResultsTest" name="test_simple" time="0.00165796279907" rerun="1"/>
+        <testcase classname="test_simple.SampleTest" name="test_falsehood" time="0.50" rerun="3">
+            <system-out>Running SampleTest</system-out>
             <system-out>Running SampleTest</system-out>
         </testcase>
     </testsuite>

@@ -41,6 +41,7 @@ class TestCase(db.Model):
     job_id = Column(GUID, ForeignKey('job.id', ondelete="CASCADE"), nullable=False)
     project_id = Column(GUID, ForeignKey('project.id', ondelete="CASCADE"), nullable=False)
     step_id = Column(GUID, ForeignKey('jobstep.id', ondelete="CASCADE"))
+    target_id = Column(GUID, ForeignKey('bazeltarget.id', ondelete='CASCADE'), nullable=True)
     name_sha = Column('label_sha', String(40), nullable=False)
     name = Column(Text, nullable=False)
     _package = Column('package', Text, nullable=True)

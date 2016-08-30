@@ -69,6 +69,7 @@ class JobStep(db.Model):
     project = relationship('Project')
     node = relationship('Node')
     phase = relationship('JobPhase', backref=backref('steps', order_by='JobStep.date_started'))
+    targets = relationship('BazelTarget', backref=backref('step'))
 
     __repr__ = model_repr('label')
 
