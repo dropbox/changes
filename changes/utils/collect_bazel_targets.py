@@ -64,7 +64,7 @@ def main(argv):
             '--output_user_root={}'.format(bazel_root),
             '--batch',
             'info',
-            'bazel-testlog',
+            'bazel-testlogs',
         ]).strip()
     out = {
         'cmd': '/usr/bin/bazel --output_user_root={bazel_root} test --jobs={max_jobs} {{test_names}}'.format(bazel_root=bazel_root, max_jobs=max_jobs),

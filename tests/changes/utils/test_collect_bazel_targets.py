@@ -35,7 +35,7 @@ class CollectBazelTargetTestCase(TestCase):
             '--output_user_root=/tmp/testroot',
             '--batch',
             'info',
-            'bazel-testlog',
+            'bazel-testlogs',
         ])]
         mock_dump.assert_called_once_with({
             'cmd': '/usr/bin/bazel --output_user_root=/tmp/testroot test --jobs=3 {test_names}',
@@ -72,7 +72,7 @@ class CollectBazelTargetTestCase(TestCase):
             '--output_user_root=/tmp/testroot',
             '--batch',
             'info',
-            'bazel-testlog',
+            'bazel-testlogs',
         ])]
         mock_dump.assert_called_once_with({
             'cmd': '/usr/bin/bazel --output_user_root=/tmp/testroot test --jobs=3 {test_names}',
