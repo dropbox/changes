@@ -75,7 +75,7 @@ class DefaultBuildStep(BuildStep):
                  max_executors=10, cpus=DEFAULT_CPUS, memory=DEFAULT_MEMORY_MB, clean=True,
                  debug_config=None, test_stats_from=None, cluster=None,
                  other_repos=None, artifact_search_path=None,
-                 use_path_in_artifact_name=False,
+                 use_path_in_artifact_name=False, artifact_suffix=None,
                  **kwargs):
         """
         Constructor for DefaultBuildStep.
@@ -136,6 +136,9 @@ class DefaultBuildStep(BuildStep):
             use_path_in_artifact_name: Tell Changes client to append the hash
                 of the file path to the artifact name, before any file extension
                 or suffixes.
+            artifact_suffix: Tell Changes client to add a suffix to artifacts
+                collected. For example, the value ".bazel" will rename
+                "test.xml" to "test.bazel.xml". Defaults to the empty string.
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
@@ -157,6 +160,7 @@ class DefaultBuildStep(BuildStep):
             self.path = self.repo_path
         self.artifact_search_path = artifact_search_path if artifact_search_path else self.path
         self.use_path_in_artifact_name = use_path_in_artifact_name
+        self.artifact_suffix = artifact_suffix if artifact_suffix is not None else ""
         self.release = release
         self.max_executors = max_executors
         self.resources = {
@@ -503,6 +507,7 @@ class DefaultBuildStep(BuildStep):
             'release': self.release,
             'use-external-env': 'false',
             'use-path-in-artifact-name': 'true' if self.use_path_in_artifact_name else 'false',
+            'artifact-suffix': self.artifact_suffix,
         }
 
         if current_app.config['CLIENT_SENTRY_DSN']:

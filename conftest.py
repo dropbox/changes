@@ -51,6 +51,7 @@ def app(request, session_config):
         LXC_POST_LAUNCH='echo post',
         SNAPSHOT_S3_BUCKET='snapshot-bucket',
         MAX_EXECUTORS=10,
+        BAZEL_ARTIFACT_SUFFIX='.bazel',
     )
     app_context = app.test_request_context()
     context = app_context.push()

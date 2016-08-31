@@ -45,6 +45,7 @@ class LXCBuildStepTest(TestCase):
             'cpus': '8',
             'artifacts-server': 'http://localhost:1234',
             'artifact-search-path': DEFAULT_PATH,
+            'artifact-suffix': '',
             'use-external-env': 'false',
             'dist': 'ubuntu',
             'use-path-in-artifact-name': 'false',

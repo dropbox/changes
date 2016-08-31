@@ -231,6 +231,8 @@ class JobPlan(db.Model):
                         bazel_exclude_tags=bazel_exclude_tags,
                         max_jobs=2 * bazel_cpus), 'type': 'collect_tests'},
                 ],
+                artifacts=[],  # only for collect_target step, which we don't expect artifacts
+                artifact_suffix=current_app.config['BAZEL_ARTIFACT_SUFFIX'],
                 cpus=bazel_cpus,
                 memory=bazel_memory,
                 max_executors=bazel_max_executors,
