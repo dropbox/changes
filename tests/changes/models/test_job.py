@@ -78,8 +78,6 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
         assert implementation.artifacts == []
         assert implementation.artifact_suffix == '.bazel'
 
-        assert implementation.use_path_in_artifact_name is True
-
         assert implementation.commands[0].type == CommandType.setup
         assert implementation.commands[0].script == bazel_setup_expected
 
@@ -126,7 +124,6 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
 
         assert implementation.max_executors == 3
 
-        assert implementation.use_path_in_artifact_name is True
         assert implementation.artifacts == []
         assert implementation.artifact_suffix == '.bazel'
 
