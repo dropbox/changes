@@ -30,7 +30,7 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes {bazel_apt_pkgs} python >/dev/null 2>&1
 
-python -c "{script}" "{bazel_root}" "{bazel_targets}" "{bazel_exclude_tags}" "{max_jobs}"
+python -c "{script}" "{bazel_root}" "{bazel_targets}" "{bazel_exclude_tags}" "{max_jobs}" 2> /dev/null
 """.strip()
 
 
