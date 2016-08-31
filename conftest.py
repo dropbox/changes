@@ -49,7 +49,8 @@ def app(request, session_config):
         DEFAULT_FILE_STORAGE='changes.storage.mock.FileStorageCache',
         LXC_PRE_LAUNCH='echo pre',
         LXC_POST_LAUNCH='echo post',
-        SNAPSHOT_S3_BUCKET='snapshot-bucket'
+        SNAPSHOT_S3_BUCKET='snapshot-bucket',
+        MAX_EXECUTORS=10,
     )
     app_context = app.test_request_context()
     context = app_context.push()

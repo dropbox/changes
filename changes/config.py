@@ -428,6 +428,9 @@ def create_app(_read_config=True, **config):
     # Maximum memory allowed per executor (in MB)
     app.config['MAX_MEM_MB_PER_EXECUTOR'] = 16384
 
+    # Maximum number of bazel executors allowed.
+    app.config['MAX_EXECUTORS'] = 10
+
     # Absolute path to Bazel root (passed via --output_root to Bazel)
     # Storing bazel cache in tmpfs could be a bad idea because:
     #  - tmpfs means any files stored here will be stored purely in RAM and will eat into container limits

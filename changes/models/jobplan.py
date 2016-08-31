@@ -199,6 +199,7 @@ class JobPlan(db.Model):
 
             bazel_exclude_tags = project_config['bazel.exclude-tags']
             bazel_cpus = project_config['bazel.cpus']
+            bazel_max_executors = project_config['bazel.max-executors']
             if bazel_cpus < 1 or bazel_cpus > current_app.config['MAX_CPUS_PER_EXECUTOR']:
                 logging.error('Project config for project %s requests invalid number of CPUs: constraint 1 <= %d <= %d' % (
                             job.project.slug,
@@ -216,6 +217,10 @@ class JobPlan(db.Model):
                             current_app.config['MAX_MEM_MB_PER_EXECUTOR']))
                 return jobplan, None
 
+            if bazel_max_executors < 1 or bazel_max_executors > current_app.config['MAX_EXECUTORS']:
+                logging.error('Project config for project %s requests invalid number of executors: constraint 1 <= %d <= %d', job.project.slug, bazel_max_executors, current_app.config['MAX_EXECUTORS'])
+                return jobplan, None
+
             implementation = LXCBuildStep(
                 cluster=current_app.config['DEFAULT_CLUSTER'],
                 commands=[
@@ -228,6 +233,7 @@ class JobPlan(db.Model):
                 ],
                 cpus=bazel_cpus,
                 memory=bazel_memory,
+                max_executors=bazel_max_executors,
             )
             return jobplan, implementation
 

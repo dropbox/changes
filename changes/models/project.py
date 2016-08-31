@@ -65,6 +65,7 @@ class Project(db.Model):
         'bazel.exclude-tags': ['manual'],  # Ignore tests with manual tag
         'bazel.cpus': DEFAULT_CPUS,
         'bazel.mem': DEFAULT_MEMORY_MB,
+        'bazel.max-executors': 1,
     }
 
     def get_config_path(self):
