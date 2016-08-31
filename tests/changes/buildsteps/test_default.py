@@ -588,6 +588,31 @@ class DefaultBuildStepTest(TestCase):
             'dist': 'ubuntu',
         }
 
+    def test_get_allocation_params_with_artifact_search_path_from_jobstep(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase, data={
+            'artifact_search_path': '/out'
+        })
+
+        buildstep = self.get_buildstep(repo_path='source', path='tests')
+        result = buildstep.get_allocation_params(jobstep)
+        assert result == {
+            'adapter': 'basic',
+            'server': 'http://changes-int.example.com/api/0/',
+            'jobstep_id': jobstep.id.hex,
+            'release': 'precise',
+            's3-bucket': 'snapshot-bucket',
+            'pre-launch': 'echo pre',
+            'post-launch': 'echo post',
+            'artifacts-server': 'http://localhost:1234',
+            'artifact-search-path': '/out',
+            'use-external-env': 'false',
+            'dist': 'ubuntu',
+        }
+
     def test_get_allocation_params_for_snapshotting(self):
         project = self.create_project()
         build = self.create_build(project)

@@ -109,6 +109,7 @@ class TestsExpanderTest(TestCase):
         assert results[0].data['weight'] == 201
         assert set(results[0].data['tests']) == set(['foo.bar.test_buz'])
         assert results[0].data['shard_count'] == 2
+        assert results[0].data['artifact_search_path'] is None
         assert results[0].commands[0].label == results[0].label
         assert results[0].commands[0].script == results[0].label
 
@@ -116,5 +117,84 @@ class TestsExpanderTest(TestCase):
         assert results[1].data['weight'] == 78
         assert set(results[1].data['tests']) == set(['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
         assert results[1].data['shard_count'] == 2
+        assert results[1].data['artifact_search_path'] is None
+        assert results[1].commands[0].label == results[1].label
+        assert results[1].commands[0].script == results[1].label
+
+    @patch.object(TestsExpander, 'get_test_stats')
+    def test_expand_with_artifact_search_path(self, mock_get_test_stats):
+        mock_get_test_stats.return_value = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+            ('foo', 'bar', 'test_biz'): 10,
+            ('foo', 'bar', 'test_buz'): 200,
+        }, 68
+
+        results = list(self.get_expander({
+            'cmd': 'py.test --junit=junit.xml {test_names}',
+            'tests': [
+                'foo/bar.py',
+                'foo/baz.py',
+                'foo.bar.test_biz',
+                'foo.bar.test_buz',
+            ],
+            'artifact_search_path': '/tmp/artifacts',
+        }).expand(max_executors=2))
+
+        results.sort(key=lambda x: x.data['weight'], reverse=True)
+
+        assert len(results) == 2
+        assert results[0].label == 'py.test --junit=junit.xml foo.bar.test_buz'
+        assert results[0].data['weight'] == 201
+        assert set(results[0].data['tests']) == set(['foo.bar.test_buz'])
+        assert results[0].data['shard_count'] == 2
+        assert results[0].data['artifact_search_path'] == '/tmp/artifacts'
+        assert results[0].commands[0].label == results[0].label
+        assert results[0].commands[0].script == results[0].label
+
+        assert results[1].label == 'py.test --junit=junit.xml foo/bar.py foo/baz.py foo.bar.test_biz'
+        assert results[1].data['weight'] == 78
+        assert set(results[1].data['tests']) == set(['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
+        assert results[1].data['shard_count'] == 2
+        assert results[1].data['artifact_search_path'] == '/tmp/artifacts'
+        assert results[1].commands[0].label == results[1].label
+        assert results[1].commands[0].script == results[1].label
+
+    @patch.object(TestsExpander, 'get_test_stats')
+    def test_expand_with_artifact_search_path_empty(self, mock_get_test_stats):
+        mock_get_test_stats.return_value = {
+            ('foo', 'bar'): 50,
+            ('foo', 'baz'): 15,
+            ('foo', 'bar', 'test_biz'): 10,
+            ('foo', 'bar', 'test_buz'): 200,
+        }, 68
+
+        results = list(self.get_expander({
+            'cmd': 'py.test --junit=junit.xml {test_names}',
+            'tests': [
+                'foo/bar.py',
+                'foo/baz.py',
+                'foo.bar.test_biz',
+                'foo.bar.test_buz',
+            ],
+            'artifact_search_path': '',
+        }).expand(max_executors=2))
+
+        results.sort(key=lambda x: x.data['weight'], reverse=True)
+
+        assert len(results) == 2
+        assert results[0].label == 'py.test --junit=junit.xml foo.bar.test_buz'
+        assert results[0].data['weight'] == 201
+        assert set(results[0].data['tests']) == set(['foo.bar.test_buz'])
+        assert results[0].data['shard_count'] == 2
+        assert results[0].data['artifact_search_path'] is None
+        assert results[0].commands[0].label == results[0].label
+        assert results[0].commands[0].script == results[0].label
+
+        assert results[1].label == 'py.test --junit=junit.xml foo/bar.py foo/baz.py foo.bar.test_biz'
+        assert results[1].data['weight'] == 78
+        assert set(results[1].data['tests']) == set(['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
+        assert results[1].data['shard_count'] == 2
+        assert results[1].data['artifact_search_path'] is None
         assert results[1].commands[0].label == results[1].label
         assert results[1].commands[0].script == results[1].label

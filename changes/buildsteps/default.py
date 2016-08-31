@@ -43,7 +43,10 @@ DEFAULT_ENV = {
 # We only want to copy certain attributes from a jobstep (basically, only
 # static state, not things that change after jobstep creation), so we
 # have an explicit list of attributes we'll copy
-JOBSTEP_DATA_COPY_WHITELIST = ('release', 'cpus', 'memory', 'weight', 'tests', 'shard_count')
+JOBSTEP_DATA_COPY_WHITELIST = (
+    'release', 'cpus', 'memory', 'weight', 'tests', 'shard_count',
+    'artifact_search_path',
+)
 
 
 class DefaultBuildStep(BuildStep):
@@ -484,7 +487,7 @@ class DefaultBuildStep(BuildStep):
 
     def get_allocation_params(self, jobstep):
         params = {
-            'artifact-search-path': self.artifact_search_path,
+            'artifact-search-path': jobstep.data.get('artifact_search_path', self.artifact_search_path),
             'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
             'server': build_internal_uri('/api/0/'),

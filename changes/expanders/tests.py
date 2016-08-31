@@ -49,11 +49,17 @@ class TestsExpander(Expander):
                 env=self.data.get('env'),
                 artifacts=self.data.get('artifacts'),
             )
+            artifact_search_path = self.data.get('artifact_search_path')
+            artifact_search_path = artifact_search_path if artifact_search_path else None
             future_jobstep = FutureJobStep(
                 label=self.data.get('label') or future_command.label,
                 commands=[future_command],
-                data={'weight': weight, 'tests': test_list,
-                      'shard_count': len(groups)},
+                data={
+                    'weight': weight,
+                    'tests': test_list,
+                    'shard_count': len(groups),
+                    'artifact_search_path': artifact_search_path,
+                },
             )
             yield future_jobstep
 
