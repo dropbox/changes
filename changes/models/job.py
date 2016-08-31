@@ -12,6 +12,7 @@ from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
+from changes.models.bazeltarget import BazelTarget
 
 
 class Job(db.Model):
@@ -60,7 +61,7 @@ class Job(db.Model):
     project = relationship('Project')
     source = relationship('Source')
 
-    targets = relationship('BazelTarget', backref=backref('job'))
+    targets = relationship(BazelTarget, backref=backref('job'))
 
     __repr__ = model_repr('label', 'target')
 

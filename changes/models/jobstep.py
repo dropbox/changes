@@ -11,6 +11,7 @@ from changes.db.utils import model_repr
 from changes.db.types.enum import Enum
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
+from changes.models.bazeltarget import BazelTarget
 
 
 class FutureJobStep(object):
@@ -69,7 +70,7 @@ class JobStep(db.Model):
     project = relationship('Project')
     node = relationship('Node')
     phase = relationship('JobPhase', backref=backref('steps', order_by='JobStep.date_started'))
-    targets = relationship('BazelTarget', backref=backref('step'))
+    targets = relationship(BazelTarget, backref=backref('step'))
 
     __repr__ = model_repr('label')
 
