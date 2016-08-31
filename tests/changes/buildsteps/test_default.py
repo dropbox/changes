@@ -563,6 +563,7 @@ class DefaultBuildStepTest(TestCase):
             'artifact-search-path': 'source/tests',
             'use-external-env': 'false',
             'dist': 'ubuntu',
+            'use-path-in-artifact-name': 'false',
         }
 
     def test_get_allocation_params_with_artifact_search_path(self):
@@ -586,6 +587,7 @@ class DefaultBuildStepTest(TestCase):
             'artifact-search-path': '/out',
             'use-external-env': 'false',
             'dist': 'ubuntu',
+            'use-path-in-artifact-name': 'false',
         }
 
     def test_get_allocation_params_with_artifact_search_path_from_jobstep(self):
@@ -611,6 +613,31 @@ class DefaultBuildStepTest(TestCase):
             'artifact-search-path': '/out',
             'use-external-env': 'false',
             'dist': 'ubuntu',
+            'use-path-in-artifact-name': 'false',
+        }
+
+    def test_get_allocation_params_use_path_in_artifact_name(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job)
+        jobstep = self.create_jobstep(jobphase)
+
+        buildstep = self.get_buildstep(repo_path='source', path='tests', use_path_in_artifact_name=True)
+        result = buildstep.get_allocation_params(jobstep)
+        assert result == {
+            'adapter': 'basic',
+            'server': 'http://changes-int.example.com/api/0/',
+            'jobstep_id': jobstep.id.hex,
+            'release': 'precise',
+            's3-bucket': 'snapshot-bucket',
+            'pre-launch': 'echo pre',
+            'post-launch': 'echo post',
+            'artifacts-server': 'http://localhost:1234',
+            'artifact-search-path': 'source/tests',
+            'use-external-env': 'false',
+            'dist': 'ubuntu',
+            'use-path-in-artifact-name': 'true',
         }
 
     def test_get_allocation_params_for_snapshotting(self):

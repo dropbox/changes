@@ -47,4 +47,5 @@ class LXCBuildStepTest(TestCase):
             'artifact-search-path': DEFAULT_PATH,
             'use-external-env': 'false',
             'dist': 'ubuntu',
+            'use-path-in-artifact-name': 'false',
         }

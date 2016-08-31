@@ -234,6 +234,7 @@ class JobPlan(db.Model):
                 cpus=bazel_cpus,
                 memory=bazel_memory,
                 max_executors=bazel_max_executors,
+                use_path_in_artifact_name=True,
             )
             return jobplan, implementation
 

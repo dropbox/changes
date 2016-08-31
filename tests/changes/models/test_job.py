@@ -75,6 +75,8 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
 
         assert implementation.max_executors == 1
 
+        assert implementation.use_path_in_artifact_name is True
+
         assert implementation.commands[0].type == CommandType.setup
         assert implementation.commands[0].script == bazel_setup_expected
 
@@ -120,6 +122,8 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
             _, implementation = JobPlan.get_build_step_for_job(self._create_job_and_jobplan().id)
 
         assert implementation.max_executors == 3
+
+        assert implementation.use_path_in_artifact_name is True
 
         assert implementation.resources['cpus'] == 2
         assert implementation.resources['mem'] == 1234

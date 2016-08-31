@@ -75,6 +75,7 @@ class DefaultBuildStep(BuildStep):
                  max_executors=10, cpus=DEFAULT_CPUS, memory=DEFAULT_MEMORY_MB, clean=True,
                  debug_config=None, test_stats_from=None, cluster=None,
                  other_repos=None, artifact_search_path=None,
+                 use_path_in_artifact_name=False,
                  **kwargs):
         """
         Constructor for DefaultBuildStep.
@@ -132,6 +133,9 @@ class DefaultBuildStep(BuildStep):
                 can be specified with "revision".
             artifact_search_path: Absolute path in which test artifacts can be
                 found in. This defaults to the value for `path`.
+            use_path_in_artifact_name: Tell Changes client to append the hash
+                of the file path to the artifact name, before any file extension
+                or suffixes.
         """
         if commands is None:
             raise ValueError("Missing required config: need commands")
@@ -152,6 +156,7 @@ class DefaultBuildStep(BuildStep):
             self.repo_path = path or DEFAULT_PATH
             self.path = self.repo_path
         self.artifact_search_path = artifact_search_path if artifact_search_path else self.path
+        self.use_path_in_artifact_name = use_path_in_artifact_name
         self.release = release
         self.max_executors = max_executors
         self.resources = {
@@ -497,6 +502,7 @@ class DefaultBuildStep(BuildStep):
             'post-launch': current_app.config['LXC_POST_LAUNCH'],
             'release': self.release,
             'use-external-env': 'false',
+            'use-path-in-artifact-name': 'true' if self.use_path_in_artifact_name else 'false',
         }
 
         if current_app.config['CLIENT_SENTRY_DSN']:
