@@ -122,7 +122,7 @@ var GroupedJobstepSummary = React.createClass({
     render() {
         let rowify = (m) => {
             return _.map(m, (val, key) => {
-                return [key, val[0], <JobstepInfo jobstepID={val[2]} />, <Age created={val[1]} />];
+                return [key, val['count'], <JobstepInfo jobstepID={val['jobstep_id']} />, <Age created={val['created']} />];
             });
         };
 

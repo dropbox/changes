@@ -1,7 +1,9 @@
 import datetime
 
+import mock
 from urllib import urlencode
 
+from changes.buildsteps.base import BuildStep
 from changes.testutils import APITestCase
 from changes.constants import Status
 
@@ -12,6 +14,68 @@ class JobStepAggregateByStatusTest(APITestCase):
     def get(self, **kwargs):
         query_string = '?' + urlencode(kwargs) if kwargs else ''
         return self.client.get(self.path + query_string)
+
+    @mock.patch('changes.models.jobplan.JobPlan.get_build_step_for_job')
+    def test_get_with_resource_stats(self, get_build_step_for_job):
+        mock_buildstep = mock.Mock(spec=BuildStep)
+        mock_buildstep.get_resource_limits.return_value = {'cpus': 4, 'memory': 1024}
+        get_build_step_for_job.return_value = (None, mock_buildstep)
+
+        project_1 = self.create_project(slug="project_1")
+        build_1 = self.create_build(project_1)
+        job_1 = self.create_job(build_1)
+        jobphase_1 = self.create_jobphase(job_1)
+        now = datetime.datetime.now()
+
+        jobstep1 = self.create_jobstep(
+            jobphase_1,
+            status=Status.pending_allocation,
+            date_created=now,
+            cluster="cluster_c")
+        jobstep2 = self.create_jobstep(
+            jobphase_1,
+            status=Status.pending_allocation,
+            date_created=now,
+            cluster="cluster_c")
+        raw_resp = self.get(status="pending_allocation", check_resources=True)
+
+        now_iso = now.isoformat()
+        expected_output = {
+            'jobsteps': {
+                'by_cluster': {
+                    "cluster_c": {
+                        Status.pending_allocation.name: {
+                            'count': 2,
+                            'created': now_iso,
+                            'jobstep_id': jobstep2.id.get_hex(),
+                            'cpus': 8,
+                            'mem': 2048,
+                        },
+                    },
+                },
+                'by_project': {
+                    project_1.slug: {
+                        Status.pending_allocation.name: {
+                            'count': 2,
+                            'created': now_iso,
+                            'jobstep_id': jobstep2.id.get_hex(),
+                            'cpus': 8,
+                            'mem': 2048,
+                        },
+                    },
+                },
+                'global': {
+                    Status.pending_allocation.name: {
+                        'count': 2,
+                        'created': now_iso,
+                        'jobstep_id': jobstep2.id.get_hex(),
+                        'cpus': 8,
+                        'mem': 2048,
+                    },
+                },
+            }
+        }
+        assert self.unserialize(raw_resp) == expected_output
 
     def test_get_with_invalid_status(self):
         raw_resp = self.get(status="meow")
@@ -42,18 +106,18 @@ class JobStepAggregateByStatusTest(APITestCase):
                 'by_cluster': {
                     "cluster_c": {
                         Status.pending_allocation.name:
-                            [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_pending_allocation.id.get_hex()},
                     },
                 },
                 'by_project': {
                     project_1.slug: {
                         Status.pending_allocation.name:
-                            [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_pending_allocation.id.get_hex()},
                     },
                 },
                 'global': {
                     Status.pending_allocation.name:
-                        [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                        {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_pending_allocation.id.get_hex()},
                 },
             }
         }
@@ -113,42 +177,42 @@ class JobStepAggregateByStatusTest(APITestCase):
                 'by_cluster': {
                     "cluster_a": {
                         Status.queued.name:
-                            [1, now_iso, jobstep_queued.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_queued.id.get_hex()},
                         Status.in_progress.name:
-                            [1, now_iso, jobstep_in_progress.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_in_progress.id.get_hex()},
                     },
                     "cluster_c": {
                         Status.pending_allocation.name:
-                            [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_pending_allocation.id.get_hex()},
                     },
                     "cluster_b": {
                         Status.allocated.name:
-                            [1, now_iso, jobstep_allocated_.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_allocated_.id.get_hex()},
                     }
                 },
                 'by_project': {
                     project_1.slug: {
                         Status.in_progress.name:
-                            [1, now_iso, jobstep_in_progress.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_in_progress.id.get_hex()},
                         Status.pending_allocation.name:
-                            [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_pending_allocation.id.get_hex()},
                     },
                     project_2.slug: {
                         Status.queued.name:
-                            [1, now_iso, jobstep_queued.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_queued.id.get_hex()},
                         Status.allocated.name:
-                            [1, now_iso, jobstep_allocated_.id.get_hex()],
+                            {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_allocated_.id.get_hex()},
                     },
                 },
                 'global': {
                     Status.queued.name:
-                        [1, now_iso, jobstep_queued.id.get_hex()],
+                        {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_queued.id.get_hex()},
                     Status.in_progress.name:
-                        [1, now_iso, jobstep_in_progress.id.get_hex()],
+                        {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_in_progress.id.get_hex()},
                     Status.pending_allocation.name:
-                        [1, now_iso, jobstep_pending_allocation.id.get_hex()],
+                        {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_pending_allocation.id.get_hex()},
                     Status.allocated.name:
-                        [1, now_iso, jobstep_allocated_.id.get_hex()],
+                        {'count': 1, 'created': now_iso, 'jobstep_id': jobstep_allocated_.id.get_hex()},
                 },
             }
         }

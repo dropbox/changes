@@ -9,10 +9,10 @@ NUM_PREVIOUS_RUNS = 50
 # if not specified in changes.conf.py
 CUSTOM_CSS_FILE = "changes.less"
 
-# Default number of CPUs assigned to an executor
+# Default number of CPUs assigned to a job executor
 DEFAULT_CPUS = 4
 
-# Default amount of RAM (in MBs) assigned to an executor
+# Default amount of RAM (in MBs) assigned to a job executor
 DEFAULT_MEMORY_MB = 8 * 1024
 
 

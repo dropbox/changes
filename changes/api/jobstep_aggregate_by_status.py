@@ -3,7 +3,10 @@ from collections import defaultdict
 from changes.api.base import APIView
 from changes.constants import Status
 from changes.models.jobstep import JobStep
+from changes.constants import DEFAULT_CPUS, DEFAULT_MEMORY_MB
+from changes.models.jobplan import JobPlan
 from flask_restful.reqparse import RequestParser
+from flask_restful.types import boolean
 
 
 def status_name(value, name):
@@ -18,6 +21,7 @@ class JobStepAggregateByStatusAPIView(APIView):
     get_parser = RequestParser()
     default_statuses = (Status.pending_allocation, Status.queued, Status.in_progress, Status.allocated)
     get_parser.add_argument('status', type=status_name, location='args', default=default_statuses)
+    get_parser.add_argument('check_resources', type=boolean, location='args', default=False)
 
     def get(self):
         """GET method that returns aggregated data regarding jobsteps.
@@ -28,6 +32,7 @@ class JobStepAggregateByStatusAPIView(APIView):
         Args (in the form of a query string):
             status (Optional[str]): A specific status to look for.
                                     If not specified, will search all statuses.
+            check_resources (Optional[bool]): If shown, adds cpu and memory data to output.
 
         Returns:
             {
@@ -45,24 +50,55 @@ class JobStepAggregateByStatusAPIView(APIView):
 
             where [status_data] is:
             {
-                'status value': [ count of jobsteps in status,
-                                  oldest jobstep create time,
-                                  jobstep_id of oldest ],
+                'status value': {
+                    'count': count of jobsteps in status,
+                    'created': oldest jobstep create time,
+                    'jobstep_id': jobstep_id of oldest,
+                    'cpus': cpu sum of all jobsteps, only shown if check_resources is set
+                    'mem': memory sum of all jobsteps, only shown if check_resources is set
+                },
                 ...
             }
         """
+        args = self.get_parser.parse_args()
+
+        buildstep_for_job_id = None
+        default = {
+            "count": 0,
+            "created": None,
+            "jobstep_id": None,
+        }
+
+        if args.check_resources:
+            # cache of buildsteps, so we hit the db less
+            buildstep_for_job_id = {}
+            default.update({
+                "cpus": 0,
+                "mem": 0,
+            })
+
         def process_row(agg, jobstep):
             status = jobstep.status.name
-            count, date_created, jobstep_id = agg.get(status, (0, None, None))
-            count += 1
+            current = agg.get(status) or default.copy()
+            current['count'] += 1
+
+            if args.check_resources:
+                if jobstep.job_id not in buildstep_for_job_id:
+                    buildstep_for_job_id[jobstep.job_id] = JobPlan.get_build_step_for_job(jobstep.job_id)[1]
+                buildstep = buildstep_for_job_id[jobstep.job_id]
+                limits = buildstep.get_resource_limits()
+                req_cpus = limits.get('cpus', DEFAULT_CPUS)
+                req_mem = limits.get('memory', DEFAULT_MEMORY_MB)
+
+                current['cpus'] += req_cpus
+                current['mem'] += req_mem
 
             # Track the oldest jobstep we've seen.
-            if date_created is None or jobstep.date_created < date_created:
-                date_created = jobstep.date_created
-                jobstep_id = jobstep.id
-            agg[status] = (count, date_created, jobstep_id)
+            if current['created'] is None or jobstep.date_created < current['created']:
+                current['created'] = jobstep.date_created
+                current['jobstep_id'] = jobstep.id
+            agg[status] = current
 
-        args = self.get_parser.parse_args()
         jobsteps = JobStep.query.filter(
             JobStep.status.in_(args.status),
         )

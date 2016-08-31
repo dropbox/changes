@@ -16,6 +16,7 @@ from changes.models.build import Build
 from changes.models.job import Job
 from changes.models.jobplan import JobPlan
 from changes.models.jobstep import JobStep
+from changes.constants import DEFAULT_CPUS, DEFAULT_MEMORY_MB
 
 # Named tuple for data from the BuildStep used to pick JobSteps to allocate,
 # to make sure we don't need to refetch (and risk inconsistency).
@@ -128,8 +129,8 @@ class JobStepAllocateAPIView(APIView):
                     buildstep_for_job_id[jobstep.job_id] = JobPlan.get_build_step_for_job(jobstep.job_id)[1]
                 buildstep = buildstep_for_job_id[jobstep.job_id]
                 limits = buildstep.get_resource_limits()
-                req_cpus = limits.get('cpus', 4)
-                req_mem = limits.get('memory', 8 * 1024)
+                req_cpus = limits.get('cpus', DEFAULT_CPUS)
+                req_mem = limits.get('memory', DEFAULT_MEMORY_MB)
                 allocation_cmd = buildstep.get_allocation_command(jobstep)
                 jobstep_data['project'] = jobstep.project
                 jobstep_data['resources'] = {
