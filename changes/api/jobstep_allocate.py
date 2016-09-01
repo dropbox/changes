@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 import json
 import logging
-from collections import namedtuple
 from datetime import datetime
 from uuid import UUID
 from flask import request
@@ -17,10 +16,6 @@ from changes.models.job import Job
 from changes.models.jobplan import JobPlan
 from changes.models.jobstep import JobStep
 from changes.constants import DEFAULT_CPUS, DEFAULT_MEMORY_MB
-
-# Named tuple for data from the BuildStep used to pick JobSteps to allocate,
-# to make sure we don't need to refetch (and risk inconsistency).
-_AllocData = namedtuple('_AllocData', ['cpus', 'memory', 'command'])
 
 
 class JobStepAllocateAPIView(APIView):
