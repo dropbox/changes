@@ -31,11 +31,7 @@ def upgrade():
             ['job_id'], ['job.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')
     )
-    op.add_column('test', sa.Column('target_id', sa.GUID(), nullable=True))
-    op.create_foreign_key('test_target_id_fkey', 'test', 'bazeltarget', ['target_id'], ['id'], ondelete='CASCADE')
 
 
 def downgrade():
-    op.drop_constraint('test_target_id_fkey', 'test')
-    op.drop_column('test', 'target_id')
     op.drop_table('bazeltarget')
