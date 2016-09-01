@@ -169,6 +169,17 @@ class XunitParser(XunitBaseParser):
                 duration_ms = None
             suite = TestSuite(step=self.step, name=attrs.get('name', None), duration=duration_ms)
             self.test_suites.append(suite)
+
+            # try to assign a result. We will override this if this test suite
+            # has tests
+            if 'failures' in attrs and int(attrs['failures']) > 0:
+                suite.result = Result.failed
+            elif 'errors' in attrs and int(attrs['errors']) > 0:
+                suite.result = Result.failed
+            else:
+                # TODO(naphat) what about 'skipped'? we don't have enough information
+                # to distinguish between skipped and passing
+                suite.result = Result.passed
         elif tag == 'testcase':
             # If there's a previous failure in addition to stdout or stderr,
             # prioritize showing the previous failure because that's what's
@@ -246,9 +257,12 @@ class XunitParser(XunitBaseParser):
                 # tests, because tests may be run in parallel
                 self.logger.warning('Test suite does not have timing information; (step=%s, build=%s)',
                                     self.step.id.hex, self.step.job.build_id.hex)
-            self.test_suites[-1].result = aggregate_result([t.result for t in self.test_suites[-1].test_results])
-            if self.test_suites[-1].date_created is None:
-                self.test_suites[-1].date_created = min([t.date_created for t in self.test_suites[-1].test_results])
+
+            if len(self.test_suites[-1].test_results) > 0:
+                self.test_suites[-1].result = aggregate_result([t.result for t in self.test_suites[-1].test_results])
+
+                if self.test_suites[-1].date_created is None:
+                    self.test_suites[-1].date_created = min([t.date_created for t in self.test_suites[-1].test_results])
         elif tag == 'testcase':
             if self._current_result.result == Result.unknown:
                 # Default result is passing

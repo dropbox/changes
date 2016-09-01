@@ -37,7 +37,8 @@ from changes.utils.slugs import slugify
 
 __all__ = ('Fixtures', 'SAMPLE_COVERAGE', 'SAMPLE_DIFF_BYTES', 'SAMPLE_DIFF', 'SAMPLE_XUNIT',
            'SAMPLE_XUNIT_DOUBLE_CASES', 'SAMPLE_XUNIT_MULTIPLE_SUITES',
-           'SAMPLE_XUNIT_MULTIPLE_SUITES_COMPLETE_TIME',
+           'SAMPLE_XUNIT_MULTIPLE_SUITES_COMPLETE_TIME', 'SAMPLE_XUNIT_MULTIPLE_EMPTY_PASSED',
+           'SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_FAILURE', 'SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_ERROR',
            'SAMPLE_XUNIT_TESTARTIFACTS')
 
 
@@ -94,6 +95,30 @@ E   ZeroDivisionError: integer division or modulo by zero</error>
         <system-out>Running SampleTest</system-out>
     </testcase>
 </testsuite>"""
+
+SAMPLE_XUNIT_MULTIPLE_EMPTY_PASSED = """
+<testsuites>
+    <testsuite errors="0" failures="0" name="suite-name" skipped="0" timestamp="2016-08-31"/>
+    <testsuite errors="0" failures="0" name="null" skipped="0" timestamp="2016-08-31">
+        <testcase classname="some.class" name="testName" source_file="/var/output/junit.xml" time="6.11"/>
+    </testsuite>
+</testsuites>"""
+
+SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_FAILURE = """
+<testsuites>
+    <testsuite errors="0" failures="1" name="suite-name" skipped="0" timestamp="2016-08-31"/>
+    <testsuite errors="0" failures="0" name="null" skipped="0" timestamp="2016-08-31">
+        <testcase classname="some.class" name="testName" source_file="/var/output/junit.xml" time="6.11"/>
+    </testsuite>
+</testsuites>"""
+
+SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_ERROR = """
+<testsuites>
+    <testsuite errors="1" failures="0" name="suite-name" skipped="0" timestamp="2016-08-31"/>
+    <testsuite errors="0" failures="0" name="null" skipped="0" timestamp="2016-08-31">
+        <testcase classname="some.class" name="testName" source_file="/var/output/junit.xml" time="6.11"/>
+    </testsuite>
+</testsuites>"""
 
 # this has multiple test suites, and one of the test cases exists in all suites
 # the third suite also has a duplicate test case.

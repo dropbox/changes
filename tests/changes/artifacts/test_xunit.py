@@ -13,7 +13,9 @@ from changes.models.failurereason import FailureReason
 from changes.models.jobstep import JobStep
 from changes.models.testresult import TestResult
 from changes.testutils import (
-    SAMPLE_XUNIT, SAMPLE_XUNIT_DOUBLE_CASES, SAMPLE_XUNIT_MULTIPLE_SUITES
+    SAMPLE_XUNIT, SAMPLE_XUNIT_DOUBLE_CASES, SAMPLE_XUNIT_MULTIPLE_SUITES,
+    SAMPLE_XUNIT_MULTIPLE_EMPTY_PASSED, SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_FAILURE,
+    SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_ERROR,
 )
 from changes.testutils.cases import TestCase
 
@@ -91,6 +93,36 @@ def test_get_test_suite_multiple():
 
     tests = handler.aggregate_tests_from_suites(suites)
     assert len(tests) == 7  # 10 test cases, 3 of which are duplicates
+
+
+@pytest.mark.parametrize('xml,result', [
+    (SAMPLE_XUNIT_MULTIPLE_EMPTY_PASSED, Result.passed),
+    (SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_FAILURE, Result.failed),
+    (SAMPLE_XUNIT_MULTIPLE_EMPTY_FAILED_ERROR, Result.failed),
+])
+def test_get_test_suite_multiple_empty(xml, result):
+    jobstep = JobStep(
+        id=uuid.uuid4(),
+        project_id=uuid.uuid4(),
+        job_id=uuid.uuid4(),
+    )
+    # needed for logging when a test suite has no duration
+    jobstep.job = mock.MagicMock()
+
+    fp = StringIO(xml)
+
+    handler = XunitHandler(jobstep)
+    suites = handler.get_test_suites(fp)
+    assert len(suites) == 2
+    assert suites[0].name == 'suite-name'
+    assert suites[0].duration is None
+    assert suites[0].result is result
+    assert len(suites[0].test_results) == 0
+
+    assert suites[1].name == 'null'
+    assert suites[1].duration is None
+    assert suites[1].result == Result.passed
+    assert len(suites[1].test_results) == 1
 
 
 def test_result_generation():
