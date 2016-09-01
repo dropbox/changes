@@ -61,7 +61,7 @@ export var get_runnable_condition = function(runnable) {
   const status = runnable.status ? runnable.status.id : 'finished';
   var result = runnable.result.id;
 
-  if (status === 'in_progress' || status === 'queued' || status === 'pending_allocation') {
+  if (status === 'in_progress' || status === 'queued' || status === 'pending_allocation' || status == 'allocated') {
     if (runnable.stats && runnable.stats['test_failures']) {
       return COND_WAITING_WITH_ERRORS;
     }
