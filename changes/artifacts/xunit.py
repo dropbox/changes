@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division
 
 import logging
+from datetime import datetime
 from operator import add
 from xml.parsers import expat
 from xml.sax import saxutils
@@ -263,6 +264,9 @@ class XunitParser(XunitBaseParser):
 
                 if self.test_suites[-1].date_created is None:
                     self.test_suites[-1].date_created = min([t.date_created for t in self.test_suites[-1].test_results])
+            else:
+                if self.test_suites[-1].date_created is None:
+                    self.test_suites[-1].date_created = datetime.utcnow()
         elif tag == 'testcase':
             if self._current_result.result == Result.unknown:
                 # Default result is passing

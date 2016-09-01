@@ -39,6 +39,7 @@ def test_get_test_single_suite(xml, suite_name, duration):
     assert suites[0].name == suite_name
     assert suites[0].duration == duration
     assert suites[0].result == Result.failed
+    assert suites[0].date_created is not None
 
     # test the equivalence of get_tests and get_test_suites in the case where
     # there is only one test suite, so that we can call get_tests directly
@@ -79,16 +80,19 @@ def test_get_test_suite_multiple():
     assert suites[0].name is None
     assert suites[0].duration is None
     assert suites[0].result == Result.failed
+    assert suites[0].date_created is not None
     assert len(suites[0].test_results) == 3
 
     assert suites[1].name == 'suite2'
     assert suites[1].duration == 77
     assert suites[1].result == Result.failed
+    assert suites[1].date_created is not None
     assert len(suites[1].test_results) == 3
 
     assert suites[2].name == ''
     assert suites[2].duration is None
     assert suites[2].result == Result.failed
+    assert suites[2].date_created is not None
     assert len(suites[2].test_results) == 3
 
     tests = handler.aggregate_tests_from_suites(suites)
@@ -117,11 +121,13 @@ def test_get_test_suite_multiple_empty(xml, result):
     assert suites[0].name == 'suite-name'
     assert suites[0].duration is None
     assert suites[0].result is result
+    assert suites[0].date_created is not None
     assert len(suites[0].test_results) == 0
 
     assert suites[1].name == 'null'
     assert suites[1].duration is None
     assert suites[1].result == Result.passed
+    assert suites[1].date_created is not None
     assert len(suites[1].test_results) == 1
 
 
