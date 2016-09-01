@@ -4,7 +4,6 @@ import uuid
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, Text, Integer
-from sqlalchemy.orm import backref, relationship
 
 from changes.config import db
 from changes.constants import Result, Status
@@ -22,8 +21,6 @@ class BazelTarget(db.Model):
     result = Column(Enum(Result), default=Result.unknown, nullable=False)
     duration = Column(Integer, default=0)
     date_created = Column(DateTime, default=datetime.utcnow, nullable=False)
-
-    tests = relationship('TestCase', backref=backref('target'))
 
     def __init__(self, **kwargs):
         super(BazelTarget, self).__init__(**kwargs)

@@ -5,7 +5,6 @@ from changes.config import db
 from changes.constants import Status
 from changes.db.utils import get_or_create
 from changes.models.bazeltarget import BazelTarget
-from changes.models.test import TestCase
 from changes.models.testresult import TestResultManager
 from changes.storage.artifactstore import ARTIFACTSTORE_PREFIX
 from changes.utils.agg import aggregate_result
@@ -26,18 +25,10 @@ class BazelTargetHandler(XunitHandler):
         manager = TestResultManager(self.step, artifact)
         manager.save(tests)
 
-        # add all tests to target
-        for test in tests:
-            test_case = TestCase.query.filter(
-                TestCase.step == self.step,
-                TestCase.name_sha == test.name_sha,
-            ).limit(1).first()
-            target.tests.append(test_case)
-
         # update target metadata
         # TODO handle multiple files per target, i.e. sharding and running multiple times
         target.status = Status.finished
-        target.result = aggregate_result([t.result for t in target.tests])
+        target.result = aggregate_result([t.result for t in tests])
         duration = 0
         for t in test_suites:
             if t.duration is None:

@@ -6,6 +6,7 @@ from cStringIO import StringIO
 from changes.artifacts.bazel_target import BazelTargetHandler
 from changes.constants import Result, Status
 from changes.models.bazeltarget import BazelTarget
+from changes.models.test import TestCase as TestCaseModel
 from changes.testutils import (
     SAMPLE_XUNIT, SAMPLE_XUNIT_MULTIPLE_SUITES, SAMPLE_XUNIT_MULTIPLE_SUITES_COMPLETE_TIME
 )
@@ -48,10 +49,8 @@ class BazelTargetTestCase(TestCase):
         assert target.status is Status.finished
         assert target.result is Result.failed
         assert target.duration == 77
-        shas = [t.name_sha for t in target.tests]
-        for test_result in tests:
-            assert test_result.name_sha in shas
-        assert len(tests) == len(target.tests)
+        for t in tests:
+            TestCaseModel.query.filter(TestCaseModel.name_sha == t.name_sha, TestCaseModel.step == jobstep).exists()
 
     def test_multiple_duration_none(self):
         project = self.create_project()
@@ -73,10 +72,8 @@ class BazelTargetTestCase(TestCase):
         assert target.status is Status.finished
         assert target.result is Result.failed
         assert target.duration is None
-        shas = [t.name_sha for t in target.tests]
-        for test_result in tests:
-            assert test_result.name_sha in shas
-        assert len(tests) == len(target.tests)
+        for t in tests:
+            TestCaseModel.query.filter(TestCaseModel.name_sha == t.name_sha, TestCaseModel.step == jobstep).exists()
 
     def test_multiple_duration_complete(self):
         project = self.create_project()
@@ -98,7 +95,5 @@ class BazelTargetTestCase(TestCase):
         assert target.status is Status.finished
         assert target.result is Result.passed
         assert target.duration == 1577
-        shas = [t.name_sha for t in target.tests]
-        for test_result in tests:
-            assert test_result.name_sha in shas
-        assert len(tests) == len(target.tests)
+        for t in tests:
+            TestCaseModel.query.filter(TestCaseModel.name_sha == t.name_sha, TestCaseModel.step == jobstep).exists()
