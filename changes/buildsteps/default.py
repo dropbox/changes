@@ -495,8 +495,10 @@ class DefaultBuildStep(BuildStep):
         return self._jobid2image[job_id]
 
     def get_allocation_params(self, jobstep):
+        artifact_search_path = jobstep.data.get('artifact_search_path', None)
+        artifact_search_path = artifact_search_path if artifact_search_path is not None else self.artifact_search_path
         params = {
-            'artifact-search-path': jobstep.data.get('artifact_search_path', self.artifact_search_path),
+            'artifact-search-path': artifact_search_path,
             'artifacts-server': current_app.config['ARTIFACTS_SERVER'],
             'adapter': self.get_client_adapter(),
             'server': build_internal_uri('/api/0/'),
