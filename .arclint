@@ -21,6 +21,14 @@
         "(^tests/.*\\.py$)",
         "(^changes/.*\\.py$)"
       ]
+    },
+    "python-linters": {
+      "type": "script-and-regex",
+      "script-and-regex.script": "bin/lint",
+      "script-and-regex.regex": "/^(?P<severity>advice|warning|error):(?P<line>\\d+) (?P<message>.*)$/m",
+      "include": [
+        "(^.*\\.py$)"
+      ]
     }
   }
 }

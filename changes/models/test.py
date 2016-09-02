@@ -27,6 +27,10 @@ class TestCase(db.Model):
     At the time this was written, it seems to have 400-500M rows
 
     (how is this still surviving?)
+
+    NOTE: DO NOT MODIFY THIS TABLE! Running migration on this table has caused
+    unavailability in the past. If you need to add a new column, consider doing
+    that on a new table and linking it back to tests via the ID.
     """
     __tablename__ = 'test'
     __table_args__ = (
