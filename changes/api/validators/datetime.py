@@ -4,6 +4,10 @@ from datetime import datetime
 
 import logging
 
+# We appear to be hitting https://bugs.python.org/issue7980, but by using
+# strptime early on, the race should be avoided.
+datetime.strptime("", "")
+
 
 class ISODatetime(object):
     def __call__(self, value):
