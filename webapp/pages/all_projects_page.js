@@ -117,22 +117,60 @@ var AllProjectsPage = React.createClass({
    * TODO: do we have any stats we want to show?
    */
   renderDefault: function(projects_data) {
-    var list = [], stale_list = [];
+    var groups = [{
+        minAge: -1,
+        header: 'Recently built',
+        projects: [],
+    }, {
+        minAge: moment.duration(1, 'weeks').asSeconds(),
+        header: 'Last built over 1 week ago',
+        projects: [],
+    }, {
+        minAge: moment.duration(1, 'months').asSeconds(),
+        header: 'Last built over 1 month ago',
+        projects: [],
+    }, {
+        minAge: moment.duration(3, 'months').asSeconds(),
+        header: 'Last built over 3 months ago',
+        projects: [],
+    }, {
+        header: 'Never finished a build',
+        projects: [],
+    }];
+
+    // group builds
     _.each(projects_data, p => {
-      var is_stale = p.lastBuild && ChangesUI.projectIsStale(p.lastBuild);
-      !is_stale ? list.push(p) : stale_list.push(p);
+      if (!p.lastBuild) {
+        groups[groups.length - 1].projects.push(p);
+      } else {
+        var age = ChangesUI.getBuildAge(p.lastBuild);
+        for (var i = groups.length - 2; i >= 0; --i) {
+          if (age > groups[i].minAge) {
+              groups[i].projects.push(p);
+              break;
+          }
+        }
+      }
     });
 
-    var stale_header = stale_list ?
-      <SectionHeader className="marginTopL">Stale Projects (>1 week)</SectionHeader> :
-      null;
+    var staleContent = [];
+    for (var i = 0; i < groups.length; ++i) {
+      if (groups[i].projects.length > 0) {
+        staleContent.push(
+          <span>
+            <SectionHeader className="marginTopL">
+              {groups[i].header}
+            </SectionHeader>
+            <div className='bluishGray'>
+              {this.renderProjectList(groups[i].projects)}
+            </div>
+          </span>
+        );
+      }
+    }
 
     return <div>
-      {this.renderProjectList(list)}
-      {stale_header}
-      <div className="bluishGray">
-        {this.renderProjectList(stale_list)}
-      </div>
+      {staleContent}
     </div>;
   },
 
