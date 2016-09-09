@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+import os
 import uuid
 
 from collections import defaultdict
@@ -227,6 +228,7 @@ class JobPlan(db.Model):
                     {'script': get_bazel_setup(), 'type': 'setup'},
                     {'script': sync_encap_pkgs(project_config), 'type': 'setup'},  # TODO(anupc): Make this optional
                     {'script': collect_bazel_targets(
+                        collect_targets_executable=os.path.join(LXCBuildStep.custom_bin_path(), 'collect-targets'),
                         bazel_targets=project_config['bazel.targets'],
                         bazel_exclude_tags=bazel_exclude_tags,
                         max_jobs=2 * bazel_cpus), 'type': 'collect_bazel_targets'},

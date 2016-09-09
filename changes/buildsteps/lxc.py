@@ -17,7 +17,8 @@ class LXCBuildStep(DefaultBuildStep):
     def get_client_adapter(self):
         return 'lxc'
 
-    def _custom_bin_path(self):
+    @classmethod
+    def custom_bin_path(cls):
         # This is where we mount custom binaries in the container
         return '/var/changes/input/'
 

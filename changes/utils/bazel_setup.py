@@ -1,5 +1,3 @@
-import os
-
 from flask import current_app
 
 
@@ -30,7 +28,7 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes {bazel_apt_pkgs} python >/dev/null 2>&1
 
-python -c "{script}" "{bazel_root}" "{bazel_targets}" "{bazel_exclude_tags}" "{max_jobs}" 2> /dev/null
+"{collect_targets_executable}" --output-user-root="{bazel_root}" {bazel_targets} {bazel_exclude_tags} --jobs="{max_jobs}" 2> /dev/null
 """.strip()
 
 
@@ -47,7 +45,7 @@ def get_bazel_setup():
     )
 
 
-def collect_bazel_targets(bazel_targets, bazel_exclude_tags, max_jobs):
+def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclude_tags, max_jobs):
     """Construct a command to query the Bazel dependency graph to expand bazel project
     config into a set of individual test targets.
 
@@ -59,20 +57,16 @@ def collect_bazel_targets(bazel_targets, bazel_exclude_tags, max_jobs):
     - exclude-tags: List of target tags. Targets matching any of these tags are not returned.
       By default, this list is empty.
     """
-    # type: (List[str], List[str], int) -> str
-    package_dir = os.path.dirname(__file__)
-    bazel_target_py = os.path.join(package_dir, "collect_bazel_targets.py")
-
-    with open(bazel_target_py, 'r') as script:
-        return COLLECT_BAZEL_TARGETS.format(
-            apt_spec=current_app.config['APT_SPEC'],
-            bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
-            bazel_root=current_app.config['BAZEL_ROOT_PATH'],
-            bazel_targets=','.join(bazel_targets),
-            script=script.read().replace(r'"', r'\"').replace(r'$', r'\$').replace(r'`', r'\`'),
-            bazel_exclude_tags=','.join(bazel_exclude_tags),
-            max_jobs=max_jobs,
-        )
+    # type: (str, List[str], List[str], int) -> str
+    return COLLECT_BAZEL_TARGETS.format(
+        apt_spec=current_app.config['APT_SPEC'],
+        bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
+        bazel_root=current_app.config['BAZEL_ROOT_PATH'],
+        bazel_targets=' '.join(['--target-patterns={}'.format(t) for t in bazel_targets]),
+        collect_targets_executable=collect_targets_executable,
+        bazel_exclude_tags=' '.join(['--exclude-tags={}'.format(t) for t in bazel_exclude_tags]),
+        max_jobs=max_jobs,
+    )
 
 
 def sync_encap_pkgs(project_config, encap_dir='/usr/local/encap/'):
