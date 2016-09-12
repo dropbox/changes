@@ -76,6 +76,23 @@ class GetRecipientsTestCase(TestCase):
             'bar@example.com',
         ]
 
+    def test_build_passed(self):
+        project = self.create_project()
+        db.session.add(ProjectOption(
+            project=project, name='mail.notify-author', value='1'))
+        db.session.add(ProjectOption(
+            project=project, name='mail.notify-addresses',
+            value='test@example.com, bar@example.com'))
+
+        author = self.create_author('foo@example.com')
+        build = self.create_build(project, result=Result.passed, author=author)
+        db.session.commit()
+
+        handler = MailNotificationHandler()
+        recipients = handler.get_build_recipients(build)
+
+        assert recipients == []
+
     def test_with_revision_addressees(self):
         project = self.create_project()
         db.session.add(ProjectOption(
@@ -120,6 +137,87 @@ class GetRecipientsTestCase(TestCase):
             'test@example.com',
             'bar@example.com',
         ]
+
+
+class GetCollectionRecipientsTestCase(TestCase):
+
+    def test_diff_passed_and_failed(self):
+        project = self.create_project()
+        db.session.add(ProjectOption(
+            project=project, name='mail.notify-author', value='1'))
+        db.session.add(ProjectOption(
+            project=project, name='mail.notify-addresses-revisions',
+            value='test@example.com, bar@example.com'))
+
+        author = self.create_author('foo@example.com')
+        author_recipient = '{0} <{1}>'.format(author.name, author.email)
+
+        patch_build = self.create_build(
+            project=project,
+            source=self.create_source(project, patch=self.create_patch(repository=project.repository)),
+            author=author,
+            result=Result.passed,
+        )
+
+        project2 = self.create_project()
+        db.session.add(ProjectOption(
+            project=project2, name='mail.notify-author', value='0'))
+        db.session.add(ProjectOption(
+            project=project2, name='mail.notify-addresses-revisions',
+            value='test2@example.com, bar2@example.com'))
+
+        author2 = self.create_author('foo2@example.com')
+        author2_recipient = '{0} <{1}>'.format(author2.name, author2.email)
+
+        patch_build2 = self.create_build(
+            project=project2,
+            source=self.create_source(project2, patch=self.create_patch(repository=project2.repository)),
+            author=author2,
+            result=Result.failed,
+        )
+        db.session.commit()
+
+        recipients = MailNotificationHandler().get_collection_recipients({"builds": [{'build': patch_build}, {'build': patch_build2}]})
+        assert recipients == []
+
+    def test_diff_all_failed(self):
+        project = self.create_project()
+        db.session.add(ProjectOption(
+            project=project, name='mail.notify-author', value='1'))
+        db.session.add(ProjectOption(
+            project=project, name='mail.notify-addresses-revisions',
+            value='test@example.com, bar@example.com'))
+
+        author = self.create_author('foo@example.com')
+        author_recipient = '{0} <{1}>'.format(author.name, author.email)
+
+        patch_build = self.create_build(
+            project=project,
+            source=self.create_source(project, patch=self.create_patch(repository=project.repository)),
+            author=author,
+            result=Result.failed,
+        )
+
+        project2 = self.create_project()
+        db.session.add(ProjectOption(
+            project=project2, name='mail.notify-author', value='0'))
+        db.session.add(ProjectOption(
+            project=project2, name='mail.notify-addresses-revisions',
+            value='test2@example.com, bar2@example.com'))
+
+        author2 = self.create_author('foo2@example.com')
+        author2_recipient = '{0} <{1}>'.format(author2.name, author2.email)
+
+        patch_build2 = self.create_build(
+            project=project2,
+            source=self.create_source(project2, patch=self.create_patch(repository=project2.repository)),
+            author=author2,
+            result=Result.failed,
+        )
+        db.session.commit()
+
+        recipients = MailNotificationHandler().get_collection_recipients({"builds": [{'build': patch_build}, {'build': patch_build2}]})
+        assert recipients == [author_recipient]
 
 
 class SendTestCase(TestCase):

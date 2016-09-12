@@ -105,7 +105,7 @@ class MailNotificationHandler(object):
         The build author is included unless the build and all failing jobs
         have turned off the mail.notify-author option.
 
-        Successful builds will only return the author.
+        Successful builds will return the empty list.
 
         Recipients are also collected from each failing job's
         mail.notify-addresses and mail.notify-addresses-revisions options.
@@ -113,6 +113,9 @@ class MailNotificationHandler(object):
         collected from the build's own mail.notify-addresses and
         mail.notify-addresses-revisions options.
         """
+        if build.result == Result.passed:
+            return []
+
         recipients = []
         options = self.get_build_options(build)
 
@@ -120,9 +123,6 @@ class MailNotificationHandler(object):
             author = build.author
             if author:
                 recipients.append(u'%s <%s>' % (author.name, author.email))
-
-        if build.result == Result.passed:
-            return recipients
 
         recipients.extend(options['mail.notify-addresses'])
         if build_type.is_initial_commit_build(build):
