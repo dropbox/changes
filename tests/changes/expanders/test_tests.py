@@ -9,6 +9,14 @@ from changes.expanders.tests import TestsExpander
 from changes.testutils import TestCase
 
 
+@pytest.mark.parametrize('test_name, normalized', [
+    ('foo/bar.py', ('foo', 'bar')),
+    ('foo.bar.test_baz', ('foo', 'bar', 'test_baz')),
+])
+def test_normalize_test_segments(test_name, normalized):
+    assert TestsExpander._normalize_test_segments(test_name) == normalized
+
+
 class TestsExpanderTest(TestCase):
     def setUp(self):
         super(TestsExpanderTest, self).setUp()
@@ -50,38 +58,6 @@ class TestsExpanderTest(TestCase):
         assert results[('foo', 'bar')] == 75
         assert results[('foo', 'bar', 'test_baz')] == 50
         assert results[('foo', 'bar', 'test_bar')] == 25
-
-    def test_sharding(self):
-        tests = [
-            'foo/bar.py',
-            'foo/baz.py',
-            'foo.bar.test_biz',
-            'foo.bar.test_buz',
-        ]
-        test_weights = {
-            ('foo', 'bar'): 50,
-            ('foo', 'baz'): 15,
-            ('foo', 'bar', 'test_biz'): 10,
-            ('foo', 'bar', 'test_buz'): 200,
-        }
-        avg_test_time = sum(test_weights.values()) / len(test_weights)
-
-        groups = TestsExpander.shard_tests(tests, 2, test_weights, avg_test_time)
-        assert len(groups) == 2
-        groups.sort()
-        assert groups[0] == (78, ['foo/bar.py', 'foo/baz.py', 'foo.bar.test_biz'])
-        assert groups[1] == (201, ['foo.bar.test_buz'])
-
-        groups = TestsExpander.shard_tests(tests, 3, test_weights, avg_test_time)
-        assert len(groups) == 3
-        groups.sort()
-        assert groups[0] == (27, ['foo/baz.py', 'foo.bar.test_biz'])
-        assert groups[1] == (51, ['foo/bar.py'])
-        assert groups[2] == (201, ['foo.bar.test_buz'])
-
-        # more shards than tests
-        groups = TestsExpander.shard_tests(tests, len(tests) * 2, test_weights, avg_test_time)
-        assert len(groups) == len(tests)
 
     @patch.object(TestsExpander, 'get_test_stats')
     def test_expand(self, mock_get_test_stats):

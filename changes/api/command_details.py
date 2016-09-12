@@ -9,6 +9,7 @@ from changes.api.base import APIView, error
 from changes.api.validators.datetime import ISODatetime
 from changes.config import db, redis, statsreporter
 from changes.constants import Result, Status
+from changes.expanders.bazel_targets import BazelTargetsExpander
 from changes.expanders.commands import CommandsExpander
 from changes.expanders.tests import TestsExpander
 from changes.jobs.sync_job_step import sync_job_step
@@ -22,6 +23,7 @@ STATUS_CHOICES = ('queued', 'in_progress', 'finished')
 EXPANDERS = {
     CommandType.collect_steps: CommandsExpander,
     CommandType.collect_tests: TestsExpander,
+    CommandType.collect_bazel_targets: BazelTargetsExpander,
 }
 
 

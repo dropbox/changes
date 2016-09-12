@@ -67,8 +67,8 @@ def main(argv):
             'bazel-testlogs',
         ]).strip()
     out = {
-        'cmd': '/usr/bin/bazel --output_user_root={bazel_root} test --jobs={max_jobs} {{test_names}}'.format(bazel_root=bazel_root, max_jobs=max_jobs),
-        'tests': targets,
+        'cmd': '/usr/bin/bazel --output_user_root={bazel_root} test --jobs={max_jobs} {{target_names}}'.format(bazel_root=bazel_root, max_jobs=max_jobs),
+        'targets': targets,
         'artifact_search_path': artifact_search_path,
         'artifacts': ['*.xml'],
     }

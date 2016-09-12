@@ -229,7 +229,7 @@ class JobPlan(db.Model):
                     {'script': collect_bazel_targets(
                         bazel_targets=project_config['bazel.targets'],
                         bazel_exclude_tags=bazel_exclude_tags,
-                        max_jobs=2 * bazel_cpus), 'type': 'collect_tests'},
+                        max_jobs=2 * bazel_cpus), 'type': 'collect_bazel_targets'},
                 ],
                 artifacts=[],  # only for collect_target step, which we don't expect artifacts
                 artifact_suffix=current_app.config['BAZEL_ARTIFACT_SUFFIX'],

@@ -38,8 +38,8 @@ class CollectBazelTargetTestCase(TestCase):
             'bazel-testlogs',
         ])]
         mock_dump.assert_called_once_with({
-            'cmd': '/usr/bin/bazel --output_user_root=/tmp/testroot test --jobs=3 {test_names}',
-            'tests': ['//aa/bb/cc:test', '//aa/abc:test'],
+            'cmd': '/usr/bin/bazel --output_user_root=/tmp/testroot test --jobs=3 {target_names}',
+            'targets': ['//aa/bb/cc:test', '//aa/abc:test'],
             'artifact_search_path': '/home/ubuntu/bazel-testlogs',
             'artifacts': ['*.xml'],
         }, sys.stdout)
@@ -75,8 +75,8 @@ class CollectBazelTargetTestCase(TestCase):
             'bazel-testlogs',
         ])]
         mock_dump.assert_called_once_with({
-            'cmd': '/usr/bin/bazel --output_user_root=/tmp/testroot test --jobs=3 {test_names}',
-            'tests': ['//aa/bb/cc:test', '//aa/abc:test'],
+            'cmd': '/usr/bin/bazel --output_user_root=/tmp/testroot test --jobs=3 {target_names}',
+            'targets': ['//aa/bb/cc:test', '//aa/abc:test'],
             'artifact_search_path': '/home/ubuntu/bazel-testlogs',
             'artifacts': ['*.xml'],
         }, sys.stdout)

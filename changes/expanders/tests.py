@@ -2,10 +2,6 @@ from __future__ import absolute_import
 
 from typing import Dict, List, Tuple  # NOQA
 
-from flask import current_app
-
-import heapq
-
 from changes.api.client import api_client
 from changes.config import db
 from changes.expanders.base import Expander
@@ -13,6 +9,7 @@ from changes.models.command import FutureCommand
 from changes.models.job import Job
 from changes.models.jobstep import FutureJobStep
 from changes.models.test import TestCase
+from changes.utils.shards import shard
 from changes.utils.trees import build_flat_tree
 
 
@@ -39,8 +36,13 @@ class TestsExpander(Expander):
     def expand(self, max_executors, test_stats_from=None):
         test_stats, avg_test_time = self.get_test_stats(test_stats_from or self.project.slug)
 
-        groups = self.shard_tests(self.data['tests'], max_executors,
-                                  test_stats, avg_test_time)
+        groups = shard(
+            self.data['tests'],
+            max_executors,
+            test_stats,
+            avg_test_time,
+            normalize_object_name=self._normalize_test_segments
+        )
 
         for weight, test_list in groups:
             future_command = FutureCommand(
@@ -128,45 +130,3 @@ class TestsExpander(Expander):
             segments[-1] = segments[-1].rsplit('.', 1)[0]
 
         return tuple(segments)
-
-    @classmethod
-    def shard_tests(cls, tests, max_shards, test_stats, avg_test_time):
-        # type: (List[str], int, Dict[str, int], int) -> List[Tuple[int, List[str]]]
-        """
-        Breaks a set of tests into shards.
-
-        Args:
-            tests (list): A list of test names.
-            max_shards (int): Maximum amount of shards over which to distribute the tests.
-            test_stats (dict): A mapping from normalized test name to duration.
-            avg_test_time (int): Average duration of a single test.
-
-        Returns:
-            list: Shards. Each element is a pair containing the weight for that
-                shard and the test names assigned to that shard.
-        """
-
-        def get_test_duration(test_name):
-            # type: (str) -> int
-            segments = cls._normalize_test_segments(test_name)
-            result = test_stats.get(segments)
-            if result is None:
-                if test_stats:
-                    current_app.logger.info('No existing duration found for test %r', test_name)
-                result = avg_test_time
-            return result
-
-        # don't use more shards than there are tests
-        num_shards = min(len(tests), max_shards)
-        # Each element is a pair (weight, tests).
-        groups = [(0, []) for _ in range(num_shards)]  # type: List[Tuple[int, List[str]]]
-        # Groups is already a proper heap, but we'll call this to guarantee it.
-        heapq.heapify(groups)
-        weighted_tests = [(get_test_duration(t), t) for t in tests]
-        for weight, test in sorted(weighted_tests, reverse=True):
-            group_weight, group_tests = heapq.heappop(groups)
-            group_weight += 1 + weight
-            group_tests.append(test)
-            heapq.heappush(groups, (group_weight, group_tests))
-
-        return groups

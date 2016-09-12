@@ -24,6 +24,7 @@ from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep
 from changes.models.test import TestCase
 from changes.utils.agg import aggregate_result
+from changes.utils.shards import shard
 
 
 class JenkinsTestCollectorBuilder(JenkinsGenericBuilder):
@@ -309,8 +310,9 @@ class JenkinsTestCollectorBuildStep(JenkinsGenericBuildStep):
                 raise Exception("Shard count incorrect")
         else:
             # Create all of the job steps and commit them together.
-            groups = TestsExpander.shard_tests(phase_config['tests'], self.max_shards,
-                                               test_stats, avg_test_time)
+            groups = shard(phase_config['tests'], self.max_shards,
+                           test_stats, avg_test_time,
+                           normalize_object_name=TestsExpander._normalize_test_segments)
             steps = [
                 self._create_jobstep(phase, phase_config['cmd'], phase_config.get('path', ''),
                                      weight, test_list, len(groups), cluster=step.cluster)

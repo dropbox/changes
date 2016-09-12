@@ -8,6 +8,7 @@ from changes.config import db
 from changes.models.adminmessage import AdminMessage
 from changes.models.artifact import Artifact
 from changes.models.author import Author
+from changes.models.bazeltarget import BazelTarget
 from changes.models.build import Build
 from changes.models.cached_snapshot_image import CachedSnapshotImage
 from changes.models.change import Change
@@ -317,6 +318,19 @@ class Fixtures(object):
         db.session.commit()
 
         return case
+
+    def create_target(self, job, jobstep, **kwargs):
+        kwargs.setdefault('name', '//' + uuid4().hex + ':test')
+
+        target = BazelTarget(
+            job=job,
+            step=jobstep,
+            **kwargs
+        )
+        db.session.add(target)
+        db.session.commit()
+
+        return target
 
     def create_job(self, build, **kwargs):
         project = build.project

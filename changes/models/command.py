@@ -27,10 +27,11 @@ class CommandType(Enum):
     # script to run only during snapshot builds. (setup and teardown will be
     # run for both snapshot builds and normal builds.)
     snapshot = 6
+    collect_bazel_targets = 7
 
     def is_collector(self):
         """Returns whether this CommandType is a collection command"""
-        return self in set([CommandType.collect_steps, CommandType.collect_tests])
+        return self in set([CommandType.collect_steps, CommandType.collect_tests, CommandType.collect_bazel_targets])
 
     def is_setup(self):
         """Returns whether this CommandType is a setup command"""

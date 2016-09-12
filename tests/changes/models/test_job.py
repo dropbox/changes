@@ -84,7 +84,7 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
         assert implementation.commands[1].type == CommandType.setup
         assert implementation.commands[1].script == sync_encap_expected
 
-        assert implementation.commands[2].type == CommandType.collect_tests
+        assert implementation.commands[2].type == CommandType.collect_bazel_targets
         assert implementation.commands[2].script == 'test script'
 
         kwargs = dict(
@@ -134,7 +134,7 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
 
         assert implementation.commands[0].type == CommandType.setup
         assert implementation.commands[1].type == CommandType.setup
-        assert implementation.commands[2].type == CommandType.collect_tests
+        assert implementation.commands[2].type == CommandType.collect_bazel_targets
         assert implementation.commands[2].script == 'test script'
 
         kwargs = dict(
