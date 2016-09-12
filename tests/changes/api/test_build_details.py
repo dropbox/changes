@@ -6,55 +6,7 @@ from changes.models.build import Build, BuildPriority
 from changes.models.event import Event
 from changes.models.failurereason import FailureReason
 from changes.models.itemstat import ItemStat
-from changes.models.test import TestCase
-from changes.testutils import APITestCase, TestCase as BaseTestCase
-from changes.api.build_details import find_changed_tests
-
-
-class FindChangedTestsTest(BaseTestCase):
-    def test_simple(self):
-        project = self.create_project()
-
-        previous_build = self.create_build(project)
-        previous_job = self.create_job(previous_build)
-
-        changed_test = TestCase(
-            job=previous_job,
-            project=previous_job.project,
-            name='unchanged test',
-        )
-        removed_test = TestCase(
-            job=previous_job,
-            project=previous_job.project,
-            name='removed test',
-        )
-        db.session.add(removed_test)
-        db.session.add(changed_test)
-
-        current_build = self.create_build(project)
-        current_job = self.create_job(current_build)
-        added_test = TestCase(
-            job=current_job,
-            project=current_job.project,
-            name='added test',
-        )
-
-        db.session.add(added_test)
-        db.session.add(TestCase(
-            job=current_job,
-            project=current_job.project,
-            name='unchanged test',
-        ))
-        db.session.commit()
-
-        results = find_changed_tests(current_build, previous_build)
-
-        assert results['total'] == 2
-
-        assert ('-', removed_test) in results['changes']
-        assert ('+', added_test) in results['changes']
-
-        assert len(results['changes']) == 2
+from changes.testutils import APITestCase
 
 
 class BuildDetailsTest(APITestCase):
@@ -99,7 +51,6 @@ class BuildDetailsTest(APITestCase):
         assert data['seenBy'] == []
         assert data['testFailures']['total'] == 0
         assert data['testFailures']['tests'] == []
-        assert data['testChanges'] == []
         assert len(data['events']) == 1
         assert len(data['failures']) == 1
         assert data['failures'][0] == {
