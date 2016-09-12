@@ -36,9 +36,9 @@ class BazelTargetsExpander(Expander):
             'cmd'], 'Missing ``{target_names}`` in command'
         assert 'artifact_search_path' in self.data, 'Missing ``artifact_search_path`` attribute'
 
-    def expand(self, max_executors, target_stats_from=None):
+    def expand(self, max_executors, test_stats_from=None):
         target_stats, avg_time = self.get_target_stats(
-            target_stats_from or self.project.slug)
+            test_stats_from or self.project.slug)
 
         groups = shard(self.data['targets'], max_executors,
                        target_stats, avg_time)
