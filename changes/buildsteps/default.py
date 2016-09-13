@@ -4,6 +4,7 @@ import os
 import uuid
 
 from copy import deepcopy
+from datetime import datetime
 from flask import current_app
 from itertools import chain
 from typing import Dict, List, Optional, Type  # NOQA
@@ -14,7 +15,7 @@ from changes.artifacts.coverage import CoverageHandler
 from changes.artifacts.manager import Manager
 from changes.artifacts.xunit import XunitHandler
 from changes.buildsteps.base import BuildStep, LXCConfig
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.constants import Cause, Result, Status, DEFAULT_CPUS, DEFAULT_MEMORY_MB
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
@@ -49,6 +50,15 @@ JOBSTEP_DATA_COPY_WHITELIST = (
     'release', 'cpus', 'memory', 'weight', 'tests', 'shard_count',
     'artifact_search_path', 'targets',
 )
+
+
+def utcnow():
+    # type: () -> datetime
+    """
+    This is a replacement for `datetime.utcnow()` that can be patched for
+    testing.
+    """
+    return datetime.utcnow()
 
 
 class DefaultBuildStep(BuildStep):
@@ -407,11 +417,13 @@ class DefaultBuildStep(BuildStep):
         pass
 
     def update_step(self, step):
-        """
-        Look for allocated JobStep's and re-queue them if elapsed time is
-        greater than allocation timeout.
-        """
-        # TODO(cramer):
+        # type: (JobStep) -> None
+        if step.status == Status.allocated and step.last_heartbeat:
+            duration = utcnow() - step.last_heartbeat
+            if duration.total_seconds() >= current_app.config['JOBSTEP_ALLOCATION_TIMEOUT_SECONDS']:
+                # Allocation has timed out; move back to being elligible for allocation.
+                step.status = Status.pending_allocation
+                statsreporter.stats().incr('jobstep_allocation_timeout')
 
     def cancel_step(self, step):
         pass

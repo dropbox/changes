@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import json
 
 import mock
+from datetime import datetime
 from urllib import urlencode
 
 from changes.testutils import APITestCase
@@ -46,7 +47,12 @@ class JobStepAllocateTest(APITestCase):
         jobphase = self.create_jobphase(job)
         jobstep = self.create_jobstep(jobphase, status=Status.pending_allocation)
 
+        before = datetime.utcnow()
+        assert jobstep.last_heartbeat is None
         self.assert_successful_allocate([jobstep.id.hex])
+
+        assert jobstep.status == Status.allocated
+        assert jobstep.last_heartbeat >= before
 
     @mock.patch('changes.config.redis.lock',)
     def test_locked(self, mock_allocate):

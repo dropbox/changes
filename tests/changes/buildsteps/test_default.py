@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import mock
 
+from datetime import datetime, timedelta
 from flask import current_app
 
 from changes.buildsteps.default import (
@@ -13,7 +14,7 @@ from changes.constants import Result, Status, Cause
 from changes.models.command import CommandType, FutureCommand
 from changes.models.jobstep import FutureJobStep
 from changes.models.repository import Repository
-from changes.testutils import TestCase
+from changes.testutils import TestCase, override_config
 from changes.vcs.base import Vcs
 from changes.vcs.git import GitVcs
 from changes.vcs.hg import MercurialVcs
@@ -54,6 +55,38 @@ class DefaultBuildStepTest(TestCase):
         # didn't specify repo and path
         with self.assertRaises(ValueError):
             self.get_buildstep(other_repos=[{'revision': 'foo'}])
+
+    def test_update_step_allocated_fresh(self):
+        build = self.create_build(self.create_project())
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job, label='foo')
+        last_heart = datetime(2016, 9, 13, 23, 56, 14)
+        jobstep = self.create_jobstep(jobphase, status=Status.allocated, last_heartbeat=last_heart)
+        buildstep = self.get_buildstep()
+
+        with override_config('JOBSTEP_ALLOCATION_TIMEOUT_SECONDS', 10):
+            with mock.patch('changes.buildsteps.default.utcnow') as mock_utcnow:
+                mock_utcnow.return_value = last_heart + timedelta(seconds=9)
+                buildstep.update_step(jobstep)
+
+        # Stays allocated; we're within the timeout.
+        assert jobstep.status == Status.allocated
+
+    def test_update_step_allocated_stale(self):
+        build = self.create_build(self.create_project())
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job, label='foo')
+        last_heart = datetime(2016, 9, 13, 23, 56, 14)
+        jobstep = self.create_jobstep(jobphase, status=Status.allocated, last_heartbeat=last_heart)
+        buildstep = self.get_buildstep()
+
+        with override_config('JOBSTEP_ALLOCATION_TIMEOUT_SECONDS', 10):
+            with mock.patch('changes.buildsteps.default.utcnow') as mock_utcnow:
+                mock_utcnow.return_value = last_heart + timedelta(seconds=11)
+                buildstep.update_step(jobstep)
+
+        # Timed out; back to pending allocation.
+        assert jobstep.status == Status.pending_allocation
 
     def test_execute(self):
         build = self.create_build(self.create_project(name='foo'), label='buildlabel')

@@ -63,6 +63,7 @@ class JobStep(db.Model):
     date_started = Column(DateTime)
     date_finished = Column(DateTime)
     date_created = Column(DateTime, default=datetime.utcnow)
+    # The time of the last external interaction indicating progress.
     last_heartbeat = Column(DateTime)
     data = Column(JSONEncodedDict)
 

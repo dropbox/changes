@@ -184,6 +184,7 @@ class JobStepAllocateAPIView(APIView):
                             return error(err % err_args, http_code=409)
 
                         jobstep.status = Status.allocated
+                        jobstep.last_heartbeat = datetime.utcnow()
                         db.session.add(jobstep)
                         # The JobSteps returned are pending_allocation, and the initial state for a Mesos JobStep is
                         # pending_allocation, so we can determine how long it was pending by how long ago it was
