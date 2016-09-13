@@ -15,9 +15,10 @@ from changes.artifacts.manager import Manager
 from changes.artifacts.xunit import XunitHandler
 from changes.buildsteps.base import BuildStep, LXCConfig
 from changes.config import db
-from changes.constants import Cause, Status, DEFAULT_CPUS, DEFAULT_MEMORY_MB
+from changes.constants import Cause, Result, Status, DEFAULT_CPUS, DEFAULT_MEMORY_MB
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
+from changes.models.bazeltarget import BazelTarget
 from changes.models.command import CommandType, FutureCommand
 from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep, FutureJobStep
@@ -45,7 +46,7 @@ DEFAULT_ENV = {
 # have an explicit list of attributes we'll copy
 JOBSTEP_DATA_COPY_WHITELIST = (
     'release', 'cpus', 'memory', 'weight', 'tests', 'shard_count',
-    'artifact_search_path',
+    'artifact_search_path', 'targets',
 )
 
 
@@ -472,6 +473,18 @@ class DefaultBuildStep(BuildStep):
                                                      teardown_commands)):
             new_command = future_command.as_command(new_jobstep, index)
             db.session.add(new_command)
+
+        # create bazel targets if necessary
+        if 'targets' in new_jobstep.data:
+            for target_name in new_jobstep.data['targets']:
+                target = BazelTarget(
+                    step=new_jobstep,
+                    job_id=new_jobstep.job_id,
+                    name=target_name,
+                    status=Status.in_progress,
+                    result=Result.unknown,
+                )
+                db.session.add(target)
 
         return new_jobstep
 

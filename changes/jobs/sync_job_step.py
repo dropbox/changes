@@ -18,6 +18,7 @@ from changes.db.utils import try_create
 from changes.jobs.sync_artifact import sync_artifact
 from changes.lib.artifact_store_lib import ArtifactStoreClient
 from changes.models.artifact import Artifact
+from changes.models.bazeltarget import BazelTarget
 from changes.models.failurereason import FailureReason
 from changes.models.filecoverage import FileCoverage
 from changes.models.itemstat import ItemStat
@@ -130,6 +131,13 @@ def has_test_failures(step):
     return db.session.query(TestCase.query.filter(
         TestCase.step_id == step.id,
         TestCase.result == Result.failed,
+    ).exists()).scalar()
+
+
+def has_missing_targets(step):
+    return db.session.query(BazelTarget.query.filter(
+        BazelTarget.step_id == step.id,
+        BazelTarget.status == Status.in_progress,
     ).exists()).scalar()
 
 
@@ -490,6 +498,29 @@ def sync_job_step(step_id):
             'reason': 'test_failures'
         })
         db.session.commit()
+
+    if has_missing_targets(step):
+        if step.result != Result.failed:
+            step.result = Result.failed
+            db.session.add(step)
+
+        BazelTarget.query.filter(
+            BazelTarget.step_id == step.id,
+            BazelTarget.status == Status.in_progress,
+        ).update({
+            'status': Status.finished,
+            'result': Result.aborted,
+        })
+
+        try_create(FailureReason, {
+            'step_id': step.id,
+            'job_id': step.job_id,
+            'build_id': step.job.build_id,
+            'project_id': step.project_id,
+            'reason': 'missing_targets',
+        })
+        db.session.commit()
+
     _report_jobstep_result(step)
 
 

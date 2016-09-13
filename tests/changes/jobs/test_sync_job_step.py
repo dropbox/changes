@@ -584,6 +584,110 @@ class SyncJobStepTest(BaseTestCase):
             FailureReason.reason == 'missing_tests',
         )
 
+    @mock.patch('changes.config.queue.delay')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @responses.activate
+    def test_missing_targets(self, get_implementation, queue_delay):
+        # Simulate test type which doesn't interact with artifacts store.
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body='', status=404)
+
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+
+        def mark_finished(step):
+            step.status = Status.finished
+            step.result = Result.passed
+
+        implementation.update_step.side_effect = mark_finished
+
+        project = self.create_project()
+        build = self.create_build(project=project)
+        job = self.create_job(build=build)
+
+        plan = self.create_plan(project)
+        self.create_step(plan, implementation='test', order=0)
+
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(
+            job=job,
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+        )
+        step = self.create_jobstep(phase)
+
+        self.create_target(job, step, status=Status.finished, result=Result.passed)
+        target = self.create_target(job, step, status=Status.in_progress, result=Result.unknown)
+
+        with mock.patch.object(sync_job_step, 'allow_absent_from_db', True):
+            sync_job_step(
+                step_id=step.id.hex,
+                task_id=step.id.hex,
+                parent_task_id=job.id.hex,
+            )
+
+        db.session.expire(step)
+        db.session.expire(target)
+
+        assert target.status is Status.finished
+        assert target.result is Result.aborted
+
+        step = JobStep.query.get(step.id)
+
+        assert step.status == Status.finished
+        assert step.result == Result.failed
+
+        assert db.session.query(FailureReason.query.filter(
+            FailureReason.step_id == step.id,
+            FailureReason.reason == 'missing_targets',
+        ).exists()).scalar()
+
+    @mock.patch('changes.config.queue.delay')
+    @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
+    @responses.activate
+    def test_no_missing_targets(self, get_implementation, queue_delay):
+        # Simulate test type which doesn't interact with artifacts store.
+        responses.add(responses.GET, SyncJobStepTest.ARTIFACTSTORE_REQUEST_RE, body='', status=404)
+
+        implementation = mock.Mock()
+        get_implementation.return_value = implementation
+
+        def mark_finished(step):
+            step.status = Status.finished
+            step.result = Result.passed
+
+        implementation.update_step.side_effect = mark_finished
+
+        project = self.create_project()
+        build = self.create_build(project=project)
+        job = self.create_job(build=build)
+
+        plan = self.create_plan(project)
+        self.create_step(plan, implementation='test', order=0)
+
+        self.create_job_plan(job, plan)
+
+        phase = self.create_jobphase(
+            job=job,
+            date_started=datetime(2013, 9, 19, 22, 15, 24),
+        )
+        step = self.create_jobstep(phase)
+
+        self.create_target(job, step, status=Status.finished, result=Result.passed)
+
+        with mock.patch.object(sync_job_step, 'allow_absent_from_db', True):
+            sync_job_step(
+                step_id=step.id.hex,
+                task_id=step.id.hex,
+                parent_task_id=job.id.hex,
+            )
+
+        db.session.expire(step)
+
+        step = JobStep.query.get(step.id)
+
+        assert step.status == Status.finished
+        assert step.result == Result.passed
+
     @mock.patch('changes.jobs.sync_job_step.has_timed_out')
     @mock.patch.object(HistoricalImmutableStep, 'get_implementation')
     @responses.activate

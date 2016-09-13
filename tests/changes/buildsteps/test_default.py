@@ -407,6 +407,93 @@ class DefaultBuildStepTest(TestCase):
         assert commands[idx].env == DEFAULT_ENV
 
     @mock.patch.object(Repository, 'get_vcs')
+    def test_create_expanded_jobstep_with_targets(self, get_vcs):
+        build = self.create_build(self.create_project())
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job, label='foo')
+        jobstep = self.create_jobstep(jobphase)
+
+        new_jobphase = self.create_jobphase(job, label='bar')
+
+        vcs = mock.Mock(spec=Vcs)
+        vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
+        get_vcs.return_value = vcs
+
+        future_jobstep = FutureJobStep(
+            label='test',
+            commands=[
+                FutureCommand('echo 1'),
+                FutureCommand('echo "foo"\necho "bar"', path='subdir'),
+            ],
+            data={
+                'targets': [
+                    '//a/b:b_test',
+                    '//a:a_test',
+                ],
+            },
+        )
+
+        buildstep = self.get_buildstep(cluster='foo')
+        new_jobstep = buildstep.create_expanded_jobstep(
+            jobstep, new_jobphase, future_jobstep)
+
+        db.session.flush()
+
+        assert new_jobstep.data['expanded'] is True
+        assert new_jobstep.cluster == 'foo'
+
+        commands = new_jobstep.commands
+
+        assert len(commands) == 5
+
+        idx = 0
+        assert commands[idx].script == 'git clone https://example.com'
+        assert commands[idx].cwd == ''
+        assert commands[idx].type == CommandType.infra_setup
+        assert commands[idx].artifacts == []
+        assert commands[idx].env == DEFAULT_ENV
+        assert commands[idx].order == idx
+
+        # skip blacklist removal command
+        idx += 1
+
+        idx += 1
+        assert commands[idx].script == 'echo "hello world 2"'
+        assert commands[idx].cwd == '/usr/test/1'
+        assert commands[idx].type == CommandType.setup
+        assert tuple(commands[idx].artifacts) == ('artifact1.txt', 'artifact2.txt')
+        assert commands[idx].env['PATH'] == '/usr/test/1'
+        for k, v in DEFAULT_ENV.items():
+            if k != 'PATH':
+                assert commands[idx].env[k] == v
+        assert commands[idx].order == idx
+
+        idx += 1
+        assert commands[idx].label == 'echo 1'
+        assert commands[idx].script == 'echo 1'
+        assert commands[idx].order == idx
+        assert commands[idx].cwd == DEFAULT_PATH
+        assert commands[idx].type == CommandType.default
+        assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[idx].env == DEFAULT_ENV
+
+        idx += 1
+        assert commands[idx].label == 'echo "foo"'
+        assert commands[idx].script == 'echo "foo"\necho "bar"'
+        assert commands[idx].order == idx
+        assert commands[idx].cwd == './source/subdir'
+        assert commands[idx].type == CommandType.default
+        assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
+        assert commands[idx].env == DEFAULT_ENV
+
+        assert len(new_jobstep.targets) == 2
+        assert set(t.name for t in new_jobstep.targets) == set(['//a/b:b_test', '//a:a_test'])
+        for target in new_jobstep.targets:
+            assert target.job == new_jobstep.job
+            assert target.status is Status.in_progress
+            assert target.result is Result.unknown
+
+    @mock.patch.object(Repository, 'get_vcs')
     def test_create_replacement_jobstep_expanded(self, get_vcs):
         build = self.create_build(self.create_project())
         job = self.create_job(build)
