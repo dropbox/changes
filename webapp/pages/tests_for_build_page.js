@@ -429,10 +429,11 @@ var ShardingTab = React.createClass({
             links.push(<a className="marginRightM" href={logHref}>Log</a>);
           }
           links.push(<a className="marginRightM" onClick={onClick}>{expandLabel}</a>);
+          let tests = (step.data.tests === undefined) ? step.data.targets : step.data.tests;
           rows.push([
             step.node && step.node.name,
             step.data.weight,
-            step.data.tests.length,
+            tests.length,
             links
           ]);
 
@@ -447,7 +448,7 @@ var ShardingTab = React.createClass({
           rows.push(GridRow.oneItem(null,
             <div>
               <b>Files:</b>
-              <pre>{step.data.tests.join("\n")}</pre>
+              <pre>{tests.join("\n")}</pre>
             </div>
           ));
         });
