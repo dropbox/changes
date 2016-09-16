@@ -14,6 +14,10 @@ import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 import { TestDetails } from 'es6!display/changes/test_details';
 
+import { get_runnable_condition,
+         ConditionDot
+       } from 'es6!display/changes/build_conditions';
+
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
 import { TestHierarchy } from 'es6!display/changes/test_hierarchy';
@@ -27,6 +31,7 @@ const SHARDING = 'Sharding';
 const NOT_PASSING_TESTS = 'Not Passing Tests';
 const TEST_LIST = 'Test List';
 const TEST_HIERARCHY = 'Test Hierarchy';
+const TARGET_LIST = 'Target List';
 
 export var BuildTestsPage = React.createClass({
 
@@ -35,6 +40,7 @@ export var BuildTestsPage = React.createClass({
     NOT_PASSING_TESTS,
     TEST_LIST,
     TEST_HIERARCHY,
+    TARGET_LIST,
   ],
 
   propTypes: {
@@ -69,11 +75,14 @@ export var BuildTestsPage = React.createClass({
       testList : InteractiveData(this,
         'testList',
         `/api/0/builds/${this.props.buildID}/tests/`),
+      targetList : InteractiveData(this,
+        'targetList',
+        `/api/0/builds/${this.props.buildID}/targets/`),
     });
   },
 
   componentDidMount: function() {
-    _.each([['testList', TEST_LIST]], tabs => {
+    _.each([['testList', TEST_LIST], ['targetList', TARGET_LIST]], tabs => {
       var [stateKey, tabName] = tabs;
       var params = {};
       if (this.initialTab === tabName) {
@@ -120,6 +129,9 @@ export var BuildTestsPage = React.createClass({
         break;
       case TEST_HIERARCHY:
         content = <TestHierarchy buildID={this.props.buildID} projectID={buildInfo.project.id} />;
+        break;
+      case TARGET_LIST:
+        content = this.renderAllTargets();
         break;
       default:
         throw 'unreachable';
@@ -357,6 +369,101 @@ export var BuildTestsPage = React.createClass({
       </div>
     </div>;
   },
+  renderAllTargets() {
+    let interactive = this.state.targetList;
+
+    // we want to update the window url whenever the user switches tabs
+    interactive.updateWindowUrl();
+
+    if (interactive.hasNotLoadedInitialData()) {
+      return <APINotLoaded calls={interactive.getDataToShow()} />;
+    }
+
+    let targets = interactive.getDataToShow().getReturnedData();
+    var rows = [];
+    _.each(targets, target => {
+      var markup = <div>
+        <div style={{ display: "inline-block", paddingRight: 5}}>
+          <ConditionDot condition={get_runnable_condition(target)} />
+        </div>
+        {target.name}
+      </div>;
+      let rowData = new GridRow(target.id, [
+        markup,
+        <span>{target.status.name}</span>,
+        <span>{moment.duration(target.duration).asSeconds()}s</span>,
+      ])
+      rows.push(rowData)
+    })
+    var errorMessage = null;
+    if (interactive.failedToLoadUpdatedData()) {
+      errorMessage = <AjaxError response={interactive.getDataForErrorMessage().response} />;
+    }
+    var style = interactive.isLoadingUpdatedData() ? {opacity: 0.5} : null;
+
+    var pagingLinks = interactive.getPagingLinks({use_next_previous: true});
+
+    let currentReverse = interactive.getCurrentParams()["reverse"] == "true";
+    let currentSort = interactive.getCurrentParams()["sort"] || "duration";
+
+    let switchSort = (sortKey, rev) => {
+        // We use 'true' for true and null for false when saving 'reverse' value,
+        // because this maps accurately to what we'd see in the URL and in data pulled
+        // from the URL; null means "unset" (which defaults to false in the API), and the
+        // there is no way to set a non-string URL parameter, so 'true' (which the API recognizes
+        // as a bool) is stored/read as a string consistently.
+        let storedRev = rev ? 'true' : null;
+        interactive.updateWithParams({'sort': sortKey, 'reverse': storedRev}, true);
+    };
+
+    const sortHeader = (text, key) => {
+        let caret = null;
+        let newRev = currentReverse;
+        if (currentSort == key) {
+            newRev = !currentReverse;
+            caret = <i className={classNames({'fa': true,
+                                              'fa-caret-down': !currentReverse,
+                                              'fa-caret-up':   currentReverse})}
+                       style={{marginLeft: '4px'}} />;
+        }
+
+        return <div onClick={() => switchSort(key, newRev)}
+                    className={classNames({menuItem: true,
+                                           selectedMenuItem: key == currentSort})}>{text}{caret}</div>;
+    };
+
+    let headers = [sortHeader("Name", "name"),
+                   "Status",
+                   sortHeader("Duration", "duration")
+                  ];
+    let searchOnChange = evt => this.setState({queryValue: evt.target.value.trim()});
+    let updateInteractive = evt => {
+        interactive.updateWithParams({query: this.state.queryValue || null}, true);
+        evt.preventDefault();
+        return false;
+    };
+
+    return <div style={style}>
+      {errorMessage}
+      <div style={{float: 'right'}}>
+      <form onSubmit={updateInteractive}>
+      <label>{"Filter: "}
+      <input type="text" onChange={searchOnChange}
+             value={this.state.queryValue || ''} />
+             </label>
+      </form>
+      </div>
+      <Grid
+        colnum={headers.length}
+        className="marginBottomM marginTopM"
+        data={rows}
+        headers={headers}
+      />
+      <div className="marginTopM marginBottomM">
+        {pagingLinks}
+      </div>
+    </div>;
+  }
 });
 
 var ShardingTab = React.createClass({
