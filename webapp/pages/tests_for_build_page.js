@@ -6,6 +6,7 @@ import classNames from 'classnames';
 
 import APINotLoaded from 'es6!display/not_loaded';
 import SectionHeader from 'es6!display/section_header';
+import SimpleTooltip from 'es6!display/simple_tooltip';
 import { AjaxError } from 'es6!display/errors';
 import { InfoList, InfoItem } from 'es6!display/info_list';
 import ChangesLinks from 'es6!display/changes/links';
@@ -14,7 +15,7 @@ import { Grid, GridRow } from 'es6!display/grid';
 import { Tabs, MenuUtils } from 'es6!display/menus';
 import { TestDetails } from 'es6!display/changes/test_details';
 
-import { get_runnable_condition,
+import { get_runnable_condition, get_runnable_condition_short_text,
          ConditionDot
        } from 'es6!display/changes/build_conditions';
 
@@ -382,10 +383,12 @@ export var BuildTestsPage = React.createClass({
     let targets = interactive.getDataToShow().getReturnedData();
     var rows = [];
     _.each(targets, target => {
+      var targetCondition = get_runnable_condition(target);
+      var label = get_runnable_condition_short_text(targetCondition);
       var markup = <div>
-        <div style={{ display: "inline-block", paddingRight: 5}}>
-          <ConditionDot condition={get_runnable_condition(target)} />
-        </div>
+        <SimpleTooltip label={label} placement="right">
+          <span><ConditionDot condition={targetCondition} /></span>
+        </SimpleTooltip>
         {target.name}
       </div>;
       let rowData = new GridRow(target.id, [
