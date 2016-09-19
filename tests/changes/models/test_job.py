@@ -90,7 +90,7 @@ VCS_CHECKOUT_TARGET_REVISION="git checkout master"
 VCS_CHECKOUT_PARENT_REVISION="git checkout master^"
 VCS_GET_CHANGED_FILES="git diff --name-only master^..master"
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --jobs="8" 2> /dev/null
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="8" 2> /dev/null
 """.strip()
 
         assert len(implementation.commands) == 3
@@ -139,7 +139,7 @@ VCS_CHECKOUT_TARGET_REVISION="git checkout master"
 VCS_CHECKOUT_PARENT_REVISION="git checkout master^"
 VCS_GET_CHANGED_FILES="git diff --name-only master^..master"
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --jobs="4" 2> /dev/null
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="4" 2> /dev/null
 """.strip()
 
         mock_vcs = mock.Mock(spec=Vcs)

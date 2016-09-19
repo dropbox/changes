@@ -444,7 +444,8 @@ def create_app(_read_config=True, **config):
     # List of mandatory flags to be passed to `bazel test`
     app.config['BAZEL_MANDATORY_TEST_FLAGS'] = [
         '--spawn_strategy=sandboxed',
-        '--genrule_strategy=sandboxed'
+        '--genrule_strategy=sandboxed',
+        '--keep_going',
     ]
 
     # Jobsteps go from 'pending_allocation' to 'allocated' once an external scheduler claims them, and
