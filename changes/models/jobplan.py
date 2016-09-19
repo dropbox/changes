@@ -236,6 +236,7 @@ class JobPlan(db.Model):
                         bazel_exclude_tags=bazel_exclude_tags,
                         max_jobs=2 * bazel_cpus,
                         bazel_test_flags=bazel_test_flags,
+                        vcs=job.project.repository.get_vcs(),
                         ), 'type': 'collect_bazel_targets'},
                 ],
                 artifacts=[],  # only for collect_target step, which we don't expect artifacts

@@ -235,6 +235,18 @@ class Vcs(object):
     def get_buildstep_patch(self, source, workspace):
         raise NotImplementedError
 
+    def get_buildstep_checkout_revision(self, revision_sha):
+        # type: (str) -> str
+        raise NotImplementedError
+
+    def get_buildstep_checkout_parent_revision(self, revision_sha):
+        # type: (str) -> str
+        raise NotImplementedError
+
+    def get_buildstep_changed_files(self, revision_sha):
+        # type: (str) -> str
+        raise NotImplementedError
+
     def log_timing(self, command, start_time):
         repo_type = 'unknown'
         classname = self.__class__.__name__

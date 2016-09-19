@@ -338,6 +338,18 @@ class GitVcs(Vcs):
             patch_url=build_patch_uri(source.patch_id),
         )
 
+    def get_buildstep_checkout_revision(self, revision_sha):
+        # type: (str) -> str
+        return "#!/bin/bash\n/usr/bin/git checkout {sha}".format(sha=revision_sha)
+
+    def get_buildstep_checkout_parent_revision(self, revision_sha):
+        # type: (str) -> str
+        return "#!/bin/bash\n/usr/bin/git checkout {sha}^".format(sha=revision_sha)
+
+    def get_buildstep_changed_files(self, revision_sha):
+        # type: (str) -> str
+        return "#!/bin/bash\n/usr/bin/git diff --name-only {sha}^..{sha}".format(sha=revision_sha)
+
     def read_file(self, sha, file_path, diff=None):
         """Read the content of a file at a given revision.
 

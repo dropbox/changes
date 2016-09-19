@@ -28,6 +28,10 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes {bazel_apt_pkgs} python >/dev/null 2>&1
 
+VCS_CHECKOUT_TARGET_REVISION="{checkout_target_revision}"
+VCS_CHECKOUT_PARENT_REVISION="{checkout_parent_revision}"
+VCS_GET_CHANGED_FILES="{get_changed_files}"
+
 "{collect_targets_executable}" --output-user-root="{bazel_root}" {bazel_targets} {bazel_exclude_tags} {bazel_test_flags} --jobs="{max_jobs}" 2> /dev/null
 """.strip()
 
@@ -45,7 +49,7 @@ def get_bazel_setup():
     )
 
 
-def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclude_tags, bazel_test_flags, max_jobs):
+def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclude_tags, bazel_test_flags, max_jobs, vcs):
     """Construct a command to query the Bazel dependency graph to expand bazel project
     config into a set of individual test targets.
 
@@ -57,7 +61,7 @@ def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclu
     - exclude-tags: List of target tags. Targets matching any of these tags are not returned.
       By default, this list is empty.
     """
-    # type: (str, List[str], List[str], int) -> str
+    # type: (str, List[str], List[str], int, changes.vcs.base.Vcs) -> str
     return COLLECT_BAZEL_TARGETS.format(
         apt_spec=current_app.config['APT_SPEC'],
         bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
@@ -67,6 +71,9 @@ def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclu
         bazel_exclude_tags=' '.join(['--exclude-tags={}'.format(t) for t in bazel_exclude_tags]),
         bazel_test_flags=' '.join(['--test-flags={}'.format(tf) for tf in bazel_test_flags]),
         max_jobs=max_jobs,
+        checkout_target_revision=vcs.get_buildstep_checkout_revision('master'),
+        checkout_parent_revision=vcs.get_buildstep_checkout_parent_revision('master'),
+        get_changed_files=vcs.get_buildstep_changed_files('master'),
     )
 
 
