@@ -28,7 +28,7 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes {bazel_apt_pkgs} python >/dev/null 2>&1
 
-"{collect_targets_executable}" --output-user-root="{bazel_root}" {bazel_targets} {bazel_exclude_tags} --jobs="{max_jobs}" 2> /dev/null
+"{collect_targets_executable}" --output-user-root="{bazel_root}" {bazel_targets} {bazel_exclude_tags} {bazel_test_flags} --jobs="{max_jobs}" 2> /dev/null
 """.strip()
 
 
@@ -45,7 +45,7 @@ def get_bazel_setup():
     )
 
 
-def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclude_tags, max_jobs):
+def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclude_tags, bazel_test_flags, max_jobs):
     """Construct a command to query the Bazel dependency graph to expand bazel project
     config into a set of individual test targets.
 
@@ -65,6 +65,7 @@ def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclu
         bazel_targets=' '.join(['--target-patterns={}'.format(t) for t in bazel_targets]),
         collect_targets_executable=collect_targets_executable,
         bazel_exclude_tags=' '.join(['--exclude-tags={}'.format(t) for t in bazel_exclude_tags]),
+        bazel_test_flags=' '.join(['--test-flags={}'.format(tf) for tf in bazel_test_flags]),
         max_jobs=max_jobs,
     )
 

@@ -222,6 +222,9 @@ class JobPlan(db.Model):
                 logging.error('Project config for project %s requests invalid number of executors: constraint 1 <= %d <= %d', job.project.slug, bazel_max_executors, current_app.config['MAX_EXECUTORS'])
                 return jobplan, None
 
+            bazel_test_flags = current_app.config['BAZEL_MANDATORY_TEST_FLAGS']
+            # TODO(anupc): Allow additional flags to be passed in via project config.
+
             implementation = LXCBuildStep(
                 cluster=current_app.config['DEFAULT_CLUSTER'],
                 commands=[
@@ -231,7 +234,9 @@ class JobPlan(db.Model):
                         collect_targets_executable=os.path.join(LXCBuildStep.custom_bin_path(), 'collect-targets'),
                         bazel_targets=project_config['bazel.targets'],
                         bazel_exclude_tags=bazel_exclude_tags,
-                        max_jobs=2 * bazel_cpus), 'type': 'collect_bazel_targets'},
+                        max_jobs=2 * bazel_cpus,
+                        bazel_test_flags=bazel_test_flags,
+                        ), 'type': 'collect_bazel_targets'},
                 ],
                 artifacts=[],  # only for collect_target step, which we don't expect artifacts
                 artifact_suffix=current_app.config['BAZEL_ARTIFACT_SUFFIX'],

@@ -441,6 +441,12 @@ def create_app(_read_config=True, **config):
     # Bazel will create parent directories (if the user has appropriate permissions), if missing.
     app.config['BAZEL_ROOT_PATH'] = '/tmp/bazel_changes'
 
+    # List of mandatory flags to be passed to `bazel test`
+    app.config['BAZEL_MANDATORY_TEST_FLAGS'] = [
+        '--spawn_strategy=sandboxed',
+        '--genrule_strategy=sandboxed'
+    ]
+
     # Jobsteps go from 'pending_allocation' to 'allocated' once an external scheduler claims them, and
     # once they begin running they're updated to 'in_progress'. If the scheduler somehow fails or drops
     # the task, this value is used to time out the 'allocated' status and revert back to 'pending_allocation'.

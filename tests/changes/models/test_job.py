@@ -78,7 +78,7 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --jobs="8" 2> /dev/null
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --jobs="8" 2> /dev/null
 """.strip()
 
         assert len(implementation.commands) == 3
@@ -123,7 +123,7 @@ sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
 (sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --jobs="4" 2> /dev/null
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --jobs="4" 2> /dev/null
 """.strip()
 
         _, implementation = JobPlan.get_build_step_for_job(self._create_job_and_jobplan().id)
