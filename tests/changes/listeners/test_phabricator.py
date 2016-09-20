@@ -74,7 +74,7 @@ class PhabricatorListenerTest(UnitTestCase):
 
         get_options.assert_called_once_with(project.id)
         build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
-        expected_msg = "test build Failed {{icon times, color=red}} ([results]({0})).".format(
+        expected_msg = "(IMPORTANT) Failing builds!\n - [test]({0}).".format(
             build_link
         )
 
@@ -113,7 +113,7 @@ class PhabricatorListenerTest(UnitTestCase):
             testcase.id.hex
         ))
         test_desc = "[test_foo](%s)" % test_link
-        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were a total of 1 [test failures]({1}), but we could not determine if any of these tests were previously failing.
+        expected_msg = """(IMPORTANT) Failing builds!\n - [Server]({0}). There were a total of 1 [test failures]({1}), but we could not determine if any of these tests were previously failing.
 
 **All failures (1):**
 |Test Name | Package|
@@ -159,7 +159,7 @@ class PhabricatorListenerTest(UnitTestCase):
             testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
-        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were a total of 1 [test failures]({1}), but we could not determine if any of these tests were previously failing.
+        expected_msg = """(IMPORTANT) Failing builds!\n - [Server]({0}). There were a total of 1 [test failures]({1}), but we could not determine if any of these tests were previously failing.
 
 **All failures (1):**
 |Test Name | Package|
@@ -204,7 +204,7 @@ class PhabricatorListenerTest(UnitTestCase):
             testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
-        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
+        expected_msg = """(IMPORTANT) Failing builds!\n - [Server]({0}). There were 1 new [test failures]({1})
 
 **New failures (1):**
 |Test Name | Package|
@@ -246,7 +246,7 @@ class PhabricatorListenerTest(UnitTestCase):
             testcase.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
-        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 0 new [test failures]({1})
+        expected_msg = """(IMPORTANT) Failing builds!\n - [Server]({0}). There were 0 new [test failures]({1})
 
 **Failures in parent revision (1):**
 |Test Name | Package|
@@ -298,7 +298,7 @@ class PhabricatorListenerTest(UnitTestCase):
 
         test_desc = get_test_desc(build, testcase, 'test_foo')
         test_desc2 = get_test_desc(build, testcase2, 'test_foo2')
-        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
+        expected_msg = """(IMPORTANT) Failing builds!\n - [Server]({0}). There were 1 new [test failures]({1})
 
 **New failures (1):**
 |Test Name | Package|
@@ -354,7 +354,7 @@ class PhabricatorListenerTest(UnitTestCase):
             if test_link in comment:
                 shown_test_count += 1
         assert shown_test_count == max_shown
-        assert 'Server build Failed {{icon times, color=red}} ([results]({0})). There were {2} new [test failures]({1})'.format(build_link, failure_link, total_test_count)
+        assert '[Server]({0}). There were a total of {2} [test failures]({1})'.format(build_link, failure_link, total_test_count) in comment
         assert '|...more...|...|' in comment
 
     @mock.patch('changes.utils.phabricator_utils.post_diff_comment')
@@ -402,14 +402,15 @@ class PhabricatorListenerTest(UnitTestCase):
             testcase1.id.hex,
         ))
         test_desc = "[test_foo](%s)" % test_link
-        expected_msg = """Server build Failed {{icon times, color=red}} ([results]({0})). There were 1 new [test failures]({1})
+        expected_msg = """(IMPORTANT) Failing builds!\n - [Server]({0}). There were 1 new [test failures]({1})
 
 **New failures (1):**
 |Test Name | Package|
 |--|--|
 |{2}|test.group.ClassName|
 
-Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
+(NOTE) Passing builds:
+ - [Server2]({3})."""
 
         post.assert_called_once_with('1', expected_msg.format(build_link, failure_link, test_desc, build2_link), mock.ANY)
 
@@ -511,7 +512,7 @@ Server2 build Passed {{icon check, color=green}} ([results]({3}))."""
         get_options.assert_called_once_with(project.id)
         build_link = build_web_uri('/find_build/{0}/'.format(build.id.hex))
 
-        expected_msg = 'Server build Passed {{icon check, color=green}} ([results]({0})).'
+        expected_msg = '(NOTE) Passing builds:\n - [Server]({0}).'
         post.assert_called_once_with('1', expected_msg.format(build_link), mock.ANY)
 
     @mock.patch('changes.utils.phabricator_utils.post_diff_comment')

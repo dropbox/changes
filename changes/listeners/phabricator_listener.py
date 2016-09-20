@@ -193,25 +193,27 @@ def build_finished_handler(build_id, **kwargs):
 
     context = build_context_lib.get_collection_context(builds)
 
-    message = '\n\n'.join([_get_message_for_build_context(x) for x in context.builds])
+    good_builds = [b for b in context.builds if b['build'].result == Result.passed]
+    bad_builds = [b for b in context.builds if b['build'].result != Result.passed]
+
+    message = ""
+    if bad_builds:
+        message += '(IMPORTANT) Failing builds!\n'
+        message += '\n'.join([_get_message_for_build_context(x) for x in bad_builds])
+    if good_builds:
+        if bad_builds:
+            message += '\n\n'
+        message += '(NOTE) Passing builds:\n'
+        message += '\n'.join([_get_message_for_build_context(x) for x in good_builds])
 
     post_comment(target, message, phab)
 
 
 def _get_message_for_build_context(build_context):
     build = build_context['build']
-    result = build.result
-    if result == Result.passed:
-        result_image = '{icon check, color=green}'
-    elif result == Result.failed:
-        result_image = '{icon times, color=red}'
-    else:
-        result_image = '{icon question, color=orange}'
     safe_slug = urllib.quote_plus(build.project.slug)
-    message = u'{project} build {result} {image} ([results]({link})).'.format(
+    message = u' - [{project}]({link}).'.format(
         project=build.project.name,
-        image=result_image,
-        result=unicode(build.result),
         link=build_web_uri('/find_build/{0}/'.format(build.id.hex))
     )
 
