@@ -24,17 +24,25 @@ class BazelTargetsExpanderTest(TestCase):
             self.get_expander({}).validate()
 
         with pytest.raises(AssertionError):
-            self.get_expander({'targets': []}).validate()
+            self.get_expander({'affected_targets': []}).validate()
 
         with pytest.raises(AssertionError):
-            self.get_expander({'cmd': 'echo 1', 'targets': []}).validate()
+            self.get_expander({'cmd': 'echo 1', 'affected_targets': []}).validate()
 
         with pytest.raises(AssertionError):
             self.get_expander(
-                {'cmd': 'echo {target_names}', 'targets': []}).validate()
+                {'cmd': 'echo {target_names}', 'affected_targets': []}).validate()
+
+        with pytest.raises(AssertionError):
+            self.get_expander({
+                'affected_targets': [],
+                'cmd': 'echo {target_names}',
+                'artifact_search_path': 'path'
+            }).validate()
 
         self.get_expander({
-            'targets': [],
+            'affected_targets': [],
+            'unaffected_targets': [],
             'cmd': 'echo {target_names}',
             'artifact_search_path': 'path'
         }).validate()
@@ -76,9 +84,11 @@ class BazelTargetsExpanderTest(TestCase):
 
         results = list(self.get_expander({
             'cmd': 'bazel test {target_names}',
-            'targets': [
+            'affected_targets': [
                 '//foo/bar:test',
                 '//foo/baz:target',
+            ],
+            'unaffected_targets': [
                 '//foo/bar/test_biz:test',
                 '//foo/bar/test_buz:test',
             ],
@@ -118,15 +128,17 @@ class BazelTargetsExpanderTest(TestCase):
 
         results = list(self.get_expander({
             'cmd': 'bazel test {target_names}',
-            'targets': [
+            'affected_targets': [
                 '//foo/bar:test',
                 '//foo/baz:target',
-                '//foo/bar/test_biz:test',
-                '//foo/bar/test_buz:test',
 
                 # if a target has no duration, it's not added to the target
                 # stats dictionary
                 '//foo/bar/baz:test',
+            ],
+            'unaffected_targets': [
+                '//foo/bar/test_biz:test',
+                '//foo/bar/test_buz:test',
             ],
             'artifact_search_path': 'artifacts/'
         }).expand(max_executors=2))

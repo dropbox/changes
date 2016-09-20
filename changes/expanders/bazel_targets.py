@@ -1,9 +1,9 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 from typing import Dict, List, Tuple  # NOQA
 
 from changes.api.client import api_client
-from changes.config import db
+from changes.config import db, statsreporter
 from changes.expanders.base import Expander
 from changes.models.bazeltarget import BazelTarget
 from changes.models.command import FutureCommand
@@ -15,32 +15,40 @@ from changes.utils.shards import shard
 class BazelTargetsExpander(Expander):
     """
     The ``cmd`` value must exist (and contain {target_names}) as well as the
-    ``targets`` attribute which must be a list of strings:
+    ``affected_targets`` and ``unaffected_targets`` attribute which must be a list of strings:
 
         {
             "phase": "optional phase name",
             "cmd": "bazel test {target_names}",
             "path": "",
-            "targets": [
+            "affected_targets": [
                 "foo.bar.test_baz",
                 "foo.bar.test_bar"
+            ],
+            "unaffected_targets": [
+                "foo.other.test_baz",
+                "foo.other.test_bar"
             ],
             "artifact_search_path": "search path for artifact, required"
         }
     """
 
     def validate(self):
-        assert 'targets' in self.data, 'Missing ``targets`` attribute'
-        assert 'cmd' in self.data, 'Missing ``cmd`` attribute'
+        for required in ['affected_targets', 'unaffected_targets', 'cmd', 'artifact_search_path']:
+            assert required in self.data, 'Missing ``{}`` attribute'.format(required)
         assert '{target_names}' in self.data[
             'cmd'], 'Missing ``{target_names}`` in command'
-        assert 'artifact_search_path' in self.data, 'Missing ``artifact_search_path`` attribute'
 
     def expand(self, max_executors, test_stats_from=None):
         target_stats, avg_time = self.get_target_stats(
             test_stats_from or self.project.slug)
 
-        groups = shard(self.data['targets'], max_executors,
+        affected_targets = self.data['affected_targets']
+        unaffected_targets = self.data['unaffected_targets']
+        all_targets = affected_targets + unaffected_targets
+        statsreporter.stats().set_gauge('{}_bazel_affected_targets_count'.format(self.project.slug), len(affected_targets))
+        statsreporter.stats().set_gauge('{}_bazel_all_targets_count'.format(self.project.slug), len(all_targets))
+        groups = shard(all_targets, max_executors,
                        target_stats, avg_time)
 
         for weight, target_list in groups:
