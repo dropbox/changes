@@ -483,6 +483,7 @@ export var SingleBuild = React.createClass({
         var formattedCommandTypes = {
           'default': 'Test',
           'collect_steps': 'Collect Steps',
+          'collect_targets': 'Collect Targets',
           'collect_tests': 'Collect Tests',
           'setup': 'Setup',
           'teardown': 'Teardown',
