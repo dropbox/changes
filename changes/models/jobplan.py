@@ -225,19 +225,27 @@ class JobPlan(db.Model):
             bazel_test_flags = current_app.config['BAZEL_MANDATORY_TEST_FLAGS']
             # TODO(anupc): Allow additional flags to be passed in via project config.
 
+            vcs = job.project.repository.get_vcs()
             implementation = LXCBuildStep(
                 cluster=current_app.config['DEFAULT_CLUSTER'],
                 commands=[
                     {'script': get_bazel_setup(), 'type': 'setup'},
                     {'script': sync_encap_pkgs(project_config), 'type': 'setup'},  # TODO(anupc): Make this optional
-                    {'script': collect_bazel_targets(
-                        collect_targets_executable=os.path.join(LXCBuildStep.custom_bin_path(), 'collect-targets'),
-                        bazel_targets=project_config['bazel.targets'],
-                        bazel_exclude_tags=bazel_exclude_tags,
-                        max_jobs=2 * bazel_cpus,
-                        bazel_test_flags=bazel_test_flags,
-                        vcs=job.project.repository.get_vcs(),
-                        ), 'type': 'collect_bazel_targets'},
+                    {
+                        'script': collect_bazel_targets(
+                            collect_targets_executable=os.path.join(LXCBuildStep.custom_bin_path(), 'collect-targets'),
+                            bazel_targets=project_config['bazel.targets'],
+                            bazel_exclude_tags=bazel_exclude_tags,
+                            max_jobs=2 * bazel_cpus,
+                            bazel_test_flags=bazel_test_flags,
+                            ),
+                        'type': 'collect_bazel_targets',
+                        'env': {
+                            'VCS_CHECKOUT_TARGET_REVISION_CMD': vcs.get_buildstep_checkout_revision('master'),
+                            'VCS_CHECKOUT_PARENT_REVISION_CMD': vcs.get_buildstep_checkout_parent_revision('master'),
+                            'VCS_GET_CHANGED_FILES_CMD': vcs.get_buildstep_changed_files('master'),
+                            },
+                        },
                 ],
                 artifacts=[],  # only for collect_target step, which we don't expect artifacts
                 artifact_suffix=current_app.config['BAZEL_ARTIFACT_SUFFIX'],
