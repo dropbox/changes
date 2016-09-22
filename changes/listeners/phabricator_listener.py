@@ -198,12 +198,12 @@ def build_finished_handler(build_id, **kwargs):
 
     message = ""
     if bad_builds:
-        message += '(IMPORTANT) Failing builds!\n'
+        message += '(IMPORTANT) Failing builds!\n\n'
         message += '\n'.join([_get_message_for_build_context(x) for x in bad_builds])
     if good_builds:
         if bad_builds:
             message += '\n\n'
-        message += '(NOTE) Passing builds:\n'
+        message += '(NOTE) Passing builds:\n\n'
         message += '\n'.join([_get_message_for_build_context(x) for x in good_builds])
 
     post_comment(target, message, phab)
