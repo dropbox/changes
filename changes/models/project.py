@@ -62,6 +62,7 @@ class Project(db.Model):
 
     _default_config = {
         'build.file-blacklist': [],
+        'bazel.additional-test-flags': [],
         'bazel.exclude-tags': ['manual'],  # Ignore tests with manual tag
         'bazel.cpus': DEFAULT_CPUS,
         'bazel.mem': DEFAULT_MEMORY_MB,

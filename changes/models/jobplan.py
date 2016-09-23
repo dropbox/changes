@@ -2,9 +2,10 @@ from __future__ import absolute_import
 
 import logging
 import os
+import re
 import uuid
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from copy import deepcopy
 from datetime import datetime
 from flask import current_app
@@ -222,8 +223,14 @@ class JobPlan(db.Model):
                 logging.error('Project config for project %s requests invalid number of executors: constraint 1 <= %d <= %d', job.project.slug, bazel_max_executors, current_app.config['MAX_EXECUTORS'])
                 return jobplan, None
 
-            bazel_test_flags = current_app.config['BAZEL_MANDATORY_TEST_FLAGS']
-            # TODO(anupc): Allow additional flags to be passed in via project config.
+            additional_test_flags = project_config['bazel.additional-test-flags']
+            for f in additional_test_flags:
+                patterns = current_app.config['BAZEL_ADDITIONAL_TEST_FLAGS_WHITELIST_REGEX']
+                if not any([re.match(p, f) for p in patterns]):
+                    logging.error('Project config for project %s contains invalid additional-test-flags %s. Allowed patterns are %s.', job.project.slug, f, patterns)
+                    return jobplan, None
+            bazel_test_flags = current_app.config['BAZEL_MANDATORY_TEST_FLAGS'] + additional_test_flags
+            bazel_test_flags = list(OrderedDict([(b, None) for b in bazel_test_flags]))  # ensure uniqueness, preserve order
 
             vcs = job.project.repository.get_vcs()
             implementation = LXCBuildStep(

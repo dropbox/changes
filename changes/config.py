@@ -448,6 +448,12 @@ def create_app(_read_config=True, **config):
         '--keep_going',
     ]
 
+    app.config['BAZEL_ADDITIONAL_TEST_FLAGS_WHITELIST_REGEX'] = [
+        r'^--test_env=[A-Za-z0-9=]+',
+        r'^--test_arg=[A-Za-z0-9=]+',
+        r'^--define=[A-Za-z0-9=]+',
+    ]
+
     # Jobsteps go from 'pending_allocation' to 'allocated' once an external scheduler claims them, and
     # once they begin running they're updated to 'in_progress'. If the scheduler somehow fails or drops
     # the task, this value is used to time out the 'allocated' status and revert back to 'pending_allocation'.
