@@ -196,6 +196,7 @@ def create_app(_read_config=True, **config):
         Queue('celery', routing_key='celery'),
         Queue('events', routing_key='events'),
         Queue('default', routing_key='default'),
+        Queue('delete', routing_key='delete'),
         Queue('repo.sync', Exchange('fanout', 'fanout'), routing_key='repo.sync'),
         Queue('grouper.sync', routing_key='grouper.sync'),
         Broadcast('repo.update'),
@@ -239,6 +240,10 @@ def create_app(_read_config=True, **config):
         },
         'update_local_repos': {
             'queue': 'repo.update',
+        },
+        'delete_old_data': {
+            'queue': 'delete',
+            'routing_key': 'delete',
         }
     }
 
