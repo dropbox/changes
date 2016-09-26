@@ -8,7 +8,7 @@ from datetime import datetime
 from mock import patch, MagicMock, Mock
 from changes.api.build_index import find_green_parent_sha
 from changes.config import db
-from changes.constants import Cause, Status, Result
+from changes.constants import Cause, SelectiveTestingPolicy, Status, Result
 from changes.models.build import Build
 from changes.models.job import Job
 from changes.models.jobplan import JobPlan
@@ -1249,6 +1249,7 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert build.message == 'Hello world!'
         assert build.label == 'Foo Bar'
         assert build.target == 'D1234'
+        assert build.selective_testing_policy is SelectiveTestingPolicy.disabled
 
         assert job.project == self.project
         assert job.label == self.plan.label
@@ -1273,6 +1274,43 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         assert jobplans[0].job_id == job.id
         assert jobplans[0].plan_id == self.plan.id
         assert jobplans[0].project_id == self.project.id
+
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_selective_testing_diff_build(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
+
+        resp = self.post_sample_patch(data={
+            'selective_testing': 'true',
+        })
+        assert resp.status_code == 200, resp.data
+
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        build = Build.query.get(data[0]['id'])
+        assert build.selective_testing_policy is SelectiveTestingPolicy.enabled
+
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_selective_testing_commit_build(self, get_vcs):
+        # check that selective testing is not enabled for commit builds
+        # TODO(naphat) remove/edit this once selective testing is enabled
+        # for commit builds
+        get_vcs.return_value = self.get_fake_vcs()
+
+        resp = self.client.post(self.path, data={
+            'sha': 'a' * 40,
+            'repository': self.project.repository.url,
+            'selective_testing': 'true',
+        })
+        assert resp.status_code == 200, resp.data
+
+        data = self.unserialize(resp)
+        assert len(data) == 1
+        assert data[0]['id']
+
+        build = Build.query.get(data[0]['id'])
+        assert build.selective_testing_policy is SelectiveTestingPolicy.disabled
 
     def _post_for_repo(self, repo):
         return self.client.post(self.path, data={

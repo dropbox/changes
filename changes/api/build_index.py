@@ -6,13 +6,14 @@ import uuid
 
 from cStringIO import StringIO
 from flask.ext.restful import reqparse
+from flask_restful.types import boolean
 from sqlalchemy.orm import joinedload, subqueryload_all
 from werkzeug.datastructures import FileStorage
 
 from changes.api.base import APIView, error
 from changes.api.validators.author import AuthorValidator
 from changes.config import db, statsreporter
-from changes.constants import Cause, Result, Status, ProjectStatus
+from changes.constants import Cause, Result, SelectiveTestingPolicy, Status, ProjectStatus
 from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
@@ -138,7 +139,8 @@ def find_green_parent_sha(project, sha):
 
 def create_build(project, collection_id, label, target, message, author,
                  change=None, patch=None, cause=None, source=None, sha=None,
-                 source_data=None, tag=None, snapshot_id=None, no_snapshot=False):
+                 source_data=None, tag=None, snapshot_id=None, no_snapshot=False,
+                 selective_testing_policy=None):
     assert sha or source
 
     repository = project.repository
@@ -178,6 +180,7 @@ def create_build(project, collection_id, label, target, message, author,
         message=message,
         cause=cause,
         tags=[tag] if tag else [],
+        selective_testing_policy=selective_testing_policy,
     )
 
     db.session.add(build)
@@ -432,6 +435,9 @@ class BuildIndexAPIView(APIView):
     """Cause for the build (based on the Cause enum). Limited to avoid confusion."""
     parser.add_argument('cause', type=unicode, choices=('unknown', 'manual'), default='unknown')
 
+    """Optional flag, default to False."""
+    parser.add_argument('selective_testing', type=boolean, default=False)
+
     get_parser = reqparse.RequestParser()
 
     """Optional tag to search for."""
@@ -640,6 +646,11 @@ class BuildIndexAPIView(APIView):
             # we won't be applying file whitelist, so there is no need to get the list of changed files.
             files_changed = None
 
+        selective_testing_policy = SelectiveTestingPolicy.enabled if args.selective_testing else SelectiveTestingPolicy.disabled
+        if patch is None:
+            # don't do selective testing for commit builds yet
+            selective_testing_policy = SelectiveTestingPolicy.disabled
+
         collection_id = uuid.uuid4()
 
         builds = []
@@ -695,7 +706,8 @@ class BuildIndexAPIView(APIView):
                         tag=tag,
                         cause=cause,
                         snapshot_id=snapshot_id,
-                        no_snapshot=no_snapshot
+                        no_snapshot=no_snapshot,
+                        selective_testing_policy=selective_testing_policy,
                     ))
                 else:
                     builds.append(potentials[0])
@@ -713,7 +725,8 @@ class BuildIndexAPIView(APIView):
                     tag=tag,
                     cause=cause,
                     snapshot_id=snapshot_id,
-                    no_snapshot=no_snapshot
+                    no_snapshot=no_snapshot,
+                    selective_testing_policy=selective_testing_policy,
                 ))
 
         return self.respond(builds)
