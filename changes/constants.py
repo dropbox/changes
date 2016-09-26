@@ -55,6 +55,23 @@ class Result(Enum):
         return RESULT_LABELS[self]
 
 
+class ResultSource(Enum):
+    # the result is from running tests
+    from_self = 0
+    # the result is calculated by looking at the parent revision
+    from_parent = 1
+
+    def __str__(self):
+        return RESULT_SOURCE_LABELS[self]
+
+
+# used to indicate how to do selective testing. For now, only indicates whether
+# selective testing is on or off
+class SelectiveTestingPolicy(Enum):
+    disabled = 0
+    enabled = 1
+
+
 class Provider(Enum):
     unknown = 0
     koality = 'koality'
@@ -115,6 +132,11 @@ RESULT_LABELS = {
     Result.quarantined_passed: 'Passed (quarantine)',
     Result.quarantined_failed: 'Failed (quarantine)',
     Result.quarantined_skipped: 'Skipped (quarantine)',
+}
+
+RESULT_SOURCE_LABELS = {
+    ResultSource.from_self: 'From self (test runs)',
+    ResultSource.from_parent: 'From parent',
 }
 
 RESULT_PRIORITY = (

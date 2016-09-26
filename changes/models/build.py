@@ -11,7 +11,7 @@ from sqlalchemy.schema import Index, UniqueConstraint
 from sqlalchemy.sql import func, select
 
 from changes.config import db
-from changes.constants import Status, Result, Cause
+from changes.constants import SelectiveTestingPolicy, Status, Result, Cause
 from changes.db.types.enum import Enum as EnumType
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
@@ -58,6 +58,7 @@ class Build(db.Model):
     tags = Column(ARRAY(String(16)), nullable=True)
     status = Column(EnumType(Status), nullable=False, default=Status.unknown)
     result = Column(EnumType(Result), nullable=False, default=Result.unknown)
+    selective_testing_policy = Column(EnumType(SelectiveTestingPolicy), default=SelectiveTestingPolicy.disabled)
     message = Column(Text)
     duration = Column(Integer)
     priority = Column(EnumType(BuildPriority), nullable=False,
@@ -87,6 +88,8 @@ class Build(db.Model):
             self.result = Result.unknown
         if self.status is None:
             self.status = Status.unknown
+        if self.selective_testing_policy is None:
+            self.selective_testing_policy = SelectiveTestingPolicy.disabled
         if self.date_created is None:
             self.date_created = datetime.utcnow()
         if self.date_modified is None:
