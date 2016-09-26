@@ -185,7 +185,7 @@ def _get_build_context(build, get_parent=True):
 
 def _get_job_context(job):
     # type: (Job) -> Dict[str, Any]
-    def get_job_failing_tests(job, limit=30):
+    def get_job_failing_tests(job, limit=500):
         failing_tests = TestCase.query.options(
             subqueryload_all('messages')
         ).filter(
