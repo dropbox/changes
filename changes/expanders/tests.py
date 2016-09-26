@@ -33,7 +33,7 @@ class TestsExpander(Expander):
         assert 'cmd' in self.data, 'Missing ``cmd`` attribute'
         assert '{test_names}' in self.data['cmd'], 'Missing ``{test_names}`` in command'
 
-    def expand(self, max_executors, test_stats_from=None):
+    def expand(self, job, max_executors, test_stats_from=None):
         test_stats, avg_test_time = self.get_test_stats(test_stats_from or self.project.slug)
 
         groups = shard(

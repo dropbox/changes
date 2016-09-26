@@ -10,7 +10,7 @@ from flask import current_app
 from mock import patch
 
 from changes.config import db
-from changes.constants import Result, Status
+from changes.constants import Result, ResultSource, Status
 from changes.db.types.filestorage import FileData
 from changes.jobs.sync_job_step import (
     sync_job_step, is_missing_tests, has_timed_out,
@@ -615,8 +615,12 @@ class SyncJobStepTest(BaseTestCase):
         )
         step = self.create_jobstep(phase)
 
-        self.create_target(job, step, status=Status.finished, result=Result.passed)
+        self.create_target(job, step, status=Status.finished, result=Result.passed, result_source=ResultSource.from_self)
         target = self.create_target(job, step, status=Status.in_progress, result=Result.unknown)
+        target.result_source = None
+        db.session.add(target)
+        db.session.commit()
+        assert target.result_source is None
 
         with mock.patch.object(sync_job_step, 'allow_absent_from_db', True):
             sync_job_step(
@@ -673,6 +677,7 @@ class SyncJobStepTest(BaseTestCase):
         step = self.create_jobstep(phase)
 
         self.create_target(job, step, status=Status.finished, result=Result.passed)
+        self.create_target(job, step, status=Status.in_progress, result_source=ResultSource.from_parent)
 
         with mock.patch.object(sync_job_step, 'allow_absent_from_db', True):
             sync_job_step(

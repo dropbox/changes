@@ -8,11 +8,11 @@ from datetime import datetime
 
 from flask import current_app
 from requests.exceptions import ConnectionError, HTTPError, Timeout, SSLError
-from sqlalchemy import distinct
+from sqlalchemy import distinct, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
 
-from changes.constants import Status, Result
+from changes.constants import Status, Result, ResultSource
 from changes.config import db, statsreporter
 from changes.db.utils import try_create
 from changes.jobs.sync_artifact import sync_artifact
@@ -138,6 +138,12 @@ def has_missing_targets(step):
     return db.session.query(BazelTarget.query.filter(
         BazelTarget.step_id == step.id,
         BazelTarget.status == Status.in_progress,
+        or_(
+            BazelTarget.result_source == ResultSource.from_self,
+
+            # None value for result_source implies `from_self`
+            BazelTarget.result_source.is_(None),
+        ),
     ).exists()).scalar()
 
 

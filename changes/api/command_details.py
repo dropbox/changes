@@ -141,7 +141,8 @@ class CommandDetailsAPIView(APIView):
         _, buildstep = JobPlan.get_build_step_for_job(jobstep.job_id)
 
         results = []
-        for future_jobstep in expander.expand(max_executors=jobstep.data['max_executors'],
+        for future_jobstep in expander.expand(job=jobstep.job,
+                                              max_executors=jobstep.data['max_executors'],
                                               test_stats_from=buildstep.get_test_stats_from()):
             new_jobstep = buildstep.create_expanded_jobstep(jobstep, new_jobphase, future_jobstep)
             results.append(new_jobstep)

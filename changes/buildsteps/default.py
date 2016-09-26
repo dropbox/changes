@@ -16,7 +16,7 @@ from changes.artifacts.manager import Manager
 from changes.artifacts.xunit import XunitHandler
 from changes.buildsteps.base import BuildStep, LXCConfig
 from changes.config import db, statsreporter
-from changes.constants import Cause, Result, Status, DEFAULT_CPUS, DEFAULT_MEMORY_MB
+from changes.constants import Cause, Result, ResultSource, Status, DEFAULT_CPUS, DEFAULT_MEMORY_MB
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models.bazeltarget import BazelTarget
@@ -498,6 +498,7 @@ class DefaultBuildStep(BuildStep):
                     name=target_name,
                     status=Status.in_progress,
                     result=Result.unknown,
+                    result_source=ResultSource.from_self,
                 )
                 db.session.add(target)
 

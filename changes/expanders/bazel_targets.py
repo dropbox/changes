@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple  # NOQA
 
 from changes.api.client import api_client
 from changes.config import db, statsreporter
+from changes.constants import ResultSource, SelectiveTestingPolicy
 from changes.expanders.base import Expander
 from changes.models.bazeltarget import BazelTarget
 from changes.models.command import FutureCommand
@@ -39,7 +40,7 @@ class BazelTargetsExpander(Expander):
         assert '{target_names}' in self.data[
             'cmd'], 'Missing ``{target_names}`` in command'
 
-    def expand(self, max_executors, test_stats_from=None):
+    def expand(self, job, max_executors, test_stats_from=None):
         target_stats, avg_time = self.get_target_stats(
             test_stats_from or self.project.slug)
 
@@ -48,7 +49,22 @@ class BazelTargetsExpander(Expander):
         all_targets = affected_targets + unaffected_targets
         statsreporter.stats().set_gauge('{}_bazel_affected_targets_count'.format(self.project.slug), len(affected_targets))
         statsreporter.stats().set_gauge('{}_bazel_all_targets_count'.format(self.project.slug), len(all_targets))
-        groups = shard(all_targets, max_executors,
+        to_shard = all_targets
+
+        # NOTE: null values for selective testing policy implies `disabled`
+        if job.build.selective_testing_policy is SelectiveTestingPolicy.enabled:
+            to_shard = affected_targets
+            for target in unaffected_targets:
+                # TODO(naphat) should we check if the target exists in the parent revision?
+                # it should be impossible for it not to exist by our collect-targets script
+                target_object = BazelTarget(
+                    job=job,
+                    name=target,
+                    result_source=ResultSource.from_parent,
+                )
+                db.session.add(target_object)
+
+        groups = shard(to_shard, max_executors,
                        target_stats, avg_time)
 
         for weight, target_list in groups:

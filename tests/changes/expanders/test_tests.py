@@ -61,6 +61,9 @@ class TestsExpanderTest(TestCase):
 
     @patch.object(TestsExpander, 'get_test_stats')
     def test_expand(self, mock_get_test_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
         mock_get_test_stats.return_value = {
             ('foo', 'bar'): 50,
             ('foo', 'baz'): 15,
@@ -76,7 +79,7 @@ class TestsExpanderTest(TestCase):
                 'foo.bar.test_biz',
                 'foo.bar.test_buz',
             ],
-        }).expand(max_executors=2))
+        }).expand(job=job, max_executors=2))
 
         results.sort(key=lambda x: x.data['weight'], reverse=True)
 
@@ -99,6 +102,9 @@ class TestsExpanderTest(TestCase):
 
     @patch.object(TestsExpander, 'get_test_stats')
     def test_expand_with_artifact_search_path(self, mock_get_test_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
         mock_get_test_stats.return_value = {
             ('foo', 'bar'): 50,
             ('foo', 'baz'): 15,
@@ -115,7 +121,7 @@ class TestsExpanderTest(TestCase):
                 'foo.bar.test_buz',
             ],
             'artifact_search_path': '/tmp/artifacts',
-        }).expand(max_executors=2))
+        }).expand(job=job, max_executors=2))
 
         results.sort(key=lambda x: x.data['weight'], reverse=True)
 
@@ -138,6 +144,9 @@ class TestsExpanderTest(TestCase):
 
     @patch.object(TestsExpander, 'get_test_stats')
     def test_expand_with_artifact_search_path_empty(self, mock_get_test_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
         mock_get_test_stats.return_value = {
             ('foo', 'bar'): 50,
             ('foo', 'baz'): 15,
@@ -154,7 +163,7 @@ class TestsExpanderTest(TestCase):
                 'foo.bar.test_buz',
             ],
             'artifact_search_path': '',
-        }).expand(max_executors=2))
+        }).expand(job=job, max_executors=2))
 
         results.sort(key=lambda x: x.data['weight'], reverse=True)
 

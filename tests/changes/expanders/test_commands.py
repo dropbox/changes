@@ -21,10 +21,13 @@ class CommandsExpanderTest(TestCase):
         self.get_expander({'commands': []}).validate()
 
     def test_expand(self):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
         results = list(self.get_expander({'commands': [
             {'script': 'echo 1'},
             {'script': 'echo 2', 'label': 'foo'}
-        ]}).expand(max_executors=10))
+        ]}).expand(job=job, max_executors=10))
 
         assert len(results) == 2
         assert results[0].label == 'echo 1'

@@ -10,7 +10,7 @@ from changes.buildsteps.default import (
     DefaultBuildStep
 )
 from changes.config import db
-from changes.constants import Result, Status, Cause
+from changes.constants import Result, ResultSource, Status, Cause
 from changes.models.command import CommandType, FutureCommand
 from changes.models.jobstep import FutureJobStep
 from changes.models.repository import Repository
@@ -525,6 +525,7 @@ class DefaultBuildStepTest(TestCase):
             assert target.job == new_jobstep.job
             assert target.status is Status.in_progress
             assert target.result is Result.unknown
+            assert target.result_source is ResultSource.from_self
 
     @mock.patch.object(Repository, 'get_vcs')
     def test_create_replacement_jobstep_expanded(self, get_vcs):

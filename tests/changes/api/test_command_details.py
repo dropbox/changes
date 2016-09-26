@@ -140,7 +140,8 @@ class UpdateCommandTest(APITestCase):
             data={'foo': 'bar'},
         )
         dummy_expander.validate.assert_called_once_with()
-        dummy_expander.expand.assert_called_once_with(max_executors=10,
+        dummy_expander.expand.assert_called_once_with(job=job,
+                                                      max_executors=10,
                                                       test_stats_from=mock_buildstep.get_test_stats_from.return_value)
 
         phase2 = JobPhase.query.filter(
@@ -192,7 +193,8 @@ class UpdateCommandTest(APITestCase):
             data={'foo': 'bar'},
         )
         empty_expander.validate.assert_called_once_with()
-        empty_expander.expand.assert_called_once_with(max_executors=10,
+        empty_expander.expand.assert_called_once_with(job=job,
+                                                      max_executors=10,
                                                       test_stats_from=mock_buildstep.get_test_stats_from.return_value)
 
         phase2 = JobPhase.query.filter(

@@ -17,7 +17,7 @@ class Expander(object):
         """
         raise NotImplementedError
 
-    def expand(self, max_executors, **kwargs):
+    def expand(self, job, max_executors, **kwargs):
         """
         Yield up to `max_executors` expanded jobsteps to be run, based on the
         collection phase's data.

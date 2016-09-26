@@ -5,8 +5,9 @@ import pytest
 from mock import patch
 
 from changes.config import db
-from changes.constants import Status, Result
+from changes.constants import Status, Result, ResultSource, SelectiveTestingPolicy
 from changes.expanders.bazel_targets import BazelTargetsExpander
+from changes.models.bazeltarget import BazelTarget
 from changes.testutils import TestCase
 
 
@@ -75,6 +76,9 @@ class BazelTargetsExpanderTest(TestCase):
 
     @patch.object(BazelTargetsExpander, 'get_target_stats')
     def test_expand(self, mock_get_target_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
         mock_get_target_stats.return_value = {
             '//foo/bar:test': 50,
             '//foo/baz:target': 15,
@@ -93,7 +97,7 @@ class BazelTargetsExpanderTest(TestCase):
                 '//foo/bar/test_buz:test',
             ],
             'artifact_search_path': 'artifacts/'
-        }).expand(max_executors=2))
+        }).expand(job=job, max_executors=2))
 
         results.sort(key=lambda x: x.data['weight'], reverse=True)
 
@@ -118,7 +122,106 @@ class BazelTargetsExpanderTest(TestCase):
         assert results[1].commands[0].script == results[1].label
 
     @patch.object(BazelTargetsExpander, 'get_target_stats')
+    def test_expand_with_selective_testing(self, mock_get_target_stats):
+        project = self.create_project()
+        build = self.create_build(project, selective_testing_policy=SelectiveTestingPolicy.enabled)
+        job = self.create_job(build)
+        mock_get_target_stats.return_value = {
+            '//foo/bar:test': 50,
+            '//foo/baz:target': 15,
+            '//foo/bar/test_biz:test': 10,
+            '//foo/bar/test_buz:test': 200,
+        }, 68
+
+        results = list(self.get_expander({
+            'cmd': 'bazel test {target_names}',
+            'affected_targets': [
+                '//foo/bar:test',
+                '//foo/baz:target',
+            ],
+            'unaffected_targets': [
+                '//foo/bar/test_biz:test',
+                '//foo/bar/test_buz:test',
+            ],
+            'artifact_search_path': 'artifacts/'
+        }).expand(job=job, max_executors=2))
+
+        results.sort(key=lambda x: x.data['weight'], reverse=True)
+
+        assert len(results) == 2
+        assert results[0].label == 'bazel test //foo/bar:test'
+        assert results[0].data['weight'] == 51
+        assert set(results[0].data['targets']) == set(
+            ['//foo/bar:test'])
+        assert results[0].data['shard_count'] == 2
+        assert results[0].data['artifact_search_path'] == 'artifacts/'
+        assert results[0].commands[0].label == results[0].label
+        assert results[0].commands[0].script == results[0].label
+
+        assert results[
+            1].label == 'bazel test //foo/baz:target'
+        assert results[1].data['weight'] == 16
+        assert set(results[1].data['targets']) == set(
+            ['//foo/baz:target'])
+        assert results[1].data['shard_count'] == 2
+        assert results[1].data['artifact_search_path'] == 'artifacts/'
+        assert results[1].commands[0].label == results[1].label
+        assert results[1].commands[0].script == results[1].label
+
+        db.session.commit()
+        for unaffected in ['//foo/bar/test_biz:test', '//foo/bar/test_buz:test']:
+            assert BazelTarget.query.filter(
+                BazelTarget.name == unaffected,
+                BazelTarget.job == job,
+                BazelTarget.result == Result.unknown,
+                BazelTarget.status == Status.unknown,
+                BazelTarget.result_source == ResultSource.from_parent,
+            ).count() == 1
+
+    @patch.object(BazelTargetsExpander, 'get_target_stats')
+    def test_expand_with_selective_testing_None(self, mock_get_target_stats):
+        # test that selective_testing_policy = None implies disabled
+        project = self.create_project()
+        build = self.create_build(project)
+        build.selective_testing_policy = None
+        db.session.add(build)
+        db.session.commit()
+        assert build.selective_testing_policy is None
+        job = self.create_job(build)
+        mock_get_target_stats.return_value = {
+            '//foo/bar:test': 50,
+            '//foo/baz:target': 15,
+            '//foo/bar/test_biz:test': 10,
+            '//foo/bar/test_buz:test': 200,
+        }, 68
+
+        results = list(self.get_expander({
+            'cmd': 'bazel test {target_names}',
+            'affected_targets': [
+                '//foo/bar:test',
+                '//foo/baz:target',
+            ],
+            'unaffected_targets': [
+                '//foo/bar/test_biz:test',
+                '//foo/bar/test_buz:test',
+            ],
+            'artifact_search_path': 'artifacts/'
+        }).expand(job=job, max_executors=2))
+
+        results.sort(key=lambda x: x.data['weight'], reverse=True)
+
+        assert len(results) == 2
+        assert set(results[0].data['targets']) == set(
+            ['//foo/bar/test_buz:test'])
+
+        assert set(results[1].data['targets']) == set(
+            ['//foo/bar:test', '//foo/baz:target', '//foo/bar/test_biz:test'])
+
+    @patch.object(BazelTargetsExpander, 'get_target_stats')
     def test_expand_no_duration(self, mock_get_target_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
         mock_get_target_stats.return_value = {
             '//foo/bar:test': 50,
             '//foo/baz:target': 15,
@@ -141,7 +244,7 @@ class BazelTargetsExpanderTest(TestCase):
                 '//foo/bar/test_buz:test',
             ],
             'artifact_search_path': 'artifacts/'
-        }).expand(max_executors=2))
+        }).expand(job=job, max_executors=2))
 
         results.sort(key=lambda x: x.data['weight'], reverse=True)
 

@@ -2,7 +2,7 @@ import os
 
 from changes.artifacts.xunit import XunitHandler
 from changes.config import db
-from changes.constants import Status
+from changes.constants import ResultSource, Status
 from changes.db.utils import get_or_create
 from changes.models.bazeltarget import BazelTarget
 from changes.models.testresult import TestResultManager
@@ -19,6 +19,7 @@ class BazelTargetHandler(XunitHandler):
             'step_id': self.step.id,
             'job_id': self.step.job.id,
             'name': target_name,
+            'result_source': ResultSource.from_self,
         })
         test_suites = self.get_test_suites(fp)
         tests = self.aggregate_tests_from_suites(test_suites)
