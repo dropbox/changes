@@ -185,7 +185,7 @@ def _get_build_context(build, get_parent=True):
 
 def _get_job_context(job):
     # type: (Job) -> Dict[str, Any]
-    def get_job_failing_tests(job):
+    def get_job_failing_tests(job, limit=30):
         failing_tests = TestCase.query.options(
             subqueryload_all('messages')
         ).filter(
@@ -198,7 +198,7 @@ def _get_job_context(job):
                 'test_case': test_case,
                 'uri': build_web_uri(_get_test_case_uri(test_case)),
                 'message': xunit.get_testcase_messages(test_case),
-            } for test_case in failing_tests
+            } for test_case in failing_tests[:limit]
         ]
         failing_tests_count = len(failing_tests)
 
