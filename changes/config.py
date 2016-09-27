@@ -462,6 +462,8 @@ def create_app(_read_config=True, **config):
 
     app.config['SELECTIVE_TESTING_PROPAGATION_LIMIT'] = 30
 
+    app.config['SELECTIVE_TESTING_ENABLED'] = False
+
     # Debug config entries passed to every autobazel jobstep
     app.config['BAZEL_DEBUG_CONFIG'] = {}
 

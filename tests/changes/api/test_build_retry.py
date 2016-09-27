@@ -1,6 +1,6 @@
 from datetime import datetime
 from mock import patch, Mock
-from changes.constants import Cause
+from changes.constants import Cause, SelectiveTestingPolicy
 from changes.models.build import Build
 from changes.models.job import Job
 from changes.testutils import APITestCase, SAMPLE_DIFF_BYTES
@@ -45,7 +45,7 @@ class BuildRetryTest(APITestCase):
     def test_simple(self, get_vcs):
         get_vcs.return_value = self.get_fake_vcs()
         project = self.create_project()
-        build = self.create_build(project=project)
+        build = self.create_build(project=project, selective_testing_policy=SelectiveTestingPolicy.enabled)
         job = self.create_job(build=build)
         self.create_plan(project)
 
@@ -69,6 +69,7 @@ class BuildRetryTest(APITestCase):
         assert new_build.label == build.label
         assert new_build.message == build.message
         assert new_build.target == build.target
+        assert new_build.selective_testing_policy == build.selective_testing_policy
 
         jobs = list(Job.query.filter(
             Job.build_id == new_build.id,

@@ -55,6 +55,7 @@ class DiffBuildRetryAPIView(APIView):
                 author=build.author,
                 source=diff.source,
                 cause=Cause.retry,
+                selective_testing_policy=build.selective_testing_policy,
             )
             new_builds.append(new_build)
         return self.respond(new_builds)

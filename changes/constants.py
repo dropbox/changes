@@ -151,6 +151,11 @@ RESULT_PRIORITY = (
     Result.quarantined_skipped,
 )
 
+SELECTIVE_TESTING_POLICY_PRIORITY = (
+    SelectiveTestingPolicy.disabled,
+    SelectiveTestingPolicy.enabled,
+)
+
 CAUSE_LABELS = {
     Cause.unknown: 'Unknown',
     Cause.manual: 'Manual',

@@ -1,5 +1,5 @@
-from changes.constants import Result, Status
-from changes.utils.agg import aggregate_result, aggregate_status
+from changes.constants import Result, SelectiveTestingPolicy, Status
+from changes.utils.agg import aggregate_result, aggregate_selective_testing_policy, aggregate_status
 
 
 def test_aggregate_result():
@@ -28,3 +28,17 @@ def test_aggregate_status():
 
     status_list = [Status.finished, Status.unknown]
     assert aggregate_status(status_list) == Status.finished
+
+
+def test_aggregate_policy():
+    test_cases = [
+        ([SelectiveTestingPolicy.enabled], SelectiveTestingPolicy.enabled),
+        ([SelectiveTestingPolicy.enabled, SelectiveTestingPolicy.enabled], SelectiveTestingPolicy.enabled),
+        ([SelectiveTestingPolicy.disabled], SelectiveTestingPolicy.disabled),
+        ([SelectiveTestingPolicy.disabled, SelectiveTestingPolicy.enabled], SelectiveTestingPolicy.disabled),
+        ([SelectiveTestingPolicy.enabled, SelectiveTestingPolicy.disabled], SelectiveTestingPolicy.disabled),
+        ([SelectiveTestingPolicy.enabled, SelectiveTestingPolicy.disabled, SelectiveTestingPolicy.enabled], SelectiveTestingPolicy.disabled),
+        ([], SelectiveTestingPolicy.disabled),
+    ]
+    for policies, expected in test_cases:
+        assert aggregate_selective_testing_policy(policies) == expected

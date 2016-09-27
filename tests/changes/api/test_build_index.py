@@ -1291,26 +1291,28 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
         build = Build.query.get(data[0]['id'])
         assert build.selective_testing_policy is SelectiveTestingPolicy.enabled
 
+    @patch('changes.api.build_index.get_selective_testing_policy')
     @patch('changes.models.repository.Repository.get_vcs')
-    def test_with_selective_testing_commit_build(self, get_vcs):
-        # check that selective testing is not enabled for commit builds
-        # TODO(naphat) remove/edit this once selective testing is enabled
-        # for commit builds
-        get_vcs.return_value = self.get_fake_vcs()
+    def test_with_selective_testing_commit_build(self, get_vcs, get_selective_testing_policy):
+        for policy in [SelectiveTestingPolicy.enabled, SelectiveTestingPolicy.disabled]:
+            get_vcs.return_value = self.get_fake_vcs()
+            get_selective_testing_policy.return_value = (policy, None)
 
-        resp = self.client.post(self.path, data={
-            'sha': 'a' * 40,
-            'repository': self.project.repository.url,
-            'selective_testing': 'true',
-        })
-        assert resp.status_code == 200, resp.data
+            resp = self.client.post(self.path, data={
+                'sha': 'a' * 40,
+                'repository': self.project.repository.url,
+                'selective_testing': 'true',
+            })
+            get_selective_testing_policy.assert_called_once_with(self.project, 'a' * 40, None)
+            get_selective_testing_policy.reset_mock()
+            assert resp.status_code == 200, resp.data
 
-        data = self.unserialize(resp)
-        assert len(data) == 1
-        assert data[0]['id']
+            data = self.unserialize(resp)
+            assert len(data) == 1
+            assert data[0]['id']
 
-        build = Build.query.get(data[0]['id'])
-        assert build.selective_testing_policy is SelectiveTestingPolicy.disabled
+            build = Build.query.get(data[0]['id'])
+            assert build.selective_testing_policy is policy
 
     def _post_for_repo(self, repo):
         return self.client.post(self.path, data={

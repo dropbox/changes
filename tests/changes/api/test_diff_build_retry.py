@@ -4,7 +4,7 @@ import yaml
 from datetime import datetime
 
 from changes.config import db
-from changes.constants import Cause, Result, Status
+from changes.constants import Cause, Result, SelectiveTestingPolicy, Status
 from changes.models.build import Build
 from changes.models.job import Job
 from changes.models.project import ProjectOption
@@ -70,7 +70,8 @@ class DiffBuildRetryTest(APITestCase):
             project=self.project,
             source=self.source,
             status=Status.finished,
-            result=Result.failed
+            result=Result.failed,
+            selective_testing_policy=SelectiveTestingPolicy.enabled,
         )
         job = self.create_job(build=build)
 
@@ -94,6 +95,7 @@ class DiffBuildRetryTest(APITestCase):
         assert new_build.label == build.label
         assert new_build.message == build.message
         assert new_build.target == build.target
+        assert new_build.selective_testing_policy == build.selective_testing_policy
 
         (new_job,) = list(Job.query.filter(
             Job.build_id == new_build.id,

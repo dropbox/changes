@@ -53,6 +53,7 @@ def app(request, session_config):
         MAX_EXECUTORS=10,
         BAZEL_ARTIFACT_SUFFIX='.bazel',
         SELECTIVE_TESTING_PROPAGATION_LIMIT=1,
+        SELECTIVE_TESTING_ENABLED=True,
     )
     app_context = app.test_request_context()
     context = app_context.push()

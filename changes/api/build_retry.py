@@ -28,6 +28,7 @@ class BuildRetryAPIView(APIView):
             author=build.author,
             source=build.source,
             cause=Cause.retry,
+            selective_testing_policy=build.selective_testing_policy,
         )
 
         return '', 302, {'Location': '/api/0/builds/{0}/'.format(new_build.id.hex)}

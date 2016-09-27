@@ -28,9 +28,9 @@ from changes.models.repository import Repository, RepositoryStatus
 from changes.models.revision import Revision
 from changes.models.snapshot import Snapshot, SnapshotImage, SnapshotStatus
 from changes.models.source import Source
-
 from changes.utils.diff_parser import DiffParser
 from changes.utils.project_trigger import files_changed_should_trigger_project
+from changes.utils.selective_testing import get_selective_testing_policy
 from changes.vcs.base import (
     CommandError, ConcurrentUpdateError, UnknownRevision
 )
@@ -646,11 +646,6 @@ class BuildIndexAPIView(APIView):
             # we won't be applying file whitelist, so there is no need to get the list of changed files.
             files_changed = None
 
-        selective_testing_policy = SelectiveTestingPolicy.enabled if args.selective_testing else SelectiveTestingPolicy.disabled
-        if patch is None:
-            # don't do selective testing for commit builds yet
-            selective_testing_policy = SelectiveTestingPolicy.disabled
-
         collection_id = uuid.uuid4()
 
         builds = []
@@ -685,6 +680,16 @@ class BuildIndexAPIView(APIView):
                 logging.info('Changed files do not trigger build for project %s', project.slug)
                 continue
             # 7. create/ensure build
+            selective_testing_policy = SelectiveTestingPolicy.disabled
+            if args.selective_testing:
+                if is_commit_build:
+                    # TODO(naphat) expose message returned here
+                    selective_testing_policy, _ = get_selective_testing_policy(project, sha, diff)
+                else:
+                    # NOTE: for diff builds, it makes sense to just do selective testing,
+                    # since it will never become a parent build and will never be used to
+                    # calculate revision results.
+                    selective_testing_policy = SelectiveTestingPolicy.enabled
             if args.ensure_only:
                 potentials = list(Build.query.filter(
                     Build.project_id == project.id,

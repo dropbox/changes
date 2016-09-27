@@ -97,6 +97,7 @@ class CommitTrigger(object):
                 'sha': revision.sha,
                 'project': project_slug,
                 'tag': 'commit',
+                'selective_testing': 'true',
             }
             with current_app.test_request_context('/api/0/builds/', method='POST', data=data):
                 try:

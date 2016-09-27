@@ -1,6 +1,10 @@
 import sys
 
-from changes.constants import Result, Status, RESULT_PRIORITY, STATUS_PRIORITY
+from changes.constants import (
+    Result, RESULT_PRIORITY,
+    SelectiveTestingPolicy, SELECTIVE_TESTING_POLICY_PRIORITY,
+    Status, STATUS_PRIORITY,
+)
 
 
 def safe_agg(func, sequence, default=None):
@@ -50,3 +54,7 @@ def aggregate_status(status_list):
 
 def aggregate_result(result_list):
     return _aggregate_constant_result(result_list, RESULT_PRIORITY, Result.unknown)
+
+
+def aggregate_selective_testing_policy(policy_list):
+    return _aggregate_constant_result(policy_list, SELECTIVE_TESTING_POLICY_PRIORITY, SelectiveTestingPolicy.disabled)
