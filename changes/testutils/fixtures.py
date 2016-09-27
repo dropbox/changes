@@ -28,6 +28,7 @@ from changes.models.plan import Plan, PlanStatus
 from changes.models.project import Project, ProjectOption
 from changes.models.repository import Repository, RepositoryStatus
 from changes.models.revision import Revision
+from changes.models.revisionresult import RevisionResult
 from changes.models.snapshot import Snapshot, SnapshotImage
 from changes.models.source import Source
 from changes.models.step import Step
@@ -290,6 +291,12 @@ class Fixtures(object):
 
         return project
 
+    def create_revision_result(self, **kwargs):
+        revision_result = RevisionResult(**kwargs)
+        db.session.add(revision_result)
+        db.session.commit()
+        return revision_result
+
     def create_change(self, project, **kwargs):
         kwargs.setdefault('label', 'Sample')
 
@@ -319,7 +326,7 @@ class Fixtures(object):
 
         return case
 
-    def create_target(self, job, jobstep, **kwargs):
+    def create_target(self, job, jobstep=None, **kwargs):
         kwargs.setdefault('name', '//' + uuid4().hex + ':test')
 
         target = BazelTarget(

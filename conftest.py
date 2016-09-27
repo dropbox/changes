@@ -52,6 +52,7 @@ def app(request, session_config):
         SNAPSHOT_S3_BUCKET='snapshot-bucket',
         MAX_EXECUTORS=10,
         BAZEL_ARTIFACT_SUFFIX='.bazel',
+        SELECTIVE_TESTING_PROPAGATION_LIMIT=1,
     )
     app_context = app.test_request_context()
     context = app_context.push()

@@ -255,6 +255,7 @@ def create_app(_read_config=True, **config):
         ('changes.listeners.phabricator_listener.build_finished_handler', 'build.finished'),
         ('changes.listeners.analytics_notifier.build_finished_handler', 'build.finished'),
         ('changes.listeners.analytics_notifier.job_finished_handler', 'job.finished'),
+        ('changes.listeners.revision_result.revision_result_build_finished_handler', 'build.finished'),
         ('changes.listeners.stats_notifier.build_finished_handler', 'build.finished'),
         ('changes.listeners.snapshot_build.build_finished_handler', 'build.finished'),
     )
@@ -458,6 +459,8 @@ def create_app(_read_config=True, **config):
         r'^--test_arg=[A-Za-z0-9=]+',
         r'^--define=[A-Za-z0-9=]+',
     ]
+
+    app.config['SELECTIVE_TESTING_PROPAGATION_LIMIT'] = 30
 
     # Jobsteps go from 'pending_allocation' to 'allocated' once an external scheduler claims them, and
     # once they begin running they're updated to 'in_progress'. If the scheduler somehow fails or drops
