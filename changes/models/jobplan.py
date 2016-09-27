@@ -232,6 +232,9 @@ class JobPlan(db.Model):
             bazel_test_flags = current_app.config['BAZEL_MANDATORY_TEST_FLAGS'] + additional_test_flags
             bazel_test_flags = list(OrderedDict([(b, None) for b in bazel_test_flags]))  # ensure uniqueness, preserve order
 
+            # TODO(anupc): Does it make sense to expose this in project config?
+            bazel_debug_config = current_app.config['BAZEL_DEBUG_CONFIG']
+
             vcs = job.project.repository.get_vcs()
             implementation = LXCBuildStep(
                 cluster=current_app.config['DEFAULT_CLUSTER'],
@@ -259,6 +262,7 @@ class JobPlan(db.Model):
                 cpus=bazel_cpus,
                 memory=bazel_memory,
                 max_executors=bazel_max_executors,
+                debug_config=bazel_debug_config,
             )
             return jobplan, implementation
 

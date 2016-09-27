@@ -462,6 +462,9 @@ def create_app(_read_config=True, **config):
 
     app.config['SELECTIVE_TESTING_PROPAGATION_LIMIT'] = 30
 
+    # Debug config entries passed to every autobazel jobstep
+    app.config['BAZEL_DEBUG_CONFIG'] = {}
+
     # Jobsteps go from 'pending_allocation' to 'allocated' once an external scheduler claims them, and
     # once they begin running they're updated to 'in_progress'. If the scheduler somehow fails or drops
     # the task, this value is used to time out the 'allocated' status and revert back to 'pending_allocation'.
