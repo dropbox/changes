@@ -3,7 +3,8 @@ import mock
 from datetime import datetime
 from uuid import uuid4
 
-from changes.constants import Status
+from changes.constants import Result, Status
+from changes.models.revisionresult import RevisionResult as RevisionResultModel
 from changes.testutils import APITestCase
 from changes.vcs.base import Vcs, RevisionResult
 
@@ -19,6 +20,7 @@ class ProjectCommitIndexTest(APITestCase):
 
         source = self.create_source(project, revision_sha=revision1.sha)
         build = self.create_build(project, source=source, status=Status.finished)
+        revision_result1 = self.create_revision_result(build=build, result=Result.passed, project=project, revision_sha=revision1.sha)
 
         path = '/api/0/projects/{0}/commits/'.format(fake_project_id.hex)
 
@@ -28,6 +30,7 @@ class ProjectCommitIndexTest(APITestCase):
         path = '/api/0/projects/{0}/commits/'.format(project.id.hex)
 
         resp = self.client.get(path)
+
         assert resp.status_code == 200
         data = self.unserialize(resp)
         assert len(data) == 2
@@ -35,6 +38,11 @@ class ProjectCommitIndexTest(APITestCase):
         assert data[0]['build'] is None
         assert data[1]['id'] == revision1.sha
         assert data[1]['build']['id'] == build.id.hex
+
+        assert 'revisionResult' not in data[0]
+
+        revision_result = RevisionResultModel.query.get(data[1]['revisionResult']['id'])
+        assert revision_result == revision_result1
 
         resp = self.client.get(path + '?per_page=1&page=1')
         assert resp.status_code == 200

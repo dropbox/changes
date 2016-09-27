@@ -8,7 +8,10 @@ import { ChangesChart } from 'es6!display/changes/charts';
 import { Grid } from 'es6!display/grid';
 import { MissingBuildStatus, SingleBuildStatus } from 'es6!display/changes/builds';
 import { TimeText, display_duration } from 'es6!display/time';
-import { get_runnable_condition, is_waiting } from 'es6!display/changes/build_conditions';
+import { convert_status_and_result_to_condition, get_runnable_condition,
+         get_runnable_condition_short_text, is_waiting,
+         ConditionDot,
+       } from 'es6!display/changes/build_conditions';
 
 import InteractiveData from 'es6!pages/helpers/interactive_data';
 
@@ -158,17 +161,19 @@ var CommitsTab = React.createClass({
     var grid_data = _.map(data_to_show, c => this.turnIntoRow(c, project_info));
 
     var cellClasses = [
-      'buildWidgetCell', 
-      'wide easyClick', 
-      'bluishGray nowrap', 
-      'bluishGray nowrap', 
-      'nowrap', 
-      'nowrap', 
+      'buildWidgetCell',
+      'buildWidgetCell',
+      'wide easyClick',
+      'bluishGray nowrap',
+      'bluishGray nowrap',
+      'nowrap',
+      'nowrap',
       'nowrap'
     ];
 
     var headers = [
-      'Result',
+      'Revision',
+      'Build',
       'Name',
       'Time',
       'Tests Ran',
@@ -178,7 +183,7 @@ var CommitsTab = React.createClass({
     ];
 
     return <Grid
-      colnum={7}
+      colnum={8}
       data={grid_data}
       cellClasses={cellClasses}
       headers={headers}
@@ -233,8 +238,16 @@ var CommitsTab = React.createClass({
       />
     }
 
+    let revisionResultId = c.revisionResult ? c.revisionResult.result.id : "unknown";
+    let revisionCondition = convert_status_and_result_to_condition(c.status, revisionResultId)
+    let label = get_runnable_condition_short_text(revisionCondition);
+    let markup = <SimpleTooltip label={label} placement="right">
+      <span><ConditionDot condition={revisionCondition} /></span>
+    </SimpleTooltip>;
+
     // TODO: if there are any comments, show a comment icon on the right
     return [
+      markup,
       build_widget,
       title,
       duration,

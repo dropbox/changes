@@ -85,6 +85,31 @@ export var get_runnable_condition = function(runnable) {
 }
 
 /*
+ * Similar to get_runnable_condition, but take in statusId and
+ * resultId directly.
+ */
+export var convert_status_and_result_to_condition = function(statusId, resultId) {
+  if (statusId === 'in_progress' || statusId === 'queued' || statusId === 'pending_allocation' || statusId == 'allocated') {
+    if (resultId === 'failed') {
+      return COND_WAITING_WITH_FAILURES;
+    }
+    return COND_WAITING;
+  }
+
+  const result_condition = {
+      'passed':              COND_PASSED,
+      'quarantined_passed':  COND_PASSED,
+      'failed':              COND_FAILED,
+      'quarantined_failed':  COND_FAILED,
+      'skipped':             COND_UNKNOWN,
+      'quarantined_skipped': COND_UNKNOWN,
+      'aborted':             COND_FAILED_ABORTED,
+      'infra_failed':        COND_FAILED_INFRA,
+  };
+  return result_condition[resultId] || COND_UNKNOWN;
+}
+
+/*
  * Combines the conditions of a bunch of runnables into a single summary
  * condition: if any failed or haven't finished, returns failed/waiting, etc.
  */
@@ -209,7 +234,7 @@ export var ConditionDot = React.createClass({
       };
 
       var style = {
-        fontSize: font_sizes[this.props.size], 
+        fontSize: font_sizes[this.props.size],
       };
       if (this.props.size === 'medium') {
         style = _.extend(style, {marginLeft: 2, marginRight: 6});
@@ -231,12 +256,12 @@ export var ConditionDot = React.createClass({
 
       // cap num at 99 unless rendering the large widget
       var num = this.props.num;
-      if (this.props.size !== 'large' && 
+      if (this.props.size !== 'large' &&
           (_.isFinite(num) && num > 99)) {
         num = '99+';
       }
 
-      if ((_.isString(num) && num.length === 1) || 
+      if ((_.isString(num) && num.length === 1) ||
           (_.isFinite(num) && num > 0 && num < 9)) {
         classes.push('singleDigit');
       }
@@ -271,29 +296,29 @@ Examples.add('ConditionDot', __ => {
       <ConditionDot className="marginRightS" condition="passed" size="large" num={222} />
     </div>,
     <div>
-      <ConditionDot 
-        className="marginRightS" 
-        condition="passed" 
-        size="small" 
-        multiIndicator={true} 
+      <ConditionDot
+        className="marginRightS"
+        condition="passed"
+        size="small"
+        multiIndicator={true}
       />
-      <ConditionDot 
-        className="marginRightS" 
-        condition="passed" 
-        size="smaller" 
-        multiIndicator={true} 
+      <ConditionDot
+        className="marginRightS"
+        condition="passed"
+        size="smaller"
+        multiIndicator={true}
       />
-      <ConditionDot 
-        className="marginRightS" 
-        condition="passed" 
-        size="medium" 
-        multiIndicator={true} 
+      <ConditionDot
+        className="marginRightS"
+        condition="passed"
+        size="medium"
+        multiIndicator={true}
       />
-      <ConditionDot 
-        className="marginRightS" 
-        condition="passed" 
-        size="large" 
-        multiIndicator={true} 
+      <ConditionDot
+        className="marginRightS"
+        condition="passed"
+        size="large"
+        multiIndicator={true}
       />
     </div>,
     <div>

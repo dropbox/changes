@@ -12,6 +12,7 @@ from changes.lib import build_type
 from changes.models.build import Build
 from changes.models.project import Project, ProjectOptionsHelper
 from changes.models.revision import Revision
+from changes.models.revisionresult import RevisionResult
 from changes.models.source import Source
 
 
@@ -74,15 +75,29 @@ class ProjectCommitIndexAPIView(APIView):
             builds_map = self.get_builds_for_commits(
                 commits, project, args.all_builds)
 
+        revision_result_map = self.get_revision_result_map(project, [c['id'] for c in commits])
+
         results = []
         for result in commits:
             if args.all_builds:
                 result['builds'] = builds_map.get(result['id'], [])
             else:
                 result['build'] = builds_map.get(result['id'])
+            if result['id'] in revision_result_map:
+                result['revisionResult'] = self.serialize(revision_result_map[result['id']])
             results.append(result)
 
         return self.respond(results, serialize=False, links=page_links)
+
+    def get_revision_result_map(self, project, shas):
+        revision_results = RevisionResult.query.filter(
+            RevisionResult.revision_sha.in_(shas),
+            RevisionResult.project_id == project.id,
+        )
+        result_map = {}
+        for result in revision_results:
+            result_map[result.revision_sha] = result
+        return result_map
 
     def get_commits_from_vcs(self, repo, vcs, offset, limit, paths, parent, branch):
         vcs_log = list(vcs.log(
