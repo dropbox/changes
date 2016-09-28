@@ -546,7 +546,7 @@ class DefaultBuildStepTest(TestCase):
                 FutureCommand('echo 1'),
                 FutureCommand('echo "foo"\necho "bar"', path='subdir'),
             ],
-            data={'weight': 1, 'forceInfraFailure': True},
+            data={'weight': 1, 'forceInfraFailure': True, 'targets': ['//A:test', '//B:test']},
         )
 
         buildstep = self.get_buildstep(cluster='foo')
@@ -568,6 +568,10 @@ class DefaultBuildStepTest(TestCase):
         # make sure replacement id is correctly set
         assert fail_jobstep.replacement_id == new_jobstep.id
         assert new_jobstep.data['avoid_node'] == 'ip-127-0-0-1'
+
+        # make sure targets are copied over
+        assert len(new_jobstep.targets) == 2
+        assert set([t.name for t in new_jobstep.targets]) == set(['//A:test', '//B:test'])
 
         # we want the replacement jobstep to have the same attributes the
         # original jobstep would be expected to after expand_jobstep()
