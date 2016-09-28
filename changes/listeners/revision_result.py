@@ -7,6 +7,7 @@ from uuid import UUID  # NOQA
 from changes.config import db
 from changes.constants import ResultSource
 from changes.db.utils import create_or_update
+from changes.jobs.signals import fire_signal
 from changes.lib.build_type import is_any_commit_build
 from changes.lib.revision_lib import get_child_revisions, get_latest_finished_build_for_revision
 from changes.models.bazeltarget import BazelTarget
@@ -113,7 +114,7 @@ def create_or_update_revision_result(revision_sha, project_id, propagation_limit
         else:
             logger.info("Revision %s could not find a parent build for parent revision %s.", revision_sha, parent_revision_sha)
 
-    create_or_update(RevisionResult, where={
+    revision_result, _ = create_or_update(RevisionResult, where={
         'revision_sha': revision_sha,
         'project_id': project_id,
     }, values={
@@ -122,6 +123,10 @@ def create_or_update_revision_result(revision_sha, project_id, propagation_limit
     })
 
     db.session.commit()
+    fire_signal.delay(
+        signal='revision_result.updated',
+        kwargs={'revision_result_id': revision_result.id.hex},
+    )
 
     if propagation_limit > 0:
         # TODO stop the propagation if nothing changed

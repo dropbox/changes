@@ -5,9 +5,8 @@ import responses
 import urlparse
 from uuid import uuid4
 
-from changes.config import db
 from changes.constants import Result
-from changes.listeners.green_build import build_finished_handler, \
+from changes.listeners.green_build import revision_result_updated_handler, \
     _set_latest_green_build_for_each_branch
 from changes.models.event import Event, EventType
 from changes.models.latest_green_build import LatestGreenBuild
@@ -53,20 +52,28 @@ class GreenBuildTest(TestCase):
         # test with failing build
         build.result = Result.failed
 
-        build_finished_handler(build_id=build.id.hex)
+        revision_result = self.create_revision_result(
+            revision_sha=sha,
+            build=build,
+            project=project,
+            result=build.result,
+        )
+
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
 
         assert len(responses.calls) == 0
 
         # test with passing build but not on correct branch:
 
         build.result = Result.passed
+        revision_result.result = build.result
 
         get_options.return_value = {
             'green-build.notify': '1',
             'build.branch-names': 'some_other_branch',
         }
 
-        build_finished_handler(build_id=build.id.hex)
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
 
         get_options.assert_called_once_with(build.project_id)
 
@@ -79,20 +86,7 @@ class GreenBuildTest(TestCase):
             'green-build.notify': '1',
         }
 
-        def set_tags(b, tags):
-            b.tags = tags
-            db.session.add(b)
-            db.session.commit()
-
-        # Commit queue builds shouldn't be reported.
-        set_tags(build, ['commit-queue'])
-        build_finished_handler(build_id=build.id.hex)
-        assert len(responses.calls) == 0
-
-        # Not commit queue
-        set_tags(build, [])
-
-        build_finished_handler(build_id=build.id.hex)
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
 
         vcs.run.assert_called_once_with([
             'log', '-r %s' % sha, '--limit=1',
@@ -152,7 +146,13 @@ class GreenBuildTest(TestCase):
         get_options.return_value = {'green-build.notify': '0'}
         vcs.run.return_value = '134:asdadfadf'
         build.result = Result.passed
-        build_finished_handler(build_id=build.id.hex)
+        revision_result = self.create_revision_result(
+            revision_sha=sha,
+            build=build,
+            project=project,
+            result=build.result,
+        )
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
         assert self._get_latest_green_build(project.id, 'default').build == build
 
         # Ensure latest green build not set even if failed.
@@ -160,14 +160,18 @@ class GreenBuildTest(TestCase):
         get_options.return_value = {'green-build.notify': '0'}
         vcs.run.return_value = '135:asdadfadf'
         failed_build.result = Result.failed
-        build_finished_handler(build_id=failed_build.id.hex)
+        revision_result.build = failed_build
+        revision_result.result = failed_build.result
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
         assert self._get_latest_green_build(project.id, 'default').build == build
 
         build2 = self.create_build(project=project, source=source)
         get_options.return_value = {'green-build.notify': '1'}
         vcs.run.return_value = '136:asdadfadf'
         build2.result = Result.passed
-        build_finished_handler(build_id=build2.id.hex)
+        revision_result.build = build2
+        revision_result.result = build2.result
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
         assert self._get_latest_green_build(project.id, 'default').build == build2
 
     @responses.activate
@@ -205,7 +209,13 @@ class GreenBuildTest(TestCase):
         get_options.return_value = {'green-build.notify': '1'}
         vcs.run.return_value = '137:asdadfadf'
         build3.result = Result.passed
-        build_finished_handler(build_id=build3.id.hex)
+        revision_result = self.create_revision_result(
+            revision_sha=sha,
+            build=build3,
+            project=project,
+            result=build3.result,
+        )
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
         assert self._get_latest_green_build(project.id, 'default').build == build3
 
         # Ensure a new build cannot be set to green if the new build's SHA is
@@ -219,7 +229,9 @@ class GreenBuildTest(TestCase):
         get_options.return_value = {'green-build.notify': '1'}
         vcs.run.return_value = '138:asdadfadf'
         bad_sha_build.result = Result.passed
-        build_finished_handler(build_id=bad_sha_build.id.hex)
+        revision_result.build = bad_sha_build
+        revision_result.result = bad_sha_build.result
+        revision_result_updated_handler(revision_result_id=revision_result.id.hex)
         assert self._get_latest_green_build(project.id, 'default').build == build3
 
         # Cleanup the mock (in case more blocks are added)

@@ -257,7 +257,7 @@ def create_app(_read_config=True, **config):
 
     app.config['EVENT_LISTENERS'] = (
         ('changes.listeners.mail.build_finished_handler', 'build.finished'),
-        ('changes.listeners.green_build.build_finished_handler', 'build.finished'),
+        ('changes.listeners.green_build.revision_result_updated_handler', 'revision_result.updated'),
         ('changes.listeners.build_revision.revision_created_handler', 'revision.created'),
         ('changes.listeners.build_finished_notifier.build_finished_handler', 'build.finished'),
         ('changes.listeners.phabricator_listener.build_finished_handler', 'build.finished'),

@@ -12,12 +12,11 @@ from sqlalchemy.orm import joinedload
 from changes.config import db
 from changes.constants import Result
 from changes.db.utils import create_or_update
-from changes.lib import build_type
-from changes.models.build import Build
 from changes.models.event import Event, EventType
+from changes.models.latest_green_build import LatestGreenBuild
 from changes.models.project import ProjectOption
 from changes.models.repository import RepositoryBackend
-from changes.models.latest_green_build import LatestGreenBuild
+from changes.models.revisionresult import RevisionResult
 from changes.utils.http import build_web_uri
 from changes.utils.locking import lock
 from changes.vcs.base import (
@@ -58,23 +57,24 @@ def get_release_id(source, vcs):
 
 
 @lock
-def build_finished_handler(build_id, **kwargs):
-    """Update the latest green build if this is a green build for a commit.
+def revision_result_updated_handler(revision_result_id, **kwargs):
+    """Update the latest green build the revision result is green.
 
     Also, send a green build notification if the project is configured to do so.
     """
-    build = Build.query.get(build_id)
+    revision_result = RevisionResult.query.get(revision_result_id)
+
+    if revision_result is None:
+        return
+
+    build = revision_result.build
     if build is None:
         return
 
-    if build.result != Result.passed:
+    if revision_result.result != Result.passed:
         return
 
     source = build.source
-
-    if not build_type.is_any_commit_build(build):
-        logger.debug('Ignoring build due to non-commit: %s', build.id)
-        return
 
     vcs = source.repository.get_vcs()
     if vcs is None:
