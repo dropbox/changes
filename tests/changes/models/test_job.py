@@ -71,8 +71,8 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
         collect_targets_expected = """#!/bin/bash -eu
 sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="8" 2> /dev/null
-""".strip()
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="8" --seletive-testing-skip-list={} 2> /dev/null
+""".strip().format(job.project.get_config_path())
 
         extra_setup_expected = """#!/bin/bash -eux
 exit 0
@@ -117,12 +117,6 @@ exit 0
             'bazel.max-executors': 3,
         }
 
-        collect_tests_expected = """#!/bin/bash -eu
-sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
-
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="4" 2> /dev/null
-""".strip()
-
         mock_vcs = mock.Mock(spec=Vcs)
         mock_vcs.get_buildstep_checkout_revision.return_value = 'git checkout master'
         mock_vcs.get_buildstep_checkout_parent_revision.return_value = 'git checkout master^'
@@ -131,6 +125,12 @@ sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
         with mock.patch.object(job.project.repository, "get_vcs") as mock_get_vcs:
             mock_get_vcs.return_value = mock_vcs
             _, implementation = JobPlan.get_build_step_for_job(job.id)
+
+        collect_tests_expected = """#!/bin/bash -eu
+sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
+
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="4" --seletive-testing-skip-list={} 2> /dev/null
+""".strip().format(job.project.get_config_path())
 
         assert implementation.max_executors == 3
 
@@ -162,12 +162,6 @@ sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
             'bazel.max-executors': 3,
         }
 
-        collect_tests_expected = """#!/bin/bash -eu
-sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
-
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --test-flags=--test_env=testing=123 --jobs="4" 2> /dev/null
-""".strip()
-
         mock_vcs = mock.Mock(spec=Vcs)
         mock_vcs.get_buildstep_checkout_revision.return_value = 'git checkout master'
         mock_vcs.get_buildstep_checkout_parent_revision.return_value = 'git checkout master^'
@@ -176,6 +170,12 @@ sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
         with mock.patch.object(job.project.repository, "get_vcs") as mock_get_vcs:
             mock_get_vcs.return_value = mock_vcs
             _, implementation = JobPlan.get_build_step_for_job(job.id)
+
+        collect_tests_expected = """#!/bin/bash -eu
+sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
+
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --test-flags=--test_env=testing=123 --jobs="4" --seletive-testing-skip-list={} 2> /dev/null
+""".strip().format(job.project.get_config_path())
 
         assert implementation.max_executors == 3
 

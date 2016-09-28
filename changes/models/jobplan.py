@@ -256,6 +256,7 @@ class JobPlan(db.Model):
                             bazel_exclude_tags=bazel_exclude_tags,
                             max_jobs=2 * bazel_cpus,
                             bazel_test_flags=bazel_test_flags,
+                            skip_list_patterns=[job.project.get_config_path()],
                             ),
                         'type': 'collect_bazel_targets',
                         'env': {

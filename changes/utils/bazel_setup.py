@@ -12,7 +12,7 @@ sudo apt-get install -y --force-yes {bazel_apt_pkgs}
 COLLECT_BAZEL_TARGETS = """#!/bin/bash -eu
 sudo apt-get install -y --force-yes {bazel_apt_pkgs} python >/dev/null 2>&1
 
-"{collect_targets_executable}" --output-user-root="{bazel_root}" {bazel_targets} {bazel_exclude_tags} {bazel_test_flags} --jobs="{max_jobs}" 2> /dev/null
+"{collect_targets_executable}" --output-user-root="{bazel_root}" {bazel_targets} {bazel_exclude_tags} {bazel_test_flags} --jobs="{max_jobs}" {skip_list_patterns} 2> /dev/null
 """.strip()
 
 
@@ -28,7 +28,7 @@ def get_bazel_setup():
     )
 
 
-def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclude_tags, bazel_test_flags, max_jobs):
+def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclude_tags, bazel_test_flags, max_jobs, skip_list_patterns):
     """Construct a command to query the Bazel dependency graph to expand bazel project
     config into a set of individual test targets.
 
@@ -49,6 +49,7 @@ def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclu
         bazel_exclude_tags=' '.join(['--exclude-tags={}'.format(t) for t in bazel_exclude_tags]),
         bazel_test_flags=' '.join(['--test-flags={}'.format(tf) for tf in bazel_test_flags]),
         max_jobs=max_jobs,
+        skip_list_patterns=' '.join(['--seletive-testing-skip-list={}'.format(p) for p in skip_list_patterns])
     )
 
 
