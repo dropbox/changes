@@ -1,14 +1,7 @@
 from flask import current_app
 
-
+# Assume that apt sources have been set up correctly up front, and `apt-get update` run already.
 BASH_BAZEL_SETUP = """#!/bin/bash -eux
-# Clean up any existing apt sources
-sudo rm -rf /etc/apt/sources.list.d
-# Overwrite apt sources
-echo "{apt_spec}" | sudo tee /etc/apt/sources.list
-
-# apt-get update, and try again if it fails first time
-sudo apt-get -y update || sudo apt-get -y update
 sudo apt-get install -y --force-yes {bazel_apt_pkgs}
 
 /usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --output_user_root={bazel_root} --batch version
@@ -19,13 +12,6 @@ sudo apt-get install -y --force-yes {bazel_apt_pkgs}
 # We also redirect stdout and stderr to /dev/null because changes uses the output of this
 # script to collect tests, and so we don't want extraneous output.
 COLLECT_BAZEL_TARGETS = """#!/bin/bash -eu
-# Clean up any existing apt sources
-sudo rm -rf /etc/apt/sources.list.d >/dev/null 2>&1
-# Overwrite apt sources
-(echo "{apt_spec}" | sudo tee /etc/apt/sources.list) >/dev/null 2>&1
-
-# apt-get update, and try again if it fails first time
-(sudo apt-get -y update || sudo apt-get -y update) >/dev/null 2>&1
 sudo apt-get install -y --force-yes {bazel_apt_pkgs} python >/dev/null 2>&1
 
 "{collect_targets_executable}" --output-user-root="{bazel_root}" {bazel_targets} {bazel_exclude_tags} {bazel_test_flags} --jobs="{max_jobs}" 2> /dev/null
@@ -39,7 +25,6 @@ sudo /usr/bin/rsync -a --delete {encap_rsync_url}{pkg} {encap_dir}
 
 def get_bazel_setup():
     return BASH_BAZEL_SETUP.format(
-        apt_spec=current_app.config['APT_SPEC'],
         bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
         bazel_root=current_app.config['BAZEL_ROOT_PATH'],
     )
@@ -59,7 +44,6 @@ def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclu
     """
     # type: (str, List[str], List[str], int, changes.vcs.base.Vcs) -> str
     return COLLECT_BAZEL_TARGETS.format(
-        apt_spec=current_app.config['APT_SPEC'],
         bazel_apt_pkgs=' '.join(current_app.config['BAZEL_APT_PKGS']),
         bazel_root=current_app.config['BAZEL_ROOT_PATH'],
         bazel_targets=' '.join(['--target-patterns={}'.format(t) for t in bazel_targets]),

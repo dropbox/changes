@@ -404,11 +404,6 @@ def create_app(_read_config=True, **config):
     # be truncated.
     app.config['TEST_MESSAGE_MAX_LEN'] = 64 * 1024
 
-    # sources.list entry, format is:
-    # deb uri distribution [component1] [component2] [...]
-    # Used for bazel setup, so source should have bazel package.
-    app.config['APT_SPEC'] = None
-
     # List of packages needed to install bazel and any environment.
     app.config['BAZEL_APT_PKGS'] = ['bazel']
 
