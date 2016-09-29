@@ -3,8 +3,6 @@ from flask import current_app
 # Assume that apt sources have been set up correctly up front, and `apt-get update` run already.
 BASH_BAZEL_SETUP = """#!/bin/bash -eux
 sudo apt-get install -y --force-yes {bazel_apt_pkgs}
-
-/usr/bin/bazel --nomaster_blazerc --blazerc=/dev/null --output_user_root={bazel_root} --batch version
 """.strip()
 
 # We run setup again because changes does not run setup before collecting tests, but we need bazel
