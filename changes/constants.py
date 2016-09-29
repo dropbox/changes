@@ -71,6 +71,9 @@ class SelectiveTestingPolicy(Enum):
     disabled = 0
     enabled = 1
 
+    def __str__(self):
+        return SELECTIVE_TESTING_POLICY_LABELS[self]
+
 
 class Provider(Enum):
     unknown = 0
@@ -155,6 +158,11 @@ SELECTIVE_TESTING_POLICY_PRIORITY = (
     SelectiveTestingPolicy.disabled,
     SelectiveTestingPolicy.enabled,
 )
+
+SELECTIVE_TESTING_POLICY_LABELS = {
+    SelectiveTestingPolicy.enabled: 'Enabled',
+    SelectiveTestingPolicy.disabled: 'Disabled',
+}
 
 CAUSE_LABELS = {
     Cause.unknown: 'Unknown',

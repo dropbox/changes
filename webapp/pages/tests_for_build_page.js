@@ -394,6 +394,7 @@ export var BuildTestsPage = React.createClass({
       let rowData = new GridRow(target.id, [
         markup,
         <span>{target.status.name}</span>,
+        <span>{target.resultSource.name}</span>,
         <span>{moment.duration(target.duration).asSeconds()}s</span>,
       ])
       rows.push(rowData)
@@ -437,6 +438,7 @@ export var BuildTestsPage = React.createClass({
 
     let headers = [sortHeader("Name", "name"),
                    "Status",
+                   "Result From",
                    sortHeader("Duration", "duration")
                   ];
     let searchOnChange = evt => this.setState({queryValue: evt.target.value.trim()});

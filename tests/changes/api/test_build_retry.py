@@ -69,7 +69,7 @@ class BuildRetryTest(APITestCase):
         assert new_build.label == build.label
         assert new_build.message == build.message
         assert new_build.target == build.target
-        assert new_build.selective_testing_policy == build.selective_testing_policy
+        assert new_build.selective_testing_policy is SelectiveTestingPolicy.disabled
 
         jobs = list(Job.query.filter(
             Job.build_id == new_build.id,
@@ -79,3 +79,55 @@ class BuildRetryTest(APITestCase):
 
         new_job = jobs[0]
         assert new_job.id != job.id
+
+    @patch('changes.api.build_retry.get_selective_testing_policy')
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_selective_testing_commit_builds(self, get_vcs, get_selective_testing_policy):
+        get_vcs.return_value = self.get_fake_vcs()
+        get_selective_testing_policy.return_value = SelectiveTestingPolicy.enabled, None
+        project = self.create_project()
+        build = self.create_build(project=project, selective_testing_policy=SelectiveTestingPolicy.disabled)
+        job = self.create_job(build=build)
+        self.create_plan(project)
+
+        path = '/api/0/builds/{0}/retry/'.format(build.id.hex)
+        resp = self.client.post(path, data={'selective_testing': 'true'}, follow_redirects=True)
+
+        get_selective_testing_policy.assert_called_once_with(project, build.source.revision_sha, None)
+
+        assert resp.status_code == 200
+
+        data = self.unserialize(resp)
+
+        assert data['id']
+
+        new_build = Build.query.get(data['id'])
+
+        assert new_build.id != build.id
+        assert new_build.cause == Cause.retry
+        assert new_build.selective_testing_policy is SelectiveTestingPolicy.enabled
+
+    @patch('changes.models.repository.Repository.get_vcs')
+    def test_with_selective_testing_diff_builds(self, get_vcs):
+        get_vcs.return_value = self.get_fake_vcs()
+        project = self.create_project()
+        patch = self.create_patch()
+        source = self.create_source(project, patch=patch)
+        build = self.create_build(project=project, selective_testing_policy=SelectiveTestingPolicy.disabled, source=source)
+        job = self.create_job(build=build)
+        self.create_plan(project)
+
+        path = '/api/0/builds/{0}/retry/'.format(build.id.hex)
+        resp = self.client.post(path, data={'selective_testing': 'true'}, follow_redirects=True)
+
+        assert resp.status_code == 200
+
+        data = self.unserialize(resp)
+
+        assert data['id']
+
+        new_build = Build.query.get(data['id'])
+
+        assert new_build.id != build.id
+        assert new_build.cause == Cause.retry
+        assert new_build.selective_testing_policy is SelectiveTestingPolicy.enabled

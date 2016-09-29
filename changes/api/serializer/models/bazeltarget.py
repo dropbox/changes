@@ -1,4 +1,5 @@
 from changes.api.serializer import Crumbler, register
+from changes.constants import ResultSource
 from changes.models.bazeltarget import BazelTarget
 
 
@@ -12,6 +13,7 @@ class BazelTargetCrumbler(Crumbler):
             'duration': instance.duration or 0,
             'status': instance.status,
             'result': instance.result,
+            'resultSource': instance.result_source or ResultSource.from_self,
             'dateCreated': instance.date_created,
         }
         if instance.step_id:

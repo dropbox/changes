@@ -1,4 +1,5 @@
 from changes.api.serializer import Crumbler, register
+from changes.constants import SelectiveTestingPolicy
 from changes.models.build import Build
 from changes.models.failurereason import FailureReason
 from changes.models.itemstat import ItemStat
@@ -62,6 +63,8 @@ class BuildCrumbler(Crumbler):
         if target is None and item.source and item.source.revision_sha:
             target = item.source.revision_sha[:12]
 
+        selective_testing_policy = item.selective_testing_policy if item.selective_testing_policy else SelectiveTestingPolicy.disabled
+
         return {
             'id': item.id.hex,
             'collection_id': item.collection_id,
@@ -70,6 +73,7 @@ class BuildCrumbler(Crumbler):
             'target': target,
             'result': item.result,
             'status': item.status,
+            'selectiveTestingPolicy': selective_testing_policy,
             'project': item.project,
             'cause': item.cause,
             'author': item.author,
