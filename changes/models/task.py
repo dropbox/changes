@@ -42,6 +42,7 @@ class Task(db.Model):
         Index('idx_task_child_id', 'child_id', 'task_name'),
         Index('idx_task_date_created', 'date_created'),
         UniqueConstraint('task_name', 'parent_id', 'child_id', name='unq_task_entity'),
+        Index('idx_task_status', 'status'),
     )
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
