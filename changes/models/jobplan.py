@@ -17,7 +17,7 @@ from changes.config import db
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
 from changes.db.utils import model_repr
-from changes.utils.bazel_setup import get_bazel_setup, collect_bazel_targets, sync_encap_pkgs
+from changes.utils.bazel_setup import collect_bazel_targets, extra_setup_cmd, get_bazel_setup, sync_encap_pkgs
 from changes.utils.imports import import_string
 
 
@@ -241,6 +241,7 @@ class JobPlan(db.Model):
                 commands=[
                     {'script': get_bazel_setup(), 'type': 'setup'},
                     {'script': sync_encap_pkgs(project_config), 'type': 'setup'},  # TODO(anupc): Make this optional
+                    {'script': extra_setup_cmd(), 'type': 'setup'},                # TODO(anupc): Make this optional
                     {
                         'script': collect_bazel_targets(
                             collect_targets_executable=os.path.join(LXCBuildStep.custom_bin_path(), 'collect-targets'),

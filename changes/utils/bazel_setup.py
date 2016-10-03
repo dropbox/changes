@@ -63,3 +63,7 @@ def sync_encap_pkgs(project_config, encap_dir='/usr/local/encap/'):
             encap_dir=encap_dir,
         )
     return '\n'.join(['sudo mkdir -p ' + encap_dir] + map(sync_pkg, encap_pkgs))
+
+
+def extra_setup_cmd():
+    return '#!/bin/bash -eux\n' + '\n'.join(current_app.config['BAZEL_EXTRA_SETUP_CMD'])

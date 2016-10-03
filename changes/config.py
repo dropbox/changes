@@ -462,6 +462,9 @@ def create_app(_read_config=True, **config):
     # Debug config entries passed to every autobazel jobstep
     app.config['BAZEL_DEBUG_CONFIG'] = {}
 
+    # Extra test setup commands to be executed before collect-targets or `bazel test` invocations.
+    app.config['BAZEL_EXTRA_SETUP_CMD'] = ['exit 0']
+
     # Jobsteps go from 'pending_allocation' to 'allocated' once an external scheduler claims them, and
     # once they begin running they're updated to 'in_progress'. If the scheduler somehow fails or drops
     # the task, this value is used to time out the 'allocated' status and revert back to 'pending_allocation'.
