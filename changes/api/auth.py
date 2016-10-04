@@ -5,6 +5,7 @@ from fnmatch import fnmatch
 from functools import wraps
 from typing import Optional  # NOQA
 
+from changes.api.base import error
 from changes.models.plan import Plan
 from changes.models.project import Project
 from changes.models.step import Step
@@ -111,6 +112,21 @@ def get_project_slug_from_step_id(*args, **kwargs):
     return step.plan.project.slug
 
 
+def user_has_project_permission(user, project_slug):
+    # type: (User, str) -> bool
+    """
+    Given a user and a project slug, determine if the user has admin permission
+    for this project.
+    """
+    if user.is_admin:
+        return True
+    if user.project_permissions is not None:
+        for p in user.project_permissions:
+            if fnmatch(project_slug, p):
+                return True
+    return False
+
+
 def requires_project_admin(get_project_slug):
     """
     Require an authenticated user with project admin privileges.
@@ -130,25 +146,14 @@ def requires_project_admin(get_project_slug):
         def wrapped(self, *args, **kwargs):
             user = get_current_user()
             if user is None:
-                return self.respond({
-                    'error': 'Not logged in.'
-                }, status_code=401)
-            if user.is_admin:
-                # global admins are automatically project admins
+                return error('Not logged in', http_code=401)
+            try:
+                slug = get_project_slug(self, *args, **kwargs)
+            except ResourceNotFound as e:
+                return error('{}'.format(e), http_code=404)
+            if user_has_project_permission(user, slug):
                 return method(self, *args, **kwargs)
-            if user.project_permissions is not None:
-                try:
-                    slug = get_project_slug(self, *args, **kwargs)
-                except ResourceNotFound as e:
-                    return self.respond({
-                        'error': '{}'.format(e)
-                    }, status_code=404)
-                for p in user.project_permissions:
-                    if fnmatch(slug, p):
-                        return method(self, *args, **kwargs)
-            return self.respond({
-                'error': 'User does not have access to this project.'
-            }, status_code=403)
+            return error('User does not have access to this project.', http_code=403)
         return wrapped
     return decorator
 

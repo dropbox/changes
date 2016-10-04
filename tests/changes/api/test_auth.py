@@ -7,6 +7,7 @@ from changes.api.auth import (
     get_project_slug_from_project_id, get_project_slug_from_plan_id,
     get_project_slug_from_step_id,
     ResourceNotFound, requires_project_admin,
+    user_has_project_permission,
 )
 from changes.testutils import TestCase
 
@@ -42,6 +43,32 @@ class ProjectAdminHelpersTestCase(TestCase):
 
 
 class ProjectAdminTestCase(TestCase):
+    def test_global_admin(self):
+        user = self.create_user(email='user1@example.com', is_admin=True)
+        assert user_has_project_permission(user, 'other:project-a')
+
+    def test_authenticated_exact(self):
+        user = self.create_user(email='user1@example.com', project_permissions=['someproject', 'other:project-a', 'otherproject'])
+        assert user_has_project_permission(user, 'other:project-a')
+
+    def test_authenticated_pattern_trailing(self):
+        user = self.create_user(email='user1@example.com', project_permissions=['someproject', 'other:*', 'otherproject'])
+        assert user_has_project_permission(user, 'other:project-a')
+
+    def test_authenticated_pattern_both(self):
+        user = self.create_user(email='user1@example.com', project_permissions=['someproject', '*other:*', 'otherproject'])
+        assert user_has_project_permission(user, 'other:project-a')
+
+    def test_not_authenticated_none(self):
+        user = self.create_user(email='user1@example.com')
+        assert not user_has_project_permission(user, 'other:project-a')
+
+    def test_not_authenticated_pattern(self):
+        user = self.create_user(email='user1@example.com', project_permissions=['someproject*', 'otherproject'])
+        assert not user_has_project_permission(user, 'other:project-a')
+
+
+class ProjectAdminDecoratorTestCase(TestCase):
 
     _project_slug = 'other:project-a'
 
@@ -61,8 +88,6 @@ class ProjectAdminTestCase(TestCase):
     @requires_project_admin(_get_project_slug_error)
     def _sample_function_error(self):
         raise self.DidExecute
-
-    respond = mock.MagicMock()
 
     def test_global_admin(self):
         user = self.create_user(email='user1@example.com', is_admin=True)
@@ -96,29 +121,25 @@ class ProjectAdminTestCase(TestCase):
         user = self.create_user(email='user1@example.com')
         with mock.patch('changes.api.auth.get_current_user') as mocked:
             mocked.return_value = user
-            self._sample_function()
-            _, kwargs = self.respond.call_args
-            assert kwargs['status_code'] == 403
+            _, status_code = self._sample_function()
+            assert status_code == 403
 
     def test_not_authenticated_pattern(self):
         user = self.create_user(email='user1@example.com', project_permissions=['someproject*', 'otherproject'])
         with mock.patch('changes.api.auth.get_current_user') as mocked:
             mocked.return_value = user
-            self._sample_function()
-            _, kwargs = self.respond.call_args
-            assert kwargs['status_code'] == 403
+            _, status_code = self._sample_function()
+            assert status_code == 403
 
     def test_no_user(self):
         with mock.patch('changes.api.auth.get_current_user') as mocked:
             mocked.return_value = None
-            self._sample_function()
-            _, kwargs = self.respond.call_args
-            assert kwargs['status_code'] == 401
+            _, status_code = self._sample_function()
+            assert status_code == 401
 
     def test_resource_not_found(self):
         user = self.create_user(email='user1@example.com', project_permissions=['someproject', 'other:project-a', 'otherproject'])
         with mock.patch('changes.api.auth.get_current_user') as mocked:
             mocked.return_value = user
-            status = self._sample_function_error()
-            _, kwargs = self.respond.call_args
-            assert kwargs['status_code'] == 404
+            _, status_code = self._sample_function_error()
+            assert status_code == 404

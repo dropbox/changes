@@ -5,6 +5,7 @@ import SectionHeader from 'es6!display/section_header';
 import { ChangesPage, APINotLoadedPage } from 'es6!display/page_chrome';
 import ChangesLinks from 'es6!display/changes/links';
 import * as FieldGroupMarkup from 'es6!display/field_group';
+import { FlashMessage, FAILURE } from 'es6!display/flash';
 import { Grid } from 'es6!display/grid';
 import Request from 'es6!display/request';
 import { Tabs, MenuUtils } from 'es6!display/menus';
@@ -268,7 +269,19 @@ let NewProjectFieldGroup = React.createClass({
     ];
 
     let fieldMarkup = FieldGroupMarkup.create(form, "Save Project", this, []);
-    return <div>{fieldMarkup}</div>;
+    let error = this.state.error;
+    if (error) {
+      error = JSON.parse(error);
+      if (error.error !== undefined) {
+        error = error.error;
+      }
+    }
+
+    let errorMessage = error ? <FlashMessage message={error} type={FAILURE} /> : null;
+    return <div>
+             <div>{fieldMarkup}</div>
+             {errorMessage}
+           </div>;
   },
 })
 

@@ -101,7 +101,16 @@ class ProjectCreateTest(APITestCase):
         })
         assert resp.status_code == 403
 
-        self.login_default_admin()
+        # wrong admin permission
+        self.create_and_login_project_admin(['someotherproject'])
+
+        resp = self.client.post(path, data={
+            'name': 'Foobar',
+            'repository': 'ssh://example.com/foo',
+        })
+        assert resp.status_code == 403
+
+        self.create_and_login_project_admin(['foobar'])
 
         # invalid repo url
         resp = self.client.post(path, data={

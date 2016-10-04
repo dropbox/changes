@@ -7,8 +7,8 @@ from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import func
 
-from changes.api.base import APIView
-from changes.api.auth import requires_admin
+from changes.api.base import APIView, error
+from changes.api.auth import get_current_user, user_has_project_permission
 from changes.config import db, statsreporter
 from changes.constants import Result, Status, ProjectStatus
 from changes.lib import build_type
@@ -188,21 +188,26 @@ class ProjectIndexAPIView(APIView):
 
             return self.respond(context, serialize=False)
 
-    @requires_admin
     def post(self):
+        user = get_current_user()
+        if user is None:
+            return error('Not logged in.', http_code=401)
         args = self.post_parser.parse_args()
 
         slug = str(args.slug or args.name.replace(' ', '-').lower())
+
+        if not user_has_project_permission(user, slug):
+            return error('User does not have permission to create a project with slug {}.'.format(slug), http_code=403)
 
         match = Project.query.filter(
             Project.slug == slug,
         ).first()
         if match:
-            return '{"error": "Project with slug %r already exists"}' % (slug,), 400
+            return error('Project with slug {} already exists.'.format(slug), http_code=400)
 
         repository = Repository.get(args.repository)
         if repository is None:
-            return '{"error": "Repository with url %r does not exist"}' % (args.repository,), 400
+            return error('Repository with url {} does not exist.'.format(args.repository), http_code=400)
 
         project = Project(
             name=args.name,
