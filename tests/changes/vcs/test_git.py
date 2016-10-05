@@ -431,3 +431,19 @@ index 0000000..d0c77a5
         patch_hash = vcs.get_patch_hash('HEAD')
 
         assert isinstance(patch_hash, str) and len(patch_hash) == 40
+
+
+class GetRepositoryTestCase(TestCase):
+
+    def test_correct(self):
+        for (url, expected_name) in [
+            ('example.com:test.git', 'test.git'),
+            ('example.com:test', 'test.git'),
+            ('ssh@example.com:test.git', 'test.git'),
+            ('ssh@example.com:test', 'test.git'),
+            ('example.com:prefix/test.git', 'test.git'),
+            ('example.com:prefix/test', 'test.git'),
+            ('example.com:test-with-hyphen', 'test-with-hyphen.git'),
+            ('example.com:some-prefix/test-with-hyphen', 'test-with-hyphen.git'),
+        ]:
+            assert GitVcs.get_repository_name(url) == expected_name

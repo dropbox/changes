@@ -263,3 +263,17 @@ index e69de29..d0c77a5 100644
         patch = self.PATCH_TEMPLATE_NO_NEWLINE_BOTH.format(path=path)
         content = self.vcs._selectively_apply_diff(path, 'FOO', diff=patch)
         assert content == 'blah'
+
+
+class GetRepositoryTestCase(TestCase):
+
+    def test_correct(self):
+        for (url, expected_name) in [
+            ('example.com:test.git', 'test.git'),
+            ('example.com:test', 'test'),
+            ('ssh@example.com:test', 'test'),
+            ('example.com:prefix/test', 'test'),
+            ('example.com:test-with-hyphen', 'test-with-hyphen'),
+            ('example.com:some-prefix/test-with-hyphen', 'test-with-hyphen'),
+        ]:
+            assert Vcs.get_repository_name(url) == expected_name

@@ -155,6 +155,21 @@ class Vcs(object):
             raise CommandError(args[0], proc.returncode, stdout, stderr)
         return stdout
 
+    @classmethod
+    def get_repository_name(cls, repository_url):
+        """
+        Given a repository URL, get the repository name.
+
+        Examples:
+        example.com:test.git -> test.git
+        example.com:test -> test
+        example.com:prefix/test.git -> test.git
+        example.com:test.git -> test
+        """
+        # type: (str) -> str
+        path = repository_url.split(':')[-1].strip('/')
+        return os.path.basename(path)
+
     @staticmethod
     def get_clone_command(remote_url, path, revision, clean=True, cache_dir=None):
         # type: (str, str, str, bool, Optional[str]) -> str

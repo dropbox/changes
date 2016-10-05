@@ -235,7 +235,14 @@ class JobPlan(db.Model):
             # TODO(anupc): Does it make sense to expose this in project config?
             bazel_debug_config = current_app.config['BAZEL_DEBUG_CONFIG']
 
+            if 'prelaunch_env' not in bazel_debug_config:
+                bazel_debug_config['prelaunch_env'] = {}
+
             vcs = job.project.repository.get_vcs()
+
+            bazel_debug_config['prelaunch_env']['REPO_URL'] = job.project.repository.url
+            bazel_debug_config['prelaunch_env']['REPO_NAME'] = vcs.get_repository_name(job.project.repository.url)
+
             implementation = LXCBuildStep(
                 cluster=current_app.config['DEFAULT_CLUSTER'],
                 commands=[

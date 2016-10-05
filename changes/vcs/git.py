@@ -26,8 +26,7 @@ REMOTE_URL=%(remote_url)s
 LOCAL_PATH=%(local_path)s
 REVISION=%(revision)s
 
-BASE_NAME=$(basename "$LOCAL_PATH")
-CACHE_PATH="%(cache_dir)s/$BASE_NAME.git"
+CACHE_PATH="%(cache_dir)s/%(cache_base_name)s"
 
 if [ -d "$CACHE_PATH" ]; then
     echo "Using local repository cache."
@@ -315,6 +314,14 @@ class GitVcs(Vcs):
             else:
                 raise
 
+    @classmethod
+    def get_repository_name(cls, repository_url):
+        # type: (str) -> str
+        name = super(GitVcs, cls).get_repository_name(repository_url)
+        if not name.endswith('.git'):
+            name += '.git'
+        return name
+
     @staticmethod
     def get_clone_command(remote_url, path, revision, clean=True, cache_dir=None):
         # type: (str, str, str, bool, Optional[str]) -> str
@@ -324,7 +331,8 @@ class GitVcs(Vcs):
             revision=revision,
             cache_dir=cache_dir or "/dev/null",
             clean_command='git clean -fdx' if clean else '',
-            pre_reset_command='git checkout -q master'
+            pre_reset_command='git checkout -q master',
+            cache_base_name=GitVcs.get_repository_name(remote_url),
         )
 
     def get_buildstep_clone(self, source, workspace, clean=True, cache_dir=None):
