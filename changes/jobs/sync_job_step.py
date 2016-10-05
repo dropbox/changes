@@ -307,6 +307,7 @@ def _sync_from_artifact_store(jobstep):
         else:
             # Log to sentry - unable to contact artifacts store
             current_app.logger.warning('Error fetching url %s: %s', url, err, exc_info=True)
+            raise
     except Exception as err:
         current_app.logger.error('Error updating artifacts for jobstep %s: %s', jobstep, err, exc_info=True)
         raise err
