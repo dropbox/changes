@@ -9,7 +9,9 @@ from changes.models.adminmessage import AdminMessage
 from changes.models.artifact import Artifact
 from changes.models.author import Author
 from changes.models.bazeltarget import BazelTarget
+from changes.models.bazeltargetmessage import BazelTargetMessage
 from changes.models.build import Build
+from changes.models.buildmessage import BuildMessage
 from changes.models.cached_snapshot_image import CachedSnapshotImage
 from changes.models.change import Change
 from changes.models.command import Command
@@ -339,6 +341,15 @@ class Fixtures(object):
 
         return target
 
+    def create_target_message(self, target, **kwargs):
+        kwargs.setdefault('text', uuid4().hex)
+
+        message = BazelTargetMessage(target=target, **kwargs)
+        db.session.add(message)
+        db.session.commit()
+
+        return message
+
     def create_job(self, build, **kwargs):
         project = build.project
 
@@ -423,6 +434,15 @@ class Fixtures(object):
         db.session.commit()
 
         return build
+
+    def create_build_message(self, build, **kwargs):
+        kwargs.setdefault('text', uuid4().hex)
+
+        message = BuildMessage(build=build, **kwargs)
+        db.session.add(message)
+        db.session.commit()
+
+        return message
 
     def create_patch(self, **kwargs):
         kwargs.setdefault('diff', SAMPLE_DIFF)

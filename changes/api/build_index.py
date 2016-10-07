@@ -18,6 +18,7 @@ from changes.db.utils import get_or_create
 from changes.jobs.create_job import create_job
 from changes.jobs.sync_build import sync_build
 from changes.models.build import Build
+from changes.models.buildmessage import BuildMessage
 from changes.models.job import Job
 from changes.models.jobplan import JobPlan
 from changes.models.option import ItemOption, ItemOptionsHelper
@@ -680,11 +681,15 @@ class BuildIndexAPIView(APIView):
                 logging.info('Changed files do not trigger build for project %s', project.slug)
                 continue
             # 7. create/ensure build
+            build_message = None
             selective_testing_policy = SelectiveTestingPolicy.disabled
             if args.selective_testing:
                 if is_commit_build:
-                    # TODO(naphat) expose message returned here
-                    selective_testing_policy, _ = get_selective_testing_policy(project, sha, diff)
+                    selective_testing_policy, reasons = get_selective_testing_policy(project, sha, diff)
+                    if reasons:
+                        if selective_testing_policy is SelectiveTestingPolicy.disabled:
+                            reasons = ["Selective testing was requested but not done because:"] + ['    ' + m for m in reasons]
+                        build_message = '\n'.join(reasons)
                 else:
                     # NOTE: for diff builds, it makes sense to just do selective testing,
                     # since it will never become a parent build and will never be used to
@@ -733,5 +738,13 @@ class BuildIndexAPIView(APIView):
                     no_snapshot=no_snapshot,
                     selective_testing_policy=selective_testing_policy,
                 ))
+
+            if build_message:
+                message = BuildMessage(
+                    build=builds[-1],
+                    text=build_message,
+                )
+                db.session.add(message)
+                db.session.commit()
 
         return self.respond(builds)

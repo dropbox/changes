@@ -83,29 +83,49 @@ class BuildRetryTest(APITestCase):
     @patch('changes.api.build_retry.get_selective_testing_policy')
     @patch('changes.models.repository.Repository.get_vcs')
     def test_with_selective_testing_commit_builds(self, get_vcs, get_selective_testing_policy):
-        get_vcs.return_value = self.get_fake_vcs()
-        get_selective_testing_policy.return_value = SelectiveTestingPolicy.enabled, None
-        project = self.create_project()
-        build = self.create_build(project=project, selective_testing_policy=SelectiveTestingPolicy.disabled)
-        job = self.create_job(build=build)
-        self.create_plan(project)
+        for policy, reasons, expected_message in [
+            (SelectiveTestingPolicy.enabled, ['message1', 'message2'], """
+message1
+message2
+            """.strip()),
+            (SelectiveTestingPolicy.enabled, None, None),
+            (SelectiveTestingPolicy.disabled, ['message1', 'message2'], """
+Selective testing was requested but not done because:
+    message1
+    message2
+            """.strip()),
+            (SelectiveTestingPolicy.disabled, None, None),
+        ]:
+            get_vcs.return_value = self.get_fake_vcs()
+            get_selective_testing_policy.return_value = (policy, reasons)
+            project = self.create_project()
+            build = self.create_build(project=project, selective_testing_policy=SelectiveTestingPolicy.disabled)
+            job = self.create_job(build=build)
+            self.create_plan(project)
 
-        path = '/api/0/builds/{0}/retry/'.format(build.id.hex)
-        resp = self.client.post(path, data={'selective_testing': 'true'}, follow_redirects=True)
+            path = '/api/0/builds/{0}/retry/'.format(build.id.hex)
+            resp = self.client.post(path, data={'selective_testing': 'true'}, follow_redirects=True)
 
-        get_selective_testing_policy.assert_called_once_with(project, build.source.revision_sha, None)
+            get_selective_testing_policy.assert_called_once_with(project, build.source.revision_sha, None)
+            get_selective_testing_policy.reset_mock()
 
-        assert resp.status_code == 200
+            assert resp.status_code == 200
 
-        data = self.unserialize(resp)
+            data = self.unserialize(resp)
 
-        assert data['id']
+            assert data['id']
 
-        new_build = Build.query.get(data['id'])
+            new_build = Build.query.get(data['id'])
 
-        assert new_build.id != build.id
-        assert new_build.cause == Cause.retry
-        assert new_build.selective_testing_policy is SelectiveTestingPolicy.enabled
+            assert new_build.id != build.id
+            assert new_build.cause == Cause.retry
+            assert new_build.selective_testing_policy is policy
+
+            if expected_message is not None:
+                assert len(new_build.messages) == 1
+                assert new_build.messages[0].text == expected_message
+            else:
+                assert len(new_build.messages) == 0
 
     @patch('changes.models.repository.Repository.get_vcs')
     def test_with_selective_testing_diff_builds(self, get_vcs):

@@ -1294,9 +1294,21 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
     @patch('changes.api.build_index.get_selective_testing_policy')
     @patch('changes.models.repository.Repository.get_vcs')
     def test_with_selective_testing_commit_build(self, get_vcs, get_selective_testing_policy):
-        for policy in [SelectiveTestingPolicy.enabled, SelectiveTestingPolicy.disabled]:
+        for policy, reasons, expected_message in [
+            (SelectiveTestingPolicy.enabled, ['message1', 'message2'], """
+message1
+message2
+            """.strip()),
+            (SelectiveTestingPolicy.enabled, None, None),
+            (SelectiveTestingPolicy.disabled, ['message1', 'message2'], """
+Selective testing was requested but not done because:
+    message1
+    message2
+            """.strip()),
+            (SelectiveTestingPolicy.disabled, None, None),
+        ]:
             get_vcs.return_value = self.get_fake_vcs()
-            get_selective_testing_policy.return_value = (policy, None)
+            get_selective_testing_policy.return_value = (policy, reasons)
 
             resp = self.client.post(self.path, data={
                 'sha': 'a' * 40,
@@ -1313,6 +1325,12 @@ class BuildCreateTest(APITestCase, CreateBuildsMixin):
 
             build = Build.query.get(data[0]['id'])
             assert build.selective_testing_policy is policy
+
+            if expected_message is not None:
+                assert len(build.messages) == 1
+                assert build.messages[0].text == expected_message
+            else:
+                assert len(build.messages) == 0
 
     def _post_for_repo(self, repo):
         return self.client.post(self.path, data={

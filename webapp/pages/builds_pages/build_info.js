@@ -60,6 +60,7 @@ export var SingleBuild = React.createClass({
     api.fetch(this, {
       buildDetails: `/api/0/builds/${this.props.build.id}`,
       buildCoverage: `/api/0/builds/${this.props.build.id}/stats/coverage?diff=1`,
+      buildMessages: `/api/0/builds/${this.props.build.id}/messages/?per_page=10`,
     });
 
     // get info about the phases of each job
@@ -84,7 +85,7 @@ export var SingleBuild = React.createClass({
       .pick(job_ids)
       .values().value();
 
-    let calls = phasesCalls.concat([this.state.buildDetails, this.state.buildCoverage]);
+    let calls = phasesCalls.concat([this.state.buildDetails, this.state.buildCoverage, this.state.buildMessages]);
     if (!api.allLoaded(calls)) {
       return <APINotLoaded calls={calls} />;
     }
@@ -95,6 +96,8 @@ export var SingleBuild = React.createClass({
     var job_phases = _.mapObject(this.state.jobPhases, (v,k) => {
       return v.getReturnedData();
     });
+
+    var buildMessages = this.state.buildMessages.getReturnedData();
 
     // if content = short, we only render the header and failed tests
     var render_all = this.props.content === "normal";
@@ -109,9 +112,20 @@ export var SingleBuild = React.createClass({
         {render_all ? this.renderDetails(build) : null}
       </div>
       {this.renderFailedTests(build)}
+      {render_all ? this.renderBuildMessages(buildMessages) : null}
       {render_all ? this.renderCoverage(coverageInfo) : null}
       {render_all ? this.renderJobs(build, job_phases) : null}
     </div>;
+  },
+
+  renderBuildMessages: function(buildMessages) {
+    if (buildMessages.length == 0) {
+      return null;
+    }
+    let messageDisplays = _.map(buildMessages, (message)=>{
+      return <p key={message.id} className='buildMessage'>{message.text}</p>;
+    })
+    return <div>{messageDisplays}</div>;
   },
 
   renderCoverage: function(coverageInfo) {
