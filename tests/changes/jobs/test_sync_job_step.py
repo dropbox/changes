@@ -867,9 +867,3 @@ class SyncJobStepTest(BaseTestCase):
         assert Task.query.filter(Task.task_id == artifact.id).first()
 
         implementation.verify_final_artifacts.assert_called_once_with(step, to_sync)
-
-        # verify second call is a no-op
-        _sync_artifacts_for_jobstep(step)
-
-        # not called again
-        implementation.verify_final_artifacts.assert_called_once_with(step, to_sync)

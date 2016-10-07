@@ -28,7 +28,6 @@ from changes.models.jobstep import JobStep
 from changes.models.log import LogSource
 from changes.models.option import ItemOption
 from changes.models.snapshot import SnapshotImage
-from changes.models.task import Task
 from changes.models.test import TestCase
 from changes.queue.task import tracked_task
 from changes.db.utils import get_or_create
@@ -342,13 +341,6 @@ def _get_artifacts_to_sync(artifacts, artifact_manager, prefer_artifactstore):
 
 
 def _sync_artifacts_for_jobstep(step):
-    # only generate the sync_artifact tasks for this step once
-    if Task.query.filter(
-        Task.parent_id == step.id,
-        Task.task_name == 'sync_artifact',
-    ).first():
-        return
-
     artifacts = Artifact.query.filter(Artifact.step_id == step.id).all()
 
     _, buildstep = JobPlan.get_build_step_for_job(job_id=step.job_id)
@@ -387,6 +379,9 @@ def sync_job_step(step_id):
     _sync_from_artifact_store(step)
 
     if step.status == Status.finished:
+        # there is a small race condition where step.status got changed right after
+        # the first call to _sync_from_artifact_store
+        _sync_from_artifact_store(step)
         _sync_artifacts_for_jobstep(step)
 
     is_finished = (step.status == Status.finished and
