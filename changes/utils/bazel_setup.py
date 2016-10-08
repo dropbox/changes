@@ -49,7 +49,7 @@ def collect_bazel_targets(collect_targets_executable, bazel_targets, bazel_exclu
         bazel_exclude_tags=' '.join(['--exclude-tags={}'.format(t) for t in bazel_exclude_tags]),
         bazel_test_flags=' '.join(['--test-flags={}'.format(tf) for tf in bazel_test_flags]),
         max_jobs=max_jobs,
-        skip_list_patterns=' '.join(['--seletive-testing-skip-list={}'.format(p) for p in skip_list_patterns])
+        skip_list_patterns=' '.join(['--selective-testing-skip-list={}'.format(p) for p in skip_list_patterns])
     )
 
 

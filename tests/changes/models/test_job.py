@@ -71,7 +71,7 @@ sudo /usr/bin/rsync -a --delete rsync://example.com/encap/pkg-2 /usr/local/encap
         collect_targets_expected = """#!/bin/bash -eu
 sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="8" --seletive-testing-skip-list={} 2> /dev/null
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//aa/bb/cc/... --target-patterns=//aa/abc/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="8" --selective-testing-skip-list={} 2> /dev/null
 """.strip().format(job.project.get_config_path())
 
         extra_setup_expected = """#!/bin/bash -eux
@@ -129,7 +129,7 @@ exit 0
         collect_tests_expected = """#!/bin/bash -eu
 sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="4" --seletive-testing-skip-list={} 2> /dev/null
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/... --exclude-tags=flaky --exclude-tags=another_tag --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --jobs="4" --selective-testing-skip-list={} 2> /dev/null
 """.strip().format(job.project.get_config_path())
 
         assert implementation.max_executors == 3
@@ -174,7 +174,7 @@ sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
         collect_tests_expected = """#!/bin/bash -eu
 sudo apt-get install -y --force-yes bazel python >/dev/null 2>&1
 
-"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --test-flags=--test_env=testing=123 --jobs="4" --seletive-testing-skip-list={} 2> /dev/null
+"/var/changes/input/collect-targets" --output-user-root="/bazel/root/path" --target-patterns=//foo/bar/baz/... --target-patterns=//bar/bax/...  --test-flags=--spawn_strategy=sandboxed --test-flags=--genrule_strategy=sandboxed --test-flags=--keep_going --test-flags=--test_env=testing=123 --jobs="4" --selective-testing-skip-list={} 2> /dev/null
 """.strip().format(job.project.get_config_path())
 
         assert implementation.max_executors == 3
