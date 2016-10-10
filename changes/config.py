@@ -244,7 +244,15 @@ def create_app(_read_config=True, **config):
         'delete_old_data': {
             'queue': 'delete',
             'routing_key': 'delete',
-        }
+        },
+        'delete_old_data_10m': {
+            'queue': 'delete',
+            'routing_key': 'delete',
+        },
+        'delete_old_data_5h_delayed': {
+            'queue': 'delete',
+            'routing_key': 'delete',
+        },
     }
 
     app.config['EVENT_LISTENERS'] = (
@@ -919,7 +927,7 @@ def configure_jobs(app):
     from changes.jobs.check_repos import check_repos
     from changes.jobs.cleanup_tasks import cleanup_tasks
     from changes.jobs.create_job import create_job
-    from changes.jobs.delete_old_data import delete_old_data
+    from changes.jobs.delete_old_data import delete_old_data, delete_old_data_10m, delete_old_data_5h_delayed
     from changes.jobs.import_repo import import_repo
     from changes.jobs.signals import (
         fire_signal, run_event_listener
@@ -939,6 +947,8 @@ def configure_jobs(app):
     queue.register('cleanup_tasks', cleanup_tasks)
     queue.register('create_job', create_job)
     queue.register('delete_old_data', delete_old_data)
+    queue.register('delete_old_data_10m', delete_old_data_10m)
+    queue.register('delete_old_data_5h_delayed', delete_old_data_5h_delayed)
     queue.register('fire_signal', fire_signal)
     queue.register('import_repo', import_repo)
     queue.register('run_event_listener', run_event_listener)

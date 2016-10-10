@@ -61,7 +61,7 @@ def delete_old_data_10m():
 
 def delete_old_data_5h_delayed():
     # type: () -> None
-    delete_old_data_limited(timedelta(hours=8), datetime.utcnow() - timedelta(hours=1))
+    delete_old_data_limited(timedelta(hours=5), datetime.utcnow() - timedelta(hours=1))
 
 
 def delete_old_data_1h():
