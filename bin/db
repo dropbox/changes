@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function
 import argparse
 import sys
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from changes.config import create_app, db
 from changes.jobs.delete_old_data import clean_project_tests
@@ -24,6 +24,8 @@ parser_clean_tests = subparsers.add_parser('clean-tests', help='remove old test 
 parser_clean_tests.add_argument('--project', dest='project', help='project ID or slug to clean', nargs='*')
 parser_clean_tests.add_argument('--all', dest='all_projects', action='store_true', help='clean all projects')
 parser_clean_tests.add_argument('--days', dest='num_days', type=float, help='number of days to keep')
+parser_clean_tests.add_argument('--minutes-of-tests', dest='minutes_of_tests', type=float, default=12 * 60,
+                                help='Limit on the number of minutes worth of tests to delete since num_days ago.')
 
 args = parser.parse_args()
 
@@ -66,7 +68,8 @@ if args.command == 'clean-tests':
 
     current_date = datetime.utcnow()
     for project in projects:
-        rows_deleted = clean_project_tests(project, current_date, args.num_days)
+        rows_deleted = clean_project_tests(
+            project, current_date, timedelta(minutes=args.minutes_of_tests), args.num_days)
 
         print("Cleaned %d old tests from project %s {%s}" % (
             rows_deleted,

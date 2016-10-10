@@ -296,9 +296,20 @@ def create_app(_read_config=True, **config):
             # Hour 7 GMT is midnight PST, hopefully a time of low load
             'schedule': crontab(hour=7, minute=0),
         },
-        'delete-old-data': {
-            'task': 'delete_old_data',
-            'schedule': timedelta(minutes=60),
+        'delete-old-data-10m': {
+            'task': 'delete_old_data_10m',
+            'schedule': timedelta(minutes=10),
+        },
+        'delete-old-data-5h-delayed': {
+            'task': 'delete_old_data_5h_delayed',
+            # This task runs every 4 hours but looks at 5 hours worth of tests
+            # so consecutive runs will look at sets of tests that will overlap.
+            # This is to make it unlikely to miss tests in between.
+            #
+            # While this is looking at 5 hours worth of tests, this should not be long running
+            # as the shorter delete tasks will catch most cases and this checks
+            # a time frame that should've been cleaned by them already.
+            'schedule': crontab(hour='*/4'),
         },
         'update-local-repos': {
             'task': 'update_local_repos',
