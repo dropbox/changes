@@ -392,14 +392,15 @@ export var BuildTestsPage = React.createClass({
         );
       };
       var expandLabel = !this.state.expandedAllTargets[target.id] ?
-        'Expand' : 'Collapse';
+        'Explain' : 'Collapse';
+      var button = target.messages.length == 0 ? null : <a onClick={onClick}>{expandLabel}</a>;
       var targetCondition = get_runnable_condition(target);
       var label = get_runnable_condition_short_text(targetCondition);
       var markup = <div>
         <SimpleTooltip label={label} placement="right">
           <span><ConditionDot condition={targetCondition} /></span>
         </SimpleTooltip>
-        {target.name} <a onClick={onClick}>{expandLabel}</a>
+        {target.name} {button}
       </div>;
       let rowData = new GridRow(target.id, [
         markup,
@@ -410,18 +411,10 @@ export var BuildTestsPage = React.createClass({
       rows.push(rowData);
 
       if (this.state.expandedAllTargets[target.id]) {
-        let messageDiv = null;
-
-        if (target.messages.length == 0) {
-          messageDiv = <div>Nothing to display.</div>;
-        } else {
-          let messageDisplays = _.map(target.messages, (message)=>{
-            return <p key={message.id} className='targetMessage'>{message.text}</p>;
-          })
-          messageDiv = <div>{messageDisplays}</div>;
-        }
-
-        let expanded = GridRow.oneItem(target.id + ":expanded", messageDiv);
+        let messageDisplays = _.map(target.messages, (message)=>{
+          return <p key={message.id} className='targetMessage'>{message.text}</p>;
+         })
+        let expanded = GridRow.oneItem(target.id + ":expanded", <div>{messageDisplays}</div>);
         rows.push(expanded);
       }
     })
