@@ -57,6 +57,7 @@ export var BuildTestsPage = React.createClass({
       uncheckedResults: {},  // checkboxes to filter by statuses
 
       expandedAllTests: {},
+      expandedAllTargets: {},
 
       queryValue: InteractiveData.getParamsFromWindowUrl()["query"] || null,
     }
@@ -383,13 +384,22 @@ export var BuildTestsPage = React.createClass({
     let targets = interactive.getDataToShow().getReturnedData();
     var rows = [];
     _.each(targets, target => {
+      var onClick = __ => {
+        this.setState(
+          utils.update_key_in_state_dict('expandedAllTargets',
+            target.id,
+            !this.state.expandedAllTargets[target.id])
+        );
+      };
+      var expandLabel = !this.state.expandedAllTargets[target.id] ?
+        'Expand' : 'Collapse';
       var targetCondition = get_runnable_condition(target);
       var label = get_runnable_condition_short_text(targetCondition);
       var markup = <div>
         <SimpleTooltip label={label} placement="right">
           <span><ConditionDot condition={targetCondition} /></span>
         </SimpleTooltip>
-        {target.name}
+        {target.name} <a onClick={onClick}>{expandLabel}</a>
       </div>;
       let rowData = new GridRow(target.id, [
         markup,
@@ -397,7 +407,23 @@ export var BuildTestsPage = React.createClass({
         <span>{target.resultSource.name}</span>,
         <span>{moment.duration(target.duration).asSeconds()}s</span>,
       ])
-      rows.push(rowData)
+      rows.push(rowData);
+
+      if (this.state.expandedAllTargets[target.id]) {
+        let messageDiv = null;
+
+        if (target.messages.length == 0) {
+          messageDiv = <div>Nothing to display.</div>;
+        } else {
+          let messageDisplays = _.map(target.messages, (message)=>{
+            return <p key={message.id} className='targetMessage'>{message.text}</p>;
+          })
+          messageDiv = <div>{messageDisplays}</div>;
+        }
+
+        let expanded = GridRow.oneItem(target.id + ":expanded", messageDiv);
+        rows.push(expanded);
+      }
     })
     var errorMessage = null;
     if (interactive.failedToLoadUpdatedData()) {

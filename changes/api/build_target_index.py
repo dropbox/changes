@@ -5,6 +5,7 @@ from sqlalchemy.orm import contains_eager
 from sqlalchemy.sql import func, asc, desc
 
 from changes.api.base import APIView
+from changes.api.serializer.models.bazeltarget import BazelTargetWithMessagesCrumbler
 from changes.constants import Result
 from changes.models.bazeltarget import BazelTarget
 from changes.models.build import Build
@@ -28,6 +29,7 @@ class BuildTargetIndexAPIView(APIView):
                         choices=SORT_CHOICES, default='duration')
     parser.add_argument('reverse', type=types.boolean, location='args',
                         default=False)
+    parser.add_argument('max_messages_per_target', type=int, location='args', default=5)
 
     def get(self, build_id):
         build = Build.query.get(build_id)
@@ -65,4 +67,4 @@ class BuildTargetIndexAPIView(APIView):
 
         target_list = target_list.order_by(sort_dir(sort_col))
 
-        return self.paginate(target_list, max_per_page=None)
+        return self.paginate(target_list, max_per_page=None, serializers={BazelTarget: BazelTargetWithMessagesCrumbler(max_messages=args.max_messages_per_target)})

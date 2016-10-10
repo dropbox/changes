@@ -20,6 +20,7 @@ from changes.constants import Cause, Result, ResultSource, Status, DEFAULT_CPUS,
 from changes.db.utils import get_or_create
 from changes.jobs.sync_job_step import sync_job_step
 from changes.models.bazeltarget import BazelTarget
+from changes.models.bazeltargetmessage import BazelTargetMessage
 from changes.models.command import CommandType, FutureCommand
 from changes.models.jobphase import JobPhase
 from changes.models.jobstep import JobStep, FutureJobStep
@@ -490,6 +491,7 @@ class DefaultBuildStep(BuildStep):
             db.session.add(new_command)
 
         # create bazel targets if necessary
+        target_map = {}
         if 'targets' in new_jobstep.data:
             for target_name in new_jobstep.data['targets']:
                 target = BazelTarget(
@@ -501,6 +503,22 @@ class DefaultBuildStep(BuildStep):
                     result_source=ResultSource.from_self,
                 )
                 db.session.add(target)
+                target_map[target_name] = target
+
+        # process dependency_map if it exists
+        dependency_map = new_jobstep.data.get('dependency_map', {})
+        for target_name, dependencies in dependency_map.iteritems():
+            if not dependencies:
+                continue
+            if target_name not in target_map:
+                continue
+            lines = ['This target was affected by the following files:']
+            lines += ['    {}'.format(f) for f in dependencies]
+            message = BazelTargetMessage(
+                text='\n'.join(lines),
+                target=target_map[target_name],
+            )
+            db.session.add(message)
 
         return new_jobstep
 

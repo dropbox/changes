@@ -21,6 +21,9 @@ class BuildTargetIndexTest(APITestCase):
             status=Status.finished,
             duration=15,
         )
+        self.create_target_message(target)
+        self.create_target_message(target)
+        self.create_target_message(target)
         target2 = self.create_target(
             job=job,
             jobstep=step,
@@ -43,7 +46,9 @@ class BuildTargetIndexTest(APITestCase):
         data = self.unserialize(resp)
         assert len(data) == 2
         assert data[0]['id'] == target.id.hex
+        assert len(data[0]['messages']) == 3
         assert data[1]['id'] == target2.id.hex
+        assert len(data[1]['messages']) == 0
 
         path = '/api/0/builds/{0}/targets/?sort=name'.format(build.id.hex)
 

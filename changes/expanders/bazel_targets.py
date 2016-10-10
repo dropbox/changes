@@ -30,6 +30,9 @@ class BazelTargetsExpander(Expander):
                 "foo.other.test_baz",
                 "foo.other.test_bar"
             ],
+            "dependency_map": {
+                "//foo/bar:test_baz": ["foo/bar/test.txt", "foo/bar/test2.txt"]
+            },
             "artifact_search_path": "search path for artifact, required"
         }
     """
@@ -83,6 +86,7 @@ class BazelTargetsExpander(Expander):
                     'targets': target_list,
                     'shard_count': len(groups),
                     'artifact_search_path': self.data.get('artifact_search_path'),
+                    'dependency_map': self.data.get('dependency_map', {}),
                 },
             )
             yield future_jobstep

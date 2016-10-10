@@ -463,6 +463,10 @@ class DefaultBuildStepTest(TestCase):
                     '//a/b:b_test',
                     '//a:a_test',
                 ],
+                'dependency_map': {
+                    '//a/b:b_test': ['a/b/test.sh', 'other/test.sh'],
+                    '//other:other_test': ['other/test.sh'],
+                }
             },
         )
 
@@ -526,6 +530,14 @@ class DefaultBuildStepTest(TestCase):
             assert target.status is Status.in_progress
             assert target.result is Result.unknown
             assert target.result_source is ResultSource.from_self
+
+        a_b_test_target = [t for t in new_jobstep.targets if t.name == '//a/b:b_test'][0]
+        assert len(a_b_test_target.messages) == 1
+        assert a_b_test_target.messages[0].text == '''
+This target was affected by the following files:
+    a/b/test.sh
+    other/test.sh
+'''.strip()
 
     @mock.patch.object(Repository, 'get_vcs')
     def test_create_replacement_jobstep_expanded(self, get_vcs):
