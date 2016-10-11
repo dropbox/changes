@@ -234,7 +234,7 @@ export var SingleBuild = React.createClass({
 
     let recreateSelectiveTestingButton = <div className="marginTopM"><Request
         parentElem={this}
-        name="recreateBuild"
+        name="recreateBuildSelective"
         method="post"
         endpoint={`/api/0/builds/${build.id}/retry/?selective_testing=true`}>
         <Button type="white" className={className}>

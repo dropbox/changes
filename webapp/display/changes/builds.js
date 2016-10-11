@@ -244,6 +244,11 @@ export var MissingBuildStatus = React.createClass({
     project_slug: PropTypes.string,
     commit_sha: PropTypes.string,
     parentElem: PropTypes.object,
+    selectiveTesting: PropTypes.bool,
+  },
+
+  defaultPropts: {
+    selectiveTesting: false,
   },
 
   render: function() {
@@ -251,11 +256,12 @@ export var MissingBuildStatus = React.createClass({
     var tooltip = <Tooltip>Create a new build for this commit.</Tooltip>;
     var project = this.props.project_slug;
     var commit = this.props.commit_sha;
+    var selectiveTesting = this.props.selectiveTesting ? 'true' : 'false';
     var build_widget = <div>
         <Request
           parentElem={this.props.parentElem}
           name={buttonName}
-          endpoint={`/api/0/builds/?project=${project}&sha=${commit}&cause=manual`}
+          endpoint={`/api/0/builds/?project=${project}&sha=${commit}&cause=manual&selective_testing=${selectiveTesting}`}
           method="post">
           <OverlayTrigger
             placement="right"
