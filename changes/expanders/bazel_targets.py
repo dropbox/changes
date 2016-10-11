@@ -38,8 +38,19 @@ class BazelTargetsExpander(Expander):
     """
 
     def validate(self):
-        for required in ['affected_targets', 'unaffected_targets', 'cmd', 'artifact_search_path']:
+        for (required, value_type) in [
+            ('affected_targets', list),
+            ('unaffected_targets', list),
+            ('cmd', basestring),
+            ('artifact_search_path', basestring),
+        ]:
             assert required in self.data, 'Missing ``{}`` attribute'.format(required)
+            assert isinstance(self.data[required], value_type), 'Required attribute ``{}`` must have type {}'.format(required, value_type)
+        for (optional, value_type) in [
+            ('dependency_map', dict),
+        ]:
+            if optional in self.data:
+                assert isinstance(self.data[optional], value_type), 'Optional attribute ``{}`` must have type {}'.format(optional, value_type)
         assert '{target_names}' in self.data[
             'cmd'], 'Missing ``{target_names}`` in command'
 
@@ -78,16 +89,18 @@ class BazelTargetsExpander(Expander):
                 env=self.data.get('env'),
                 artifacts=self.data.get('artifacts'),
             )
+            data = {
+                'weight': weight,
+                'targets': target_list,
+                'shard_count': len(groups),
+                'artifact_search_path': self.data['artifact_search_path'],
+            }
+            if 'dependency_map' in self.data:
+                data['dependency_map'] = self.data['dependency_map']
             future_jobstep = FutureJobStep(
                 label=self.data.get('label') or future_command.label,
                 commands=[future_command],
-                data={
-                    'weight': weight,
-                    'targets': target_list,
-                    'shard_count': len(groups),
-                    'artifact_search_path': self.data.get('artifact_search_path'),
-                    'dependency_map': self.data.get('dependency_map', {}),
-                },
+                data=data,
             )
             yield future_jobstep
 

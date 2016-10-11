@@ -387,8 +387,11 @@ class DefaultBuildStepTest(TestCase):
         )
 
         buildstep = self.get_buildstep(cluster='foo')
-        new_jobstep = buildstep.create_expanded_jobstep(
-            jobstep, new_jobphase, future_jobstep)
+        with mock.patch.object(buildstep, '_create_targets_for_jobstep') as mock_create_targets:
+            new_jobstep = buildstep.create_expanded_jobstep(
+                jobstep, new_jobphase, future_jobstep)
+
+        mock_create_targets.assert_called_once_with(new_jobstep)
 
         db.session.flush()
 
@@ -440,104 +443,62 @@ class DefaultBuildStepTest(TestCase):
         assert commands[idx].env == DEFAULT_ENV
 
     @mock.patch.object(Repository, 'get_vcs')
-    def test_create_expanded_jobstep_with_targets(self, get_vcs):
+    def test_create_targets_for_jobstep(self, get_vcs):
         build = self.create_build(self.create_project())
         job = self.create_job(build)
         jobphase = self.create_jobphase(job, label='foo')
-        jobstep = self.create_jobstep(jobphase)
-
-        new_jobphase = self.create_jobphase(job, label='bar')
-
-        vcs = mock.Mock(spec=Vcs)
-        vcs.get_buildstep_clone.return_value = 'git clone https://example.com'
-        get_vcs.return_value = vcs
-
-        future_jobstep = FutureJobStep(
-            label='test',
-            commands=[
-                FutureCommand('echo 1'),
-                FutureCommand('echo "foo"\necho "bar"', path='subdir'),
+        jobstep = self.create_jobstep(jobphase, data={
+            'targets': [
+                '//a/b:b_test',
+                '//a:a_test',
             ],
-            data={
-                'targets': [
-                    '//a/b:b_test',
-                    '//a:a_test',
-                ],
-                'dependency_map': {
-                    '//a/b:b_test': ['a/b/test.sh', 'other/test.sh'],
-                    '//other:other_test': ['other/test.sh'],
-                }
+            'dependency_map': {
+                '//a/b:b_test': ['a/b/test.sh', 'other/test.sh'],
+                '//other:other_test': ['other/test.sh'],
             },
-        )
+        })
 
         buildstep = self.get_buildstep(cluster='foo')
-        new_jobstep = buildstep.create_expanded_jobstep(
-            jobstep, new_jobphase, future_jobstep)
+        buildstep._create_targets_for_jobstep(jobstep)
 
         db.session.flush()
 
-        assert new_jobstep.data['expanded'] is True
-        assert new_jobstep.cluster == 'foo'
-
-        commands = new_jobstep.commands
-
-        assert len(commands) == 5
-
-        idx = 0
-        assert commands[idx].script == 'git clone https://example.com'
-        assert commands[idx].cwd == ''
-        assert commands[idx].type == CommandType.infra_setup
-        assert commands[idx].artifacts == []
-        assert commands[idx].env == DEFAULT_ENV
-        assert commands[idx].order == idx
-
-        # skip blacklist removal command
-        idx += 1
-
-        idx += 1
-        assert commands[idx].script == 'echo "hello world 2"'
-        assert commands[idx].cwd == '/usr/test/1'
-        assert commands[idx].type == CommandType.setup
-        assert tuple(commands[idx].artifacts) == ('artifact1.txt', 'artifact2.txt')
-        assert commands[idx].env['PATH'] == '/usr/test/1'
-        for k, v in DEFAULT_ENV.items():
-            if k != 'PATH':
-                assert commands[idx].env[k] == v
-        assert commands[idx].order == idx
-
-        idx += 1
-        assert commands[idx].label == 'echo 1'
-        assert commands[idx].script == 'echo 1'
-        assert commands[idx].order == idx
-        assert commands[idx].cwd == DEFAULT_PATH
-        assert commands[idx].type == CommandType.default
-        assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
-        assert commands[idx].env == DEFAULT_ENV
-
-        idx += 1
-        assert commands[idx].label == 'echo "foo"'
-        assert commands[idx].script == 'echo "foo"\necho "bar"'
-        assert commands[idx].order == idx
-        assert commands[idx].cwd == './source/subdir'
-        assert commands[idx].type == CommandType.default
-        assert tuple(commands[idx].artifacts) == tuple(DEFAULT_ARTIFACTS)
-        assert commands[idx].env == DEFAULT_ENV
-
-        assert len(new_jobstep.targets) == 2
-        assert set(t.name for t in new_jobstep.targets) == set(['//a/b:b_test', '//a:a_test'])
-        for target in new_jobstep.targets:
-            assert target.job == new_jobstep.job
+        assert len(jobstep.targets) == 2
+        assert set(t.name for t in jobstep.targets) == set(['//a/b:b_test', '//a:a_test'])
+        for target in jobstep.targets:
+            assert target.job == jobstep.job
             assert target.status is Status.in_progress
             assert target.result is Result.unknown
             assert target.result_source is ResultSource.from_self
 
-        a_b_test_target = [t for t in new_jobstep.targets if t.name == '//a/b:b_test'][0]
+        a_b_test_target = [t for t in jobstep.targets if t.name == '//a/b:b_test'][0]
         assert len(a_b_test_target.messages) == 1
         assert a_b_test_target.messages[0].text == '''
 This target was affected by the following files:
     a/b/test.sh
     other/test.sh
 '''.strip()
+
+    @mock.patch.object(Repository, 'get_vcs')
+    def test_create_targets_for_jobstep_no_dependency(self, get_vcs):
+        build = self.create_build(self.create_project())
+        job = self.create_job(build)
+        jobphase = self.create_jobphase(job, label='foo')
+        jobstep = self.create_jobstep(jobphase, data={
+            'targets': [
+                '//a/b:b_test',
+                '//a:a_test',
+            ],
+            'dependency_map': None,
+        })
+
+        buildstep = self.get_buildstep(cluster='foo')
+        buildstep._create_targets_for_jobstep(jobstep)
+
+        db.session.flush()
+
+        assert len(jobstep.targets) == 2
+        assert set(t.name for t in jobstep.targets) == set(['//a/b:b_test', '//a:a_test'])
 
     @mock.patch.object(Repository, 'get_vcs')
     def test_create_replacement_jobstep_expanded(self, get_vcs):

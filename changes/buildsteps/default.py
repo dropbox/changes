@@ -438,6 +438,42 @@ class DefaultBuildStep(BuildStep):
             c_env.update(future_command.env)
         future_command.env = c_env
 
+    def _create_targets_for_jobstep(self, jobstep):
+        # type: (JobStep) -> None
+        """
+        Given a newly created jobstep, create bazel target objects and
+        related data structures
+        """
+        # create bazel targets if necessary
+        target_map = {}
+        if 'targets' in jobstep.data:
+            for target_name in jobstep.data['targets']:
+                target = BazelTarget(
+                    step=jobstep,
+                    job_id=jobstep.job_id,
+                    name=target_name,
+                    status=Status.in_progress,
+                    result=Result.unknown,
+                    result_source=ResultSource.from_self,
+                )
+                db.session.add(target)
+                target_map[target_name] = target
+
+        # process dependency_map if it exists
+        dependency_map = jobstep.data.get('dependency_map') or {}
+        for target_name, dependencies in dependency_map.iteritems():
+            if not dependencies:
+                continue
+            if target_name not in target_map:
+                continue
+            lines = ['This target was affected by the following files:']
+            lines += ['    {}'.format(f) for f in dependencies]
+            message = BazelTargetMessage(
+                text='\n'.join(lines),
+                target=target_map[target_name],
+            )
+            db.session.add(message)
+
     def create_expanded_jobstep(self, base_jobstep, new_jobphase, future_jobstep, skip_setup_teardown=False):
         """
         Converts an expanded FutureJobstep into a JobStep and sets up its commands accordingly.
@@ -490,35 +526,7 @@ class DefaultBuildStep(BuildStep):
             new_command = future_command.as_command(new_jobstep, index)
             db.session.add(new_command)
 
-        # create bazel targets if necessary
-        target_map = {}
-        if 'targets' in new_jobstep.data:
-            for target_name in new_jobstep.data['targets']:
-                target = BazelTarget(
-                    step=new_jobstep,
-                    job_id=new_jobstep.job_id,
-                    name=target_name,
-                    status=Status.in_progress,
-                    result=Result.unknown,
-                    result_source=ResultSource.from_self,
-                )
-                db.session.add(target)
-                target_map[target_name] = target
-
-        # process dependency_map if it exists
-        dependency_map = new_jobstep.data.get('dependency_map', {})
-        for target_name, dependencies in dependency_map.iteritems():
-            if not dependencies:
-                continue
-            if target_name not in target_map:
-                continue
-            lines = ['This target was affected by the following files:']
-            lines += ['    {}'.format(f) for f in dependencies]
-            message = BazelTargetMessage(
-                text='\n'.join(lines),
-                target=target_map[target_name],
-            )
-            db.session.add(message)
+        self._create_targets_for_jobstep(new_jobstep)
 
         return new_jobstep
 

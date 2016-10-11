@@ -41,6 +41,13 @@ class BazelTargetsExpanderTest(TestCase):
                 'artifact_search_path': 'path'
             }).validate()
 
+        with pytest.raises(AssertionError):
+            self.get_expander({
+                'affected_targets': [],
+                'cmd': 'echo {target_names}',
+                'artifact_search_path': [],  # wrong type
+            }).validate()
+
         self.get_expander({
             'affected_targets': [],
             'unaffected_targets': [],
@@ -108,6 +115,7 @@ class BazelTargetsExpanderTest(TestCase):
             ['//foo/bar/test_buz:test'])
         assert results[0].data['shard_count'] == 2
         assert results[0].data['artifact_search_path'] == 'artifacts/'
+        assert 'dependency_map' not in results[0].data
         assert results[0].commands[0].label == results[0].label
         assert results[0].commands[0].script == results[0].label
 
@@ -118,8 +126,35 @@ class BazelTargetsExpanderTest(TestCase):
             ['//foo/bar:test', '//foo/baz:target', '//foo/bar/test_biz:test'])
         assert results[1].data['shard_count'] == 2
         assert results[1].data['artifact_search_path'] == 'artifacts/'
+        assert 'dependency_map' not in results[1].data
         assert results[1].commands[0].label == results[1].label
         assert results[1].commands[0].script == results[1].label
+
+    @patch.object(BazelTargetsExpander, 'get_target_stats')
+    def test_expand_dependency(self, mock_get_target_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        mock_get_target_stats.return_value = {
+            '//foo/bar:test': 50,
+        }, 50
+
+        results = list(self.get_expander({
+            'cmd': 'bazel test {target_names}',
+            'affected_targets': [
+                '//foo/bar:test',
+            ],
+            'unaffected_targets': [],
+            'artifact_search_path': 'artifacts/',
+            'dependency_map': {
+                '//foo/bar:test': ['foo/bar/test.sh'],
+            },
+        }).expand(job=job, max_executors=1))
+
+        assert len(results) == 1
+        assert results[0].data['dependency_map'] == {
+            '//foo/bar:test': ['foo/bar/test.sh'],
+        }
 
     @patch.object(BazelTargetsExpander, 'get_target_stats')
     def test_expand_with_selective_testing(self, mock_get_target_stats):
