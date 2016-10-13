@@ -1,13 +1,18 @@
+import logging
 
 from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint, ForeignKeyConstraint
+from typing import Optional  # NOQA
 from uuid import uuid4
 
 from changes.config import db
 from changes.db.types.guid import GUID
 from changes.db.types.json import JSONEncodedDict
+
+
+logger = logging.getLogger(__name__)
 
 
 class Source(db.Model):
@@ -60,6 +65,11 @@ class Source(db.Model):
             self.date_created = datetime.utcnow()
 
     def generate_diff(self):
+        """
+        This function tries to generate a diff for this source, returning
+        None if it fails.
+        """
+        # type: () -> Optional[str]
         diff = None
 
         if self.patch:
@@ -70,10 +80,14 @@ class Source(db.Model):
                 try:
                     diff = vcs.export(self.revision_sha)
                 except Exception:
-                    pass
+                    logger.exception('Error getting diff from VCS for source id %s', self.id.hex)
 
         if isinstance(diff, bytes):
-            diff = diff.decode('utf-8')
+            try:
+                diff = diff.decode('utf-8')
+            except UnicodeDecodeError:
+                logger.exception('Error parsing unicode for source id %s', self.id.hex)
+                diff = None
 
         return diff
 
