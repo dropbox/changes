@@ -4,9 +4,11 @@ from typing import Dict, List, Tuple  # NOQA
 
 from changes.api.client import api_client
 from changes.config import db, statsreporter
-from changes.constants import ResultSource, SelectiveTestingPolicy
+from changes.constants import Result, ResultSource, SelectiveTestingPolicy, Status
 from changes.expanders.base import Expander
 from changes.models.bazeltarget import BazelTarget
+from changes.models.bazeltargetmessage import BazelTargetMessage
+from changes.models.buildmessage import BuildMessage
 from changes.models.command import FutureCommand
 from changes.models.job import Job
 from changes.models.jobstep import FutureJobStep
@@ -48,6 +50,8 @@ class BazelTargetsExpander(Expander):
             assert isinstance(self.data[required], value_type), 'Required attribute ``{}`` must have type {}'.format(required, value_type)
         for (optional, value_type) in [
             ('dependency_map', dict),
+            ('excluded_targets', list),
+            ('messages', list),
         ]:
             if optional in self.data:
                 assert isinstance(self.data[optional], value_type), 'Optional attribute ``{}`` must have type {}'.format(optional, value_type)
@@ -77,6 +81,28 @@ class BazelTargetsExpander(Expander):
                     result_source=ResultSource.from_parent,
                 )
                 db.session.add(target_object)
+
+        excluded_targets = self.data.get('excluded_targets')
+        if excluded_targets:
+            for target in excluded_targets:
+                target_object = BazelTarget(
+                    job=job,
+                    name=target,
+                    result=Result.skipped,
+                    status=Status.finished,
+                )
+                db.session.add(target_object)
+                target_message = BazelTargetMessage(
+                    target=target_object,
+                    text='This target was excluded by a tag.'
+                )
+                db.session.add(target_message)
+
+        messages = self.data.get('messages')
+        if messages:
+            for text in messages:
+                message = BuildMessage(build_id=job.build_id, text=text)
+                db.session.add(message)
 
         groups = shard(to_shard, max_executors,
                        target_stats, avg_time)

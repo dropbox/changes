@@ -8,6 +8,7 @@ from changes.config import db
 from changes.constants import Status, Result, ResultSource, SelectiveTestingPolicy
 from changes.expanders.bazel_targets import BazelTargetsExpander
 from changes.models.bazeltarget import BazelTarget
+from changes.models.buildmessage import BuildMessage
 from changes.testutils import TestCase
 
 
@@ -155,6 +156,67 @@ class BazelTargetsExpanderTest(TestCase):
         assert results[0].data['dependency_map'] == {
             '//foo/bar:test': ['foo/bar/test.sh'],
         }
+
+    @patch.object(BazelTargetsExpander, 'get_target_stats')
+    def test_expand_excluded_target(self, mock_get_target_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        mock_get_target_stats.return_value = {
+            '//foo/bar:test': 50,
+        }, 50
+
+        list(self.get_expander({
+            'cmd': 'bazel test {target_names}',
+            'affected_targets': [
+                '//foo/bar:test',
+            ],
+            'unaffected_targets': [],
+            'artifact_search_path': 'artifacts/',
+            'excluded_targets': [
+                '//foo/bar/test_biz:test',
+                '//foo/bar/test_buz:test',
+            ]
+        }).expand(job=job, max_executors=1))
+
+        db.session.commit()
+        for excluded in ['//foo/bar/test_biz:test', '//foo/bar/test_buz:test']:
+            assert BazelTarget.query.filter(
+                BazelTarget.name == excluded,
+                BazelTarget.job == job,
+                BazelTarget.result == Result.skipped,
+                BazelTarget.status == Status.finished,
+                BazelTarget.result_source == ResultSource.from_self,
+            ).count() == 1
+
+    @patch.object(BazelTargetsExpander, 'get_target_stats')
+    def test_expand_with_messages(self, mock_get_target_stats):
+        project = self.create_project()
+        build = self.create_build(project)
+        job = self.create_job(build)
+        mock_get_target_stats.return_value = {
+            '//foo/bar:test': 50,
+        }, 50
+
+        list(self.get_expander({
+            'cmd': 'bazel test {target_names}',
+            'affected_targets': [
+                '//foo/bar:test',
+            ],
+            'unaffected_targets': [],
+            'artifact_search_path': 'artifacts/',
+            'messages': [
+                'this is message 1',
+                'this is message 2',
+            ]
+        }).expand(job=job, max_executors=1))
+
+        db.session.commit()
+        for text in ['this is message 1', 'this is message 2']:
+            assert BuildMessage.query.filter(
+                BuildMessage.build == build,
+                BuildMessage.text == text,
+            ).count() == 1
 
     @patch.object(BazelTargetsExpander, 'get_target_stats')
     def test_expand_with_selective_testing(self, mock_get_target_stats):
